@@ -1,8 +1,8 @@
 ;; Matrices
 ;; Liam Healy 2008-04-15 21:57:52EDT matrix.lisp
-;; Time-stamp: <2010-06-29 22:10:48EDT matrix.lisp>
+;; Time-stamp: <2012-01-13 12:01:35EST matrix.lisp>
 ;;
-;; Copyright 2008, 2009 Liam M. Healy
+;; Copyright 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 ;;;; Mathematical
 ;;;;****************************************************************************
 
-(defmfun set-identity ((matrix matrix))
+(defmfun set-identity ((matrix grid:matrix))
   ("gsl_matrix" :type "_set_identity")
   (((mpointer matrix) :pointer))
   :definition :generic
@@ -43,11 +43,10 @@
 ;;;; Copying rows and columns
 ;;;;****************************************************************************
 
-(defmfun row
-    ((matrix matrix) i
+(defmfun row ((matrix grid:matrix) i
      &optional (vector (grid:make-foreign-array element-type :dimensions (dim1 matrix))))
   ("gsl_matrix" :type "_get_row")
-  (((mpointer vector) :pointer) ((mpointer matrix) :pointer) (i sizet))
+  (((mpointer vector) :pointer) ((mpointer matrix) :pointer) (i :sizet))
   :definition :generic
   :inputs (matrix)
   :outputs (vector)
@@ -57,9 +56,9 @@
    into the vector.  The length of the vector must be the
    same as the length of the row.")
 
-(defmfun (setf row) ((vector vector) (matrix matrix) i)
+(defmfun (setf row) ((vector vector) (matrix grid:matrix) i)
   ("gsl_matrix" :type "_set_row")
-  (((mpointer matrix) :pointer) (i sizet) ((mpointer vector) :pointer))
+  (((mpointer matrix) :pointer) (i :sizet) ((mpointer vector) :pointer))
   :definition :generic
   :inputs (vector matrix)
   :outputs (matrix)
@@ -68,11 +67,10 @@
   "Copy the elements of the vector into the jth row of the matrix.
   The length of the vector must be the same as the length of the row.")
 
-(defmfun column
-    ((matrix matrix) i
+(defmfun column ((matrix grid:matrix) i
      &optional (vector (grid:make-foreign-array element-type :dimensions (dim0 matrix))))
   ("gsl_matrix" :type "_get_col")
-  (((mpointer vector) :pointer) ((mpointer matrix) :pointer) (i sizet))
+  (((mpointer vector) :pointer) ((mpointer matrix) :pointer) (i :sizet))
   :definition :generic
   :inputs (matrix)
   :outputs (vector)
@@ -82,9 +80,9 @@
    into the vector.  The length of the vector must be the
    same as the length of the column.")
 
-(defmfun (setf column) ((vector vector) (matrix matrix) i)
+(defmfun (setf column) ((vector vector) (matrix grid:matrix) i)
   ("gsl_matrix" :type "_set_col")
-  (((mpointer matrix) :pointer) (i sizet) ((mpointer vector) :pointer))
+  (((mpointer matrix) :pointer) (i :sizet) ((mpointer vector) :pointer))
   :definition :generic
   :inputs (vector matrix)
   :outputs (matrix)
@@ -97,9 +95,9 @@
 ;;;; Exchanging rows and columns
 ;;;;****************************************************************************
 
-(defmfun swap-rows ((matrix matrix) i j)
+(defmfun swap-rows ((matrix grid:matrix) i j)
   ("gsl_matrix" :type "_swap_rows")
-  (((mpointer matrix) :pointer) (i sizet) (j sizet))
+  (((mpointer matrix) :pointer) (i :sizet) (j :sizet))
   :definition :generic
   :return (matrix)
   :inputs (matrix)
@@ -107,9 +105,9 @@
   :documentation 			; FDL
   "Exchange the ith and jth rows of the matrix in-place.")
 
-(defmfun swap-columns ((matrix matrix) i j)
+(defmfun swap-columns ((matrix grid:matrix) i j)
   ("gsl_matrix" :type "_swap_columns")
-  (((mpointer matrix) :pointer) (i sizet) (j sizet))
+  (((mpointer matrix) :pointer) (i :sizet) (j :sizet))
   :definition :generic
   :return (matrix)
   :inputs (matrix)
@@ -117,9 +115,9 @@
   :documentation 			; FDL
   "Exchange the ith and jth columns of the matrix in-place.")
 
-(defmfun swap-row-column ((matrix matrix) i j)
+(defmfun swap-row-column ((matrix grid:matrix) i j)
   ("gsl_matrix" :type "_swap_rowcol")
-  (((mpointer matrix) :pointer) (i sizet) (j sizet))
+  (((mpointer matrix) :pointer) (i :sizet) (j :sizet))
   :definition :generic
   :return (matrix)
   :inputs (matrix)
@@ -129,7 +127,7 @@
    matrix in-place.  The matrix must be square for this operation to
    be possible.")
 
-(defmfun matrix-transpose* ((matrix matrix))
+(defmfun matrix-transpose* ((matrix grid:matrix))
   ("gsl_matrix" :type "_transpose")
   (((mpointer matrix) :pointer))
   :definition :generic
@@ -142,10 +140,10 @@
    operation to be possible.")
 
 (defmfun matrix-transpose
-    ((source matrix)
+    ((source grid:matrix)
      &optional
      (destination
-      (grid:make-foreign-array element-type :dimensions (reverse (dimensions source)))))
+      (grid:make-foreign-array element-type :dimensions (reverse (grid:dimensions source)))))
   ("gsl_matrix" :type "_transpose_memcpy")
   (((mpointer destination) :pointer) ((mpointer source) :pointer))
   :definition :generic

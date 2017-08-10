@@ -1,6 +1,6 @@
 ;; Regression test LEGENDRE for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -41,7 +41,7 @@
                         (MULTIPLE-VALUE-LIST
                          (LET ((ARR (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :DIMENSIONS 4)))
                            (LEGENDRE-PL-ARRAY 0.5d0 ARR)
-                           (GRID:COPY-TO ARR))))
+                           (GRID:COPY-TO ARR 'array 'double-float))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST 0.3128529498822064d0 1.3893461931245028d-16)
                         (MULTIPLE-VALUE-LIST (LEGENDRE-Q0 3.3d0)))
@@ -59,7 +59,7 @@
                         (MULTIPLE-VALUE-LIST
                          (LET ((ARR (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :DIMENSIONS 4)))
                            (LEGENDRE-PLM-ARRAY 2 0.5d0 ARR)
-                           (GRID:COPY-TO ARR))))
+                           (GRID:COPY-TO ARR 'array 'double-float))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST #(-3.0d0 3.75d0 33.75d0 55.78125d0))
                         (MULTIPLE-VALUE-LIST
@@ -67,7 +67,7 @@
                                (DERIV
                                 (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :DIMENSIONS 4)))
                            (LEGENDRE-PLM-DERIV-ARRAY 2 0.5d0 VAL DERIV)
-                           (GRID:COPY-TO DERIV))))
+                           (GRID:COPY-TO DERIV 'array 'double-float))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST 0.30366280894310793d0 3.5267592419993454d-14)
                         (MULTIPLE-VALUE-LIST
@@ -79,7 +79,7 @@
                         (MULTIPLE-VALUE-LIST
                          (LET ((ARR (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :DIMENSIONS 4)))
                            (LEGENDRE-SPHPLM-ARRAY 4 0.5d0 ARR)
-                           (GRID:COPY-TO ARR))))
+                           (GRID:COPY-TO ARR 'array 'double-float))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST
                          #(-0.6637990386674741d0 -0.2751965434323283d0
@@ -89,7 +89,7 @@
                                (DERIV
                                 (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :DIMENSIONS 4)))
                            (LEGENDRE-SPHPLM-DERIV-ARRAY 4 0.5d0 VAL DERIV)
-                           (GRID:COPY-TO DERIV))))
+                           (GRID:COPY-TO DERIV 'array 'double-float))))
                        (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
                         (LIST -0.1255299048878925d0 1.3395992025650077d-15)
                         (MULTIPLE-VALUE-LIST
@@ -131,5 +131,5 @@
                         (MULTIPLE-VALUE-LIST
                          (LET ((ARR (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :DIMENSIONS 4)))
                            (LEGENDRE-H3D-ARRAY 1.0d0 0.5d0 ARR)
-                           (GRID:COPY-TO ARR)))))
+                           (GRID:COPY-TO ARR 'array 'double-float)))))
 

@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:floor} number @&optional divisor
+@findex antik:floor
+Greatest multiple of divisor less than number.
+@end deffn

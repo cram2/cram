@@ -1,8 +1,8 @@
 ;; Combinations
 ;; Liam Healy, Sun Mar 26 2006 - 11:51
-;; Time-stamp: <2010-07-16 17:14:03EDT combination.lisp>
+;; Time-stamp: <2016-06-14 23:37:59EDT combination.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009, 2010 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2016 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -33,14 +33,14 @@
 
 (defmethod initialize-instance :after
     ((object combination) &key range dimensions &allow-other-keys)
-  (let ((mptr (cffi:foreign-alloc 'gsl-combination-c)))
+  (let ((mptr (cffi:foreign-alloc '(:struct gsl-combination-c))))
     (setf (grid:metadata-slot object 'mpointer)
 	  mptr
-	  (cffi:foreign-slot-value mptr 'gsl-combination-c 'data)
-	  (foreign-pointer object)
-	  (cffi:foreign-slot-value mptr 'gsl-combination-c 'range)
+	  (cffi:foreign-slot-value mptr '(:struct gsl-combination-c) 'data)
+	  (grid:foreign-pointer object)
+	  (cffi:foreign-slot-value mptr '(:struct gsl-combination-c) 'range)
 	  range
-	  (cffi:foreign-slot-value mptr 'gsl-combination-c 'size)
+	  (cffi:foreign-slot-value mptr '(:struct gsl-combination-c) 'size)
 	  (first dimensions))
     (tg:finalize object (lambda () (cffi:foreign-free mptr)))))
 
@@ -56,7 +56,7 @@
 	     (make-instance
 	      'combination
 	      :element-type '(unsigned-byte #+int64 64 #+int32 32)
-	      :range (combination-range n) :dimensions (dimensions k))
+	      :range (combination-range n) :dimensions (grid:dimensions k))
 	     (make-instance
 	      'combination
 	      :element-type '(unsigned-byte #+int64 64 #+int32 32)
@@ -123,7 +123,7 @@
 (defmfun combination-range (c)
   "gsl_combination_n"
   (((mpointer c) :pointer))
-  :c-return sizet
+  :c-return :sizet
   :inputs (c)
   :documentation			; FDL
   "The range (n), or maximum possible value (n in the (n k) notation)
@@ -133,7 +133,7 @@
   "gsl_combination_k"
   (((mpointer c) :pointer))
   :definition :method
-  :c-return sizet
+  :c-return :sizet
   :documentation			; FDL
   "The number of elements (k) in the combination c.")
 

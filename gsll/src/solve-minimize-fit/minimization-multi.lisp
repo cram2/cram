@@ -1,8 +1,8 @@
 ;; Multivariate minimization.
 ;; Liam Healy  <Tue Jan  8 2008 - 21:28>
-;; Time-stamp: <2010-07-13 11:45:28EDT minimization-multi.lisp>
+;; Time-stamp: <2016-06-15 23:07:48EDT minimization-multi.lisp>
 ;;
-;; Copyright 2008, 2009 Liam M. Healy
+;; Copyright 2008, 2009, 2011, 2012, 2016 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -44,16 +44,16 @@
 
 (defmobject multi-dimensional-minimizer-f
     "gsl_multimin_fminimizer"
-  ((type :pointer) ((first dimensions) sizet))
+  ((type :pointer) ((first dimensions) :sizet))
   "multi-dimensional minimizer with function only"
   :documentation			; FDL
-  "Make an instance of a minimizer of the given for an function of the
-   given dimensions.  Optionally initialize the minimizer to minimize
-   the function starting from the initial point.  The size of the
-   initial trial steps is given in vector step-size. The precise
-   meaning of this parameter depends on the method used."
+  "Make an instance of a minimizer for a function of the given
+   dimensions without derivative.  Optionally initialize the minimizer
+   to minimize the function starting from the initial point.  The size
+   of the initial trial steps is given in vector step-size. The
+   precise meaning of this parameter depends on the method used."
   :callbacks
-  (callback fnstruct-dimension (dimension)
+  (callback (:struct fnstruct-dimension) (dimension)
 	    (function :double (:input :double :foreign-array dim0) :slug))
   :initialize-suffix "set"
   :initialize-args ;; Could have one fewer argument: dimension=(dim0 initial)
@@ -63,21 +63,20 @@
 
 (defmobject multi-dimensional-minimizer-fdf
     "gsl_multimin_fdfminimizer"
-  ((type :pointer) ((first dimensions) sizet))
+  ((type :pointer) ((first dimensions) :sizet))
   "multi-dimensional minimizer with function and derivative"
   :documentation			; FDL
-  "Make an instance of a derivative-based minimizer of the given for
-   an function of the given dimensions.  Optionally initialize the
-   minimizer to minimize the function starting from the initial point.
-   The size of the first trial step is given by step-size.  The
-   accuracy of the line minimization is specified by tolernace.  The
-   precise meaning of this parameter depends on the method used.
-   Typically the line minimization is considered successful if the
-   gradient of the function g is orthogonal to the current search
-   direction p to a relative accuracy of tolerance, where dot(p,g) <
-   tol |p| |g|."
+  "Make an instance of a minimizer for a function of the given
+   dimensions with a derivative.  Optionally initialize the minimizer
+   to minimize the function starting from the initial point.  The size
+   of the first trial step is given by step-size.  The accuracy of the
+   line minimization is specified by tolernace.  The precise meaning
+   of this parameter depends on the method used.  Typically the line
+   minimization is considered successful if the gradient of the
+   function g is orthogonal to the current search direction p to a
+   relative accuracy of tolerance, where dot(p,g) < tol |p| |g|."
   :callbacks
-  (callback fnstruct-dimension-fdf (dimension)
+  (callback (:struct fnstruct-dimension-fdf) (dimension)
 	    (function :double (:input :double :foreign-array dim0) :slug)
 	    (df :void
 		(:input :double :foreign-array dim0) :slug
@@ -314,7 +313,6 @@
 
 (defmpar +simplex-nelder-mead+
     "gsl_multimin_fminimizer_nmsimplex2"
-  ;; FDL
   "The Simplex algorithm of Nelder and Mead. It constructs 
    n vectors p_i from the
    starting vector initial and the vector step-size as follows:
@@ -346,6 +344,11 @@
    distance, which has the advantage of allowing a linear update."
   :gsl-version (1 12))
 
+(defmpar +simplex-nelder-mead-random+
+  "gsl_multimin_fminimizer_nmsimplex2rand"
+  "This method is a variant of @code{nmsimplex2} which initialises the simplex around the starting point @var{x} using a randomly-oriented set of basis vectors instead of the fixed coordinate axes. The final dimensions of the simplex are scaled along the coordinate axes by the vector @var{step_size}.  The randomisation uses a simple deterministic generator so that repeated calls to @code{gsl_multimin_fminimizer_set} for a given solver object will vary the orientation in a well-defined way.")
+
+
 ;;;;****************************************************************************
 ;;;; Examples
 ;;;;****************************************************************************
@@ -372,25 +375,27 @@
     (let ((minimizer
 	   (make-multi-dimensional-minimizer-f
 	    method 2 'paraboloid-scalar
-	    #m(5.0d0 7.0d0) step-size)))
+	    (grid:make-foreign-array
+	     'double-float :initial-contents '(5.0d0 7.0d0))
+	    step-size)))
       (loop with status = T and size
-	 for iter from 0 below 100
-	 while status
-	 do (iterate minimizer)
-	 (setf size
-	       (size minimizer)
-	       status
-	       (not (min-test-size size 1.0d-2)))
-	 (when print-steps
-	   (let ((x (solution minimizer)))
-	     (format t "~d~6t~10,6f~18t~10,6f~28t~12,9f~40t~8,3f~&"
-		     iter (grid:gref x 0) (grid:gref x 1)
-		     (function-value minimizer)
-		     size)))
-	 finally
+	    for iter from 0 below 100
+	    while status
+	    do (iterate minimizer)
+	       (setf size
+		     (size minimizer)
+		     status
+		     (not (min-test-size size 1.0d-2)))
+	       (when print-steps
+		 (let ((x (solution minimizer)))
+		   (format t "~d~6t~10,6f~18t~10,6f~28t~12,9f~40t~8,3f~&"
+			   iter (grid:aref x 0) (grid:aref x 1)
+			   (function-value minimizer)
+			   size)))
+	    finally
 	 (return
 	   (let ((x (solution minimizer)))
-	     (values (grid:gref x 0) (grid:gref x 1) (function-value minimizer))))))))
+	     (values (grid:aref x 0) (grid:aref x 1) (function-value minimizer))))))))
 
 ;;; Example using derivatives, taking a vector argument.
 ;;; Note that these functions are written to read mpointers to
@@ -403,9 +408,9 @@
   ;; An alternative access to the passed-in vector would be to
   ;; bind a variable to
   ;; (make-foreign-array-from-mpointer mpointer 'double-float :vector)
-  ;; and then call grid:gref on it.
-  (let ((x (grid:gref xy 0))
-	(y (grid:gref xy 1))
+  ;; and then call grid:aref on it.
+  (let ((x (grid:aref xy 0))
+	(y (grid:aref xy 1))
 	(dp0 (aref *paraboloid-center* 0))
 	(dp1 (aref *paraboloid-center* 1)))
     (+ (* 10 (expt (- x dp0) 2))
@@ -413,19 +418,19 @@
        30)))
 
 (defun paraboloid-derivative (xy output)
-  (let ((x (grid:gref xy 0))
-	(y (grid:gref xy 1))
+  (let ((x (grid:aref xy 0))
+	(y (grid:aref xy 1))
 	(dp0 (aref *paraboloid-center* 0))
 	(dp1 (aref *paraboloid-center* 1)))
-    (setf (grid:gref output 0)
+    (setf (grid:aref output 0)
 	  (* 20 (- x dp0))
-	  (grid:gref output 1)
+	  (grid:aref output 1)
 	  (* 40 (- y dp1)))))
 
 (defun paraboloid-and-derivative
     (arguments-gv-pointer value-pointer derivative-gv-pointer)
   (prog1
-      (setf (grid:gref value-pointer 0)
+      (setf (grid:aref value-pointer 0)
 	    (paraboloid-vector arguments-gv-pointer))
     (paraboloid-derivative
      arguments-gv-pointer derivative-gv-pointer)))
@@ -437,16 +442,18 @@
    paraboloid-vector and paraboloid-derivative expect vectors.
    Contrast this with multimin-example-derivative-scalars, which
    expects and returns the scalar components."
-  (let* ((initial #m(5.0d0 7.0d0))
+  (let* ((initial
+	  (grid:make-foreign-array
+	   'double-float :initial-contents '(5.0d0 7.0d0)))
 	 (minimizer
 	  (make-multi-dimensional-minimizer-fdf
 	   method 2
 	   '(paraboloid-vector paraboloid-derivative paraboloid-and-derivative)
 	   initial 0.01d0 1.0d-4 nil)))
     (loop with status = T
-       for iter from 0 below 100
-       while status
-       do
+	  for iter from 0 below 100
+	  while status
+	  do
        (iterate minimizer)
        (setf status
 	     (not (min-test-gradient
@@ -455,12 +462,12 @@
        (when print-steps
 	 (let ((x (solution minimizer)))
 	   (format t "~d~6t~10,6f~18t~10,6f~28t~12,9f~&"
-		   iter (grid:gref x 0) (grid:gref x 1)
+		   iter (grid:aref x 0) (grid:aref x 1)
 		   (function-value minimizer))))
-       finally
+	  finally
        (return
 	 (let ((x (solution minimizer)))
-	   (values (grid:gref x 0) (grid:gref x 1) (function-value minimizer)))))))
+	   (values (grid:aref x 0) (grid:aref x 1) (function-value minimizer)))))))
 
 (defun paraboloid-derivative-scalar (x y)
   (let ((dp0 (aref *paraboloid-center* 0))
@@ -481,16 +488,18 @@
    paraboloid-scalar and paraboloid-derivative-scalar expect scalars.
    Contrast this with multimin-example-derivative, which
    expects and returns vectors."
-  (let* ((initial #m(5.0d0 7.0d0))
+  (let* ((initial
+	  (grid:make-foreign-array
+	   'double-float :initial-contents '(5.0d0 7.0d0)))
 	 (minimizer
 	  (make-multi-dimensional-minimizer-fdf
 	   method 2
 	   '(paraboloid-scalar paraboloid-derivative-scalar paraboloid-and-derivative-scalar)
 	   initial 0.01d0 1.0d-4 t)))
     (loop with status = T
-       for iter from 0 below 100
-       while status
-       do
+	  for iter from 0 below 100
+	  while status
+	  do
        (iterate minimizer)
        (setf status
 	     (not (min-test-gradient
@@ -499,12 +508,12 @@
        (when print-steps
 	 (let ((x (solution minimizer)))
 	   (format t "~d~6t~10,6f~18t~10,6f~28t~12,9f~&"
-		   iter (grid:gref x 0) (grid:gref x 1)
+		   iter (grid:aref x 0) (grid:aref x 1)
 		   (function-value minimizer))))
-       finally
+	  finally
        (return
 	 (let ((x (solution minimizer)))
-	   (values (grid:gref x 0) (grid:gref x 1) (function-value minimizer)))))))
+	   (values (grid:aref x 0) (grid:aref x 1) (function-value minimizer)))))))
 
 (save-test minimization-multi
  (multimin-example-no-derivative +simplex-nelder-mead-on2+ nil)

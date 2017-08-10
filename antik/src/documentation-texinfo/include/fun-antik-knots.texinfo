@@ -1,0 +1,5 @@
+@deffn {Function} {antik:knots} breakpoints workspace
+@findex antik:knots
+Compute the knots associated with the given breakpoints and store
+   them in the workspace.
+@end deffn

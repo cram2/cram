@@ -15,7 +15,7 @@
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">https://github.com/trivial-garbage/trivial-garbage.git</url>
-  <!--external-version>5adca9908632124ca28bd17355ac281352fd97cb</external-version-->
+  <!--external-version>trivial-garbage-20150113-git</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 

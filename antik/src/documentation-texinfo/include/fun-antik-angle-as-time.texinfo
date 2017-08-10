@@ -1,0 +1,5 @@
+@deffn {Function} {antik:angle-as-time} angle @&optional normalize
+@findex antik:angle-as-time
+Convert the angle to a time (interval), where one revolution is a
+   complete day.
+@end deffn

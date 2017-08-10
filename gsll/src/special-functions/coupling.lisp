@@ -1,6 +1,6 @@
 ;; Coupling coefficients
 ;; Liam Healy, Sun Mar 19 2006 - 13:30
-;; Time-stamp: <2009-12-27 10:10:06EST coupling.lisp>
+;; Time-stamp: <2011-10-29 23:24:21EDT coupling.lisp>
 ;;
 ;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -35,7 +35,7 @@ section are declared in the header file gsl_sf_coupling.h.
   "gsl_sf_coupling_3j_e" 
   ((two-ja :int) (two-jb :int) (two-jc :int)
    (two-ma :int) (two-mb :int) (two-mc :int)
-   (ret sf-result))
+   (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Wigner 3-j coefficient, 
   \pmatrix{ja & jb & jc\cr
@@ -47,7 +47,7 @@ section are declared in the header file gsl_sf_coupling.h.
   "gsl_sf_coupling_6j_e" 
   ((two-ja :int) (two-jb :int) (two-jc :int)
    (two-jd :int) (two-je :int) (two-jf :int)
-   (ret sf-result))
+   (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Wigner 6-j coefficient, 
    ja & jb & jc
@@ -61,7 +61,7 @@ section are declared in the header file gsl_sf_coupling.h.
   ((two-ja :int) (two-jb :int) (two-jc :int)
    (two-jd :int) (two-je :int) (two-jf :int)
    (two-jg :int) (two-jh :int) (two-ji :int)
-   (ret sf-result))
+   (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Wigner 9-j coefficient, 
   ja & jb & jc

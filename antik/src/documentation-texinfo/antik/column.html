@@ -1,0 +1,58 @@
+<html lang="en">
+<head>
+<title>column - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Composition-functions.html#Composition-functions" title="Composition functions">
+<link rel="prev" href="codimension_002done_002dsubspace.html#codimension_002done_002dsubspace" title="codimension-one-subspace">
+<link rel="next" href="concatenate_002dgrids.html#concatenate_002dgrids" title="concatenate-grids">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="column"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="concatenate_002dgrids.html#concatenate_002dgrids">concatenate-grids</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="codimension_002done_002dsubspace.html#codimension_002done_002dsubspace">codimension-one-subspace</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Composition-functions.html#Composition-functions">Composition functions</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.3.4.2 column</h5>
+
+<p><a name="index-Grid_002c-column-146"></a><a name="index-Matrix_002c-column-147"></a><a name="index-Column-of-grid-or-matrix-148"></a>
+
+<div class="defun">
+&mdash; Function: <b>grid:column</b><var> grid index &amp;optional destination<a name="index-grid_003acolumn-149"></a></var><br>
+<blockquote><p><a name="index-grid_003acolumn-150"></a>The subgrid with the second index set to the specified value. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>(setf grid:column)</b><var><a name="index-g_t_0028setf-grid_003acolumn_0029-151"></a></var><br>
+<blockquote><p><a name="index-g_t_0028setf-grid_003acolumn_0029-152"></a>Set the subgrid with the second index set to the specified value. 
+</p></blockquote></div>
+
+   <p>The functions <code>column</code>, <code>(setf column)</code>
+select or set the column of a matrix. 
+For example, the first column of the above array is
+<pre class="example">     (column (test-grid-double-float 'array '(3 4)) 0)
+     #(0.0d0 10.0d0 20.0d0)
+</pre>
+   </body></html>
+

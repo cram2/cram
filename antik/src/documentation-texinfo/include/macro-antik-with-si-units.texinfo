@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:with-si-units} @&body body
+@findex antik:with-si-units
+Use the @code{si} system of units in the body.
+@end deffn

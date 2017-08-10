@@ -1,8 +1,8 @@
 ;; Psi (digamma) functions
 ;; Liam Healy, Mon May  1 2006 - 22:11
-;; Time-stamp: <2009-12-27 10:10:00EST psi.lisp>
+;; Time-stamp: <2011-10-29 23:29:29EDT psi.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -29,20 +29,20 @@
   (:documentation "The psi, or digamma, function."))
 
 (defmfun psi  ((n integer))
-  "gsl_sf_psi_int_e" ((n :int) (ret sf-result))
+  "gsl_sf_psi_int_e" ((n :int) (ret (:pointer (:struct sf-result))))
   :definition :method
   :export t
   :documentation			; FDL
   "Domain: n integer, n > 0.")
 
 (defmfun psi ((x float))
-  "gsl_sf_psi_e" ((x :double) (ret sf-result))
+  "gsl_sf_psi_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :definition :method 
   :documentation			; FDL
   "Domain: x /= 0.0, -1.0, -2.0, ...")
 
 (defmfun psi-1+iy (x)
-  "gsl_sf_psi_1piy_e" ((x :double) (ret sf-result))
+  "gsl_sf_psi_1piy_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The real part of the digamma function
   on the line 1+i y, Re[psi(1 + i y)].")
@@ -57,13 +57,13 @@
   (:documentation "The Trigamma function."))
 
 (defmfun psi-1 ((n integer))
-  "gsl_sf_psi_1_int_e" ((n :int) (ret sf-result))
+  "gsl_sf_psi_1_int_e" ((n :int) (ret (:pointer (:struct sf-result))))
   :definition :method 
   :documentation			; FDL
   "Domain: n integer, n > 0.")
 
 (defmfun psi-1 ((x float))
-  "gsl_sf_psi_1_e" ((x :double) (ret sf-result))
+  "gsl_sf_psi_1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation			; FDL
   "Domain: x /= 0.0, -1.0, -2.0, ...")
@@ -73,7 +73,7 @@
 ;;;;****************************************************************************
 
 (defmfun psi-n (m x)
-  "gsl_sf_psi_n_e" ((m :int) (x :double) (ret sf-result))
+  "gsl_sf_psi_n_e" ((m :int) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The polygamma function psi^{(m)}(x)} for m >= 0, x > 0.")
 

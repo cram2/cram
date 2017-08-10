@@ -1,8 +1,8 @@
 ;; Eigenvectors and eigenvalues
 ;; Liam Healy, Sun May 21 2006 - 19:52
-;; Time-stamp: <2010-07-07 14:25:01EDT symmetric-hermitian.lisp>
+;; Time-stamp: <2012-01-13 12:01:32EST symmetric-hermitian.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 ;;;;****************************************************************************
 
 (defmobject eigen-symm
-    "gsl_eigen_symm" ((n sizet))
+    "gsl_eigen_symm" ((n :sizet))
     "symmetric eigenvalue workspace"
     :documentation			; FDL
     "Make a workspace for computing eigenvalues of
@@ -39,7 +39,7 @@
   is O(2n).")
 
 (defmobject eigen-symmv
-    "gsl_eigen_symmv" ((n sizet))
+    "gsl_eigen_symmv" ((n :sizet))
     "symmetric eigensystem workspace"
     :documentation			; FDL
     "Make a workspace for computing eigenvalues and
@@ -47,7 +47,7 @@
   the workspace is O(4n).")
 
 (defmobject eigen-herm
-    "gsl_eigen_herm" ((n sizet))
+    "gsl_eigen_herm" ((n :sizet))
     "Hermitian eigenvalue workspace"	; FDL
     :documentation			; FDL
     "Make a workspace for computing eigenvalues of
@@ -55,7 +55,7 @@
   is O(3n).")
 
 (defmobject eigen-hermv
-    "gsl_eigen_hermv" ((n sizet))
+    "gsl_eigen_hermv" ((n :sizet))
     "Hermitian eigensystem workspace"
     :documentation			; FDL
     "Make a workspace for computing eigenvalues and
@@ -66,8 +66,7 @@
 ;;;; Eigenvalues and eigenvectors
 ;;;;****************************************************************************
 
-(defmfun eigenvalues
-    ((A matrix)
+(defmfun eigenvalues ((A grid:matrix)
      &optional
      (eigenvalues (grid:make-foreign-array element-type :dimensions (dim0 A)))
      (ws (eltcase complex (make-eigen-herm (dim0 A))
@@ -91,11 +90,10 @@
   referenced.  The eigenvalues are stored in the vector eigenvalues and
   are unordered.")
 
-(defmfun eigenvalues-eigenvectors
-    ((A matrix)
+(defmfun eigenvalues-eigenvectors ((A grid:matrix)
      &optional
      (eigenvalues (grid:make-foreign-array element-type :dimensions (dim0 A)))
-     (eigenvectors (grid:make-foreign-array element-type :dimensions (dimensions A)))
+     (eigenvectors (grid:make-foreign-array element-type :dimensions (grid:dimensions A)))
      (ws (eltcase complex (make-eigen-hermv (dim0 A))
 		  t (make-eigen-symmv (dim0 A)))))
   (double-float "gsl_eigen_symmv"
@@ -126,7 +124,7 @@
 ;;;;****************************************************************************
 
 (defmfun sort-eigenvalues-eigenvectors
-    ((eigenvalues vector) (eigenvectors matrix) sort-type)
+    ((eigenvalues vector) (eigenvectors grid:matrix) sort-type)
   (double-float "gsl_eigen_symmv_sort"
    complex-double-float "gsl_eigen_hermv_sort")
   (((mpointer eigenvalues) :pointer) ((mpointer eigenvectors) :pointer)
@@ -161,9 +159,13 @@
 (defun eigenvalue-eigenvectors-example ()
   (let ((evecs (grid:make-foreign-array 'double-float :dimensions '(3 3)))
 	(evals (grid:make-foreign-array 'double-float :dimensions 3))
-	(mat #m(20.0d0 -10.0d0 0.0d0 ^
-		-10.0d0 30.0d0 0.0d0 ^
-		0.0d0 0.0d0 40.0d0)))
+	(mat
+	 (grid:make-foreign-array
+	  'double-float
+	  :initial-contents
+	  '((20.0d0 -10.0d0 0.0d0)
+	    (-10.0d0 30.0d0 0.0d0)
+	    (0.0d0 0.0d0 40.0d0)))))
     (eigenvalues-eigenvectors mat evals evecs)
     (values (grid:copy-to evals) (grid:copy-to evecs))))
 

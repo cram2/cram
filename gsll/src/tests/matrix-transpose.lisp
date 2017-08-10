@@ -1,6 +1,6 @@
 ;; Regression test MATRIX-TRANSPOSE for GSLL, automatically generated
 ;;
-;; Copyright 2009, 2010 Liam M. Healy
+;; Copyright 2009, 2010, 2011, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -21,17 +21,17 @@
 (LISP-UNIT:DEFINE-TEST MATRIX-TRANSPOSE*
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
-    #2A((-34.5 -8.93 49.27)
-	(8.24 34.12 -13.49)
-	(3.29 -6.15 32.5)))
+    #2A((-34.5f0 -8.93f0 49.27f0)
+	(8.24f0 34.12f0 -13.49f0)
+	(3.29f0 -6.15f0 32.5f0)))
    (MULTIPLE-VALUE-LIST
     (LET ((M1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    'SINGLE-FLOAT :INITIAL-CONTENTS
-	    '((-34.5 8.24 3.29)
-	      (-8.93 34.12 -6.15)
-	      (49.27 -13.49 32.5)))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+	    '((-34.5f0 8.24f0 3.29f0)
+	      (-8.93f0 34.12f0 -6.15f0)
+	      (49.27f0 -13.49f0 32.5f0)))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array 'single-float))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
     #2A((-34.5d0 -8.93d0 49.27d0)
@@ -44,22 +44,21 @@
 	    '((-34.5d0 8.24d0 3.29d0)
 	      (-8.93d0 34.12d0 -6.15d0)
 	      (49.27d0 -13.49d0 32.5d0)))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array 'double-float))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
-    #2A((#C(-34.5 8.24) #C(-8.93 34.12) #C(49.27 -13.49))
-	(#C(3.29 -8.93) #C(-6.15 49.27) #C(32.5 42.73))
-	(#C(34.12 -6.15) #C(-13.49 32.5)
-	   #C(-17.24 43.31))))
+    #2A((#C(-34.5f0 8.24f0) #C(-8.93f0 34.12f0) #C(49.27f0 -13.49f0))
+	(#C(3.29f0 -8.93f0) #C(-6.15f0 49.27f0) #C(32.5f0 42.73f0))
+	(#C(34.12f0 -6.15f0) #C(-13.49f0 32.5f0) #C(-17.24f0 43.31f0))))
    (MULTIPLE-VALUE-LIST
     (LET ((M1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    '(COMPLEX SINGLE-FLOAT)
 	    :INITIAL-CONTENTS
-	    '((#C(-34.5 8.24) #C(3.29 -8.93) #C(34.12 -6.15))
-	      (#C(-8.93 34.12) #C(-6.15 49.27) #C(-13.49 32.5))
-	      (#C(49.27 -13.49) #C(32.5 42.73) #C(-17.24 43.31))))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+	    '((#C(-34.5f0 8.24f0) #C(3.29f0 -8.93f0) #C(34.12f0 -6.15f0))
+	      (#C(-8.93f0 34.12f0) #C(-6.15f0 49.27f0) #C(-13.49f0 32.5f0))
+	      (#C(49.27f0 -13.49f0) #C(32.5f0 42.73f0) #C(-17.24f0 43.31f0))))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array '(complex single-float)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
     #2A((#C(-34.5d0 8.24d0) #C(-8.93d0 34.12d0)
@@ -76,7 +75,7 @@
 	    '((#C(-34.5d0 8.24d0) #C(3.29d0 -8.93d0) #C(34.12d0 -6.15d0))
 	      (#C(-8.93d0 34.12d0) #C(-6.15d0 49.27d0) #C(-13.49d0 32.5d0))
 	      (#C(49.27d0 -13.49d0) #C(32.5d0 42.73d0) #C(-17.24d0 43.31d0))))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array '(complex double-float)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST #2A((-64 -91 73) (-68 52 -5) (71 -10 123)))
    (MULTIPLE-VALUE-LIST
@@ -84,7 +83,7 @@
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    '(SIGNED-BYTE 8) :INITIAL-CONTENTS
 	    '((-64 -68 71) (-91 52 -10) (73 -5 123)))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array '(signed-byte 8)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST #2A((67 116 161) (44 163 215) (189 140 98)))
    (MULTIPLE-VALUE-LIST
@@ -93,7 +92,7 @@
 	    '(UNSIGNED-BYTE 8)
 	    :INITIAL-CONTENTS
 	    '((67 44 189) (116 163 140) (161 215 98)))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array '(unsigned-byte 8)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST #2A((-64 -91 73) (-68 52 -5) (71 -10 123)))
    (MULTIPLE-VALUE-LIST
@@ -102,7 +101,7 @@
 	    '(SIGNED-BYTE 16)
 	    :INITIAL-CONTENTS
 	    '((-64 -68 71) (-91 52 -10) (73 -5 123)))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array '(signed-byte 16)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST #2A((67 116 161) (44 163 215) (189 140 98)))
    (MULTIPLE-VALUE-LIST
@@ -111,7 +110,7 @@
 	    '(UNSIGNED-BYTE 16)
 	    :INITIAL-CONTENTS
 	    '((67 44 189) (116 163 140) (161 215 98)))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array '(unsigned-byte 16)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST #2A((-64 -91 73) (-68 52 -5) (71 -10 123)))
    (MULTIPLE-VALUE-LIST
@@ -120,7 +119,7 @@
 	    '(SIGNED-BYTE 32)
 	    :INITIAL-CONTENTS
 	    '((-64 -68 71) (-91 52 -10) (73 -5 123)))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array '(signed-byte 32)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST #2A((67 116 161) (44 163 215) (189 140 98)))
    (MULTIPLE-VALUE-LIST
@@ -129,7 +128,7 @@
 	    '(UNSIGNED-BYTE 32)
 	    :INITIAL-CONTENTS
 	    '((67 44 189) (116 163 140) (161 215 98)))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array '(unsigned-byte 32)))))
   #+int64
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST #2A((-64 -91 73) (-68 52 -5) (71 -10 123)))
@@ -139,7 +138,7 @@
 	    '(SIGNED-BYTE 64)
 	    :INITIAL-CONTENTS
 	    '((-64 -68 71) (-91 52 -10) (73 -5 123)))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1)))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array '(signed-byte 64)))))
   #+int64
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST #2A((67 116 161) (44 163 215) (189 140 98)))
@@ -149,5 +148,5 @@
 	    '(UNSIGNED-BYTE 64)
 	    :INITIAL-CONTENTS
 	    '((67 44 189) (116 163 140) (161 215 98)))))
-      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1))))))
+      (GRID:COPY-TO (MATRIX-TRANSPOSE* M1) 'array '(unsigned-byte 64))))))
 

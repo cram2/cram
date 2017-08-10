@@ -1,8 +1,8 @@
 ;; ODE system setup
 ;; Liam Healy, Sun Apr 15 2007 - 14:19
-;; Time-stamp: <2010-06-30 19:57:28EDT ode-system.lisp>
+;; Time-stamp: <2011-05-26 12:37:33EDT ode-system.lisp>
 ;;
-;; Copyright 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2007, 2008, 2009, 2010, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -27,9 +27,13 @@
 	       &key jacobian (scalarsp t) (stepper '+step-rk8pd+)
 	       (absolute-error 1.0d-6) (relative-error 0.0d0))
      &body body)
-  "Environment for integration of ordinary differential equations."
-  ;; Note: the case jacobian=nil is not properly handled yet; it
-  ;; should put a null pointer into the struct that is passed to GSL.
+  "Environment for integration of ordinary differential equations when dependent variables are individually named scalars."
+  ;; Note: If the dependent variables are in a foreign array, it is
+  ;; best to call the ODE functions directly; this macro is just
+  ;; provided as a convenience if they are separate scalars.
+  ;; Note:
+  ;; the case jacobian=nil is not properly handled yet; it should put
+  ;; a null pointer into the struct that is passed to GSL.
   (let ((dep (make-symbol "DEP"))
 	(ctime (make-symbol "CTIME"))
 	(cstep (make-symbol "CSTEP")))
@@ -43,11 +47,11 @@
 	   (,ctime (grid:make-foreign-array 'double-float :dimensions 1))
 	   (,cstep (grid:make-foreign-array 'double-float :dimensions 1)))
        (symbol-macrolet
-	   ((,time (grid:gref ,ctime 0))
-	    (,step-size (grid:gref ,cstep 0))
+	   ((,time (grid:aref ,ctime 0))
+	    (,step-size (grid:aref ,cstep 0))
 	    ,@(loop for symb in dependent
 		 for i from 0
-		 collect `(,symb (grid:gref ,dep ,i))))
+		 collect `(,symb (grid:aref ,dep ,i))))
 	 (flet ((next-step ()
 		  (apply-evolution
 		   evolve ,ctime ,dep ,cstep control stepperobj ,max-time)))

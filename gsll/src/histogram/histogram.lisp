@@ -1,8 +1,8 @@
 ;; The histogram structure
 ;; Liam Healy, Mon Jan  1 2007 - 11:32
-;; Time-stamp: <2010-07-16 17:10:12EDT histogram.lisp>
+;; Time-stamp: <2014-10-16 22:54:14EDT histogram.lisp>
 ;;
-;; Copyright 2007, 2008, 2009, 2010 Liam M. Healy
+;; Copyright 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -27,19 +27,20 @@
 
 (defmobject histogram
     "gsl_histogram"
-  ((number-of-bins sizet))
-  "one-dimensional histogram, including bin boundaries and bin contents."
+  ((number-of-bins :sizet))
+  "one-dimensional histogram, including bin boundaries and bin contents"
+  ;; Need to be able to add to docstring: 'ranges argument is a range for each bin, array of length 1+ number of bins.
   :initialize-suffix "set_ranges"
-  :initialize-args (((foreign-pointer ranges) :pointer) ((dim0 ranges) sizet)))
+  :initialize-args (((grid:foreign-pointer ranges) :pointer) ((dim0 ranges) :sizet)))
 
 (defmobject histogram2d
     "gsl_histogram2d"
-  ((number-of-bins-x sizet) (number-of-bins-y sizet))
+  ((number-of-bins-x :sizet) (number-of-bins-y :sizet))
   "two-dimensional histogram, including bin boundaries and bin contents."
   :initialize-suffix "set_ranges"
   :initialize-args
-  (((foreign-pointer x-ranges) :pointer) ((dim0 x-ranges) sizet)
-   ((foreign-pointer y-ranges) :pointer) ((dim0 y-ranges) sizet)))
+  (((grid:foreign-pointer x-ranges) :pointer) ((dim0 x-ranges) :sizet)
+   ((grid:foreign-pointer y-ranges) :pointer) ((dim0 y-ranges) :sizet)))
 
 ;;; GSL documentation does not state what the return value for the
 ;;; C function for reinitialization means; assumed to be error code.
@@ -101,8 +102,8 @@
 
 (defmethod grid:copy ((source histogram) &key destination &allow-other-keys)
   (if destination
-      (histo-copy destination source)
-      (histo-clone destination)))
+      (histo-copy source destination)
+      (histo-clone source)))
 
 (defmfun histo2d-copy (source destination)
   "gsl_histogram2d_memcpy"
@@ -126,5 +127,31 @@
 
 (defmethod grid:copy ((source histogram2d) &key destination &allow-other-keys)
   (if destination
-      (histo2d-copy destination source)
-      (histo2d-clone destination)))
+      (histo2d-copy source destination)
+      (histo2d-clone source)))
+
+;;;;****************************************************************************
+;;; Experimental direct access to vector
+;;; Note this does not grovel.
+(cffi:defcstruct histogram-c
+  (n :sizet)
+  (range :pointer)
+  (bin :pointer))
+
+(defun view-bin-as-foreign-array (histogram)
+  "A view of the histogram bin counts as a foreign array. The two objects point to the same foreign data."
+  ;; 1D histograms only so far
+  (grid:make-foreign-array-from-pointer
+   (cffi:foreign-slot-value (mpointer histogram) '(:struct histogram-c) 'bin)
+   (grid:dimensions histogram)
+   'double-float
+   nil))
+
+(defun view-range-as-foreign-array (histogram)
+  "A view of the histogram range as a foreign array. This vector has one more element than the number of bins; the first element is the lower bound of the first bin, and the last element is the upper bound of the last bin. The two objects point to the same foreign data."
+  ;; 1D histograms only so far
+  (grid:make-foreign-array-from-pointer
+   (cffi:foreign-slot-value (mpointer histogram) '(:struct histogram-c) 'range)
+   (list (1+ (grid:dim0 histogram)))
+   'double-float
+   nil))

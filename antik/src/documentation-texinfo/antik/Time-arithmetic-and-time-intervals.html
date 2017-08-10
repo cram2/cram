@@ -1,0 +1,57 @@
+<html lang="en">
+<head>
+<title>Time arithmetic and time intervals - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Physical-Quantities.html#Physical-Quantities" title="Physical Quantities">
+<link rel="prev" href="Date-and-time.html#Date-and-time" title="Date and time">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Time-arithmetic-and-time-intervals"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Date-and-time.html#Date-and-time">Date and time</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Physical-Quantities.html#Physical-Quantities">Physical Quantities</a>
+<hr>
+</div>
+
+<h3 class="section">5.6 Time arithmetic and time intervals</h3>
+
+<p><a name="index-Time-arithmetic-363"></a><a name="index-Time-intervals-364"></a><a name="index-Formatting_002c-time-365"></a><a name="index-ISO8601-366"></a>The difference of two timepoints may be used to compute a time interval, and an interval added to a timepoint to create another timepoint.  Intervals are ordinary physical dimension quantities with dimension of time, and may be format for input or output in several ways.  The reader macro <code>#d</code> and the function <code>read-time</code> will read in an interval in ISO8601 format; it should begin with &ldquo;P&rdquo; as required by that standard.
+
+   <p>All components are of fixed size; for example, a month is 30 days, and a year is 12 months.  This may produce some odd-looking results because a year will have only 360 days.
+<pre class="example">     ANTIK-USER&gt; (+ #d2011-08-01T12:00 #DP1m3d)
+     2011-09-03 12:00:00.000
+     ANTIK-USER&gt; (- #d2011-09-03T12:00:00.000 #d2011-08-01T12:00)
+     #dP1m3dT
+     ANTIK-USER&gt; (- #d2011-09-03T12:00:00.000 #d2010-09-03T12:00:00.000)
+     #dP1y5dT
+</pre>
+   <p>Formatting for an interval is specified by setting the nf parameter <code>:time</code> to <code>:tud</code> for an ISO8601 time unit designator, <code>:alternative</code> for the ISO8601 alternate, or <code>nil</code> for the physical dimension time.  Default is <code>:tud</code>.
+<pre class="example">     ANTIK-USER&gt; (set-nf-options :time :tud)
+     ANTIK-USER&gt; #_12345_seconds
+     #dPT3h25m45.000s
+     ANTIK-USER&gt; (set-nf-options :time nil)
+     NIL
+     ANTIK-USER&gt; #dP8m3dT5h
+     #_21013200.000000000000000d0_s
+</pre>
+   </body></html>
+

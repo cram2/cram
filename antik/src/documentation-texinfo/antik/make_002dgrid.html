@@ -1,0 +1,60 @@
+<html lang="en">
+<head>
+<title>make-grid - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Functions-for-creation-of-grids.html#Functions-for-creation-of-grids" title="Functions for creation of grids">
+<link rel="prev" href="make_002dsimple_002dgrid.html#make_002dsimple_002dgrid" title="make-simple-grid">
+<link rel="next" href="make_002dforeign_002darray.html#make_002dforeign_002darray" title="make-foreign-array">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="make-grid"></a>
+<a name="make_002dgrid"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="make_002dforeign_002darray.html#make_002dforeign_002darray">make-foreign-array</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="make_002dsimple_002dgrid.html#make_002dsimple_002dgrid">make-simple-grid</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Functions-for-creation-of-grids.html#Functions-for-creation-of-grids">Functions for creation of grids</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.2.4.3 make-grid</h5>
+
+<div class="defun">
+&mdash; Function: <b>grid:make-grid</b><var> specification &amp;rest keys &amp;key initial-contents initial-element &amp;allow-other-keys<a name="index-grid_003amake_002dgrid-118"></a></var><br>
+<blockquote><p><a name="index-grid_003amake_002dgrid-119"></a>Make a grid object with no or literal values specified. 
+   The specification is of the form
+   ((component-type dimensions...) ... element-type)
+   If initial-contents are specified, the dimensions may be
+   omitted,
+   ((component-type) ... element-type). 
+</p></blockquote></div>
+This is used for making any kind of grid with the same value for each
+element, or with literally specified values.  The first argument is a
+specification, which has the form <code>((grid-type dimensions)
+element-type)</code>.  The keyword arguments are <code>:initial-element</code> or
+<code>:initial-contents</code>.  For example,
+<pre class="example">     (make-foreign-array 'double-float :dimensions 3 :initial-element 77.0d0)
+     #m(77.0d0 77.0d0 77.0d0)
+     (make-grid '((foreign-array 3) double-float) :initial-element 77.0d0)
+     #m(77.0d0 77.0d0 77.0d0)
+</pre>
+   </body></html>
+

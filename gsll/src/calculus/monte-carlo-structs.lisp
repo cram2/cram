@@ -1,8 +1,8 @@
 ;; CFFI-Grovel definitions for unix systems.
 ;; Liam Healy 2009-06-06 09:32:30EDT monte-carlo-structs.lisp
-;; Time-stamp: <2010-05-23 11:36:42EDT monte-carlo-structs.lisp>
+;; Time-stamp: <2016-06-12 16:33:01EDT monte-carlo-structs.lisp>
 ;;
-;; Copyright 2009, 2010 Liam M. Healy
+;; Copyright 2009, 2010, 2012, 2016 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -31,18 +31,18 @@
 (include "gsl/gsl_monte_plain.h")
 
 (cstruct plain-state "gsl_monte_plain_state"
-  (dim "dim" :type sizet)
+  (dim "dim" :type :sizet)
   (x "x" :type :pointer))
 
 (include "gsl/gsl_monte_miser.h")
 
 (cstruct miser-state "gsl_monte_miser_state"
-  (min-calls "min_calls" :type sizet)
-  (min-calls-per-bisection "min_calls_per_bisection" :type sizet)
+  (min-calls "min_calls" :type :sizet)
+  (min-calls-per-bisection "min_calls_per_bisection" :type :sizet)
   (dither "dither" :type :double)
   (estimate-frac "estimate_frac" :type :double)
   (alpha "alpha" :type :double)
-  (dim "dim" :type sizet)
+  (dim "dim" :type :sizet)
   (estimate-style "estimate_style" :type :int)
   (depth "depth" :type :int)
   (verbose "verbose" :type :int)
@@ -61,12 +61,20 @@
   (hits-l "hits_l" :type :pointer)
   (hits-r "hits_r" :type :pointer))
 
+;;; Added with GSL 1.13
+(cstruct miser-params "gsl_monte_miser_params"
+ (function-call-variance-estimation-fraction "estimate_frac" :type :double)
+ (minimum-number-of-calls-for-variance-estimation "min_calls" :type :sizet)
+ (minimum-calls-per-bisection "min_calls_per_bisection" :type :sizet)
+ (alpha "alpha" :type :double)
+ (dither "dither" :type :double))
+
 (include "gsl/gsl_monte_vegas.h")
 
 (cstruct vegas-state "gsl_monte_vegas_state"
   ;; grid 
-  (dim "dim" :type sizet)
-  (bins-max "bins_max" :type sizet)
+  (dim "dim" :type :sizet)
+  (bins-max "bins_max" :type :sizet)
   (bins "bins" :type :uint)		       ; uint
   (boxes "boxes" :type :uint)		       ; these are both counted along the axes
   (xi "xi" :type :pointer)
@@ -84,3 +92,19 @@
   (verbose "verbose" :type :int)
   (iterations "iterations" :type :uint)
   (stage "stage" :type :int))
+
+;;; Added with GSL 1.13
+(cenum monte-carlo-vegas-mode
+ ((:stratified "GSL_VEGAS_MODE_STRATIFIED"))
+ ((:importance-only "GSL_VEGAS_MODE_IMPORTANCE_ONLY"))
+ ((:importance "GSL_VEGAS_MODE_IMPORTANCE")))
+
+;;; Added with GSL 1.13
+(cstruct vegas-params "gsl_monte_vegas_params"
+ (alpha "alpha" :type :double)
+ (iterations "iterations" :type :sizet)
+ (stage "stage" :type :int)
+ (mode "mode" :type monte-carlo-vegas-mode)
+ (verbose "verbose" :type :int)
+ (output-stream "ostream" :type :pointer))
+

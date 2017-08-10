@@ -1,6 +1,6 @@
 ;; Histogram probability distribution.
 ;; Liam Healy, Mon Jan  1 2007 - 17:51
-;; Time-stamp: <2009-12-27 09:47:39EST probability-distribution.lisp>
+;; Time-stamp: <2012-01-13 12:01:29EST probability-distribution.lisp>
 ;;
 ;; Copyright 2007, 2008, 2009 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -25,7 +25,7 @@
 
 (defmobject histogram-pdf
     "gsl_histogram_pdf"
-  ((number-of-bins sizet))
+  ((number-of-bins :sizet))
   "one-dimensional histogram PDF"
   :documentation
   "Optionally initialize the probability distribution pdf with the contents
@@ -37,7 +37,7 @@
 
 (defmobject histogram2d-pdf
     "gsl_histogram2d_pdf"
-  ((number-of-bins-x sizet) (number-of-bins-y sizet))
+  ((number-of-bins-x :sizet) (number-of-bins-y :sizet))
   "two-dimensional histogram PDF"
   :documentation
   "Optionally initialize the probability distribution pdf with the contents

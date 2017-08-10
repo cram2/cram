@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:define-parameter-category} name
+@findex antik:define-parameter-category
+Define a new category for parameters.
+@end deffn

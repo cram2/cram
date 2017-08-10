@@ -184,8 +184,12 @@ WITH-POINTER-TO-VECTOR-DATA."
     (:unsigned-int     :unsigned-int)
     (:long             :long)
     (:unsigned-long    :unsigned-long)
-    #+64bit (:long-long :nat)
-    #+64bit (:unsigned-long-long :unsigned-nat)
+    (:long-long
+     #+64bit :nat
+     #-64bit (error "this platform does not support :long-long."))
+    (:unsigned-long-long
+     #+64bit :unsigned-nat
+     #-64bit (error "this platform does not support :unsigned-long-long"))
     (:float            :float)
     (:double           :double)
     (:pointer          :unsigned-nat)
@@ -252,7 +256,7 @@ WITH-POINTER-TO-VECTOR-DATA."
 
 (defun convert-to-lisp-type (type)
   (ecase type
-    ((:char :short :int :long)
+    ((:char :short :int :long :nat)
      `(signed-byte ,(* 8 (ff:sizeof-fobject type))))
     ((:unsigned-char :unsigned-short :unsigned-int :unsigned-long :unsigned-nat)
      `(unsigned-byte ,(* 8 (ff:sizeof-fobject type))))
@@ -290,7 +294,8 @@ WITH-POINTER-TO-VECTOR-DATA."
     `(system::ff-funcall
       (load-time-value (excl::determine-foreign-address
                         '(,name :language :c)
-                        ff::ep-flag-never-release
+                        #-(version>= 8 1) ff::ep-flag-never-release
+                        #+(version>= 8 1) ff::ep-flag-always-release
                         nil ; method-index
                         ))
       ;; arg types {'(:c-type lisp-type) argN}*
@@ -312,7 +317,10 @@ WITH-POINTER-TO-VECTOR-DATA."
          ;; Don't use call-direct when there are no arguments.
          ,@(unless (null args) '(:call-direct t))
          :arg-checking nil
-         :strings-convert nil)
+         :strings-convert nil
+         #+(version>= 8 1) ,@'(:release-heap :when-ok
+                               :release-heap-ignorable t)
+         #+smp ,@'(:release-heap-implies-allow-gc t))
       `(,ff-name ,@args))))
 
 ;;; See doc/allegro-internals.txt for a clue about entry-vec.

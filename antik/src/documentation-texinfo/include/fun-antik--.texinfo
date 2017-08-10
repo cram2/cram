@@ -1,0 +1,4 @@
+@deffn {Function} {antik:-} @&rest args
+@findex antik:-
+Subtraction of generalized or regular numbers.
+@end deffn

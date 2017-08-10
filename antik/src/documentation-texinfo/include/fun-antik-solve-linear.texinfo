@@ -1,0 +1,4 @@
+@deffn {Function} {antik:solve-linear} matrix vector
+@findex antik:solve-linear
+Solve the linear algebra equation.
+@end deffn

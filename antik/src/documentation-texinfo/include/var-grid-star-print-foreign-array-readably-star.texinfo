@@ -1,0 +1,4 @@
+@defvr {Variable} {grid:*print-foreign-array-readably*}
+@vindex grid:*print-foreign-array-readably*
+Print the contents of the foreign-array with the #m reader macro.
+@end defvr

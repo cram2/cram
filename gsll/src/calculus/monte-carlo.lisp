@@ -1,8 +1,8 @@
 ;; Monte Carlo Integration
 ;; Liam Healy Sat Feb  3 2007 - 17:42
-;; Time-stamp: <2010-06-29 22:15:24EDT monte-carlo.lisp>
+;; Time-stamp: <2016-06-14 23:07:35EDT monte-carlo.lisp>
 ;;
-;; Copyright 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2007, 2008, 2009, 2011, 2012, 2016 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 
 (defmobject monte-carlo-plain
     "gsl_monte_plain"
-  ((dim sizet))
+  ((dim :sizet))
   "plain Monte Carlo integration"
   :documentation			; FDL
   "Make and initialize a workspace for Monte Carlo integration in dimension dim."
@@ -51,14 +51,14 @@
 	      (scalars t))
   "gsl_monte_plain_integrate"
   ((callback :pointer)
-   ((foreign-pointer lower-limits) :pointer) ((foreign-pointer upper-limits) :pointer)
-   ((dim0 lower-limits) sizet) (number-of-samples sizet)
+   ((grid:foreign-pointer lower-limits) :pointer) ((grid:foreign-pointer upper-limits) :pointer)
+   ((dim0 lower-limits) :sizet) (number-of-samples :sizet)
    ((mpointer generator) :pointer)
    ((mpointer state) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :inputs (lower-limits upper-limits)
   :callbacks
-  (callback fnstruct-dimension (dimension)
+  (callback (:struct fnstruct-dimension) (dimension)
 	    (function :double (:input :double :cvector dim0) :slug))
   :callback-dynamic (((dim0 lower-limits)) (function scalars))
   :documentation			; FDL
@@ -83,7 +83,7 @@
 
 (defmobject monte-carlo-miser
     "gsl_monte_miser"
-  ((dim sizet))
+  ((dim :sizet))
   "miser Monte Carlo integration"
   :documentation			; FDL
   "Make and initialize a workspace for Monte Carlo integration in
@@ -92,7 +92,38 @@
   :initialize-suffix "init"
   :initialize-args nil)
 
-(export 'miser-parameter)
+(defmfun get-mcm-parameters (object)
+  "gsl_monte_miser_params_get"
+  (((mpointer object) :pointer) (params (:pointer (:struct miser-params))))
+  :c-return :void
+  :return (params)
+  :documentation "Get all parameters, as a foreign struct, for the MISER method."
+  :export nil
+  :index parameter
+  :gsl-version (1 13))
+
+(defmethod parameter ((object monte-carlo-miser) parameter)
+  (cffi:foreign-slot-value (get-mcm-parameters object) 'miser-params parameter))
+
+(defmfun set-mcm-parameters (object params)
+  "gsl_monte_miser_params_set"
+  (((mpointer object) :pointer) (params (:pointer (:struct miser-params))))
+  :documentation "Set the parameter for the MISER method."
+  :c-return :void
+  :return (params)
+  :export nil
+  :index (setf parameter)
+  :gsl-version (1 13))
+
+(defmethod (setf parameter) (value (object monte-carlo-miser) parameter)
+  (let ((current-params (get-mcm-parameters object)))
+    (setf (cffi:foreign-slot-value current-params '(:struct miser-params) parameter)
+	  value)
+    (set-mcm-parameters object current-params)))
+
+;;; As of GSL v1.13, the API above is used to get/set the MISER parameters, so the following is removed.
+#+obsolete-gsl (export 'miser-parameter)
+#+obsolete-gsl
 (defmacro miser-parameter (workspace parameter)
   ;; FDL
   "Get or set with setf the parameter value for the MISER Monte Carlo
@@ -112,14 +143,14 @@
 	      (scalars t))
   "gsl_monte_miser_integrate"
   ((callback :pointer)
-   ((foreign-pointer lower-limits) :pointer) ((foreign-pointer upper-limits) :pointer)
-   ((dim0 lower-limits) sizet) (number-of-samples sizet)
+   ((grid:foreign-pointer lower-limits) :pointer) ((grid:foreign-pointer upper-limits) :pointer)
+   ((dim0 lower-limits) :sizet) (number-of-samples :sizet)
    ((mpointer generator) :pointer)
    ((mpointer state) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :inputs (lower-limits upper-limits)
   :callbacks
-  (callback fnstruct-dimension (dimension)
+  (callback (:struct fnstruct-dimension) (dimension)
 	    (function :double (:input :double :cvector dim0) :slug))
   :callback-dynamic (((dim0 lower-limits)) (function scalars))
   :documentation			; FDL
@@ -144,7 +175,7 @@
 
 (defmobject monte-carlo-vegas
     "gsl_monte_vegas"
-  ((dim sizet))
+  ((dim :sizet))
   "vegas Monte Carlo integration"
   :documentation			; FDL
   "Make and initialize a workspace for Monte Carlo integration in
@@ -153,7 +184,38 @@
   :initialize-suffix "init"
   :initialize-args nil)
 
+(defmfun get-mcv-parameters (object)
+  "gsl_monte_vegas_params_get"
+  (((mpointer object) :pointer) (params (:pointer (:struct vegas-params))))
+  :c-return :void
+  :return (params)
+  :documentation "Get all parameters, as a foreign struct, for the VEGAS method."
+  :export nil
+  :index parameter
+  :gsl-version (1 13))
+
+(defmethod parameter ((object monte-carlo-vegas) parameter)
+  (cffi:foreign-slot-value (get-mcv-parameters object) 'vegas-params parameter))
+
+(defmfun set-mcv-parameters (object params)
+  "gsl_monte_vegas_params_set"
+  (((mpointer object) :pointer) (params (:pointer (:struct vegas-params))))
+  :c-return :void
+  :return (params)
+  :export nil
+  :index (setf parameter)
+  :gsl-version (1 13))
+
+(defmethod (setf parameter) (value (object monte-carlo-vegas) parameter)
+  (let ((current-params (get-mcv-parameters object)))
+    (setf (cffi:foreign-slot-value current-params '(:struct vegas-params) parameter)
+	  value)
+    (set-mcv-parameters object current-params)))
+
+;;; As of GSL v1.13, the API above is used to get/set the VEGAS parameters, so the following is removed.
+#+obsolete-gsl
 (export 'vegas-parameter)
+#+obsolete-gsl
 (defmacro vegas-parameter (workspace parameter)
   ;; FDL
   "Get or set with setf the parameter value for the VEGAS Monte Carlo
@@ -173,14 +235,14 @@
 	      (scalars t))
   "gsl_monte_vegas_integrate"
   ((callback :pointer)
-   ((foreign-pointer lower-limits) :pointer) ((foreign-pointer upper-limits) :pointer)
-   ((dim0 lower-limits) sizet) (number-of-samples sizet)
+   ((grid:foreign-pointer lower-limits) :pointer) ((grid:foreign-pointer upper-limits) :pointer)
+   ((dim0 lower-limits) :sizet) (number-of-samples :sizet)
    ((mpointer generator) :pointer)
    ((mpointer state) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :inputs (lower-limits upper-limits)
   :callbacks
-  (callback fnstruct-dimension (dimension)
+  (callback (:struct fnstruct-dimension) (dimension)
 	    (function :double (:input :double :cvector dim0) :slug))
   :callback-dynamic (((dim0 lower-limits)) (function scalars))
   :documentation			; FDL
@@ -205,13 +267,16 @@
 
 (defun mcrw (x y z)
   "Example function for Monte Carlo used in random walk studies."
-  (* (/ (expt pi 3))
+  (* (/ (expt dpi 3))
      (/ (- 1 (* (cos x) (cos y) (cos z))))))
 
-(defparameter *mc-lower* #m(0.0d0 0.0d0 0.0d0))
+(defparameter *mc-lower*
+  (grid:make-foreign-array
+   'double-float :initial-contents '(0.0d0 0.0d0 0.0d0)))
 
 (defparameter *mc-upper*
-  (grid:make-foreign-array 'double-float :initial-contents (list pi pi pi)))
+  (grid:make-foreign-array
+   'double-float :initial-contents (make-list 3 :initial-element dpi)))
 
 (defun random-walk-plain-example (&optional (nsamples 500000))
   (monte-carlo-integrate-plain 'mcrw *mc-lower* *mc-upper* nsamples))

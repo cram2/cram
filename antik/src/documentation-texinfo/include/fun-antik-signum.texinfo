@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:signum} a
+@findex antik:signum
+Signum(a).
+@end deffn

@@ -1,8 +1,8 @@
 ;; Number types used by GSL functions, and specification conversion
 ;; Liam Healy 2008-12-31 21:06:34EST types.lisp
-;; Time-stamp: <2010-06-27 18:03:22EDT types.lisp>
+;; Time-stamp: <2011-10-29 16:51:58EDT types.lisp>
 ;;
-;; Copyright 2008, 2009 Liam M. Healy
+;; Copyright 2008, 2009, 2010, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -21,16 +21,12 @@
 (in-package :gsl)
 
 ;;;;****************************************************************************
-;;;; Unsigned address types size_t
+;;;; Word size
 ;;;;****************************************************************************
 
 (case (cffi:foreign-type-size :long)
-  (8
-   (push :int64 *features*)
-   #+fsbv (fsbv:defsynonym sizet :uint64))
-  (4
-   (push :int32 *features*)
-   #+fsbv (fsbv:defsynonym sizet :uint32)))
+  (8 (push :int64 *features*))
+  (4 (push :int32 *features*)))
 
 ;;;;****************************************************************************
 ;;;; Type specification conversion
@@ -83,7 +79,7 @@
 			 "long-long"))
 		   (concatenate 'string (subseq ut 0 (- (length ut) 9)) "llong")
 		   ut))))
-     grid:*cstd-integer-types*))
+     cffi:*built-in-integer-types*))
    ;; The floating types are associated by order, so it is important that
    ;; order of *fp-type-mapping* and *gsl-splice-fp-types* match,
    ;; though the latter may be longer.

@@ -1,0 +1,4 @@
+@deffn {Function} {antik:org-table} list-of-lists @&optional stream
+@findex antik:org-table
+Format the table.
+@end deffn

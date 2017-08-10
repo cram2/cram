@@ -1,8 +1,8 @@
 ;; Gamma functions
 ;; Liam Healy, Thu Apr 27 2006 - 22:06
-;; Time-stamp: <2010-06-27 18:03:15EDT gamma.lisp>
+;; Time-stamp: <2012-01-13 12:01:16EST gamma.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2010, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@
 (defconstant +gamma-xmax+ 171.0d0)
 
 (defmfun gamma (x)
-  "gsl_sf_gamma_e" ((x :double) (ret sf-result))
+  "gsl_sf_gamma_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Gamma function Gamma(x), subject to x
    not being a negative integer.  The function is computed using the real
@@ -41,7 +41,8 @@
    Gamma(x) is not considered an overflow is given by +gamma-xmax+.")
 
 (defmfun log-gamma (x)
-  "gsl_sf_lngamma_e" ((x :double) (ret sf-result))
+  "gsl_sf_lngamma_e"
+  ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The logarithm of the Gamma function,
    log(Gamma(x)), subject to x not a being negative
@@ -51,8 +52,12 @@
 
 (defmfun log-gamma-sign (x)
   "gsl_sf_lngamma_sgn_e"
-  ((x :double) (ret sf-result) (sign (:pointer :double)))
-  :return ((val ret) (grid:dcref sign) (err ret))
+  ((x :double)
+   (ret (:pointer (:struct sf-result)))
+   (sign (:pointer :double)))
+  :return ((multiple-value-bind (val err)
+	       (cffi:mem-ref ret '(:struct sf-result))
+	     (values val (cffi:mem-ref sign :double) err )))
   :documentation			; FDL
   "Compute the sign of the gamma function and the logarithm of
   its magnitude, subject to x not being a negative integer.  The
@@ -61,7 +66,7 @@
   sgn * exp(resultlg)}.")
 
 (defmfun gamma* (x)
-  "gsl_sf_gammastar_e" ((x :double) (ret sf-result))
+  "gsl_sf_gammastar_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The regulated Gamma Function Gamma^*(x)
   for x > 0, given by
@@ -70,7 +75,7 @@
   for x to infinity.")
 
 (defmfun 1/gamma (x)
-  "gsl_sf_gammainv_e" ((x :double) (ret sf-result))
+  "gsl_sf_gammainv_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The reciprocal of the gamma function,
   1/\Gamma(x) using the real Lanczos method.")
@@ -78,7 +83,7 @@
 (defmfun log-gamma-complex (z)
   "gsl_sf_lngamma_complex_e"
   (((realpart z) :double) ((imagpart z) :double)
-   (lnr sf-result) (arg sf-result))
+   (lnr (:pointer (:struct sf-result))) (arg (:pointer (:struct sf-result))))
   :documentation			; FDL
   "Compute log(Gamma(z)) for complex z=z_r+i z_i
   and z not a negative integer, using the complex Lanczos
@@ -89,48 +94,54 @@
   will result in a :ELOSS error when it occurs.  The absolute
   value part (lnr), however, never suffers from loss of precision."
   :return
-  ((val lnr) (val arg) (err lnr) (err arg)))
+  ((values-with-errors lnr arg)))
 
 (defmfun taylor-coefficient (n x)
-  "gsl_sf_taylorcoeff_e" ((n :int) (x :double) (ret sf-result))
+  "gsl_sf_taylorcoeff_e"
+  ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "Compute the Taylor coefficient x^n / n! for x >= 0, n >= 0.")
 
 (defmfun factorial (n)
-  "gsl_sf_fact_e" ((n sizet) (ret sf-result))
+  "gsl_sf_fact_e" ((n :sizet) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The factorial n!, related to the Gamma function by n! = \Gamma(n+1).")
 
 (defmfun double-factorial (n)
-  "gsl_sf_doublefact_e" ((n sizet) (ret sf-result))
+  "gsl_sf_doublefact_e" ((n :sizet) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The double factorial n!! = n(n-2)(n-4) \dots.")
 
 (defmfun log-factorial (n)
-  "gsl_sf_lnfact_e" ((n sizet) (ret sf-result))
+  "gsl_sf_lnfact_e"
+  ((n :sizet) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The logarithm of the factorial of n, log(n!).
   The algorithm is faster than computing
   ln(Gamma(n+1)) via #'log-gamma for n < 170, but defers for larger n.")
 
 (defmfun log-double-factorial (n)
-  "gsl_sf_lndoublefact_e" ((n sizet) (ret sf-result))
+  "gsl_sf_lndoublefact_e"
+  ((n :sizet) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "Compute the logarithm of the double factorial of n, log(n!!).")
 
 (defmfun choose (n m)
-  "gsl_sf_choose_e" ((n sizet) (m sizet) (ret sf-result))
+  "gsl_sf_choose_e"
+  ((n :sizet) (m :sizet) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The combinatorial factor (n choose m) = n!/(m!(n-m)!).")
 
 (defmfun log-choose (n m)
-  "gsl_sf_lnchoose_e" ((n sizet) (m sizet) (ret sf-result))
+  "gsl_sf_lnchoose_e"
+  ((n :sizet) (m :sizet) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The logarithm of (n choose m).  This is
   equivalent to the sum log(n!) - log(m!) - log((n-m)!).")
 
 (defmfun pochammer (a x)
-  "gsl_sf_poch_e"  ((a :double) (x :double) (ret sf-result))
+  "gsl_sf_poch_e"
+  ((a :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Pochhammer symbol (a)_x := Gamma(a +
    x)/Gamma(a), subject to a and a+x not being negative
@@ -138,35 +149,44 @@
    sometimes written as (a,x).")
 
 (defmfun log-pochammer (a x)
-  "gsl_sf_lnpoch_e" ((a :double) (x :double) (ret sf-result))
+  "gsl_sf_lnpoch_e"
+  ((a :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The logarithm of the Pochhammer symbol,
   log((a)_x) = log(Gamma(a + x)/Gamma(a)) for a > 0, a+x > 0.")
 
 (defmfun log-pochammer-sign (a x)
   "gsl_sf_lnpoch_sgn_e"
-  ((a :double) (x :double) (ret sf-result) (sign (:pointer :double)))
+  ((a :double)
+   (x :double)
+   (ret (:pointer (:struct sf-result)))
+   (sign (:pointer :double)))
   :documentation			; FDL
   "The logarithm of the Pochhammer symbol and its sign.
   The computed parameters are result =
   log(|(a)_x|) and sgn = sgn((a)_x) where (a)_x :=
   Gamma(a + x)/Gamma(a), subject to a, a+x not being negative integers."
-  :return ((val ret) (grid:dcref sign) (err ret)))
+  :return ((multiple-value-bind (val err)
+	       (cffi:mem-ref ret '(:struct sf-result))
+	     (values val (cffi:mem-ref sign :double) err ))))
 
 (defmfun relative-pochammer (a x)
-  "gsl_sf_pochrel_e" ((a :double) (x :double) (ret sf-result))
+  "gsl_sf_pochrel_e"
+  ((a :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The relative Pochhammer symbol ((a)_x -
   1)/x where (a)_x := Gamma(a + x)/Gamma(a)}.")
 
 (defmfun incomplete-gamma (a x)
-  "gsl_sf_gamma_inc_Q_e" ((a :double) (x :double) (ret sf-result))
+  "gsl_sf_gamma_inc_Q_e"
+  ((a :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The normalized incomplete Gamma Function
   Q(a,x) = 1/Gamma(a) \int_x^\infty dt t^{a-1} \exp(-t) for a > 0, x >= 0.")
 
 (defmfun complementary-incomplete-gamma (a x)
-  "gsl_sf_gamma_inc_P_e" ((a :double) (x :double) (ret sf-result))
+  "gsl_sf_gamma_inc_P_e"
+  ((a :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The complementary normalized incomplete Gamma Function
   P(a,x) = 1/\Gamma(a) \int_0^x dt t^{a-1} \exp(-t)}
@@ -174,7 +194,8 @@
   call P(a,x) the incomplete gamma function (section 6.5).")
 
 (defmfun nonnormalized-incomplete-gamma (a x)
-  "gsl_sf_gamma_inc_e" ((a :double) (x :double) (ret sf-result))
+  "gsl_sf_gamma_inc_e"
+  ((a :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The incomplete Gamma Function
    Gamma(a,x), without the normalization factor
@@ -183,18 +204,18 @@
    for a real and x >= 0.")
 
 (defmfun beta (a b)
-  "gsl_sf_beta_e" ((a :double) (b :double) (ret sf-result))
+  "gsl_sf_beta_e" ((a :double) (b :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Beta Function, B(a,b) = Gamma(a)Gamma(b)/Gamma(a+b)} for a > 0, b > 0.")
 
 (defmfun log-beta (a b)
-  "gsl_sf_lnbeta_e" ((a :double) (b :double) (ret sf-result))
+  "gsl_sf_lnbeta_e" ((a :double) (b :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The logarithm of the Beta Function, log(B(a,b)) for a > 0, b > 0.")
 
 (defmfun incomplete-beta (a b x)
   "gsl_sf_beta_inc_e"
-  ((a :double) (b :double) (x :double) (ret sf-result))
+  ((a :double) (b :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The normalized incomplete Beta function
    B_x(a,b)/B(a,b) where

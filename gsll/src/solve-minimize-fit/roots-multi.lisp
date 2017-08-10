@@ -1,8 +1,8 @@
 ;;; Multivariate roots.                
 ;;; Liam Healy 2008-01-12 12:49:08
-;;; Time-stamp: <2010-07-13 09:52:54EDT roots-multi.lisp>
+;;; Time-stamp: <2012-01-13 12:01:17EST roots-multi.lisp>
 ;;
-;; Copyright 2008, 2009 Liam M. Healy
+;; Copyright 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@
 ;;;;****************************************************************************
 
 (defmobject multi-dimensional-root-solver-f "gsl_multiroot_fsolver"
-  ((type :pointer) ((first dimensions) sizet))
+  ((type :pointer) ((first dimensions) :sizet))
   "multi-dimensional root solver with function only"
   :documentation			; FDL
   "Make an instance of a solver of the type specified for a system of
@@ -44,7 +44,7 @@
   :initialize-suffix "set"
   :initialize-args ((callback :pointer) ((mpointer initial) :pointer))
   :callbacks
-  (callback fnstruct-dimension (dimension)
+  (callback (:struct fnstruct-dimension) (dimension)
 	    (function
 	     :success-failure
 	     (:input :double :foreign-array dim0) :slug
@@ -54,13 +54,13 @@
     `((type &optional function-or-dimension (initial nil ,set) (scalarsp t))
       (:type type
 	     :dimensions
-	     (if ,set (dimensions initial) function-or-dimension))
+	     (if ,set (grid:dimensions initial) function-or-dimension))
       (:functions
        (list function-or-dimension) :initial initial :scalarsp scalarsp)))
   :inputs (initial))
 
 (defmobject multi-dimensional-root-solver-fdf "gsl_multiroot_fdfsolver"
-  ((type :pointer) ((first dimensions) sizet))
+  ((type :pointer) ((first dimensions) :sizet))
   "multi-dimensional root solver with function and derivative"
   :documentation			; FDL
   "Make an instance of a derivative solver of the type specified for
@@ -71,7 +71,7 @@
   :initialize-suffix "set"
   :initialize-args ((callback :pointer) ((mpointer initial) :pointer))
   :callbacks
-  (callback fnstruct-dimension-fdf (dimension)
+  (callback (:struct fnstruct-dimension-fdf) (dimension)
 	    (function :success-failure
 		      (:input :double :foreign-array dim0)
 		      :slug
@@ -91,7 +91,7 @@
 	    (scalarsp t))
       (:type type
 	     :dimensions
-	     (if ,set (dimensions initial) function-or-dimension))
+	     (if ,set (grid:dimensions initial) function-or-dimension))
       (:functions function-or-dimension :initial initial :scalarsp scalarsp)))
   :inputs (initial))
 
@@ -206,7 +206,7 @@
 ;;; to discriminate on mfsolver vs. mfdfsolver.
 
 (defun multiroot-slot (solver slot)
-  (cffi:foreign-slot-value (mpointer solver) 'gsl-multiroot-fsolver slot))
+  (cffi:foreign-slot-value (mpointer solver) '(:struct gsl-multiroot-fsolver) slot))
 
 (defmfun multiroot-test-delta (solver absolute-error relative-error)
   "gsl_multiroot_test_delta"
@@ -405,28 +405,30 @@
   "Solving Rosenbrock, the example given in Sec. 34.8 of the GSL manual."
   (let ((max-iter 1000)
 	(solver (make-multi-dimensional-root-solver-f 
-		 method 'rosenbrock #m(-10.0d0 -5.0d0))))
+		 method 'rosenbrock
+		 (grid:make-foreign-array
+		  'double-float :initial-contents '(-10.0d0 -5.0d0)))))
     (loop for iter from 0
-       with fnval and argval
-       while (and (< iter max-iter)
-		  (or (zerop iter)
-		      (not (multiroot-test-residual solver 1.0d-7))))
-       do
+	  with fnval and argval
+	  while (and (< iter max-iter)
+		     (or (zerop iter)
+			 (not (multiroot-test-residual solver 1.0d-7))))
+	  do
        (iterate solver)
        (setf fnval (function-value solver)
 	     argval (solution solver))
        (when print-steps
 	 (format t "iter=~d~8tx0=~12,8g~24tx1=~12,8g~38tf0=~12,8g~52tf1=~12,8g~&"
 		 iter
-		 (grid:gref argval 0)
-		 (grid:gref argval 1)
-		 (grid:gref fnval 0)
-		 (grid:gref fnval 1)))
-       finally (return
-		 (values (grid:gref argval 0)
-			 (grid:gref argval 1)
-			 (grid:gref fnval 0)
-			 (grid:gref fnval 1))))))
+		 (grid:aref argval 0)
+		 (grid:aref argval 1)
+		 (grid:aref fnval 0)
+		 (grid:aref fnval 1)))
+	  finally (return
+		    (values (grid:aref argval 0)
+			    (grid:aref argval 1)
+			    (grid:aref fnval 0)
+			    (grid:aref fnval 1))))))
 
 (defun rosenbrock-df (arg0 arg1)
   "The partial derivatives of the Rosenbrock functions."
@@ -452,31 +454,32 @@
 	   (when print-steps
 	     (format t "iter=~d~8tx0=~12,8g~24tx1=~12,8g~38tf0=~12,8g~52tf1=~12,8g~&"
 		     iter
-		     (grid:gref argval 0)
-		     (grid:gref argval 1)
-		     (grid:gref fnval 0)
-		     (grid:gref fnval 1)))))
+		     (grid:aref argval 0)
+		     (grid:aref argval 1)
+		     (grid:aref fnval 0)
+		     (grid:aref fnval 1)))))
     (let ((max-iter 1000)
 	  (solver (make-multi-dimensional-root-solver-fdf
 		   method
 		   '(rosenbrock rosenbrock-df rosenbrock-fdf)
-		   #m(-10.0d0 -5.0d0))))
+		   (grid:make-foreign-array
+		    'double-float :initial-contents '(-10.0d0 -5.0d0)))))
       (loop for iter from 0
-	 with fnval = (function-value solver)
-	 and argval = (solution solver)
-	 while (and (< iter max-iter)
-		    (not (multiroot-test-residual solver 1.0d-7)))
-	 initially (print-state iter argval fnval)
-	 do
+	    with fnval = (function-value solver)
+	    and argval = (solution solver)
+	    while (and (< iter max-iter)
+		       (not (multiroot-test-residual solver 1.0d-7)))
+	      initially (print-state iter argval fnval)
+	    do
 	 (iterate solver)
 	 (setf fnval (function-value solver)
 	       argval (solution solver))
 	 (print-state iter argval fnval)
-	 finally (return
-		   (values (grid:gref argval 0)
-			   (grid:gref argval 1)
-			   (grid:gref fnval 0)
-			   (grid:gref fnval 1)))))))
+	    finally (return
+		      (values (grid:aref argval 0)
+			      (grid:aref argval 1)
+			      (grid:aref fnval 0)
+			      (grid:aref fnval 1)))))))
 
 ;; To see step-by-step information as the solution progresses, make
 ;; the last argument T.

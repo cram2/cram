@@ -1,6 +1,6 @@
 ;; Define the structure for ODEs
 ;; Liam Healy 2009-06-06 16:42:29EDT ode-struct.lisp
-;; Time-stamp: <2010-05-23 11:37:27EDT ode-struct.lisp>
+;; Time-stamp: <2012-01-13 12:01:24EST ode-struct.lisp>
 ;;
 ;; Copyright 2006, 2007, 2008, 2009, 2010 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -33,5 +33,5 @@
 (cstruct ode-system "gsl_odeiv_system"
   (function "function" :type :pointer) 
   (jacobian "jacobian" :type :pointer)
-  (dimension "dimension" :type sizet)
+  (dimension "dimension" :type :sizet)
   (parameters "params" :type :pointer))

@@ -1,0 +1,5 @@
+@deffn {Function} {grid:norm} grid @&optional kind
+@findex grid:norm
+The norm of the grid. Kind can be :euclidean, for the 
+   euclidean norm.
+@end deffn

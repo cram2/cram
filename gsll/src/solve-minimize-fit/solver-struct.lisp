@@ -1,8 +1,8 @@
 ;; Define the structures for solvers
 ;; Liam Healy 2009-06-06 16:46:38EDT solver-struct.lisp
-;; Time-stamp: <2010-05-23 11:37:49EDT solver-struct.lisp>
+;; Time-stamp: <2016-08-07 19:37:54EDT solver-struct.lisp>
 ;;
-;; Copyright 2009, 2010 Liam M. Healy
+;; Copyright 2009, 2010, 2016 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -31,11 +31,11 @@
 (include "gsl/gsl_multifit_nlin.h")
 
 ;; The definition of a solver instance and state
-;; for nonlinear least squares fitting in GSL."
+;; for nonlinear least squares fitting in GSL.
 
 (cstruct gsl-fdffit-solver "gsl_multifit_fdfsolver"
   (f "f" :type :pointer)
-  (jacobian "J" :type :pointer)
+  #-gsl2 (jacobian "J" :type :pointer)
   (dx "dx" :type :pointer))
 
 (include "gsl/gsl_multiroots.h")

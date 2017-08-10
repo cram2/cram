@@ -1,8 +1,8 @@
 ;; Forward FFT.
 ;; Sumant Oemrawsingh, Sat Oct 31 2009 - 23:48
-;; Time-stamp: <2010-06-27 18:13:58EDT forward.lisp>
+;; Time-stamp: <2012-01-13 12:01:31EST forward.lisp>
 ;;
-;; Copyright 2009 Sumant Oemrawsingh, Liam M. Healy
+;; Copyright 2009, 2011 Sumant Oemrawsingh, Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@
    single-float "gsl_fft_real_float_radix2_transform"
    complex-double-float "gsl_fft_complex_radix2_forward"
    complex-single-float "gsl_fft_complex_float_radix2_forward")
-  (((foreign-pointer vector) :pointer) (stride sizet) ((floor (size vector) stride) sizet))
+  (((grid:foreign-pointer vector) :pointer) (stride :sizet) ((floor (size vector) stride) :sizet))
   :definition :generic
   :element-types :float-complex
   :inputs (vector)
@@ -56,7 +56,7 @@
 		single-float "gsl_fft_real_float_transform"
 		complex-double-float "gsl_fft_complex_forward"
 		complex-single-float "gsl_fft_complex_float_forward")
-  (((foreign-pointer vector) :pointer) (stride sizet) ((floor (size vector) stride) sizet)
+  (((grid:foreign-pointer vector) :pointer) (stride :sizet) ((floor (size vector) stride) :sizet)
    ((mpointer wavetable) :pointer) ((mpointer workspace) :pointer))
   :definition :generic
   :element-types :float-complex
@@ -75,7 +75,7 @@
 (defmfun forward-fourier-transform-halfcomplex-radix2
     ((vector vector) &key (stride 1))
   ("gsl_fft_halfcomplex" :type "_radix2_transform")
-  (((foreign-pointer vector) :pointer) (stride sizet) ((floor (size vector) stride) sizet))
+  (((grid:foreign-pointer vector) :pointer) (stride :sizet) ((floor (size vector) stride) :sizet))
   :definition :generic
   :element-types :float
   :inputs (vector)
@@ -92,7 +92,7 @@
      (wavetable (make-fft-wavetable element-type (floor (size vector) stride) t))
      (workspace (make-fft-workspace element-type (floor (size vector) stride))))
   ("gsl_fft_halfcomplex" :type "_transform")
-  (((foreign-pointer vector) :pointer) (stride sizet) ((floor (size vector) stride) sizet)
+  (((grid:foreign-pointer vector) :pointer) (stride :sizet) ((floor (size vector) stride) :sizet)
    ((mpointer wavetable) :pointer) ((mpointer workspace) :pointer))
   :definition :generic
   :element-types :float
@@ -111,7 +111,7 @@
 
 (defmfun forward-fourier-transform-dif-radix2 ((vector vector) &key (stride 1))
   ("gsl_fft" :type "_radix2_dif_forward")
-  (((foreign-pointer vector) :pointer) (stride sizet) ((floor (size vector) stride) sizet))
+  (((grid:foreign-pointer vector) :pointer) (stride :sizet) ((floor (size vector) stride) :sizet))
   :definition :generic
   :element-types :complex
   :inputs (vector)
@@ -136,16 +136,19 @@
 (export 'forward-fourier-transform)
 (defun forward-fourier-transform
     (vector &rest args
-     &key half-complex decimation-in-frequency (stride 1) &allow-other-keys)
+     &key half-complex decimation-in-frequency (stride 1) non-radix-2 &allow-other-keys)
   "Perform a forward fast Fourier transform on the given vector. If
   the length of the vector is not a power of 2, and the user has a
   suitable wavetable and/or workspace, these can be supplied as
   keyword arguments.  If the (real) vector is in half-complex form,
-  then the key argument :half-complex should be non-NIL."
+  then the key argument :half-complex should be non-NIL. If the
+  length of the vector is a power of 2, use of a non-radix-2 transform
+  can be forced."
   (let ((pass-on-args (copy-list args)))
     (remf pass-on-args :half-complex)
     (remf pass-on-args :decimation-in-frequency)
-    (if (power-of-2-p (floor (size vector) stride))
+    (remf pass-on-args :non-radix-2)
+    (if (and (not non-radix-2) (power-of-2-p (floor (size vector) stride)))
 	(if half-complex
 	    (apply 'forward-fourier-transform-halfcomplex-radix2
 		   vector pass-on-args)

@@ -1,8 +1,8 @@
 ;; Stepping functions for ODE systems.
 ;; Liam Healy, Mon Sep 24 2007 - 21:33
-;; Time-stamp: <2010-06-27 18:13:51EDT stepping.lisp>
+;; Time-stamp: <2012-01-13 12:01:23EST stepping.lisp>
 ;;
-;; Copyright 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 (in-package :gsl)
 
 (defmobject ode-stepper "gsl_odeiv_step"
-  ((type :pointer) ((first dimensions) sizet))
+  ((type :pointer) ((first dimensions) :sizet))
   "stepper for ordinary differential equations"
   :documentation
   "Make a stepper for ordinary differential equations.  The type is
@@ -33,7 +33,7 @@
    continuation of a previous step."
   :superclasses (callback-included-cl)
   :callbacks
-  (callback ode-system
+  (callback (:struct ode-system)
 	    (dimension)
 	    (function :success-failure
 		      (:input :double)	; t (independent variable)
@@ -106,10 +106,10 @@ values):
   (((mpointer stepper) :pointer)
    (time :double)
    (step-size :double)
-   ((foreign-pointer y) :pointer)
-   ((foreign-pointer yerr) :pointer)
-   ((foreign-pointer dydt-in) :pointer)
-   ((foreign-pointer dydt-out) :pointer)
+   ((grid:foreign-pointer y) :pointer)
+   ((grid:foreign-pointer yerr) :pointer)
+   ((grid:foreign-pointer dydt-in) :pointer)
+   ((grid:foreign-pointer dydt-out) :pointer)
    ((callback-struct stepper) :pointer))
   :documentation			; FDL
   "Apply the stepping function stepper to the system of equations

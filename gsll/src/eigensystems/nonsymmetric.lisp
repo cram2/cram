@@ -1,8 +1,8 @@
 ;; Eigensystems for nonsymmetric real matrices
 ;; Liam Healy 2009-02-16 12:51:18EST nonsymmetric.lisp
-;; Time-stamp: <2010-06-29 22:15:24EDT nonsymmetric.lisp>
+;; Time-stamp: <2016-06-14 23:38:36EDT nonsymmetric.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011, 2012, 2016 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 (in-package :gsl)
 
 (defmobject eigen-nonsymm
-    "gsl_eigen_nonsymm" ((n sizet))
+    "gsl_eigen_nonsymm" ((n :sizet))
     "non-symmetric eigenvalue workspace"
     :gsl-version (1 9)
     :documentation			; FDL
@@ -30,7 +30,7 @@
   is O(2n).")
 
 (defmobject eigen-nonsymmv
-    "gsl_eigen_nonsymmv" ((n sizet))
+    "gsl_eigen_nonsymmv" ((n :sizet))
     "non-symmetric eigenvector and eigenvalue workspace"
     :gsl-version (1 9)
     :documentation			; FDL
@@ -58,7 +58,7 @@
      &aux
      (sv
       (if (eql shur-vectors t)
-	  (grid:make-foreign-array 'double-float :dimensions (dimensions A))
+	  (grid:make-foreign-array 'double-float :dimensions (grid:dimensions A))
 	  shur-vectors)))
   ("gsl_eigen_nonsymm" "gsl_eigen_nonsymm_Z")
   ((((mpointer A) :pointer)
@@ -74,7 +74,7 @@
   :outputs (A eigenvalues)
   :return
   (eigenvalues
-   (cffi:foreign-slot-value (mpointer ws) 'gsl-nonsymm-ws 'n-evals))
+   (cffi:foreign-slot-value (mpointer ws) '(:struct gsl-nonsymm-ws) 'n-evals))
   :documentation			; FDL
   "Compute the eigenvalues of the real nonsymmetric matrix A and
   stores them in the vector 'eigenvalues. If T is desired, it is
@@ -119,13 +119,13 @@
      (eigenvalues
       (grid:make-foreign-array '(complex double-float) :dimensions (dim0 A)))
      (eigenvectors
-      (grid:make-foreign-array  '(complex double-float) :dimensions (dimensions A)))
+      (grid:make-foreign-array  '(complex double-float) :dimensions (grid:dimensions A)))
      (ws (make-eigen-nonsymmv (dim0 A)))
      shur-vectors
      &aux
      (sv
       (if (eql shur-vectors t)
-	  (grid:make-foreign-array 'double-float :dimensions (dimensions A))
+	  (grid:make-foreign-array 'double-float :dimensions (grid:dimensions A))
 	  shur-vectors)))
   ("gsl_eigen_nonsymmv" "gsl_eigen_nonsymmv_Z")
   ((((mpointer A) :pointer)

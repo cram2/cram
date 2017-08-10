@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction to Antik &mdash; Antik 0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Antik 0 documentation" href="root.html" />
+    <link rel="next" title="Getting Started" href="starting.html" />
+    <link rel="prev" title="Antik" href="root.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="starting.html" title="Getting Started"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="root.html" title="Antik"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="root.html">Antik 0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction-to-antik">
+<h1>Introduction to Antik<a class="headerlink" href="#introduction-to-antik" title="Permalink to this headline">¶</a></h1>
+<p>Antik provides a foundation for scientific and engineering computation in Common Lisp.  It is designed not only to facilitate numerical computations, but to permit the use of numerical computation libraries and the interchange of data and procedures, whether foreign (non-Lisp) or Lisp libraries.  Notably, <a class="reference external" href="http://common-lisp.net/project/gsll/">GSLL</a> provides an interface to the GNU Scientific Library (<a class="reference external" href="http://www.gnu.org/software/gsl/">GSL</a>) and is based on Antik.</p>
+<p>Antik is designed and developed to provide a common foundation and interoperability between scientific, engineering and mathematical libraries, whether in Lisp or not.  Interoperability means that objects created can easily be passed to one or more libraries, and libraries can be mixed and combined to solve a problem.  It also means that names of like functions will be the same, differing only in the package.  For example, if systems <code class="docutils literal"><span class="pre">foo</span></code> and <code class="docutils literal"><span class="pre">bar</span></code> both provide an LU decomposition, that function will be <code class="docutils literal"><span class="pre">foo:lu-decomposition</span></code> in one and <code class="docutils literal"><span class="pre">bar:lu-decomposition</span></code> in the other.  Should a user wish to compare or switch libraries in such a function call, it is a simple matter of changing the package.  If a whole library should be switched, the names can be used without a package prefix and the use-package form changed.  This makes it easy to compare results, and select and mix the best libraries for a calculation.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="root.html"
+                        title="previous chapter">Antik</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="starting.html"
+                        title="next chapter">Getting Started</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/intro.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="starting.html" title="Getting Started"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="root.html" title="Antik"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="root.html">Antik 0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Liam M. Healy.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

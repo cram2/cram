@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Systems and Packages &mdash; Antik 0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Antik 0 documentation" href="root.html" />
+    <link rel="next" title="Mathematics" href="mathematics.html" />
+    <link rel="prev" title="Getting Started" href="starting.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="mathematics.html" title="Mathematics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="starting.html" title="Getting Started"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="root.html">Antik 0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="systems-and-packages">
+<span id="systems-packages"></span><h1>Systems and Packages<a class="headerlink" href="#systems-and-packages" title="Permalink to this headline">¶</a></h1>
+<p>There are several ASDF <a class="reference external" href="https://common-lisp.net/project/asdf/">systems</a> that can be loaded,</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">antik</span></code></li>
+<li><code class="docutils literal"><span class="pre">science-data</span></code></li>
+<li><code class="docutils literal"><span class="pre">physical-dimension</span></code></li>
+<li><code class="docutils literal"><span class="pre">foreign-array</span></code></li>
+<li><code class="docutils literal"><span class="pre">antik-base</span></code></li>
+</ul>
+<p>Except for <code class="docutils literal"><span class="pre">antik</span></code>, each of these also loads the one listed after it; <code class="docutils literal"><span class="pre">antik</span></code> loads <code class="docutils literal"><span class="pre">physical-dimension</span></code>. It also loads <a class="reference external" href="https://common-lisp.net/project/gsll/">GSLL</a>. Most users should load these systems using <a class="reference external" href="http://www.quicklisp.org/">Quicklisp</a>:</p>
+<div class="highlight-python"><div class="highlight"><pre>(ql:quickload :antik)
+</pre></div>
+</div>
+<p>There are two Common Lisp <a class="reference external" href="http://www.lispworks.com/documentation/HyperSpec/Body/11_aa.htm">packages</a> defined by Antik, <code class="docutils literal"><span class="pre">antik</span></code> and <code class="docutils literal"><span class="pre">grid</span></code>.  Some functions defined by Antik are generalizations of functions defined by Common Lisp, so the name is chosen the same, but in one of the two new packages. <a class="reference external" href="http://www.lispworks.com/documentation/HyperSpec/Body/f_shadow.htm#shadow,shadow">Shadowing</a> is used to make sure that reference to the symbol will use the Antik definition and not the CL definition.</p>
+<p>There is one additional package defined for the user&#8217;s convience, <code class="docutils literal"><span class="pre">antik-user</span></code>, which <a class="reference external" href="http://www.lispworks.com/documentation/HyperSpec/Body/f_use_pk.htm#use-package,use">uses</a> and properly shadows all symbols but has no definitions initially. The function <a class="reference internal" href="#function:antik:make-user-package" title="antik:make-user-package"><code class="xref cl cl-function docutils literal"><span class="pre">make-user-package</span></code></a> will make a new package with these features.</p>
+<dl class="function">
+<dt id="function:antik:make-user-package">
+<em class="property">function </em> (<code class="descname">make-user-package</code> <em>name</em> <em class="lambda_keyword text-muted">&amp;optional</em> <em>nicknames</em>)<a class="headerlink" href="#function:antik:make-user-package" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a package in which it is convenient to use Antik and related systems. If the package already exists, the use-packages and shadowing symbols are updated.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="starting.html"
+                        title="previous chapter">Getting Started</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="mathematics.html"
+                        title="next chapter">Mathematics</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/packages.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="mathematics.html" title="Mathematics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="starting.html" title="Getting Started"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="root.html">Antik 0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Liam M. Healy.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

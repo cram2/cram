@@ -1,6 +1,6 @@
 ;; Regression test MULTINOMIAL for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -19,30 +19,32 @@
 (in-package :gsl)
 
 (LISP-UNIT:DEFINE-TEST MULTINOMIAL
-  (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
-   (LIST #(5 0 1 2))
-   (MULTIPLE-VALUE-LIST
-    (let ((rng (make-random-number-generator +mt19937+ 0))
-	  (p #m(0.1d0 0.2d0 0.3d0 0.4d0)))
-      (grid:copy-to (sample rng :multinomial :sum 8 :probabilities p)))))
+    (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
+     (LIST #(5 0 1 2))
+     (MULTIPLE-VALUE-LIST
+	 (let ((rng (make-random-number-generator +mt19937+ 0))
+	       (p
+		(grid:make-foreign-array
+		 'double-float :initial-contents '(0.1d0 0.2d0 0.3d0 0.4d0))))
+	   (grid:copy-to (sample rng :multinomial :sum 8 :probabilities p) 'array 'fixnum))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST 8.064000000000026d-5)
    (MULTIPLE-VALUE-LIST
-    (LET ((P
-	   (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :INITIAL-CONTENTS
-			'(0.1d0 0.2d0 0.3d0 0.4d0)))
-	  (N
-	   (GRID:MAKE-FOREIGN-ARRAY '(SIGNED-BYTE 32)
-			:INITIAL-CONTENTS '(5 0 1 2))))
-      (MULTINOMIAL-PDF P N))))
+       (LET ((P
+	      (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :INITIAL-CONTENTS
+				       '(0.1d0 0.2d0 0.3d0 0.4d0)))
+	     (N
+	      (GRID:MAKE-FOREIGN-ARRAY '(SIGNED-BYTE 32)
+				       :INITIAL-CONTENTS '(5 0 1 2))))
+	 (MULTINOMIAL-PDF P N))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST -9.425515753641212d0)
    (MULTIPLE-VALUE-LIST
-    (LET ((P
-	   (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :INITIAL-CONTENTS
-			'(0.1d0 0.2d0 0.3d0 0.4d0)))
-	  (N
-	   (GRID:MAKE-FOREIGN-ARRAY '(SIGNED-BYTE 32)
-			:INITIAL-CONTENTS '(5 0 1 2))))
-      (MULTINOMIAL-LOG-PDF P N)))))
+       (LET ((P
+	      (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :INITIAL-CONTENTS
+				       '(0.1d0 0.2d0 0.3d0 0.4d0)))
+	     (N
+	      (GRID:MAKE-FOREIGN-ARRAY '(SIGNED-BYTE 32)
+				       :INITIAL-CONTENTS '(5 0 1 2))))
+	 (MULTINOMIAL-LOG-PDF P N)))))
 

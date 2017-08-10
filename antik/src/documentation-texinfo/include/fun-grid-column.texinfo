@@ -1,0 +1,4 @@
+@deffn {Function} {grid:column} grid index @&optional destination
+@findex grid:column
+The subgrid with the second index set to the specified value.
+@end deffn

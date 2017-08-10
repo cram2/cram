@@ -1,6 +1,6 @@
 ;; Statistics of histograms.
 ;; Liam Healy, Mon Jan  1 2007 - 16:13
-;; Time-stamp: <2009-12-27 09:48:06EST statistics.lisp>
+;; Time-stamp: <2012-01-13 12:01:28EST statistics.lisp>
 ;;
 ;; Copyright 2007, 2008, 2009 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -59,7 +59,7 @@
   "gsl_histogram_max_bin"
   (((mpointer histogram) :pointer))
   :definition :method
-  :c-return sizet
+  :c-return :sizet
   :documentation			; FDL
   "The index of the bin containing the maximum value. In the case
    where several bins contain the same maximum value the smallest
@@ -68,7 +68,7 @@
 (defmfun max-index ((histogram histogram2d))
   "gsl_histogram2d_max_bin"
   (((mpointer histogram) :pointer)
-   (xindex (:pointer sizet)) (yindex (:pointer sizet)))
+   (xindex (:pointer :sizet)) (yindex (:pointer :sizet)))
   :definition :method
   :c-return :void
   :documentation			; FDL
@@ -80,7 +80,7 @@
   "gsl_histogram_min_bin"
   (((mpointer histogram) :pointer))
   :definition :method
-  :c-return sizet
+  :c-return :sizet
   :documentation			; FDL
   "The index of the bin containing the minimum value. In the case
    where several bins contain the same minimum value the smallest
@@ -89,7 +89,7 @@
 (defmfun min-index ((histogram histogram2d))
   "gsl_histogram2d_min_bin"
   (((mpointer histogram) :pointer)
-   (xindex (:pointer sizet)) (yindex (:pointer sizet)))
+   (xindex (:pointer :sizet)) (yindex (:pointer :sizet)))
   :definition :method
   :c-return :void
   :documentation			; FDL

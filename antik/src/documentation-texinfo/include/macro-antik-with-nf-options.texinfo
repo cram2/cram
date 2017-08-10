@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:with-nf-options} (&rest name-values) @&body body
+@findex antik:with-nf-options
+Set the options for all nf calls within body to inherit.
+@end deffn

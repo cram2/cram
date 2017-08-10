@@ -1,0 +1,4 @@
+@deffn {Function} {antik:nf-string} object
+@findex antik:nf-string
+Format output for numerical objects to a new string.
+@end deffn

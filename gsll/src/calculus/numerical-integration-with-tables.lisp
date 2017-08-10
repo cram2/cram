@@ -1,8 +1,8 @@
 ;; Numerical integration techniques that require tables
 ;; Liam Healy 2009-04-04 15:24:05EDT 
-;; Time-stamp: <2009-12-27 09:42:09EST numerical-integration-with-tables.lisp>
+;; Time-stamp: <2012-01-13 12:01:39EST numerical-integration-with-tables.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -62,10 +62,10 @@
    (a :double) (b :double)
    ((mpointer table) :pointer)
    (absolute-error :double) (relative-error :double)
-   (limit sizet) ((mpointer workspace) :pointer)
+   (limit :sizet) ((mpointer workspace) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Compute the integral of the function f(x) over the interval (a,b)
@@ -86,7 +86,7 @@
 
 (defmobject qawo-table
     "gsl_integration_qawo_table"
-  ((omega :double) (L :double) (trig integrate-sine-cosine) (n sizet))
+  ((omega :double) (L :double) (trig integrate-sine-cosine) (n :sizet))
   "table for QAWO numerical integration method"
   :documentation			; FDL
   "Make a table describing a sine or cosine weight function W(x) with
@@ -119,11 +119,11 @@
   ((callback :pointer)
    (a :double)
    (absolute-error :double) (relative-error :double)
-   (limit sizet) ((mpointer workspace) :pointer)
+   (limit :sizet) ((mpointer workspace) :pointer)
    ((mpointer table) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Use an adaptive algorithm to compute the integral of f over (a,b)
@@ -162,12 +162,12 @@
   ((callback :pointer)
    (a :double)
    (absolute-error :double)
-   (limit sizet)
+   (limit :sizet)
    ((mpointer workspace) :pointer) ((mpointer cycle-workspace) :pointer)
    ((mpointer table) :pointer)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "This function attempts to compute a Fourier integral of the
@@ -256,11 +256,11 @@
  ;; point overflow in making the table.  Setting to 100 works and
  ;; gives the result given in test.c.
  (integration-QAWO
-  'integration-test-f456 0.0d0 (* 10 pi) 1.0d0 :sine 100 0.0d0 1.0d-7)
+  'integration-test-f456 0.0d0 (* 10 dpi) 1.0d0 :sine 100 0.0d0 1.0d-7)
  ;; For the negative interval, it was necessary to have the function
  ;; takethe absolute value of the argument and then transfer the sign of
  ;;  x to the answer.
  (integration-QAWO
-  'integration-test-f456 0.0d0 (* 10 pi) -1.0d0 :sine 100 0.0d0 1.0d-7)
+  'integration-test-f456 0.0d0 (* 10 dpi) -1.0d0 :sine 100 0.0d0 1.0d-7)
  (integration-QAWF
-  'integration-test-f457 0.0d0 (/ pi 2) 1.0d0 :cosine 1000 1.0d-7))
+  'integration-test-f457 0.0d0 (/ dpi 2) 1.0d0 :cosine 1000 1.0d-7))

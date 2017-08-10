@@ -1,8 +1,8 @@
 ;; Interpolation allocation, initialization, and freeing.
 ;; Liam Healy, Sun Nov  4 2007 - 17:24
-;; Time-stamp: <2010-06-27 18:13:56EDT interpolation.lisp>
+;; Time-stamp: <2012-01-13 12:01:26EST interpolation.lisp>
 ;;
-;; Copyright 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 ;;; A spline is an interpolation that also stores the arrays xa and ya,
 ;;; so they need not be supplied on each call.
 (defmobject interpolation "gsl_interp"
-  ((type :pointer) (size sizet))
+  ((type :pointer) (size :sizet))
   "interpolation"
   :documentation			; FDL
   "Make an interpolation object of type for size data-points,
@@ -37,7 +37,7 @@
   strictly ordered; the behavior for other arrangements is not defined."
   :initialize-suffix "init"
   :initialize-args
-  (((foreign-pointer xa) :pointer) ((foreign-pointer ya) :pointer) ((dim0 xa) sizet))
+  (((grid:foreign-pointer xa) :pointer) ((grid:foreign-pointer ya) :pointer) ((dim0 xa) :sizet))
   :arglists-function
   (lambda (set)
     `((type &optional xa-or-size (ya nil ,set))
@@ -45,13 +45,13 @@
       (:xa xa-or-size :ya ya))))
 
 (defmobject spline "gsl_spline"
-  ((type :pointer) (size sizet))
+  ((type :pointer) (size :sizet))
   "spline"
   :documentation			; FDL
   "Make an interpolation object of type for size data-points."
   :initialize-suffix "init"
   :initialize-args
-  (((foreign-pointer xa) :pointer) ((foreign-pointer ya) :pointer) ((dim0 xa) sizet))
+  (((grid:foreign-pointer xa) :pointer) ((grid:foreign-pointer ya) :pointer) ((dim0 xa) :sizet))
   :inputs (xa ya)
   :arglists-function
   (lambda (set)

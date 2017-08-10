@@ -1,0 +1,4 @@
+@defvr {Variable} {grid:*complex-types*}
+@vindex grid:*complex-types*
+All the supported complex array element types.
+@end defvr

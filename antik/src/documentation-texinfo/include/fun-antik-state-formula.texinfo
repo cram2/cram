@@ -1,0 +1,4 @@
+@deffn {Function} {antik:state-formula} attribute-canonical state-table @&optional apply-to-values state-function-generator
+@findex antik:state-formula
+Find the formula for the attribute given the known quantities in state.
+@end deffn

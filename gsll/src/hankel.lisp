@@ -1,8 +1,8 @@
 ;; Discrete Hankel Transforms.
 ;; Liam Healy, Sat Dec  8 2007 - 16:50
-;; Time-stamp: <2010-07-07 14:19:28EDT hankel.lisp>
+;; Time-stamp: <2014-12-26 13:18:38EST hankel.lisp>
 ;;
-;; Copyright 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2007, 2008, 2009, 2011, 2012, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 ;; $Id$
 
 (in-package :gsl)
+(named-readtables:in-readtable :antik)
 
 ;;; /usr/include/gsl/gsl_dht.h
 
@@ -28,7 +29,7 @@
 
 ;;; Create the Hankel transform object and essential methods/functions.
 (defmobject hankel "gsl_dht"
-  ((size sizet))
+  ((size :sizet))
   "discrete Hankel Transform"
   :documentation
   "Allocate a Discrete Hankel transform object of the given size and
@@ -39,10 +40,10 @@
 (defmfun apply-hankel
     (hankel array-in
      &optional
-     (array-out (grid:make-foreign-array 'double-float :dimensions (dimensions array-in))))
+     (array-out (grid:make-foreign-array 'double-float :dimensions (grid:dimensions array-in))))
   "gsl_dht_apply"
-  (((mpointer hankel) :pointer) ((foreign-pointer array-in) :pointer)
-   ((foreign-pointer array-out) :pointer))
+  (((mpointer hankel) :pointer) ((grid:foreign-pointer array-in) :pointer)
+   ((grid:foreign-pointer array-out) :pointer))
   :inputs (array-in)
   :outputs (array-out)
   :return (array-out)
@@ -81,7 +82,7 @@
  (let ((hank (make-hankel 128 0.0d0 100.0d0))
        (in (grid:make-foreign-array 'double-float :dimensions 128)))
    (loop for n from 0 below 128
-      do (setf (grid:gref in n)
+      do (setf (grid:aref in n)
 	       (/ (1+ (expt (sample-x-hankel hank n) 2)))))
    (grid:copy-to (apply-hankel hank in)))
  ;; Integrate[ x exp(-x) J_1(a x), {x,0,Inf}] = a F(3/2, 2; 2; -a^2)
@@ -89,13 +90,13 @@
  (let ((hank (make-hankel 128 1.0d0 20.0d0))
        (in (grid:make-foreign-array 'double-float :dimensions 128)))
    (loop for n from 0 below 128
-      do (setf (grid:gref in n) (exp (- (sample-x-hankel hank n)))))
+      do (setf (grid:aref in n) (exp (- (sample-x-hankel hank n)))))
    (grid:copy-to (apply-hankel hank in)))
  ;; Integrate[ x^2 (1-x^2) J_1(a x), {x,0,1}] = 2/a^2 J_3(a)
  (let ((hank (make-hankel 128 1.0d0 1.0d0))
        (in (grid:make-foreign-array 'double-float :dimensions 128)))
    (loop for n from 0 below 128
-      do (setf (grid:gref in n)
+      do (setf (grid:aref in n)
 	       (let ((x (sample-x-hankel hank n)))
 		 (* x (- 1 (expt x 2))))))
    (grid:copy-to (apply-hankel hank in))))

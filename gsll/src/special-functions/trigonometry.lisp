@@ -1,8 +1,8 @@
 ;; Trigonometry
 ;; Liam Healy, Thu May  4 2006 - 22:58
-;; Time-stamp: <2009-12-27 10:09:58EST trigonometry.lisp>
+;; Time-stamp: <2011-10-29 23:44:51EDT trigonometry.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -31,64 +31,65 @@
   (:documentation "The cosine function cos(x)."))
 
 (defmfun gsl-sin ((x float))
-  "gsl_sf_sin_e" ((x :double) (ret sf-result))
+  "gsl_sf_sin_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :export t)
 
 (defmfun gsl-sin ((x complex))
   "gsl_sf_complex_sin_e"
   (((realpart x) :double) ((imagpart x) :double)
-   (re-ret sf-result) (im-ret sf-result))
+   (re-ret (:pointer (:struct sf-result)))
+   (im-ret (:pointer (:struct sf-result))))
   :definition :method
-  :return ((complex (val re-ret) (val im-ret))
-	   (complex (err re-ret) (err im-ret))))
+  :return ((complex-with-error re-ret im-ret)))
 
 (defmfun gsl-cos ((x float))
-  "gsl_sf_cos_e" ((x :double) (ret sf-result))
+  "gsl_sf_cos_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :export t)
 
 (defmfun gsl-cos ((x complex))
   "gsl_sf_complex_cos_e"
   (((realpart x) :double) ((imagpart x) :double)
-   (re-ret sf-result) (im-ret sf-result))
+   (re-ret (:pointer (:struct sf-result)))
+   (im-ret (:pointer (:struct sf-result))))
   :definition :method 
-  :return ((complex (val re-ret) (val im-ret))
-	   (complex (err re-ret) (err im-ret))))
+  :return ((complex-with-error re-ret im-ret)))
 
 (defmfun hypotenuse (x y)
-  "gsl_sf_hypot_e" ((x :double) (y :double) (ret sf-result))
+  "gsl_sf_hypot_e"
+  ((x :double) (y :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The hypotenuse function sqrt{x^2 + y^2}.")
 
 (defmfun sinc (x)
-  "gsl_sf_sinc_e" ((x :double) (ret sf-result))
+  "gsl_sf_sinc_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "sinc(x) = sin(pi x) / (pi x)}")
 
 (defmfun log-sin (x)
   "gsl_sf_complex_logsin_e"
   (((realpart x) :double) ((imagpart x) :double)
-   (re-ret sf-result) (im-ret sf-result))
+   (re-ret (:pointer (:struct sf-result)))
+   (im-ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "This function computes the logarithm of the complex sine,
   \log(\sin(z_r + i z_i)) storing the real and imaginary parts in
   szr, szi."
-  :return ((complex (val re-ret) (val im-ret))
-	   (complex (err re-ret) (err im-ret))))
+  :return ((complex-with-error re-ret im-ret)))
 
 ;;;;****************************************************************************
 ;;;; Hyperbolic Trigonometric Functions
 ;;;;****************************************************************************
 
 (defmfun log-sinh (x)
-  "gsl_sf_lnsinh_e" ((x :double) (ret sf-result))
+  "gsl_sf_lnsinh_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "Logarithm of sinh function, special functions
   These routines compute log(\sinh(x)) for x > 0.")
 
 (defmfun log-cosh (x)
-  "gsl_sf_lncosh_e" ((x :double) (ret sf-result))
+  "gsl_sf_lncosh_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "Logarithm of cosh function, special functions
    These routines compute log(cosh(x)) for any x.")
@@ -99,16 +100,18 @@
 
 (defmfun polar-to-rectangular (r theta)
   "gsl_sf_polar_to_rect"
-  ((r :double) (theta :double) (x sf-result) (y sf-result))
-  :return ((val x) (val y) (err x) (err y))
+  ((r :double) (theta :double) (x (:pointer (:struct sf-result)))
+	       (y (:pointer (:struct sf-result))))
+  :return ((values-with-errors x y))
   :documentation			; FDL
   "Convert the polar coordinates (r, theta) to
   rectilinear coordinates (x, y), x = r\cos(\theta), y = r\sin(\theta).")
 
 (defmfun rectangular-to-polar (x y)
   "gsl_sf_rect_to_polar"
-  ((x :double) (y :double) (r sf-result) (theta sf-result))
-  :return ((val r) (val theta) (err r) (err theta))
+  ((x :double) (y :double) (r (:pointer (:struct sf-result)))
+	       (theta (:pointer (:struct sf-result))))
+  :return ((values-with-errors r theta))
   :documentation			; FDL
   "Convert the rectilinear coordinates (x, y) to
   polar coordinates (r, theta), such that x =
@@ -136,13 +139,13 @@
 ;;;;****************************************************************************
 
 (defmfun sin-err (x dx)
-  "gsl_sf_sin_err_e" ((x :double) (dx :double) (ret sf-result))
+  "gsl_sf_sin_err_e" ((x :double) (dx :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "Compute the sine of an angle x with
    an associated absolute error dx, sin(x \pm dx).")
 
 (defmfun cos-err (x dx)
-  "gsl_sf_cos_err_e" ((x :double) (dx :double) (ret sf-result))
+  "gsl_sf_cos_err_e" ((x :double) (dx :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The cosine of an angle x with an associated
   absolute error dx, cos(x \pm dx).")

@@ -1,8 +1,8 @@
 ;; Quasi-random sequences in arbitrary dimensions.
 ;; Liam Healy, Sun Jul 16 2006 - 15:54
-;; Time-stamp: <2010-07-16 17:10:54EDT quasi.lisp>
+;; Time-stamp: <2012-01-13 12:01:20EST quasi.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@
 
 (defmfun qrng-get (generator return-vector)
   "gsl_qrng_get"
-  (((mpointer generator) :pointer) ((foreign-pointer return-vector) :pointer))
+  (((mpointer generator) :pointer) ((grid:foreign-pointer return-vector) :pointer))
   :outputs (return-vector)
   :return (return-vector)
   :documentation			; FDL
@@ -60,7 +60,7 @@
 (defmfun size ((instance quasi-random-number-generator))
   "gsl_qrng_size" (((mpointer instance) :pointer))
   :definition :method
-  :c-return sizet
+  :c-return :sizet
   :export nil
   :index gsl-random-state)
 

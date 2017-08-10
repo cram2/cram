@@ -1,8 +1,8 @@
 ;; Permutations
 ;; Liam Healy, Sun Mar 26 2006 - 11:51
-;; Time-stamp: <2010-07-16 17:14:45EDT permutation.lisp>
+;; Time-stamp: <2017-01-01 17:20:46EST permutation.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009, 2010 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2014, 2016, 2017 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -27,57 +27,25 @@
 ;;;; Permutation structure and CL object
 ;;;;****************************************************************************
    
-(defclass permutation
-    (#+int64 grid:vector-unsigned-byte-64 #+int32 grid:vector-unsigned-byte-32)
-  ()
-  (:documentation "GSL permutations."))
-
-(defmethod initialize-instance :after
-    ((object permutation) &key dimensions &allow-other-keys)
-  (let ((mptr (cffi:foreign-alloc 'gsl-permutation-c)))
-    (setf (grid:metadata-slot object 'mpointer)
-	  mptr
-	  (cffi:foreign-slot-value mptr 'gsl-permutation-c 'data)
-	  (foreign-pointer object)
-	  (cffi:foreign-slot-value mptr 'gsl-permutation-c 'size)
-	  (first dimensions))
-    (tg:finalize object (lambda () (cffi:foreign-free mptr)))))
-
-(export 'make-permutation)
-(defun make-permutation (n &optional (initialize t))
-  "Make the object representing a permutation of n objects.
-   If n is a permutation, make a new permutation of the same size.  If
-   initialize is T (default), set to the identity permutation if n is
-   an integer, or copy the permutation if it's a permutation."
-  (let ((perm
-	 (make-instance
-	  'permutation
-	  :element-type '(unsigned-byte #+int64 64 #+int32 32)
-	  :dimensions (if (typep n 'permutation) (dimensions n) (list n)))))
-    (when initialize
-      (if (typep n 'permutation)
-	  (error "not available yet")	; (copy perm n)
-	  (set-identity perm)))
-    perm))
+(defmobject permutation
+  "gsl_permutation"
+  ((size :sizet))
+  "permutation"
+  :initialize-when-making :default-t
+  :ri-c-return :void
+  :initialize-suffix "init")
 
 (defmethod print-object ((object permutation) stream)
   (print-unreadable-object (object stream :type t)
-    (princ (grid:contents object) stream)))
+    (format stream "size ~d contents ~a" (size object) (grid:contents object))))
 
 ;;;;****************************************************************************
-;;;; Setting values
+;;;; Setting/getting values
 ;;;;****************************************************************************
 
-(defmfun set-identity ((permutation permutation))
-  "gsl_permutation_init"
-  (((mpointer permutation) :pointer))
-  :definition :method
-  :c-return :void
-  :outputs (permutation)
-  :return (permutation)
-  :documentation			; FDL
-  "Initialize the permutation p to the identity, i.e.
-   (0,1,2,...,n-1).")
+(defmethod set-identity ((p permutation))
+  "Initialize the permutation p to the identity, i.e. (0,1,2,...,n-1)."
+  (reinitialize-instance p))
 
 (defmfun perm-copy (source destination)
   "gsl_permutation_memcpy"
@@ -101,13 +69,19 @@
 
 (defmfun swap-elements ((p permutation) i j)
   "gsl_permutation_swap"
-  (((mpointer p) :pointer) (i sizet) (j sizet))
+  (((mpointer p) :pointer) (i :sizet) (j :sizet))
   :definition :method
   :inputs (p)
   :outputs (p)
   :return (p)
   :documentation			; FDL
   "Exchanges the ith and jth elements of the permutation p.")
+
+(defmfun grid:aref ((p permutation) &rest indices)
+  "gsl_permutation_get"
+  (((mpointer p) :pointer) ((first indices) :sizet))
+  :definition :method
+  :c-return :sizet)
 
 ;;;;****************************************************************************
 ;;;; Permutation properties
@@ -117,10 +91,13 @@
   "gsl_permutation_size"
   (((mpointer p) :pointer))
   :definition :method
-  :c-return sizet
+  :c-return :sizet
   :inputs (p)
   :documentation			; FDL
   "The size of the permutation p.")
+
+(defmethod grid:dimensions ((p permutation))
+  (list (size p)))
 
 (defmfun permutation-data (p)
   "gsl_permutation_data"
@@ -218,16 +195,15 @@
    have the same length.")
 
 (defmfun permute
-    (p (data #.+foreign-pointer-class+) &optional (size 1) (stride 1))
+    (p (data #.grid:+foreign-pointer-class+) &optional (size 1) (stride 1))
   "gsl_permute"
-  (((mpointer p) :pointer) (data :pointer) (stride sizet) (size sizet))
+  (((mpointer p) :pointer) (data :pointer) (stride :sizet) (size :sizet))
   :definition :method
   :inputs (p data)
   :outputs (data)
   :return (data)
   :documentation			; FDL
-  "Apply the permutation p to the array data of
-   size n with stride stride.")
+  "Apply the permutation p to the array data of size n with stride stride.")
 
 (defmfun permute-inverse
     ((p permutation) (v vector) &optional size stride)
@@ -238,17 +214,12 @@
   :outputs (v)
   :return (v)
   :documentation			; FDL
-  "Apply the permutation p to the elements of the
-   vector v considered as a row-vector acted on by a permutation
-   matrix from the right, v' = v P.  The jth column of the
-   permutation matrix P is given by the p_j-th column of the
-   identity matrix. The permutation p and the vector v must
-   have the same length.")
+  "Apply the permutation p to the elements of the vector v considered as a row-vector acted on by a permutation matrix from the right, v' = v P.  The jth column of the permutation matrix P is given by the p_j-th column of the identity matrix. The permutation p and the vector v must have the same length.")
 
 (defmfun permute-inverse
-    (p (data #.+foreign-pointer-class+) &optional (size 1) (stride 1))
+    (p (data #.grid:+foreign-pointer-class+) &optional (size 1) (stride 1))
   "gsl_permute_inverse"
-  (((mpointer p) :pointer) (data :pointer) (stride sizet) (stride sizet))
+  (((mpointer p) :pointer) (data :pointer) (stride :sizet) (stride :sizet))
   :definition :method
   :inputs (p data)
   :outputs (data)
@@ -266,9 +237,7 @@
   :outputs (p)
   :return (p)
   :documentation			; FDL
-  "Combine the two permutations pa and pb into a
-  single permutation p where p = pa . pb. The permutation
-  p is equivalent to applying pb first and then pa.")
+  "Combine the two permutations pa and pb into a single permutation p where p = pa . pb. The permutation p is equivalent to applying pb first and then pa.")
 
 ;;;;****************************************************************************
 ;;;; Permutations in cyclic form
@@ -294,7 +263,7 @@
 
 (defmfun inversions (p)
   "gsl_permutation_inversions" (((mpointer p) :pointer))
-  :c-return sizet
+  :c-return :sizet
   :inputs (p)
   :documentation			; FDL
   "Count the number of inversions in the permutation
@@ -305,7 +274,7 @@
 
 (defmfun linear-cycles (p)
   "gsl_permutation_linear_cycles" (((mpointer p) :pointer))
-  :c-return sizet
+  :c-return :sizet
   :inputs (p)
   :documentation			; FDL
   "Count the number of cycles in the permutation p, given in linear form.")
@@ -313,7 +282,7 @@
 (defmfun canonical-cycles (p)
   "gsl_permutation_canonical_cycles"
   (((mpointer p) :pointer))
-  :c-return sizet
+  :c-return :sizet
   :inputs (p)
   :documentation			; FDL
   "Count the number of cycles in the permutation q, given in canonical form.")
@@ -339,7 +308,7 @@
 
 (save-test permutation
  (let ((perm-1 (make-permutation 4 t)))
-   (grid:gref perm-1 2))
+   (grid:aref perm-1 2))
  (let ((perm-1 (make-permutation 4 t)))	;grid:contents
    (grid:contents perm-1))
  (let ((perm-1 (make-permutation 4 t)))	;permutation-reverse
@@ -357,7 +326,7 @@
    (swap-elements perm-1 1 3)
    (grid:contents perm-1))
  (let ((perm-1 (make-permutation 4 t))	;permute-vector
-       (intvec #31m(11 22 33 44)))
+       (intvec (grid:make-foreign-array '(signed-byte 32) :initial-contents '(11 22 33 44))))
    (set-identity perm-1)
    (swap-elements perm-1 1 3)
    (swap-elements perm-1 0 2)

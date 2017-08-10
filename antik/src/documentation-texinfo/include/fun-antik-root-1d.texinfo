@@ -1,0 +1,6 @@
+@deffn {Function} {antik:root-1d} function initial derivative @&optional absolute-error relative-error method
+@findex antik:root-1d
+Find the root of a real function of a real variable.  Returns the
+   argument value of the root and the computed value of the function at
+   that value.  The argument and return values may be physical quantities.
+@end deffn

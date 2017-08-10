@@ -1,0 +1,5 @@
+@deffn {Function} {antik:define-unit} unit definition @&optional synonyms print-name dimension
+@findex antik:define-unit
+Define the unit.  If the definition is a number then the dimension
+   information will be extracted from dimension.
+@end deffn

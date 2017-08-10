@@ -1,0 +1,4 @@
+@deffn {Function} {antik:add-attribute-to-parameter} category name attribute @&optional description
+@findex antik:add-attribute-to-parameter
+Declare that the parameter, already created, has the stated attribute.
+@end deffn

@@ -1,6 +1,6 @@
 ;; Regression test MATRIX-PRODUCT-HERMITIAN for GSLL, automatically generated
 ;;
-;; Copyright 2009, 2010 Liam M. Healy
+;; Copyright 2009, 2010, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -22,12 +22,12 @@
 (LISP-UNIT:DEFINE-TEST MATRIX-PRODUCT-HERMITIAN
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
-    #2A((#C(161635.16 -134299.77) #C(93510.016 -191870.72)
-	   #C(55739.336 13621.439))
-	(#C(-68526.41 125188.29) #C(46318.242 59787.605)
-	   #C(-28142.984 5816.9385))
-	(#C(-139503.38 55690.902) #C(2898.8164 49116.78)
-	   #C(-57882.3 -176350.63))))
+    #2A((#C(161635.16f0 -134299.77f0) #C(93510.016f0 -191870.72f0)
+	   #C(55739.336f0 13621.439f0))
+	(#C(-68526.41f0 125188.29f0) #C(46318.242f0 59787.605f0)
+	   #C(-28142.984f0 5816.9385f0))
+	(#C(-139503.38f0 55690.902f0) #C(2898.8164f0 49116.78f0)
+	   #C(-57882.3f0 -176350.63f0))))
    (MULTIPLE-VALUE-LIST
     (LET ((M1
 	   (GRID:MAKE-FOREIGN-ARRAY
@@ -50,10 +50,10 @@
 	    '((#C(19.68 -5.55) #C(-8.82 25.37) #C(-30.58 31.67))
 	      (#C(25.37 -30.58) #C(31.67 29.36) #C(-33.24 -27.03))
 	      (#C(29.36 -33.24) #C(-27.03 -41.67) #C(42.0 -20.81)))))
-	  (S1 #C(-41.67 42.0))
-	  (S2 #C(42.0 -20.81)))
+	  (S1 #C(-41.67f0 42.0f0))
+	  (S2 #C(42.0f0 -20.81f0)))
       (GRID:COPY-TO
-       (MATRIX-PRODUCT-HERMITIAN M1 M2 M3 S1 S2)))))
+       (MATRIX-PRODUCT-HERMITIAN M1 M2 M3 S1 S2) 'array '(complex single-float)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
     #2A((#C(161635.17690299999d0 -134299.761873d0)
@@ -90,11 +90,11 @@
 	  (S1 #C(-41.67d0 42.0d0))
 	  (S2 #C(42.0d0 -20.81d0)))
       (GRID:COPY-TO
-       (MATRIX-PRODUCT-HERMITIAN M1 M2 M3 S1 S2)))))
+       (MATRIX-PRODUCT-HERMITIAN M1 M2 M3 S1 S2) 'array '(complex double-float)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
-    #(#C(117171.67 19582.54) #C(18787.117 29534.742)
-      #C(-104992.03 72729.13)))
+    #(#C(117171.67f0 19582.54f0) #C(18787.117f0 29534.742f0)
+      #C(-104992.03f0 72729.13f0)))
    (MULTIPLE-VALUE-LIST
     (LET ((M1
 	   (GRID:MAKE-FOREIGN-ARRAY
@@ -113,10 +113,10 @@
 	    '(COMPLEX SINGLE-FLOAT)
 	    :INITIAL-CONTENTS
 	    '(#C(-16.12 -8.25) #C(21.44 -49.08) #C(-39.66 -49.46))))
-	  (S1 #C(-49.08 -39.66))
-	  (S2 #C(-39.66 -49.46)))
+	  (S1 #C(-49.08f0 -39.66f0))
+	  (S2 #C(-39.66f0 -49.46f0)))
       (GRID:COPY-TO
-       (MATRIX-PRODUCT-HERMITIAN M1 V1 V2 S1 S2)))))
+       (MATRIX-PRODUCT-HERMITIAN M1 V1 V2 S1 S2) 'array '(complex single-float)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
     #(#C(117171.67150799997d0 19582.539385999997d0)
@@ -143,5 +143,5 @@
 	  (S1 #C(-49.08d0 -39.66d0))
 	  (S2 #C(-39.66d0 -49.46d0)))
       (GRID:COPY-TO
-       (MATRIX-PRODUCT-HERMITIAN M1 V1 V2 S1 S2))))))
+       (MATRIX-PRODUCT-HERMITIAN M1 V1 V2 S1 S2) 'array '(complex double-float))))))
 

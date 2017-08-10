@@ -1,8 +1,8 @@
 ;; Bessel functions
 ;; Liam Healy, Fri Mar 17 2006 - 18:42
-;; Time-stamp: <2010-07-07 14:24:57EDT bessel.lisp>
+;; Time-stamp: <2014-12-26 13:18:35EST bessel.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :gsl)
+(named-readtables:in-readtable :antik)
 
 ;;;;****************************************************************************
 ;;;; Regular Cylindrical Bessel Functions
@@ -26,12 +27,12 @@
 
 (defmfun cylindrical-bessel-J0 (x)
     "gsl_sf_bessel_J0_e"
-  ((x :double) (ret sf-result))
+  ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The regular cylindrical Bessel function of zeroth order, J_0(x).")
 
 (defmfun cylindrical-bessel-J1 (x)
-  "gsl_sf_bessel_J1_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_J1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The regular cylindrical Bessel function of first order, J_1(x).")
 
@@ -41,7 +42,7 @@
    "The regular cylindrical Bessel function of order n, J_n(x)."))
 
 (defmfun cylindrical-bessel-J ((n integer) x)
-  "gsl_sf_bessel_Jn_e" ((n :int) (x :double) (ret sf-result))
+  "gsl_sf_bessel_Jn_e" ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method)
 
 (defmfun cylindrical-bessel-J-array-order
@@ -49,7 +50,7 @@
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_Jn_array"
   ((nmin :int) ((+ nmin (dim0 array) -1) :int) (x :double)
-   ((foreign-pointer array) :pointer))
+   ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "The values of the regular cylindrical Bessel functions J_n(x)
@@ -60,12 +61,12 @@
 ;;; Fractional order
 
 (defmfun cylindrical-bessel-J ((nu float) x)
-  "gsl_sf_bessel_Jnu_e" ((nu :double) (x :double) (ret sf-result))
+  "gsl_sf_bessel_Jnu_e" ((nu :double) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method)
 
 (defmfun cylindrical-bessel-J-array-x (nu v &optional (mode :double))
   "gsl_sf_bessel_sequence_Jnu_e"
-  ((nu :double) (mode sf-mode) ((dim0 v) :int) ((foreign-pointer v) :pointer))
+  ((nu :double) (mode sf-mode) ((dim0 v) :int) ((grid:foreign-pointer v) :pointer))
   :inputs (v)
   :outputs (v)
   :documentation			; FDL
@@ -80,12 +81,12 @@
 ;;;;****************************************************************************
 
 (defmfun cylindrical-bessel-Y0 (x)
-  "gsl_sf_bessel_Y0_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_Y0_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The irregular cylindrical Bessel function of zeroth order, Y_0(x).")
 
 (defmfun cylindrical-bessel-Y1 (x)
-  "gsl_sf_bessel_Y1_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_Y1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The irregular cylindrical Bessel function of first order, Y_1(x).")
 
@@ -96,7 +97,7 @@
 
 (defmfun cylindrical-bessel-Y ((n integer) x)
   "gsl_sf_bessel_Yn_e"
-  ((n :int) (x :double) (ret sf-result))
+  ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation			; FDL
   "The irregular cylindrical Bessel function of order n, Y_n(x).")
@@ -106,7 +107,7 @@
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_Yn_array"
   ((nmin :int) ((+ nmin (dim0 array) -1) :int) (x :double)
-   ((foreign-pointer array) :pointer))
+   ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "The values of the irregular cylindrical Bessel functions
@@ -118,7 +119,7 @@
 ;;; Irregular Bessel Function - Fractional Order
 
 (defmfun cylindrical-bessel-Y ((nu float) x)
-  "gsl_sf_bessel_Ynu_e" ((nu :double) (x :double) (ret sf-result))
+  "gsl_sf_bessel_Ynu_e" ((nu :double) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method)
 
 ;;;;****************************************************************************
@@ -126,12 +127,12 @@
 ;;;;****************************************************************************
 
 (defmfun cylindrical-bessel-I0 (x)
-  "gsl_sf_bessel_I0_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_I0_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The regular modified cylindrical Bessel function of zeroth order, I_0(x).")
 
 (defmfun cylindrical-bessel-I1 (x)
-  "gsl_sf_bessel_I1_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_I1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The regular modified cylindrical Bessel function of first order, I_1(x).")
 
@@ -142,7 +143,7 @@
 
 (defmfun cylindrical-bessel-I ((n integer) x)
   "gsl_sf_bessel_In_e"
-  ((n :int) (x :double) (ret sf-result))
+  ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method)
 
 (defmfun cylindrical-bessel-In-array
@@ -150,7 +151,7 @@
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_In_array"
   ((nmin :int) ((+ nmin (dim0 array) -1) :int) (x :double)
-   ((foreign-pointer array) :pointer))
+   ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "The values of the regular modified cylindrical Bessel functions
@@ -159,13 +160,13 @@
    therefore may differ slightly from the exact values.")
 
 (defmfun cylindrical-bessel-I0-scaled (x)
-  "gsl_sf_bessel_I0_scaled_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_I0_scaled_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled regular modified cylindrical Bessel function of zeroth order,
   \exp(-|x|) I_0(x).")
 
 (defmfun cylindrical-bessel-I1-scaled (x)
-  "gsl_sf_bessel_I1_scaled_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_I1_scaled_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled regular modified cylindrical Bessel function of first order,
   \exp(-|x|) I_1(x).")
@@ -177,7 +178,7 @@
   \exp(-|x|) I_n(x)}."))
 
 (defmfun cylindrical-bessel-I-scaled ((n integer) x)
-  "gsl_sf_bessel_In_scaled_e" ((n :int) (x :double) (ret sf-result))
+  "gsl_sf_bessel_In_scaled_e" ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation			; FDL
   "The scaled regular modified cylindrical Bessel function of order n,
@@ -188,7 +189,7 @@
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_In_scaled_array"
   ((nmin :int) ((+ nmin (dim0 array) -1) :int) (x :double)
-   ((foreign-pointer array) :pointer))
+   ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   ;; Bug in original documentation?  doesn't say "modified"
@@ -201,14 +202,14 @@
 ;;; Regular Modified Bessel Functions - Fractional Order
 
 (defmfun cylindrical-bessel-I ((nu float) x)
-  "gsl_sf_bessel_Inu_e" ((nu :double) (x :double) (ret sf-result))
+  "gsl_sf_bessel_Inu_e" ((nu :double) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation			; FDL
   "The regular modified Bessel function of fractional order
   \nu, I_\nu(x) for x>0, \nu>0.")
 
 (defmfun cylindrical-bessel-I-scaled ((nu float) x)
-  "gsl_sf_bessel_Inu_scaled_e" ((nu :double) (x :double) (ret sf-result))
+  "gsl_sf_bessel_Inu_scaled_e" ((nu :double) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation			; FDL
   "The scaled regular modified Bessel function of fractional order
@@ -219,13 +220,13 @@
 ;;;;****************************************************************************
 
 (defmfun cylindrical-bessel-K0 (x)
-  "gsl_sf_bessel_K0_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_K0_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The irregular modified cylindrical Bessel function of zeroth order,
   K_0(x).")
 
 (defmfun cylindrical-bessel-K1 (x)
-  "gsl_sf_bessel_K1_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_K1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The irregular modified cylindrical Bessel function of first order, K_1(x).")
 
@@ -235,7 +236,7 @@
    "The irregular modified cylindrical Bessel function of order n, K_n(x)."))
 
 (defmfun cylindrical-bessel-K ((n integer) x)
-  "gsl_sf_bessel_Kn_e" ((n :int) (x :double) (ret sf-result))
+  "gsl_sf_bessel_Kn_e" ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method)
 
 (defmfun cylindrical-bessel-Kn-array
@@ -243,7 +244,7 @@
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_Kn_array"
   ((nmin :int) ((+ nmin (dim0 array) -1) :int) (x :double)
-   ((foreign-pointer array) :pointer))
+   ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "The values of the irregular modified cylindrical Bessel functions
@@ -252,13 +253,13 @@
    therefore may differ slightly from the exact values.")
 
 (defmfun cylindrical-bessel-K0-scaled (x)
-  "gsl_sf_bessel_K0_scaled_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_K0_scaled_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled irregular modified cylindrical Bessel function of zeroth order,
   \exp(-|x|) K_0(x).")
 
 (defmfun cylindrical-bessel-K1-scaled (x)
-  "gsl_sf_bessel_K1_scaled_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_K1_scaled_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled irregular modified cylindrical Bessel function of first order,
    \exp(-|x|) K_1(x).")
@@ -270,7 +271,7 @@
   \exp(-|x|) K_n(x)."))
 
 (defmfun cylindrical-bessel-K-scaled ((n integer) x)
-  "gsl_sf_bessel_Kn_scaled_e" ((n :int) (x :double) (ret sf-result))
+  "gsl_sf_bessel_Kn_scaled_e" ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method)
 
 (defmfun cylindrical-bessel-Kn-scaled-array
@@ -278,7 +279,7 @@
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_Kn_scaled_array"
   ((nmin :int) ((+ nmin (dim0 array) -1) :int) (x :double)
-   ((foreign-pointer array) :pointer))
+   ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "The values of the scaled irregular cylindrical
@@ -292,20 +293,20 @@
 ;;; Irregular Modified Bessel Functions - Fractional Order
 
 (defmfun cylindrical-bessel-K ((nu float) x)
-  "gsl_sf_bessel_Knu_e" ((nu :double) (x :double) (ret sf-result))
+  "gsl_sf_bessel_Knu_e" ((nu :double) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation			; FDL
   "The irregular modified Bessel function of fractional order \nu,
    K_\nu(x) for x>0, \nu>0.")
 
 (defmfun bessel-lnKnu (nu x)
-  "gsl_sf_bessel_lnKnu_e" ((nu :double) (x :double) (ret sf-result))
+  "gsl_sf_bessel_lnKnu_e" ((nu :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The logarithm of the irregular modified Bessel function of fractional
    order \nu, \ln(K_\nu(x)) for x>0, \nu>0.")
 
 (defmfun cylindrical-bessel-K-scaled ((nu float) x)
-  "gsl_sf_bessel_Knu_scaled_e" ((nu :double) (x :double) (ret sf-result))
+  "gsl_sf_bessel_Knu_scaled_e" ((nu :double) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation			; FDL
   "The scaled irregular modified Bessel function of fractional order
@@ -316,24 +317,24 @@
 ;;;;****************************************************************************
 
 (defmfun spherical-bessel-j0 (x)
-  "gsl_sf_bessel_j0_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_j0_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The regular spherical Bessel function of zeroth order, j_0(x) = \sin(x)/x.")
 
 (defmfun spherical-bessel-j1 (x)
-  "gsl_sf_bessel_j1_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_j1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The regular spherical Bessel function of first order, j_1(x)
    = (\sin(x)/x - \cos(x))/x.")
 
 (defmfun spherical-bessel-j2 (x)
-  "gsl_sf_bessel_j2_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_j2_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The regular spherical Bessel function of second order, j_2(x)
    = ((3/x^2 - 1)\sin(x) - 3\cos(x)/x)/x.")
 
 (defmfun spherical-bessel-jl (l x)
-  "gsl_sf_bessel_jl_e" ((l :int) (x :double) (ret sf-result))
+  "gsl_sf_bessel_jl_e" ((l :int) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The regular spherical Bessel function of order
    l, j_l(x), for l >= 0 and x >= 0.")
@@ -342,7 +343,7 @@
     (x &optional (size-or-array *default-sf-array-size*)
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_jl_array"
-  (((1- (dim0 array)) :int) (x :double) ((foreign-pointer array) :pointer))
+  (((1- (dim0 array)) :int) (x :double) ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "The values of the regular spherical Bessel
@@ -354,7 +355,7 @@
     (x &optional (size-or-array *default-sf-array-size*)
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_jl_steed_array"
-  (((1- (dim0 array)) :int) (x :double) ((foreign-pointer array) :pointer))
+  (((1- (dim0 array)) :int) (x :double) ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "Uses Steed's method to compute the values of the regular spherical
@@ -369,25 +370,25 @@
 ;;;;****************************************************************************
 
 (defmfun spherical-bessel-y0 (x)
-  "gsl_sf_bessel_y0_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_y0_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The irregular spherical Bessel function of zeroth order,
   y_0(x) = -\cos(x)/x.")
 
 (defmfun spherical-bessel-y1 (x)
-  "gsl_sf_bessel_y1_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_y1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The irregular spherical Bessel function of first order,
   y_1(x) = -(\cos(x)/x + \sin(x))/x.")
 
 (defmfun spherical-bessel-y2 (x)
-  "gsl_sf_bessel_y2_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_y2_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The irregular spherical Bessel function of second order,
   y_2(x) = (-3/x^3 + 1/x)\cos(x) - (3/x^2)\sin(x).")
 
 (defmfun spherical-bessel-yl (l x)
-  "gsl_sf_bessel_yl_e" ((l :int) (x :double) (ret sf-result))
+  "gsl_sf_bessel_yl_e" ((l :int) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The irregular spherical Bessel function of order l, y_l(x), for l >= 0.")
 
@@ -395,7 +396,7 @@
     (x &optional (size-or-array *default-sf-array-size*)
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_yl_array"
-  (((1- (dim0 array)) :int) (x :double) ((foreign-pointer array) :pointer))
+  (((1- (dim0 array)) :int) (x :double) ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "The irregular spherical Bessel functions y_l(x) for l
@@ -408,25 +409,26 @@
 ;;;;****************************************************************************
 
 (defmfun spherical-bessel-i0-scaled (x)
-  "gsl_sf_bessel_i0_scaled_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_i0_scaled_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled regular modified spherical Bessel function of zeroth
   order, \exp(-|x|) i_0(x).")
 
 (defmfun spherical-bessel-i1-scaled (x)
-  "gsl_sf_bessel_i1_scaled_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_i1_scaled_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled regular modified spherical Bessel function of first order,
   \exp(-|x|) i_1(x).")
 
 (defmfun spherical-bessel-i2-scaled (x)
-  "gsl_sf_bessel_i2_scaled_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_i2_scaled_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled regular modified spherical Bessel function of second order,
    \exp(-|x|) i_2(x).")
 
 (defmfun spherical-bessel-il-scaled (n x)
-  "gsl_sf_bessel_il_scaled_e" ((n :int) (x :double) (ret sf-result))
+  "gsl_sf_bessel_il_scaled_e"
+  ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled regular modified spherical Bessel function of order l,
    \exp(-|x|) i_l(x).")
@@ -435,7 +437,7 @@
     (x &optional (size-or-array *default-sf-array-size*)
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_il_scaled_array"
-  (((1- (dim0 array)) :int) (x :double) ((foreign-pointer array) :pointer))
+  (((1- (dim0 array)) :int) (x :double) ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "The values of the scaled regular modified cylindrical Bessel
@@ -448,25 +450,25 @@
 ;;;;****************************************************************************
 
 (defmfun spherical-bessel-k0-scaled (x)
-  "gsl_sf_bessel_k0_scaled_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_k0_scaled_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled irregular modified spherical Bessel function of zeroth
   order, \exp(x) k_0(x), for x>0.")
 
 (defmfun spherical-bessel-k1-scaled (x)
-  "gsl_sf_bessel_k1_scaled_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_k1_scaled_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled irregular modified spherical Bessel function of first order,
    \exp(x) k_1(x), for x>0.")
 
 (defmfun spherical-bessel-k2-scaled (x)
-  "gsl_sf_bessel_k2_scaled_e" ((x :double) (ret sf-result))
+  "gsl_sf_bessel_k2_scaled_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled irregular modified spherical Bessel function of second order,
   \exp(x) k_2(x), for x>0.")
 
 (defmfun spherical-bessel-kl-scaled (n x)
-  "gsl_sf_bessel_il_scaled_e" ((n :int) (x :double) (ret sf-result))
+  "gsl_sf_bessel_il_scaled_e" ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The scaled irregular modified spherical Bessel function of order l,
    \exp(x) k_l(x), for x>0.")
@@ -475,7 +477,7 @@
     (x &optional (size-or-array *default-sf-array-size*)
        &aux (array (vdf size-or-array)))
   "gsl_sf_bessel_kl_scaled_array"
-  (((1- (dim0 array)) :int) (x :double) ((foreign-pointer array) :pointer))
+  (((1- (dim0 array)) :int) (x :double) ((grid:foreign-pointer array) :pointer))
   :outputs (array)
   :documentation			; FDL
   "The values of the scaled irregular modified spherical Bessel
@@ -489,19 +491,20 @@
 ;;;;****************************************************************************
 
 (defmfun bessel-zero-J0 (s)
-  "gsl_sf_bessel_zero_J0_e" ((s :int) (ret sf-result))
+  "gsl_sf_bessel_zero_J0_e" ((s :int) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The location of the s-th positive zero of the Bessel function
   J_0(x).")
 
 (defmfun bessel-zero-J1 (s)
-  "gsl_sf_bessel_zero_J1_e" ((s :int) (ret sf-result))
+  "gsl_sf_bessel_zero_J1_e" ((s :int) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The location of the s-th positive zero of the Bessel function
   J_1(x).")
 
 (defmfun bessel-zero-Jnu (nu s)
-  "gsl_sf_bessel_zero_Jnu_e" ((nu :double) (s :int) (ret sf-result))
+  "gsl_sf_bessel_zero_Jnu_e"
+  ((nu :double) (s :int) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "These routines compute the location of the s-th positive zero
   of the Bessel function J_\nu(x).  The current implementation

@@ -1,0 +1,42 @@
+@deffn {Function} {grid:map-n-grids} @&key sources destination destination-affi destination-specification initial-element element-functions combination-function combine-destination
+@findex grid:map-n-grids
+Map on multiple source grids.  The arguments are:
+   sources:
+     A list of (grid-or-function affi), each one representing
+     either a grid or function from which data will be drawn.  
+     If it is a grid, the grid values are used.  If it is a function
+     of the appropriate number of non-negative integer arguments,
+     values will be created by calling that function on the indices.
+     If affi is not specified and grid-or-function is a grid, the affi
+     will default to the @code{affi} of that grid.
+
+@table @emph
+
+@item    destination:
+     A grid in which to put the results, or nil if one is
+     to be created.
+
+@item    destination-affi:
+     An @code{affi} for the destinattion.
+
+@item    destination-specification:
+     A specification for the destination, if destination-affi
+     is not given.
+
+@item    initial-element:  Initial value to give to the destination grid.
+@itemx    element-functions:
+     A list of functions or nil, one for each source.  This function
+     is applied to the source element before combination.
+
+@item    combination-function:
+     A function that combines each of the source values after
+     being passed through the element-functions.  If nil,
+     then just take the value from the first source.
+
+@item    combine-destination:
+     If true, pass as the first argument to the combination-function
+     the prior value of the destination grid.  Defaults to @code{t} if
+     :desination is specified; otherwise nil.
+@end table
+
+@end deffn

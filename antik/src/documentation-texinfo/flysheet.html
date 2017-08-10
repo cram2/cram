@@ -1,0 +1,144 @@
+<!-- -*- mode: HTML; time-stamp-line-limit: -18; -*- -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+  <head>
+    <title>Antik
+</title>
+    <meta name="generator" content="muse.el">
+    <meta http-equiv="Content-Type"
+          content="text/html; charset=iso-8859-1">
+    <link rev="made" href="mailto:lhealy@common-lisp.net">
+    <link rel="stylesheet" type="text/css" href="site.css">
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-25052371-1']);
+  _gaq.push(['_setDomainName', 'none']);
+  _gaq.push(['_setAllowLinker', true]);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+  </head>
+  <body>
+    <div id="banner">
+      <h1>Antik</h1>
+      <h2><a href="flysheet.html">Antik</a> &nbsp;
+    </div>
+    <div id="sidebar">
+    <ul>
+      <li><a href="#about">About</a></li>
+      <li><a href="#examples">Examples</a></li>
+      <li><a href="#require">Requirements</a></li>
+      <li><a href="#getit">Download</a></li>
+      <li><a href="#documentation">Documentation</a></li>
+      <li><a href="#status">Status</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <!-- Insertion Mark -->
+    </div>
+    <div id="content">
+    <!-- Page published by Emacs Muse begins here -->
+<h2>About</h2>
+<a name="about"/>
+<p class="first">
+
+<p>Antik provides a foundation for scientific and engineering computation in Common Lisp. It is designed not only to facilitate numerical computations, but to permit the use of numerical computation libraries and the interchange of data and procedures, whether foreign (non-lisp) or Lisp libraries.  It is named after the <a href="http://www.antikythera-mechanism.gr/">Antikythera mechanism</a>, one of the oldest examples of a scientific computer known.
+</p>
+<p>
+Antik provides the following:
+</p>
+<ul>
+<li>Mathematics</li>
+<li>Organization of computation</li>
+<li>Grids (generalized arrays)</li>
+<li>Physical quantities</li>
+<li>Numerical output format</li>
+<li>Mathematical utility</li>
+<li>Three dimensional space</li>
+<li>Higher mathematics</li>
+</ul>
+<p>Since it is intended to provide a foundation, Antik generally avoids more specialized definitions, with the intent that separate libraries using Antik, like <a href="http://common-lisp.net/project/gsll/">GSLL</a> will make those definitions.  Where it is appropriate, convenient grouping of definitions made in other libraries are provided in higher mathematics.
+</p>
+
+<h2>Examples</h2>
+<a name="examples"/>
+<p>
+Unit arithmetic:
+</p>
+<pre>
+ANTIK-USER> (+ #_23_meters #_20_feet)
+#_29.096000000000000d0_m
+ANTIK-USER> (+ #d2011-07-30T12:00  #_4_days)
+2011-08-03 12:00:00.000
+</pre>
+<p>
+Foreign arrays:
+</p>
+<pre>
+ANTIK-USER> (setf *default-grid-type* 'foreign-array)
+FOREIGN-ARRAY
+ANTIK-USER> (norm #m(3.0 4.0))
+5.0
+</pre>
+<p>
+Lisp arrays:
+</p>
+<pre>
+ANTIK-USER> (norm #(3.0 4.0))
+5.0
+</pre>
+
+<h2>Download and Install</h2>
+ <h3>Download</h3>
+<p>
+Most users will get Antik using <a href="http://www.quicklisp.org/">Quicklisp</a>.  Once Quicklisp is installed, install Antik with
+</p>
+ <pre>(ql:quickload "antik")</pre>
+
+ <h3>License</h3>
+<p>
+This software is distributed under
+the <a href="http://www.gnu.org/licenses/gpl.html">GPL</a>
+<!--and <a href="http://www.gnu.org/copyleft/fdl.html">FDL</a>
+	-->
+; see
+the file COPYING.  There is absolutely no warranty.</p>
+
+<h2>Documentation</h2>
+<a name="documentation"/>
+<p>
+A detailed <a href="antik/index.html">manual</a> is available and distributed with the software source code.
+</p>
+
+<h2>Status</h2>
+<a name="status"/>
+<p>
+Antik is usable now.  The topics listed above are fairly complete, but documentation may be lacking.  Added definitions for these topics and new topics may be forthcoming.
+
+<h2>Contact</h2>
+<a name="contact"/>
+
+<p>There is a <a href="https://mailman.common-lisp.net/listinfo/antik-devel">mailing list</a> for all aspects of this project, including bug reports.  Please join the list to post.  In addition, I am frequently on #lisp IRC channel as LiamH. For bug reports, please use the mailing list. The <a href="https://gitlab.common-lisp.net/antik/antik">development site</a> for Antik has the git repository. If you have patch(es), please commit your changes and do: 
+<pre>git format-patch origin</pre>
+<p>This will produce one or more files whose names start with a four-digit number; please attach them all to your email.
+
+</div>
+<!-- Page published by Emacs Muse ends here -->
+<div class="footer">
+<hr>
+<address><a href="mailto:antik-devel@common-lisp.net">Liam Healy</a></address>
+<!-- Created: Feb 25 2005 -->
+<!-- hhmts start -->
+<small>
+Time-stamp: <2015-04-04 12:12:03EDT flysheet.html>
+</small>
+<!-- hhmts end -->
+ </div>
+  </body>
+</html>

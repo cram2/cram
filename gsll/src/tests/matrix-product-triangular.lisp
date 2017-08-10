@@ -1,6 +1,6 @@
 ;; Regression test MATRIX-PRODUCT-TRIANGULAR for GSLL, automatically generated
 ;;
-;; Copyright 2009, 2010 Liam M. Healy
+;; Copyright 2009, 2010, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -21,24 +21,24 @@
 (LISP-UNIT:DEFINE-TEST MATRIX-PRODUCT-TRIANGULAR
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
-    #2A((-34803.82 7799.5503 -29131.375)
-	(-4884.0327 -739.594 20382.809)
-	(-31391.57 -25366.535 -31634.615)))
+    #2A((-34803.82f0 7799.5503f0 -29131.375f0)
+	(-4884.0327f0 -739.594f0 20382.809f0)
+	(-31391.57f0 -25366.535f0 -31634.615f0)))
    (MULTIPLE-VALUE-LIST
     (LET ((M1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    'SINGLE-FLOAT :INITIAL-CONTENTS
-	    '((-34.5 8.24 3.29)
-	      (-8.93 34.12 -6.15)
-	      (49.27 -13.49 32.5))))
+	    '((-34.5f0 8.24f0 3.29f0)
+	      (-8.93f0 34.12f0 -6.15f0)
+	      (49.27f0 -13.49f0 32.5f0))))
 	  (M2
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    'SINGLE-FLOAT :INITIAL-CONTENTS
-	    '((42.73 -17.24 43.31)
-	      (-16.12 -8.25 21.44)
-	      (-49.08 -39.66 -49.46))))
-	  (S1 19.68))
-      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 M2 S1)))))
+	    '((42.73f0 -17.24f0 43.31f0)
+	      (-16.12f0 -8.25f0 21.44f0)
+	      (-49.08f0 -39.66f0 -49.46f0))))
+	  (S1 19.68f0))
+      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 M2 S1) 'array 'single-float))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
     #2A((-34803.82416d0 7799.550047999999d0 -29131.375104000002d0)
@@ -58,30 +58,30 @@
 	      (-16.12d0 -8.25d0 21.44d0)
 	      (-49.08d0 -39.66d0 -49.46d0))))
 	  (S1 19.68d0))
-      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 M2 S1)))))
+      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 M2 S1) 'array 'single-float))))
   #+fsbv
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
-    #2A((#C(-66397.9 18986.908) #C(-56335.145 48514.305) #C(-18830.469 -13449.601))
-	(#C(38337.09 -49128.918) #C(42681.344 -22972.445) #C(50375.406 -50562.54))
-	(#C(42453.223 -42606.086) #C(-13764.868 -48835.813) #C(8910.526 -4389.117))))
+    #2A((#C(-66397.9f0 18986.908f0) #C(-56335.145f0 48514.305f0) #C(-18830.469f0 -13449.601f0))
+	(#C(38337.09f0 -49128.918f0) #C(42681.344f0 -22972.445f0) #C(50375.406f0 -50562.54f0))
+	(#C(42453.223f0 -42606.086f0) #C(-13764.868f0 -48835.813f0) #C(8910.526f0 -4389.117f0))))
    (MULTIPLE-VALUE-LIST
     (LET ((M1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    '(COMPLEX SINGLE-FLOAT)
 	    :INITIAL-CONTENTS
-	    '((#C(-34.5 8.24) #C(3.29 -8.93) #C(34.12 -6.15))
-	      (#C(-8.93 34.12) #C(-6.15 49.27) #C(-13.49 32.5))
-	      (#C(49.27 -13.49) #C(32.5 42.73) #C(-17.24 43.31)))))
+	    '((#C(-34.5f0 8.24f0) #C(3.29f0 -8.93f0) #C(34.12f0 -6.15f0))
+	      (#C(-8.93f0 34.12f0) #C(-6.15f0 49.27f0) #C(-13.49f0 32.5f0))
+	      (#C(49.27f0 -13.49f0) #C(32.5f0 42.73f0) #C(-17.24f0 43.31f0)))))
 	  (M2
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    '(COMPLEX SINGLE-FLOAT)
 	    :INITIAL-CONTENTS
-	    '((#C(42.73 -17.24) #C(43.31 -16.12) #C(-8.25 21.44))
-	      (#C(-16.12 -8.25) #C(21.44 -49.08) #C(-39.66 -49.46))
-	      (#C(-49.08 -39.66) #C(-49.46 19.68) #C(-5.55 -8.82)))))
-	  (S1 #C(19.68 -5.55)))
-      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 M2 S1)))))
+	    '((#C(42.73f0 -17.24f0) #C(43.31f0 -16.12f0) #C(-8.25f0 21.44f0))
+	      (#C(-16.12f0 -8.25f0) #C(21.44f0 -49.08f0) #C(-39.66f0 -49.46f0))
+	      (#C(-49.08f0 -39.66f0) #C(-49.46f0 19.68f0) #C(-5.55f0 -8.82f0)))))
+	  (S1 #C(19.68f0 -5.55f0)))
+      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 M2 S1) 'array '(complex single-float)))))
   #+fsbv
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
@@ -110,22 +110,22 @@
 	      (#C(-16.12d0 -8.25d0) #C(21.44d0 -49.08d0) #C(-39.66d0 -49.46d0))
 	      (#C(-49.08d0 -39.66d0) #C(-49.46d0 19.68d0) #C(-5.55d0 -8.82d0)))))
 	  (S1 #C(19.68d0 -5.55d0)))
-      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 M2 S1)))))
+      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 M2 S1) 'array '(complex double-float)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
-   (LIST #(-1473.7527 -854.58527 1407.5751))
+   (LIST #(-1473.7527f0 -854.58527f0 1407.5751f0))
    (MULTIPLE-VALUE-LIST
     (LET ((M1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    'SINGLE-FLOAT :INITIAL-CONTENTS
-	    '((-34.5 8.24 3.29)
-	      (-8.93 34.12 -6.15)
-	      (49.27 -13.49 32.5))))
+	    '((-34.5f0 8.24f0 3.29f0)
+	      (-8.93f0 34.12f0 -6.15f0)
+	      (49.27f0 -13.49f0 32.5f0))))
 	  (V1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    'SINGLE-FLOAT :INITIAL-CONTENTS
-	    '(42.73 -17.24 43.31)))
-	  (S1 -16.12))
-      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 V1 S1)))))
+	    '(42.73f0 -17.24f0 43.31f0)))
+	  (S1 -16.12f0))
+      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 V1 S1) 'array 'single-float))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST #(-1473.7527d0 -854.5853d0 1407.575d0))
    (MULTIPLE-VALUE-LIST
@@ -140,27 +140,27 @@
 	    'DOUBLE-FLOAT :INITIAL-CONTENTS
 	    '(42.73d0 -17.24d0 43.31d0)))
 	  (S1 -16.12d0))
-      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 V1 S1)))))
+      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 V1 S1) 'array 'double-float))))
   #+fsbv
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
-    #(#C(-1483.223 1289.3523) #C(-57.63159 1675.6711)
-      #C(-786.3365 -726.9331)))
+    #(#C(-1483.223f0 1289.3523f0) #C(-57.63159f0 1675.6711f0)
+      #C(-786.3365f0 -726.9331f0)))
    (MULTIPLE-VALUE-LIST
     (LET ((M1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    '(COMPLEX SINGLE-FLOAT)
 	    :INITIAL-CONTENTS
-	    '((#C(-34.5 8.24) #C(3.29 -8.93) #C(34.12 -6.15))
-	      (#C(-8.93 34.12) #C(-6.15 49.27) #C(-13.49 32.5))
-	      (#C(49.27 -13.49) #C(32.5 42.73) #C(-17.24 43.31)))))
+	    '((#C(-34.5f0 8.24f0) #C(3.29f0 -8.93f0) #C(34.12f0 -6.15f0))
+	      (#C(-8.93f0 34.12f0) #C(-6.15f0 49.27f0) #C(-13.49f0 32.5f0))
+	      (#C(49.27f0 -13.49f0) #C(32.5f0 42.73f0) #C(-17.24f0 43.31f0)))))
 	  (V1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    '(COMPLEX SINGLE-FLOAT)
 	    :INITIAL-CONTENTS
-	    '(#C(42.73 -17.24) #C(43.31 -16.12) #C(-8.25 21.44))))
-	  (S1 #C(-16.12 -8.25)))
-      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 V1 S1)))))
+	    '(#C(42.73f0 -17.24f0) #C(43.31f0 -16.12f0) #C(-8.25f0 21.44f0))))
+	  (S1 #C(-16.12f0 -8.25f0)))
+      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 V1 S1) 'array '(complex single-float)))))
   #+fsbv
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
@@ -181,5 +181,5 @@
 	    :INITIAL-CONTENTS
 	    '(#C(42.73d0 -17.24d0) #C(43.31d0 -16.12d0) #C(-8.25d0 21.44d0))))
 	  (S1 #C(-16.12d0 -8.25d0)))
-      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 V1 S1))))))
+      (GRID:COPY-TO (MATRIX-PRODUCT-TRIANGULAR M1 V1 S1) 'array '(complex double-float))))))
 

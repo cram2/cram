@@ -1,0 +1,4 @@
+@deffn {Function} {grid:number-class} type
+@findex grid:number-class
+Find the class corresponding to the numeric type.
+@end deffn

@@ -1,6 +1,6 @@
 ;; CFFI-Grovel definitions.
 ;; Liam Healy
-;; Time-stamp: <2010-05-23 11:36:31EDT eigen-struct.lisp>
+;; Time-stamp: <2012-01-13 12:01:34EST eigen-struct.lisp>
 ;;
 ;; Copyright 2009, 2010 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -31,4 +31,4 @@
 (include "gsl/gsl_eigen.h")
 
 (cstruct gsl-nonsymm-ws "gsl_eigen_nonsymm_workspace"
-  (n-evals "n_evals" :type sizet))	     ; number of eigenvalues found
+  (n-evals "n_evals" :type :sizet))	     ; number of eigenvalues found

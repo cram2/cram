@@ -1,0 +1,5 @@
+@deffn {Macro} {antik:creation-form-readably} object non-readably
+@findex antik:creation-form-readably
+If we are printing readably, then rely on printed form
+   to create the new object.
+@end deffn

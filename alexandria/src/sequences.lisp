@@ -135,7 +135,7 @@ are not proper bounding index designators for SEQUENCE."
 (defun remove/swapped-arguments (sequence item &rest keyword-arguments)
   (apply #'remove item sequence keyword-arguments))
 
-(define-modify-macro removef (item &rest remove-keywords)
+(define-modify-macro removef (item &rest keyword-arguments)
   remove/swapped-arguments
   "Modify-macro for REMOVE. Sets place designated by the first argument to
 the result of calling REMOVE with ITEM, place, and the REMOVE-KEYWORDS.")
@@ -144,7 +144,7 @@ the result of calling REMOVE with ITEM, place, and the REMOVE-KEYWORDS.")
 (defun delete/swapped-arguments (sequence item &rest keyword-arguments)
   (apply #'delete item sequence keyword-arguments))
 
-(define-modify-macro deletef (item &rest remove-keywords)
+(define-modify-macro deletef (item &rest keyword-arguments)
   delete/swapped-arguments
   "Modify-macro for DELETE. Sets place designated by the first argument to
 the result of calling DELETE with ITEM, place, and the REMOVE-KEYWORDS.")
@@ -155,12 +155,26 @@ that are not lists."
   `(or proper-list
        (and (not list) sequence)))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (when (and (find-package '#:sequence)
+             (find-symbol (string '#:emptyp) '#:sequence))
+    (pushnew 'sequence-emptyp *features*)))
+
+#-alexandria::sequence-emptyp
 (defun emptyp (sequence)
   "Returns true if SEQUENCE is an empty sequence. Signals an error if SEQUENCE
 is not a sequence."
   (etypecase sequence
     (list (null sequence))
     (sequence (zerop (length sequence)))))
+
+#+alexandria::sequence-emptyp
+(declaim (ftype (function (sequence) (values boolean &optional)) emptyp))
+#+alexandria::sequence-emptyp
+(setf (symbol-function 'emptyp) (symbol-function 'sequence:emptyp))
+#+alexandria::sequence-emptyp
+(define-compiler-macro emptyp (sequence)
+  `(sequence:emptyp ,sequence))
 
 (defun length= (&rest sequences)
   "Takes any number of sequences or integers in any order. Returns true iff
@@ -230,7 +244,7 @@ not a sequence, or is an empty sequence."
   ;; type-error.
   (cond  ((consp sequence)
           (car sequence))
-         ((and (typep sequence '(and sequence (not list))) (plusp (length sequence)))
+         ((and (typep sequence 'sequence) (not (emptyp sequence)))
           (elt sequence 0))
          (t
           (error 'type-error
@@ -244,8 +258,7 @@ not a sequence, is an empty sequence, or if OBJECT cannot be stored in SEQUENCE.
   ;; type-error.
   (cond ((consp sequence)
          (setf (car sequence) object))
-        ((and (typep sequence '(and sequence (not list)))
-              (plusp (length sequence)))
+        ((and (typep sequence 'sequence) (not (emptyp sequence)))
          (setf (elt sequence 0) object))
         (t
          (error 'type-error
@@ -280,29 +293,47 @@ sequence, is an empty sequence, or if OBJECT cannot be stored in SEQUENCE."
                   :datum sequence
                   :expected-type '(and proper-sequence (not (satisfies emptyp))))))))
 
-(defun starts-with-subseq (prefix sequence &rest args &key (return-suffix nil) &allow-other-keys)
+(defun starts-with-subseq (prefix sequence &rest args
+                           &key
+                           (return-suffix nil return-suffix-supplied-p)
+                           &allow-other-keys)
   "Test whether the first elements of SEQUENCE are the same (as per TEST) as the elements of PREFIX.
 
-If RETURN-SUFFIX is T the functions returns, as a second value, a
-displaced array pointing to the sequence after PREFIX."
-  (remove-from-plistf args :return-suffix)
+If RETURN-SUFFIX is T the function returns, as a second value, a
+sub-sequence or displaced array pointing to the sequence after PREFIX."
+  (declare (dynamic-extent args))
   (let ((sequence-length (length sequence))
         (prefix-length (length prefix)))
-    (if (<= prefix-length sequence-length)
-        (let ((mismatch (apply #'mismatch prefix sequence args)))
-          (if mismatch
-              (if (< mismatch prefix-length)
-                  (values nil nil)
-                  (values t (when return-suffix
-                              (make-array (- sequence-length mismatch)
-                                          :element-type (array-element-type sequence)
-                                          :displaced-to sequence
-                                          :displaced-index-offset prefix-length
-                                          :adjustable nil))))
-              (values t (when return-suffix
-                          (make-array 0 :element-type (array-element-type sequence)
-                                      :adjustable nil)))))
-        (values nil nil))))
+    (when (< sequence-length prefix-length)
+      (return-from starts-with-subseq (values nil nil)))
+    (flet ((make-suffix (start)
+             (when return-suffix
+               (cond
+                 ((not (arrayp sequence))
+                  (if start
+                      (subseq sequence start)
+                      (subseq sequence 0 0)))
+                 ((not start)
+                  (make-array 0
+                              :element-type (array-element-type sequence)
+                              :adjustable nil))
+                 (t
+                  (make-array (- sequence-length start)
+                              :element-type (array-element-type sequence)
+                              :displaced-to sequence
+                              :displaced-index-offset start
+                              :adjustable nil))))))
+      (let ((mismatch (apply #'mismatch prefix sequence
+                             (if return-suffix-supplied-p
+                                 (remove-from-plist args :return-suffix)
+                                 args))))
+        (cond
+          ((not mismatch)
+           (values t (make-suffix nil)))
+          ((= mismatch prefix-length)
+           (values t (make-suffix mismatch)))
+          (t
+           (values nil nil)))))))
 
 (defun ends-with-subseq (suffix sequence &key (test #'eql))
   "Test whether SEQUENCE ends with SUFFIX. In other words: return true if
@@ -321,38 +352,33 @@ the last (length SUFFIX) elements of SEQUENCE are equal to SUFFIX."
 (defun starts-with (object sequence &key (test #'eql) (key #'identity))
   "Returns true if SEQUENCE is a sequence whose first element is EQL to OBJECT.
 Returns NIL if the SEQUENCE is not a sequence or is an empty sequence."
-  (funcall test
-           (funcall key
-                    (typecase sequence
-                      (cons (car sequence))
-                      (sequence
-                       (if (plusp (length sequence))
-                           (elt sequence 0)
-                           (return-from starts-with nil)))
-                      (t
-                       (return-from starts-with nil))))
-           object))
+  (let ((first-elt (typecase sequence
+                     (cons (car sequence))
+                     (sequence
+                      (if (emptyp sequence)
+                          (return-from starts-with nil)
+                          (elt sequence 0)))
+                     (t
+                      (return-from starts-with nil)))))
+    (funcall test (funcall key first-elt) object)))
 
 (defun ends-with (object sequence &key (test #'eql) (key #'identity))
   "Returns true if SEQUENCE is a sequence whose last element is EQL to OBJECT.
 Returns NIL if the SEQUENCE is not a sequence or is an empty sequence. Signals
 an error if SEQUENCE is an improper list."
-  (funcall test
-           (funcall key
-                    (typecase sequence
-                      (cons
-                       ;; signals for improper lists
-                       (lastcar sequence))
-                      (sequence
-                       ;; Can't use last-elt, as that signals an error
-                       ;; for empty sequences
-                       (let ((len (length sequence)))
-                         (if (plusp len)
-                             (elt sequence (1- len))
-                             (return-from ends-with nil))))
-                      (t
-                       (return-from ends-with nil))))
-           object))
+  (let ((last-elt (typecase sequence
+                    (cons
+                     (lastcar sequence)) ; signals for improper lists
+                    (sequence
+                     ;; Can't use last-elt, as that signals an error
+                     ;; for empty sequences
+                     (let ((len (length sequence)))
+                       (if (plusp len)
+                           (elt sequence (1- len))
+                           (return-from ends-with nil))))
+                    (t
+                     (return-from ends-with nil)))))
+    (funcall test (funcall key last-elt) object)))
 
 (defun map-combinations (function sequence &key (start 0) end length (copy t))
   "Calls FUNCTION with each combination of LENGTH constructable from the
@@ -484,13 +510,6 @@ if calling FUNCTION modifies either the derangement or SEQUENCE."
       sequence)))
 
 (declaim (notinline sequence-of-length-p))
-
-(define-condition no-extremum (error)
-  ()
-  (:report (lambda (condition stream)
-             (declare (ignore condition))
-             (format stream "Empty sequence in ~S." 'extremum))))
-
 
 (defun extremum (sequence predicate &key key (start 0) end)
   "Returns the element of SEQUENCE that would appear first if the subsequence

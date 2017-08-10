@@ -239,7 +239,7 @@
 
 ;;;; Hash tables
 
-(deftest ensure-hash-table.1
+(deftest ensure-gethash.1
     (let ((table (make-hash-table))
           (x (list 1)))
       (multiple-value-bind (value already-there)
@@ -253,6 +253,17 @@
                     already-there2
                     (= 42 (gethash x table)))))))
   t)
+
+(deftest ensure-gethash.2
+    (let ((table (make-hash-table))
+          (count 0))
+      (multiple-value-call #'values
+        (ensure-gethash (progn (incf count) :foo)
+                        (progn (incf count) table)
+                        (progn (incf count) :bar))
+        (gethash :foo table)
+        count))
+  :bar nil :bar t 3)
 
 (deftest copy-hash-table.1
     (let ((orig (make-hash-table :test 'eq :size 123))
@@ -362,6 +373,15 @@
                 (hash-table-test table))))
   (3 (a) (b) (c) t))
 
+(deftest alist-hash-table.duplicate-keys
+    (let* ((alist '((0 a) (1 b) (0 c) (1 d) (2 e)))
+           (table (alist-hash-table alist)))
+      (list (hash-table-count table)
+            (gethash 0 table)
+            (gethash 1 table)
+            (gethash 2 table)))
+  (3 (a) (b) (e)))
+
 (deftest plist-hash-table.1
     (let* ((plist '(:a 1 :b 2 :c 3))
            (table (plist-hash-table plist :test 'eq)))
@@ -374,6 +394,15 @@
             (eq (hash-table-test-name 'eq)
                 (hash-table-test table))))
   (3 1 2 3 nil nil t))
+
+(deftest plist-hash-table.duplicate-keys
+    (let* ((plist '(:a 1 :b 2 :a 3 :b 4 :c 5))
+           (table (plist-hash-table plist)))
+      (list (hash-table-count table)
+            (gethash :a table)
+            (gethash :b table)
+            (gethash :c table)))
+  (3 1 2 5))
 
 ;;;; Functions
 
@@ -978,6 +1007,10 @@
     (lerp 0.1 1 2)
   1.1)
 
+(deftest lerp.3
+    (lerp 0.1 4 25)
+  6.1)
+
 (deftest mean.1
     (mean '(1 2 3))
   2)
@@ -1500,6 +1533,59 @@
                                  dotted-list nth)))))))))
   nil)
 
+;;;; IO
+
+(deftest read-stream-content-into-string.1
+    (values (with-input-from-string (stream "foo bar")
+              (read-stream-content-into-string stream))
+            (with-input-from-string (stream "foo bar")
+              (read-stream-content-into-string stream :buffer-size 1))
+            (with-input-from-string (stream "foo bar")
+              (read-stream-content-into-string stream :buffer-size 6))
+            (with-input-from-string (stream "foo bar")
+              (read-stream-content-into-string stream :buffer-size 7)))
+  "foo bar"
+  "foo bar"
+  "foo bar"
+  "foo bar")
+
+(deftest read-stream-content-into-string.2
+    (handler-case
+        (let ((stream (make-broadcast-stream)))
+          (read-stream-content-into-string stream :buffer-size 0))
+      (type-error ()
+        :type-error))
+  :type-error)
+
+#+(or)
+(defvar *octets*
+  (map '(simple-array (unsigned-byte 8) (7)) #'char-code "foo bar"))
+
+#+(or)
+(deftest read-stream-content-into-byte-vector.1
+    (values (with-input-from-byte-vector (stream *octets*)
+              (read-stream-content-into-byte-vector stream))
+            (with-input-from-byte-vector (stream *octets*)
+              (read-stream-content-into-byte-vector stream :initial-size 1))
+            (with-input-from-byte-vector (stream *octets*)
+              (read-stream-content-into-byte-vector stream 'alexandria::%length 6))
+            (with-input-from-byte-vector (stream *octets*)
+              (read-stream-content-into-byte-vector stream 'alexandria::%length 3)))
+  *octets*
+  *octets*
+  *octets*
+  (subseq *octets* 0 3))
+
+(deftest read-stream-content-into-byte-vector.2
+    (handler-case
+        (let ((stream (make-broadcast-stream)))
+          (read-stream-content-into-byte-vector stream :initial-size 0))
+      (type-error ()
+        :type-error))
+  :type-error)
+
+;;;; Macros
+
 (deftest with-unique-names.1
     (let ((*gensym-counter* 0))
       (let ((syms (with-unique-names (foo bar quux)
@@ -1892,6 +1978,21 @@
       n)
   13)
 
+(deftest starts-with-subseq.string
+    (starts-with-subseq "f" "foo" :return-suffix t)
+  t
+  "oo")
+
+(deftest starts-with-subseq.vector
+    (starts-with-subseq #(1) #(1 2 3) :return-suffix t)
+  t
+  #(2 3))
+
+(deftest starts-with-subseq.list
+    (starts-with-subseq '(1) '(1 2 3) :return-suffix t)
+  t
+  (2 3))
+
 (deftest starts-with-subseq.start1
     (starts-with-subseq "foo" "oop" :start1 1)
   t
@@ -1927,10 +2028,19 @@
 
 (deftest parse-ordinary-lambda-list.1
     (multiple-value-bind (req opt rest keys allowp aux keyp)
-        (parse-ordinary-lambda-list '(a b c &optional d &key))
+        (parse-ordinary-lambda-list '(a b c
+                                      &optional o1 (o2 42) (o3 42 o3-supplied?)
+                                      &key (k1) ((:key k2)) (k3 42 k3-supplied?))
+                                    :normalize t)
       (and (equal '(a b c) req)
-           (equal '((d nil nil)) opt)
-           (equal '() keys)
+           (equal '((o1 nil nil)
+                    (o2 42 nil)
+                    (o3 42 o3-supplied?))
+                  opt)
+           (equal '(((:k1 k1) nil nil)
+                    ((:key k2) nil nil)
+                    ((:k3 k3) 42 k3-supplied?))
+                  keys)
            (not allowp)
            (not aux)
            (eq t keyp)))

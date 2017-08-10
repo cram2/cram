@@ -1,0 +1,63 @@
+<html lang="en">
+<head>
+<title>Input and Output - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Grids.html#Grids" title="Grids">
+<link rel="prev" href="Operations.html#Operations" title="Operations">
+<link rel="next" href="Physical-quantities.html#Physical-quantities" title="Physical quantities">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Input-and-Output"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Physical-quantities.html#Physical-quantities">Physical quantities</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Operations.html#Operations">Operations</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Grids.html#Grids">Grids</a>
+<hr>
+</div>
+
+<h3 class="section">4.4 Input and Output</h3>
+
+<p><table class="cartouche" summary="cartouche" border="1"><tr><td>
+Note: the definitions for reading and writing grids are at present minimal and incomplete. 
+</td></tr></table>
+These definitions allow reading and writing of grids from and to files.
+
+<div class="defun">
+&mdash; Function: <b>grid:read-data-file</b><var> filename &amp;optional separator include-count discard-header<a name="index-grid_003aread_002ddata_002dfile-238"></a></var><br>
+<blockquote><p><a name="index-grid_003aread_002ddata_002dfile-239"></a>Read the data in the file into a list. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:read-data-stream</b><var> &amp;optional separator include-count stream<a name="index-grid_003aread_002ddata_002dstream-240"></a></var><br>
+<blockquote><p><a name="index-grid_003aread_002ddata_002dstream-241"></a>Read the data from the stream and collect a list of lists of values
+   from columns separated by whitespace.  If include-count is a
+   number, line count starting at that number will be prepended as the
+   first field. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:read-vector-from-string</b><var> string count &amp;optional start end<a name="index-grid_003aread_002dvector_002dfrom_002dstring-242"></a></var><br>
+<blockquote><p><a name="index-grid_003aread_002dvector_002dfrom_002dstring-243"></a>Read the count element vector from a string. 
+</p></blockquote></div>
+
+   </body></html>
+

@@ -1,6 +1,6 @@
 ;; Regression test VECTOR-ADD for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -22,14 +22,14 @@
   (LISP-UNIT:ASSERT-NUMERICAL-EQUAL
    (LIST
     (GRID:MAKE-FOREIGN-ARRAY 'SINGLE-FLOAT :INITIAL-CONTENTS
-		 '(-43.43 42.36 -2.8600001)))
+		 '(-43.43f0 42.36f0 -2.8600001f0)))
    (MULTIPLE-VALUE-LIST
     (LET ((V1
 	   (GRID:MAKE-FOREIGN-ARRAY 'SINGLE-FLOAT :INITIAL-CONTENTS
-			'(-34.5 8.24 3.29)))
+			'(-34.5f0 8.24f0 3.29f0)))
 	  (V2
 	   (GRID:MAKE-FOREIGN-ARRAY 'SINGLE-FLOAT :INITIAL-CONTENTS
-			'(-8.93 34.12 -6.15))))
+			'(-8.93f0 34.12f0 -6.15f0))))
       (ELT+ V1 V2))))
   (LISP-UNIT:ASSERT-NUMERICAL-EQUAL
    (LIST

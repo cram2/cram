@@ -1,0 +1,88 @@
+<html lang="en">
+<head>
+<title>diagonal - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Composition-functions.html#Composition-functions" title="Composition functions">
+<link rel="prev" href="concatenate_002dgrids.html#concatenate_002dgrids" title="concatenate-grids">
+<link rel="next" href="drop.html#drop" title="drop">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="diagonal"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="drop.html#drop">drop</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="concatenate_002dgrids.html#concatenate_002dgrids">concatenate-grids</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Composition-functions.html#Composition-functions">Composition functions</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.3.4.4 diagonal</h5>
+
+<p><a name="index-Matrix_002c-diagonal-157"></a><a name="index-Grid_002c-diagonal-158"></a><a name="index-Diagonal-of-a-grid-159"></a>
+
+<div class="defun">
+&mdash; Function: <b>grid:diagonal</b><var> grid &amp;key offset indices destination start<a name="index-grid_003adiagonal-160"></a></var><br>
+<blockquote><p><a name="index-grid_003adiagonal-161"></a>Select a subgrid where the two indices are equal or
+   differ by the offset, e.g. the diagonal affi for the matrix. 
+   The offset specifies sub- (offset&lt;0) or super- (offset&gt;0)
+   diagonals. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>(setf grid:diagonal)</b><var><a name="index-g_t_0028setf-grid_003adiagonal_0029-162"></a></var><br>
+<blockquote><p><a name="index-g_t_0028setf-grid_003adiagonal_0029-163"></a>Set a subgrid where the two indices are equal or
+   differ by the offset, e.g. the diagonal affi for the matrix. 
+   The offset specifies sub- (offset&lt;0) or super- (offset&gt;0)
+   diagonals.  If grid is not supplied, a grid of one higher
+   dimension than diagonal with default element <code>0</code> is used. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>grid:set-diagonal</b><var> grid function-or-value &amp;optional offset value<a name="index-grid_003aset_002ddiagonal-164"></a></var><br>
+<blockquote><p><a name="index-grid_003aset_002ddiagonal-165"></a>Set the diagonal of the grid by calling the function on the indices. 
+   If value is non-nil, then set it to function-or-value, ignoring
+   the indices. 
+</p></blockquote></div>
+
+   <p>The functions <code>diagonal</code>, <code>(setf diagonal)</code> (or <code>set-diagonal</code>)
+get or set the part of the grid where two indices are equal or differ by
+a constant to another grid; that is, either the diagonal or a sub- or super-diagonal. 
+The diagonal of a grid can be set to a fixed value or to a function of its
+indices.
+
+   <p>The diagonal is the collection of elements where there are two indices
+equal, or differ by a fixed amount.  For a matrix (two dimensional
+grid), this would be for example:
+<pre class="example">     ANTIK-USER&gt; (grid::test-grid-double-float 'array '(3 4))
+     #2A((0.0 1.0 2.0 3.0) (10.0 11.0 12.0 13.0) (20.0 21.0 22.0 23.0))
+     ANTIK-USER&gt; (diagonal @)
+     #(0.0 11.0 22.0)
+</pre>
+   <p>The superdiagonal is accessible with the same function,
+<pre class="example">     ANTIK-USER&gt; (diagonal (grid::test-grid-double-float 'array '(3 4)) :offset 1)
+     #(1.0 12.0 23.0)
+</pre>
+   <p>as is the subdiagonal,
+<pre class="example">     ANTIK-USER&gt; (diagonal (grid::test-grid-double-float 'array '(3 4)) :offset -1)
+     #(10.0 21.0)
+</pre>
+   </body></html>
+

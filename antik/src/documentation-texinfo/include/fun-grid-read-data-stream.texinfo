@@ -1,0 +1,7 @@
+@deffn {Function} {grid:read-data-stream} @&optional separator include-count stream
+@findex grid:read-data-stream
+Read the data from the stream and collect a list of lists of values
+   from columns separated by whitespace.  If include-count is a
+   number, line count starting at that number will be prepended as the
+   first field.
+@end deffn

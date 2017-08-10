@@ -1,0 +1,4 @@
+@deffn {Function} {antik:write-us-date} datime
+@findex antik:write-us-date
+Write dates and times in customary @code{us} format MM/DD/YYYY.
+@end deffn

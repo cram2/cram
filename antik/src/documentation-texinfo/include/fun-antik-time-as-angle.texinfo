@@ -1,0 +1,5 @@
+@deffn {Function} {antik:time-as-angle} time-string
+@findex antik:time-as-angle
+Compute the angle from the time,
+   the major field is hours with @code{24} hours = @code{1} revolution.
+@end deffn

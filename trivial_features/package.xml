@@ -15,7 +15,7 @@
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">https://github.com/trivial-features/trivial-features.git</url>
-  <!--external-version>v0.8</external-version-->
+  <!--external-version>trivial-features-20161204-git</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 

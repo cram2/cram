@@ -1,0 +1,16 @@
+@deffn {Function} {antik:low-discrepancy-sample} count make-function @&rest parameters
+@findex antik:low-discrepancy-sample
+Call the make function to generate a set of objects with the
+   parameters sampled according to a low-discrepancy sequence.  Each
+   parameter will be either a fixed value, specified as a list of key
+   and value, or a range from which the sample is taken, specified as
+   a list of key, lower value, and upper value.  For example,
+@@example
+   (low-discrepancy-sample
+      @code{5}
+      'make-orbit
+      '(:semimajor-axis #_7000_km #_9000_km) 
+      '(:eccentricity @code{0}.0)
+      '(:inclination #_95_deg #_105_deg))
+@@end example
+@end deffn

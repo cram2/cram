@@ -3,6 +3,7 @@
 ;;; cffi-tests.asd --- ASDF system definition for CFFI unit tests.
 ;;;
 ;;; Copyright (C) 2005-2006, James Bielman  <jamesjb@jamesjb.com>
+;;; Copyright (C) 2005-2011, Luis Oliveira  <loliveira@common-lisp.net>
 ;;;
 ;;; Permission is hereby granted, free of charge, to any person
 ;;; obtaining a copy of this software and associated documentation
@@ -25,14 +26,7 @@
 ;;; DEALINGS IN THE SOFTWARE.
 ;;;
 
-(defpackage #:cffi-tests-system
-  (:use #:cl #:asdf))
-(in-package #:cffi-tests-system)
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (oos 'load-op 'trivial-features))
-
-(defvar *tests-dir* (append (pathname-directory *load-truename*) '("tests")))
+(load-systems "trivial-features" "cffi-grovel")
 
 (defclass c-test-lib (c-source-file)
   ())
@@ -43,46 +37,55 @@
 (defmethod perform ((o load-source-op) (c c-test-lib))
   nil)
 
+(defmethod output-files ((o compile-op) (c c-test-lib))
+  (let ((p (component-pathname c)))
+    (values
+     (list (make-pathname :defaults p :type (asdf/bundle:bundle-pathname-type :object))
+           (make-pathname :defaults p :type (asdf/bundle:bundle-pathname-type :shared-library)))
+     t)))
+
 (defmethod perform ((o compile-op) (c c-test-lib))
-  #-windows
-  (unless (zerop (run-shell-command
-                  "cd ~A; make"
-                  (namestring (make-pathname :name nil :type nil
-                                             :directory *tests-dir*))))
-    (error 'operation-error :component c :operation o)))
+  (let ((cffi-toolchain:*cc-flags* `(,@cffi-toolchain:*cc-flags* "-Wall" "-std=c99" "-pedantic")))
+    (destructuring-bind (obj dll) (output-files o c)
+      (cffi-toolchain:cc-compile obj (input-files o c))
+      (cffi-toolchain:link-shared-library dll (list obj)))))
 
-;; For the convenience of ECL users.
-#+ecl (require 'rt)
-
-(defsystem cffi-tests
+(defsystem "cffi-tests"
   :description "Unit tests for CFFI."
-  :depends-on (cffi #-ecl rt)
+  :depends-on ("cffi-grovel" "cffi-libffi" "bordeaux-threads" #-ecl "rt" #+ecl (:require "rt"))
   :components
   ((:module "tests"
-    :serial t
     :components
     ((:c-test-lib "libtest")
+     (:c-test-lib "libtest2")
+     (:c-test-lib "libfsbv")
      (:file "package")
-     (:file "bindings")
-     (:file "funcall")
-     (:file "defcfun")
-     (:file "callbacks")
-     (:file "foreign-globals")
-     (:file "memory")
-     (:file "strings")
-     (:file "struct")
-     (:file "union")
-     (:file "enum")
-     (:file "misc-types")
-     (:file "misc")))))
+     (:file "bindings" :depends-on ("package" "libtest" "libtest2" "libfsbv"))
+     (:file "funcall" :depends-on ("bindings"))
+     (:file "defcfun" :depends-on ("bindings"))
+     (:file "callbacks" :depends-on ("bindings"))
+     (:file "foreign-globals" :depends-on ("package"))
+     (:file "memory" :depends-on ("package"))
+     (:file "strings" :depends-on ("package"))
+     (:file "arrays" :depends-on ("package"))
+     (:file "struct" :depends-on ("package"))
+     (:file "union" :depends-on ("package"))
+     (:file "enum" :depends-on ("package"))
+     (:file "fsbv" :depends-on ("bindings" "enum"))
+     (:file "misc-types" :depends-on ("bindings"))
+     (:file "misc" :depends-on ("bindings"))
+     (:file "test-asdf" :depends-on ("package"))
+     (:file "grovel" :depends-on ("package")))))
+  :perform (test-op (o c) (symbol-call :cffi-tests '#:run-all-cffi-tests)))
 
-(defmethod operation-done-p ((o test-op) (c (eql (find-system :cffi-tests))))
-  nil)
-
-(defmethod perform ((o test-op) (c (eql (find-system :cffi-tests))))
-  (flet ((run-tests (&rest args)
-           (apply (intern (string '#:run-cffi-tests) '#:cffi-tests) args)))
-    (run-tests :compiled nil)
-    (run-tests :compiled t)))
+(defsystem "cffi-tests/example"
+  :defsystem-depends-on ("cffi-grovel")
+  :entry-point "cffi-example::entry-point"
+  :components
+  ((:module "examples" :components
+     ((:file "package")
+      (:cffi-wrapper-file "wrapper-example" :depends-on ("package"))
+      (:cffi-grovel-file "grovel-example" :depends-on ("package"))
+      (:file "main-example" :depends-on ("package"))))))
 
 ;;; vim: ft=lisp et

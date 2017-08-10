@@ -1,6 +1,6 @@
 ;; Define the structure for series
 ;; Liam Healy 2009-06-06 11:08:11EDT series-struct.lisp
-;; Time-stamp: <2010-05-23 11:37:50EDT series-struct.lisp>
+;; Time-stamp: <2012-01-13 12:01:19EST series-struct.lisp>
 ;;
 ;; Copyright 2009, 2010 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -31,5 +31,5 @@
 (include "gsl/gsl_sum.h")
 
 (cstruct levin-c "gsl_sum_levin_u_workspace"
-	 (terms-used "terms_used" :type sizet)
+	 (terms-used "terms_used" :type :sizet)
 	 (sum-plain "sum_plain" :type :double))

@@ -15,7 +15,7 @@
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">https://github.com/OdonataResearchLLC/lisp-unit.git</url>
-  <!--external-version>e6c259f333f038abd32a31c4138775045e9d640d</external-version-->
+  <!--external-version>lisp-unit-20170124-git</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 

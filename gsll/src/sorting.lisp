@@ -1,8 +1,8 @@
 ;; Sorting
 ;; Liam Healy, Fri Apr 14 2006 - 20:20
-;; Time-stamp: <2010-07-07 14:24:54EDT sorting.lisp>
+;; Time-stamp: <2012-01-13 12:01:10EST sorting.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011, 2012 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,7 @@
 (in-package :gsl)
 
 ;;; #'heapsort has just a cursory port, use CL's #'sort.
+;;; [2012-01-03 Tue 13:15] To do: rewrite other index functions to take an optional array or size (sort-smallest-index, sort-largest-index already done).
 
 ;;;;****************************************************************************
 ;;;; Heapsort, not recommended
@@ -32,7 +33,7 @@
 
 (defmfun heapsort (array count size function)
   "gsl_heapsort"
-  ((array :pointer) (count sizet) (size sizet) (function :pointer))
+  ((array :pointer) (count :sizet) (size :sizet) (function :pointer))
   :documentation			; FDL
   "Sort the count elements of the array of size specified
    into ascending order using the comparison
@@ -45,7 +46,7 @@
 
 (defmfun heapsort-index (p array count size function)
   "gsl_heapsort_index"
-  ((p sizet) (array :pointer) (count sizet) (size sizet) (function :pointer))
+  ((p :sizet) (array :pointer) (count :sizet) (size :sizet) (function :pointer))
   :documentation			; FDL
   "Indirectly sort the count elements of the array
    array, each of size given, into ascending order using the
@@ -75,7 +76,7 @@
 
 (defmfun msort ((v both))
   ("gsl_sort" :type)
-  (((foreign-pointer v) :pointer) (1 sizet) ((size v) sizet))
+  (((grid:foreign-pointer v) :pointer) (1 :sizet) ((size v) :sizet))
   :definition :generic
   :element-types :no-complex
   :c-return :void
@@ -99,8 +100,8 @@
 (defmfun sort-index ((permutation permutation) (vector vector))
   ("gsl_sort" :type "_index")
   (((mpointer permutation) :pointer)
-   ((foreign-pointer vector) :pointer)
-   (1 sizet) ((dim0 vector) sizet))
+   ((grid:foreign-pointer vector) :pointer)
+   (1 :sizet) ((dim0 vector) :sizet))
   :definition :generic
   :element-types :no-complex
   :c-return :void
@@ -138,7 +139,7 @@
 
 (defmfun sort-vector-smallest (dest (v vector))
   ("gsl_sort_vector" :type "_smallest")
-  (((foreign-pointer dest) :pointer) ((dim0 dest) sizet)
+  (((grid:foreign-pointer dest) :pointer) ((dim0 dest) :sizet)
    ((mpointer v) :pointer))
   :definition :generic
   :element-types :no-complex
@@ -151,10 +152,10 @@
 
 (defmfun sort-smallest (dest (v both))
   ("gsl_sort" :type "_smallest")
-  (((foreign-pointer dest) :pointer) ((size dest) sizet)
-   ((foreign-pointer v) :pointer)
-   (1 sizet)				; stride, set to 1 for now
-   ((size v) sizet))
+  (((grid:foreign-pointer dest) :pointer) ((size dest) :sizet)
+   ((grid:foreign-pointer v) :pointer)
+   (1 :sizet)				; stride, set to 1 for now
+   ((size v) :sizet))
   :definition :generic
   :element-types :no-complex
   :c-return :void
@@ -166,10 +167,10 @@
 
 (defmfun sort-vector-smallest-index (combination (v vector))
   ("gsl_sort_vector" :type "_smallest_index")
-  (((foreign-pointer combination) :pointer) ((size combination) sizet)
+  (((grid:foreign-pointer combination) :pointer) ((size combination) :sizet)
    ((mpointer v) :pointer)
-   (1 sizet)				; stride, set to 1 for now
-   ((first (dimensions combination)) sizet))
+   (1 :sizet)				; stride, set to 1 for now
+   ((first (grid:dimensions combination)) :sizet))
   :definition :generic
   :element-types :no-complex
   :c-return :void
@@ -182,27 +183,25 @@
     allocated and returned.  If it is a CL vector,
     it will be filled with the indices.")
 
-(defmfun sort-smallest-index (combination (v vector))
+(defmfun sort-smallest-index
+    ((v vector) &optional (size-or-array 3)
+		&aux (combination (vdf size-or-array ':sizet)))
   ("gsl_sort" :type "_smallest_index")
-  (((foreign-pointer combination) :pointer) ((size combination) sizet)
-   ((foreign-pointer v) :pointer)
-   (1 sizet)				; stride, set to 1 for now
-   ((first (dimensions combination)) sizet))
-  :definition :generic
+  (((grid:foreign-pointer combination) :pointer) ((size combination) :sizet)
+   ((grid:foreign-pointer v) :pointer)
+   (1 :sizet)				; stride, set to 1 for now
+   ((first (grid:dimensions v)) :sizet))
   :element-types :no-complex
+  :definition :generic
   :c-return :void
   :inputs (v)
   :outputs (combination)
   :documentation
-  "The indices of the smallest elements of the vector stored,
-    returned as a CL vector of element type fixnum.  If
-    indices is a positive initeger, a vector will be
-    allocated and returned.  If it is a CL vector,
-    it will be filled with the indices.")
+  "The indices of the smallest elements of the vector.  If size-or-array is an integer, it is the number of smallest elements.  If it is an array of :sizet elements, it is filled.")
 
 (defmfun sort-vector-largest (dest (v vector))
   ("gsl_sort_vector" :type "_largest")
-  (((foreign-pointer dest) :pointer) ((dim0 dest) sizet)
+  (((grid:foreign-pointer dest) :pointer) ((dim0 dest) :sizet)
    ((mpointer v) :pointer))
   :definition :generic
   :element-types :no-complex
@@ -215,10 +214,10 @@
 
 (defmfun sort-largest (dest (v both))
   ("gsl_sort" :type "_largest")
-  (((foreign-pointer dest) :pointer) ((size dest) sizet)
-   ((foreign-pointer v) :pointer)
-   (1 sizet)				; stride, set to 1 for now
-   ((size v) sizet))
+  (((grid:foreign-pointer dest) :pointer) ((size dest) :sizet)
+   ((grid:foreign-pointer v) :pointer)
+   (1 :sizet)				; stride, set to 1 for now
+   ((size v) :sizet))
   :definition :generic
   :element-types :no-complex
   :c-return :void
@@ -230,10 +229,10 @@
 
 (defmfun sort-vector-largest-index (combination (v vector))
   ("gsl_sort_vector" :type "_largest_index")
-  (((foreign-pointer combination) :pointer) ((size combination) sizet)
+  (((grid:foreign-pointer combination) :pointer) ((size combination) :sizet)
    ((mpointer v) :pointer)
-   (1 sizet)				; stride, set to 1 for now
-   ((first (dimensions combination)) sizet))
+   (1 :sizet)				; stride, set to 1 for now
+   ((first (grid:dimensions combination)) :sizet))
   :definition :generic
   :element-types :no-complex
   :c-return :void
@@ -246,23 +245,21 @@
     allocated and returned.  If it is a CL vector,
     it will be filled with the indices.")
 
-(defmfun sort-largest-index (combination (v vector))
+(defmfun sort-largest-index
+    ((v vector) &optional (size-or-array 3)
+		&aux (combination (vdf size-or-array ':sizet)))
   ("gsl_sort" :type "_largest_index")
-  (((foreign-pointer combination) :pointer) ((size combination) sizet)
-   ((foreign-pointer v) :pointer)
-   (1 sizet)				; stride, set to 1 for now
-   ((first (dimensions combination)) sizet))
+  (((grid:foreign-pointer combination) :pointer) ((size combination) :sizet)
+   ((grid:foreign-pointer v) :pointer)
+   (1 :sizet)				; stride, set to 1 for now
+   ((first (grid:dimensions v)) :sizet))
   :element-types :no-complex
   :definition :generic
   :c-return :void
   :inputs (v)
   :outputs (combination)
   :documentation
-  "The indices of the largest elements of the vector stored,
-    returned as a CL vector of element type fixnum.  If
-    indices is a positive initeger, a vector will be
-    allocated and returned.  If it is a CL vector,
-    it will be filled with the indices.")
+  "The indices of the largest elements of the vector.  If size-or-array is an integer, it is the number of smallest elements.  If it is an array of sizet elements, it is filled.")
 
 ;;;;****************************************************************************
 ;;;; Examples and unit test

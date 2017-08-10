@@ -1,0 +1,75 @@
+<html lang="en">
+<head>
+<title>About physical dimension - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Physical-dimension.html#Physical-dimension" title="Physical dimension">
+<link rel="prev" href="Physical-dimension.html#Physical-dimension" title="Physical dimension">
+<link rel="next" href="Making-physical-dimension-quantities.html#Making-physical-dimension-quantities" title="Making physical dimension quantities">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="About-physical-dimension"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Making-physical-dimension-quantities.html#Making-physical-dimension-quantities">Making physical dimension quantities</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Physical-dimension.html#Physical-dimension">Physical dimension</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Physical-dimension.html#Physical-dimension">Physical dimension</a>
+<hr>
+</div>
+
+<h4 class="subsection">5.3.1 Introduction</h4>
+
+<p><a name="index-Class_002c-physical_002dquantity-312"></a>Antik has a class <code>physical-quantity</code> which is used to represent values that have physical dimension, such as mass or length; e.g.
+<pre class="example">     ANTIK-USER&gt; #_35_km
+     #_35000.000000000000000_m
+     ANTIK-USER&gt; (* #_5_m #_8_kg)
+     #_40.000000000000000_m-kg
+     ANTIK-USER&gt; (expt #_12_m 2)
+     #_144.000000000000000_m^2
+     (* #_5_kg #_8_m/s^2)
+     #_40.000000000000000d0_N
+</pre>
+   <p>Mathematical operations are allowed on these objects,
+<pre class="example">     ANTIK-USER&gt; (+ #_35_km #_12_miles)
+     #_54312.128000000000000_m
+</pre>
+   <p>Of course, such math must be sensible,
+<pre class="example">     ANTIK-USER(3): (+ #_35_km #_12_kg)
+     debugger invoked on a SIMPLE-ERROR in thread #&lt;THREAD "initial thread" RUNNING {10040293F1}&gt;:
+       The quantities 3.500d+4m and 12.00kg are not both physical quantities with the same physical dimension.
+     0]
+</pre>
+   <p>Note also that fractional exponents are acceptable:
+<pre class="example">     ANTIK-USER&gt; (expt #_16_m 1/2)
+     #_4.000000000000000_m^1/2
+</pre>
+   <p>Each of these quantities has <dfn>units</dfn> associated with it &ndash; meters,
+kilograms, etc., and those units must be of the appropriate dimension
+for the physical quantity.  All quantities are stored internally in the
+SI system of units, and converted to desired units either when printed
+or when an explicit conversion is requested.
+
+   <p>The inspiration for this software came from
+<a href="http://www.cs.utexas.edu/users/novak/units95.html">Gordon Novak's work</a>. 
+Names, abbreviations, and definitions of units come from
+<a href="http://physics.nist.gov/cuu/Units/index.html">NIST</a>.
+
+   </body></html>
+

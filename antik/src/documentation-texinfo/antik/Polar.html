@@ -1,0 +1,58 @@
+<html lang="en">
+<head>
+<title>Polar - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Three-Dimensional-Space.html#Three-Dimensional-Space" title="Three Dimensional Space">
+<link rel="prev" href="Cartesian.html#Cartesian" title="Cartesian">
+<link rel="next" href="Rotation.html#Rotation" title="Rotation">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Polar"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Rotation.html#Rotation">Rotation</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Cartesian.html#Cartesian">Cartesian</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Three-Dimensional-Space.html#Three-Dimensional-Space">Three Dimensional Space</a>
+<hr>
+</div>
+
+<h3 class="section">8.2 Polar</h3>
+
+<p><a name="index-Polar-coordinates-408"></a><a name="index-Rectangular-coordinates-409"></a><a name="index-Functions_002c-polar_002frectangular-conversion-410"></a>
+
+<div class="defun">
+&mdash; Function: <b>antik:polar-to-rectangular</b><var> azimuth elevation &amp;optional radius sign1<a name="index-antik_003apolar_002dto_002drectangular-411"></a></var><br>
+<blockquote><p><a name="index-antik_003apolar_002dto_002drectangular-412"></a>Convert polar coordinates to rectangular coordinates. 
+   Argument sign1 should be set to <code>-1</code> for accomodating topocentric azimuth,
+   which is measured from North instead of South. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:rectangular-to-polar</b><var> vector &amp;optional sign1<a name="index-antik_003arectangular_002dto_002dpolar-413"></a></var><br>
+<blockquote><p><a name="index-antik_003arectangular_002dto_002dpolar-414"></a>Convert rectangular coordinates to polar coordinates. 
+   Argument sign1 should be set to <code>-1</code> for accomodating topocentric azimuth,
+   which is measured from North instead of South. 
+   Returns a list of azimuth, elevation, and radius, and the
+   plane distance. 
+</p></blockquote></div>
+
+   </body></html>
+

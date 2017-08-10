@@ -1,6 +1,6 @@
 ;; Export the physical constant symbols
 ;; Liam Healy 2009-05-28 22:53:27EDT export.lisp
-;; Time-stamp: <2009-12-27 10:00:05EST export.lisp>
+;; Time-stamp: <2011-08-20 20:14:05UTC export.lisp>
 ;;
 ;; Copyright 2009 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -218,4 +218,21 @@
    +cgsm-joule+
    +cgsm-erg+
    +cgsm-stefan-boltzmann-constant+
-   +cgsm-thomson-cross-section+))
+   +cgsm-thomson-cross-section+
+   +num-fine-structure+
+   +num-avogadro+
+   +num-yotta+
+   +num-zetta+
+   +num-exa+
+   +num-peta+
+   +num-tera+
+   +num-giga+
+   +num-mega+
+   +num-kilo+
+   +num-milli+
+   +num-micro+
+   +num-nano+
+   +num-femto+
+   +num-atto+
+   +num-zepto+
+   +num-yocto+))

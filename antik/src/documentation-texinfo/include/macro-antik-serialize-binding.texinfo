@@ -1,0 +1,5 @@
+@deffn {Macro} {antik:serialize-binding} symbol
+@findex antik:serialize-binding
+Generate a form that when loaded will redefine the object
+   and bind the variable to it.
+@end deffn

@@ -1,0 +1,4 @@
+@deffn {Function} {antik:make-dtspec} @&key timeparse day-only type
+@findex antik:make-dtspec
+Make the dtspec arguments.
+@end deffn

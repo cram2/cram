@@ -1,6 +1,6 @@
 ;; GSL structures for holding functions
 ;; Liam Healy 2009-04-04 22:15:56EDT callback-struct.lisp
-;; Time-stamp: <2010-05-23 11:36:41EDT callback-struct.lisp>
+;; Time-stamp: <2012-01-13 12:01:26EST callback-struct.lisp>
 ;;
 ;; Copyright 2009, 2010 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -50,7 +50,7 @@
 ;;; also defined in /usr/include/gsl/gsl_monte.h
 (cstruct fnstruct-dimension "gsl_multiroot_function"
   (function "f" :type :pointer)
-  (dimension "n" :type sizet)
+  (dimension "n" :type :sizet)
   (parameters "params" :type :pointer))
 
 ;;; The function, dimension, and derivatives
@@ -58,7 +58,7 @@
   (function "f" :type :pointer)
   (df "df" :type :pointer)
   (fdf "fdf" :type :pointer)
-  (dimension "n" :type sizet)
+  (dimension "n" :type :sizet)
   (parameters "params" :type :pointer))
 
 (include "gsl/gsl_multifit_nlin.h") 
@@ -66,8 +66,8 @@
 ;;; The function and two dimensions (for nonlinear fit).
 (cstruct fnstruct-fit "gsl_multifit_function"
   (function "f" :type :pointer)
-  (number-of-observations "n" :type sizet)
-  (number-of-parameters "p" :type sizet)
+  (number-of-observations "n" :type :sizet)
+  (number-of-parameters "p" :type :sizet)
   (parameters "params" :type :pointer))
 
 ;;; The function, two dimensions, and derivatives (for nonlinear fit)
@@ -75,6 +75,6 @@
   (function "f" :type :pointer)
   (df "df" :type :pointer)
   (fdf "fdf" :type :pointer)
-  (number-of-observations "n" :type sizet)
-  (number-of-parameters "p" :type sizet)
+  (number-of-observations "n" :type :sizet)
+  (number-of-parameters "p" :type :sizet)
   (parameters "params" :type :pointer))

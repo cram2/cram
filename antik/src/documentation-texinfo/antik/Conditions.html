@@ -1,0 +1,80 @@
+<html lang="en">
+<head>
+<title>Conditions - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Mathematics.html#Mathematics" title="Mathematics">
+<link rel="prev" href="Generic-Functions.html#Generic-Functions" title="Generic Functions">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Conditions"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Generic-Functions.html#Generic-Functions">Generic Functions</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Mathematics.html#Mathematics">Mathematics</a>
+<hr>
+</div>
+
+<h3 class="section">2.2 Conditions</h3>
+
+<p><a name="index-Conditions-for-numerical-computation-73"></a><a name="index-Handler-for-conditions-74"></a>Conditions and handlers are defined for common mathematical computations.
+
+   <p>The condition <code>making-complex-number</code> is signalled when a calculation would make a complex number.  If this outcome is desirable, and handler such as defined by the macro <code>handling-complex-number</code> is used.
+
+<div class="defun">
+&mdash; Condition: <b>antik:making-complex-number</b><var><a name="index-antik_003amaking_002dcomplex_002dnumber-75"></a></var><br>
+<blockquote><p><a name="index-antik_003amaking_002dcomplex_002dnumber-76"></a>Class precedence list: <code>making-complex-number, arithmetic-error, error, serious-condition, condition, t</code>
+
+        <p>Signalled when a mathematical calculation would result in a complex number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>antik:arithmetic-errors-return-nan</b><var> &amp;body body<a name="index-antik_003aarithmetic_002derrors_002dreturn_002dnan-77"></a></var><br>
+<blockquote><p><a name="index-antik_003aarithmetic_002derrors_002dreturn_002dnan-78"></a>Return a NaN for a variety of arithmetic errors. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>antik:handling-complex-number</b><var> restart &amp;body body<a name="index-antik_003ahandling_002dcomplex_002dnumber-79"></a></var><br>
+<blockquote><p><a name="index-antik_003ahandling_002dcomplex_002dnumber-80"></a>A handler to make the complex number. 
+</p></blockquote></div>
+
+<!-- This needs node information -->
+<h3 class="section">2.3 Iterate generalized numbers</h3>
+
+<p>Extensions to the <a href="http://common-lisp.net/project/iterate/"><samp><span class="command">iterate</span></samp></a>
+system are provided.  The following
+<a href="http://common-lisp.net/project/iterate/doc/Reductions.html#Reductions">reductions</a>
+and
+<a href="http://common-lisp.net/project/iterate/doc/Finders.html#Finders">finders</a>
+are provided:
+     <ul>
+<li>multiply
+<li>sum
+<li>maximize
+<li>finding ... maximizing
+<li>minimize
+<li>finding ... minimizing
+</ul>
+   These are exactly like those provided in iterate, but are extended to use the appropriate generic functions.
+
+   <p>The driver for <a href="http://common-lisp.net/project/iterate/doc/Drivers.html#Drivers">numerical iteration</a> will work with generalized numbers.
+
+   </body></html>
+

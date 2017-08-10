@@ -1,0 +1,4 @@
+@deffn {Function} {grid:check-dimensions} dimensions @&optional errorp
+@findex grid:check-dimensions
+Check that dimension specification for a grid is a list of positive integers.
+@end deffn

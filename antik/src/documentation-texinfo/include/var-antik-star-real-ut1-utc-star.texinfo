@@ -1,0 +1,4 @@
+@defvr {Variable} {antik:*real-ut1-utc*}
+@vindex antik:*real-ut1-utc*
+If @code{nil}, @code{ut1} will be taken the same as @code{utc}.
+@end defvr

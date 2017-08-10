@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:with-parameters} (category &rest name-values) @&body body
+@findex antik:with-parameters
+Provide local scope for parameter values, and possibly bind new values.
+@end deffn

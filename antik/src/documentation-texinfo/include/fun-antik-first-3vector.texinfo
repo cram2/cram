@@ -1,0 +1,4 @@
+@deffn {Function} {antik:first-3vector} vec
+@findex antik:first-3vector
+Extract the first 3-vector.
+@end deffn

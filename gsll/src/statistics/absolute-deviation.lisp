@@ -1,8 +1,8 @@
 ;; Absolute deviation
 ;; Liam Healy, Sun Dec 31 2006 - 13:19
-;; Time-stamp: <2010-06-27 18:14:02EDT absolute-deviation.lisp>
+;; Time-stamp: <2014-12-26 13:18:37EST absolute-deviation.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011, 2012, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :gsl)
+(named-readtables:in-readtable :antik)
 
 ;;; To do: stride other than 1 when that information is availble from
 ;;; the vector.
@@ -26,8 +27,8 @@
 (defmfun absolute-deviation ((data vector) &optional mean)
   (("gsl_stats" :type "_absdev")
    ("gsl_stats" :type "_absdev_m"))
-  ((((foreign-pointer data) :pointer) (1 :int) ((dim0 data) sizet))
-   (((foreign-pointer data) :pointer) (1 :int) ((dim0 data) sizet)
+  ((((grid:foreign-pointer data) :pointer) (1 :int) ((dim0 data) :sizet))
+   (((grid:foreign-pointer data) :pointer) (1 :int) ((dim0 data) :sizet)
     (mean :double)))
   :definition :generic
   :element-types :no-complex
@@ -48,12 +49,12 @@
 (defmfun weighted-absolute-deviation ((data vector) (weights vector) &optional mean)
   (("gsl_stats" :type "_wabsdev")
    ("gsl_stats" :type "_wabsdev_m"))
-  ((((foreign-pointer weights) :pointer) (1 :int)
-    ((foreign-pointer data) :pointer) (1 :int)
-    ((dim0 data) sizet))
-   (((foreign-pointer weights) :pointer) (1 :int)
-    ((foreign-pointer data) :pointer) (1 :int)
-    ((dim0 data) sizet) (mean :double)))
+  ((((grid:foreign-pointer weights) :pointer) (1 :int)
+    ((grid:foreign-pointer data) :pointer) (1 :int)
+    ((dim0 data) :sizet))
+   (((grid:foreign-pointer weights) :pointer) (1 :int)
+    ((grid:foreign-pointer data) :pointer) (1 :int)
+    ((dim0 data) :sizet) (mean :double)))
   :definition :generic
   :element-types :float
   :c-return :double

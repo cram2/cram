@@ -1,0 +1,7 @@
+@deffn {Generic Function} {grid:element-type} grid
+@findex grid:element-type
+The element type of the grid.
+@end deffn
+@deffn {Method} {grid:element-type} (foreign-array foreign-array)
+automatically generated reader method
+@end deffn

@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:with-system-of-units} (system-of-units &rest units) @&body body
+@findex antik:with-system-of-units
+When executing the body, change the system of units by naming the units. If system-of-units is non-nil, augment that system with the specified units; if it is @code{t}, augment the current system of units.
+@end deffn

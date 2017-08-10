@@ -1,0 +1,5 @@
+@deffn {Function} {antik:/} @&rest args
+@findex antik:/
+Division of generalized or regular numbers for an
+   arbitrary number of arguments.
+@end deffn

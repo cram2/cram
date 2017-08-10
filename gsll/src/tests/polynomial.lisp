@@ -1,6 +1,6 @@
 ;; Regression test POLYNOMIAL for GSLL, automatically generated
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -78,7 +78,8 @@
      (POLYNOMIAL-SOLVE
       (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :INITIAL-CONTENTS
 			       '(-1.0d0 0.0d0 0.0d0 0.0d0 0.0d0
-				 1.0d0))))))
+				 1.0d0)))
+      'array '(complex double-float))))
   (LISP-UNIT:ASSERT-NUMERICAL-EQUAL
    (LIST 1.325d0)
    (MULTIPLE-VALUE-LIST
@@ -228,7 +229,8 @@
      (POLYNOMIAL-SOLVE
       (GRID:MAKE-FOREIGN-ARRAY
        'DOUBLE-FLOAT :INITIAL-CONTENTS
-       '(-120.0d0 274.0d0 -225.0d0 85.0d0 -15.0d0 1.0d0))))))
+       '(-120.0d0 274.0d0 -225.0d0 85.0d0 -15.0d0 1.0d0)))
+      'array '(complex double-float))))
   (LISP-UNIT:ASSERT-NUMERICAL-EQUAL
    (LIST
     #(#C(-0.8660254037844393d0 0.49999999999999983d0)
@@ -244,7 +246,8 @@
      (POLYNOMIAL-SOLVE
       (GRID:MAKE-FOREIGN-ARRAY
        'DOUBLE-FLOAT :INITIAL-CONTENTS
-       '(1.0d0 0.0d0 0.0d0 0.0d0 1.0d0 0.0d0 0.0d0 0.0d0 1.0d0))))))
+       '(1.0d0 0.0d0 0.0d0 0.0d0 1.0d0 0.0d0 0.0d0 0.0d0 1.0d0)))
+      'array '(complex double-float))))
   (LISP-UNIT:ASSERT-NUMERICAL-EQUAL
    (LIST
      #(0.73d0 1.11d0 1.4900000000000002d0 1.84d0 2.3d0 2.41d0 3.07d0)
@@ -262,11 +265,11 @@
       (MAP 'VECTOR
 	   (LAMBDA (X)
 	     (EVALUATE XA X :DIVIDED-DIFFERENCE DD))
-	   (grid:COPY-to XA))
+	   (grid:COPY-to XA 'array 'double-float))
       (MAP 'VECTOR
 	   (LAMBDA (X)
 	     (EVALUATE
 	      (TAYLOR-DIVIDED-DIFFERENCE 1.5d0 DD XA)
 	      (- X 1.5d0)))
-	   (grid:COPY-to XA))))))
+	   (grid:COPY-to XA 'array 'double-float))))))
 

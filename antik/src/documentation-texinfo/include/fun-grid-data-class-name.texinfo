@@ -1,0 +1,4 @@
+@deffn {Function} {grid:data-class-name} category-or-rank element-type @&optional making-class
+@findex grid:data-class-name
+The class name from the type of element.
+@end deffn

@@ -38,19 +38,44 @@
 ;;; These two special variables behave similarly to
 ;;; ASDF:*CENTRAL-REGISTRY* as its arguments are evaluated before
 ;;; being used. We used our MINI-EVAL instead of the full-blown EVAL
-;;; though.
+;;; and the evaluated form should yield a single pathname or a list of
+;;; pathnames.
 ;;;
 ;;; Only after failing to find a library through the normal ways
 ;;; (eg: on Linux LD_LIBRARY_PATH, /etc/ld.so.cache, /usr/lib/, /lib)
 ;;; do we try to find the library ourselves.
 
-(defvar *foreign-library-directories* '()
+(defun explode-path-environment-variable (name)
+  (mapcar #'uiop:ensure-directory-pathname
+          (split-if (lambda (c) (eql #\: c))
+                    (uiop:getenv name)
+                    :elide)))
+
+(defun darwin-fallback-library-path ()
+  (or (explode-path-environment-variable "DYLD_FALLBACK_LIBRARY_PATH")
+      (list (merge-pathnames #p"lib/" (user-homedir-pathname))
+            #p"/usr/local/lib/"
+            #p"/usr/lib/")))
+
+(defvar *foreign-library-directories*
+  (if (featurep :darwin)
+      '((explode-path-environment-variable "LD_LIBRARY_PATH")
+        (explode-path-environment-variable "DYLD_LIBRARY_PATH")
+        (uiop:getcwd)
+        (darwin-fallback-library-path))
+      '())
   "List onto which user-defined library paths can be pushed.")
 
+(defun fallback-darwin-framework-directories ()
+  (or (explode-path-environment-variable "DYLD_FALLBACK_FRAMEWORK_PATH")
+      (list (uiop:getcwd)
+            (merge-pathnames #p"Library/Frameworks/" (user-homedir-pathname))
+            #p"/Library/Frameworks/"
+            #p"/System/Library/Frameworks/")))
+
 (defvar *darwin-framework-directories*
-  '((merge-pathnames #p"Library/Frameworks/" (user-homedir-pathname))
-    #p"/Library/Frameworks/"
-    #p"/System/Library/Frameworks/")
+  '((explode-path-environment-variable "DYLD_FRAMEWORK_PATH")
+    (fallback-darwin-framework-directories))
   "List of directories where Frameworks are searched for.")
 
 (defun mini-eval (form)
@@ -61,6 +86,9 @@
     (symbol (symbol-value form))
     (t form)))
 
+(defun parse-directories (list)
+  (mappend (compose #'ensure-list #'mini-eval) list))
+
 (defun find-file (path directories)
   "Searches for PATH in a list of DIRECTORIES and returns the first it finds."
   (some (lambda (directory) (probe-file (merge-pathnames path directory)))
@@ -68,11 +96,11 @@
 
 (defun find-darwin-framework (framework-name)
   "Searches for FRAMEWORK-NAME in *DARWIN-FRAMEWORK-DIRECTORIES*."
-  (dolist (framework-directory *darwin-framework-directories*)
+  (dolist (directory (parse-directories *darwin-framework-directories*))
     (let ((path (make-pathname
                  :name framework-name
                  :directory
-                 (append (pathname-directory (mini-eval framework-directory))
+                 (append (pathname-directory directory)
                          (list (format nil "~A.framework" framework-name))))))
       (when (probe-file path)
         (return-from find-darwin-framework path)))))
@@ -159,7 +187,7 @@
         finally (return (mapcar #'pathname search-path))))
 
 (defun foreign-library-loaded-p (lib)
-  (not (null (slot-value (get-foreign-library lib) 'handle))))
+  (not (null (foreign-library-handle (get-foreign-library lib)))))
 
 (defun list-foreign-libraries (&key (loaded-only t) type)
   "Return a list of defined foreign libraries.
@@ -290,21 +318,21 @@ ourselves."
       (values (%load-foreign-library name path)
               (pathname path))
     (error (error)
-      (if-let (file (find-file path (append search-path
-                                            *foreign-library-directories*)))
-        (handler-case
-            (values (%load-foreign-library name (native-namestring file))
-                    file)
-          (simple-error (error)
-            (report-simple-error name error)))
-        (report-simple-error name error)))))
+      (let ((dirs (parse-directories *foreign-library-directories*)))
+        (if-let (file (find-file path (append search-path dirs)))
+          (handler-case
+              (values (%load-foreign-library name (native-namestring file))
+                      file)
+            (simple-error (error)
+              (report-simple-error name error)))
+          (report-simple-error name error))))))
 
-(defun try-foreign-library-alternatives (name library-list)
+(defun try-foreign-library-alternatives (name library-list &optional search-path)
   "Goes through a list of alternatives and only signals an error when
 none of alternatives were successfully loaded."
   (dolist (lib library-list)
     (multiple-value-bind (handle pathname)
-        (ignore-errors (load-foreign-library-helper name lib))
+        (ignore-errors (load-foreign-library-helper name lib search-path))
       (when handle
         (return-from try-foreign-library-alternatives
           (values handle pathname)))))
@@ -328,8 +356,8 @@ This will need to be extended as we test on more OSes."
 
 (defun load-foreign-library-helper (name thing &optional search-path)
   (etypecase thing
-    (string
-     (load-foreign-library-path name thing search-path))
+    ((or pathname string)
+     (load-foreign-library-path (filter-pathname name) thing search-path))
     (cons
      (ecase (first thing)
        (:framework (load-darwin-framework name (second thing)))
@@ -341,34 +369,32 @@ This will need to be extended as we test on more OSes."
                             (second thing)
                             (default-library-suffix))))
           (load-foreign-library-path name library-path search-path)))
-       (:or (try-foreign-library-alternatives name (rest thing)))))))
+       (:or (try-foreign-library-alternatives name (rest thing) search-path))))))
 
 (defun %do-load-foreign-library (library search-path)
   (flet ((%do-load (lib name spec)
            (when (foreign-library-spec lib)
-             (multiple-value-bind (handle pathname)
-                 (load-foreign-library-helper
-                  name spec (foreign-library-search-path lib))
-               (setf (slot-value lib 'handle) handle
-                     (slot-value lib 'pathname) pathname)))
+             (with-slots (handle pathname) lib
+               (setf (values handle pathname)
+                     (load-foreign-library-helper
+                      name spec (foreign-library-search-path lib)))))
            lib))
     (etypecase library
       (symbol
        (let* ((lib (get-foreign-library library))
               (spec (foreign-library-spec lib)))
          (%do-load lib library spec)))
-      (string
-       (let* ((lib-name
-               (gensym (concatenate 'string
-                                    (string-upcase
-                                     (file-namestring library))
-                                    "-")))
-              (lib
-               (make-instance 'foreign-library
-                              :type :system
-                              :name lib-name
-                              :spec `((t ,library))
-                              :search-path search-path)))
+      ((or string list)
+       (let* ((lib-name (gensym
+                         (format nil "~:@(~A~)-"
+                                 (if (listp library)
+                                     (first library)
+                                     (file-namestring library)))))
+              (lib (make-instance 'foreign-library
+                                  :type :system
+                                  :name lib-name
+                                  :spec `((t ,library))
+                                  :search-path search-path)))
          ;; first try to load the anonymous library
          ;; and register it only if that worked
          (%do-load lib lib-name library)
@@ -387,7 +413,13 @@ or finally list: either (:or lib1 lib2) or (:framework <framework-name>)."
   (let ((library (filter-pathname library)))
     (restart-case
         (progn
-          (alexandria:ignore-some-conditions (foreign-library-undefined-error)
+          ;; dlopen/dlclose does reference counting, but the CFFI-SYS
+          ;; API has no infrastructure to track that. Therefore if we
+          ;; want to avoid increasing the internal dlopen reference
+          ;; counter, and thus thwarting dlclose, then we need to try
+          ;; to call CLOSE-FOREIGN-LIBRARY and ignore any signaled
+          ;; errors.
+          (ignore-some-conditions (foreign-library-undefined-error)
             (close-foreign-library library))
           (%do-load-foreign-library library search-path))
       ;; Offer these restarts that will retry the call to
@@ -418,8 +450,8 @@ or finally list: either (:or lib1 lib2) or (:framework <framework-name>)."
 (defun reload-foreign-libraries (&key (test #'foreign-library-loaded-p))
   "(Re)load all currently loaded foreign libraries."
   (let ((libs (list-foreign-libraries)))
-    (loop :for l :in libs
-          :for name := (foreign-library-name l) :do
-      (when (funcall test name)
-        (load-foreign-library name)))
+    (loop for l in libs
+          for name = (foreign-library-name l)
+          when (funcall test name)
+            do (load-foreign-library name))
     libs))

@@ -1,8 +1,8 @@
 ;; The mobject that defines callbacks
 ;; Liam Healy 2009-03-14 11:20:03EDT callback-included.lisp
-;; Time-stamp: <2009-12-27 09:50:34EST callback-included.lisp>
+;; Time-stamp: <2011-01-10 18:19:12EST callback-included.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@
     :initarg :scalarsp :reader scalarsp :initform t
     :documentation "Whether the function expect to be passed and return
     scalars or arrays.")
-   (dimensions :initarg :dimensions :reader dimensions))
+   (grid:dimensions :initarg :dimensions :reader grid:dimensions))
   (:documentation
    "A mobject that includes a callback function or functions to GSL."))
 
@@ -65,7 +65,7 @@
   (declare (ignore ignore))
   `(defclass ,class-name ,superclasses
      ((dimension-names :initform nil :allocation :class)
-      (dimensions :initform '(1) :allocation :class)
+      (grid:dimensions :initform '(1) :allocation :class)
       (scalarsp :initform T :allocation :class))
      (:documentation ,documentation)))
 
@@ -76,7 +76,7 @@
       (princ (first (functions object)) stream)
       (princ ", " stream))
     (princ "dimensions " stream)
-    (princ (dimensions object) stream)))
+    (princ (grid:dimensions object) stream)))
 
 ;;;;****************************************************************************
 ;;;; For making mobjects

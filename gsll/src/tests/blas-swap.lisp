@@ -1,6 +1,6 @@
 ;; Regression test BLAS-SWAP for GSLL, automatically generated
 ;;
-;; Copyright 2009, 2010 Liam M. Healy
+;; Copyright 2009, 2010, 2011, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -20,18 +20,18 @@
 
 (LISP-UNIT:DEFINE-TEST BLAS-SWAP
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
-   (LIST (LIST #(-8.93 34.12 -6.15) #(-34.5 8.24 3.29)))
+   (LIST (LIST #(-8.93f0 34.12f0 -6.15f0) #(-34.5f0 8.24f0 3.29f0)))
    (MULTIPLE-VALUE-LIST
     (LET ((V1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    'SINGLE-FLOAT :INITIAL-CONTENTS
-	    '(-34.5 8.24 3.29)))
+	    '(-34.5f0 8.24f0 3.29f0)))
 	  (V2
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    'SINGLE-FLOAT :INITIAL-CONTENTS
-	    '(-8.93 34.12 -6.15))))
+	    '(-8.93f0 34.12f0 -6.15f0))))
       (BLAS-SWAP V2 V1)
-      (LIST (GRID:COPY-TO V1) (GRID:COPY-TO V2)))))
+      (LIST (GRID:COPY-TO V1 'array 'single-float) (GRID:COPY-TO V2 'array 'single-float)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
     (LIST #(-8.93d0 34.12d0 -6.15d0)
@@ -46,25 +46,25 @@
 	    'DOUBLE-FLOAT :INITIAL-CONTENTS
 	    '(-8.93d0 34.12d0 -6.15d0))))
       (BLAS-SWAP V2 V1)
-      (LIST (GRID:COPY-TO V1) (GRID:COPY-TO V2)))))
+      (LIST (GRID:COPY-TO V1 'array 'double-float) (GRID:COPY-TO V2 'array 'double-float)))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
     (LIST
-     #(#C(-8.93 34.12) #C(-6.15 49.27) #C(-13.49 32.5))
-     #(#C(-34.5 8.24) #C(3.29 -8.93) #C(34.12 -6.15))))
+     #(#C(-8.93f0 34.12f0) #C(-6.15f0 49.27f0) #C(-13.49f0 32.5f0))
+     #(#C(-34.5f0 8.24f0) #C(3.29f0 -8.93f0) #C(34.12f0 -6.15f0))))
    (MULTIPLE-VALUE-LIST
     (LET ((V1
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    '(COMPLEX SINGLE-FLOAT)
 	    :INITIAL-CONTENTS
-	    '(#C(-34.5 8.24) #C(3.29 -8.93) #C(34.12 -6.15))))
+	    '(#C(-34.5f0 8.24f0) #C(3.29f0 -8.93f0) #C(34.12f0 -6.15f0))))
 	  (V2
 	   (GRID:MAKE-FOREIGN-ARRAY
 	    '(COMPLEX SINGLE-FLOAT)
 	    :INITIAL-CONTENTS
-	    '(#C(-8.93 34.12) #C(-6.15 49.27) #C(-13.49 32.5)))))
+	    '(#C(-8.93f0 34.12f0) #C(-6.15f0 49.27f0) #C(-13.49f0 32.5f0)))))
       (BLAS-SWAP V2 V1)
-      (LIST (GRID:COPY-TO V1) (GRID:COPY-TO V2)))))
+      (LIST (GRID:COPY-TO V1 'array '(complex single-float)) (GRID:COPY-TO V2 'array '(complex single-float))))))
   (LISP-UNIT::ASSERT-NUMERICAL-EQUAL
    (LIST
     (LIST
@@ -84,4 +84,4 @@
 	    :INITIAL-CONTENTS
 	    '(#C(-8.93d0 34.12d0) #C(-6.15d0 49.27d0) #C(-13.49d0 32.5d0)))))
       (BLAS-SWAP V2 V1)
-      (LIST (GRID:COPY-TO V1) (GRID:COPY-TO V2))))))
+      (LIST (GRID:COPY-TO V1 'array '(complex double-float)) (GRID:COPY-TO V2 'array '(complex double-float)))))))

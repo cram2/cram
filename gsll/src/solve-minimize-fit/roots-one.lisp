@@ -1,8 +1,8 @@
 ;; One-dimensional root solver.
 ;; Liam Healy 
-;; Time-stamp: <2009-12-27 10:05:31EST roots-one.lisp>
+;; Time-stamp: <2011-10-30 10:34:42EDT roots-one.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@
   :initialize-suffix "set"
   :initialize-args ((callback :pointer) (lower :double) (upper :double))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :singular (function))
 
 (defmobject one-dimensional-root-solver-fdf "gsl_root_fdfsolver"
@@ -41,7 +41,7 @@
   :initialize-suffix "set"
   :initialize-args ((callback :pointer) (root-guess :double))
   :callbacks
-  (callback fnstruct-fdf nil
+  (callback (:struct fnstruct-fdf) nil
 	    (function :double (:input :double) :slug)
 	    (df :double (:input :double) :slug)
 	    (fdf :void (:input :double) :slug

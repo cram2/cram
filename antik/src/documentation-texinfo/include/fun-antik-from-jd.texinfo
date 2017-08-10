@@ -1,0 +1,5 @@
+@deffn {Function} {antik:from-jd} jd @&optional modified scale
+@findex antik:from-jd
+Find the timepoint from the Julian date.
+   Assumes a fixed number of seconds per day (86400).
+@end deffn

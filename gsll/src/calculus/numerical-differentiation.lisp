@@ -1,8 +1,8 @@
 ;; Numerical differentiation.                
 ;; Liam Healy Mon Nov 12 2007 - 22:07
-;; Time-stamp: <2009-12-27 09:42:10EST numerical-differentiation.lisp>
+;; Time-stamp: <2011-10-30 10:27:07EDT numerical-differentiation.lisp>
 ;;
-;; Copyright 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@
   ((callback :pointer) (x :double) (step :double)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Compute the numerical derivative of the function
@@ -50,7 +50,7 @@
   ((callback :pointer) (x :double) (step :double)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Compute the numerical derivative of the function
@@ -75,7 +75,7 @@
   ((callback :pointer) (x :double) (step :double)
    (result (:pointer :double)) (abserr (:pointer :double)))
   :callbacks
-  (callback fnstruct nil (function :double (:input :double) :slug))
+  (callback (:struct fnstruct) nil (function :double (:input :double) :slug))
   :callback-dynamic (nil (function))
   :documentation			; FDL
   "Compute the numerical derivative of the function at the point x

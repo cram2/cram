@@ -1,0 +1,5 @@
+@deffn {Function} {antik:read-us-date} string @&optional day-only
+@findex antik:read-us-date
+Read dates and times in customary @code{us} format MM/DD/YYYY; times may
+   be included as well if day-only is nil.
+@end deffn

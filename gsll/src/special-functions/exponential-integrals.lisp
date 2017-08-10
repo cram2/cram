@@ -1,8 +1,8 @@
 ;; Exponential integrals
 ;; Liam Healy, Tue Mar 21 2006 - 17:37
-;; Time-stamp: <2009-12-27 10:10:03EST exponential-integrals.lisp>
+;; Time-stamp: <2011-10-29 23:38:04EDT exponential-integrals.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -25,19 +25,20 @@
 ;;;;****************************************************************************
 
 (defmfun exponential-integral-E1 (x)
-  "gsl_sf_expint_E1_e" ((x :double) (ret sf-result))
+  "gsl_sf_expint_E1_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The exponential integral
    E_1(x)}, E_1(x) := \Re \int_1^\infty dt \exp(-xt)/t..")
 
 (defmfun exponential-integral-E2 (x)
-  "gsl_sf_expint_E2_e" ((x :double) (ret sf-result))
+  "gsl_sf_expint_E2_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The second-order exponential integral
    E_2(x)}, E_2(x) := \Re \int_1^\infty dt \exp(-xt)/t^2.")
 
 (defmfun exponential-integral-En (n x)
-  "gsl_sf_expint_En_e" ((n :int) (x :double) (ret sf-result))
+  "gsl_sf_expint_En_e"
+  ((n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :gsl-version (1 10)
   :documentation			; FDL
   "The exponential integral E_n(x) of order n,
@@ -49,7 +50,7 @@
 ;;;;****************************************************************************
 
 (defmfun exponential-integral-Ei (x)
-    "gsl_sf_expint_Ei_e" ((x :double) (ret sf-result))
+    "gsl_sf_expint_Ei_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The exponential integral Ei(x),
    Ei(x) := - PV\left(\int_{-x}^\infty dt \exp(-t)/t\right).")
@@ -59,12 +60,12 @@
 ;;;;****************************************************************************
 
 (defmfun Shi (x)
-  "gsl_sf_Shi_e" ((x :double) (ret sf-result))
+  "gsl_sf_Shi_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The integral Shi(x) = \int_0^x dt \sinh(t)/t.")
 
 (defmfun Chi (x)
-  "gsl_sf_Chi_e" ((x :double) (ret sf-result))
+  "gsl_sf_Chi_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The integral
    Chi(x) := \Re[ \gamma_E + \log(x) + \int_0^x dt (\cosh[t]-1)/t],
@@ -75,7 +76,7 @@
 ;;;;****************************************************************************
 
 (defmfun exponential-integral-3 (x)
-  "gsl_sf_expint_3_e" ((x :double) (ret sf-result))
+  "gsl_sf_expint_3_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The third-order exponential integral Ei_3(x) = \int_0^xdt \exp(-t^3)
   for x >= 0.")
@@ -85,12 +86,12 @@
 ;;;;****************************************************************************
 
 (defmfun Si (x)
-  "gsl_sf_Si_e" ((x :double) (ret sf-result))
+  "gsl_sf_Si_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Sine integral Si(x) = \int_0^x dt \sin(t)/t.")
 
 (defmfun Ci (x)
-  "gsl_sf_Ci_e" ((x :double) (ret sf-result))
+  "gsl_sf_Ci_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Cosine integral Ci(x) = -\int_x^\infty dt \cos(t)/t
    for x > 0.")
@@ -100,7 +101,7 @@
 ;;;;****************************************************************************
 
 (defmfun atanint (x)
-  "gsl_sf_atanint_e" ((x :double) (ret sf-result))
+  "gsl_sf_atanint_e" ((x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Arctangent integral, which is defined as
    AtanInt(x) = \int_0^x dt \arctan(t)/t.")

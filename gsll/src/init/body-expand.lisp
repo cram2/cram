@@ -1,8 +1,8 @@
 ;; Expand the body of a defmfun
 ;; Liam Healy 2009-04-13 22:07:13EDT body-expand.lisp
-;; Time-stamp: <2010-06-27 18:25:27EDT body-expand.lisp>
+;; Time-stamp: <2011-10-30 00:35:29EDT body-expand.lisp>
 ;;
-;; Copyright 2009, 2010 Liam M. Healy
+;; Copyright 2009, 2010, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -22,100 +22,41 @@
 
 (defun creturn-st (c-return)
   "The symbol-type of the return from the C function."
-  (grid:make-st
-   (if (listp c-return)
-       (grid:st-symbol c-return)
-       (make-symbol "CRETURN"))
-   (if (member c-return *special-c-return*)
-       :int
-       (if (listp c-return) (grid:st-type c-return) c-return))))
-
-#+fsbv
-(defun variables-passed-by-value (c-arguments-st)
-  "Create a list of (symbol newsymbol-st) for each structure
-  variable in the C argument list."
-  (loop for sd in c-arguments-st
-     collect
-     (when (fsbv:defined-type-p (grid:st-type sd))
-       (list (grid:st-symbol sd)
-	     (grid:make-st
-	      (make-symbol (string (grid:st-symbol sd)))
-	      (grid:st-type sd))))))
-
-;;; This function should never be called even when FSBV is absent,
-;;; because the potential callers should all have #-fsbv
-;;; conditionalization.  It is here just so that body-expand can
-;;; compile when FSBV is absent.
-#-fsbv
-(defmacro no-fsbv-error (function-name &rest args)
-  (declare (ignore args))
-  `(error
-    "System FSBV is not present, so function ~a cannot be used."
-    ,function-name))
-
-#+fsbv
-(defun make-defcfun-for-fsbv (gsl-name ff-args)
-  "Make a fsbv:defcfun form so that function will be prepped."
-  (multiple-value-bind (args return-type)
-      (fsbv:defcfun-args-from-ff-args ff-args)
-    (let ((gsl-name-symbol (make-symbol gsl-name))
-	  (symbargs
-	   (mapcar (lambda (st) (grid:make-st (gensym "ARG") (grid:st-type st)))
-		   args)))
-      (values
-       `(fsbv:defcfun (,gsl-name-symbol ,gsl-name) ,return-type
-	  "Function definition generated for FSBV prepping; will actually
-        be called by fsbv:foreign-funcall"
-	  ,@symbargs)
-       gsl-name-symbol))))
-
-(defun ffexpand (pass-by-value-p gsl-name args)
-  "Expand the foreign funcall."
-  (if pass-by-value-p
-      #+fsbv
-      (multiple-value-bind (form symbol)
-	  (make-defcfun-for-fsbv gsl-name args)
-	(declare (special fsbv-functions))
-	(push form fsbv-functions)
-	`(fsbv:foreign-funcall ,symbol ,@args))
-      #-fsbv
-      `(no-fsbv-error no-fsbv-error ,@args)
-      `(cffi:foreign-funcall ,gsl-name ,@args)))
+  (let ((supplied-symbol-p		; return symbol supplied
+	  (and (listp c-return)		; accommodate (:struct foo) type spec
+	       (not (eq (symbol-package (first c-return)) (find-package :keyword))))))
+    (grid:make-st
+     (if supplied-symbol-p
+      (grid:st-symbol c-return)
+      (make-symbol "CRETURN"))
+     (if (member c-return *special-c-return*)
+	 :int
+	 (if supplied-symbol-p (grid:st-type c-return) c-return)))))
 
 (defun cl-convert-form (decl)
   "Generate a form that calls the appropriate converter from C/GSL to CL."
-  (case (grid:st-actual-type decl)
-    (sf-result 
-     `((val ,(grid:st-symbol decl))
-       (err ,(grid:st-symbol decl))))
-    (sf-result-e10
-     `((val ,(grid:st-symbol decl) 'sf-result-e10)
-       (e10 ,(grid:st-symbol decl))
-       (err ,(grid:st-symbol decl) 'sf-result-e10)))
-    (grid:complex-double-c
-     `((grid:complex-to-cl ,(grid:st-symbol decl) 0 'grid:complex-double-c)))
-    (grid:complex-float-c
-     `((grid:complex-to-cl ,(grid:st-symbol decl) 0 'grid:complex-float-c)))
-    (t `((cffi:mem-aref ,(grid:st-symbol decl) ',(grid:st-actual-type decl))))))
+  (list `(cffi:mem-ref ,(grid:st-symbol decl) ',(grid:st-actual-type decl))))
+
+(defun values-unless-singleton (forms)
+  (unless (listp forms) (error "Values are not a list."))
+  (if (rest forms)
+    `(values ,@forms)
+    (first forms)))
 
 (defun body-expand (name arglist gsl-name c-arguments key-args)
   "Expand the body (computational part) of the defmfun."
   (with-defmfun-key-args key-args
     (let* ((creturn-st (creturn-st c-return))
 	   (allocated-return ; Allocated and then returned from CL function
-	    (mapcar
-	     (lambda (s)
-	       (or (find s c-arguments :key #'grid:st-symbol)
-		   ;; Catch programming errors, usually typos
-		   (error "Could not find ~a among the arguments" s)))
-	     (remove-if
+	     (mapcar
 	      (lambda (s)
-		(member s (arglist-plain-and-categories arglist nil)))
-	      (variables-used-in-c-arguments c-arguments))))
-	   (pbv				; passed by value
-	    #+fsbv
-	    (variables-passed-by-value (cons creturn-st c-arguments))
-	    #-fsbv nil)
+		(or (find s c-arguments :key #'grid:st-symbol)
+		    ;; Catch programming errors, usually typos
+		    (error "Could not find ~a among the arguments" s)))
+	      (remove-if
+	       (lambda (s)
+		 (member s (arglist-plain-and-categories arglist nil)))
+	       (variables-used-in-c-arguments c-arguments))))
 	   (clret (or			; better as a symbol macro
 		   (substitute
 		    (grid:st-symbol creturn-st) :c-return
@@ -141,39 +82,39 @@
 	     callback-dynamic cbinfo (first callback-dynamic-variables))
 	    before
 	    (when callback-object (callback-set-dynamic callback-object arglist)))
-	   ,@(callback-set-slots
-	      cbinfo callback-dynamic-variables callback-dynamic)
-	   (let ((,(grid:st-symbol creturn-st)
-		  ,(ffexpand (some 'identity pbv)
-			     gsl-name
-			     (append
-			      (mappend
-			       (lambda (arg)
-				 (list (cond
-					 ((member (grid:st-symbol arg)
-						  allocated-return)
-					  :pointer)
-					 (t (grid:st-type arg)))
-				       (grid:st-symbol arg)))
-			       (mapcar 'grid:st-pointer-generic-pointer
-				       c-arguments))
-			      (list (grid:st-type creturn-st))))))
-	     ,@(case c-return
-		     (:void `((declare (ignore ,(grid:st-symbol creturn-st)))))
-		     (:error-code	; fill in arguments
-		      `((check-gsl-status ,(grid:st-symbol creturn-st)
-					  ',(or (defgeneric-method-p name) name)))))
-	     ,@(when (eq (grid:st-type creturn-st) :pointer)
-		     `((check-null-pointer
-			,(grid:st-symbol creturn-st)
-			,@'('memory-allocation-failure "No memory allocated."))))
-	     ,@after
-	     (values
-	      ,@(defmfun-return
+	 ,@(callback-set-slots
+	    cbinfo callback-dynamic-variables callback-dynamic)
+	 (let ((,(grid:st-symbol creturn-st)
+		 (cffi:foreign-funcall
+		  ,gsl-name
+		  ,@(append
+		     (mappend
+		      (lambda (arg)
+			(list (cond
+				((member (grid:st-symbol arg)
+					 allocated-return)
+				 :pointer)
+				(t (grid:st-type arg)))
+			      (grid:st-symbol arg)))
+		      (mapcar 'grid:st-pointer-generic-pointer
+			      c-arguments))
+		     (list (grid:st-type creturn-st))))))
+	   ,@(case c-return
+	       (:void `((declare (ignore ,(grid:st-symbol creturn-st)))))
+	       (:error-code		; fill in arguments
+		`((check-gsl-status ,(grid:st-symbol creturn-st)
+				    ',(or (defgeneric-method-p name) name)))))
+	   ,@(when (eq (grid:st-type creturn-st) :pointer)
+	       `((check-null-pointer
+		  ,(grid:st-symbol creturn-st)
+		  ,@'('memory-allocation-failure "No memory allocated."))))
+	   ,@after
+	   ,(values-unless-singleton
+	     (defmfun-return
 		 c-return (grid:st-symbol creturn-st) clret
-		 allocated-return
-		 return return-supplied-p
-		 enumeration outputs))))))))
+	       allocated-return
+	       return return-supplied-p
+	       enumeration outputs))))))))
 
 (defun defmfun-return
     (c-return cret-name clret allocated return return-supplied-p enumeration outputs)
@@ -209,4 +150,3 @@
 		 (not return-supplied-p))
 	    (and (null return) return-supplied-p))
 	 clret))))
-

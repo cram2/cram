@@ -1,0 +1,6 @@
+@deftp {Class} {grid:mvector}
+@tindex grid:mvector
+Class precedence list: @code{@lw{mvector}, @lw{foreign-array}, @lw{standard-object}, @lw{t}}
+
+Foreign vectors.
+@end deftp

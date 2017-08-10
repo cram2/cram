@@ -1,8 +1,8 @@
 ;; Hypergeometric function
 ;; Liam Healy, Fri Apr 28 2006 - 23:00
-;; Time-stamp: <2009-12-27 10:10:02EST hypergeometric.lisp>
+;; Time-stamp: <2011-11-24 22:46:31EST hypergeometric.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -18,10 +18,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;; /usr/include/gsl/gsl_sf_hyperg.h
+
 (in-package :gsl)
 
 (defmfun hypergeometric-0F1 (c x)
-  "gsl_sf_hyperg_0F1_e" ((c :double) (x :double) (ret sf-result))
+  "gsl_sf_hyperg_0F1_e"
+  ((c :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The hypergeometric function 0F1(c,x).")
 
@@ -30,7 +33,8 @@
    "The confluent hypergeometric function 1F1(m,n,x) = M(m,n,x)."))
 
 (defmfun hypergeometric-1F1 ((m integer) (n integer) x)
-  "gsl_sf_hyperg_1F1_int_e" ((m :int) (n :int) (x :double) (ret sf-result))
+  "gsl_sf_hyperg_1F1_int_e"
+  ((m :int) (n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :export t
   :documentation			; FDL
@@ -38,7 +42,8 @@
    for integer parameters m, n.")
 
 (defmfun hypergeometric-1F1 ((a float) (b float) x)
-  "gsl_sf_hyperg_1F1_e" ((a :double) (b :double) (x :double) (ret sf-result))
+  "gsl_sf_hyperg_1F1_e"
+  ((a :double) (b :double) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation			; FDL
   "The confluent hypergeometric function
@@ -49,14 +54,16 @@
    "The confluent hypergeometric function U(m,n,x)."))
 
 (defmfun hypergeometric-U ((m integer) (n integer) x)
-  "gsl_sf_hyperg_U_int_e" ((m :int) (n :int) (x :double) (ret sf-result))
+  "gsl_sf_hyperg_U_int_e"
+  ((m :int) (n :int) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :export t
   :documentation			; FDL
   "The confluent hypergeometric function U(m,n,x) for integer parameters m, n.")
 
 (defmfun hypergeometric-U ((a float) (b float) x)
-  "gsl_sf_hyperg_U_e" ((a :double) (b :double) (x :double) (ret sf-result))
+  "gsl_sf_hyperg_U_e"
+  ((a :double) (b :double) (x :double) (ret (:pointer (:struct sf-result))))
   :definition :method
   :documentation "The confluent hypergeometric function U(a,b,x).")
 
@@ -67,7 +74,7 @@
 
 (defmfun hypergeometric-U-e10 ((m integer) (n integer) x)
   "gsl_sf_hyperg_U_int_e10_e"
-  ((m :int) (n :int) (x :double) (ret sf-result-e10))
+  ((m :int) (n :int) (x :double) (ret (:pointer (:struct sf-result-e10))))
   :definition :method
   :export t
   :documentation			; FDL
@@ -77,7 +84,7 @@
 
 (defmfun hypergeometric-U-e10 ((a float) (b float) x)
   "gsl_sf_hyperg_U_e10_e"
-  ((a :double) (b :double) (x :double) (ret sf-result-e10))
+  ((a :double) (b :double) (x :double) (ret (:pointer (:struct sf-result-e10))))
   :definition :method
   :documentation			; FDL
   "The confluent hypergeometric function
@@ -85,7 +92,7 @@
 
 (defmfun hypergeometric-2F1 (a b c x)
   "gsl_sf_hyperg_2F1_e"
-  ((a :double) (b :double) (c :double) (x :double) (ret sf-result))
+  ((a :double) (b :double) (c :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Gauss hypergeometric function
   2F1(a,b,c,x) for |x| < 1. If the arguments
@@ -97,14 +104,14 @@
 (defmfun hypergeometric-2F1-conj (a c x)
   "gsl_sf_hyperg_2F1_conj_e"
   (((realpart a) :double) ((imagpart a) :double)
-   (c :double) (x :double) (ret sf-result))
+   (c :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The Gauss hypergeometric function 2F1(a, a*, c, x) with complex parameters 
   for |x| < 1.")
 
 (defmfun hypergeometric-2F1-renorm (a b c x)
   "gsl_sf_hyperg_2F1_renorm_e"
-  ((a :double) (b :double) (c :double) (x :double) (ret sf-result))
+  ((a :double) (b :double) (c :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The renormalized Gauss hypergeometric function
   2F1(a,b,c,x) / Gamma(c) for |x| < 1.")
@@ -112,14 +119,14 @@
 (defmfun hypergeometric-2F1-conj-renorm (a c x)
   "gsl_sf_hyperg_2F1_conj_renorm_e"
   (((realpart a) :double) ((imagpart a) :double)
-   (c :double) (x :double) (ret sf-result))
+   (c :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation			; FDL
   "The renormalized Gauss hypergeometric function
   2F1(a, a*, c, x) / Gamma(c) for |x| < 1.")
 
 (defmfun hypergeometric-2F0 (a b x)
   "gsl_sf_hyperg_2F0_e"
-  ((a :double) (b :double) (x :double) (ret sf-result))
+  ((a :double) (b :double) (x :double) (ret (:pointer (:struct sf-result))))
   :documentation 			; FDL
   "The hypergeometric function 
   2F0(a,b,x).  The series representation

@@ -1,8 +1,8 @@
 ;; Cholesky Decomposition
 ;; Liam Healy, Wed May  3 2006 - 16:38
-;; Time-stamp: <2010-06-30 19:57:28EDT cholesky.lisp>
+;; Time-stamp: <2011-05-26 12:37:33EDT cholesky.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 
 ;;; GSL version 1.10 introduced functions for complex matrices.
 
-(defmfun cholesky-decomposition ((A matrix))
+(defmfun cholesky-decomposition ((A grid:matrix))
   ("gsl_linalg" :complex "_cholesky_decomp")
   (((mpointer A) :pointer))
   :definition :generic
@@ -51,9 +51,9 @@
   returning the error input-domain.")
 
 (defmfun cholesky-solve
-    ((A matrix) (b vector) &optional x-spec
+    ((A grid:matrix) (b vector) &optional x-spec
      &aux
-     (x (grid:make-foreign-array-or-default x-spec (dimensions b) t)))
+     (x (grid:ensure-foreign-array x-spec (grid:dimensions b))))
   (("gsl_linalg" :complex "_cholesky_svx")
    ("gsl_linalg" :complex "_cholesky_solve"))
   ((((mpointer A) :pointer) ((mpointer b) :pointer))
@@ -98,7 +98,7 @@
   (let ((decomp (cholesky-decomposition (copy matrix))))
     (dotimes (row (dim0 matrix) decomp)
       (loop for col from (1+ row) below (dim1 matrix) do
-	   (setf (grid:gref decomp row col) 0.0d0)))
+	   (setf (grid:aref decomp row col) 0.0d0)))
     (matrix-product decomp decomp nil 1.0d0 0.0d0 :notrans :trans)))
 
 (defun test-cholesky-invert-dim (matrix)

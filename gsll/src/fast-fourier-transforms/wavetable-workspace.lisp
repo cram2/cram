@@ -1,6 +1,6 @@
 ;; Wavetable and workspace object definitions.
 ;; Sumant Oemrawsingh, Sun Oct 25 2009 - 16:35
-;; Time-stamp: <2009-12-27 09:45:32EST wavetable-workspace.lisp>
+;; Time-stamp: <2012-01-13 12:01:32EST wavetable-workspace.lisp>
 ;;
 ;; Copyright 2009 Sumant Oemrawsingh, Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
@@ -33,7 +33,7 @@
 ;; /usr/include/gsl/gsl_fft_real_float.h
 
 (defmobject fft-real-wavetable-double-float
-    "gsl_fft_real_wavetable" ((n sizet))
+    "gsl_fft_real_wavetable" ((n :sizet))
   "structure that holds the factorization and trigonometric lookup tables for
   the mixed radix real fft algorithm"
   :export nil
@@ -55,7 +55,7 @@
   or inverse half-complex transforms.")
 
 (defmobject fft-real-wavetable-single-float
-    "gsl_fft_real_wavetable_float" ((n sizet))
+    "gsl_fft_real_wavetable_float" ((n :sizet))
   "structure that holds the factorization and trigonometric lookup tables for
   the mixed radix real float fft algorithm"
   :export nil
@@ -77,7 +77,7 @@
   or inverse half-complex transforms.")
 
 (defmobject fft-real-workspace-double-float
-    "gsl_fft_real_workspace" ((n sizet))
+    "gsl_fft_real_workspace" ((n :sizet))
   "Structure that holds the additional working space required for the
   intermediate steps of the mixed radix real fft algoritms"
   :export nil
@@ -85,7 +85,7 @@
   "This function allocates a workspace for a real transform of length n.")
 
 (defmobject fft-real-workspace-single-float
-    "gsl_fft_real_workspace_float" ((n sizet))
+    "gsl_fft_real_workspace_float" ((n :sizet))
   "Structure that holds the additional working space required for the
   intermediate steps of the mixed radix real float fft algoritms"
   :export nil
@@ -101,7 +101,7 @@
 ;; /usr/include/gsl/gsl_fft_complex_float.h
 
 (defmobject fft-complex-wavetable-double-float
-    "gsl_fft_complex_wavetable" ((n sizet))
+    "gsl_fft_complex_wavetable" ((n :sizet))
   "structure that holds the factorization and trigonometric lookup tables for
   the mixed radix complex fft algorithm"
   :export nil
@@ -123,7 +123,7 @@
   inverse) transforms of a given length.")
 
 (defmobject fft-complex-wavetable-single-float
-    "gsl_fft_complex_wavetable_float" ((n sizet))
+    "gsl_fft_complex_wavetable_float" ((n :sizet))
   "structure that holds the factorization and trigonometric lookup tables for
   the mixed radix complex float fft algorithm"
   :export nil
@@ -145,7 +145,7 @@
   inverse) transforms of a given length.")
 
 (defmobject fft-complex-workspace-double-float
-    "gsl_fft_complex_workspace" ((n sizet))
+    "gsl_fft_complex_workspace" ((n :sizet))
   "Structure that holds the additional working space required for the
   intermediate steps of the mixed radix complex fft algoritms"
   :export nil
@@ -153,7 +153,7 @@
   "This function allocates a workspace for a complex transform of length n.")
 
 (defmobject fft-complex-workspace-single-float
-    "gsl_fft_complex_workspace_float" ((n sizet))
+    "gsl_fft_complex_workspace_float" ((n :sizet))
   "Structure that holds the additional working space required for the
   intermediate steps of the mixed radix complex float fft algoritms"
   :export nil
@@ -169,7 +169,7 @@
 ;; /usr/include/gsl/gsl_fft_halfcomplex_float.h
 
 (defmobject fft-half-complex-wavetable-double-float
-    "gsl_fft_halfcomplex_wavetable" ((n sizet))
+    "gsl_fft_halfcomplex_wavetable" ((n :sizet))
   "structure that holds the factorization and trigonometric lookup tables for
   the mixed radix halfcomplex fft algorithm"
   :export nil
@@ -191,7 +191,7 @@
   or inverse half-complex transforms.")
 
 (defmobject fft-half-complex-wavetable-single-float
-    "gsl_fft_halfcomplex_wavetable_float" ((n sizet))
+    "gsl_fft_halfcomplex_wavetable_float" ((n :sizet))
   "structure that holds the factorization and trigonometric lookup tables for
   the mixed radix real float fft algorithm"
   :export nil

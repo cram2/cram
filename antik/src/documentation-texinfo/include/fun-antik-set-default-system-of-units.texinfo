@@ -1,0 +1,4 @@
+@deffn {Function} {antik:set-default-system-of-units} @&rest units-or-system
+@findex antik:set-default-system-of-units
+Set the default system of units to the specified system.
+@end deffn

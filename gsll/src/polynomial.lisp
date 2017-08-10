@@ -1,8 +1,8 @@
 ;; Polynomials
 ;; Liam Healy, Tue Mar 21 2006 - 18:33
-;; Time-stamp: <2010-07-07 14:18:55EDT polynomial.lisp>
+;; Time-stamp: <2016-06-15 22:31:17EDT polynomial.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011, 2012, 2014, 2016 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package :gsl)
+(named-readtables:in-readtable :antik)
 
 ;;; /usr/include/gsl/gsl_poly.h
 
@@ -29,11 +30,11 @@
 (defmfun evaluate
     ((coefficients grid:vector-double-float) (x float) &key divided-difference)
   ("gsl_poly_eval" "gsl_poly_dd_eval")
-  ((((foreign-pointer coefficients) :pointer) ((dim0 coefficients) sizet)
+  ((((grid:foreign-pointer coefficients) :pointer) ((dim0 coefficients) :sizet)
     (x :double))
-   (((foreign-pointer divided-difference) :pointer)
-    ((foreign-pointer coefficients) :pointer)
-    ((dim0 coefficients) sizet)
+   (((grid:foreign-pointer divided-difference) :pointer)
+    ((grid:foreign-pointer coefficients) :pointer)
+    ((dim0 coefficients) :sizet)
     (x :double)))
   :definition :method
   :inputs (coefficients divided-difference)
@@ -41,17 +42,32 @@
   :documentation			; FDL
   "Evaluate the polyonomial with coefficients at the point x.")
 
+(defmfun evaluate-with-derivatives
+    (coefficients x &optional (derivatives 2)
+		  &aux (result (grid:ensure-foreign-array derivatives derivatives 'double-float)))
+  "gsl_poly_eval_derivs"
+  (((grid:foreign-pointer coefficients) :pointer)
+   ((grid:dim0 coefficients) :sizet)
+   (x :double)
+   ((grid:foreign-pointer result) :pointer)
+   ((grid:dim0 result) :sizet))
+  :gsl-version (1 13)
+  :inputs (coefficients x)
+  :return (result)
+  :documentation
+  "Evaluates a polynomial and its derivatives and stores the results in the array @var{res} of size @var{lenres}.  The output array contains the values of @math{d^k P/d x^k} for the specified value of @var{x} starting with @math{k = 0}. The optional argument 'derivatives may be either a vector-double-float, or a non-negative integer. If the former, the function value and derivatives are put in the vector supplied; if the latter, a new vector-double-float is created with the specified length.")
+
 #+fsbv
 (defmfun evaluate
     ((coefficients grid:vector-double-float) (x complex)
      &key)
   "gsl_poly_complex_eval"
-  (((foreign-pointer coefficients) :pointer) ((dim0 coefficients) sizet)
-   (x grid:complex-double-c))
+  (((grid:foreign-pointer coefficients) :pointer) ((dim0 coefficients) :sizet)
+   (x (:struct grid:complex-double-c)))
   :definition :method
   :gsl-version (1 11)
   :inputs (coefficients)
-  :c-return grid:complex-double-c
+  :c-return (:struct grid:complex-double-c)
   :documentation			; FDL
   "Evaluate the polyonomial with coefficients at the complex value x.")
 
@@ -60,12 +76,12 @@
     ((coefficients grid:vector-complex-double-float) (x complex)
      &key)
   "gsl_complex_poly_complex_eval"
-  (((foreign-pointer coefficients) :pointer) ((dim0 coefficients) sizet)
-   (x grid:complex-double-c))
+  (((grid:foreign-pointer coefficients) :pointer) ((dim0 coefficients) :sizet)
+   (x (:struct grid:complex-double-c)))
   :definition :method
   :gsl-version (1 11)
   :inputs (coefficients)
-  :c-return grid:complex-double-c
+  :c-return (:struct grid:complex-double-c)
   :documentation			; FDL
   "Evaluate the polyonomial with coefficients at the complex value x.")
 
@@ -76,9 +92,9 @@
 (defmfun divided-difference
     (xa ya &optional (dd (grid:make-foreign-array 'double-float :dimensions (dim0 xa))))
   "gsl_poly_dd_init"
-  (((foreign-pointer dd) :pointer)
-   ((foreign-pointer xa) :pointer) ((foreign-pointer ya) :pointer)
-   ((dim0 xa) sizet))
+  (((grid:foreign-pointer dd) :pointer)
+   ((grid:foreign-pointer xa) :pointer) ((grid:foreign-pointer ya) :pointer)
+   ((dim0 xa) :sizet))
   :inputs (xa ya)
   :outputs (dd)
   :return (dd)
@@ -95,12 +111,12 @@
 	(coefficients (grid:make-foreign-array 'double-float :dimensions (dim0 xa)))
 	(workspace (grid:make-foreign-array 'double-float :dimensions (dim0 xa))))
   "gsl_poly_dd_taylor"
-  (((foreign-pointer coefficients) :pointer)
+  (((grid:foreign-pointer coefficients) :pointer)
    (xp :double)
-   ((foreign-pointer dd) :pointer)
-   ((foreign-pointer xa) :pointer)
-   ((dim0 xa) sizet)
-   ((foreign-pointer workspace) :pointer))
+   ((grid:foreign-pointer dd) :pointer)
+   ((grid:foreign-pointer xa) :pointer)
+   ((dim0 xa) :sizet)
+   ((grid:foreign-pointer workspace) :pointer))
   :inputs (dd xa)
   :outputs (coefficients)
   :documentation			; FDL
@@ -128,7 +144,8 @@
 (defmfun solve-quadratic-complex (a b c)
   "gsl_poly_complex_solve_quadratic"
   ((a :double) (b :double) (c :double)
-   (root1 (:pointer grid:complex-double-c)) (root2 (:pointer grid:complex-double-c)))
+   (root1 (:pointer (:struct grid:complex-double-c)))
+   (root2 (:pointer (:struct grid:complex-double-c))))
   :c-return :number-of-answers
   :documentation			; FDL
   "The complex roots of the quadratic equation a x^2 + b x + c = 0.
@@ -154,8 +171,9 @@
 (defmfun solve-cubic-complex (a b c)
   "gsl_poly_complex_solve_cubic"
   ((a :double) (b :double) (c :double)
-   (root1 (:pointer grid:complex-double-c)) (root2 (:pointer grid:complex-double-c))
-   (root3 (:pointer grid:complex-double-c)))
+   (root1 (:pointer (:struct grid:complex-double-c)))
+   (root2 (:pointer (:struct grid:complex-double-c)))
+   (root3 (:pointer (:struct grid:complex-double-c))))
   :c-return :number-of-answers
   :documentation			; FDL
   "Find the complex roots of the cubic equation, x^3 + a x^2 + b x + c = 0
@@ -167,7 +185,7 @@
 ;;;;****************************************************************************
 
 (defmobject polynomial-complex-workspace "gsl_poly_complex_workspace"
-  ((n sizet))
+  ((n :sizet))
   "complex workspace for polynomials")
 
 (defmfun polynomial-solve
@@ -177,8 +195,8 @@
 			  :dimensions (1- (size coefficients))))
      (workspace (make-polynomial-complex-workspace (size coefficients))))
   "gsl_poly_complex_solve"
-  (((foreign-pointer coefficients) :pointer) ((dim0 coefficients) sizet)
-   ((mpointer workspace) :pointer) ((foreign-pointer answer) :pointer))
+  (((grid:foreign-pointer coefficients) :pointer) ((dim0 coefficients) :sizet)
+   ((mpointer workspace) :pointer) ((grid:foreign-pointer answer) :pointer))
   :inputs (coefficients)
   :outputs (answer)
   :return (answer)
@@ -213,8 +231,10 @@
  ;; Example from GSL manual
  (grid:copy-to (polynomial-solve #m(-1.0d0 0.0d0 0.0d0 0.0d0 0.0d0 1.0d0)))
  ;; tests from gsl-1.11/poly/test.c
- (evaluate #m(1 0.5 0.3) 0.5d0)
- (evaluate #m(1 -1 1 -1 1 -1 1 -1 1 -1 1) 1.0d0)
+ (evaluate #m(1.0d0 0.5d0 0.3d0) 0.5d0)
+ (evaluate
+  #m(1.0d0 -1.0d0 1.0d0 -1.0d0 1.0d0 -1.0d0 1.0d0 -1.0d0 1.0d0 -1.0d0 1.0d0)
+  1.0d0)
  (solve-quadratic 4.0d0 -20.0d0 26.0d0)		  ; no roots
  (solve-quadratic 4.0d0 -20.0d0 25.0d0)		  ; one root
  (solve-quadratic 4.0d0 -20.0d0 21.0d0)		  ; two roots
@@ -242,10 +262,10 @@
  (solve-cubic-complex -57.0d0 1071.0d0 -6647.0d0)
  (solve-cubic-complex -11.0d0 -493.0d0 +6647.0d0)
  (solve-cubic-complex -143.0d0 5087.0d0 -50065.0d0)
- (grid:copy-to (polynomial-solve #m(-120 274 -225 85 -15 1.0)))
- (grid:copy-to (polynomial-solve #m(1 0 0 0 1 0 0 0 1)))
- (let* ((xa #m(0.16 0.97 1.94 2.74 3.58 3.73 4.70))
-	(ya #m(0.73 1.11 1.49 1.84 2.30 2.41 3.07))
+ (grid:copy-to (polynomial-solve #m(-120.0d0 274.0d0 -225.0d0 85.0d0 -15.0d0 1.0d0)))
+ (grid:copy-to (polynomial-solve #m(1.0d0 0.0d0 0.0d0 0.0d0 1.0d0 0.0d0 0.0d0 0.0d0 1.0d0)))
+ (let* ((xa #m(0.16d0 0.97d0 1.94d0 2.74d0 3.58d0 3.73d0 4.70d0))
+	(ya #m(0.73d0 1.11d0 1.49d0 1.84d0 2.30d0 2.41d0 3.07d0))
 	(dd (divided-difference xa ya)))
    (list
     (grid:copy-to dd)

@@ -1,0 +1,4 @@
+@deffn {Function} {antik:all-time-units} time-interval @&optional stream
+@findex antik:all-time-units
+Show the time interval in all possible time units.
+@end deffn

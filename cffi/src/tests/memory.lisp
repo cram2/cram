@@ -260,6 +260,20 @@
         (mem-aref i :int 1)))
   1984)
 
+(cffi:defcstruct mem-aref.bare-struct
+  (a :uint8))
+
+;;; regression test: although mem-aref was dealing with bare struct
+;;; types as though they were pointers, it wasn't calculating the
+;;; proper offsets. The offsets for bare structs types should be
+;;; calculated as aggregate types.
+(deftest mem-aref.bare-struct
+    (with-foreign-object (a 'mem-aref.bare-struct 2)
+      (eql (- (pointer-address (cffi:mem-aref a 'mem-aref.bare-struct 1))
+              (pointer-address (cffi:mem-aref a 'mem-aref.bare-struct 0)))
+           (foreign-type-size '(:struct mem-aref.bare-struct))))
+  t)
+
 ;;; regression tests. dereferencing an aggregate type. dereferencing a
 ;;; struct should return a pointer to the struct itself, not return the
 ;;; first 4 bytes (or whatever the size of :pointer is) as a pointer.
@@ -366,11 +380,6 @@
        t))
   nil)
 
-;;; RT: FOREIGN-ALLOC with :COUNT 0 on CLISP signalled an error.
-(deftest foreign-alloc.6
-    (foreign-free (foreign-alloc :char :count 0))
-  nil)
-
 ;;; Regression test: FOREIGN-ALLOC shouldn't actually perform translation
 ;;; on initial-element/initial-contents since MEM-AREF will do that already.
 (define-foreign-type not-an-int ()
@@ -415,6 +424,11 @@
            (null-pointer-p (mem-ref ptr :pointer))
         (foreign-free ptr)))
   t)
+
+;;; RT: FOREIGN-ALLOC with :COUNT 0 on CLISP signalled an error.
+(deftest foreign-alloc.10
+    (foreign-free (foreign-alloc :char :count 0))
+  nil)
 
 ;;; Tests for mem-ref with a non-constant type. This is a way to test
 ;;; the functional interface (without compiler macros).
@@ -603,6 +617,24 @@
     (with-foreign-object (p :char)
       (setf (mem-ref p :char) 42))
   42)
+
+(define-foreign-type int+1 ()
+  ()
+  (:actual-type :int)
+  (:simple-parser int+1))
+
+(defmethod translate-to-foreign (value (type int+1))
+  (1+ value))
+
+(defmethod translate-from-foreign (value (type int+1))
+  (1+ value))
+
+(deftest mem-ref.setf.2
+    (with-foreign-object (p 'int+1)
+      (values (setf (mem-ref p 'int+1) 42)
+              (mem-ref p 'int+1)))
+  42 ; should this be 43?
+  44)
 
 (deftest pointer-eq.non-pointers.1
     (expecting-error (pointer-eq 1 2))

@@ -1,8 +1,8 @@
 ;; Tridiagonal and Bidiagonal matrices
 ;; Liam Healy, Thu May  4 2006 - 15:43
-;; Time-stamp: <2010-06-30 19:57:28EDT diagonal.lisp>
+;; Time-stamp: <2011-05-26 12:37:34EDT diagonal.lisp>
 ;;
-;; Copyright 2006, 2007, 2008, 2009 Liam M. Healy
+;; Copyright 2006, 2007, 2008, 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@
 ;;; A = U T U^T where U is a unitary
 ;;; matrix and T is a real symmetric tridiagonal matrix.
 
-(defmfun tridiagonal-decomposition ((A matrix) tau)
+(defmfun tridiagonal-decomposition ((A grid:matrix) tau)
   (double-float "gsl_linalg_symmtd_decomp"
    complex-double-float "gsl_linalg_hermtd_decomp")
   (((mpointer A) :pointer) ((mpointer tau) :pointer))
@@ -53,7 +53,7 @@
    Q.  This storage scheme is the same as used by lapack.  The
    upper triangular part of A is not referenced.")
 
-(defmfun tridiagonal-unpack ((A matrix) tau Q diag subdiag)
+(defmfun tridiagonal-unpack ((A grid:matrix) tau Q diag subdiag)
   (double-float "gsl_linalg_symmtd_unpack"
    complex-double-float "gsl_linalg_hermtd_unpack")
   (((mpointer A) :pointer) ((mpointer tau) :pointer)
@@ -69,7 +69,7 @@
   orthogonal or unitary matrix Q, the vector of diagonal elements diag
   and the real vector of subdiagonal elements subdiag.")
 
-(defmfun tridiagonal-unpack-T ((A matrix) diag subdiag)
+(defmfun tridiagonal-unpack-T ((A grid:matrix) diag subdiag)
   (double-float "gsl_linalg_symmtd_unpack_T"
    complex-double-float "gsl_linalg_hermtd_unpack_T")
   (((mpointer A) :pointer) ((mpointer diag) :pointer)
@@ -255,11 +255,11 @@
 	  (subdiag (mvec (1- n) :initial-element 0.5d0)))
       (setf
        ;; i=0 matrix elements
-       (grid:gref diag 0) 1d0
-       (grid:gref superdiag 0) 0d0
-       (grid:gref b 0) (coerce (expt (1- n) 2) 'double-float)
+       (grid:aref diag 0) 1d0
+       (grid:aref superdiag 0) 0d0
+       (grid:aref b 0) (coerce (expt (1- n) 2) 'double-float)
        ;; i=n-1 matrix elements
-       (grid:gref diag (1- n)) 1d0
-       (grid:gref subdiag (- n 2)) 0d0
-       (grid:gref b (1- n)) 0d0)
+       (grid:aref diag (1- n)) 1d0
+       (grid:aref subdiag (- n 2)) 0d0
+       (grid:aref b (1- n)) 0d0)
       (solve-tridiagonal diag superdiag subdiag b x))))

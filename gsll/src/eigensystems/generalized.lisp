@@ -1,8 +1,8 @@
 ;; Real generalized eigensystems
 ;; Liam Healy 2009-02-16 12:55:04EST real-generalized.lisp
-;; Time-stamp: <2010-06-29 22:15:24EDT generalized.lisp>
+;; Time-stamp: <2012-01-13 12:01:34EST generalized.lisp>
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 (in-package :gsl)
 
 (defmobject eigen-gensymm
-    "gsl_eigen_gensymm" ((n sizet))
+    "gsl_eigen_gensymm" ((n :sizet))
     "symmetric generalized eigenvalue workspace"
     :gsl-version (1 10)
     :documentation			; FDL
@@ -30,7 +30,7 @@
      is O(2n).")
 
 (defmobject eigen-gensymmv
-    "gsl_eigen_gensymmv" ((n sizet))
+    "gsl_eigen_gensymmv" ((n :sizet))
     "symmetric generalized eigensystem workspace"
     :gsl-version (1 10)
     :documentation			; FDL
@@ -39,7 +39,7 @@
     of the workspace is O(4n).")
 
 (defmobject eigen-genherm
-    "gsl_eigen_genherm" ((n sizet))
+    "gsl_eigen_genherm" ((n :sizet))
     "hermitian generalized eigenvalue workspace"
     :gsl-version (1 10)
     :documentation			; FDL
@@ -48,7 +48,7 @@
     workspace is O(3n).")
 
 (defmobject eigen-genhermv
-    "gsl_eigen_genhermv" ((n sizet))
+    "gsl_eigen_genhermv" ((n :sizet))
     "hermitian generalized eigensystem workspace"
     :gsl-version (1 10)
     :documentation			; FDL
@@ -56,8 +56,7 @@
     n-by-n complex generalized hermitian-definite eigensystems. The
     size of the workspace is O(5n).")
 
-(defmfun eigenvalues-gensymm
-    ((A matrix) (B matrix)
+(defmfun eigenvalues-gensymm ((A grid:matrix) (B grid:matrix)
      &optional
      (eigenvalues (grid:make-foreign-array element-type :dimensions (dim0 A)))
      (ws (eltcase complex (make-eigen-genherm (dim0 A))
@@ -78,11 +77,10 @@
   outlined above. On output, B contains its Cholesky decomposition and
   A is destroyed.")
 
-(defmfun eigenvalues-eigenvectors-gensymm
-    ((A matrix) (B matrix)
+(defmfun eigenvalues-eigenvectors-gensymm ((A grid:matrix) (B grid:matrix)
      &optional
      (eigenvalues (grid:make-foreign-array element-type :dimensions (dim0 A)))
-     (eigenvectors (grid:make-foreign-array element-type :dimensions (dimensions A)))
+     (eigenvectors (grid:make-foreign-array element-type :dimensions (grid:dimensions A)))
      (ws (eltcase complex (make-eigen-hermv (dim0 A))
 		  t (make-eigen-symmv (dim0 A)))))
   (double-float "gsl_eigen_gensymmv"

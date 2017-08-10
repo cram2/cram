@@ -1,0 +1,4 @@
+@defvr {Variable} {grid:*print-contents*}
+@vindex grid:*print-contents*
+Print the contents of the foreign-array.
+@end defvr

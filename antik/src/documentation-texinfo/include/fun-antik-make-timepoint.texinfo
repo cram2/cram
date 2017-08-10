@@ -1,0 +1,5 @@
+@deffn {Function} {antik:make-timepoint} @&rest args @&key dtspec timeparse scale day-only
+@findex antik:make-timepoint
+Make an object representing a point in time.  Either dtspec
+   or timeparse should be specified, and scale should be specified.
+@end deffn

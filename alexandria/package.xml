@@ -15,7 +15,7 @@
   <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
   <url type="repository">https://github.com/cram2/cram_3rdparty</url>
   <url type="repository">git://common-lisp.net/projects/alexandria/alexandria.git</url>
-  <!--external-version>b1c6ee03c41e0db97989ae38e70da4d8263e09d1</external-version-->
+  <!--external-version>20170630-git</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
 

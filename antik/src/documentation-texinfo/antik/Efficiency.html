@@ -1,0 +1,82 @@
+<html lang="en">
+<head>
+<title>Efficiency - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Grids.html#Grids" title="Grids">
+<link rel="prev" href="Capabilities-and-Internals.html#Capabilities-and-Internals" title="Capabilities and Internals">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Efficiency"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Capabilities-and-Internals.html#Capabilities-and-Internals">Capabilities and Internals</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Grids.html#Grids">Grids</a>
+<hr>
+</div>
+
+<h3 class="section">4.7 Efficiency</h3>
+
+<p><a name="index-Efficiency-of-computation-for-grids-310"></a><a name="index-Grid_002c-efficiency-of-computation-311"></a>Access to elements of foreign arrays, for getting or setting, can be
+very slow if they are not declared.  These declarations can take
+<a href="http://www.lispworks.com/documentation/HyperSpec/Body/03_c.htm">several forms</a>: <samp><span class="command">declare</span></samp>, <samp><span class="command">declaim</span></samp>,
+<samp><span class="command">proclaim</span></samp>, or <samp><span class="command">the</span></samp>.  With the exception of the
+<samp><span class="command">the</span></samp> form, these declarations will only be effective in SBCL
+and CCL.  Users of other implementations that support the environment
+function
+<a href="http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node102.html"><samp><span class="command">variable-information</span></samp></a>
+should contact the Antik maintainer to have support added.  If
+declarations are present and the compiler honors the compiler macros
+that foreign-array defines, the <samp><span class="command">aref</span></samp> and related forms are
+macro-expanded directly into foreign array calls, considerably
+increasing the speed of execution.
+
+   <p>When using matrices, declarations with explicit dimensions are also
+helpful for speed, e.g.
+<pre class="example">     (declare (type (grid:matrix-double-float 100 100) my-matrix new-matrix))
+</pre>
+   <p>For setting array elements, it is better to use the macro <samp><span class="command">grid:gsetf</span></samp>
+than <samp><span class="command">setf</span></samp> when declarations are present.  It is hoped that
+eventually this macro can be eliminated.
+
+   <p>For example, the declarations in the following function, and the use of
+<samp><span class="command">grid:gsetf</span></samp> instead of <samp><span class="command">setf</span></samp>, help decrease the
+execution time when running this function:
+<pre class="example">     (defun foreign-array-test (dim)
+       (let ((input (grid:make-foreign-array
+     		'double-float
+     		:dimensions dim
+     		:initial-element 1.0d0))
+     	(output (grid:make-foreign-array 'double-float :dimensions dim)))
+         (declare (type grid:vector-double-float input output))   ; declaration of foreign arrays
+         (let ((tv0 0.0d0) (tv1 0.0d0))
+           (declare (type double-float tv0 tv1))
+           (iter (for i from 0 below dim)
+     	    (setf tv0 0.0d0)
+     	    (iter (for m from 0 to i)
+     		  (iter (for n from i below dim)
+     			(setf tv1 0.0d0)
+     			(iter (for k from m to n)
+     			      (incf tv1 (grid:aref input k)))
+     			(incf tv0 (expt tv1 -2))))
+     	    (grid:gsetf (grid:aref* output i) (- (grid:aref input i) tv0))))))
+</pre>
+   </body></html>
+

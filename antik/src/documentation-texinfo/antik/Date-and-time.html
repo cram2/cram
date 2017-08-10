@@ -1,0 +1,101 @@
+<html lang="en">
+<head>
+<title>Date and time - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Physical-Quantities.html#Physical-Quantities" title="Physical Quantities">
+<link rel="prev" href="Physical-constants.html#Physical-constants" title="Physical constants">
+<link rel="next" href="Time-arithmetic-and-time-intervals.html#Time-arithmetic-and-time-intervals" title="Time arithmetic and time intervals">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Date-and-time"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Time-arithmetic-and-time-intervals.html#Time-arithmetic-and-time-intervals">Time arithmetic and time intervals</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Physical-constants.html#Physical-constants">Physical constants</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Physical-Quantities.html#Physical-Quantities">Physical Quantities</a>
+<hr>
+</div>
+
+<h3 class="section">5.5 Date and time</h3>
+
+<p><a name="index-Class_002c-date-and-time-338"></a><a name="index-Date-339"></a><a name="index-Time-_0028of-day_0029-340"></a><a name="index-Date-and-time_002c-creating-341"></a><a name="index-Reader-macro_002c-date-and-time-342"></a><a name="index-ISO8601-343"></a><a name="index-UTC-_0028coordinated-universal-time_0029-344"></a><a name="index-TAI-_0028atomic-time_0029-345"></a><a name="index-Coordinated-Universal-Time-_0028UTC_0029-346"></a><a name="index-International-Atomic-Time-_0028TAI_0029-347"></a><a name="index-UT1-348"></a><a name="index-Astronomical-time-_0028UT1_0029-349"></a><a name="index-Timezones-350"></a>Dates and times can be represented in Antik with the <code>timepoint</code> class.  A timepoint is a specific point in Newtonian time, so includes a date and time, and a <dfn>timescale</dfn> (best thought of as a timezone).  Timepoints are most conveniently made with the <dfn>#d</dfn> reader macro; the default timescale is <a href="http://en.wikipedia.org/wiki/Coordinated_Universal_Time">UTC</a>, and the standard format for specification of timepoints is
+<a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a>
+<pre class="example">     ANTIK-USER&gt; #d2011-08-04T12:00
+     2011-08-04 12:00:00.000
+     #d2011-08-04T12:00EST
+     2011-08-04 17:00:00.000
+</pre>
+   <p>Other timescales available are
+<a href="http://en.wikipedia.org/wiki/UT1">UT1</a>,
+<a href="http://en.wikipedia.org/wiki/International_Atomic_Time">TAI</a>,
+<a href="http://en.wikipedia.org/wiki/GPS#Timekeeping">GPS</a>, and any of the customary
+<a href="http://en.wikipedia.org/wiki/List_of_time_zone_abbreviations">time zone abbreviations</a> that define offsets from UTC; these are listed in the variable <code>*timescales*</code>. 
+In order to convert to and from UT1, it is necessary to obtain earth orientation parameters from the US Naval Observatory; if <dfn>*real-ut1-utc*</dfn> is <code>nil</code>, then UT1 is taken the same as UTC.
+
+   <p>The function <code>read-time</code> will read a timepoint or time interval in ISO8601 format.  Timepoints may be read in any format using the function <code>read-timepoint</code>.  The default is the <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO8601</a> format, with a broadened allowance for separators between the components.  A day without a specific time will be marked :day-only.  The function <code>read-us-date</code> is provided to read US-style dates (month/day/year).
+<pre class="example">     ANTIK-USER&gt; (read-time "2011-08-04T12:00")
+     2011-08-04 12:00:00.000
+     ANTIK-USER&gt; (read-time "1999?03/30    % 12-33-45")
+     1999-03-30 12:33:45.000
+     ANTIK-USER&gt; (read-timepoint "20/12/2011" '(2 1 0)) ; Read a European-style date
+     2011-12-20
+     ANTIK-USER&gt; (read-us-date "12/20/2000 3:41:12")
+     2000-12-20 03:41:12.000
+     ANTIK-USER&gt; (read-us-date "12/20/11 3:41:12") ; Two-digit years are acceptable
+     2011-12-20 03:41:12.000
+</pre>
+   <p>Dates are output in ISO8601 format.  The function <code>write-us-date</code> can be used to format in US style.
+
+<div class="defun">
+&mdash; Class: <b>antik:timepoint</b><var><a name="index-antik_003atimepoint-351"></a></var><br>
+<blockquote><p><a name="index-antik_003atimepoint-352"></a>Class precedence list: <code>timepoint, dtspec, standard-object, t</code>
+
+        <p>Specification of a point in time, including a scale. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>antik:*real-ut1-utc*</b><var><a name="index-antik_003a_002areal_002dut1_002dutc_002a-353"></a></var><br>
+<blockquote><p><a name="index-antik_003a_002areal_002dut1_002dutc_002a-354"></a>If <code>nil</code>, <code>ut1</code> will be taken the same as <code>utc</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:read-time</b><var> string<a name="index-antik_003aread_002dtime-355"></a></var><br>
+<blockquote><p><a name="index-antik_003aread_002dtime-356"></a>Parse the datime or time interval string and create a timepoint object. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:read-timepoint</b><var> string &amp;optional pos-ymdhms scale<a name="index-antik_003aread_002dtimepoint-357"></a></var><br>
+<blockquote><p><a name="index-antik_003aread_002dtimepoint-358"></a>Read a timepoint from a string with specification for the position in the string of each component; pos-ymdhms is a list of year, month, day, hour, minute, and second as sequence numbers for the integers in the string.  Scale is the timescale (zone) as a string or symbol.  If pos-ymdhms has only three components, or only a date is provided, the timepoint created will be specifed as day-only.  The default reads an <code>iso8601</code> string like <code>1999-03-30t12:33:45</code>. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:read-us-date</b><var> string &amp;optional day-only<a name="index-antik_003aread_002dus_002ddate-359"></a></var><br>
+<blockquote><p><a name="index-antik_003aread_002dus_002ddate-360"></a>Read dates and times in customary <code>us</code> format MM/DD/YYYY; times may
+   be included as well if day-only is nil. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:write-us-date</b><var> datime<a name="index-antik_003awrite_002dus_002ddate-361"></a></var><br>
+<blockquote><p><a name="index-antik_003awrite_002dus_002ddate-362"></a>Write dates and times in customary <code>us</code> format MM/DD/YYYY. 
+</p></blockquote></div>
+
+   </body></html>
+

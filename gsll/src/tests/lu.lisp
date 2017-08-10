@@ -1,7 +1,7 @@
 ;; Regression test LU for GSLL, automatically generated
 ;; with some manual changes to the results
 ;;
-;; Copyright 2009 Liam M. Healy
+;; Copyright 2009, 2011, 2014 Liam M. Healy
 ;; Distributed under the terms of the GNU General Public License
 ;;
 ;; This program is free software: you can redistribute it and/or modify
@@ -20,14 +20,14 @@
 
 (in-package :gsl)
 
-;;; Answers (except for invert-matrix)inserted from linalg/test.c
+;;; Answers inserted from linalg/test.c
 ;;; GSL has #define GSL_DBL_EPSILON        2.2204460492503131e-16
 ;;; which is 2x what double-float-epsilon is.
 (LISP-UNIT:DEFINE-TEST LU
-  (let ((lisp-unit:*epsilon* (* 2 8 double-float-epsilon)))
-    (LISP-UNIT:ASSERT-NUMERICAL-EQUAL
-     (LIST *hilb2-soln*)
-     (MULTIPLE-VALUE-LIST (TEST-LU-SOLVE-DIM *hilb2*))))
+    (let ((lisp-unit:*epsilon* (* 2 8 double-float-epsilon)))
+      (LISP-UNIT:ASSERT-NUMERICAL-EQUAL
+       (LIST *hilb2-soln*)
+       (MULTIPLE-VALUE-LIST (TEST-LU-SOLVE-DIM *hilb2*))))
   (let ((lisp-unit:*epsilon* (* 2 64 double-float-epsilon)))
     (LISP-UNIT:ASSERT-NUMERICAL-EQUAL
      (LIST *hilb3-soln*)
@@ -76,15 +76,15 @@
       19.679999999999993d0 -5.549999999999997d0))
    (MULTIPLE-VALUE-LIST
     (LET ((MATRIX
-	   (GRID:MAKE-FOREIGN-ARRAY
-	    'DOUBLE-FLOAT :INITIAL-CONTENTS
-	    '((-34.5d0 8.24d0 3.29d0 -8.93d0)
-	      (34.12d0 -6.15d0 49.27d0 -13.49d0)
-	      (32.5d0 42.73d0 -17.24d0 43.31d0)
-	      (-16.12d0 -8.25d0 21.44d0 -49.08d0))))
+	    (GRID:MAKE-FOREIGN-ARRAY
+	     'DOUBLE-FLOAT :INITIAL-CONTENTS
+	     '((-34.5d0 8.24d0 3.29d0 -8.93d0)
+	       (34.12d0 -6.15d0 49.27d0 -13.49d0)
+	       (32.5d0 42.73d0 -17.24d0 43.31d0)
+	       (-16.12d0 -8.25d0 21.44d0 -49.08d0))))
 	  (VEC
-	   (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :INITIAL-CONTENTS
-				    '(-39.66d0 -49.46d0 19.68d0 -5.55d0))))
+	    (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :INITIAL-CONTENTS
+				     '(-39.66d0 -49.46d0 19.68d0 -5.55d0))))
       (MULTIPLE-VALUE-BIND
 	    (MATRIX PERM)
 	  (LU-DECOMPOSITION MATRIX)
@@ -97,7 +97,8 @@
 			      MATRIX X 1 :UPPER :NOTRANS
 			      :NONUNIT)
 			     1 :LOWER :NOTRANS
-			     :UNIT))))))))
+			     :UNIT))
+	   'array 'double-float))))))
   (LISP-UNIT:ASSERT-NUMERICAL-EQUAL
    (LIST
     #(#C(-39.65999999999999d0 -49.46000000000001d0)
@@ -106,19 +107,19 @@
       #C(-30.580000000000002d0 31.67d0)))
    (MULTIPLE-VALUE-LIST
     (LET ((MATRIX
-	   (GRID:MAKE-FOREIGN-ARRAY
-	    '(COMPLEX DOUBLE-FLOAT)
-	    :INITIAL-CONTENTS
-	    '((#C(-34.5d0 8.24d0) #C(3.29d0 -8.93d0) #C(34.12d0 -6.15d0) #C(49.27d0 -13.49d0))
-	      (#C(34.12d0 -6.15d0) #C(49.27d0 -13.49d0) #C(32.5d0 42.73d0) #C(-17.24d0 43.31d0))
-	      (#C(32.5d0 42.73d0) #C(-17.24d0 43.31d0) #C(-16.12d0 -8.25d0) #C(21.44d0 -49.08d0))
-	      (#C(-16.12d0 -8.25d0) #C(21.44d0 -49.08d0) #C(-39.66d0 -49.46d0) #C(19.68d0 -5.55d0)))))
+	    (GRID:MAKE-FOREIGN-ARRAY
+	     '(COMPLEX DOUBLE-FLOAT)
+	     :INITIAL-CONTENTS
+	     '((#C(-34.5d0 8.24d0) #C(3.29d0 -8.93d0) #C(34.12d0 -6.15d0) #C(49.27d0 -13.49d0))
+	       (#C(34.12d0 -6.15d0) #C(49.27d0 -13.49d0) #C(32.5d0 42.73d0) #C(-17.24d0 43.31d0))
+	       (#C(32.5d0 42.73d0) #C(-17.24d0 43.31d0) #C(-16.12d0 -8.25d0) #C(21.44d0 -49.08d0))
+	       (#C(-16.12d0 -8.25d0) #C(21.44d0 -49.08d0) #C(-39.66d0 -49.46d0) #C(19.68d0 -5.55d0)))))
 	  (VEC
-	   (GRID:MAKE-FOREIGN-ARRAY
-	    '(COMPLEX DOUBLE-FLOAT)
-	    :INITIAL-CONTENTS
-	    '(#C(-39.66d0 -49.46d0) #C(19.68d0 -5.55d0)
-	      #C(-8.82d0 25.37d0) #C(-30.58d0 31.67d0)))))
+	    (GRID:MAKE-FOREIGN-ARRAY
+	     '(COMPLEX DOUBLE-FLOAT)
+	     :INITIAL-CONTENTS
+	     '(#C(-39.66d0 -49.46d0) #C(19.68d0 -5.55d0)
+	       #C(-8.82d0 25.37d0) #C(-30.58d0 31.67d0)))))
       (MULTIPLE-VALUE-BIND
 	    (MATRIX PERM)
 	  (LU-DECOMPOSITION MATRIX)
@@ -129,14 +130,5 @@
 	    (MATRIX-PRODUCT-TRIANGULAR
 	     MATRIX
 	     (MATRIX-PRODUCT-TRIANGULAR MATRIX X 1 :UPPER :NOTRANS :NONUNIT)
-	     1 :LOWER :NOTRANS :UNIT))))))))
-  (LISP-UNIT:ASSERT-NUMERICAL-EQUAL
-   (LIST
-    #2A((-1.9999999999999998d0 1.0d0)
-	(1.4999999999999998d0 -0.49999999999999994d0)))
-   (MULTIPLE-VALUE-LIST
-    (GRID:COPY-TO
-     (INVERT-MATRIX
-      (GRID:MAKE-FOREIGN-ARRAY 'DOUBLE-FLOAT :DIMENSIONS '(2 2)
-			       :INITIAL-CONTENTS
-			       '((1.0d0 2.0d0) (3.0d0 4.0d0))))))))
+	     1 :LOWER :NOTRANS :UNIT))
+	   'array '(complex double-float))))))))
