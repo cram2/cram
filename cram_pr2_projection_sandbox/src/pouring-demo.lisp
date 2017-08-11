@@ -35,13 +35,15 @@
       (exe:perform
        (let ((?pose (cl-tf:make-pose-stamped
                      cram-tf:*robot-base-frame* 0.0
-                     (cl-transforms:make-3d-vector 0 0 0)
+                     (cl-transforms:make-3d-vector 0.5 0 0)
                      (cl-transforms:make-identity-rotation))))
          (desig:a motion (type going) (target (desig:a location (pose ?pose))))))
       (exe:perform
        (desig:a motion (type moving-torso) (joint-angle 0.3)))
       (exe:perform
        (desig:a motion (type opening) (gripper left)))
+      (exe:perform
+       (desig:a motion (type looking) (direction forward)))
       (exe:perform
        (let ((?pose (cl-tf:make-pose-stamped
                      cram-tf:*robot-base-frame* 0.0
