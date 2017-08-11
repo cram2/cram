@@ -1,16 +1,6 @@
 <launch>
   <include file="$(find spatial_relations_demo)/launch/maps_and_robot.launch" />
 
-  <!-- <param name="robot_description_lowres" -->
-  <!--        command="$(find xacro)/xacro.py -->
-  <!--                 '$(find pr2_description)/robots/pr2.urdf.xacro'"/> -->
-  <!-- we have to use both lowres and highres descriptions ATM, as we don't have a
-       corresponding srdf for the lowres, but highres is too heavy for a lightweight
-       reasoning engine -->
-
-  <!-- <param name="robot_description" -->
-  <!--        command="$(find xacro)/xacro.py -->
-  <!--                 '$(find pr2_description)/robots/pr2.urdf.xacro'"/> -->
   <param name="robot_description_semantic"
          textfile="$(find pr2_moveit_config)/config/pr2.srdf" />
 
@@ -19,9 +9,6 @@
     <remap from="robot_description_semantic" to="/robot_description_semantic" />
     <include file="$(find spatial_relations_demo)/launch/moveit.launch" />
   </group>
-
-  <!-- <node name="triangulate_point_cloud" pkg="triangulate_point_cloud" -->
-  <!--       type="triangulate_pcl" /> -->
 
   <node pkg="tf2_ros" type="buffer_server" name="tf_buffer">
     <param name="buffer_size" value="240"/>
