@@ -259,7 +259,8 @@
 				       :dimensions
 				       (list (dim1 solver) (dim1 solver))))))
   "gsl_multifit_covar"
-  (((jacobian solver cov) :pointer) (relative-error :double) ((mpointer cov) :pointer))
+  #-gsl2 (((jacobian solver) :pointer) (relative-error :double) ((mpointer cov) :pointer))
+  #+gsl2 (((jacobian solver cov) :pointer) (relative-error :double) ((mpointer cov) :pointer))
   :return (cov)
   :documentation 			; FDL
   "Compute the covariance matrix of the best-fit parameters
