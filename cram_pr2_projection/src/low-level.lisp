@@ -51,7 +51,7 @@
     `(and (cram-robot-interfaces:robot ?robot)
           (btr:bullet-world ?w)
           (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?joint)
-          (assert (btr:joint-state ?w ?robot ((?joint ,joint-angle)))))))
+          (btr:assert (btr:joint-state ?w ?robot ((?joint ,joint-angle)))))))
   (cram-occasions-events:on-event
    (make-instance 'cram-plan-occasions-events:robot-state-changed)))
 
