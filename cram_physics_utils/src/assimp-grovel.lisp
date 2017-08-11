@@ -36,7 +36,7 @@
 
 (in-package :physics-utils)
 
-(bitfield
+(cenum ; bitfield
  ai-post-process-steps
  ((:calc-tangent-space "aiProcess_CalcTangentSpace"))
  ((:join-identical-vertices "aiProcess_JoinIdenticalVertices"))
@@ -62,7 +62,7 @@
  ((:flip-uvs "aiProcess_FlipUVs"))
  ((:flip-winding-order "aiProcess_FlipWindingOrder")))
 
-(bitfield
+(cenum ; bitfield
  ai-primitive-type
  ((:point "aiPrimitiveType_POINT"))
  ((:line "aiPrimitiveType_LINE"))
@@ -149,12 +149,12 @@
 
 (cstruct
  ai-material-property "aiMaterialProperty"
-  (key "mKey" :type ai-string)
-  (semantic "mSemantic" :type ai-texture-type)
-  (index "mIndex" :type :unsigned-int)
-  (data-length "mDataLength" :type :unsigned-int)
-  (type "mType" :type ai-property-type-info)
-  (data "mData" :type :pointer))
+ (key "mKey" :type (:struct ai-string))
+ (semantic "mSemantic" :type ai-texture-type)
+ (index "mIndex" :type :unsigned-int)
+ (data-length "mDataLength" :type :unsigned-int)
+ (type "mType" :type ai-property-type-info)
+ (data "mData" :type :pointer))
 
 (cstruct
  ai-material "aiMaterial"
@@ -197,12 +197,12 @@
  (num-bones "mNumBones" :type :unsigned-int)
  (bones "mBones" :type :pointer)
  (material-index "mMaterialIndex" :type :unsigned-int)
- (name "mName" :type ai-string))
+ (name "mName" :type (:struct ai-string)))
 
 (cstruct
  ai-node "aiNode"
- (name "mName" :type ai-string)
- (transform "mTransformation" :type ai-matrix-4x4)
+ (name "mName" :type (:struct ai-string))
+ (transform "mTransformation" :type (:struct ai-matrix-4x4))
  (parent "mParent" :type :pointer)
  (num-children "mNumChildren" :type :unsigned-int)
  (children "mChildren" :type :pointer)
