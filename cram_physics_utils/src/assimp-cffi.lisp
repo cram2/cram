@@ -40,11 +40,12 @@
 (use-foreign-library assimp)
 
 
-(defcfun ("aiImportFile" ai-import-file) ai-scene
+(defcfun ("aiImportFile" ai-import-file) (:pointer (:struct ai-scene))
   (file :string)
-  (pflags ai-post-process-steps))
+  (pflags :unsigned-int ;; ai-post-process-steps
+          ))
 
 (defcfun ("aiReleaseImport" ai-release-import) :void
-  (scene ai-scene))
+  (scene (:pointer (:struct ai-scene))))
 
 (defcfun ("aiGetErrorString" ai-get-error-string) :string)

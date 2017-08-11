@@ -40,11 +40,15 @@
 
 (define-condition 3d-model-import-error (simple-error) ())
 
-(defun ai-vector-3d->3d-vector (ai-vector)
+(defun ai-vector-3d->3d-vector (ai-vector-plist)
   (cl-transforms:make-3d-vector
-   (foreign-slot-value ai-vector 'ai-vector-3d 'x)
-   (foreign-slot-value ai-vector 'ai-vector-3d 'y)
-   (foreign-slot-value ai-vector 'ai-vector-3d 'z)))
+   (getf ai-vector-plist 'x)
+   (getf ai-vector-plist 'y)
+   (getf ai-vector-plist 'z)
+   ;; (foreign-slot-value ai-vector '(:struct ai-vector-3d) 'x)
+   ;; (foreign-slot-value ai-vector '(:struct ai-vector-3d) 'y)
+   ;; (foreign-slot-value ai-vector '(:struct ai-vector-3d) 'z)
+   ))
 
 (defun parse-ai-3d-vector-array (foreign-array size)
   (let ((result (make-array
@@ -54,38 +58,69 @@
     (dotimes (i size result)
       (setf (aref result i)
             (ai-vector-3d->3d-vector
-             (mem-aref foreign-array
-                       'ai-vector-3d i))))))
+             (mem-aref foreign-array '(:struct ai-vector-3d) i))))))
 
-(defun ai-matrix4x4->transform (ai-matrix)
+(defun ai-matrix4x4->transform (ai-matrix-plist)
   (cl-transforms:matrix->transform
    (make-array
     '(4 4) :element-type 'double-float
     :initial-contents
-    `((,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'a1) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'a2) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'a3) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'a4) 0.0d0))
-      (,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'b1) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'b2) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'b3) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'b4) 0.0d0))
-      (,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'c1) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'c2) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'c3) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'c4) 0.0d0))
-      (,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'd1) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'd2) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'd3) 0.0d0)
-       ,(float (foreign-slot-value ai-matrix 'ai-matrix-4x4 'd4) 0.0d0))))))
+    `((,(float (getf ai-matrix-plist 'a1)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'a1)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'a2)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'a2)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'a3)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'a3)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'a4)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'a4)
+               0.0d0))
+      (,(float (getf ai-matrix-plist 'b1)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'b1)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'b2)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'b2)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'b3)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'b3)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'b4)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'b4)
+               0.0d0))
+      (,(float (getf ai-matrix-plist 'c1)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'c1)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'c2)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'c2)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'c3)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'c3)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'c4)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'c4)
+               0.0d0))
+      (,(float (getf ai-matrix-plist 'd1)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'd1)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'd2)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'd2)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'd3)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'd3)
+               0.0d0)
+       ,(float (getf ai-matrix-plist 'd4)
+               ;; (foreign-slot-value ai-matrix '(:struct ai-matrix-4x4) 'd4)
+               0.0d0))))))
 
 (defun get-vertices (mesh)
-  (parse-ai-3d-vector-array (foreign-slot-value mesh 'ai-mesh 'vertices)
-                            (foreign-slot-value mesh 'ai-mesh 'num-vertices)))
+  (parse-ai-3d-vector-array (foreign-slot-value mesh '(:struct ai-mesh) 'vertices)
+                            (foreign-slot-value mesh '(:struct ai-mesh) 'num-vertices)))
 
 (defun get-normals (mesh)
-  (parse-ai-3d-vector-array (foreign-slot-value mesh 'ai-mesh 'normals)
-                            (foreign-slot-value mesh 'ai-mesh 'num-vertices)))
+  (parse-ai-3d-vector-array (foreign-slot-value mesh '(:struct ai-mesh) 'normals)
+                            (foreign-slot-value mesh '(:struct ai-mesh) 'num-vertices)))
 
 (defun vertex-accessor-function (vertices)
   (lambda (index)
@@ -95,47 +130,58 @@
                              (vertex-accessor-function (get-vertices mesh)))
                          (normals (get-normals mesh)))
   (let ((result (make-array
-                 (foreign-slot-value mesh 'ai-mesh 'num-faces)
+                 (foreign-slot-value mesh '(:struct ai-mesh) 'num-faces)
                  :element-type 'list
                  :initial-element nil)))
-    (assert (not (null-pointer-p (foreign-slot-value mesh 'ai-mesh 'faces))) ()
+    (assert (not (null-pointer-p (foreign-slot-value mesh '(:struct ai-mesh) 'faces)))
+            ()
             "Faces unbound")
     (dotimes (i (array-dimension result 0) result)
-      (let* ((face (mem-aref
-                    (foreign-slot-value mesh 'ai-mesh 'faces)
-                    'ai-face i))
-             (num-indices (foreign-slot-value face 'ai-face 'num-indices)))
+      (let* ((face-plist (mem-aref
+                          (foreign-slot-value mesh '(:struct ai-mesh) 'faces)
+                          '(:struct ai-face) i))
+             (num-indices (getf face-plist 'num-indices)
+                          ;; (foreign-slot-value face '(:struct ai-face) 'num-indices)
+                          ))
         (setf (aref result i)
               (apply
                #'make-face
                (loop for pt-index below num-indices
                      for index = (mem-aref
-                                  (foreign-slot-value face 'ai-face 'indices)
+                                  (getf face-plist 'indices)
+                                  ;; (foreign-slot-value face '(:struct ai-face) 'indices)
                                   :unsigned-int pt-index)
                      collect (funcall post-process-vertex-index index) into points
                      collect (aref normals index) into vertex-normals
                      finally (return (list :points points :normals vertex-normals)))))))))
 
 (defun get-mesh (ai-mesh &key post-process-vertex-index)
-  (when (equal (foreign-slot-value ai-mesh 'ai-mesh 'primitive-types)
-               '(:triangle))
-    (if post-process-vertex-index
-        (make-3d-model
-         :vertices (get-vertices ai-mesh)
-         :faces (get-faces ai-mesh :post-process-vertex-index post-process-vertex-index))
-        (make-3d-model
-         :vertices (get-vertices ai-mesh)
-         :faces (get-faces ai-mesh)))))
+  (if (equal (foreign-slot-value ai-mesh '(:struct ai-mesh) 'primitive-types)
+             :triangle)
+      (if post-process-vertex-index
+          (make-3d-model
+           :vertices (get-vertices ai-mesh)
+           :faces (get-faces ai-mesh :post-process-vertex-index post-process-vertex-index))
+          (make-3d-model
+           :vertices (get-vertices ai-mesh)
+           :faces (get-faces ai-mesh)))
+      (warn "Non-triangle meshes are not supported by cram-physics-utils...")))
 
 (defun get-meshes (ai-scene &key post-process-vertex-index)
-  (let ((result (make-array (foreign-slot-value ai-scene 'ai-scene 'num-meshes)))
-        (meshes (foreign-slot-value ai-scene 'ai-scene 'meshes)))
+  (let ((result (make-array (foreign-slot-value ai-scene '(:struct ai-scene) 'num-meshes)))
+        (meshes (foreign-slot-value ai-scene '(:struct ai-scene) 'meshes)))
     (dotimes (i (array-dimension result 0) result)
       (setf (aref result i)
             (if post-process-vertex-index
                 (get-mesh (mem-aref meshes :pointer i)
                           :post-process-vertex-index post-process-vertex-index)
                 (get-mesh (mem-aref meshes :pointer i)))))))
+
+(defun convert-post-process-enums-to-bitfield (enums-list)
+  (reduce #'logior
+          (mapcar (lambda (enum)
+                    (cffi:convert-to-foreign enum 'ai-post-process-steps))
+                  enums-list)))
 
 (defun load-3d-model (filename &key
                       flip-winding-order
@@ -148,17 +194,18 @@
            (setf scene (ai-import-file (etypecase filename
                                          (string filename)
                                          (pathname (namestring filename)))
-                                       `(:join-identical-vertices
-                                         :gen-smooth-normals
-                                         :fix-infacing-normals
-                                         :triangulate
-                                         ,@(when flip-winding-order
-                                             (list :flip-winding-order)))))
+                                       (convert-post-process-enums-to-bitfield
+                                        `(:join-identical-vertices
+                                          :gen-smooth-normals
+                                          :fix-infacing-normals
+                                          :triangulate
+                                          ,@(when flip-winding-order
+                                              (list :flip-winding-order))))))
            (when (null-pointer-p scene)
              (error '3d-model-import-error
                     :format-control "Unable to load 3d model from file `~a': ~a"
                     :format-arguments (list filename (ai-get-error-string))))
-           (unless (> (foreign-slot-value scene 'ai-scene 'num-meshes) 0)
+           (unless (> (foreign-slot-value scene '(:struct ai-scene) 'num-meshes) 0)
              (error '3d-model-import-error
                     :format-control "The file does not contain any meshes."))
            (let ((mesh (build-model-mesh scene :fix-normals fix-normals)))
@@ -180,28 +227,31 @@
                      ;; mesh to y-up. Ignore the node transformation
                      ;; if we are processing the root node.
                      (if (null-pointer-p
-                          (foreign-slot-value ai-node 'ai-node 'parent))
+                          (foreign-slot-value ai-node '(:struct ai-node) 'parent))
                          (cl-transforms:make-identity-transform)
                          (cl-transforms:transform*
                           parent-transformation
                           (ai-matrix4x4->transform
-                           (foreign-slot-value ai-node 'ai-node 'transform))))))
-               (dotimes (i (foreign-slot-value ai-node 'ai-node 'num-meshes))
+                           (foreign-slot-value ai-node '(:struct ai-node)
+                                               'transform))))))
+               (dotimes (i (foreign-slot-value ai-node '(:struct ai-node)
+                                               'num-meshes))
                  (let ((mesh (aref meshes
                                    (mem-aref
-                                    (foreign-slot-value ai-node 'ai-node 'meshes)
+                                    (foreign-slot-value ai-node '(:struct ai-node) 'meshes)
                                     :unsigned-int i))))
                    (when mesh
                      (setf 3d-model (insert-mesh mesh 3d-model node-transformation)))))
-               (dotimes (i (foreign-slot-value ai-node 'ai-node 'num-children))
+               (dotimes (i (foreign-slot-value ai-node '(:struct ai-node)
+                                               'num-children))
                  (setf 3d-model
                        (insert-node
-                        (mem-aref (foreign-slot-value ai-node 'ai-node 'children)
+                        (mem-aref (foreign-slot-value ai-node '(:struct ai-node) 'children)
                                   :pointer i)
                         meshes node-transformation 3d-model)))
                3d-model)))
     (let ((result (insert-node
-                   (foreign-slot-value scene 'ai-scene 'root-node)
+                   (foreign-slot-value scene '(:struct ai-scene) 'root-node)
                    (get-meshes scene :post-process-vertex-index #'identity)
                    (cl-transforms:make-identity-transform)
                    (make-3d-model
