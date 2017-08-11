@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :bullet-reasoning-utilities)
+(in-package :spatial-relations-demo)
 
 (def-fact-group costmap-metadata ()
   (<- (location-costmap:costmap-size 12 12))
@@ -64,13 +64,13 @@
   
   (unless *robot-urdf-lowres*
     (setf *robot-urdf-lowres*
-          (cl-urdf:parse-urdf (roslisp:get-param "robot_description"))))
+          (cl-urdf:parse-urdf (roslisp:get-param "robot_description_lowres"))))
   (unless *kitchen-urdf*
     (setf *kitchen-urdf*
           (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description")))
     (setf (slot-value
            (gethash "pancake_table_table_joint"
-                    (slot-value cram-bullet-reasoning-utilities::*kitchen-urdf* 'cl-urdf:joints))
+                    (slot-value *kitchen-urdf* 'cl-urdf:joints))
            'cl-urdf:origin)
           (cl-transforms:make-transform
            (cl-transforms:make-3d-vector -2.8 -3.55 0)
@@ -148,8 +148,7 @@
          "xxxxxxxxxxxxxxxx")))
 
 
-
-(cpl-impl:def-cram-function find-object-on-counter (object-type counter-type counter-name)
+(cpl:def-cram-function find-object-on-counter (object-type counter-type counter-name)
   "Returns an object designator."
   (cram-language-designator-support:with-designators
       ((on-counter :location `((:on ,counter-type)
