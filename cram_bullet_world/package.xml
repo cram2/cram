@@ -16,8 +16,8 @@
   <run_depend>cl_opengl</run_depend>
   <run_depend>cl_bullet</run_depend>
   <run_depend>cl_bullet_vis</run_depend>
-  <run_depend>cffi_ros_utils/</run_depend>
-  <run_depend>cram_physics_utils/</run_depend>
+  <run_depend>cffi_ros_utils</run_depend>
+  <run_depend>cram_physics_utils</run_depend>
   <run_depend>cram_bullet_reasoning</run_depend>
   <run_depend>cram_bullet_reasoning_designators</run_depend>
   <run_depend>cram_bullet_reasoning_belief_state</run_depend>
