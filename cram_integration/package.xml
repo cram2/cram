@@ -14,9 +14,9 @@
 
   <run_depend>cram_pr2_description</run_depend>
   <run_depend>pr2_description_lowres</run_depend>
-  <run_depend>point_head_process_module</run_depend>
+  <!--run_depend>point_head_process_module</run_depend-->
   <run_depend>cram_pr2_designators</run_depend>
-  <run_depend>pr2_navigation_process_module</run_depend>
+  <!--run_depend>pr2_navigation_process_module</run_depend>
   <run_depend>pr2_manipulation_process_module</run_depend>
-  <run_depend>pr2_reachability_costmap</run_depend>
+  <run_depend>pr2_reachability_costmap</run_depend-->
 </package>
