@@ -18,14 +18,18 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>alexandria</run_depend>
+  <run_depend>antik</run_depend>
   <run_depend>babel</run_depend>
   <run_depend>cffi</run_depend>
+  <run_depend>cl_ppcre</run_depend>
   <run_depend>cl_store</run_depend>
   <run_depend>cl_utilities</run_depend>
   <run_depend>fiveam</run_depend>
-  <run_depend>gsd</run_depend>
   <run_depend>gsll</run_depend>
+  <run_depend>iterate</run_depend>
   <run_depend>lisp_unit</run_depend>
+  <run_depend>metabang_bind</run_depend>
+  <run_depend>named_readtables</run_depend>
   <run_depend>split_sequence</run_depend>
   <run_depend>synchronization_tools</run_depend>
   <run_depend>trivial_features</run_depend>
