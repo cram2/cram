@@ -46,7 +46,7 @@
                cram-utilities ; for cut:var-value of prolog stuff
 
                cram-plan-occasions-events
-               cram-bullet-reasoning ; for event handling with belief state
+               ;; cram-bullet-reasoning ; for event handling with belief state
 
                cram-common-failures
 
