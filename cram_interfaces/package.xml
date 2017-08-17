@@ -14,9 +14,9 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>cram_tf</run_depend>
-  <run_depend>cram_plan_failures</run_depend>
+  <run_depend>cram_common_failures</run_depend>
   <run_depend>cram_plan_occasions_events</run_depend>
-  <run_depend>cram_plan_library</run_depend>
+  <!-- <run_depend>cram_plan_library</run_depend> -->
   <run_depend>cram_dummy_process_modules</run_depend>
   <run_depend>cram_location_costmap</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
