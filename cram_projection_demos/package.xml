@@ -11,7 +11,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>spatial_relations_demo</run_depend>
+  <!-- <run_depend>spatial_relations_demo</run_depend> -->
 
   <export>
     <metapackage/>
