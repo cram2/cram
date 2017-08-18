@@ -93,6 +93,9 @@ look up stuff from TF.")
 (defun get-object-transform (object-designator)
   (car (getassoc :transform (desig:desig-prop-value object-designator :pose))))
 
+(defun get-object-pose (object-designator)
+  (car (getassoc :pose (desig:desig-prop-value object-designator :pose))))
+
 ;; DEMO> (rs::detect (desig:an object (type wheel)))
 ;; #<CRAM-DESIGNATORS:OBJECT-DESIGNATOR ((:TYPE :WHEEL)
 ;;                                       (:POSE

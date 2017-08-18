@@ -36,4 +36,5 @@
    ;; robosherlock-json
    #:call-robosherlock-service
    #:get-object-transform
+   #:get-object-pose
    #:perceive))
