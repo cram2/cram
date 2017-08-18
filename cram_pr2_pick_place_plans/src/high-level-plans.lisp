@@ -80,7 +80,7 @@
                           (target (desig:a location (pose ?goal-for-base)))))))
 
 (defun drive-towards-object-plan (object-designator &key (?arm :right))
-  (let ((object-pose-in-base (get-object-pose object-designator)))
+  (let ((object-pose-in-base (cram-robosherlock:get-object-pose object-designator)))
     (drive-to-reach-pose object-pose-in-base :?arm ?arm)))
 
 (defun drive-and-pick-up-plan (?object-designator &key (?arm :right))
@@ -112,7 +112,7 @@
 (defun drive-and-place-plan (&key (?arm :right) ?target-location)
   (let* ((?object-designator (get-object-in-hand ?arm))
          (?driving-pose (or (when ?target-location (desig:reference ?target-location))
-                            (get-object-pose ?object-designator))))
+                            (cram-robosherlock:get-object-pose ?object-designator))))
     (drive-to-reach-pose ?driving-pose :?arm ?arm)
     (cpl:par
       (exe:perform (desig:an action

@@ -75,19 +75,24 @@
 
 (def-fact-group pr2-gripper-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (gripper-action :open ?which-gripper))
+  (<- (motion-grounding ?designator (move-gripper-joint :open ?which-gripper))
     (property ?designator (:type :opening))
     (property ?designator (:gripper ?which-gripper)))
 
-  (<- (motion-grounding ?designator (gripper-action :close ?which-gripper))
+  (<- (motion-grounding ?designator (move-gripper-joint :close ?which-gripper))
     (property ?designator (:type :closing))
     (property ?designator (:gripper ?which-gripper)))
 
-  (<- (motion-grounding ?designator (gripper-action :grip ?which-gripper ?maximum-effort))
+  (<- (motion-grounding ?designator (move-gripper-joint :grip ?which-gripper ?maximum-effort))
     (property ?designator (:type :gripping))
     (property ?designator (:gripper ?which-gripper))
     (once (or (property ?designator (:effort ?maximum-effort))
-              (equal ?maximum-effort nil)))))
+              (equal ?maximum-effort nil))))
+
+  (<- (desig:motion-grounding ?designator (move-gripper-joint ?position ?which-gripper NIL))
+    (property ?designator (:type :moving-gripper-joint))
+    (property ?designator (:gripper ?which-gripper))
+    (property ?designator (:joint-angle ?position))))
 
 
 (def-fact-group pr2-arm-motions (motion-grounding)

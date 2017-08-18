@@ -29,4 +29,7 @@
   <!-- <depend>pr2_reachability_costmap</depend> -->
   <depend>cram_semantic_map_costmap</depend>
   <depend>cram_robot_pose_gaussian_costmap</depend>
+
+  <depend>cram_robosherlock</depend>
+  <depend>cram_knowrob_belief_state</depend>
 </package>

@@ -33,7 +33,7 @@
   (destructuring-bind (command action-type which-gripper &optional max-effort)
       (reference action-designator)
     (ecase command
-      (gripper-action
+      (move-gripper-joint
        (handler-case
            (pr2-ll:call-gripper-action which-gripper action-type :max-effort max-effort)
          (common-fail:gripping-failed ()
