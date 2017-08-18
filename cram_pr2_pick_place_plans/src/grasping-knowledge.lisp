@@ -305,7 +305,7 @@
 (defun get-object-grasp-pose (object-designator arm grasp)
   (get-object-type-grasp-pose
    (desig:desig-prop-value object-designator :type)
-   (get-object-pose object-designator)
+   (cram-robosherlock:get-object-pose object-designator)
    arm grasp))
 
 (defun get-object-type-lift-pose (object-type object-pose arm grasp)

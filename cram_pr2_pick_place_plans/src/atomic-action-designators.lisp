@@ -41,7 +41,7 @@
     (once (or (desig-prop ?action-designator (:right ?right-poses))
               (equal ?right-poses nil))))
 
-  (<- (action-grounding ?action-designator (open-gripper ?left-or-right))
+  (<- (action-grounding ?action-designator (release ?left-or-right))
     (desig-prop ?action-designator (:type :opening))
     (desig-prop ?action-designator (:gripper ?left-or-right)))
 

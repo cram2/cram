@@ -52,31 +52,29 @@
 
                ;; pr2-reachability-costmap ; doesn't work somehow
                cram-semantic-map-costmap
-               cram-robot-pose-gaussian-costmap)
+               cram-robot-pose-gaussian-costmap
+
+               cram-robosherlock
+               cram-knowrob-belief-state)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "utilities" :depends-on ("package"))
 
      ;; actions such as REACHING, LIFTING, GRASPING, GRIPPING, LOOKING-AT, etc.
-     (:file "atomic-action-plans" :depends-on ("package" "utilities"))
+     (:file "atomic-action-plans" :depends-on ("package"))
      (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
 
      ;; PICKING-UP and PLACING actions
-     (:file "occasions-events" :depends-on ("package"))
+     ;; (:file "occasions-events" :depends-on ("package")) ; should use cram_knowrob instead
      (:file "pick-place-plans" :depends-on ("package"
-                                            "atomic-action-designators"
-                                            "occasions-events"))
-     (:file "grasping-knowledge" :depends-on ("package" "utilities"))
+					    "atomic-action-designators" "occasions-events"))
+     (:file "grasping-knowledge" :depends-on ("package"))
      (:file "pick-place-designators" :depends-on ("package"
-                                                  "utilities"
-                                                  "pick-place-plans"
-                                                  "grasping-knowledge"))
+						  "pick-place-plans" "grasping-knowledge"))
 
      ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
      (:file "high-level-plans" :depends-on ("package"
-                                            "utilities"
                                             "atomic-action-designators"
-                                            "pick-place-designators"))))))
+					    "pick-place-designators"))))))

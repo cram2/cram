@@ -29,66 +29,65 @@
 
 (in-package :pr2-pp-plans)
 
-(defun fill-in-with-nils (some-list desired-length)
-  (let ((current-length (length some-list)))
-    (if (> desired-length current-length)
-        (append some-list (make-list (- desired-length current-length)))
-        some-list)))
-
-(defun create-moving-tcp-motion-designator (?left-pose ?right-pose)
-  (declare (type (or null cl-transforms-stamped:pose-stamped) ?left-pose ?right-pose))
-  (let ((?left-target-key-value
-          (when ?left-pose
-            `(:left-target ,(desig:a location (pose ?left-pose)))))
-        (?right-target-key-value
-          (when ?right-pose
-            `(:right-target ,(desig:a location (pose ?right-pose))))))
-    (desig:a motion
-             (type moving-tcp)
-             ?left-target-key-value
-             ?right-target-key-value)))
-
-
 (cpl:def-cram-function move-arms-in-sequence (left-poses right-poses)
   "Make `?left-poses' and `?right-poses' to lists if they are not already"
-  (unless (listp left-poses)
-    (setf left-poses (list left-poses)))
-  (unless (listp right-poses)
-    (setf right-poses (list right-poses)))
 
-  ;; Move arms through all but last poses of `?left-poses' and `?right-poses'
-  ;; while ignoring failures: accuracy is not so important in intermediate poses.
-  (let ((max-length (max (length left-poses) (length right-poses))))
+  (flet ((fill-in-with-nils (some-list desired-length)
+           (let ((current-length (length some-list)))
+             (if (> desired-length current-length)
+                 (append some-list (make-list (- desired-length current-length)))
+                 some-list))))
 
-    (mapc (lambda (?left-pose ?right-pose)
+    (unless (listp left-poses)
+      (setf left-poses (list left-poses)))
+    (unless (listp right-poses)
+      (setf right-poses (list right-poses)))
 
-            (cpl:with-failure-handling
-                ((common-fail:manipulation-low-level-failure (e) ; ignore failures
-                   (roslisp:ros-warn (pick-and-place move-arms-in-sequence) "~a~%Ignoring." e)
-                   (return)))
+    ;; Move arms through all but last poses of `?left-poses' and `?right-poses'
+    ;; while ignoring failures: accuracy is not so important in intermediate poses.
+    (let ((max-length (max (length left-poses) (length right-poses))))
+      (format t "~%~%GOT POSES: ~a~%" left-poses)
+      (format t "~%BUT LAST: ~a~%" (fill-in-with-nils (butlast left-poses) max-length))
+      (mapc (lambda (?left-pose ?right-pose)
 
-              (exe:perform
-               (create-moving-tcp-motion-designator ?left-pose ?right-pose))))
+              (cpl:with-failure-handling
+                  ((common-fail:manipulation-low-level-failure (e) ; ignore failures
+                     (roslisp:ros-warn (boxy-plans move-arms-in-sequence) "~a~%Ignoring." e)
+                     (return)))
 
-          (fill-in-with-nils (butlast left-poses) max-length)
-          (fill-in-with-nils (butlast right-poses) max-length)))
+                (exe:perform
+                 (desig:a motion
+                          (type moving-tcp)
+                          (desig:when ?left-pose
+                            (left-target (desig:a location (pose ?left-pose))))
+                          (desig:when ?right-pose
+                            (right-target (desig:a location (pose ?right-pose))))))))
 
-  ;; Move arm to the last pose of `?left-poses' and `?right-poses'.
-  (let ((?left-pose (car (last left-poses)))
-        (?right-pose (car (last right-poses))))
+            (fill-in-with-nils (butlast left-poses) max-length)
+            (fill-in-with-nils (butlast right-poses) max-length)))
 
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e) ; propagate failures up
-           (roslisp:ros-error (pick-and-place reach) "~a~%Failing." e)
-           ;; (roslisp:ros-warn (pick-and-place reach) "~a~%Ignoring." e)
-           ;; (return)
-           ))
+    ;; Move arm to the last pose of `?left-poses' and `?right-poses'.
+    (let ((?left-pose (car (last left-poses)))
+          (?right-pose (car (last right-poses))))
 
-      (exe:perform
-       (create-moving-tcp-motion-designator ?left-pose ?right-pose)))))
+      (cpl:with-failure-handling
+          ((common-fail:manipulation-low-level-failure (e)
+             ;; propagate failures up
+             ;; (roslisp:ros-error (boxy-plans move-arms-in-sequence) "~a~%Failing." e)
+             (roslisp:ros-warn (pick-and-place reach) "~a~%Ignoring." e)
+             (return)
+             ))
+
+        (exe:perform
+         (desig:a motion
+                  (type moving-tcp)
+                  (desig:when ?left-pose
+                    (left-target (desig:a location (pose ?left-pose))))
+                  (desig:when ?right-pose
+                    (right-target (desig:a location (pose ?right-pose))))))))))
 
 
-(cpl:def-cram-function open-gripper (?left-or-right)
+(cpl:def-cram-function release (?left-or-right)
   (cpl:with-failure-handling
       ((common-fail:low-level-failure (e) ; ignore failures
          (roslisp:ros-warn (pick-and-place open-gripper) "~a" e)
@@ -113,9 +112,29 @@
                   (gripper ?left-or-right)
                   (effort ?effort))))))
 
+(cpl:def-cram-function close-gripper (?left-or-right)
+  (cpl:with-failure-handling
+      ((common-fail:low-level-failure (e) ; ignore failures
+         (roslisp:ros-warn (pick-and-place grip) "~a" e)
+         (return)))
+    (exe:perform
+     (desig:a motion
+              (type closing)
+              (gripper ?left-or-right)))))
+
+(cpl:def-cram-function set-gripper-to-position (?left-or-right ?position)
+  (cpl:with-failure-handling
+      ((common-fail:low-level-failure (e) ; ignore failures
+         (roslisp:ros-warn (pick-and-place grip) "~a" e)
+         (return)))
+    (exe:perform
+     (desig:a motion
+              (type moving-gripper-joint)
+              (gripper ?left-or-right)
+              (joint-angle ?position)))))
 
 (cpl:def-cram-function look-at (object-designator)
-  (let ((?pose (get-object-pose object-designator)))
+  (let ((?pose (cram-robosherlock:get-object-pose object-designator)))
     (exe:perform
      (desig:a motion
               (type looking)
