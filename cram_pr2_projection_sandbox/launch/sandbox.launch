@@ -6,13 +6,22 @@
   <!-- kitchen URDF -->
   <param name="kitchen_description"
          command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf/IAI_kitchen.urdf.xacro'"/>
-  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
-        args="0 0 0 0 0 0 /map /iai_kitchen/world 100">
+  <node pkg="joint_state_publisher" type="joint_state_publisher"
+        name="joint_state_publisher" output="screen">
+    <remap from="robot_description" to="kitchen_description"/>
+    <param name="rate" value="25"/>
+    <param name="use_gui" value="False"/>
+    <rosparam param="source_list">
+      - kitchen/joint_states
+    </rosparam>
   </node>
-  <node pkg="robot_state_chain_publisher" type="state_chain_publisher"
+  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+        args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
+  </node>
+  <node pkg="robot_state_publisher" type="robot_state_publisher"
     name="kitchen_state_publisher" output="screen">
     <param name="tf_prefix" value="iai_kitchen"/>
-    <param name="publish_frequency" value="1"/>
+    <param name="publish_frequency" value="25"/>
     <remap from="robot_description" to="kitchen_description" />
   </node>
 
