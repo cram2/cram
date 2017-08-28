@@ -177,8 +177,8 @@
   (<- (matching-process-module ?motion-designator pr2-arms-pm)
     (or (desig-prop ?motion-designator (:to :move-arm))
         (desig-prop ?motion-designator (:type :moving-arm))
-        (desig-prop ?motion-designator (:to :move-joints))
-        (desig-prop ?motion-designator (:type :moving-joints)))
+        (desig-prop ?motion-designator (:to :move-arm-joints))
+        (desig-prop ?motion-designator (:type :moving-arm-joints)))
     (or (desig-prop ?motion-designator (:left ?locations))
         (desig-prop ?motion-designator (:right ?locations))))
 
@@ -193,8 +193,8 @@
         (equal ?pose-right nil)))
 
   (<- (motion-grounding ?motion-designator (move-joints ?left-configuration ?right-configuration))
-    (or (desig-prop ?motion-designator (:to :move-joints))
-        (desig-prop ?motion-designator (:type :moving-joints)))
+    (or (desig-prop ?motion-designator (:to :move-arm-joints))
+        (desig-prop ?motion-designator (:type :moving-arm-joints)))
     (-> (desig-prop ?motion-designator (:left ?left-configuration))
         (true)
         (equal ?left-configuration nil))
