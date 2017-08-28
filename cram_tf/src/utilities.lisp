@@ -158,3 +158,63 @@
                        (cl-transforms:orientation pose-in-frame)))))
     (and (<= goal-dist delta-xy)
          (<= (abs goal-angle) delta-theta))))
+
+(defun pose->transform-stamped (parent-frame child-frame stamp pose)
+  (let ((translation (cl-transforms:origin pose))
+        (rotation (cl-transforms:orientation pose)))
+    (cl-transforms-stamped:make-transform-stamped
+     parent-frame child-frame stamp translation rotation)))
+
+(defun transform-stamped-inv (transform-stamped)
+  (let ((frame-id (cl-transforms-stamped:frame-id transform-stamped))
+        (child-frame-id (cl-transforms-stamped:child-frame-id transform-stamped))
+        (stamp (cl-transforms-stamped:stamp transform-stamped)))
+    (cl-transforms-stamped:transform->transform-stamped
+     child-frame-id
+     frame-id
+     stamp
+     (cl-transforms:transform-inv transform-stamped))))
+
+(defun multiply-transform-stampeds (x-frame z-frame
+                                    x-y-transform y-z-transform
+                                    &key (result-as-pose-or-transform :transform))
+  (declare (type cl-transforms-stamped:transform-stamped
+                 x-y-transform y-z-transform)
+           (type keyword result-as-pose-or-transform)
+           (type string x-frame z-frame))
+  "Returns a pose stamped representing xTz -- transfrom from x-frame to z-frame.
+
+Take xTy, ensure it's from x-frame.
+Multiply from the right with the yTz transform -- xTy * yTz == xTz."
+
+  (unless (equal (cl-transforms-stamped:frame-id x-y-transform) x-frame)
+      (error "In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
+              correct parent frame: ~a and ~a"
+             (cl-transforms-stamped:frame-id x-y-transform) x-frame))
+
+  (unless (equal (cl-transforms-stamped:child-frame-id y-z-transform) z-frame)
+      (error "In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
+              correct child frame: ~a and ~a"
+             (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
+
+  (unless (equal (cl-transforms-stamped:child-frame-id x-y-transform)
+                 (cl-transforms-stamped:frame-id y-z-transform))
+      (error "In multiply-transform-stampeds X-Y-TRANSFORM and ~
+              Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
+             (cl-transforms-stamped:child-frame-id x-y-transform)
+             (cl-transforms-stamped:frame-id y-z-transform)))
+
+  (let ((multiplied-transforms
+          (cl-transforms:transform* x-y-transform y-z-transform)))
+    (ecase result-as-pose-or-transform
+      (:pose
+       (cl-transforms-stamped:pose->pose-stamped
+        x-frame
+        0.0
+        (cl-transforms:transform->pose multiplied-transforms)))
+      (:transform
+       (cl-transforms-stamped:transform->transform-stamped
+        x-frame
+        z-frame
+        0.0
+        multiplied-transforms)))))
