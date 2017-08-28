@@ -34,7 +34,7 @@
 (cpm:def-process-module pr2-proj-navigation (motion-designator)
   (destructuring-bind (command argument) (desig:reference motion-designator)
     (ecase command
-      (cram-pr2-designators:drive
+      (cram-common-designators:move-base
        (handler-case
            (drive argument))))))
 
@@ -43,7 +43,7 @@
 (cpm:def-process-module pr2-proj-torso (motion-designator)
   (destructuring-bind (command argument) (desig:reference motion-designator)
     (ecase command
-      (cram-pr2-designators:move-torso
+      (cram-common-designators:move-torso
        (handler-case
            (move-torso argument))))))
 
@@ -52,25 +52,25 @@
 (cpm:def-process-module pr2-proj-ptu (motion-designator)
   (destructuring-bind (command argument) (desig:reference motion-designator)
     (ecase command
-      (cram-pr2-designators:look-at
+      (cram-common-designators:move-head
        (handler-case
            (look-at argument))))))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-perception (motion-designator)
-  (destructuring-bind (command argument-1 argument-2) (desig:reference motion-designator)
+  (destructuring-bind (command argument-1) (desig:reference motion-designator)
     (ecase command
-      (cram-pr2-designators:detect
+      (cram-common-designators:detect
        (handler-case
-           (detect argument-1 argument-2))))))
+           (detect argument-1))))))
 
 ;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-grippers (motion-designator)
   (destructuring-bind (command arg-1 arg-2 &rest arg-3) (desig:reference motion-designator)
     (ecase command
-      (cram-pr2-designators:gripper-action
+      (cram-common-designators:move-gripper-joint
        (handler-case
            (gripper-action arg-1 arg-2 (car arg-3)))))))
 
@@ -79,13 +79,13 @@
 (cpm:def-process-module pr2-proj-arms (motion-designator)
   (destructuring-bind (command arg-1 &rest arg-2) (desig:reference motion-designator)
     (ecase command
-      (cram-pr2-designators:move-tcp
+      (cram-common-designators:move-tcp
        (handler-case
            (move-tcp arg-1 (car arg-2))))
-      (cram-pr2-designators::move-joints
+      (cram-common-designators::move-joints
        (handler-case
            (move-joints arg-1 (car arg-2))))
-      (cram-pr2-designators::move-with-constraints
+      (cram-common-designators::move-with-constraints
        (handler-case
            (move-with-constraints arg-1))))))
 
@@ -114,4 +114,4 @@
 
   (<- (cpm:matching-process-module ?motion-designator pr2-proj-arms)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
-        (desig:desig-prop ?motion-designator (:type :moving-joints)))))
+        (desig:desig-prop ?motion-designator (:type :moving-arm-joints)))))
