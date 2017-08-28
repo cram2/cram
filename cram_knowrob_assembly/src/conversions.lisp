@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :kr-belief)
+(in-package :kr-assembly)
 
 (defparameter *knowrob-namespaces*
   '((:rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
@@ -74,7 +74,7 @@
 (defgeneric cram->knowrob (object &key &allow-other-keys)
   (:documentation "Convert CRAM `object' into it's KnowRob representation (mostly a string)")
   (:method ((object null) &key &allow-other-keys)
-    (roslisp:ros-info (kr-belief conversions) "Got a NIL object to convert. Ignoring.")))
+    (roslisp:ros-info (kr-assembly conversions) "Got a NIL object to convert. Ignoring.")))
 
 (defun append-namespace (namespace string)
   (concatenate 'string (cadr (assoc namespace *knowrob-namespaces*)) string))

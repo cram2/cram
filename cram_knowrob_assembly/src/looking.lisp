@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :kr-belief)
+(in-package :kr-assembly)
 
 (defparameter *neck-good-looking-state* '(-1.176d0 -3.1252d0 -0.8397d0 0.83967d0 1.1347d0 -0.0266d0))
 

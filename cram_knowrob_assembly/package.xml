@@ -1,8 +1,8 @@
 <package format="2">
-  <name>cram_knowrob_belief_state</name>
+  <name>cram_knowrob_assembly</name>
   <version>0.0.0</version>
   <description>
-    CRAM interfaces to talk to KnowRob when asserting and querying facts
+    CRAM interfaces to talk to KnowRob when asserting and querying facts in assembly domain
   </description>
   <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>

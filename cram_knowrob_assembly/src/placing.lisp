@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :kr-belief)
+(in-package :kr-assembly)
 
 (defparameter *z-of-chassis-holder* 0.2 "In meters.")
 (defparameter *x-of-chassis-holder-hole* 0.042 "In meters.")
