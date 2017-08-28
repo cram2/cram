@@ -100,7 +100,7 @@
                input-designator
                :new-description
                `((:type ,type)
-                 (:pose ((nil ,pose-stamped)))
+                 (:pose ((:pose ,pose-stamped)))
                  (:name ,name)))))
         (setf (slot-value output-designator 'desig:data)
               (make-instance 'desig:object-designator-data
@@ -108,12 +108,12 @@
                 :pose pose-stamped))
         (desig:equate input-designator output-designator)))))
 
-(defun detect (input-designator quantifier)
-  (declare (type desig:object-designator input-designator)
-           (type keyword quantifier))
+(defun detect (input-designator)
+  (declare (type desig:object-designator input-designator))
 
   (let* ((object-name (desig:desig-prop-value input-designator :name))
          (object-type (desig:desig-prop-value input-designator :type))
+         (quantifier (desig:quantifier input-designator))
 
          ;; find all visible objects with name `object-name' and of type `object-type'
          (name-pose-type-lists ; e.g.: ((mondamin-1 :mondamin <pose-1>) (mug-2 :mug <pose-2>))
