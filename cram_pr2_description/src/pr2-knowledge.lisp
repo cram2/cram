@@ -66,7 +66,7 @@
                                             side arm
                                             object-type-grasp
                                             object-designator-grasp
-                                            orientation-matters
+                                            cram-object-interfaces:orientation-matters
                                             required-arms)
   (<- (grasp pr2 :top))
   (<- (grasp pr2 :side))
@@ -105,7 +105,7 @@
     (desig:desig-prop ?current-object-designator (:type ?object-type))
     (object-type-grasp ?object-type ?grasp ?sides))
 
-  (<- (orientation-matters ?object-designator)
+  (<- (cram-object-interfaces:orientation-matters ?object-designator)
     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
     (or (desig:desig-prop ?current-object-designator (:type :knife))
         (desig:desig-prop ?current-object-designator (:type :fork))
