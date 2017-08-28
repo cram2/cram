@@ -32,7 +32,7 @@
 (def-process-module pr2-ptu-pm (action-designator)
   (destructuring-bind (command goal-type goal) (reference action-designator)
     (ecase command
-      (look-at
+      (move-head
        (handler-case
            (ecase goal-type
              (:point (pr2-ll:call-ptu-action :point goal))

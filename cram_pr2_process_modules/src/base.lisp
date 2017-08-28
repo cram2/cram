@@ -33,7 +33,7 @@
   (destructuring-bind (command destination-pose)
       (reference action-designator)
     (ecase command
-      (drive
+      (move-base
        (handler-case
            (pr2-ll:call-nav-pcontroller-action destination-pose :visualize t)
          ;; (cram-plan-failures:location-not-reached-failure ()
