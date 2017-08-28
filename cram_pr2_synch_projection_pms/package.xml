@@ -27,7 +27,7 @@
   <build_depend>cl_transforms</build_depend>
   <build_depend>cl_tf</build_depend>
   <build_depend>cram_projection</build_depend>
-  <build_depend>cram_pr2_designators</build_depend>
+  <build_depend>cram_common_designators</build_depend>
   <build_depend>cram_semantic_map_utils</build_depend>
   <build_depend>cram_semantic_map</build_depend>
   <build_depend>cram_semantic_map_designators</build_depend>
@@ -48,7 +48,7 @@
   <run_depend>cl_transforms</run_depend>
   <run_depend>cl_tf</run_depend>
   <run_depend>cram_projection</run_depend>
-  <run_depend>cram_pr2_designators</run_depend>
+  <run_depend>cram_common_designators</run_depend>
   <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cram_semantic_map</run_depend>
   <run_depend>cram_semantic_map_designators</run_depend>
