@@ -42,6 +42,9 @@
            #:ensure-pose-in-frame #:ensure-point-in-frame
            #:translate-pose #:rotate-pose
            #:tf-frame-converged
+           #:pose->transform-stamped
+           #:transform-stamped-inv
+           #:multiply-transform-stampeds
            ;; prolog facts
            #:pose #:pose-stamped #:position #:orientation #:poses-equal
            #:location-pose
