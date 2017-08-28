@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(defpackage cram-knowrob-belief-state
-  (:nicknames #:kr-belief)
+(defpackage cram-knowrob-assembly
+  (:nicknames #:kr-assembly)
   (:use #:common-lisp #:cram-object-interfaces)
   (:export ))

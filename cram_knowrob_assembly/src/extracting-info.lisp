@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :kr-belief)
+(in-package :kr-assembly)
 
 (defun get-class-instance (cram-class)
   (let* ((kr-class (cram->knowrob cram-class :namespace-id :thorin_parts))
@@ -36,7 +36,7 @@
                        (car
                         (json-prolog:prolog-1 `("owl_individual_of" ?name ,kr-class)
                                               :mode 1
-                                              :package :kr-belief)))))
+                                              :package :kr-assembly)))))
     (knowrob->cram :symbol kr-instance)))
 
 ;; (defun get-instance-class (cram-name)
@@ -46,7 +46,7 @@
 ;;                                               :package :keyword))
 ;;                              (cut:force-ll
 ;;                               (json-prolog:prolog `("owl_individual_of" ,kr-name ?class)
-;;                                                   :package :kr-belief)))))
+;;                                                   :package :kr-assembly)))))
 ;;     (car (intersection kr-classes '(:axle :axle-holder :chassis :chassis-holder :camaro-body)))))
 ;; Ugly hack because knowrob cannot tell what's the class of an object in any better way :P
 
@@ -58,7 +58,7 @@
             (car
              (json-prolog:prolog-1 `("get_object_transform" ,kr-object-id ?transform)
                                    :mode 1
-                                   :package :kr-belief)))))
+                                   :package :kr-assembly)))))
     (knowrob->cram :transform transform-list)))
 
 (defun get-all-object-transforms ()
@@ -69,7 +69,7 @@
                     (knowrob->cram :transform ?transform))))
           (cut:force-ll
            (json-prolog:prolog `("get_object_transform" ?object_id ?transform)
-                               :package :kr-belief))))
+                               :package :kr-assembly))))
 
 (defun get-current-object-grasps (object-id)
   (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation)))
@@ -81,7 +81,7 @@
               (json-prolog:prolog-1
                `("get_current_grasps_on_object" ,kr-object-id ?grasp_specs)
                :mode 1
-               :package :kr-belief))))))
+               :package :kr-assembly))))))
 
 (defun get-current-grasps ()
   (mapcar (lambda (bindings)
@@ -90,7 +90,7 @@
                     (cut:var-value '?grasp_specs bindings)))
           (cut:force-ll
            (json-prolog:prolog `("get_current_grasps_on_object" ?object_id ?grasp_specs)
-                               :package :kr-belief))))
+                               :package :kr-assembly))))
 
 (defun get-object-in-gripper (gripper-id)
   (let ((kr-gripper-id (cram->knowrob gripper-id)))
@@ -100,7 +100,7 @@
              (json-prolog:prolog-1
               `("get_current_objects_in_gripper" ,kr-gripper-id ?object_ids)
               :mode 1
-              :package :kr-belief)))))
+              :package :kr-assembly)))))
 
 (defun get-currently-possible-object-grasps (object-id &optional gripper-id)
   (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
@@ -115,12 +115,12 @@
                    `("get_currently_possible_grasps_on_object" ,kr-object-id ,kr-gripper-id
                                                                ?grasp_ids)
                    :mode 1
-                   :package :kr-belief)
+                   :package :kr-assembly)
                   (json-prolog:prolog-1
                    `("get_currently_possible_grasps_on_object" ,kr-object-id
                                                                ?grasp_ids)
                    :mode 1
-                   :package :kr-belief)))))))
+                   :package :kr-assembly)))))))
 
 (defun get-possible-object-grasps (object-id &optional gripper-id)
   (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
@@ -134,11 +134,11 @@
                   (json-prolog:prolog-1
                    `("get_possible_grasps_on_object" ,kr-object-id ,kr-gripper-id ?grasp_ids)
                    :mode 1
-                   :package :kr-belief)
+                   :package :kr-assembly)
                   (json-prolog:prolog-1
                    `("get_possible_grasps_on_object" ,kr-object-id ?grasp_ids)
                    :mode 1
-                   :package :kr-belief)))))))
+                   :package :kr-assembly)))))))
 
 (defun get-object-manipulation-transform (manipulation-type gripper-id object-id grasp-id)
   (declare (type keyword manipulation-type))
@@ -150,7 +150,7 @@
                     (:pregrasp "get_pre_grasp_position")
                     (:lift "get_post_grasp_position"))))
     (unless kr-grasp-id
-      (roslisp:ros-warn (kr-belief get-manip-transform)
+      (roslisp:ros-warn (kr-assembly get-manip-transform)
                         "No grasp found for object ~a." object-id)
       (return-from get-object-manipulation-transform NIL))
     (let ((transform
@@ -160,9 +160,9 @@
               (json-prolog:prolog-1
                `(,kr-query ,kr-gripper-id ,kr-object-id ,kr-grasp-id ?transform)
                :mode 1
-               :package :kr-belief)))))
+               :package :kr-assembly)))))
       (when (cut:is-var transform)
-        (roslisp:ros-warn (kr-belief get-manip-transform)
+        (roslisp:ros-warn (kr-assembly get-manip-transform)
                           "Could not find manipulation transform for ~a." object-id)
         (return-from get-object-manipulation-transform NIL))
       (knowrob->cram :transform transform))))
@@ -182,7 +182,7 @@
        `("get_connection_transform" ,kr-connection-id ,kr-connect-to-object-id ,kr-object-id
                                     ?transform)
        :mode 1
-       :package :kr-belief))))))
+       :package :kr-assembly))))))
 
 (defun get-assemblages (&key object-id assemblage-id)
   (let ((kr-object-id (cram->knowrob object-id))
@@ -196,7 +196,7 @@
            (json-prolog:prolog-1
             `("get_assemblages_with_object" ,kr-object-id ?assemblage_ids)
             :mode 1
-            :package :kr-belief)))
+            :package :kr-assembly)))
          (if assemblage-id
              (cut:var-value
               '?object_ids
@@ -204,7 +204,7 @@
                (json-prolog:prolog-1
                 `("get_objects_in_assemblage" ,kr-assemblage-id ?object_ids)
                 :mode 1
-                :package :kr-belief)))
+                :package :kr-assembly)))
              (error "one of object-id or assemblage-id has to be specified."))))))
 
 (defun get-all-assemblages ()
@@ -215,7 +215,7 @@
     (car
      (json-prolog:prolog-1 `("get_known_assemblage_ids" ?assemblage_ids)
                            :mode 1
-                           :package :kr-belief)))))
+                           :package :kr-assembly)))))
 
 (defun get-object-at-location (object-type location translation-threshold rotation-threshold)
   (declare (type cl-transforms-stamped:transform-stamped location))
@@ -231,10 +231,10 @@
                                    ,translation-threshold ,rotation-threshold
                                    ?object_id)
                                  :mode 1
-                                 :package :kr-belief))))))
+                                 :package :kr-assembly))))))
 
 #+as;dflkajs;dflksaj
 (
- (kr-belief::get-class-instance :camaro-body)
- (kr-belief::get-possible-object-grasps "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1")
+ (kr-assembly::get-class-instance :camaro-body)
+ (kr-assembly::get-possible-object-grasps "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1")
 )

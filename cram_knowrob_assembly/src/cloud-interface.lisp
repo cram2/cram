@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :kr-belief)
+(in-package :kr-assembly)
 
 (defun replace-all (string part replacement &key (test #'char=))
   "Returns a new string in which all the occurences of the part

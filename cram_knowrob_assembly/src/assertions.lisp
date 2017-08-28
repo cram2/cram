@@ -27,10 +27,10 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :kr-belief)
+(in-package :kr-assembly)
 
 (defun reset-beliefstate ()
-  (json-prolog:prolog-1 `("reset_beliefstate") :mode 1 :package :kr-belief))
+  (json-prolog:prolog-1 `("reset_beliefstate") :mode 1 :package :kr-assembly))
 
 (defun generate-object-id (object-type)
   (knowrob->cram
@@ -40,7 +40,7 @@
     (car
      (json-prolog:prolog-1 `("get_new_object_id" ,object-type ?object_id)
                            :mode 1
-                           :package :kr-belief)))))
+                           :package :kr-assembly)))))
 
 (defun assert-object-at-location (object-type object-id transform)
   (declare (type cl-transforms-stamped:transform-stamped transform))
@@ -62,7 +62,7 @@
        (json-prolog:prolog-1 `("assert_grasp_on_object"
                                ,kr-gripper-id ,kr-object-id ,kr-robot-id ,kr-grasp-class ?grasp_id)
                              :mode 1
-                             :package :kr-belief))))))
+                             :package :kr-assembly))))))
 
 (defun retract-object-grasped (object-id kr-gripper-id)
   (let ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation)))
@@ -85,7 +85,7 @@
                                       ,kr-with-object-id ,kr-with-object-id ,kr-object-id
                                       ?assemblage_id)
                                     :mode 1
-                                    :package :kr-belief)))
+                                    :package :kr-assembly)))
             :strip-namespace nil)))
 
 (defun retract-assemblage (assemblage-id)
@@ -93,6 +93,6 @@
 
 #+as;lfdkjsa;fdkljas
 (
- (kr-belief::assert-object-grasped "right_gripper" "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1" "boxy" "http://knowrob.org/kb/thorin_parameters.owl#TopGraspCarBody")
- (kr-belief::retract-object-grasped *)
+ (kr-assembly::assert-object-grasped "right_gripper" "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1" "boxy" "http://knowrob.org/kb/thorin_parameters.owl#TopGraspCarBody")
+ (kr-assembly::retract-object-grasped *)
 )
