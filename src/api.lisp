@@ -48,7 +48,8 @@ look up stuff from TF.")
                                (:pose object-type)
                                (:object (ecase object-type
                                    (:axle-holder :axle)
-                                   (:chassis-holder :chassis))))))))
+                                   (:chassis-holder :chassis)
+                                   (:accessory-holder :seat))))))))
              (all-objects
                (loop for i = 1 then (1+ i)
                      for object-frame = (concatenate 'string
