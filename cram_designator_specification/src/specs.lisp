@@ -130,7 +130,12 @@
   (<- (property ?designator (:type ?type))
     (lisp-pred typep ?designator desig:object-designator)
     (property-member (:type ?type) ?designator)
-    (assert-type ?type keyword "OBJECT SPEC:PROPERTY")))
+    (assert-type ?type keyword "OBJECT SPEC:PROPERTY"))
+
+  (<- (property ?designator (:name ?name))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:name ?name) ?designator)
+    (assert-type ?name (or keyword string) "OBJECT SPEC:PROPERTY")))
 
 
 (def-fact-group all-designator-specs (property)
