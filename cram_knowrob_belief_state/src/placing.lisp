@@ -60,9 +60,9 @@
              (:seat2 (ecase connect-to-object-name
                        (:chassis1 :seat-snap-in-back))))))
 
-    (let* ((put-pose (multiply-transform-stampeds
+    (let* ((put-pose (cram-tf:multiply-transform-stampeds
                       cram-tf:*robot-base-frame* cram-tf:*robot-left-tool-frame*
-                      (multiply-transform-stampeds
+                      (cram-tf:multiply-transform-stampeds
                        cram-tf:*robot-base-frame* (cram->knowrob object-name)
                        on-object-transform ; bToo
                        ;; (get-object-placement-transform ; oToo aka gToo
@@ -71,7 +71,7 @@
                         (get-connection-id object-name on-object-name)
                         on-object-name
                         object-name)) ; bToo * ooTo = bTo
-                      (transform-stamped-inv
+                      (cram-tf:transform-stamped-inv
                        (get-object-manipulation-transform ; gTo
                         :grasp "left_gripper" object-name grasp))
                       :result-as-pose-or-transform :pose))) ; bTo * oTg = bTg

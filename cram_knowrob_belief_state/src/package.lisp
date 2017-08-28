@@ -31,5 +31,5 @@
 
 (defpackage cram-knowrob-belief-state
   (:nicknames #:kr-belief)
-  (:use #:common-lisp)
+  (:use #:common-lisp #:cram-object-interfaces)
   (:export ))
