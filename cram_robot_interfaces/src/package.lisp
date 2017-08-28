@@ -49,8 +49,6 @@
    #:calculate-bounding-box-tool-length #:get-tool-direction-vector
    #:get-tool-length #:get-tool-vector #:calculate-tool
    #:grasp #:side #:object-type-grasp #:object-designator-grasp
-   ;; objects
-   #:orientation-matters
    ;; ptu
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
    #:robot-pan-tilt-links #:robot-pan-tilt-joints
