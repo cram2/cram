@@ -42,7 +42,7 @@
                cram-projection
                cram-robot-interfaces
                cram-plan-failures
-               cram-pr2-designators
+               cram-common-designators
                cram-semantic-map-utils
                cram-semantic-map
                cram-semantic-map-designators
