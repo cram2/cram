@@ -46,7 +46,7 @@
                cram-occupancy-grid-costmap
                cram-plan-library
                cram-bullet-reasoning-designators
-               cram-pr2-designators
+               cram-common-designators
                cram-semantic-map-designators
                alexandria
                cram-bullet-reasoning-utilities

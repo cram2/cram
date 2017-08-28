@@ -23,7 +23,7 @@
   <depend>cram_occupancy_grid_costmap</depend>
   <depend>cram_plan_library</depend>
   <depend>cram_bullet_reasoning_designators</depend>
-  <depend>cram_pr2_designators</depend>
+  <depend>cram_common_designators</depend>
   <depend>cram_semantic_map_designators</depend>
   <depend>alexandria</depend>
   <depend>cram_bullet_reasoning_utilities</depend>
