@@ -149,16 +149,23 @@
                     (:grasp "get_grasp_position")
                     (:pregrasp "get_pre_grasp_position")
                     (:lift "get_post_grasp_position"))))
-    (assert kr-grasp-id)
-    (knowrob->cram
-     :transform
-     (cut:var-value
-      '?transform
-      (car
-       (json-prolog:prolog-1
-        `(,kr-query ,kr-gripper-id ,kr-object-id ,kr-grasp-id ?transform)
-        :mode 1
-        :package :kr-belief))))))
+    (unless kr-grasp-id
+      (roslisp:ros-warn (kr-belief get-manip-transform)
+                        "No grasp found for object ~a." object-id)
+      (return-from get-object-manipulation-transform NIL))
+    (let ((transform
+            (cut:var-value
+             '?transform
+             (car
+              (json-prolog:prolog-1
+               `(,kr-query ,kr-gripper-id ,kr-object-id ,kr-grasp-id ?transform)
+               :mode 1
+               :package :kr-belief)))))
+      (when (cut:is-var transform)
+        (roslisp:ros-warn (kr-belief get-manip-transform)
+                          "Could not find manipulation transform for ~a." object-id)
+        (return-from get-object-manipulation-transform NIL))
+      (knowrob->cram :transform transform))))
 
 (defun get-object-connection-transform (connection-id connect-to-object-id object-id)
   (let ((kr-connection-id (cram->knowrob connection-id :namespace-id :thorin_parts))

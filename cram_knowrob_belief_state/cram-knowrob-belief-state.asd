@@ -37,7 +37,8 @@
                cl-transforms
                cram-tf
                cram-occasions-events
-               cram-plan-occasions-events)
+               cram-plan-occasions-events
+               cram-object-interfaces)
   :components
   ((:module "src"
     :components

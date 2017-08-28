@@ -32,122 +32,56 @@
 (defparameter *default-z-offset* 0.2 "in meters")
 (defparameter *default-small-z-offset* 0.07 "in meters")
 
-(defgeneric get-object-type-grasp (object-type)
-  (:documentation "Returns either of :top, :side, :front. Default is :top.")
-  (:method (object-type) :top)
-  (:method ((object-type (eql :porsche-body))) :top)
-  (:method ((object-type (eql :camaro-body))) :top)
-  (:method ((object-type (eql :chassis))) :side)
-  (:method ((object-type (eql :axle))) :top)
-  (:method ((object-type (eql :wheel))) :top))
 
-(defgeneric get-object-type-gripping-effort (object-type)
-  (:documentation "Returns effort in Nm, e.g. 50. Default is 35.")
-  (:method (object-type) 35)
-  (:method ((object-type (eql :porsche-body))) 35)
-  (:method ((object-type (eql :camaro-body))) 35)
-  (:method ((object-type (eql :chassis))) 50)
-  (:method ((object-type (eql :axle))) 50)
-  (:method ((object-type (eql :wheel))) 40))
+(defmethod get-object-type-grasp (object-type)
+  "Default grasp is :top."
+  :top)
+(defmethod get-object-type-grasp ((object-type (eql :porsche-body))) :top)
+(defmethod get-object-type-grasp ((object-type (eql :camaro-body))) :top)
+(defmethod get-object-type-grasp ((object-type (eql :chassis))) :side)
+(defmethod get-object-type-grasp ((object-type (eql :axle))) :top)
+(defmethod get-object-type-grasp ((object-type (eql :wheel))) :top)
 
-(defgeneric get-object-type-gripper-opening (object-type)
-  (:documentation "How wide to open the gripper before grasping, in m. Default is 0.10.")
-  (:method (object-type) 0.10)
-  (:method ((object-type (eql :axle))) 0.02))
+(defmethod get-object-type-grasp ((object-type (eql :cutlery))) :top)
+(defmethod get-object-type-grasp ((object-type (eql :fork))) :top)
+(defmethod get-object-type-grasp ((object-type (eql :knife))) :top)
+(defmethod get-object-type-grasp ((object-type (eql :plate))) :side)
+(defmethod get-object-type-grasp ((object-type (eql :bottle))) :side)
+(defmethod get-object-type-grasp ((object-type (eql :cup))) :front)
 
-(defun transform-stamped-inv (transform-stamped)
-  (let ((frame-id (cl-transforms-stamped:frame-id transform-stamped))
-        (child-frame-id (cl-transforms-stamped:child-frame-id transform-stamped))
-        (stamp (cl-transforms-stamped:stamp transform-stamped)))
-    (cl-transforms-stamped:transform->transform-stamped
-     child-frame-id
-     frame-id
-     stamp
-     (cl-transforms:transform-inv transform-stamped))))
 
-(defun multiply-transform-stampeds (x-frame z-frame
-                                    x-y-transform y-z-transform
-                                    &key (result-as-pose-or-transform :transform))
-  (declare (type cl-transforms-stamped:transform-stamped
-                 x-y-transform y-z-transform)
-           (type keyword result-as-pose-or-transform)
-           (type string x-frame z-frame))
-  "Returns a pose stamped representing xTz -- transfrom from x-frame to z-frame.
+(defmethod get-object-type-gripping-effort (object-type)
+    "Default value is 35 Nm."
+    35)
+(defmethod get-object-type-gripping-effort ((object-type (eql :porsche-body))) 35)
+(defmethod get-object-type-gripping-effort ((object-type (eql :camaro-body))) 35)
+(defmethod get-object-type-gripping-effort ((object-type (eql :chassis))) 50)
+(defmethod get-object-type-gripping-effort ((object-type (eql :axle))) 50)
+(defmethod get-object-type-gripping-effort ((object-type (eql :wheel))) 40)
 
-Take xTy, ensure it's from x-frame.
-Multiply from the right with the yTz transform -- xTy * yTz == xTz."
+(defmethod get-object-type-gripping-effort ((object-type (eql :cup))) 50)
+(defmethod get-object-type-gripping-effort ((object-type (eql :bottle))) 60)
+(defmethod get-object-type-gripping-effort ((object-type (eql :plate))) 100)
+(defmethod get-object-type-gripping-effort ((object-type (eql :cutlery))) 100)
+(defmethod get-object-type-gripping-effort ((object-type (eql :fork))) 100)
+(defmethod get-object-type-gripping-effort ((object-type (eql :knife))) 100)
 
-  (unless (equal (cl-transforms-stamped:frame-id x-y-transform) x-frame)
-      (error "In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
-              correct parent frame: ~a and ~a"
-             (cl-transforms-stamped:frame-id x-y-transform) x-frame))
 
-  (unless (equal (cl-transforms-stamped:child-frame-id y-z-transform) z-frame)
-      (error "In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
-              correct child frame: ~a and ~a"
-             (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
+(defmethod get-object-type-gripper-opening (object-type)
+  "Default value is 0.10."
+  0.10)
+(defmethod get-object-type-gripper-opening ((object-type (eql :axle))) 0.02)
 
-  (unless (equal (cl-transforms-stamped:child-frame-id x-y-transform)
-                 (cl-transforms-stamped:frame-id y-z-transform))
-      (error "In multiply-transform-stampeds X-Y-TRANSFORM and ~
-              Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
-             (cl-transforms-stamped:child-frame-id x-y-transform)
-             (cl-transforms-stamped:frame-id y-z-transform)))
 
-  (let ((multiplied-transforms
-          (cl-transforms:transform* x-y-transform y-z-transform)))
-    (ecase result-as-pose-or-transform
-      (:pose
-       (cl-transforms-stamped:pose->pose-stamped
-        x-frame
-        0.0
-        (cl-transforms:transform->pose multiplied-transforms)))
-      (:transform
-       (cl-transforms-stamped:transform->transform-stamped
-        x-frame
-        z-frame
-        0.0
-        multiplied-transforms)))))
-
-;; (defun get-object-grasping-poses (object-name arm grasp object-transform)
-;;   "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
-;;   (mapcar (lambda (manipulation-type)
-;;             (get-gripper-in-base-pose
-;;              arm object-transform ; bTo
-;;              (get-object-manipulation-transform ; gTo
-;;               manipulation-type "left_gripper" object-name grasp)
-;;              cram-tf:*robot-left-tool-frame*)) ; bTo * oTg = bTg
-;;           '(:pregrasp :pregrasp :grasp :lift)))
-;; :pregrasp is two times because for some objects there should
-;; actually be :2nd-pregrasp and that is what the plans expect
-
-(defgeneric get-object-type-pregrasp-pose (object-type arm grasp grasp-pose)
-  (:documentation "Returns a pose stamped"))
-
-(defgeneric get-object-type-2nd-pregrasp-pose (object-type arm grasp grasp-pose)
-  (:documentation "Returns a pose stamped. Default value is NIL.")
-  (:method (object-type grasp-pose arm grasp) nil))
-
-(defgeneric get-object-type-lift-pose (object-type arm grasp grasp-pose)
-  (:documentation "Returns a pose stamped"))
-
-(defgeneric get-object-type-2nd-lift-pose (object-type arm grasp grasp-pose)
-  (:documentation "Returns a pose stamped")
-  (:method (object-type grasp-pose arm grasp) nil))
-
-(defun get-object-grasping-poses (object-name object-type arm grasp object-transform)
-  "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
-  (let ((grasp-pose (multiply-transform-stampeds
-                     cram-tf:*robot-base-frame* cram-tf:*robot-left-tool-frame*
-                     object-transform ; bTo
-                     (transform-stamped-inv
-                      (get-object-manipulation-transform ; gTo
-                       :grasp "left_gripper" object-name grasp)) ; oTg
-                     :result-as-pose-or-transform :pose))) ; bTo * oTg = bTg
-    (list (get-object-type-pregrasp-pose object-type arm grasp grasp-pose)
-          ;; (get-object-type-2nd-pregrasp-pose object-type arm grasp grasp-pose)
-          grasp-pose
-          (get-object-type-lift-pose object-type arm grasp grasp-pose))))
+(defmethod get-gripper-to-object-type-transform (object-type object-name arm grasp)
+  (declare (ignore object-type))
+  "Default implementation when using KnowRob's get_grasp_position query."
+  (get-object-manipulation-transform :grasp
+                                     (ecase arm
+                                       (:left "left_gripper")
+                                       (:right "right_gripper"))
+                                     object-name
+                                     grasp))
 
 
 (defmethod get-object-type-pregrasp-pose ((object-type (eql :axle))
