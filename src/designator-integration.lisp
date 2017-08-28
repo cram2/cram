@@ -27,15 +27,14 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :rs)
 
-(defpackage cram-robosherlock
-  (:nicknames #:rs)
-  (:use #:common-lisp #:cram-object-interfaces)
-  (:export
-   ;; robosherlock-json
-   #:call-robosherlock-service
-   ;; api
-   #:perceive
-   ;; designator-integration
-   #:robosherlock-perception-pm))
+(cpm:def-process-module robosherlock-perception-pm (desig:motion-designator)
+  (destructuring-bind (command argument-1) (desig:reference motion-designator)
+    (ecase command
+      (cram-common-designators:detect
+       (handler-case
+           (perceive :detect argument-1)))
+      (cram-common-designators:inspect
+       (handler-case
+           (perceive :inspect argument-1))))))

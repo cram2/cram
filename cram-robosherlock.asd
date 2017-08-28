@@ -41,11 +41,14 @@
                cl-transforms-stamped
                cram-tf
                cram-common-failures
-               cram-designators)
+               cram-designators
+               cram-object-interfaces
+               cram-common-designators)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "json-parser" :depends-on ("package"))
      (:file "robosherlock-json" :depends-on ("package" "json-parser"))
-     (:file "api" :depends-on ("package" "robosherlock-json"))))))
+     (:file "api" :depends-on ("package" "robosherlock-json"))
+     (:file "designator-integration" :depends-on ("package" "api"))))))
