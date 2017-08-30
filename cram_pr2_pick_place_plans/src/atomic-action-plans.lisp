@@ -46,8 +46,6 @@
     ;; Move arms through all but last poses of `?left-poses' and `?right-poses'
     ;; while ignoring failures: accuracy is not so important in intermediate poses.
     (let ((max-length (max (length left-poses) (length right-poses))))
-      (format t "~%~%GOT POSES: ~a~%" left-poses)
-      (format t "~%BUT LAST: ~a~%" (fill-in-with-nils (butlast left-poses) max-length))
       (mapc (lambda (?left-pose ?right-pose)
 
               (cpl:with-failure-handling
@@ -134,7 +132,7 @@
               (joint-angle ?position)))))
 
 (cpl:def-cram-function look-at (object-designator)
-  (let ((?pose (cram-robosherlock:get-object-pose object-designator)))
+  (let ((?pose (cram-object-interfaces:get-object-pose object-designator)))
     (exe:perform
      (desig:a motion
               (type looking)

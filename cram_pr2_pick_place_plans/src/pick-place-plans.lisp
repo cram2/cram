@@ -34,28 +34,28 @@
                                      ?left-reach-poses ?right-reach-poses
                                      ?left-lift-poses ?right-lift-poses)
   (cpl:par
-    (roslisp:ros-info (boxy-plans pick-up) "Opening gripper")
+    (roslisp:ros-info (pick-place pick-up) "Opening gripper")
     (exe:perform
      (desig:an action
                (type setting-gripper)
                (gripper ?arm)
                (position ?gripper-opening)))
-    (roslisp:ros-info (boxy-plans pick-up) "Reaching")
+    (roslisp:ros-info (pick-place pick-up) "Reaching")
     (exe:perform
      (desig:an action
                (type reaching)
                (left-poses ?left-reach-poses)
                (right-poses ?right-reach-poses))))
-  (roslisp:ros-info (boxy-plans pick-up) "Gripping")
+  (roslisp:ros-info (pick-place pick-up) "Gripping")
   (exe:perform
    (desig:an action
              (type gripping)
              (arm ?arm)
              (effort ?grip-effort)))
-  (roslisp:ros-info (boxy-plans pick-up) "Assert grasp into knowledge base")
-  (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-gripped :object object-designator :arm ?arm :grasp grasp))
-  (roslisp:ros-info (boxy-plans pick-up) "Lifting")
+  ;; (roslisp:ros-info (pick-place pick-up) "Assert grasp into knowledge base")
+  ;; (cram-occasions-events:on-event
+  ;;  (make-instance 'cpoe:object-gripped :object object-designator :arm ?arm :grasp grasp))
+  (roslisp:ros-info (pick-place pick-up) "Lifting")
   (exe:perform
    (desig:an action
              (type lifting)
@@ -67,32 +67,32 @@
                                    ?left-reach-poses ?right-reach-poses
                                    ?left-put-poses ?right-put-poses
                                    ?left-retract-poses ?right-retract-poses)
-  (roslisp:ros-info (boxy-plans place) "Reaching")
+  (roslisp:ros-info (pick-place place) "Reaching")
   (exe:perform
    (desig:an action
              (type reaching)
              (left-poses ?left-reach-poses)
              (right-poses ?right-reach-poses)))
-  (roslisp:ros-info (boxy-plans place) "Putting")
+  (roslisp:ros-info (pick-place place) "Putting")
   (exe:perform
    (desig:an action
              (type putting)
              (left-poses ?left-put-poses)
              (right-poses ?right-put-poses)))
-  (roslisp:ros-info (boxy-plans place) "Opening gripper")
+  (roslisp:ros-info (pick-place place) "Opening gripper")
   (exe:perform
    (desig:an action
              (type releasing)
              (gripper ?arm)))
-  (roslisp:ros-info (boxy-plans place) "Retract grasp in knowledge base")
-  (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-released :arm ?arm :object object-designator))
-  (roslisp:ros-info (boxy-plans place) "Retracting")
+  ;; (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
+  ;; (cram-occasions-events:on-event
+  ;;  (make-instance 'cpoe:object-released :arm ?arm :object object-designator))
+  (roslisp:ros-info (pick-place place) "Retracting")
   (exe:perform
    (desig:an action
              (type retracting)
              (left-poses ?left-retract-poses)
-                          (right-poses ?right-retract-poses))))
+             (right-poses ?right-retract-poses))))
 
 
 ;; (defun perform-phases-in-sequence (action-designator)
