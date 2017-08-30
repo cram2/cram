@@ -105,16 +105,29 @@
   ;; stabilize world
   (btr:simulate btr:*current-bullet-world* 100))
 
+(defparameter *meal-table-right-base-pose*
+  (cl-transforms-stamped:make-pose-stamped
+   "map"
+   0.0
+   (cl-transforms:make-3d-vector -1.8547d0 -0.381d0 0.0d0)
+   (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
+(defparameter *meal-table-right-base-look-pose*
+  (cl-transforms-stamped:make-pose-stamped
+   "base_footprint"
+   0.0
+   (cl-transforms:make-3d-vector 0.65335d0 0.076d0 0.758d0)
+   (cl-transforms:make-identity-rotation)))
+
 (defun prepare ()
   (cpl:with-failure-handling
           ((common-fail:low-level-failure (e)
              (roslisp:ros-warn (demo step-0) "~a" e)
              (return)))
 
-        (let ((?navigation-goal pr2-pp-plans::*meal-table-right-base-pose*)
-              (?ptu-goal pr2-pp-plans::*meal-table-right-base-look-pose*))
+        (let ((?navigation-goal *meal-table-right-base-pose*)
+              (?ptu-goal *meal-table-right-base-look-pose*))
           (cpl:par
-            (pr2-pp-plans::move-pr2-arms-out-of-sight)
+            (pr2-pp-plans::move-arms-from-field-of-view)
             (exe:perform (desig:a motion
                                   (type going)
                                   (target (desig:a location (pose ?navigation-goal)))))
@@ -139,26 +152,35 @@
                   (type detecting)
                   (object ?object-designator)))))))
 
-(defun test-grasp-bottle ()
-  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
-    (cpl:top-level
-      (flet ((step-1-inner ()
-               (let* ((?bottle-desig (desig:an object
-                                               (type bottle)))
-                      (?perceived-bottle-desig (pr2-pp-plans::perceive ?bottle-desig)))
-                 (pr2-pp-plans::drive-and-pick-up-plan ?perceived-bottle-desig :?arm :right))))
-        (cpl:with-retry-counters ((bottle-grasp-tries 2))
-          (cpl:with-failure-handling
-              ((common-fail:low-level-failure (e)
-                 (roslisp:ros-warn (demo step-1) "~a" e)
-                 (if (pr2-pp-plans::get-object-in-hand :right)
-                     (return)
-                     (cpl:do-retry bottle-grasp-tries
-                       (roslisp:ros-warn (demo step-1) "~a" e)
-                       (prepare)
-                       (cpl:retry)))))
+(defun test-grasp-and-place-bottle ()
+  (let ((proj-result
+          (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+            (cpl:top-level
+              (prepare))
+            (cpl:top-level
+              (let ((?bottle-desig (desig:an object (type bottle))))
+                (flet ((step-1-inner ()
+                         (let ((?perceived-bottle-desig (pr2-pp-plans::perceive ?bottle-desig)))
+                           (pr2-pp-plans::drive-and-pick-up-plan ?perceived-bottle-desig :?arm :right))))
+                  (cpl:with-retry-counters ((bottle-grasp-tries 2))
+                    (cpl:with-failure-handling
+                        ((common-fail:low-level-failure (e)
+                           (roslisp:ros-warn (demo step-1) "~a" e)
+                           (cpl:do-retry bottle-grasp-tries
+                             (roslisp:ros-warn (demo step-1) "~a" e)
+                             (prepare)
+                             (cpl:retry))))
 
-            (step-1-inner)))))))
+                      (step-1-inner))))
+                (desig:current-desig ?bottle-desig))))))
+    (cpl:sleep 1.0)
+    (let ((?result-object (car (proj::projection-environment-result-result proj-result))))
+      (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+        (cpl:top-level
+          (exe:perform (desig:an action
+                                 (type placing)
+                                 (arm right)
+                                 (object ?result-object))))))))
 
 (defun test-place-bottle ()
   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
