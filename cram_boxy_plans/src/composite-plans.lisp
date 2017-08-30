@@ -122,7 +122,7 @@
              (right-poses ?right-push-poses)))
   (roslisp:ros-info (boxy-plans place) "Asserting assemblage connection in knowledge base")
   (cram-occasions-events:on-event
-   (make-instance 'kr-belief::object-attached
+   (make-instance 'kr-assembly::object-attached
      :object object-designator
      :with-object with-object-designator))
   (roslisp:ros-info (boxy-plans place) "Opening gripper")
@@ -159,7 +159,7 @@
       ((common-fail:low-level-failure (e) ; ignore failures
          (roslisp:ros-warn (boxy-plans arm-from-field-of-view) "~a" e)
          (return)))
-    (let ((?left-configuration kr-belief::*left-arm-out-of-field-of-view-state*))
+    (let ((?left-configuration kr-assembly::*left-arm-out-of-field-of-view-state*))
       (exe:perform
        (desig:a motion
                 (type moving-arm-joints)
@@ -170,28 +170,28 @@
       ((common-fail:low-level-failure (e) ; ignore failures
          (roslisp:ros-warn (boxy-plans arm-nicer-config) "~a" e)
          (return)))
-    (let ((?left-configuration kr-belief::*left-arm-nicer-configuration*))
+    (let ((?left-configuration kr-assembly::*left-arm-nicer-configuration*))
       (exe:perform
        (desig:a motion
                 (type moving-arm-joints)
                 (left-configuration ?left-configuration))))))
 
 (defun move-neck-closer-to-look ()
-  (let ((?configuration kr-belief::*neck-good-looking-state*))
+  (let ((?configuration kr-assembly::*neck-good-looking-state*))
     (exe:perform
      (desig:a motion
               (type looking)
               (configuration ?configuration)))))
 
 (defun move-neck-out-of-arm-workspace ()
-  (let ((?configuration kr-belief::*neck-out-of-arm-workspace-state*))
+  (let ((?configuration kr-assembly::*neck-out-of-arm-workspace-state*))
     (exe:perform
      (desig:a motion
               (type looking)
               (configuration ?configuration)))))
 
 
-(cpl:def-cram-function detect (object-designator)
+(cpl:def-cram-function detect (?object-designator)
   (let ((result-designator
           (cpl:with-retry-counters ((perceive-retries 5))
             (cpl:with-failure-handling
@@ -199,6 +199,11 @@
                    (cpl:do-retry perceive-retries
                      (roslisp:ros-warn (boxy-plans detect) "~a" e)
                      (cpl:retry))))
-              (cram-robosherlock:perceive :detect object-designator)))))
+              (exe:perform
+               (desig:a motion
+                        (type detecting)
+                        (object ?object-designator)))
+              ;; (cram-robosherlock:perceive :detect object-designator)
+              ))))
 
     result-designator))

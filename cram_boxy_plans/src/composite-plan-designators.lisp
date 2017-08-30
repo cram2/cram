@@ -58,7 +58,7 @@
     (list left-reach-poses right-reach-poses left-put-poses right-put-poses
           left-retract-poses right-retract-poses)))
 
-;; (defun cram-robosherlock:get-object-transform (object-designator)
+;; (defun cram-object-interfaces:get-object-transform (object-designator)
 ;;   (let* ((object-type (desig:desig-prop-value object-designator :type))
 ;;          (object-frame (concatenate 'string
 ;;                                     (remove #\- (string-capitalize (symbol-name object-type)))
@@ -81,17 +81,18 @@
     (desig:current-designator ?object-designator ?current-object-desig)
     (property ?current-object-desig (:type ?object-type))
     (property ?current-object-desig (:name ?object-name))
-    (once (or (property ?action-designator (:arm ?arm))
-              (equal ?arm :left))) ; default value of ?arm when not given
+    (property ?action-designator (:arm ?arm))
     ;; infer missing information like ?grasp type, gripping ?effort, manipulation poses
-    (lisp-fun kr-belief::get-object-type-grasp ?object-type ?grasp)
-    (lisp-fun kr-belief::get-object-type-gripping-effort ?object-type ?effort)
-    (lisp-fun kr-belief::get-object-type-gripper-opening ?object-type ?gripper-opening)
-    (lisp-fun cram-robosherlock:get-object-transform ?current-object-desig ?object-transform)
-    (lisp-fun kr-belief::get-object-grasping-poses ?object-name ?object-type
-              :left ?grasp ?object-transform
+    (lisp-fun kr-assembly::get-object-type-grasp ?object-type ?grasp)
+    (lisp-fun kr-assembly::get-object-type-gripping-effort ?object-type ?effort)
+    (lisp-fun kr-assembly::get-object-type-gripper-opening ?object-type ?gripper-opening)
+    (lisp-fun cram-object-interfaces:get-object-transform ?current-object-desig ?object-transform)
+    (lisp-fun kr-assembly::get-object-grasping-poses
+              ?object-name ?object-type :left ?grasp ?object-transform
               ?left-poses)
-    (equal ?right-poses NIL) ; for now only use left arm
+    (lisp-fun kr-assembly::get-object-grasping-poses
+              ?object-name ?object-type :right ?grasp ?object-transform
+              ?right-poses)
     (lisp-fun extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses)))
 
@@ -110,15 +111,16 @@
     (desig:current-designator ?on-object-designator ?current-on-object-designator)
     (property ?current-on-object-designator (:type ?on-object-type))
     (property ?current-on-object-designator (:name ?on-object-name))
-    (lisp-fun cram-robosherlock:get-object-transform ?current-on-object-designator
+    (lisp-fun cram-object-interfaces:get-object-transform ?current-on-object-designator
               ?on-object-transform)
     ;; infer missing information
-    (lisp-fun kr-belief::get-object-type-grasp ?object-type ?grasp)
-    (lisp-fun kr-belief::get-object-placing-poses ?on-object-name ?on-object-type
+    (lisp-fun kr-assembly::get-object-type-grasp ?object-type ?grasp)
+    (lisp-fun kr-assembly::get-object-placing-poses ?on-object-name ?on-object-type
               ?object-name ?object-type :left ?grasp
               ?on-object-transform ?left-poses)
-    ;; only use the left arm for now
-    (equal ?right-poses NIL)
+    (lisp-fun kr-assembly::get-object-placing-poses ?on-object-name ?on-object-type
+              ?object-name ?object-type :right ?grasp
+              ?on-object-transform ?right-poses)
     (lisp-fun extract-place-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-put-poses ?right-put-poses
                                  ?left-retract-poses ?right-retract-poses)))
@@ -141,12 +143,12 @@
     (desig:current-designator ?with-object-designator ?current-with-object-designator)
     (property ?current-with-object-designator (:type ?with-object-type))
     (property ?current-with-object-designator (:name ?with-object-name))
-    (lisp-fun kr-belief::get-object-type-gripper-opening ?object-type ?gripper-opening)
-    (lisp-fun cram-robosherlock:get-object-transform ?current-with-object-designator
+    (lisp-fun kr-assembly::get-object-type-gripper-opening ?object-type ?gripper-opening)
+    (lisp-fun cram-object-interfaces:get-object-transform ?current-with-object-designator
               ?with-object-transform)
     ;; infer missing information
-    (lisp-fun kr-belief::get-object-type-grasp ?object-type ?grasp)
-    (lisp-fun kr-belief::get-object-placing-poses ?with-object-name ?with-object-type
+    (lisp-fun kr-assembly::get-object-type-grasp ?object-type ?grasp)
+    (lisp-fun kr-assembly::get-object-placing-poses ?with-object-name ?with-object-type
               ?object-name ?object-type :left ?grasp
               ?with-object-transform ?left-poses)
     ;; only use the left arm for now
@@ -160,9 +162,10 @@
     (property ?action-designator (:camera :wrist))
     (property ?action-designator (:object ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
-    (lisp-fun cram-robosherlock:get-object-transform ?current-object-designator ?object-transform)
+    (lisp-fun cram-object-interfaces:get-object-transform
+              ?current-object-designator ?object-transform)
     ;; infer missing information
-    (lisp-fun kr-belief::get-object-look-pose :left ?object-transform ?left-goal-pose)
+    (lisp-fun kr-assembly::get-object-look-pose :left ?object-transform ?left-goal-pose)
     ;; the only wrist camera is on left arm
     (equal ?right-goal-pose NIL))
 
