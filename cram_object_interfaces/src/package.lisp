@@ -31,9 +31,20 @@
 
 (defpackage cram-object-interfaces
   (:use #:common-lisp #:cram-prolog)
+  (:nicknames #:obj-int)
   (:export
    ;; object-designator-interfaces
    #:get-object-transform
    #:get-object-pose
    ;; manipulation
+   #:get-object-type-grasp
+   #:get-object-type-gripping-effort
+   #:get-object-type-gripper-opening
+   #:get-gripper-to-object-type-transform
+   #:get-object-type-grasp-pose
+   #:get-object-type-pregrasp-pose
+   #:get-object-type-2nd-pregrasp-pose
+   #:get-object-type-lift-pose
+   #:get-object-type-2nd-lift-pose
+   #:get-object-grasping-poses
    #:orientation-matters))
