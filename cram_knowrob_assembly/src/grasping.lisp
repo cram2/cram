@@ -84,6 +84,25 @@
                                      grasp))
 
 
+(defmethod get-object-grasping-poses (object-name object-type arm grasp object-transform)
+  (declare (type symbol object-name object-type arm grasp)
+           (type cl-transforms-stamped:transform-stamped object-transform))
+  "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
+  (let ((gripper-to-object-transform
+          (get-gripper-to-object-type-transform object-type object-name arm grasp))) ; gTo
+    (when gripper-to-object-transform
+      (let ((grasp-pose
+              (cram-tf:multiply-transform-stampeds
+               cram-tf:*robot-base-frame* cram-tf:*robot-left-tool-frame*
+               object-transform         ; bTo
+               (cram-tf:transform-stamped-inv gripper-to-object-transform) ; oTg
+               :result-as-pose-or-transform :pose))) ; bTo * oTg = bTg
+        (list (get-object-type-pregrasp-pose object-type arm grasp grasp-pose)
+              (get-object-type-2nd-pregrasp-pose object-type arm grasp grasp-pose)
+              grasp-pose
+              (get-object-type-lift-pose object-type arm grasp grasp-pose))))))
+
+
 (defmethod get-object-type-pregrasp-pose ((object-type (eql :axle))
                                           (arm (eql :left))
                                           (grasp (eql :top))
