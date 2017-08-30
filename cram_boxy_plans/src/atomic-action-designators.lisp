@@ -70,7 +70,7 @@
     (property ?action-designator (:gripper ?left-or-right))
     (property ?action-designator (:position ?position)))
 
-  (<- (desig:action-grounding ?action-designator (perceive :inspect ?augmented-designator))
+  (<- (desig:action-grounding ?action-designator (perceive :inspecting ?augmented-designator))
     (property ?action-designator (:type :inspecting))
     (property ?action-designator (:object ?object-designator))
     (property ?action-designator (:for ?for-value))
@@ -87,7 +87,7 @@
              (prolog:slot-value ?augmented-designator desig:quantifier ?for-quantifier))
         (true)))
 
-  ;; (<- (desig:action-grounding ?action-designator (perceive :inspect ?object-designator))
+  ;; (<- (desig:action-grounding ?action-designator (perceive :inspecting ?object-designator))
   ;;   (property ?action-designator (:type :inspecting))
   ;;   (property ?action-designator (:object ?object-designator)))
     )

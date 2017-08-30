@@ -43,8 +43,8 @@
                cram-common-failures
                cram-plan-occasions-events
 
-               cram-robosherlock
-               cram-knowrob-belief-state
+               cram-object-interfaces
+               cram-knowrob-assembly
 
                cl-transforms-stamped
                cl-transforms)

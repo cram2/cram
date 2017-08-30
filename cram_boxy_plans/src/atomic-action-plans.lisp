@@ -156,7 +156,7 @@
               (gripper ?left-or-right)
               (joint-angle ?position)))))
 
-(defun perceive (detect-or-inspect object-designator)
+(defun perceive (?detecting-or-inspecting ?object-designator)
   "DETECT is an operator that stands on the same level as PERFORM. It's not a standard action."
   (cpl:with-retry-counters ((perceive-retries 5))
     (cpl:with-failure-handling
@@ -165,4 +165,9 @@
              (roslisp:ros-warn (boxy-plans perceive) "~a" e)
              (cpl:sleep 1.0)
              (cpl:retry))))
-      (cram-robosherlock:perceive detect-or-inspect object-designator))))
+      (exe:perform
+       (desig:a motion
+                (type ?detecting-or-inspecting)
+                (object ?object-designator)))
+      ;; (cram-robosherlock:perceive detect-or-inspect object-designator)
+      )))
