@@ -108,10 +108,12 @@
 
   (<- (cpm:matching-process-module ?motion-designator pr2-proj-grippers)
     (or (desig:desig-prop ?motion-designator (:type :gripping))
+        (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))
         (and (desig:desig-prop ?motion-designator (:gripper ?_))
              (or (desig:desig-prop ?motion-designator (:type :opening))
                  (desig:desig-prop ?motion-designator (:type :closing))))))
 
   (<- (cpm:matching-process-module ?motion-designator pr2-proj-arms)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
-        (desig:desig-prop ?motion-designator (:type :moving-arm-joints)))))
+        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
+        (desig:desig-prop ?motion-designator (:type :moving-with-constraints)))))

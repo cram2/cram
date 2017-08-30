@@ -94,13 +94,19 @@
 
 (defun extend-perceived-object-designator (input-designator name-pose-type-list)
   (destructuring-bind (name pose type) name-pose-type-list
-    (let ((pose-stamped (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*)))
+    (let* ((pose-stamped (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))
+           (transform-stamped (cram-tf:pose->transform-stamped
+                               cram-tf:*fixed-frame*
+                               name
+                               (cl-transforms-stamped:stamp pose-stamped)
+                               pose-stamped)))
       (let ((output-designator
               (desig:copy-designator
                input-designator
                :new-description
                `((:type ,type)
-                 (:pose ((:pose ,pose-stamped)))
+                 (:pose ((:pose ,pose-stamped)
+                         (:transform ,transform-stamped)))
                  (:name ,name)))))
         (setf (slot-value output-designator 'desig:data)
               (make-instance 'desig:object-designator-data
@@ -166,7 +172,9 @@
         (assert ?world (btr:joint-state ?robot ((?joint ,(case action-type
                                                            (:open '?max-limit)
                                                            ((:close :grip) '?min-limit)
-                                                           (t (error "[PROJ GRIP] failed"))))))))
+                                                           (t (if (numberp action-type)
+                                                                  action-type
+                                                                  (error "[PROJ GRIP] failed")))))))))
       solution-bindings))
 
    (cut:force-ll
@@ -196,18 +204,18 @@
                     :object-name ?object-name :link ?ee-link :arm arm))))))
 
      (cut:force-ll
-        (prolog:prolog
-         `(and (btr:bullet-world ?world)
-               (cram-robot-interfaces:robot ?robot)
-               (prolog:setof
-                ?on
-                (and (btr:contact ?world ?robot ?on ?link)
-                     (cram-robot-interfaces:gripper-link ?robot ,arm ?link))
-                ?object-names)
-               (member ?object-name ?object-names)
-               (btr:%object ?world ?object-name ?object-instance)
-               (prolog:lisp-type ?object-instance btr:item)
-               (cram-robot-interfaces:end-effector-link ?robot ,arm ?ee-link))))))
+      (prolog:prolog
+       `(and (btr:bullet-world ?world)
+             (cram-robot-interfaces:robot ?robot)
+             (prolog:setof
+              ?on
+              (and (btr:contact ?world ?robot ?on ?link)
+                   (cram-robot-interfaces:gripper-link ?robot ,arm ?link))
+              ?object-names)
+             (member ?object-name ?object-names)
+             (btr:%object ?world ?object-name ?object-instance)
+             (prolog:lisp-type ?object-instance btr:item)
+             (cram-robot-interfaces:end-effector-link ?robot ,arm ?ee-link))))))
 
   ;; object-detached event
   (when (eql action-type :open) ; if action is opening, check if there was an object in gripper

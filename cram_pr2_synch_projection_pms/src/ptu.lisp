@@ -30,7 +30,7 @@
 
 (def-process-module projection-ptu (input)
   (let* ((designator-solution (desig:reference input))
-         (pose (etypecase designator-solution
+         (pose-1 (etypecase designator-solution
                  (pose-stamped designator-solution)
                  (symbol (if (eql designator-solution :forward)
                              (make-pose-stamped
@@ -40,7 +40,12 @@
                               (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0))
                              (cpl-impl:fail "location ~a is unknown for PTU"
                                             designator-solution)))
-                 (desig:location-designator (desig:reference designator-solution)))))
+                 (desig:location-designator (desig:reference designator-solution))))
+         (pose (with-slots (stamp origin orientation)
+                   pose-1
+                 (make-pose-stamped
+                  *robot-base-frame* stamp origin orientation))))
+    (format t "pose is: ~a~%" input)
     (execute-as-action
      input
      (lambda ()

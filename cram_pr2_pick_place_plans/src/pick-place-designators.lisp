@@ -45,6 +45,8 @@
 (defun extract-place-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
   "`?arm' can be :left, :right or (:left :right)."
   (let ((arm-as-list (if (listp arm) arm (list arm)))
+        (left-manipulation-poses (reverse left-manipulation-poses))
+        (right-manipulation-poses (reverse right-manipulation-poses))
         left-reach-poses left-put-poses left-retract-poses
         right-reach-poses right-put-poses right-retract-poses)
     (when (member :left arm-as-list)
@@ -56,137 +58,64 @@
             right-put-poses (subseq right-manipulation-poses 1 2)
             right-retract-poses (subseq right-manipulation-poses 2)))
     (list left-reach-poses right-reach-poses left-put-poses right-put-poses
-                    left-retract-poses right-retract-poses)))
+          left-retract-poses right-retract-poses)))
 
 
-;; (def-fact-group pr2-pick-and-place-parameters ()
-
-;;   (<- (object-type-grip-maximum-effort :cup 50))
-;;   (<- (object-type-grip-maximum-effort :bottle 60))
-;;   (<- (object-type-grip-maximum-effort :plate 100))
-;;   (<- (object-type-grip-maximum-effort :cutlery 100))
-;;   (<- (object-type-grip-maximum-effort :fork 100))
-;;   (<- (object-type-grip-maximum-effort :knife 100))
-
-;;   (<- (gripper-action-maximum-effort ?object-designator ?maximum-effort)
-;;     (current-designator ?object-designator ?current-object-designator)
-;;     (desig-prop ?current-object-designator (:type ?object-type))
-;;     (once (or (object-type-grip-maximum-effort ?object-type ?maximum-effort)
-;;               (equal ?maximum-effort nil))))
-
-;;   (<- (object-type-grasp :cutlery :top))
-;;   (<- (object-type-grasp :fork :top))
-;;   (<- (object-type-grasp :knife :top))
-;;   (<- (object-type-grasp :plate :side))
-;;   (<- (object-type-grasp :bottle :side))
-;;   (<- (object-type-grasp :cup :front)))
-
-
-(def-fact-group pick-and-place-plans (action-grounding)
-  (<- (action-grounding ?action-designator (pick-up ?arm ?current-object-desig ?grasp
-                                                    ?gripper-opening ?effort
-                                                    ?left-reach?updated-action-designator
-                                                    ?current-object-desig
-                                                    ?arm ?grasp))
+(def-fact-group pick-and-place-plans (desig:action-grounding)
+  (<- (desig:action-grounding ?action-designator (pick-up ?arm ?current-object-desig ?grasp
+                                                          ?gripper-opening ?effort
+                                                          ?left-reach-poses ?right-reach-poses
+                                                          ?left-lift-poses ?right-lift-poses))
     ;; extract info from ?action-designator
-    (property ?action-designator (:type :picking-up))
-    (property ?action-designator (:object ?object-designator))
-    (current-designator ?object-designator ?current-object-desig)
-    (property ?current-object-desig (:type ?object-type))
-    (once (or (property ?action-designator (:arm ?arm))
-              (equal ?arm (:left :right)))) ; default value of ?arm when not given
+    (spec:property ?action-designator (:type :picking-up))
+    (spec:property ?action-designator (:object ?object-designator))
+    (desig:current-designator ?object-designator ?current-object-desig)
+    (spec:property ?current-object-desig (:type ?object-type))
+    (spec:property ?current-object-desig (:name ?object-name))
+    (spec:property ?action-designator (:arm ?arm))
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
-    (object-type-grasp ?object-type ?grasp)
-    (gripper-action-maximum-effort ?object-designator ?maximum-effort)
-    (lisp-fun cram-robosherlock:get-object-pose ?current-object-desig ?object-pose)
-    (lisp-fun get-object-manipulation-poses ?object-type ?object-pose :left ?grasp ?left-poses)
-    (lisp-fun get-object-manipulation-poses ?object-type ?object-pose :right ?grasp ?right-poses)
-    ;; feed the inferred information into the ?updated-action-designator
-    (lisp-fun append-pick-up-action-designator
-              ?action-designator ?arm ?maximum-effort ?left-poses ?right-poses
-              ?updated-action-designator))
+    (lisp-fun obj-int:get-object-type-grasp ?object-type ?grasp)
+    (lisp-fun obj-int:get-object-type-gripping-effort ?object-type ?effort)
+    (lisp-fun obj-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
+    (lisp-fun cram-object-interfaces:get-object-transform ?current-object-desig ?object-transform)
+    (lisp-fun obj-int:get-object-grasping-poses
+              ?object-name ?object-type :left ?grasp ?object-transform
+              ?left-poses)
+    (lisp-fun obj-int:get-object-grasping-poses
+              ?object-name ?object-type :right ?grasp ?object-transform
+              ?right-poses)
+    (lisp-fun extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
+              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses)))
 
-  (<- (action-grounding ?action-designator (place ?updated-action-designator ?arm))
-    (property ?action-designator (:type :placing))
-    (property ?action-designator (:arm ?arm))
+  (<- (desig:action-grounding ?action-designator (place ?arm ?current-object-designator
+                                                        ?left-reach-poses ?right-reach-poses
+                                                        ?left-put-poses ?right-put-poses
+                                                        ?left-retract-poses ?right-retract-poses))
+    (spec:property ?action-designator (:type :placing))
+    (spec:property ?action-designator (:arm ?arm))
     (once (or (cpoe:object-in-hand ?object-designator ?arm)
-              (property ?action-designator (:object ?object-designator))))
-    (current-designator ?object-designator ?current-object-designator)
-    (property ?current-object-designator (:type ?object-type))
+              (spec:property ?action-designator (:object ?object-designator))))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (spec:property ?current-object-designator (:type ?object-type))
+    (spec:property ?current-object-designator (:name ?object-name))
     ;; infer missing information
-    (object-type-grasp ?object-type ?grasp)
+    (lisp-fun obj-int:get-object-type-grasp ?object-type ?grasp)
     ;; take object-pose from action-designator target otherwise from object-designator pose
-    (-> (property ?action-designator (:target ?location))
+    (-> (spec:property ?action-designator (:target ?location))
         (and (desig:current-designator ?location ?current-location-designator)
              (desig:designator-groundings ?current-location-designator ?poses)
-             (member ?object-pose ?poses))
-        (lisp-fun cram-robosherlock:get-object-pose ?current-object-designator ?object-pose))
-    (lisp-fun get-object-manipulation-poses ?object-type ?object-pose :left ?grasp ?left-poses)
-    (lisp-fun get-object-manipulation-poses ?object-type ?object-pose :right ?grasp ?right-poses)
-    ;; create new designator with updated appended action-description
-    (lisp-fun append-place-action-designator ?action-designator ?arm ?left-poses ?right-poses
-              ?updated-action-designator)))
-
-
-
-;; (defun append-pick-up-action-designator (action-designator ?arm ?object-grip-effort
-;;                                          left-manipulation-poses right-manipulation-poses)
-;;   "`?arm' can be :left, :right or (:left :right)."
-;;   (let ((arm-as-list (if (listp ?arm) ?arm (list ?arm)))
-;;         ?left-grasp-poses ?left-lift-pose
-;;         ?right-grasp-poses ?right-lift-pose)
-;;     (when (member :left arm-as-list)
-;;       (setf ?left-grasp-poses (subseq left-manipulation-poses 0 3)
-;;             ?left-lift-pose (subseq left-manipulation-poses 3)))
-;;     (when (member :right arm-as-list)
-;;       (setf ?right-grasp-poses (subseq right-manipulation-poses 0 3)
-;;             ?right-lift-pose (subseq right-manipulation-poses 3)))
-
-;;     (copy-designator action-designator
-;;                      :new-description
-;;                      `((:phases ,(list
-;;                                   (an action
-;;                                       (type opening)
-;;                                       (gripper ?arm))
-;;                                   (an action
-;;                                       (type reaching)
-;;                                       (left ?left-grasp-poses)
-;;                                       (right ?right-grasp-poses))
-;;                                   (an action
-;;                                       (type gripping)
-;;                                       (arm ?arm)
-;;                                       (effort ?object-grip-effort))
-;;                                   (an action
-;;                                       (type lifting)
-;;                                       (left ?left-lift-pose)
-;;                                       (right ?right-lift-pose))))))))
-
-;; (defun append-place-action-designator (action-designator ?arm
-;;                                        left-manipulation-poses right-manipulation-poses)
-;;   "`?arm' can be :left, :right or (:left :right)."
-;;   (let ((arm-as-list (if (listp ?arm) ?arm (list ?arm)))
-;;         (left-manipulation-poses (reverse left-manipulation-poses))
-;;         (right-manipulation-poses (reverse right-manipulation-poses))
-;;         ?left-put-poses ?left-grasp-poses
-;;         ?right-put-poses ?right-grasp-poses)
-;;     (when (member :left arm-as-list)
-;;       (setf ?left-put-poses (subseq left-manipulation-poses 0 2)
-;;             ?left-grasp-poses (subseq left-manipulation-poses 2)))
-;;     (when (member :right arm-as-list)
-;;       (setf ?right-put-poses (subseq right-manipulation-poses 0 2)
-;;             ?right-grasp-poses (subseq right-manipulation-poses 2)))
-
-;;     (copy-designator action-designator
-;;                      :new-description
-;;                      `((:phases ,(list
-;;                                   (an action
-;;                                       (type putting)
-;;                                       (left ?left-put-poses)
-;;                                       (right ?right-put-poses))
-;;                                   (an action
-;;                                       (type opening)
-;;                                       (gripper ?arm))
-;;                                   (an action
-;;                                       (type retracting)
-;;                                       (left ?left-grasp-poses)
-;;                                       (right ?right-grasp-poses))))))))
+             (member ?object-pose ?poses)
+             (lisp-fun cram-tf:pose->transform-stamped
+                       cram-tf:*fixed-frame* ?object-name 0.0 ?object-pose
+                       ?object-transform))
+        (lisp-fun cram-object-interfaces:get-object-transform
+                  ?current-object-designator ?object-transform))
+    (lisp-fun obj-int:get-object-grasping-poses
+              ?object-name ?object-type :left ?grasp ?object-transform
+              ?left-poses)
+    (lisp-fun obj-int:get-object-grasping-poses
+              ?object-name ?object-type :right ?grasp ?object-transform
+              ?right-poses)
+    (lisp-fun extract-place-manipulation-poses ?arm ?left-poses ?right-poses
+              (?left-reach-poses ?right-reach-poses ?left-put-poses ?right-put-poses
+                                 ?left-retract-poses ?right-retract-poses))))

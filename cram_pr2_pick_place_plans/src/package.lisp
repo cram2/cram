@@ -31,4 +31,4 @@
 
 (defpackage cram-pr2-pick-place-plans
   (:nicknames :pr2-pp-plans)
-  (:use #:common-lisp #:cram-prolog #:cram-designators #:cram-designator-specification))
+  (:use #:common-lisp #:cram-prolog))

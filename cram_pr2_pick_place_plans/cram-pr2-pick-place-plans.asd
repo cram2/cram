@@ -41,11 +41,11 @@
                cram-language
                cram-prolog
                cram-designators
-               cram-occasions-events
+               ;; cram-occasions-events
                cram-executive
                cram-utilities ; for cut:var-value of prolog stuff
 
-               cram-plan-occasions-events
+               ;; cram-plan-occasions-events
                ;; cram-bullet-reasoning ; for event handling with belief state
 
                cram-common-failures
@@ -54,8 +54,8 @@
                cram-semantic-map-costmap
                cram-robot-pose-gaussian-costmap
 
-               cram-robosherlock
-               cram-knowrob-belief-state)
+               cram-object-interfaces
+               cram-knowrob-pick-place)
 
   :components
   ((:module "src"
@@ -68,13 +68,11 @@
 
      ;; PICKING-UP and PLACING actions
      ;; (:file "occasions-events" :depends-on ("package")) ; should use cram_knowrob instead
-     (:file "pick-place-plans" :depends-on ("package"
-					    "atomic-action-designators" "occasions-events"))
-     (:file "grasping-knowledge" :depends-on ("package"))
+     (:file "pick-place-plans" :depends-on ("package" "atomic-action-designators"))
      (:file "pick-place-designators" :depends-on ("package"
-						  "pick-place-plans" "grasping-knowledge"))
+                                                  "pick-place-plans"))
 
      ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
      (:file "high-level-plans" :depends-on ("package"
                                             "atomic-action-designators"
-					    "pick-place-designators"))))))
+                                            "pick-place-designators"))))))
