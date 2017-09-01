@@ -53,13 +53,13 @@
 
 
 (def-fact-group pr2-available-pms (cpm:available-process-module
-                                   cpm::projection-running)
+                                   cpm:projection-running)
 
   (<- (cpm:available-process-module ?pm)
-   (member ?pm
-           (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
-                                pr2-proj-grippers pr2-proj-arms))
-   (symbol-value cram-projection:*projection-environment* pr2-bullet-projection-environment))
+    (bound ?pm)
+    (once (member ?pm (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
+                                           pr2-proj-grippers pr2-proj-arms)))
+    (symbol-value cram-projection:*projection-environment* pr2-bullet-projection-environment))
 
   (<- (cpm::projection-running ?pm)
     (cpm:available-process-module ?pm)))
