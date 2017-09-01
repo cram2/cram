@@ -1,0 +1,234 @@
+;;;
+;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; All rights reserved.
+;;;
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions are met:
+;;;
+;;;     * Redistributions of source code must retain the above copyright
+;;;       notice, this list of conditions and the following disclaimer.
+;;;     * Redistributions in binary form must reproduce the above copyright
+;;;       notice, this list of conditions and the following disclaimer in the
+;;;       documentation and/or other materials provided with the distribution.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
+;;;
+;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+;;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;;; POSSIBILITY OF SUCH DAMAGE.
+
+(in-package :kr-cloud)
+
+(defun replace-all (string part replacement &key (test #'char=))
+  "Returns a new string in which all the occurences of the part
+is replaced with replacement.
+  Taken from Common Lisp Cookbook."
+  (with-output-to-string (out)
+    (loop with part-length = (length part)
+          for old-pos = 0 then (+ pos part-length)
+          for pos = (search part string
+                            :start2 old-pos
+                            :test test)
+          do (write-string string out
+                           :start old-pos
+                           :end (or pos (length string)))
+          when pos do (write-string replacement out)
+            while pos)))
+
+(defun json-result->string (result-symbol)
+  (when result-symbol
+    (string-trim "'" (symbol-name result-symbol))))
+
+(defun cloud-prolog-simple (query)
+  (declare (type string query))
+  (let* ((escaped-query (replace-all query "'" "\\'"))
+         (query-answer (json-prolog:prolog-simple-1
+                        (format nil "send_prolog_query('~a', @(false), ID)." escaped-query)
+                        :mode 1
+                        :package :kr-cloud)))
+    (print (format nil "send_prolog_query('~a', @(false), ID)." escaped-query))
+    (if query-answer
+        (let* ((answer-id (cut:var-value '?id (car query-answer)))
+               (id (json-result->string answer-id)))
+          (json-prolog:prolog-simple-1 (format nil "send_next_solution('~a')" id)
+                                       :mode 1
+                                       :package :kr-cloud)
+          (let ((result
+                  (cut:var-value '?res
+                                 (car
+                                  (json-prolog:prolog-simple-1
+                                   "read_next_prolog_query(RES)."
+                                   :mode 1
+                                   :package :kr-cloud)))))
+            (if (cut:is-var result)
+                (progn
+                  (roslisp:ros-warn (cloud-interface query) "Query didn't succeed!")
+                  NIL)
+                (when result
+                  (yason:parse
+                   (json-result->string result)
+                   :object-as :alist)))))
+        (roslisp:ros-warn (cloud-interface query) "Query didn't succeed!"))))
+
+(defmacro getassoc (key alist)
+  `(cdr (assoc ,key ,alist :test #'equal)))
+
+
+(defun initialize-cloud-connection ()
+  (and (json-prolog:prolog `("register_ros_package" "knowrob_cloud_logger"))
+       (print "registered cloud_logger package")
+       (json-prolog:prolog `("cloud_interface"
+                             "https://133.11.216.21"
+                             "/home/gaya/jsk.pem"
+                             "apcDwBVxVR3neXBJJpEyVMFRxgliUCIkkLaC8IB0jsdA3oDccTlTLgynYpEPnbEd"))
+       (print "initialized https connection")
+       (json-prolog:prolog `("start_user_container"))
+       (print "started docker container")
+       (json-prolog:prolog `("connect_to_user_container"))
+       (print "initialization complete")))
+
+(defun load-episodes (episode-ids)
+  (declare (type list episode-ids))
+  (let* ((episode-ids-yason-string
+           (let ((stream (make-string-output-stream)))
+             (yason:encode (mapcar (lambda (id) (format nil "episode~a" id))
+                                   episode-ids)
+                           stream)
+             (get-output-stream-string stream)))
+         (episode-ids-string (replace-all episode-ids-yason-string "\"" "'")))
+    (cloud-prolog-simple
+     "register_ros_package('knowrob_learning').")
+    (cloud-prolog-simple
+     "owl_parse('package://knowrob_srdl/owl/PR2.owl').")
+    (cloud-prolog-simple
+     "mng_db('Bring-Can-From-Fridge_pr2-bring-can_1').")
+    (cloud-prolog-simple
+     (format nil
+             "load_experiments('/episodes/Bring-Can-From-Fridge/pr2-bring-can_0/', ~a, 'eus.owl')."
+             episode-ids-string))
+    (cloud-prolog-simple
+     "owl_parse('package://knowrob_cloud_logger/owl/room73b2.owl').")
+    (cloud-prolog-simple
+     "rdf_register_ns(map, 'http://knowrob.org/kb/room73b2.owl#', [keep(true)]).")))
+
+;; grasping object: GraspExecutionCan
+;; pregrasp pose: PreGraspPose
+
+(defun generate-transform-stamped (pose-list child-frame stamp)
+  (destructuring-bind ((x y z) (w q1 q2 q3))
+      pose-list
+    (cl-transforms-stamped:make-transform-stamped
+     cram-tf:*fixed-frame*
+     child-frame
+     stamp
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
+
+(defun generate-pose-stamped (pose-list stamp)
+  (destructuring-bind ((x y z) (w q1 q2 q3))
+      pose-list
+    (cl-transforms-stamped:make-pose-stamped
+     cram-tf:*fixed-frame*
+     stamp
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
+
+(defun robot-pose-before-action (knowrob-task-context)
+  (let ((bindings
+          (cloud-prolog-simple
+           (format nil
+                   "entity(Act, [an, action, ['task_context', '~a']]), occurs(Act, [Begin,End]), mng_lookup_transform('map', '~a', Begin, Pose16), matrix_translation(Pose16, T), matrix_rotation(Pose16, R), =([T, R], Pose)."
+                   knowrob-task-context
+                   cram-tf:*robot-base-frame*))))
+    (generate-transform-stamped
+     (getassoc "Pose" bindings)
+     cram-tf:*robot-base-frame*
+     (getassoc "Begin" bindings))))
+
+;; handle: IAIFridgeDoorHandle
+;; hinge: HingedJoint
+
+(defun semantic-map-object-transform (knowrob-class-name)
+  (let ((bindings
+          (cloud-prolog-simple
+           (format nil
+                   "owl_individual_of(Object, knowrob:'~a'), current_object_pose(Object, [X, Y, Z, W, Q1, Q2, Q3]), =(Pose, [[X, Y, Z], [W, Q1, Q2, Q3]])."
+                   knowrob-class-name))))
+    (generate-transform-stamped
+     (getassoc "Pose" bindings)
+     knowrob-class-name;; (string-trim '(#\') (getassoc "Object" bindings))
+     0.0)))
+
+;; opening: OpenFridge
+;; pushing-open: SwipeFridgeDoor
+;; closing: CloseFridge
+
+(defun local-semantic-map-object-transform (knowrob-class-name)
+  (let ((bindings
+          (car (json-prolog:prolog-simple-1
+                (format nil
+                        "owl_individual_of(O, knowrob:'~a'), current_object_pose(O, [X, Y, Z, W, Q1, Q2, Q3]), =(P, [[X, Y, Z], [W, Q1, Q2, Q3]])."
+                        knowrob-class-name)
+                :mode 1
+                :package :kr-cloud))))
+    (generate-transform-stamped
+     (cut:var-value '?p bindings)
+     knowrob-class-name ;; (string-trim '(#\') (symbol-name (cut:var-value '?o bindings)))
+     0.0)))
+
+(defun arm-used-in-action (knowrob-task-context)
+  (getassoc "Part"
+            (cloud-prolog-simple
+             (format nil
+                     "entity(Act, [an, action, ['task_context', '~a']]), rdf_has(Act, knowrob:'bodyPartUsed', literal(type(_, Part)))."
+                     knowrob-task-context))))
+
+(defun arm-for-grasping ()
+  (getassoc "Part"
+            (cloud-prolog-simple
+             "owl_individual_of(Grasp, knowrob:'Grasp'), rdf_has(Grasp, knowrob:'bodyPartUsed', literal(type(_, Part))).")))
+
+(defun robot-gripper-pose-before-action (arm knowrob-task-context)
+  (let ((bindings
+          (cloud-prolog-simple
+           (format nil
+                   "entity(Act, [an, action, ['task_context', '~a']]), occurs(Act, [Begin,End]), belief_at(robot('~a',M), Begin), matrix_rotation(M,R), matrix_translation(M,T), =([T, R], Pose)."
+                   knowrob-task-context
+                   (ecase arm
+                     (:left cram-tf:*robot-left-tool-frame*)
+                     (:right cram-tf:*robot-right-tool-frame*))))))
+    (generate-transform-stamped
+     (getassoc "Pose" bindings)
+     (ecase arm
+       (:left cram-tf:*robot-left-tool-frame*)
+       (:right cram-tf:*robot-right-tool-frame*))
+     (getassoc "Begin" bindings))))
+
+;; "MoveFridgeHandle"
+
+(defun gripper-trajectory-during-action (arm knowrob-task-context)
+  (let ((bindings
+          (cloud-prolog-simple
+           (format nil
+                   "entity(Act, [an, action, ['task_context', '~a']]), sample_trajectory(Act, '~a', Samples, 1)."
+                   knowrob-task-context
+                   (ecase arm
+                     (:left cram-tf:*robot-left-tool-frame*)
+                     (:right cram-tf:*robot-right-tool-frame*))))))
+    (mapcar (lambda (position-and-orientation)
+              (generate-transform-stamped position-and-orientation
+                                          (ecase arm
+                                            (:left cram-tf:*robot-left-tool-frame*)
+                                            (:right cram-tf:*robot-right-tool-frame*))
+                                          0.0))
+            (getassoc "Samples" bindings))))
