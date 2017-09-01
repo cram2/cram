@@ -39,7 +39,7 @@
   (destructuring-bind (command goal-left goal-right)
       (reference action-designator)
     (ecase command
-      (move-arm
+      (cram-common-designators:move-tcp
        (handler-case
            (progn
              (unless (listp goal-left)
@@ -56,7 +56,7 @@
                      (fill-in-with-nils goal-right max-length))))
          (common-fail:manipulation-low-level-failure ()
            (cpl:fail 'common-fail:manipulation-low-level-failure :action action-designator))))
-      (move-joints
+      (cram-common-designators:move-joints
        (handler-case
            (pr2-ll:call-giskard-joint-action :left goal-left
                                              :right goal-right)

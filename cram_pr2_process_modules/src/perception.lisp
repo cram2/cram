@@ -33,7 +33,7 @@
   (destructuring-bind (command object-key-value-pairs quantifier)
       (reference action-designator)
     (ecase command
-      (detect
+      (cram-common-designators:detect
        (handler-case
            (pr2-ll:call-robosherlock-service
             object-key-value-pairs :quantifier quantifier)
