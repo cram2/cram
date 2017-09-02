@@ -55,7 +55,7 @@
           (with-designators
               ((spatula-location :location `((:on "Cupboard")
                                              (:name "pancake_table")
-                                             (:centered-with-padding 0.6)
+                                             ;; (:centered-with-padding 0.6)
                                              (:for ,spatula-designator)
                                              (:right-of ,pancake-maker-designator)
                                              (:near ,pancake-maker-designator))))
@@ -67,7 +67,7 @@
           (with-designators
               ((on-kitchen-island :location `((:on "Cupboard")
                                               (:name "pancake_table")
-                                              (:centered-with-padding 0.35)
+                                              ;; (:centered-with-padding 0.35)
                                               (:for ,mondamin-designator)
                                               (:right-of ,pancake-maker-designator)
                                               (:far-from ,pancake-maker-designator))))
@@ -292,3 +292,16 @@
                (cpl:fail 'manipulation-pose-unreachable)))
           (perform park-action)
           (monitor-action park-action))))))
+
+
+(def-fact-group manipulations (object-type-grasp orientation-matters)
+  ;; (<- (object-type-grasp :blue-metal-plate :front (:left)))
+
+  ;; (<- (object-type-grasp :knife-plastic :top (:right)))
+
+  ;; (<- (object-type-grasp :cup :front (:right)))
+  ;; (<- (object-type-grasp :cup :front (:left)))
+
+  (<- (orientation-matters ?object-designator)
+    (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
+    (desig:desig-prop ?current-object-designator (:type :spatula))))
