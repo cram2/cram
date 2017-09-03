@@ -51,7 +51,4 @@
    ;; low-level-common
    #:actionlib-action-timed-out
    #:values-converged
-   #:tf-frame-converged
-   #:ensure-pose-in-frame
-   #:ensure-point-in-frame
    #:visualize-marker))

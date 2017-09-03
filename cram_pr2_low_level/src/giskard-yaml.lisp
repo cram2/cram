@@ -53,7 +53,7 @@
 
 (defun ensure-giskard-yaml-input-parameters (yaml-string convergence-key-value-pairs)
   (values yaml-string convergence-key-value-pairs))
-;;   (values (ensure-pose-in-frame (or left-goal
+;;   (values (cram-tf:ensure-pose-in-frame (or left-goal
 ;;                                     (cl-transforms-stamped:transform-pose-stamped
 ;;                                      cram-tf:*transformer*
 ;;                                      :timeout cram-tf:*tf-default-timeout*
@@ -63,7 +63,7 @@
 ;;                                             0.0
 ;;                                             (cl-transforms:make-identity-pose))))
 ;;                                 frame)
-;;           (ensure-pose-in-frame (or right-goal
+;;           (cram-tf:ensure-pose-in-frame (or right-goal
 ;;                                     (cl-transforms-stamped:transform-pose-stamped
 ;;                                      cram-tf:*transformer*
 ;;                                      :timeout cram-tf:*tf-default-timeout*
@@ -81,7 +81,7 @@
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
     (return-from ensure-giskard-yaml-goal-reached))
   ;; (when goal-position-left
-;;     (unless (tf-frame-converged goal-frame-left goal-position-left
+;;     (unless (cram-tf:tf-frame-converged goal-frame-left goal-position-left
 ;;                                 convergence-delta-xy convergence-delta-theta)
 ;;       (cpl:fail 'pr2-low-level-failure
 ;;                 :description (format nil "Giskard did not converge to goal:
@@ -89,7 +89,7 @@
 ;;                                      goal-frame-left goal-position-left
 ;;                                      convergence-delta-xy convergence-delta-theta))))
 ;;   (when goal-position-right
-;;     (unless (tf-frame-converged goal-frame-right goal-position-right
+;;     (unless (cram-tf:tf-frame-converged goal-frame-right goal-position-right
 ;;                                 convergence-delta-xy convergence-delta-theta)
 ;;       (cpl:fail 'pr2-low-level-failure
 ;;                 :description (format nil "Giskard did not converge to goal:
