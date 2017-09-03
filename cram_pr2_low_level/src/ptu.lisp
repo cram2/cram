@@ -73,7 +73,7 @@
                      (cl-transforms-stamped:frame-id point))
                    frame
                    cram-tf:*robot-base-frame*)))
-    (ensure-point-in-frame
+    (cram-tf:ensure-point-in-frame
      (etypecase point
        (cl-transforms:point ; also covers 3d-vector and point-stamped
         point)

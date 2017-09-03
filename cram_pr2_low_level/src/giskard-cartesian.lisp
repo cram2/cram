@@ -68,7 +68,7 @@
     ))
 
 (defun ensure-giskard-cartesian-input-parameters (frame left-goal right-goal)
-  (values (ensure-pose-in-frame (or left-goal
+  (values (cram-tf:ensure-pose-in-frame (or left-goal
                                     (cl-transforms-stamped:transform-pose-stamped
                                      cram-tf:*transformer*
                                      :timeout cram-tf:*tf-default-timeout*
@@ -79,7 +79,7 @@
                                             (cl-transforms:make-identity-pose))
                                      :use-current-ros-time t))
                                 frame)
-          (ensure-pose-in-frame (or right-goal
+          (cram-tfensure-pose-in-frame (or right-goal
                                     (cl-transforms-stamped:transform-pose-stamped
                                      cram-tf:*transformer*
                                      :timeout cram-tf:*tf-default-timeout*
@@ -100,15 +100,15 @@
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
     (return-from ensure-giskard-cartesian-goal-reached))
   (when goal-position-left
-    (unless (tf-frame-converged goal-frame-left goal-position-left
-                                convergence-delta-xy convergence-delta-theta)
+    (unless (cram-tf:tf-frame-converged goal-frame-left goal-position-left
+                                        convergence-delta-xy convergence-delta-theta)
       (cpl:fail 'common-fail:manipulation-goal-not-reached
                 :description (format nil "Giskard did not converge to goal:
 ~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
                                      goal-frame-left goal-position-left
                                      convergence-delta-xy convergence-delta-theta))))
   (when goal-position-right
-    (unless (tf-frame-converged goal-frame-right goal-position-right
+    (unless (cram-tf:tf-frame-converged goal-frame-right goal-position-right
                                 convergence-delta-xy convergence-delta-theta)
       (cpl:fail 'common-fail:manipulation-goal-not-reached
                 :description (format nil "Giskard did not converge to goal:
