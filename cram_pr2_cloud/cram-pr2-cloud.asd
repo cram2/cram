@@ -70,5 +70,23 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "costmaps" :depends-on ("package"))
-     (:file "demo-plan" :depends-on ("package"))))))
+     ;; (:file "costmaps" :depends-on ("package"))
+     (:file "tf-utilities" :depends-on ("package"))
+     (:file "geometry-calculations" :depends-on ("package" "tf-utilities"))
+     (:file "cloud-data" :depends-on ("package" "tf-utilities" "geometry-calculations"))
+     (:file "local-data" :depends-on ("package"
+                                      "tf-utilities"
+                                      "geometry-calculations"
+                                      "cloud-data"))
+     (:file "projection-plans" :depends-on ("package"))
+     (:file "real-world-plans" :depends-on ("package"
+                                            "tf-utilities"
+                                            "local-data"
+                                            "projection-plans"))))))
+
+;; tf-utilities
+;; geometry-calculations
+;; cloud-data
+;; local-data
+;; projection-plans
+;; real-world-plans
