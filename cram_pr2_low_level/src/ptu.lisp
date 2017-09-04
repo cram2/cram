@@ -83,7 +83,7 @@
 
 (defun ensure-ptu-goal-reached (status)
   (when (eql status :timeout)
-    (cpl:fail 'actionlib-action-timed-out :description "PTU action timed out."))
+    (cpl:fail 'common-fail:actionlib-action-timed-out :description "PTU action timed out."))
   (unless (eql status :succeeded)
     (cpl:fail 'common-fail:low-level-failure :description "PTU action did not succeed."))
   ;; todo: would be nice to check if the point is actually visible from the

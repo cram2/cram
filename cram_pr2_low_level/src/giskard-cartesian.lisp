@@ -79,7 +79,7 @@
                                             (cl-transforms:make-identity-pose))
                                      :use-current-ros-time t))
                                 frame)
-          (cram-tfensure-pose-in-frame (or right-goal
+          (cram-tf:ensure-pose-in-frame (or right-goal
                                     (cl-transforms-stamped:transform-pose-stamped
                                      cram-tf:*transformer*
                                      :timeout cram-tf:*tf-default-timeout*
@@ -95,7 +95,7 @@
                                               goal-frame-left goal-frame-right
                                               convergence-delta-xy convergence-delta-theta)
   (when (eql status :timeout)
-    (cpl:fail 'actionlib-action-timed-out :description "Giskard action timed out"))
+    (cpl:fail 'common-fail:actionlib-action-timed-out :description "Giskard action timed out"))
   (when (eql status :preempted)
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
     (return-from ensure-giskard-cartesian-goal-reached))

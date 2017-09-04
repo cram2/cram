@@ -69,7 +69,8 @@
 
 (defun ensure-nav-p-goal-reached (status goal-pose convergence-delta-xy convergence-delta-theta)
   (when (eql status :timeout)
-    (cpl:fail 'actionlib-action-timed-out :description "Nav-pcontroller action timed out"))
+    (cpl:fail 'common-fail:actionlib-action-timed-out
+              :description "Nav-pcontroller action timed out"))
   (unless (cram-tf:tf-frame-converged cram-tf:*robot-base-frame* goal-pose
                               convergence-delta-xy convergence-delta-theta)
     (cpl:fail 'common-fail:navigation-low-level-failure

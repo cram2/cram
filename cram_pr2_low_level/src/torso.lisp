@@ -82,7 +82,7 @@
 
 (defun ensure-torso-goal-reached (status goal-position convergence-delta)
   (when (eql status :timeout)
-    (cpl:fail 'actionlib-action-timed-out :description "Torso action timed out"))
+    (cpl:fail 'common-fail:actionlib-action-timed-out :description "Torso action timed out"))
   (let ((current-position (car (joint-positions (list cram-tf:*robot-torso-joint*)))))
    (unless (values-converged current-position goal-position convergence-delta)
      (cpl:fail 'common-fail:low-level-failure
