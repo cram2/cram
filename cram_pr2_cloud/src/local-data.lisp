@@ -52,21 +52,26 @@
    (kr-cloud:local-semantic-map-object-transform "HingedJoint")))
 
 
-(defun local-robot-pose-in-map (&optional (before-action "MoveFridgeHandle"))
+(defun local-robot-pose-in-map-from-joint (&optional (before-action "MoveFridgeHandle"))
   (let ((local-map-to-joint (local-joint-transform))
         (cloud-joint-to-robot (cloud-joint-to-robot-transform before-action)))
     (apply-transform local-map-to-joint cloud-joint-to-robot)))
 
-(defun local-gripper-trajectory-in-map ()
+(defun local-robot-pose-in-map-from-handle (&optional (before-action "MoveFridgeHandle"))
   (let ((local-map-to-handle (local-handle-transform))
-        (cloud-handle-to-gripper-list (cloud-handle-to-gripper-transforms)))
+        (cloud-handle-to-robot (cloud-handle-to-robot-transform before-action)))
+    (apply-transform local-map-to-handle cloud-handle-to-robot)))
+
+(defun local-gripper-trajectory-in-map (&optional (action "MoveFridgeHandle"))
+  (let ((local-map-to-handle (local-handle-transform))
+        (cloud-handle-to-gripper-list (cloud-handle-to-gripper-transforms action)))
     (mapcar (lambda (cloud-handle-to-gripper)
               (apply-transform local-map-to-handle cloud-handle-to-gripper))
             cloud-handle-to-gripper-list)))
 
-(defun local-gripper-trajectory-in-base ()
-  (let ((local-map-to-gripper-list (local-gripper-trajectory-in-map))
-        (local-map-to-robot (local-robot-pose-in-map)))
+(defun local-gripper-trajectory-in-base (&optional (action "MoveFridgeHandle"))
+  (let ((local-map-to-gripper-list (local-gripper-trajectory-in-map action))
+        (local-map-to-robot (local-robot-pose-in-map-from-handle)))
     (mapcar (lambda (local-map-to-gripper)
               (apply-transform (cram-tf:transform-stamped-inv local-map-to-robot)
                                local-map-to-gripper))

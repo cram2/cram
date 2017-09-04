@@ -77,3 +77,23 @@
                      (cl-transforms-stamped:stamp joint-to-handle)
                      (cl-transforms:rotate rotation (cl-transforms:translation joint-to-handle))
                      (cl-transforms:rotation joint-to-handle)))))))
+
+(defun filter-trajectory-of-big-rotations (transforms-list &optional (rotation-threshold 0.1))
+  (remove NIL
+          (remove-duplicates
+           (maplist (lambda (x)
+                      (when (>= (length x) 2)
+                        (let* ((quaternion-diff
+                                 (cl-transforms:quaternion->axis-angle
+                                  (cl-transforms:q- (cl-transforms:rotation (second x))
+                                                    (cl-transforms:rotation (first x)))))
+                               (max-val
+                                 (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+                                     quaternion-diff
+                                   (max (abs cl-transforms:x)
+                                        (abs cl-transforms:y)
+                                        (abs cl-transforms:z)))))
+                          (if (< max-val rotation-threshold)
+                              (first x)
+                              NIL))))
+                    transforms-list))))
