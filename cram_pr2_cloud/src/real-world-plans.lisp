@@ -41,8 +41,59 @@
                   (desig:a motion
                            (type moving-tcp)
                            (right-target (desig:a location (pose ?pose)))))))
-              (local-gripper-trajectory-in-robot-base-from-radius)))))
+              (local-gripper-trajectory-in-base-from-radius)))))
 
+(defun test-gripper ()
+  (cram-process-modules:with-process-modules-running
+      (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+                                  pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+    (cpl:top-level
+      (exe:perform
+       (desig:a motion (type opening) (gripper left))))))
+
+(defun test-navigation ()
+  (cram-process-modules:with-process-modules-running
+      (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+                                  pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+    (cpl:top-level
+      (exe:perform
+       (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                     "map" 0.0
+                     (cl-transforms:make-3d-vector 0.5 -0.8 0)
+                     (cl-transforms:make-identity-rotation))))
+         (desig:a motion (type going) (target (desig:a location (pose ?pose)))))))))
+
+(defun test-manipulation ()
+  (cram-process-modules:with-process-modules-running
+      (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+                                  pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+    (cpl:top-level
+      (exe:perform
+       (let ((?pose (strip-transform-stamped
+                     (car (subseq (local-gripper-trajectory-in-base "MoveFridgeHandle") 23)))))
+         (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose)))))))))
+
+(defun execute-trajectory-in-real-world ()
+  (cram-process-modules:with-process-modules-running
+      (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+                                  pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+    (cpl:top-level
+      (exe:perform
+       (desig:an action (type closing) (gripper right)))
+
+      (mapcar (lambda (transform)
+                (cpl:with-failure-handling
+                    ((common-fail:actionlib-action-timed-out (e)
+                       (format t "Action timed out: ~a~%Ignoring...~%" e)
+                       (return)))
+                  (exe:perform
+                   (let ((?pose (strip-transform-stamped transform)))
+                     (desig:a motion
+                              (type moving-tcp)
+                              (right-target (desig:a location (pose ?pose))))))))
+              (filter-trajectory-of-big-rotations
+               (subseq (local-gripper-trajectory-in-base "MoveFridgeHandle") 23)
+               0.1)))))
 
 ;;; arms down
 ;; (exe:perform (desig:an action

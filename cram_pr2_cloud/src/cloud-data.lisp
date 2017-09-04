@@ -34,9 +34,9 @@
 
 
 (defun init ()
-  (kr-cloud:initialize-cloud-connection)
+  (kr-cloud::initialize-iai-cloud-connection)
   (cpl:sleep 2)
-  (kr-cloud:load-episodes '(16)))
+  (kr-cloud:load-episodes '(1) :old-db-or-new :new))
 
 
 (defun cloud-handle-transform ()
@@ -59,22 +59,22 @@
    (kr-cloud:semantic-map-object-transform "HingedJoint")))
 
 
-(defun cloud-handle-to-robot-transform ()
+(defun cloud-handle-to-robot-transform (&optional (before-action "MoveFridgeHandle"))
   (let ((cloud-map-to-handle (cloud-handle-transform))
-        (cloud-map-to-robot (kr-cloud:robot-pose-before-action "PreGraspPose")))
+        (cloud-map-to-robot (kr-cloud:robot-pose-before-action before-action)))
     (apply-transform (cram-tf:transform-stamped-inv cloud-map-to-handle)
                      cloud-map-to-robot)))
 
-(defun cloud-joint-to-robot-transform (&optional (before-action "PreGraspPose"))
+(defun cloud-joint-to-robot-transform (&optional (before-action "MoveFridgeHandle"))
   (let ((cloud-map-to-joint (cloud-joint-transform))
         (cloud-map-to-robot (kr-cloud:robot-pose-before-action before-action)))
     (apply-transform (cram-tf:transform-stamped-inv cloud-map-to-joint)
                      cloud-map-to-robot)))
 
-(defun cloud-handle-to-gripper-transforms ()
+(defun cloud-handle-to-gripper-transforms (&optional (action "MoveFridgeHandle"))
   (let ((cloud-map-to-handle (cloud-handle-transform))
         (cloud-map-to-gripper-list
-          (kr-cloud::gripper-trajectory-during-action :right "MoveFridgeHandle")))
+          (kr-cloud::gripper-trajectory-during-action :right action)))
     (mapcar (lambda (cloud-map-to-gripper)
               (apply-transform (cram-tf:transform-stamped-inv cloud-map-to-handle)
                                cloud-map-to-gripper))
