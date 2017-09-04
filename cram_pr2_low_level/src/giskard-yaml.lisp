@@ -76,7 +76,8 @@
 
 (defun ensure-giskard-yaml-goal-reached (status)
   (when (eql status :timeout)
-    (cpl:fail 'actionlib-action-timed-out :description "Giskard action timed out"))
+    (cpl:fail 'common-fail:actionlib-action-timed-out
+              :description "Giskard action timed out"))
   (when (eql status :preempted)
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
     (return-from ensure-giskard-yaml-goal-reached))

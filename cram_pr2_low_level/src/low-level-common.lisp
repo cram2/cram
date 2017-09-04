@@ -29,18 +29,6 @@
 
 (in-package :pr2-ll)
 
-(define-condition pr2-low-level-failure (cpl:simple-plan-failure)
-  ((description :initarg :description
-                :initform "Actionlib action didn't end with SUCCEEDED"
-                :reader error-description))
-  (:documentation "Actionlib action didn't end with SUCCEEDED")
-  (:report (lambda (condition stream)
-             (format stream (error-description condition)))))
-
-(define-condition actionlib-action-timed-out (pr2-low-level-failure) ()
-  (:documentation "Actionlib action timeout was reached"))
-
-
 (defun values-converged (values goal-values deltas)
   (flet ((value-converged (value goal-value delta)
            (<= (abs (- value goal-value)) delta)))

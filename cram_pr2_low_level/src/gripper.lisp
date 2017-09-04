@@ -115,7 +115,7 @@
                                     goal-position
                                     convergence-delta)
   (when (eql status :timeout)
-    (cpl:fail 'actionlib-action-timed-out :description "Gripping action timed out"))
+    (cpl:fail 'common-fail:actionlib-action-timed-out :description "Gripping action timed out"))
   (let* ((current-position
            (pr2_controllers_msgs-msg:position result))
          (converged-p

@@ -49,6 +49,5 @@
    #:get-arm-joint-states
    #:normalize-joint-angles
    ;; low-level-common
-   #:actionlib-action-timed-out
    #:values-converged
    #:visualize-marker))
