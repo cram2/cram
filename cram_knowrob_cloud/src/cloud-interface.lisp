@@ -84,7 +84,7 @@ is replaced with replacement.
   `(cdr (assoc ,key ,alist :test #'equal)))
 
 
-(defun initialize-cloud-connection ()
+(defun initialize-jsk-cloud-connection ()
   (and (json-prolog:prolog `("register_ros_package" "knowrob_cloud_logger"))
        (print "registered cloud_logger package")
        (json-prolog:prolog `("cloud_interface"
@@ -97,7 +97,20 @@ is replaced with replacement.
        (json-prolog:prolog `("connect_to_user_container"))
        (print "initialization complete")))
 
-(defun load-episodes (episode-ids)
+(defun initialize-iai-cloud-connection ()
+  (and (json-prolog:prolog `("register_ros_package" "knowrob_cloud_logger"))
+       (print "registered cloud_logger package")
+       (json-prolog:prolog `("cloud_interface"
+                             "https://192.168.101.77"
+                             "/home/gaya/iai.pem"
+                             "aOU5jWiKSZcrUyr695JB25YpRaGKqZzzRaeTdkpQuuHlFidDuqXSDuPkHpBuEN1W"))
+       (print "initialized https connection")
+       (json-prolog:prolog `("start_user_container"))
+       (print "started docker container")
+       (json-prolog:prolog `("connect_to_user_container"))
+       (print "initialization complete")))
+
+(defun load-episodes (episode-ids &key (old-db-or-new :new))
   (declare (type list episode-ids))
   (let* ((episode-ids-yason-string
            (let ((stream (make-string-output-stream)))
@@ -109,13 +122,24 @@ is replaced with replacement.
     (cloud-prolog-simple
      "register_ros_package('knowrob_learning').")
     (cloud-prolog-simple
-     "owl_parse('package://knowrob_srdl/owl/PR2.owl').")
-    (cloud-prolog-simple
-     "mng_db('Bring-Can-From-Fridge_pr2-bring-can_1').")
-    (cloud-prolog-simple
-     (format nil
-             "load_experiments('/episodes/Bring-Can-From-Fridge/pr2-bring-can_0/', ~a, 'eus.owl')."
-             episode-ids-string))
+        "owl_parse('package://knowrob_srdl/owl/PR2.owl').")
+    (ecase old-db-or-new
+      (:new
+       (cloud-prolog-simple
+        "mng_db('Bring-Can-From-Fridge_pr2-prepare-breakfast_0').")
+       (cloud-prolog-simple
+        (format nil
+                "load_experiments('/episodes/Bring-Can-From-Fridge/pr2-prepare-breakfast_0/', ~
+                                  ~a, 'eus.owl')."
+                episode-ids-string)))
+      (:old
+        (cloud-prolog-simple
+         "mng_db('Bring-Can-From-Fridge_pr2-bring-can_0')")
+       (cloud-prolog-simple
+        (format nil
+                "load_experiments('/episodes/Bring-Can-From-Fridge/pr2-bring-can_0/', ~
+                                  ~a, 'eus.owl')."
+                episode-ids-string))))
     (cloud-prolog-simple
      "owl_parse('package://knowrob_cloud_logger/owl/room73b2.owl').")
     (cloud-prolog-simple
@@ -220,7 +244,7 @@ is replaced with replacement.
   (let ((bindings
           (cloud-prolog-simple
            (format nil
-                   "entity(Act, [an, action, ['task_context', '~a']]), sample_trajectory(Act, '~a', Samples, 1)."
+                   "entity(Act, [an, action, ['task_context', '~a']]), sample_trajectory(Act, '~a', Samples, 0.25)."
                    knowrob-task-context
                    (ecase arm
                      (:left cram-tf:*robot-left-tool-frame*)
@@ -232,3 +256,14 @@ is replaced with replacement.
                                             (:right cram-tf:*robot-right-tool-frame*))
                                           0.0))
             (getassoc "Samples" bindings))))
+
+
+;; entity(Act, [an, action, ['task_context', 'MoveFridgeHandle']]),
+;; occurs(Act, [Begin,End]),
+;; color_directed_trajectory('/r_gripper_tool_frame', Begin, End, 0.1).
+
+;; owl_individual_of(Obj, knowrob:'IAIFridgeDoorHandle'),
+;; current_object_pose(Obj, [X, Y, Z, W, Q1, Q2, Q3]),
+;; =(T, [X, Y, Z]), =(R, [W, Q1, Q2, Q3]),
+;; show(cube(base), [ pose(T,R), scale([0.1,0.1,0.1]),
+;; color([0.3,0.3,0.1])]).
