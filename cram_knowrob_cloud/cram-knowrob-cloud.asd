@@ -36,11 +36,7 @@
                cl-transforms-stamped
                cl-transforms
                yason
-               cram-tf
-               ;; cram-occasions-events
-               ;; cram-plan-occasions-events
-               ;; cram-object-interfaces
-               )
+               cram-tf)
   :components
   ((:module "src"
     :components
