@@ -29,51 +29,62 @@
 
 (in-package :pr2-cloud)
 
-(defun init-stuff ()
-  ;; (def-fact-group costmap-metadata ()
-  ;;   (<- (location-costmap:costmap-size 12 12))
-  ;;   (<- (location-costmap:costmap-origin -6 -6))
-  ;;   (<- (location-costmap:costmap-resolution 0.05))
+;; (defun init-stuff ()
+;;   ;; (def-fact-group costmap-metadata ()
+;;   ;;   (<- (location-costmap:costmap-size 12 12))
+;;   ;;   (<- (location-costmap:costmap-origin -6 -6))
+;;   ;;   (<- (location-costmap:costmap-resolution 0.05))
 
-  ;;   (<- (location-costmap:costmap-padding 0.2))
-  ;;   (<- (location-costmap:costmap-manipulation-padding 0.2))
-  ;;   (<- (location-costmap:costmap-in-reach-distance 0.9))
-  ;;   (<- (location-costmap:costmap-reach-minimal-distance 0.1)))
+;;   ;;   (<- (location-costmap:costmap-padding 0.2))
+;;   ;;   (<- (location-costmap:costmap-manipulation-padding 0.2))
+;;   ;;   (<- (location-costmap:costmap-in-reach-distance 0.9))
+;;   ;;   (<- (location-costmap:costmap-reach-minimal-distance 0.1)))
 
-  (def-fact-group semantic-map-data ()
-    (<- (semantic-map-object-name :kitchen)))
+;;   (def-fact-group semantic-map-data ()
+;;     (<- (semantic-map-object-name :kitchen)))
 
-  ;; (setf pr2-reachability-costmap::*ik-reference-frame* cram-tf:*fixed-frame*)
-  ;; should be torso-frame if tf is running
+;;   ;; (setf pr2-reachability-costmap::*ik-reference-frame* cram-tf:*fixed-frame*)
+;;   ;; should be torso-frame if tf is running
 
-  (sem-map:get-semantic-map)
+;;   (sem-map:get-semantic-map)
 
-  (setf prolog:*break-on-lisp-errors* t))
+;;   (setf prolog:*break-on-lisp-errors* t))
 
-(roslisp-utilities:register-ros-init-function init-stuff)
+;; (roslisp-utilities:register-ros-init-function init-stuff)
 
-(defun pose-to-reach-object (object-pose-in-map arm)
-  (let* ((new-x-for-base (- (cl-transforms:x (cl-transforms:origin object-pose-in-map))
-                            (case arm
-                              (:left 0.2)
-                              (:right -0.2)
-                              (t 0.0))))
-         (robot-pose-in-map (cram-tf:robot-current-pose))
-         (?goal-for-base (cl-transforms-stamped:copy-pose-stamped
-                          robot-pose-in-map
-                          :origin (cl-transforms:copy-3d-vector
-                                   (cl-transforms:origin robot-pose-in-map)
-                                   :x new-x-for-base))))
-    ?goal-for-base))
+(defmethod costmap-generator-name->score ((name (eql 'reachability-cm))) 4)
 
-(defun pose-to-reach-object-costmap (object-pose-in-map ?arm)
-  (let ((?pose-to-reach (cl-transforms-stamped:copy-pose-stamped
-                         object-pose-in-map
-                         :origin (cl-transforms:copy-3d-vector
-                                  (cl-transforms:origin object-pose-in-map)
-                                  :z 0))))
+(defun make-mean-orientation-generator (mean-transform)
+  (lambda (x y previous-orientations)
+    (declare (ignore x y previous-orientations))
+    (list (cl-transforms:rotation mean-transform))))
+
+(def-fact-group robot-pose-cloud-reachability-costmap (location-costmap:desig-costmap)
+  (<- (location-costmap:desig-costmap ?designator ?cm)
+    (desig:desig-prop ?designator (:type :reachable))
+    (desig:desig-prop ?designator (:for ?robot))
+    (cram-robot-interfaces:robot ?robot)
+    (desig:desig-prop ?designator (:target ?location))
+    (desig:current-designator ?location ?current-location-designator)
+    (once (desig:designator-groundings ?current-location-designator ?poses)
+          (member ?to-reach-pose ?poses))
+    (location-costmap:costmap ?cm)
+    (location-costmap:costmap-resolution ?x)
+    (lisp-fun local-handle-to-robot-transform-distribution (?mean-transform ?covariance))
+    (lisp-fun cl-transforms:translation ?mean-transform ?mean)
+    (location-costmap:costmap-add-function
+     reachability-cm
+     (location-costmap:make-gauss-cost-function ?mean ?covariance)
+     ?cm)
+    (location-costmap:costmap-add-orientation-generator
+     (make-mean-orientation-generator ?mean-transform)
+     ?cm)))
+
+(defun pose-to-reach-fridge ()
+  (let ((?pose-to-reach (strip-transform-stamped (local-handle-transform)))
+        (?robot 'cram-pr2-description:pr2))
     (desig:reference (desig:a location
-                              (to reach)
-                              (location (desig:a location (pose ?pose-to-reach)))
-                              (side ?arm)))))
+                              (type reachable)
+                              (for ?robot)
+                              (target (desig:a location (pose ?pose-to-reach)))))))
 

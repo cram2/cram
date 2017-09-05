@@ -97,3 +97,54 @@
                               (first x)
                               NIL))))
                     transforms-list))))
+
+(defun array-to-list (array)
+  (let* ((dimensions (array-dimensions array))
+         (depth      (1- (length dimensions)))
+         (indices    (make-list (1+ depth) :initial-element 0)))
+    (labels ((recurse (n)
+               (loop for j below (nth n dimensions)
+                     do (setf (nth n indices) j)
+                     collect (if (= n depth)
+                                 (apply #'aref array indices)
+                               (recurse (1+ n))))))
+      (recurse 0))))
+
+(defun apply-transform-to-covariance-matrix (transform 2d-covariance-matrix)
+  "Cnew = R * C * R-1"
+  (let* ((covariance-list-double
+           (mapcar (lambda (x-list)
+                     (mapcar (lambda (x) (* x 1.0d0)) x-list))
+                   (array-to-list 2d-covariance-matrix)))
+         (cov-matrix
+           (make-array '(3 3)
+                       :element-type 'double-float
+                       :initial-contents
+                       (list (append (first covariance-list-double) '(0.0d0))
+                             (append (second covariance-list-double) '(0.0d0))
+                             '(0.0d0 0.0d0 1.0d0))))
+         (rotation-matrix
+           (cl-transforms:quaternion->matrix (cl-transforms:rotation transform)))
+         (rotation-matrix-double
+           (make-array '(3 3)
+                       :element-type 'double-float
+                       :initial-contents (array-to-list rotation-matrix)))
+         (rotation-matrix-inv
+           (cl-transforms:invert-rot-matrix rotation-matrix))
+         (rotation-matrix-inv-double
+           (make-array '(3 3)
+                       :element-type 'double-float
+                       :initial-contents (array-to-list rotation-matrix-inv)))
+         (new-cov-matrix
+           (cma:double-matrix-product
+            (cma:double-matrix-product rotation-matrix-double cov-matrix)
+            rotation-matrix-inv-double))
+         (new-cov-list
+           (array-to-list new-cov-matrix)
+           ;; (array-to-list cov-matrix)
+           ))
+    (make-array '(2 2)
+                :initial-contents
+                (list
+                 (subseq (first new-cov-list) 0 2)
+                 (subseq (second new-cov-list) 0 2)))))

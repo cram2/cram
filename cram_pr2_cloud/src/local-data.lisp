@@ -71,8 +71,21 @@
 
 (defun local-gripper-trajectory-in-base (&optional (action "MoveFridgeHandle"))
   (let ((local-map-to-gripper-list (local-gripper-trajectory-in-map action))
-        (local-map-to-robot (local-robot-pose-in-map-from-handle)))
+        (local-map-to-robot (current-robot-transform) ;; (local-robot-pose-in-map-from-handle)
+                            ))
     (mapcar (lambda (local-map-to-gripper)
               (apply-transform (cram-tf:transform-stamped-inv local-map-to-robot)
                                local-map-to-gripper))
             local-map-to-gripper-list)))
+
+(defun local-gripper-trajectory-in-base-filtered (&optional (action "MoveFridgeHandle"))
+  (filter-trajectory-of-big-rotations
+   (subseq (local-gripper-trajectory-in-base action) 23)
+   0.1))
+
+(defun local-handle-to-robot-transform-distribution ()
+  (let ((local-map-to-handle (local-handle-transform)))
+    (multiple-value-bind (cloud-handle-to-robot-transform-mean covariance)
+        (cloud-handle-to-robot-transform-distribution)
+      (list (apply-transform local-map-to-handle cloud-handle-to-robot-transform-mean)
+            (apply-transform-to-covariance-matrix local-map-to-handle covariance)))))

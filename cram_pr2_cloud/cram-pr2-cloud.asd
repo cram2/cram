@@ -52,6 +52,7 @@
                giskard_msgs-srv
 
                cram-common-failures
+               cram-robot-interfaces
                cram-pr2-low-level
                cram-pr2-process-modules
                cram-pr2-pick-place-plans
@@ -70,7 +71,6 @@
   ((:module "src"
     :components
     ((:file "package")
-     ;; (:file "costmaps" :depends-on ("package"))
      (:file "tf-utilities" :depends-on ("package"))
      (:file "geometry-calculations" :depends-on ("package" "tf-utilities"))
      (:file "cloud-data" :depends-on ("package" "tf-utilities" "geometry-calculations"))
@@ -78,11 +78,13 @@
                                       "tf-utilities"
                                       "geometry-calculations"
                                       "cloud-data"))
+     (:file "costmaps" :depends-on ("package" "local-data"))
      (:file "projection-plans" :depends-on ("package"))
      (:file "real-world-plans" :depends-on ("package"
                                             "tf-utilities"
                                             "local-data"
-                                            "projection-plans"))))))
+                                            "projection-plans"
+                                            "costmaps"))))))
 
 ;; tf-utilities
 ;; geometry-calculations
