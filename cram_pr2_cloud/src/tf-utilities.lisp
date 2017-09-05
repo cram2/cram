@@ -45,6 +45,19 @@
    (or translation (cl-transforms-stamped:translation transform-stamped))
    (or rotation (cl-transforms-stamped:rotation transform-stamped))))
 
+(defun translate-transform-stamped (transform &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
+  (copy-transform-stamped
+   transform
+   :translation (let ((transform-translation (cl-transforms:translation transform)))
+                  (cl-transforms:copy-3d-vector
+                   transform-translation
+                   :x (let ((x-transform-translation (cl-transforms:x transform-translation)))
+                        (+ x-transform-translation x-offset))
+                   :y (let ((y-transform-translation (cl-transforms:y transform-translation)))
+                        (+ y-transform-translation y-offset))
+                   :z (let ((z-transform-translation (cl-transforms:z transform-translation)))
+                        (+ z-transform-translation z-offset))))))
+
 (defun pose-stamped->transform-stamped (pose-stamped child-frame-id)
   (cl-transforms-stamped:make-transform-stamped
    (cl-transforms-stamped:frame-id pose-stamped)
@@ -59,3 +72,18 @@
    (cl-transforms-stamped:child-frame-id right-hand-side-transform)
    left-hand-side-transform
    right-hand-side-transform))
+
+(defun current-robot-transform ()
+  (if (eql cram-projection:*projection-environment*
+           'cram-pr2-projection::pr2-bullet-projection-environment)
+      (cram-tf:pose->transform-stamped
+       cram-tf:*fixed-frame*
+       cram-tf:*robot-base-frame*
+       0.0
+       (btr:object-pose 'cram-pr2-description:pr2))
+      (cl-transforms-stamped:lookup-transform
+       cram-tf:*transformer*
+       cram-tf:*fixed-frame*
+       cram-tf:*robot-base-frame*
+       :timeout cram-tf:*tf-default-timeout*
+       :time 0.0)))

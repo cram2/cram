@@ -29,6 +29,11 @@
 
 (in-package :pr2-cloud)
 
+(defmacro with-projected-robot (&body body)
+  `(proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+      (cpl:top-level
+        ,@body)))
+
 (defun visualize-cloud-handle-and-joint ()
   (btr-utils:spawn-object 'cloud-handle-original :mug
                           :pose (strip-transform-stamped
@@ -93,6 +98,7 @@
        (desig:a motion (type moving-torso) (joint-angle 0.3))))))
 
 (defun execute-trajectory-in-projection ()
+  (move-in-projection-to-fridge)
   (let ((trajectory-in-base (local-gripper-trajectory-in-base-from-radius)))
     (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
       (cpl:top-level
@@ -103,5 +109,3 @@
                            (type moving-tcp)
                            (right-target (desig:a location (pose ?pose)))))))
               trajectory-in-base)))))
-
-

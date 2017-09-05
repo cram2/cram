@@ -32,11 +32,21 @@
 (defvar *cloud-handle-transform* nil)
 (defvar *cloud-joint-transform* nil)
 
+(defun init-connection ()
+  (kr-cloud::initialize-iai-cloud-connection)
+  (cpl:sleep 2))
+
+(defun load-trajectory-episode ()
+  (kr-cloud:load-episodes '(11) :old-db-or-new :new))
+
+(defun load-gaussian-episodes ()
+  (kr-cloud:load-episodes '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
+                            20 21 22 23 24 25 26 27)
+                          :old-db-or-new :old))
 
 (defun init ()
-  (kr-cloud::initialize-iai-cloud-connection)
-  (cpl:sleep 2)
-  (kr-cloud:load-episodes '(1) :old-db-or-new :new))
+  (init-connection)
+  (load-trajectory-episode))
 
 
 (defun cloud-handle-transform ()
@@ -79,3 +89,14 @@
               (apply-transform (cram-tf:transform-stamped-inv cloud-map-to-handle)
                                cloud-map-to-gripper))
             cloud-map-to-gripper-list)))
+
+(defun cloud-handle-to-robot-transform-distribution ()
+  (let ((cloud-map-to-handle (cloud-handle-transform)))
+    (multiple-value-bind (cloud-map-to-robot-transform-mean covariance)
+        (kr-cloud::robot-pose-distribution)
+      (values (apply-transform
+               (cram-tf:transform-stamped-inv cloud-map-to-handle)
+               cloud-map-to-robot-transform-mean)
+              (apply-transform-to-covariance-matrix
+               (cram-tf:transform-stamped-inv cloud-map-to-handle)
+               covariance)))))
