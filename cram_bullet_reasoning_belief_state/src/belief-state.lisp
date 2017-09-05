@@ -41,11 +41,28 @@
 (defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
 
+(defun replace-all (string part replacement &key (test #'char=))
+  "Returns a new string in which all the occurences of the part
+is replaced with replacement.
+  Taken from Common Lisp Cookbook."
+  (with-output-to-string (out)
+    (loop with part-length = (length part)
+          for old-pos = 0 then (+ pos part-length)
+          for pos = (search part string
+                            :start2 old-pos
+                            :test test)
+          do (write-string string out
+                           :start old-pos
+                           :end (or pos (length string)))
+          when pos do (write-string replacement out)
+            while pos)))
+
 (defun setup-world-database ()
   (let ((robot (or *robot-urdf*
                    (setf *robot-urdf*
                          (cl-urdf:parse-urdf
-                          (roslisp:get-param *robot-parameter*)))))
+                          (replace-all (roslisp:get-param *robot-parameter*) "\\" "  ")))))
+        ;; TODO get rid of replace-all and instead fix the URDF of our real PR2
         (kitchen (or *kitchen-urdf*
                      (let ((kitchen-urdf-string
                              (roslisp:get-param *kitchen-parameter* nil)))
