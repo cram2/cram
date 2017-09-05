@@ -122,7 +122,7 @@ is replaced with replacement.
     (cloud-prolog-simple
      "register_ros_package('knowrob_learning').")
     (cloud-prolog-simple
-        "owl_parse('package://knowrob_srdl/owl/PR2.owl').")
+     "owl_parse('package://knowrob_srdl/owl/PR2.owl').")
     (ecase old-db-or-new
       (:new
        (cloud-prolog-simple
@@ -133,8 +133,8 @@ is replaced with replacement.
                                   ~a, 'eus.owl')."
                 episode-ids-string)))
       (:old
-        (cloud-prolog-simple
-         "mng_db('Bring-Can-From-Fridge_pr2-bring-can_0')")
+       (cloud-prolog-simple
+        "mng_db('Bring-Can-From-Fridge_pr2-bring-can_0')")
        (cloud-prolog-simple
         (format nil
                 "load_experiments('/episodes/Bring-Can-From-Fridge/pr2-bring-can_0/', ~
@@ -256,6 +256,41 @@ is replaced with replacement.
                                             (:right cram-tf:*robot-right-tool-frame*))
                                           0.0))
             (getassoc "Samples" bindings))))
+
+
+(defun generate-distribution-files ()
+  (kr-cloud::cloud-prolog-simple
+   "findall(FeatureArr, (entity(_Act, [an, action, ['task_context', 'PerceiveAndOpenFridgeDoor']]), get_divided_subtasks_with_goal(_Act, 'RelocateSelf', _SuccInst, _), task_start(_SuccInst, B), belief_at(robot('base_link', _RobotPose), B), matrix_translation(_RobotPose, P), matrix_rotation(_RobotPose, R), append(P, R, FeatureList), jpl_list_to_array(FeatureList,FeatureArr)), FeatureSet), jpl_list_to_array(FeatureSet,FeatureArrArr), generate_feature_files(FeatureArrArr, 'positive.csv').")
+
+  (kr-cloud::cloud-prolog-simple
+   "findall(FeatureArr, (entity(_Act, [an, action, ['task_context', 'PerceiveAndOpenFridgeDoor']]), get_divided_subtasks_with_goal(_Act, 'RelocateSelf', _, _Insts), member(_I, _Insts), task_start(_I, B), belief_at(robot('base_link', _RobotPose), B), matrix_translation(_RobotPose, Position), matrix_rotation(_RobotPose, Rot), append(Position, Rot, FeatureList), jpl_list_to_array(FeatureList,FeatureArr)), FeatureSet), jpl_list_to_array(FeatureSet,FeatureArrArr), generate_feature_files(FeatureArrArr, 'negative.csv')."))
+
+(defun robot-pose-distribution ()
+  ;; (return-from robot-pose-distribution
+  ;;   (values
+  ;;    (cl-transforms-stamped:make-transform-stamped
+  ;;     "map" "base_footprint" 0.0
+  ;;     (cl-transforms:make-3d-vector 4.51077127456665d0 8.1215238571167d0 0)
+  ;;     (cl-transforms:make-identity-rotation))
+  ;;    '(0.022423092 -0.0042169616 -0.0042169616 0.007500598)))
+  (let* ((bindings
+           (kr-cloud::cloud-prolog-simple
+            "get_likely_location('/home/ros/user_data/positive.csv', 1, '/home/ros/user_data/negative.csv', 1, Mean, Cov)."))
+         (mean-binding (getassoc "Mean" bindings))
+         (covariance-binding (getassoc "Cov" bindings)))
+    (values
+     (cl-transforms-stamped:make-transform-stamped
+      cram-tf:*fixed-frame*
+      cram-tf:*robot-base-frame*
+      0.0
+      (cl-transforms:make-3d-vector (first mean-binding) (second mean-binding) 0)
+      (cl-transforms:axis-angle->quaternion
+       (cl-transforms:make-3d-vector 0 0 1)
+       (cma:degrees->radians (third mean-binding))))
+     (make-array '(2 2)
+                 :initial-contents
+                 (list (subseq covariance-binding 0 2)
+                       (subseq covariance-binding 3 5))))))
 
 
 ;; entity(Act, [an, action, ['task_context', 'MoveFridgeHandle']]),
