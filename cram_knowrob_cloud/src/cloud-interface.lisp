@@ -142,8 +142,11 @@ is replaced with replacement.
                 episode-ids-string))))
     (cloud-prolog-simple
      "owl_parse('package://knowrob_cloud_logger/owl/room73b2.owl').")
+    ;; (cloud-prolog-simple
+    ;;  "rdf_register_ns(jsk, 'http://knowrob.org/kb/room73b2.owl#', [keep(true)]).")
     (cloud-prolog-simple
-     "rdf_register_ns(map, 'http://knowrob.org/kb/room73b2.owl#', [keep(true)]).")))
+     "owl_parse('package://iai_semantic_maps/owl/kitchen.owl').")))
+;; , rdf_register_ns(iai, 'http://knowrob.org/kb/IAI-kitchen.owl#', [keep(true)])
 
 ;; grasping object: GraspExecutionCan
 ;; pregrasp pose: PreGraspPose
@@ -211,11 +214,24 @@ is replaced with replacement.
      0.0)))
 
 (defun arm-used-in-action (knowrob-task-context)
-  (getassoc "Part"
-            (cloud-prolog-simple
-             (format nil
-                     "entity(Act, [an, action, ['task_context', '~a']]), rdf_has(Act, knowrob:'bodyPartUsed', literal(type(_, Part)))."
-                     knowrob-task-context))))
+  (let* ((part-binding
+           (string-trim
+            '(#\')
+            (getassoc "Part"
+                      (cloud-prolog-simple
+                       (format nil
+                               "entity(Act, [an, action, ['task_context', '~a']]), ~
+                                rdf_has(Act, knowrob:'bodyPartUsed', literal(type(_, Part)))."
+                               knowrob-task-context)))))
+         (part-binding-in-lisp
+           (cdr (assoc part-binding
+                       '(("RARM" . :right)
+                         ("LARM" . :left))
+                       :test #'string=))))
+    (if part-binding-in-lisp
+        part-binding-in-lisp
+        (error "Arm used in action can only be LARM or RARM. We have: ~a"
+               part-binding))))
 
 (defun arm-for-grasping ()
   (getassoc "Part"
@@ -256,6 +272,27 @@ is replaced with replacement.
                                             (:right cram-tf:*robot-right-tool-frame*))
                                           0.0))
             (getassoc "Samples" bindings))))
+
+(defun gripper-projected-trajectory-during-action (arm knowrob-task-context)
+  (let ((bindings
+          (cloud-prolog-simple
+           ;; (format nil
+           ;;         "entity(OpenFridgeTask, [an, action, ['task_context', 'ReachAndOpenFridgeDoor']]), owl_individual_of(JskKitchenDoor, 'http://knowrob.org/kb/knowrob.owl#IAIFridgeDoor'), rdf_has(JskKitchenDoor, 'http://knowrob.org/kb/knowrob.owl#describedInMap', 'http://knowrob.org/kb/room73b2.owl#room73b2_1'), owl_individual_of(IaiKitchenDoor, 'http://knowrob.org/kb/knowrob.owl#IAIFridgeDoor'), rdf_has(IaiKitchenDoor, 'http://knowrob.org/kb/knowrob.owl#describedInMap', 'http://knowrob.org/kb/IAI-kitchen.owl#IAIKitchenMap_PM580j'), estimate_action_by_comparing(OpenFridgeTask, JskKitchenDoor, IaiKitchenDoor, TargetAction), apply_rule_for_adapt(OpenFridgeTask, TargetAction, RuleOut), owl_individual_of(R, knowrob:'AdaptingEpisodicMemoryData'), owl_individual_of(Door, knowrob:'IAIFridgeDoor'), rdf_has(Door, knowrob:'describedInMap', 'http://knowrob.org/kb/room73b2.owl#room73b2_1'), entity(Act, [an, action, ['task_context', 'MoveFridgeHandle']]), project_arch_trajectory_samples(Act, '/r_gripper_tool_frame', Door, R, Samples, 0.25)."
+           ;;         ;; knowrob-task-context
+           ;;         ;; (ecase arm
+           ;;         ;;   (:left cram-tf:*robot-left-tool-frame*)
+           ;;         ;;   (:right cram-tf:*robot-right-tool-frame*))
+           ;;         )
+           "nb_getval('Samples', Samples).")))
+    bindings
+    ;; (mapcar (lambda (position-and-orientation)
+    ;;           (generate-transform-stamped position-and-orientation
+    ;;                                       (ecase arm
+    ;;                                         (:left cram-tf:*robot-left-tool-frame*)
+    ;;                                         (:right cram-tf:*robot-right-tool-frame*))
+    ;;                                       0.0))
+    ;;         (getassoc "Samples" bindings))
+    ))
 
 
 (defun generate-distribution-files ()
