@@ -37,4 +37,5 @@
   <exec_depend>json_prolog</exec_depend>
   <exec_depend>pr2_description</exec_depend>
   <exec_depend>pr2_arm_kinematics</exec_depend>
+  <exec_depend>map_server</exec_depend>
 </package>
