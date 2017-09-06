@@ -74,7 +74,7 @@
     (lisp-fun cl-transforms:translation ?mean-transform ?mean)
     (location-costmap:costmap-add-function
      reachability-cm
-     (location-costmap:make-gauss-cost-function ?mean ?covariance)
+     (location-costmap:make-gauss-cost-function ?mean ?covariance 0.0)
      ?cm)
     (location-costmap:costmap-add-orientation-generator
      (make-mean-orientation-generator ?mean-transform)

@@ -32,18 +32,22 @@
 (defvar *local-handle-transform* nil)
 (defvar *local-joint-transform* nil)
 
+(defparameter *offset* 0.0d0)
+
 (defun local-handle-transform ()
   (or *local-handle-transform*
       (multiple-value-bind (handle joint)
           (robust-local-handle-and-joint-transform)
         (setf *local-joint-transform* joint)
-        (setf *local-handle-transform* handle))))
+        (setf *local-handle-transform* (translate-transform-stamped
+                                        handle :x-offset *offset*)))))
 
 (defun local-joint-transform ()
   (or *local-joint-transform*
       (multiple-value-bind (handle joint)
           (robust-local-handle-and-joint-transform)
-        (setf *local-handle-transform* handle)
+        (setf *local-handle-transform* (translate-transform-stamped
+                                        handle :x-offset *offset*))
         (setf *local-joint-transform* joint))))
 
 (defun robust-local-handle-and-joint-transform ()

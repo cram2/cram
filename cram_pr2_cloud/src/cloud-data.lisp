@@ -34,7 +34,7 @@
 
 (defun init-connection ()
   (kr-cloud::initialize-iai-cloud-connection)
-  (cpl:sleep 2))
+  (cpl:sleep 5))
 
 (defun load-trajectory-episode ()
   (kr-cloud:load-episodes '(11) :old-db-or-new :new))
@@ -84,7 +84,8 @@
 (defun cloud-handle-to-gripper-transforms (&optional (action "MoveFridgeHandle"))
   (let ((cloud-map-to-handle (cloud-handle-transform))
         (cloud-map-to-gripper-list
-          (kr-cloud::gripper-trajectory-during-action :right action)))
+          ;; (kr-cloud::gripper-trajectory-during-action :right action)
+          (kr-cloud::gripper-projected-trajectory-during-action :right action)))
     (mapcar (lambda (cloud-map-to-gripper)
               (apply-transform (cram-tf:transform-stamped-inv cloud-map-to-handle)
                                cloud-map-to-gripper))
