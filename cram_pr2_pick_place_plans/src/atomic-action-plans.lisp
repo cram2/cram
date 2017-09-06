@@ -137,3 +137,16 @@
      (desig:a motion
               (type looking)
               (target (desig:a location (pose ?pose)))))))
+
+(cpl:def-cram-function navigate (?location-designator)
+  (cpl:with-retry-counters ((nav-retries 2))
+    (cpl:with-failure-handling
+        ((common-fail:navigation-low-level-failure (e)
+           (roslisp:ros-warn (pick-and-place go)
+                             "Some low-level failure happened: ~a"
+                             e)
+           (cpl:do-retry nav-retries
+             (roslisp:ros-warn (pick-and-place go) "Retrying...")
+             (cpl:retry))))
+      (exe:perform
+       (desig:a motion (type going) (target ?location-designator))))))
