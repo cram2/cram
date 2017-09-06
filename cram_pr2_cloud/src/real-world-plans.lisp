@@ -58,34 +58,40 @@
        (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
 
 (defun move-to-point-from-distribution ()
-  (exe:perform
-   (let ((?pose (pose-to-reach-fridge)))
-     (desig:a motion (type going) (target (desig:a location (pose ?pose)))))))
+  (let ((?pose (pose-to-reach-fridge)))
+    (exe:perform
+     (desig:an action (type going) (target (desig:a location (pose ?pose)))))))
 
 (defun open-fridge-using-trajectory ()
-  ;; TODO: which are to use?
-  (let ((trajectory (local-gripper-trajectory-in-base-filtered "MoveFridgeHandle")))
+  (let* ((trajectory (local-gripper-trajectory-in-base-filtered "MoveFridgeHandle"))
+         (?arm (kr-cloud::arm-used-in-action "OpenFridge"))
+         (?target (ecase ?arm (:left :left-target) (:right :right-target))))
 
     (exe:perform
-     (desig:an action (type opening) (gripper right)))
+     (desig:an action (type opening) (gripper ?arm)))
+
+    (cpl:with-retry-counters ((reach-retry 5))
+      (cpl:with-failure-handling
+          ((common-fail:low-level-failure (e)
+             (roslisp:ros-warn (pr2-cloud open-fridge) "~a" e)
+             (cpl:do-retry reach-retry
+               (cpl:retry))))
+        (let ((?pose (strip-transform-stamped (first trajectory))))
+                  (exe:perform
+                   (desig:a motion
+                            (type moving-tcp)
+                            (?target (desig:a location (pose ?pose))))))))
 
     (exe:perform
-     (let ((?pose (strip-transform-stamped (first trajectory))))
-       (desig:a motion
-                (type moving-tcp)
-                (right-target (desig:a location (pose ?pose))))))
-
-    (cpl:sleep 1)
-
-    (exe:perform
-     (desig:an action (type closing) (gripper right)))
-
-    (cpl:sleep 1)
+     (desig:an action (type closing) (gripper ?arm)))
 
     (mapcar (lambda (transform)
               (cpl:with-failure-handling
                   ((common-fail:actionlib-action-timed-out (e)
                      (format t "Action timed out: ~a~%Ignoring...~%" e)
+                     (return))
+                   (common-fail:manipulation-low-level-failure (e)
+                     (format t "Manipulation failed: ~a~%Ignoring...~%" e)
                      (return))
                    (common-fail:manipulation-pose-unreachable (e)
                      (format t "Pose was unreachable: ~a~%Ignoring...~%" e)
@@ -94,11 +100,11 @@
                  (let ((?pose (strip-transform-stamped transform)))
                    (desig:a motion
                             (type moving-tcp)
-                            (right-target (desig:a location (pose ?pose))))))))
+                            (?target (desig:a location (pose ?pose))))))))
             (cdr trajectory))
 
     (exe:perform
-     (desig:an action (type opening) (gripper right)))))
+     (desig:an action (type opening) (gripper ?arm)))))
 
 ;;; arms down
 ;; (exe:perform (desig:an action
