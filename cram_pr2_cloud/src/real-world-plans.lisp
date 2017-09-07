@@ -52,18 +52,27 @@
 
 (defun test-manipulation ()
   (with-real-robot
-    (exe:perform
-     (let ((?pose (strip-transform-stamped
-                   (car (subseq (local-gripper-trajectory-in-base "MoveFridgeHandle") 23)))))
+    (let ((?pose (local-robot-pose-in-map-from-handle)))
+     (exe:perform
+      (desig:an action (type going) (target (desig:a location (pose ?pose))))))
+    (let ((?pose (strip-transform-stamped
+                  (car (subseq (local-gripper-trajectory-in-base "MoveFridgeHandle") 23)))))
+      (exe:perform
        (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
 
 (defun move-to-point-from-distribution ()
-  (let ((?pose (pose-to-reach-fridge)))
+  (let ((?pose (strip-transform-stamped
+                (local-robot-pose-in-map-from-handle)) ;; (pose-to-reach-fridge)
+               ))
     (exe:perform
      (desig:an action (type going) (target (desig:a location (pose ?pose)))))))
 
-(defun open-fridge-using-trajectory ()
-  (let* ((trajectory (local-gripper-trajectory-in-base-filtered "MoveFridgeHandle"))
+(defun open-fridge-using-trajectory (&key (trajectory :original))
+  (let* ((trajectory (ecase trajectory
+                       (:original
+                        (local-gripper-trajectory-in-base-filtered "MoveFridgeHandle"))
+                       (:projected
+                        (local-gripper-projected-trajectory-in-base-filtered "MoveFridgeHandle"))))
          (?arm (kr-cloud::arm-used-in-action "OpenFridge"))
          (?target (ecase ?arm (:left :left-target) (:right :right-target))))
 
@@ -77,6 +86,7 @@
              (cpl:do-retry reach-retry
                (cpl:retry))))
         (let ((?pose (strip-transform-stamped (first trajectory))))
+          (cram-pr2-low-level:visualize-marker ?pose)
                   (exe:perform
                    (desig:a motion
                             (type moving-tcp)

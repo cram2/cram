@@ -55,6 +55,7 @@
    (kr-cloud:local-semantic-map-object-transform "IAIFridgeDoorHandle")
    (kr-cloud:local-semantic-map-object-transform "HingedJoint")))
 
+;; direct robot pose
 
 (defun local-robot-pose-in-map-from-joint (&optional (before-action "MoveFridgeHandle"))
   (let ((local-map-to-joint (local-joint-transform))
@@ -66,6 +67,8 @@
         (cloud-handle-to-robot (cloud-handle-to-robot-transform before-action)))
     (apply-transform local-map-to-handle cloud-handle-to-robot)))
 
+;; trajectory
+
 (defun local-gripper-trajectory-in-map (&optional (action "MoveFridgeHandle"))
   (let ((local-map-to-handle (local-handle-transform))
         (cloud-handle-to-gripper-list (cloud-handle-to-gripper-transforms action)))
@@ -75,8 +78,9 @@
 
 (defun local-gripper-trajectory-in-base (&optional (action "MoveFridgeHandle"))
   (let ((local-map-to-gripper-list (local-gripper-trajectory-in-map action))
-        (local-map-to-robot (current-robot-transform) ;; (local-robot-pose-in-map-from-handle)
-                            ))
+        (local-map-to-robot (current-robot-transform)))
+    (visualize-trajectory (subseq (mapcar #'strip-transform-stamped local-map-to-gripper-list)
+                                  26 42))
     (mapcar (lambda (local-map-to-gripper)
               (apply-transform (cram-tf:transform-stamped-inv local-map-to-robot)
                                local-map-to-gripper))
@@ -84,8 +88,36 @@
 
 (defun local-gripper-trajectory-in-base-filtered (&optional (action "MoveFridgeHandle"))
   (filter-trajectory-of-big-rotations
-   (subseq (local-gripper-trajectory-in-base action) 23)
+   (subseq (local-gripper-trajectory-in-base action) 26 42)
    0.1))
+
+;; projected trajectory
+
+(defun local-gripper-projected-trajectory-in-map (&optional (action "MoveFridgeHandle"))
+  (let ((local-map-to-joint (local-joint-transform))
+        (cloud-joint-to-gripper-list (cloud-joint-to-gripper-transforms action)))
+    (mapcar (lambda (cloud-joint-to-gripper)
+              (apply-transform local-map-to-joint cloud-joint-to-gripper))
+            cloud-joint-to-gripper-list)))
+
+(defun local-gripper-projected-trajectory-in-base (&optional (action "MoveFridgeHandle"))
+  (let ((local-map-to-gripper-list (local-gripper-projected-trajectory-in-map action))
+        (local-map-to-robot (current-robot-transform)))
+    (visualize-trajectory (subseq (mapcar #'strip-transform-stamped local-map-to-gripper-list)
+                                  26 42))
+    (mapcar (lambda (local-map-to-gripper)
+              (apply-transform (cram-tf:transform-stamped-inv local-map-to-robot)
+                               local-map-to-gripper))
+            local-map-to-gripper-list)))
+
+(defun local-gripper-projected-trajectory-in-base-filtered (&optional (action "MoveFridgeHandle"))
+  (mapcar (lambda (transform)
+            (translate-transform-stamped transform :z-offset 0.1))
+          (filter-trajectory-of-big-rotations
+           (subseq (local-gripper-projected-trajectory-in-base action) 26 42)
+           0.1)))
+
+;; distribution
 
 (defun local-handle-to-robot-transform-distribution ()
   (let ((local-map-to-handle (local-handle-transform)))
