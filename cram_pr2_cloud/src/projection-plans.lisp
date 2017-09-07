@@ -52,13 +52,13 @@
   (btr-utils:kill-all-objects)
   (let ((i 0))
     (dolist (pose poses)
-      (btr-utils:spawn-object
-       (intern (format nil "fork-~a" i) :keyword)
-       :fork
-       :pose pose)
+      ;; (btr-utils:spawn-object
+      ;;  (intern (format nil "fork-~a" i) :keyword)
+      ;;  :fork
+      ;;  :pose pose)
       (btr-utils:spawn-object
        (intern (format nil "apple-~a" i) :keyword)
-       :apple
+       :cereal
        :pose pose)
       (incf i))))
 

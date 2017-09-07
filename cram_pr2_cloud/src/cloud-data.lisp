@@ -45,6 +45,10 @@
                           :old-db-or-new :old))
 
 (defun init ()
+  (setf *cloud-handle-transform* nil)
+  (setf *cloud-joint-transform* nil)
+  (setf *local-handle-transform* nil)
+  (setf *local-joint-transform* nil)
   (init-connection)
   (load-trajectory-episode))
 
@@ -84,10 +88,18 @@
 (defun cloud-handle-to-gripper-transforms (&optional (action "MoveFridgeHandle"))
   (let ((cloud-map-to-handle (cloud-handle-transform))
         (cloud-map-to-gripper-list
-          ;; (kr-cloud::gripper-trajectory-during-action :right action)
-          (kr-cloud::gripper-projected-trajectory-during-action :right action)))
+          (kr-cloud::gripper-trajectory-during-action :right action)))
     (mapcar (lambda (cloud-map-to-gripper)
               (apply-transform (cram-tf:transform-stamped-inv cloud-map-to-handle)
+                               cloud-map-to-gripper))
+            cloud-map-to-gripper-list)))
+
+(defun cloud-joint-to-gripper-transforms (&optional (action "MoveFridgeHandle"))
+  (let ((cloud-map-to-joint (cloud-joint-transform))
+        (cloud-map-to-gripper-list
+          (kr-cloud::gripper-projected-trajectory-during-action :right action)))
+    (mapcar (lambda (cloud-map-to-gripper)
+              (apply-transform (cram-tf:transform-stamped-inv cloud-map-to-joint)
                                cloud-map-to-gripper))
             cloud-map-to-gripper-list)))
 
