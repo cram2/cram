@@ -152,7 +152,7 @@ is replaced with replacement.
 ;; pregrasp pose: PreGraspPose
 
 (defun generate-transform-stamped (pose-list child-frame stamp)
-  (destructuring-bind ((x y z) (w q1 q2 q3))
+  (destructuring-bind ((x y z) (q1 q2 q3 w))
       pose-list
     (cl-transforms-stamped:make-transform-stamped
      cram-tf:*fixed-frame*
@@ -162,7 +162,7 @@ is replaced with replacement.
      (cl-transforms:make-quaternion q1 q2 q3 w))))
 
 (defun generate-pose-stamped (pose-list stamp)
-  (destructuring-bind ((x y z) (w q1 q2 q3))
+  (destructuring-bind ((x y z) (q1 q2 q3 w))
       pose-list
     (cl-transforms-stamped:make-pose-stamped
      cram-tf:*fixed-frame*
@@ -189,7 +189,7 @@ is replaced with replacement.
   (let ((bindings
           (cloud-prolog-simple
            (format nil
-                   "owl_individual_of(Object, knowrob:'~a'), current_object_pose(Object, [X, Y, Z, W, Q1, Q2, Q3]), =(Pose, [[X, Y, Z], [W, Q1, Q2, Q3]])."
+                   "owl_individual_of(Object, knowrob:'~a'), current_object_pose(Object, [X, Y, Z, Q1, Q2, Q3, W]), =(Pose, [[X, Y, Z], [Q1, Q2, Q3, W]])."
                    knowrob-class-name))))
     (generate-transform-stamped
      (getassoc "Pose" bindings)
@@ -204,7 +204,7 @@ is replaced with replacement.
   (let ((bindings
           (car (json-prolog:prolog-simple-1
                 (format nil
-                        "owl_individual_of(O, knowrob:'~a'), current_object_pose(O, [X, Y, Z, W, Q1, Q2, Q3]), =(P, [[X, Y, Z], [W, Q1, Q2, Q3]])."
+                        "owl_individual_of(O, knowrob:'~a'), current_object_pose(O, [X, Y, Z, Q1, Q2, Q3, W]), =(P, [[X, Y, Z], [Q1, Q2, Q3, W]])."
                         knowrob-class-name)
                 :mode 1
                 :package :kr-cloud))))
@@ -283,16 +283,14 @@ is replaced with replacement.
            ;;         ;;   (:left cram-tf:*robot-left-tool-frame*)
            ;;         ;;   (:right cram-tf:*robot-right-tool-frame*))
            ;;         )
-           "nb_getval('Samples', Samples).")))
-    bindings
-    ;; (mapcar (lambda (position-and-orientation)
-    ;;           (generate-transform-stamped position-and-orientation
-    ;;                                       (ecase arm
-    ;;                                         (:left cram-tf:*robot-left-tool-frame*)
-    ;;                                         (:right cram-tf:*robot-right-tool-frame*))
-    ;;                                       0.0))
-    ;;         (getassoc "Samples" bindings))
-    ))
+           "read_arch_traj(Samples).")))
+    (mapcar (lambda (position-and-orientation)
+              (generate-transform-stamped position-and-orientation
+                                          (ecase arm
+                                            (:left cram-tf:*robot-left-tool-frame*)
+                                            (:right cram-tf:*robot-right-tool-frame*))
+                                          0.0))
+            (getassoc "Samples" bindings))))
 
 
 (defun generate-distribution-files ()
