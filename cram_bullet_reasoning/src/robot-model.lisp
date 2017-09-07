@@ -375,7 +375,7 @@ current joint states"
         (cl-transforms:make-3d-vector 0 0 0)
         (cl-transforms:axis-angle->quaternion
          (cl-urdf:axis joint)
-         value)))
+         (* value 1.0d0))))
     (:prismatic
        (cl-transforms:make-transform
         (cl-transforms:v* (cl-urdf:axis joint) value)
