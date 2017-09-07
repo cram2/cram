@@ -48,8 +48,8 @@
                (setf goal-right (list goal-right)))
              (let ((max-length (max (length goal-left) (length goal-right))))
                (mapc (lambda (single-pose-left single-pose-right)
-                       (pr2-ll:visualize-marker (list single-pose-left single-pose-right)
-                                                :r-g-b-list '(1 0 1))
+                       ;; (pr2-ll:visualize-marker (list single-pose-left single-pose-right)
+                       ;;                          :r-g-b-list '(1 0 1))
                        (pr2-ll:call-giskard-cartesian-action :left single-pose-left
                                                              :right single-pose-right))
                      (fill-in-with-nils goal-left max-length)
