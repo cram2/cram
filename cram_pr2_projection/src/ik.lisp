@@ -211,7 +211,7 @@
              (concatenate 'string (getf *ik-service-namespaces* left-or-right) "/get_fk")
              "moveit_msgs/GetPositionFK"
              (roslisp:make-request
-              "moveit_msgs/GetPositionFK"
+              'moveit_msgs-srv:getpositionfk
               (:frame_id :header) fk-base-frame
               :fk_link_names (or link-names-vector (get-fk-links left-or-right))
               (:joint_state :robot_state) ;; (make-current-seed-state left-or-right)
