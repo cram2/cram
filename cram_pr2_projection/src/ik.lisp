@@ -62,7 +62,7 @@
                  (concatenate 'string
                               (getf *ik-service-namespaces* left-or-right)
                               "/get_ik_solver_info")
-                 "moveit_msgs/GetKinematicSolverInfo")
+                 "pr2_arm_kinematics/GetKinematicSolverInfo")
               kinematic_solver_info))))
 
 (defun get-ik-solver-joints (left-or-right)
@@ -83,7 +83,7 @@
                  (concatenate 'string
                               (getf *ik-service-namespaces* left-or-right)
                               "/get_fk_solver_info")
-                 "moveit_msgs/GetKinematicSolverInfo")
+                 "pr2_arm_kinematics/GetKinematicSolverInfo")
               kinematic_solver_info))))
 
 (defun get-fk-solver-joints (left-or-right)

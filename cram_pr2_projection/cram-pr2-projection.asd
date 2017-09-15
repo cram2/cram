@@ -47,7 +47,10 @@
                cram-common-failures
                cram-process-modules
                alexandria ; for CURRY in low-level perception
-               )
+               moveit_msgs-msg
+               moveit_msgs-srv
+               pr2_arm_kinematics-msg
+               pr2_arm_kinematics-srv)
   :components
   ((:module "src"
     :components

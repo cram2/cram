@@ -13,5 +13,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!-- <depend>alexandria</depend> -->
+  <depend>pr2_arm_kinematics</depend>
+  <depend>moveit_msgs</depend>
 </package>
