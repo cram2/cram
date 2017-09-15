@@ -1,0 +1,7 @@
+@deftp {Class} {antik:physical-quantity}
+@tindex antik:physical-quantity
+Class precedence list: @code{@lw{physical-quantity}, @lw{standard-object}, @lw{t}}
+
+A quantity with a dimension and possibly a unit,
+  e.g. length or meter.
+@end deftp

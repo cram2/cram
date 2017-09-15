@@ -1,0 +1,4 @@
+@deffn {Function} {grid:cl-cffi} cl-type
+@findex grid:cl-cffi
+The @code{cffi} element type from the @code{cl} type.
+@end deffn

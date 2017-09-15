@@ -1,0 +1,4 @@
+@deffn {Function} {grid:dim1} object
+@findex grid:dim1
+The second dimension of the object.
+@end deffn

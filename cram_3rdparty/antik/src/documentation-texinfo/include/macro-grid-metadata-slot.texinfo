@@ -1,0 +1,4 @@
+@deffn {Macro} {grid:metadata-slot} object name
+@findex grid:metadata-slot
+Access a slot in the foreign-metadata.
+@end deffn

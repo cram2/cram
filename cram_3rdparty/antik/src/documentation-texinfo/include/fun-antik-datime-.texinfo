@@ -1,0 +1,4 @@
+@deffn {Function} {antik:datime-} datime1 b
+@findex antik:datime-
+The difference of the datimes, or subtract a time from a datime.
+@end deffn

@@ -1,0 +1,4 @@
+@defvr {Variable} {antik:*cgsu*}
+@vindex antik:*cgsu*
+The @code{cgs} system of units.
+@end defvr

@@ -1,0 +1,79 @@
+<html lang="en">
+<head>
+<title>map-n-grids - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Mapping.html#Mapping" title="Mapping">
+<link rel="prev" href="map_002dgrid.html#map_002dgrid" title="map-grid">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="map-n-grids"></a>
+<a name="map_002dn_002dgrids"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="map_002dgrid.html#map_002dgrid">map-grid</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Mapping.html#Mapping">Mapping</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.3.5.3 map-n-grids</h5>
+
+<div class="defun">
+&mdash; Function: <b>grid:map-n-grids</b><var> &amp;key sources destination destination-affi destination-specification initial-element element-functions combination-function combine-destination<a name="index-grid_003amap_002dn_002dgrids-221"></a></var><br>
+<blockquote><p><a name="index-grid_003amap_002dn_002dgrids-222"></a>Map on multiple source grids.  The arguments are:
+   sources:
+     A list of (grid-or-function affi), each one representing
+     either a grid or function from which data will be drawn. 
+     If it is a grid, the grid values are used.  If it is a function
+     of the appropriate number of non-negative integer arguments,
+     values will be created by calling that function on the indices. 
+     If affi is not specified and grid-or-function is a grid, the affi
+     will default to the <code>affi</code> of that grid.
+
+          <dl>
+<dt><em>destination:</em><dd>     A grid in which to put the results, or nil if one is
+     to be created.
+
+          <br><dt><em>destination-affi:</em><dd>     An <code>affi</code> for the destinattion.
+
+          <br><dt><em>destination-specification:</em><dd>     A specification for the destination, if destination-affi
+     is not given.
+
+          <br><dt><em>initial-element:  Initial value to give to the destination grid.</em><dt><em>element-functions:</em><dd>     A list of functions or nil, one for each source.  This function
+     is applied to the source element before combination.
+
+          <br><dt><em>combination-function:</em><dd>     A function that combines each of the source values after
+     being passed through the element-functions.  If nil,
+     then just take the value from the first source.
+
+          <br><dt><em>combine-destination:</em><dd>     If true, pass as the first argument to the combination-function
+     the prior value of the destination grid.  Defaults to <code>t</code> if
+     :desination is specified; otherwise nil. 
+</dl>
+
+     </blockquote></div>
+   This is a more general form of <code>map-grid</code> which can take multiple
+source grids, instead of only one. 
+For example, combine arrays a and b as a+2b:
+<pre class="example">     (map-n-grids :sources `((,#31m(1 2 3) nil) (,#31m(9 8 7) nil))
+                  :combination-function (lambda (a b) (+ a (* 2 b))))
+</pre>
+   </body></html>
+

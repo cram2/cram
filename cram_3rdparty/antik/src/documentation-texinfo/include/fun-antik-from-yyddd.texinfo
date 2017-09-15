@@ -1,0 +1,4 @@
+@deffn {Function} {antik:from-yyddd} yy-or-yyddd @&key ddd scale hours minutes seconds
+@findex antik:from-yyddd
+Read datime from yyddd.ddddd or yy, ddd.ddddd format.
+@end deffn

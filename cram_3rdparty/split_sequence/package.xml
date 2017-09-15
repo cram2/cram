@@ -1,0 +1,25 @@
+<package>
+  <name>split_sequence</name>
+  <version>0.3.0</version>
+  <!-- external-version>0.20011114.1</external-version-->
+  <description>
+    3rd party library: split-sequence
+  </description>
+
+  <author>James Bielman</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>Public Domain</license>
+
+  <url type="website">http://www.cliki.net/SPLIT-SEQUENCE</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <!--external-version>split-sequence-1.2</external-version-->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+
+  <run_depend>sbcl</run_depend>
+</package>

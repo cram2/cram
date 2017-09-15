@@ -1,0 +1,6 @@
+@deffn {Function} {antik:rotate-3daa} rotation-axis angle @&optional passive
+@findex antik:rotate-3daa
+Rotation about an arbitrary axis in @code{3d}.
+   See Goldstein, Poole, Safko (4.62) or
+   http://mathworld.wolfram.com/RotationFormula.html.
+@end deffn

@@ -1,0 +1,7 @@
+@deffn {Function} {antik:norm-denorm-angle} angle function @&optional positive
+@findex antik:norm-denorm-angle
+Normalize an angle, process it, and denormalize it back to the
+   original cycle count.  This is useful for e.g. Kepler's equation,
+   where the normalized angle is needed to for the algorithm to
+   converge properly, but the full cycles are needed for f @code{&} g functions.
+@end deffn

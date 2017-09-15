@@ -1,0 +1,5 @@
+@deffn {Function} {antik:coplanar} vect1-or-matrix @&optional vect2 vect3
+@findex antik:coplanar
+The cosine of the angle between vect1 and the cross product of vect2 and vect3.
+   This should be near zero if the vectors are coplanar.
+@end deffn

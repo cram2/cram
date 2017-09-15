@@ -1,0 +1,4 @@
+@deffn {Function} {grid:all-types} alist @&optional right-side
+@findex grid:all-types
+A list of all types defined by symbol or definition.
+@end deffn

@@ -1,0 +1,8 @@
+@deffn {Function} {grid:elementwise} function @&optional toggle-physical-dimension
+@findex grid:elementwise
+Make a function on a grid as an elementwise map of a scalar function.  If the result has no physical dimension but the argument does, or vice versa, toggle-physical-dimension should be @code{T}.
+@example
+(funcall (grid:elementwise 'sqrt) #(1.0d0 2.0d0 3.0d0 4.0d0))
+#(1.0 1.4142135623730951 1.7320508075688772 2.0)
+@end example
+@end deffn

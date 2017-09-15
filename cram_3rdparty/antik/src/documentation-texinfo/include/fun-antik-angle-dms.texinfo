@@ -1,0 +1,7 @@
+@deffn {Function} {antik:angle-dms} degrees-or-hours minutes seconds @&optional hours
+@findex antik:angle-dms
+Read the angle as degrees (or hours), minutes and seconds.
+   With hours=T computes the hour angle, where a minute is 1/60 of
+   @code{15} degrees instead of 1/60 of @code{1} degree.  This option is the inverse of 
+   angle-as-time.
+@end deffn

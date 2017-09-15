@@ -1,0 +1,6 @@
+@deffn {Function} {antik:dtspec-from-julian-day-number} julian-day-number @&optional modified
+@findex antik:dtspec-from-julian-day-number
+Find the dtspec for the given (modified) Julian day.
+   Algorithm given in
+   http://www.pauahtun.org/CalendarFAQ/cal/node3.html#SECTION003151000000000000000.
+@end deffn

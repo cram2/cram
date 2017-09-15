@@ -1,0 +1,14 @@
+The following features are missing from GSLL:
+
+All file input and output (fread, fwrite) functions.
+All submatrix functions and views.
+Stride is usually set to 1 in GSL functions that take a stride.
+
+*******************
+Wishlist
+Be able to set the real and imaginary parts of an array to a real
+array. 
+
+
+Unify names for sampling Sat Feb 21 2009
+Polynomial coefficients solver vs. evaluator Sat Feb 21 2009

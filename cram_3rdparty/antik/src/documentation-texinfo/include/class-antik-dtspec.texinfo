@@ -1,0 +1,6 @@
+@deftp {Class} {antik:dtspec}
+@tindex antik:dtspec
+Class precedence list: @code{@lw{dtspec}, @lw{standard-object}, @lw{t}}
+
+Specification of date and time, without an assigned scale.
+@end deftp

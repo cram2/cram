@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:dimensionless-call} function answer-dimension @&rest arguments
+@findex antik:dimensionless-call
+Call a function that is incapable of handling physical dimension quantities.  This macro will consistently remove the units from all arguments, then create the answer with the specified units.
+@end deffn

@@ -1,0 +1,4 @@
+@deffn {Function} {antik:redimension} magnitude unit-expression
+@findex antik:redimension
+Apply units that were stripped off a quantity.
+@end deffn

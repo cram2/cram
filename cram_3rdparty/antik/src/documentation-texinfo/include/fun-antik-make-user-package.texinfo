@@ -1,0 +1,6 @@
+@deffn {Function} {antik:make-user-package} name
+@findex antik:make-user-package
+Make a package in which it is convenient to use Antik and related systems.
+     If the package already exists, the use-packages and shadowing
+     symbols are updated.
+@end deffn

@@ -1,0 +1,61 @@
+<html lang="en">
+<head>
+<title>Optimization - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Mathematics.html#Mathematics" title="Mathematics">
+<link rel="prev" href="Linear-Algebra.html#Linear-Algebra" title="Linear Algebra">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Optimization"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Linear-Algebra.html#Linear-Algebra">Linear Algebra</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Mathematics.html#Mathematics">Mathematics</a>
+<hr>
+</div>
+
+<h3 class="section">9.2 Optimization</h3>
+
+<p><a name="index-Mathematical-optimization-438"></a><a name="index-Optimization_002c-mathematical-439"></a><a name="index-Functions_002c-mathematical-optimization-440"></a>These functions require that GSLL be loaded.
+
+<div class="defun">
+&mdash; Function: <b>antik:maximize-1d</b><var> function x-lower x-upper &amp;optional x-maximum absolute-error relative-error method<a name="index-antik_003amaximize_002d1d-441"></a></var><br>
+<blockquote><p><a name="index-antik_003amaximize_002d1d-442"></a>Find the maximum of the function of one variable (x) between x-lower
+   and x-upper. The optional argument x-maximum is a guess of x for the
+   maximum value of the function.  Returns the argument and value at the maximum. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:minimize-1d</b><var> function x-lower x-upper &amp;optional x-minimum absolute-error relative-error method<a name="index-antik_003aminimize_002d1d-443"></a></var><br>
+<blockquote><p><a name="index-antik_003aminimize_002d1d-444"></a>Find the minimum of the function of one variable (x) between x-lower
+   and x-upper. The optional argument x-minimum is a guess of x for the
+   minimum value of the function.  Returns the argument and value at the minimum. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:root-1d</b><var> function initial derivative &amp;optional absolute-error relative-error method<a name="index-antik_003aroot_002d1d-445"></a></var><br>
+<blockquote><p><a name="index-antik_003aroot_002d1d-446"></a>Find the root of a real function of a real variable.  Returns the
+   argument value of the root and the computed value of the function at
+   that value.  The argument and return values may be physical quantities. 
+</p></blockquote></div>
+
+   </body></html>
+

@@ -1,0 +1,7 @@
+@deffn {Function} {antik:read-timepoint-iso8601} string @&optional scale
+@findex antik:read-timepoint-iso8601
+Read the timepoint specified as an @code{iso8601} string.  In contrast
+   to #'read-timepoint, this accepts the various rearrangements
+   permitted by @code{iso8601} (see documentation for #'iso8601-parse,
+   but does not accept miscellaneous separator symbols.
+@end deffn

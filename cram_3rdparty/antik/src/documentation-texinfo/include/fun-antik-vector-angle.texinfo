@@ -1,0 +1,4 @@
+@deffn {Function} {antik:vector-angle} a b
+@findex antik:vector-angle
+The short angle between a and b, and the rotation vector.
+@end deffn

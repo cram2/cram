@@ -1,0 +1,9 @@
+@deffn {Function} {grid:make-foreign-array-from-pointer} pointer dimensions element-type @&optional finalize
+@findex grid:make-foreign-array-from-pointer
+Given a foreign pointer to an array, make a Lisp object of 
+   class 'foreign-array that references that.  This will never
+   make a static-vector.  If finalize is true, than the array
+   memory will be freed when this object is garbage collected;
+   otherwise it is presumed that the foreign code will handle
+   that job.
+@end deffn

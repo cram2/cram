@@ -1,0 +1,7 @@
+@deffn {Generic Function} {grid:dimensions} grid
+@findex grid:dimensions
+A list representing the dimensions of the generalized array.
+@end deffn
+@deffn {Method} {grid:dimensions} (foreign-array foreign-array)
+automatically generated reader method
+@end deffn

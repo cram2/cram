@@ -1,0 +1,7 @@
+@defvr {Variable} {grid:*cstd-cl-type-mapping*}
+@vindex grid:*cstd-cl-type-mapping*
+An alist of the @code{c} standard types as keywords, and the @code{cl} type
+   The exception is complex types, which don't have a definition
+   in the @code{c} standard; in that case, the @code{c} type is the foreign struct
+   definition.
+@end defvr

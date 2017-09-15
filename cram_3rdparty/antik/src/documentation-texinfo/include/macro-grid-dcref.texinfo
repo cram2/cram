@@ -1,0 +1,4 @@
+@deffn {Macro} {grid:dcref} double @&optional index
+@findex grid:dcref
+Reference @code{c} double(s).
+@end deffn

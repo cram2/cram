@@ -1,0 +1,1728 @@
+\input texinfo
+@c -*-texinfo-*-
+@c %**start of header
+@setfilename antik.info
+@settitle Antik Manual
+@c %**end of header
+
+@macro &optional {}
+&optional
+@end macro
+@macro &key {}
+&key
+@end macro
+@macro &rest {}
+&rest
+@end macro
+@macro &body {}
+&body
+@end macro
+@macro &allow-other-keys {}
+&allow-other-keys
+@end macro
+
+@macro nil {} @code{nil}
+@end macro
+
+@include macros.texinfo
+
+@copying
+Copyright @copyright{} 2009, 2010, 2011, 2013 Liam M. Healy
+@end copying
+
+@titlepage
+@title Antik
+@page
+@vskip 0pt plus 1filll
+@c@insertcopying@node
+@end titlepage
+
+@ifnottex
+@node Top, Introduction, (dir), (dir)
+@comment  node-name, next,      previous,  up
+@menu
+* Introduction::
+* Mathematics::
+* Organization of Computation::
+* Grids::                       
+* Physical Quantities::         
+* Numerical Output Format::
+* Mathematical Utility::
+* Three Dimensional Space::
+* Mathematics::
+* Internals::                   
+* Download and installation::   
+* Copying this software::                     
+* Index::
+@end menu
+@c Removed the "detailed menu" (at end of this file) because it's too much clutter.
+
+@top Antik
+
+This is the manual for the use of Antik, which provides a foundation for
+scientific and engineering computing in Common Lisp.
+
+@insertcopying
+@end ifnottex
+
+@c Output the table of the contents at the beginning.
+@contents
+
+@node Introduction, Mathematics, Top, Top
+@chapter Introduction
+@cindex GSLL
+
+Antik provides a foundation for scientific and engineering computation in Common Lisp.  It is designed not only to facilitate numerical computations, but to permit the use of numerical computation libraries and the interchange of data and procedures, whether foreign (non-lisp) or Lisp libraries.  Notably, @url{http://common-lisp.net/project/gsll/,GSLL} provides an interface to the @url{http://www.gnu.org/software/gsl/,GNU Scientific Library} and is based on Antik.
+
+There are two Common Lisp @url{http://www.lispworks.com/documentation/HyperSpec/Body/11_aa.htm, packages}
+defined by Antik, @code{antik} and @code{grid}.  Names within these packages have been chosen to match Common Lisp names where the corresponding function could be considered a generalization of the CL function.  Therefore, @url{http://www.lispworks.com/documentation/HyperSpec/Body/f_shadow.htm#shadow,shadow}ing is used to make sure that within the @code{antik} package and packages that use it, a reference to the symbol will use the Antik definition and not the CL definition.  
+
+Antik is designed and developed to provide a common foundation and interoperability between scientific, engineering and mathematical libraries, whether in Lisp or not.  Interoperability means that objects created can easily be passed to one or more libraries, and libraries can be mixed and combined to solve a problem.  It also means that names of like functions will be the same, differening only in the package.  For example, if systems @code{foo} and @code{bar} both provide an LU decomposition, that function will be @code{foo:lu-decomposition} in one and @code{bar:lu-decomposition} in the other.  Should a user wish to compare or switch libraries in such a function call, it is a simple matter of changing the package.  If a whole library should be switched, the names can be used without a package prefix and the use-package form changed.  This makes it easy to compare results, and select and mix the best libraries for a calculation.
+
+There is a package defined for users to use Antik, @code{antik-user}.  All the appropriate symbols are shadowed.  It @url{http://www.lispworks.com/documentation/HyperSpec/Body/f_use_pk.htm#use-package,use}es the packages @code{common-lisp}, @code{grid}, @code{antik}, and @code{iterate}.  To make another package with the same use and shadowing properties, call the function @code{antik:make-user-package}.
+
+@include include/fun-antik-make-user-package.texinfo
+
+There are several (ASDF) systems that comprise Antik, and, those systems can be selectively loaded depending on the definitions needed. The systems of direct interest to most users are
+@itemize
+@item grid
+@item foreign-array
+@item input-output
+@item physical-dimension
+@item mathematics
+@end itemize
+There are various extensions/additions offered through the @code{asdf-system-connections} mechanism. In particular, if the system @code{lisp-unit} is loaded, then there are a number of regression tests available.
+
+@node Mathematics, Organization of Computation, Introduction, Top
+@chapter Mathematics
+
+@menu
+* Generic Functions::
+* Conditions::
+@end menu
+
+@node Generic Functions, Conditions, Mathematics, Mathematics
+@section Generic Functions
+@cindex Mathematical functions, elementary
+@cindex Functions, elementary mathematical
+@cindex Elementary mathematical functions
+@cindex Trigonometric functions
+@cindex Functions, trigonometric
+@cindex Exponential functions
+@cindex Functions, exponential
+@cindex Comparison functions, numerical
+@cindex Numerical comparison functions
+@cindex Arithmetic functions
+@cindex Functions, arithmetic
+Generic mathematical functions are provided so that they may be called on something other than numbers, such as grids.  When called with CL numbers, they perform they call the equivalent CL function.
+
+@include include/fun-antik-abs.texinfo
+@include include/fun-antik-acos.texinfo
+@include include/fun-antik-asin.texinfo
+@include include/fun-antik-atan.texinfo
+@include include/fun-antik-cosh.texinfo
+@include include/fun-antik-cos.texinfo
+@include include/fun-antik-equals.texinfo
+@include include/fun-antik-exp.texinfo
+@include include/fun-antik-expt.texinfo
+@include include/fun-antik-floor.texinfo
+@include include/fun-antik-gt-equals.texinfo
+@include include/fun-antik-gt.texinfo
+@include include/fun-antik-log.texinfo
+@include include/fun-antik-lt-equals.texinfo
+@include include/fun-antik-lt.texinfo
+@include include/fun-antik-minusp.texinfo
+@include include/fun-antik-plusp.texinfo
+@include include/fun-antik-plus.texinfo
+@include include/fun-antik-round.texinfo
+@include include/fun-antik-signum.texinfo
+@include include/fun-antik-sinh.texinfo
+@include include/fun-antik-sin.texinfo
+@include include/fun-antik-slash.texinfo
+@include include/fun-antik-sqrt.texinfo
+@include include/fun-antik-star.texinfo
+@include include/fun-antik-tanh.texinfo
+@include include/fun-antik-tan.texinfo
+@include include/fun-antik--.texinfo
+@include include/fun-antik-zerop.texinfo
+
+@node Conditions,  , Generic Functions, Mathematics
+@section Conditions
+@cindex Conditions for numerical computation
+@cindex Handler for conditions
+Conditions and handlers are defined for common mathematical computations.
+
+The condition @code{making-complex-number} is signalled when a calculation would make a complex number.  If this outcome is desirable, and handler such as defined by the macro @code{handling-complex-number} is used.  
+
+@include include/condition-antik-making-complex-number.texinfo
+@include include/macro-antik-arithmetic-errors-return-nan.texinfo
+@include include/macro-antik-handling-complex-number.texinfo
+
+@c This needs node information
+@section Iterate generalized numbers
+Extensions to the @url{http://common-lisp.net/project/iterate/,@command{iterate}}
+system are provided.  The following 
+@url{http://common-lisp.net/project/iterate/doc/Reductions.html#Reductions,reductions}
+and
+@url{http://common-lisp.net/project/iterate/doc/Finders.html#Finders,finders}
+are provided:
+@itemize
+@item multiply
+@item sum
+@item maximize
+@item finding ... maximizing
+@item minimize
+@item finding ... minimizing
+@end itemize
+These are exactly like those provided in iterate, but are extended to use the appropriate generic functions.  
+
+The driver for @url{http://common-lisp.net/project/iterate/doc/Drivers.html#Drivers,numerical iteration} will work with generalized numbers.
+
+@node Organization of Computation, Grids, Mathematics, Top
+@chapter Organization of Computation
+@cindex Notebook, computation
+@cindex Logbook of computation
+@menu
+* Introduction to organization::
+* Parameters::
+@end menu
+
+@node Introduction to organization, Parameters, Organization of Computation, Organization of Computation
+@section Introduction
+Typically scientific and engineering computation starts with input values and computes values or properties of an object, uses those as inputs to compute more values and properties, and eventually produces an output.  Sometimes it is necessary to examine the intermediate values, as for education or debugging; sometimes, especially when doing production runs, the variable input and output are the only things of interest, the values that remain unchanged with each calculation are recorded but are not the focus of the computation, and the intermediate values are only need temporarily to get to the next stage of the computation.
+
+This section will describe the definitions for organizing computations.  At present very little is written; only @dfn{parameters} definitions exist, and these are likely to change.
+
+Load the system @code{input-output} for these definitions.
+
+@node Parameters,  , Introduction to organization, Organization of Computation
+@section Parameters
+@cindex Parameters
+Parameters are named values that are defined and used in computations or in presentation.  The @url{http://www.lispworks.com/documentation/HyperSpec/Body/m_defpar.htm#defparameter,defparameter} macro defines parameters (dynamic variables) but Antik has definitions that permit grouping them and including properties such as the type, which will be checked when values are assigned, and defining synonyms.  The grouping is in named categories; Antik itself defines one category, @code{NF}, which is used for numerical formatting.  Each category used will become a package, and the symbols exported from that package. The value can be changed with @code{(setf parameter-value)} and used with @code{parameter-value}, or changed locally (analogous to @code{let} for CL variables) with @code{with-parameters}. It is also permissible to assign as a normal variable (e.g., with let and setf), but no type checking is performed.
+@example
+
+;;; Then define some parameters
+(define-parameter kepler foo
+  :value 122
+  :type fixnum
+  :documentation "A fixnum parameter of kepler.")
+(define-parameter kepler bar
+  :value "hi"
+  :type string
+  :documentation "A string parameter of kepler.")
+
+;;; Get their values
+(parameter-value kepler bar)
+"hi"
+(parameter-value kepler foo)
+122
+
+;;; Dynamic binding
+(defun show-foo-bar ()
+  (format t "~&foo: ~a, bar: ~s"
+	  (parameter-value kepler foo)
+	  (parameter-value kepler bar)))
+
+(show-foo-bar)
+foo: 122, bar: "hi"
+NIL
+
+;;; Locally change values
+(with-parameters (kepler (foo 143) (bar "bye"))
+  (show-foo-bar))
+foo: 143, bar: "bye"
+NIL
+
+(show-foo-bar)
+foo: 122, bar: "hi"
+NIL
+
+;;; Make a mistake
+(with-parameters (kepler (foo 143) (bar -44))
+  (show-foo-bar))
+Error: Value -44 is of type FIXNUM, not of the required type STRING.
+
+;;; Globally change values
+(setf (parameter-value kepler bar) "a new value")
+(show-foo-bar)
+foo: 122, bar: "a new value"
+
+;;; Set multiple values
+(set-parameters kepler bar "xyz" foo 1)
+(show-foo-bar)
+foo: 1, bar: "xyz"
+
+;;; Get information about the categories and parameters
+(parameter-help)
+Parameter categories: KEPLER and NF.
+
+(parameter-help :kepler)
+Parameters in KEPLER: BAR and FOO.
+
+(parameter-help :kepler :bar)
+BAR: A string parameter of kepler.
+Type is STRING,
+Current value is "xyz".
+@end example
+
+@include include/macro-antik-define-parameter.texinfo
+@include include/fun-antik-parameter-help.texinfo
+@include include/macro-antik-parameter-value.texinfo
+@include include/macro-antik-set-parameter.texinfo
+@include include/macro-antik-set-parameters.texinfo
+@include include/macro-antik-with-parameters.texinfo
+
+@node Grids, Physical Quantities, Organization of Computation, Top
+@chapter Grids
+@cindex Vectors
+@cindex Matrices
+@cindex Arrays
+@menu
+* Introduction to grids::                
+* Creating a grid::             
+* Operations::                  
+* Input and Output::                  
+* Physical quantities::         
+* Capabilities and Internals::
+* Efficiency::                  
+@end menu
+
+@node Introduction to grids, Creating a grid, Grids, Grids
+@section Introduction to grids
+
+Load the system @code{grid} for these definitions.
+
+@menu
+* The grid concept::            
+* Types of grids::              
+* Package::                     
+* Tests::                       
+@end menu
+
+@node The grid concept, Types of grids, Introduction to grids, Introduction to grids
+@subsection The grid concept
+
+In scientific and engineering computing, data is frequently organized
+into a regular pattern indexed by a finite sequence of integers, and
+thought of having a Cartesian arrangement.  
+We call these @dfn{grids}.
+A standard form is the @dfn{array}, but we do not wish to confine
+ourselves to representation in terms of
+@url{http://www.lispworks.com/documentation/lw50/CLHS/Body/t_array.htm,a
+Common Lisp array}.  Other examples might be a list of lists, a C array
+accessible through a foreign function interface, or an SQL table.  We
+assume a rectangular shape; that is, the range of indices permissible is
+independent of the other values of the index.  Each node of the grid is
+an @dfn{element} (or sometimes a @dfn{component}).
+
+Since we are primarily focused on the scientific and engineering
+applications, the elements will generally be numbers of some type.  Most
+of the definitions here however do not force this to be the case.
+
+The @dfn{rank} of a grid is the number of Cartesian axes, and the
+@dfn{dimensions} are a sequence of non-negative integers of length equal
+to the rank that give the number of index values possible along each
+axis.  We will call a grid of rank 1 a @dfn{vector} (where there would
+not be a confusion with the
+@url{http://www.lispworks.com/documentation/HyperSpec/Body/t_vector.htm,CL
+vector}) and a grid of rank 2 a @dfn{matrix}.  For example, a matrix
+representing rotations in three dimensional space would have rank 2 and
+dimensions (3 3).
+
+@node Types of grids, Package, The grid concept, Introduction to grids
+@subsection Types of grids
+
+Antik defines two types of grids, @dfn{array}s, i.e. ordinary Lisp
+arrays, and @dfn{foreign array}s, which are defined in foreign memory
+and therefore are accessible by foreign libraries.  The argument
+@code{grid-type} to a function or the variable
+@code{grid:*default-grid-type*} should be bound to one of
+@code{cl:array} or @code{grid:foreign-array}, to specify an array or
+foreign-array respectively.
+
+@node Package, Tests, Types of grids, Introduction to grids
+@subsection Package
+The symbols defined here are in the @code{grid}
+@url{http://www.lispworks.com/documentation/HyperSpec/Body/11_aa.htm,package}.
+
+@node Tests,  , Package, Introduction to grids
+@subsection Tests
+
+There are some tests defined for these modules; to run the tests, make
+sure that @command{asdf-system-connections} system is loaded before
+anything else, and @command{lisp-unit} is loaded, then
+@example
+(in-package :antik)
+(lisp-unit:run-tests)
+(in-package :grid)
+(lisp-unit:run-tests)
+@end example
+
+@node Creating a grid, Operations, Introduction to grids, Grids
+@section Creating a grid
+@cindex Grid, creating
+@cindex Creating a grid
+
+@menu
+* Reader macro and function @code{grid}::  
+* The foreign-array class::    
+* Simple grids and default values::  
+* Functions for creation of grids::           
+@end menu
+
+@node Reader macro and function @code{grid}, The foreign-array class, Creating a grid, Creating a grid
+@cindex Reader macro, grid
+@subsection Reader macro and function @code{grid}
+The #m reader macro in the default form creates a vector or matrix of
+element type double-float, which is the most common type needed for
+mathematical functions, and grid type given by
+@code{grid:*default-grid-type*} (see @ref{Types of grids}).  It
+optionally takes a numeric argument prefix to make an array with a
+different element type; a guide to the numeric argument is given below.
+It should be followed by a list, which is not evaluated.  If the list
+contains @code{^}, the object created will be a matrix and each row is
+ended with that symbol.
+
+@multitable @columnfractions 0.2 0.2 0.2 0.2
+     @headitem Element type @tab #m prefix
+     @item double-float
+     @tab 1 or empty
+     @item (complex double-float)
+     @tab 2
+     @item single-float
+     @tab 3
+     @item (complex single-float)
+     @tab 4
+     @item (signed-byte 8)
+     @tab 7
+     @item (unsigned-byte 8)
+     @tab 8
+     @item (signed-byte 16)
+     @tab 15
+     @item (unsigned-byte 16)
+     @tab 16
+     @item (signed-byte 32)
+     @tab 31
+     @item (unsigned-byte 32)
+     @tab 32
+     @item (signed-byte 64)
+     @tab 63
+     @item (unsigned-byte 64)
+     @tab 64
+     @end multitable
+
+The function @code{grid:grid} creates a grid of the default type and
+evaluates its arguments.  For example,
+@example
+ANTIK-USER> (setf grid:*default-grid-type* 'grid:foreign-array)
+FOREIGN-ARRAY
+ANTIK-USER> (grid:grid 1.0d0 2.0d0 3.0d0)
+#m(1.000000000000000d0 2.000000000000000d0 3.000000000000000d0)
+ANTIK-USER> (type-of @@)
+VECTOR-DOUBLE-FLOAT
+@end example
+
+@cindex Reader macro, array
+Of course, an ordinary (Common Lisp) array may be created
+in the usual fashion, with the @code{#} reader macro
+@example
+#(1.0d0 2.0d0 3.0d0)
+@end example
+or with @code{make-array}.
+
+@node The foreign-array class, Simple grids and default values, Reader macro and function @code{grid}, Creating a grid
+@subsection The @command{foreign-array} class
+@cindex Class, foreign-array
+@cindex Foreign array
+@cindex Array accessible in non-Lisp language
+@cindex C array
+@cindex Fortran array
+@cindex Array, C
+@cindex Array, foreign
+@cindex Matrix, foreign
+@cindex Vector, foreign
+The @command{foreign-array} class
+uses @url{http://common-lisp.net/project/cffi/,@command{CFFI}} to allow the use
+of C arrays as grids. Load the system @code{foreign-array} to enable use of foreign arrays.
+
+Classes of vectors and matrices are named by appending the element
+type as hypenated words to "vector" or "matrix".  The following table
+shows the classes available on a 64-bit platform:
+@multitable @columnfractions 0.2 0.2 0.2 0.2
+     @headitem Element type @tab Vector class @tab Matrix class @tab #m prefix
+     @item double-float
+     @tab @code{vector-double-float}
+     @tab @code{matrix-double-float}
+     @tab 1 or empty
+     @item (complex double-float)
+     @tab @code{vector-complex-double-float}
+     @tab @code{matrix-complex-double-float}
+     @tab 2
+     @item single-float
+     @tab @code{vector-single-float}
+     @tab @code{matrix-single-float}
+     @tab 3
+     @item (complex single-float)
+     @tab @code{vector-complex-single-float}
+     @tab @code{matrix-complex-single-float}
+     @tab 4
+     @item (signed-byte 8)
+     @tab @code{vector-signed-byte-8}
+     @tab @code{matrix-signed-byte-8}
+     @tab 7
+     @item (unsigned-byte 8)
+     @tab @code{vector-unsigned-byte-8}
+     @tab @code{matrix-unsigned-byte-8}
+     @tab 8
+     @item (signed-byte 16)
+     @tab @code{vector-signed-byte-16}
+     @tab @code{matrix-signed-byte-16}
+     @tab 15
+     @item (unsigned-byte 16)
+     @tab @code{vector-unsigned-byte-16}
+     @tab @code{matrix-unsigned-byte-16}
+     @tab 16
+     @item (signed-byte 32)
+     @tab @code{vector-signed-byte-32}
+     @tab @code{matrix-signed-byte-32}
+     @tab 31
+     @item (unsigned-byte 32)
+     @tab @code{vector-unsigned-byte-32}
+     @tab @code{matrix-unsigned-byte-32}
+     @tab 32
+     @item (signed-byte 64)
+     @tab @code{vector-signed-byte-64}
+     @tab @code{matrix-signed-byte-64}
+     @tab 63
+     @item (unsigned-byte 64)
+     @tab @code{vector-unsigned-byte-64}
+     @tab @code{matrix-unsigned-byte-64}
+     @tab 64
+     @end multitable
+
+A foreign array is especially useful when sending or receiving data from a foreign library.  In that case, the generic function @code{grid:foreign-pointer} should be called on the foreign array in order to obtain the pointer that the foreign library needs.  The identical contents as a CL array is available with the function @code{cl-array} under two conditions: the @url{http://gitorious.org/iolib/static-vectors,static-vectors} system is installed and supported for the CL implementation used, and foreign array was @emph{not} made with @ref{make-foreign-array-from-pointer}.  If it does exist, this array is the same as the foreign array (not a copy), so for example changing one changes the other:
+@example
+
+ANTIK-USER> (defparameter *my-fa* (make-foreign-array 'double-float :dimensions 3))
+ANTIK-USER> *my-fa*
+#m(0.000000000000000d0 1.000000000000000d0 2.000000000000000d0)
+ANTIK-USER> (cl-array *my-fa*)
+#(0.0 1.0 2.0)
+ANTIK-USER> (setf (grid:aref *my-fa* 1) 33.3d0)
+33.3
+ANTIK-USER>  *my-fa*
+#m(0.000000000000000d0 33.300000000000000d0 2.000000000000000d0)
+ANTIK-USER> (cl-array *my-fa*)
+#(0.0 33.3 2.0)
+ANTIK-USER> (setf (aref (cl-array *my-fa*) 1) 22.2d0)
+22.2
+ANTIK-USER> *my-fa*
+#m(0.000000000000000d0 22.200000000000000d0 2.000000000000000d0)
+@end example
+
+@node Simple grids and default values, Functions for creation of grids, The foreign-array class, Creating a grid
+@subsection Simple grids and default values
+
+A simple grid is one which only has one layer, that is, the contents of
+the objects are the scalar elements (and not other array-like objects).
+Both array and foreign-array are simple grids.  The function
+@code{make-simple-grid} will create a simple grid.
+It takes the optional keyword arguments (default): @code{grid-type}
+(@code{*default-grid-type*}), @code{dimensions}
+(@code{*default-dimensions*}), @code{element-type}
+(@code{*default-element-type*}), @code{initial-element},
+@code{initial-contents}.
+
+@node Functions for creation of grids,  , Simple grids and default values, Creating a grid
+@cindex Grid, creation functions
+@cindex Functions for creation of grids
+@subsection Functions for creation of grids
+The functions @code{make-grid} and @code{make-foreign-array} are used to
+make grids from specifications or parameters.  The functions
+@code{map-grid} and @code{map-n-grids} can be used to create grids from
+functions of indices.
+
+@menu
+* grid::
+* make-simple-grid::                   
+* make-grid::                   
+* make-foreign-array::          
+* ensure-foreign-array::          
+* make-foreign-array-from-pointer::          
+* Summary::                     
+@end menu
+
+@node grid, make-simple-grid, Functions for creation of grids, Functions for creation of grids
+@subsubsection grid
+@include include/fun-grid-grid.texinfo
+
+@node  make-simple-grid, make-grid, grid, Functions for creation of grids
+@subsubsection make-simple-grid
+@include include/fun-grid-make-simple-grid.texinfo
+
+@node make-grid, make-foreign-array, make-simple-grid, Functions for creation of grids
+@subsubsection make-grid
+@include include/fun-grid-make-grid.texinfo
+This is used for making any kind of grid with the same value for each
+element, or with literally specified values.  The first argument is a
+specification, which has the form @code{((grid-type dimensions)
+element-type)}.  The keyword arguments are @code{:initial-element} or
+@code{:initial-contents}.  For example,
+@example
+(make-foreign-array 'double-float :dimensions 3 :initial-element 77.0d0)
+#m(77.0d0 77.0d0 77.0d0)
+(make-grid '((foreign-array 3) double-float) :initial-element 77.0d0)
+#m(77.0d0 77.0d0 77.0d0)
+@end example
+
+@node make-foreign-array, ensure-foreign-array, make-grid, Functions for creation of grids
+@subsubsection make-foreign-array
+@include include/fun-grid-make-foreign-array.texinfo
+This function can be used instead of @code{make-grid} to make a
+foreign-array; the first argument is the @code{element-type} and the
+@code{:dimensions} are supplied in a keyword argument, for example, 
+@example
+(grid:make-foreign-array 'double-float :dimensions '(2 2))
+#m((0.000000000000000d0 .0000000000000000d0)
+   (.0000000000000000d0 .0000000000000000d0))
+@end example
+It is meant as an analogue to @code{cl:make-array} for the convenience
+of users who want to use a function with a similar argument list.
+
+@node ensure-foreign-array, make-foreign-array-from-pointer, make-foreign-array, Functions for creation of grids
+@subsubsection ensure-foreign-array
+@include include/fun-grid-ensure-foreign-array.texinfo
+If the first argument to this function is a foreign array, it is returned.  If it is not, the foreign array with the desired dimensions, element type, and initial-element is made and returned.
+@example
+(grid:ensure-foreign-array nil '(2 2) 'double-float)
+#m((.0000000000000000d0 .0000000000000000d0)
+   (.0000000000000000d0 .0000000000000000d0))
+@end example
+
+@node make-foreign-array-from-pointer, Summary, ensure-foreign-array, Functions for creation of grids
+@subsubsection make-foreign-array-from-pointer
+@include include/fun-grid-make-foreign-array-from-pointer.texinfo
+If a foreign pointer already exist (for example, the foreign array was allocated by foreign code), this function will make a foreign array from it.  Note that the @code{cl-array} of this grid will always be @nil{}, regardless of whether static-vectors are supported for the CL implementation.
+
+@node Summary,  , make-foreign-array-from-pointer, Functions for creation of grids
+@subsubsection Summary: ways to make grids
+@itemize
+@item General
+      @itemize
+      @item @code{#m} reader macro
+      @item @code{grid:grid}
+      @item @code{grid:make-grid}
+      @item @code{grid:make-simple-grid}
+      @end itemize
+@item Array
+      @itemize
+      @item @code{cl:make-array}
+      @item @code{#} and @code{#2A} reader macros
+      @end itemize
+@item Foreign array
+      @itemize
+      @item @code{grid:make-foreign-array}
+      @item @code{grid:ensure-foreign-array}
+      @item @code{grid:make-foreign-array-from-pointer}
+      @end itemize
+@end itemize
+
+@node Operations, Input and Output, Creating a grid, Grids
+@section Operations
+
+@cindex Functions, grid
+@cindex Operations on grids
+@cindex Grid, operations
+
+@menu
+* Elements::
+* Copying::
+* Iterate::
+* Composition functions::       
+* Mapping::                     
+* Properties::
+* AFFI::                        
+@end menu
+
+@node Elements, Copying, Operations, Operations
+@subsection Elements
+@include include/fun-grid-aref.texinfo
+@include include/fun-grid-aref-star.texinfo
+@include include/fun-grid-setf-aref.texinfo
+@include include/fun-grid-setf-aref-star.texinfo
+Individual elements are obtained using @code{grid:aref} (analogous to
+Lisp's @code{cl:aref}), and are set with @code{setf grid:aref}.  For example,
+@example
+ANTIK-USER> (setf *default-grid-type* 'foreign-array)
+ANTIK-USER> (defparameter *array* #m(2.0d0 1.0d0 -1.0d0))
+ANTIK-USER> *array*
+#m(2.000000000000000d0 1.000000000000000d0 -1.000000000000000d0)
+ANTIK-USER> (grid:aref *array* 1)
+1.0
+ANTIK-USER> (setf (grid:aref *array* 1) 77.0d0)
+77.0
+ANTIK-USER> (grid:aref *array* 1)
+77.0
+ANTIK-USER> *array*
+#m(2.000000000000000d0 77.000000000000000d0 -1.000000000000000d0)
+@end example
+
+@node Copying, Iterate, Elements, Operations
+@subsection Copying
+@include include/fun-grid-copy.texinfo
+@include include/fun-grid-copy-to.texinfo
+Copying is performed with the function @code{copy}.  This works between
+@code{grid:foreign-array}s, pointers, and CL arrays.  There are two
+functions provided to extract the dimensions of a vector or array:
+@code{dim0} and @code{dim1}; the latter is applicable only for matrices.
+To copy to a grid with the same dimensions and element type, use @code{copy-to}.
+
+@node Iterate, Composition functions, Copying, Operations
+@subsection Iterate
+Extensions to the @url{http://common-lisp.net/project/iterate/,@command{iterate}}
+system are provided.  The following @code{for} clause iterators are defined:
+@itemize
+@item @code{matrix-row}
+@item @code{matrix-row-index}
+@item @code{matrix-column}
+@item @code{matrix-column-index}
+@item @code{vector-element}
+@item @code{vector-element-index}
+@item @code{matrix-element}
+@item @code{matrix-element-index}
+@end itemize
+For example,
+@example
+(defparameter m1 #m(1 2 3 ^ 0 6 8))
+(iter:iter (iter:for e :matrix-element m1) (princ e) (princ " "))
+1.0 2.0 3.0 0.0 0.0 6.0 8.0
+@end example
+
+The definitions are in the @command{grid-iterate-extension} extension
+system which will automatically load if
+@url{http://common-lisp.net/project/asdf-system-connections,@command{asdf-system-connnections}},
+@url{http://common-lisp.net/project/iterate/,@command{iterate}}, and the
+@command{Antik} system are loaded.
+
+@node Composition functions, Mapping, Iterate, Operations
+@subsection Composition functions
+@menu
+* codimension-one-subspace::
+* column::               
+* concatenate-grids::    
+* diagonal::             
+* drop::                 
+* identity-matrix::
+* matrix-from-columns::
+* row::                  
+* slice::                
+* stride::                      
+* subgrid::              
+* transpose::            
+* Vector products::             
+@end menu
+
+These functions transform or compose grids to make new grids.
+
+@node codimension-one-subspace, column, Composition functions, Composition functions
+@subsubsection codimension-one-subspace
+@cindex Grid, subgrid of dimension one less
+@include include/fun-grid-codimension-one-subspace.texinfo
+@include include/fun-grid-setf-codimension-one-subspace.texinfo
+
+@node column, concatenate-grids, codimension-one-subspace, Composition functions
+@subsubsection column
+@cindex Grid, column
+@cindex Matrix, column
+@cindex Column of grid or matrix
+
+@include include/fun-grid-column.texinfo
+@include include/fun-grid-setf-column.texinfo
+
+The functions @code{column}, @code{(setf column)}
+select or set the column of a matrix.
+For example, the first column of the above array is 
+@example
+(column (test-grid-double-float 'array '(3 4)) 0)
+#(0.0d0 10.0d0 20.0d0)
+@end example
+
+@node concatenate-grids, diagonal, column, Composition functions
+@subsubsection concatenate-grids
+@cindex Grid, concatenation
+@cindex Concatenation of grids
+@include include/fun-grid-concatenate-grids.texinfo
+The function @code{concatenate-grids}
+ is used to join two grids on an axis whose dimensions are
+the same on the other axes.  For example, join two matrices by
+adjoining their columns, all of the same length:
+@example
+(map-grid :source (offset-ifd 0.5d0) :source-dims '(3 4))
+#2A((0.5d0 1.5d0 2.5d0 3.5d0)
+    (10.5d0 11.5d0 12.5d0 13.5d0)
+    (20.5d0 21.5d0 22.5d0 23.5d0))
+(map-grid :source (offset-ifd 0.1d0) :source-dims '(3 2))
+#2A((0.1d0 1.1d0) (10.1d0 11.1d0) (20.1d0 21.1d0))
+(concatenate-grids ** * :axis 1)
+#2A((0.5d0 1.5d0 2.5d0 3.5d0 0.1d0 1.1d0)
+    (10.5d0 11.5d0 12.5d0 13.5d0 10.1d0 11.1d0)
+    (20.5d0 21.5d0 22.5d0 23.5d0 20.1d0 21.1d0))
+@end example
+
+@node diagonal, drop, concatenate-grids, Composition functions
+@subsubsection diagonal
+@cindex Matrix, diagonal
+@cindex Grid, diagonal
+@cindex Diagonal of a grid
+
+@include include/fun-grid-diagonal.texinfo
+@include include/fun-grid-setf-diagonal.texinfo
+@include include/fun-grid-set-diagonal.texinfo
+
+The functions @code{diagonal}, @code{(setf diagonal)} (or @code{set-diagonal})
+get or set the part of the grid where two indices are equal or differ by
+a constant to another grid; that is, either the diagonal or a sub- or super-diagonal.
+The diagonal of a grid can be set to a fixed value or to a function of its
+indices. 
+
+The diagonal is the collection of elements where there are two indices
+equal, or differ by a fixed amount.  For a matrix (two dimensional
+grid), this would be for example:
+@example
+ANTIK-USER> (grid::test-grid-double-float 'array '(3 4))
+#2A((0.0 1.0 2.0 3.0) (10.0 11.0 12.0 13.0) (20.0 21.0 22.0 23.0))
+ANTIK-USER> (diagonal @@)
+#(0.0 11.0 22.0)
+@end example
+The superdiagonal is accessible with the same function, 
+@example
+ANTIK-USER> (diagonal (grid::test-grid-double-float 'array '(3 4)) :offset 1)
+#(1.0 12.0 23.0)
+@end example
+as is the subdiagonal,
+@example
+ANTIK-USER> (diagonal (grid::test-grid-double-float 'array '(3 4)) :offset -1)
+#(10.0 21.0)
+@end example
+
+@node drop, identity-matrix, diagonal, Composition functions
+@subsubsection drop
+@cindex Grid, removal of singleton axis
+@include include/fun-grid-drop.texinfo
+
+The function @code{drop} will remove singleton axes (axes with dimension one)
+and create a grid of lower rank than the original grid.  For example, a
+two-dimensional of dimensions 5 x 1
+@example
+(test-grid-double-float 'array '(5 1))
+#2A((0.0d0) (10.0d0) (20.0d0) (30.0d0) (40.0d0))
+@end example
+will be converted to a vector (one dimensional array), 
+@example
+(drop (test-grid-double-float 'array '(5 1)))
+#(0.0d0 10.0d0 20.0d0 30.0d0 40.0d0)
+@end example
+
+@node identity-matrix, matrix-from-columns, drop, Composition functions
+@subsubsection identity-matrix
+@cindex Identity matrix (constant diagonal)
+@cindex Matrix, identity (constant diagonal)
+@include include/fun-grid-identity-matrix.texinfo
+The function @code{identity-matrix} will create a matrix that has the same number on each element of the diagonal and zeros for other elements.
+@example
+ANTIK-USER> (identity-matrix 3 8.0d0)
+#2A((8.0 0.0 0.0) (0.0 8.0 0.0) (0.0 0.0 8.0))
+@end example
+
+@node matrix-from-columns, row, identity-matrix, Composition functions
+@subsubsection matrix-from-columns
+@include include/fun-grid-matrix-from-columns.texinfo
+
+@node row, slice, matrix-from-columns, Composition functions
+@subsubsection row
+@cindex Row of matrix
+@cindex Matrix, row
+
+@include include/fun-grid-row.texinfo
+@include include/fun-grid-setf-row.texinfo
+
+The functions @code{row}, @code{(setf row)}
+select or set the row of a matrix.
+For example, select the second row from the matrix above:
+@example
+(row (test-grid-double-float 'array '(3 4)) 1)
+#(10.0d0 11.0d0 12.0d0 13.0d0)
+@end example
+
+@node slice, stride, row, Composition functions
+@subsubsection slice
+@cindex Grid, slice
+@include include/fun-grid-slice.texinfo
+A @dfn{slice} is a subgrid selected by specifying index values.  They can be specified as a single value, range of values, or reversed values.
+@example
+(grid::test-grid-double-float 'array '(3 4))
+#2A((0.0 1.0 2.0 3.0) (10.0 11.0 12.0 13.0) (20.0 21.0 22.0 23.0))
+(slice (grid::test-grid-double-float 'array '(3 4)) '(1 (:range 0 2)) :drop nil)
+#2A((10.0d0 11.0d0 12.0d0))
+@end example
+
+@node stride, subgrid, slice, Composition functions
+@subsubsection stride
+@cindex Grid, stride
+@include include/fun-grid-stride.texinfo
+A @dfn{stride} is the grid resulting from selection of elements at
+regular intervals.
+@example
+(stride #(1 2 3 4 5 6 7 8) 3)
+#(1 4 7)
+@end example
+The resultant grid will have rank one (vector) regardless of the source
+rank. 
+
+@node subgrid, transpose, stride, Composition functions
+@subsubsection subgrid
+@cindex Subgrid
+@include include/fun-grid-subgrid.texinfo
+@include include/fun-grid-setf-subgrid.texinfo
+The functions @code{subgrid}, @code{(setf subgrid)} select or set a
+region within a grid as a grid.  For example, The 2 by 2 block starting
+at index 1,2 in the previous matrix is
+@example
+(subgrid (test-grid-double-float 'array '(3 4)) '(2 2) '(1 2))
+#2A((12.0d0 13.0d0) (22.0d0 23.0d0))
+@end example
+
+@node transpose, Vector products, subgrid, Composition functions
+@subsubsection transpose
+@include include/fun-grid-transpose.texinfo
+@cindex Transpose of grid
+@cindex Grid, transpose
+@cindex Matrix, transpose
+The function @code{transpose} exchange elements paired by exchange of indices.
+The grid can be of any rank greater than or equal to 2.
+For example, the transpose of the above array is
+@example
+ANTIK-USER> (grid::test-grid-double-float 'array '(3 4))
+#2A((0.0 1.0 2.0 3.0) (10.0 11.0 12.0 13.0) (20.0 21.0 22.0 23.0))
+ANTIK-USER> (transpose @@)
+#2A((0.0 10.0 20.0) (1.0 11.0 21.0) (2.0 12.0 22.0) (3.0 13.0 23.0))
+@end example
+
+@node Vector products,  , transpose, Composition functions
+@subsubsection Vector products and norms
+@cindex Cross product
+@cindex Dot product
+@cindex Inner product
+@cindex Product, cross
+@cindex Product, dot
+@cindex Product, inner
+@include include/fun-grid-cross.texinfo
+@include include/fun-grid-euclidean.texinfo
+@include include/fun-grid-inner.texinfo
+@include include/fun-grid-norm.texinfo
+@include include/fun-grid-normalize.texinfo
+
+@node Mapping, Properties, Composition functions, Operations
+@subsection Mapping
+@cindex Mapping functions onto grid(s)
+@cindex Grid, mapping functions
+There are two more general functions @code{map-grid} and
+@code{map-n-grids} on which the above functions are defined.  They will
+provide the basis for any elementwise mapping of one (for the former) or
+several (for the latter) grids into a destination grid.
+
+@menu
+* elementwise::
+* map-grid::             
+* map-n-grids::
+@end menu
+
+@node elementwise, map-grid, Mapping, Mapping
+@subsubsection elementwise
+@cindex Grid, applying function to each element
+@cindex Elementwise application of function to grid
+@include include/fun-grid-elementwise.texinfo
+
+@node map-grid, map-n-grids, elementwise, Mapping
+@subsubsection map-grid
+@include include/fun-grid-map-grid.texinfo
+Although this function has other uses, it can be used to create a grid
+using a function of the index values.  For example, 
+in the file @file{antik/grid/tests/grids.lisp} is a function
+@code{index-fill-decadal} that multiplies increasing powers of ten by
+each argument in succession, and adds the result.  The array
+@code{*array-3-4-double-float*} is created with this function: 
+@example
+(defparameter *array-3-4-double-float*
+  (map-grid :source 'index-fill-decadal :source-dims '(3 4)))
+@end example
+which gives
+@example
+*array-3-4-double-float*
+#2A((0.0d0 1.0d0 2.0d0 3.0d0)
+    (10.0d0 11.0d0 12.0d0 13.0d0)
+    (20.0d0 21.0d0 22.0d0 23.0d0))
+@end example
+(see also the function 'test-grid-double-float).
+
+Take the square root of every element of an array:
+@example
+(map-grid :source #m((0.0d0 1.0d0 2.0d0) (10.0d0 11.0d0 12.0d0) (20.0d0 21.0d0 22.0d0)) :element-function 'sqrt)
+@end example
+Make a foreign vector with each element the square root of its index:
+@example
+(map-grid :source 'sqrt :destination-specification '((foreign-array 6) double-float))
+@end example
+
+@node map-n-grids,  , map-grid, Mapping
+@subsubsection map-n-grids
+@include include/fun-grid-map-n-grids.texinfo
+This is a more general form of @code{map-grid} which can take multiple
+source grids, instead of only one.
+For example, combine arrays a and b as a+2b:
+@example
+(map-n-grids :sources `((,#31m(1 2 3) nil) (,#31m(9 8 7) nil))
+             :combination-function (lambda (a b) (+ a (* 2 b))))
+@end example
+
+@node Properties, AFFI, Mapping, Operations
+@subsection Properties
+These functions give properties of a grid.
+@include include/fun-grid-contents.texinfo
+@include include/fun-grid-dim0.texinfo
+@include include/fun-grid-dim1.texinfo
+@include include/fun-grid-dimensions.texinfo
+@include include/fun-grid-gridp.texinfo
+@include include/fun-grid-rank.texinfo
+@include include/fun-grid-specification.texinfo
+
+@node AFFI,  , Properties, Operations
+@subsection AFFI
+@code{extrude} will transform an AFFI into one that will make it appear
+that the grid has an extra dimension.  This is useful in
+e.g. @code{map-n-grids}.
+
+@node  Input and Output, Physical quantities, Operations, Grids
+@section Input and Output
+@cartouche
+Note: the definitions for reading and writing grids are at present minimal and incomplete.
+@end cartouche
+These definitions allow reading and writing of grids from and to files.
+@include include/fun-grid-read-data-file.texinfo
+@include include/fun-grid-read-data-stream.texinfo
+@include include/fun-grid-read-vector-from-string.texinfo
+
+@node Physical quantities, Capabilities and Internals, Input and Output, Grids
+@section Physical quantities
+@cindex Physical dimension quantities in grids
+@cindex Grid, with physical units
+A grid may also be a physical quantity.  In this case, the magnitude is
+a numeric grid, and the units are either scalar, meaning the same unit
+applies to all numbers, or mixed, meaning that one set of units applies
+to each element.
+@example
+ANTIK-USER> #_#m(1.0 2.0 3.0)_km
+#_#m(1000.000000000000000d0 2000.000000000000000d0 3000.000000000000000d0)_m
+ANTIK-USER> #m(#_1.0_km #_2.0_s #_3.0_kg)
+#m(#_1000.000000000000000d0_m #dPT2.000s #_3.000000000000000d0_kg)
+@end example
+See @ref{Physical Quantities} for more details on physical quantities, keeping in mind that whereever a scalar magnitude is shown there, a grid may be used instead.
+
+@node Capabilities and Internals, Efficiency, Physical quantities, Grids
+@section Capabilities and Internals
+The capabilities of the foreign-array system depend on the CL implementation and the platform.  This section describes ways of obtaining information about the capabilities, and other internal information.  It will be of greatest interest to someone writing an interface to a foreign numeric library.
+
+@menu
+* Classes::
+* Functions and Macros::
+* Condition::
+* Constants and Variables::
+@end menu
+
+@node Classes, Functions and Macros, Capabilities and Internals, Capabilities and Internals
+@subsection Classes
+@cindex Class, foreign-array
+@include include/class-grid-foreign-array.texinfo
+@include include/class-grid-matrix.texinfo
+@include include/class-grid-mvector.texinfo
+The subclasses of either mvector or matrix are named with the element type, as described in the table in @ref{The foreign-array class}.
+
+@node Functions and Macros, Condition, Classes, Capabilities and Internals
+@subsection Functions and Macros
+@include include/fun-grid-all-types.texinfo
+@include include/fun-grid-cffi-cl.texinfo
+@include include/fun-grid-check-dimensions.texinfo
+@include include/fun-grid-cl-cffi.texinfo
+@include include/fun-grid-data-class-name.texinfo
+@include include/macro-grid-dcref.texinfo
+@include include/fun-grid-element-size.texinfo
+@include include/fun-grid-element-types.texinfo
+@include include/fun-grid-element-type.texinfo
+@include include/fun-grid-lookup-type.texinfo
+@include include/macro-grid-metadata-slot.texinfo
+@include include/fun-grid-number-class.texinfo
+@include include/fun-grid-spec-scalar-p.texinfo
+@include include/fun-grid-st-pointerp.texinfo
+
+@node Condition, Constants and Variables, Functions and Macros, Capabilities and Internals
+@subsection Condition
+@include include/condition-grid-array-mismatch.texinfo
+
+@node Constants and Variables,  , Condition, Capabilities and Internals
+@subsection Constants and Variables
+@include include/constant-grid-plus-foreign-pointer-class-plus.texinfo
+@include include/constant-grid-plus-foreign-pointer-type-plus.texinfo
+@include include/var-grid-star-array-element-types-no-complex-star.texinfo
+@include include/var-grid-star-array-element-types-star.texinfo
+@include include/var-grid-star-complex-types-star.texinfo
+@include include/var-grid-star-cstd-cl-type-mapping-star.texinfo
+@include include/var-grid-star-cstd-integer-types-star.texinfo
+@include include/var-grid-star-double-types-star.texinfo
+@include include/var-grid-star-float-complex-types-star.texinfo
+@include include/var-grid-star-float-types-star.texinfo
+@include include/var-grid-star-grid-types-star.texinfo
+@include include/var-grid-star-print-contents-star.texinfo
+@include include/var-grid-star-print-foreign-array-readably-star.texinfo
+
+@node Efficiency,  , Capabilities and Internals, Grids
+@section Efficiency
+
+@cindex Efficiency of computation for grids
+@cindex Grid, efficiency of computation
+Access to elements of foreign arrays, for getting or setting, can be
+very slow if they are not declared.  These declarations can take
+@url{http://www.lispworks.com/documentation/HyperSpec/Body/03_c.htm,
+several forms}: @command{declare}, @command{declaim},
+@command{proclaim}, or @command{the}.  With the exception of the
+@command{the} form, these declarations will only be effective in SBCL
+and CCL.  Users of other implementations that support the environment
+function
+@url{http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node102.html,@command{variable-information}}
+should contact the Antik maintainer to have support added.  If
+declarations are present and the compiler honors the compiler macros
+that foreign-array defines, the @command{aref} and related forms are
+macro-expanded directly into foreign array calls, considerably
+increasing the speed of execution.
+
+When using matrices, declarations with explicit dimensions are also
+helpful for speed, e.g.
+@example
+(declare (type (grid:matrix-double-float 100 100) my-matrix new-matrix))
+@end example
+
+For setting array elements, it is better to use the macro @command{grid:gsetf}
+than @command{setf} when declarations are present.  It is hoped that
+eventually this macro can be eliminated.
+
+For example, the declarations in the following function, and the use of
+@command{grid:gsetf} instead of @command{setf}, help decrease the
+execution time when running this function:
+@example
+(defun foreign-array-test (dim)
+  (let ((input (grid:make-foreign-array
+		'double-float
+		:dimensions dim
+		:initial-element 1.0d0))
+	(output (grid:make-foreign-array 'double-float :dimensions dim)))
+    (declare (type grid:vector-double-float input output))   ; declaration of foreign arrays
+    (let ((tv0 0.0d0) (tv1 0.0d0))
+      (declare (type double-float tv0 tv1))
+      (iter (for i from 0 below dim)
+	    (setf tv0 0.0d0)
+	    (iter (for m from 0 to i)
+		  (iter (for n from i below dim)
+			(setf tv1 0.0d0)
+			(iter (for k from m to n)
+			      (incf tv1 (grid:aref input k)))
+			(incf tv0 (expt tv1 -2))))
+	    (grid:gsetf (grid:aref* output i) (- (grid:aref input i) tv0))))))
+@end example
+
+@node Physical Quantities, Numerical Output Format, Grids, Top
+@chapter Physical Quantities
+@section Units
+
+@menu
+* Introduction to physical quantities::                
+* Physical dimension::          
+* Physical constants::
+* Date and time::               
+* Time arithmetic and time intervals::
+@end menu
+
+@node Introduction to physical quantities, Physical dimension, Physical Quantities, Physical Quantities
+@section Introduction
+
+@dfn{Physical quantities} are numerical values that are used in science, engineering, and other numerical computations.  There are several aspects to them:
+@itemize
+@item They may have @dfn{physical dimension}, such as length, mass, time, etc.
+@item They may have @dfn{attributes} related an object, such as the diameter of a circle.
+@end itemize
+
+The symbols defined for physical quantities are in the @code{antik}
+@url{http://www.lispworks.com/documentation/HyperSpec/Body/11_aa.htm,package}.
+
+Load the system @code{physical-dimension} for these definitions. If you wish to have the degree symbol, load the external system @code{cl-unicode}. If you need correct UT1, load the external system @code{drakma}. If you don't know what this is, you don't need it.
+
+@node Physical dimension, Physical constants, Introduction to physical quantities, Physical Quantities
+@section Physical dimension
+
+@menu
+* About physical dimension::
+* Making physical dimension quantities::
+* Dimensions::                  
+* Systems of units::            
+@end menu
+
+@node About physical dimension, Making physical dimension quantities, Physical dimension, Physical dimension
+@subsection Introduction
+@cindex Class, physical-quantity
+Antik has a class @code{physical-quantity} which is used to represent values that have physical dimension, such as mass or length; e.g.
+@example
+ANTIK-USER> #_35_km
+#_35000.000000000000000_m
+ANTIK-USER> (* #_5_m #_8_kg)
+#_40.000000000000000_m-kg
+ANTIK-USER> (expt #_12_m 2)
+#_144.000000000000000_m^2
+(* #_5_kg #_8_m/s^2)
+#_40.000000000000000d0_N
+@end example
+Mathematical operations are allowed on these objects,
+@example
+ANTIK-USER> (+ #_35_km #_12_miles)
+#_54312.128000000000000_m
+@end example
+Of course, such math must be sensible,
+@example
+ANTIK-USER(3): (+ #_35_km #_12_kg)
+debugger invoked on a SIMPLE-ERROR in thread #<THREAD "initial thread" RUNNING @{10040293F1@}>:
+  The quantities 3.500d+4m and 12.00kg are not both physical quantities with the same physical dimension.
+0] 
+@end example
+Note also that fractional exponents are acceptable: 
+@example
+ANTIK-USER> (expt #_16_m 1/2)
+#_4.000000000000000_m^1/2
+@end example
+
+Each of these quantities has @dfn{units} associated with it -- meters,
+kilograms, etc., and those units must be of the appropriate dimension
+for the physical quantity.  All quantities are stored internally in the
+SI system of units, and converted to desired units either when printed
+or when an explicit conversion is requested.
+
+The inspiration for this software came from
+@url{http://www.cs.utexas.edu/users/novak/units95.html,Gordon Novak's work}.
+Names, abbreviations, and definitions of units come from
+@url{http://physics.nist.gov/cuu/Units/index.html,NIST}.
+
+@node Making physical dimension quantities, Dimensions, About physical dimension, Physical dimension
+@subsection Making physical dimension quantities
+@cindex Reader macro, physical dimension quantities
+@cindex Physical dimension quantities, creating
+@cindex Physical dimension quantities
+There are two main ways to make physical quantities: the function @code{make-pq}, and the reader macro @code{#_}
+@example
+ANTIK-USER> (make-pq 24.5d0 'm/s)
+#_24.500000000000000d0_m/s
+ANTIK-USER> #_24.5_m/s
+#_24.500000000000000d0_m/s
+@end example
+To get the magnitude and units of a physical quantity, use @code{pqval}.  It returns three values: the magnitude, units, and whether a single unit expression applies to all elements of the grid magnitude:
+@example
+ANTIK-USER> (pqval #_24.5_m/s)
+24.5
+(/ METER SECOND)
+T
+ANTIK-USER> (pqval #m(#_1.0_km #_2.0_s #_3.0_kg))
+#m(1000.000000000000000d0 2.000000000000000d0 3.000000000000000d0)
+#(METER SECOND KILOGRAM)
+NIL
+@end example
+
+@include include/class-antik-physical-quantity.texinfo
+@include include/fun-antik-check-dimension.texinfo
+@include include/fun-antik-make-pq.texinfo
+@include include/fun-antik-pqval.texinfo
+@include include/macro-antik-with-pq.texinfo
+@include include/var-antik-star-zero-is-dimensionless-star.texinfo
+
+@node Dimensions, Systems of units, Making physical dimension quantities, Physical dimension
+@subsection Dimensions
+The fundamental physical dimensions handled by Antik are:
+@itemize
+@item length
+@item time
+@item mass 
+@item temperature
+@item current
+@item substance
+@item luminosity
+@item money
+@item angle
+@end itemize
+In addition, there are derived dimensions:
+@itemize
+@item force              
+@item area               
+@item volume             
+@item power              
+@item energy             
+@item velocity           
+@item momentum           
+@item angular-momentum   
+@item acceleration       
+@item pressure           
+@item density            
+@item charge             
+@item electric-potential 
+@item capacitance        
+@item resistance         
+@item conductance        
+@item magnetic-field     
+@item magnetic-flux      
+@item inductance         
+@item frequency          
+@item dose               
+@end itemize
+
+For units defined by Antik, see the source file @file{antik/physical-quantities/unit-definitions.lisp}.  Most of the common units for each of the listed physical dimension are defined, together with common abbreviations.
+
+@node Systems of units,  , Dimensions, Physical dimension
+@subsection Systems of units
+A @dfn{system of units} is a set of units, one for each of the physical dimensions that Antik can handle.  A system of units is needed by Antik for printing output and in special cases for converting physical quantities that have a physical dimension defined (e.g. length), but no units.  The system of units defined by 
+@code{(nf-option :system-of-units)} is used to determine the units in which the output is printed.  There are pre-defined several systems of units, @code{si}, @code{english}, @code{cgs}:
+@example
+ANTIK-USER> (defparameter *length1* #_10_m)
+*LENGTH1*
+ANTIK-USER> *length1*
+#_10.000000000000000_m
+ANTIK-USER> (set-system-of-units :english)
+; No value
+ANTIK-USER> *length1*
+#_32.808398950131235_ft
+@end example
+So by setting the system of units, you can convert values as needed,
+@example
+ANTIK-USER> (set-system-of-units :si)
+; No value
+ANTIK-USER> #_12_feet
+#_3.657600000000000d0_m
+ANTIK-USER> (set-system-of-units :english)
+ANTIK-USER> #_3_m
+#_9.842519685039370d0_ft
+@end example
+
+A new system of units may be defined with @code{define-system-of-units}.  One need not define all physical dimensions, but if a unit is needed for a particular dimension and it's not defined, an error will be signalled.  For convenience, a system of units may be defined by augmentation of an existing system of units.  For example, suppose that you wish to have a system of units that is like SI except that lengths are measured in km instead of meters.  This will define such a system:
+@example
+(define-system-of-units kmdeg (km degree) si)
+@end example
+
+The SI system is the initial system of units.
+
+@include include/macro-antik-define-system-of-units.texinfo
+@include include/fun-antik-set-system-of-units.texinfo
+@include include/macro-antik-with-system-of-units.texinfo
+@include include/macro-antik-with-si-units.texinfo
+
+@node Physical constants, Date and time, Physical dimension, Physical Quantities
+@section Physical constants
+It is possible to define physical constants which may then be used either in a mathematical expression or in a physical quantity definition
+@example
+ANTIK-USER> (define-physical-constant smoot
+    #_1.70180_m (ors) smoot
+  "The unit of length named after Oliver R. Smoot.")
+ANTIK-USER> (* 3 smoot)
+#_5.105399999999999d0_m
+ANTIK-USER> #_3_ors
+#_5.105399999999999d0_m
+@end example
+
+@include include/macro-antik-define-physical-constant.texinfo
+
+@node Date and time, Time arithmetic and time intervals, Physical constants, Physical Quantities
+@section Date and time
+@cindex Class, date and time
+@cindex Date
+@cindex Time (of day)
+@cindex Date and time, creating
+@cindex Reader macro, date and time
+@cindex ISO8601
+@cindex UTC (coordinated universal time)
+@cindex TAI (atomic time)
+@cindex Coordinated Universal Time (UTC)
+@cindex International Atomic Time (TAI)
+@cindex UT1
+@cindex Astronomical time (UT1)
+@cindex Timezones
+Dates and times can be represented in Antik with the @code{timepoint} class.  A timepoint is a specific point in Newtonian time, so includes a date and time, and a @dfn{timescale} (best thought of as a timezone).  Timepoints are most conveniently made with the @dfn{#d} reader macro; the default timescale is @url{http://en.wikipedia.org/wiki/Coordinated_Universal_Time,UTC}, and the standard format for specification of timepoints is 
+@url{http://en.wikipedia.org/wiki/ISO_8601,ISO 8601}
+@example
+ANTIK-USER> #d2011-08-04T12:00
+2011-08-04 12:00:00.000
+#d2011-08-04T12:00EST
+2011-08-04 17:00:00.000
+@end example
+Other timescales available are
+@url{http://en.wikipedia.org/wiki/UT1,UT1},
+@url{http://en.wikipedia.org/wiki/International_Atomic_Time,TAI},
+@url{http://en.wikipedia.org/wiki/GPS#Timekeeping,GPS}, and any of the customary
+@url{http://en.wikipedia.org/wiki/List_of_time_zone_abbreviations,time zone abbreviations} that define offsets from UTC; these are listed in the variable @code{*timescales*}.
+In order to convert to and from UT1, it is necessary to obtain earth orientation parameters from the US Naval Observatory; if @dfn{*real-ut1-utc*} is @nil{}, then UT1 is taken the same as UTC.
+
+The function @code{read-time} will read a timepoint or time interval in ISO8601 format.  Timepoints may be read in any format using the function @code{read-timepoint}.  The default is the @url{http://en.wikipedia.org/wiki/ISO_8601,ISO8601} format, with a broadened allowance for separators between the components.  A day without a specific time will be marked :day-only.  The function @code{read-us-date} is provided to read US-style dates (month/day/year).
+@example
+ANTIK-USER> (read-time "2011-08-04T12:00")
+2011-08-04 12:00:00.000
+ANTIK-USER> (read-time "1999?03/30    % 12-33-45")
+1999-03-30 12:33:45.000
+ANTIK-USER> (read-timepoint "20/12/2011" '(2 1 0)) ; Read a European-style date
+2011-12-20
+ANTIK-USER> (read-us-date "12/20/2000 3:41:12")
+2000-12-20 03:41:12.000
+ANTIK-USER> (read-us-date "12/20/11 3:41:12") ; Two-digit years are acceptable
+2011-12-20 03:41:12.000
+@end example
+Dates are output in ISO8601 format.  The function @code{write-us-date} can be used to format in US style.
+
+@include include/class-antik-timepoint.texinfo
+@include include/var-antik-star-real-ut1-utc-star.texinfo
+@include include/fun-antik-read-time.texinfo
+@include include/fun-antik-read-timepoint.texinfo
+@include include/fun-antik-read-us-date.texinfo
+@include include/fun-antik-write-us-date.texinfo
+
+@node Time arithmetic and time intervals,  , Date and time, Physical Quantities
+@section Time arithmetic and time intervals
+@cindex Time arithmetic
+@cindex Time intervals
+@cindex Formatting, time
+@cindex ISO8601
+The difference of two timepoints may be used to compute a time interval, and an interval added to a timepoint to create another timepoint.  Intervals are ordinary physical dimension quantities with dimension of time, and may be format for input or output in several ways.  The reader macro @code{#d} and the function @code{read-time} will read in an interval in ISO8601 format; it should begin with ``P'' as required by that standard.
+
+All components are of fixed size; for example, a month is 30 days, and a year is 12 months.  This may produce some odd-looking results because a year will have only 360 days.
+@example
+ANTIK-USER> (+ #d2011-08-01T12:00 #DP1m3d)
+2011-09-03 12:00:00.000
+ANTIK-USER> (- #d2011-09-03T12:00:00.000 #d2011-08-01T12:00)
+#dP1m3dT
+ANTIK-USER> (- #d2011-09-03T12:00:00.000 #d2010-09-03T12:00:00.000)
+#dP1y5dT
+@end example
+
+Formatting for an interval is specified by setting the nf parameter @code{:time} to @code{:tud} for an ISO8601 time unit designator, @code{:alternative} for the ISO8601 alternate, or @nil{} for the physical dimension time.  Default is @code{:tud}.
+@example
+ANTIK-USER> (set-nf-options :time :tud)
+ANTIK-USER> #_12345_seconds
+#dPT3h25m45.000s
+ANTIK-USER> (set-nf-options :time nil)
+NIL
+ANTIK-USER> #dP8m3dT5h
+#_21013200.000000000000000d0_s
+@end example
+
+@node Numerical Output Format, Mathematical Utility, Physical Quantities, Top
+@chapter Numerical Output Format
+@cindex Formatting
+@cindex Significant figures
+@cindex Grid, formatting
+@cindex Physical dimension quantities, formatting
+@cindex Number, formatting
+@cindex NF, table of options
+The function @code{nf} is provided to format numbers according to specific criteria set as parameters in the @code{:nf} category (@pxref{Parameters}).  There is precise control over the number of digits printed, how grids are printed, etc.  To show all parameters available, evaluate @code{(parameter-help :nf)}; to get information about each one, @code{(parameter-help :nf @var{name})}.
+
+@multitable @columnfractions .15 .15 .7
+@headitem Parameter @tab Values @tab Description
+@item @code{components} @tab list of strings
+@tab Names of vector components to use when @code{vector-format} is @code{:coordinate-unit-vectors}.
+@item @code{date-time-separator} @tab @nil{}, @code{t}, character
+@tab Character to place between date and time in ISO8601 datime output.
+   If nil, use a space, if T, use #\T.
+@item @code{degrees} @tab boolean
+@tab Whether to format angles in degrees and angular rates in Hertz.
+@item @code{fracpart-digits} @tab @nil{}, fixnum
+@tab The number of digits to the right of the decimal floating point numbers when :significant-figures is @nil{}.
+@item @code{full-precision} @tab @nil{}, @code{t}
+@tab If not @nil{}, ignore @code{:fracpart-digits}, @code{:intpart-digits}, @code{:significant-figures}, and format floating point numbers to full precision.
+@item @code{horizontal-element-separator} @tab character
+@tab What to put between horizontally separated elements for plain style.
+@item @code{ignore-day-only} @tab boolean
+@tab If true, a timepoint specified day-only will show the time part as well.
+@item @code{intpart-digits} @tab @nil{}, fixnum
+@tab The minimum space allowed for the whole-number part of numbers
+   when :significant-figures is @nil{}.  If this is larger than
+   the actual number of digits, pad to the left with spaces.
+   If this value is @nil{}, allow enough space to accomodate the number.
+@item @code{no-units} @tab boolean
+@tab Don't print units if true.
+@item @code{print-sign} @tab boolean
+@tab Whether leading `+' is printed.
+@item @code{significant-figures} @tab @nil{}, fixnum
+@tab The number of significant figures formatted for numbers.
+   If @nil{}, formatting of numbers is done using :intpart-digits
+   and, if a float, :fracpart-digits.
+@item @code{style} @tab @nil{}, @code{:tex}, fixnum
+@tab Style of format: plain (standard or shortened) or LaTeX.
+@item @code{tex-decimal-align} @tab boolean
+@tab Align columns of numbers on decimal point in LaTeX.
+@item @code{tex-element-separator} @tab string
+@tab Character to put between vertically separated matrix rows for LaTeX.
+@item @code{time} @tab @nil{},@code{:tud},@code{:alternative}
+@tab How to format time intervals: with unit for time (@nil{}), ISO8601 time-unit designator (@code{:tud}), ISO8601 alternative (@code{:alternative}).
+@item @code{timepoint-linear} @tab symbol, list
+@tab Convert timepoints to a linear scale if specified as a list of epoch time and unit.  For example @code{'(*midnight-2000* :year)} will present time points as a real number of calendar years, including fractions, such as 3.3223.  If the value is a symbol representing a unit, like :year, the epoch is taken as 0.
+@item @code{vector-format} @tab @code{:horizontal}, @code{:vertical}, @code{:coordinate-unit-vectors}
+@tab Vectors are formatted as rows, columns or as linear combination of coordinate unit vectors.
+@item @code{vertical-element-separator} @tab character
+@tab Character to put between vertically separated elements for plain.
+@end multitable
+
+@include include/fun-antik-nf.texinfo
+@include include/macro-antik-nf-option.texinfo
+@include include/fun-antik-nf-readably.texinfo
+@include include/fun-antik-nf-string.texinfo
+@include include/macro-antik-set-nf-options.texinfo
+@include include/macro-antik-with-nf-options.texinfo
+@include include/fun-antik-object-as-nf.texinfo
+
+@node Mathematical Utility, Three Dimensional Space, Numerical Output Format, Top
+@chapter Mathematical Utility
+This system has definitions for mathematical utilities.  
+@include include/fun-antik-angle-law-of-cosines.texinfo
+@include include/fun-antik-prime-factors.texinfo
+Load the system @code{mathematics} for these definitions.
+
+@node Three Dimensional Space, Mathematics, Mathematical Utility, Top
+@chapter Three Dimensional Space
+This module has definitions related to Cartesian 3-space and rotations.
+
+@menu
+* Cartesian::
+* Polar::
+* Rotation::
+@end menu
+
+@node Cartesian, Polar, Three Dimensional Space, Three Dimensional Space
+@section Cartesian
+@cindex Cartesian space
+@cindex Functions, Cartesian space
+@include include/fun-antik-coordinate-unit-vector.texinfo
+@include include/fun-antik-coplanar.texinfo
+@include include/fun-antik-distance.texinfo
+@include include/fun-antik-first-3vector.texinfo
+@include include/fun-antik-right-angle.texinfo
+@include include/fun-antik-second-3vector.texinfo
+@include include/fun-antik-vector-angle.texinfo
+
+@node Polar, Rotation, Cartesian, Three Dimensional Space
+@section Polar
+@cindex Polar coordinates
+@cindex Rectangular coordinates
+@cindex Functions, polar/rectangular conversion
+@include include/fun-antik-polar-to-rectangular.texinfo
+@include include/fun-antik-rectangular-to-polar.texinfo
+
+@node Rotation,  , Polar, Three Dimensional Space
+@section Rotation
+@cindex Rotation in two and three dimensions
+@cindex Functions, rotation
+@include include/fun-antik-euler-angle-rotation.texinfo
+@include include/fun-antik-rotate.texinfo
+@include include/fun-antik-rotate-3d.texinfo
+@include include/fun-antik-rotate-3daa.texinfo
+@include include/fun-antik-tait-bryan-angles.texinfo
+@include include/fun-antik-tait-bryan-rotation.texinfo
+
+@node Mathematics, Internals, Three Dimensional Space, Top
+@chapter Mathematics
+@cindex GSLL
+@cindex Higher mathematics using external libraries
+These functions provide a more straightforward interface to foreign libraries like @url{http://common-lisp.net/project/gsll/,GSLL}.  For example, GSLL supplies several functions to invert a matrix, but the function defined here @code{invert-matrix} uses LU decomposition with all the necessary preparation.
+
+Load the systems @code{mathematics} and @code{GSLL} for these definitions.
+
+@menu
+* Linear Algebra::
+* Optimization::
+@end menu
+
+@node Linear Algebra, Optimization, Mathematics, Mathematics
+@section Linear Algebra
+@cindex Linear Algebra
+@cindex GSLL
+@cindex Functions, linear algebra
+These functions require that @url{http://common-lisp.net/project/gsll/,GSLL} be loaded.
+@include include/fun-antik-determinant.texinfo
+@include include/fun-antik-invert-matrix.texinfo
+
+@node Optimization,  , Linear Algebra, Mathematics
+@section Optimization
+@cindex Mathematical optimization
+@cindex Optimization, mathematical
+@cindex Functions, mathematical optimization
+These functions require that GSLL be loaded.
+@include include/fun-antik-maximize-1d.texinfo
+@include include/fun-antik-minimize-1d.texinfo
+@include include/fun-antik-root-1d.texinfo
+
+@node Internals, Download and installation, Mathematics, Top
+@chapter Internals
+@cindex Internals of Antik
+This chapter describes some of the designs used internally, for the benefit of those who wish to port libraries to use some of the definitions in Antik, or those who are merely curious.  If you wish to simply use Antik, you can skip this chapter.
+
+@menu
+* Foreign Library Kit::
+* Antik tests::
+@end menu
+
+@node Foreign Library Kit, Antik tests, Internals, Internals
+@section Foreign Library Kit
+@cindex Foreign array metadata
+Antik is designed with the idea that scientific and engineering libraries, particularly foreign (non-Lisp) libraries, can easily be integrated, so that data can be exchanged with and among the libraries.  Function and other definitions, when duplicated, will be named the same, differing only in the package.  For example, if libraries @samp{foo} and @samp{bar} both define a singular value decomposition (SVD), they would use the function names @code{foo:sv-decomposition} and @code{bar:sv-decomposition}, and the arguments would be as similar as possible.  Then a user may call either one on a matrix (two-dimensional) grid, and compare results.
+
+To facilitate the exchange of foreign arrays, the class @code{grid:foreign-array} has a slot @code{grid::foreign-metadata}.  The interface code for a foreign library can save information there as a plist that the library needs in order to use the array, such as the dimensions. 
+
+@node Antik tests,  , Foreign Library Kit, Internals
+@section Antik tests
+Regression (unit) tests are available for both @code{antik} and @code{grid} if the @url{http://www.cliki.net/lisp-unit,lisp-unit} system is installed, 
+
+@node Download and installation, Copying this software, Internals, Top
+@chapter Download and installation
+
+@cindex Installation of Antik
+@cindex Download of Antik
+@cindex Dependencies of Antik on external libraries
+The recommended way to download and install this software is through
+@url{http://www.quicklisp.org/,quicklisp}.  Install quicklisp following
+the directions, then do one of:
+@example
+(ql:quickload "antik")
+@end example
+
+Users that need the very latest version will need to fetch the
+repository via git.  The @url{http://repo.or.cz/w/antik.git,gitweb page}
+gives a view of the commit history and information on cloning.  To
+clone,
+@example
+git clone @url{git://repo.or.cz/antik.git}
+@end example
+
+The @code{Antik} system depends on
+@itemize
+@item
+@url{http://common-lisp.net/project/alexandria/,alexandria}
+@url{http://common-lisp.net/project/cffi/,cffi},
+@url{http://www.cliki.net/trivial-garbage,trivial-garbage}, and
+@url{http://www.cliki.net/SPLIT-SEQUENCE,split-sequence}.
+In addition, there are two optional systems, 
+@url{http://repo.or.cz/w/fsbv.git,FSBV}, which permits usage of foreign
+arrays of complex number elements, and
+@url{http://gitorious.org/iolib/static-vectors,static-vectors} gives 
+foreign arrays a native Lisp view via the function @code{cl-array} for
+foreign arrays made in Lisp (not created in foreign code) for supported
+implementations (currently SBCL, CCL, ECL, LispWorks, and Allegro).
+@end itemize
+Note: FSBV is for the time being mandatory.  Only one file is needed, and no foreign libraries, but until it is split into two separate systems, the whole thing must be loaded.
+
+@node Copying this software, Index, Download and installation, Top
+@chapter Copying
+@cindex Copying Antik software
+All code and documentation in this collection is copyright as indicated
+at the top of this document.  It may be copied under the
+@url{http://www.gnu.org/licenses/gpl.html,GPL v3}.
+
+@node Index,  , Copying this software, Top
+@unnumbered Index
+
+@c what is the condition index?
+Concept index
+@printindex cp
+Function and Macro index
+@printindex fn
+Constants and Variables index
+@printindex vr
+
+@bye
+
+
+@c********************************************************************************
+@c I find this too much clutter
+@c********************************************************************************
+
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Grids
+
+* Introduction to grids::                
+* Creating a grid::             
+* Operations::                  
+* Physical quantities::         
+* Efficiency::                  
+
+Introduction
+
+* The grid concept::            
+* Types of grids::              
+* Package::                     
+* Tests::                       
+
+Creating a grid
+
+* Reader macro and function @code{grid}::  
+* The foreign-array class::    
+* Simple grids and default values::  
+* Functions for creation of grids::           
+
+Functions for creation of grids
+
+* make-grid::                   
+* make-foreign-array::          
+* ensure-foreign-array::          
+* make-foreign-array-from-pointer::          
+* Summary::                     
+
+Operations
+
+* Summary of defined operations::  
+* Mapping::                     
+* AFFI::                        
+* Composition functions::       
+
+Mapping
+
+* @code{map-grid}::             
+* @code{map-n-grids}::          
+
+Composition functions
+
+* drop::                 
+* row::                  
+* column::               
+* subgrid::              
+* transpose::            
+* diagonal::             
+* concatenate-grids::    
+* slice::                
+* stride::                      
+* Vector products::             
+
+Physical Quantities
+
+* Introduction::                
+* Physical dimension::          
+* Date and time::               
+
+Physical dimension
+
+* Introduction::                
+* Dimensions::                  
+* Systems of units::            
+
+Internals
+
+* Foreign Library Kit::         
+
+@end detailmenu

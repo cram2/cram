@@ -1,0 +1,2 @@
+1. The macro #m creates a grid:*default-grid-type*, not necessarily a grid:foreign-array.  The previous behavior can be restored by setting (setf grid:*default-grid-type* 'grid:foreign-array), prior reading the form,
+or by adding 100 to the numeric code, e.g. #100m(1.0d0 2.0d0).

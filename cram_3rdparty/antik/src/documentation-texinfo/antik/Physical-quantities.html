@@ -1,0 +1,51 @@
+<html lang="en">
+<head>
+<title>Physical quantities - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Grids.html#Grids" title="Grids">
+<link rel="prev" href="Input-and-Output.html#Input-and-Output" title="Input and Output">
+<link rel="next" href="Capabilities-and-Internals.html#Capabilities-and-Internals" title="Capabilities and Internals">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Physical-quantities"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Capabilities-and-Internals.html#Capabilities-and-Internals">Capabilities and Internals</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Input-and-Output.html#Input-and-Output">Input and Output</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Grids.html#Grids">Grids</a>
+<hr>
+</div>
+
+<h3 class="section">4.5 Physical quantities</h3>
+
+<p><a name="index-Physical-dimension-quantities-in-grids-244"></a><a name="index-Grid_002c-with-physical-units-245"></a>A grid may also be a physical quantity.  In this case, the magnitude is
+a numeric grid, and the units are either scalar, meaning the same unit
+applies to all numbers, or mixed, meaning that one set of units applies
+to each element.
+<pre class="example">     ANTIK-USER&gt; #_#m(1.0 2.0 3.0)_km
+     #_#m(1000.000000000000000d0 2000.000000000000000d0 3000.000000000000000d0)_m
+     ANTIK-USER&gt; #m(#_1.0_km #_2.0_s #_3.0_kg)
+     #m(#_1000.000000000000000d0_m #dPT2.000s #_3.000000000000000d0_kg)
+</pre>
+   <p>See <a href="Physical-Quantities.html#Physical-Quantities">Physical Quantities</a> for more details on physical quantities, keeping in mind that whereever a scalar magnitude is shown there, a grid may be used instead.
+
+   </body></html>
+

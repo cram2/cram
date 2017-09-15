@@ -1,0 +1,5 @@
+@deffn {Macro} {antik:val} category variable @&optional nf-options
+@findex antik:val
+The parameter value formatted for tex.  Useful in embedded org-mode code block evaluation as e.g.
+   src_lisp[:results raw]@{(val @code{p1020} B)@}.
+@end deffn

@@ -1,0 +1,107 @@
+<html lang="en">
+<head>
+<title>Constants and Variables - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Capabilities-and-Internals.html#Capabilities-and-Internals" title="Capabilities and Internals">
+<link rel="prev" href="Condition.html#Condition" title="Condition">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Constants-and-Variables"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Condition.html#Condition">Condition</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Capabilities-and-Internals.html#Capabilities-and-Internals">Capabilities and Internals</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.6.4 Constants and Variables</h4>
+
+<div class="defun">
+&mdash; Constant: <b>grid:+foreign-pointer-class+</b><var><a name="index-grid_003a_002bforeign_002dpointer_002dclass_002b-284"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002bforeign_002dpointer_002dclass_002b-285"></a>The class in which foreign pointers fall. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Constant: <b>grid:+foreign-pointer-type+</b><var><a name="index-grid_003a_002bforeign_002dpointer_002dtype_002b-286"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002bforeign_002dpointer_002dtype_002b-287"></a>The type of foreign pointers. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*array-element-types-no-complex*</b><var><a name="index-grid_003a_002aarray_002delement_002dtypes_002dno_002dcomplex_002a-288"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002aarray_002delement_002dtypes_002dno_002dcomplex_002a-289"></a>All the array element types supported except for complex types. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*array-element-types*</b><var><a name="index-grid_003a_002aarray_002delement_002dtypes_002a-290"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002aarray_002delement_002dtypes_002a-291"></a>All the array element types supported. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*complex-types*</b><var><a name="index-grid_003a_002acomplex_002dtypes_002a-292"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002acomplex_002dtypes_002a-293"></a>All the supported complex array element types. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*cstd-cl-type-mapping*</b><var><a name="index-grid_003a_002acstd_002dcl_002dtype_002dmapping_002a-294"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002acstd_002dcl_002dtype_002dmapping_002a-295"></a>An alist of the <code>c</code> standard types as keywords, and the <code>cl</code> type
+   The exception is complex types, which don't have a definition
+   in the <code>c</code> standard; in that case, the <code>c</code> type is the foreign struct
+   definition. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*cstd-integer-types*</b><var><a name="index-grid_003a_002acstd_002dinteger_002dtypes_002a-296"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002acstd_002dinteger_002dtypes_002a-297"></a>List of integer types supported by <code>cffi</code>, from the <code>cffi</code> docs. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*double-types*</b><var><a name="index-grid_003a_002adouble_002dtypes_002a-298"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002adouble_002dtypes_002a-299"></a>All the supported double float element types. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*float-complex-types*</b><var><a name="index-grid_003a_002afloat_002dcomplex_002dtypes_002a-300"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002afloat_002dcomplex_002dtypes_002a-301"></a>All the float or complex array element types supported. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*float-types*</b><var><a name="index-grid_003a_002afloat_002dtypes_002a-302"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002afloat_002dtypes_002a-303"></a>All the float array element types. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*grid-types*</b><var><a name="index-grid_003a_002agrid_002dtypes_002a-304"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002agrid_002dtypes_002a-305"></a>A list of (disjoint) types that are accepted as grids.  Not every
+  object of the given type is necessarily a grid, however. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*print-contents*</b><var><a name="index-grid_003a_002aprint_002dcontents_002a-306"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002aprint_002dcontents_002a-307"></a>Print the contents of the foreign-array. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Variable: <b>grid:*print-foreign-array-readably*</b><var><a name="index-grid_003a_002aprint_002dforeign_002darray_002dreadably_002a-308"></a></var><br>
+<blockquote><p><a name="index-grid_003a_002aprint_002dforeign_002darray_002dreadably_002a-309"></a>Print the contents of the foreign-array with the #m reader macro. 
+</p></blockquote></div>
+
+   </body></html>
+

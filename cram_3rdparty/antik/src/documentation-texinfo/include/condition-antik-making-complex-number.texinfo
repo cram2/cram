@@ -1,0 +1,6 @@
+@deftp {Condition} {antik:making-complex-number}
+@tindex antik:making-complex-number
+Class precedence list: @code{@lw{making-complex-number}, @lw{arithmetic-error}, @lw{error}, @lw{serious-condition}, @lw{condition}, @lw{t}}
+
+Signalled when a mathematical calculation would result in a complex number.
+@end deftp

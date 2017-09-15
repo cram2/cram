@@ -1,0 +1,4 @@
+@deffn {Compiler Macro} {grid:aref*} grid linearized-index
+@findex grid:aref*
+Expand the aref* form directly into a faster call if the type is known at compile time.
+@end deffn

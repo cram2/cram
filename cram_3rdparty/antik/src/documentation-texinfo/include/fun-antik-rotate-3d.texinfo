@@ -1,0 +1,6 @@
+@deffn {Function} {antik:rotate-3d} axis angle @&optional passive
+@findex antik:rotate-3d
+Create a rotation matrix about the (0, @code{1}, 2)
+   axis in three dimensions.  Passive rotation
+   if passive is true, otherwise active.
+@end deffn

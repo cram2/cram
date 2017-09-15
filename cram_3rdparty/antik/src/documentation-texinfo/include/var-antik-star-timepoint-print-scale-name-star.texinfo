@@ -1,0 +1,4 @@
+@defvr {Variable} {antik:*timepoint-print-scale-name*}
+@vindex antik:*timepoint-print-scale-name*
+When @code{t}, print the scale (UTC, @code{tai}, etc.) with a timepoint.
+@end defvr

@@ -1,0 +1,8 @@
+@deffn {Function} {antik:stream-to-string} stream @&key terminator terminate-if
+@findex antik:stream-to-string
+Fill a string with the contents of the stream.  Stop when an @code{eof}
+   is encountered, or when the terminating character :terminator,
+   which is discarded, is reached, or the function :terminate-if
+   is satisfied on the character, which is returned to the stream.
+   Only one of :terminator and :terminate-if should be specified.
+@end deffn

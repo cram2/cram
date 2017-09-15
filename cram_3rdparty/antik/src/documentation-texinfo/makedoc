@@ -1,0 +1,3 @@
+#!/bin/sh
+makeinfo --html antik.texi
+texi2pdf -p antik.texi

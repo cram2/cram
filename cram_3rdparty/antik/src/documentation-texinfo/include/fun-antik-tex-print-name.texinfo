@@ -1,0 +1,4 @@
+@deffn {Function} {antik:tex-print-name} unit
+@findex antik:tex-print-name
+How the unit or attribute should be printed in TeX.
+@end deffn

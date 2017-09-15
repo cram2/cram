@@ -1,0 +1,6 @@
+@deffn {Function} {antik:polar-to-rectangular} azimuth elevation @&optional radius sign1
+@findex antik:polar-to-rectangular
+Convert polar coordinates to rectangular coordinates.
+   Argument sign1 should be set to @code{-1} for accomodating topocentric azimuth,
+   which is measured from North instead of South.
+@end deffn

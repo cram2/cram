@@ -1,0 +1,5 @@
+@deffn {Function} {antik:linear-least-squares-1d} observations @&optional times
+@findex antik:linear-least-squares-1d
+Find the one dimensional least squares (linear regression) solution of slope and intercept.
+   Values returned: slope, intercept, and their standard errors.
+@end deffn

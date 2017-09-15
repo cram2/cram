@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:pythagorean-sum} @&rest args
+@findex antik:pythagorean-sum
+Sum the squares of the arguments.
+@end deffn

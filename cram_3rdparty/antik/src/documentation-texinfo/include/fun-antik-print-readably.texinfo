@@ -1,0 +1,5 @@
+@deffn {Function} {antik:print-readably} object @&optional stream
+@findex antik:print-readably
+If the CL-defined specials are defined appropriately, print readably
+   and return @code{t}, otherwise, return @code{nil}.
+@end deffn

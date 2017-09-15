@@ -1,0 +1,4 @@
+@defvr {Constant} {grid:+foreign-pointer-class+}
+@vindex grid:+foreign-pointer-class+
+The class in which foreign pointers fall.
+@end defvr

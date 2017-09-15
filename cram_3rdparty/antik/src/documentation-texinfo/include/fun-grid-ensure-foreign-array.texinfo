@@ -1,0 +1,6 @@
+@deffn {Function} {grid:ensure-foreign-array} object @&optional dimensions element-type initial-element
+@findex grid:ensure-foreign-array
+If object is not a foreign array, make and return a foreign array
+   with the dimensions and element-type.  If object is a
+   foreign array, it is returned.
+@end deffn

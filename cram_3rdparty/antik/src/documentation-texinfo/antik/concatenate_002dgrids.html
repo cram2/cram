@@ -1,0 +1,64 @@
+<html lang="en">
+<head>
+<title>concatenate-grids - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Composition-functions.html#Composition-functions" title="Composition functions">
+<link rel="prev" href="column.html#column" title="column">
+<link rel="next" href="diagonal.html#diagonal" title="diagonal">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="concatenate-grids"></a>
+<a name="concatenate_002dgrids"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="diagonal.html#diagonal">diagonal</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="column.html#column">column</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Composition-functions.html#Composition-functions">Composition functions</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.3.4.3 concatenate-grids</h5>
+
+<p><a name="index-Grid_002c-concatenation-153"></a><a name="index-Concatenation-of-grids-154"></a>
+
+<div class="defun">
+&mdash; Function: <b>grid:concatenate-grids</b><var> grid0 grid1 &amp;key axis<a name="index-grid_003aconcatenate_002dgrids-155"></a></var><br>
+<blockquote><p><a name="index-grid_003aconcatenate_002dgrids-156"></a>Concatenate the grids along the axis specified.  The new grid
+   will have the grid type specification and element type
+   as grid0. 
+</p></blockquote></div>
+   The function <code>concatenate-grids</code>
+ is used to join two grids on an axis whose dimensions are
+the same on the other axes.  For example, join two matrices by
+adjoining their columns, all of the same length:
+<pre class="example">     (map-grid :source (offset-ifd 0.5d0) :source-dims '(3 4))
+     #2A((0.5d0 1.5d0 2.5d0 3.5d0)
+         (10.5d0 11.5d0 12.5d0 13.5d0)
+         (20.5d0 21.5d0 22.5d0 23.5d0))
+     (map-grid :source (offset-ifd 0.1d0) :source-dims '(3 2))
+     #2A((0.1d0 1.1d0) (10.1d0 11.1d0) (20.1d0 21.1d0))
+     (concatenate-grids ** * :axis 1)
+     #2A((0.5d0 1.5d0 2.5d0 3.5d0 0.1d0 1.1d0)
+         (10.5d0 11.5d0 12.5d0 13.5d0 10.1d0 11.1d0)
+         (20.5d0 21.5d0 22.5d0 23.5d0 20.1d0 21.1d0))
+</pre>
+   </body></html>
+

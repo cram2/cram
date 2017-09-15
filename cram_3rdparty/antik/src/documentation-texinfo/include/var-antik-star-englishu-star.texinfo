@@ -1,0 +1,4 @@
+@defvr {Variable} {antik:*englishu*}
+@vindex antik:*englishu*
+The English system of units.
+@end defvr

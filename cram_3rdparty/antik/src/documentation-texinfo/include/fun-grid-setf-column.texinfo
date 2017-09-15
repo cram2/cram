@@ -1,0 +1,4 @@
+@deffn {Function} {(setf grid:column)}
+@findex (setf grid:column)
+Set the subgrid with the second index set to the specified value.
+@end deffn

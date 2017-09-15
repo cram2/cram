@@ -1,0 +1,63 @@
+<html lang="en">
+<head>
+<title>Iterate - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Operations.html#Operations" title="Operations">
+<link rel="prev" href="Copying.html#Copying" title="Copying">
+<link rel="next" href="Composition-functions.html#Composition-functions" title="Composition functions">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Iterate"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Composition-functions.html#Composition-functions">Composition functions</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Copying.html#Copying">Copying</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Operations.html#Operations">Operations</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.3.3 Iterate</h4>
+
+<p>Extensions to the <a href="http://common-lisp.net/project/iterate/"><samp><span class="command">iterate</span></samp></a>
+system are provided.  The following <code>for</code> clause iterators are defined:
+     <ul>
+<li><code>matrix-row</code>
+<li><code>matrix-row-index</code>
+<li><code>matrix-column</code>
+<li><code>matrix-column-index</code>
+<li><code>vector-element</code>
+<li><code>vector-element-index</code>
+<li><code>matrix-element</code>
+<li><code>matrix-element-index</code>
+</ul>
+   For example,
+<pre class="example">     (defparameter m1 #m(1 2 3 ^ 0 6 8))
+     (iter:iter (iter:for e :matrix-element m1) (princ e) (princ " "))
+     1.0 2.0 3.0 0.0 0.0 6.0 8.0
+</pre>
+   <p>The definitions are in the <samp><span class="command">grid-iterate-extension</span></samp> extension
+system which will automatically load if
+<a href="http://common-lisp.net/project/asdf-system-connections"><samp><span class="command">asdf-system-connnections</span></samp></a>,
+<a href="http://common-lisp.net/project/iterate/"><samp><span class="command">iterate</span></samp></a>, and the
+<samp><span class="command">Antik</span></samp> system are loaded.
+
+   </body></html>
+

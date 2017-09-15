@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:acos} arg
+@findex antik:acos
+The arccosine of the generalized or regular number.
+@end deffn

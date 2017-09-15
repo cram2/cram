@@ -1,0 +1,6 @@
+@deftp {Class} {grid:matrix}
+@tindex grid:matrix
+Class precedence list: @code{@lw{matrix}, @lw{foreign-array}, @lw{standard-object}, @lw{t}}
+
+Foreign matrices.
+@end deftp

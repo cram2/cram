@@ -1,0 +1,4 @@
+@deffn {Function} {antik:iso8601-time-interval} time @&optional format fractional-seconds-digits
+@findex antik:iso8601-time-interval
+Represent the time interval in ISO8601:2000(E) Section @code{5}.@code{5}.@code{4}.@code{2}.@code{1} format, representation of time-interval by duration only.
+@end deffn

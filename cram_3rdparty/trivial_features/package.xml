@@ -1,0 +1,27 @@
+<package>
+  <name>trivial_features</name>
+  <version>0.3.0</version>
+  <description>
+      3rd party library: trivial-features
+  </description>
+
+  <author>Luis Oliveira</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>Public domain</license>
+
+  <url type="website">http://www.cliki.net/trivial-features</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <url type="repository">https://github.com/trivial-features/trivial-features.git</url>
+  <!--external-version>trivial-features-20161204-git</external-version-->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+
+  <run_depend>sbcl</run_depend>
+</package>
+
+

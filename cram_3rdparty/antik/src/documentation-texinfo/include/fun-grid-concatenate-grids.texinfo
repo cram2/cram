@@ -1,0 +1,6 @@
+@deffn {Function} {grid:concatenate-grids} grid0 grid1 @&key axis
+@findex grid:concatenate-grids
+Concatenate the grids along the axis specified.  The new grid
+   will have the grid type specification and element type
+   as grid0.
+@end deffn

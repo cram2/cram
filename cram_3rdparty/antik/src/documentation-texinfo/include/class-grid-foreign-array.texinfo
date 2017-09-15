@@ -1,0 +1,6 @@
+@deftp {Class} {grid:foreign-array}
+@tindex grid:foreign-array
+Class precedence list: @code{@lw{foreign-array}, @lw{standard-object}, @lw{t}}
+
+Arrays that can be referenced by foreign functions.
+@end deftp

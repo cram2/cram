@@ -1,0 +1,58 @@
+<html lang="en">
+<head>
+<title>row - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Composition-functions.html#Composition-functions" title="Composition functions">
+<link rel="prev" href="matrix_002dfrom_002dcolumns.html#matrix_002dfrom_002dcolumns" title="matrix-from-columns">
+<link rel="next" href="slice.html#slice" title="slice">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="row"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="slice.html#slice">slice</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="matrix_002dfrom_002dcolumns.html#matrix_002dfrom_002dcolumns">matrix-from-columns</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Composition-functions.html#Composition-functions">Composition functions</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.3.4.8 row</h5>
+
+<p><a name="index-Row-of-matrix-175"></a><a name="index-Matrix_002c-row-176"></a>
+
+<div class="defun">
+&mdash; Function: <b>grid:row</b><var> grid index &amp;optional destination<a name="index-grid_003arow-177"></a></var><br>
+<blockquote><p><a name="index-grid_003arow-178"></a>The subgrid with the first index set to the specified value. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>(setf grid:row)</b><var><a name="index-g_t_0028setf-grid_003arow_0029-179"></a></var><br>
+<blockquote><p><a name="index-g_t_0028setf-grid_003arow_0029-180"></a>Set the subgrid with the first index set to the specified value. 
+</p></blockquote></div>
+
+   <p>The functions <code>row</code>, <code>(setf row)</code>
+select or set the row of a matrix. 
+For example, select the second row from the matrix above:
+<pre class="example">     (row (test-grid-double-float 'array '(3 4)) 1)
+     #(10.0d0 11.0d0 12.0d0 13.0d0)
+</pre>
+   </body></html>
+

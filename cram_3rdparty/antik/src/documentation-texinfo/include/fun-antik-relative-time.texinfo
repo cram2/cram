@@ -1,0 +1,8 @@
+@deffn {Function} {antik:relative-time} base-time time @&optional absolute
+@findex antik:relative-time
+Compute a time using base-time as a reference.
+   Either can be a timepoint or time pdq, and the result
+   can be chosen either way by specifying absolute @code{t} or @code{nil}
+   respectively.  The returned value is the time specified by
+   the second argument, but referenced to base-time.
+@end deffn

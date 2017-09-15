@@ -1,0 +1,5 @@
+@deffn {Function} {antik:make-physical-state} state attributes @&rest attributes-values
+@findex antik:make-physical-state
+From the given attributes and values, copy the requested attributes
+   from the existing state if they exist, then define new attribute values.
+@end deffn

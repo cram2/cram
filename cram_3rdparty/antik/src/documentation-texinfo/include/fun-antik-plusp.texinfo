@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:plusp} a
+@findex antik:plusp
+Positive.
+@end deffn

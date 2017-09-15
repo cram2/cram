@@ -1,0 +1,6 @@
+@deftp {Class} {antik:timepoint}
+@tindex antik:timepoint
+Class precedence list: @code{@lw{timepoint}, @lw{dtspec}, @lw{standard-object}, @lw{t}}
+
+Specification of a point in time, including a scale.
+@end deftp

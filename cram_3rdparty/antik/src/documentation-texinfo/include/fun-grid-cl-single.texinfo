@@ -1,0 +1,4 @@
+@deffn {Function} {grid:cl-single} cl-type @&optional package
+@findex grid:cl-single
+The element type name as a single symbol.
+@end deffn

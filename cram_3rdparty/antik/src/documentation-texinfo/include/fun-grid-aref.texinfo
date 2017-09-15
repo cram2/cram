@@ -1,0 +1,4 @@
+@deffn {Generic Function} {grid:aref} grid @&rest indices
+@findex grid:aref
+Select the element from the grid.
+@end deffn

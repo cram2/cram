@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:expt} num exponent
+@findex antik:expt
+Raise the number to the exponent.
+@end deffn

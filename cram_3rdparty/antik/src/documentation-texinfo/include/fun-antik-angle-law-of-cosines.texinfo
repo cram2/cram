@@ -1,0 +1,4 @@
+@deffn {Function} {antik:angle-law-of-cosines} length-opp length-adj1 length-adj2
+@findex antik:angle-law-of-cosines
+Solve for the angle when lengths of a triangle are known.
+@end deffn

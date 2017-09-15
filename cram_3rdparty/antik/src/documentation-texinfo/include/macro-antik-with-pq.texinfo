@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:with-pq} physical-quantities @&body body
+@findex antik:with-pq
+Ensure that the named physical dimension quantities are of the right dimensions, or convert them from plain numbers using the current system of units as specified by (nf-option :system-of-units).
+@end deffn

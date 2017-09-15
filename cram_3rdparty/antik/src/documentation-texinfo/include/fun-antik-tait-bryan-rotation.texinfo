@@ -1,0 +1,6 @@
+@deffn {Function} {antik:tait-bryan-rotation} rot1 rot2 rot3 @&optional passive
+@findex antik:tait-bryan-rotation
+Compute the matrix for a @code{3-2-1} (yaw-pitch-roll) rotation.
+   See Curtis (9.124).  This transforms a vector in the body
+   frame into a vector in the external frame.
+@end deffn

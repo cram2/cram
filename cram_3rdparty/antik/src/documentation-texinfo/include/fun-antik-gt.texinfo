@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:>} a b
+@findex antik:>
+Greater than
+@end deffn

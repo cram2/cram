@@ -1,0 +1,6 @@
+@deffn {Function} {grid:set-diagonal} grid function-or-value @&optional offset value
+@findex grid:set-diagonal
+Set the diagonal of the grid by calling the function on the indices.
+   If value is non-nil, then set it to function-or-value, ignoring
+   the indices.
+@end deffn

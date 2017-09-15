@@ -1,0 +1,7 @@
+@deftp {Condition} {grid:array-mismatch}
+@tindex grid:array-mismatch
+Class precedence list: @code{@lw{array-mismatch}, @lw{error}, @lw{serious-condition}, @lw{condition}, @lw{t}}
+
+An error indicating that the two arrays do not have 
+   the same dimensions.
+@end deftp

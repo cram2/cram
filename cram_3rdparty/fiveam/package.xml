@@ -1,0 +1,27 @@
+<package>
+  <name>fiveam</name>
+  <version>0.3.0</version>
+  <description>
+      3rd party library: FiveAM
+  </description>
+
+  <author>Many</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>Public domain</license>
+
+  <url type="website">http://common-lisp.net/project/fiveam/</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <url type="repository">https://github.com/sionescu/fiveam.git</url>
+  <!--external-version>v1.2</external-version-->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+  <build_depend>alexandria</build_depend>
+
+  <run_depend>sbcl</run_depend>
+  <run_depend>alexandria</run_depend>
+</package>

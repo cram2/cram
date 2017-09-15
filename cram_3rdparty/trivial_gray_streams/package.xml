@@ -1,0 +1,27 @@
+<package>
+  <name>trivial_gray_streams</name>
+  <version>0.3.0</version>
+  <description>
+      3rd party library: trivial-gray-streams
+  </description>
+
+  <author>David Lichteblau</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>MIT</license>
+
+  <url type="website">http://common-lisp.net/project/trivial-gray-streams/</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <url type="repository">https://github.com/trivial-gray-streams/trivial-gray-streams.git</url>
+  <!--external-version>0483ade330508b4b2edeabdb47d16ec9437ee1cb</external-version-->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+
+  <run_depend>sbcl</run_depend>
+</package>
+
+

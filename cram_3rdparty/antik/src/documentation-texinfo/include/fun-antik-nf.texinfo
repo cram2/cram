@@ -1,0 +1,7 @@
+@deffn {Generic Function} {antik:nf} object @&optional stream
+@findex antik:nf
+Format output for numerical objects.  If stream is nil, use *standard-output*.
+@end deffn
+@deffn {Method} {antik:nf} (object float) @&optional (stream *standard-output*)
+Returns two values: the string and prints-as-zero.
+@end deffn

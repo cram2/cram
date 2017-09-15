@@ -1,0 +1,4 @@
+@deffn {Function} {grid:gridp} object
+@findex grid:gridp
+Object is a grid; type is returned.
+@end deffn

@@ -1,0 +1,5 @@
+@deffn {Macro} {antik:reset-parameters} category @&rest names
+@findex antik:reset-parameters
+Reset the parameter(s) to the default value; if none are specified,
+   all in the category are reset.
+@end deffn

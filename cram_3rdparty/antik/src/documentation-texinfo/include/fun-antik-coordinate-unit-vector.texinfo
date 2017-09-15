@@ -1,0 +1,4 @@
+@deffn {Function} {antik:coordinate-unit-vector} i @&optional length
+@findex antik:coordinate-unit-vector
+A coordinate unit vector.
+@end deffn

@@ -1,0 +1,7 @@
+@deffn {Function} {antik:map-state} original-state attributes @&optional function
+@findex antik:map-state
+Make a new state by mapping a function of (value attribute-name)
+   on existing attributes.  If function is @code{nil}, use existing value.
+   A function, if specified, should return the new value.  If attributes
+   is @code{nil}, use all the defined attributes of the original state.
+@end deffn

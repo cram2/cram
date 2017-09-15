@@ -1,0 +1,4 @@
+@deffn {Function} {grid:copy-to} object @&optional type
+@findex grid:copy-to
+Make a grid of the specified type from the object.
+@end deffn

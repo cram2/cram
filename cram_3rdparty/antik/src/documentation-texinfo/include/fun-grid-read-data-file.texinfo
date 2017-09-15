@@ -1,0 +1,4 @@
+@deffn {Function} {grid:read-data-file} filename @&optional separator include-count discard-header
+@findex grid:read-data-file
+Read the data in the file into a list.
+@end deffn

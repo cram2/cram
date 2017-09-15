@@ -1,0 +1,5 @@
+@deffn {Function} {antik:to-yyddd} datime
+@findex antik:to-yyddd
+Generate the twoline element form of datime.  Note this
+   is not year-2000 compliant!
+@end deffn

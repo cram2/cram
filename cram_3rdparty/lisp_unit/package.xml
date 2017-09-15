@@ -1,0 +1,27 @@
+<package>
+  <name>lisp_unit</name>
+  <version>0.3.0</version>
+  <description>
+      3rd party library: A unit testing framework for common lisp.
+  </description>
+
+  <author></author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>GPL</license>
+
+  <url type="website">http://www.cliki.net/lisp-unit</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <url type="repository">https://github.com/OdonataResearchLLC/lisp-unit.git</url>
+  <!--external-version>lisp-unit-20170124-git</external-version-->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+
+  <run_depend>sbcl</run_depend>
+</package>
+
+
