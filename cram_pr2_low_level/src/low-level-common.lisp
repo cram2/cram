@@ -89,13 +89,13 @@
                                                         (y orientation pose) (cl-transforms:y rot)
                                                         (z orientation pose) (cl-transforms:z rot)
                                                         (w orientation pose) (cl-transforms:w rot)
-                                                        (x scale) 0.2
-                                                        (y scale) 0.1
-                                                        (z scale) 0.02
+                                                        (x scale) 0.05
+                                                        (y scale) 0.03
+                                                        (z scale) 0.01
                                                         (r color) (first r-g-b-list)
                                                         (g color) (second r-g-b-list)
                                                         (b color) (third r-g-b-list)
-                                                        (a color) 1.0)))
+                                                        (a color) 0.7)))
                ;; (roslisp:ros-warn (ll visualize-marker) "asked to visualize a null pose")
                )))
     (if (listp pose/s)
