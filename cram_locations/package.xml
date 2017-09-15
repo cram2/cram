@@ -1,0 +1,26 @@
+<package>
+  <name>cram_occupancy_grid_costmap</name>
+  <version>0.3.0</version>
+  <description>
+    Occupancy Grid Costmap package
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_costmaps/issues</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>cram_designators</build_depend>
+  <build_depend>cram_location_costmap</build_depend>
+  <build_depend>cram_robot_interfaces</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>roslisp_utilities</build_depend>
+
+  <run_depend>cram_designators</run_depend>
+  <run_depend>cram_location_costmap</run_depend>
+  <run_depend>cram_robot_interfaces</run_depend>
+  <run_depend>nav_msgs</run_depend>
+  <run_depend>roslisp_utilities</run_depend>
+</package>

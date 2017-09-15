@@ -1,0 +1,21 @@
+<package format="2">
+  <name>cram_designator_specification</name>
+  <version>0.3.0</version>
+  <description>
+    This package gives a more constrained definition of what different designators are,
+which fields can have which datatypes etc.
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_common/issues</url>
+  <url type="repository">https://github.com/cram2/cram_common</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cram_designators</depend>
+  <depend>cram_prolog</depend>
+  <depend>cl_transforms_stamped</depend>
+</package>
