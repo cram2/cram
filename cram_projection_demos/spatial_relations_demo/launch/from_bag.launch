@@ -1,0 +1,25 @@
+<launch>
+  <param name="/use_sim_time" value="true"/>
+
+  <param name="kitchen_description"
+    command="$(find xacro)/xacro.py '$(find iai_kitchen_defs)/room/kitchen_area.urdf.xml'" />
+  <param name="room_description"
+    command="$(find xacro)/xacro.py '$(find iai_kitchen_defs)/room/room.urdf.xml'" />
+
+  <!-- <include file="$(find iai_maps)/launch/kitchen_with_state_publisher.launch" /> -->
+  <!-- <include file="$(find iai_maps)/launch/room.launch" /> -->
+  <include file="$(find iai_maps)/launch/map.launch" />
+
+  <param name="robot_description_lowres"
+         command="$(find xacro)/xacro.py
+                  '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/>
+
+  <node pkg="tf2_ros" type="buffer_server" name="tf_buffer">
+    <param name="buffer_size" value="240"/>
+  </node>
+
+  <node pkg="rosbag" type="play" name="rosbag_player" output="screen"
+        args="-l --clock /home/gaya/2014-12-04-08-57-55.bag"/>
+
+  <include file="$(find iai_maps)/launch/json.launch" />
+</launch>

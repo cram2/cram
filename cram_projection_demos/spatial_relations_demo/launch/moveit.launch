@@ -1,0 +1,24 @@
+<launch>
+
+<node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0"
+      args="0 0 0 0 0 0 odom_combined base_footprint 100" />
+<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+  <param name="/use_gui" value="false"/>
+  <rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
+</node>
+<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+      respawn="true" output="screen" />
+
+<include ns="move_group" file="$(find pr2_moveit_config)/launch/planning_pipeline.launch.xml">
+  <arg name="pipeline" value="ompl" />
+</include>
+<node name="move_group" pkg="moveit_ros_move_group" type="move_group" respawn="false"
+      output="screen" args="--debug">
+  <env name="DISPLAY" value="$(optenv DISPLAY :0)" />
+  <param name="allow_trajectory_execution" value="false"/>
+  <param name="max_safe_path_cost" value="1"/>
+  <param name="jiggle_fraction" value="0.05" />
+  <param name="capabilities" value="move_group/MoveGroupKinematicsService" />
+</node>
+
+</launch>
