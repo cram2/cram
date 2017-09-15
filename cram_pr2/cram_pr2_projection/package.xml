@@ -1,0 +1,18 @@
+<package format="2">
+  <name>cram_pr2_projection</name>
+  <version>0.4.0</version>
+  <description>
+    Projection process modules for PR2
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_pr2/issues</url>
+  <url type="repository">https://github.com/cram2/cram_pr2</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>pr2_arm_kinematics</depend>
+  <depend>moveit_msgs</depend>
+</package>

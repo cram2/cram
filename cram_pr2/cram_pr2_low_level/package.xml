@@ -1,0 +1,37 @@
+<package format="2">
+  <name>cram_pr2_low_level</name>
+  <version>0.3.0</version>
+  <description>
+     cram_pr2_low_level
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp</depend>
+  <depend>roslisp_utilities</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cl_tf</depend>
+  <depend>actionlib_lisp</depend>
+  <depend>yason</depend>
+  <depend>alexandria</depend>
+  <depend>cram_language</depend>
+  <depend>cram_tf</depend>
+  <depend>cram_utilities</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_robot_interfaces</depend>
+  <depend>cram_pr2_description</depend>
+  <depend>cram_common_failures</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>moveit_msgs</depend>
+  <depend>pr2_controllers_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>move_base_msgs</depend>
+  <depend>giskard_msgs</depend>
+  <depend>iai_robosherlock_msgs</depend>
+</package>
