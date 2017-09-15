@@ -1,0 +1,18 @@
+<package format="2">
+  <name>cram_boxy_process_modules</name>
+  <version>0.0.0</version>
+  <description>
+     Middle-layer code for Boxy
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cram_process_modules</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_boxy_designators</depend>
+  <depend>cram_boxy_low_level</depend>
+</package>
