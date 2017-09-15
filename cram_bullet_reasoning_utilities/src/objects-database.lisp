@@ -58,6 +58,7 @@
   (<- (%scenario-object-color :mondamin (0.5 0.1 0)))
   (<- (%scenario-object-color :spatula  (0.1 0.1 0.1)))
   (<- (%scenario-object-color :pancake-maker (0.15 0.15 0.15)))
+  (<- (%scenario-object-color :visualization-box (1.0 0.0 0.0 0.5)))
 
   ;; Object type shapes
   (<- (scenario-object-shape ?object-type ?shape)
@@ -71,6 +72,7 @@
   (<- (non-mesh-object :apple))
   (<- (non-mesh-object :sugar-box))
   (<- (non-mesh-object :cereal))
+  (<- (non-mesh-object :visualization-box))
 
   ;; Extra attributes for objects to pass to the spawn function (e.g. :mesh pot)
   (<- (scenario-object-extra-attributes ?_ ?object-type ?attributes)
@@ -81,4 +83,17 @@
   (<- (scenario-object-extra-attributes ?_ :orange (:radius 0.04)))
   (<- (scenario-object-extra-attributes ?_ :apple (:radius 0.0425)))
   (<- (scenario-object-extra-attributes ?_ :cereal (:size (0.029 0.0965 0.1385))))
+  (<- (scenario-object-extra-attributes ?_ :visualization-box (:size (0.03 0.01 0.01))))
   (<- (scenario-object-extra-attributes ?_ :sugar-box (:size (0.0275 0.047 0.1035)))))
+
+
+(defmethod btr:add-object ((world bullet:bt-world) (type (eql :visualization-box)) name pose
+                           &key mass (color '(1.0 0.0 0.0 1.0)) size)
+  (assert size)
+  (btr::make-item world name (list type)
+                  (list
+                   (make-instance 'btr:rigid-body
+                     :name name :mass mass :pose (btr:ensure-pose pose)
+                     :collision-shape (make-instance 'bt-vis:colored-box-shape
+                                        :half-extents (ensure-vector size)
+                                        :color color)))))
