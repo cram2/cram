@@ -1,0 +1,168 @@
+;;;
+;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; All rights reserved.
+;;;
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions are met:
+;;;
+;;;     * Redistributions of source code must retain the above copyright
+;;;       notice, this list of conditions and the following disclaimer.
+;;;     * Redistributions in binary form must reproduce the above copyright
+;;;       notice, this list of conditions and the following disclaimer in the
+;;;       documentation and/or other materials provided with the distribution.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
+;;;
+;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+;;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;;; POSSIBILITY OF SUCH DAMAGE.
+
+(in-package :rs)
+
+(defvar *robosherlock-service* nil
+  "Persistent service client for querying RoboSherlock JSON interface.")
+
+(defparameter *robosherlock-service-name* "/RoboSherlock/json_query")
+
+(defun init-robosherlock-service ()
+  "Initializes *robosherlock-service* ROS publisher"
+  (loop until (roslisp:wait-for-service *robosherlock-service-name* 5)
+        do (roslisp:ros-info (robosherlock-service) "Waiting for robosherlock service."))
+  (prog1
+      (setf *robosherlock-service*
+            (make-instance 'roslisp:persistent-service
+              :service-name *robosherlock-service-name*
+              :service-type 'iai_robosherlock_msgs-srv:rsqueryservice))
+    (roslisp:ros-info (robosherlock-service) "Robosherlock service client created.")))
+
+(defun get-robosherlock-service ()
+  (if (and *robosherlock-service*
+           (roslisp:persistent-service-ok *robosherlock-service*))
+      *robosherlock-service*
+      (init-robosherlock-service)))
+
+(defun destroy-robosherlock-service ()
+  (when *robosherlock-service*
+    (roslisp:close-persistent-service *robosherlock-service*))
+  (setf *robosherlock-service* nil))
+
+(roslisp-utilities:register-ros-cleanup-function destroy-robosherlock-service)
+
+
+(defun make-robosherlock-query (detect-or-inspect &optional key-value-pairs-list)
+  (let* ((query (reduce (lambda (query-so-far key-value-pair)
+                          (concatenate 'string query-so-far
+                                       (if (listp (second key-value-pair))
+                                           (format nil "\"~a\":[\"~a\"], "
+                                                   (first key-value-pair)
+                                                   (first (second key-value-pair)))
+                                           (format nil "\"~a\":\"~a\", "
+                                                   (first key-value-pair)
+                                                   (second key-value-pair)))))
+                        key-value-pairs-list
+                        :initial-value (format nil "{\"~a\":{"
+                                               (string-downcase (symbol-name detect-or-inspect)))))
+         (query-without-last-comma (string-right-trim '(#\, #\ ) query))
+         (query-with-closing-bracket (concatenate 'string query-without-last-comma "}}")))
+    (roslisp:make-request
+     iai_robosherlock_msgs-srv:rsqueryservice
+     :query query-with-closing-bracket)))
+
+(defun ensure-robosherlock-input-parameters (key-value-pairs-list quantifier)
+  (let ((key-value-pairs-list
+          (mapcar (lambda (key-value-pair)
+                    (destructuring-bind (key value)
+                        key-value-pair
+                      (list (etypecase key
+                              (keyword (string-downcase (symbol-name key)))
+                              (string (string-downcase key)))
+                            (etypecase value ; RS is only case-sensitive on "TYPE"s
+                              (keyword (remove #\- (string-capitalize (symbol-name value))))
+                              (string value)
+                              (list (mapcar (lambda (item)
+                                              (string-downcase (symbol-name item)))
+                                            value))))))
+                  key-value-pairs-list))
+        (quantifier quantifier
+          ;; (etypecase quantifier
+          ;;   (keyword (ecase quantifier
+          ;;              ((:a :an) :a)
+          ;;              (:the :the)
+          ;;              (:all :all)))
+          ;;   (number quantifier))
+                    ))
+    (values key-value-pairs-list quantifier)))
+
+(defun ensure-robosherlock-result (result quantifier)
+  (unless result
+    (cpl:fail 'common-fail:low-level-failure :description "robosherlock didn't answer"))
+  (let ((number-of-objects (length result)))
+    (when (< number-of-objects 1)
+      (cpl:fail 'common-fail:perception-object-not-found :description "couldn't find the object"))
+    (etypecase quantifier
+      (keyword (ecase quantifier
+                 ((:a :an) (parse-json-result (aref result 0))
+                  ;; this case should return a lazy list but I don't like them so...
+                  )
+                 (:the (if (= number-of-objects 1)
+                           (parse-json-result (aref result 0))
+                           (cpl:fail 'common-fail:perception-low-level-failure
+                                     :description "There was more than one of THE object")))
+                 (:all (map 'list #'parse-json-result result))))
+      (number (if (= number-of-objects quantifier)
+                  (map 'list #'parse-json-result result)
+                  (cpl:fail 'common-fail:perception-low-level-failure
+                            :description (format nil "perception returned ~a objects ~
+                                                      although there should've been ~a"
+                                                 number-of-objects quantifier)))))))
+
+(defparameter *rs-result-debug* nil)
+(defparameter *rs-result-designator* nil)
+(defun call-robosherlock-service (detect-or-inspect keyword-key-value-pairs-list
+                                  &key (quantifier :all))
+  (declare (type (or keyword number) quantifier))
+  (multiple-value-bind (key-value-pairs-list quantifier)
+      (ensure-robosherlock-input-parameters keyword-key-value-pairs-list quantifier)
+
+    (flet ((make-robosherlock-designator (rs-answer)
+             (desig:make-designator
+              :object
+              ;; (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
+              ;;         keyword-key-value-pairs-list
+              ;;         :initial-value rs-answer)
+              rs-answer
+              )))
+
+      (roslisp:with-fields (answer)
+          (cpl:with-failure-handling
+              (((or simple-error roslisp:service-call-error) (e)
+                 (format t "Service call error occured!~%~a~%Reinitializing...~%~%" e)
+                 (destroy-robosherlock-service)
+                 (init-robosherlock-service)
+                 (let ((restart (find-restart 'roslisp:reconnect)))
+                   (if restart
+                       (progn (roslisp:wait-duration 5.0)
+                              (invoke-restart 'roslisp:reconnect))
+                       (progn (cpl:retry))))))
+            (roslisp:call-persistent-service
+             (get-robosherlock-service)
+             (make-robosherlock-query detect-or-inspect key-value-pairs-list)))
+        (setf *rs-result-debug* answer)
+        (let* ((rs-parsed-result (ensure-robosherlock-result answer quantifier))
+               (rs-result (ecase quantifier
+                            ((:a :an :the) (make-robosherlock-designator rs-parsed-result))
+                            (:all (map 'list #'make-robosherlock-designator rs-parsed-result)))))
+          (setf *rs-result-designator* rs-result)
+          rs-result)))))
+
+;; rosservice call /RoboSherlock/json_query "query: '{\"detect\": {\"type\": \"Wheel\"}}'"
