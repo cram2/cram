@@ -1,0 +1,63 @@
+<html lang="en">
+<head>
+<title>slice - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Composition-functions.html#Composition-functions" title="Composition functions">
+<link rel="prev" href="row.html#row" title="row">
+<link rel="next" href="stride.html#stride" title="stride">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="slice"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="stride.html#stride">stride</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="row.html#row">row</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Composition-functions.html#Composition-functions">Composition functions</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.3.4.9 slice</h5>
+
+<p><a name="index-Grid_002c-slice-181"></a>
+
+<div class="defun">
+&mdash; Function: <b>grid:slice</b><var> grid index-selection &amp;key destination drop<a name="index-grid_003aslice-182"></a></var><br>
+<blockquote><p><a name="index-grid_003aslice-183"></a>Select slice(s) from a grid.  The index-selection is a list with
+   length equal to the rank of grid.   Each element should be one of:
+     an index, indicating the index to be selected,
+     :all, indicating the entire range if indices are to be selected,
+     :rev, indicating the entire range if indices are to be selected
+         in reverse order,
+
+          <dl>
+<dt><em>(:range start end stride), indicating a range of indices to be</em><dd>         selected; if stride is omitted, it is presumed to be <code>1</code>,
+</dl>
+
+        <p>(:select value ...), indicating explicit values to be selected. 
+</p></blockquote></div>
+   A <dfn>slice</dfn> is a subgrid selected by specifying index values.  They can be specified as a single value, range of values, or reversed values.
+<pre class="example">     (grid::test-grid-double-float 'array '(3 4))
+     #2A((0.0 1.0 2.0 3.0) (10.0 11.0 12.0 13.0) (20.0 21.0 22.0 23.0))
+     (slice (grid::test-grid-double-float 'array '(3 4)) '(1 (:range 0 2)) :drop nil)
+     #2A((10.0d0 11.0d0 12.0d0))
+</pre>
+   </body></html>
+

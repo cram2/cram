@@ -1,0 +1,5 @@
+@defvr {Variable} {antik:*format-float-significant-figures*}
+@vindex antik:*format-float-significant-figures*
+The default number of significant figures in
+   floating point number output.
+@end defvr

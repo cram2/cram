@@ -1,0 +1,4 @@
+@deffn {Function} {antik:org-table-line} list @&optional stream
+@findex antik:org-table-line
+Format the list for a line of an org-mode table.
+@end deffn

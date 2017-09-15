@@ -1,0 +1,132 @@
+<!-- -*- mode: HTML; time-stamp-line-limit: -8; -*- -->
+<?xml version="1.0" encoding="iso-8859-1"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <link rel="stylesheet" href="style.css" type="text/css"/>
+       <title>Comparison of floating point numbers in Common Lisp</title>
+  </head>
+  <body>
+    <div class="body">
+         <div class="header">
+     <h1>Comparison of floating point numbers in Common Lisp</h1>
+   </div>
+
+   <p>
+   Floating point numbers are a computer representation of the real
+   numbers.  Unlike the real numbers, there are a finite
+   number of them.  So there is a smallest and largest floating point
+   number, and all others have a predecessor and successor.
+   <p>
+   Because different compilers and platforms can reorder a calculation
+   and optimize in a way that is approximated differently and so do
+   not necessarily produce the same floating point number, it is
+   difficult to compare two floating point numbers and conclude that
+   they represent the same result.  For the purposes of regression (or
+   unit) testing, we would like to do exactly this.  Bruce Dawson
+   addressed this problem in "<a
+   href="http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm">Comparing
+   Floating Point Numbers</a>."  He makes the point that the best way
+   to do this correctly is to interpret each floating point number as
+   an integer.  By taking advantage of the <a
+   href="http://en.wikipedia.org/wiki/IEEE_floating-point_standard">IEEE
+   754</a> standard for representation of floating point numbers, we
+   can construct a function that maps the floating point numbers to
+   the integers.  The genius of the standard's inventor <a
+   href="http://http.cs.berkeley.edu/~wkahan/">W. Kahan</a> is that a
+   mapping derived from the standard, call it i(x), satisfies three
+   properties:</p>
+   <ul>
+   <li>If two floats a&lt;b, then i(a)&lt;i(b),
+    <li>if two floats are adjacent and a&lt;b, then i(b)=i(a)+1,</li>
+    <li>and finally i(0.0)=0.</li>
+   </ul>
+   <p>
+   Dawson provides some clever C constructs to read a floating point
+   number as an integer, and instruction on how to prevent the
+   compiler from complaining about your trickery in doing so.  Common
+   Lisp instead provides us with
+   functions with which we can properly construct our own integers.
+   As a side benefit, we don't care what the <i>actual</i>
+   representation of the floating point number is; we will build our
+   own IEEE-like representation.  We don't exactly want the full
+   IEEE754 word though; we leave off the most significant
+   bit, which is a sign bit, and instead make the sign of the integer agree with the
+   sign of the float.
+   <p>What we end up with is an <i>enumeration of the floats</i>.
+   That is, for every single precision float, there is one integer in
+   the range 
+   [-2139095039, 2139095039], and vice versa, with the exception that
+   both positive and negative zero (allowed by the standard) map to
+   zero.  Likewise, there is a one-to-one mapping of the
+    double precision floats to
+   [-9218868437227405311,9218868437227405311].  Floats with
+   special values (positive and negative infinity, and <a
+   href="http://en.wikipedia.org/wiki/NaN">NaN</a>) that are required
+   by the standard do not have integer values.
+   <p>
+   The following functions written in Common Lisp are given:
+   </p>
+   <ul>
+   <li><code>float-as-integer</code> which is the function i(x);</li>
+   <li><code>integer-as-float</code> which is the inverse function
+   (this isn't necessary but can be useful) and
+   also returns the rational form of the float;</li>
+   <li><code>decode-IEEE754</code> (used by other functions) that
+   returns five values: 
+   significand, exponent, sign, bits in significand, bits in
+   exponent, all as integers;</li>
+   <li><code>format-IEEE754-bits</code> which prints out the
+   binary form of the IEEE word, separated into the three parts
+   (this isn't necessary but is nice for comparing with bit
+   expansions shown in references like the Wikipedia page).</li>
+   </ul>
+   <p>
+  Here are some interesting floats:
+   <pre>
+(float-as-integer most-negative-single-float)
+-2139095039
+(float-as-integer least-negative-single-float)
+-1
+(float-as-integer -0.0f0)
+0
+(float-as-integer 0.0f0)
+0
+(float-as-integer least-positive-single-float)
+1
+(float-as-integer (- 1.0f0 single-float-negative-epsilon))
+1065353215
+(float-as-integer 1.0f0)
+1065353216
+(float-as-integer (+ 1.0f0 single-float-epsilon))
+1065353217
+(float-as-integer most-positive-single-float)
+2139095039
+</pre>
+   <p>
+   A regression test would record not the floating point number, but
+   the integer produced by <code>float-as-integer</code>.  Since
+   integers can be unambiguously formatted to and read from a text
+   file in a unique way, a subsequent recomputation would provide a
+   clear indication of how close the floats are.  Of course, we must
+   decide how much error we're going to allow, because a correct
+   calculation may produce slightly different integers.  As an added
+   bonus, these functions can be used to identify (in languages other
+   than Lisp) when a positive single float has been interpreted as a
+   double float.
+   <p>
+   The floating point numbers computed for the regression tests here
+   were done with IEEE 754 double precision compatibility.  If these
+   tests are run on a platform that does not follow this standard, the
+   tests may fail.
+
+ <div class="footer">
+    <hr>
+    <address><a href="mailto:">Liam Healy</a></address>
+    <small>
+       Time-stamp: <2008-01-26 14:11:38EST floating-point.html>
+       </small>
+ </div>
+
+ </body>
+</html>

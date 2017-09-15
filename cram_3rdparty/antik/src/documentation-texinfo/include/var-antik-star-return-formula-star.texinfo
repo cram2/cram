@@ -1,0 +1,4 @@
+@defvr {Variable} {antik:*return-formula*}
+@vindex antik:*return-formula*
+Show the formula used in computing the attribute.
+@end defvr

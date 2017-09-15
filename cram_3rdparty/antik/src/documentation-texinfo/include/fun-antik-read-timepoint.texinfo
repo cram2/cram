@@ -1,0 +1,4 @@
+@deffn {Function} {antik:read-timepoint} string @&optional pos-ymdhms scale
+@findex antik:read-timepoint
+Read a timepoint from a string with specification for the position in the string of each component; pos-ymdhms is a list of year, month, day, hour, minute, and second as sequence numbers for the integers in the string.  Scale is the timescale (zone) as a string or symbol.  If pos-ymdhms has only three components, or only a date is provided, the timepoint created will be specifed as day-only.  The default reads an @code{iso8601} string like @code{1999-03-30t12:33:45}.
+@end deffn

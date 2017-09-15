@@ -1,0 +1,32 @@
+<package>
+  <name>named_readtables</name>
+  <version>0.3.0</version>
+  <description>
+      3rd party library: named readtables
+  </description>
+
+  <author>Tobias C. Rittweiler</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>GPL</license>
+
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <url type="repository">https://github.com/melisgl/named-readtables.git</url>
+  <!--external-version>named-readtables-20170124-git</external-version-->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- <build_depend>sbcl</build_depend> -->
+  <!-- <build_depend>alexandria</build_depend> -->
+  <!-- <build_depend>cffi</build_depend> -->
+  <!-- <build_depend>split_sequence</build_depend> -->
+  <!-- <build_depend>trivial_garbage</build_depend> -->
+
+  <!-- <run_depend>sbcl</run_depend> -->
+  <!-- <run_depend>alexandria</run_depend> -->
+  <!-- <run_depend>cffi</run_depend> -->
+  <!-- <run_depend>split_sequence</run_depend> -->
+  <!-- <run_depend>trivial_garbage</run_depend> -->
+</package>

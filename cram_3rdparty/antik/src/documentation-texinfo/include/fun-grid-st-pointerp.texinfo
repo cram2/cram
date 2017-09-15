@@ -1,0 +1,4 @@
+@deffn {Function} {grid:st-pointerp} decl
+@findex grid:st-pointerp
+If this st represents a pointer, return the type of the object.
+@end deffn

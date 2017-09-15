@@ -1,0 +1,4 @@
+@deffn {Function} {grid:cross} grid0 grid1
+@findex grid:cross
+The cross product of two vectors, using the first three components of each.
+@end deffn

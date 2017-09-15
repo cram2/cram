@@ -1,0 +1,4 @@
+@deffn {Function} {grid:gref} grid @&rest indices
+@findex grid:gref
+Obsolete; use grid:aref.
+@end deffn

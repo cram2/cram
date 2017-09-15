@@ -1,0 +1,4 @@
+@deffn {Generic Function} {grid:rank} grid
+@findex grid:rank
+The rank (number of dimensions) of the generalized array.
+@end deffn

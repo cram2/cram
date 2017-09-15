@@ -1,0 +1,186 @@
+<html lang="en">
+<head>
+<title>Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="../index.html#dir" title="(dir)">
+<link rel="prev" href="../index.html#dir" title="(dir)">
+<link rel="next" href="Introduction.html#Introduction" title="Introduction">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<h1 class="settitle">Antik Manual</h1>
+<div class="node">
+<a name="Top"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Introduction.html#Introduction">Introduction</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="../index.html#dir">(dir)</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="../index.html#dir">(dir)</a>
+<hr>
+</div>
+
+<!-- node-name, next,      previous,  up -->
+<ul class="menu">
+<li><a accesskey="1" href="Introduction.html#Introduction">Introduction</a>
+<li><a accesskey="2" href="Mathematics.html#Mathematics">Mathematics</a>
+<li><a accesskey="3" href="Organization-of-Computation.html#Organization-of-Computation">Organization of Computation</a>
+<li><a accesskey="4" href="Grids.html#Grids">Grids</a>
+<li><a accesskey="5" href="Physical-Quantities.html#Physical-Quantities">Physical Quantities</a>
+<li><a accesskey="6" href="Numerical-Output-Format.html#Numerical-Output-Format">Numerical Output Format</a>
+<li><a accesskey="7" href="Mathematical-Utility.html#Mathematical-Utility">Mathematical Utility</a>
+<li><a accesskey="8" href="Three-Dimensional-Space.html#Three-Dimensional-Space">Three Dimensional Space</a>
+<li><a accesskey="9" href="Higher.html#Higher">Higher</a>
+<li><a href="Internals.html#Internals">Internals</a>
+<li><a href="Download-and-installation.html#Download-and-installation">Download and installation</a>
+<li><a href="Copying-this-software.html#Copying-this-software">Copying this software</a>
+<li><a href="Index.html#Index">Index</a>
+</ul>
+<!-- Removed the "detailed menu" (at end of this file) because it's too much clutter. -->
+
+<h2 class="unnumbered">Antik</h2>
+
+<p>This is the manual for the use of Antik, which provides a foundation for
+scientific and engineering computing in Common Lisp.
+
+   <p>Copyright &copy; 2009, 2010, 2011 Liam M. Healy
+
+<!-- Output the table of the contents at the beginning. -->
+   <div class="contents">
+<h2>Table of Contents</h2>
+<ul>
+<li><a name="toc_Top" href="index.html#Top">Antik</a>
+<li><a name="toc_Introduction" href="Introduction.html#Introduction">1 Introduction</a>
+<li><a name="toc_Mathematics" href="Mathematics.html#Mathematics">2 Mathematics</a>
+<ul>
+<li><a href="Generic-Functions.html#Generic-Functions">2.1 Generic Functions</a>
+<li><a href="Conditions.html#Conditions">2.2 Conditions</a>
+<li><a href="Conditions.html#Conditions">2.3 Iterate generalized numbers</a>
+</li></ul>
+<li><a name="toc_Organization-of-Computation" href="Organization-of-Computation.html#Organization-of-Computation">3 Organization of Computation</a>
+<ul>
+<li><a href="Introduction-to-organization.html#Introduction-to-organization">3.1 Introduction</a>
+<li><a href="Parameters.html#Parameters">3.2 Parameters</a>
+</li></ul>
+<li><a name="toc_Grids" href="Grids.html#Grids">4 Grids</a>
+<ul>
+<li><a href="Introduction-to-grids.html#Introduction-to-grids">4.1 Introduction to grids</a>
+<ul>
+<li><a href="The-grid-concept.html#The-grid-concept">4.1.1 The grid concept</a>
+<li><a href="Types-of-grids.html#Types-of-grids">4.1.2 Types of grids</a>
+<li><a href="Package.html#Package">4.1.3 Package</a>
+<li><a href="Tests.html#Tests">4.1.4 Tests</a>
+</li></ul>
+<li><a href="Creating-a-grid.html#Creating-a-grid">4.2 Creating a grid</a>
+<ul>
+<li><a href="Reader-macro-and-function-_003ccode_003egrid_003c_002fcode_003e.html#Reader-macro-and-function-_003ccode_003egrid_003c_002fcode_003e">4.2.1 Reader macro and function <code>grid</code></a>
+<li><a href="The-foreign_002darray-class.html#The-foreign_002darray-class">4.2.2 The <samp><span class="command">foreign-array</span></samp> class</a>
+<li><a href="Simple-grids-and-default-values.html#Simple-grids-and-default-values">4.2.3 Simple grids and default values</a>
+<li><a href="Functions-for-creation-of-grids.html#Functions-for-creation-of-grids">4.2.4 Functions for creation of grids</a>
+<ul>
+<li><a href="grid.html#grid">4.2.4.1 grid</a>
+<li><a href="make_002dsimple_002dgrid.html#make_002dsimple_002dgrid">4.2.4.2 make-simple-grid</a>
+<li><a href="make_002dgrid.html#make_002dgrid">4.2.4.3 make-grid</a>
+<li><a href="make_002dforeign_002darray.html#make_002dforeign_002darray">4.2.4.4 make-foreign-array</a>
+<li><a href="ensure_002dforeign_002darray.html#ensure_002dforeign_002darray">4.2.4.5 ensure-foreign-array</a>
+<li><a href="make_002dforeign_002darray_002dfrom_002dpointer.html#make_002dforeign_002darray_002dfrom_002dpointer">4.2.4.6 make-foreign-array-from-pointer</a>
+<li><a href="Summary.html#Summary">4.2.4.7 Summary: ways to make grids</a>
+</li></ul>
+</li></ul>
+<li><a href="Operations.html#Operations">4.3 Operations</a>
+<ul>
+<li><a href="Elements.html#Elements">4.3.1 Elements</a>
+<li><a href="Copying.html#Copying">4.3.2 Copying</a>
+<li><a href="Iterate.html#Iterate">4.3.3 Iterate</a>
+<li><a href="Composition-functions.html#Composition-functions">4.3.4 Composition functions</a>
+<ul>
+<li><a href="codimension_002done_002dsubspace.html#codimension_002done_002dsubspace">4.3.4.1 codimension-one-subspace</a>
+<li><a href="column.html#column">4.3.4.2 column</a>
+<li><a href="concatenate_002dgrids.html#concatenate_002dgrids">4.3.4.3 concatenate-grids</a>
+<li><a href="diagonal.html#diagonal">4.3.4.4 diagonal</a>
+<li><a href="drop.html#drop">4.3.4.5 drop</a>
+<li><a href="identity_002dmatrix.html#identity_002dmatrix">4.3.4.6 identity-matrix</a>
+<li><a href="matrix_002dfrom_002dcolumns.html#matrix_002dfrom_002dcolumns">4.3.4.7 matrix-from-columns</a>
+<li><a href="row.html#row">4.3.4.8 row</a>
+<li><a href="slice.html#slice">4.3.4.9 slice</a>
+<li><a href="stride.html#stride">4.3.4.10 stride</a>
+<li><a href="subgrid.html#subgrid">4.3.4.11 subgrid</a>
+<li><a href="transpose.html#transpose">4.3.4.12 transpose</a>
+<li><a href="Vector-products.html#Vector-products">4.3.4.13 Vector products and norms</a>
+</li></ul>
+<li><a href="Mapping.html#Mapping">4.3.5 Mapping</a>
+<ul>
+<li><a href="elementwise.html#elementwise">4.3.5.1 elementwise</a>
+<li><a href="map_002dgrid.html#map_002dgrid">4.3.5.2 map-grid</a>
+<li><a href="map_002dn_002dgrids.html#map_002dn_002dgrids">4.3.5.3 map-n-grids</a>
+</li></ul>
+<li><a href="Properties.html#Properties">4.3.6 Properties</a>
+<li><a href="AFFI.html#AFFI">4.3.7 AFFI</a>
+</li></ul>
+<li><a href="Input-and-Output.html#Input-and-Output">4.4 Input and Output</a>
+<li><a href="Physical-quantities.html#Physical-quantities">4.5 Physical quantities</a>
+<li><a href="Capabilities-and-Internals.html#Capabilities-and-Internals">4.6 Capabilities and Internals</a>
+<ul>
+<li><a href="Classes.html#Classes">4.6.1 Classes</a>
+<li><a href="Functions-and-Macros.html#Functions-and-Macros">4.6.2 Functions and Macros</a>
+<li><a href="Condition.html#Condition">4.6.3 Condition</a>
+<li><a href="Constants-and-Variables.html#Constants-and-Variables">4.6.4 Constants and Variables</a>
+</li></ul>
+<li><a href="Efficiency.html#Efficiency">4.7 Efficiency</a>
+</li></ul>
+<li><a name="toc_Physical-Quantities" href="Physical-Quantities.html#Physical-Quantities">5 Physical Quantities</a>
+<ul>
+<li><a href="Physical-Quantities.html#Physical-Quantities">5.1 Units</a>
+<li><a href="Introduction-to-physical-quantities.html#Introduction-to-physical-quantities">5.2 Introduction</a>
+<li><a href="Physical-dimension.html#Physical-dimension">5.3 Physical dimension</a>
+<ul>
+<li><a href="About-physical-dimension.html#About-physical-dimension">5.3.1 Introduction</a>
+<li><a href="Making-physical-dimension-quantities.html#Making-physical-dimension-quantities">5.3.2 Making physical dimension quantities</a>
+<li><a href="Dimensions.html#Dimensions">5.3.3 Dimensions</a>
+<li><a href="Systems-of-units.html#Systems-of-units">5.3.4 Systems of units</a>
+</li></ul>
+<li><a href="Physical-constants.html#Physical-constants">5.4 Physical constants</a>
+<li><a href="Date-and-time.html#Date-and-time">5.5 Date and time</a>
+<li><a href="Time-arithmetic-and-time-intervals.html#Time-arithmetic-and-time-intervals">5.6 Time arithmetic and time intervals</a>
+</li></ul>
+<li><a name="toc_Numerical-Output-Format" href="Numerical-Output-Format.html#Numerical-Output-Format">6 Numerical Output Format</a>
+<li><a name="toc_Mathematical-Utility" href="Mathematical-Utility.html#Mathematical-Utility">7 Mathematical Utility</a>
+<li><a name="toc_Three-Dimensional-Space" href="Three-Dimensional-Space.html#Three-Dimensional-Space">8 Three Dimensional Space</a>
+<ul>
+<li><a href="Cartesian.html#Cartesian">8.1 Cartesian</a>
+<li><a href="Polar.html#Polar">8.2 Polar</a>
+<li><a href="Rotation.html#Rotation">8.3 Rotation</a>
+</li></ul>
+<li><a name="toc_Higher" href="Higher.html#Higher">9 Higher</a>
+<ul>
+<li><a href="Linear-Algebra.html#Linear-Algebra">9.1 Linear Algebra</a>
+<li><a href="Optimization.html#Optimization">9.2 Optimization</a>
+</li></ul>
+<li><a name="toc_Internals" href="Internals.html#Internals">10 Internals</a>
+<ul>
+<li><a href="Foreign-Library-Kit.html#Foreign-Library-Kit">10.1 Foreign Library Kit</a>
+<li><a href="Antik-tests.html#Antik-tests">10.2 Antik tests</a>
+</li></ul>
+<li><a name="toc_Download-and-installation" href="Download-and-installation.html#Download-and-installation">11 Download and installation</a>
+<li><a name="toc_Copying-this-software" href="Copying-this-software.html#Copying-this-software">12 Copying</a>
+<li><a name="toc_Index" href="Index.html#Index">Index</a>
+</li></ul>
+</div>
+
+   </body></html>
+

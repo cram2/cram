@@ -1,0 +1,7 @@
+@deffn {Function} {grid:diagonal} grid @&key offset indices destination start
+@findex grid:diagonal
+Select a subgrid where the two indices are equal or 
+   differ by the offset, e.g. the diagonal affi for the matrix.
+   The offset specifies sub- (offset<0) or super- (offset>0)
+   diagonals.
+@end deffn

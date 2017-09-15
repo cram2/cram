@@ -1,0 +1,50 @@
+<html lang="en">
+<head>
+<title>elementwise - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Mapping.html#Mapping" title="Mapping">
+<link rel="prev" href="Mapping.html#Mapping" title="Mapping">
+<link rel="next" href="map_002dgrid.html#map_002dgrid" title="map-grid">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="elementwise"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="map_002dgrid.html#map_002dgrid">map-grid</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Mapping.html#Mapping">Mapping</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Mapping.html#Mapping">Mapping</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.3.5.1 elementwise</h5>
+
+<p><a name="index-Grid_002c-applying-function-to-each-element-215"></a><a name="index-Elementwise-application-of-function-to-grid-216"></a>
+
+<div class="defun">
+&mdash; Function: <b>grid:elementwise</b><var> function &amp;optional toggle-physical-dimension<a name="index-grid_003aelementwise-217"></a></var><br>
+<blockquote><p><a name="index-grid_003aelementwise-218"></a>Make a function on a grid as an elementwise map of a scalar function.  If the result has no physical dimension but the argument does, or vice versa, toggle-physical-dimension should be <code>T</code>.
+     <pre class="example">          (funcall (grid:elementwise 'sqrt) #(1.0d0 2.0d0 3.0d0 4.0d0))
+          #(1.0 1.4142135623730951 1.7320508075688772 2.0)
+</pre>
+        </blockquote></div>
+
+   </body></html>
+

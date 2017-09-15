@@ -1,0 +1,4 @@
+@deffn {Function} {antik:make-parameter-with-attribute} category name attribute @&optional type description default
+@findex antik:make-parameter-with-attribute
+Make a parameter that has an attribute.
+@end deffn

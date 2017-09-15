@@ -1,0 +1,44 @@
+<html lang="en">
+<head>
+<title>Foreign Library Kit - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Internals.html#Internals" title="Internals">
+<link rel="prev" href="Internals.html#Internals" title="Internals">
+<link rel="next" href="Antik-tests.html#Antik-tests" title="Antik tests">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Foreign-Library-Kit"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Antik-tests.html#Antik-tests">Antik tests</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Internals.html#Internals">Internals</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Internals.html#Internals">Internals</a>
+<hr>
+</div>
+
+<h3 class="section">10.1 Foreign Library Kit</h3>
+
+<p><a name="index-Foreign-array-metadata-448"></a>Antik is designed with the idea that scientific and engineering libraries, particularly foreign (non-Lisp) libraries, can easily be integrated, so that data can be exchanged with and among the libraries.  Function and other definitions, when duplicated, will be named the same, differing only in the package.  For example, if libraries &lsquo;<samp><span class="samp">foo</span></samp>&rsquo; and &lsquo;<samp><span class="samp">bar</span></samp>&rsquo; both define a singular value decomposition (SVD), they would use the function names <code>foo:sv-decomposition</code> and <code>bar:sv-decomposition</code>, and the arguments would be as similar as possible.  Then a user may call either one on a matrix (two-dimensional) grid, and compare results.
+
+   <p>To facilitate the exchange of foreign arrays, the class <code>grid:foreign-array</code> has a slot <code>grid::foreign-metadata</code>.  The interface code for a foreign library can save information there as a plist that the library needs in order to use the array, such as the dimensions.
+
+   </body></html>
+

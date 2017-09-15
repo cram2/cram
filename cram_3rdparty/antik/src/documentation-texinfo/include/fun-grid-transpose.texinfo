@@ -1,0 +1,5 @@
+@deffn {Function} {grid:transpose} grid @&key indices destination start
+@findex grid:transpose
+Transpose the grid, optionally putting the result in destination at
+   the element specified by the start indices.
+@end deffn

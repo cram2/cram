@@ -1,0 +1,4 @@
+@deffn {Function} {antik:timeparse-time-interval} time @&optional fractional-seconds-digits
+@findex antik:timeparse-time-interval
+Convert the time interval to a timeparse.
+@end deffn

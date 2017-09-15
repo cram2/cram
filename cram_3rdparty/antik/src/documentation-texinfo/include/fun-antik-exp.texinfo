@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:exp} num
+@findex antik:exp
+The natural exponent e^num of the generalized or regular number.
+@end deffn

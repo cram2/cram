@@ -1,0 +1,17 @@
+@deffn {Function} {grid:slice} grid index-selection @&key destination drop
+@findex grid:slice
+Select slice(s) from a grid.  The index-selection is a list with
+   length equal to the rank of grid.   Each element should be one of:
+     an index, indicating the index to be selected,
+     :all, indicating the entire range if indices are to be selected,
+     :rev, indicating the entire range if indices are to be selected
+         in reverse order,
+
+@table @emph
+
+@item      (:range start end stride), indicating a range of indices to be
+         selected; if stride is omitted, it is presumed to be @code{1},
+@end table
+
+     (:select value ...), indicating explicit values to be selected.
+@end deffn

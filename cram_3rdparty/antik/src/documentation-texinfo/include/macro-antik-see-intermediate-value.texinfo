@@ -1,0 +1,5 @@
+@deffn {Macro} {antik:see-intermediate-value} keyword label form
+@findex antik:see-intermediate-value
+If keyword is in *pedagogical*, then print returned value of form,
+   and return it; otherwise, just evaluate the form and return.
+@end deffn

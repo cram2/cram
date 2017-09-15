@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:nf-option} name
+@findex antik:nf-option
+Get/set the nf option named.
+@end deffn

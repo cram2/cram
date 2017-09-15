@@ -1,0 +1,4 @@
+@deffn {Function} {(setf grid:gref)}
+@findex (setf grid:gref)
+Obsolete; use grid:aref.
+@end deffn

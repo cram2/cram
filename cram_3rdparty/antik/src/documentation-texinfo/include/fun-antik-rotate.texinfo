@@ -1,0 +1,5 @@
+@deffn {Function} {antik:rotate} angle @&optional passive
+@findex antik:rotate
+Create a rotation matrix in two dimensions.
+   Passive rotation if passive is true, otherwise active.
+@end deffn

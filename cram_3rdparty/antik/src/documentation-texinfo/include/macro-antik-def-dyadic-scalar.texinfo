@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:def-dyadic-scalar} method @&optional operation left right
+@findex antik:def-dyadic-scalar
+Define a method of the operation that operates elementwise on a grid.
+@end deffn

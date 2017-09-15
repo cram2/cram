@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:defined-attributes} state
+@findex antik:defined-attributes
+List the attributes defined for this state.
+@end deffn

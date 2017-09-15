@@ -1,0 +1,4 @@
+@deffn {Function} {antik:read-time} string
+@findex antik:read-time
+Parse the datime or time interval string and create a timepoint object.
+@end deffn

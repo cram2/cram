@@ -1,0 +1,4 @@
+@deffn {Function} {antik:make-parameters-from-table} table @&key headerp category type prefix
+@findex antik:make-parameters-from-table
+From the list of lists, define the parameters.  The optional header should have column names.  These column names include 'category 'name 'value 'type 'description ('value and 'default mean the same thing).  Any column names not specified will receive a default value.  Any values in the cells that are empty will receive a default value.  Any columns given with a header not on the list will be ignored.  Category must already exist.
+@end deffn

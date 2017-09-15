@@ -1,0 +1,4 @@
+@deffn {Function} {antik:distance} a b @&optional combination-function
+@findex antik:distance
+The length of the vector and the vector difference a-b.
+@end deffn

@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:def-monadic} operation
+@findex antik:def-monadic
+Define a method of the operation that operates elementwise on a grid.
+@end deffn

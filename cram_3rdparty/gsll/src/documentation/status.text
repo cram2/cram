@@ -1,0 +1,33 @@
+=== Test results summary ===
+64-bit SBCL: TOTAL: 4013 assertions passed, 3 failed, 0 execution errors.
+64-bit CCL: 
+64-bit CLISP:
+32-bit SBCL: 
+32-bit CLISP:
+
+=== 32-bit implementations === 
+
+=== 64-bit SBCL ===
+
+=== 64-bit CCL ===
+
+=== GSL questions ===
+Sun Nov  9 2008:
+gsl_stats_float_wmean gives erroneous answers; other weighted?
+Query: What is _swap_rowcol supposed to do?  What is its purpose?
+gsl_blas_cdotu, gsl_blas_cdotc give nonsense results.
+Any explanation for any of the modified Givens rotations such as
+gsl_blas_drotmg? 
+gsl_blas_dger rank 1 update says lengths are bad?
+Sun Jan 11 2009:
+gsl_permutation_valid (presumably combination too) signals an error if
+the permutation is invalid, rather than just returning an error code.
+Is this intentional?
+Wed Jan 28 2009:
+What are the _e functions in interpolation for, how are the results to
+be interpreted?
+
+=== SBCL problems? ===
+
+The two LU tests that remultiply to check the result fail in both SBCL
+and CCL; the problem is in the matrix-product-triangular. 2/23/09.

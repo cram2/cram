@@ -1,0 +1,5 @@
+@deffn {Function} {antik:apply-to-arguments} function argument-order argument-list
+@findex antik:apply-to-arguments
+Apply the function to the arguments given, where the argument list
+   is a list of (argument-name argument-value).
+@end deffn

@@ -1,0 +1,4 @@
+@deffn {Function} {antik:convert-time-scale} timepoint new-scale
+@findex antik:convert-time-scale
+Convert time from one scale to another.
+@end deffn

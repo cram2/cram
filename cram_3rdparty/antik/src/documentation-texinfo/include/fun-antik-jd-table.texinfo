@@ -1,0 +1,8 @@
+@deffn {Function} {antik:jd-table} start-year end-year @&optional format
+@findex antik:jd-table
+Write out a @code{jd} table in TeX, e.g. for class.
+   If d is the day of the month, add d+0.@code{5} to the table
+   to get the @code{j2000} day number for that day.
+   If csv is @code{t}, use csv for import into spread sheet.
+   @code{if} nil, use TeX.
+@end deffn

@@ -1,0 +1,27 @@
+<package>
+  <name>cl_store</name>
+  <version>0.3.0</version>
+  <description>
+      3rd party library: CL-STORE
+  </description>
+
+  <author>Sean Ross</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>MIT</license>
+
+  <url type="website">http://common-lisp.net/project/cl-store/</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <url type="repository">https://github.com/skypher/cl-store.git</url>
+  <!--external-version>2d2455c024fe64ee24cbf914c82254fa5bd09cab</external-version-->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+
+  <run_depend>sbcl</run_depend>
+</package>
+
+

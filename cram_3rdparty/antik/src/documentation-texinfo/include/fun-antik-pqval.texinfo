@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:pqval} pq
+@findex antik:pqval
+Get the numerical value and the units of the physical dimension quantity.  Returns the magnitude, the units, and whether units are the same for each element of a sequence or grid.
+@end deffn

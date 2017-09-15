@@ -1,0 +1,6 @@
+@deftp {Class} {antik:acceleration}
+@tindex antik:acceleration
+Class precedence list: @code{@lw{acceleration}, @lw{mobject}, @lw{standard-object}, @lw{t}}
+
+The @code{gsl} representation of the acceleration for interpolation.
+@end deftp

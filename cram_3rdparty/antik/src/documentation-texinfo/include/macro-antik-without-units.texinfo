@@ -1,0 +1,5 @@
+@deffn {Macro} {antik:without-units} (&optional system-of-units) @&body body
+@findex antik:without-units
+Compute everything within the dynamic scope without physical units.
+   Physical dimension quantities should be wrapped with #'pqwu.
+@end deffn

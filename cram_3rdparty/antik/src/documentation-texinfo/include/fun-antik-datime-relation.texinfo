@@ -1,0 +1,5 @@
+@deffn {Function} {antik:datime-relation} relation args
+@findex antik:datime-relation
+Apply the relation to all the datime arguments and return
+   what it returns.
+@end deffn

@@ -1,0 +1,10 @@
+@deffn {Generic Function} {antik:psi} x
+@findex antik:psi
+The psi, or digamma, function.
+@end deffn
+@deffn {Method} {antik:psi} (x float)
+Domain: x /= @code{0}.@code{0}, @code{-1}.@code{0}, @code{-2}.@code{0}, ...
+@end deffn
+@deffn {Method} {antik:psi} (n integer)
+Domain: n integer, n > @code{0}.
+@end deffn

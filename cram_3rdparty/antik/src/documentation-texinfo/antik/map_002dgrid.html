@@ -1,0 +1,95 @@
+<html lang="en">
+<head>
+<title>map-grid - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Mapping.html#Mapping" title="Mapping">
+<link rel="prev" href="elementwise.html#elementwise" title="elementwise">
+<link rel="next" href="map_002dn_002dgrids.html#map_002dn_002dgrids" title="map-n-grids">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="map-grid"></a>
+<a name="map_002dgrid"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="map_002dn_002dgrids.html#map_002dn_002dgrids">map-n-grids</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="elementwise.html#elementwise">elementwise</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Mapping.html#Mapping">Mapping</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.3.5.2 map-grid</h5>
+
+<div class="defun">
+&mdash; Function: <b>grid:map-grid</b><var> &amp;key source source-affi source-dims destination destination-affi destination-specification initial-element element-function combination-function<a name="index-grid_003amap_002dgrid-219"></a></var><br>
+<blockquote><p><a name="index-grid_003amap_002dgrid-220"></a>Make a new grid by mapping on an existing grid or on indices. 
+   :source            The source grid; if not a grid, it is taken as a
+                      function to apply to the grid indices to make the
+                      element of the destination; if this is supplied,
+                      source is ignored and element-function is only applied
+                      to the default value.
+
+          <dl>
+<dt><em>:source-affi       The affi to be used for extraction; defaults to</em><dd>                      making an affi from source-dims, then destination-specification.
+
+          <br><dt><em>:source-dims       The dimensions of the source if source not supplied;</em><dd>                      if <code>nil</code>, dimensions are taken from destination-specification.
+
+          <br><dt><em>:destination       The destination grid, if not supplied, it will be made</em><dd>                      according to destination-affi and destination-specification.
+
+          <br><dt><em>:destination-affi  The affi for injection, defaults to (affi destination)</em><dd>                      if destination is supplied, then
+                      makes an affi if destination-specification is supplied,
+                      otherwise source-affi.
+
+          <br><dt><em>:destination-specification The specification to use for the destination to be make,</em><dd>                      defaults to the specification of source.
+
+          <br><dt><em>:initial-element     The default value to set in a newly-created destination.</em><dt><em>:element-function  The function to apply to each element of the source; defaults</em><dd>                      to coercing element to the element type of the destination.
+
+          <br><dt><em>:combination-function</em><dd>                      A designator for a function of two arguments,
+                      or nil (default).  If a function, it will be funcalled on
+                      the destination element and the transformed source element. 
+                      If nil, the destination element is overwritten. 
+</dl>
+
+     </blockquote></div>
+   Although this function has other uses, it can be used to create a grid
+using a function of the index values.  For example,
+in the file <samp><span class="file">antik/grid/tests/grids.lisp</span></samp> is a function
+<code>index-fill-decadal</code> that multiplies increasing powers of ten by
+each argument in succession, and adds the result.  The array
+<code>*array-3-4-double-float*</code> is created with this function:
+<pre class="example">     (defparameter *array-3-4-double-float*
+       (map-grid :source 'index-fill-decadal :source-dims '(3 4)))
+</pre>
+   <p>which gives
+<pre class="example">     *array-3-4-double-float*
+     #2A((0.0d0 1.0d0 2.0d0 3.0d0)
+         (10.0d0 11.0d0 12.0d0 13.0d0)
+         (20.0d0 21.0d0 22.0d0 23.0d0))
+</pre>
+   <p>(see also the function 'test-grid-double-float).
+
+   <p>Take the square root of every element of an array:
+<pre class="example">     (map-grid :source #m((0.0d0 1.0d0 2.0d0) (10.0d0 11.0d0 12.0d0) (20.0d0 21.0d0 22.0d0)) :element-function 'sqrt)
+</pre>
+   <p>Make a foreign vector with each element the square root of its index:
+<pre class="example">     (map-grid :source 'sqrt :destination-specification '((foreign-array 6) double-float))
+</pre>
+   </body></html>
+

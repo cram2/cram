@@ -1,0 +1,59 @@
+<html lang="en">
+<head>
+<title>drop - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Composition-functions.html#Composition-functions" title="Composition functions">
+<link rel="prev" href="diagonal.html#diagonal" title="diagonal">
+<link rel="next" href="identity_002dmatrix.html#identity_002dmatrix" title="identity-matrix">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="drop"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="identity_002dmatrix.html#identity_002dmatrix">identity-matrix</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="diagonal.html#diagonal">diagonal</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Composition-functions.html#Composition-functions">Composition functions</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.3.4.5 drop</h5>
+
+<p><a name="index-Grid_002c-removal-of-singleton-axis-166"></a>
+
+<div class="defun">
+&mdash; Function: <b>grid:drop</b><var> grid &amp;key destination drop<a name="index-grid_003adrop-167"></a></var><br>
+<blockquote><p><a name="index-grid_003adrop-168"></a>Remove singleton axes (axes with dimension 1) if the argument drop
+is true; otherwise return the input grid unchanged.  The destination
+is an optional pre-existing grid in which to write the result. 
+</p></blockquote></div>
+
+   <p>The function <code>drop</code> will remove singleton axes (axes with dimension one)
+and create a grid of lower rank than the original grid.  For example, a
+two-dimensional of dimensions 5 x 1
+<pre class="example">     (test-grid-double-float 'array '(5 1))
+     #2A((0.0d0) (10.0d0) (20.0d0) (30.0d0) (40.0d0))
+</pre>
+   <p>will be converted to a vector (one dimensional array),
+<pre class="example">     (drop (test-grid-double-float 'array '(5 1)))
+     #(0.0d0 10.0d0 20.0d0 30.0d0 40.0d0)
+</pre>
+   </body></html>
+

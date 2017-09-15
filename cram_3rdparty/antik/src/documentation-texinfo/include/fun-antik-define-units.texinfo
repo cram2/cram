@@ -1,0 +1,5 @@
+@deffn {Function} {antik:define-units} dimension unit-def-syn-pnm
+@findex antik:define-units
+Define the units given.  The second argument is a list of lists, each
+   consisting of a unit name, its definition, and a list of synonyms.
+@end deffn

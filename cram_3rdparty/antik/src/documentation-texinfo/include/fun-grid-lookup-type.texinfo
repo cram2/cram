@@ -1,0 +1,6 @@
+@deffn {Function} {grid:lookup-type} symbol alist @&optional reverse error
+@findex grid:lookup-type
+Lookup the symbol defined in the alist.  If error is non-nil it
+   should be a string describing the class of types, and this function
+   will signal an error if the type wasn't found.
+@end deffn

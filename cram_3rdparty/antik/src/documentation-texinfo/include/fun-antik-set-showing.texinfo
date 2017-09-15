@@ -1,0 +1,4 @@
+@deffn {Function} {antik:set-showing} keyword @&optional status
+@findex antik:set-showing
+Set the showing of intermediate values.
+@end deffn

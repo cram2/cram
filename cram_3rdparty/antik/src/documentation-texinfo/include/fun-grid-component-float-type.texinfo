@@ -1,0 +1,4 @@
+@deffn {Function} {grid:component-float-type} eltype
+@findex grid:component-float-type
+The type of the component of this type (complex).
+@end deffn

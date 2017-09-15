@@ -1,0 +1,8 @@
+@deffn {Generic Function} {antik:normalize-angle} angle @&optional positive
+@findex antik:normalize-angle
+Normalizes the angle to (in radians) -pi to pi
+   or @code{0} to 2pi (positive = t).
+   Two values are returned: the normalized angle, and the number
+   of full revolutions that should be added to the normalized angle
+   to recreate the original angle.
+@end deffn

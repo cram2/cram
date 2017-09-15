@@ -1,0 +1,4 @@
+@deffn {Function} {antik:invert-matrix} matrix
+@findex antik:invert-matrix
+Invert the matrix; return the inverse and determinant.
+@end deffn

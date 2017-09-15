@@ -1,0 +1,74 @@
+<html lang="en">
+<head>
+<title>Elements - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Operations.html#Operations" title="Operations">
+<link rel="prev" href="Operations.html#Operations" title="Operations">
+<link rel="next" href="Copying.html#Copying" title="Copying">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Elements"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Copying.html#Copying">Copying</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Operations.html#Operations">Operations</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Operations.html#Operations">Operations</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.3.1 Elements</h4>
+
+<div class="defun">
+&mdash; Generic Function: <b>grid:aref</b><var> grid &amp;rest indices<a name="index-grid_003aaref-129"></a></var><br>
+<blockquote><p><a name="index-grid_003aaref-130"></a>Select the element from the grid. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>grid:aref*</b><var> grid linearized-index<a name="index-grid_003aaref_002a-131"></a></var><br>
+<blockquote><p><a name="index-grid_003aaref_002a-132"></a>Select the element from the grid using a linearized index. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>(setf grid:aref)</b><var><a name="index-g_t_0028setf-grid_003aaref_0029-133"></a></var><br>
+<blockquote><p><a name="index-g_t_0028setf-grid_003aaref_0029-134"></a>Set the element from the grid. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>(setf grid:aref*)</b><var><a name="index-g_t_0028setf-grid_003aaref_002a_0029-135"></a></var><br>
+<blockquote><p><a name="index-g_t_0028setf-grid_003aaref_002a_0029-136"></a>Set the element from the grid using a linearized index. 
+</p></blockquote></div>
+   Individual elements are obtained using <code>grid:aref</code> (analogous to
+Lisp's <code>cl:aref</code>), and are set with <code>setf grid:aref</code>.  For example,
+<pre class="example">     ANTIK-USER&gt; (setf *default-grid-type* 'foreign-array)
+     ANTIK-USER&gt; (defparameter *array* #m(2.0d0 1.0d0 -1.0d0))
+     ANTIK-USER&gt; *array*
+     #m(2.000000000000000d0 1.000000000000000d0 -1.000000000000000d0)
+     ANTIK-USER&gt; (grid:aref *array* 1)
+     1.0
+     ANTIK-USER&gt; (setf (grid:aref *array* 1) 77.0d0)
+     77.0
+     ANTIK-USER&gt; (grid:aref *array* 1)
+     77.0
+     ANTIK-USER&gt; *array*
+     #m(2.000000000000000d0 77.000000000000000d0 -1.000000000000000d0)
+</pre>
+   </body></html>
+

@@ -1,0 +1,6 @@
+@deffn {Macro} {antik:with-units} @&body body
+@findex antik:with-units
+Compute everything within the dynamic scope with physical units, 
+   when there is an outer dynamic scope with without-units.
+   Remove units from returned value of body.
+@end deffn

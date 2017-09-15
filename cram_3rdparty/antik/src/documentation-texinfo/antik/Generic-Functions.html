@@ -1,0 +1,190 @@
+<html lang="en">
+<head>
+<title>Generic Functions - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Mathematics.html#Mathematics" title="Mathematics">
+<link rel="prev" href="Mathematics.html#Mathematics" title="Mathematics">
+<link rel="next" href="Conditions.html#Conditions" title="Conditions">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Generic-Functions"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Conditions.html#Conditions">Conditions</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Mathematics.html#Mathematics">Mathematics</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Mathematics.html#Mathematics">Mathematics</a>
+<hr>
+</div>
+
+<h3 class="section">2.1 Generic Functions</h3>
+
+<p><a name="index-Mathematical-functions_002c-elementary-4"></a><a name="index-Functions_002c-elementary-mathematical-5"></a><a name="index-Elementary-mathematical-functions-6"></a><a name="index-Trigonometric-functions-7"></a><a name="index-Functions_002c-trigonometric-8"></a><a name="index-Exponential-functions-9"></a><a name="index-Functions_002c-exponential-10"></a><a name="index-Comparison-functions_002c-numerical-11"></a><a name="index-Numerical-comparison-functions-12"></a><a name="index-Arithmetic-functions-13"></a><a name="index-Functions_002c-arithmetic-14"></a>Generic mathematical functions are provided so that they may be called on something other than numbers, such as grids.  When called with CL numbers, they perform they call the equivalent CL function.
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:abs</b><var> num<a name="index-antik_003aabs-15"></a></var><br>
+<blockquote><p><a name="index-antik_003aabs-16"></a>The absolute value. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:acos</b><var> arg<a name="index-antik_003aacos-17"></a></var><br>
+<blockquote><p><a name="index-antik_003aacos-18"></a>The arccosine of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:asin</b><var> arg<a name="index-antik_003aasin-19"></a></var><br>
+<blockquote><p><a name="index-antik_003aasin-20"></a>The arcsine of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:atan</b><var> num &amp;optional den default zero-enough<a name="index-antik_003aatan-21"></a></var><br>
+<blockquote><p><a name="index-antik_003aatan-22"></a>The arctangent of the generalized or regular number.  If  absolute value of the arguments are below zero-enough, default is returned. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:cosh</b><var> num<a name="index-antik_003acosh-23"></a></var><br>
+<blockquote><p><a name="index-antik_003acosh-24"></a>The hyperbolic cosine of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:cos</b><var> num<a name="index-antik_003acos-25"></a></var><br>
+<blockquote><p><a name="index-antik_003acos-26"></a>The cosine of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:=</b><var> a b<a name="index-antik_003a_003d-27"></a></var><br>
+<blockquote><p><a name="index-antik_003a_003d-28"></a>Numeric equal
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:exp</b><var> num<a name="index-antik_003aexp-29"></a></var><br>
+<blockquote><p><a name="index-antik_003aexp-30"></a>The natural exponent e^num of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:expt</b><var> num exponent<a name="index-antik_003aexpt-31"></a></var><br>
+<blockquote><p><a name="index-antik_003aexpt-32"></a>Raise the number to the exponent. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:floor</b><var> number &amp;optional divisor<a name="index-antik_003afloor-33"></a></var><br>
+<blockquote><p><a name="index-antik_003afloor-34"></a>Greatest multiple of divisor less than number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:&gt;=</b><var> a b<a name="index-antik_003a_003e_003d-35"></a></var><br>
+<blockquote><p><a name="index-antik_003a_003e_003d-36"></a>Greater than or equal. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:&gt;</b><var> a b<a name="index-antik_003a_003e-37"></a></var><br>
+<blockquote><p><a name="index-antik_003a_003e-38"></a>Greater than
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:log</b><var> num &amp;optional base<a name="index-antik_003alog-39"></a></var><br>
+<blockquote><p><a name="index-antik_003alog-40"></a>The natural logarithm of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:&lt;=</b><var> a b<a name="index-antik_003a_003c_003d-41"></a></var><br>
+<blockquote><p><a name="index-antik_003a_003c_003d-42"></a>Less than or equal. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:&lt;</b><var> a b<a name="index-antik_003a_003c-43"></a></var><br>
+<blockquote><p><a name="index-antik_003a_003c-44"></a>Less than. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:minusp</b><var> a<a name="index-antik_003aminusp-45"></a></var><br>
+<blockquote><p><a name="index-antik_003aminusp-46"></a>Negative
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:plusp</b><var> a<a name="index-antik_003aplusp-47"></a></var><br>
+<blockquote><p><a name="index-antik_003aplusp-48"></a>Positive. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:+</b><var> &amp;rest args<a name="index-antik_003a_002b-49"></a></var><br>
+<blockquote><p><a name="index-antik_003a_002b-50"></a>Addition of generalized or regular numbers with an
+   arbitrary number of arguments. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:round</b><var> number &amp;optional divisor<a name="index-antik_003around-51"></a></var><br>
+<blockquote><p><a name="index-antik_003around-52"></a>Nearest multiple of divisor to number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:signum</b><var> a<a name="index-antik_003asignum-53"></a></var><br>
+<blockquote><p><a name="index-antik_003asignum-54"></a>Signum(a). 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:sinh</b><var> num<a name="index-antik_003asinh-55"></a></var><br>
+<blockquote><p><a name="index-antik_003asinh-56"></a>The hyperbolic sine of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:sin</b><var> num<a name="index-antik_003asin-57"></a></var><br>
+<blockquote><p><a name="index-antik_003asin-58"></a>The sine of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:/</b><var> &amp;rest args<a name="index-antik_003a_002f-59"></a></var><br>
+<blockquote><p><a name="index-antik_003a_002f-60"></a>Division of generalized or regular numbers for an
+   arbitrary number of arguments. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:sqrt</b><var> num<a name="index-antik_003asqrt-61"></a></var><br>
+<blockquote><p><a name="index-antik_003asqrt-62"></a>The square root of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:*</b><var> &amp;rest args<a name="index-antik_003a_002a-63"></a></var><br>
+<blockquote><p><a name="index-antik_003a_002a-64"></a>Multiplication of generalized or regular numbers with an
+   arbitrary number of arguments. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:tanh</b><var> num<a name="index-antik_003atanh-65"></a></var><br>
+<blockquote><p><a name="index-antik_003atanh-66"></a>The hyperbolic tangent of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:tan</b><var> num<a name="index-antik_003atan-67"></a></var><br>
+<blockquote><p><a name="index-antik_003atan-68"></a>The tangent of the generalized or regular number. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:-</b><var> &amp;rest args<a name="index-antik_003a_002d-69"></a></var><br>
+<blockquote><p><a name="index-antik_003a_002d-70"></a>Subtraction of generalized or regular numbers. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:zerop</b><var> a<a name="index-antik_003azerop-71"></a></var><br>
+<blockquote><p><a name="index-antik_003azerop-72"></a>Zero. 
+</p></blockquote></div>
+
+   </body></html>
+

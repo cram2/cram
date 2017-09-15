@@ -1,0 +1,4 @@
+#!/bin/bash
+# List all exported symbols in the gsl library.
+# As far as I know this works in Linux only.
+nm -D --defined-only -g /usr/lib/libgsl.so | cut -d " " -f 3

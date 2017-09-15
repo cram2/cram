@@ -1,0 +1,6 @@
+@deffn {Function} {(setf grid:subgrid)}
+@findex (setf grid:subgrid)
+Set the subgrid of the grid.  Specify the starting indices with
+   start, and in the case that the subgrid has lower rank than the
+   grid, which axes; default is the first (rank subgrid) axes.
+@end deffn

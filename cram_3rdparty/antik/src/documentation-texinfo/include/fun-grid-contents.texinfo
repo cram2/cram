@@ -1,0 +1,6 @@
+@deffn {Function} {grid:contents} grid
+@findex grid:contents
+The contents of the grid as nested lists.  This can
+   be used as the :initial-contents argument in making
+   a new grid.
+@end deffn

@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Parameters &mdash; Antik 0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Antik 0 documentation" href="root.html" />
+    <link rel="up" title="Workflow" href="workflow.html" />
+    <link rel="next" title="Utility" href="utility.html" />
+    <link rel="prev" title="Workflow" href="workflow.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="utility.html" title="Utility"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="workflow.html" title="Workflow"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="root.html">Antik 0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="workflow.html" accesskey="U">Workflow</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="parameters">
+<h1>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h1>
+<p>Parameters are named values that are defined and used in computations or in presentation.  The <a class="reference external" href="http://www.lispworks.com/documentation/HyperSpec/Body/m_defpar.htm#defparameter,defparameter">defparameter</a> macro defines parameters (dynamic variables) but Antik has definitions that permit grouping them and including properties such as the type, which will be checked when values are assigned, and defining synonyms.  The grouping is in named categories; Antik itself defines one category, <code class="docutils literal"><span class="pre">NF</span></code>, which is used for numerical formatting.  Each category used will become a package, and the symbols exported from that package. The value can be changed with <code class="docutils literal"><span class="pre">setf</span></code> <a class="reference internal" href="#function:antik:parameter-value" title="antik:parameter-value"><code class="xref cl cl-function docutils literal"><span class="pre">parameter-value</span></code></a> and used with <a class="reference internal" href="#function:antik:parameter-value" title="antik:parameter-value"><code class="xref cl cl-function docutils literal"><span class="pre">parameter-value</span></code></a>, or changed locally (analogous to <a class="reference external" href="http://www.lispworks.com/documentation/HyperSpec/Body/s_let_l.htm">let</a> for CL variables) with <a class="reference internal" href="#function:antik:with-parameters" title="antik:with-parameters"><code class="xref cl cl-function docutils literal"><span class="pre">with-parameters</span></code></a>. It is also permissible to assign as a normal variable (e.g., with let and setf), but no type checking is performed.</p>
+<p>Define some parameters:</p>
+<div class="highlight-python"><div class="highlight"><pre>(define-parameter kepler foo
+  :value 122
+  :type fixnum
+  :documentation &quot;A fixnum parameter of kepler.&quot;)
+(define-parameter kepler bar
+  :value &quot;hi&quot;
+  :type string
+  :documentation &quot;A string parameter of kepler.&quot;)
+</pre></div>
+</div>
+<p>Get their values:</p>
+<div class="highlight-python"><div class="highlight"><pre>(parameter-value kepler bar)
+&quot;hi&quot;
+(parameter-value kepler foo)
+122
+
+;;; Dynamic binding
+(defun show-foo-bar ()
+  (format t &quot;~&amp;foo: ~a, bar: ~s&quot;
+      (parameter-value kepler foo)
+      (parameter-value kepler bar)))
+
+(show-foo-bar)
+foo: 122, bar: &quot;hi&quot;
+NIL
+
+;;; Locally change values
+(with-parameters (kepler (foo 143) (bar &quot;bye&quot;))
+  (show-foo-bar))
+foo: 143, bar: &quot;bye&quot;
+NIL
+
+(show-foo-bar)
+foo: 122, bar: &quot;hi&quot;
+NIL
+</pre></div>
+</div>
+<p>Make a mistake:</p>
+<div class="highlight-python"><div class="highlight"><pre>(with-parameters (kepler (foo 143) (bar -44))
+  (show-foo-bar))
+Error: Value -44 is of type FIXNUM, not of the required type STRING.
+</pre></div>
+</div>
+<p>Globally change values:</p>
+<div class="highlight-python"><div class="highlight"><pre>(setf (parameter-value kepler bar) &quot;a new value&quot;)
+(show-foo-bar)
+foo: 122, bar: &quot;a new value&quot;
+</pre></div>
+</div>
+<p>Set multiple values:</p>
+<div class="highlight-python"><div class="highlight"><pre>(set-parameters kepler bar &quot;xyz&quot; foo 1)
+(show-foo-bar)
+foo: 1, bar: &quot;xyz&quot;
+</pre></div>
+</div>
+<p>Get information about the categories and parameters:</p>
+<div class="highlight-python"><div class="highlight"><pre>(parameter-help)
+Parameter categories: KEPLER and NF.
+
+(parameter-help :kepler)
+Parameters in KEPLER: BAR and FOO.
+
+(parameter-help :kepler :bar)
+BAR: A string parameter of kepler.
+Type is STRING,
+Current value is &quot;xyz&quot;.
+</pre></div>
+</div>
+<dl class="function">
+<dt id="function:antik:define-parameter">
+<em class="property">function </em> (<code class="descname">define-parameter</code> <em>category</em> <em>name</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>value</em>) (<em>type</em>) (<em>attribute</em>) <em>documentation</em> <em>synonyms</em>)<a class="headerlink" href="#function:antik:define-parameter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:antik:make-parameter">
+<em class="property">function </em> (<code class="descname">make-parameter</code> <em>category</em> <em>name</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>value</em> <em>nil</em> <em>value-supplied-p</em>) (<em>type</em> <em>nil</em> <em>type-supplied-p</em>) (<em>attribute</em> <em>nil</em> <em>attribute-supplied-p</em>) <em>documentation</em> <em>synonyms</em>)<a class="headerlink" href="#function:antik:make-parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define the parameter (global special variable) with the given name.  It will be defined in the package named by category (which will be created if necessary), and exported from it.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:antik:make-parameters-from-table">
+<em class="property">function </em> (<code class="descname">make-parameters-from-table</code> <em>table</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>headerp</em> <em>t</em>) (<em>category</em> (<em>first</em> <em>*parameters*</em>)) (<em>type</em> <em>*default-element-type*</em>) (<em>prefix</em> <em class="keyword text-muted">:par</em>))<a class="headerlink" href="#function:antik:make-parameters-from-table" title="Permalink to this definition">¶</a></dt>
+<dd><p>From the list of lists, define the parameters.  The optional header should have column names.  These column names include &#8216;category &#8216;name &#8216;value &#8216;type &#8216;description (&#8216;value and &#8216;default mean the same thing).  Any column names not specified will receive a default value.  Any values in the cells that are empty will receive a default value.  Any columns given with a header not on the list will be ignored.  Category must already exist.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:antik:parameter-help">
+<em class="property">function </em> (<code class="descname">parameter-help</code> <em class="lambda_keyword text-muted">&amp;optional</em> <em>category</em> <em>name</em> (<em>stream</em> <em>t</em>))<a class="headerlink" href="#function:antik:parameter-help" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print all information known about the parameter.  If category is nil (default), names of all categories are printed.  If name is nil, all defined parameters in that category are printed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:antik:parameter-value">
+<em class="property">function </em> (<code class="descname">parameter-value</code> <em>category</em> <em>name</em>)<a class="headerlink" href="#function:antik:parameter-value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:antik:set-parameter">
+<em class="property">function </em> (<code class="descname">set-parameter</code> <em>category</em> <em>name</em> <em>value</em>)<a class="headerlink" href="#function:antik:set-parameter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:antik:set-parameters">
+<em class="property">function </em> (<code class="descname">set-parameters</code> <em>category</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>names-values</em>)<a class="headerlink" href="#function:antik:set-parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:antik:with-parameters">
+<em class="property">function </em> (<code class="descname">with-parameters</code> (<em>category</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>name-values</em>) <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#function:antik:with-parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="workflow.html"
+                        title="previous chapter">Workflow</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="utility.html"
+                        title="next chapter">Utility</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/parameters.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="utility.html" title="Utility"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="workflow.html" title="Workflow"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="root.html">Antik 0 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="workflow.html" >Workflow</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Liam M. Healy.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

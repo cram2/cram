@@ -1,0 +1,4 @@
+@deffn {Function} {antik:mkstr} @&rest args
+@findex antik:mkstr
+Make a string out of the printed representations of the arguments.
+@end deffn

@@ -1,0 +1,5 @@
+@deffn {Function} {antik:tait-bryan-angles} dcm
+@findex antik:tait-bryan-angles
+Find the three angles psi, theta, phi of a @code{3-2-1} (Tait-Bryan)
+   rotation for the direction cosine matrix.
+@end deffn

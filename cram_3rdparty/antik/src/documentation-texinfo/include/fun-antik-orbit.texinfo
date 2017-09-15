@@ -1,0 +1,11 @@
+@deffn {Function} {antik:orbit} sir ephemeral ephemeral-value @&optional generate-state epoch
+@findex antik:orbit
+Make a new sir from an old with all invariant attributes of the sir
+   the same: sir data and elements.  Define exactly one ephemeral quantity,
+   possibly the same as in the original sir.  Note: specifying generate-state
+   @code{t} will insure that the orbital state (non-ephemeral quantities) are
+   carried over to the new sir.  However, this will not be possible if the
+   full state is not known, e.g., only the planar elements a, e are known.
+   In this case, the user should insure those elements exist prior
+   to calling this function.
+@end deffn

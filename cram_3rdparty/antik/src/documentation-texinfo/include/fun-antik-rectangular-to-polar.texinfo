@@ -1,0 +1,8 @@
+@deffn {Function} {antik:rectangular-to-polar} vector @&optional sign1
+@findex antik:rectangular-to-polar
+Convert rectangular coordinates to polar coordinates.
+   Argument sign1 should be set to @code{-1} for accomodating topocentric azimuth,
+   which is measured from North instead of South.
+   Returns a list of azimuth, elevation, and radius, and the
+   plane distance.
+@end deffn

@@ -1,0 +1,4 @@
+@deffn {Generic Function} {antik:cos} num
+@findex antik:cos
+The cosine of the generalized or regular number.
+@end deffn

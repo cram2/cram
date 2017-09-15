@@ -1,0 +1,133 @@
+<html lang="en">
+<head>
+<title>Parameters - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Organization-of-Computation.html#Organization-of-Computation" title="Organization of Computation">
+<link rel="prev" href="Introduction-to-organization.html#Introduction-to-organization" title="Introduction to organization">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Parameters"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Introduction-to-organization.html#Introduction-to-organization">Introduction to organization</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Organization-of-Computation.html#Organization-of-Computation">Organization of Computation</a>
+<hr>
+</div>
+
+<h3 class="section">3.2 Parameters</h3>
+
+<p><a name="index-Parameters-83"></a>Parameters are named values that are defined and used in computations or in presentation.  The <a href="http://www.lispworks.com/documentation/HyperSpec/Body/m_defpar.htm#defparameter">defparameter</a> macro defines parameters (dynamic variables) but Antik has definitions that permit grouping them and including properties such as the type, which will be checked when values are assigned, and defining synonyms.  The grouping is in named categories; Antik itself defines one category, <code>NF</code>, which is used for numerical formatting.  Each category used will become a package, and the symbols exported from that package. The value can be changed with <code>(setf parameter-value)</code> and used with <code>parameter-value</code>, or changed locally (analogous to <code>let</code> for CL variables) with <code>with-parameters</code>. It is also permissible to assign as a normal variable (e.g., with let and setf), but no type checking is performed.
+<pre class="example">     
+     ;;; Then define some parameters
+     (define-parameter kepler foo
+       :value 122
+       :type fixnum
+       :documentation "A fixnum parameter of kepler.")
+     (define-parameter kepler bar
+       :value "hi"
+       :type string
+       :documentation "A string parameter of kepler.")
+     
+     ;;; Get their values
+     (parameter-value kepler bar)
+     "hi"
+     (parameter-value kepler foo)
+     122
+     
+     ;;; Dynamic binding
+     (defun show-foo-bar ()
+       (format t "~&amp;foo: ~a, bar: ~s"
+     	  (parameter-value kepler foo)
+     	  (parameter-value kepler bar)))
+     
+     (show-foo-bar)
+     foo: 122, bar: "hi"
+     NIL
+     
+     ;;; Locally change values
+     (with-parameters (kepler (foo 143) (bar "bye"))
+       (show-foo-bar))
+     foo: 143, bar: "bye"
+     NIL
+     
+     (show-foo-bar)
+     foo: 122, bar: "hi"
+     NIL
+     
+     ;;; Make a mistake
+     (with-parameters (kepler (foo 143) (bar -44))
+       (show-foo-bar))
+     Error: Value -44 is of type FIXNUM, not of the required type STRING.
+     
+     ;;; Globally change values
+     (setf (parameter-value kepler bar) "a new value")
+     (show-foo-bar)
+     foo: 122, bar: "a new value"
+     
+     ;;; Set multiple values
+     (set-parameters kepler bar "xyz" foo 1)
+     (show-foo-bar)
+     foo: 1, bar: "xyz"
+     
+     ;;; Get information about the categories and parameters
+     (parameter-help)
+     Parameter categories: KEPLER and NF.
+     
+     (parameter-help :kepler)
+     Parameters in KEPLER: BAR and FOO.
+     
+     (parameter-help :kepler :bar)
+     BAR: A string parameter of kepler.
+     Type is STRING,
+     Current value is "xyz".
+</pre>
+   <div class="defun">
+&mdash; Macro: <b>antik:define-parameter</b><var> category name &amp;key value type attribute documentation synonyms<a name="index-antik_003adefine_002dparameter-84"></a></var><br>
+<blockquote><p><a name="index-antik_003adefine_002dparameter-85"></a>Define the parameter (global special variable) with the given name.  It will be defined in the package named by category (which will be created if necessary), and exported from it. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:parameter-help</b><var> &amp;optional category name stream<a name="index-antik_003aparameter_002dhelp-86"></a></var><br>
+<blockquote><p><a name="index-antik_003aparameter_002dhelp-87"></a>Print all information known about the parameter.  If category is nil (default), names of all categories are printed.  If name is nil, all defined parameters in that category are printed. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>antik:parameter-value</b><var> category name<a name="index-antik_003aparameter_002dvalue-88"></a></var><br>
+<blockquote><p><a name="index-antik_003aparameter_002dvalue-89"></a>Get or set the parameter value. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>antik:set-parameter</b><var> category name value<a name="index-antik_003aset_002dparameter-90"></a></var><br>
+<blockquote><p><a name="index-antik_003aset_002dparameter-91"></a>Set the parameter value, checking that the name is legitimate and the value is of the correct type. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>antik:set-parameters</b><var> category &amp;rest names-values<a name="index-antik_003aset_002dparameters-92"></a></var><br>
+<blockquote><p><a name="index-antik_003aset_002dparameters-93"></a>Set the values of the parameters. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>antik:with-parameters</b> (<var>category &amp;rest name-values</var>)<var> &amp;body body<a name="index-antik_003awith_002dparameters-94"></a></var><br>
+<blockquote><p><a name="index-antik_003awith_002dparameters-95"></a>Provide local scope for parameter values, and possibly bind new values. 
+</p></blockquote></div>
+
+   </body></html>
+

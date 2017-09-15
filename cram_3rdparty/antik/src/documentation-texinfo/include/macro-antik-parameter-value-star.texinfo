@@ -1,0 +1,4 @@
+@deffn {Macro} {antik:parameter-value*} category name @&optional default
+@findex antik:parameter-value*
+Get the parameter value dynamically.
+@end deffn

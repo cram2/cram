@@ -1,0 +1,5 @@
+@defvr {Variable} {antik:*timepoint-print-scale*}
+@vindex antik:*timepoint-print-scale*
+Convert timepoints to this timescale for printing.
+   If nil, use the internal time scale (UTC).
+@end defvr

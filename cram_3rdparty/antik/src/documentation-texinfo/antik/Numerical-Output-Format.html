@@ -1,0 +1,126 @@
+<html lang="en">
+<head>
+<title>Numerical Output Format - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Physical-Quantities.html#Physical-Quantities" title="Physical Quantities">
+<link rel="next" href="Mathematical-Utility.html#Mathematical-Utility" title="Mathematical Utility">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Numerical-Output-Format"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Mathematical-Utility.html#Mathematical-Utility">Mathematical Utility</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Physical-Quantities.html#Physical-Quantities">Physical Quantities</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr>
+</div>
+
+<h2 class="chapter">6 Numerical Output Format</h2>
+
+<p><a name="index-Formatting-367"></a><a name="index-Significant-figures-368"></a><a name="index-Grid_002c-formatting-369"></a><a name="index-Physical-dimension-quantities_002c-formatting-370"></a><a name="index-Number_002c-formatting-371"></a><a name="index-NF_002c-table-of-options-372"></a>The function <code>nf</code> is provided to format numbers according to specific criteria set as parameters in the <code>:nf</code> category (see <a href="Parameters.html#Parameters">Parameters</a>).  There is precise control over the number of digits printed, how grids are printed, etc.  To show all parameters available, evaluate <code>(parameter-help :nf)</code>; to get information about each one, <code>(parameter-help :nf </code><var>name</var><code>)</code>.
+
+   <p><table summary=""><tr align="left"><th valign="top" width="15%">Parameter </th><th valign="top" width="15%">Values </th><th valign="top" width="70%">Description
+<br></th></tr><tr align="left"><td valign="top" width="15%"><code>components</code> </td><td valign="top" width="15%">list of strings
+</td><td valign="top" width="70%">Names of vector components to use when <code>vector-format</code> is <code>:coordinate-unit-vectors</code>. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>date-time-separator</code> </td><td valign="top" width="15%"><code>nil</code>, <code>t</code>, character
+</td><td valign="top" width="70%">Character to place between date and time in ISO8601 datime output. 
+   If nil, use a space, if T, use #\T. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>degrees</code> </td><td valign="top" width="15%">boolean
+</td><td valign="top" width="70%">Whether to format angles in degrees and angular rates in Hertz. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>fracpart-digits</code> </td><td valign="top" width="15%"><code>nil</code>, fixnum
+</td><td valign="top" width="70%">The number of digits to the right of the decimal floating point numbers when :significant-figures is <code>nil</code>. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>full-precision</code> </td><td valign="top" width="15%"><code>nil</code>, <code>t</code>
+</td><td valign="top" width="70%">If not <code>nil</code>, ignore <code>:fracpart-digits</code>, <code>:intpart-digits</code>, <code>:significant-figures</code>, and format floating point numbers to full precision. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>horizontal-element-separator</code> </td><td valign="top" width="15%">character
+</td><td valign="top" width="70%">What to put between horizontally separated elements for plain style. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>ignore-day-only</code> </td><td valign="top" width="15%">boolean
+</td><td valign="top" width="70%">If true, a timepoint specified day-only will show the time part as well. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>intpart-digits</code> </td><td valign="top" width="15%"><code>nil</code>, fixnum
+</td><td valign="top" width="70%">The minimum space allowed for the whole-number part of numbers
+   when :significant-figures is <code>nil</code>.  If this is larger than
+   the actual number of digits, pad to the left with spaces. 
+   If this value is <code>nil</code>, allow enough space to accomodate the number. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>no-units</code> </td><td valign="top" width="15%">boolean
+</td><td valign="top" width="70%">Don't print units if true. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>print-sign</code> </td><td valign="top" width="15%">boolean
+</td><td valign="top" width="70%">Whether leading `+' is printed. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>significant-figures</code> </td><td valign="top" width="15%"><code>nil</code>, fixnum
+</td><td valign="top" width="70%">The number of significant figures formatted for numbers. 
+   If <code>nil</code>, formatting of numbers is done using :intpart-digits
+   and, if a float, :fracpart-digits. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>style</code> </td><td valign="top" width="15%"><code>nil</code>, <code>:tex</code>, fixnum
+</td><td valign="top" width="70%">Style of format: plain (standard or shortened) or LaTeX. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>tex-decimal-align</code> </td><td valign="top" width="15%">boolean
+</td><td valign="top" width="70%">Align columns of numbers on decimal point in LaTeX. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>tex-element-separator</code> </td><td valign="top" width="15%">string
+</td><td valign="top" width="70%">Character to put between vertically separated matrix rows for LaTeX. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>time</code> </td><td valign="top" width="15%"><code>nil</code>,<code>:tud</code>,<code>:alternative</code>
+</td><td valign="top" width="70%">How to format time intervals: with unit for time (<code>nil</code>), ISO8601 time-unit designator (<code>:tud</code>), ISO8601 alternative (<code>:alternative</code>). 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>timepoint-linear</code> </td><td valign="top" width="15%">symbol, list
+</td><td valign="top" width="70%">Convert timepoints to a linear scale if specified as a list of epoch time and unit.  For example <code>'(*midnight-2000* :year)</code> will present time points as a real number of calendar years, including fractions, such as 3.3223.  If the value is a symbol representing a unit, like :year, the epoch is taken as 0. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>vector-format</code> </td><td valign="top" width="15%"><code>:horizontal</code>, <code>:vertical</code>, <code>:coordinate-unit-vectors</code>
+</td><td valign="top" width="70%">Vectors are formatted as rows, columns or as linear combination of coordinate unit vectors. 
+<br></td></tr><tr align="left"><td valign="top" width="15%"><code>vertical-element-separator</code> </td><td valign="top" width="15%">character
+</td><td valign="top" width="70%">Character to put between vertically separated elements for plain.
+   <br></td></tr></table>
+
+<div class="defun">
+&mdash; Generic Function: <b>antik:nf</b><var> object &amp;optional stream<a name="index-antik_003anf-373"></a></var><br>
+<blockquote><p><a name="index-antik_003anf-374"></a>Format output for numerical objects.  If stream is nil, use *standard-output*. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Method: <b>antik:nf</b> (<var>object float</var>)<var> &amp;optional </var>(<var>stream *standard-output*</var>)<var><a name="index-antik_003anf-375"></a></var><br>
+<blockquote><p>Returns two values: the string and prints-as-zero. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>antik:nf-option</b><var> name<a name="index-antik_003anf_002doption-376"></a></var><br>
+<blockquote><p><a name="index-antik_003anf_002doption-377"></a>Get/set the nf option named. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:nf-readably</b><var><a name="index-antik_003anf_002dreadably-378"></a></var><br>
+<blockquote><p><a name="index-antik_003anf_002dreadably-379"></a>The format produced will be readable to Lisp. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:nf-string</b><var> object<a name="index-antik_003anf_002dstring-380"></a></var><br>
+<blockquote><p><a name="index-antik_003anf_002dstring-381"></a>Format output for numerical objects to a new string. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>antik:set-nf-options</b><var> &amp;rest name-values<a name="index-antik_003aset_002dnf_002doptions-382"></a></var><br>
+<blockquote><p><a name="index-antik_003aset_002dnf_002doptions-383"></a>Set the numerical formatting options. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Macro: <b>antik:with-nf-options</b> (<var>&amp;rest name-values</var>)<var> &amp;body body<a name="index-antik_003awith_002dnf_002doptions-384"></a></var><br>
+<blockquote><p><a name="index-antik_003awith_002dnf_002doptions-385"></a>Set the options for all nf calls within body to inherit. 
+</p></blockquote></div>
+
+<div class="defun">
+&mdash; Function: <b>antik:object-as-nf</b><var> object<a name="index-antik_003aobject_002das_002dnf-386"></a></var><br>
+<blockquote><p><a name="index-antik_003aobject_002das_002dnf-387"></a>Define a new object exactly as the current nf options print an existing one.  This function can be used for example to define a number exactly as the rounded print format of another one. 
+</p></blockquote></div>
+
+   </body></html>
+

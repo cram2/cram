@@ -1,0 +1,5 @@
+@deffn {Function} {antik:copy-state} original-state @&rest attributes
+@findex antik:copy-state
+Make a new state with the same attributes as an existing state.
+   The attributes specified are computed if needed.
+@end deffn

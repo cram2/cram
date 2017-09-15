@@ -1,0 +1,4 @@
+@deffn {Function} {antik:reset-system-of-units}
+@findex antik:reset-system-of-units
+Reset the system of units to the default.
+@end deffn

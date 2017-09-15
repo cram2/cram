@@ -1,0 +1,4 @@
+@deffn {Function} {antik:days+} datime @&optional increment
+@findex antik:days+
+Add the number of days to the given datime.
+@end deffn

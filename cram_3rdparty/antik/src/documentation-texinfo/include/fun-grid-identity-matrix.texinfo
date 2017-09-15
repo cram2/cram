@@ -1,0 +1,4 @@
+@deffn {Function} {grid:identity-matrix} dimension @&optional scalar type element-type
+@findex grid:identity-matrix
+A rank-two grid with the off-diagonals zero and the diagonal equal to scalar.
+@end deffn

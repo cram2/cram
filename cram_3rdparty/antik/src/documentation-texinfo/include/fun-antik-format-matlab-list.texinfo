@@ -1,0 +1,4 @@
+@deffn {Function} {antik:format-matlab-list} list @&optional stream number-per-line
+@findex antik:format-matlab-list
+Format a matrix row to be read by Matlab.
+@end deffn

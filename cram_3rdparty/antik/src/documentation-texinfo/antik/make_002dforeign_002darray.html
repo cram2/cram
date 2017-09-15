@@ -1,0 +1,56 @@
+<html lang="en">
+<head>
+<title>make-foreign-array - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Functions-for-creation-of-grids.html#Functions-for-creation-of-grids" title="Functions for creation of grids">
+<link rel="prev" href="make_002dgrid.html#make_002dgrid" title="make-grid">
+<link rel="next" href="ensure_002dforeign_002darray.html#ensure_002dforeign_002darray" title="ensure-foreign-array">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="make-foreign-array"></a>
+<a name="make_002dforeign_002darray"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="ensure_002dforeign_002darray.html#ensure_002dforeign_002darray">ensure-foreign-array</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="make_002dgrid.html#make_002dgrid">make-grid</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Functions-for-creation-of-grids.html#Functions-for-creation-of-grids">Functions for creation of grids</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.2.4.4 make-foreign-array</h5>
+
+<div class="defun">
+&mdash; Function: <b>grid:make-foreign-array</b><var> element-type &amp;rest keys &amp;key dimensions &amp;allow-other-keys<a name="index-grid_003amake_002dforeign_002darray-120"></a></var><br>
+<blockquote><p><a name="index-grid_003amake_002dforeign_002darray-121"></a>Make a <code>gsll</code> array with the given element type,
+   :dimensions, and :initial-contents, :initial-element or :data. 
+</p></blockquote></div>
+This function can be used instead of <code>make-grid</code> to make a
+foreign-array; the first argument is the <code>element-type</code> and the
+<code>:dimensions</code> are supplied in a keyword argument, for example,
+<pre class="example">     (grid:make-foreign-array 'double-float :dimensions '(2 2))
+     #m((0.000000000000000d0 .0000000000000000d0)
+        (.0000000000000000d0 .0000000000000000d0))
+</pre>
+   <p>It is meant as an analogue to <code>cl:make-array</code> for the convenience
+of users who want to use a function with a similar argument list.
+
+   </body></html>
+

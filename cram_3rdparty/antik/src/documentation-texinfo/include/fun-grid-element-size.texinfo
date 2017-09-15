@@ -1,0 +1,4 @@
+@deffn {Function} {grid:element-size} object
+@findex grid:element-size
+The size of each element as stored in @code{c}.
+@end deffn

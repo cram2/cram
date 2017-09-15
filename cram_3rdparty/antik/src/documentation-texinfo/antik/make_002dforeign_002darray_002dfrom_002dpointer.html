@@ -1,0 +1,52 @@
+<html lang="en">
+<head>
+<title>make-foreign-array-from-pointer - Antik Manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Antik Manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Functions-for-creation-of-grids.html#Functions-for-creation-of-grids" title="Functions for creation of grids">
+<link rel="prev" href="ensure_002dforeign_002darray.html#ensure_002dforeign_002darray" title="ensure-foreign-array">
+<link rel="next" href="Summary.html#Summary" title="Summary">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009, 2010, 2011, 2013 Liam M. Healy-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="make-foreign-array-from-pointer"></a>
+<a name="make_002dforeign_002darray_002dfrom_002dpointer"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Summary.html#Summary">Summary</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="ensure_002dforeign_002darray.html#ensure_002dforeign_002darray">ensure-foreign-array</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Functions-for-creation-of-grids.html#Functions-for-creation-of-grids">Functions for creation of grids</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.2.4.6 make-foreign-array-from-pointer</h5>
+
+<div class="defun">
+&mdash; Function: <b>grid:make-foreign-array-from-pointer</b><var> pointer dimensions element-type &amp;optional finalize<a name="index-grid_003amake_002dforeign_002darray_002dfrom_002dpointer-124"></a></var><br>
+<blockquote><p><a name="index-grid_003amake_002dforeign_002darray_002dfrom_002dpointer-125"></a>Given a foreign pointer to an array, make a Lisp object of
+   class 'foreign-array that references that.  This will never
+   make a static-vector.  If finalize is true, than the array
+   memory will be freed when this object is garbage collected;
+   otherwise it is presumed that the foreign code will handle
+   that job. 
+</p></blockquote></div>
+If a foreign pointer already exist (for example, the foreign array was allocated by foreign code), this function will make a foreign array from it.  Note that the <code>cl-array</code> of this grid will always be <code>nil</code>, regardless of whether static-vectors are supported for the CL implementation.
+
+   </body></html>
+

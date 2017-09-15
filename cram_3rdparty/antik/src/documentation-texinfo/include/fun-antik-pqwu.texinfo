@@ -1,0 +1,5 @@
+@deffn {Function} {antik:pqwu} pq
+@findex antik:pqwu
+If we are dynamically inside without-units, return the magnitude.
+   If not, return the object as-is.
+@end deffn

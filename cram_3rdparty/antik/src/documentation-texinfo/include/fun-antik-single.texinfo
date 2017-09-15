@@ -1,0 +1,4 @@
+@deffn {Function} {antik:single} lst
+@findex antik:single
+Test list for one element.
+@end deffn

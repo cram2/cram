@@ -1,0 +1,7 @@
+@deffn {Generic Function} {antik:flatten-angle} object
+@findex antik:flatten-angle
+Remove the angular dimension; the number is not changed
+   and therefore the angles are radians.  This function is
+  necessary as proper dimensional arithmetic ignores angles as a
+  dimension.
+@end deffn

@@ -1,0 +1,4 @@
+@deffn {Function} {antik:datime-j2000day} datime
+@findex antik:datime-j2000day
+Julian Day from @code{j2000} epoch, and seconds from the start of the day.
+@end deffn

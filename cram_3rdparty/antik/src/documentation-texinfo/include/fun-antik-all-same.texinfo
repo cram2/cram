@@ -1,0 +1,6 @@
+@deffn {Function} {antik:all-same} list @&key test post-function
+@findex antik:all-same
+If all elements are the same, that value and @code{t} are returned; if
+   not, nil and nil are returned.  The post-function is applied to the
+   common value before returning the answer if there is one.
+@end deffn

@@ -1,0 +1,4 @@
+@deffn {Function} {grid:element-types} element-types
+@findex grid:element-types
+All the element types available of a given category.
+@end deffn

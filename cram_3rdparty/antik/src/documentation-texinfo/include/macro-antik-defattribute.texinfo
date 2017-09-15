@@ -1,0 +1,5 @@
+@deffn {Macro} {antik:defattribute} name dimension @&optional synonyms print-names description components constraints make-function
+@findex antik:defattribute
+Define an attribute of a physical system.  The name should
+   not be the same as a physical dimension or unit name.
+@end deffn

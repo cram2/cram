@@ -1,0 +1,11 @@
+@deffn {Function} {antik:make-pq} magnitude unit-expression @&optional scalar-dimension
+@findex antik:make-pq
+Make a physical dimension quantity (PDQ).  Allow for the
+   possiblity that magnitude is already a @code{pdq}; in this case, check
+   that the physical dimension is correct, and pass it on.  This can
+   be used as a way of assigning default units to a number. Unitless dimensions (e.g., 'length) are
+   interpeted as units in the :system-of-units.  If scalar-dimension is @code{t} and
+   magnitude is not a scalar, the unit-expression applies to each
+   element of the magnitude.  Otherwise it must be a grid or list of
+   the shape as the magnitude.
+@end deffn

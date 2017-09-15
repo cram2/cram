@@ -1,0 +1,4 @@
+@defvr {Variable} {grid:*double-types*}
+@vindex grid:*double-types*
+All the supported double float element types.
+@end defvr

@@ -1,0 +1,9 @@
+@deffn {Macro} {antik:see-values} keyword skipping-compute format-string @&rest args
+@findex antik:see-values
+If keyword is in *pedagogical*, then print returned value of form,
+   and return it; otherwise, just evaluate the form and return.
+   If skipping-compute is true, forms are evaluated left to right,
+   whether or not the keyword is in *pedagogical*.
+   If it is false, they are only evaluated if keyword is in *pedagogical*, 
+   and the last one is returned from this form.
+@end deffn

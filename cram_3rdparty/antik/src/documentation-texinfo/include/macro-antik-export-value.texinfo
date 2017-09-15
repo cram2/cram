@@ -1,0 +1,5 @@
+@deffn {Macro} {antik:export-value} form @&optional nf-options
+@findex antik:export-value
+The form value formatted for tex.  Useful in embedded org-mode code block evaluation as e.g.
+   src_lisp[:results raw]@{(export-value xyz)@}.
+@end deffn
