@@ -1,0 +1,355 @@
+* TODO update copyright statements.
+  * update year (2009-2010).
+  * Maybe remove names
+  * Maybe remove completely
+  * Maybe also dont include the passus about willow garage :)
+    ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
+    ;;;       contributors may be used to endorse or promote products derived from
+    ;;;       this software without specific prior written permission.
+    * We can remove this third clause completely.
+    * See http://opensource.org/licenses/bsd-license.php
+      * Also, you may optionally omit clause 3 and still be OSD conformant.
+  * Could we also get rid of the per-file notices and just provide a COPYRIGHT file or somehting. 
+
+* TODO define-cram-test, possible to specify (:timeout nil)
+
+  ** (:timeout nil) means no timeout at all, useful when debugging
+     test case hanging.
+
+
+* TODO define-cram-test, reuse 5am::*debug-on-failure*
+
+  ** to get us into the debugger at the right spot. Might be tricky,
+     and may require some thought.
+
+  ** also how to handle errors in spawned tasks?
+
+
+* TODO define-cram-test, expansion to interpret variables at run-time
+
+  ** Talking of `*ignore-skips*', and `+n-runs+' 
+
+  ** At the moment these are dealt with at macroexpansion time,
+     so if you change them, you have to recompile all tests.
+
+
+* TODO naming convention for task-local variables.
+
+  ** I like **foo**. But that's the SBCL convention for their global
+     variables extension. I'd use it nontheless.
+
+
+* TODO naming convention for functions returning fluents.
+
+  ** maybe just -FLUENT suffix? E.g. (TASK-DEAD-FLUENT <task>)?
+
+  ** Maybe -F?
+
+
+* TODO (MAKE-INSTANCE 'TASK ...) vs (MAKE-TASK ...)
+
+  ** The former is implementation detail. The latter should be used.
+
+  ** MAKE-TASK returns runnable, but _not_ yet running tasks.
+
+  ** WITH-TAGS uses MAKE-TASK whereas TOP-LEVEL and WITH-TASK use
+     MAKE-INSTANCE.
+
+
+* DONE episode-knowledge.lisp uses DEFINE-TASK-VARIABLE
+
+  ** the package CRAM-EXECUTION-TRACE should perhaps use CPL-IMPL
+
+  ** and cram-language.asd makes this dependency not explicit 
+
+
+* TODO task-local variables shared not only between tasks
+
+  ** task-local variables do not only get their initial-binding from
+     local bindings in other tasks, but in fact from any local binding
+     in other _threads_.
+
+  ** This property seems to implicitly used in TOP-LEVEL with its
+     *EPISODE-KNOWLEDGE* binding.
+
+
+* TODO get rid of :serial t in the .asd files
+
+  ** make dependencies explicit.
+
+  ** also revisit which systems depend on which. Don't forget to take
+     the -test systems into account, too.
+
+
+* DONE make separate package out of execution trace
+
+  ** *EPISODE-KNOWLEDGE* is bound locally special in TOP-LEVEL because
+     its definition comes later in the build. Think of ways to
+     structure the build to overcome it.
+
+     *** Is execution-trace self-contained? Can it come before CPL?
+         etc.
+
+
+* TODO WITH-TAGS does not check for duplicates
+
+  ** and because it expands to a LET*, SBCL won't complain either. --tcr
+  
+  ** It's the users fault when he uses the same tag names twice within
+     the same lexical scope. This is the same as declaring variables
+     with the same name, isn't it? --lorenz
+
+  ** The problem is that it'll compile through, and do the wrong
+     thing. What's the point? checking for duplicates is SMOP. --tcr
+
+  ** I'm with tcr. Its definately a possibly subtle bug and easy enough to
+     check. -- demmeln
+
+
+* TODO in the PULSE method use HASH-TABLE-VALUES
+
+  ** We could use HASH-TABLE-VALUES instead of copying the hash table. This
+     should not change the semantics but be more perdormant, right?
+
+
+* TODO WITH-TAGS should expand :TAG to a common global function
+
+  ** less code explosion; better for ICACHE and compilation speed
+
+  ** and less confusing macro definition
+
+
+* TODO better name for EXECUTE-TASK-TREE-NODE
+
+  ** it is not clear from its name that the function waits until the
+     task finishes
+
+  ** It's coupled with the item directly above:
+
+     *** make :TAG inside WITH-TAGS expand to something like
+
+         (JOIN-TASK (EXECUTE-TAGGED-TASK ...))
+
+
+* TODO the FIXME at the top of tasks/task.lisp.
+
+
+* TODO See FIXMEs in cram-test-utilities/src/misc-utils.lisp
+
+
+* TODO PARTIAL-ORDER FIXMEs
+
+  ** could detect cyclic dependencies at compile-time.
+
+  ** is not thread safe; if two PARTIAL-ORDER forms are used
+     concurrently, which both specify the same task in (:order)
+     -> two PUSHes will be executed concurrently.
+
+
+* TODO ressurect RETHROWN-ERROR
+
+  ** I took it because I wasn't sure what it was used for and if it's needed.
+
+  ** I now see it was used for errors inside a sub task when
+     propagating up its parents.
+
+  ** Maybe call it CHILD-ERROR.
+
+
+* TODO get rid of WITH-PRODUCER-CONSUMER-THREADS again
+
+  ** test suite will only kill tasks not threads after test
+
+
+* TODO get rid of *task-pprint-verbosity*
+
+  ** no need for it. Just don't go over VALUE, but (SLOT-VALUE <fluent> 'value)
+
+
+* TODO get rid of synchronization-tools
+
+  ** do not need it after all
+
+  ** it's used in with-task-hierarchy; might be tricky to get rid of
+     it after all.
+
+
+* TODO get rid of SLEEP*
+
+  ** CL:SLEEP does not take deadlines into account
+
+  ** hence I wrote SLEEP*, but it's not good.
+
+  ** it works on absolute times which does not mesh well
+     with context switches.
+
+  ** I suggest get rid of it alltogether, instead introduce a special
+     fluent (FL-TIMED <timeout>) which pulses after timeout expired.
+
+     That would go well with existing stuff.
+
+  ** Change test cases accordingly to use (WAIT-FOR (FL-TIMED ..))
+     instead of SLEEP*.
+
+
+* TODO get rid of LOG-EVENTS in cram-utilities.
+
+  ** added them for debugging, forgot to remove.
+
+
+* TODO improve REASON arg handling of events
+
+  ** Instead of using "Parent did foo." make the reason be
+     an implicit 
+
+        (format nil "~A ~A." (task-abbreviated-name *current-task*) reason)
+
+     so people can write (foo ... :reason "aborted") etc.
+
+
+* TODO integrate cpl's logging stuff into roslog
+
+  ** then remove log-msg from kipla
+
+
+* TODO Synchronize parent & childs depending on variable
+
+  ** Add :sync *some-global-flags* to uses of evaporate, suspend in
+     base.lisp.
+ 
+
+* TODO rename log-event to log-msg
+
+
+* TODO rename log-set to log-use
+
+
+* TODO docstring of define-cram-test is not up to date
+
+
+* TODO get rid of *failure-behaviour* again
+
+  ** It's not needed. User setting *break-on-signal* is enough.
+
+
+* TODO get rid of *break-on-plan-failure*
+
+  ** It's not needed. User setting *break-on-signal* is enough.
+
+
+* TODO (make-task) outside top-level
+
+  ** the error signaled should probably just say that we're outside
+     top-level.
+
+
+* TODO processed-pulse-count in pulse-count
+
+  ** docstring says "pulses we have processed so far. We don't want to
+     use pulse-count since it is used in wait-for to determine if
+     something changed. This slot is used to compute the value"
+
+  ** with the simplification of wait-for, it does not need (and in
+    fact does not) use the pulse-count anymore.
+
+
+* TODO without-scheduling in fluent code
+
+  ** everything which was once without-termination etc I just replaced
+     with without-scheduling without having reviewed the code.
+
+  ** I think in most cases, in can actually be got rid of.
+
+
+* TODO change make-fluent
+
+  ** make it work regardless of this set-fluent-make-function stuff
+
+  ** get rid of that set-fluent-make-function stuff; maybe use
+     task-variables.
+
+  ** make make-fluent default to the value-fluent class if not an
+     explicit class is provided. Check for incompatibility if :value
+     is given, but class is not a value-fluent.
+
+
+* TODO anonymous fluents
+
+  ** if possible, do _not_ make the name parameter of make-fluent be
+     required. Instead default to "ANONYMOUS".
+
+  ** see the function FLUENT in cram-test-utilities. (Which can then
+     be get rid of.)
+
+
+* TODO what about errors in fluent-nets
+
+  ** e.g. (fl-funcall #'1+ <fluent>)
+
+  ** what is if <fluent>'s value is set to :foo?
+
+
+* TODO (fl-apply #'+ *fluents*) does not work
+
+  ** bug in fl-apply
+
+
+* TODO Determining good value for `+time-quantum+'
+
+  ** add timestamp to MESSAGE in tasks/task.lisp
+
+     Use it to see how long it takes from sending a message to its processing.
+
+  ** count # of enters into event loop without processing msg
+
+
+* TODO WHENEVER & WITH-PARALLEL-CHILDS 
+
+  ** PAR etc. go periodically into event-loop
+
+  ** Rather add event (:WAIT ...) which will make them really
+     wait inside the event-loop.
+
+
+* TODO JOIN-TASK & WAIT-FOR 
+
+  ** Similiarly like above. The task doing the join enters event-loop
+     most often in vain.
+
+* TODO gratitious task creation in with-tags
+
+  ** (with-tags (:tag X (par (:tag A ..) (:tag B ..)))
+
+  ** will create PAR-#1/2 and PAR-#2/2
+
+  ** and A, B
+
+  ** events take some time to propagate, e.g.
+
+       (top-level 
+         (with-tags
+           (par
+             (:tag slave 
+               (pursue (seq (sleep* 0.5) :A)
+                       (seq (sleep* 1.0) :B)
+                       (seq (sleep* 1.0) :C)))
+             (with-task-suspended slave
+               (sleep* 1.0)))))
+
+       SLAVE <- [PAR-#2/2]  -- (:SUSPEND)
+
+       SLAVE -> [PURSUE]    -- (:SUSPEND)
+
+       [PURSUE-#1/2] succeeds...
+
+       [PURSUE] teardown
+ 
+         ignores :SUSPEND
+
+           
+
+* TODO cram_prolog: rete-holds seems to have a bug.
+  
+  Example: Rete net contains (desig-bound d1 'foo) and (desig-bound d2 'bar).
+  (rete-holds (desig-bound ?x ?_) is fine, but (desig-bind d1 ?_) returns
+  NIL twice.
