@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find iai_kitchen)/worlds/kitchen_env_2015.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <arg name="model" default="$(find iai_kitchen)/urdf/IAI_kitchen.urdf.xacro"/>
+  <param name="kitchen_description" command="$(find xacro)/xacro.py '$(arg model)'" />
+  <node name="spawn_kitchen" pkg="gazebo_ros" type="spawn_model"
+        args="-param kitchen_description -urdf -model IAI_kitchen "/>
+
+  <node name="kitchen_joint_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <remap from="robot_description" to="kitchen_description" />
+  </node>
+  <node name="kitchen_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+    <param name="tf_prefix" value="iai_kitchen" />
+    <remap from="robot_description" to="kitchen_description" />
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="map_to_kitchen_tf"
+    args="0 0 0 0 0 0 /map /iai_kitchen/world 200">
+  </node>
+
+  <include file="$(find pr2_gazebo)/launch/pr2.launch"/>
+</launch>

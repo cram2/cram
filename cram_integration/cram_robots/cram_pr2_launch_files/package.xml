@@ -1,0 +1,17 @@
+<package>
+  <name>cram_pr2_launch_files</name>
+  <version>0.3.0</version>
+  <description>
+     cram_pr2_launch_files
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>giskard_examples</run_depend>
+  <run_depend>nav_pcontroller</run_depend>
+  <run_depend>joint_trajectory_action</run_depend>
+  <run_depend>pr2_arm_kinematics</run_depend>
+</package>
