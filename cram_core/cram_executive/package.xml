@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cram_executive</name>
+  <version>0.3.0</version>
+  <description>
+    Utility constructs to write CRAM executives
+  </description>
+
+  <author>Gayane Kazhoyan</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_core/issues</url>
+  <url type="repository">https://github.com/cram2/cram_core</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>sbcl</depend>
+  <depend>cram_language</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_process_modules</depend>
+  <depend>cram_occasions_events</depend>
+</package>

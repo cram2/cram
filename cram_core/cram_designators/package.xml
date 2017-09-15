@@ -1,0 +1,37 @@
+<package>
+  <name>cram_designators</name>
+  <version>0.3.0</version>
+  <description>
+      cram_designators defines the protocol for designators and provides an
+      implementation for location, object and action designators.
+  </description>
+
+  <author>Lorenz Moesenlechner</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_core/issues</url>
+  <url type="repository">https://github.com/cram2/cram_core</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+  <build_depend>alexandria</build_depend>
+  <build_depend>cram_utilities</build_depend>
+  <build_depend>cram_prolog</build_depend>
+  <build_depend>cram_language</build_depend>
+  <build_depend>trivial_garbage</build_depend>
+  <build_depend>lisp_unit</build_depend>
+
+  <run_depend>sbcl</run_depend>
+  <run_depend>alexandria</run_depend>
+  <run_depend>cram_utilities</run_depend>
+  <run_depend>cram_prolog</run_depend>
+  <run_depend>cram_language</run_depend>
+  <run_depend>trivial_garbage</run_depend>
+  <run_depend>lisp_unit</run_depend>
+
+</package>

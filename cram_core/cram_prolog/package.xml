@@ -1,0 +1,30 @@
+<package>
+  <name>cram_prolog</name>
+  <version>0.3.0</version>
+  <description>
+    This package implements a simple interpreter for a Prolog-like
+    language and an implementation of the RETE algorithm.
+  </description>
+
+  <author>Lorenz Moesenlechner</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_core/issues</url>
+  <url type="repository">https://github.com/cram2/cram_core</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+  <build_depend>alexandria</build_depend>
+  <build_depend>cram_utilities</build_depend>
+  <build_depend>lisp_unit</build_depend>
+
+  <run_depend>sbcl</run_depend>
+  <run_depend>alexandria</run_depend>
+  <run_depend>cram_utilities</run_depend>
+  <run_depend>lisp_unit</run_depend>
+</package>
