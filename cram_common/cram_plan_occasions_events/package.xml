@@ -1,0 +1,23 @@
+<package>
+  <name>cram_plan_occasions_events</name>
+  <version>0.3.0</version>
+  <description>
+    Specific plan events to be used across the actual plans and executive
+  </description>
+
+  <author>Lorenz Moesenlechner</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_plans/issues</url>
+  <url type="repository">https://github.com/cram2/cram_plans</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cram_occasions_events</build_depend>
+  <build_depend>cram_prolog</build_depend>
+  <run_depend>cram_occasions_events</run_depend>
+  <run_depend>cram_prolog</run_depend>
+</package>

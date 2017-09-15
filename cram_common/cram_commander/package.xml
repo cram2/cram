@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cram_commander</name>
+  <version>0.3.0</version>
+  <description>cram_commander</description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_commander/issues</url>
+  <url type="repository">https://github.com/cram2/cram_commander</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp</depend>
+  <depend>roslisp_utilities</depend>
+  <depend>cram_designators</depend>
+  <depend>alexandria</depend>
+  <depend>yason</depend>
+  <depend>cl_transforms</depend>
+  <depend>cram_language</depend>
+  <depend>cram_executive</depend>
+
+  <depend>std_msgs</depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+</package>

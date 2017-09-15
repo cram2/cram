@@ -1,0 +1,29 @@
+<package>
+  <name>cram_robot_interfaces</name>
+  <version>0.3.0</version>
+  <description>
+    CRAM Manipulation Knowledge package
+  </description>
+
+  <author>Lorenz Moesenlechner</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_plans/issues</url>
+  <url type="repository">https://github.com/cram2/cram_plans</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>cram_prolog</build_depend>
+  <build_depend>cram_utilities</build_depend>
+  <build_depend>cl_transforms</build_depend>
+  <build_depend>cram_designators</build_depend>
+
+  <run_depend>cram_prolog</run_depend>
+  <run_depend>cram_utilities</run_depend>
+  <run_depend>cl_transforms</run_depend>
+  <run_depend>cram_designators</run_depend>
+</package>
