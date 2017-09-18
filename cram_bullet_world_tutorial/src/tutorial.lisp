@@ -60,51 +60,40 @@
                   (directory (physics-utils:parse-uri
                               (format nil "package://~a/resource/*.*" ros-package))))))
 
+(defparameter *pose-bottle-1*
+  (cl-transforms-stamped:make-pose-stamped
+   "map" 0.0
+   (cl-transforms:make-3d-vector -2 -0.9d0 0.86d0)
+   (cl-transforms:make-identity-rotation)))
+
+(defparameter *pose-bottle-2*
+  (cl-transforms-stamped:make-pose-stamped
+   "map" 0.0
+   (cl-transforms:make-3d-vector -0.8 2 0.9)
+   (cl-transforms:make-identity-rotation)))
+
 (defparameter *pose-meal-table*
   (cl-tf:make-pose-stamped
    "map" 0.0
    (cl-tf:make-3d-vector -0.15 2.0 0)
    (cl-tf:make-quaternion 0.0d0 0.0d0 -1.0d0 0.0d0)))
 
-(defparameter *pose-bottle-1*
-  (cl-transforms-stamped:make-pose-stamped 
-   "map" 0.0 
-   (cl-transforms:make-3d-vector -2 -0.9d0 0.861667d0)
-   (cl-tf:make-quaternion 0.0d0 0.0d0 -1.0d0 0.0d0)))
-
-(defparameter *pose-bottle-2*
-  (cl-transforms-stamped:make-pose-stamped 
-   "map" 0.0 
-   (cl-transforms:make-3d-vector -0.7 1.8 1.0d0)
-   (cl-transforms:make-identity-rotation)))
-
 (defparameter *pose-counter*
   (cl-transforms-stamped:make-pose-stamped
-   "map"
-   0.0
-   (cl-transforms:make-3d-vector -2.1547d0 -0.381d0 0.0d0)
+   "map" 0.0
+   (cl-transforms:make-3d-vector -1.8547d0 -0.381d0 0.0d0)
    (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
 
 (defun spawn-two-bottles ()
   (unless (assoc :bottle btr::*mesh-files*)
     (add-objects-to-mesh-list))
-  (prolog:prolog '(and (btr:bullet-world ?world)
-              (assert (btr:object ?world :mesh bottle-1 ((-2 -0.9 0.861667d0) (0 0 0 1))
-                                 :mass 0.2 :color (1 0 0) :mesh :bottle))
-              (assert (btr:object ?world :mesh bottle-2 ((-0.65 2 0.955) (0 0 0 1))
-                                 :mass 0.2 :color (0 1 0) :mesh :bottle))
-              (btr:simulate ?world 100))))
-
-(defun move-arm-out-of-sight (&key (arm '(:left :right)))      
-  (unless (listp arm)
-    (setf arm (list arm)))
-  (exe:perform
-   (let ((?left-configuration-to-go pr2-pp-plans::*pr2-left-arm-out-of-sight-joint-positions*)
-         (?right-configuration-to-go pr2-pp-plans::*pr2-right-arm-out-of-sight-joint-positions*))       
-     (desig:a motion
-              (type moving-joints)
-              (left-configuration ?left-configuration-to-go)
-              (right-configuration ?right-configuration-to-go)))))
+  (prolog:prolog
+   `(and (btr:bullet-world ?world)
+         (assert (btr:object ?world :mesh bottle-1 ((-2 -0.9 0.860) (0 0 0 1))
+                             :mass 0.2 :color (1 0 0) :mesh :bottle))
+         (assert (btr:object ?world :mesh bottle-2 ((-0.8 2 0.9) (0 0 0 1))
+                             :mass 0.2 :color (0 1 0) :mesh :bottle))
+         (btr:simulate ?world 100))))
 
 (defun navigate-to (?navigation-goal)
   (exe:perform (desig:a motion
@@ -113,72 +102,70 @@
 
 (defun look-at (?point-of-interest)
   (exe:perform (desig:a motion
-                              (type looking)
-                              (target (desig:a location (pose ?point-of-interest))))))
+                        (type looking)
+                        (target (desig:a location (pose ?point-of-interest))))))
 
 (defun get-perceived-bottle-desig ()
-  (let* ((?bottle-desig (desig:an object
-                                      (type bottle)))
-             (?perceived-bottle-desig (exe:perform
-                                         (desig:a motion
-                                                  (type detecting)
-                                                  (object ?bottle-desig)))))
+  (let* ((?bottle-desig (desig:an object (type bottle)))
+         (?perceived-bottle-desig (exe:perform
+                                   (desig:a motion
+                                            (type detecting)
+                                            (object ?bottle-desig)))))
     ?perceived-bottle-desig))
 
 (defun pick-up (?object-designator &optional (?arm :right))
   (exe:perform (desig:an action
-                                 (type picking-up)
-                                 (arm ?arm)
-                                 (object ?object-designator))))
+                         (type picking-up)
+                         (arm ?arm)
+                         (object ?object-designator))))
 
-(defun place-down (?pose ?arm)
+(defun place-down (?pose ?object ?arm)
   (exe:perform (desig:an action
-                   (type placing)
-                   (arm ?arm)
-                   (target (desig:a location (pose ?pose))))))
-
-(defun move-to-reach (?object-designator &optional (arm :right) )
-  (pr2-pp-plans::drive-towards-object-plan ?object-designator :?arm arm))
+                         (type placing)
+                         (arm ?arm)
+                         (object ?object)
+                         (target (desig:a location (pose ?pose))))))
 
 (defun test-switch-two-bottles ()
-  (unless (assoc :bottle btr::*mesh-files*)
-    (add-objects-to-mesh-list))
   (spawn-two-bottles)
   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
     (cpl:top-level
       ;; Go to counter top and perceive bottle
-      (let ((?navigation-goal pr2-pp-plans::*meal-table-right-base-pose*)
-            (?ptu-goal pr2-pp-plans::*meal-table-right-base-look-pose*))
+      (let ((?navigation-goal *pose-counter*)
+            (?ptu-goal 
+              (cl-transforms-stamped:make-pose-stamped
+               "base_footprint"
+               0.0
+               (cl-transforms:make-3d-vector 0.65335d0 0.076d0 0.758d0)
+               (cl-transforms:make-identity-rotation))))
         (cpl:par
           ;; Move torso up
           (exe:perform
            (desig:a motion (type moving-torso) (joint-angle 0.3)))
-          (move-arm-out-of-sight)
+          (pr2-pp-plans::park-arms)
           (navigate-to ?navigation-goal))
         (look-at ?ptu-goal))
       ;; Pick up bottle-1 with right arm.
-      (let* ((?perceived-bottle-desig (get-perceived-bottle-desig)))
-        (move-to-reach ?perceived-bottle-desig :right)
-        (pick-up ?perceived-bottle-desig :right))
-      ;; Move to the meal table
-      (let ((?pose *pose-meal-table*))
-        (navigate-to ?pose))
-      (move-arm-out-of-sight :arm :right)
-      ;; Pick up bottle-2 with left arm
-      (let* ((?perceived-bottle-desig (get-perceived-bottle-desig)))
-        (move-to-reach ?perceived-bottle-desig :left)
-        (pick-up ?perceived-bottle-desig :left))
-      ;; Move left arm out of sight
-      (move-arm-out-of-sight :arm :left)
-      ;; Place bottle-1 on second table
-      (let ((?drop-pose *pose-bottle-2*))
-        (place-down ?drop-pose :right))
-      ;; Move right arm out of sight
-      (move-arm-out-of-sight :arm :right)
-      ;; Move to the counter table 
-      (let ((?navigation-goal *pose-counter*))
-         (navigate-to ?navigation-goal))
-      ;; Place bottle-2 on the counter
-      (let ((?drop-pose *pose-bottle-1*))
-        (place-down ?drop-pose :left))
-      (move-arm-out-of-sight))))
+      (let ((?perceived-bottle-1 (get-perceived-bottle-desig)))
+        (pick-up ?perceived-bottle-1 :right)
+        (pr2-pp-plans::park-arms :arm :right)
+        ;; Move to the meal table
+        (let ((?pose *pose-meal-table*))
+          (navigate-to ?pose))
+        ;; Pick up bottle-2 with left arm
+        (let ((?perceived-bottle-2 (get-perceived-bottle-desig)))
+          (pick-up ?perceived-bottle-2 :left)
+          ;; Move left arm out of sight
+          (pr2-pp-plans::park-arms :arm :left)
+          ;; Place bottle-1 on second table
+          (let ((?drop-pose *pose-bottle-2*))
+            (place-down ?drop-pose ?perceived-bottle-1 :right))
+          ;; Move right arm out of sight
+          (pr2-pp-plans::park-arms :arm :right)
+          ;; Move to the counter table 
+          (let ((?navigation-goal *pose-counter*))
+            (navigate-to ?navigation-goal))
+          ;; Place bottle-2 on the counter
+          (let ((?drop-pose *pose-bottle-1*))
+            (place-down ?drop-pose ?perceived-bottle-2 :left))
+          (pr2-pp-plans::park-arms))))))
