@@ -105,8 +105,9 @@
         (and (desig:current-designator ?location ?current-location-designator)
              (desig:designator-groundings ?current-location-designator ?poses)
              (member ?object-pose ?poses)
+             (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
              (lisp-fun cram-tf:pose->transform-stamped
-                       cram-tf:*fixed-frame* ?object-name 0.0 ?object-pose
+                       ?fixed-frame ?object-name 0.0 ?object-pose
                        ?object-transform))
         (lisp-fun cram-object-interfaces:get-object-transform
                   ?current-object-designator ?object-transform))
