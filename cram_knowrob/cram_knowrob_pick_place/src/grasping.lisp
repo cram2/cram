@@ -275,7 +275,8 @@
   (let ((object-pose (cram-tf:ensure-pose-in-frame
                       object-pose
                       cram-tf:*robot-base-frame*
-                      :use-zero-time t)))
+                      :use-zero-time t))
+        (*kitchen-meal-table-z* (cl-transforms:z (cl-transforms:origin object-pose))))
    (case object-type
      ((:fork :knife :cutlery)
       (if (eq grasp :top)
