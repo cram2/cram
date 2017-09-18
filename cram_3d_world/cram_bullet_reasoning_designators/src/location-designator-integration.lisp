@@ -58,6 +58,9 @@
 (register-location-validation-function
  10 validate-designator-solution
  "Uses the bullet base reasoning system to validate a designator.")
+(disable-location-validation-function 'check-ik-solution)
+;; Currently, this validation function is disabled as it takes way to long
+;; to "theoretically" check for collisions for a certain robot pose.
 
 (defmethod on-visualize-costmap opengl ((map location-costmap))
   (add-costmap-function-object map))
