@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package>
+  <name>cram_intermediate_tutorial</name>
+  <version>0.2.2</version>
+  <description>The cram_intermediate_tutorial package</description>
+
+  <author email="blandc@cs.uni-bremen.de">Mihai Pomarlan</author>
+  <author>Benjamin Brieber</author>
+
+  <maintainer email="blandc@cs.uni-bremen.de">Mihai Pomarlan</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org/tutorials</url>
+  <url type="bugtracker">https://github.com/cram2/cram_tutorials/issues</url>
+  <url type="repository">https://github.com/cram2/cram_tutorials</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>shape_msgs</build_depend>
+  <build_depend>roslisp</build_depend>
+  <build_depend>cl_transforms</build_depend>
+  <build_depend>cl_tf2</build_depend>
+  <build_depend>cram_moveit</build_depend>
+  <build_depend>actionlib_lisp</build_depend>
+
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>shape_msgs</run_depend>
+  <run_depend>roslisp</run_depend>
+  <run_depend>cl_transforms</run_depend>
+  <run_depend>cl_tf2</run_depend>
+  <run_depend>cram_moveit</run_depend>
+  <run_depend>actionlib_lisp</run_depend>
+</package>
