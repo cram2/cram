@@ -1,0 +1,22 @@
+<package>
+  <description brief="tutorial_process_module">
+
+     tutorial_process_module
+
+  </description>
+  <author>Jan Winkler</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/tutorial_process_module</url>
+  <depend package="roslisp"/>
+  <depend package="cram_process_modules"/>
+  <depend package="cram_tf"/>
+  <depend package="cram_roslisp_common"/>
+  <depend package="cram_reasoning"/>
+  <depend package="cram_plan_failures"/>
+  <depend package="cram_plan_occasions_events"/>
+  <depend package="alexandria"/>
+
+</package>
+
+
