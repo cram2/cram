@@ -5,6 +5,12 @@
     uri: https://github.com/cram2/cram.git
     version: master
 
+############## ROS Lisp libraries, e.g. TF ###########
+- git:
+    local-name: roslisp_common
+    uri: https://github.com/ros/roslisp_common.git
+    version: 093c131b6dcfa67f125fb3989eee14b5ba622bcf
+
 ############## IAI semantic maps repository ##########
 - git:
     local-name: iai_maps
