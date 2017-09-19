@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Lorenz Moesenlechner <moesenle@in.tum.de>
-;;; Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2017, Christopher Pollok <cpollok@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -30,38 +29,10 @@
 
 (in-package :tut)
 
-(defun navigation-goal-generator (designator)
-  (declare (type location-designator designator))
-  (with-desig-props (vertical-position horizontal-position) designator
-    (let ((x-offset (ecase horizontal-position
-                      (:left 0)
-                      (:center (/ 11.0 3.0))
-                      (:right (* (/ 11.0 3.0) 2))))
-          (y-offset (ecase vertical-position
-                      (:bottom 0)
-                      (:center (/ 11.0 3.0))
-                      (:top (* (/ 11.0 3.0) 2)))))
-      (loop repeat 5
-            collect (cl-transforms:make-3d-vector
-                     (+ x-offset (random (/ 11.0 3.0)))
-                     (+ y-offset (random (/ 11.0 3.0)))
-                     0)))))
-
-(register-location-generator
- 5 navigation-goal-generator)
-
-(defun navigation-goal-validator (designator solution)
-  (declare (type location-designator designator))
-  (when (and (desig-prop-value designator :vertical-position)
-             (desig-prop-value designator :horizontal-position))
-    (when (typep solution 'cl-transforms:3d-vector)
-      (when
-          (and
-           (>= (cl-transforms:x solution) 0.5)
-           (>= (cl-transforms:y solution) 0.5)
-           (<= (cl-transforms:x solution) 10.5)
-           (<= (cl-transforms:y solution) 10.5))
-        :accept))))
-
-(register-location-validation-function
- 5 navigation-goal-validator)
+(define-condition out-of-bounds-error (cpl:simple-plan-failure)
+  ((description :initarg :description
+                :initform "Turtle went out of bounds."
+                :reader error-description))
+  (:documentation "Turtle went out of bounds.")
+  (:report (lambda (condition stream)
+             (format stream (error-description condition)))))
