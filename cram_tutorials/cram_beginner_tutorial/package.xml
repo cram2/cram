@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>cram_beginner_tutorial</name>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <description>The cram_beginner_tutorial package</description>
 
   <author>Lorenz Moesenlechner</author>
