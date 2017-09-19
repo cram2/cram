@@ -1,6 +1,6 @@
 <package format="2">
   <name>cram_boxy_low_level</name>
-  <version>0.0.0</version>
+  <version>0.4.0</version>
   <description>
      Low-level code for Boxy
   </description>

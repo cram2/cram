@@ -1,6 +1,6 @@
 <package>
   <name>gsll</name>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <description>
       3rd party library: GSLL a GNU Scientific Library (GSL) wrapper for common lisp
   </description>

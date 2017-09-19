@@ -1,6 +1,6 @@
 <package>
   <name>cram_execution_trace</name>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <description>
     The execution trace provides facilities for tracing all state changes
     during plan execution, serializing this episode information and accessing

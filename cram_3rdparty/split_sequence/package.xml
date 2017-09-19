@@ -1,6 +1,6 @@
 <package>
   <name>split_sequence</name>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <!-- external-version>0.20011114.1</external-version-->
   <description>
     3rd party library: split-sequence
