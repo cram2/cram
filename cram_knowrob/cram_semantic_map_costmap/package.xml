@@ -1,6 +1,6 @@
 <package>
   <name>cram_semantic_map_costmap</name>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <description>
     Semantic Map Costmap package
   </description>

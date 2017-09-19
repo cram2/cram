@@ -1,6 +1,6 @@
 <package>
   <name>cram_process_modules</name>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <description>
     A common interface definition for lower level control routines.
   </description>

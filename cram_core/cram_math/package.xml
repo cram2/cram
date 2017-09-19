@@ -1,6 +1,6 @@
 <package>
   <name>cram_math</name>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <description>
     Math utilities. This includes functions for sampling from
     arbitrary probability distributions and utilities to work with
