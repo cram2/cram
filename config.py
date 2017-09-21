@@ -32,6 +32,8 @@
 import os
 import sys
 import yaml
+import datetime
+import operator
 import xml.etree.ElementTree as et
 
 
@@ -135,9 +137,11 @@ def check_for_high_level_packages(pkgs):
         print("WARNING: Not all packages you passed are existent in the current directory.")
         for pkg_not_found in [x for x in pkgs if not high_lvl_pkgs_in_dir[pkgs.index(x)]]:
             print("WARNING: {} does not designate a package inside {}.".format(pkg_not_found, os.getcwd()))
+        return False
+    return True
 
 def build_profile(pkgs):
-    """Loop up the dependecies of the packages in pkgs until reaching the lowest level and thus finding no more dependencies."""
+    """Look up the dependecies of the packages in pkgs until reaching the lowest level and thus finding no more dependencies."""
     global wl_packages
     wl_packages = set()
     wl_packages.update(pkgs)
@@ -175,6 +179,18 @@ def config():
             # don't look into .git directories
             del dirnames[dirnames.index('.git')]
 
+def profile_str():
+    profile = """Latest configuration ({}):""".format(datetime.datetime.now())
+    for pkg, dirpath in sorted(pkg_paths.items(), key=operator.itemgetter(1)):
+        profile += "\n  * "
+        if pkg in wl_packages:
+            profile += "Whitelisted: "
+        else:
+            profile += "Blacklisted: "
+        profile += os.path.join(dirpath, pkg)
+    profile += "\n"
+    return profile
+
 def usage():
     usage_txt = """Usage:
     python config.py <package> [*<package>]
@@ -199,3 +215,8 @@ if __name__ == '__main__':
 
     build_profile(sys.argv[1:])
     config()
+    profile = profile_str()
+    print(profile)
+    with open("latest_config", "w+") as f:
+        f.write(profile)
+    print("Done configuring. You can catkin_make the repository now.")
