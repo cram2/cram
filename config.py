@@ -1,6 +1,34 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+# Copyright (c) 2017, Christopher Pollok <cpollok@uni-bremen.de>
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the Institute for Artificial Intelligence/
+#       Universitaet Bremen nor the names of its contributors may be used to
+#       endorse or promote products derived from this software without
+#       specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
 import os
 import sys
 import yaml
@@ -23,40 +51,12 @@ FORMAT_2_DEPEND_TAGS = set([
     "doc_depend"
 ])
 
+
 # Packages in the source directory being configured, mapped to their path (relative from the cwd when executing)
 pkg_paths = {}
-# pkg_state = {}
-
-# Obsolete
-wl_stacks = []
 
 # Packages to be whitelisted by config()
 wl_packages = []
-
-
-
-
-# def get_profiles():
-#     """Open the profiles.yaml to read the profiles."""
-#     with open('profiles.yaml', 'r') as stream:
-#         try:
-#             return yaml.load(stream)
-#         except yaml.YAMLError as e:
-#             print(e)
-
-# def load_profile(profile_name):
-#     """Fill wl_stacks and wl_packages with the whitelisted stacks/packages of the profile with the given name."""
-#     profiles = get_profiles()
-#     try:
-#         global wl_stacks
-#         global wl_packages
-#         profile = profiles[profile_name]
-#     except KeyError as e:
-#         print(e)
-#     if 'stacks' in profile.keys():
-#         wl_stacks = profile['stacks']
-#     if 'packages' in profile.keys():
-#         wl_packages = profile['packages']
 
 
 ##################
@@ -109,9 +109,7 @@ def check_cwd():
     return True
 
 def crawl():
-    # walk over repo to collect all packages
-    # parse package.xml of wanted packages
-    # blacklist everything else :D
+    """Traverse the repository and collect all pacakges in pkg_paths."""
     global pkg_paths
     for dirpath, dirnames, filenames in os.walk('.'):
         if '.git' in dirnames:
@@ -139,6 +137,7 @@ def check_for_high_level_packages(pkgs):
             print("WARNING: {} does not designate a package inside {}.".format(pkg_not_found, os.getcwd()))
 
 def build_profile(pkgs):
+    """Loop up the dependecies of the packages in pkgs until reaching the lowest level and thus finding no more dependencies."""
     global wl_packages
     wl_packages = set()
     wl_packages.update(pkgs)
@@ -150,57 +149,14 @@ def build_profile(pkgs):
             wl_packages.update(deps)
         pkgs = set(deps).intersection(pkg_paths.keys())
 
-
-## From the first version of the script. Was meant to traverse the whole repo and decide on a directory-basis whether to blacklist or not.
-# def config():
-#     """Traverse the CRAM repository and whitelist all packages in the wl_packages and blacklist the rest."""
-#     for dirpath, dirnames, filenames in os.walk('.'):
-
-#         if dirpath == '.':
-#             whitelist(dirpath)
-#         elif any(map(lambda x: dirpath.endswith(x), wl_stacks)) or any([x in wl_packages for x in dirnames]):
-#             # found a whitelisted stack
-#             whitelist(dirpath)
-
-#         elif 'CMakeLists.txt' in filenames and 'package.xml' in filenames:
-#             # found a package, don't recurse deeper
-#             dirnames[:] = []
-#             basepath, dirname = os.path.split(dirpath)
-#             if any(map(lambda x: x == dirname, wl_packages)) or any(map(lambda x: basepath.endswith(x), wl_stacks)) :
-#                 # found a whitelisted package
-#                 whitelist(dirpath)
-#             else:
-#                 blacklist(dirpath)
-#         else:
-#             blacklist(dirpath)
-
-#         if '.git' in dirnames:
-#             # don't look into .git directories
-#             del dirnames[dirnames.index('.git')]
-
-
-## Would be nice, if it was as easy as this. Would require altering pkg_paths to accomodate for blacklisted directories
-## so the single packages aren't blacklisted as well
-# def config():
-#     """Only on package level."""
-#     global pkg_state
-#     for pkg, dirpath in pkg_paths.items():
-#         if pkg in wl_packages:
-#             pkg_state[pkg] = True
-#             whitelist(dirpath)
-#         else:
-#             pkg_state[pkg] = False
-#             blacklist(dirpath)
-
 def config():
-    # if all pkg_paths containing the current path are blacklisted, blacklist the current path and don't recurse further
-    # otherwise whitelist it
+    """Traverse the repository and black-/whitelist the packages/directories."""
     for dirpath, dirnames, filenames in os.walk('.'):
         pkgs_in_dir = [x for x in pkg_paths.keys() if pkg_paths[x].startswith(dirpath)]
         if len(pkgs_in_dir) != 0:
             if not any([x in wl_packages for x in pkgs_in_dir]):
                 blacklist(dirpath)
-                ## Uncomment this, if you want to remove CATKIN_IGNOREs in the packages when blacklisting the whole dir. Comment the next line though.
+                ## Uncomment this, if you want to remove CATKIN_IGNOREs in the packages when blacklisting the whole dir. Comment the next line then though.
                 # wl_packages.update(pkgs_in_dir)
                 dirnames[:] = []
             else:
@@ -218,9 +174,6 @@ def config():
         if '.git' in dirnames:
             # don't look into .git directories
             del dirnames[dirnames.index('.git')]
-
-
-
 
 def usage():
     usage_txt = """Usage:
