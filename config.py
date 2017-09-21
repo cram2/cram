@@ -25,7 +25,7 @@ FORMAT_2_DEPEND_TAGS = set([
 
 # Packages in the source directory being configured, mapped to their path (relative from the cwd when executing)
 pkg_paths = {}
-pkg_state = {}
+# pkg_state = {}
 
 # Obsolete
 wl_stacks = []
@@ -124,13 +124,21 @@ def crawl():
             dirnames[:] = []
 
 def check_package_names():
-    """Check if any package name is different from name of the directory containing it."""
+    """Check if any package name is different from the name of the directory containing it."""
     for pkg_name, dirpath in pkg_paths.items():
         dirname = os.path.basename(dirpath)
         if pkg_name != dirname:
             print "WARNING: Package name and name of containing directory differ: Package '{}' in directory '{}'!".format(pkg_name, dirname)
 
-def build_profile(*pkgs):
+def check_for_high_level_packages(pkgs):
+    """Check if the given packages are existent in the repository."""
+    high_lvl_pkgs_in_dir = [x in pkg_paths.keys() for x in pkgs]
+    if not all(high_lvl_pkgs_in_dir):
+        print("WARNING: Not all packages you passed are existent in the current directory.")
+        for pkg_not_found in [x for x in pkgs if not high_lvl_pkgs_in_dir[pkgs.index(x)]]:
+            print("WARNING: {} does not designate a package inside {}.".format(pkg_not_found, os.getcwd()))
+
+def build_profile(pkgs):
     global wl_packages
     wl_packages = set()
     wl_packages.update(pkgs)
@@ -192,11 +200,9 @@ def config():
         if len(pkgs_in_dir) != 0:
             if not any([x in wl_packages for x in pkgs_in_dir]):
                 blacklist(dirpath)
-                ## TODO: Either add the packages in the blacklisted dir to whitelisting or stop recursing.
-                ## With whitelisting the underlying packages will all be enable as soon as one manually deletes the CATKIN_IGNORE in the directory.
-                ## When not recursing the packages stay the way they were when last configured.
-                wl_packages.update(pkgs_in_dir)
-                # dirnames[:] = []
+                ## Uncomment this, if you want to remove CATKIN_IGNOREs in the packages when blacklisting the whole dir. Comment the next line though.
+                # wl_packages.update(pkgs_in_dir)
+                dirnames[:] = []
             else:
                 whitelist(dirpath)
 
@@ -205,7 +211,6 @@ def config():
             dirnames[:] = []
             basepath, dirname = os.path.split(dirpath)
             if any(map(lambda x: x == dirname, wl_packages)):
-                # found a whitelisted package
                 whitelist(dirpath)
             else:
                 blacklist(dirpath)
@@ -218,21 +223,26 @@ def config():
 
 
 def usage():
-    return """Usage:
+    usage_txt = """Usage:
     python config.py <package> [*<package>]
 
     The script has to be run inside the top-level directory of the CRAM repository.
+    You can only pass packages which are inside the CRAM repository, otherwise the script can't know for which dependencies to configure.
     """
+    return usage_txt
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or sys.argv[1] in ["h", "-h", "help", "--help"] or not check_cwd():
         print(usage())
-        sys.exit(0)
-    if not check_cwd():
-        print usage()
+        sys.exit()
+
     crawl()
     check_package_names()
-    # TODO: Add check whether the given packages are in the repo.
-    build_profile(*sys.argv[1:])
+
+    if not check_for_high_level_packages(sys.argv[1:]):
+        print(usage())
+        sys.exit()
+
+    build_profile(sys.argv[1:])
     config()
