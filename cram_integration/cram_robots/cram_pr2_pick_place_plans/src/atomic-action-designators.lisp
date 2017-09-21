@@ -62,7 +62,7 @@
     (spec:property ?action-designator (:position ?position)))
 
   (<- (desig:action-grounding ?action-designator (look-at ?object-designator))
-    (spec:property ?action-designator (:type :looking-at))
+    (spec:property ?action-designator (:type :looking))
     (spec:property ?action-designator (:object ?object-designator)))
 
   (<- (desig:action-grounding ?action-designator (navigate ?location-designator))

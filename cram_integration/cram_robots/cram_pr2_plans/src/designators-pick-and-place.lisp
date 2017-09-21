@@ -253,5 +253,5 @@
     (desig-prop ?action-designator (:effort ?object-grip-effort)))
 
   (<- (action-grounding ?action-designator (look-at ?object-designator))
-    (desig-prop ?action-designator (:type :looking-at))
+    (desig-prop ?action-designator (:type :looking))
     (desig-prop ?action-designator (:object ?object-designator))))

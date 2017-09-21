@@ -158,7 +158,7 @@
              ;; perform pouring using object-in-hand-s
              (cpl:par
                (exe:perform (desig:an action
-                                      (type looking-at)
+                                      (type looking)
                                       (object ?second-cup-to-pour)))
                (exe:perform (desig:an action
                                       (to pour-activity)
