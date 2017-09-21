@@ -30,9 +30,14 @@
 (in-package :cl-user)
 
 (defpackage cram-pr2-projection-sandbox
-  (:nicknames #:proj-sand)
+  (:nicknames #:proj-sand #:demo)
   (:use #:common-lisp
-        #:cram-prolog)
+        #:cram-prolog
+        #:cram-designators
+        #:cram-executive
+        #:btr-utils
+        #:pr2-pp-plans)
+  (:shadowing-import-from #:cram-bullet-reasoning #:object-pose)
   (:export
    ;; setup
    ;; #:bla
