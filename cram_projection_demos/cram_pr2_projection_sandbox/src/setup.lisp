@@ -51,7 +51,9 @@
 
   (setf cram-tf:*tf-default-timeout* 2.0)
 
-  (setf prolog:*break-on-lisp-errors* t))
+  (setf prolog:*break-on-lisp-errors* t)
+
+  (cram-bullet-reasoning:clear-costmap-vis-object))
 
 (roslisp-utilities:register-ros-init-function init-projection)
 

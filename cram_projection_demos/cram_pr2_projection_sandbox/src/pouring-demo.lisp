@@ -29,13 +29,27 @@
 
 (in-package :proj-sand)
 
+(defmacro with-simulated-robot (&body body)
+  `(let ((results
+           (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+             (cpl:top-level
+               ,@body))))
+     (car (cram-projection::projection-environment-result-result results))))
+
+;; (defmacro with-real-robot (&body body)
+;;   `(cram-process-modules:with-process-modules-running
+;;        (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+;;                                    pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+;;      (cpl:top-level
+;;        ,@body)))
+
 (defun test-projection ()
   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
     (cpl:top-level
       (exe:perform
        (let ((?pose (cl-tf:make-pose-stamped
                      cram-tf:*robot-base-frame* 0.0
-                     (cl-transforms:make-3d-vector 0.5 0 0)
+                     (cl-transforms:make-3d-vector -0.5 0 0)
                      (cl-transforms:make-identity-rotation))))
          (desig:a motion (type going) (target (desig:a location (pose ?pose))))))
       (exe:perform
@@ -78,6 +92,16 @@
                   (directory (physics-utils:parse-uri
                               (format nil "package://~a/resource/*.*" ros-package))))))
 
+(defun spawn-bottle ()
+  (add-objects-to-mesh-list)
+  (btr-utils:kill-all-objects)
+  (btr-utils:spawn-object :bottle-1 :bottle :color '(1 0.5 0))
+  (btr-utils:move-object :bottle-1 (cl-transforms:make-pose
+                                    (cl-transforms:make-3d-vector -2 -1.0 0.861667d0)
+                                    (cl-transforms:make-identity-rotation)))
+  ;; stabilize world
+  (btr:simulate btr:*current-bullet-world* 100))
+
 (defun spawn-objects ()
   (let ((object-types (add-objects-to-mesh-list)))
     ;; spawn at default location
@@ -100,7 +124,7 @@
               objects)
       ;; bottle gets special treatment
       (btr-utils:move-object :bottle-1 (cl-transforms:make-pose
-                                        (cl-transforms:make-3d-vector -2 -0.9 0.861667d0)
+                                        (cl-transforms:make-3d-vector -2 -1.0 0.861667d0)
                                         (cl-transforms:make-identity-rotation)))))
   ;; stabilize world
   (btr:simulate btr:*current-bullet-world* 100))
