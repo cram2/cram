@@ -48,6 +48,7 @@
 
   (<- (matching-process-module ?designator projection-ptu)
     (trajectory-desig? ?designator)
+    ;; (cram-robot-interfaces:visibility-designator ?designator)
     (or (desig-prop ?designator (:to :see))
         (desig-prop ?designator (:to :follow))))
 

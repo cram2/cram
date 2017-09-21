@@ -88,8 +88,8 @@
                           ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (or (desig-prop ?desig (:to :see))
-        (desig-prop ?desig (:to :reach)))
+    (or (cram-robot-interfaces:visibility-designator ?desig)
+        (cram-robot-interfaces:reachability-designator ?desig))
     (costmap ?cm)
     (semantic-map-objects ?objects)
     (costmap-padding ?padding)

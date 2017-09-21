@@ -39,7 +39,8 @@
                cram-semantic-map-designators
                cram-location-costmap
                alexandria
-               cram-semantic-map)
+               cram-semantic-map
+               cram-robot-interfaces)
   :components
   ((:module "src"
             :components

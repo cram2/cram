@@ -142,7 +142,7 @@
      ?costmap))
 
   (<- (desig-costmap ?designator ?costmap)
-    (desig-prop ?designator (:to :see))
+    (cram-robot-interfaces:visibility-designator ?designator)
     (once (or (object-visibility-costmap ?designator ?costmap)
               (unknown-object-visibility-costmap ?designator ?costmap)
               (location-visibility-costmap ?designator ?costmap))))
@@ -215,7 +215,7 @@
   (<- (location-valid
        ?desig ?pose
        (desig-check-to-see ?desig ?pose))
-    (desig-prop ?desig (:to :see))
+    (cram-robot-interfaces:visibility-designator ?desig)
     (or (desig-prop ?desig (:obj ?obj))
         (desig-prop ?desig (:object ?obj))))
 

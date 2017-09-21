@@ -49,7 +49,7 @@
 (def-fact-group robot-pose-gaussian-costmap (desig-costmap)
 
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (:to :see))
+    (cram-robot-interfaces:visibility-designator ?desig)
     (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
     (costmap ?cm)
     (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))

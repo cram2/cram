@@ -48,7 +48,7 @@
 
   (<- (matching-process-module ?designator projection-ptu)
     (trajectory-desig? ?designator)
-    (or (desig-prop ?designator (:to :see))
+    (or (cram-robot-interfaces:visibility-designator ?designator)
         (desig-prop ?designator (:to :follow))))
 
   (<- (matching-process-module ?designator projection-perception)
@@ -57,7 +57,7 @@
   (<- (matching-process-module ?designator projection-manipulation)
     (trajectory-desig? ?designator)
     (not
-     (or (desig-prop ?designator (:to :see))
+     (or (cram-robot-interfaces:visibility-designator ?designator)
          (desig-prop ?designator (:to :follow)))))
   
   (<- (matching-process-module ?designator projection-navigation)
@@ -90,14 +90,14 @@
 (def-fact-group ptu-designators (action-desig-projection)
 
   (<- (action-desig-projection ?desig ?pose)
-    (or 
-     (desig-prop ?desig (:to :see))
+    (or
+     (cram-robot-interfaces:visibility-designator ?desig)
      (desig-prop ?desig (:to :follow)))
     (desig-prop ?desig (:pose ?pose)))
 
   (<- (action-desig-projection ?desig ?pose)
     (or
-     (desig-prop ?desig (:to :see))
+     (cram-robot-interfaces:visibility-designator ?desig)
      (desig-prop ?desig (:to :follow)))
     (desig-location-prop ?desig ?pose)))
 
