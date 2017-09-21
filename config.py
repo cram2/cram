@@ -25,6 +25,7 @@ FORMAT_2_DEPEND_TAGS = set([
 
 # Packages in the source directory being configured, mapped to their path (relative from the cwd when executing)
 pkg_paths = {}
+pkg_state = {}
 
 # Obsolete
 wl_stacks = []
@@ -102,6 +103,7 @@ def get_dependencies(xml):
 # Main functions #
 ##################
 
+# TODO: Actually check something.
 def check_cwd():
     """Check if the script is run in the cram repository."""
     return True
@@ -141,60 +143,96 @@ def build_profile(*pkgs):
         pkgs = set(deps).intersection(pkg_paths.keys())
 
 
-def config():
-    """Traverse the CRAM repository and whitelist all packages in the wl_packages and blacklist the rest."""
-    for dirpath, dirnames, filenames in os.walk('.'):
+## From the first version of the script. Was meant to traverse the whole repo and decide on a directory-basis whether to blacklist or not.
+# def config():
+#     """Traverse the CRAM repository and whitelist all packages in the wl_packages and blacklist the rest."""
+#     for dirpath, dirnames, filenames in os.walk('.'):
 
-        if dirpath == '.':
-            whitelist(dirpath)
-        elif any(map(lambda x: dirpath.endswith(x), wl_stacks)) or any([x in wl_packages for x in dirnames]):
-            # found a whitelisted stack
-            whitelist(dirpath)
+#         if dirpath == '.':
+#             whitelist(dirpath)
+#         elif any(map(lambda x: dirpath.endswith(x), wl_stacks)) or any([x in wl_packages for x in dirnames]):
+#             # found a whitelisted stack
+#             whitelist(dirpath)
+
+#         elif 'CMakeLists.txt' in filenames and 'package.xml' in filenames:
+#             # found a package, don't recurse deeper
+#             dirnames[:] = []
+#             basepath, dirname = os.path.split(dirpath)
+#             if any(map(lambda x: x == dirname, wl_packages)) or any(map(lambda x: basepath.endswith(x), wl_stacks)) :
+#                 # found a whitelisted package
+#                 whitelist(dirpath)
+#             else:
+#                 blacklist(dirpath)
+#         else:
+#             blacklist(dirpath)
+
+#         if '.git' in dirnames:
+#             # don't look into .git directories
+#             del dirnames[dirnames.index('.git')]
+
+
+## Would be nice, if it was as easy as this. Would require altering pkg_paths to accomodate for blacklisted directories
+## so the single packages aren't blacklisted as well
+# def config():
+#     """Only on package level."""
+#     global pkg_state
+#     for pkg, dirpath in pkg_paths.items():
+#         if pkg in wl_packages:
+#             pkg_state[pkg] = True
+#             whitelist(dirpath)
+#         else:
+#             pkg_state[pkg] = False
+#             blacklist(dirpath)
+
+def config():
+    # if all pkg_paths containing the current path are blacklisted, blacklist the current path and don't recurse further
+    # otherwise whitelist it
+    for dirpath, dirnames, filenames in os.walk('.'):
+        pkgs_in_dir = [x for x in pkg_paths.keys() if pkg_paths[x].startswith(dirpath)]
+        if len(pkgs_in_dir) != 0:
+            if not any([x in wl_packages for x in pkgs_in_dir]):
+                blacklist(dirpath)
+                ## TODO: Either add the packages in the blacklisted dir to whitelisting or stop recursing.
+                ## With whitelisting the underlying packages will all be enable as soon as one manually deletes the CATKIN_IGNORE in the directory.
+                ## When not recursing the packages stay the way they were when last configured.
+                wl_packages.update(pkgs_in_dir)
+                # dirnames[:] = []
+            else:
+                whitelist(dirpath)
 
         elif 'CMakeLists.txt' in filenames and 'package.xml' in filenames:
             # found a package, don't recurse deeper
             dirnames[:] = []
             basepath, dirname = os.path.split(dirpath)
-            if any(map(lambda x: x == dirname, wl_packages)) or any(map(lambda x: basepath.endswith(x), wl_stacks)) :
+            if any(map(lambda x: x == dirname, wl_packages)):
                 # found a whitelisted package
                 whitelist(dirpath)
             else:
                 blacklist(dirpath)
-        else:
-            blacklist(dirpath)
 
         if '.git' in dirnames:
             # don't look into .git directories
             del dirnames[dirnames.index('.git')]
 
-def config_new():
-    """Only on package level."""
-    for dirpath, dirnames, filenames in os.walk('.'):
+
 
 
 def usage():
     return """Usage:
-    python config.py <profile>
+    python config.py <package> [*<package>]
 
-    Profiles:
-    minimal
-    projection
-    all
+    The script has to be run inside the top-level directory of the CRAM repository.
     """
 
 
 if __name__ == '__main__':
-    # if len(sys.argv) != 2:
-    #     print(usage())
-    #     sys.exit(0)
-    # load_profile(sys.argv[1])
+    if len(sys.argv) < 2:
+        print(usage())
+        sys.exit(0)
     if not check_cwd():
         print usage()
     crawl()
     check_package_names()
-
     # TODO: Add check whether the given packages are in the repo.
-
-    # print pkg_paths
     build_profile(*sys.argv[1:])
     config()
