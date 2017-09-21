@@ -31,4 +31,16 @@
 
 (defpackage cram-pr2-pick-place-plans
   (:nicknames :pr2-pp-plans)
-  (:use #:common-lisp #:cram-prolog))
+  (:use #:common-lisp #:cram-prolog)
+  (:export
+   ;; atomic-action-plans
+   #:move-arms-in-sequence #:park-arms
+   #:release #:grip #:close-gripper #:set-gripper-to-position
+   #:look-at #:navigate
+   ;; pick-place-plans
+   #:pick-up #:place
+   ;; high-level-plans
+   #:perceive
+   #:drive-to-reach-pose #:drive-towards-object-plan #:drive-and-pick-up-plan
+   #:perceive-and-drive-and-pick-up-plan
+   #:pick-and-place-plan))
