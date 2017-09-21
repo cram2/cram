@@ -105,9 +105,9 @@
                input-designator
                :new-description
                `((:type ,type)
+                 (:name ,name)
                  (:pose ((:pose ,pose-stamped)
-                         (:transform ,transform-stamped)))
-                 (:name ,name)))))
+                         (:transform ,transform-stamped)))))))
         (setf (slot-value output-designator 'desig:data)
               (make-instance 'desig:object-designator-data
                 :object-identifier name
