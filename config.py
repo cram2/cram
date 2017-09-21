@@ -34,8 +34,11 @@ import sys
 import yaml
 import datetime
 import operator
+import itertools
 import xml.etree.ElementTree as et
 
+MAX_STACK_LIST = 5
+MAX_PKG_LIST = 20
 
 FORMAT_1_DEPEND_TAGS = set([
     # "buildtool_depend",
@@ -60,24 +63,28 @@ pkg_paths = {}
 # Packages to be whitelisted by config()
 wl_packages = []
 
+# White- and blacklist. {path:package} if path is directory containing packages, package is None
+wl_pkg_paths = {}
+bl_pkg_paths = {}
+
 
 ##################
 # Help functions #
 ##################
 
-def blacklist(dirpath):
+def blacklist(dirpath, pkg=None):
     dir_content = os.listdir(dirpath)
     if 'CATKIN_IGNORE' not in dir_content:
         # open(os.path.join(dirpath, 'CATKIN_IGNORE'), 'w')
-        pass
-    print "Blacklisted: " + dirpath
+        bl_pkg_paths[dirpath] = pkg
+    # print "Blacklisted: " + dirpath
 
-def whitelist(dirpath):
+def whitelist(dirpath, pkg=None):
     dir_content = os.listdir(dirpath)
     if 'CATKIN_IGNORE' in dir_content:
-        # os.remove(os.path.join(dirpath, 'CATKIN_IGNORE'))
-        pass
-    print "Whitelisted: " + dirpath
+        # os.remove(os.path.join(dirpath, 'CATKIN_IGNORE')) 
+        wl_pkg_paths[dirpath] = pkg
+    # print "Whitelisted: " + dirpath
 
 
 def get_package_name(path):
@@ -100,14 +107,47 @@ def get_dependencies(xml):
     dependencies = map(lambda x: x.text, dependency_elements)
     return dependencies
 
+def print_pkg_list(pkg_list):
+    keyfun = lambda x: x[1] == None
+    sort = sorted(pkg_list.items(), key=keyfun)
+    groups = []
+    keys = []
+    for k, g in itertools.groupby(sort, keyfun):
+        groups.append(list(g))
+        keys.append(k)
+    
+    pkgs=[]
+    dirnames=[]
+    if False in keys:
+        pkgs = [x[1] for x in groups[keys.index(False)]]
+    if True in keys:
+        dirnames = [x[0] for x in groups[keys.index(True)]]
+    
+    step = 5
+    if len(pkgs) != 0:
+        for i in range(0, min(MAX_PKG_LIST, len(pkgs)), step):
+            print("  " + ("{}," * min(step, len(pkgs))).format(*pkgs[i:i+step]))
+        if len(pkgs) > MAX_PKG_LIST:
+            print("\n   and {} more...".format(len(pkgs) - MAX_PKG_LIST))
+
+
+    if len(dirnames) != 0:
+        print("\n  And also in the sub packages of these directories/stacks:")
+        for dirname in dirnames[:MAX_STACK_LIST]:
+            print("  " + dirname)
+        if len(dirnames) > MAX_STACK_LIST:
+            print("\n   and {} more...".format(len(dirnames) - MAX_STACK_LIST))
+
 
 ##################
 # Main functions #
 ##################
 
-# TODO: Actually check something.
 def check_cwd():
     """Check if the script is run in the cram repository."""
+    # contents = os.listdir('.')
+    # expected = ["config.py", "cram_common", "cram_3rdparty", "cram_core"]
+    # return all([x in contents for x in expected])
     return True
 
 def crawl():
@@ -156,8 +196,18 @@ def build_profile(pkgs):
 def config():
     """Traverse the repository and black-/whitelist the packages/directories."""
     for dirpath, dirnames, filenames in os.walk('.'):
+        
         pkgs_in_dir = [x for x in pkg_paths.keys() if pkg_paths[x].startswith(dirpath)]
-        if len(pkgs_in_dir) != 0:
+        if 'CMakeLists.txt' in filenames and 'package.xml' in filenames:
+            # found a package, don't recurse deeper
+            dirnames[:] = []
+            basepath, dirname = os.path.split(dirpath)
+            if any(map(lambda x: x == dirname, wl_packages)):
+                whitelist(dirpath, pkg=dirname)
+            else:
+                blacklist(dirpath, pkg=dirname)
+
+        elif len(pkgs_in_dir) != 0:
             if not any([x in wl_packages for x in pkgs_in_dir]):
                 blacklist(dirpath)
                 ## Uncomment this, if you want to remove CATKIN_IGNOREs in the packages when blacklisting the whole dir. Comment the next line then though.
@@ -166,18 +216,37 @@ def config():
             else:
                 whitelist(dirpath)
 
-        elif 'CMakeLists.txt' in filenames and 'package.xml' in filenames:
-            # found a package, don't recurse deeper
-            dirnames[:] = []
-            basepath, dirname = os.path.split(dirpath)
-            if any(map(lambda x: x == dirname, wl_packages)):
-                whitelist(dirpath)
-            else:
-                blacklist(dirpath)
-
         if '.git' in dirnames:
             # don't look into .git directories
             del dirnames[dirnames.index('.git')]
+
+def ask_permission():
+    """Ask for permission to create and delete CATKIN_IGNORE files."""
+    if len(bl_pkg_paths) != 0:
+        print("\nThe script will CREATE CATKIN_IGNOREs in these packages:")
+        print_pkg_list(bl_pkg_paths)
+
+    if len(wl_pkg_paths) != 0:
+        print("\nThe script will DELETE CATKIN_IGNOREs in these packages:")
+        print_pkg_list(wl_pkg_paths)
+
+    answer = ""
+    possibilities = ['Y', 'y', 'N', 'n']
+    while answer not in possibilities:
+        if answer != "":
+            print("Please type one of '{}', '{}', '{}' or '{}'".format(*possibilities))
+        answer = raw_input("Do you want to proceed? (Y/n)") or "Y"
+    if answer in ['N', 'n']:
+        return False
+    return True
+
+def execute():
+    """Create CATKIN_IGNOREs in the blacklisted paths and delete those in the whitelisted paths."""
+    for path in bl_pkg_paths.keys():
+        open(os.path.join(dirpath, 'CATKIN_IGNORE'), 'w')
+
+    for path in wl_pkg_paths.keys():
+        os.remove(os.path.join(dirpath, 'CATKIN_IGNORE')) 
 
 def profile_str():
     profile = """Latest configuration ({}):""".format(datetime.datetime.now())
@@ -187,7 +256,7 @@ def profile_str():
             profile += "Whitelisted: "
         else:
             profile += "Blacklisted: "
-        profile += os.path.join(dirpath, pkg)
+        profile += dirpath
     profile += "\n"
     return profile
 
@@ -215,8 +284,12 @@ if __name__ == '__main__':
 
     build_profile(sys.argv[1:])
     config()
+    if not ask_permission():
+        sys.exit()
+    execute()
+
     profile = profile_str()
-    print(profile)
+    # print(profile)
     with open("latest_config", "w+") as f:
         f.write(profile)
-    print("Done configuring. You can catkin_make the repository now.")
+
