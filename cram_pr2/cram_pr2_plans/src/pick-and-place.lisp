@@ -251,7 +251,7 @@
   (drive-towards-object-plan ?object-designator :?arm ?arm)
   (cpl:par
     (exe:perform (desig:an action
-                           (type looking-at)
+                           (type looking)
                            (object ?object-designator)))
     (exe:perform (desig:an action
                            (type picking-up)
@@ -282,7 +282,7 @@
     (drive-towards-object-plan ?object-designator :?arm ?arm)
     (cpl:par
       (exe:perform (desig:an action
-                             (type looking-at)
+                             (type looking)
                              (object ?object-designator)))
       (exe:perform (desig:an action
                              (to place-activity)
