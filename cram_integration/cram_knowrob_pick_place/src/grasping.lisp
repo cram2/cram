@@ -75,22 +75,26 @@
                                         ) "in meters")
 (defparameter *plate-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *plate-2nd-pregrasp-z-offset* 0.035 "in meters") ; grippers can't go into table
-(defparameter *plate-grasp-z-offset* 0.05 "in meters")
+(defparameter *plate-grasp-z-offset* 0.025;; 0.05
+  "in meters")
 ;; (defparameter *plate-grasp-z-offset* 0.06 "in meters") ; red stacked on blue plate
 
 (defparameter *cutlery-pregrasp-z-offset* 0.4 "in meters")
-(defparameter *cutlery-grasp-z-offset* 0.02 "in meters") ; 1 cm because TCP is not at the edge
+(defparameter *cutlery-grasp-z-offset* 0.01;; 0.02
+  "in meters") ; 1 cm because TCP is not at the edge
 
 (defparameter *cup-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *cup-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *cup-grasp-xy-offset* 0.01 "in meters")
-(defparameter *cup-grasp-z-offset* 0.08 "in meters") ; 0.07?
+(defparameter *cup-grasp-z-offset* 0.036;; 0.08
+  "in meters") ; 0.07?
 (defparameter *cup-center-z* 0.044)
 
 (defparameter *bottle-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *bottle-pregrasp-z-offset* 0.4 "in meters")
 (defparameter *bottle-grasp-xy-offset* 0.01 "in meters")
-(defparameter *bottle-grasp-z-offset* 0.095 "in meters") ; 0.105?
+(defparameter *bottle-grasp-z-offset* 0.0 ;; 0.095
+  "in meters") ; 0.105?
 
 (defparameter *lift-z-offset* 0.4 "in meters")
 
