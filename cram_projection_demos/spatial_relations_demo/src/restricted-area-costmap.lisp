@@ -40,7 +40,7 @@
 
 ;; (def-fact-group pancakes (desig-costmap)
 ;;   (<- (desig-costmap ?designator ?costmap)
-;;     (or (desig-prop ?designator (:to :see))
+;;     (or (cram-robot-interfaces:visibility-designator ?designator)
 ;;         (desig-prop ?designator (:to :reach)))
 ;;     (costmap ?costmap)
 ;;     (costmap-padding ?padding)

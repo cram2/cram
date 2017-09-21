@@ -45,11 +45,20 @@ Returns a ROS JointState message with solution states of the joints in the `arm'
 (def-fact-group reachability-designators ()
 
   (<- (reachability-designator ?designator)
-    (desig-prop ?designator (:to :reach)))
+    (desig-prop ?designator (:type :reachable))
+    (desig-prop ?designator (:for ?robot))
+    ;; (robot ?robot)
+    )
 
   (<- (reachability-designator ?designator)
     (desig-prop ?designator (:to :execute))
     (desig-prop ?designator (:action ?_)))
+
+  (<- (visibility-designator ?designator)
+    (desig-prop ?designator (:type :visible))
+    (desig-prop ?designator (:for ?robot))
+    ;; (robot ?robot)
+    )
 
   (<- (designator-reach-pose ?designator ?pose ?side)
     (reachability-designator ?designator)
