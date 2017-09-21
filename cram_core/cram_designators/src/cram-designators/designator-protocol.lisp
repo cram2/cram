@@ -129,10 +129,29 @@
 (defvar *designator-pprint-description* t
   "If set to T, DESIGNATOR objects will be pretty printed with their description.")
 
+;; (defmethod print-object ((object designator) stream)
+;;   (print-unreadable-object (object stream :type t :identity t)
+;;     (when *designator-pprint-description*
+;;       (write (description object) :stream stream))))
+
 (defmethod print-object ((object designator) stream)
-  (print-unreadable-object (object stream :type t :identity t)
-    (when *designator-pprint-description*
-      (write (description object) :stream stream))))
+  (flet ((no-colon (keyword)
+           (if (symbolp keyword)
+               (intern (symbol-name keyword))
+               keyword)))
+   (print-unreadable-object (object stream :type nil :identity nil)
+     (when *designator-pprint-description*
+       (write (no-colon (quantifier object)) :stream stream)
+       (write #\  :escape nil :stream stream)
+       (write (no-colon (get-desig-class object)) :stream stream)
+       (dolist (key-value (description object))
+         (write #\linefeed :escape nil :stream stream)
+         (write "    " :escape nil :stream stream)
+         (write #\( :escape nil :stream stream)
+         (write (no-colon (car key-value)) :stream stream)
+         (write #\  :escape nil :stream stream)
+         (write (no-colon (cadr key-value)) :stream stream)
+         (write #\) :escape nil :stream stream))))))
 
 (define-hook cram-utilities::on-equate-designators (successor parent))
 
