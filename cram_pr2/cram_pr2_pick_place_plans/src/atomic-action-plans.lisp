@@ -71,8 +71,8 @@
       (cpl:with-failure-handling
           ((common-fail:manipulation-low-level-failure (e)
              ;; propagate failures up
-             ;; (roslisp:ros-error (boxy-plans move-arms-in-sequence) "~a~%Failing." e)
-             (roslisp:ros-warn (pick-and-place reach) "~a~%Ignoring." e)
+             (roslisp:ros-error (boxy-plans move-arms-in-sequence) "~a~%Failing." e)
+             ;; (roslisp:ros-warn (pick-and-place reach) "~a~%Ignoring." e)
              (return)
              ))
 
@@ -83,6 +83,41 @@
                     (left-target (desig:a location (pose ?left-pose))))
                   (desig:when ?right-pose
                     (right-target (desig:a location (pose ?right-pose))))))))))
+
+
+(cpl:def-cram-function park-arms (&key (arm '(:left :right)))
+  (flet ((get-arm-parking-joint-states (arm)
+           (let* ((bindings
+                    (prolog:prolog
+                     `(and (cram-robot-interfaces:robot ?robot)
+                           (cram-robot-interfaces:robot-arms-parking-joint-states
+                            ?robot ?joint-states ,arm))))
+                  (joint-states (cut:var-value '?joint-states (car bindings))))
+             (unless joint-states
+               (cpl:fail 'common-fail:low-level-failure
+                         "ROBOT-ARMS-PARKING-JOINT-STATES undefined! ~
+                          Did you forget to load a robot description package?"))
+             (mapcar #'second joint-states))))
+
+    (unless (listp arm)
+      (setf arm (list arm)))
+    (let (?left-configuration ?right-configuration)
+      (when (member :left arm)
+        (setf ?left-configuration (get-arm-parking-joint-states :left)))
+      (when (member :right arm)
+        (setf ?right-configuration (get-arm-parking-joint-states :right)))
+
+      (cpl:with-failure-handling
+          ((common-fail:manipulation-low-level-failure (e)
+             (roslisp:ros-warn (pick-and-place park-arms)
+                               "A low-level manipulation failure happened: ~a~%Ignoring." e)
+             (return)))
+
+        (exe:perform
+         (desig:a motion
+                  (type moving-arm-joints)
+                  (left-configuration ?left-configuration)
+                  (right-configuration ?right-configuration)))))))
 
 
 (cpl:def-cram-function release (?left-or-right)
@@ -150,38 +185,3 @@
              (cpl:retry))))
       (exe:perform
        (desig:a motion (type going) (target ?location-designator))))))
-
-
-(cpl:def-cram-function park-arms (&key (arm '(:left :right)))
-  (flet ((get-arm-parking-joint-states (arm)
-           (let* ((bindings
-                    (prolog:prolog
-                     `(and (cram-robot-interfaces:robot ?robot)
-                           (cram-robot-interfaces:robot-arms-parking-joint-states
-                            ?robot ?joint-states ,arm))))
-                  (joint-states (cut:var-value '?joint-states (car bindings))))
-             (unless joint-states
-               (cpl:fail 'common-fail:low-level-failure
-                         "ROBOT-ARMS-PARKING-JOINT-STATES undefined! ~
-                          Did you forget to load a robot description package?"))
-             (mapcar #'second joint-states))))
-
-    (unless (listp arm)
-      (setf arm (list arm)))
-    (let (?left-configuration ?right-configuration)
-      (when (member :left arm)
-        (setf ?left-configuration (get-arm-parking-joint-states :left)))
-      (when (member :right arm)
-        (setf ?right-configuration (get-arm-parking-joint-states :right)))
-
-      (cpl:with-failure-handling
-          ((common-fail:manipulation-low-level-failure (e)
-             (roslisp:ros-warn (pick-and-place park-arms)
-                               "A low-level manipulation failure happened: ~a~%Ignoring." e)
-             (return)))
-
-        (exe:perform
-         (desig:a motion
-                  (type moving-arm-joints)
-                  (left-configuration ?left-configuration)
-                  (right-configuration ?right-configuration)))))))
