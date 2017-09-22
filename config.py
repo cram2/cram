@@ -126,7 +126,7 @@ def print_pkg_list(pkg_list):
     step = 5
     if len(pkgs) != 0:
         for i in range(0, min(MAX_PKG_LIST, len(pkgs)), step):
-            print("  " + ("{}," * min(step, len(pkgs))).format(*pkgs[i:i+step]))
+            print("  " + ("{}," * min(step, len(pkgs)-i)).format(*pkgs[i:i+step]))
         if len(pkgs) > MAX_PKG_LIST:
             print("\n   and {} more...".format(len(pkgs) - MAX_PKG_LIST))
 
@@ -142,13 +142,6 @@ def print_pkg_list(pkg_list):
 ##################
 # Main functions #
 ##################
-
-def check_cwd():
-    """Check if the script is run in the cram repository."""
-    # contents = os.listdir('.')
-    # expected = ["config.py", "cram_common", "cram_3rdparty", "cram_core"]
-    # return all([x in contents for x in expected])
-    return True
 
 def crawl():
     """Traverse the repository and collect all pacakges in pkg_paths."""
@@ -242,10 +235,10 @@ def ask_permission():
 
 def execute():
     """Create CATKIN_IGNOREs in the blacklisted paths and delete those in the whitelisted paths."""
-    for path in bl_pkg_paths.keys():
+    for dirpath in bl_pkg_paths.keys():
         open(os.path.join(dirpath, 'CATKIN_IGNORE'), 'w')
 
-    for path in wl_pkg_paths.keys():
+    for dirpath in wl_pkg_paths.keys():
         os.remove(os.path.join(dirpath, 'CATKIN_IGNORE')) 
 
 def profile_str():
@@ -271,7 +264,7 @@ def usage():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2 or sys.argv[1] in ["h", "-h", "help", "--help"] or not check_cwd():
+    if len(sys.argv) < 2 or sys.argv[1] in ["h", "-h", "help", "--help"]:
         print(usage())
         sys.exit()
 
@@ -290,6 +283,6 @@ if __name__ == '__main__':
 
     profile = profile_str()
     # print(profile)
-    with open("latest_config", "w+") as f:
+    with open("latest_config", "w") as f:
         f.write(profile)
 
