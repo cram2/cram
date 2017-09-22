@@ -178,11 +178,13 @@ def build_profile(pkgs):
     global wl_packages
     wl_packages = set()
     wl_packages.update(pkgs)
+    deps = set()
     while len(pkgs) != 0:
+        deps.clear()
         for pkg in pkgs:
             xml_path = os.path.join(pkg_paths[pkg], 'package.xml')
             pkg_xml = et.parse(xml_path).getroot()
-            deps = get_dependencies(pkg_xml)
+            deps.update(get_dependencies(pkg_xml))
             wl_packages.update(deps)
         pkgs = set(deps).intersection(pkg_paths.keys())
 
@@ -264,7 +266,7 @@ def usage():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2 or sys.argv[1] in ["h", "-h", "help", "--help"]:
+    if len(sys.argv) < 2 or sys.argv[1] in ["-h", "--help"]:
         print(usage())
         sys.exit()
 
