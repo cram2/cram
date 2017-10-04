@@ -114,20 +114,6 @@ def get_asdf_dependencies(filepath):
     """Parse the dependencies in an asdf file."""
     with open(filepath, 'r') as file:
         content = file.read()
-    
-    # system_idx = content.find("defsystem")
-    # if system_idx == -1:
-    #     raise Exception()
-    # dep_idx = content.find(":depends-on", system_idx)
-    # if dep_idx == -1:
-    #     raise Exception()
-    # brace_idx = content.find('(', system_idx)
-    # if brace_idx != -1 and brace_idx < dep_idx:
-    #     raise Exception()
-    # dep_idx = content.find("(", dep_idx) + 1
-    # dep_idx_end = content.find(")", dep_idx)
-
-    # deps_content = content[dep_idx:dep_idx_end]
 
     deps_content = parse_simple_asdf(content)
     if deps_content == None:
