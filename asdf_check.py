@@ -30,6 +30,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import re
 import sys
 import xml.etree.ElementTree as et
 
@@ -49,8 +50,14 @@ FORMAT_2_DEPEND_TAGS = set([
     "doc_depend"
 ])
 
-# Packages in the source directory being configured, mapped to their path (relative from the cwd when executing)
+# Packages in the source directory being checked, mapped to their path (relative from the cwd when executing)
 pkg_paths = {}
+
+# Packages mapped to a tuple of their dependencies as lists (package.xml, asdf)
+pkg_deps = {}
+
+# Packages in which 
+errored = []
 
 
 def get_package_name(path):
@@ -97,27 +104,52 @@ def crawl():
             pkg_paths[get_package_name(dirpath)] = dirpath
             dirnames[:] = []
 
+def parse_simple_asdf(asdf):
+    depends_on = re.search(r"\(defsystem.*?:depends-on\s*\((.*?)\).*\)", asdf, re.S)
+    if depends_on and depends_on.groups() and not depends_on.groups()[0].startswith('"'):
+        return depends_on.groups()[0]
+
+
 def get_asdf_dependencies(filepath):
-    """Parse the dependencies in a asdf file."""
+    """Parse the dependencies in an asdf file."""
     with open(filepath, 'r') as file:
         content = file.read()
+    
+    # system_idx = content.find("defsystem")
+    # if system_idx == -1:
+    #     raise Exception()
+    # dep_idx = content.find(":depends-on", system_idx)
+    # if dep_idx == -1:
+    #     raise Exception()
+    # brace_idx = content.find('(', system_idx)
+    # if brace_idx != -1 and brace_idx < dep_idx:
+    #     raise Exception()
+    # dep_idx = content.find("(", dep_idx) + 1
+    # dep_idx_end = content.find(")", dep_idx)
 
-    dep_idx = content.find(":depends-on")
-    dep_idx = content.find("(", dep_idx) + 1
-    dep_idx_end = content.find(")", dep_idx)
+    # deps_content = content[dep_idx:dep_idx_end]
 
-    deps_content = content[dep_idx:dep_idx_end]
+    deps_content = parse_simple_asdf(content)
+    if deps_content == None:
+        return []
     while deps_content.find(';') != -1:
         start = deps_content.find(';')
         end = deps_content.find("\n", start)
         deps_content = deps_content[:start] + deps_content[end:]
 
     dependencies = deps_content.split()
-    dependencies = map(lambda x: x[1:] if x.startswith(':') else x, dependencies)
     return dependencies
 
 def normalize_asdf_deps(deps):
     def normalize_dep(dep):
+
+        # dependencies = map(lambda x: x[1:] if x.startswith(':') else x, dependencies)
+        if dep.startswith('#'):
+            dep = dep[1:]
+
+        if dep.startswith(':'):
+            dep = dep[1:]
+
         if dep.endswith("-msg") or dep.endswith("-srv"):
             dep = dep[:-4]
         dep = dep.replace("-", "_")
@@ -126,7 +158,7 @@ def normalize_asdf_deps(deps):
 
 def check_pkg_xmls():
     """Iterate over pkg_paths and check if the system and package.xml correpond to each other."""
-    errored = []
+    global errored
     for pkg, path in pkg_paths.items():
         try:
             xml_path = os.path.join(path,"package.xml")
@@ -139,22 +171,44 @@ def check_pkg_xmls():
             if pkg in asdf_deps:
                 asdf_deps.remove(pkg)
 
-            diff = asdf_deps.difference(xml_deps)
-            if diff:
-                print "-"*30
-                print pkg
-                print xml_deps
-                print asdf_deps
-                print diff
+            pkg_deps[pkg] = (xml_deps, asdf_deps)
             
         except IOError:
             errored.append(pkg)
             continue
+
+def print_results():
+    all_good = []
+
+    result = ""
+    for pkg, (xml_deps, asdf_deps) in pkg_deps.items():
+        diff = asdf_deps.difference(xml_deps)
+        if diff:
+            result += "\n{}\n".format(pkg)
+            result += "-"*len(pkg)
+            result += "\npackage.xml Dependencies:\n"
+            result += str(sorted(xml_deps))
+            result += "\n\nasdf-System Dependencies:\n"
+            result += str(sorted(asdf_deps))
+            result += "\n\nMissing in package.xml:\n"
+            result += str(sorted(diff))
+            result += "\n" + "="*40
+        else:
+            all_good.append(pkg)
+    result += "\nEverything's fine for these packages:\n"
+    result += str(sorted(all_good))
+
+    with open("latest_asdf_check", 'w') as file:
+        file.write(result)
+
+    print "\nResults:"
+    print result
+
+    print "Could not open some file in:"
     print errored
 
 
 if __name__ == '__main__':
     crawl()
-    # deps = get_asdf_dependencies(os.path.join(pkg_paths["cram_commander"], get_asdf_name("cram_commander") + ".asd"))
-    # print normalize_asdf_deps(deps)
     check_pkg_xmls()
+    print_results()
