@@ -142,10 +142,9 @@ def get_asdf_dependencies(filepath):
 
 def normalize_asdf_deps(deps):
     def normalize_dep(dep):
-
         # dependencies = map(lambda x: x[1:] if x.startswith(':') else x, dependencies)
-        if dep.startswith('#'):
-            dep = dep[1:]
+        if dep.startswith('#:'):
+            dep = dep[2:]
 
         if dep.startswith(':'):
             dep = dep[1:]
@@ -154,6 +153,7 @@ def normalize_asdf_deps(deps):
             dep = dep[:-4]
         dep = dep.replace("-", "_")
         return dep
+    deps = [x for x in deps if not x.startswith('#+')]
     return map(normalize_dep, deps)
 
 def check_pkg_xmls():
