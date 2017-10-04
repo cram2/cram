@@ -105,8 +105,8 @@ def crawl():
             dirnames[:] = []
 
 def parse_simple_asdf(asdf):
-    depends_on = re.search(r"\(defsystem.*?:depends-on\s*\((.*?)\).*\)", asdf, re.S)
-    if depends_on and depends_on.groups() and not depends_on.groups()[0].startswith('"'):
+    depends_on = re.search(r"\((?:asdf:)*defsystem.*?:depends-on\s*\((.*?)\).*\)", asdf, re.S)
+    if depends_on and depends_on.groups():
         return depends_on.groups()[0]
 
 
@@ -164,6 +164,7 @@ def check_pkg_xmls():
             xml_path = os.path.join(path,"package.xml")
             xml_deps = set(get_xml_dependencies(xml_path))
             asdf_path = get_asdf_path(pkg, path)  # os.path.join(path, get_asdf_name(pkg) + ".asd")
+            
             if not asdf_path:
                 errored.append(pkg)
                 continue
@@ -182,17 +183,22 @@ def print_results():
 
     result = ""
     for pkg, (xml_deps, asdf_deps) in pkg_deps.items():
-        diff = asdf_deps.difference(xml_deps)
-        if diff:
-            result += "\n{}\n".format(pkg)
+        missing_in_xml = asdf_deps.difference(xml_deps)
+        missing_in_asdf = xml_deps.difference(asdf_deps)
+        if missing_in_xml or missing_in_asdf:
+            result += "\n\n{}\n".format(pkg)
             result += "-"*len(pkg)
             result += "\npackage.xml Dependencies:\n"
             result += str(sorted(xml_deps))
             result += "\n\nasdf-System Dependencies:\n"
             result += str(sorted(asdf_deps))
-            result += "\n\nMissing in package.xml:\n"
-            result += str(sorted(diff))
-            result += "\n" + "="*40
+            if missing_in_xml:
+                result += "\n\nMissing in package.xml:\n"
+                result += str(sorted(missing_in_xml))
+            if missing_in_asdf:
+                result += "\n\nMissing in asdf:\n"
+                result += str(sorted(missing_in_asdf))
+            result += "\n\n{}".format("="*40)
         else:
             all_good.append(pkg)
     result += "\nEverything's fine for these packages:\n"
