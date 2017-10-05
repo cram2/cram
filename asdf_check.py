@@ -37,17 +37,17 @@ import xml.etree.ElementTree as et
 FORMAT_1_DEPEND_TAGS = set([
     # "buildtool_depend",
     "build_depend",
-    "run_depend",
-    "test_depend"
+    # "run_depend",
+    # "test_depend"
 ])
 
 FORMAT_2_DEPEND_TAGS = set([
     "depend",
     # "buildtool_depend",
     "build_depend",
-    "exec_depend",
-    "test_depend",
-    "doc_depend"
+    # "exec_depend",
+    # "test_depend",
+    # "doc_depend"
 ])
 
 # Packages in the source directory being checked, mapped to their path (relative from the cwd when executing)
