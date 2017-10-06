@@ -27,7 +27,7 @@
 - git:
     local-name: knowrob
     uri: https://github.com/knowrob/knowrob.git
-    version: 723c4c54b58bcc71909b8e233841a6d5e3830e49
+    version: b8703f8874a4ab223d95507e27235b5577187f46
 
 ############## PR2 inverse kinematics solver #########
 - git:
