@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>pr2_reachability_costmap</name>
   <version>0.4.0</version>
   <description>
@@ -14,24 +14,14 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>moveit_msgs</build_depend>
-  <build_depend>cram_location_costmap</build_depend>
-  <build_depend>cl_transforms</build_depend>
-  <build_depend>cl_tf</build_depend>
-  <build_depend>cram_utilities</build_depend>
-  <build_depend>cram_math</build_depend>
-  <build_depend>cram_prolog</build_depend>
-  <build_depend>cram_robot_interfaces</build_depend>
-  <build_depend>cram_tf</build_depend>
-
-  <run_depend>moveit_msgs</run_depend>
-  <run_depend>cram_location_costmap</run_depend>
-  <run_depend>cl_transforms</run_depend>
-  <run_depend>cl_tf</run_depend>
-  <run_depend>cram_utilities</run_depend>
-  <run_depend>cram_math</run_depend>
-  <run_depend>cram_prolog</run_depend>
-  <run_depend>cram_robot_interfaces</run_depend>
-  <run_depend>cram_tf</run_depend>
-
+  <depend>roslisp</depend>
+  <depend>moveit_msgs</depend>
+  <depend>cram_location_costmap</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_tf</depend>
+  <depend>cram_utilities</depend>
+  <depend>cram_math</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_robot_interfaces</depend>
+  <depend>cram_tf</depend>
 </package>

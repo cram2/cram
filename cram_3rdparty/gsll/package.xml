@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>gsll</name>
   <version>0.4.0</version>
   <description>
@@ -19,15 +19,11 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>sbcl</build_depend>
-  <build_depend>libgsl</build_depend>
-  <!-- <build_depend>gsd</build_depend> -->
-  <build_depend>trivial_garbage</build_depend>
-  <build_depend>cffi</build_depend>
-
-  <run_depend>sbcl</run_depend>
-  <run_depend>libgsl</run_depend>
-  <!-- <run_depend>gsd</run_depend> -->
-  <run_depend>trivial_garbage</run_depend>
-  <run_depend>cffi</run_depend>
+  <depend>libgsl</depend>
+  <depend>trivial_garbage</depend>
+  <depend>cffi</depend>
+  <depend>alexandria</depend>
+  <depend>metabang_bind</depend>
+  <depend>lisp_unit</depend>
+  <depend>trivial_features</depend>
 </package>

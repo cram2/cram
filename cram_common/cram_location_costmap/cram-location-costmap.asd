@@ -28,11 +28,13 @@
 ;;;
 
 (defsystem cram-location-costmap
-  :depends-on (cram-prolog
+  :depends-on (alexandria
+               cram-prolog
                cram-language
                cram-math
                cram-utilities
                roslisp-utilities
+               cl-transforms
                cl-transforms-stamped
                nav_msgs-msg
                visualization_msgs-msg

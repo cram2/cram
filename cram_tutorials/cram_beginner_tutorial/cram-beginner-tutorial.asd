@@ -30,8 +30,18 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (defsystem cram-beginner-tutorial
-  :depends-on (roslisp cram-language turtlesim-msg turtlesim-srv cl-transforms geometry_msgs-msg cram-designators cram-prolog
-                       cram-process-modules cram-language-designator-support cram-executive std_srvs-srv)
+  :depends-on (roslisp
+               std_srvs-srv
+               turtlesim-msg
+               turtlesim-srv
+               geometry_msgs-msg
+               cl-transforms
+               cram-language
+               cram-designators
+               cram-prolog
+               cram-process-modules
+               cram-language-designator-support
+               cram-executive)
   :components
   ((:module "src"
             :components

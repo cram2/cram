@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>cram_math</name>
   <version>0.4.0</version>
   <description>
@@ -14,16 +14,11 @@
   <license>BSD</license>
 
   <url type="website">http://cram-system.org</url>
-  <url type="bugtracker">https://github.com/cram2/cram_core/issues</url>
-  <url type="repository">https://github.com/cram2/cram_core</url>
+  <url type="bugtracker">https://github.com/cram2/cram/issues</url>
+  <url type="repository">https://github.com/cram2/cram</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>sbcl</build_depend>
-  <build_depend>alexandria</build_depend>
-  <build_depend>gsll</build_depend>
-
-  <run_depend>sbcl</run_depend>
-  <run_depend>alexandria</run_depend>
-  <run_depend>gsll</run_depend>
+  <depend>alexandria</depend>
+  <depend>gsll</depend>
 </package>
