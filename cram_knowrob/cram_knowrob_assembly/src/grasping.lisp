@@ -42,13 +42,6 @@
 (defmethod get-object-type-grasp ((object-type (eql :axle))) :top)
 (defmethod get-object-type-grasp ((object-type (eql :wheel))) :top)
 
-(defmethod get-object-type-grasp ((object-type (eql :cutlery))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :fork))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :knife))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :plate))) :side)
-(defmethod get-object-type-grasp ((object-type (eql :bottle))) :side)
-(defmethod get-object-type-grasp ((object-type (eql :cup))) :front)
-
 
 (defmethod get-object-type-gripping-effort (object-type)
     "Default value is 35 Nm."
@@ -58,13 +51,6 @@
 (defmethod get-object-type-gripping-effort ((object-type (eql :chassis))) 50)
 (defmethod get-object-type-gripping-effort ((object-type (eql :axle))) 50)
 (defmethod get-object-type-gripping-effort ((object-type (eql :wheel))) 40)
-
-(defmethod get-object-type-gripping-effort ((object-type (eql :cup))) 50)
-(defmethod get-object-type-gripping-effort ((object-type (eql :bottle))) 60)
-(defmethod get-object-type-gripping-effort ((object-type (eql :plate))) 100)
-(defmethod get-object-type-gripping-effort ((object-type (eql :cutlery))) 100)
-(defmethod get-object-type-gripping-effort ((object-type (eql :fork))) 100)
-(defmethod get-object-type-gripping-effort ((object-type (eql :knife))) 100)
 
 
 (defmethod get-object-type-gripper-opening (object-type)
@@ -173,12 +159,13 @@
 
 #+everything-below-is-commented-out
 (
-(defmethod get-object-to-gripper-transform ((object-type (eql :axle))
-                                            (arm (eql :left))
-                                            (grasp (eql :top)))
+(defmethod get-gripper-to-object-type-transform ((object-type (eql :axle))
+                                                 object-name
+                                                 (arm (eql :left))
+                                                 (grasp (eql :top)))
   (cl-transforms-stamped:make-transform-stamped
-   "object_of_type_Axle"
-   "left_gripper_tool_frame"
+   object-name
+   cram-tf:*robot-left-tool-frame*
    0.0
    (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
    (cl-transforms:matrix->quaternion
@@ -186,25 +173,27 @@
         (0 1 0)
         (0 0 -1)))))
 
-(defmethod get-object-to-gripper-transform ((object-type (eql :chassis))
-                                            (arm (eql :left))
-                                            (grasp (eql :side)))
+(defmethod get-gripper-to-object-type-transform ((object-type (eql :chassis))
+                                                 object-name
+                                                 (arm (eql :left))
+                                                 (grasp (eql :side)))
   (cl-transforms-stamped:make-transform-stamped
-   "object_of_type_Chassis"
-   "left_gripper_tool_frame"
+   object-name
+   cram-tf:*robot-left-tool-frame*
    0.0
    (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
    (cl-transforms:matrix->quaternion
-    #2A((0 -1 0)
-        (0 0 -1)
-        (1 0 0)))))
+    #2A((0 0 1)
+        (-1 0 0)
+        (0 -1 0)))))
 
-(defmethod get-object-to-gripper-transform ((object-type (eql :camaro-body))
-                                            (arm (eql :left))
-                                            (grasp (eql :top)))
+(defmethod get-gripper-to-object-type-transform ((object-type (eql :camaro-body))
+                                                 object-name
+                                                 (arm (eql :left))
+                                                 (grasp (eql :top)))
   (cl-transforms-stamped:make-transform-stamped
-   "object_of_type_CamaroBody"
-   "left_gripper_tool_frame"
+   object-name
+   cram-tf:*robot-left-tool-frame*
    0.0
    (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
    (cl-transforms:matrix->quaternion

@@ -41,6 +41,10 @@
 (defgeneric get-gripper-to-object-type-transform (object-type object-name arm grasp)
   (:documentation "Returns a pose stamped"))
 
+;; TODO: add a specific robot gripper to gripper transform to abstract
+;; away from specific robot grippers
+;; Ask Alexis what would be the commonly accepted coordinate frame for a gripper
+
 (defgeneric get-object-type-grasp-pose (object-type arm grasp object-pose)
   )
 

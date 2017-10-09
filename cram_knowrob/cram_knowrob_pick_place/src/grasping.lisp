@@ -29,8 +29,7 @@
 
 (in-package :kr-pp)
 
-(defparameter *default-z-offset* 0.2 "in meters")
-(defparameter *default-small-z-offset* 0.07 "in meters")
+(defparameter *lift-z-offset* 0.4 "in meters")
 
 
 (defmethod get-object-type-grasp (object-type)
@@ -59,6 +58,13 @@
   "Default value is 0.10."
   0.10)
 
+
+(defmethod get-object-type-lift-pose (object-type arm grasp grasp-pose)
+  (let ((grasp-pose (cram-tf:ensure-pose-in-frame
+                     grasp-pose
+                     cram-tf:*robot-base-frame*
+                     :use-zero-time t)))
+    (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*)))
 
 
 ;;; THE ASSUMPTION IS that all objects are lying flat on the table
@@ -96,115 +102,44 @@
 (defparameter *bottle-grasp-z-offset* 0.0 ;; 0.095
   "in meters") ; 0.105?
 
-(defparameter *lift-z-offset* 0.4 "in meters")
-
-(defparameter *pour-xy-offset* 0.12 "in meters")
-(defparameter *pour-z-offset* -0.04 "in meters")
-
-(defparameter *pr2-right-arm-out-of-sight-joint-positions*
-  '(-1.712587449591307d0 -0.2567290370386635d0 -1.4633501125737374d0
-    -2.1221670650093913d0 1.7663253481913623d0 -0.07942669250968948d0
-    0.05106258161229582d0)
-  "joint positions for right arm to move the arm away from sight")
-(defparameter *pr2-left-arm-out-of-sight-joint-positions*
-  '(1.9652919379395388d0 -0.26499816732737785d0 1.3837617139225473d0
-    -2.1224566064321584d0 16.99646118944817d0 -0.07350789589924167d0
-    -50.282675816750015d0)
-  "joint positions for right arm to move the arm away from sight")
-(defparameter *pr2-right-arm-out-of-sight-flipped-joint-positions*
-  '(-1.6863889585064997d0 -0.1975125908655453d0 -1.045465435053814d0
-    -1.6784448346188787d0 -76.25678428315953d0 -0.4330236861590935d0
-    -50.649577448004365d0)
-  "joint positions for right arm to move the arm away from sight")
-(defparameter *pr2-left-arm-out-of-sight-flipped-joint-positions*
-  '(2.0658576647935627d0 -0.0465740758716759d0 0.64709164157929d0
-    -1.8113443476689572d0 -11.712932369941111d0 -0.9136651430224094d0
-    15.839744451087977d0)
-  "joint positions for right arm to move the arm away from sight")
-
-(defparameter *pr2-right-arm-pouring-joint-positions*
-  '(-0.556869 -0.2 -1.57977 -1.02886 -94.3445 -1.18356 1.377))
-(defparameter *pr2-left-arm-pouring-joint-positions*
-  '(0.543886 0.156374 1.54255 -1.51628 0.237611 -1.32027 4.69513))
-
-;; (defparameter *pr2-right-arm-pouring-joint-positions*
-;;   '(-0.556869 -0.2 -1.57977 -1.02886 -94.3445 -1.18356 1.377))
-;; (defparameter *pr2-left-arm-pouring-joint-positions*
-;;   '(0.962039 0.150617 1.56769 -1.41351 -6.01118 -1.41351 4.70187))
-
-(defparameter *pr2-right-arm-out-of-sight-gripper-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "base_footprint"
-   0.0
-   (cl-transforms:make-3d-vector 0.4 -0.3 1.55)
-   (cl-transforms:make-quaternion 0.029319081708036543d0 -0.018714920400581137d0
-                                  0.5257710356470319d0 0.8499146788218482d0)))
-(defparameter *pr2-left-arm-out-of-sight-gripper-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "base_footprint"
-   0.0
-   (cl-transforms:make-3d-vector 0.4 0.3 1.55)
-   (cl-transforms:make-quaternion 0.9215513103717499d0 -0.387996037470125d0
-                                  -0.014188589447636247d0 -9.701489976338351d-4)))
-
-(defparameter *meal-table-left-base-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "map"
-   0.0
-   (cl-transforms:make-3d-vector -1.12d0 -0.42d0 0.0)
-   (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
-(defparameter *meal-table-right-base-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "map"
-   0.0
-   (cl-transforms:make-3d-vector -1.8547d0 -0.381d0 0.0d0)
-   (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
-(defparameter *meal-table-left-base-look-down-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "base_footprint"
-   0.0
-   (cl-transforms:make-3d-vector 0.7d0 -0.12d0 0.7578d0)
-   (cl-transforms:make-identity-rotation)))
-(defparameter *meal-table-left-base-look-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "base_footprint"
-   0.0
-   (cl-transforms:make-3d-vector 0.75d0 -0.12d0 1.11d0)
-   (cl-transforms:make-identity-rotation)))
-(defparameter *meal-table-right-base-look-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "base_footprint"
-   0.0
-   (cl-transforms:make-3d-vector 0.65335d0 0.076d0 0.758d0)
-   (cl-transforms:make-identity-rotation)))
 
 
-(defun move-pr2-arms-out-of-sight (&key (arm '(:left :right)) flipped)
-  (cpl:with-failure-handling
-      ((common-fail:low-level-failure (e)
-         (declare (ignore e))
-         (return)))
-    (unless (listp arm)
-      (setf arm (list arm)))
-    (let (?left-configuration-to-go ?right-configuration-to-go)
-      (when (member :left arm)
-        (setf ?left-configuration-to-go (if flipped
-                                            *pr2-left-arm-out-of-sight-flipped-joint-positions*
-                                            *pr2-left-arm-out-of-sight-joint-positions*)))
-      (when (member :right arm)
-        (setf ?right-configuration-to-go (if flipped
-                                             *pr2-right-arm-out-of-sight-flipped-joint-positions*
-                                             *pr2-right-arm-out-of-sight-joint-positions*)))
-      (exe:perform
-       (desig:a motion
-                (type moving-joints)
-                (left-configuration ?left-configuration-to-go)
-                (right-configuration ?right-configuration-to-go))))))
 
-;; For real robot experiments if CL-TF bugs out
-;; (defun overwrite-transformer ()
-;;   (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client)))
-;; (roslisp-utilities:register-ros-init-function overwrite-transformer)
+;; (defmethod get-object-grasping-poses (object-name object-type arm grasp object-transform)
+;;   (declare (type symbol object-name object-type arm grasp)
+;;            (type cl-transforms-stamped:transform-stamped object-transform))
+;;   "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
+;;   (let ((gripper-to-object-transform
+;;           (get-gripper-to-object-type-transform object-type object-name arm grasp))) ; gTo
+;;     (when gripper-to-object-transform
+;;       (let ((grasp-pose
+;;               (cram-tf:multiply-transform-stampeds
+;;                cram-tf:*robot-base-frame* cram-tf:*robot-left-tool-frame*
+;;                object-transform         ; bTo
+;;                (cram-tf:transform-stamped-inv gripper-to-object-transform) ; oTg
+;;                :result-as-pose-or-transform :pose))) ; bTo * oTg = bTg
+;;         (list (get-object-type-pregrasp-pose object-type arm grasp grasp-pose)
+;;               (get-object-type-2nd-pregrasp-pose object-type arm grasp grasp-pose)
+;;               grasp-pose
+;;               (get-object-type-lift-pose object-type arm grasp grasp-pose))))))
+
+
+;; (defmethod get-object-type-pregrasp-pose ((object-type (eql :axle))
+;;                                           (arm (eql :left))
+;;                                           (grasp (eql :top))
+;;                                           grasp-pose)
+;;   (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
+;; (defmethod get-object-type-lift-pose ((object-type (eql :axle))
+;;                                       (arm (eql :left))
+;;                                       (grasp (eql :top))
+;;                                       grasp-pose)
+;;   (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
+;; (defmethod get-object-type-2nd-lift-pose ((object-type (eql :axle))
+;;                                           (arm (eql :left))
+;;                                           (grasp (eql :top))
+;;                                           grasp-pose)
+;;   (cram-tf:translate-pose grasp-pose :z-offset *default-small-z-offset*))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;; GRASP CONFIGURATION CALCULATIONS ;;;;;;;;;;;;;;;;;;;;;
 
@@ -339,21 +274,6 @@
                                       arm grasp))
           (error "can only grasp cups from a side or front"))))))
 
-(defun get-object-grasp-pose (object-designator arm grasp)
-  (get-object-type-grasp-pose
-   (desig:desig-prop-value object-designator :type)
-   (cram-object-interfaces:get-object-pose object-designator)
-   arm grasp))
-
-(defun get-object-type-lift-pose (object-type arm grasp grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
-
-(defun get-object-grasp-lift-pose (grasp-pose)
-  (let ((grasp-pose (cram-tf:ensure-pose-in-frame
-                     grasp-pose
-                     cram-tf:*robot-base-frame*
-                     :use-zero-time t)))
-    (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*)))
 
 (defun get-object-type-pregrasp-pose (object-type arm grasp grasp-pose)
   (let ((grasp-pose (cram-tf:ensure-pose-in-frame
@@ -454,129 +374,4 @@
           (get-object-type-lift-pose object-type arm grasp grasp-pose))))
 
 
-
-
-
-
-
-
-
-
-
-
-;; (defmethod get-gripper-to-object-type-transform (object-type object-name arm grasp)
-;;   "Default implementation when not using KnowRob."
-;;   (get-object-to-gripper-transform object-type object-name arm grasp))
-
-
-;; (defmethod get-object-type-pregrasp-pose ((object-type (eql :axle))
-;;                                           (arm (eql :left))
-;;                                           (grasp (eql :top))
-;;                                           grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-;; (defmethod get-object-type-lift-pose ((object-type (eql :axle))
-;;                                       (arm (eql :left))
-;;                                       (grasp (eql :top))
-;;                                       grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-;; (defmethod get-object-type-2nd-lift-pose ((object-type (eql :axle))
-;;                                           (arm (eql :left))
-;;                                           (grasp (eql :top))
-;;                                           grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :z-offset *default-small-z-offset*))
-
-;; (defmethod get-object-type-pregrasp-pose ((object-type (eql :chassis))
-;;                                           (arm (eql :left))
-;;                                           (grasp (eql :side))
-;;                                           grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :y-offset *default-z-offset*))
-;; (defmethod get-object-type-lift-pose ((object-type (eql :chassis))
-;;                                       (arm (eql :left))
-;;                                       (grasp (eql :side))
-;;                                       grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*)
-;;   ;; (cl-transforms-stamped:copy-pose-stamped
-;;   ;;  (cram-tf:translate-pose grasp-pose :z-offset 0.30)
-;;   ;;  :orientation
-;;   ;;  (cl-transforms:matrix->quaternion
-;;   ;;   #2A((-1 0 0)
-;;   ;;       (0 0 -1)
-;;   ;;       (0 -1 0))))
-;;   )
-;; (defmethod get-object-type-2nd-lift-pose ((object-type (eql :chassis))
-;;                                           (arm (eql :left))
-;;                                           (grasp (eql :side))
-;;                                           grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :z-offset *default-small-z-offset*))
-
-;; (defmethod get-object-type-pregrasp-pose ((object-type (eql :camaro-body))
-;;                                           (arm (eql :left))
-;;                                           (grasp (eql :top))
-;;                                           grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-;; (defmethod get-object-type-lift-pose ((object-type (eql :camaro-body))
-;;                                       (arm (eql :left))
-;;                                       (grasp (eql :top))
-;;                                       grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-;; (defmethod get-object-type-2nd-lift-pose ((object-type (eql :camaro-body))
-;;                                           (arm (eql :left))
-;;                                           (grasp (eql :top))
-;;                                           grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :z-offset *default-small-z-offset*))
-
-;; (defmethod get-object-type-pregrasp-pose ((object-type (eql :short-seat))
-;;                                           (arm (eql :left))
-;;                                           (grasp (eql :top))
-;;                                           grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-;; (defmethod get-object-type-lift-pose ((object-type (eql :short-seat))
-;;                                       (arm (eql :left))
-;;                                       (grasp (eql :top))
-;;                                       grasp-pose)
-;;   (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-
-;; (defgeneric get-object-to-gripper-transform (object-type object-name arm grasp))
-
-;; (defmethod get-object-to-gripper-transform ((object-type (eql :axle))
-;;                                             object-name
-;;                                             (arm (eql :left))
-;;                                             (grasp (eql :top)))
-;;   (cl-transforms-stamped:make-transform-stamped
-;;    object-name
-;;    "left_gripper_tool_frame"
-;;    0.0
-;;    (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
-;;    (cl-transforms:matrix->quaternion
-;;     #2A((-1 0 0)
-;;         (0 1 0)
-;;         (0 0 -1)))))
-
-;; (defmethod get-object-to-gripper-transform ((object-type (eql :chassis))
-;;                                             object-name
-;;                                             (arm (eql :left))
-;;                                             (grasp (eql :side)))
-;;   (cl-transforms-stamped:make-transform-stamped
-;;    object-name
-;;    "left_gripper_tool_frame"
-;;    0.0
-;;    (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
-;;    (cl-transforms:matrix->quaternion
-;;     #2A((0 -1 0)
-;;         (0 0 -1)
-;;         (1 0 0)))))
-
-;; (defmethod get-object-to-gripper-transform ((object-type (eql :camaro-body))
-;;                                             object-name
-;;                                             (arm (eql :left))
-;;                                             (grasp (eql :top)))
-;;   (cl-transforms-stamped:make-transform-stamped
-;;    object-name
-;;    "left_gripper_tool_frame"
-;;    0.0
-;;    (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
-;;    (cl-transforms:matrix->quaternion
-;;     #2A((0 1 0)
-;;         (1 0 0)
-;;         (0 0 -1)))))
 

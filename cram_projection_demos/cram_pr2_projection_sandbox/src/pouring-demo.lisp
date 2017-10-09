@@ -129,18 +129,37 @@
   ;; stabilize world
   (btr:simulate btr:*current-bullet-world* 100))
 
+(defparameter *meal-table-left-base-pose*
+  (cl-transforms-stamped:make-pose-stamped
+   "map"
+   0.0
+   (cl-transforms:make-3d-vector -1.12d0 -0.42d0 0.0)
+   (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
 (defparameter *meal-table-right-base-pose*
   (cl-transforms-stamped:make-pose-stamped
    "map"
    0.0
    (cl-transforms:make-3d-vector -1.8547d0 -0.381d0 0.0d0)
    (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
+(defparameter *meal-table-left-base-look-pose*
+  (cl-transforms-stamped:make-pose-stamped
+   "base_footprint"
+   0.0
+   (cl-transforms:make-3d-vector 0.75d0 -0.12d0 1.11d0)
+   (cl-transforms:make-identity-rotation)))
 (defparameter *meal-table-right-base-look-pose*
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint"
    0.0
    (cl-transforms:make-3d-vector 0.65335d0 0.076d0 0.758d0)
    (cl-transforms:make-identity-rotation)))
+(defparameter *meal-table-left-base-look-down-pose*
+  (cl-transforms-stamped:make-pose-stamped
+   "base_footprint"
+   0.0
+   (cl-transforms:make-3d-vector 0.7d0 -0.12d0 0.7578d0)
+   (cl-transforms:make-identity-rotation)))
+
 
 (defun prepare ()
   (cpl:with-failure-handling
