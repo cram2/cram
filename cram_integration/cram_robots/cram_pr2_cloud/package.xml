@@ -19,10 +19,10 @@
   <depend>cram_designators</depend>
   <depend>cram_process_modules</depend>
   <depend>cram_math</depend>
-  <!-- <depend>cram_occasions_events</depend> -->
+  <depend>cram_occasions_events</depend>
   <depend>cram_executive</depend>
   <depend>cram_utilities</depend>
-  <!-- <depend>cram_plan_occasions_events</depend> -->
+  <depend>cram_plan_occasions_events</depend>
   <depend>giskard_msgs</depend>
   <depend>cram_common_failures</depend>
   <depend>cram_robot_interfaces</depend>
@@ -30,6 +30,7 @@
   <depend>cram_pr2_process_modules</depend>
   <depend>cram_pr2_pick_place_plans</depend>
   <depend>cram_knowrob_cloud</depend>
+  <depend>cram_pr2_projection_sandbox</depend>
   <depend>cram_location_costmap</depend>
   <depend>cram_semantic_map_costmap</depend>
   <depend>cram_robot_pose_gaussian_costmap</depend>

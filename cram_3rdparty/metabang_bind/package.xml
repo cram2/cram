@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>metabang_bind</name>
   <version>0.4.0</version>
   <description>
@@ -17,16 +17,4 @@
   <!--external-version>metabang-bind-20170124-git</external-version-->
 
   <buildtool_depend>catkin</buildtool_depend>
-
-  <!-- <build_depend>sbcl</build_depend> -->
-  <!-- <build_depend>alexandria</build_depend> -->
-  <!-- <build_depend>cffi</build_depend> -->
-  <!-- <build_depend>split_sequence</build_depend> -->
-  <!-- <build_depend>trivial_garbage</build_depend> -->
-
-  <!-- <run_depend>sbcl</run_depend> -->
-  <!-- <run_depend>alexandria</run_depend> -->
-  <!-- <run_depend>cffi</run_depend> -->
-  <!-- <run_depend>split_sequence</run_depend> -->
-  <!-- <run_depend>trivial_garbage</run_depend> -->
 </package>

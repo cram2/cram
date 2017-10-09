@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>cl_bullet_vis</name>
   <version>0.4.0</version>
   <description>
@@ -14,23 +14,15 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>cl_bullet</build_depend>
-  <build_depend>cram_physics_utils</build_depend>
-  <build_depend>cl_opengl</build_depend>
-  <build_depend>cl_transforms</build_depend>
-  <build_depend>cl_glx</build_depend>
-  <build_depend>trivial_garbage</build_depend>
-  <build_depend>alexandria</build_depend>
-  <build_depend>lisp_unit</build_depend>
+  <depend>cl_bullet</depend>
+  <depend>cram_physics_utils</depend>
+  <depend>cl_opengl</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_glx</depend>
+  <depend>trivial_garbage</depend>
+  <depend>alexandria</depend>
 
-  <run_depend>cl_bullet</run_depend>
-  <run_depend>cram_physics_utils</run_depend>
-  <run_depend>cl_opengl</run_depend>
-  <run_depend>cl_transforms</run_depend>
-  <run_depend>cl_glx</run_depend>
-  <run_depend>trivial_garbage</run_depend>
-  <run_depend>alexandria</run_depend>
-  <run_depend>lisp_unit</run_depend>
+  <test_depend>lisp_unit</test_depend>
 </package>
 
 

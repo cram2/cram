@@ -16,18 +16,21 @@
 
   <depend>alexandria</depend>
   <depend>cram_prolog</depend>
-  <depend>cram_robot_interfaces</depend>
   <depend>cl_bullet</depend>
   <depend>cl_bullet_vis</depend>
   <depend>cl_urdf</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cl_transforms</depend>
-  <depend>cram_semantic_map_utils</depend>
-  <depend>cram_designators</depend>
+  <depend>roslisp</depend>
+  <depend>moveit_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>cram_location_costmap</depend>
-  <depend>cram_tf</depend>
+  <depend>cram_designators</depend>
   <depend>roslisp_utilities</depend>
+  <depend>cram_semantic_map_utils</depend>
+  <depend>cram_robot_interfaces</depend>
   <depend>cram_utilities</depend>
+  <depend>cram_tf</depend>
   <depend>cram_physics_utils</depend>
   <!-- <depend>household_objects_database_msgs</depend> -->
 </package>

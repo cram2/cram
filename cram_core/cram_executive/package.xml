@@ -18,7 +18,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>sbcl</depend>
+  <depend>alexandria</depend>
   <depend>cram_language</depend>
   <depend>cram_designators</depend>
   <depend>cram_process_modules</depend>

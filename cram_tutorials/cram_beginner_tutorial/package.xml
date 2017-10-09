@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>cram_beginner_tutorial</name>
   <version>0.4.0</version>
   <description>The cram_beginner_tutorial package</description>
@@ -19,13 +19,14 @@
   <url type="repository">https://github.com/cram2/cram_tutorials</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>cram_language</build_depend>
-  <build_depend>cram_prolog</build_depend>
-  <build_depend>cram_designators</build_depend>
-  <build_depend>cram_process_modules</build_depend>
-
-  <run_depend>cram_language</run_depend>
-  <run_depend>cram_prolog</run_depend>
-  <run_depend>cram_designators</run_depend>
-  <run_depend>cram_process_modules</run_depend>
+  <depend>roslisp</depend>
+  <depend>cl_transforms</depend>
+  <depend>cram_executive</depend>
+  <depend>cram_language</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_process_modules</depend>
+  <depend>cram_prolog</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>turtlesim</depend>
 </package>
