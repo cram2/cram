@@ -30,6 +30,20 @@
 
 (in-package :pr2-proj)
 
+(defun robot-transform-in-map ()
+  (let ((pose-in-map
+          (cut:var-value
+           '?pose
+           (car (prolog:prolog
+                 `(and (cram-robot-interfaces:robot ?robot)
+                       (btr:bullet-world ?w)
+                       (btr:object-pose ?w ?robot ?pose)))))))
+    (cram-tf:pose->transform-stamped
+     cram-tf:*fixed-frame*
+     cram-tf:*robot-base-frame*
+     0.0
+     pose-in-map)))
+
 ;;;;;;;;;;;;;;;;; NAVIGATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun drive (target)
@@ -94,24 +108,39 @@
 
 (defun extend-perceived-object-designator (input-designator name-pose-type-list)
   (destructuring-bind (name pose type) name-pose-type-list
-    (let* ((pose-stamped (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))
-           (transform-stamped (cram-tf:pose->transform-stamped
-                               cram-tf:*fixed-frame*
-                               name
-                               (cl-transforms-stamped:stamp pose-stamped)
-                               pose-stamped)))
+    (let* ((transform-stamped-in-fixed-frame
+             (cl-transforms-stamped:make-transform-stamped
+              cram-tf:*fixed-frame*
+              (roslisp-utilities:rosify-underscores-lisp-name name)
+              0.0
+              (cl-transforms:origin pose)
+              (cl-transforms:orientation pose)))
+           (pose-stamped-in-base-frame
+             (cram-tf:multiply-transform-stampeds
+              cram-tf:*robot-base-frame*
+              (roslisp-utilities:rosify-underscores-lisp-name name)
+              (cram-tf:transform-stamped-inv (robot-transform-in-map))
+              transform-stamped-in-fixed-frame
+              :result-as-pose-or-transform :pose))
+           (transform-stamped-in-base-frame
+             (cram-tf:multiply-transform-stampeds
+              cram-tf:*robot-base-frame*
+              (roslisp-utilities:rosify-underscores-lisp-name name)
+              (cram-tf:transform-stamped-inv (robot-transform-in-map))
+              transform-stamped-in-fixed-frame
+              :result-as-pose-or-transform :transform)))
       (let ((output-designator
               (desig:copy-designator
                input-designator
                :new-description
                `((:type ,type)
                  (:name ,name)
-                 (:pose ((:pose ,pose-stamped)
-                         (:transform ,transform-stamped)))))))
+                 (:pose ((:pose ,pose-stamped-in-base-frame)
+                         (:transform ,transform-stamped-in-base-frame)))))))
         (setf (slot-value output-designator 'desig:data)
               (make-instance 'desig:object-designator-data
                 :object-identifier name
-                :pose pose-stamped))
+                :pose pose-stamped-in-base-frame))
         (desig:equate input-designator output-designator)))))
 
 (defun detect (input-designator)

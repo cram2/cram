@@ -29,6 +29,7 @@
   <depend>cram_common_designators</depend>
   <depend>cram_common_failures</depend>
   <depend>cram_process_modules</depend>
+  <depend>roslisp_utilities</depend>
   <depend>alexandria</depend>
   <depend>moveit_msgs</depend>
   <depend>pr2_arm_kinematics</depend>
