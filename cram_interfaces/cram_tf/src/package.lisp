@@ -45,6 +45,11 @@
            #:pose->transform-stamped
            #:transform-stamped-inv
            #:multiply-transform-stampeds
+           #:strip-transform-stamped
+           #:copy-transform-stamped
+           #:translate-transform-stamped
+           #:pose-stamped->transform-stamped
+           #:apply-transform
            ;; prolog facts
            #:pose #:pose-stamped #:position #:orientation #:poses-equal
            #:location-pose
