@@ -189,7 +189,7 @@
 
 ;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun gripper-action (action-type arm &optional maximum-effort)
+(defun one-gripper-action (action-type arm &optional maximum-effort)
   (declare (ignore maximum-effort))
   "Opens or closes the specific gripper."
   (mapc
@@ -202,7 +202,9 @@
                                                            (:open '?max-limit)
                                                            ((:close :grip) '?min-limit)
                                                            (t (if (numberp action-type)
-                                                                  action-type
+                                                                  (* action-type 5.0)
+                                                                  ;; commanded with meters
+                                                                  ;; but asserted with rads
                                                                   (error "[PROJ GRIP] failed")))))))))
       solution-bindings))
 
@@ -264,6 +266,13 @@
                            :arm arm))))
                     (second attachment-data)))
             (btr:attached-objects (btr:get-robot-object))))))
+
+(defun gripper-action (action-type arm &optional maximum-effort)
+  (if (and arm (listp arm))
+      (cpl:par
+        (one-gripper-action action-type (first arm) maximum-effort)
+        (one-gripper-action action-type (second arm) maximum-effort))
+      (one-gripper-action action-type arm maximum-effort)))
 
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
