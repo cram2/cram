@@ -41,24 +41,24 @@
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil))))
 
-  (<- (desig:action-grounding ?action-designator (release ?left-or-right))
+  (<- (desig:action-grounding ?action-designator (release ?left-or-right-or-both))
     (or (spec:property ?action-designator (:type :releasing))
         (spec:property ?action-designator (:type :opening)))
-    (spec:property ?action-designator (:gripper ?left-or-right)))
+    (spec:property ?action-designator (:gripper ?left-or-right-or-both)))
 
-  (<- (desig:action-grounding ?action-designator (grip ?left-or-right ?object-grip-effort))
+  (<- (desig:action-grounding ?action-designator (grip ?left-or-right-or-both ?object-grip-effort))
     (spec:property ?action-designator (:type :gripping))
-    (spec:property ?action-designator (:arm ?left-or-right))
+    (spec:property ?action-designator (:arm ?left-or-right-or-both))
     (spec:property ?action-designator (:effort ?object-grip-effort)))
 
-  (<- (desig:action-grounding ?action-designator (close-gripper ?left-or-right))
+  (<- (desig:action-grounding ?action-designator (close-gripper ?left-or-right-or-both))
     (spec:property ?action-designator (:type :closing))
-    (spec:property ?action-designator (:gripper ?left-or-right)))
+    (spec:property ?action-designator (:gripper ?left-or-right-or-both)))
 
   (<- (desig:action-grounding ?action-designator (set-gripper-to-position
-                                                  ?left-or-right ?position))
+                                                  ?left-or-right-or-both ?position))
     (spec:property ?action-designator (:type :setting-gripper))
-    (spec:property ?action-designator (:gripper ?left-or-right))
+    (spec:property ?action-designator (:gripper ?left-or-right-or-both))
     (spec:property ?action-designator (:position ?position)))
 
   (<- (desig:action-grounding ?action-designator (look-at ?object-designator))

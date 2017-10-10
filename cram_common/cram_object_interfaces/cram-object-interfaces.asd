@@ -35,7 +35,9 @@
   :depends-on (cram-prolog
                cram-designators
                cram-tf
-               cl-transforms-stamped)
+               cl-transforms-stamped
+               cram-robot-interfaces ; for gripper transform calculations
+               )
   :components
   ((:module "src"
     :components
