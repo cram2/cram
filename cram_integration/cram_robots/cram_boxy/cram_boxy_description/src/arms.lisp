@@ -29,8 +29,12 @@
 
 (in-package :boxy-descr)
 
+(defparameter *standard-to-boxy-gripper-transform*
+  (cl-transforms-stamped:make-identity-transform))
+
 (def-fact-group boxy-arm-facts (end-effector-link robot-tool-frame
-                                                  arm-joints arm-links)
+                                arm-joints arm-links
+                                standard-to-particular-gripper-transform)
 
   (<- (end-effector-link boxy :left "left_arm_7_link"))
   (<- (end-effector-link boxy :right "right_arm_7_link"))
@@ -66,4 +70,7 @@
                               "right_arm_3_link"
                               "right_arm_4_link"
                               "right_arm_5_link"
-                              "right_arm_6_link"))))
+                              "right_arm_6_link")))
+
+  (<- (standard-to-particular-gripper-transform boxy ?transform)
+    (symbol-value *standard-to-boxy-gripper-transform* ?transform)))

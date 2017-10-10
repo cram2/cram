@@ -62,62 +62,64 @@
   (<- (robot-pan-tilt-joints pr2 "head_pan_joint" "head_tilt_joint")))
 
 
-(def-fact-group pr2-manipulation-knowledge (grasp
-                                            side arm
-                                            object-type-grasp
-                                            object-designator-grasp
-                                            cram-object-interfaces:orientation-matters
-                                            required-arms)
-  (<- (grasp pr2 :top))
-  (<- (grasp pr2 :side))
-  (<- (grasp pr2 :front))
+;;; Everything below is commented out as such knowledge is object-specific.
+;;; Take a look in cram_knowrob_pick_and_place for example for similar knowledge.
+;; (def-fact-group pr2-manipulation-knowledge (grasp
+;;                                             side arm
+;;                                             object-type-grasp
+;;                                             object-designator-grasp
+;;                                             cram-object-interfaces:orientation-matters
+;;                                             required-arms)
+;;   (<- (grasp pr2 :top))
+;;   (<- (grasp pr2 :side))
+;;   (<- (grasp pr2 :front))
 
-  (<- (side pr2 :right))
-  (<- (side pr2 :left))
+;;   (<- (side pr2 :right))
+;;   (<- (side pr2 :left))
 
-  (<- (arm pr2 ?arm)
-    (side pr2 ?arm))
+;;   (<- (arm pr2 ?arm)
+;;     (side pr2 ?arm))
 
-  (<- (object-type-grasp :mug ?grasp (?side))
-    (grasp pr2 ?grasp)
-    (side pr2 ?side))
+;;   (<- (object-type-grasp :mug ?grasp (?side))
+;;     (grasp pr2 ?grasp)
+;;     (side pr2 ?side))
 
-  (<- (object-type-grasp :mondamin :front (?side))
-    (side pr2 ?side))
+;;   (<- (object-type-grasp :mondamin :front (?side))
+;;     (side pr2 ?side))
 
-  (<- (object-type-grasp :plate :side (:left :right)))
+;;   (<- (object-type-grasp :plate :side (:left :right)))
 
-  (<- (object-type-grasp :pot :side (:left :right)))
+;;   (<- (object-type-grasp :pot :side (:left :right)))
 
-  (<- (object-type-grasp :handle :front (?side))
-    (side pr2 ?side))
+;;   (<- (object-type-grasp :handle :front (?side))
+;;     (side pr2 ?side))
 
-  (<- (object-type-grasp ?type :top (?side))
-    (member ?type (:cutlery :knife :fork :spatula))
-    (side pr2 ?side))
+;;   (<- (object-type-grasp ?type :top (?side))
+;;     (member ?type (:cutlery :knife :fork :spatula))
+;;     (side pr2 ?side))
 
-  (<- (object-type-grip-maximum-effort pr2 :mug 50))
-  (<- (object-type-grip-maximum-effort pr2 :mondamin 30))
-  (<- (object-type-grip-maximum-effort pr2 :handle 50))
+;;   (<- (object-type-grip-maximum-effort pr2 :mug 50))
+;;   (<- (object-type-grip-maximum-effort pr2 :mondamin 30))
+;;   (<- (object-type-grip-maximum-effort pr2 :handle 50))
 
-  (<- (object-designator-grasp ?object-designator ?grasp ?sides)
-    (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
-    (desig:desig-prop ?current-object-designator (:type ?object-type))
-    (object-type-grasp ?object-type ?grasp ?sides))
+;;   (<- (object-designator-grasp ?object-designator ?grasp ?sides)
+;;     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
+;;     (desig:desig-prop ?current-object-designator (:type ?object-type))
+;;     (object-type-grasp ?object-type ?grasp ?sides))
 
-  (<- (cram-object-interfaces:orientation-matters ?object-designator)
-    (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
-    (or (desig:desig-prop ?current-object-designator (:type :knife))
-        (desig:desig-prop ?current-object-designator (:type :fork))
-        (desig:desig-prop ?current-object-designator (:type :spatula))))
+;;   (<- (cram-object-interfaces:orientation-matters ?object-designator)
+;;     (lisp-fun desig:current-desig ?object-designator ?current-object-designator)
+;;     (or (desig:desig-prop ?current-object-designator (:type :knife))
+;;         (desig:desig-prop ?current-object-designator (:type :fork))
+;;         (desig:desig-prop ?current-object-designator (:type :spatula))))
 
-  (<- (required-arms ?object-designator ?arms)
-    (desig:desig-prop ?object-designator (:type ?object-type))
-    ;; object-type-grasp will give the cross-product of all available
-    ;; arms and grasps. That's why we first calculate the set of all
-    ;; solutions of arms (i.e. duplicate arms removed).
-    (once
-     (or
-      (setof ?arms (object-type-grasp ?object-type ?_ ?arms) ?all-arms-solutions)
-      (setof (?arm) (and (robot ?robot) (arm ?robot ?arm)) ?all-arms-solutions)))
-    (member ?arms ?all-arms-solutions)))
+;;   (<- (required-arms ?object-designator ?arms)
+;;     (desig:desig-prop ?object-designator (:type ?object-type))
+;;     ;; object-type-grasp will give the cross-product of all available
+;;     ;; arms and grasps. That's why we first calculate the set of all
+;;     ;; solutions of arms (i.e. duplicate arms removed).
+;;     (once
+;;      (or
+;;       (setof ?arms (object-type-grasp ?object-type ?_ ?arms) ?all-arms-solutions)
+;;       (setof (?arm) (and (robot ?robot) (arm ?robot ?arm)) ?all-arms-solutions)))
+;;     (member ?arms ?all-arms-solutions)))

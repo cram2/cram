@@ -28,6 +28,14 @@
 
 (in-package :cram-pr2-description)
 
+(defparameter *standard-to-pr2-gripper-transform*
+  (cl-transforms-stamped:make-transform
+   (cl-transforms:make-identity-vector)
+   (cl-transforms:matrix->quaternion
+    #2A((0 1 0)
+        (0 0 1)
+        (1 0 0)))))
+
 (defparameter *right-parking-end-effector-pose*
   (cl-transforms-stamped:make-pose-stamped
    "torso_lift_link" 0.0
@@ -200,7 +208,8 @@
                                           joint-type joint-axis joint-origin
                                           joint-parent-link joint-child-link
                                           arm-links arm-base-links
-                                          hand-links)
+                                          hand-links
+                                          standard-to-particular-gripper-transform)
 
   (<- (end-effector-link pr2 :left "l_wrist_roll_link"))
   (<- (end-effector-link pr2 :right "r_wrist_roll_link"))
@@ -293,4 +302,7 @@
     (lisp-fun get-arm-base-link-names ?arm ?links))
 
   (<- (hand-links pr2 ?arm ?links)
-    (lisp-fun get-hand-link-names ?arm ?links)))
+    (lisp-fun get-hand-link-names ?arm ?links))
+
+  (<- (standard-to-particular-gripper-transform pr2 ?transform)
+    (symbol-value *standard-to-pr2-gripper-transform* ?transform)))

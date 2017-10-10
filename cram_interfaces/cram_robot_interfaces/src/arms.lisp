@@ -37,7 +37,8 @@
                       joint-parent-link joint-child-link
                       ;; specific configurations
                       robot-arms-parking-joint-states end-effector-parking-pose
-                      robot-pre-grasp-joint-states planning-group)
+                      robot-pre-grasp-joint-states planning-group
+                      standard-to-particular-gripper-transform)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;; rules describing the robot arms
 
@@ -139,6 +140,9 @@
     (fail))
 
   (<- (planning-group ?robot ?arms ?group-name)
+    (fail))
+
+  (<- (standard-to-particular-gripper-transform ?robot ?transform)
     (fail)))
 
 
