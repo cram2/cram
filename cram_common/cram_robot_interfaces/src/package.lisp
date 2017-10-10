@@ -39,6 +39,7 @@
    #:joint-parent-link #:joint-child-link
    #:robot-arms-parking-joint-states #:end-effector-parking-pose
    #:robot-pre-grasp-joint-states #:planning-group
+   #:standard-to-particular-gripper-transform
    ;; designator utils
    #:compute-iks
    #:reachability-designator #:designator-reach-pose #:visibility-designator
