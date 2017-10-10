@@ -38,7 +38,9 @@
                cram-tf
                cram-occasions-events
                cram-plan-occasions-events
-               cram-object-interfaces)
+               cram-object-interfaces
+               roslisp-utilities ; for rosify-lisp-name
+               cram-prolog)
   :components
   ((:module "src"
     :components

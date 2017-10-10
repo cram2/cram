@@ -18,4 +18,6 @@
   <depend>cram_occasions_events</depend>
   <depend>cram_plan_occasions_events</depend>
   <depend>cram_tf</depend>
+  <depend>roslisp_utilities</depend>
+  <depend>cram_prolog</depend>
 </package>

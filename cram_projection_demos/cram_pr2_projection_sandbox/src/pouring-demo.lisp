@@ -139,7 +139,7 @@
   (cl-transforms-stamped:make-pose-stamped
    "map"
    0.0
-   (cl-transforms:make-3d-vector -1.8547d0 -0.381d0 0.0d0)
+   (cl-transforms:make-3d-vector -2.0547d0 -0.481d0 0.0d0)
    (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
 (defparameter *meal-table-left-base-look-pose*
   (cl-transforms-stamped:make-pose-stamped
@@ -170,7 +170,7 @@
         (let ((?navigation-goal *meal-table-right-base-pose*)
               (?ptu-goal *meal-table-right-base-look-pose*))
           (cpl:par
-            (pr2-pp-plans::move-arms-from-field-of-view)
+            (pr2-pp-plans::park-arms)
             (exe:perform (desig:a motion
                                   (type going)
                                   (target (desig:a location (pose ?navigation-goal)))))
@@ -195,16 +195,23 @@
                   (type detecting)
                   (object ?object-designator)))))))
 
-(defun test-grasp-and-place-bottle ()
+(defun test-grasp-and-place-object (&optional (?object-type :bottle) (?arm :right))
   (let ((proj-result
           (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
             (cpl:top-level
               (prepare))
             (cpl:top-level
-              (let ((?bottle-desig (desig:an object (type bottle))))
+              (let ((?bottle-desig (desig:an object (type ?object-type))))
                 (flet ((step-1-inner ()
                          (let ((?perceived-bottle-desig (pr2-pp-plans::perceive ?bottle-desig)))
-                           (pr2-pp-plans::drive-and-pick-up-plan ?perceived-bottle-desig :?arm :right))))
+                           (cpl:par
+                             (exe:perform (desig:an action
+                                                    (type looking)
+                                                    (object ?perceived-bottle-desig)))
+                             (exe:perform (desig:an action
+                                                    (type picking-up)
+                                                    (arm ?arm)
+                                                    (object ?perceived-bottle-desig)))))))
                   (cpl:with-retry-counters ((bottle-grasp-tries 2))
                     (cpl:with-failure-handling
                         ((common-fail:low-level-failure (e)
@@ -222,7 +229,7 @@
         (cpl:top-level
           (exe:perform (desig:an action
                                  (type placing)
-                                 (arm right)
+                                 (arm ?arm)
                                  (object ?result-object))))))))
 
 (defun test-place-bottle ()

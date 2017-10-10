@@ -38,15 +38,9 @@
 (defgeneric get-object-type-gripper-opening (object-type)
   (:documentation "How wide to open the gripper before grasping, in m."))
 
-(defgeneric get-gripper-to-object-type-transform (object-type object-name arm grasp)
-  (:documentation "Returns a pose stamped"))
-
-;; TODO: add a specific robot gripper to gripper transform to abstract
-;; away from specific robot grippers
-;; Ask Alexis what would be the commonly accepted coordinate frame for a gripper
-
-(defgeneric get-object-type-grasp-pose (object-type arm grasp object-pose)
-  )
+(defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
+  (:documentation "Returns a pose stamped.
+Gripper is defined by a convention where Z is pointing towards the object."))
 
 (defgeneric get-object-type-pregrasp-pose (object-type arm grasp grasp-pose)
   (:documentation "Returns a pose stamped"))
@@ -62,15 +56,63 @@
   (:documentation "Returns a pose stamped")
   (:method (object-type grasp-pose arm grasp) nil))
 
+(defun get-object-grasping-poses (object-name object-type arm grasp object-transform)
+  (declare (type symbol object-name object-type arm grasp)
+           (type cl-transforms-stamped:transform-stamped object-transform))
+  "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
 
-(defgeneric get-object-grasping-poses (object-name object-type arm grasp object-transform))
+  ;; First correct the object transform such that rotationally-symmetric objects
+  ;; would not be grasped in an awkward way with weird orientations
+  (when (prolog `(object-rotationally-symmetric ,object-type))
+    (setf object-transform
+          (cram-tf:copy-transform-stamped
+           object-transform
+           :rotation (cl-transforms:make-identity-rotation))))
+
+  (let* ((gripper-tool-frame
+           (ecase arm
+             (:left cram-tf:*robot-left-tool-frame*)
+             (:right cram-tf:*robot-right-tool-frame*)))
+         (object-to-standard-gripper-transform ; oTg'
+           (get-object-type-to-gripper-transform object-type object-name arm grasp))
+         (standard-to-particular-gripper-transform ; g'Tg
+           (cl-tf:transform->transform-stamped
+            gripper-tool-frame
+            gripper-tool-frame
+            0.0
+            (cut:var-value
+             '?transform
+             (car (prolog:prolog
+                   `(and (cram-robot-interfaces:robot ?robot)
+                         (cram-robot-interfaces:standard-to-particular-gripper-transform
+                          ?robot ?transform))))))))
+    (when (and object-to-standard-gripper-transform standard-to-particular-gripper-transform)
+      (let* ((base-to-standard-gripper-transform
+               (cram-tf:multiply-transform-stampeds
+                cram-tf:*robot-base-frame* gripper-tool-frame
+                object-transform                    ; bTo
+                object-to-standard-gripper-transform ; oTg'
+                :result-as-pose-or-transform :transform)) ; bTo * oTg' = bTg'
+             (grasp-pose ; for particular gripper of particular robot
+               (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
+                cram-tf:*robot-base-frame* gripper-tool-frame
+                base-to-standard-gripper-transform      ; bTg'
+                standard-to-particular-gripper-transform ; g'Tg
+                :result-as-pose-or-transform :pose)))
+        (list (get-object-type-pregrasp-pose object-type arm grasp grasp-pose)
+              (get-object-type-2nd-pregrasp-pose object-type arm grasp grasp-pose)
+              grasp-pose
+              (get-object-type-lift-pose object-type arm grasp grasp-pose))))))
 
 
-(def-fact-group object-knowledge (orientation-matters)
+(def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters)
+
+  (<- (object-rotationally-symmetric ?object-type)
+    (fail))
 
   ;; The predicate ORIENTATION-MATTERS holds for all objects where the
   ;; orientation really matters when putting down the object. E.g. for
   ;; knives, forks, etc, the orientation is important while for plates
   ;; the orientation doesn't matter at all.
-  (<- (orientation-matters ?object-designator)
+  (<- (orientation-matters ?object-type-symbol)
     (fail)))

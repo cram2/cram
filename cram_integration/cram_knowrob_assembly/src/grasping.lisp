@@ -59,34 +59,16 @@
 (defmethod get-object-type-gripper-opening ((object-type (eql :axle))) 0.02)
 
 
-(defmethod get-gripper-to-object-type-transform (object-type object-name arm grasp)
+(defmethod get-object-type-to-gripper-transform (object-type object-name arm grasp)
   (declare (ignore object-type))
   "Default implementation when using KnowRob's get_grasp_position query."
-  (get-object-manipulation-transform :grasp
-                                     (ecase arm
-                                       (:left "left_gripper")
-                                       (:right "right_gripper"))
-                                     object-name
-                                     grasp))
-
-
-(defmethod get-object-grasping-poses (object-name object-type arm grasp object-transform)
-  (declare (type symbol object-name object-type arm grasp)
-           (type cl-transforms-stamped:transform-stamped object-transform))
-  "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
-  (let ((gripper-to-object-transform
-          (get-gripper-to-object-type-transform object-type object-name arm grasp))) ; gTo
-    (when gripper-to-object-transform
-      (let ((grasp-pose
-              (cram-tf:multiply-transform-stampeds
-               cram-tf:*robot-base-frame* cram-tf:*robot-left-tool-frame*
-               object-transform         ; bTo
-               (cram-tf:transform-stamped-inv gripper-to-object-transform) ; oTg
-               :result-as-pose-or-transform :pose))) ; bTo * oTg = bTg
-        (list (get-object-type-pregrasp-pose object-type arm grasp grasp-pose)
-              (get-object-type-2nd-pregrasp-pose object-type arm grasp grasp-pose)
-              grasp-pose
-              (get-object-type-lift-pose object-type arm grasp grasp-pose))))))
+  (cram-tf:transform-stamped-inv ; oTg
+   (get-object-manipulation-transform :grasp  ; gTo
+                                      (ecase arm
+                                        (:left "left_gripper")
+                                        (:right "right_gripper"))
+                                      object-name
+                                      grasp)))
 
 
 (defmethod get-object-type-pregrasp-pose ((object-type (eql :axle))
@@ -159,7 +141,7 @@
 
 #+everything-below-is-commented-out
 (
-(defmethod get-gripper-to-object-type-transform ((object-type (eql :axle))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :axle))
                                                  object-name
                                                  (arm (eql :left))
                                                  (grasp (eql :top)))
@@ -173,7 +155,7 @@
         (0 1 0)
         (0 0 -1)))))
 
-(defmethod get-gripper-to-object-type-transform ((object-type (eql :chassis))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :chassis))
                                                  object-name
                                                  (arm (eql :left))
                                                  (grasp (eql :side)))
@@ -187,7 +169,7 @@
         (-1 0 0)
         (0 -1 0)))))
 
-(defmethod get-gripper-to-object-type-transform ((object-type (eql :camaro-body))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :camaro-body))
                                                  object-name
                                                  (arm (eql :left))
                                                  (grasp (eql :top)))
