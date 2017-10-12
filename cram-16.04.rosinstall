@@ -2,8 +2,8 @@
 ############## CRAM repository #######################
 - git:
     local-name: cram
-    uri: https://github.com/cram2/cram.git
-    version: master
+    uri: https://github.com/artnie/cram.git
+    version: lecture-deps
 
 ############## ROS Lisp libraries, e.g. TF ###########
 - git:
