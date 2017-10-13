@@ -104,18 +104,20 @@
     (-> (spec:property ?action-designator (:target ?location))
         (and (desig:current-designator ?location ?current-location-designator)
              (desig:designator-groundings ?current-location-designator ?poses)
-             (member ?object-pose ?poses)
-             (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
-             (lisp-fun cram-tf:pose->transform-stamped
-                       ?fixed-frame ?object-name 0.0 ?object-pose
-                       ?object-transform))
+             (member ?target-pose ?poses)
+             (symbol-value cram-tf:*robot-base-frame* ?base-frame)
+             (lisp-fun cram-tf:ensure-pose-in-frame ?target-pose ?base-frame :use-zero-time t
+                       ?target-pose-in-base)
+             (lisp-fun roslisp-utilities:rosify-underscores-lisp-name ?object-name ?tf-name)
+             (lisp-fun cram-tf:pose-stamped->transform-stamped ?target-pose-in-base ?tf-name
+                       ?target-transform))
         (lisp-fun cram-object-interfaces:get-object-transform
-                  ?current-object-designator ?object-transform))
+                  ?current-object-designator ?target-transform))
     (lisp-fun obj-int:get-object-grasping-poses
-              ?object-name ?object-type :left ?grasp ?object-transform
+              ?object-name ?object-type :left ?grasp ?target-transform
               ?left-poses)
     (lisp-fun obj-int:get-object-grasping-poses
-              ?object-name ?object-type :right ?grasp ?object-transform
+              ?object-name ?object-type :right ?grasp ?target-transform
               ?right-poses)
     (lisp-fun extract-place-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-put-poses ?right-put-poses
