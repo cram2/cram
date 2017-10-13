@@ -205,18 +205,20 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
              (cl-transforms-stamped:frame-id y-z-transform)))
 
   (let ((multiplied-transforms
-          (cl-transforms:transform* x-y-transform y-z-transform)))
+          (cl-transforms:transform* x-y-transform y-z-transform))
+        (timestamp (min (cl-transforms-stamped:stamp x-y-transform)
+                        (cl-transforms-stamped:stamp y-z-transform))))
     (ecase result-as-pose-or-transform
       (:pose
        (cl-transforms-stamped:pose->pose-stamped
         x-frame
-        0.0
+        timestamp
         (cl-transforms:transform->pose multiplied-transforms)))
       (:transform
        (cl-transforms-stamped:transform->transform-stamped
         x-frame
         z-frame
-        0.0
+        timestamp
         multiplied-transforms)))))
 
 (defun strip-transform-stamped (transform-stamped)
