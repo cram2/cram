@@ -28,6 +28,18 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
+;; (cpl:define-task-variable *object-identifier-to-instance-mappings*
+;;     (make-hash-table :test #'equal)
+;;     "Mapping from object-identifiers as bound in the
+;; OBJECT-DESIGNATOR-DATA class to instance names in the bullet world
+;; database.")
+
+(defvar *object-identifier-to-instance-mappings*
+  (make-hash-table :test #'equal)
+  "Mapping from object-identifiers as bound in the
+OBJECT-DESIGNATOR-DATA class to instance names in the bullet world
+database.")
+
 (defmethod cram-occasions-events:clear-belief object-identifiers ()
   (clrhash *object-identifier-to-instance-mappings*))
 
@@ -47,6 +59,20 @@ just updated. Otherwise a new instance is created."))
 (defgeneric object-mass (data)
   (:documentation "Returns the (maybe approximated) mass of an object
   identified by `data' which is of type OBJECT-DESIGNATOR-DATA."))
+
+(defun get-object-instance-name (object-identifier)
+  (gethash object-identifier *object-identifier-to-instance-mappings*))
+
+(defun get-designator-object-name (object-designator)
+  (let ((object-designator (desig:newest-effective-designator object-designator)))
+    (when object-designator
+      (get-object-instance-name
+       (desig:object-identifier (desig:reference object-designator))))))
+
+(defun get-designator-object (object-designator)
+  (let ((object-name (get-designator-object-name object-designator)))
+    (when object-name
+      (btr:object btr:*current-bullet-world* object-name))))
 
 (defmethod register-object-designator-data
     ((data cram-physics-utils:object-shape-data-mixin) &key type)
