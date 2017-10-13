@@ -43,7 +43,8 @@
    (cram-bullet-reasoning:*current-timeline* (btr:timeline-init btr:*current-bullet-world*))
    (desig:*default-role* 'projection-role)
    (*projection-clock* (make-instance 'cram-projection:partially-ordered-clock))
-   (cut:*timestamp-function* #'projection-timestamp-function))
+   ;; (cut:*timestamp-function* #'projection-timestamp-function)
+   )
   :process-module-definitions
   (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
                        pr2-proj-grippers pr2-proj-arms)
