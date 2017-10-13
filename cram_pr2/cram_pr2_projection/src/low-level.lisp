@@ -41,7 +41,7 @@
     (cram-tf:pose->transform-stamped
      cram-tf:*fixed-frame*
      cram-tf:*robot-base-frame*
-     0.0
+     (cut:current-timestamp)
      pose-in-map)))
 
 ;;;;;;;;;;;;;;;;; NAVIGATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -112,7 +112,7 @@
              (cl-transforms-stamped:make-transform-stamped
               cram-tf:*fixed-frame*
               (roslisp-utilities:rosify-underscores-lisp-name name)
-              0.0
+              (cut:current-timestamp)
               (cl-transforms:origin pose)
               (cl-transforms:orientation pose)))
            (pose-stamped-in-base-frame
@@ -141,7 +141,16 @@
               (make-instance 'desig:object-designator-data
                 :object-identifier name
                 :pose pose-stamped-in-base-frame))
-        (desig:equate input-designator output-designator)))))
+        (desig:equate input-designator output-designator)
+
+        ;; before returning a freshly made output designator of perceived object
+        ;; emit an object perceived event to update the belief state
+          (cram-occasions-events:on-event
+           (make-instance 'cram-plan-occasions-events:object-perceived-event
+             :object-designator output-designator
+             :perception-source :projection))
+
+        output-designator))))
 
 (defun detect (input-designator)
   (declare (type desig:object-designator input-designator))
