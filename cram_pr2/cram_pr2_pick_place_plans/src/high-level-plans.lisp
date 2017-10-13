@@ -61,21 +61,27 @@
 ;;                                    (cl-transforms:origin robot-pose-in-map)
 ;;                                    :x new-x-for-base))))
 ;;     ?goal-for-base))
+
+;; The functions below are commented out as the pose TF handling is incomplete
+;; and in some situations incorrect.
+;; Use something similar to the function below the DRIVE-TO-REACH-POSE
+#+some-functions-below-are-commented-out
+(
 (defun drive-to-reach-pose (pose &key (?arm :right))
-  (let* ((?pose-in-map
-           (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame* :use-zero-time t))
-         (?robot (cut:var-value
-                  '?robot
-                  (car (prolog:prolog '(cram-robot-interfaces:robot ?robot)))))
-         (?goal-for-base
-           (desig:reference (desig:a location
-                                     (type reachable)
-                                     (for ?robot)
-                                     (location (desig:a location (pose ?pose-in-map)))
-                                     (side ?arm)))))
-    (exe:perform (desig:a motion
-                          (type going)
-                          (target (desig:a location (pose ?goal-for-base)))))))
+     (let* ((?pose-in-map
+              (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))
+            (?robot (cut:var-value
+                     '?robot
+                     (car (prolog:prolog '(cram-robot-interfaces:robot ?robot)))))
+            (?goal-for-base
+              (desig:reference (desig:a location
+                                        (type reachable)
+                                        (for ?robot)
+                                        (location (desig:a location (pose ?pose-in-map)))
+                                        (side ?arm)))))
+       (exe:perform (desig:a motion
+                             (type going)
+                             (target (desig:a location (pose ?goal-for-base)))))))
 
 (defun drive-towards-object-plan (object-designator &key (?arm :right))
   (let ((object-pose-in-base (cram-object-interfaces:get-object-pose object-designator)))
@@ -105,26 +111,58 @@
            (?updated-object-desig (perceive ?object-desig)))
       (drive-and-pick-up-plan ?updated-object-desig :?arm ?arm))))
 
-;; (defun drive-and-place-plan (&key (?arm :right) ?target-location)
-;;   (let* ((?object-designator (get-object-in-hand ?arm))
-;;          (?driving-pose (or (when ?target-location (desig:reference ?target-location))
-;;                             (cram-object-interfaces:get-object-pose ?object-designator))))
-;;     (drive-to-reach-pose ?driving-pose :?arm ?arm)
-;;     (cpl:par
-;;       (exe:perform (desig:an action
-;;                              (type looking)
-;;                              (object ?object-designator)))
-;;       (exe:perform (if ?target-location
-;;                        (desig:an action
-;;                                  (type placing)
-;;                                  (arm ?arm)
-;;                                  (target ?target-location))
-;;                        (desig:an action
-;;                                  (type placing)
-;;                                  (arm ?arm)))))))
+(defun drive-and-place-plan (&key (?arm :right) ?target-location)
+  (let* ((?object-designator (get-object-in-hand ?arm))
+         (?driving-pose (or (when ?target-location (desig:reference ?target-location))
+                            (cram-object-interfaces:get-object-pose ?object-designator))))
+    (drive-to-reach-pose ?driving-pose :?arm ?arm)
+    (cpl:par
+      (exe:perform (desig:an action
+                             (type looking)
+                             (object ?object-designator)))
+      (exe:perform (if ?target-location
+                       (desig:an action
+                                 (type placing)
+                                 (arm ?arm)
+                                 (target ?target-location))
+                       (desig:an action
+                                 (type placing)
+                                 (arm ?arm)))))))
 
 (defun pick-and-place-plan (?type &key (?arm :right) ?color ?cad-model)
   (perceive-and-drive-and-pick-up-plan ?type :?arm ?arm :?color ?color :?cad-model ?cad-model)
   (exe:perform (desig:an action
                          (type placing)
                          (arm ?arm))))
+ )
+
+;; (with-simulated-robot
+;;         (prepare)
+;;         (spawn-bottle)
+;;         (let* ((?obj 
+;;                  (pr2-pp-plans::perceive 
+;;                   (an object (type bottle))))
+;;                (obj-pose-in-base (cram-object-interfaces:get-object-pose ?obj))
+;;                (?pose-in-map (cram-tf:ensure-pose-in-frame 
+;;                               obj-pose-in-base
+;;                               cram-tf:*fixed-frame*
+;;                               :use-zero-time t)))
+;;
+;;           (let ((?pose-for-base (cl-tf:pose->pose-stamped
+;;                                  "map"
+;;                                  0.0
+;;                                  (cl-transforms-stamped:make-identity-pose))))
+;;             (perform (an action (type going) (target (a location (pose ?pose-for-base))))))
+;;
+;;           (let* ((?robot (cut:var-value
+;;                           '?robot
+;;                           (car (prolog:prolog '(cram-robot-interfaces:robot ?robot)))))
+;;                  (?goal-for-base
+;;                    (desig:reference (desig:a location
+;;                                              (type reachable)
+;;                                              (for ?robot)
+;;                                              (location (desig:a location (pose ?pose-in-map)))
+;;                                              (side right)))))
+;;             (exe:perform (desig:a motion
+;;                                   (type going)
+;;                                   (target (desig:a location (pose ?goal-for-base))))))))
