@@ -28,18 +28,20 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(cpl:define-task-variable *object-identifier-to-instance-mappings*
-    (make-hash-table :test #'equal)
-    "Mapping from object-identifiers as bound in the
+;; (cpl:define-task-variable *object-identifier-to-instance-mappings*
+;;     (make-hash-table :test #'equal)
+;;     "Mapping from object-identifiers as bound in the
+;; OBJECT-DESIGNATOR-DATA class to instance names in the bullet world
+;; database.")
+
+(defvar *object-identifier-to-instance-mappings*
+  (make-hash-table :test #'equal)
+  "Mapping from object-identifiers as bound in the
 OBJECT-DESIGNATOR-DATA class to instance names in the bullet world
 database.")
 
 (defun get-object-instance-name (object-identifier)
-  (or (gethash object-identifier *object-identifier-to-instance-mappings*)
-      ;; as a fallback, return the object identifier. This is not
-      ;; really clean but makes integration of projection perception a
-      ;; little easier.
-      object-identifier))
+  (gethash object-identifier *object-identifier-to-instance-mappings*))
 
 (defun get-designator-object-name (object-designator)
   (let ((object-designator (desig:newest-effective-designator object-designator)))
