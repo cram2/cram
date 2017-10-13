@@ -63,10 +63,14 @@
 ;;     ?goal-for-base))
 (defun drive-to-reach-pose (pose &key (?arm :right))
   (let* ((?pose-in-map
-           (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame* :use-current-ros-time t))
+           (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame* :use-zero-time t))
+         (?robot (cut:var-value
+                  '?robot
+                  (car (prolog:prolog '(cram-robot-interfaces:robot ?robot)))))
          (?goal-for-base
            (desig:reference (desig:a location
-                                     (to reach)
+                                     (type reachable)
+                                     (for ?robot)
                                      (location (desig:a location (pose ?pose-in-map)))
                                      (side ?arm)))))
     (exe:perform (desig:a motion
