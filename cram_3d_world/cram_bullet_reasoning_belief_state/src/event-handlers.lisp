@@ -129,10 +129,19 @@
        cpoe:opening-distance))))
 
 (defmethod cram-occasions-events:on-event object-perceived ((event cpoe:object-perceived-event))
-  (unless cram-projection:*projection-environment*
-    (register-object-designator-data
-     (desig:reference (cpoe:event-object-designator event))
-     :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))))
+  (if cram-projection:*projection-environment*
+      ;; if in projection, only add the object name to perceived designators list
+      (let ((object-data (desig:reference (cpoe:event-object-designator event))))
+        (or
+         (gethash (desig:object-identifier object-data)
+                  *object-identifier-to-instance-mappings*)
+         (setf (gethash (desig:object-identifier object-data)
+                        *object-identifier-to-instance-mappings*)
+               (desig:object-identifier object-data))))
+      ;; otherwise, spawn a new object in the bullet world
+      (register-object-designator-data
+       (desig:reference (cpoe:event-object-designator event))
+       :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))))
 
 (defun update-object-designator-location (object-designator location-designator)
   (desig:make-designator
