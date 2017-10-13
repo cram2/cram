@@ -47,13 +47,12 @@
     'projection-role)
    (*projection-clock*
     (make-instance 'cram-projection:partially-ordered-clock))
+   ;; (cut:*timestamp-function* #'projection-timestamp-function)
    (cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*
     (alexandria:copy-hash-table
      cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*))
    (cram-semantic-map::*semantic-map*
-    (sem-map-utils:copy-semantic-map-object (cram-semantic-map:get-semantic-map)))
-   ;; (cut:*timestamp-function* #'projection-timestamp-function)
-   )
+    (sem-map-utils:copy-semantic-map-object (cram-semantic-map:get-semantic-map))))
   :process-module-definitions
   (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
                        pr2-proj-grippers pr2-proj-arms)
