@@ -36,13 +36,22 @@
 
 (cram-projection:define-projection-environment pr2-bullet-projection-environment
   :special-variable-initializers
-  ((cram-tf:*transformer* (make-instance 'cl-tf:transformer))
+  ((cram-tf:*transformer*
+    (make-instance 'cl-tf:transformer))
    ;; TODO: use custom tf topic "tf_sim"
    ;; For that first change tf2_ros/TransformListener to accept custom topic names
    ;; (*current-bullet-world* (cl-bullet:copy-world *current-bullet-world*))
-   (cram-bullet-reasoning:*current-timeline* (btr:timeline-init btr:*current-bullet-world*))
-   (desig:*default-role* 'projection-role)
-   (*projection-clock* (make-instance 'cram-projection:partially-ordered-clock))
+   (cram-bullet-reasoning:*current-timeline*
+    (btr:timeline-init btr:*current-bullet-world*))
+   (desig:*default-role*
+    'projection-role)
+   (*projection-clock*
+    (make-instance 'cram-projection:partially-ordered-clock))
+   (cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*
+    (alexandria:copy-hash-table
+     cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*))
+   (cram-semantic-map::*semantic-map*
+    (sem-map-utils:copy-semantic-map-object (cram-semantic-map:get-semantic-map)))
    ;; (cut:*timestamp-function* #'projection-timestamp-function)
    )
   :process-module-definitions

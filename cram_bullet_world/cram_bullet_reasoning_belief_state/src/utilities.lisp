@@ -34,10 +34,6 @@
 OBJECT-DESIGNATOR-DATA class to instance names in the bullet world
 database.")
 
-(cram-projection:define-special-projection-variable
-    *object-identifier-to-instance-mappings*
-    (alexandria:copy-hash-table *object-identifier-to-instance-mappings*))
-
 (defun get-object-instance-name (object-identifier)
   (or (gethash object-identifier *object-identifier-to-instance-mappings*)
       ;; as a fallback, return the object identifier. This is not
