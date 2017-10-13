@@ -71,7 +71,7 @@
                                          (name "iai_kitchen_meal_table_counter_top")))))
     (desig:reference (desig:a location
                               (to see)
-                              (obj (desig:an object (at (desig:a location (pose ?pose)))))))))
+                              (object (desig:an object (at (desig:a location (pose ?pose)))))))))
 
 (defun add-objects-to-mesh-list (&optional (ros-package "cram_pr2_projection_sandbox"))
   (mapcar (lambda (object-filename-and-object-extension)
@@ -173,10 +173,10 @@
             (pr2-pp-plans::park-arms)
             (exe:perform (desig:a motion
                                   (type going)
-                                  (target (desig:a location (pose ?navigation-goal)))))
-            (exe:perform (desig:a motion
-                                  (type looking)
-                                  (target (desig:a location (pose ?ptu-goal)))))))))
+                                  (target (desig:a location (pose ?navigation-goal))))))
+          (exe:perform (desig:a motion
+                                (type looking)
+                                (target (desig:a location (pose ?ptu-goal))))))))
 (defun test-pr2-plans ()
   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
     (cpl:top-level
