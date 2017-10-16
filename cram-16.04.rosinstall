@@ -10,3 +10,9 @@
     local-name: roslisp_common
     uri: https://github.com/ros/roslisp_common.git
     version: 093c131b6dcfa67f125fb3989eee14b5ba622bcf
+
+############## IAI services and messages #############
+- git:
+    local-name: iai-messages
+    uri: https://github.com/code-iai/iai_common_msgs.git
+    version: master
