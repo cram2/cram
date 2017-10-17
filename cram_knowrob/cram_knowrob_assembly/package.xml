@@ -10,7 +10,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <!--depend>cram_json_prolog</depend-->
+  <depend>cram_json_prolog</depend>
   <depend>cram_utilities</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cl_transforms</depend>

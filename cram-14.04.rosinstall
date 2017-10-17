@@ -11,8 +11,8 @@
     uri: https://github.com/ros/roslisp_common.git
     version: 093c131b6dcfa67f125fb3989eee14b5ba622bcf
     
-############## IAI services and messages ###########
+############## IAI common msgs repository ############
 - git:
-    local-name: iai-messages
+    local-name: iai_common_msgs
     uri: https://github.com/code-iai/iai_common_msgs.git
-    version: master
+	version: 412fc76df417189d4f65c2c72d272c3a8f47105a
