@@ -28,7 +28,7 @@
   <depend>cram_robot_interfaces</depend>
   <depend>cram_pr2_low_level</depend>
   <depend>cram_pr2_process_modules</depend>
-  <depend>cram_pr2_pick_place_plans</depend>
+  <depend>cram_mobile_pick_place_plans</depend>
   <depend>cram_knowrob_cloud</depend>
   <depend>cram_pr2_projection_sandbox</depend>
   <depend>cram_location_costmap</depend>

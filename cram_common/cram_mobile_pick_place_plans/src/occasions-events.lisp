@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-pp-plans)
+(in-package :pp-plans)
 
 (defvar *objects-in-hand* nil
   "An assoc list of objects in hand of structure (arm object-designator grasp). E.g.:
@@ -61,7 +61,7 @@
 (defun delete-object-in-hand (arm)
   (setf (cdr (assoc arm *objects-in-hand*)) nil))
 
-(def-fact-group pr2-pick-and-place-occasions (cram-plan-occasions-events:object-in-hand)
+(def-fact-group pick-and-place-occasions (cram-plan-occasions-events:object-in-hand)
 
   (<- (cram-plan-occasions-events:object-in-hand ?object ?side)
     ;; TODO: add ?ROBOT argument to this predicate!

@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-pp-plans)
+(in-package :pp-plans)
 
 (defun perceive (?object-designator
                  &key
@@ -140,7 +140,7 @@
 ;;         (prepare)
 ;;         (spawn-bottle)
 ;;         (let* ((?obj 
-;;                  (pr2-pp-plans::perceive 
+;;                  (perceive 
 ;;                   (an object (type bottle))))
 ;;                (obj-pose-in-base (cram-object-interfaces:get-object-pose ?obj))
 ;;                (?pose-in-map (cram-tf:ensure-pose-in-frame 

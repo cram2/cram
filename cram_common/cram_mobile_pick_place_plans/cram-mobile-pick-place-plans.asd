@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-pick-place-plans
+(defsystem cram-mobile-pick-place-plans
   :author "Gayane Kazhoyan"
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
@@ -36,6 +36,7 @@
                ;; cl-tf2 ; in grasping overwrite tf transformer with tf2
                cram-tf
 
+               roslisp ; for debug statements
                roslisp-utilities
 
                cram-language
@@ -51,8 +52,8 @@
                cram-common-failures
 
                ;; pr2-reachability-costmap ; doesn't work somehow
-               cram-semantic-map-costmap
-               cram-robot-pose-gaussian-costmap
+               ;; cram-semantic-map-costmap
+               ;; cram-robot-pose-gaussian-costmap
 
                cram-object-interfaces
                cram-knowrob-pick-place)
