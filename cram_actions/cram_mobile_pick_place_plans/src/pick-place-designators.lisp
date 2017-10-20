@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-pp-plans)
+(in-package :pp-plans)
 
 (defun extract-pick-up-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
   "`?arm' can be :left, :right or (:left :right)."

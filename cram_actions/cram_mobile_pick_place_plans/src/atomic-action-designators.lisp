@@ -27,9 +27,9 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-pp-plans)
+(in-package :pp-plans)
 
-(def-fact-group pr2-pick-and-place-atomic-actions (desig:action-grounding)
+(def-fact-group pick-and-place-atomic-actions (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
     (or (spec:property ?action-designator (:type :reaching))

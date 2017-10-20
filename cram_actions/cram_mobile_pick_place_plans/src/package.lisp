@@ -29,8 +29,8 @@
 
 (in-package :cl-user)
 
-(defpackage cram-pr2-pick-place-plans
-  (:nicknames :pr2-pp-plans)
+(defpackage cram-mobile-pick-place-plans
+  (:nicknames #:pp-plans #:pr2-pp-plans)
   (:use #:common-lisp #:cram-prolog)
   (:export
    ;; atomic-action-plans
@@ -41,6 +41,7 @@
    #:pick-up #:place
    ;; high-level-plans
    #:perceive
-   #:drive-to-reach-pose #:drive-towards-object-plan #:drive-and-pick-up-plan
-   #:perceive-and-drive-and-pick-up-plan
-   #:pick-and-place-plan))
+   ;; #:drive-to-reach-pose #:drive-towards-object-plan #:drive-and-pick-up-plan
+   ;; #:perceive-and-drive-and-pick-up-plan
+   ;; #:pick-and-place-plan
+   ))

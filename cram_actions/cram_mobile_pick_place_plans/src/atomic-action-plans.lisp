@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-pp-plans)
+(in-package :pp-plans)
 
 (cpl:def-cram-function move-arms-in-sequence (left-poses right-poses)
   "Make `?left-poses' and `?right-poses' to lists if they are not already"

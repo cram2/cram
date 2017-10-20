@@ -55,7 +55,7 @@
                cram-robot-interfaces
                cram-pr2-low-level
                cram-pr2-process-modules
-               cram-pr2-pick-place-plans
+               cram-mobile-pick-place-plans
 
                cram-knowrob-cloud
 
