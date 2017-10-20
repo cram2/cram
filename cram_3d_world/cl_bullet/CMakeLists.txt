@@ -4,10 +4,6 @@ project(cl_bullet)
 find_package(catkin REQUIRED COMPONENTS
   cffi
   cffi_ros_utils
-  trivial_garbage
-  split_sequence
-  cl_transforms
-  cram_utilities
 )
 find_package(PkgConfig REQUIRED)
 
