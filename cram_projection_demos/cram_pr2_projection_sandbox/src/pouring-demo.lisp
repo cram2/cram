@@ -80,12 +80,12 @@
                 object-filename-and-object-extension
               (let ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
                                 object-filename :keyword)))
-                (pushnew (list lisp-name
-                               (format nil "package://~a/resource/~a.~a"
-                                       ros-package object-filename object-extension)
-                               nil)
-                         btr::*mesh-files*
-                         :key #'car)
+                (push (list lisp-name
+                            (format nil "package://~a/resource/~a.~a"
+                                    ros-package object-filename object-extension)
+                            nil)
+                      btr::*mesh-files*)
+                (remove-duplicates btr::*mesh-files* :key #'car)
                 lisp-name)))
           (mapcar (lambda (pathname)
                     (list (pathname-name pathname) (pathname-type pathname)))
