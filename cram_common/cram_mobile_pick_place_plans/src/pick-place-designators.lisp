@@ -62,8 +62,7 @@
 
 
 (def-fact-group pick-and-place-plans (desig:action-grounding)
-  (<- (desig:action-grounding ?action-designator (pick-up ?arm ?current-object-desig ?grasp
-                                                          ?gripper-opening ?effort
+  (<- (desig:action-grounding ?action-designator (pick-up ?object-name ?arm ?gripper-opening ?effort
                                                           ?left-reach-poses ?right-reach-poses
                                                           ?left-lift-poses ?right-lift-poses))
     ;; extract info from ?action-designator
@@ -87,7 +86,7 @@
     (lisp-fun extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses)))
 
-  (<- (desig:action-grounding ?action-designator (place ?arm ?current-object-designator
+  (<- (desig:action-grounding ?action-designator (place ?object-name ?arm
                                                         ?left-reach-poses ?right-reach-poses
                                                         ?left-put-poses ?right-put-poses
                                                         ?left-retract-poses ?right-retract-poses))

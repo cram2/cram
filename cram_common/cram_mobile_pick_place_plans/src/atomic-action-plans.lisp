@@ -138,7 +138,7 @@
            (cpl:do-retry grasping-retries
              (roslisp:ros-warn (pick-and-place grip) "~a" e)
              (cpl:retry))
-           (cpl:fail 'common-fail:low-level-failure)))
+           (cpl:fail e)))
       (exe:perform
          (desig:a motion
                   (type gripping)
