@@ -68,7 +68,6 @@
      (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
 
      ;; PICKING-UP and PLACING actions
-     ;; (:file "occasions-events" :depends-on ("package")) ; should use cram_knowrob instead
      (:file "pick-place-plans" :depends-on ("package" "atomic-action-designators"))
      (:file "pick-place-designators" :depends-on ("package"
                                                   "pick-place-plans"))
