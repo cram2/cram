@@ -29,24 +29,6 @@
 
 (in-package :pp-plans)
 
-(defun perceive (?object-designator
-                 &key
-                   (object-chosing-function #'identity))
-  (cpl:with-retry-counters ((perceive-retries 5))
-    (cpl:with-failure-handling
-        ((common-fail:perception-object-not-found (e)
-           (cpl:do-retry perceive-retries
-             (roslisp:ros-warn (pick-and-place perceive) "~a" e)
-             (cpl:retry))))
-      (let* ((resulting-designators
-               (exe:perform
-                (desig:a motion
-                         (type detecting)
-                         (object ?object-designator))))
-             (resulting-designator
-               (funcall object-chosing-function resulting-designators)))
-        resulting-designator))))
-
 ;; (defun pose-to-reach-object (object-pose-in-map arm)
 ;;   "Hardcoded pose for reaching an object: take an x offset of 20 cm from object."
 ;;   (let* ((new-x-for-base (- (cl-transforms:x (cl-transforms:origin object-pose-in-map))
@@ -65,7 +47,8 @@
 ;; The functions below are commented out as the pose TF handling is incomplete
 ;; and in some situations incorrect.
 ;; Use something similar to the function below the DRIVE-TO-REACH-POSE
-#+some-functions-below-are-commented-out
+
+#+all-functions-below-are-commented-out
 (
 (defun drive-to-reach-pose (pose &key (?arm :right))
      (let* ((?pose-in-map
