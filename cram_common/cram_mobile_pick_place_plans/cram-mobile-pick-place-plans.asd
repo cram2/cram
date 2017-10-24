@@ -34,7 +34,6 @@
   :depends-on (cl-transforms
                cl-transforms-stamped
                ;; cl-tf2 ; in grasping overwrite tf transformer with tf2
-               cram-tf
 
                roslisp ; for debug statements
                roslisp-utilities
@@ -42,21 +41,14 @@
                cram-language
                cram-prolog
                cram-designators
-               ;; cram-occasions-events
+               cram-occasions-events
                cram-executive
                cram-utilities ; for cut:var-value of prolog stuff
 
-               ;; cram-plan-occasions-events
-               ;; cram-bullet-reasoning ; for event handling with belief state
-
+               cram-tf
+               cram-plan-occasions-events
                cram-common-failures
-
-               ;; pr2-reachability-costmap ; doesn't work somehow
-               ;; cram-semantic-map-costmap
-               ;; cram-robot-pose-gaussian-costmap
-
-               cram-object-interfaces
-               cram-knowrob-pick-place)
+               cram-object-interfaces)
 
   :components
   ((:module "src"
