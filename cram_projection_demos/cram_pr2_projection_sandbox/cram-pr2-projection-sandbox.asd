@@ -63,6 +63,7 @@
                cram-location-costmap
 
                cram-mobile-pick-place-plans
+               cram-knowrob-pick-place
                cram-pr2-description)
 
   :components
