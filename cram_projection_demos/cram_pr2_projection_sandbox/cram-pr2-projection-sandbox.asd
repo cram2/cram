@@ -71,4 +71,5 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "pouring-demo" :depends-on ("package"))))))
+     (:file "pouring-demo" :depends-on ("package"))
+     (:file "costmaps" :depends-on ("package"))))))
