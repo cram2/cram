@@ -73,7 +73,10 @@
 
 (defun look-at-pose-stamped (pose-stamped)
   (declare (type cl-transforms-stamped:pose-stamped pose-stamped))
-  (let ((pose-in-world (cram-tf:ensure-pose-in-frame pose-stamped cram-tf:*fixed-frame*)))
+  (let ((pose-in-world (cram-tf:ensure-pose-in-frame
+                        pose-stamped
+                        cram-tf:*fixed-frame*
+                        :use-zero-time t)))
     (assert
      (prolog:prolog
       `(and (btr:bullet-world ?world)
@@ -228,53 +231,16 @@
   (cram-occasions-events:on-event
    (make-instance 'cram-plan-occasions-events:robot-state-changed))
 
-  ;; object-attached event
+  ;; check if there is an object to grip
   (when (eql action-type :grip) ; if action was gripping check if gripper collided with an item
-    (mapc ; for all items colliding with gripper of `arm' emit the event
-
-     (lambda (solution-bindings)
-       (cut:with-vars-bound (?object-name ?ee-link)
-           solution-bindings
-         (if (cut:is-var ?object-name)
-             (cpl:fail 'common-fail:gripping-failed :description "There was no object to grip")
-             (if (cut:is-var ?ee-link)
-                 (error "[GRIPPER LOW-LEVEL] Couldn't find robot's EE link.")
-                 (cram-occasions-events:on-event
-                  (make-instance 'cpoe:object-attached
-                    :object-name ?object-name :link ?ee-link :arm arm))))))
-
-     (cut:force-ll
-      (prolog:prolog
-       `(and (btr:bullet-world ?world)
-             (cram-robot-interfaces:robot ?robot)
-             (prolog:setof
-              ?on
-              (and (btr:contact ?world ?robot ?on ?link)
-                   (cram-robot-interfaces:gripper-link ?robot ,arm ?link))
-              ?object-names)
-             (member ?object-name ?object-names)
-             (btr:%object ?world ?object-name ?object-instance)
-             (prolog:lisp-type ?object-instance btr:item)
-             (cram-robot-interfaces:end-effector-link ?robot ,arm ?ee-link))))))
-
-  ;; object-detached event
-  (when (eql action-type :open) ; if action is opening, check if there was an object in gripper
-    (let ((link (cut:var-value
-                 '?ee-link
-                 (car (prolog:prolog
-                       `(and (cram-robot-interfaces:robot ?robot)
-                             (cram-robot-interfaces:end-effector-link ?robot ,arm ?ee-link)))))))
-      (when (cut:is-var link) (error "[GRIPPER LOW-LEVEL] Couldn't find robot's EE link."))
-      (mapc (lambda (attachment-data)
-              (mapc (lambda (attachment)
-                      (when (string-equal (btr::attachment-link attachment) link)
-                        (cram-occasions-events:on-event
-                         (make-instance 'cpoe:object-detached
-                           :object-name (btr::attachment-object attachment)
-                           :link link
-                           :arm arm))))
-                    (second attachment-data)))
-            (btr:attached-objects (btr:get-robot-object))))))
+    (unless (prolog:prolog
+             `(and (btr:bullet-world ?world)
+                   (cram-robot-interfaces:robot ?robot)
+                   (btr:contact ?world ?robot ?object-name ?link)
+                   (cram-robot-interfaces:gripper-link ?robot ,arm ?link)
+                   (btr:%object ?world ?object-name ?object-instance)
+                   (prolog:lisp-type ?object-instance btr:item)))
+      (cpl:fail 'common-fail:gripping-failed :description "There was no object to grip"))))
 
 (defun gripper-action (action-type arm &optional maximum-effort)
   (if (and arm (listp arm))

@@ -29,10 +29,9 @@
 
 (in-package :pp-plans)
 
-(cpl:def-cram-function pick-up (?arm object-designator grasp
-                                     ?gripper-opening  ?grip-effort
-                                     ?left-reach-poses ?right-reach-poses
-                                     ?left-lift-poses ?right-lift-poses)
+(cpl:def-cram-function pick-up (object-name ?arm ?gripper-opening  ?grip-effort
+                                            ?left-reach-poses ?right-reach-poses
+                                            ?left-lift-poses ?right-lift-poses)
   (cpl:par
     (roslisp:ros-info (pick-place pick-up) "Opening gripper")
     (exe:perform
@@ -52,9 +51,9 @@
              (type gripping)
              (arm ?arm)
              (effort ?grip-effort)))
-  ;; (roslisp:ros-info (pick-place pick-up) "Assert grasp into knowledge base")
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cpoe:object-gripped :object object-designator :arm ?arm :grasp grasp))
+  (roslisp:ros-info (pick-place pick-up) "Assert grasp into knowledge base")
+  (cram-occasions-events:on-event
+   (make-instance 'cpoe:object-attached :object-name object-name :arm ?arm))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
   (exe:perform
    (desig:an action
@@ -63,10 +62,10 @@
              (right-poses ?right-lift-poses))))
 
 
-(cpl:def-cram-function place (?arm object-designator
-                                   ?left-reach-poses ?right-reach-poses
-                                   ?left-put-poses ?right-put-poses
-                                   ?left-retract-poses ?right-retract-poses)
+(cpl:def-cram-function place (object-name ?arm
+                                          ?left-reach-poses ?right-reach-poses
+                                          ?left-put-poses ?right-put-poses
+                                          ?left-retract-poses ?right-retract-poses)
   (roslisp:ros-info (pick-place place) "Reaching")
   (exe:perform
    (desig:an action
@@ -84,9 +83,9 @@
    (desig:an action
              (type releasing)
              (gripper ?arm)))
-  ;; (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cpoe:object-released :arm ?arm :object object-designator))
+  (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
+  (cram-occasions-events:on-event
+   (make-instance 'cpoe:object-detached :arm ?arm :object-name object-name))
   (roslisp:ros-info (pick-place place) "Retracting")
   (exe:perform
    (desig:an action
