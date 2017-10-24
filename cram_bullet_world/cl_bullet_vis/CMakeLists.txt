@@ -5,11 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   cl_bullet
   cram_physics_utils
   cl_opengl
-  cl_transforms
   cl_glx
-  trivial_garbage
-  alexandria
-  lisp_unit
 )
 
 #set the default path for built executables to the "bin" directory
