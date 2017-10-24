@@ -30,7 +30,7 @@
 (in-package :cl-user)
 
 (defpackage cram-mobile-pick-place-plans
-  (:nicknames #:pp-plans #:pr2-pp-plans)
+  (:nicknames #:pp-plans)
   (:use #:common-lisp #:cram-prolog)
   (:export
    ;; atomic-action-plans
