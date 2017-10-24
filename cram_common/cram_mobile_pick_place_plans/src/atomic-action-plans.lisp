@@ -137,8 +137,7 @@
         ((common-fail:low-level-failure (e) ; regrasp once then propagate up
            (cpl:do-retry grasping-retries
              (roslisp:ros-warn (pick-and-place grip) "~a" e)
-             (cpl:retry))
-           (cpl:fail e)))
+             (cpl:retry))))
       (exe:perform
          (desig:a motion
                   (type gripping)
@@ -185,3 +184,21 @@
              (cpl:retry))))
       (exe:perform
        (desig:a motion (type going) (target ?location-designator))))))
+
+(cpl:def-cram-function perceive (?object-designator
+                                 &key
+                                 (object-chosing-function #'identity))
+  (cpl:with-retry-counters ((perceive-retries 5))
+    (cpl:with-failure-handling
+        ((common-fail:perception-object-not-found (e)
+           (cpl:do-retry perceive-retries
+             (roslisp:ros-warn (pick-and-place perceive) "~a" e)
+             (cpl:retry))))
+      (let* ((resulting-designators
+               (exe:perform
+                (desig:a motion
+                         (type detecting)
+                         (object ?object-designator))))
+             (resulting-designator
+               (funcall object-chosing-function resulting-designators)))
+        resulting-designator))))
