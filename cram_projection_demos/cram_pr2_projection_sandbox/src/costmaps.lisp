@@ -59,6 +59,7 @@
      ?costmap)))
 
 (defun spawn-objects-on-sink-counter ()
+  (kill-all-objects)
   (add-objects-to-mesh-list)
   (let ((object-types '(:cereal :cup :bowl :spoon :milk)))
     ;; spawn at default location
@@ -107,7 +108,10 @@
         (pp-plans::park-arms)
         (exe:perform (desig:a motion
                               (type going)
-                              (target (desig:a location (pose ?navigation-goal))))))
+                              (target (desig:a location (pose ?navigation-goal)))))
+        (exe:perform (desig:a motion
+                              (type moving-torso)
+                              (joint-angle 0.3))))
       (exe:perform (desig:a motion
                             (type looking)
                             (target (desig:a location (pose ?ptu-goal))))))))
@@ -116,22 +120,19 @@
   (with-simulated-robot
     (pp-plans:park-arms)
 
-    (let ((?result-object
-            (let ((?bottle-desig (desig:an object (type ?object-type))))
-              (let ((?perceived-bottle-desig (pp-plans::perceive ?bottle-desig)))
-                         (cpl:par
-                           (exe:perform (desig:an action
-                                                  (type looking)
-                                                  (object ?perceived-bottle-desig)))
-                           (exe:perform (desig:an action
-                                                  (type picking-up)
-                                                  (arm ?arm)
-                                                  (object ?perceived-bottle-desig)))))
-              (desig:current-desig ?bottle-desig))))
+    (let ((?bottle-desig (desig:an object (type ?object-type))))
+      (let ((?perceived-bottle-desig (pp-plans::perceive ?bottle-desig)))
+        (cpl:par
+          (exe:perform (desig:an action
+                                 (type looking)
+                                 (object ?perceived-bottle-desig)))
+          (exe:perform (desig:an action
+                                 (type picking-up)
+                                 (arm ?arm)
+                                 (object ?perceived-bottle-desig))))))
 
-      (cpl:sleep 1.0)
+    (cpl:sleep 1.0)
 
-      (exe:perform (desig:an action
-                             (type placing)
-                             (arm ?arm)
-                             (object ?result-object))))))
+    (exe:perform (desig:an action
+                           (type placing)
+                           (arm ?arm)))))
