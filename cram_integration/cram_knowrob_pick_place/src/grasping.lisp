@@ -29,7 +29,7 @@
 
 (in-package :kr-pp)
 
-(defparameter *lift-z-offset* 0.4 "in meters")
+(defparameter *lift-z-offset* 0.1 "in meters")
 
 (defparameter *cutlery-grasp-z-offset* -0.005 "in meters") ; because TCP is not at the edge
 
@@ -46,37 +46,78 @@
 
 (defparameter *cup-pregrasp-xy-offset* 0.05 "in meters")
 (defparameter *cup-grasp-xy-offset* 0.02 "in meters")
-(defparameter *cup-grasp-z-offset* 0.036 "in meters")
-(defparameter *cup-center-z* 0.044)
+(defparameter *cup-grasp-z-offset* 0.03 "in meters")
+(defparameter *cup-top-grasp-x-offset* 0.03 "in meters")
+(defparameter *cup-top-grasp-z-offset* 0.02 "in meters")
 
+(defparameter *milk-grasp-xy-offset* 0.01 "in meters")
+(defparameter *milk-grasp-z-offset* 0.0 "in meters")
+(defparameter *milk-pregrasp-xy-offset* 0.05 "in meters")
+
+(defparameter *cereal-grasp-z-offset* 0.06 "in meters")
+(defparameter *cereal-grasp-xy-offset* -0.03 "in meters")
+(defparameter *cereal-pregrasp-xy-offset* 0.1 "in meters")
+
+(defparameter *bowl-grasp-x-offset* 0.07 "in meters")
+(defparameter *bowl-grasp-z-offset* 0.01 "in meters")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-object-type-grasp (object-type)
   "Default grasp is :top."
   :top)
 (defmethod get-object-type-grasp ((object-type (eql :cutlery))) :top)
+(defmethod get-object-type-grasp ((object-type (eql :spoon))) :top)
 (defmethod get-object-type-grasp ((object-type (eql :fork))) :top)
 (defmethod get-object-type-grasp ((object-type (eql :knife))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :plate))) :side)
-(defmethod get-object-type-grasp ((object-type (eql :bottle))) :side)
-(defmethod get-object-type-grasp ((object-type (eql :cup))) :front)
 
+(defmethod get-object-type-grasp ((object-type (eql :plate))) :side)
+
+(defmethod get-object-type-grasp ((object-type (eql :bottle))) :front)
+(defmethod get-object-type-grasp ((object-type (eql :bottle))) :side)
+
+(defmethod get-object-type-grasp ((object-type (eql :cup))) :side)
+(defmethod get-object-type-grasp ((object-type (eql :cup))) :front)
+(defmethod get-object-type-grasp ((object-type (eql :cup))) :top)
+
+(defmethod get-object-type-grasp ((object-type (eql :milk))) :front)
+(defmethod get-object-type-grasp ((object-type (eql :milk))) :side)
+;; (defmethod get-object-type-grasp ((object-type (eql :milk))) :top)
+
+(defmethod get-object-type-grasp ((object-type (eql :cereal))) :top)
+(defmethod get-object-type-grasp ((object-type (eql :cereal))) :front)
+;; (defmethod get-object-type-grasp ((object-type (eql :cereal))) :back).
+
+(defmethod get-object-type-grasp ((object-type (eql :bowl))) :top)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-object-type-gripping-effort (object-type)
     "Default value is 35 Nm."
     35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :cup))) 50)
-(defmethod get-object-type-gripping-effort ((object-type (eql :bottle))) 60)
-(defmethod get-object-type-gripping-effort ((object-type (eql :plate))) 100)
 (defmethod get-object-type-gripping-effort ((object-type (eql :cutlery))) 100)
+(defmethod get-object-type-gripping-effort ((object-type (eql :spoon))) 100)
 (defmethod get-object-type-gripping-effort ((object-type (eql :fork))) 100)
 (defmethod get-object-type-gripping-effort ((object-type (eql :knife))) 100)
+(defmethod get-object-type-gripping-effort ((object-type (eql :plate))) 100)
+(defmethod get-object-type-gripping-effort ((object-type (eql :bottle))) 60)
+(defmethod get-object-type-gripping-effort ((object-type (eql :cup))) 50)
+(defmethod get-object-type-gripping-effort ((object-type (eql :milk))) 30)
+(defmethod get-object-type-gripping-effort ((object-type (eql :cereal))) 10)
+(defmethod get-object-type-gripping-effort ((object-type (eql :bowl))) 100)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-object-type-gripper-opening (object-type)
   "Default value is 0.10. In meters."
   0.10)
+(defmethod get-object-type-gripper-opening ((object-type (eql :cutlery))) 0.03)
+(defmethod get-object-type-gripper-opening ((object-type (eql :spoon))) 0.03)
+(defmethod get-object-type-gripper-opening ((object-type (eql :fork))) 0.03)
+(defmethod get-object-type-gripper-opening ((object-type (eql :knife))) 0.03)
 (defmethod get-object-type-gripper-opening ((object-type (eql :plate))) 0.02)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-object-type-lift-pose (object-type arm grasp grasp-pose)
   (let ((grasp-pose (cram-tf:ensure-pose-in-frame
@@ -107,16 +148,21 @@
                                           arm
                                           (grasp (eql :top))
                                           grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*)
-  nil)
+  (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
 
 ;;; FORK and KNIFE are the same as CUTLERY
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :spoon))
+                                       object-name arm grasp)
+  (get-object-type-to-gripper-transform :cutlery object-name arm grasp))
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :fork))
                                        object-name arm grasp)
   (get-object-type-to-gripper-transform :cutlery object-name arm grasp))
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :knife))
                                        object-name arm grasp)
   (get-object-type-to-gripper-transform :cutlery object-name arm grasp))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :spoon))
+                                          arm grasp grasp-pose)
+  (get-object-type-pregrasp-pose :cutlery arm grasp grasp-pose))
 (defmethod get-object-type-pregrasp-pose ((object-type (eql :fork))
                                           arm grasp grasp-pose)
   (get-object-type-pregrasp-pose :cutlery arm grasp grasp-pose))
@@ -296,6 +342,28 @@
                                               grasp-pose)
   (cram-tf:translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)))
 
+;;; TOP grasp
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :cup))
+                                                 object-name
+                                                 arm
+                                                 (grasp (eql :top)))
+  (cl-transforms-stamped:make-transform-stamped
+   (roslisp-utilities:rosify-underscores-lisp-name object-name)
+   (ecase arm
+     (:left cram-tf:*robot-left-tool-frame*)
+     (:right cram-tf:*robot-right-tool-frame*))
+   0.0
+   (cl-transforms:make-3d-vector (- *cup-top-grasp-x-offset*) 0.0d0 *cup-top-grasp-z-offset*)
+   (cl-transforms:matrix->quaternion
+    #2A((1 0 0)
+        (0 -1 0)
+        (0 0 -1)))))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :cup))
+                                          arm
+                                          (grasp (eql :top))
+                                          grasp-pose)
+  (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
+
 ;;; SIDE grasp
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :cup))
                                                  object-name
@@ -341,12 +409,162 @@
                                       (:left *cup-pregrasp-xy-offset*)
                                       (:right (- *cup-pregrasp-xy-offset*)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; FRONT grasp
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :milk))
+                                                 object-name
+                                                 arm
+                                                 (grasp (eql :front)))
+  (cl-transforms-stamped:make-transform-stamped
+   (roslisp-utilities:rosify-underscores-lisp-name object-name)
+   (ecase arm
+     (:left cram-tf:*robot-left-tool-frame*)
+     (:right cram-tf:*robot-right-tool-frame*))
+   0.0
+   (cl-transforms:make-3d-vector *milk-grasp-xy-offset* 0.0d0 *milk-grasp-z-offset*)
+   (cl-transforms:matrix->quaternion
+    #2A((0 0 1)
+        (1 0 0)
+        (0 1 0)))))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :milk))
+                                          arm
+                                          (grasp (eql :front))
+                                          grasp-pose)
+  (cram-tf:translate-pose grasp-pose :x-offset (- *milk-pregrasp-xy-offset*)
+                                     :z-offset *lift-z-offset*))
+(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :milk))
+                                              arm
+                                              (grasp (eql :front))
+                                              grasp-pose)
+  (cram-tf:translate-pose grasp-pose :x-offset (- *milk-pregrasp-xy-offset*)))
+
+;;; SIDE grasp
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :milk))
+                                                 object-name
+                                                 (arm (eql :left))
+                                                 (grasp (eql :side)))
+  (cl-transforms-stamped:make-transform-stamped
+   (roslisp-utilities:rosify-underscores-lisp-name object-name)
+   cram-tf:*robot-left-tool-frame*
+   0.0
+   (cl-transforms:make-3d-vector 0.0d0 (- *milk-grasp-xy-offset*) *milk-grasp-z-offset*)
+   (cl-transforms:matrix->quaternion
+    #2A((-1 0 0)
+        (0 0 -1)
+        (0 -1 0)))))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :milk))
+                                                 object-name
+                                                 (arm (eql :right))
+                                                 (grasp (eql :side)))
+  (cl-transforms-stamped:make-transform-stamped
+   (roslisp-utilities:rosify-underscores-lisp-name object-name)
+   cram-tf:*robot-right-tool-frame*
+   0.0
+   (cl-transforms:make-3d-vector 0.0d0 *milk-grasp-xy-offset* *milk-grasp-z-offset*)
+   (cl-transforms:matrix->quaternion
+    #2A((-1 0 0)
+        (0 0 1)
+        (0 1 0)))))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :milk))
+                                          arm
+                                          (grasp (eql :side))
+                                          grasp-pose)
+  (cram-tf:translate-pose grasp-pose
+                          :y-offset (ecase arm
+                                      (:left *milk-pregrasp-xy-offset*)
+                                      (:right (- *milk-pregrasp-xy-offset*)))
+                          :z-offset *lift-z-offset*))
+(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :milk))
+                                              arm
+                                              (grasp (eql :side))
+                                              grasp-pose)
+  (cram-tf:translate-pose grasp-pose
+                          :y-offset (ecase arm
+                                      (:left *milk-pregrasp-xy-offset*)
+                                      (:right (- *milk-pregrasp-xy-offset*)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; TOP grasp
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :cereal))
+                                                 object-name
+                                                 arm
+                                                 (grasp (eql :top)))
+  (cl-transforms-stamped:make-transform-stamped
+   (roslisp-utilities:rosify-underscores-lisp-name object-name)
+   (ecase arm
+     (:left cram-tf:*robot-left-tool-frame*)
+     (:right cram-tf:*robot-right-tool-frame*))
+   0.0
+   (cl-transforms:make-3d-vector 0.0d0 0.0d0 *cereal-grasp-z-offset*)
+   (cl-transforms:matrix->quaternion
+    #2A((0 1 0)
+        (1 0 0)
+        (0 0 -1)))))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :cereal))
+                                          arm
+                                          (grasp (eql :top))
+                                          grasp-pose)
+  (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
+
+;;; FRONT grasp
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :cereal))
+                                                 object-name
+                                                 arm
+                                                 (grasp (eql :front)))
+  (cl-transforms-stamped:make-transform-stamped
+   (roslisp-utilities:rosify-underscores-lisp-name object-name)
+   (ecase arm
+     (:left cram-tf:*robot-left-tool-frame*)
+     (:right cram-tf:*robot-right-tool-frame*))
+   0.0
+   (cl-transforms:make-3d-vector *cereal-grasp-xy-offset* 0.0d0 *cereal-grasp-z-offset*)
+   (cl-transforms:matrix->quaternion
+    #2A((0 0 1)
+        (1 0 0)
+        (0 1 0)))))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :cereal))
+                                          arm
+                                          (grasp (eql :front))
+                                          grasp-pose)
+  (cram-tf:translate-pose grasp-pose :x-offset (- *cereal-pregrasp-xy-offset*)
+                                     :z-offset *lift-z-offset*))
+(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :cereal))
+                                              arm
+                                              (grasp (eql :front))
+                                              grasp-pose)
+  (cram-tf:translate-pose grasp-pose :x-offset (- *cereal-pregrasp-xy-offset*)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; TOP grasp
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :bowl))
+                                                 object-name
+                                                 arm
+                                                 (grasp (eql :top)))
+  (cl-transforms-stamped:make-transform-stamped
+   (roslisp-utilities:rosify-underscores-lisp-name object-name)
+   (ecase arm
+     (:left cram-tf:*robot-left-tool-frame*)
+     (:right cram-tf:*robot-right-tool-frame*))
+   0.0
+   (cl-transforms:make-3d-vector (- *bowl-grasp-x-offset*) 0.0d0 *bowl-grasp-z-offset*)
+   (cl-transforms:matrix->quaternion
+    #2A((1 0 0)
+        (0 -1 0)
+        (0 0 -1)))))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :bowl))
+                                          arm
+                                          (grasp (eql :top))
+                                          grasp-pose)
+  (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
 
 
 (def-fact-group pnp-object-knowledge (object-rotationally-symmetric orientation-matters)
 
   (<- (object-rotationally-symmetric ?object-type)
-    (member ?object-type (:bottle :drink :plate :cup)))
+    (member ?object-type (:plate :bottle :drink :cup :bowl)))
 
   (<- (orientation-matters ?object-type)
-    (member ?object-type (:knife :fork :cutlery :spatula))))
+    (member ?object-type (:knife :fork :spoon :cutlery :spatula))))
