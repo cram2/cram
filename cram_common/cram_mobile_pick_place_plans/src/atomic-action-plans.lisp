@@ -50,7 +50,7 @@
 
               (cpl:with-failure-handling
                   ((common-fail:manipulation-low-level-failure (e) ; ignore failures
-                     (roslisp:ros-warn (boxy-plans move-arms-in-sequence) "~a~%Ignoring." e)
+                     (roslisp:ros-warn (pick-place move-arms-in-sequence) "~a~%Ignoring." e)
                      (return)))
 
                 (exe:perform
@@ -71,9 +71,8 @@
       (cpl:with-failure-handling
           ((common-fail:manipulation-low-level-failure (e)
              ;; propagate failures up
-             (roslisp:ros-error (boxy-plans move-arms-in-sequence) "~a~%Failing." e)
-             ;; (roslisp:ros-warn (pick-and-place reach) "~a~%Ignoring." e)
-             (return)
+             (roslisp:ros-error (pick-place move-arms-in-sequence) "~a~%Failing." e)
+             ;; (return)
              ))
 
         (exe:perform
