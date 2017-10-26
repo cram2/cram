@@ -169,3 +169,34 @@
           (let ((?drop-pose *pose-bottle-1*))
             (place-down ?drop-pose ?perceived-bottle-2 :left))
           (pr2-pp-plans::park-arms))))))
+
+(defparameter *perceived-object* nil)
+
+(defun perceive-bottle ()
+  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+    (cpl:top-level
+      (setf *perceived-object* (pr2-pp-plans::perceive (desig:an object (type bottle)))))))
+
+(defun move-torso (?angle)
+  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+    (cpl:top-level
+      (exe:perform
+       (desig:a motion (type moving-torso) (joint-angle ?angle))))))
+
+(defun move-bottle (m)
+  (btr-utils:move-object 'bottle-1
+                         (cl-tf:make-pose
+                          (cl-tf:v+ (cl-tf:origin (btr:object-pose 'bottle-1)) (cl-tf:make-3d-vector 0 m 0))
+                          (cl-tf:orientation (btr:object-pose 'bottle-1)))))
+
+(defun place-bottle ()
+  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+    (cpl:top-level
+      (let ((?bottle (get-perceived-bottle-desig)))
+        (exe:perform (desig:an action
+                               (type placing)
+                               (object ?bottle)
+                               (arm right)))))))
+
+(defun test ()
+  )
