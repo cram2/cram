@@ -42,6 +42,8 @@
    ;; projection-clock
    #:action-duration #:projection-timestamp-function #:execute-as-action
 
+   #:*torso-step*
+
    ;; execute-container-opened execute-container-closed
            ;; execute-park execute-lift execute-grasp execute-put-down execute-pour
            ;; projection-navigation projection-ptu projection-perception
