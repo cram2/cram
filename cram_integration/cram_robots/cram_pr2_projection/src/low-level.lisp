@@ -266,13 +266,8 @@
 
 (defparameter *gripper-length* 0.2 "PR2's gripper length in meters, for calculating TCP -> EE")
 
-(defparameter *l-tcp-p* nil)
-(defparameter *r-tcp-p* nil)
-(defparameter *ee-poses* nil)
-
 (defun move-tcp (left-tcp-pose right-tcp-pose)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
-  (setf *r-tcp-p* (cons right-tcp-pose *r-tcp-p*))
   (flet ((tcp-pose->ee-pose (tcp-pose)
            (when tcp-pose
              (cl-transforms-stamped:pose->pose-stamped
@@ -286,14 +281,19 @@
          (get-ik-joint-positions (arm ee-pose)
            (when ee-pose
              (multiple-value-bind (ik-solution-msg torso-angle)
-                 (cut:with-vars-bound (?torso-angle)
+                 (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
                      (car (prolog:prolog `(and
                                            (cram-robot-interfaces:robot ?robot)
                                            (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?torso-joint)
+                                           (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint ?lower-limit)
+                                           (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint ?upper-limit)
                                            (btr:bullet-world ?world)
                                            (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
-                   (call-ik-service arm ee-pose :torso-angle ?torso-angle ; seed-state ; is todo
-                                    ))
+                   (call-ik-service arm ee-pose :torso-angle ?torso-angle
+                                                :torso-lower-limit ?lower-limit
+                                                :torso-upper-limit ?upper-limit
+                                                ;; seed-state ; is todo
+                                                ))
                (unless ik-solution-msg
                  (cpl:fail 'common-fail:manipulation-pose-unreachable
                            :description (format nil "~a is unreachable for EE." ee-pose)))
@@ -313,7 +313,7 @@
            (move-torso left-torso-angle))
           (left-torso-angle (move-torso left-torso-angle))
           (right-torso-angle (move-torso right-torso-angle)))
-      (move-joints left-ik right-ik)))))
+        (move-joints left-ik right-ik)))))
 
 (defun move-with-constraints (constraints-string)
   (declare (ignore constraints-string))

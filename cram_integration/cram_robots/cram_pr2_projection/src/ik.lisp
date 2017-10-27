@@ -156,10 +156,9 @@
 
 (defparameter *torso-step* 0.01)
 
-(defun call-ik-service (left-or-right cartesian-pose &key seed-state test-angle torso-angle)
+(defun call-ik-service (left-or-right cartesian-pose &key seed-state test-angle torso-angle torso-lower-limit torso-upper-limit)
   (declare (type keyword left-or-right)
            (type cl-transforms-stamped:pose-stamped cartesian-pose))
-  ;; (setf *ee-poses* (cons cartesian-pose *ee-poses*))
   (let ((ik-link (get-ik-solver-link left-or-right))
         (dbg-lvl (roslisp:debug-level NIL))) ;; TODO: have to get a real name?
     (roslisp:set-debug-level NIL 9)
@@ -170,20 +169,20 @@
               (roslisp:wait-for-service (concatenate 'string
                                                      (getf *ik-service-namespaces* left-or-right)
                                                      "/get_ik_solver_info") 10.0)
-                (roslisp:call-service
-                 (concatenate 'string (getf *ik-service-namespaces* left-or-right) "/get_ik")
-                 "moveit_msgs/GetPositionIK"
-                 (roslisp:make-request
-                  "moveit_msgs/GetPositionIK"
-                  (:ik_link_name :ik_request) ik-link
-                  (:pose_stamped :ik_request) (cl-transforms-stamped:to-msg
-                                               (cram-tf:ensure-pose-in-frame
-                                                cartesian-pose
-                                                cram-tf:*robot-torso-frame*
-                                                :use-zero-time t))
-                  (:joint_state :robot_state :ik_request) (or seed-state
-                                                              (make-zero-seed-state left-or-right))
-                  (:timeout :ik_request) 1.0)))
+              (roslisp:call-service
+               (concatenate 'string (getf *ik-service-namespaces* left-or-right) "/get_ik")
+               "moveit_msgs/GetPositionIK"
+               (roslisp:make-request
+                "moveit_msgs/GetPositionIK"
+                (:ik_link_name :ik_request) ik-link
+                (:pose_stamped :ik_request) (cl-transforms-stamped:to-msg
+                                             (cram-tf:ensure-pose-in-frame
+                                              cartesian-pose
+                                              cram-tf:*robot-torso-frame*
+                                              :use-zero-time t))
+                (:joint_state :robot_state :ik_request) (or seed-state
+                                                            (make-zero-seed-state left-or-right))
+                (:timeout :ik_request) 1.0)))
           (cond ((eql response-error-code
                       (roslisp-msg-protocol:symbol-code
                        'moveit_msgs-msg:moveiterrorcodes
@@ -195,48 +194,38 @@
                        'moveit_msgs-msg:moveiterrorcodes
                        :no_ik_solution)) nil)
                 (t (error 'simple-error
-                                  :format-control "IK service failed: ~a"
-                                  :format-arguments (list
-                                                     (roslisp-msg-protocol:code-symbol
-                                                      'moveit_msgs-msg:moveiterrorcodes
-                                                      response-error-code))))))
+                          :format-control "IK service failed: ~a"
+                          :format-arguments (list
+                                             (roslisp-msg-protocol:code-symbol
+                                              'moveit_msgs-msg:moveiterrorcodes
+                                              response-error-code))))))
       (simple-error (e)
         (declare (ignore e))
-        (cut:with-vars-bound (?upper-limit ?lower-limit)
-          (car
-           (prolog:prolog `(and
-                            (cram-robot-interfaces:robot ?robot)
-                            (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?torso-joint)
-                            (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint ?upper-limit)
-                            (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint ?lower-limit)
-                            )))
-          (if (or (not test-angle) (>= test-angle ?lower-limit))
-              (let* ((cur-torso-angle torso-angle)
-                     (next-test-angle (if test-angle
-                                     (max ?lower-limit (- test-angle *torso-step*))
-                                     ?upper-limit))
-                     (torso-offset (if test-angle (- test-angle cur-torso-angle) 0))
-                     (next-torso-offset (- next-test-angle cur-torso-angle))
-                     (pseudo-pose
-                       (cl-transforms-stamped:pose->pose-stamped
-                        (cl-transforms-stamped:frame-id cartesian-pose)
-                        (cl-transforms-stamped:stamp cartesian-pose)
-                        (cl-transforms:transform-pose (cl-tf:pose->transform cartesian-pose)
-                                                      (cl-transforms:make-pose
-                                                       (cl-transforms:make-3d-vector 0 0 (- torso-offset next-torso-offset))
-                                                       (cl-transforms:make-identity-rotation))))))
-                ;; (format T "Torso angle: ~a Test angle: ~a Offset: ~a~%" cur-torso-angle next-test-angle next-torso-offset)
-                (roslisp:set-debug-level NIL dbg-lvl)
-                (multiple-value-bind (ik-solution result-angle)
-                    (call-ik-service left-or-right pseudo-pose
-                                     :torso-angle torso-angle
-                                     :test-angle next-test-angle)
-                  ;; (format T "Result angle: ~a~%" result-angle)
-                  (when ik-solution
-                    (values ik-solution result-angle))))
-              (format t "IK service call freaked out. No IK solution found.~%");; error
-              ))
-        ))))
+        (if (or (not test-angle) (> test-angle torso-lower-limit))
+            (let* ((cur-torso-angle torso-angle)
+                   (next-test-angle (if test-angle
+                                        (max torso-lower-limit (- test-angle *torso-step*))
+                                        torso-upper-limit))
+                   (torso-offset (if test-angle (- test-angle cur-torso-angle) 0))
+                   (next-torso-offset (- next-test-angle cur-torso-angle))
+                   (pseudo-pose
+                     (cl-transforms-stamped:pose->pose-stamped
+                      (cl-transforms-stamped:frame-id cartesian-pose)
+                      (cl-transforms-stamped:stamp cartesian-pose)
+                      (cl-transforms:transform-pose (cl-tf:pose->transform cartesian-pose)
+                                                    (cl-transforms:make-pose
+                                                     (cl-transforms:make-3d-vector 0 0 (- torso-offset next-torso-offset))
+                                                     (cl-transforms:make-identity-rotation))))))
+              (roslisp:set-debug-level NIL dbg-lvl)
+              (multiple-value-bind (ik-solution result-angle)
+                  (call-ik-service left-or-right pseudo-pose
+                                   :torso-angle torso-angle
+                                   :torso-lower-limit torso-lower-limit
+                                   :torso-upper-limit torso-upper-limit
+                                   :test-angle next-test-angle)
+                (when ik-solution
+                  (values ik-solution result-angle))))
+            (format t "IK service call freaked out. No IK solution found.~%"))))))
 
 
 
