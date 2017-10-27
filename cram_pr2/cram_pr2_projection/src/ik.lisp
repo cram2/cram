@@ -154,10 +154,14 @@
                        'moveit_msgs-msg:moveiterrorcodes
                        error-code)))))))
 
-(defun call-ik-service (left-or-right cartesian-pose &optional seed-state)
+(defparameter *torso-step* 0.01)
+
+(defun call-ik-service (left-or-right cartesian-pose &key seed-state test-angle torso-angle torso-lower-limit torso-upper-limit)
   (declare (type keyword left-or-right)
            (type cl-transforms-stamped:pose-stamped cartesian-pose))
-  (let ((ik-link (get-ik-solver-link left-or-right)))
+  (let ((ik-link (get-ik-solver-link left-or-right))
+        (dbg-lvl (roslisp:debug-level NIL))) ;; TODO: have to get a real name?
+    (roslisp:set-debug-level NIL 9)
     (handler-case
         (roslisp:with-fields ((response-error-code (val error_code))
                               (joint-state (joint_state solution)))
@@ -182,7 +186,9 @@
           (cond ((eql response-error-code
                       (roslisp-msg-protocol:symbol-code
                        'moveit_msgs-msg:moveiterrorcodes
-                       :success)) joint-state)
+                       :success))
+                 (roslisp:set-debug-level NIL dbg-lvl)
+                 (values joint-state test-angle))
                 ((eql response-error-code
                       (roslisp-msg-protocol:symbol-code
                        'moveit_msgs-msg:moveiterrorcodes
@@ -195,7 +201,33 @@
                                               response-error-code))))))
       (simple-error (e)
         (declare (ignore e))
-        (format t "IK service call freaked out. No IK solution found.~%")))))
+        (if (or (not test-angle) (> test-angle torso-lower-limit))
+            (let* ((cur-torso-angle torso-angle)
+                   (next-test-angle (if test-angle
+                                        (max torso-lower-limit (- test-angle *torso-step*))
+                                        torso-upper-limit))
+                   (torso-offset (if test-angle (- test-angle cur-torso-angle) 0))
+                   (next-torso-offset (- next-test-angle cur-torso-angle))
+                   (pseudo-pose
+                     (cl-transforms-stamped:pose->pose-stamped
+                      (cl-transforms-stamped:frame-id cartesian-pose)
+                      (cl-transforms-stamped:stamp cartesian-pose)
+                      (cl-transforms:transform-pose (cl-tf:pose->transform cartesian-pose)
+                                                    (cl-transforms:make-pose
+                                                     (cl-transforms:make-3d-vector 0 0 (- torso-offset next-torso-offset))
+                                                     (cl-transforms:make-identity-rotation))))))
+              (roslisp:set-debug-level NIL dbg-lvl)
+              (multiple-value-bind (ik-solution result-angle)
+                  (call-ik-service left-or-right pseudo-pose
+                                   :torso-angle torso-angle
+                                   :torso-lower-limit torso-lower-limit
+                                   :torso-upper-limit torso-upper-limit
+                                   :test-angle next-test-angle)
+                (when ik-solution
+                  (values ik-solution result-angle))))
+            (format t "IK service call freaked out. No IK solution found.~%"))))))
+
+
 
 (defun call-fk-service (left-or-right link-names-vector
                         &optional (fk-base-frame "torso_lift_link"))
@@ -260,6 +292,6 @@
          (solution
            (call-ik-service arm
                             ee-pose
-                            seed-state)))
+                            :seed-state seed-state)))
     (when solution
       (list solution))))
