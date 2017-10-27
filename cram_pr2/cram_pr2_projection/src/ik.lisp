@@ -125,7 +125,7 @@
 
 
 (defun call-ik-persistent-service (left-or-right cartesian-pose
-                        &optional (ik-base-frame "torso_lift_link"))
+                                   &optional (ik-base-frame "torso_lift_link"))
   (declare (type keyword left-or-right)
            (type cl-transforms:pose cartesian-pose))
   (let ((ik-link (get-ik-solver-link left-or-right)))
@@ -156,11 +156,12 @@
 
 (defparameter *torso-step* 0.01)
 
-(defun call-ik-service (left-or-right cartesian-pose &key seed-state test-angle torso-angle torso-lower-limit torso-upper-limit)
+(defun call-ik-service (left-or-right cartesian-pose
+                        &key seed-state test-angle torso-angle torso-lower-limit torso-upper-limit)
   (declare (type keyword left-or-right)
            (type cl-transforms-stamped:pose-stamped cartesian-pose))
   (let ((ik-link (get-ik-solver-link left-or-right))
-        (dbg-lvl (roslisp:debug-level NIL))) ;; TODO: have to get a real name?
+        (old-debug-lvl (roslisp:debug-level NIL)))
     (roslisp:set-debug-level NIL 9)
     (handler-case
         (roslisp:with-fields ((response-error-code (val error_code))
@@ -187,7 +188,7 @@
                       (roslisp-msg-protocol:symbol-code
                        'moveit_msgs-msg:moveiterrorcodes
                        :success))
-                 (roslisp:set-debug-level NIL dbg-lvl)
+                 (roslisp:set-debug-level NIL old-debug-lvl)
                  (values joint-state test-angle))
                 ((eql response-error-code
                       (roslisp-msg-protocol:symbol-code
@@ -199,6 +200,8 @@
                                              (roslisp-msg-protocol:code-symbol
                                               'moveit_msgs-msg:moveiterrorcodes
                                               response-error-code))))))
+
+      ;; if an error happened, try with a different torso angle recursively
       (simple-error (e)
         (declare (ignore e))
         (if (or (not test-angle) (> test-angle torso-lower-limit))
@@ -206,17 +209,14 @@
                    (next-test-angle (if test-angle
                                         (max torso-lower-limit (- test-angle *torso-step*))
                                         torso-upper-limit))
-                   (torso-offset (if test-angle (- test-angle cur-torso-angle) 0))
+                   (torso-offset (if test-angle
+                                     (- test-angle cur-torso-angle)
+                                     0))
                    (next-torso-offset (- next-test-angle cur-torso-angle))
                    (pseudo-pose
-                     (cl-transforms-stamped:pose->pose-stamped
-                      (cl-transforms-stamped:frame-id cartesian-pose)
-                      (cl-transforms-stamped:stamp cartesian-pose)
-                      (cl-transforms:transform-pose (cl-tf:pose->transform cartesian-pose)
-                                                    (cl-transforms:make-pose
-                                                     (cl-transforms:make-3d-vector 0 0 (- torso-offset next-torso-offset))
-                                                     (cl-transforms:make-identity-rotation))))))
-              (roslisp:set-debug-level NIL dbg-lvl)
+                     (cram-tf:translate-pose cartesian-pose
+                                             :z-offset (- torso-offset next-torso-offset))))
+              (roslisp:set-debug-level NIL old-debug-lvl)
               (multiple-value-bind (ik-solution result-angle)
                   (call-ik-service left-or-right pseudo-pose
                                    :torso-angle torso-angle
