@@ -293,15 +293,40 @@
                 (cl-transforms:make-identity-rotation))))))
          (get-ik-joint-positions (arm ee-pose)
            (when ee-pose
-             (let ((ik-solution-msg (call-ik-service arm ee-pose ; seed-state ; is todo
-                                                     )))
+             (multiple-value-bind (ik-solution-msg torso-angle)
+                 (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
+                     (car (prolog:prolog `(and
+                                           (cram-robot-interfaces:robot ?robot)
+                                           (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?torso-joint)
+                                           (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint ?lower-limit)
+                                           (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint ?upper-limit)
+                                           (btr:bullet-world ?world)
+                                           (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
+                   (call-ik-service arm ee-pose :torso-angle ?torso-angle
+                                                :torso-lower-limit ?lower-limit
+                                                :torso-upper-limit ?upper-limit
+                                                ;; seed-state ; is todo
+                                                ))
                (unless ik-solution-msg
                  (cpl:fail 'common-fail:manipulation-pose-unreachable
                            :description (format nil "~a is unreachable for EE." ee-pose)))
-               (map 'list #'identity
-                    (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))))))
-    (move-joints (get-ik-joint-positions :left (tcp-pose->ee-pose left-tcp-pose))
-                 (get-ik-joint-positions :right (tcp-pose->ee-pose right-tcp-pose)))))
+               (values
+                (map 'list #'identity
+                     (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))
+                torso-angle)))))
+    (multiple-value-bind (left-ik left-torso-angle)
+        (get-ik-joint-positions :left (tcp-pose->ee-pose left-tcp-pose))
+      (multiple-value-bind (right-ik right-torso-angle)
+          (get-ik-joint-positions :right (tcp-pose->ee-pose right-tcp-pose))
+        (cond
+          ((and left-torso-angle right-torso-angle)
+           (when (not (eq left-torso-angle right-torso-angle))
+             (cpl:fail 'common-fail:manipulation-pose-unreachable
+                       :description (format nil "Not both poses are reachable for EEs (They need different torso angles).")));; TODO: Better description.
+           (move-torso left-torso-angle))
+          (left-torso-angle (move-torso left-torso-angle))
+          (right-torso-angle (move-torso right-torso-angle)))
+        (move-joints left-ik right-ik)))))
 
 (defun move-with-constraints (constraints-string)
   (declare (ignore constraints-string))
