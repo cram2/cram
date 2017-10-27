@@ -77,15 +77,15 @@
 (defmethod get-object-type-grasp ((object-type (eql :bottle))) :side)
 
 (defmethod get-object-type-grasp ((object-type (eql :cup))) :side)
-(defmethod get-object-type-grasp ((object-type (eql :cup))) :front)
 (defmethod get-object-type-grasp ((object-type (eql :cup))) :top)
+(defmethod get-object-type-grasp ((object-type (eql :cup))) :front)
 
 (defmethod get-object-type-grasp ((object-type (eql :milk))) :front)
 (defmethod get-object-type-grasp ((object-type (eql :milk))) :side)
 ;; (defmethod get-object-type-grasp ((object-type (eql :milk))) :top)
 
-(defmethod get-object-type-grasp ((object-type (eql :cereal))) :top)
 (defmethod get-object-type-grasp ((object-type (eql :cereal))) :front)
+(defmethod get-object-type-grasp ((object-type (eql :cereal))) :top)
 ;; (defmethod get-object-type-grasp ((object-type (eql :cereal))) :back).
 
 (defmethod get-object-type-grasp ((object-type (eql :bowl))) :top)
