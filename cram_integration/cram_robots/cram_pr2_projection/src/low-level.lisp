@@ -295,13 +295,14 @@
            (when ee-pose
              (multiple-value-bind (ik-solution-msg torso-angle)
                  (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
-                     (car (prolog:prolog `(and
-                                           (cram-robot-interfaces:robot ?robot)
-                                           (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?torso-joint)
-                                           (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint ?lower-limit)
-                                           (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint ?upper-limit)
-                                           (btr:bullet-world ?world)
-                                           (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
+                     (car (prolog:prolog
+                           `(and
+                             (cram-robot-interfaces:robot ?robot)
+                             (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?torso-joint)
+                             (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint ?lower-limit)
+                             (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint ?upper-limit)
+                             (btr:bullet-world ?world)
+                             (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
                    (call-ik-service arm ee-pose :torso-angle ?torso-angle
                                                 :torso-lower-limit ?lower-limit
                                                 :torso-upper-limit ?upper-limit
@@ -322,7 +323,8 @@
           ((and left-torso-angle right-torso-angle)
            (when (not (eq left-torso-angle right-torso-angle))
              (cpl:fail 'common-fail:manipulation-pose-unreachable
-                       :description (format nil "Not both poses are reachable for EEs (They need different torso angles).")));; TODO: Better description.
+                       :description (format nil "In MOVE-TCP goals for the two arms ~
+                                                 require different torso angles).")))
            (move-torso left-torso-angle))
           (left-torso-angle (move-torso left-torso-angle))
           (right-torso-angle (move-torso right-torso-angle)))
