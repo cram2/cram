@@ -64,12 +64,14 @@ For future we can implement something like next-different-action-solution
 similar to what we have for locations.")
 
   (:method ((designator motion-designator))
+    (log-perform-call designator "MOTION")
     (unless (cpm:matching-available-process-modules designator)
       (cpl:fail "No matching process module found for ~a" designator))
     (try-reference-designator designator "Cannot perform motion.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
+    (log-perform-call designator "ACTION")
     (destructuring-bind (command &rest arguments)
         (try-reference-designator designator)
       (if (fboundp command)
@@ -87,3 +89,11 @@ similar to what we have for locations.")
                 (apply command arguments)))
           (cpl:fail "Action designator `~a' resolved to cram function `~a',
 but it isn't defined. Cannot perform action." designator command)))))
+
+(defun log-perform-call (designator designator-type)
+  (let ((result "") (designator-properties (properties designator)))
+    (setf result (concatenate 'string result designator-type " "))
+    (dolist (item  designator-properties) 
+      (if (equal :TYPE (car item))
+          (setf result (concatenate 'string result (string (cadr item))))))
+    (print result)))
