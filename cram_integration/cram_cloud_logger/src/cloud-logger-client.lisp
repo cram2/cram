@@ -1,5 +1,14 @@
 (in-package :ccl)
 
+
+(defparameter *cloud-logger-client* (make-instance 'cloud-logger-client))
+(defparameter *is-client-connected* nil)
+
+(defparameter *host* "'https://localhost'")
+(defparameter *cert-path* "'/home/seba/Desktop/localhost.pem'")
+(defparameter *api-key* "'0nYZRYs5AxDeZAWhWBKYmLF1IJCtRM7gkYTqSV3Noyhl5V3yyxzSaA7Nxi8FFQsC'")
+
+
 (defclass cloud-logger-client()
   ((address :accessor get-address)
    (certificate :accessor get-certificate)
@@ -13,11 +22,15 @@
 
 (defmethod connect ((client cloud-logger-client))
   (roslisp:start-ros-node "json_prolog_client")
-  (json-prolog:prolog-simple-1 "register_ros_package('knowrob_cloud_logger').")
-  (json-prolog:prolog-simple-1 "cloud_interface('https://localhost', '/home/koralewski/Desktop/localhost.pem', 'K103jdr40Rp8UX4egmRf42VbdB1b5PW7qYOOVvTDAoiNG6lcQoaDHONf5KaFcefs').")
-  (json-prolog:prolog-simple-1 "start_user_container.")
-  (json-prolog:prolog-simple-1 "connect_to_user_container.")
-)
+  (handler-case (progn
+                  (json-prolog:prolog-simple-1 "register_ros_package('knowrob_cloud_logger').")
+                  (send-cloud-interface-query *host* *cert-path* *api-key*)
+                  (json-prolog:prolog-simple-1 "start_user_container.")
+                  (json-prolog:prolog-simple-1 "connect_to_user_container.")
+                  (setf *is-client-connected* t)
+                  (print "Client is connected to the cloud logger"))
+    (ROSLISP::ROS-RPC-ERROR () (print "No JSON Prolog service is running"))
+    (SIMPLE-ERROR () (print "Cannot connect to container"))))
 
 (defmethod perform-query ((client cloud-logger-client) prolog-query)
   (let ((query-id (get-id-from-query-result (send-prolog-query-1 prolog-query))))
@@ -28,6 +41,9 @@
 (defmethod get-next-solution ((client cloud-logger-client))
   (send-next-solution (get-current-query-id client))
   (read-next-prolog-query))
+
+(defun send-cloud-interface-query (host cert-path api-key)
+  (json-prolog:prolog-simple-1 (create-query "cloud_interface" (list host cert-path api-key))))
 
 (defun send-prolog-query-1 (prolog-query)
   (send-next-solution
