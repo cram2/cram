@@ -1,7 +1,7 @@
 (in-package :ccl)
 
 
-(defparameter *cloud-logger-client* (make-instance 'cloud-logger-client))
+(defparameter *cloud-logger-client* nil)
 (defparameter *is-client-connected* nil)
 
 (defparameter *host* "'https://localhost'")
@@ -16,21 +16,23 @@
    (current-query-id :accessor get-current-query-id)
    ))
 
-(defgeneric connect (client))
+;(defgeneric connect (client))
 (defgeneric get-next-solution (client))
 (defgeneric perform-query (client prolog-query))
 
-(defmethod connect ((client cloud-logger-client))
-  (roslisp:start-ros-node "json_prolog_client")
-  (handler-case (progn
+(defun connect-to-cloud-logger ()
+  (if *is-client-connected*
+      (print "Already connected to cloud logger")
+      (handler-case (progn
+                  ;(roslisp:start-ros-node "json_prolog_client")
                   (json-prolog:prolog-simple-1 "register_ros_package('knowrob_cloud_logger').")
                   (send-cloud-interface-query *host* *cert-path* *api-key*)
                   (json-prolog:prolog-simple-1 "start_user_container.")
                   (json-prolog:prolog-simple-1 "connect_to_user_container.")
                   (setf *is-client-connected* t)
                   (print "Client is connected to the cloud logger"))
-    (ROSLISP::ROS-RPC-ERROR () (print "No JSON Prolog service is running"))
-    (SIMPLE-ERROR () (print "Cannot connect to container"))))
+        (ROSLISP::ROS-RPC-ERROR () (print "No JSON Prolog service is running"))
+        (SIMPLE-ERROR () (print "Cannot connect to container")))))
 
 (defmethod perform-query ((client cloud-logger-client) prolog-query)
   (let ((query-id (get-id-from-query-result (send-prolog-query-1 prolog-query))))
@@ -41,6 +43,10 @@
 (defmethod get-next-solution ((client cloud-logger-client))
   (send-next-solution (get-current-query-id client))
   (read-next-prolog-query))
+
+
+(defun init-cloud-logger-client ()
+  (setf *cloud-logger-client* (make-instance 'cloud-logger-client)))
 
 (defun send-cloud-interface-query (host cert-path api-key)
   (json-prolog:prolog-simple-1 (create-query "cloud_interface" (list host cert-path api-key))))
@@ -56,12 +62,12 @@
   (json-prolog:prolog-simple
    (concatenate 'string "send_prolog_query('" (string prolog-query) "', @(false), Id)")))
 
-(defun test-interface ()
-  (let (test-cloud-logger-client)
-    (setf test-cloud-logger-client (make-instance 'cloud-logger-client))
-    (connect test-cloud-logger-client)
-    (send-cram-start-action "knowrob:\\'CRAMAction\\'" " \\'DummyContext\\'" "1492785072" "PV" "ActionInst")
-    (export-log-to-owl "lisp-interface.owl")))
+;(defun test-interface ()
+;  (let (test-cloud-logger-client)
+;    (setf test-cloud-logger-client (make-instance 'cloud-logger-client))
+;    (connect test-cloud-logger-client)
+;    (send-cram-start-action "knowrob:\\'CRAMAction\\'" " \\'DummyContext\\'" "1492785072" "PV" "ActionInst")
+;    (export-log-to-owl "lisp-interface.owl")))
 
 (defun get-id-from-query-result (query-result)
   (let ((x (string (cdaar query-result))))
