@@ -106,4 +106,4 @@ but it isn't defined. Cannot perform action." designator command)))))
   (concatenate 'string "knowrob:\\'" cram-action-name "\\'"))
 
 (defun get-timestamp-for-logging ()
-  (write-to-string (get-universal-time)))
+  (write-to-string (cram-utilities:current-timestamp)))
