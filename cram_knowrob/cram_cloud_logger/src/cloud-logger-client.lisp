@@ -5,8 +5,9 @@
 (defparameter *is-client-connected* nil)
 
 (defparameter *host* "'https://localhost'")
-(defparameter *cert-path* "'/home/seba/Desktop/localhost.pem'")
-(defparameter *api-key* "'0nYZRYs5AxDeZAWhWBKYmLF1IJCtRM7gkYTqSV3Noyhl5V3yyxzSaA7Nxi8FFQsC'")
+(defparameter *cert-path* "'/home/koralewski/Desktop/localhost.pem'")
+;(defparameter *api-key* "'0nYZRYs5AxDeZAWhWBKYmLF1IJCtRM7gkYTqSV3Noyhl5V3yyxzSaA7Nxi8FFQsC'")
+(defparameter *api-key* "'K103jdr40Rp8UX4egmRf42VbdB1b5PW7qYOOVvTDAoiNG6lcQoaDHONf5KaFcefs'")
 
 
 (defclass cloud-logger-client()
@@ -24,7 +25,7 @@
   (if *is-client-connected*
       (print "Already connected to cloud logger")
       (handler-case (progn
-                  ;(roslisp:start-ros-node "json_prolog_client")
+                  (roslisp:start-ros-node "json_prolog_client")
                   (json-prolog:prolog-simple-1 "register_ros_package('knowrob_cloud_logger').")
                   (send-cloud-interface-query *host* *cert-path* *api-key*)
                   (json-prolog:prolog-simple-1 "start_user_container.")
@@ -140,6 +141,13 @@
 
 (defun export-log-to-owl (filename)
   (send-prolog-query-1 (create-query "rdf_save" (list (concatenate 'string "\\'/home/ros/user_data/" filename "\\'" ) "[graph(\\'LoggingGraph\\')]"))))
+
+(defun get-value-of-json-prolog-dict (json-prolog-dict key-name)
+  (let ((json-prolog-dict-str (string json-prolog-dict)))
+    (let ((key-name-search-str (concatenate 'string key-name "\":\"")))
+      (let ((key-name-pos (+ (search key-name-search-str (string json-prolog-dict-str)) (length key-name-search-str))))
+        (let ((sub-value-str (subseq (string json-prolog-dict-str) key-name-pos)))
+          (subseq  sub-value-str 0 (search "\"" sub-value-str)))))))
 
 
 
