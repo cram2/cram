@@ -64,31 +64,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-object-type-grasp (object-type)
-  "Default grasp is :top."
-  :top)
-(defmethod get-object-type-grasp ((object-type (eql :cutlery))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :spoon))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :fork))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :knife))) :top)
-
-(defmethod get-object-type-grasp ((object-type (eql :plate))) :side)
-
-(defmethod get-object-type-grasp ((object-type (eql :bottle))) :front)
-(defmethod get-object-type-grasp ((object-type (eql :bottle))) :side)
-
-(defmethod get-object-type-grasp ((object-type (eql :cup))) :side)
-(defmethod get-object-type-grasp ((object-type (eql :cup))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :cup))) :front)
-
-(defmethod get-object-type-grasp ((object-type (eql :milk))) :front)
-(defmethod get-object-type-grasp ((object-type (eql :milk))) :side)
-;; (defmethod get-object-type-grasp ((object-type (eql :milk))) :top)
-
-(defmethod get-object-type-grasp ((object-type (eql :cereal))) :front)
-(defmethod get-object-type-grasp ((object-type (eql :cereal))) :top)
-;; (defmethod get-object-type-grasp ((object-type (eql :cereal))) :back).
-
-(defmethod get-object-type-grasp ((object-type (eql :bowl))) :top)
+  (cut:with-vars-bound (?GRASP)
+      (car
+       (prolog:prolog
+        `(get-object-type-grasp ,object-type ?grasp)))
+    ?GRASP))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -561,10 +541,34 @@
   (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
 
 
-(def-fact-group pnp-object-knowledge (object-rotationally-symmetric orientation-matters)
+(def-fact-group pnp-object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
 
   (<- (object-rotationally-symmetric ?object-type)
     (member ?object-type (:plate :bottle :drink :cup :bowl)))
 
   (<- (orientation-matters ?object-type)
-    (member ?object-type (:knife :fork :spoon :cutlery :spatula))))
+    (member ?object-type (:knife :fork :spoon :cutlery :spatula)))
+
+  (<- (object-type-grasp :cutlery :top))
+  (<- (object-type-grasp :spoon :top))
+  (<- (object-type-grasp :fork :top))
+  (<- (object-type-grasp :knife :top))
+  
+  (<- (object-type-grasp :plate :side))
+  
+  (<- (object-type-grasp :bottle :side))
+  (<- (object-type-grasp :bottle :front))
+
+  (<- (object-type-grasp :cup :front))
+  (<- (object-type-grasp :cup :top))
+  (<- (object-type-grasp :cup :side))
+  
+  (<- (object-type-grasp :milk :side))
+  (<- (object-type-grasp :milk :front))
+  ;; (<- (object-type-grasp :milk :top))
+
+  (<- (object-type-grasp :cereal :top))
+  (<- (object-type-grasp :cereal :front))
+  ;; (<- (object-type-grasp :cereal :back))
+
+  (<- (object-type-grasp :bowl :top)))

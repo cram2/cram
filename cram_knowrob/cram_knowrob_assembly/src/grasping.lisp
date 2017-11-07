@@ -33,9 +33,14 @@
 (defparameter *default-small-z-offset* 0.07 "in meters")
 
 
+;; TODO (cpo): Remove and refactor
 (defmethod get-object-type-grasp (object-type)
-  "Default grasp is :top."
-  :top)
+  (cut:with-vars-bound (?GRASP)
+      (car
+       (prolog:prolog
+        `(get-object-type-grasp ,object-type ?grasp)))
+    ?GRASP))
+
 (defmethod get-object-type-grasp ((object-type (eql :porsche-body))) :top)
 (defmethod get-object-type-grasp ((object-type (eql :camaro-body))) :top)
 (defmethod get-object-type-grasp ((object-type (eql :chassis))) :side)
@@ -183,3 +188,10 @@
         (1 0 0)
         (0 0 -1)))))
 )
+
+(def-fact-group asm-object-knowledge (object-type)
+  (<- object-type-grasp :porsche-body :top)
+  (<- object-type-grasp :camaro-body :top)
+  (<- object-type-grasp :chassis :side)
+  (<- object-type-grasp :axle :top)
+  (<- object-type-grasp :wheel :top))
