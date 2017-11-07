@@ -47,4 +47,5 @@
    #:get-object-type-2nd-lift-pose
    #:get-object-grasping-poses
    #:object-rotationally-symmetric
-   #:orientation-matters))
+   #:orientation-matters
+   #:object-type-grasp))

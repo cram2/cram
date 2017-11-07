@@ -105,7 +105,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
               (get-object-type-lift-pose object-type arm grasp grasp-pose))))))
 
 
-(def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters)
+(def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
 
   (<- (object-rotationally-symmetric ?object-type)
     (fail))
@@ -115,4 +115,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
   ;; knives, forks, etc, the orientation is important while for plates
   ;; the orientation doesn't matter at all.
   (<- (orientation-matters ?object-type-symbol)
+    (fail))
+
+  (<- (object-type-grasp ?object-type ?grasp)
     (fail)))
