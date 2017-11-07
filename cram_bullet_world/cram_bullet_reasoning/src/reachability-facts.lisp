@@ -38,7 +38,10 @@
   ;; reachability succeed.
   (<- (object-grasp ?world ?object ?grasp ?sides)
     (item-type ?world ?object ?object-type)
-    (object-type-grasp ?object-type ?grasp ?sides))
+    (cram-object-interfaces:object-type-grasp ?object-type ?grasp ?sides)
+    (cram-robot-interfaces:robot ?robot)
+    (cram-robot-interfaces:arm ?robot ?side)
+    (== ?sides (?side)))
 
   (<- (valid-grasp ?world ?object ?grasp ?sides)
     (-> (not (object-grasp ?world ?object ?_ ?_))
