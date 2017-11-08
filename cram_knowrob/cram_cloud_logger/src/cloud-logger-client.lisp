@@ -25,7 +25,7 @@
   (if *is-client-connected*
       (print "Already connected to cloud logger")
       (handler-case (progn
-                  (roslisp:start-ros-node "json_prolog_client")
+                  ;(roslisp:start-ros-node "json_prolog_client")
                   (json-prolog:prolog-simple-1 "register_ros_package('knowrob_cloud_logger').")
                   (send-cloud-interface-query *host* *cert-path* *api-key*)
                   (json-prolog:prolog-simple-1 "start_user_container.")
