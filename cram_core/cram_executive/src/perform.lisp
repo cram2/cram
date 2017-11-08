@@ -75,7 +75,8 @@ similar to what we have for locations.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
-    (print (log-perform-call designator))
+    (let ((x "lala"))
+    ;(print (log-perform-call designator))
     ;(print designator)
     ;(print "################")
                                         ;(print (sb-thread:thread-name SB-THREAD:*CURRENT-THREAD*))
@@ -90,13 +91,13 @@ similar to what we have for locations.")
                       (warn 'simple-warning
                             :format-control "Action goal `~a' already achieved."
                             :format-arguments (list occasion))
-                      (apply command arguments))
+                      (progn (apply command arguments) (print x)))
                   (unless (cram-occasions-events:holds occasion)
                     (cpl:fail "Goal `~a' of action `~a' was not achieved."
                               designator occasion)))
-                (apply command arguments)))
-          (cpl:fail "Action designator `~a' resolved to cram function `~a',
-but it isn't defined. Cannot perform action." designator command)))))
+                (progn (apply command arguments) (print x))))
+          (progn (cpl:fail "Action designator `~a' resolved to cram function `~a',
+but it isn't defined. Cannot perform action." designator command)(print "Error during action")))))))
 
 (defun log-perform-call (designator)
   (ccl::connect-to-cloud-logger)
