@@ -58,8 +58,7 @@
                      (car (prolog:prolog '(cram-robot-interfaces:robot ?robot)))))
             (?goal-for-base
               (desig:reference (desig:a location
-                                        (type reachable)
-                                        (for ?robot)
+                                        (reachable-for ?robot)
                                         (location (desig:a location (pose ?pose-in-map)))
                                         (side ?arm)))))
        (exe:perform (desig:a motion
