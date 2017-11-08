@@ -29,9 +29,6 @@
 
 (in-package :cram-object-interfaces)
 
-(defgeneric get-object-type-grasp (object-type)
-  (:documentation "Returns either of :top, :side, :front."))
-
 (defgeneric get-object-type-gripping-effort (object-type)
   (:documentation "Returns effort in Nm, e.g. 50."))
 

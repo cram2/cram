@@ -37,7 +37,6 @@
    #:get-object-transform
    #:get-object-pose
    ;; manipulation
-   #:get-object-type-grasp
    #:get-object-type-gripping-effort
    #:get-object-type-gripper-opening
    #:get-object-type-to-gripper-transform
