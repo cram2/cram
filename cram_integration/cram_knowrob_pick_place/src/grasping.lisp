@@ -67,7 +67,7 @@
   (cut:with-vars-bound (?GRASP)
       (car
        (prolog:prolog
-        `(get-object-type-grasp ,object-type ?grasp)))
+        `(object-type-grasp ,object-type ?grasp)))
     ?GRASP))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
