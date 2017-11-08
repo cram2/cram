@@ -61,15 +61,6 @@
 (defparameter *bowl-grasp-x-offset* 0.07 "in meters")
 (defparameter *bowl-grasp-z-offset* 0.01 "in meters")
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmethod get-object-type-grasp (object-type)
-  (cut:with-vars-bound (?GRASP)
-      (car
-       (prolog:prolog
-        `(object-type-grasp ,object-type ?grasp)))
-    ?GRASP))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-object-type-gripping-effort (object-type)
