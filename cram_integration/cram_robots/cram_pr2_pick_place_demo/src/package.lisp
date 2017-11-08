@@ -31,7 +31,8 @@
 
 (defpackage cram-pr2-pick-place-demo
   (:nicknames #:pr2-pp-demo #:demo)
-  (:use #:common-lisp #:cram-prolog)
+  (:use #:common-lisp #:cram-prolog
+        #:desig #:exe)
   (:export
    ;; setup
    ;; #:bla
