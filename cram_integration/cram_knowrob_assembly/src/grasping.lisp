@@ -32,17 +32,6 @@
 (defparameter *default-z-offset* 0.2 "in meters")
 (defparameter *default-small-z-offset* 0.07 "in meters")
 
-
-(defmethod get-object-type-grasp (object-type)
-  "Default grasp is :top."
-  :top)
-(defmethod get-object-type-grasp ((object-type (eql :porsche-body))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :camaro-body))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :chassis))) :side)
-(defmethod get-object-type-grasp ((object-type (eql :axle))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :wheel))) :top)
-
-
 (defmethod get-object-type-gripping-effort (object-type)
     "Default value is 35 Nm."
     35)
@@ -183,3 +172,10 @@
         (1 0 0)
         (0 0 -1)))))
 )
+
+(def-fact-group asm-object-knowledge (object-type)
+  (<- object-type-grasp :porsche-body :top)
+  (<- object-type-grasp :camaro-body :top)
+  (<- object-type-grasp :chassis :side)
+  (<- object-type-grasp :axle :top)
+  (<- object-type-grasp :wheel :top))
