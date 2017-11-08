@@ -38,7 +38,7 @@
   (cut:with-vars-bound (?GRASP)
       (car
        (prolog:prolog
-        `(get-object-type-grasp ,object-type ?grasp)))
+        `(object-type-grasp ,object-type ?grasp)))
     ?GRASP))
 
 (defmethod get-object-type-grasp ((object-type (eql :porsche-body))) :top)
