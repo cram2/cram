@@ -37,7 +37,6 @@
    #:get-object-transform
    #:get-object-pose
    ;; manipulation
-   #:get-object-type-grasp
    #:get-object-type-gripping-effort
    #:get-object-type-gripper-opening
    #:get-object-type-to-gripper-transform
@@ -47,4 +46,5 @@
    #:get-object-type-2nd-lift-pose
    #:get-object-grasping-poses
    #:object-rotationally-symmetric
-   #:orientation-matters))
+   #:orientation-matters
+   #:object-type-grasp))

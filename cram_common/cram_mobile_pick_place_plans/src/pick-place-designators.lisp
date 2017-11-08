@@ -73,7 +73,7 @@
     (spec:property ?current-object-desig (:name ?object-name))
     (spec:property ?action-designator (:arm ?arm))
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
-    (lisp-fun obj-int:get-object-type-grasp ?object-type ?grasp)
+    (obj-int:object-type-grasp ?object-type ?grasp)
     (lisp-fun obj-int:get-object-type-gripping-effort ?object-type ?effort)
     (lisp-fun obj-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
     (lisp-fun cram-object-interfaces:get-object-transform ?current-object-desig ?object-transform)
@@ -98,7 +98,7 @@
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
     ;; infer missing information
-    (lisp-fun obj-int:get-object-type-grasp ?object-type ?grasp)
+    (obj-int:object-type-grasp ?object-type ?grasp)
     ;; take object-pose from action-designator target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location))
         (and (desig:current-designator ?location ?current-location-designator)

@@ -83,7 +83,7 @@
     (property ?current-object-desig (:name ?object-name))
     (property ?action-designator (:arm ?arm))
     ;; infer missing information like ?grasp type, gripping ?effort, manipulation poses
-    (lisp-fun kr-assembly::get-object-type-grasp ?object-type ?grasp)
+    (obj-int:object-type-grasp ?object-type ?grasp)
     (lisp-fun kr-assembly::get-object-type-gripping-effort ?object-type ?effort)
     (lisp-fun kr-assembly::get-object-type-gripper-opening ?object-type ?gripper-opening)
     (lisp-fun cram-object-interfaces:get-object-transform ?current-object-desig ?object-transform)
@@ -114,7 +114,7 @@
     (lisp-fun cram-object-interfaces:get-object-transform ?current-on-object-designator
               ?on-object-transform)
     ;; infer missing information
-    (lisp-fun kr-assembly::get-object-type-grasp ?object-type ?grasp)
+    (obj-int:object-type-grasp ?object-type ?grasp)
     (lisp-fun kr-assembly::get-object-placing-poses ?on-object-name ?on-object-type
               ?object-name ?object-type :left ?grasp
               ?on-object-transform ?left-poses)
@@ -147,7 +147,7 @@
     (lisp-fun cram-object-interfaces:get-object-transform ?current-with-object-designator
               ?with-object-transform)
     ;; infer missing information
-    (lisp-fun kr-assembly::get-object-type-grasp ?object-type ?grasp)
+    (obj-int:object-type-grasp ?object-type ?grasp)
     (lisp-fun kr-assembly::get-object-placing-poses ?with-object-name ?with-object-type
               ?object-name ?object-type :left ?grasp
               ?with-object-transform ?left-poses)
