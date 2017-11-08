@@ -32,22 +32,6 @@
 (defparameter *default-z-offset* 0.2 "in meters")
 (defparameter *default-small-z-offset* 0.07 "in meters")
 
-
-;; TODO (cpo): Remove and refactor
-(defmethod get-object-type-grasp (object-type)
-  (cut:with-vars-bound (?GRASP)
-      (car
-       (prolog:prolog
-        `(object-type-grasp ,object-type ?grasp)))
-    ?GRASP))
-
-(defmethod get-object-type-grasp ((object-type (eql :porsche-body))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :camaro-body))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :chassis))) :side)
-(defmethod get-object-type-grasp ((object-type (eql :axle))) :top)
-(defmethod get-object-type-grasp ((object-type (eql :wheel))) :top)
-
-
 (defmethod get-object-type-gripping-effort (object-type)
     "Default value is 35 Nm."
     35)
