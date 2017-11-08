@@ -29,6 +29,8 @@
 
 (in-package :exe)
 
+(defvar *logged-action-list* nil)
+
 (define-condition designator-reference-failure (cpl:simple-plan-failure)
   ((result :initarg :result :reader result :initform nil))
   (:default-initargs :format-control "designator-failure"))
@@ -65,15 +67,19 @@ similar to what we have for locations.")
 
   (:method ((designator motion-designator))
     ;(log-perform-call designator "MOTION")
+                                        ;(print (sb-thread:thread-name SB-THREAD:*CURRENT-THREAD*))
+    ;(print (sb-thread:list-all-threads))
     (unless (cpm:matching-available-process-modules designator)
       (cpl:fail "No matching process module found for ~a" designator))
     (try-reference-designator designator "Cannot perform motion.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
-    (log-perform-call designator "ACTION")
+    (print (log-perform-call designator))
     ;(print designator)
     ;(print "################")
+                                        ;(print (sb-thread:thread-name SB-THREAD:*CURRENT-THREAD*))
+    ;(print (sb-thread:list-all-threads))
     (destructuring-bind (command &rest arguments)
         (try-reference-designator designator)
       (if (fboundp command)
@@ -92,18 +98,18 @@ similar to what we have for locations.")
           (cpl:fail "Action designator `~a' resolved to cram function `~a',
 but it isn't defined. Cannot perform action." designator command)))))
 
-(defun log-perform-call (designator designator-type)
+(defun log-perform-call (designator)
   (ccl::connect-to-cloud-logger)
   (if ccl::*is-client-connected*
       (let ((result "") (designator-properties (properties designator)))
-        (setf result (concatenate 'string result designator-type ": "))
+        ;(setf result (concatenate 'string result designator-type ": "))
         (dolist (item  designator-properties) 
           (if (equal :TYPE (car item))
-              (ccl::send-cram-start-action (get-knowrob-action-name (string (cadr item))) " \\'DummyContext\\'" (get-timestamp-for-logging) "PV" "ActionInst")))
-        (print result))))
+              (setf result (ccl::get-value-of-json-prolog-dict (cdaar (ccl::send-cram-start-action (get-knowrob-action-name (string (cadr item))) " \\'DummyContext\\'" (get-timestamp-for-logging) "PV" "ActionInst")) "ActionInst"))))
+        result)))
 
 (defun get-knowrob-action-name (cram-action-name)
   (concatenate 'string "knowrob:\\'" cram-action-name "\\'"))
 
 (defun get-timestamp-for-logging ()
-  (write-to-string (cram-utilities:current-timestamp)))
+  (write-to-string (truncate (cram-utilities:current-timestamp))))
