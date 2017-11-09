@@ -103,7 +103,7 @@ but it isn't defined. Cannot perform action." designator command)(print "Error d
         result)))
 
 (defun get-knowrob-action-name (cram-action-name)
-  (let (knowrob-action-name "")
+  (let ((knowrob-action-name ""))
    (cond ((string-equal cram-action-name "reaching") (setf knowrob-action-name "Reaching")) 
          ((string-equal cram-action-name "retracting") (setf knowrob-action-name "Retracting"))
          ((string-equal cram-action-name "lifting") (setf knowrob-action-name "LiftingAGripper"))
