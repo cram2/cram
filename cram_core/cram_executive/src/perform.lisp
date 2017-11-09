@@ -66,21 +66,14 @@ For future we can implement something like next-different-action-solution
 similar to what we have for locations.")
 
   (:method ((designator motion-designator))
-    ;(log-perform-call designator "MOTION")
-                                        ;(print (sb-thread:thread-name SB-THREAD:*CURRENT-THREAD*))
-    ;(print (sb-thread:list-all-threads))
     (unless (cpm:matching-available-process-modules designator)
       (cpl:fail "No matching process module found for ~a" designator))
     (try-reference-designator designator "Cannot perform motion.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
-    (let ((x "lala"))
-    ;(print (log-perform-call designator))
-    ;(print designator)
-    ;(print "################")
-                                        ;(print (sb-thread:thread-name SB-THREAD:*CURRENT-THREAD*))
-    ;(print (sb-thread:list-all-threads))
+    (let ((action-id (log-perform-call designator)))
+  
     (destructuring-bind (command &rest arguments)
         (try-reference-designator designator)
       (if (fboundp command)
@@ -91,11 +84,11 @@ similar to what we have for locations.")
                       (warn 'simple-warning
                             :format-control "Action goal `~a' already achieved."
                             :format-arguments (list occasion))
-                      (progn (apply command arguments) (print x)))
+                      (progn (apply command arguments) (log-cram-finish-action action-id)))
                   (unless (cram-occasions-events:holds occasion)
                     (cpl:fail "Goal `~a' of action `~a' was not achieved."
                               designator occasion)))
-                (progn (apply command arguments) (print x))))
+                (progn (apply command arguments) (log-cram-finish-action action-id))))
           (progn (cpl:fail "Action designator `~a' resolved to cram function `~a',
 but it isn't defined. Cannot perform action." designator command)(print "Error during action")))))))
 
@@ -110,7 +103,22 @@ but it isn't defined. Cannot perform action." designator command)(print "Error d
         result)))
 
 (defun get-knowrob-action-name (cram-action-name)
-  (concatenate 'string "knowrob:\\'" cram-action-name "\\'"))
+  (let (knowrob-action-name "")
+   (cond ((string-equal cram-action-name "reaching") (setf knowrob-action-name "Reaching")) 
+         ((string-equal cram-action-name "retracting") (setf knowrob-action-name "Retracting"))
+         ((string-equal cram-action-name "lifting") (setf knowrob-action-name "LiftingAGripper"))
+         ((string-equal cram-action-name "putting") (setf knowrob-action-name "SinkingAGripper"))
+         ((string-equal cram-action-name "setting-gripper") (setf knowrob-action-name "SettingAGripper"))
+         ((string-equal cram-action-name "opening") (setf knowrob-action-name "OpeningAGripper"))
+         ((string-equal cram-action-name "closing") (setf knowrob-action-name "ClosingAGripper"))
+         ((string-equal cram-action-name "releasing") (setf knowrob-action-name "ReleasingGraspOfSomething"))
+         ((string-equal cram-action-name "gripping") (setf knowrob-action-name "AcquireGraspOfSomething"))
+         ((string-equal cram-action-name "looking") (setf knowrob-action-name "LookingAtLocation"))
+         ((string-equal cram-action-name "going") (setf knowrob-action-name "MovingToLocation")))
+  (concatenate 'string "knowrob:\\'" knowrob-action-name "\\'")))
 
 (defun get-timestamp-for-logging ()
   (write-to-string (truncate (cram-utilities:current-timestamp))))
+
+(defun log-cram-finish-action(action-id)
+  (ccl::send-cram-finish-action (concatenate 'string "\\'" action-id "\\'") (get-timestamp-for-logging)))
