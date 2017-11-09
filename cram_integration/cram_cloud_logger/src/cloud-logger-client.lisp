@@ -17,9 +17,6 @@
    (current-query-id :accessor get-current-query-id)
    ))
 
-;(defgeneric connect (client))
-(defgeneric get-next-solution (client))
-(defgeneric perform-query (client prolog-query))
 
 (defun connect-to-cloud-logger ()
   (if *is-client-connected*
@@ -35,16 +32,6 @@
         (ROSLISP::ROS-RPC-ERROR () (print "No JSON Prolog service is running"))
         (SIMPLE-ERROR () (print "Cannot connect to container")))))
 
-(defmethod perform-query ((client cloud-logger-client) prolog-query)
-  (let ((query-id (get-id-from-query-result (send-prolog-query-1 prolog-query))))
-    (setf (slot-value client 'current-query-id) query-id)
-    (send-next-solution query-id)
-    (read-next-prolog-query)))
-
-(defmethod get-next-solution ((client cloud-logger-client))
-  (send-next-solution (get-current-query-id client))
-  (read-next-prolog-query))
-
 
 (defun init-cloud-logger-client ()
   (setf *cloud-logger-client* (make-instance 'cloud-logger-client)))
@@ -56,29 +43,21 @@
   (send-next-solution
    (get-id-from-query-result
     (json-prolog:prolog-simple-1
-     (concatenate 'string "send_prolog_query('" (string prolog-query) "', @(false), Id)"))))
-  (read-next-prolog-query))
+     (concatenate 'string "send_prolog_query('" (string prolog-query) "', @(false), Id)")))))
 
 (defun send-prolog-query (prolog-query)
   (json-prolog:prolog-simple
    (concatenate 'string "send_prolog_query('" (string prolog-query) "', @(false), Id)")))
-
-;(defun test-interface ()
-;  (let (test-cloud-logger-client)
-;    (setf test-cloud-logger-client (make-instance 'cloud-logger-client))
-;    (connect test-cloud-logger-client)
-;    (send-cram-start-action "knowrob:\\'CRAMAction\\'" " \\'DummyContext\\'" "1492785072" "PV" "ActionInst")
-;    (export-log-to-owl "lisp-interface.owl")))
 
 (defun get-id-from-query-result (query-result)
   (let ((x (string (cdaar query-result))))
     (subseq x 2 (- (length x) 2))))
 
 (defun send-next-solution(id)
-  (json-prolog:prolog-simple-1 (concatenate 'string "send_next_solution('" id "').")))
+  (json-prolog:prolog-simple-1 (concatenate 'string "send_next_solution('" id "',Result).")))
 
-(defun read-next-prolog-query()
-  (json-prolog:prolog-simple-1 "read_next_prolog_query(Result)."))
+(defun read-next-prolog-query(query-id)
+  (json-prolog:prolog-simple-1 (concatenate 'string "read_next_prolog_query('" query-id "',Result).")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;Logging Specific Part;;;;;;;;;;;;;;;;;
