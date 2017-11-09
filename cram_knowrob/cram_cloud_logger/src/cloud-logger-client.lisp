@@ -128,6 +128,9 @@
         (let ((sub-value-str (subseq (string json-prolog-dict-str) key-name-pos)))
           (subseq  sub-value-str 0 (search "\"" sub-value-str)))))))
 
+(defun send-task-success (action-inst is-sucessful)
+  (send-prolog-query-1 (concatenate 'string "rdf_assert(\\'" action-inst "\\',knowrob:successTask, literal(type(xsd:boolean, " is-sucessful ")), \\'LoggingGraph\\').")))
+
 
 
 

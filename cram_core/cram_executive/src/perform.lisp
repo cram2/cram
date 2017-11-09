@@ -84,26 +84,25 @@ similar to what we have for locations.")
                       (warn 'simple-warning
                             :format-control "Action goal `~a' already achieved."
                             :format-arguments (list occasion))
-                      (progn (apply command arguments) (log-cram-finish-action action-id)))
+                      (progn (apply command arguments) (log-cram-finish-action action-id) (ccl::send-task-success action-id "true")))
                   (unless (cram-occasions-events:holds occasion)
                     (cpl:fail "Goal `~a' of action `~a' was not achieved."
                               designator occasion)))
-                (progn (apply command arguments) (log-cram-finish-action action-id))))
+                (progn (apply command arguments) (log-cram-finish-action action-id)(ccl::send-task-success action-id "true"))))
           (progn (cpl:fail "Action designator `~a' resolved to cram function `~a',
-but it isn't defined. Cannot perform action." designator command)(print "Error during action")))))))
+but it isn't defined. Cannot perform action." designator command)(ccl::send-task-success action-id "false")))))))
 
 (defun log-perform-call (designator)
   (ccl::connect-to-cloud-logger)
   (if ccl::*is-client-connected*
       (let ((result "") (designator-properties (properties designator)))
-        ;(setf result (concatenate 'string result designator-type ": "))
         (dolist (item  designator-properties) 
           (if (equal :TYPE (car item))
               (setf result (ccl::get-value-of-json-prolog-dict (cdaar (ccl::send-cram-start-action (get-knowrob-action-name (string (cadr item))) " \\'DummyContext\\'" (get-timestamp-for-logging) "PV" "ActionInst")) "ActionInst"))))
         result)))
 
 (defun get-knowrob-action-name (cram-action-name)
-  (let ((knowrob-action-name ""))
+  (let ((knowrob-action-name "UnknownAction"))
    (cond ((string-equal cram-action-name "reaching") (setf knowrob-action-name "Reaching")) 
          ((string-equal cram-action-name "retracting") (setf knowrob-action-name "Retracting"))
          ((string-equal cram-action-name "lifting") (setf knowrob-action-name "LiftingAGripper"))
