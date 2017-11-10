@@ -4,7 +4,7 @@
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-2;;;
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -27,30 +27,9 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :common-fail)
 
-(defpackage cram-common-failures
-  (:nicknames #:common-fail)
-  (:use #:cpl)
-  (:export
-   ;; common
-   #:low-level-failure
-   #:actionlib-action-timed-out
-   ;; manipulation
-   #:manipulation-low-level-failure
-   #:gripping-failed
-   #:gripping-failed-action
-   #:gripper-closed-completely
-   #:manipulation-goal-not-reached
-   #:manipulation-pose-unreachable
-   ;; navigation
-   #:navigation-low-level-failure
-   #:navigation-pose-unreachable
-   #:navigation-failure-location
-   ;; perception
-   #:perception-low-level-failure
-   #:perception-object-not-found
-   #:object-not-found-object
-   ;; ptu
-   #:ptu-low-level-failure
-   #:ptu-goal-unreachable))
+(define-condition ptu-low-level-failure (low-level-failure)
+  ((target :initarg :location :initform nil :reader ptu-failure-target)))
+
+(define-condition ptu-goal-unreachable (ptu-low-level-failure) ())
