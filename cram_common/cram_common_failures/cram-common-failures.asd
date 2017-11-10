@@ -40,4 +40,5 @@
              (:file "common" :depends-on ("package"))
              (:file "manipulation" :depends-on ("package" "common"))
              (:file "navigation" :depends-on ("package" "common"))
-             (:file "perception" :depends-on ("package" "common"))))))
+             (:file "perception" :depends-on ("package" "common"))
+             (:file "ptu" :depends-on ("package" "common"))))))
