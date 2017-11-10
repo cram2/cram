@@ -73,15 +73,67 @@
 
 (defun look-at-pose-stamped (pose-stamped)
   (declare (type cl-transforms-stamped:pose-stamped pose-stamped))
-  (let ((pose-in-world (cram-tf:ensure-pose-in-frame
-                        pose-stamped
-                        cram-tf:*fixed-frame*
-                        :use-zero-time t)))
-    (assert
-     (prolog:prolog
-      `(and (btr:bullet-world ?world)
-            (cram-robot-interfaces:robot ?robot)
-            (btr:head-pointing-at ?world ?robot ,pose-in-world))))
+  (let* ((bindings
+           (car
+            (prolog:prolog
+             '(and (cram-robot-interfaces:robot ?robot)
+               (cram-robot-interfaces:robot-pan-tilt-links ?robot ?pan-link ?tilt-link)
+               (cram-robot-interfaces:robot-pan-tilt-joints ?robot ?pan-joint ?tilt-joint)
+               (cram-robot-interfaces:joint-lower-limit ?robot ?pan-joint ?pan-lower)
+               (cram-robot-interfaces:joint-upper-limit ?robot ?pan-joint ?pan-upper)
+               (cram-robot-interfaces:joint-lower-limit ?robot ?tilt-joint ?tilt-lower)
+               (cram-robot-interfaces:joint-upper-limit ?robot ?tilt-joint ?tilt-upper)))))
+         (pan-link
+           (cut:var-value '?pan-link bindings))
+         (tilt-link
+           (cut:var-value '?tilt-link bindings))
+         (pan-joint
+           (cut:var-value '?pan-joint bindings))
+         (tilt-joint
+           (cut:var-value '?tilt-joint bindings))
+         (pan-lower-limit
+           (cut:var-value '?pan-lower bindings))
+         (pan-upper-limit
+           (cut:var-value '?pan-upper bindings))
+         (tilt-lower-limit
+           (cut:var-value '?tilt-lower bindings))
+         (tilt-upper-limit
+           (cut:var-value '?tilt-upper bindings))
+         (pose-in-world
+           (cram-tf:ensure-pose-in-frame
+            pose-stamped
+            cram-tf:*fixed-frame*
+            :use-zero-time t))
+         (pan-tilt-angles
+           (btr:calculate-pan-tilt (btr:get-robot-object) pan-link tilt-link pose-in-world))
+         (pan-angle
+           (first pan-tilt-angles))
+         (tilt-angle
+           (second pan-tilt-angles))
+         (cropped-pan-angle
+           (if (< pan-angle pan-lower-limit)
+               pan-lower-limit
+               (if (> pan-angle pan-upper-limit)
+                   pan-upper-limit
+                   pan-angle)))
+         (cropped-tilt-angle
+           (if (< tilt-angle tilt-lower-limit)
+               tilt-lower-limit
+               (if (> tilt-angle tilt-upper-limit)
+                   tilt-upper-limit
+                   tilt-angle))))
+    (prolog:prolog
+     `(and (btr:bullet-world ?w)
+           (cram-robot-interfaces:robot ?robot)
+           (btr:%object ?w ?robot ?robot-object)
+           (assert ?world
+                   (btr:joint-state
+                    ?robot ((,pan-joint ,cropped-pan-angle)
+                            (,tilt-joint ,cropped-tilt-angle))))))
+    (unless (and (= pan-angle cropped-pan-angle)
+                 (= tilt-angle cropped-tilt-angle))
+        (cpl:fail 'common-fail:ptu-goal-unreachable
+                  :description "Look action wanted to twist the neck"))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
