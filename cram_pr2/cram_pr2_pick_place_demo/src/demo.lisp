@@ -140,37 +140,45 @@
                            (target (desig:a location
                                             (pose ?target-pose)))))))
 
-(defun fetch (?object-designator ?location-designator)
-  (let (?pose-at-location
-        ?perceived-object-desig)
-    (cpl:with-retry-counters ((pose-at-location-retries 5))
-      (cpl:with-failure-handling
-          ((common-fail:perception-object-not-found (e)
-             (roslisp:ros-warn (pp-plans fetch) "Failure happened: ~a" e)
-             (cpl:do-retry pose-at-location-retries
-               (setf ?location-designator (desig:next-solution ?location-designator))
-               (when ?location-designator
-                 (roslisp:ros-warn (pp-plans fetch) "Retrying...~%")
-                 (cpl:retry)))))
-        (setf ?pose-at-location (desig:reference ?location-designator))
-        (let* ((?nav-location (desig:a location
-                                       (visible-for pr2)
-                                       (location (desig:a location
-                                                          (pose ?pose-at-location))))))
-          (let ((?pose-at-nav-location (desig:reference ?nav-location)))
-            (pp-plans:park-arms)
-            (exe:perform (desig:an action
-                                   (type going)
-                                   (target (desig:a location
-                                                    (pose ?pose-at-nav-location)))))))
+(defun search-for-object (?object-designator ?search-location)
+  (cpl:with-retry-counters ((search-location-retries 5))
+    (cpl:with-failure-handling
+        ((common-fail:perception-object-not-found (e)
+           (roslisp:ros-warn (pp-plans fetch) "Failure happened: ~a" e)
+           (cpl:do-retry search-location-retries
+             (setf ?search-location (desig:next-solution ?search-location))
+             (when ?search-location
+               (roslisp:ros-warn (pp-plans fetch) "Retrying...~%")
+               (cpl:retry)))))
+      (let* ((?pose-at-search-location (desig:reference ?search-location))
+             (?nav-location (desig:a location
+                                     (visible-for pr2)
+                                     (location (desig:a location
+                                                        (pose ?pose-at-search-location))))))
+        (let ((?pose-at-nav-location (desig:reference ?nav-location)))
+          (pp-plans:park-arms)
+          (exe:perform (desig:an action
+                                 (type going)
+                                 (target (desig:a location
+                                                  (pose ?pose-at-nav-location))))))
         (exe:perform (desig:an action
                                (type looking)
                                (target (desig:a location
-                                                (pose ?pose-at-location)))))
-        (setf ?perceived-object-desig (pp-plans::perceive ?object-designator))))
+                                                (pose ?pose-at-search-location))))))
+      (pp-plans::perceive ?object-designator))))
 
+(defun fetch (?object-designator ?search-location)
+  (let ((?perceived-object-desig
+          (search-for-object ?object-designator ?search-location)))
     (roslisp:ros-info (pp-plans fetch) "Found object ~a" ?perceived-object-desig)
-
+    (let ((?pick-up-location (desig:a location
+                                      (reachable-for pr2)
+                                      (object ?perceived-object-desig))))
+      (let ((?pose-at-pick-up-location (desig:reference ?pick-up-location)))
+        (exe:perform (desig:an action
+                               (type going)
+                               (target (desig:a location
+                                                (pose ?pose-at-pick-up-location)))))))
     )
   ;; (let* ((?object-desig (desig:an object (type ?object-type)))
   ;;        (?perceived-object-desig (pp-plans::perceive ?object-desig)))
