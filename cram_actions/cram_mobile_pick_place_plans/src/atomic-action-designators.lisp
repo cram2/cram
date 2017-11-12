@@ -61,7 +61,16 @@
     (spec:property ?action-designator (:gripper ?left-or-right-or-both))
     (spec:property ?action-designator (:position ?position)))
 
-  (<- (desig:action-grounding ?action-designator (look-at ?object-designator))
+  (<- (desig:action-grounding ?action-designator (look-at :target ?location-designator))
+    (spec:property ?action-designator (:type :looking))
+    (spec:property ?action-designator (:target ?location-designator)))
+  (<- (desig:action-grounding ?action-designator (look-at :frame ?frame))
+    (spec:property ?action-designator (:type :looking))
+    (spec:property ?action-designator (:frame ?frame)))
+  (<- (desig:action-grounding ?action-designator (look-at :direction ?direction))
+    (spec:property ?action-designator (:type :looking))
+    (spec:property ?action-designator (:direction ?direction)))
+  (<- (desig:action-grounding ?action-designator (look-at :object ?object-designator))
     (spec:property ?action-designator (:type :looking))
     (spec:property ?action-designator (:object ?object-designator)))
 
