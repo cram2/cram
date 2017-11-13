@@ -47,6 +47,8 @@
    #:navigation-low-level-failure
    #:navigation-pose-unreachable
    #:navigation-failure-location
+   #:navigation-pose-in-collision
+   #:navigation-failure-pose-stamped
    ;; perception
    #:perception-low-level-failure
    #:perception-object-not-found
