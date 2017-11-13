@@ -74,7 +74,8 @@ similar to what we have for locations.")
   (:method ((designator action-designator))
    
     (let ((action-id (log-perform-call designator)))
-  
+                                        ;(ccl::send-effort-action-parameter action-id "50.0")
+      (print (desig-prop-value designator :effort))
     (destructuring-bind (command &rest arguments)
         (try-reference-designator designator)
       (if (fboundp command)
@@ -98,6 +99,7 @@ but it isn't defined. Cannot perform action." designator command)(ccl::send-task
   (if ccl::*is-client-connected*
       (let ((result "") (cram-action-name (get-designator-property-value-str designator :TYPE)))
         (setf result (ccl::get-value-of-json-prolog-dict (cdaar (ccl::send-cram-start-action (get-knowrob-action-name cram-action-name) " \\'DummyContext\\'" (get-timestamp-for-logging) "PV" "ActionInst")) "ActionInst"))
+        (log-action-parameter designator result)
         result)))
 
 (defun get-knowrob-action-name (cram-action-name)
@@ -122,4 +124,7 @@ but it isn't defined. Cannot perform action." designator command)(ccl::send-task
   (ccl::send-cram-finish-action (concatenate 'string "\\'" action-id "\\'") (get-timestamp-for-logging)))
 
 (defun get-designator-property-value-str(designator property-keyname)
-   (string (cadr(assoc property-keyname (properties designator)))))
+  (string (cadr(assoc property-keyname (properties designator)))))
+
+(defun log-action-parameter (designator action-id)
+  (cond ((desig-prop-value designator :effort) (ccl::send-effort-action-parameter action-id (write-to-string (desig-prop-value designator :effort))))))
