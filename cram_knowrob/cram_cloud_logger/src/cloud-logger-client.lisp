@@ -22,7 +22,7 @@
   (if *is-client-connected*
       (print "Already connected to cloud logger")
       (handler-case (progn
-                  ;(roslisp:start-ros-node "json_prolog_client")
+                 ; (roslisp:start-ros-node "json_prolog_client")
                   (json-prolog:prolog-simple-1 "register_ros_package('knowrob_cloud_logger').")
                   (send-cloud-interface-query *host* *cert-path* *api-key*)
                   (json-prolog:prolog-simple-1 "start_user_container.")
@@ -130,6 +130,12 @@
 
 (defun send-task-success (action-inst is-sucessful)
   (send-prolog-query-1 (concatenate 'string "rdf_assert(\\'" action-inst "\\',knowrob:successTask, literal(type(xsd:boolean, " is-sucessful ")), \\'LoggingGraph\\').")))
+
+(defun send-effort-action-parameter (action-inst effort)
+  (send-prolog-query-1 (concatenate 'string "rdf_assert(\\'" action-inst "\\',knowrob:effort, literal(type(\\'http://qudt.org/vocab/unit#NewtonMeter\\', " effort ")), \\'LoggingGraph\\').")))
+
+
+
 
 
 
