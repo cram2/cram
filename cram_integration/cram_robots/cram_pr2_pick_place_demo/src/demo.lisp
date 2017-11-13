@@ -55,11 +55,11 @@
     (:spoon . ((1.4 1.0 0.86) (0 0 0 1)))
     (:milk . ((1.5 0.6 0.95) (0 0 0 1)))))
 (defparameter *object-placing-poses*
-  '((:cereal . ((-0.8 1.9 0.95) (0 0 0 1)))
-    (:cup . ((-0.8 1.7 0.9) (0 0 0 1)))
-    (:bowl . ((-0.8 1.5 0.89) (0 0 0 1)))
-    (:spoon . ((-0.8 1.2 0.86) (0 0 0 1)))
-    (:milk . ((-0.8 2.1 0.95) (0 0 0.7071 0.7071)))))
+  '((:cereal . ((-0.85 1.7 0.95) (0 0 0 1)))
+    (:cup . ((-0.9 1.4 0.9) (0 0 0.7071 0.7071)))
+    (:bowl . ((-0.75 1.3 0.89) (0 0 0 1)))
+    (:spoon . ((-0.78 1.45 0.86) (0 0 1 0)))
+    (:milk . ((-0.79 1.0 0.95) (0 0 0.7071 0.7071)))))
 
 (defparameter *object-grasping-arms*
   '((:cereal . :right)
@@ -82,7 +82,7 @@
 ;;      (cpl:top-level
 ;;        ,@body)))
 
-(defun spawn-objects-on-sink-counter ()
+(defun spawn-objects-on-sink-counter (&optional (spawning-poses *object-spawning-poses*))
   (btr-utils:kill-all-objects)
   (add-objects-to-mesh-list)
   (btr:detach-all-objects (btr:get-robot-object))
@@ -92,7 +92,7 @@
                              (btr-utils:spawn-object
                               (intern (format nil "~a-1" object-type) :keyword)
                               object-type
-                              :pose (cdr (assoc object-type *object-spawning-poses*))))
+                              :pose (cdr (assoc object-type spawning-poses))))
                            object-types)))
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
@@ -144,11 +144,11 @@
   (cpl:with-retry-counters ((search-location-retries 5))
     (cpl:with-failure-handling
         ((common-fail:perception-object-not-found (e)
-           (roslisp:ros-warn (pp-plans fetch) "Failure happened: ~a" e)
+           (roslisp:ros-warn (pp-plans search-for-object) "Failure happened: ~a" e)
            (cpl:do-retry search-location-retries
              (setf ?search-location (desig:next-solution ?search-location))
              (when ?search-location
-               (roslisp:ros-warn (pp-plans fetch) "Retrying...~%")
+               (roslisp:ros-warn (pp-plans search-for-object) "Retrying...~%")
                (cpl:retry)))))
       (let* ((?pose-at-search-location (desig:reference ?search-location))
              (?nav-location (desig:a location
@@ -167,32 +167,96 @@
                                                 (pose ?pose-at-search-location))))))
       (pp-plans::perceive ?object-designator))))
 
-(defun fetch (?object-designator ?search-location)
-  (let ((?perceived-object-desig
-          (search-for-object ?object-designator ?search-location)))
+(defvar *obj* nil)
+
+(defun fetch (?object-designator ?search-location ?arm)
+  (let* ((?perceived-object-desig
+           (search-for-object ?object-designator ?search-location))
+         (?perceived-object-pose-in-base
+           (desig:reference (desig:a location (of ?perceived-object-desig))))
+         (?perceived-object-pose-in-map
+           (cram-tf:ensure-pose-in-frame
+            ?perceived-object-pose-in-base
+            cram-tf:*fixed-frame*
+            :use-zero-time t)))
     (roslisp:ros-info (pp-plans fetch) "Found object ~a" ?perceived-object-desig)
+
     (let ((?pick-up-location (desig:a location
                                       (reachable-for pr2)
-                                      (object ?perceived-object-desig))))
+                                      (location (desig:a location
+                                                         (pose ?perceived-object-pose-in-map))))))
+
+      (let* ((world btr:*current-bullet-world*)
+             (world-state (btr::get-state world)))
+
+        (unwind-protect
+             (cpl:with-retry-counters ((reachable-location-retries 21))
+               (cpl:with-failure-handling
+                   ((common-fail:navigation-pose-in-collision (e)
+                      (roslisp:ros-warn (pp-plans fetch) "Failure happened: ~a" e)
+                      (cpl:do-retry reachable-location-retries
+                        (setf ?pick-up-location (desig:next-solution ?pick-up-location))
+                        (when ?pick-up-location
+                          (roslisp:ros-warn (pp-plans fetch) "Retrying...~%")
+                          (cpl:retry)))))
+
+                 (let ((pose-at-pick-up-location (desig:reference ?pick-up-location)))
+                   (pr2-proj::drive pose-at-pick-up-location)
+                   (when (btr:find-objects-in-contact
+                          btr:*current-bullet-world* (btr:get-robot-object))
+                     (roslisp:ros-warn (pp-plans fetch) "Pose was in collision.")
+                     (cpl:sleep 0.1)
+                     (cpl:fail 'common-fail:navigation-pose-in-collision
+                               :pose-stamped pose-at-pick-up-location))
+                   (roslisp:ros-info (pp-plans fetch) "Found reachable pose.")
+                   (print (btr:find-objects-in-contact
+                            btr:*current-bullet-world* (btr:get-robot-object))))))
+          (btr::restore-world-state world-state world)))
+
       (let ((?pose-at-pick-up-location (desig:reference ?pick-up-location)))
         (exe:perform (desig:an action
                                (type going)
                                (target (desig:a location
-                                                (pose ?pose-at-pick-up-location)))))))
-    )
-  ;; (let* ((?object-desig (desig:an object (type ?object-type)))
-  ;;        (?perceived-object-desig (pp-plans::perceive ?object-desig)))
-  ;;   (cpl:par
-  ;;     (exe:perform (desig:an action
-  ;;                            (type looking)
-  ;;                            (object ?perceived-object-desig)))
-  ;;     (exe:perform (desig:an action
-  ;;                            (type picking-up)
-  ;;                            (arm ?arm)
-  ;;                            (object ?perceived-object-desig)))))
-  )
+                                                (pose ?pose-at-pick-up-location)))))
+        (exe:perform (desig:an action
+                               (type looking)
+                               (target (desig:a location
+                                                (pose ?perceived-object-pose-in-map))))))))
 
-(defun demo ()
+  (let ((?more-precise-perceived-object-desig
+                (pp-plans::perceive ?object-designator)))
+          (exe:perform (desig:an action
+                                 (type picking-up)
+                                 (object ?more-precise-perceived-object-desig)
+                                 (arm ?arm)))
+          (pp-plans:park-arms)
+          (setf *obj* ?more-precise-perceived-object-desig)
+          ?more-precise-perceived-object-desig))
+
+(defun deliver (?object-designator ?target-location ?arm)
+  (let* ((?pose-at-target-location (desig:reference ?target-location))
+         (?nav-location (desig:a location
+                                 (reachable-for pr2)
+                                 (location (desig:a location
+                                                    (pose ?pose-at-target-location))))))
+        (let ((?pose-at-nav-location (desig:reference ?nav-location)))
+          (pp-plans:park-arms)
+          (exe:perform (desig:an action
+                                 (type going)
+                                 (target (desig:a location
+                                                  (pose ?pose-at-nav-location)))))
+          (exe:perform (desig:an action
+                               (type looking)
+                               (target (desig:a location
+                                                (pose ?pose-at-target-location)))))
+          (exe:perform (desig:an action
+                                 (type placing)
+                                 (object ?object-designator)
+                                 (arm ?arm)
+                                 (target (desig:a location
+                                                  (pose ?pose-at-target-location))))))))
+
+(defun demo-hard-coded ()
   (spawn-objects-on-sink-counter)
 
   (with-simulated-robot
@@ -209,3 +273,38 @@
 
         (pick-object object-type arm-to-use)
         (place-object placing-target arm-to-use)))))
+
+(defun demo-random ()
+  (spawn-objects-on-sink-counter)
+  (setf roslisp::*debug-levels* (make-hash-table :test #'equal))
+  (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
+
+  (let ((list-of-objects '(:cereal :cup :bowl :spoon :milk)))
+    (let* ((short-list-of-objects (remove (nth (random (length list-of-objects))
+                                               list-of-objects)
+                                          list-of-objects)))
+      (setf short-list-of-objects (remove (nth (random (length short-list-of-objects))
+                                              short-list-of-objects)
+                                          short-list-of-objects))
+
+      (with-simulated-robot
+        (dolist (?object-type list-of-objects)
+          (let ((?placing-target-pose
+                  (cl-transforms-stamped:pose->pose-stamped
+                   "map" 0.0
+                   (cram-bullet-reasoning:ensure-pose
+                    (cdr (assoc ?object-type *object-placing-poses*)))))
+                (?arm-to-use
+                  (cdr (assoc ?object-type *object-grasping-arms*))))
+
+            (let ((?object
+                    (fetch (desig:an object
+                                     (type ?object-type))
+                           (desig:a location
+                                    (on "CounterTop")
+                                    (name "iai_kitchen_sink_area_counter_top"))
+                           ?arm-to-use)))
+              (deliver ?object
+                       (desig:a location
+                                (pose ?placing-target-pose))
+                       ?arm-to-use))))))))
