@@ -34,6 +34,9 @@
 
 (define-condition navigation-pose-unreachable (navigation-low-level-failure) ())
 
+(define-condition navigation-pose-in-collision (navigation-low-level-failure)
+  ((pose-stamped :initarg :pose-stamped :initform nil :reader navigation-failure-pose-stamped)))
+
 ;; (define-condition location-not-reached-failure (navigation-failure) ())
 
 ;; (define-condition location-reached-but-not-terminated (plan-failure) ())
