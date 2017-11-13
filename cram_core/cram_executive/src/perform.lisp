@@ -72,6 +72,7 @@ similar to what we have for locations.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
+   
     (let ((action-id (log-perform-call designator)))
   
     (destructuring-bind (command &rest arguments)
@@ -95,14 +96,12 @@ but it isn't defined. Cannot perform action." designator command)(ccl::send-task
 (defun log-perform-call (designator)
   (ccl::connect-to-cloud-logger)
   (if ccl::*is-client-connected*
-      (let ((result "") (designator-properties (properties designator)))
-        (dolist (item  designator-properties) 
-          (if (equal :TYPE (car item))
-              (setf result (ccl::get-value-of-json-prolog-dict (cdaar (ccl::send-cram-start-action (get-knowrob-action-name (string (cadr item))) " \\'DummyContext\\'" (get-timestamp-for-logging) "PV" "ActionInst")) "ActionInst"))))
+      (let ((result "") (cram-action-name (get-designator-property-value-str designator :TYPE)))
+        (setf result (ccl::get-value-of-json-prolog-dict (cdaar (ccl::send-cram-start-action (get-knowrob-action-name cram-action-name) " \\'DummyContext\\'" (get-timestamp-for-logging) "PV" "ActionInst")) "ActionInst"))
         result)))
 
 (defun get-knowrob-action-name (cram-action-name)
-  (let ((knowrob-action-name "UnknownAction"))
+  (let ((knowrob-action-name cram-action-name))
    (cond ((string-equal cram-action-name "reaching") (setf knowrob-action-name "Reaching")) 
          ((string-equal cram-action-name "retracting") (setf knowrob-action-name "Retracting"))
          ((string-equal cram-action-name "lifting") (setf knowrob-action-name "LiftingAGripper"))
@@ -121,3 +120,6 @@ but it isn't defined. Cannot perform action." designator command)(ccl::send-task
 
 (defun log-cram-finish-action(action-id)
   (ccl::send-cram-finish-action (concatenate 'string "\\'" action-id "\\'") (get-timestamp-for-logging)))
+
+(defun get-designator-property-value-str(designator property-keyname)
+   (string (cadr(assoc property-keyname (properties designator)))))
