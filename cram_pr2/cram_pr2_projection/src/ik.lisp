@@ -162,70 +162,72 @@
            (type cl-transforms-stamped:pose-stamped cartesian-pose))
   (let ((ik-link (get-ik-solver-link left-or-right))
         (old-debug-lvl (roslisp:debug-level NIL)))
-    (roslisp:set-debug-level NIL 9)
-    (handler-case
-        (roslisp:with-fields ((response-error-code (val error_code))
-                              (joint-state (joint_state solution)))
-            (progn
-              (roslisp:wait-for-service (concatenate 'string
-                                                     (getf *ik-service-namespaces* left-or-right)
-                                                     "/get_ik_solver_info") 10.0)
-              (roslisp:call-service
-               (concatenate 'string (getf *ik-service-namespaces* left-or-right) "/get_ik")
-               "moveit_msgs/GetPositionIK"
-               (roslisp:make-request
-                "moveit_msgs/GetPositionIK"
-                (:ik_link_name :ik_request) ik-link
-                (:pose_stamped :ik_request) (cl-transforms-stamped:to-msg
-                                             (cram-tf:ensure-pose-in-frame
-                                              cartesian-pose
-                                              cram-tf:*robot-torso-frame*
-                                              :use-zero-time t))
-                (:joint_state :robot_state :ik_request) (or seed-state
-                                                            (make-zero-seed-state left-or-right))
-                (:timeout :ik_request) 1.0)))
-          (cond ((eql response-error-code
-                      (roslisp-msg-protocol:symbol-code
-                       'moveit_msgs-msg:moveiterrorcodes
-                       :success))
-                 (roslisp:set-debug-level NIL old-debug-lvl)
-                 (values joint-state test-angle))
-                ((eql response-error-code
-                      (roslisp-msg-protocol:symbol-code
-                       'moveit_msgs-msg:moveiterrorcodes
-                       :no_ik_solution)) nil)
-                (t (error 'simple-error
-                          :format-control "IK service failed: ~a"
-                          :format-arguments (list
-                                             (roslisp-msg-protocol:code-symbol
-                                              'moveit_msgs-msg:moveiterrorcodes
-                                              response-error-code))))))
+    (unwind-protect
+         (progn
+           (roslisp:set-debug-level NIL 9)
+           (handler-case
+               (roslisp:with-fields ((response-error-code (val error_code))
+                                     (joint-state (joint_state solution)))
+                   (progn
+                     (roslisp:wait-for-service (concatenate 'string
+                                                            (getf *ik-service-namespaces* left-or-right)
+                                                            "/get_ik_solver_info") 10.0)
+                     (roslisp:call-service
+                      (concatenate 'string (getf *ik-service-namespaces* left-or-right) "/get_ik")
+                      "moveit_msgs/GetPositionIK"
+                      (roslisp:make-request
+                       "moveit_msgs/GetPositionIK"
+                       (:ik_link_name :ik_request) ik-link
+                       (:pose_stamped :ik_request) (cl-transforms-stamped:to-msg
+                                                    (cram-tf:ensure-pose-in-frame
+                                                     cartesian-pose
+                                                     cram-tf:*robot-torso-frame*
+                                                     :use-zero-time t))
+                       (:joint_state :robot_state :ik_request) (or seed-state
+                                                                   (make-zero-seed-state left-or-right))
+                       (:timeout :ik_request) 1.0)))
+                 (cond ((eql response-error-code
+                             (roslisp-msg-protocol:symbol-code
+                              'moveit_msgs-msg:moveiterrorcodes
+                              :success))
+                        (roslisp:set-debug-level NIL old-debug-lvl)
+                        (values joint-state test-angle))
+                       ((eql response-error-code
+                             (roslisp-msg-protocol:symbol-code
+                              'moveit_msgs-msg:moveiterrorcodes
+                              :no_ik_solution)) nil)
+                       (t (error 'simple-error
+                                 :format-control "IK service failed: ~a"
+                                 :format-arguments (list
+                                                    (roslisp-msg-protocol:code-symbol
+                                                     'moveit_msgs-msg:moveiterrorcodes
+                                                     response-error-code))))))
 
-      ;; if an error happened, try with a different torso angle recursively
-      (simple-error (e)
-        (declare (ignore e))
-        (if (or (not test-angle) (> test-angle torso-lower-limit))
-            (let* ((cur-torso-angle torso-angle)
-                   (next-test-angle (if test-angle
-                                        (max torso-lower-limit (- test-angle *torso-step*))
-                                        torso-upper-limit))
-                   (torso-offset (if test-angle
-                                     (- test-angle cur-torso-angle)
-                                     0))
-                   (next-torso-offset (- next-test-angle cur-torso-angle))
-                   (pseudo-pose
-                     (cram-tf:translate-pose cartesian-pose
-                                             :z-offset (- torso-offset next-torso-offset))))
-              (roslisp:set-debug-level NIL old-debug-lvl)
-              (multiple-value-bind (ik-solution result-angle)
-                  (call-ik-service left-or-right pseudo-pose
-                                   :torso-angle torso-angle
-                                   :torso-lower-limit torso-lower-limit
-                                   :torso-upper-limit torso-upper-limit
-                                   :test-angle next-test-angle)
-                (when ik-solution
-                  (values ik-solution result-angle))))
-            (format t "IK service call freaked out. No IK solution found.~%"))))))
+             ;; if an error happened, try with a different torso angle recursively
+             (simple-error (e)
+               (declare (ignore e))
+               (if (or (not test-angle) (> test-angle torso-lower-limit))
+                   (let* ((cur-torso-angle torso-angle)
+                          (next-test-angle (if test-angle
+                                               (max torso-lower-limit (- test-angle *torso-step*))
+                                               torso-upper-limit))
+                          (torso-offset (if test-angle
+                                            (- test-angle cur-torso-angle)
+                                            0))
+                          (next-torso-offset (- next-test-angle cur-torso-angle))
+                          (pseudo-pose
+                            (cram-tf:translate-pose cartesian-pose
+                                                    :z-offset (- torso-offset next-torso-offset))))
+                     (multiple-value-bind (ik-solution result-angle)
+                         (call-ik-service left-or-right pseudo-pose
+                                          :torso-angle torso-angle
+                                          :torso-lower-limit torso-lower-limit
+                                          :torso-upper-limit torso-upper-limit
+                                          :test-angle next-test-angle)
+                       (when ik-solution
+                         (values ik-solution result-angle))))
+                   (format t "IK service call freaked out. No IK solution found.~%")))))
+      (roslisp:set-debug-level NIL old-debug-lvl))))
 
 
 
