@@ -1,7 +1,7 @@
 (defsystem cram-cloud-logger
   :depends-on (cram-language
                :cram-designators
-               :cl-transform
+               :cl-transforms
                :cl-transforms-stamped
                :cram-json-prolog
                :roslisp)
