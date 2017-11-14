@@ -175,9 +175,9 @@
         (x (cl-transforms:x 3d-vector))
         (y (cl-transforms:y 3d-vector))
         (z (cl-transforms:z 3d-vector)))
-    (send-rdf-query 3d-vector-instance-id "knowrob:x" (create-float-owl-literal x))
-    (send-rdf-query 3d-vector-instance-id "knowrob:y" (create-float-owl-literal y))
-    (send-rdf-query 3d-vector-instance-id "knowrob:z" (create-float-owl-literal z))
+    (send-rdf-query (convert-to-prolog-str 3d-vector-instance-id) "knowrob:x" (create-float-owl-literal x))
+    (send-rdf-query (convert-to-prolog-str 3d-vector-instance-id) "knowrob:y" (create-float-owl-literal y))
+    (send-rdf-query (convert-to-prolog-str 3d-vector-instance-id) "knowrob:\\'z\\'" (create-float-owl-literal z))
     3d-vector-instance-id))
 
 (defun send-create-quaternion (quaternion)
@@ -186,10 +186,10 @@
         (y (cl-transforms:y quaternion))
         (z (cl-transforms:z quaternion))
         (w (cl-transforms:w quaternion)))
-    (send-rdf-query quaternion-instance-id "knowrob:x" (create-float-owl-literal x))
-    (send-rdf-query quaternion-instance-id "knowrob:y" (create-float-owl-literal y))
-    (send-rdf-query quaternion-instance-id "knowrob:z" (create-float-owl-literal z))
-    (send-rdf-query quaternion-instance-id "knowrob:w" (create-float-owl-literal w))
+    (send-rdf-query (convert-to-prolog-str quaternion-instance-id) "knowrob:x" (create-float-owl-literal x))
+    (send-rdf-query (convert-to-prolog-str quaternion-instance-id) "knowrob:y" (create-float-owl-literal y))
+    (send-rdf-query (convert-to-prolog-str quaternion-instance-id) "knowrob:z" (create-float-owl-literal z))
+    (send-rdf-query (convert-to-prolog-str quaternion-instance-id) "knowrob:w" (create-float-owl-literal w))
     quaternion-instance-id))
 
 (defun send-create-pose-stamped (pose-stamped)
@@ -200,11 +200,17 @@
         (orientation (cl-transforms-stamped:orientation pose-stamped)))
     (let ((3d-vector-id (send-create-3d-vector origin))
           (quaternion-id (send-create-quaternion orientation)))
-      (send-rdf-query pose-stamped-instance-id "knowrob:frameId" (create-string-owl-literal frame-id))
-      (send-rdf-query pose-stamped-instance-id "knowrob:stamp" (create-float-owl-literal stamp))
-      (send-rdf-query pose-stamped-instance-id "knowrob:origin" (convert-to-prolog-str 3d-vector-id))
-      (send-rdf-query pose-stamped-instance-id "knowrob:orientation" (convert-to-prolog-str quaternion-id)))))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:frameId" (create-string-owl-literal frame-id))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:stamp" (create-float-owl-literal stamp))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:origin" (convert-to-prolog-str 3d-vector-id))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:orientation" (convert-to-prolog-str quaternion-id)))
+    pose-stamped-instance-id))
 
-
+(defun send-pose-stamped-list-action-parameter (action-inst list-name pose-stamped-list)
+  (let ((counter 0))
+    (dolist (pose-stamp pose-stamped-list)
+      (if pose-stamp (progn 
+      (send-rdf-query (convert-to-prolog-str action-inst) (concatenate 'string "knowrob:" list-name "_" (write-to-string counter)) (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
+      (setf counter (+ 1 counter)))))))
 
 

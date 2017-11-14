@@ -72,6 +72,7 @@ similar to what we have for locations.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
+    ;(print designator)
     (let ((action-id (log-perform-call designator)))
     (destructuring-bind (command &rest arguments)
         (try-reference-designator designator)
@@ -125,4 +126,6 @@ but it isn't defined. Cannot perform action." designator command)(ccl::send-task
 
 (defun log-action-parameter (designator action-id)
   (cond ((desig-prop-value designator :effort) (ccl::send-effort-action-parameter action-id (write-to-string (desig-prop-value designator :effort))))
-        ((desig-prop-value designator :object) (ccl::send-object-action-parameter action-id (desig-prop-value designator :object)))))
+        ((desig-prop-value designator :object) (ccl::send-object-action-parameter action-id (desig-prop-value designator :object)))
+        ((desig-prop-value designator :left-poses) (ccl::send-pose-stamped-list-action-parameter action-id "leftPoses" (desig-prop-value designator :left-poses)))
+        ((desig-prop-value designator :right-poses) (ccl::send-pose-stamped-list-action-parameter action-id "rightPoses" (desig-prop-value designator :right-poses)))))
