@@ -223,4 +223,14 @@
       (send-rdf-query (convert-to-prolog-str action-inst) (concatenate 'string "knowrob:" list-name "_" (write-to-string counter)) (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
       (setf counter (+ 1 counter)))))))
 
+(defun send-arm-action-parameter (action-inst arm-value)
+  (let((arm-value-str (write-to-string arm-value)))
+    (cond ((string-equal ":RIGHT" arm-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:arm" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_arm")))
+          ((string-equal ":LEFT" arm-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:arm" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_arm"))))))
+
+(defun send-gripper-action-parameter (action-inst gripper-value)
+  (let((gripper-value-str (write-to-string gripper-value)))
+    (cond ((string-equal ":RIGHT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_gripper")))
+          ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
+
 
