@@ -129,13 +129,33 @@
           (subseq  sub-value-str 0 (search "\"" sub-value-str)))))))
 
 (defun send-task-success (action-inst is-sucessful)
-  (send-prolog-query-1 (concatenate 'string "rdf_assert(\\'" action-inst "\\',knowrob:successTask, literal(type(xsd:boolean, " is-sucessful ")), \\'LoggingGraph\\').")))
+  (let ((a (convert-to-prolog-str action-inst))
+        (b "knowrob:successTask")
+        (c (create-owl-literal "xsd:boolean" is-sucessful)))
+    (send-rdf-query a b c)))
 
 (defun send-effort-action-parameter (action-inst effort)
-  (send-prolog-query-1 (concatenate 'string "rdf_assert(\\'" action-inst "\\',knowrob:effort, literal(type(\\'http://qudt.org/vocab/unit#NewtonMeter\\', " effort ")), \\'LoggingGraph\\').")))
+  (let ((a (convert-to-prolog-str action-inst))
+        (b "knowrob:effort")
+        (c (create-owl-literal
+            (convert-to-prolog-str "http://qudt.org/vocab/unit#NewtonMeter") effort)))
+    (send-rdf-query a b c)))
 
+(defun send-rdf-query (a b c)
+  (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
+(defun send-object-action-parameter (action-inst object-designator)
+  (print (desig::desig-prop-value object-designator :TYPE))
+  (print (desig::desig-prop-value object-designator :NAME)))
 
+(defun create-owl-literal (literal-type literal-value)
+  (concatenate 'string "literal(type(" literal-type "," literal-value "))"))
+
+(defun create-rdf-assert-query (a b c)
+  (concatenate 'string "rdf_assert(" a "," b "," c ", \\'LoggingGraph\\')."))
+
+(defun convert-to-prolog-str(lisp-str)
+  (concatenate 'string "\\'" lisp-str "\\'"))
 
 
 
