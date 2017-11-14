@@ -145,8 +145,18 @@
   (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
 (defun send-object-action-parameter (action-inst object-designator)
-  (print (desig::desig-prop-value object-designator :TYPE))
-  (print (desig::desig-prop-value object-designator :NAME)))
+  (let ((object-instance-id (send-create-object action-inst (write-to-string (desig::desig-prop-value object-designator :NAME)) (write-to-string (desig::desig-prop-value object-designator :TYPE)))))
+    (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:object" (convert-to-prolog-str object-instance-id))
+    object-instance-id))
+
+(defun send-create-object (action-inst object-name object-type)
+  (let ((object-instance-id (send-instance-from-class "object")))
+    (send-rdf-query (convert-to-prolog-str object-instance-id) "knowrob:objectName" (convert-to-prolog-str object-name))
+    (print object-name )
+    (print (subseq object-name 1))
+    (send-rdf-query (convert-to-prolog-str object-instance-id) "knowrob:objectType" (convert-to-prolog-str object-type))
+    (send-rdf-query (convert-to-prolog-str object-instance-id) "knowrob:action" (convert-to-prolog-str action-inst))
+    object-instance-id))
 
 (defun create-owl-literal (literal-type literal-value)
   (concatenate 'string "literal(type(" literal-type "," literal-value "))"))
@@ -177,7 +187,7 @@
         (z (cl-transforms:z 3d-vector)))
     (send-rdf-query (convert-to-prolog-str 3d-vector-instance-id) "knowrob:x" (create-float-owl-literal x))
     (send-rdf-query (convert-to-prolog-str 3d-vector-instance-id) "knowrob:y" (create-float-owl-literal y))
-    (send-rdf-query (convert-to-prolog-str 3d-vector-instance-id) "knowrob:\\'z\\'" (create-float-owl-literal z))
+    (send-rdf-query (convert-to-prolog-str 3d-vector-instance-id) "knowrob:z" (create-float-owl-literal z))
     3d-vector-instance-id))
 
 (defun send-create-quaternion (quaternion)
