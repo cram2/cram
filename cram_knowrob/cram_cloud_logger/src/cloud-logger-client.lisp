@@ -157,7 +157,53 @@
 (defun convert-to-prolog-str(lisp-str)
   (concatenate 'string "\\'" lisp-str "\\'"))
 
+(defun send-instance-from-class (instance-class-name)
+  (let ((instance-class-id
+          (get-value-of-json-prolog-dict (cdaar
+                                          (ccl::send-prolog-query-1 (concatenate 'string "rdf_instance_from_class(knowrob:\\'" instance-class-name "\\', \\'LoggingGraph\\', ActionInst)."))) "ActionInst")))
+    (send-rdf-query (convert-to-prolog-str instance-class-id) "rdf:type" " owl:\\'NamedIndividual\\'")
+    instance-class-id))
 
+(defun create-float-owl-literal (value)
+  (create-owl-literal "xsd:float" (format nil "~f" value)))
+
+(defun create-string-owl-literal (value)
+  (create-owl-literal "xsd:string" value))
+
+(defun send-create-3d-vector (3d-vector)
+  (let ((3d-vector-instance-id (send-instance-from-class "3dVector"))
+        (x (cl-transforms:x 3d-vector))
+        (y (cl-transforms:y 3d-vector))
+        (z (cl-transforms:z 3d-vector)))
+    (send-rdf-query 3d-vector-instance-id "knowrob:x" (create-float-owl-literal x))
+    (send-rdf-query 3d-vector-instance-id "knowrob:y" (create-float-owl-literal y))
+    (send-rdf-query 3d-vector-instance-id "knowrob:z" (create-float-owl-literal z))
+    3d-vector-instance-id))
+
+(defun send-create-quaternion (quaternion)
+  (let ((quaternion-instance-id (send-instance-from-class "quaternion"))
+        (x (cl-transforms:x quaternion))
+        (y (cl-transforms:y quaternion))
+        (z (cl-transforms:z quaternion))
+        (w (cl-transforms:w quaternion)))
+    (send-rdf-query quaternion-instance-id "knowrob:x" (create-float-owl-literal x))
+    (send-rdf-query quaternion-instance-id "knowrob:y" (create-float-owl-literal y))
+    (send-rdf-query quaternion-instance-id "knowrob:z" (create-float-owl-literal z))
+    (send-rdf-query quaternion-instance-id "knowrob:w" (create-float-owl-literal w))
+    quaternion-instance-id))
+
+(defun send-create-pose-stamped (pose-stamped)
+  (let ((pose-stamped-instance-id (send-instance-from-class "poseStamped"))
+        (frame-id (cl-transforms-stamped:frame-id pose-stamped))
+        (stamp (cl-transforms-stamped:stamp pose-stamped))
+        (origin (cl-transforms-stamped:origin pose-stamped))
+        (orientation (cl-transforms-stamped:orientation pose-stamped)))
+    (let ((3d-vector-id (send-create-3d-vector origin))
+          (quaternion-id (send-create-quaternion orientation)))
+      (send-rdf-query pose-stamped-instance-id "knowrob:frameId" (create-string-owl-literal frame-id))
+      (send-rdf-query pose-stamped-instance-id "knowrob:stamp" (create-float-owl-literal stamp))
+      (send-rdf-query pose-stamped-instance-id "knowrob:origin" (convert-to-prolog-str 3d-vector-id))
+      (send-rdf-query pose-stamped-instance-id "knowrob:orientation" (convert-to-prolog-str quaternion-id)))))
 
 
 
