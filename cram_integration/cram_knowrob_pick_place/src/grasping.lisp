@@ -31,7 +31,7 @@
 
 (defparameter *lift-z-offset* 0.1 "in meters")
 
-(defparameter *cutlery-grasp-z-offset* -0.005 "in meters") ; because TCP is not at the edge
+(defparameter *cutlery-grasp-z-offset* -0.003 "in meters") ; because TCP is not at the edge
 
 (defparameter *plate-diameter* 0.26 "in meters")
 (defparameter *plate-pregrasp-y-offset* 0.2 "in meters")
