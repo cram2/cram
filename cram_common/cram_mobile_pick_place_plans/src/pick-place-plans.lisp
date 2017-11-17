@@ -29,7 +29,7 @@
 
 (in-package :pp-plans)
 
-(cpl:def-cram-function pick-up (object-name ?arm ?gripper-opening  ?grip-effort
+(cpl:def-cram-function pick-up (object-name ?arm ?gripper-opening  ?grip-effort ?grasp
                                             ?left-reach-poses ?right-reach-poses
                                             ?left-lift-poses ?right-lift-poses)
   (cpl:par
