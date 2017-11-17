@@ -42,7 +42,4 @@
 (define-condition manipulation-pose-unreachable (manipulation-low-level-failure) ()
   (:documentation "Thrown when no IK solution can be found."))
 
-(define-condition manipulation-pose-in-collision (manipulation-low-level-failure) ()
-  (:documentation "Thrown when executing action results in a collision."))
-
 

@@ -39,8 +39,12 @@
    #:high-level-failure
    #:object-unreachable
    #:object-unreachable-object
+   #:manipulation-pose-in-collision
+   #:navigation-pose-unreachable
    #:object-unfetchable
    #:object-unfetchable-object
+   #:object-undeliverable
+   #:object-undeliverable-object
    #:object-nowhere-to-be-found
    #:object-nowhere-to-be-found-object
    ;; manipulation
@@ -50,10 +54,8 @@
    #:gripper-closed-completely
    #:manipulation-goal-not-reached
    #:manipulation-pose-unreachable
-   #:manipulation-pose-in-collision
    ;; navigation
    #:navigation-low-level-failure
-   #:navigation-pose-unreachable
    #:navigation-failure-location
    #:navigation-pose-in-collision
    #:navigation-failure-pose-stamped
