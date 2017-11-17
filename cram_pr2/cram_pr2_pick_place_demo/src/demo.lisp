@@ -169,6 +169,34 @@
 
 (defvar *obj* nil)
 
+(defun check-navigation-collisions (?navigation-location)
+  (let* ((world btr:*current-bullet-world*)
+         (world-state (btr::get-state world)))
+    (unwind-protect
+         (cpl:with-retry-counters ((reachable-location-retries 21))
+           (cpl:with-failure-handling
+               ((common-fail:navigation-pose-in-collision (e)
+                  (roslisp:ros-warn (pp-plans fetch) "Failure happened: ~a" e)
+                  (cpl:do-retry reachable-location-retries
+                    (setf ?navigation-location (desig:next-solution ?navigation-location))
+                    (when ?navigation-location
+                      (roslisp:ros-warn (pp-plans check-nav-collisions) "Retrying...~%")
+                      (cpl:retry)))))
+
+             (let ((pose-at-navigation-location (desig:reference ?navigation-location)))
+               (pr2-proj::drive pose-at-navigation-location)
+               (when (btr:find-objects-in-contact
+                      btr:*current-bullet-world* (btr:get-robot-object))
+                 (roslisp:ros-warn (pp-plans fetch) "Pose was in collision.")
+                 (cpl:sleep 0.1)
+                 (cpl:fail 'common-fail:navigation-pose-in-collision
+                           :pose-stamped pose-at-navigation-location))
+               (roslisp:ros-info (pp-plans fetch) "Found reachable pose.")
+               (print pose-at-navigation-location)
+               (print (desig:reference ?navigation-location))
+               ?navigation-location)))
+      (btr::restore-world-state world-state world))))
+
 (defun fetch (?object-designator ?search-location ?arm)
   (let* ((?perceived-object-desig
            (search-for-object ?object-designator ?search-location))
@@ -186,32 +214,8 @@
                                       (location (desig:a location
                                                          (pose ?perceived-object-pose-in-map))))))
 
-      (let* ((world btr:*current-bullet-world*)
-             (world-state (btr::get-state world)))
-
-        (unwind-protect
-             (cpl:with-retry-counters ((reachable-location-retries 21))
-               (cpl:with-failure-handling
-                   ((common-fail:navigation-pose-in-collision (e)
-                      (roslisp:ros-warn (pp-plans fetch) "Failure happened: ~a" e)
-                      (cpl:do-retry reachable-location-retries
-                        (setf ?pick-up-location (desig:next-solution ?pick-up-location))
-                        (when ?pick-up-location
-                          (roslisp:ros-warn (pp-plans fetch) "Retrying...~%")
-                          (cpl:retry)))))
-
-                 (let ((pose-at-pick-up-location (desig:reference ?pick-up-location)))
-                   (pr2-proj::drive pose-at-pick-up-location)
-                   (when (btr:find-objects-in-contact
-                          btr:*current-bullet-world* (btr:get-robot-object))
-                     (roslisp:ros-warn (pp-plans fetch) "Pose was in collision.")
-                     (cpl:sleep 0.1)
-                     (cpl:fail 'common-fail:navigation-pose-in-collision
-                               :pose-stamped pose-at-pick-up-location))
-                   (roslisp:ros-info (pp-plans fetch) "Found reachable pose.")
-                   (print (btr:find-objects-in-contact
-                            btr:*current-bullet-world* (btr:get-robot-object))))))
-          (btr::restore-world-state world-state world)))
+      (check-navigation-collisions ?pick-up-location)
+      (setf ?pick-up-location (desig:current-desig ?pick-up-location))
 
       (let ((?pose-at-pick-up-location (desig:reference ?pick-up-location)))
         (exe:perform (desig:an action
@@ -274,8 +278,10 @@
         (pick-object object-type arm-to-use)
         (place-object placing-target arm-to-use)))))
 
-(defun demo-random ()
-  (spawn-objects-on-sink-counter)
+(defun demo-random (&optional spawn-objects-randomly)
+  (if spawn-objects-randomly
+      (spawn-objects-on-sink-counter-randomly)
+      (spawn-objects-on-sink-counter))
   (setf roslisp::*debug-levels* (make-hash-table :test #'equal))
   (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
 
