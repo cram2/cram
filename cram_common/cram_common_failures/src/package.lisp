@@ -36,6 +36,13 @@
    ;; common
    #:low-level-failure
    #:actionlib-action-timed-out
+   #:high-level-failure
+   #:object-unreachable
+   #:object-unreachable-object
+   #:object-unfetchable
+   #:object-unfetchable-object
+   #:object-nowhere-to-be-found
+   #:object-nowhere-to-be-found-object
    ;; manipulation
    #:manipulation-low-level-failure
    #:gripping-failed
@@ -43,6 +50,7 @@
    #:gripper-closed-completely
    #:manipulation-goal-not-reached
    #:manipulation-pose-unreachable
+   #:manipulation-pose-in-collision
    ;; navigation
    #:navigation-low-level-failure
    #:navigation-pose-unreachable

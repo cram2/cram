@@ -36,8 +36,13 @@
 
 (define-condition gripper-closed-completely (gripping-failed) ())
 
-(define-condition manipulation-goal-not-reached (manipulation-low-level-failure) ())
+(define-condition manipulation-goal-not-reached (manipulation-low-level-failure) ()
+  (:documentation "Thrown when after executing the action, goal is still not reached."))
 
-(define-condition manipulation-pose-unreachable (manipulation-low-level-failure) ())
+(define-condition manipulation-pose-unreachable (manipulation-low-level-failure) ()
+  (:documentation "Thrown when no IK solution can be found."))
+
+(define-condition manipulation-pose-in-collision (manipulation-low-level-failure) ()
+  (:documentation "Thrown when executing action results in a collision."))
 
 
