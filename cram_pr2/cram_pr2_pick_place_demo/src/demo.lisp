@@ -140,62 +140,201 @@
                            (target (desig:a location
                                             (pose ?target-pose)))))))
 
-(defun search-for-object (?object-designator ?search-location)
-  (cpl:with-retry-counters ((search-location-retries 5))
+(defun collisions-without-attached ()
+  (let ((colliding-object-names
+          (mapcar #'btr:name
+                  (btr:find-objects-in-contact
+                   btr:*current-bullet-world*
+                   (btr:get-robot-object))))
+        (attached-object-names
+          (mapcar #'car
+                  (btr:attached-objects (btr:get-robot-object)))))
+    (set-difference colliding-object-names attached-object-names)))
+
+(defun go-without-collisions (?navigation-location &optional (retries 21))
+  (declare (type desig:location-designator ?navigation-location))
+
+  (pp-plans:park-arms)
+
+  ;; Store current world state and in the current world try to go to different
+  ;; poses that satisfy `?navigation-location'.
+  ;; If chosen pose results in collisions, choose another pose.
+  ;; Repeat `reachable-location-retires' + 1 times.
+  ;; Store found pose into designator or throw error if good pose not found.
+  (let* ((world btr:*current-bullet-world*)
+         (world-state (btr::get-state world)))
+    (unwind-protect
+         (cpl:with-retry-counters ((reachable-location-retries retries))
+           ;; If a navigation-pose-in-collisions failure happens, retry N times
+           ;; with the next solution of `?navigation-location'.
+           (cpl:with-failure-handling
+               ((common-fail:navigation-pose-in-collision (e)
+                  (roslisp:ros-warn (pp-plans fetch) "Failure happened: ~a" e)
+                  (cpl:do-retry reachable-location-retries
+                    (setf ?navigation-location (desig:next-solution ?navigation-location))
+                    (if ?navigation-location
+                        (progn
+                          (roslisp:ros-warn (pp-plans check-nav-collisions) "Retrying...~%")
+                          (cpl:retry))
+                        (roslisp:ros-warn (pp-plans check-nav-collisions)
+                                          "No more samples left to try :'(.")))
+                  (roslisp:ros-warn (pp-plans go-without-collisions)
+                                    "Couldn't find a nav pose for~%~a.~%Propagating up."
+                                    ?navigation-location)))
+
+             ;; Pick one pose, store it in `pose-at-navigation-location'
+             ;; In projected world, drive to picked pose
+             ;; If robot is in collision with any object in the world, throw a failure.
+             ;; Otherwise, the pose was found, so return location designator,
+             ;; which is currently referenced to the found pose.
+             (handler-case
+                 (let ((pose-at-navigation-location (desig:reference ?navigation-location)))
+                   (pr2-proj::drive pose-at-navigation-location)
+                   (when (collisions-without-attached)
+                     (roslisp:ros-warn (pp-plans fetch) "Pose was in collision.")
+                     (cpl:sleep 0.1)
+                     (cpl:fail 'common-fail:navigation-pose-in-collision
+                               :pose-stamped pose-at-navigation-location))
+                   (roslisp:ros-info (pp-plans fetch) "Found reachable pose.")
+                   ?navigation-location)
+               (desig:designator-error (e)
+                 (roslisp:ros-warn (pp-plans check-nav-collisions)
+                                   "Desig ~a couldn't be resolved: ~a.~%Cannot navigate."
+                                   ?navigation-location e)
+                 (cpl:fail 'common-fail:high-level-failure)))))
+
+      ;; After playing around and messing up the world, restore the original state.
+      (btr::restore-world-state world-state world)))
+
+  (exe:perform (desig:an action
+                         (type going)
+                         (target ?navigation-location))))
+
+
+(defun search-for-object (?object-designator ?search-location &optional (retries 5))
+  (cpl:with-retry-counters ((search-location-retries retries))
     (cpl:with-failure-handling
-        ((common-fail:perception-object-not-found (e)
+        (((or common-fail:perception-object-not-found
+              common-fail:navigation-pose-in-collision) (e)
            (roslisp:ros-warn (pp-plans search-for-object) "Failure happened: ~a" e)
            (cpl:do-retry search-location-retries
              (setf ?search-location (desig:next-solution ?search-location))
-             (when ?search-location
-               (roslisp:ros-warn (pp-plans search-for-object) "Retrying...~%")
-               (cpl:retry)))))
+             (if ?search-location
+                 (progn
+                   (roslisp:ros-warn (pp-plans search-for-object) "Retrying...~%")
+                   (cpl:retry))
+                 (progn
+                   (roslisp:ros-warn (pp-plans search-for-object) "No samples left :'(~%")
+                   (cpl:fail 'common-fail:object-nowhere-to-be-found))))
+           (roslisp:ros-warn (pp-plans search-for-object) "No retries left :'(~%")
+           (cpl:fail 'common-fail:object-nowhere-to-be-found)))
       (let* ((?pose-at-search-location (desig:reference ?search-location))
+
              (?nav-location (desig:a location
                                      (visible-for pr2)
                                      (location (desig:a location
                                                         (pose ?pose-at-search-location))))))
-        (let ((?pose-at-nav-location (desig:reference ?nav-location)))
-          (pp-plans:park-arms)
-          (exe:perform (desig:an action
-                                 (type going)
-                                 (target (desig:a location
-                                                  (pose ?pose-at-nav-location))))))
+        (go-without-collisions ?nav-location)
+
         (exe:perform (desig:an action
                                (type looking)
                                (target (desig:a location
                                                 (pose ?pose-at-search-location))))))
       (pp-plans::perceive ?object-designator))))
 
-(defvar *obj* nil)
 
-(defun check-navigation-collisions (?navigation-location)
+;; (pick-up ?object-name ?arm ?gripper-opening ?effort
+;;          ?left-reach-poses ?right-reach-poses
+;;          ?left-lift-poses ?right-lift-poses)
+;; (place ?object-name ?arm
+;;        ?left-reach-poses ?right-reach-poses
+;;        ?left-put-poses ?right-put-poses
+;;        ?left-retract-poses ?right-retract-poses)
+
+(defun equalize-two-list-lengths (first-list second-list)
+  (let* ((first-length (length first-list))
+         (second-length (length second-list))
+         (max-length (max first-length second-length)))
+    (values
+     (if (> max-length first-length)
+        (append first-list (make-list (- max-length first-length)))
+        first-list)
+     (if (> max-length second-length)
+        (append second-list (make-list (- max-length second-length)))
+        second-list))))
+
+(defun equalize-lists-of-lists-lengths (first-list-of-lists second-list-of-lists)
+  (let ((max-length (max (length first-list-of-lists)
+                         (length second-list-of-lists)))
+        first-result-l-of-ls second-result-l-of-ls)
+
+   (loop for i from 0 to (1- max-length)
+         do (let ((first-list (nth i first-list-of-lists))
+                  (second-list (nth i second-list-of-lists)))
+              (multiple-value-bind (first-equalized second-equalized)
+                  (equalize-two-list-lengths first-list second-list)
+                (setf first-result-l-of-ls
+                      (append first-result-l-of-ls first-equalized)
+                      second-result-l-of-ls
+                      (append second-result-l-of-ls second-equalized)))))
+
+   (values first-result-l-of-ls
+           second-result-l-of-ls)))
+
+(defun check-grasping-collisions (pick-up-action-desig &optional (retries 16))
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
-    (unwind-protect
-         (cpl:with-retry-counters ((reachable-location-retries 21))
-           (cpl:with-failure-handling
-               ((common-fail:navigation-pose-in-collision (e)
-                  (roslisp:ros-warn (pp-plans fetch) "Failure happened: ~a" e)
-                  (cpl:do-retry reachable-location-retries
-                    (setf ?navigation-location (desig:next-solution ?navigation-location))
-                    (when ?navigation-location
-                      (roslisp:ros-warn (pp-plans check-nav-collisions) "Retrying...~%")
-                      (cpl:retry)))))
 
-             (let ((pose-at-navigation-location (desig:reference ?navigation-location)))
-               (pr2-proj::drive pose-at-navigation-location)
-               (when (btr:find-objects-in-contact
-                      btr:*current-bullet-world* (btr:get-robot-object))
-                 (roslisp:ros-warn (pp-plans fetch) "Pose was in collision.")
-                 (cpl:sleep 0.1)
-                 (cpl:fail 'common-fail:navigation-pose-in-collision
-                           :pose-stamped pose-at-navigation-location))
-               (roslisp:ros-info (pp-plans fetch) "Found reachable pose.")
-               (print pose-at-navigation-location)
-               (print (desig:reference ?navigation-location))
-               ?navigation-location)))
+    (unwind-protect
+         (cpl:with-retry-counters ((pick-up-configuration-retries retries))
+           (cpl:with-failure-handling
+               (((or common-fail:manipulation-pose-unreachable
+                     common-fail:manipulation-pose-in-collision) (e)
+                  (roslisp:ros-warn (pp-plans pick-object) "Manipulation failure happened: ~a" e)
+                  (cpl:do-retry pick-up-configuration-retries
+                    (setf pick-up-action-desig (next-solution pick-up-action-desig))
+                    (cond
+                      (pick-up-action-desig
+                       (roslisp:ros-info (pp-plans pick-object) "Retrying...")
+                       (cpl:retry))
+                      (t
+                       (roslisp:ros-warn (pp-plans pick-object) "No more samples to try :'(")
+                       (cpl:fail 'common-fail:object-unreachable))))
+                  (roslisp:ros-warn (pp-plans pick-object) "No more retries left :'(")
+                  (cpl:fail 'common-fail:object-unreachable)))
+
+             (let ((pick-up-action-referenced (reference pick-up-action-desig)))
+               (destructuring-bind (_action object-name arm gripper-opening _effort _grasp
+                                    left-reach-poses right-reach-poses
+                                    left-lift-poses right-lift-poses)
+                   pick-up-action-referenced
+                 (declare (ignore _action _effort))
+                 (roslisp:ros-info (pp-plans manipulation)
+                                   "Trying grasp ~a on object ~a with arm ~a~%"
+                                   _grasp object-name arm)
+                 (let ((left-poses-list-of-lists (list left-reach-poses left-lift-poses))
+                       (right-poses-list-of-lists (list right-reach-poses right-lift-poses)))
+                   (multiple-value-bind (left-poses right-poses)
+                       (equalize-lists-of-lists-lengths left-poses-list-of-lists
+                                                        right-poses-list-of-lists)
+                     (mapcar (lambda (left-pose right-pose)
+                               (pr2-proj::gripper-action gripper-opening arm)
+                               (pr2-proj::move-tcp left-pose right-pose)
+                               (sleep 0.1)
+                               (when (remove object-name
+                                             (btr:find-objects-in-contact
+                                              btr:*current-bullet-world*
+                                              (btr:get-robot-object))
+                                             :key #'btr:name)
+                                 (btr::restore-world-state world-state world)
+                                 (cpl:fail 'common-fail:manipulation-pose-in-collision)))
+                             left-poses
+                             right-poses)))))))
       (btr::restore-world-state world-state world))))
+
+
+
+(defvar *obj* nil)
 
 (defun fetch (?object-designator ?search-location ?arm)
   (let* ((?perceived-object-desig
@@ -209,33 +348,57 @@
             :use-zero-time t)))
     (roslisp:ros-info (pp-plans fetch) "Found object ~a" ?perceived-object-desig)
 
-    (let ((?pick-up-location (desig:a location
-                                      (reachable-for pr2)
-                                      (location (desig:a location
-                                                         (pose ?perceived-object-pose-in-map))))))
+    (cpl:with-failure-handling
+        ((common-fail:navigation-pose-in-collision (e)
+           (declare (ignore e))
+           (roslisp:ros-warn (pp-plans fetch) "Object ~a is unfetchable." ?object-designator)
+           (cpl:fail 'common-fail:object-unfetchable :object ?object-designator)))
 
-      (check-navigation-collisions ?pick-up-location)
-      (setf ?pick-up-location (desig:current-desig ?pick-up-location))
+      (let ((?pick-up-location
+              (desig:a location
+                       (reachable-for pr2)
+                       (location (desig:a location
+                                          (pose ?perceived-object-pose-in-map))))))
 
-      (let ((?pose-at-pick-up-location (desig:reference ?pick-up-location)))
-        (exe:perform (desig:an action
-                               (type going)
-                               (target (desig:a location
-                                                (pose ?pose-at-pick-up-location)))))
-        (exe:perform (desig:an action
-                               (type looking)
-                               (target (desig:a location
-                                                (pose ?perceived-object-pose-in-map))))))))
+        (cpl:with-retry-counters ((relocation-for-ik-retries 10))
+          (cpl:with-failure-handling
+              ((common-fail:object-unreachable (e)
+                 (roslisp:ros-warn (pp-plans fetch) "Object is unreachable: ~a" e)
+                 (cpl:do-retry relocation-for-ik-retries
+                   (setf ?pick-up-location (next-solution ?pick-up-location))
+                   (if ?pick-up-location
+                       (progn
+                         (roslisp:ros-info (pp-plans fetch) "Relocating...")
+                         (cpl:retry))
+                       (progn
+                         (roslisp:ros-warn (pp-plans fetch) "No more samples to try :'(")
+                         (cpl:fail 'common-fail:object-unfetchable)))
+                   (roslisp:ros-warn (pp-plans fetch) "No more retries left :'(")
+                   (cpl:fail 'common-fail:object-unfetchable))))
 
-  (let ((?more-precise-perceived-object-desig
-                (pp-plans::perceive ?object-designator)))
-          (exe:perform (desig:an action
-                                 (type picking-up)
-                                 (object ?more-precise-perceived-object-desig)
-                                 (arm ?arm)))
-          (pp-plans:park-arms)
-          (setf *obj* ?more-precise-perceived-object-desig)
-          ?more-precise-perceived-object-desig))
+            (go-without-collisions ?pick-up-location)
+            (setf ?pick-up-location (desig:current-desig ?pick-up-location))
+
+            (exe:perform (desig:an action
+                                   (type looking)
+                                   (target (desig:a location
+                                                    (pose ?perceived-object-pose-in-map)))))
+
+            (let ((?more-precise-perceived-object-desig
+                    (pp-plans::perceive ?object-designator)))
+              (let ((pick-up-action
+                      (desig:an action
+                                (type picking-up)
+                                (object ?more-precise-perceived-object-desig)
+                                ;; (arm ?arm)
+                                )))
+                (check-grasping-collisions pick-up-action)
+                (setf pick-up-action (desig:current-desig pick-up-action))
+                (exe:perform pick-up-action)
+                (setf *obj* ?more-precise-perceived-object-desig)))))))
+
+    (pp-plans:park-arms)
+    (desig:current-desig ?object-designator)))
 
 (defun deliver (?object-designator ?target-location ?arm)
   (let* ((?pose-at-target-location (desig:reference ?target-location))
@@ -256,7 +419,7 @@
           (exe:perform (desig:an action
                                  (type placing)
                                  (object ?object-designator)
-                                 (arm ?arm)
+                                 ;; (arm ?arm)
                                  (target (desig:a location
                                                   (pose ?pose-at-target-location))))))))
 
@@ -278,14 +441,15 @@
         (pick-object object-type arm-to-use)
         (place-object placing-target arm-to-use)))))
 
-(defun demo-random (&optional spawn-objects-randomly)
+(defun demo-random (&optional (spawn-objects-randomly t))
+  (btr:detach-all-objects (btr:get-robot-object))
   (if spawn-objects-randomly
       (spawn-objects-on-sink-counter-randomly)
       (spawn-objects-on-sink-counter))
-  (setf roslisp::*debug-levels* (make-hash-table :test #'equal))
+  ;; (setf roslisp::*debug-levels* (make-hash-table :test #'equal))
   (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
 
-  (let ((list-of-objects '(:cereal :cup :bowl :spoon :milk)))
+  (let ((list-of-objects '(:spoon :cereal :cup :bowl :milk)))
     (let* ((short-list-of-objects (remove (nth (random (length list-of-objects))
                                                list-of-objects)
                                           list-of-objects)))
@@ -303,14 +467,18 @@
                 (?arm-to-use
                   (cdr (assoc ?object-type *object-grasping-arms*))))
 
-            (let ((?object
-                    (fetch (desig:an object
-                                     (type ?object-type))
-                           (desig:a location
-                                    (on "CounterTop")
-                                    (name "iai_kitchen_sink_area_counter_top"))
-                           ?arm-to-use)))
-              (deliver ?object
-                       (desig:a location
-                                (pose ?placing-target-pose))
-                       ?arm-to-use))))))))
+            (cpl:with-failure-handling
+                ((common-fail:high-level-failure (e)
+                   (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
+                   (return)))
+              (let ((?object
+                      (fetch (desig:an object
+                                       (type ?object-type))
+                             (desig:a location
+                                      (on "CounterTop")
+                                      (name "iai_kitchen_sink_area_counter_top"))
+                             ?arm-to-use)))
+                (deliver ?object
+                         (desig:a location
+                                  (pose ?placing-target-pose))
+                         ?arm-to-use)))))))))
