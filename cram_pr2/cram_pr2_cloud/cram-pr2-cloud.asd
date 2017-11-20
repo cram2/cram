@@ -78,7 +78,7 @@
                                       "tf-utilities"
                                       "geometry-calculations"
                                       "cloud-data"))
-     (:file "costmaps" :depends-on ("package" "local-data"))
+     (:file "costmaps" :depends-on ("package" "local-data" "tf-utilities"))
      (:file "projection-plans" :depends-on ("package"))
      (:file "real-world-plans" :depends-on ("package"
                                             "tf-utilities"
