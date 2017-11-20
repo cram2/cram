@@ -20,6 +20,7 @@
   <depend>cram_tf</depend>
   <depend>cram_common_failures</depend>
   <depend>cram_designators</depend>
+  <depend>cram_process_modules</depend>
   <depend>cram_common_designators</depend>
   <depend>cram_object_interfaces</depend>
 </package>

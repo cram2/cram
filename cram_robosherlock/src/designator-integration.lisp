@@ -29,12 +29,15 @@
 
 (in-package :rs)
 
-(cpm:def-process-module robosherlock-perception-pm (desig:motion-designator)
+(cpm:def-process-module robosherlock-perception-pm (motion-designator)
   (destructuring-bind (command argument-1) (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:detect
        (handler-case
            (perceive :detect argument-1)))
-      (cram-common-designators:inspect
+      ;; (cram-common-designators:inspect
+      ;;  (handler-case
+      ;;      (perceive :inspect argument-1)))
+      (:inspect
        (handler-case
            (perceive :inspect argument-1))))))
