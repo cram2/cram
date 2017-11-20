@@ -50,16 +50,22 @@
                    (cl-transforms:make-identity-rotation))))
        (desig:a motion (type going) (target (desig:a location (pose ?pose))))))))
 
+;; (defun test-manipulation ()
+;;   (with-real-robot
+;;     (let ((?pose (local-robot-pose-in-map-from-handle)))
+;;       (exe:perform
+;;        (desig:an action (type going) (target (desig:a location (pose ?pose))))))
+;;     (let ((?pose (strip-transform-stamped
+;;                   (car (subseq (local-gripper-trajectory-in-base "MoveFridgeHandle") 23)))))
+;;       (exe:perform
+;;        (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
+
 (defun test-manipulation ()
   (with-real-robot
-    (let ((?pose (local-robot-pose-in-map-from-handle)))
-      (exe:perform
-       (desig:an action (type going) (target (desig:a location (pose ?pose))))))
     (let ((?pose (strip-transform-stamped
-                  (car (subseq (local-gripper-trajectory-in-base "MoveFridgeHandle") 23)))))
+                  (car (local-gripper-trajectory-in-base-from-radius)))))
       (exe:perform
        (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
-
 
 (defun park-arms ()
   (let ((?left-pose (cl-transforms-stamped:make-pose-stamped
@@ -95,8 +101,8 @@
          (?arm (kr-cloud::arm-used-in-action "OpenFridge"))
          (?robot 'cram-pr2-description:pr2)
          (?location-for-robot (desig:a location
-                                       (reachable-for ?robot)
-                                       (target ?handle-pose)
+                                       (my-reachable-for ?robot)
+                                       (location (desig:a location (pose ?handle-pose)))
                                        (context "OpenFridge")))
          (?target (ecase ?arm (:left :left-target) (:right :right-target))))
 
