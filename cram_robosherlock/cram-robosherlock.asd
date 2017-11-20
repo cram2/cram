@@ -42,6 +42,7 @@
                cram-tf
                cram-common-failures
                cram-designators
+               cram-process-modules
                cram-object-interfaces
                cram-common-designators)
   :components

@@ -131,6 +131,9 @@
     (let ((child-frame-position-of-# (position #\# child-frame-id :from-end t)))
       (when child-frame-position-of-#
         (setf child-frame-id (subseq child-frame-id (1+ child-frame-position-of-#)))))
+    (when (< (length child-frame-id) 1)
+      (setf child-frame-id "DUMMY"))
+    (format t "child: ~s~%" child-frame-id)
     ;; make sure transform is defined in robot-base-frame
     (let ((object-transform-stamped
             (if (equalp frame-id cram-tf:*robot-base-frame*)
