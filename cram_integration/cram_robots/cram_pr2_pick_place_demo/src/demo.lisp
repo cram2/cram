@@ -75,12 +75,12 @@
                ,@body))))
      (car (cram-projection::projection-environment-result-result results))))
 
-;; (defmacro with-real-robot (&body body)
-;;   `(cram-process-modules:with-process-modules-running
-;;        (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
-;;                                    pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
-;;      (cpl:top-level
-;;        ,@body)))
+(defmacro with-real-robot (&body body)
+  `(cram-process-modules:with-process-modules-running
+       (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+                                   pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+     (cpl:top-level
+       ,@body)))
 
 (defun spawn-objects-on-sink-counter (&optional (spawning-poses *object-spawning-poses*))
   (btr-utils:kill-all-objects)

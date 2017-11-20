@@ -64,7 +64,11 @@
 
                cram-mobile-pick-place-plans
                cram-knowrob-pick-place
-               cram-pr2-description)
+               cram-pr2-description
+
+               cram-pr2-low-level
+               cram-process-modules
+               cram-pr2-process-modules)
 
   :components
   ((:module "src"
