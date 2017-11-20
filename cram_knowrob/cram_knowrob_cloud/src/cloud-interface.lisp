@@ -100,10 +100,11 @@ is replaced with replacement.
 (defun initialize-iai-cloud-connection ()
   (and (json-prolog:prolog `("register_ros_package" "knowrob_cloud_logger"))
        (print "registered cloud_logger package")
-       (json-prolog:prolog `("cloud_interface"
-                             "https://192.168.101.77"
-                             "/home/gaya/iai.pem"
-                             "aOU5jWiKSZcrUyr695JB25YpRaGKqZzzRaeTdkpQuuHlFidDuqXSDuPkHpBuEN1W"))
+       ;; (json-prolog:prolog `("cloud_interface"
+       ;;                       "https://192.168.101.42"
+       ;;                       "/home/ease/asil.pem"
+       ;;                       "MxtU9V2cdstw3ocKXbicBGp7fAeLNxjIvcmY4CJV96DeZd7obfgvw0mR3X5j8Yrz"))
+       (json-prolog:prolog-simple "cloud_interface('https://192.168.101.42','/home/ease/asil.pem','MxtU9V2cdstw3ocKXbicBGp7fAeLNxjIvcmY4CJV96DeZd7obfgvw0mR3X5j8Yrz').")
        (print "initialized https connection")
        (json-prolog:prolog `("start_user_container"))
        (print "started docker container")
