@@ -36,7 +36,8 @@
                       joint-upper-limit joint-lower-limit joint-type joint-axis joint-origin
                       joint-parent-link joint-child-link
                       ;; specific configurations
-                      robot-arms-parking-joint-states end-effector-parking-pose
+                      robot-arms-parking-joint-states robot-arms-carrying-joint-states
+                      end-effector-parking-pose
                       robot-pre-grasp-joint-states planning-group
                       standard-to-particular-gripper-transform)
 
@@ -131,6 +132,11 @@
   (<- (robot-arms-parking-joint-states ?robot ?joint-states)
     (fail))
   (<- (robot-arms-parking-joint-states ?robot ?joint-states ?arm)
+    (fail))
+
+  (<- (robot-arms-carrying-joint-states ?robot ?joint-states)
+    (fail))
+  (<- (robot-arms-carrying-joint-states ?robot ?joint-states ?arm)
     (fail))
 
   (<- (end-effector-parking-pose ?robot ?pose ?arm)
