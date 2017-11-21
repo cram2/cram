@@ -92,25 +92,25 @@
 (defmethod parse-json-node ((name (eql :boundingbox)) node)
   (parse-nested-node :bb node))
 
-;; (defmethod parse-json-node ((name (eql :pose)) node)
-;;   (setf *rs-result-debug* node)
-;;   (if (getassoc "pose" node)
-;;       (list name (parse-alist node))
-;;       (let* ((frame-id (getassoc "frame_id" node))
-;;              (pos-x (getassoc "pos_x" node))
-;;              (pos-y (getassoc "pos_y" node))
-;;              (pos-z (getassoc "pos_z" node))
-;;              (rot-x (getassoc "rot_x" node))
-;;              (rot-y (getassoc "rot_y" node))
-;;              (rot-z (getassoc "rot_z" node))
-;;              (rot-w (getassoc "rot_w" node))
-;;              (stamp (getassoc "stamp" node))
-;;              (object-pose (cl-transforms-stamped:make-pose-stamped
-;;                            frame-id
-;;                            stamp
-;;                            (cl-transforms:make-3d-vector pos-x pos-y pos-z)
-;;                            (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w))))
-;;         (list name object-pose))))
+(defmethod parse-json-node ((name (eql :pose)) node)
+  (setf *rs-result-debug* node)
+  (if (getassoc "pose" node)
+      (list name (parse-alist node))
+      (let* ((frame-id (getassoc "frame_id" node))
+             (pos-x (getassoc "pos_x" node))
+             (pos-y (getassoc "pos_y" node))
+             (pos-z (getassoc "pos_z" node))
+             (rot-x (getassoc "rot_x" node))
+             (rot-y (getassoc "rot_y" node))
+             (rot-z (getassoc "rot_z" node))
+             (rot-w (getassoc "rot_w" node))
+             (stamp (getassoc "stamp" node))
+             (object-pose (cl-transforms-stamped:make-pose-stamped
+                           frame-id
+                           stamp
+                           (cl-transforms:make-3d-vector pos-x pos-y pos-z)
+                           (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w))))
+        (list name object-pose))))
 
 (defmethod parse-json-node ((name (eql :transform)) node)
   (let* ((frame-id (getassoc "frame_id" node))
@@ -131,9 +131,6 @@
     (let ((child-frame-position-of-# (position #\# child-frame-id :from-end t)))
       (when child-frame-position-of-#
         (setf child-frame-id (subseq child-frame-id (1+ child-frame-position-of-#)))))
-    (when (< (length child-frame-id) 1)
-      (setf child-frame-id "DUMMY"))
-    (format t "child: ~s~%" child-frame-id)
     ;; make sure transform is defined in robot-base-frame
     (let ((object-transform-stamped
             (if (equalp frame-id cram-tf:*robot-base-frame*)
