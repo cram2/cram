@@ -84,39 +84,60 @@
                     (right-target (desig:a location (pose ?right-pose))))))))))
 
 
-(cpl:def-cram-function park-arms (&key (arm '(:left :right)))
-  (flet ((get-arm-parking-joint-states (arm)
-           (let* ((bindings
-                    (prolog:prolog
-                     `(and (cram-robot-interfaces:robot ?robot)
-                           (cram-robot-interfaces:robot-arms-parking-joint-states
-                            ?robot ?joint-states ,arm))))
-                  (joint-states (cut:var-value '?joint-states (car bindings))))
-             (unless joint-states
-               (cpl:fail 'common-fail:low-level-failure
-                         "ROBOT-ARMS-PARKING-JOINT-STATES undefined! ~
+(cpl:def-cram-function park-arms (&key (arm '(:left :right)) (carry nil))
+  (let ((carry?
+          (or (prolog:prolog `(cpoe:object-in-hand ?obj ,arm)) carry)))
+   (flet ((get-arm-parking-joint-states (arm)
+            (let* ((bindings
+                     (if carry?
+                         (prolog:prolog
+                          `(and (cram-robot-interfaces:robot ?robot)
+                                (cram-robot-interfaces:robot-arms-carrying-joint-states
+                                 ?robot ?joint-states ,arm)))
+                         (prolog:prolog
+                          `(and (cram-robot-interfaces:robot ?robot)
+                                (cram-robot-interfaces:robot-arms-parking-joint-states
+                                 ?robot ?joint-states ,arm)))))
+                   (joint-states (cut:var-value '?joint-states (car bindings))))
+              (unless joint-states
+                (cpl:fail 'common-fail:low-level-failure
+                          "ROBOT-ARMS-PARKING-JOINT-STATES undefined! ~
                           Did you forget to load a robot description package?"))
-             (mapcar #'second joint-states))))
+              (mapcar #'second joint-states))))
 
-    (unless (listp arm)
-      (setf arm (list arm)))
-    (let (?left-configuration ?right-configuration)
-      (when (member :left arm)
-        (setf ?left-configuration (get-arm-parking-joint-states :left)))
-      (when (member :right arm)
-        (setf ?right-configuration (get-arm-parking-joint-states :right)))
+     (unless (listp arm)
+       (setf arm (list arm)))
+     (let (?left-configuration ?right-configuration)
+       (when (member :left arm)
+         (setf ?left-configuration (get-arm-parking-joint-states :left)))
+       (when (member :right arm)
+         (setf ?right-configuration (get-arm-parking-joint-states :right)))
 
-      (cpl:with-failure-handling
-          ((common-fail:manipulation-low-level-failure (e)
-             (roslisp:ros-warn (pick-and-place park-arms)
-                               "A low-level manipulation failure happened: ~a~%Ignoring." e)
-             (return)))
+       (cpl:with-failure-handling
+           ((common-fail:manipulation-low-level-failure (e)
+              (roslisp:ros-warn (pick-and-place park-arms)
+                                "A low-level manipulation failure happened: ~a~%Ignoring." e)
+              (return)))
 
-        (exe:perform
-         (desig:a motion
-                  (type moving-arm-joints)
-                  (left-configuration ?left-configuration)
-                  (right-configuration ?right-configuration)))))))
+         (if carry?
+             (progn
+               (exe:perform
+                (desig:a motion
+                         (type moving-arm-joints)
+                         (right-configuration ?right-configuration)))
+               (exe:perform
+                (desig:a motion
+                         (type moving-arm-joints)
+                         (left-configuration ?left-configuration))))
+             (progn
+               (exe:perform
+                (desig:a motion
+                         (type moving-arm-joints)
+                         (left-configuration ?left-configuration)))
+               (exe:perform
+                (desig:a motion
+                         (type moving-arm-joints)
+                         (right-configuration ?right-configuration))))))))))
 
 
 (cpl:def-cram-function release (?left-or-right)
@@ -135,8 +156,9 @@
     (cpl:with-failure-handling
         ((common-fail:low-level-failure (e) ; regrasp once then propagate up
            (cpl:do-retry grasping-retries
-             (roslisp:ros-warn (pick-and-place grip) "~a" e)
-             (cpl:retry))))
+             (roslisp:ros-warn (pick-and-place grip) "~a~%Retrying" e)
+             (cpl:retry))
+           (roslisp:ros-warn (pick-and-place grip) "No retries left." e)))
       (exe:perform
          (desig:a motion
                   (type gripping)
