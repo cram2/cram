@@ -164,12 +164,39 @@
               (gripper ?left-or-right)
               (joint-angle ?position)))))
 
-(cpl:def-cram-function look-at (object-designator)
-  (let ((?pose (cram-object-interfaces:get-object-pose object-designator)))
-    (exe:perform
-     (desig:a motion
-              (type looking)
-              (target (desig:a location (pose ?pose)))))))
+(cpl:def-cram-function look-at (&key target frame direction object)
+  (cond (target
+         (let* ((?target target)
+                (motion (desig:a motion
+                                 (type looking)
+                                 (target ?target))))
+           (cpl:with-retry-counters ((look-retries 2))
+             (cpl:with-failure-handling
+                 ((common-fail:ptu-low-level-failure (e)
+                    (roslisp:ros-warn (pp-plans look-at) "Looking-at had a problem: ~a" e)
+                    (cpl:do-retry look-retries
+                      (when (setf motion (desig:next-solution motion))
+                        (roslisp:ros-warn (pp-plans look-at) "Retrying.")
+                        (cpl:retry)))))
+               (exe:perform motion)))))
+        (frame
+         (let ((?frame frame))
+           (exe:perform
+            (desig:a motion
+                     (type looking)
+                     (frame ?frame)))))
+        (direction
+         (let ((?direction direction))
+          (exe:perform
+           (desig:a motion
+                    (type looking)
+                    (direction ?direction)))))
+        (object
+         (let ((?pose (cram-object-interfaces:get-object-pose object)))
+           (exe:perform
+            (desig:a motion
+                     (type looking)
+                     (target (desig:a location (pose ?pose)))))))))
 
 (cpl:def-cram-function navigate (?location-designator)
   (cpl:with-retry-counters ((nav-retries 2))

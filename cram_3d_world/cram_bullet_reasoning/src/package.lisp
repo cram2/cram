@@ -80,6 +80,7 @@
            reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
            object-reachable-p pose-reachable-p calculate-orientation-in-robot
            calculate-object-tool-length set-robot-state-from-joints
+           calculate-pan-tilt
            init-ros-object-database clear-bullet-world
            ros-household-object execute open close reach-ik-solution
            attached attached-objects object-attached

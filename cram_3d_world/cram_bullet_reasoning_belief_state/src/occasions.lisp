@@ -64,7 +64,8 @@
         (true)
         (and
          (lisp-fun unique-object-designators ?object-designators)
-         (member ?object-designator ?object-designators)))
+         (member ?one-object-designator-from-chain ?object-designators)
+         (desig:current-designator ?one-object-designator-from-chain ?object-designator)))
     (lisp-fun get-designator-object-name ?object-designator
               ?object-name)
     (lisp-pred identity ?object-name))

@@ -36,6 +36,17 @@
    ;; common
    #:low-level-failure
    #:actionlib-action-timed-out
+   #:high-level-failure
+   #:object-unreachable
+   #:object-unreachable-object
+   #:manipulation-pose-in-collision
+   #:navigation-pose-unreachable
+   #:object-unfetchable
+   #:object-unfetchable-object
+   #:object-undeliverable
+   #:object-undeliverable-object
+   #:object-nowhere-to-be-found
+   #:object-nowhere-to-be-found-object
    ;; manipulation
    #:manipulation-low-level-failure
    #:gripping-failed
@@ -45,9 +56,13 @@
    #:manipulation-pose-unreachable
    ;; navigation
    #:navigation-low-level-failure
-   #:navigation-pose-unreachable
    #:navigation-failure-location
+   #:navigation-pose-in-collision
+   #:navigation-failure-pose-stamped
    ;; perception
    #:perception-low-level-failure
    #:perception-object-not-found
-   #:object-not-found-object))
+   #:object-not-found-object
+   ;; ptu
+   #:ptu-low-level-failure
+   #:ptu-goal-unreachable))

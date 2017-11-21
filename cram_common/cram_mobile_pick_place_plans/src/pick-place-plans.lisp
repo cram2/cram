@@ -29,7 +29,7 @@
 
 (in-package :pp-plans)
 
-(cpl:def-cram-function pick-up (object-name ?arm ?gripper-opening  ?grip-effort
+(cpl:def-cram-function pick-up (object-name ?arm ?gripper-opening  ?grip-effort ?grasp
                                             ?left-reach-poses ?right-reach-poses
                                             ?left-lift-poses ?right-lift-poses)
   (cpl:par
@@ -49,7 +49,7 @@
   (exe:perform
    (desig:an action
              (type gripping)
-             (arm ?arm)
+             (gripper ?arm)
              (effort ?grip-effort)))
   (roslisp:ros-info (pick-place pick-up) "Assert grasp into knowledge base")
   (cram-occasions-events:on-event
