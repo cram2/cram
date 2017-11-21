@@ -30,8 +30,8 @@
 (in-package :pr2-cloud)
 
 (defun calculate-robust-handle-and-joint-transform (handle-transform joint-transform)
-  ;; (return-from calculate-robust-handle-and-joint-transform
-  ;;   (values handle-transform joint-transform))
+  (return-from calculate-robust-handle-and-joint-transform
+    (values handle-transform joint-transform))
   (let* ((handle->joint-vector
            (cl-transforms:v-
             (cl-transforms-stamped:translation joint-transform)
