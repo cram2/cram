@@ -81,16 +81,13 @@
     (location-costmap:costmap-resolution ?x)
     (lisp-fun local-handle-to-robot-transform-distribution (?mean-transform ?covariance))
     (lisp-fun cl-transforms:translation ?mean-transform ?mean)
-    (format "mean: ~a~%cov: ~a~%" ?mean ?covariance)
     (location-costmap:costmap-add-function
      reachability-cm
      (location-costmap:make-gauss-cost-function ?mean ?covariance)
      ?cm)
-    (format "BLA~%")
-    ;; (location-costmap:costmap-add-orientation-generator
-    ;;  (make-mean-orientation-generator ?mean-transform)
-    ;;  ?cm)
-    (format "DONE~%")))
+    (location-costmap:costmap-add-orientation-generator
+     (make-mean-orientation-generator ?mean-transform)
+     ?cm)))
 
 (defun pose-to-reach-fridge ()
   (let ((?transform-to-reach (cram-tf:strip-transform-stamped (local-handle-transform)))

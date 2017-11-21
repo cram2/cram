@@ -59,7 +59,9 @@
 
                cram-knowrob-cloud
 
-               cram-pr2-projection-sandbox
+               cram-pr2-projection
+               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-utilities
 
                cram-location-costmap
                cram-semantic-map-costmap
