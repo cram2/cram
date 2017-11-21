@@ -29,17 +29,7 @@
 
 (in-package :common-fail)
 
-(define-condition manipulation-low-level-failure (low-level-failure) ())
+(define-condition ptu-low-level-failure (low-level-failure)
+  ((target :initarg :location :initform nil :reader ptu-failure-target)))
 
-(define-condition gripping-failed (manipulation-low-level-failure)
-  ((action :initarg :object :initform nil :reader gripping-failed-action)))
-
-(define-condition gripper-closed-completely (gripping-failed) ())
-
-(define-condition manipulation-goal-not-reached (manipulation-low-level-failure) ()
-  (:documentation "Thrown when after executing the action, goal is still not reached."))
-
-(define-condition manipulation-pose-unreachable (manipulation-low-level-failure) ()
-  (:documentation "Thrown when no IK solution can be found."))
-
-
+(define-condition ptu-goal-unreachable (ptu-low-level-failure) ())

@@ -40,6 +40,20 @@
 ;;   (:method ((desig desig:designator) key)
 ;;     (desig:description desig)))
 
+
+(def-fact-group all-designator-specs (property)
+
+  (<- (property-member (?key ?value) ?designator)
+    (assert-type ?designator desig:designator "PROPERTY-MEMBER")
+    (lisp-fun desig:description ?designator ?props)
+    (member (?key ?value) ?props))
+
+  (<- (property ?designator (?key ?value))
+    (bound ?key)
+    ;; (bound ?value) ; set default behaviour to not throw errors if no spec is defined
+    (bound ?value)
+    (property-member (?key ?value) ?designator)))
+
 (def-fact-group motion-designator-specs (property)
 
   (<- (property ?designator (?location-key ?location))
@@ -136,16 +150,3 @@
     (lisp-pred typep ?designator desig:object-designator)
     (property-member (:name ?name) ?designator)
     (assert-type ?name (or symbol string) "OBJECT SPEC:PROPERTY")))
-
-
-(def-fact-group all-designator-specs (property)
-
-  (<- (property-member (?key ?value) ?designator)
-    (assert-type ?designator desig:designator "PROPERTY-MEMBER")
-    (lisp-fun desig:description ?designator ?props)
-    (member (?key ?value) ?props))
-
-  (<- (property ?designator (?key ?value))
-    (bound ?key)
-    ;; (bound ?value) ; set default behaviour to not throw errors if no spec is defined
-    (property-member (?key ?value) ?designator)))

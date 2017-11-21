@@ -65,8 +65,7 @@
 
 (def-fact-group robot-pose-cloud-reachability-costmap (location-costmap:desig-costmap)
   (<- (location-costmap:desig-costmap ?designator ?cm)
-    (desig:desig-prop ?designator (:type :reachable))
-    (desig:desig-prop ?designator (:for ?robot))
+    (desig:desig-prop ?designator (:reachable-for ?robot))
     (cram-robot-interfaces:robot ?robot)
     ;; (desig:desig-prop ?designator (:arm ?arm))
     (desig:desig-prop ?designator (:target ?location))
@@ -94,8 +93,7 @@
   (let ((?transform-to-reach (local-handle-transform))
         (?robot 'cram-pr2-description:pr2))
     (desig:reference (desig:a location
-                              (type reachable)
-                              (for ?robot)
+                              (reachable-for ?robot)
                               (target (desig:a location (pose ?transform-to-reach)))
                               (context "OpenFridge")))))
 

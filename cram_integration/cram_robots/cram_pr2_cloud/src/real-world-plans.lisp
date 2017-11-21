@@ -95,8 +95,7 @@
          (?arm (kr-cloud::arm-used-in-action "OpenFridge"))
          (?robot 'cram-pr2-description:pr2)
          (?location-for-robot (desig:a location
-                                       (type reachable)
-                                       (for ?robot)
+                                       (reachable-for ?robot)
                                        (target ?handle-pose)
                                        (context "OpenFridge")))
          (?target (ecase ?arm (:left :left-target) (:right :right-target))))
