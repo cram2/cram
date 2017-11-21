@@ -68,6 +68,7 @@
 
                cram-pr2-low-level
                cram-process-modules
+               cram-robosherlock
                cram-pr2-process-modules)
 
   :components

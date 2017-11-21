@@ -77,8 +77,9 @@
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
-       (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
-                                   pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+       (rs:robosherlock-perception-pm
+        pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+        pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
      (cpl:top-level
        ,@body)))
 
