@@ -31,8 +31,8 @@
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
-       (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
-                                   pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+       (pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+                             pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
      (cpl:top-level
        ,@body)))
 
@@ -136,6 +136,15 @@
         (exe:perform
          (desig:an action (type opening) (gripper ?arm))))
 
+      (let ((?right-arm-init-config '(-0.6177226607749531d0 0.8595855682477204d0
+                                      -0.22685404643554485d0 -2.1215879821638572d0
+                                      -27.55566886200435d0 -1.9241091851082714d0
+                                      9.343508274913418d0)))
+        (exe:perform
+         (desig:a motion
+                  (type moving-arm-joints)
+                  (right-configuration ?right-arm-init-config))))
+
       (let ((?trajectory
               (gripper-trajectory-in-map->in-base
                (ecase projected-or-original
@@ -182,7 +191,27 @@
         (btr-utils:spawn-object 'green-dot :pancake-maker :color '(0 1 0 0.5)
                                                           :pose '((1.5 -1.05 1.6) (0 0 0 1)))
 
+        (let ((?right-arm-init-config '(-2.040980560942328d0 0.2712278780562381d0
+                                        -0.6460215625664274d0 -2.028500414744249d0
+                                        -26.026134035944583d0 -1.1912449349507037d0
+                                        12.292977968464921d0)))
+        (exe:perform
+         (desig:a motion
+                  (type moving-arm-joints)
+                  (right-configuration ?right-arm-init-config))))
+
         ?location-for-robot))))
 
-;;; arms down
+
+
+(defun main ()
+  (pr2-cloud::init)
+  (let ((location (with-simulated-robot
+                    (pr2-cloud::environment-articulation-plan
+                     :projected-or-original :projected))))
+    (sleep 3.0)
+    (with-real-robot
+      (pr2-cloud::environment-articulation-plan 
+       :projected-or-original :projected
+       :location-designator location))))
 

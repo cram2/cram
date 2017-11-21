@@ -40,10 +40,12 @@
 
 
 
-(defmacro with-projected-robot (&body body)
-  `(proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
-      (cpl:top-level
-        ,@body)))
+(defmacro with-simulated-robot (&body body)
+  `(let ((results
+           (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+             (cpl:top-level
+               ,@body))))
+     (car (cram-projection::projection-environment-result-result results))))
 
 (defun visualize-cloud-handle-and-joint ()
   (btr-utils:spawn-object 'cloud-handle-original :mug
