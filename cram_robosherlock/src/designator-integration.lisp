@@ -41,3 +41,13 @@
       (:inspect
        (handler-case
            (perceive :inspect argument-1))))))
+
+
+(prolog:def-fact-group rs-pm (cpm:matching-process-module
+                              cpm:available-process-module)
+
+  (prolog:<- (cpm:matching-process-module ?motion-designator robosherlock-perception-pm)
+    (desig:desig-prop ?motion-designator (:type :detecting)))
+
+  (prolog:<- (cpm:available-process-module robosherlock-perception-pm)
+    (prolog:not (cpm:projection-running ?_))))
