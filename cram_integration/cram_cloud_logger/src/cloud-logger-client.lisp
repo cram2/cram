@@ -3,6 +3,7 @@
 
 (defparameter *cloud-logger-client* nil)
 (defparameter *is-client-connected* nil)
+(defparameter *is-logging-enabled* nil)
 
 (defparameter *host* "'https://localhost'")
 (defparameter *cert-path* "'/home/koralewski/Desktop/localhost.pem'")
@@ -19,16 +20,19 @@
 
 
 (defun connect-to-cloud-logger ()
-  (if *is-client-connected*
+  (if (and *is-client-connected*)
       (print "Already connected to cloud logger")
-      (handler-case (progn
+      (handler-case
+          (if *is-logging-enabled*
+            (progn
+                  (print "Connecting to cloud logger ...")
                  ; (roslisp:start-ros-node "json_prolog_client")
                   (json-prolog:prolog-simple-1 "register_ros_package('knowrob_cloud_logger').")
                   (send-cloud-interface-query *host* *cert-path* *api-key*)
                   (json-prolog:prolog-simple-1 "start_user_container.")
                   (json-prolog:prolog-simple-1 "connect_to_user_container.")
                   (setf *is-client-connected* t)
-                  (print "Client is connected to the cloud logger"))
+                  (print "Client is connected to the cloud logger")))
         (ROSLISP::ROS-RPC-ERROR () (print "No JSON Prolog service is running"))
         (SIMPLE-ERROR () (print "Cannot connect to container")))))
 
@@ -40,10 +44,11 @@
   (json-prolog:prolog-simple-1 (create-query "cloud_interface" (list host cert-path api-key))))
 
 (defun send-prolog-query-1 (prolog-query)
-  (send-next-solution
+  (if *is-logging-enabled*
+   (send-next-solution
    (get-id-from-query-result
     (json-prolog:prolog-simple-1
-     (concatenate 'string "send_prolog_query('" (string prolog-query) "', @(false), Id)")))))
+     (concatenate 'string "send_prolog_query('" (string prolog-query) "', @(false), Id)"))))))
 
 (defun send-prolog-query (prolog-query)
   (json-prolog:prolog-simple
