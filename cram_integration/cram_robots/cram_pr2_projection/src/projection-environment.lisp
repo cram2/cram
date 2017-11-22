@@ -71,7 +71,10 @@
     (symbol-value cram-projection:*projection-environment* pr2-bullet-projection-environment))
 
   (<- (cpm::projection-running ?pm)
-    (cpm:available-process-module ?pm)))
+    (bound ?pm)
+    (once (member ?pm (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
+                                           pr2-proj-grippers pr2-proj-arms)))
+    (symbol-value cram-projection:*projection-environment* pr2-bullet-projection-environment)))
 
 
 
