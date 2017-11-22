@@ -122,7 +122,7 @@
 (cpl:def-cram-function release (?left-or-right)
   (cpl:with-failure-handling
       ((common-fail:low-level-failure (e) ; ignore failures
-         (roslisp:ros-warn (pick-and-place open-gripper) "~a" e)
+         (roslisp:ros-warn (pick-and-place release) "~a" e)
          (return)))
     (exe:perform
      (desig:a motion
@@ -146,7 +146,7 @@
 (cpl:def-cram-function close-gripper (?left-or-right)
   (cpl:with-failure-handling
       ((common-fail:low-level-failure (e) ; ignore failures
-         (roslisp:ros-warn (pick-and-place grip) "~a" e)
+         (roslisp:ros-warn (pick-and-place close-gripper) "~a" e)
          (return)))
     (exe:perform
      (desig:a motion
@@ -156,7 +156,7 @@
 (cpl:def-cram-function set-gripper-to-position (?left-or-right ?position)
   (cpl:with-failure-handling
       ((common-fail:low-level-failure (e) ; ignore failures
-         (roslisp:ros-warn (pick-and-place grip) "~a" e)
+         (roslisp:ros-warn (pick-and-place set-gripper-to-pos) "~a" e)
          (return)))
     (exe:perform
      (desig:a motion
@@ -214,7 +214,7 @@
 (cpl:def-cram-function perceive (?object-designator
                                  &key
                                  (object-chosing-function #'identity))
-  (cpl:with-retry-counters ((perceive-retries 5))
+  (cpl:with-retry-counters ((perceive-retries 4))
     (cpl:with-failure-handling
         ((common-fail:perception-object-not-found (e)
            (cpl:do-retry perceive-retries
