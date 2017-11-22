@@ -10,31 +10,41 @@
 ;(defparameter *api-key* "'0nYZRYs5AxDeZAWhWBKYmLF1IJCtRM7gkYTqSV3Noyhl5V3yyxzSaA7Nxi8FFQsC'")
 (defparameter *api-key* "'K103jdr40Rp8UX4egmRf42VbdB1b5PW7qYOOVvTDAoiNG6lcQoaDHONf5KaFcefs'")
 
+;; Gaya's token on Asil's PC
+(defparameter *api-key* "'MxtU9V2cdstw3ocKXbicBGp7fAeLNxjIvcmY4CJV96DeZd7obfgvw0mR3X5j8Yrz'")
+;; Asil's host
+(defparameter *host* "'https://192.168.101.42'")
+;; Asil's certificate on ease@pr2a
+(defparameter *cert-path* "'/home/ease/asil.pem'")
+
 
 (defclass cloud-logger-client()
   ((address :accessor get-address)
    (certificate :accessor get-certificate)
    (token :accessor get-token)
-   (current-query-id :accessor get-current-query-id)
-   ))
+   (current-query-id :accessor get-current-query-id)))
 
 
 (defun connect-to-cloud-logger ()
-  (if (and *is-client-connected*)
-      (print "Already connected to cloud logger")
-      (handler-case
-          (if *is-logging-enabled*
-            (progn
-                  (print "Connecting to cloud logger ...")
-                 ; (roslisp:start-ros-node "json_prolog_client")
-                  (json-prolog:prolog-simple-1 "register_ros_package('knowrob_cloud_logger').")
-                  (send-cloud-interface-query *host* *cert-path* *api-key*)
-                  (json-prolog:prolog-simple-1 "start_user_container.")
-                  (json-prolog:prolog-simple-1 "connect_to_user_container.")
-                  (setf *is-client-connected* t)
-                  (print "Client is connected to the cloud logger")))
-        (ROSLISP::ROS-RPC-ERROR () (print "No JSON Prolog service is running"))
-        (SIMPLE-ERROR () (print "Cannot connect to container")))))
+  (when *is-logging-enabled*
+   (if (and *is-client-connected*)
+       (print "Already connected to cloud logger")
+       (handler-case
+           (progn
+             (print "Connecting to cloud logger ...")
+             ;; (roslisp:start-ros-node "json_prolog_client")
+             (json-prolog:prolog-simple-1 "register_ros_package('knowrob_cloud_logger').")
+             (print "Registered cloud logger package")
+             (send-cloud-interface-query *host* *cert-path* *api-key*)
+             (print "Interface connected")
+             (json-prolog:prolog-simple-1 "start_user_container.")
+             (print "Container started.")
+             (json-prolog:prolog-simple-1 "connect_to_user_container.")
+             (print "User container connected.")
+             (setf *is-client-connected* t)
+             (print "Client is connected to the cloud logger"))
+         (roslisp::ros-rpc-error () (print "No JSON Prolog service is running"))
+         (simple-error () (print "Cannot connect to container"))))))
 
 
 (defun init-cloud-logger-client ()
@@ -59,10 +69,12 @@
     (subseq x 2 (- (length x) 2))))
 
 (defun send-next-solution(id)
-  (json-prolog:prolog-simple-1 (concatenate 'string "send_next_solution('" id "',Result).")))
+  (json-prolog:prolog-simple-1
+   (concatenate 'string "send_next_solution('" id "',Result).")))
 
 (defun read-next-prolog-query(query-id)
-  (json-prolog:prolog-simple-1 (concatenate 'string "read_next_prolog_query('" query-id "',Result).")))
+  (json-prolog:prolog-simple-1
+   (concatenate 'string "read_next_prolog_query('" query-id "',Result).")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;Logging Specific Part;;;;;;;;;;;;;;;;;
@@ -79,13 +91,19 @@
 
 (defun send-cram-start-parent-action (owl-action-class task-context start-time
                                prev-action parent-task action-inst)
-  (send-prolog-query-1 (create-query "cram_start_action" (list owl-action-class task-context start-time
-                               prev-action parent-task action-inst))))
+  (send-prolog-query-1
+   (create-query
+    "cram_start_action"
+    (list owl-action-class task-context start-time
+          prev-action parent-task action-inst))))
 
 (defun send-cram-start-action (owl-action-class task-context start-time
                                prev-action action-inst)
-  (send-prolog-query-1 (create-query "cram_start_action" (list owl-action-class task-context start-time
-                               prev-action action-inst))))
+  (send-prolog-query-1
+   (create-query
+    "cram_start_action"
+    (list owl-action-class task-context start-time
+          prev-action action-inst))))
 
 (defun send-cram-finish-action (action-inst end-time)
   (send-prolog-query-1 (create-query "cram_finish_action" (list action-inst end-time))))
