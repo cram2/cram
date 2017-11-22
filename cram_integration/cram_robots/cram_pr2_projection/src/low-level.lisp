@@ -137,17 +137,17 @@
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
-(defgeneric look-at (pose-or-frame-or-direction)
-  (:method ((pose cl-transforms-stamped:pose-stamped))
+(defgeneric look-at (goal-type pose-or-frame-or-direction)
+  (:method (goal-type (pose cl-transforms-stamped:pose-stamped))
     (look-at-pose-stamped pose))
-  (:method ((frame string))
+  (:method (goal-type (frame string))
     (look-at-pose-stamped
      (cl-transforms-stamped:make-pose-stamped
       frame
       0.0
       (cl-transforms:make-identity-vector)
       (cl-transforms:make-identity-rotation))))
-  (:method ((direction symbol))
+  (:method (goal-type (direction symbol))
     (look-at-pose-stamped
      (case direction
        (:forward (cl-transforms-stamped:make-pose-stamped

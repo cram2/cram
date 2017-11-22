@@ -47,17 +47,17 @@
 
 (def-fact-group ptu-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-head ?pose))
+  (<- (motion-grounding ?designator (move-head :pose ?pose))
     (property ?designator (:type :looking))
     (property ?designator (:target ?location-designator))
     (designator-groundings ?location-designator ?poses)
     (member ?pose ?poses))
 
-  (<- (motion-grounding ?designator (move-head ?frame))
+  (<- (motion-grounding ?designator (move-head :frame ?frame))
     (property ?designator (:type :looking))
     (property ?designator (:frame ?frame)))
 
-  (<- (motion-grounding ?designator (move-head ?direction))
+  (<- (motion-grounding ?designator (move-head :direction ?direction))
     (property ?designator (:type :looking))
     (property ?designator (:direction ?direction))))
 
