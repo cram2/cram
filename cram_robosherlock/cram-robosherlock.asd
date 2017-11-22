@@ -52,5 +52,5 @@
     ((:file "package")
      (:file "json-parser" :depends-on ("package"))
      (:file "robosherlock-ros" :depends-on ("package" "json-parser"))
-     (:file "api" :depends-on ("package" "robosherlock-json"))
+     (:file "api" :depends-on ("package" "robosherlock-ros"))
      (:file "designator-integration" :depends-on ("package" "api"))))))
