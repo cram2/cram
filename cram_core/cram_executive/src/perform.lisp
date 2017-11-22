@@ -97,7 +97,8 @@ but it isn't defined. Cannot perform action." designator command)(ccl::send-task
       (let ((result "") (cram-action-name (get-designator-property-value-str designator :TYPE)))
         (setf result (ccl::get-value-of-json-prolog-dict (cdaar (ccl::send-cram-start-action (get-knowrob-action-name cram-action-name) " \\'DummyContext\\'" (get-timestamp-for-logging) "PV" "ActionInst")) "ActionInst"))
         (log-action-parameter designator result)
-        result)))
+        result)
+      "NOLOGGING"))
 
 (defun get-knowrob-action-name (cram-action-name)
   (let ((knowrob-action-name cram-action-name))
