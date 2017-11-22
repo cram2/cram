@@ -35,8 +35,9 @@
       (cram-common-designators:move-head
        (handler-case
            (ecase goal-type
-             (:point (pr2-ll:call-ptu-action :point goal))
-             (:frame (pr2-ll:call-ptu-action :frame goal)))
+             (:pose (pr2-ll:call-ptu-action :pose goal))
+             (:frame (pr2-ll:call-ptu-action :frame goal))
+             (:direction (pr2-ll:call-ptu-action :direction goal)))
          ;; (cram-pr2:look-at-failed ()
          ;;   (cpl:fail 'cram-plan-failures:look-at-failed :action action-designator))
          )))))
