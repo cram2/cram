@@ -34,7 +34,7 @@
   (setf *cloud-joint-transform* nil)
   (setf *local-handle-transform* nil)
   (setf *local-joint-transform* nil)
-  (init-connection)
+  ;; (init-connection)
   (load-trajectory-episode))
 
 
