@@ -69,14 +69,19 @@
 (defmethod parse-json-node ((name (eql :timestamp)) node) nil)
 (defmethod parse-json-node ((name (eql :pipelineid)) node) nil)
 
+;; (defmethod parse-json-node ((name (eql :uid)) node)
+;;   (list :name (roslisp-utilities:lispify-ros-name
+;;                (let ((knowrob-string (string-trim "'" node)))
+;;                  (let* ((position-of-# (position #\# knowrob-string :from-end t)))
+;;                    (if position-of-#
+;;                        (subseq knowrob-string (1+ position-of-#))
+;;                        knowrob-string)))
+;;                :keyword)))
+(defmethod parse-json-node ((name (eql :uid)) node)
+  (list :name (intern node :keyword)))
+
 (defmethod parse-json-node ((name (eql :id)) node)
-  (list :name (roslisp-utilities:lispify-ros-name
-               (let ((knowrob-string (string-trim "'" node)))
-                 (let* ((position-of-# (position #\# knowrob-string :from-end t)))
-                   (if position-of-#
-                       (subseq knowrob-string (1+ position-of-#))
-                       knowrob-string)))
-               :keyword)))
+  (list :id node))
 
 (defmethod parse-json-node ((name (eql :type)) node)
   (list name (intern (string-upcase node) :keyword)))
@@ -93,7 +98,6 @@
   (parse-nested-node :bb node))
 
 (defmethod parse-json-node ((name (eql :pose)) node)
-  (setf *rs-result-debug* node)
   (if (getassoc "pose" node)
       (list name (parse-alist node))
       (let* ((frame-id (getassoc "frame_id" node))

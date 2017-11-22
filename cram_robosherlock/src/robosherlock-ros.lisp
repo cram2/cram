@@ -137,10 +137,10 @@
     (flet ((make-robosherlock-designator (rs-answer)
              (desig:make-designator
               :object
-              ;; (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
-              ;;         keyword-key-value-pairs-list
-              ;;         :initial-value rs-answer)
-              rs-answer
+              (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
+                      keyword-key-value-pairs-list
+                      :initial-value rs-answer)
+              ;; rs-answer
               )))
 
       (roslisp:with-fields (answer)
