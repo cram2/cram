@@ -76,4 +76,8 @@
 
   (<- (desig:action-grounding ?action-designator (navigate ?location-designator))
     (spec:property ?action-designator (:type :going))
-    (spec:property ?action-designator (:target ?location-designator))))
+    (spec:property ?action-designator (:target ?location-designator)))
+
+  (<- (desig:action-grounding ?action-designator (perceive ?object-designator))
+    (spec:property ?action-designator (:type :detecting))
+    (spec:property ?action-designator (:object ?object-designator))))
