@@ -122,8 +122,8 @@
 
 (defun shake-head (n-times)
   (dotimes (n n-times)
-    (call-ptu-action :point (cl-transforms:make-3d-vector 5.0 1.0 1.2))
-    (call-ptu-action :point (cl-transforms:make-3d-vector 5.0 -1.0 1.2))))
+    (call-ptu-action :pose (cl-transforms:make-3d-vector 5.0 1.0 1.2))
+    (call-ptu-action :pose (cl-transforms:make-3d-vector 5.0 -1.0 1.2))))
 
 (defun look-at-gripper (left-or-right)
   (call-ptu-action :frame (ecase left-or-right
