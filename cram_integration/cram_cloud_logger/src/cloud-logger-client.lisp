@@ -3,12 +3,17 @@
 
 (defparameter *cloud-logger-client* nil)
 (defparameter *is-client-connected* nil)
-(defparameter *is-logging-enabled* nil)
+(defparameter *is-logging-enabled* t)
 
 (defparameter *host* "'https://localhost'")
+;;(defparameter *host* "'https://192.168.101.42'")
 (defparameter *cert-path* "'/home/koralewski/Desktop/localhost.pem'")
-;(defparameter *api-key* "'0nYZRYs5AxDeZAWhWBKYmLF1IJCtRM7gkYTqSV3Noyhl5V3yyxzSaA7Nxi8FFQsC'")
+;;(defparameter *cert-path* "'/home/ease/asil.pem'")
+;;LOCAL PC
+;;(defparameter *api-key* "'0nYZRYs5AxDeZAWhWBKYmLF1IJCtRM7gkYTqSV3Noyhl5V3yyxzSaA7Nxi8FFQsC'")
+;;AI PC
 (defparameter *api-key* "'K103jdr40Rp8UX4egmRf42VbdB1b5PW7qYOOVvTDAoiNG6lcQoaDHONf5KaFcefs'")
+;;(defparameter *api-key* "'DiI6fqr5I2ObbeMyI9cDyzjoEHjfz3E48O45M3bKAZh465PUvNtOPB9v8xodMCQT'")
 
 ;; Gaya's token on Asil's PC
 (defparameter *api-key* "'MxtU9V2cdstw3ocKXbicBGp7fAeLNxjIvcmY4CJV96DeZd7obfgvw0mR3X5j8Yrz'")
@@ -186,7 +191,9 @@
   (concatenate 'string "rdf_assert(" a "," b "," c ", \\'LoggingGraph\\')."))
 
 (defun convert-to-prolog-str(lisp-str)
-  (concatenate 'string "\\'" lisp-str "\\'"))
+  (if (eq 0 (search "'" lisp-str))
+      (concatenate 'string "\\'" (subseq lisp-str 1 (- (length lisp-str) 1)) "\\'")
+      (concatenate 'string "\\'" lisp-str "\\'")))
 
 (defun send-instance-from-class (instance-class-name)
   (let ((instance-class-id
