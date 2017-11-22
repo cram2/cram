@@ -56,6 +56,18 @@
                 :format-control "Designator goal ~a could not be parsed.~%~a"
                 :format-arguments (list keyword-expression error-message)))))
 
+(defun call-perform-with-logging (command arguments action-id)
+  (cpl:with-failure-handling
+      ((cpl:plan-failure (e)
+         (log-cram-finish-action action-id)
+         (ccl::send-task-success action-id "false")
+         (format t "failure string: ~a" (write-to-string e))))
+    (let ((perform-result
+            (apply command arguments)))
+      (log-cram-finish-action action-id)
+      (ccl::send-task-success action-id "true")
+      perform-result)))
+
 (defgeneric perform (designator)
   (:documentation "If the action designator has a GOAL key it will be checked if the goal holds.
 TODO: there might be multiple plans that can execute the same action designator.
@@ -72,7 +84,9 @@ similar to what we have for locations.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
+
     (if ccl::*is-logging-enabled*
+
         (let ((action-id (log-perform-call designator)))
           (destructuring-bind (command &rest arguments)
               (try-reference-designator designator)
@@ -84,21 +98,17 @@ similar to what we have for locations.")
                             (warn 'simple-warning
                                   :format-control "Action goal `~a' already achieved."
                                   :format-arguments (list occasion))
-                            (progn
-                              (apply command arguments)
-                              (log-cram-finish-action action-id)
-                              (ccl::send-task-success action-id "true")))
+                            (call-perform-with-logging command arguments action-id))
                         (unless (cram-occasions-events:holds occasion)
                           (cpl:fail "Goal `~a' of action `~a' was not achieved."
                                     designator occasion)))
-                      (progn
-                        (apply command arguments)
-                        (log-cram-finish-action action-id)
-                        (ccl::send-task-success action-id "true"))))
+                      (call-perform-with-logging command arguments action-id)))
                 (progn
+                  (log-cram-finish-action action-id)
+                  (ccl::send-task-success action-id "false")
                   (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
-                       but it isn't defined. Cannot perform action." designator command)
-                  (ccl::send-task-success action-id "false")))))
+                       but it isn't defined. Cannot perform action." designator command)))))
+
         (destructuring-bind (command &rest arguments)
             (try-reference-designator designator)
           (if (fboundp command)
@@ -159,14 +169,14 @@ similar to what we have for locations.")
            (setf knowrob-action-name "LookingAtLocation"))
           ((string-equal cram-action-name "going")
            (setf knowrob-action-name "MovingToLocation")))
-    (concatenate 'string "knowrob:\\'" knowrob-action-name "\\'")))
+    (concatenate 'string "knowrob:" (ccl::convert-to-prolog-str knowrob-action-name))))
 
 (defun get-timestamp-for-logging ()
   (write-to-string (truncate (cram-utilities:current-timestamp))))
 
 (defun log-cram-finish-action(action-id)
   (ccl::send-cram-finish-action
-   (concatenate 'string "\\'" action-id "\\'") (get-timestamp-for-logging)))
+   (ccl::convert-to-prolog-str action-id ) (get-timestamp-for-logging)))
 
 (defun get-designator-property-value-str(designator property-keyname)
   (string (cadr(assoc property-keyname (properties designator)))))
