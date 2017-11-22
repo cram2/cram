@@ -7,7 +7,7 @@
   :licence "BSD"
   :description "Utility constructs from writing CRAM-based executives."
   :depends-on (:alexandria :cram-language :cram-designators
-                           :cram-process-modules :cram-occasions-events)
+                           :cram-process-modules :cram-occasions-events :cram-cloud-logger)
 
   :components
   ((:module "src"
