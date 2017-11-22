@@ -152,8 +152,6 @@
 (defun send-create-object (action-inst object-name object-type)
   (let ((object-instance-id (send-instance-from-class "object")))
     (send-rdf-query (convert-to-prolog-str object-instance-id) "knowrob:objectName" (convert-to-prolog-str object-name))
-    (print object-name )
-    (print (subseq object-name 1))
     (send-rdf-query (convert-to-prolog-str object-instance-id) "knowrob:objectType" (convert-to-prolog-str object-type))
     (send-rdf-query (convert-to-prolog-str object-instance-id) "knowrob:action" (convert-to-prolog-str action-inst))
     object-instance-id))
@@ -234,3 +232,5 @@
           ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
 
 
+(defun send-location-action-parameter (action-inst location-designator)
+  (print (type-of location-designator)))
