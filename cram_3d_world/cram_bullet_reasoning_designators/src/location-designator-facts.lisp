@@ -47,9 +47,6 @@
 (def-fact-group bullet-reasoning-location-desig (desig-costmap
                                                  desig-loc
                                                  desig-location-prop)
-
-  (<- (visibility-costmap-size 3.0))
-
   ;; poses reachable-from ?pose for the robot
   ;; ?pose should usually be robot's current pose I suppose
   (<- (desig-costmap ?desig ?cm)
@@ -87,7 +84,7 @@
     (camera-minimal-height ?robot ?minimal-height)
     (camera-maximal-height ?robot ?maximal-height)
     (costmap-resolution ?resolution)
-    (visibility-costmap-size ?size))
+    (location-costmap:visibility-costmap-size ?size))
 
   (<- (object-visibility-costmap ?designator ?costmap)
     (or (desig-prop ?designator (:obj ?object))
