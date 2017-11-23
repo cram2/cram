@@ -68,6 +68,10 @@
     (:spoon . :left)
     (:milk . :left)))
 
+(defparameter *object-cad-models*
+  '((:cup . "cup_eco_orange")
+    (:bowl . "edeka_red_bowl")))
+
 (defmacro with-simulated-robot (&body body)
   `(let ((results
            (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
@@ -133,7 +137,6 @@
                              (object ?perceived-object-desig))))))
 
 (defun place-object (?target-pose &optional (?arm :right))
-  (format t "IN PLACE OJB:~%~%~%~%~a~%" (prolog:prolog `(cpoe:object-in-hand ?obj ?arm)))
   (pp-plans:park-arms)
   (go-to-sink-or-island :island)
   (cpl:par
@@ -213,9 +216,13 @@
       ;; After playing around and messing up the world, restore the original state.
       (btr::restore-world-state world-state world)))
 
-  (exe:perform (desig:an action
-                         (type going)
-                         (target ?navigation-location))))
+  (cpl:with-failure-handling
+      ((common-fail:navigation-low-level-failure (e)
+         (roslisp:ros-warn (pp-plans go-without-coll) "Navigation failed: ~a~%Ignoring." e)
+         (return)))
+    (exe:perform (desig:an action
+                           (type going)
+                           (target ?navigation-location)))))
 
 
 (defun search-for-object (?object-designator ?search-location &optional (retries 5))
@@ -247,7 +254,9 @@
                                (type looking)
                                (target (desig:a location
                                                 (pose ?pose-at-search-location))))))
-      (pp-plans::perceive ?object-designator))))
+      (exe:perform (desig:an action
+                             (type detecting)
+                             (object ?object-designator))))))
 
 
 (defun equalize-two-list-lengths (first-list second-list)
@@ -339,7 +348,9 @@
 (defvar *obj* nil)
 
 (defun fetch (?object-designator ?search-location)
-  (let* ((?perceived-object-desig
+  (let* ((object-designator-properties
+           (desig:properties ?object-designator))
+         (?perceived-object-desig
            (search-for-object ?object-designator ?search-location))
          (?perceived-object-pose-in-base
            (desig:reference (desig:a location (of ?perceived-object-desig))))
@@ -379,24 +390,33 @@
                    (roslisp:ros-warn (pp-plans fetch) "No more retries left :'(")
                    (cpl:fail 'common-fail:object-unfetchable))))
 
-            (go-without-collisions ?pick-up-location)
-            (setf ?pick-up-location (desig:current-desig ?pick-up-location))
+            (flet ((reperceive (copy-of-object-designator-properties)
+                     (let* ((?copy-of-object-designator
+                              (desig:make-designator :object copy-of-object-designator-properties))
+                            (?more-precise-perceived-object-desig
+                              (exe:perform (desig:an action
+                                                     (type detecting)
+                                                     (object ?copy-of-object-designator)))))
+                       (format t "~%~%~%~%RESULT: ~A~%" ?more-precise-perceived-object-desig)
+                       ;; (desig:equate ?object-designator ?more-precise-perceived-object-desig)
+                       (let ((pick-up-action
+                               (desig:an action
+                                         (type picking-up)
+                                         (object ?more-precise-perceived-object-desig))))
+                         (check-picking-up-collisions pick-up-action)
+                         (setf pick-up-action (desig:current-desig pick-up-action))
+                         (exe:perform pick-up-action)
+                         (setf *obj* ?more-precise-perceived-object-desig)))))
 
-            (exe:perform (desig:an action
-                                   (type looking)
-                                   (target (desig:a location
-                                                    (pose ?perceived-object-pose-in-map)))))
+              (go-without-collisions ?pick-up-location)
+              (setf ?pick-up-location (desig:current-desig ?pick-up-location))
 
-            (let ((?more-precise-perceived-object-desig
-                    (pp-plans::perceive ?object-designator)))
-              (let ((pick-up-action
-                      (desig:an action
-                                (type picking-up)
-                                (object ?more-precise-perceived-object-desig))))
-                (check-picking-up-collisions pick-up-action)
-                (setf pick-up-action (desig:current-desig pick-up-action))
-                (exe:perform pick-up-action)
-                (setf *obj* ?more-precise-perceived-object-desig)))))))
+              (exe:perform (desig:an action
+                                     (type looking)
+                                     (target (desig:a location
+                                                      (pose ?perceived-object-pose-in-map)))))
+
+              (reperceive object-designator-properties))))))
 
     (pp-plans:park-arms)
     (desig:current-desig ?object-designator)))
@@ -542,10 +562,19 @@
               (cdr (assoc object-type *object-grasping-arms*))))
 
         (pick-object object-type arm-to-use)
-        (format t "NOW OBJECT IN HAND? ~a~%" (prolog:prolog `(cpoe:object-in-hand ?obj ?arm)))
         (place-object placing-target arm-to-use)))))
 
 (defun demo-random ()
+  (btr:detach-all-objects (btr:get-robot-object))
+  (btr-utils:kill-all-objects)
+
+  (when (eql cram-projection:*projection-environment*
+             'cram-pr2-projection::pr2-bullet-projection-environment)
+    (spawn-objects-on-sink-counter-randomly))
+
+  (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
+
+
   (let ((?pose (cl-transforms-stamped:make-pose-stamped
                 cram-tf:*fixed-frame*
                 0.0
@@ -556,13 +585,6 @@
               (type going)
               (target (desig:a location
                                (pose ?pose))))))
-
-  (when (eql cram-projection:*projection-environment*
-             'cram-pr2-projection::pr2-bullet-projection-environment)
-    (btr:detach-all-objects (btr:get-robot-object))
-    (spawn-objects-on-sink-counter-randomly))
-
-  (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
 
   (let ((list-of-objects '(:cup :spoon :cereal :bowl :milk)))
     (let* ((short-list-of-objects (remove (nth (random (length list-of-objects))
@@ -577,7 +599,9 @@
                 (cl-transforms-stamped:pose->pose-stamped
                  "map" 0.0
                  (cram-bullet-reasoning:ensure-pose
-                  (cdr (assoc ?object-type *object-placing-poses*))))))
+                  (cdr (assoc ?object-type *object-placing-poses*)))))
+              (?cad-model
+                (cdr (assoc ?object-type *object-cad-models*))))
 
           (cpl:with-failure-handling
               ((common-fail:high-level-failure (e)
@@ -585,10 +609,13 @@
                  (return)))
             (let* ((?object
                      (fetch (desig:an object
-                                      (type ?object-type))
+                                      (type ?object-type)
+                                      (desig:when ?cad-model
+                                        (cad-model ?cad-model)))
                             (desig:a location
                                      (on "CounterTop")
-                                     (name "iai_kitchen_sink_area_counter_top")))))
+                                     (name "iai_kitchen_sink_area_counter_top")
+                                     (side left)))))
 
               (let* ((object-pose-in-base
                        (desig:reference (desig:a location (of ?object))))
@@ -609,13 +636,17 @@
                                (cl-transforms-stamped:make-pose-stamped
                                 cram-tf:*robot-base-frame*
                                 0.0
-                                (cl-transforms:make-3d-vector 0.7 0 1.3)
+                                (cl-transforms:make-3d-vector 0.7 0 1.2)
                                 (cl-transforms:make-identity-rotation))))
-                         (exe:perform
-                          (desig:an action
-                                    (type going)
-                                    (target (desig:a location
-                                                     (pose ?map-in-front-of-sink-pose)))))
+                         (cpl:with-failure-handling
+                             ((common-fail:navigation-low-level-failure (e)
+                                (declare (ignore e))
+                                (return)))
+                           (exe:perform
+                                     (desig:an action
+                                      (type going)
+                                      (target (desig:a location
+                                               (pose ?map-in-front-of-sink-pose))))))
                          (exe:perform
                           (desig:an action
                                     (type placing)

@@ -59,7 +59,7 @@
                               (to see)
                               (object (desig:an object (at (desig:a location (pose ?pose)))))))))
 
-(defun add-objects-to-mesh-list (&optional (ros-package "cram_pr2_projection_sandbox"))
+(defun add-objects-to-mesh-list (&optional (ros-package "cram_pr2_pick_place_demo"))
   (mapcar (lambda (object-filename-and-object-extension)
             (declare (type list object-filename-and-object-extension))
             (destructuring-bind (object-filename object-extension)

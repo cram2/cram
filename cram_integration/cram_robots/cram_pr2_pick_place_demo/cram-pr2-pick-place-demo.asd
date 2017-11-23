@@ -52,6 +52,7 @@
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
+               cram-bullet-reasoning-designators
 
                cram-pr2-projection ; for projection process modules
 
@@ -69,7 +70,9 @@
                cram-pr2-low-level
                cram-process-modules
                cram-robosherlock
-               cram-pr2-process-modules)
+               cram-pr2-process-modules
+
+               cram-cloud-logger)
 
   :components
   ((:module "src"
