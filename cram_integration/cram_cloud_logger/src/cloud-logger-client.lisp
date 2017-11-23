@@ -159,9 +159,14 @@
   (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
 (defun send-object-action-parameter (action-inst object-designator)
-  (let ((object-instance-id (send-create-object action-inst (write-to-string (desig::desig-prop-value object-designator :NAME)) (write-to-string (desig::desig-prop-value object-designator :TYPE)))))
+  (let ((object-instance-id (write-to-string (desig::desig-prop-value object-designator :NAME))))
     (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:object" (convert-to-prolog-str object-instance-id))
     object-instance-id))
+
+(defun get-object-name (object-name)
+  (if (eq (search "|" object-name) 1)
+      (subseq object-name 2 (- (length object-name) 1))
+      object-name))
 
 (defun send-create-object (action-inst object-name object-type)
   (let ((object-instance-id (send-instance-from-class "object")))
