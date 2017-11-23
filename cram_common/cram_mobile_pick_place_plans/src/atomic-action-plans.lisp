@@ -59,7 +59,10 @@
                           (desig:when ?left-pose
                             (left-target (desig:a location (pose ?left-pose))))
                           (desig:when ?right-pose
-                            (right-target (desig:a location (pose ?right-pose))))))))
+                            (right-target (desig:a location (pose ?right-pose))))))
+
+                (cram-occasions-events:on-event
+                 (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
             (fill-in-with-nils (butlast left-poses) max-length)
             (fill-in-with-nils (butlast right-poses) max-length)))
@@ -81,10 +84,13 @@
                   (desig:when ?left-pose
                     (left-target (desig:a location (pose ?left-pose))))
                   (desig:when ?right-pose
-                    (right-target (desig:a location (pose ?right-pose))))))))))
+                    (right-target (desig:a location (pose ?right-pose))))))
+
+        (cram-occasions-events:on-event
+         (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
 
 
-(cpl:def-cram-function park-arms (&key (arm '(:left :right)) (carry nil))
+(cpl:def-cram-function park-arms (&key (arm '(:left :right)) (carry t))
   (let ((carry?
           (or (prolog:prolog `(cpoe:object-in-hand ?obj ?arm))
               carry)))
@@ -129,7 +135,9 @@
                (exe:perform
                 (desig:a motion
                          (type moving-arm-joints)
-                         (left-configuration ?left-configuration))))
+                         (left-configuration ?left-configuration)))
+               (cram-occasions-events:on-event
+                (make-instance 'cram-plan-occasions-events:robot-state-changed)))
              (cpl:seq
                (exe:perform
                 (desig:a motion
@@ -138,7 +146,9 @@
                (exe:perform
                 (desig:a motion
                          (type moving-arm-joints)
-                         (right-configuration ?right-configuration))))))))))
+                         (right-configuration ?right-configuration)))
+               (cram-occasions-events:on-event
+                (make-instance 'cram-plan-occasions-events:robot-state-changed)))))))))
 
 
 (cpl:def-cram-function release (?left-or-right)
@@ -149,7 +159,9 @@
     (exe:perform
      (desig:a motion
               (type opening)
-              (gripper ?left-or-right)))))
+              (gripper ?left-or-right)))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
 (cpl:def-cram-function grip (?left-or-right ?effort)
@@ -164,7 +176,9 @@
          (desig:a motion
                   (type gripping)
                   (gripper ?left-or-right)
-                  (effort ?effort))))))
+                  (effort ?effort)))
+      (cram-occasions-events:on-event
+       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
 
 (cpl:def-cram-function close-gripper (?left-or-right)
   (cpl:with-failure-handling
@@ -174,7 +188,9 @@
     (exe:perform
      (desig:a motion
               (type closing)
-              (gripper ?left-or-right)))))
+              (gripper ?left-or-right)))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 (cpl:def-cram-function set-gripper-to-position (?left-or-right ?position)
   (cpl:with-failure-handling
@@ -185,7 +201,9 @@
      (desig:a motion
               (type moving-gripper-joint)
               (gripper ?left-or-right)
-              (joint-angle ?position)))))
+              (joint-angle ?position)))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 (cpl:def-cram-function look-at (&key target frame direction object)
   (cond (target
@@ -201,25 +219,33 @@
                       (when (setf motion (desig:next-solution motion))
                         (roslisp:ros-warn (pp-plans look-at) "Retrying.")
                         (cpl:retry)))))
-               (exe:perform motion)))))
+               (exe:perform motion)
+               (cram-occasions-events:on-event
+                (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
         (frame
          (let ((?frame frame))
            (exe:perform
             (desig:a motion
                      (type looking)
-                     (frame ?frame)))))
+                     (frame ?frame)))
+           (cram-occasions-events:on-event
+            (make-instance 'cram-plan-occasions-events:robot-state-changed))))
         (direction
          (let ((?direction direction))
           (exe:perform
            (desig:a motion
                     (type looking)
-                    (direction ?direction)))))
+                    (direction ?direction)))
+           (cram-occasions-events:on-event
+            (make-instance 'cram-plan-occasions-events:robot-state-changed))))
         (object
          (let ((?pose (cram-object-interfaces:get-object-pose object)))
            (exe:perform
             (desig:a motion
                      (type looking)
-                     (target (desig:a location (pose ?pose)))))))))
+                     (target (desig:a location (pose ?pose)))))
+           (cram-occasions-events:on-event
+            (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
 
 (cpl:def-cram-function navigate (?location-designator)
   (cpl:with-retry-counters ((nav-retries 2))
@@ -232,7 +258,9 @@
              (roslisp:ros-warn (pick-and-place go) "Retrying...")
              (cpl:retry))))
       (exe:perform
-       (desig:a motion (type going) (target ?location-designator))))))
+       (desig:a motion (type going) (target ?location-designator)))
+      (cram-occasions-events:on-event
+       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
 
 (cpl:def-cram-function perceive (?object-designator
                                  &key
@@ -250,4 +278,9 @@
                          (object ?object-designator))))
              (resulting-designator
                (funcall object-chosing-function resulting-designators)))
+        (desig:equate ?object-designator resulting-designator)
+        (cram-occasions-events:on-event
+         (make-instance 'cram-plan-occasions-events:object-perceived-event
+           :object-designator resulting-designator
+           :perception-source :whatever))
         resulting-designator))))
