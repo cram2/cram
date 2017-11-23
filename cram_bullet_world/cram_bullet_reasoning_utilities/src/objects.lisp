@@ -42,25 +42,28 @@
 
 (defgeneric spawn-object (name type &key pose color world)
   (:method (name type &key pose color world)
-    (var-value
-   '?object-instance
-   (car (prolog
-         `(and
-           ,(if pose
-                `(equal ?pose ,pose)
-                `(scenario-objects-init-pose ?pose))
-           ,(if color
-                `(equal ?color ,color)
-                `(scenario-object-color ?_ ,type ?color))
-           ,(if world
-                `(equal ?world ,world)
-                `(bullet-world ?world))
-           (scenario-object-shape ,type ?shape)
-           (scenario-object-extra-attributes ?_ ,type ?attributes)
-           (append (object ?world ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
-                   ?object-description)
-           (assert ?object-description)
-           (%object ?world ,name ?object-instance)))))))
+    (if (btr:object (or world *current-bullet-world*) name)
+        (when pose
+          (move-object name pose))
+        (var-value
+         '?object-instance
+         (car (prolog
+               `(and
+                 ,(if pose
+                      `(equal ?pose ,pose)
+                      `(scenario-objects-init-pose ?pose))
+                 ,(if color
+                      `(equal ?color ,color)
+                      `(scenario-object-color ?_ ,type ?color))
+                 ,(if world
+                      `(equal ?world ,world)
+                      `(bullet-world ?world))
+                 (scenario-object-shape ,type ?shape)
+                 (scenario-object-extra-attributes ?_ ,type ?attributes)
+                 (append (object ?world ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
+                         ?object-description)
+                 (assert ?object-description)
+                 (%object ?world ,name ?object-instance))))))))
 
 (defgeneric kill-object (name)
   (:method (name)
