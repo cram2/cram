@@ -59,11 +59,15 @@
   (json-prolog:prolog-simple-1 (create-query "cloud_interface" (list host cert-path api-key))))
 
 (defun send-prolog-query-1 (prolog-query)
+  ;;(print prolog-query)
   (if *is-logging-enabled*
-   (send-next-solution
-   (get-id-from-query-result
-    (json-prolog:prolog-simple-1
-     (concatenate 'string "send_prolog_query('" (string prolog-query) "', @(false), Id)"))))))
+   (let ((query-id (get-id-from-query-result
+                    (json-prolog:prolog-simple-1
+                     (concatenate 'string "send_prolog_query('"
+                                  (string prolog-query) "', @(false), Id)")))))
+     (let ((query-result (send-next-solution query-id)))
+       (send-finish-query query-id)
+       query-result))))
 
 (defun send-prolog-query (prolog-query)
   (json-prolog:prolog-simple
@@ -173,9 +177,14 @@
   (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
 (defun send-object-action-parameter (action-inst object-designator)
-  (let ((object-instance-id (send-create-object action-inst (write-to-string (desig::desig-prop-value object-designator :NAME)) (write-to-string (desig::desig-prop-value object-designator :TYPE)))))
+  (let ((object-instance-id (write-to-string (desig::desig-prop-value object-designator :NAME))))
     (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:object" (convert-to-prolog-str object-instance-id))
     object-instance-id))
+
+(defun get-object-name (object-name)
+  (if (eq (search "|" object-name) 1)
+      (subseq object-name 2 (- (length object-name) 1))
+      object-name))
 
 (defun send-create-object (action-inst object-name object-type)
   (let ((object-instance-id (send-instance-from-class "object")))
@@ -209,39 +218,31 @@
   (create-owl-literal "xsd:string" value))
 
 (defun send-create-3d-vector (3d-vector)
-  (let ((3d-vector-instance-id (send-instance-from-class "3dVector"))
-        (x (cl-transforms:x 3d-vector))
+  (let ((x (cl-transforms:x 3d-vector))
         (y (cl-transforms:y 3d-vector))
         (z (cl-transforms:z 3d-vector)))
-    (send-rdf-query (convert-to-prolog-str 3d-vector-instance-id) "knowrob:x" (create-float-owl-literal x))
-    (send-rdf-query (convert-to-prolog-str 3d-vector-instance-id) "knowrob:y" (create-float-owl-literal y))
-    (send-rdf-query (convert-to-prolog-str 3d-vector-instance-id) "knowrob:z" (create-float-owl-literal z))
-    3d-vector-instance-id))
+    (concatenate 'string (format nil "~F" x) " " (format nil "~F" y) " " (format nil "~F" z))))
+
 
 (defun send-create-quaternion (quaternion)
-  (let ((quaternion-instance-id (send-instance-from-class "quaternion"))
-        (x (cl-transforms:x quaternion))
+  (let ((x (cl-transforms:x quaternion))
         (y (cl-transforms:y quaternion))
         (z (cl-transforms:z quaternion))
         (w (cl-transforms:w quaternion)))
-    (send-rdf-query (convert-to-prolog-str quaternion-instance-id) "knowrob:x" (create-float-owl-literal x))
-    (send-rdf-query (convert-to-prolog-str quaternion-instance-id) "knowrob:y" (create-float-owl-literal y))
-    (send-rdf-query (convert-to-prolog-str quaternion-instance-id) "knowrob:z" (create-float-owl-literal z))
-    (send-rdf-query (convert-to-prolog-str quaternion-instance-id) "knowrob:w" (create-float-owl-literal w))
-    quaternion-instance-id))
+        (concatenate 'string (format nil "~F" x) " " (format nil "~F" y) " " (format nil "~F" z) " " (format nil "~F" w))))
 
 (defun send-create-pose-stamped (pose-stamped)
-  (let ((pose-stamped-instance-id (send-instance-from-class "poseStamped"))
-        (frame-id (cl-transforms-stamped:frame-id pose-stamped))
-        (stamp (cl-transforms-stamped:stamp pose-stamped))
+  (let ((pose-stamped-instance-id (send-instance-from-class "Pose"))
+        ;;(frame-id (cl-transforms-stamped:frame-id pose-stamped))
+        ;;(stamp (cl-transforms-stamped:stamp pose-stamped))
         (origin (cl-transforms-stamped:origin pose-stamped))
         (orientation (cl-transforms-stamped:orientation pose-stamped)))
     (let ((3d-vector-id (send-create-3d-vector origin))
           (quaternion-id (send-create-quaternion orientation)))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:frameId" (create-string-owl-literal frame-id))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:stamp" (create-float-owl-literal stamp))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:origin" (convert-to-prolog-str 3d-vector-id))
-      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:orientation" (convert-to-prolog-str quaternion-id)))
+      ;;(send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:frameId" (create-string-owl-literal frame-id))
+      ;;(send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:stamp" (create-float-owl-literal stamp))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation" (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion" (create-string-owl-literal (convert-to-prolog-str quaternion-id))))
     pose-stamped-instance-id))
 
 (defun send-pose-stamped-list-action-parameter (action-inst list-name pose-stamped-list)
@@ -261,6 +262,37 @@
     (cond ((string-equal ":RIGHT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_gripper")))
           ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
 
-
 (defun send-location-action-parameter (action-inst location-designator)
-  (print (type-of location-designator)))
+  (print action-inst)
+  (print location-designator)
+  (print "LOCATION"))
+
+(defun send-target-action-parameter (action-inst location-designator)
+  (print  (desig::desig-prop-value location-designator :REACHABLE-FOR))
+  (print  (desig::desig-prop-value location-designator :VISIBLE-FOR))
+  (print location-designator)
+  (if (desig::desig-prop-value location-designator :POSE)
+      (let (
+            (pose-id (send-create-pose-stamped
+                      (desig::desig-prop-value location-designator :POSE))))
+          (send-rdf-query (convert-to-prolog-str action-inst)
+                          "knowrob:targetPose"
+                          (convert-to-prolog-str pose-id))))
+  
+  (let ((location (desig::desig-prop-value location-designator :LOCATION)))
+    (if location
+        (let ((pose-id (send-create-pose-stamped (desig::desig-prop-value location :POSE))))
+          (send-rdf-query (convert-to-prolog-str action-inst)
+                          "knowrob:targetPose"
+                          (convert-to-prolog-str pose-id))
+          (cond ((desig::desig-prop-value location-designator :REACHABLE-FOR)
+                 (send-rdf-query (convert-to-prolog-str pose-id)
+                          "knowrob:inReachOf"
+                          (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#PR2Robot1")))
+                ((desig::desig-prop-value location-designator :VISIBLE-FOR)
+                 (send-rdf-query (convert-to-prolog-str pose-id)
+                          "knowrob:inFieldOfView"
+                          (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#PR2Robot1"))))))))
+
+(defun send-finish-query(id)
+  (json-prolog:prolog-simple-1 (concatenate 'string "send_finish_query('" id "').")))
