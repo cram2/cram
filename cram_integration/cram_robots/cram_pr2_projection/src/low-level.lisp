@@ -53,8 +53,9 @@
     `(and (cram-robot-interfaces:robot ?robot)
           (btr:bullet-world ?w)
           (btr:assert ?w (btr:object-pose ?robot ,target)))))
-  (cram-occasions-events:on-event
-   (make-instance 'cram-plan-occasions-events:robot-state-changed)))
+  ;; (cram-occasions-events:on-event
+  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
+  )
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -66,8 +67,9 @@
           (btr:bullet-world ?w)
           (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?joint)
           (btr:assert (btr:joint-state ?w ?robot ((?joint ,joint-angle)))))))
-  (cram-occasions-events:on-event
-   (make-instance 'cram-plan-occasions-events:robot-state-changed)))
+  ;; (cram-occasions-events:on-event
+  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
+  )
 
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -134,8 +136,9 @@
                  (= tilt-angle cropped-tilt-angle))
         (cpl:fail 'common-fail:ptu-goal-unreachable
                   :description "Look action wanted to twist the neck"))
-    (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+    ;; (cram-occasions-events:on-event
+    ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
+    ))
 
 (defgeneric look-at (goal-type pose-or-frame-or-direction)
   (:method (goal-type (pose cl-transforms-stamped:pose-stamped))
@@ -196,14 +199,14 @@
               (make-instance 'desig:object-designator-data
                 :object-identifier name
                 :pose pose-stamped-in-base-frame))
-        (desig:equate input-designator output-designator)
+        ;; (desig:equate input-designator output-designator)
 
         ;; before returning a freshly made output designator of perceived object
         ;; emit an object perceived event to update the belief state
-          (cram-occasions-events:on-event
-           (make-instance 'cram-plan-occasions-events:object-perceived-event
-             :object-designator output-designator
-             :perception-source :projection))
+          ;; (cram-occasions-events:on-event
+          ;;  (make-instance 'cram-plan-occasions-events:object-perceived-event
+          ;;    :object-designator output-designator
+          ;;    :perception-source :projection))
 
         output-designator))))
 
@@ -280,8 +283,8 @@
            (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?max-limit)))))
 
   ;; robot-state-changed event
-  (cram-occasions-events:on-event
-   (make-instance 'cram-plan-occasions-events:robot-state-changed))
+  ;; (cram-occasions-events:on-event
+  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
 
   ;; check if there is an object to grip
   (when (eql action-type :grip) ; if action was gripping check if gripper collided with an item
@@ -326,8 +329,9 @@
                      (assert ?world (btr:joint-state ?robot ,joint-name-value-list))))))))))
     (set-configuration :left left-configuration)
     (set-configuration :right right-configuration)
-    (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+    ;; (cram-occasions-events:on-event
+    ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
+    ))
 
 (defparameter *gripper-length* 0.2 "PR2's gripper length in meters, for calculating TCP -> EE")
 
