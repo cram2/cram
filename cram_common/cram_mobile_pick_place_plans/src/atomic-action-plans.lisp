@@ -86,7 +86,8 @@
 
 (cpl:def-cram-function park-arms (&key (arm '(:left :right)) (carry nil))
   (let ((carry?
-          (or (prolog:prolog `(cpoe:object-in-hand ?obj ,arm)) carry)))
+          (or (prolog:prolog `(cpoe:object-in-hand ?obj ?arm))
+              carry)))
    (flet ((get-arm-parking-joint-states (arm)
             (let* ((bindings
                      (if carry?
@@ -120,7 +121,7 @@
               (return)))
 
          (if carry?
-             (progn
+             (cpl:seq
                (exe:perform
                 (desig:a motion
                          (type moving-arm-joints)
@@ -129,7 +130,7 @@
                 (desig:a motion
                          (type moving-arm-joints)
                          (left-configuration ?left-configuration))))
-             (progn
+             (cpl:seq
                (exe:perform
                 (desig:a motion
                          (type moving-arm-joints)
