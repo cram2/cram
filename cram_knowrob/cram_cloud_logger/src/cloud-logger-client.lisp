@@ -50,10 +50,13 @@
 
 (defun send-prolog-query-1 (prolog-query)
   (if *is-logging-enabled*
-   (send-next-solution
-   (get-id-from-query-result
-    (json-prolog:prolog-simple-1
-     (concatenate 'string "send_prolog_query('" (string prolog-query) "', @(false), Id)"))))))
+   (let ((query-id (get-id-from-query-result
+                    (json-prolog:prolog-simple-1
+                     (concatenate 'string "send_prolog_query('"
+                                  (string prolog-query) "', @(false), Id)")))))
+     (let ((query-result (send-next-solution query-id)))
+       (send-finish-query query-id)
+       query-result))))
 
 (defun send-prolog-query (prolog-query)
   (json-prolog:prolog-simple
@@ -243,6 +246,8 @@
     (cond ((string-equal ":RIGHT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_gripper")))
           ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
 
-
 (defun send-location-action-parameter (action-inst location-designator)
   (print (type-of location-designator)))
+
+(defun send-finish-query(id)
+  (json-prolog:prolog-simple-1 (concatenate 'string "send_finish_query('" id "').")))
