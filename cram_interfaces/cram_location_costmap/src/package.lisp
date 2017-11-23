@@ -109,6 +109,7 @@
            #:costmap-size #:costmap-origin #:costmap-resolution
            #:costmap-padding #:costmap-manipulation-padding
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance
+           #:visibility-costmap-size
            ;; facts
            #:make-angle-to-point-generator #:make-orientation-generator
            #:2d-pose-covariance)
