@@ -83,7 +83,9 @@
 
 (defmethod cram-occasions-events:on-event
     update-tf ((event cram-plan-occasions-events:robot-state-changed))
-  (set-tf-from-bullet))
+  (when (eql cram-projection:*projection-environment*
+           'cram-pr2-projection::pr2-bullet-projection-environment)
+    (set-tf-from-bullet)))
 
 (defmethod cram-robot-interfaces:compute-iks
     :before (pose-stamped &key link-name arm robot-state seed-state
