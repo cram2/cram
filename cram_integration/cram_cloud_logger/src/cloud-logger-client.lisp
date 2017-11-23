@@ -49,6 +49,7 @@
   (json-prolog:prolog-simple-1 (create-query "cloud_interface" (list host cert-path api-key))))
 
 (defun send-prolog-query-1 (prolog-query)
+  ;;(print prolog-query)
   (if *is-logging-enabled*
    (let ((query-id (get-id-from-query-result
                     (json-prolog:prolog-simple-1
@@ -247,7 +248,9 @@
           ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
 
 (defun send-location-action-parameter (action-inst location-designator)
-  (print (type-of location-designator)))
+  (if (not (listp location-designator))
+      (print (desig::desig-prop-value location-designator :REACHABLE-FOR))
+      (send-pose-stamped-list-action-parameter action-inst "location" location-designator)))
 
 (defun send-finish-query(id)
   (json-prolog:prolog-simple-1 (concatenate 'string "send_finish_query('" id "').")))
