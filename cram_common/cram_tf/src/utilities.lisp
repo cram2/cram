@@ -187,22 +187,22 @@
 Take xTy, ensure it's from x-frame.
 Multiply from the right with the yTz transform -- xTy * yTz == xTz."
 
-  (unless (equal (cl-transforms-stamped:frame-id x-y-transform) x-frame)
-      (error "In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
+  (unless (string-equal (cl-transforms-stamped:frame-id x-y-transform) x-frame)
+    (error "In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
               correct parent frame: ~a and ~a"
-             (cl-transforms-stamped:frame-id x-y-transform) x-frame))
+           (cl-transforms-stamped:frame-id x-y-transform) x-frame))
 
-  (unless (equal (cl-transforms-stamped:child-frame-id y-z-transform) z-frame)
-      (error "In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
+  (unless (string-equal (cl-transforms-stamped:child-frame-id y-z-transform) z-frame)
+    (error "In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
               correct child frame: ~a and ~a"
-             (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
+           (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
 
-  (unless (equal (cl-transforms-stamped:child-frame-id x-y-transform)
-                 (cl-transforms-stamped:frame-id y-z-transform))
-      (error "In multiply-transform-stampeds X-Y-TRANSFORM and ~
+  (unless (string-equal (cl-transforms-stamped:child-frame-id x-y-transform)
+                        (cl-transforms-stamped:frame-id y-z-transform))
+    (error "In multiply-transform-stampeds X-Y-TRANSFORM and ~
               Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
-             (cl-transforms-stamped:child-frame-id x-y-transform)
-             (cl-transforms-stamped:frame-id y-z-transform)))
+           (cl-transforms-stamped:child-frame-id x-y-transform)
+           (cl-transforms-stamped:frame-id y-z-transform)))
 
   (let ((multiplied-transforms
           (cl-transforms:transform* x-y-transform y-z-transform))
