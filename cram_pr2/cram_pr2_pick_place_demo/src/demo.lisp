@@ -55,18 +55,18 @@
     (:spoon . ((1.4 1.0 0.86) (0 0 0 1)))
     (:milk . ((1.5 0.6 0.95) (0 0 0 1)))))
 (defparameter *object-placing-poses*
-  '((:cereal . ((-0.85 1.7 0.95) (0 0 0 1)))
+  '((:cereal . ((-0.85 1.8 0.95) (0 0 0 1)))
     (:cup . ((-0.9 1.4 0.9) (0 0 0.7071 0.7071)))
-    (:bowl . ((-0.75 1.3 0.89) (0 0 0 1)))
-    (:spoon . ((-0.78 1.45 0.86) (0 0 1 0)))
-    (:milk . ((-0.79 1.0 0.95) (0 0 0.7071 0.7071)))))
+    (:bowl . ((-0.7 1.3 0.89) (0 0 0 1)))
+    (:spoon . ((-0.78 1.5 0.86) (0 0 1 0)))
+    (:milk . ((-0.79 1.2 0.95) (0 0 0.7071 0.7071)))))
 
 (defparameter *object-grasping-arms*
   '((:cereal . :right)
     (:cup . :right)
-    (:bowl . :right)
+    (:bowl . :left)
     (:spoon . :left)
-    (:milk . :right)))
+    (:milk . :left)))
 
 (defmacro with-simulated-robot (&body body)
   `(let ((results
@@ -87,7 +87,8 @@
   (btr-utils:kill-all-objects)
   (add-objects-to-mesh-list)
   (btr:detach-all-objects (btr:get-robot-object))
-  (let ((object-types '(:cereal :cup :bowl :spoon :milk)))
+  (let ((object-types '(:cereal :cup :bowl :spoon ;; :milk
+                        )))
     ;; spawn objects at default poses
     (let ((objects (mapcar (lambda (object-type)
                              (btr-utils:spawn-object
@@ -132,6 +133,7 @@
                              (object ?perceived-object-desig))))))
 
 (defun place-object (?target-pose &optional (?arm :right))
+  (format t "IN PLACE OJB:~%~%~%~%~a~%" (prolog:prolog `(cpoe:object-in-hand ?obj ?arm)))
   (pp-plans:park-arms)
   (go-to-sink-or-island :island)
   (cpl:par
@@ -528,7 +530,8 @@
 
   (with-simulated-robot
 
-    (dolist (object-type '(:cereal :cup :bowl :spoon :milk))
+    (dolist (object-type '(:cereal :cup :bowl :spoon ;; :milk
+                           ))
 
       (let ((placing-target
               (cl-transforms-stamped:pose->pose-stamped
@@ -539,6 +542,7 @@
               (cdr (assoc object-type *object-grasping-arms*))))
 
         (pick-object object-type arm-to-use)
+        (format t "NOW OBJECT IN HAND? ~a~%" (prolog:prolog `(cpoe:object-in-hand ?obj ?arm)))
         (place-object placing-target arm-to-use)))))
 
 (defun demo-random ()
