@@ -156,7 +156,7 @@
       (list name object-transform-stamped))))
 
 (defmethod parse-json-node ((name (eql :color)) node)
-  (cons name (mapcar #'first
+  (list name (mapcar #'first
                      (subseq (sort (parse-alist node)
                                    #'> :key #'second)
                              0 3))))

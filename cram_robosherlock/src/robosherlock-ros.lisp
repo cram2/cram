@@ -126,6 +126,66 @@
                                                       although there should've been ~a"
                                                  number-of-objects quantifier)))))))
 
+(defun map-rs-color-to-rgb-list (rs-color)
+  (case rs-color
+    (:white '(1.0 1.0 1.0))
+    (:red '(1.0 0.0 0.0))
+    (:orange '(1.0 0.5 0.0))
+    (:yellow '(1.0 1.0 0.0))
+    (:green '(0.0 1.0 0.0))
+    (:blue '(0.0 0.0 1.0))
+    (:cyan '(0.0 1.0 1.0))
+    (:purple '(1.0 0.0 1.0))
+    (:black '(0.0 0.0 0.0))
+    (grey '(0.5 0.5 0.5))
+    (t '(0.5 0.5 0.5))))
+
+(defun make-robosherlock-designator (rs-answer keyword-key-value-pairs-list)
+  (let ((output-designator
+           (desig:make-designator
+            :object
+            ;; rs-answer
+            (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
+                    rs-answer
+                    :initial-value keyword-key-value-pairs-list))))
+    (let* ((name
+             (or (second (find :name (desig:properties output-designator) :key #'car))
+                 (cpl:fail 'common-fail:perception-low-level-failure
+                           :description "Robosherlock object didn't have a NAME")))
+           (pose-stamped-in-camera
+             (or (obj-int:get-object-pose output-designator)
+                 (cpl:fail 'common-fail:perception-low-level-failure
+                           :description "Robosherlock object didn't have a NAME")))
+           (pose-stamped-in-base-frame
+             (cram-tf:ensure-pose-in-frame
+              pose-stamped-in-camera
+              cram-tf:*robot-base-frame*
+              :use-zero-time t))
+           (pose-stamped-in-map-frame
+             (cram-tf:ensure-pose-in-frame
+              pose-stamped-in-camera
+              cram-tf:*fixed-frame*
+              :use-zero-time t))
+           (transform-stamped-in-base-frame
+             (cram-tf:pose-stamped->transform-stamped
+              pose-stamped-in-base-frame
+              name)))
+      (setf
+       (second (assoc :pose (desig:properties output-designator) :test #'equal))
+       (append (second (assoc :pose (desig:properties output-designator) :test #'equal))
+               `((:transform ,transform-stamped-in-base-frame))))
+      (setf (slot-value output-designator 'desig:data)
+            (make-instance 'desig:object-designator-data
+              :object-identifier name
+              :pose pose-stamped-in-map-frame
+              :color (let ((rs-colors (assoc :color (desig:properties output-designator)
+                                             :test #'equal)))
+                       (if rs-colors
+                           (map-rs-color-to-rgb-list
+                            (caadr rs-colors))
+                           '(0.5 0.5 0.5))) ))
+      output-designator)))
+
 (defparameter *rs-result-debug* nil)
 (defparameter *rs-result-designator* nil)
 (defun call-robosherlock-service (detect-or-inspect keyword-key-value-pairs-list
@@ -134,35 +194,30 @@
   (multiple-value-bind (key-value-pairs-list quantifier)
       (ensure-robosherlock-input-parameters keyword-key-value-pairs-list quantifier)
 
-    (flet ((make-robosherlock-designator (rs-answer)
-             (desig:make-designator
-              :object
-              (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
-                      keyword-key-value-pairs-list
-                      :initial-value rs-answer)
-              ;; rs-answer
-              )))
-
-      (roslisp:with-fields (answer)
-          (cpl:with-failure-handling
-              (((or simple-error roslisp:service-call-error) (e)
-                 (format t "Service call error occured!~%~a~%Reinitializing...~%~%" e)
-                 (destroy-robosherlock-service)
-                 (init-robosherlock-service)
-                 (let ((restart (find-restart 'roslisp:reconnect)))
-                   (if restart
-                       (progn (roslisp:wait-duration 5.0)
-                              (invoke-restart 'roslisp:reconnect))
-                       (progn (cpl:retry))))))
-            (roslisp:call-persistent-service
-             (get-robosherlock-service)
-             (make-robosherlock-query detect-or-inspect key-value-pairs-list)))
-        (setf *rs-result-debug* answer)
-        (let* ((rs-parsed-result (ensure-robosherlock-result answer quantifier))
-               (rs-result (ecase quantifier
-                            ((:a :an :the) (make-robosherlock-designator rs-parsed-result))
-                            (:all (map 'list #'make-robosherlock-designator rs-parsed-result)))))
-          (setf *rs-result-designator* rs-result)
-          rs-result)))))
+    (roslisp:with-fields (answer)
+        (cpl:with-failure-handling
+            (((or simple-error roslisp:service-call-error) (e)
+               (format t "Service call error occured!~%~a~%Reinitializing...~%~%" e)
+               (destroy-robosherlock-service)
+               (init-robosherlock-service)
+               (let ((restart (find-restart 'roslisp:reconnect)))
+                 (if restart
+                     (progn (roslisp:wait-duration 5.0)
+                            (invoke-restart 'roslisp:reconnect))
+                     (progn (cpl:retry))))))
+          (roslisp:call-persistent-service
+           (get-robosherlock-service)
+           (make-robosherlock-query detect-or-inspect key-value-pairs-list)))
+      (setf *rs-result-debug* answer)
+      (let* ((rs-parsed-result (ensure-robosherlock-result answer quantifier))
+             (rs-result (ecase quantifier
+                          ((:a :an :the) (make-robosherlock-designator
+                                          rs-parsed-result
+                                          keyword-key-value-pairs-list))
+                          (:all (map 'list (alexandria:rcurry #'make-robosherlock-designator
+                                                              keyword-key-value-pairs-list)
+                                     rs-parsed-result)))))
+        (setf *rs-result-designator* rs-result)
+        rs-result))))
 
 ;; rosservice call /RoboSherlock/json_query "query: '{\"detect\": {\"type\": \"Wheel\"}}'"
