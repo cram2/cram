@@ -245,10 +245,31 @@
   (print "LOCATION"))
 
 (defun send-target-action-parameter (action-inst location-designator)
-  (print (desig::desig-prop-value location-designator :REACHABLE-FOR))
-  (print (desig::desig-prop-value location-designator :VISIBLE-FOR))
-  (let ((pose (desig::desig-prop-value location-designator :POSE)))
-     (if pose (send-pose-stamped-list-action-parameter action-inst "targetPose" (list pose)))))
+  (print  (desig::desig-prop-value location-designator :REACHABLE-FOR))
+  (print  (desig::desig-prop-value location-designator :VISIBLE-FOR))
+  (print location-designator)
+  (if (desig::desig-prop-value location-designator :POSE)
+      (let (
+            (pose-id (send-create-pose-stamped
+                      (desig::desig-prop-value location-designator :POSE))))
+          (send-rdf-query (convert-to-prolog-str action-inst)
+                          "knowrob:targetPose"
+                          (convert-to-prolog-str pose-id))))
+  
+  (let ((location (desig::desig-prop-value location-designator :LOCATION)))
+    (if location
+        (let ((pose-id (send-create-pose-stamped (desig::desig-prop-value location :POSE))))
+          (send-rdf-query (convert-to-prolog-str action-inst)
+                          "knowrob:targetPose"
+                          (convert-to-prolog-str pose-id))
+          (cond ((desig::desig-prop-value location-designator :REACHABLE-FOR)
+                 (send-rdf-query (convert-to-prolog-str pose-id)
+                          "knowrob:inReachOf"
+                          (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#PR2Robot1")))
+                ((desig::desig-prop-value location-designator :VISIBLE-FOR)
+                 (send-rdf-query (convert-to-prolog-str pose-id)
+                          "knowrob:inFieldOfView"
+                          (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#PR2Robot1"))))))))
 
 (defun send-finish-query(id)
   (json-prolog:prolog-simple-1 (concatenate 'string "send_finish_query('" id "').")))
