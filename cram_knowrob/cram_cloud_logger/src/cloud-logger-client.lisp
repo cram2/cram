@@ -248,9 +248,15 @@
           ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
 
 (defun send-location-action-parameter (action-inst location-designator)
-  (if (not (listp location-designator))
-      (print (desig::desig-prop-value location-designator :REACHABLE-FOR))
-      (send-pose-stamped-list-action-parameter action-inst "location" location-designator)))
+  (print action-inst)
+  (print location-designator)
+  (print "LOCATION"))
+
+(defun send-target-action-parameter (action-inst location-designator)
+  (print (desig::desig-prop-value location-designator :REACHABLE-FOR))
+  (print (desig::desig-prop-value location-designator :VISIBLE-FOR))
+  (let ((pose (desig::desig-prop-value location-designator :POSE)))
+     (if pose (send-pose-stamped-list-action-parameter action-inst "targetPose" (list pose)))))
 
 (defun send-finish-query(id)
   (json-prolog:prolog-simple-1 (concatenate 'string "send_finish_query('" id "').")))
