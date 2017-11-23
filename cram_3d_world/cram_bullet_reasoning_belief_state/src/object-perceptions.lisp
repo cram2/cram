@@ -99,6 +99,32 @@ just updated. Otherwise a new instance is created."))
                                               :disable-face-culling t)))))))
 
 (defmethod register-object-designator-data
+    (data &key type)
+  (let ((instance-name (or
+                        (gethash (desig:object-identifier data)
+                                 *object-identifier-to-instance-mappings*)
+                        (setf (gethash (desig:object-identifier data)
+                                       *object-identifier-to-instance-mappings*)
+                              ;; (gensym (string (desig:object-identifier data)))
+                              (desig:object-identifier data)))))
+    ;; below is a hack to deal with shitty identity resolution on RS / KnowRob side :P
+    (prolog `(and (btr:bullet-world ?world)
+                  (btr:item-type ?world ?name ,type)
+                  (btr:retract ?world (btr:object ?name))))
+    (prolog `(and (btr:bullet-world ?world)
+                  (-> (btr:object ?world ,instance-name)
+                      (btr:assert ?world
+                                  (btr:object-pose ,instance-name ,(desig:object-pose data)))
+                      (btr:assert ?world
+                                  (btr:object :mesh ,instance-name ,(desig:object-pose data)
+                                              :mesh ,type ;; ,(object-mesh data)
+                                              :mass 0.2 ;; ,(object-mass data)
+                                              ;; :types ,(list type)
+                                              ;; :disable-face-culling t
+                                              :color ,(desig:object-color data)
+                                              )))))))
+
+(defmethod register-object-designator-data
     ((data cram-physics-utils:object-point-data-mixin) &key type)
   (declare (ignore type))
   nil)
