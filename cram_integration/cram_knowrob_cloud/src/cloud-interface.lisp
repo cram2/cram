@@ -70,6 +70,9 @@ is replaced with replacement.
                                    "read_next_prolog_query(RES)."
                                    :mode 1
                                    :package :kr-cloud)))))
+            (json-prolog:prolog-simple-1 (format nil "send_finish_query('~a')" id)
+                                         :mode 1
+                                         :package :kr-cloud)
             (if (cut:is-var result)
                 (progn
                   (roslisp:ros-warn (cloud-interface query) "Query didn't succeed!")
