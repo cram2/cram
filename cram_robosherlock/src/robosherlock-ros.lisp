@@ -155,7 +155,7 @@
            (pose-stamped-in-camera
              (or (obj-int:get-object-pose output-designator)
                  (cpl:fail 'common-fail:perception-low-level-failure
-                           :description "Robosherlock object didn't have a NAME")))
+                           :description "Robosherlock object didn't have a POSE")))
            (pose-stamped-in-base-frame
              (cram-tf:ensure-pose-in-frame
               pose-stamped-in-camera
