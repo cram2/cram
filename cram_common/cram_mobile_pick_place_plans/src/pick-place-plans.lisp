@@ -41,11 +41,17 @@
                (gripper ?arm)
                (position ?gripper-opening)))
     (roslisp:ros-info (pick-place pick-up) "Reaching")
-    (exe:perform
-     (desig:an action
-               (type reaching)
-               (left-poses ?left-reach-poses)
-               (right-poses ?right-reach-poses))))
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans pick-up)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type reaching)
+                 (left-poses ?left-reach-poses)
+                 (right-poses ?right-reach-poses)))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
   (exe:perform
    (desig:an action
@@ -59,11 +65,17 @@
      :object-name (desig:desig-prop-value ?object-designator :name)
      :arm ?arm))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
-  (exe:perform
-   (desig:an action
-             (type lifting)
-             (left-poses ?left-lift-poses)
-             (right-poses ?right-lift-poses))))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (pp-plans pick-up)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type lifting)
+               (left-poses ?left-lift-poses)
+               (right-poses ?right-lift-poses)))))
 
 
 (cpl:def-cram-function place (?object-designator
@@ -72,17 +84,29 @@
                               ?left-put-poses ?right-put-poses
                               ?left-retract-poses ?right-retract-poses)
   (roslisp:ros-info (pick-place place) "Reaching")
-  (exe:perform
-   (desig:an action
-             (type reaching)
-             (left-poses ?left-reach-poses)
-             (right-poses ?right-reach-poses)))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (pp-plans pick-up)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type reaching)
+               (left-poses ?left-reach-poses)
+               (right-poses ?right-reach-poses))))
   (roslisp:ros-info (pick-place place) "Putting")
-  (exe:perform
-   (desig:an action
-             (type putting)
-             (left-poses ?left-put-poses)
-             (right-poses ?right-put-poses)))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (pp-plans pick-up)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type putting)
+               (left-poses ?left-put-poses)
+               (right-poses ?right-put-poses))))
   (roslisp:ros-info (pick-place place) "Opening gripper")
   (exe:perform
    (desig:an action
@@ -95,11 +119,17 @@
      :arm ?arm
      :object-name (desig:desig-prop-value ?object-designator :name)))
   (roslisp:ros-info (pick-place place) "Retracting")
-  (exe:perform
-   (desig:an action
-             (type retracting)
-             (left-poses ?left-retract-poses)
-             (right-poses ?right-retract-poses))))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (pp-plans pick-up)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type retracting)
+               (left-poses ?left-retract-poses)
+               (right-poses ?right-retract-poses)))))
 
 
 ;; (defun perform-phases-in-sequence (action-designator)
