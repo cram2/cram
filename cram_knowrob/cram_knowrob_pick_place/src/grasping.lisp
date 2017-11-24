@@ -29,9 +29,9 @@
 
 (in-package :kr-pp)
 
-(defparameter *lift-z-offset* 0.1 "in meters")
+(defparameter *lift-z-offset* 0.15 "in meters")
 
-(defparameter *cutlery-grasp-z-offset* -0.003 "in meters") ; because TCP is not at the edge
+(defparameter *cutlery-grasp-z-offset* -0.0 "in meters") ; because TCP is not at the edge
 
 (defparameter *plate-diameter* 0.26 "in meters")
 (defparameter *plate-pregrasp-y-offset* 0.2 "in meters")
@@ -73,8 +73,8 @@
 (defmethod get-object-type-gripping-effort ((object-type (eql :plate))) 100)
 (defmethod get-object-type-gripping-effort ((object-type (eql :bottle))) 60)
 (defmethod get-object-type-gripping-effort ((object-type (eql :cup))) 50)
-(defmethod get-object-type-gripping-effort ((object-type (eql :milk))) 30)
-(defmethod get-object-type-gripping-effort ((object-type (eql :cereal))) 10)
+(defmethod get-object-type-gripping-effort ((object-type (eql :milk))) 15)
+(defmethod get-object-type-gripping-effort ((object-type (eql :cereal))) 15)
 (defmethod get-object-type-gripping-effort ((object-type (eql :bowl))) 100)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -82,10 +82,10 @@
 (defmethod get-object-type-gripper-opening (object-type)
   "Default value is 0.10. In meters."
   0.10)
-(defmethod get-object-type-gripper-opening ((object-type (eql :cutlery))) 0.03)
-(defmethod get-object-type-gripper-opening ((object-type (eql :spoon))) 0.03)
-(defmethod get-object-type-gripper-opening ((object-type (eql :fork))) 0.03)
-(defmethod get-object-type-gripper-opening ((object-type (eql :knife))) 0.03)
+;; (defmethod get-object-type-gripper-opening ((object-type (eql :cutlery))) 0.03)
+;; (defmethod get-object-type-gripper-opening ((object-type (eql :spoon))) 0.03)
+;; (defmethod get-object-type-gripper-opening ((object-type (eql :fork))) 0.03)
+;; (defmethod get-object-type-gripper-opening ((object-type (eql :knife))) 0.03)
 (defmethod get-object-type-gripper-opening ((object-type (eql :plate))) 0.02)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
