@@ -248,7 +248,7 @@
             (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
 
 (cpl:def-cram-function navigate (?location-designator)
-  (cpl:with-retry-counters ((nav-retries 2))
+  (cpl:with-retry-counters ((nav-retries 0))
     (cpl:with-failure-handling
         ((common-fail:navigation-low-level-failure (e)
            (roslisp:ros-warn (pick-and-place go)
@@ -278,9 +278,16 @@
                          (object ?object-designator))))
              (resulting-designator
                (funcall object-chosing-function resulting-designators)))
+        (if (listp resulting-designators)
+            (mapcar (lambda (desig)
+                      (cram-occasions-events:on-event
+                       (make-instance 'cram-plan-occasions-events:object-perceived-event
+                         :object-designator desig
+                         :perception-source :whatever)))
+                    resulting-designators)
+            (cram-occasions-events:on-event
+             (make-instance 'cram-plan-occasions-events:object-perceived-event
+               :object-designator resulting-designators
+               :perception-source :whatever)))
         (desig:equate ?object-designator resulting-designator)
-        (cram-occasions-events:on-event
-         (make-instance 'cram-plan-occasions-events:object-perceived-event
-           :object-designator resulting-designator
-           :perception-source :whatever))
         resulting-designator))))
