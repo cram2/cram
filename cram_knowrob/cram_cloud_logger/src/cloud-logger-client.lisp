@@ -135,6 +135,9 @@
 (defun export-log-to-owl (filename)
   (send-prolog-query-1 (create-query "rdf_save" (list (concatenate 'string "\\'/home/ros/user_data/" filename "\\'" ) "[graph(\\'LoggingGraph\\')]"))))
 
+(defun export-belief-state-to-owl (filename)
+  (json-prolog:prolog-simple-1 (concatenate 'string "rdf_save(" (concatenate 'string "'/home/ros/user_data/" filename "'" "," "[graph('belief-state')])"))))
+
 (defun get-value-of-json-prolog-dict (json-prolog-dict key-name)
   (let ((json-prolog-dict-str (string json-prolog-dict)))
     (let ((key-name-search-str (concatenate 'string key-name "\":\"")))
