@@ -37,7 +37,7 @@
     (<- (location-costmap:costmap-origin -6 -6))
     (<- (location-costmap:costmap-resolution 0.05))
 
-    (<- (location-costmap:costmap-padding 0.4))
+    (<- (location-costmap:costmap-padding 0.44))
     (<- (location-costmap:costmap-manipulation-padding 0.2))
     (<- (location-costmap:costmap-in-reach-distance 0.8))
     (<- (location-costmap:costmap-reach-minimal-distance 0.2))

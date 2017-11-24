@@ -257,7 +257,6 @@
 
 (defun spawn-objects-on-sink-counter-randomly ()
   (btr-utils:kill-all-objects)
-  (add-objects-to-mesh-list)
   (let ((object-types '(:cereal :cup :bowl :spoon :milk)))
     ;; spawn at default location
     (let ((objects (mapcar (lambda (object-type)
