@@ -69,8 +69,9 @@
     (:milk . :left)))
 
 (defparameter *object-cad-models*
-  '((:cup . "cup_eco_orange")
-    (:bowl . "edeka_red_bowl")))
+  '(;; (:cup . "cup_eco_orange")
+    ;; (:bowl . "edeka_red_bowl")
+    ))
 
 (defmacro with-simulated-robot (&body body)
   `(let ((results
@@ -225,7 +226,7 @@
                            (target ?navigation-location)))))
 
 
-(defun search-for-object (?object-designator ?search-location &optional (retries 5))
+(defun search-for-object (?object-designator ?search-location &optional (retries 2))
   (cpl:with-retry-counters ((search-location-retries retries))
     (cpl:with-failure-handling
         (((or common-fail:perception-object-not-found
@@ -567,6 +568,7 @@
 (defun demo-random ()
   (btr:detach-all-objects (btr:get-robot-object))
   (btr-utils:kill-all-objects)
+  (add-objects-to-mesh-list)
 
   (when (eql cram-projection:*projection-environment*
              'cram-pr2-projection::pr2-bullet-projection-environment)
@@ -574,19 +576,21 @@
 
   (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
 
+  (cpl:par
+    (pp-plans::park-arms)
+    (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                  cram-tf:*fixed-frame*
+                  0.0
+                  (cl-transforms:make-identity-vector)
+                  (cl-transforms:make-identity-rotation))))
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location
+                                  (pose ?pose))))))
+    (exe:perform (desig:an action (type opening) (gripper (left right)))))
 
-  (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                cram-tf:*fixed-frame*
-                0.0
-                (cl-transforms:make-identity-vector)
-                (cl-transforms:make-identity-rotation))))
-   (exe:perform
-    (desig:an action
-              (type going)
-              (target (desig:a location
-                               (pose ?pose))))))
-
-  (let ((list-of-objects '(:cup :spoon :cereal :bowl :milk)))
+  (let ((list-of-objects '( :spoon :cereal :bowl :milk :cup)))
     (let* ((short-list-of-objects (remove (nth (random (length list-of-objects))
                                                list-of-objects)
                                           list-of-objects)))
