@@ -121,8 +121,7 @@ just updated. Otherwise a new instance is created."))
                                               :mass 0.2 ;; ,(object-mass data)
                                               ;; :types ,(list type)
                                               ;; :disable-face-culling t
-                                              :color ,(desig:object-color data)
-                                              )))))))
+                                              :color ,(desig:object-color data))))))))
 
 (defmethod register-object-designator-data
     ((data cram-physics-utils:object-point-data-mixin) &key type)
