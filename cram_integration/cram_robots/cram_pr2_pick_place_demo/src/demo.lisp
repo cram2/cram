@@ -49,29 +49,28 @@
    (cl-transforms:make-identity-rotation)))
 
 (defparameter *object-spawning-poses*
-  '((:cereal . ((1.4 0.4 0.95) (0 0 0 1)))
+  '((:breakfast-cereal . ((1.4 1.0 0.95) (0 0 0 1)))
     (:cup . ((1.3 0.6 0.9) (0 0 0 1)))
     (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
-    (:spoon . ((1.4 1.0 0.86) (0 0 0 1)))
-    (:milk . ((1.5 0.6 0.95) (0 0 0 1)))))
+    (:spoon . ((1.4 0.4 0.86) (0 0 0 1)))
+    (:milk . ((1.3 0.2 0.95) (0 0 0 1)))))
 (defparameter *object-placing-poses*
-  '((:cereal . ((-0.85 1.8 0.95) (0 0 0 1)))
-    (:cup . ((-0.9 1.4 0.9) (0 0 0.7071 0.7071)))
-    (:bowl . ((-0.7 1.3 0.89) (0 0 0 1)))
+  '((:breakfast-cereal . ((-0.85 0.9 0.95) (0 0 0 1)))
+    (:cup . ((-0.85 1.35 0.9) (0 0 0.7071 0.7071)))
+    (:bowl . ((-0.76 1.2 0.93) (0 0 1 0)))
     (:spoon . ((-0.78 1.5 0.86) (0 0 1 0)))
-    (:milk . ((-0.79 1.2 0.95) (0 0 0.7071 0.7071)))))
+    (:milk . ((-0.78 1.7 0.95) (0 0 0.7071 0.7071)))))
 
 (defparameter *object-grasping-arms*
-  '((:cereal . :right)
+  '((:breakfast-cereal . :left)
     (:cup . :right)
     (:bowl . :left)
-    (:spoon . :left)
-    (:milk . :left)))
+    (:spoon . :right)
+    (:milk . :right)))
 
 (defparameter *object-cad-models*
-  '(;; (:cup . "cup_eco_orange")
-    ;; (:bowl . "edeka_red_bowl")
-    ))
+  '((:cup . "cup_eco_orange")
+    (:bowl . "edeka_red_bowl")))
 
 (defmacro with-simulated-robot (&body body)
   `(let ((results
@@ -92,8 +91,7 @@
   (btr-utils:kill-all-objects)
   (add-objects-to-mesh-list)
   (btr:detach-all-objects (btr:get-robot-object))
-  (let ((object-types '(:cereal :cup :bowl :spoon ;; :milk
-                        )))
+  (let ((object-types '(:breakfast-cereal :cup :bowl :spoon :milk)))
     ;; spawn objects at default poses
     (let ((objects (mapcar (lambda (object-type)
                              (btr-utils:spawn-object
@@ -119,7 +117,7 @@
                           (type looking)
                           (target (desig:a location (pose ?ptu-goal)))))))
 
-(defun pick-object (&optional (?object-type :cereal) (?arm :right))
+(defun pick-object (&optional (?object-type :breakfast-cereal) (?arm :right))
   (pp-plans:park-arms)
   (go-to-sink-or-island :sink)
   (let* ((?object-desig
@@ -212,13 +210,14 @@
                  (roslisp:ros-warn (pp-plans check-nav-collisions)
                                    "Desig ~a couldn't be resolved: ~a.~%Cannot navigate."
                                    ?navigation-location e)
-                 (cpl:fail 'common-fail:high-level-failure)))))
+                 (cpl:fail 'common-fail:navigation-pose-in-collision)))))
 
       ;; After playing around and messing up the world, restore the original state.
       (btr::restore-world-state world-state world)))
 
   (cpl:with-failure-handling
-      ((common-fail:navigation-low-level-failure (e)
+      (((or common-fail:navigation-low-level-failure
+            common-fail:actionlib-action-timed-out) (e)
          (roslisp:ros-warn (pp-plans go-without-coll) "Navigation failed: ~a~%Ignoring." e)
          (return)))
     (exe:perform (desig:an action
@@ -377,7 +376,8 @@
         (cpl:with-retry-counters ((relocation-for-ik-retries 10))
           (cpl:with-failure-handling
               (((or common-fail:object-unreachable
-                    common-fail:perception-object-not-found) (e)
+                    common-fail:perception-object-not-found
+                    common-fail:gripping-failed) (e)
                  (roslisp:ros-warn (pp-plans fetch) "Object is unreachable: ~a" e)
                  (cpl:do-retry relocation-for-ik-retries
                    (setf ?pick-up-location (next-solution ?pick-up-location))
@@ -551,8 +551,7 @@
 
   (with-simulated-robot
 
-    (dolist (object-type '(:cereal :cup :bowl :spoon ;; :milk
-                           ))
+    (dolist (object-type '(:breakfast-cereal :cup :bowl :spoon :milk))
 
       (let ((placing-target
               (cl-transforms-stamped:pose->pose-stamped
@@ -590,7 +589,7 @@
                                   (pose ?pose))))))
     (exe:perform (desig:an action (type opening) (gripper (left right)))))
 
-  (let ((list-of-objects '( :spoon :cereal :bowl :milk :cup)))
+  (let ((list-of-objects '(:breakfast-cereal :milk :cup :bowl :spoon)))
     (let* ((short-list-of-objects (remove (nth (random (length list-of-objects))
                                                list-of-objects)
                                           list-of-objects)))
@@ -634,7 +633,7 @@
                                (cl-transforms-stamped:make-pose-stamped
                                 cram-tf:*fixed-frame*
                                 0.0
-                                (cl-transforms:make-3d-vector 0.6 -0.5 0)
+                                (cl-transforms:make-3d-vector 0.7 -0.4 0)
                                 (cl-transforms:make-identity-rotation)))
                              (?placing-pose
                                (cl-transforms-stamped:make-pose-stamped
@@ -655,8 +654,21 @@
                           (desig:an action
                                     (type placing)
                                     (target (desig:a location
-                                                     (pose ?placing-pose)))))
-                         (break))))
+                                                     (pose ?placing-pose))))))))
                   (deliver ?object
                            (desig:a location
-                                    (pose ?placing-target-pose))))))))))))
+                                    (pose ?placing-target-pose)))))))))))
+
+  (cpl:par
+    (pp-plans::park-arms :carry nil)
+    (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                  cram-tf:*fixed-frame*
+                  0.0
+                  (cl-transforms:make-identity-vector)
+                  (cl-transforms:make-identity-rotation))))
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location
+                                  (pose ?pose))))))
+    (exe:perform (desig:an action (type opening) (gripper (left right))))))
