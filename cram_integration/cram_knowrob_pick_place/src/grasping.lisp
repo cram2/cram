@@ -75,6 +75,7 @@
 (defmethod get-object-type-gripping-effort ((object-type (eql :cup))) 50)
 (defmethod get-object-type-gripping-effort ((object-type (eql :milk))) 15)
 (defmethod get-object-type-gripping-effort ((object-type (eql :cereal))) 15)
+(defmethod get-object-type-gripping-effort ((object-type (eql :breakfast-cereal))) 15)
 (defmethod get-object-type-gripping-effort ((object-type (eql :bowl))) 100)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -273,9 +274,9 @@
                                       (:right (- *bottle-pregrasp-xy-offset*)))))
 
 ;;; DRINK is the same as BOTTLE
-(defmethod get-object-type-grasp-pose ((object-type (eql :drink))
-                                       arm grasp object-pose)
-  (get-object-type-grasp-pose :bottle object-pose arm grasp))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :drink))
+                                                 object-name arm grasp)
+  (get-object-type-to-gripper-transform :bottle object-name arm grasp))
 (defmethod get-object-type-pregrasp-pose ((object-type (eql :drink))
                                           arm grasp grasp-pose)
   (get-object-type-pregrasp-pose :bottle arm grasp grasp-pose))
@@ -507,6 +508,17 @@
                                               grasp-pose)
   (cram-tf:translate-pose grasp-pose :x-offset (- *cereal-pregrasp-xy-offset*)))
 
+;;; DRINK is the same as BOTTLE
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :breakfast-cereal))
+                                                 object-name arm grasp)
+  (get-object-type-to-gripper-transform :cereal object-name arm grasp))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :breakfast-cereal))
+                                          arm grasp grasp-pose)
+  (get-object-type-pregrasp-pose :cereal arm grasp grasp-pose))
+(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :breakfast-cereal))
+                                              arm grasp grasp-pose)
+  (get-object-type-2nd-pregrasp-pose :cereal arm grasp grasp-pose))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; TOP grasp
@@ -535,7 +547,8 @@
 (def-fact-group pnp-object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
 
   (<- (object-rotationally-symmetric ?object-type)
-    (member ?object-type (:plate :bottle :drink :cup :bowl)))
+    (member ?object-type (:plate :bottle :drink :cup ;; :bowl
+                                 )))
 
   (<- (orientation-matters ?object-type)
     (member ?object-type (:knife :fork :spoon :cutlery :spatula)))
@@ -551,7 +564,7 @@
   (<- (object-type-grasp :bottle :front))
 
   (<- (object-type-grasp :cup :front))
-  (<- (object-type-grasp :cup :top))
+  ;; (<- (object-type-grasp :cup :top))
   (<- (object-type-grasp :cup :side))
   
   (<- (object-type-grasp :milk :side))
@@ -561,5 +574,7 @@
   (<- (object-type-grasp :cereal :top))
   (<- (object-type-grasp :cereal :front))
   ;; (<- (object-type-grasp :cereal :back))
+  (<- (object-type-grasp :breakfast-cereal :top))
+  (<- (object-type-grasp :breakfast-cereal :front))
 
   (<- (object-type-grasp :bowl :top)))
