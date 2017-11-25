@@ -140,51 +140,82 @@
     (grey '(0.5 0.5 0.5))
     (t '(0.5 0.5 0.5))))
 
+(defun which-estimator-for-object (object-description)
+  (let ((type (second (find :type object-description :key #'car)))
+        (cad-model (find :cad-model object-description :key #'car)))
+    (if cad-model
+        :templatealignment
+        (if (eq type :spoon)
+            :2destimate
+            :3destimate))))
+
+(defun find-pose-in-camera-for-object (object-description)
+  (let* ((estimator (which-estimator-for-object object-description))
+         (all-pose-descriptions
+           (cdr (find :pose object-description :key #'car)))
+         (pose-description-we-want
+           (find-if (lambda (pose-value-pair)
+                      (let ((source (second (find :source pose-value-pair :key #'car))))
+                        (eq source estimator)))
+                    all-pose-descriptions)))
+    (unless pose-description-we-want
+      (cpl:fail 'common-fail:perception-low-level-failure
+                :description (format nil
+                                     "Robosherlock object didn't have a POSE from estimator ~a."
+                                     estimator)))
+    (second (find :pose pose-description-we-want :key #'car))))
+
 (defun make-robosherlock-designator (rs-answer keyword-key-value-pairs-list)
-  (let ((output-designator
-           (desig:make-designator
-            :object
-            ;; rs-answer
-            (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
-                    rs-answer
-                    :initial-value keyword-key-value-pairs-list))))
+  (let ((combined-properties
+          (append keyword-key-value-pairs-list
+                  (set-difference rs-answer keyword-key-value-pairs-list :key #'car))))
+
     (let* ((name
-             (or (second (find :name (desig:properties output-designator) :key #'car))
+             (or (second (find :name combined-properties :key #'car))
                  (cpl:fail 'common-fail:perception-low-level-failure
                            :description "Robosherlock object didn't have a NAME")))
-           (pose-stamped-in-camera
-             (or (obj-int:get-object-pose output-designator)
-                 (cpl:fail 'common-fail:perception-low-level-failure
-                           :description "Robosherlock object didn't have a POSE")))
-           (pose-stamped-in-base-frame
-             (cram-tf:ensure-pose-in-frame
-              pose-stamped-in-camera
-              cram-tf:*robot-base-frame*
-              :use-zero-time t))
-           (pose-stamped-in-map-frame
-             (cram-tf:ensure-pose-in-frame
-              pose-stamped-in-camera
-              cram-tf:*fixed-frame*
-              :use-zero-time t))
-           (transform-stamped-in-base-frame
-             (cram-tf:pose-stamped->transform-stamped
-              pose-stamped-in-base-frame
-              name)))
-      (setf
-       (second (assoc :pose (desig:properties output-designator) :test #'equal))
-       (append (second (assoc :pose (desig:properties output-designator) :test #'equal))
-               `((:transform ,transform-stamped-in-base-frame))))
-      (setf (slot-value output-designator 'desig:data)
-            (make-instance 'desig:object-designator-data
-              :object-identifier name
-              :pose pose-stamped-in-map-frame
-              :color (let ((rs-colors (assoc :color (desig:properties output-designator)
-                                             :test #'equal)))
-                       (if rs-colors
-                           (map-rs-color-to-rgb-list
-                            (caadr rs-colors))
-                           '(0.5 0.5 0.5))) ))
-      output-designator)))
+           (color
+             (let ((rs-colors (assoc :color combined-properties
+                                     :test #'equal)))
+               (if rs-colors
+                   (map-rs-color-to-rgb-list
+                    (caadr rs-colors))
+                   '(0.5 0.5 0.5)))))
+
+      (let* ((pose-stamped-in-camera
+               (find-pose-in-camera-for-object combined-properties))
+             (pose-stamped-in-base-frame
+               (cram-tf:ensure-pose-in-frame
+                pose-stamped-in-camera
+                cram-tf:*robot-base-frame*
+                :use-zero-time t))
+             (pose-stamped-in-map-frame
+               (cram-tf:ensure-pose-in-frame
+                pose-stamped-in-camera
+                cram-tf:*fixed-frame*
+                :use-zero-time t))
+             (transform-stamped-in-base-frame
+               (cram-tf:pose-stamped->transform-stamped
+                pose-stamped-in-base-frame
+                name)))
+
+        (let* ((properties-without-pose
+                 (remove :pose combined-properties :key #'car))
+               (output-properties
+                 (append properties-without-pose
+                         `((:pose ((:pose ,pose-stamped-in-base-frame)
+                                   (:transform ,transform-stamped-in-base-frame)))))))
+
+          (let ((output-designator
+                  (desig:make-designator :object output-properties)))
+
+            (setf (slot-value output-designator 'desig:data)
+                  (make-instance 'desig:object-designator-data
+                    :object-identifier name
+                    :pose pose-stamped-in-map-frame
+                    :color color))
+
+            output-designator))))))
 
 (defparameter *rs-result-debug* nil)
 (defparameter *rs-result-designator* nil)
