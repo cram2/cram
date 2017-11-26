@@ -55,18 +55,18 @@
     (:spoon . ((1.4 0.4 0.86) (0 0 0 1)))
     (:milk . ((1.3 0.2 0.95) (0 0 0 1)))))
 (defparameter *object-placing-poses*
-  '((:breakfast-cereal . ((-0.85 0.9 0.95) (0 0 0 1)))
-    (:cup . ((-0.85 1.35 0.9) (0 0 0.7071 0.7071)))
+  '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
+    (:cup . ((-0.81 1.35 0.9) (0 0 0.7071 0.7071)))
     (:bowl . ((-0.76 1.2 0.93) (0 0 1 0)))
     (:spoon . ((-0.78 1.5 0.86) (0 0 1 0)))
-    (:milk . ((-0.78 1.7 0.95) (0 0 0.7071 0.7071)))))
+    (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
 
 (defparameter *object-grasping-arms*
   '((:breakfast-cereal . :left)
     (:cup . :right)
     (:bowl . :left)
     (:spoon . :right)
-    (:milk . :right)))
+    (:milk . :left)))
 
 (defparameter *object-cad-models*
   '((:cup . "cup_eco_orange")
@@ -136,7 +136,6 @@
                              (object ?perceived-object-desig))))))
 
 (defun place-object (?target-pose &optional (?arm :right))
-  (format t "IN PLACE OJB:~%~%~%~%~a~%" (prolog:prolog `(cpoe:object-in-hand ?obj ?arm)))
   (pp-plans:park-arms)
   (go-to-sink-or-island :island)
   (cpl:par
@@ -161,7 +160,7 @@
                   (btr:attached-objects (btr:get-robot-object)))))
     (set-difference colliding-object-names attached-object-names)))
 
-(defun go-without-collisions (?navigation-location &optional (retries 21))
+(defun go-without-collisions (?navigation-location &optional (retries 4))
   (declare (type desig:location-designator ?navigation-location))
 
   (pp-plans:park-arms)
@@ -181,16 +180,22 @@
                ((common-fail:navigation-pose-in-collision (e)
                   (roslisp:ros-warn (pp-plans fetch) "Failure happened: ~a" e)
                   (cpl:do-retry reachable-location-retries
-                    (setf ?navigation-location (desig:next-solution ?navigation-location))
+                    (handler-case
+                        (setf ?navigation-location (desig:next-solution ?navigation-location))
+                      (desig:designator-error ()
+                        (cpl:fail 'common-fail:navigation-pose-in-collision)))
                     (if ?navigation-location
                         (progn
                           (roslisp:ros-warn (pp-plans check-nav-collisions) "Retrying...~%")
                           (cpl:retry))
-                        (roslisp:ros-warn (pp-plans check-nav-collisions)
-                                          "No more samples left to try :'(.")))
+                        (progn
+                          (roslisp:ros-warn (pp-plans check-nav-collisions)
+                                            "No more samples left to try :'(.")
+                          (cpl:fail 'common-fail:navigation-pose-in-collision))))
                   (roslisp:ros-warn (pp-plans go-without-collisions)
                                     "Couldn't find a nav pose for~%~a.~%Propagating up."
-                                    ?navigation-location)))
+                                    ?navigation-location)
+                  (cpl:fail 'common-fail:navigation-pose-in-collision)))
 
              ;; Pick one pose, store it in `pose-at-navigation-location'
              ;; In projected world, drive to picked pose
@@ -229,7 +234,7 @@
 (defun search-for-object (?object-designator ?search-location &optional (retries 2))
   (cpl:with-retry-counters ((search-location-retries retries))
     (cpl:with-failure-handling
-        (((or common-fail:perception-object-not-found
+        (((or common-fail:perception-low-level-failure
               common-fail:navigation-pose-in-collision) (e)
            (roslisp:ros-warn (pp-plans search-for-object) "Failure happened: ~a" e)
            (cpl:do-retry search-location-retries
@@ -341,8 +346,7 @@
                                    (cpl:fail 'common-fail:manipulation-pose-in-collision)))
                                left-poses
                                right-poses))))))))
-      (btr::restore-world-state world-state world)
-      (format t "CLEANING UP PICKING UP COLLISION CHECK~%"))))
+      (btr::restore-world-state world-state world))))
 
 
 
@@ -374,10 +378,10 @@
                        (location (desig:a location
                                           (pose ?perceived-object-pose-in-map))))))
 
-        (cpl:with-retry-counters ((relocation-for-ik-retries 10))
+        (cpl:with-retry-counters ((relocation-for-ik-retries 3))
           (cpl:with-failure-handling
               (((or common-fail:object-unreachable
-                    common-fail:perception-object-not-found
+                    common-fail:perception-low-level-failure
                     common-fail:gripping-failed) (e)
                  (roslisp:ros-warn (pp-plans fetch) "Object is unreachable: ~a" e)
                  (cpl:do-retry relocation-for-ik-retries
@@ -388,9 +392,9 @@
                          (cpl:retry))
                        (progn
                          (roslisp:ros-warn (pp-plans fetch) "No more samples to try :'(")
-                         (cpl:fail 'common-fail:object-unfetchable)))
-                   (roslisp:ros-warn (pp-plans fetch) "No more retries left :'(")
-                   (cpl:fail 'common-fail:object-unfetchable))))
+                         (cpl:fail 'common-fail:object-unfetchable))))
+                 (roslisp:ros-warn (pp-plans fetch) "No more retries left :'(")
+                 (cpl:fail 'common-fail:object-unfetchable)))
 
             (flet ((reperceive (copy-of-object-designator-properties)
                      (let* ((?copy-of-object-designator
@@ -399,7 +403,6 @@
                               (exe:perform (desig:an action
                                                      (type detecting)
                                                      (object ?copy-of-object-designator)))))
-                       (format t "~%~%~%~%RESULT: ~A~%" ?more-precise-perceived-object-desig)
                        ;; (desig:equate ?object-designator ?more-precise-perceived-object-desig)
                        (let ((pick-up-action
                                (desig:an action
@@ -480,8 +483,7 @@
                                 (cpl:fail 'common-fail:manipulation-pose-in-collision)))
                             left-poses
                             right-poses)))))))
-      (btr::restore-world-state world-state world)
-      (format t "CLEANING UP PLACING COLLISION CHECK~%"))))
+      (btr::restore-world-state world-state world))))
 
 (defun deliver (?object-designator ?target-location)
   (cpl:with-retry-counters ((target-location-retries 5))
@@ -563,33 +565,39 @@
               (cdr (assoc object-type *object-grasping-arms*))))
 
         (pick-object object-type arm-to-use)
-        (format t "NOW OBJECT IN HAND? ~a~%" (prolog:prolog `(cpoe:object-in-hand ?obj ?arm)))
         (place-object placing-target arm-to-use)))))
 
-(defun demo-random ()
+(defun demo-random (&optional (random t))
   (btr:detach-all-objects (btr:get-robot-object))
   (btr-utils:kill-all-objects)
   (add-objects-to-mesh-list)
 
   (when (eql cram-projection:*projection-environment*
              'cram-pr2-projection::pr2-bullet-projection-environment)
-    (spawn-objects-on-sink-counter-randomly))
+    (if random
+        (spawn-objects-on-sink-counter-randomly)
+        (spawn-objects-on-sink-counter)))
 
   (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
 
-  (cpl:par
-    (pp-plans::park-arms)
-    (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                  cram-tf:*fixed-frame*
-                  0.0
-                  (cl-transforms:make-identity-vector)
-                  (cl-transforms:make-identity-rotation))))
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?pose))))))
-    (exe:perform (desig:an action (type opening) (gripper (left right)))))
+  (cpl:with-failure-handling
+      ((cpl:plan-failure (e)
+         (declare (ignore e))
+         (return)))
+    (cpl:par
+      (pp-plans::park-arms)
+      (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                    cram-tf:*fixed-frame*
+                    0.0
+                    (cl-transforms:make-identity-vector)
+                    (cl-transforms:make-identity-rotation))))
+        (exe:perform
+         (desig:an action
+                   (type going)
+                   (target (desig:a location
+                                    (pose ?pose))))))
+      (exe:perform (desig:an action (type opening) (gripper (left right))))
+      (exe:perform (desig:an action (type looking) (direction forward)))))
 
   (let ((list-of-objects '(:breakfast-cereal :milk :cup :bowl :spoon)))
     (let* ((short-list-of-objects (remove (nth (random (length list-of-objects))
@@ -661,16 +669,21 @@
                            (desig:a location
                                     (pose ?placing-target-pose)))))))))))
 
-  (cpl:par
-    (pp-plans::park-arms :carry nil)
-    (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                  cram-tf:*fixed-frame*
-                  0.0
-                  (cl-transforms:make-identity-vector)
-                  (cl-transforms:make-identity-rotation))))
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location
-                                  (pose ?pose))))))
-    (exe:perform (desig:an action (type opening) (gripper (left right))))))
+  (cpl:with-failure-handling
+      ((cpl:plan-failure (e)
+         (declare (ignore e))
+         (return)))
+    (cpl:par
+      (pp-plans::park-arms :carry nil)
+      (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                    cram-tf:*fixed-frame*
+                    0.0
+                    (cl-transforms:make-identity-vector)
+                    (cl-transforms:make-identity-rotation))))
+        (exe:perform
+         (desig:an action
+                   (type going)
+                   (target (desig:a location
+                                    (pose ?pose))))))
+      (exe:perform (desig:an action (type opening) (gripper (left right))))
+      (exe:perform (desig:an action (type looking) (direction forward))))))
