@@ -107,7 +107,7 @@
     ("l_elbow_flex_joint" -2.1224566064321584d0)
     ("l_forearm_roll_joint" 16.99646118944817d0)
     ("l_wrist_flex_joint" -0.07350789589924167d0)
-    ("l_wrist_roll_joint" -50.282675816750015d0)))
+    ("l_wrist_roll_joint" 0.0)))
 
 (defparameter *left-parking-joint-states*
   '(("l_shoulder_pan_joint" 0.1709440184822959d0)
