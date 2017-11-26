@@ -265,29 +265,32 @@
 (cpl:def-cram-function perceive (?object-designator
                                  &key
                                  (object-chosing-function #'identity))
-  (cpl:with-retry-counters ((perceive-retries 4))
-    (cpl:with-failure-handling
-        ((common-fail:perception-object-not-found (e)
-           (cpl:do-retry perceive-retries
-             (roslisp:ros-warn (pick-and-place perceive) "~a" e)
-             (cpl:retry))))
-      (let* ((resulting-designators
-               (exe:perform
-                (desig:a motion
-                         (type detecting)
-                         (object ?object-designator))))
-             (resulting-designator
-               (funcall object-chosing-function resulting-designators)))
-        (if (listp resulting-designators)
-            (mapcar (lambda (desig)
-                      (cram-occasions-events:on-event
-                       (make-instance 'cram-plan-occasions-events:object-perceived-event
-                         :object-designator desig
-                         :perception-source :whatever)))
-                    resulting-designators)
-            (cram-occasions-events:on-event
-             (make-instance 'cram-plan-occasions-events:object-perceived-event
-               :object-designator resulting-designators
-               :perception-source :whatever)))
-        (desig:equate ?object-designator resulting-designator)
-        resulting-designator))))
+  (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
+                     1
+                     4)))
+    (cpl:with-retry-counters ((perceive-retries retries))
+      (cpl:with-failure-handling
+          ((common-fail:perception-object-not-found (e)
+             (cpl:do-retry perceive-retries
+               (roslisp:ros-warn (pick-and-place perceive) "~a" e)
+               (cpl:retry))))
+        (let* ((resulting-designators
+                 (exe:perform
+                  (desig:a motion
+                           (type detecting)
+                           (object ?object-designator))))
+               (resulting-designator
+                 (funcall object-chosing-function resulting-designators)))
+          (if (listp resulting-designators)
+              (mapcar (lambda (desig)
+                        (cram-occasions-events:on-event
+                         (make-instance 'cram-plan-occasions-events:object-perceived-event
+                           :object-designator desig
+                           :perception-source :whatever)))
+                      resulting-designators)
+              (cram-occasions-events:on-event
+               (make-instance 'cram-plan-occasions-events:object-perceived-event
+                 :object-designator resulting-designators
+                 :perception-source :whatever)))
+          (desig:equate ?object-designator resulting-designator)
+          resulting-designator)))))
