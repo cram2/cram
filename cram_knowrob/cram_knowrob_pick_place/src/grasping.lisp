@@ -40,11 +40,11 @@
 (defparameter *plate-grasp-z-offset* 0.015 "in meters")
 (defparameter *plate-grasp-roll-offset* (/ pi 6))
 
-(defparameter *bottle-pregrasp-xy-offset* 0.05 "in meters")
+(defparameter *bottle-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *bottle-grasp-xy-offset* 0.02 "in meters")
 (defparameter *bottle-grasp-z-offset* 0.005 "in meters")
 
-(defparameter *cup-pregrasp-xy-offset* 0.05 "in meters")
+(defparameter *cup-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *cup-grasp-xy-offset* 0.02 "in meters")
 (defparameter *cup-grasp-z-offset* 0.03 "in meters")
 (defparameter *cup-top-grasp-x-offset* 0.03 "in meters")
@@ -52,11 +52,11 @@
 
 (defparameter *milk-grasp-xy-offset* 0.01 "in meters")
 (defparameter *milk-grasp-z-offset* 0.0 "in meters")
-(defparameter *milk-pregrasp-xy-offset* 0.05 "in meters")
+(defparameter *milk-pregrasp-xy-offset* 0.15 "in meters")
 
 (defparameter *cereal-grasp-z-offset* 0.06 "in meters")
 (defparameter *cereal-grasp-xy-offset* -0.03 "in meters")
-(defparameter *cereal-pregrasp-xy-offset* 0.1 "in meters")
+(defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 
 (defparameter *bowl-grasp-x-offset* 0.07 "in meters")
 (defparameter *bowl-grasp-z-offset* 0.01 "in meters")
@@ -239,9 +239,9 @@
    0.0
    (cl-transforms:make-3d-vector 0.0d0 (- *bottle-grasp-xy-offset*) *bottle-grasp-z-offset*)
    (cl-transforms:matrix->quaternion
-    #2A((-1 0 0)
+    #2A((1 0 0)
         (0 0 -1)
-        (0 -1 0)))))
+        (0 1 0)))))
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :bottle))
                                                  object-name
                                                  (arm (eql :right))
@@ -347,9 +347,9 @@
    0.0
    (cl-transforms:make-3d-vector 0.0d0 (- *cup-grasp-xy-offset*) *cup-grasp-z-offset*)
    (cl-transforms:matrix->quaternion
-    #2A((-1 0 0)
+    #2A((1 0 0)
         (0 0 -1)
-        (0 -1 0)))))
+        (0 1 0)))))
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :cup))
                                                  object-name
                                                  (arm (eql :right))
@@ -422,9 +422,9 @@
    0.0
    (cl-transforms:make-3d-vector 0.0d0 (- *milk-grasp-xy-offset*) *milk-grasp-z-offset*)
    (cl-transforms:matrix->quaternion
-    #2A((-1 0 0)
+    #2A((1 0 0)
         (0 0 -1)
-        (0 -1 0)))))
+        (0 1 0)))))
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :milk))
                                                  object-name
                                                  (arm (eql :right))
@@ -480,11 +480,11 @@
                                           grasp-pose)
   (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
 
-;;; FRONT grasp
+;;; BACK grasp
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :cereal))
                                                  object-name
                                                  arm
-                                                 (grasp (eql :front)))
+                                                 (grasp (eql :back)))
   (cl-transforms-stamped:make-transform-stamped
    (roslisp-utilities:rosify-underscores-lisp-name object-name)
    (ecase arm
@@ -498,17 +498,45 @@
         (0 1 0)))))
 (defmethod get-object-type-pregrasp-pose ((object-type (eql :cereal))
                                           arm
-                                          (grasp (eql :front))
+                                          (grasp (eql :back))
                                           grasp-pose)
   (cram-tf:translate-pose grasp-pose :x-offset (- *cereal-pregrasp-xy-offset*)
                                      :z-offset *lift-z-offset*))
 (defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :cereal))
                                               arm
-                                              (grasp (eql :front))
+                                              (grasp (eql :back))
                                               grasp-pose)
   (cram-tf:translate-pose grasp-pose :x-offset (- *cereal-pregrasp-xy-offset*)))
 
-;;; DRINK is the same as BOTTLE
+;;; FRONT grasp
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :cereal))
+                                                 object-name
+                                                 arm
+                                                 (grasp (eql :front)))
+  (cl-transforms-stamped:make-transform-stamped
+   (roslisp-utilities:rosify-underscores-lisp-name object-name)
+   (ecase arm
+     (:left cram-tf:*robot-left-tool-frame*)
+     (:right cram-tf:*robot-right-tool-frame*))
+   0.0
+   (cl-transforms:make-3d-vector *cereal-grasp-xy-offset* 0.0d0 *cereal-grasp-z-offset*)
+   (cl-transforms:matrix->quaternion
+    #2A((0 0 -1)
+        (-1 0 0)
+        (0 1 0)))))
+(defmethod get-object-type-pregrasp-pose ((object-type (eql :cereal))
+                                          arm
+                                          (grasp (eql :front))
+                                          grasp-pose)
+  (cram-tf:translate-pose grasp-pose :x-offset *cereal-pregrasp-xy-offset*
+                                     :z-offset *lift-z-offset*))
+(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :cereal))
+                                              arm
+                                              (grasp (eql :front))
+                                              grasp-pose)
+  (cram-tf:translate-pose grasp-pose :x-offset *cereal-pregrasp-xy-offset*))
+
+;;; BREAKFAST-CEREAL is the same as CEREAL
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :breakfast-cereal))
                                                  object-name arm grasp)
   (get-object-type-to-gripper-transform :cereal object-name arm grasp))
@@ -557,24 +585,25 @@
   (<- (object-type-grasp :spoon :top))
   (<- (object-type-grasp :fork :top))
   (<- (object-type-grasp :knife :top))
-  
+
   (<- (object-type-grasp :plate :side))
-  
+
   (<- (object-type-grasp :bottle :side))
   (<- (object-type-grasp :bottle :front))
 
   (<- (object-type-grasp :cup :front))
-  ;; (<- (object-type-grasp :cup :top))
   (<- (object-type-grasp :cup :side))
-  
+  ;; (<- (object-type-grasp :cup :top))
+
   (<- (object-type-grasp :milk :side))
   (<- (object-type-grasp :milk :front))
   ;; (<- (object-type-grasp :milk :top))
 
-  (<- (object-type-grasp :cereal :top))
+  ;; (<- (object-type-grasp :cereal :top))
+  (<- (object-type-grasp :cereal :back))
   (<- (object-type-grasp :cereal :front))
-  ;; (<- (object-type-grasp :cereal :back))
-  (<- (object-type-grasp :breakfast-cereal :top))
+  ;; (<- (object-type-grasp :breakfast-cereal :top))
+  (<- (object-type-grasp :breakfast-cereal :back))
   (<- (object-type-grasp :breakfast-cereal :front))
 
   (<- (object-type-grasp :bowl :top)))
