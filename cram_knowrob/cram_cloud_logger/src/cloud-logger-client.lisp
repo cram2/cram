@@ -154,7 +154,7 @@
   (send-prolog-query-1 (create-query "rdf_save" (list (concatenate 'string "\\'/home/ros/user_data/" filename "\\'" ) "[graph(\\'LoggingGraph\\')]"))))
 
 (defun export-belief-state-to-owl (&optional (filename (concatenate 'string "default_belief_state_" (write-to-string (truncate (cram-utilities:current-timestamp))) ".owl")))
-  (json-prolog:prolog-simple-1 (concatenate 'string "rdf_save(" (concatenate 'string "'/home/ease/logs/" filename "'" "," "[graph('belief-state')])"))))
+  (json-prolog:prolog-simple-1 (concatenate 'string "rdf_save(" (concatenate 'string "'/home/ease/logs/" filename "'" "," "[graph('belief_state')])"))))
 
 (defun get-value-of-json-prolog-dict (json-prolog-dict key-name)
   (let ((json-prolog-dict-str (string json-prolog-dict)))
@@ -180,7 +180,7 @@
   (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
 (defun send-object-action-parameter (action-inst object-designator)
-  (let ((object-instance-id (write-to-string (desig::desig-prop-value object-designator :NAME))))
+  (let ((object-instance-id (symbol-name (desig:desig-prop-value object-designator :NAME))))
     (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:objectActedOn" (convert-to-prolog-str object-instance-id))
     object-instance-id))
 
@@ -271,9 +271,6 @@
   (print "LOCATION"))
 
 (defun send-target-action-parameter (action-inst location-designator)
-  (print  (desig::desig-prop-value location-designator :REACHABLE-FOR))
-  (print  (desig::desig-prop-value location-designator :VISIBLE-FOR))
-  (print location-designator)
   (if (desig::desig-prop-value location-designator :POSE)
       (let (
             (pose-id (send-create-pose-stamped
