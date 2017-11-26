@@ -150,8 +150,11 @@
 (defun send-cram-set-perception-result (action-inst res)
   (send-prolog-query-1 (create-query "cram_set_perception_result" (list action-inst res))))
 
-(defun export-log-to-owl (filename)
+(defun export-log-to-owl (&optional (filename (concatenate 'string "default_log_" (write-to-string (truncate (cram-utilities:current-timestamp))) ".owl")))
   (send-prolog-query-1 (create-query "rdf_save" (list (concatenate 'string "\\'/home/ros/user_data/" filename "\\'" ) "[graph(\\'LoggingGraph\\')]"))))
+
+(defun export-belief-state-to-owl (&optional (filename (concatenate 'string "default_belief_state_" (write-to-string (truncate (cram-utilities:current-timestamp))) ".owl")))
+  (json-prolog:prolog-simple-1 (concatenate 'string "rdf_save(" (concatenate 'string "'/home/ease/logs/" filename "'" "," "[graph('belief-state')])"))))
 
 (defun get-value-of-json-prolog-dict (json-prolog-dict key-name)
   (let ((json-prolog-dict-str (string json-prolog-dict)))
@@ -162,7 +165,7 @@
 
 (defun send-task-success (action-inst is-sucessful)
   (let ((a (convert-to-prolog-str action-inst))
-        (b "knowrob:successTask")
+        (b "knowrob:taskSuccess")
         (c (create-owl-literal "xsd:boolean" is-sucessful)))
     (send-rdf-query a b c)))
 
@@ -178,12 +181,12 @@
 
 (defun send-object-action-parameter (action-inst object-designator)
   (let ((object-instance-id (write-to-string (desig::desig-prop-value object-designator :NAME))))
-    (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:object" (convert-to-prolog-str object-instance-id))
+    (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:objectActedOn" (convert-to-prolog-str object-instance-id))
     object-instance-id))
 
 (defun get-object-name (object-name)
   (if (eq (search "|" object-name) 1)
-      (subseq object-name 2 (- (length object-name) 1))
+      (subseq object-name 2 (- (length object-name) 2))
       object-name))
 
 (defun send-create-object (action-inst object-name object-type)
@@ -259,8 +262,8 @@
 
 (defun send-gripper-action-parameter (action-inst gripper-value)
   (let((gripper-value-str (write-to-string gripper-value)))
-    (cond ((string-equal ":RIGHT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_gripper")))
-          ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:gripper" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
+    (cond ((string-equal ":RIGHT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_right_gripper")))
+          ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
 
 (defun send-location-action-parameter (action-inst location-designator)
   (print action-inst)
@@ -276,14 +279,14 @@
             (pose-id (send-create-pose-stamped
                       (desig::desig-prop-value location-designator :POSE))))
           (send-rdf-query (convert-to-prolog-str action-inst)
-                          "knowrob:targetPose"
+                          "knowrob:goalLocation"
                           (convert-to-prolog-str pose-id))))
   
   (let ((location (desig::desig-prop-value location-designator :LOCATION)))
     (if location
         (let ((pose-id (send-create-pose-stamped (desig::desig-prop-value location :POSE))))
           (send-rdf-query (convert-to-prolog-str action-inst)
-                          "knowrob:targetPose"
+                          "knowrob:goalLocation"
                           (convert-to-prolog-str pose-id))
           (cond ((desig::desig-prop-value location-designator :REACHABLE-FOR)
                  (send-rdf-query (convert-to-prolog-str pose-id)

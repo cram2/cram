@@ -136,6 +136,7 @@
                              (object ?perceived-object-desig))))))
 
 (defun place-object (?target-pose &optional (?arm :right))
+  (format t "IN PLACE OJB:~%~%~%~%~a~%" (prolog:prolog `(cpoe:object-in-hand ?obj ?arm)))
   (pp-plans:park-arms)
   (go-to-sink-or-island :island)
   (cpl:par
@@ -562,6 +563,7 @@
               (cdr (assoc object-type *object-grasping-arms*))))
 
         (pick-object object-type arm-to-use)
+        (format t "NOW OBJECT IN HAND? ~a~%" (prolog:prolog `(cpoe:object-in-hand ?obj ?arm)))
         (place-object placing-target arm-to-use)))))
 
 (defun demo-random ()
