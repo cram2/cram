@@ -171,7 +171,7 @@
            (cpl:do-retry grasping-retries
              (roslisp:ros-warn (pick-and-place grip) "~a~%Retrying" e)
              (cpl:retry))
-           (roslisp:ros-warn (pick-and-place grip) "No retries left." e)))
+           (roslisp:ros-warn (pick-and-place grip) "No retries left.")))
       (exe:perform
          (desig:a motion
                   (type gripping)
