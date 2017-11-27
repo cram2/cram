@@ -221,7 +221,15 @@ if it is on the sign side of the axis. "
             1.0
             0.0)))))
 
+(defun make-restricted-area-cost-function ()
+  (lambda (x y)
+    (if (> x 1.0) 0.0
+        (if (and (> x 0.0) (> y -1.0) (< y 1.0)) 1.0
+            (if (and (< x 0.0) (> x -1.0) (> y -1.0) (< y 2.5)) 1.0
+                0.0)))))
+
 (defmethod location-costmap:costmap-generator-name->score ((name (eql 'side-generator))) 5)
+(defmethod location-costmap:costmap-generator-name->score ((name (eql 'restricted-area))) 5)
 
 (def-fact-group demo-costmap (location-costmap:desig-costmap)
   (<- (location-costmap:desig-costmap ?designator ?costmap)
@@ -235,4 +243,13 @@ if it is on the sign side of the axis. "
     (location-costmap:costmap-add-function
      side-generator
      (make-side-costmap-generator ?supp-object :y >)
+     ?costmap))
+
+  (<- (location-costmap:desig-costmap ?designator ?costmap)
+    (or (cram-robot-interfaces:visibility-designator ?designator)
+        (cram-robot-interfaces:reachability-designator ?designator))
+    (location-costmap:costmap ?costmap)
+    (location-costmap:costmap-add-function
+     restricted-area
+     (make-restricted-area-cost-function)
      ?costmap)))

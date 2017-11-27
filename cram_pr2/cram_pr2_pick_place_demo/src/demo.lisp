@@ -29,13 +29,6 @@
 
 (in-package :demo)
 
-(defparameter *object-placing-poses*
-  '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
-    (:cup . ((-0.81 1.35 0.9) (0 0 0.7071 0.7071)))
-    (:bowl . ((-0.76 1.2 0.93) (0 0 1 0)))
-    (:spoon . ((-0.78 1.5 0.86) (0 0 1 0)))
-    (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
-
 (defparameter *object-cad-models*
   '((:cup . "cup_eco_orange")
     (:bowl . "edeka_red_bowl")))

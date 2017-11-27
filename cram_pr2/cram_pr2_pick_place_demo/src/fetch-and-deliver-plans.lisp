@@ -94,8 +94,12 @@
       (((or common-fail:navigation-low-level-failure
             common-fail:actionlib-action-timed-out) (e)
          (roslisp:ros-warn (pp-plans go-without-coll)
-                           "Navigation failed: ~a~%.Assuming pose in collision." e)
-         (cpl:fail 'common-fail:navigation-pose-in-collision)))
+                           "Navigation failed: ~a~%.Ignoring anyway." e)
+         (return)
+         ;; (roslisp:ros-warn (pp-plans go-without-coll)
+         ;;                   "Navigation failed: ~a~%.Assuming pose in collision." e)
+         ;; (cpl:fail 'common-fail:navigation-pose-in-collision)
+         ))
     (exe:perform (desig:an action
                            (type going)
                            (target ?navigation-location)))))
@@ -103,7 +107,7 @@
 
 
 (cpl:def-cram-function search-for-object (?object-designator ?search-location
-                                                             &optional (retries 2))
+                                                             &optional (retries 4))
 
   (cpl:with-retry-counters ((search-location-retries retries))
     (cpl:with-failure-handling
@@ -170,11 +174,12 @@
                        (location (desig:a location
                                           (pose ?perceived-object-pose-in-map))))))
 
-        (cpl:with-retry-counters ((relocation-for-ik-retries 3))
+        (cpl:with-retry-counters ((relocation-for-ik-retries 4))
           (cpl:with-failure-handling
               (((or common-fail:object-unreachable
                     common-fail:perception-low-level-failure
-                    common-fail:gripping-failed) (e)
+                    common-fail:gripping-failed
+                    common-fail:high-level-failure) (e)
                  (roslisp:ros-warn (pp-plans fetch) "Object is unreachable: ~a" e)
                  (cpl:do-retry relocation-for-ik-retries
                    (setf ?pick-up-location (next-solution ?pick-up-location))
@@ -224,7 +229,7 @@
 
 (defun deliver (?object-designator ?target-location)
 
-  (cpl:with-retry-counters ((target-location-retries 5))
+  (cpl:with-retry-counters ((target-location-retries 0))
     (cpl:with-failure-handling
         (((or common-fail:object-unreachable
               common-fail:navigation-pose-in-collision) (e)
@@ -247,10 +252,11 @@
                                      (location (desig:a location
                                                         (pose ?pose-at-target-location))))))
 
-        (cpl:with-retry-counters ((relocation-for-ik-retries 10))
+        (cpl:with-retry-counters ((relocation-for-ik-retries 14))
           (cpl:with-failure-handling
               (((or common-fail:object-unreachable
-                    common-fail:manipulation-pose-in-collision) (e)
+                    common-fail:manipulation-pose-in-collision
+                    common-fail:high-level-failure) (e)
                  (roslisp:ros-warn (pp-plans deliver) "Object is unreachable: ~a" e)
                  (cpl:do-retry relocation-for-ik-retries
                    (setf ?nav-location (next-solution ?nav-location))
