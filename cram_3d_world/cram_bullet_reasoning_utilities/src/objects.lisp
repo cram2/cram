@@ -128,7 +128,7 @@
     box-name))
 
 
-(declaim (inline move-object object-instance object-pose object-exists item-exists))
+;; (declaim (inline move-object object-instance object-pose object-exists item-exists))
 
 
 ;;;;;;;;;;;;;;;;;;;; PROLOG ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
