@@ -232,12 +232,19 @@
       (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion" (create-string-owl-literal (convert-to-prolog-str quaternion-id))))
     pose-stamped-instance-id))
 
+(defun get-last-element-in-list (l)
+  (if (or (eq (length l) 1) (eq (length l) 0))
+      (car l)
+      (get-last-element-in-list (cdr l))))
+
 (defun send-pose-stamped-list-action-parameter (action-inst list-name pose-stamped-list)
-  (let ((counter 0))
-    (dolist (pose-stamp pose-stamped-list)
-      (if pose-stamp (progn 
-      (send-rdf-query (convert-to-prolog-str action-inst) (concatenate 'string "knowrob:" list-name "_" (write-to-string counter)) (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
-      (setf counter (+ 1 counter)))))))
+  (let ((pose-stamp (get-last-element-in-list pose-stamped-list)))
+    (if pose-stamp (progn 
+                     (send-rdf-query (convert-to-prolog-str action-inst)
+                                     "knowrob:goalLocation" (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
+                     (if (string-equal" left" list-name)
+                         (send-gripper-action-parameter action-inst :left)
+                         (send-gripper-action-parameter action-inst :right))))))
 
 (defun send-arm-action-parameter (action-inst arm-value)
   (let((arm-value-str (write-to-string arm-value)))
