@@ -91,12 +91,9 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod get-object-type-lift-pose (object-type arm grasp grasp-pose)
-  (let ((grasp-pose (cram-tf:ensure-pose-in-frame
-                     grasp-pose
-                     cram-tf:*robot-base-frame*
-                     :use-zero-time t)))
-    (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*)))
+(defmethod get-object-type-to-gripper-lift-transform (object-type object-name
+                                                      arm grasp grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :z-offset *lift-z-offset*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -116,31 +113,32 @@
     #2A((0 1 0)
         (1 0 0)
         (0 0 -1)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :cutlery))
-                                          arm
-                                          (grasp (eql :top))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :cutlery))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :top))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :z-offset *lift-z-offset*))
 
 ;;; FORK and KNIFE are the same as CUTLERY
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :spoon))
-                                       object-name arm grasp)
+                                                 object-name arm grasp)
   (get-object-type-to-gripper-transform :cutlery object-name arm grasp))
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :fork))
-                                       object-name arm grasp)
+                                                 object-name arm grasp)
   (get-object-type-to-gripper-transform :cutlery object-name arm grasp))
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :knife))
-                                       object-name arm grasp)
+                                                 object-name arm grasp)
   (get-object-type-to-gripper-transform :cutlery object-name arm grasp))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :spoon))
-                                          arm grasp grasp-pose)
-  (get-object-type-pregrasp-pose :cutlery arm grasp grasp-pose))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :fork))
-                                          arm grasp grasp-pose)
-  (get-object-type-pregrasp-pose :cutlery arm grasp grasp-pose))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :knife))
-                                          arm grasp grasp-pose)
-  (get-object-type-pregrasp-pose :cutlery arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :spoon))
+                                                          object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-pregrasp-transform :cutlery object-name arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :fork))
+                                                          object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-pregrasp-transform :cutlery object-name  arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :knife))
+                                                          object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-pregrasp-transform :cutlery object-name arm grasp grasp-pose))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -179,24 +177,26 @@
                   `((0             -1 0)
                     (,(- sin-roll) 0 ,cos-roll)
                     (,(- cos-roll) 0 ,(- sin-roll))))))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :plate))
-                                          arm
-                                          (grasp (eql :side))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose
-                          :y-offset (ecase arm
-                                         (:left *plate-pregrasp-y-offset*)
-                                         (:right (- *plate-pregrasp-y-offset*)))
-                          :z-offset *lift-z-offset*))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :plate))
-                                              arm
-                                              (grasp (eql :side))
-                                              grasp-pose)
-  (cram-tf:translate-pose grasp-pose
-                          :y-offset (ecase arm
-                                         (:left *plate-pregrasp-y-offset*)
-                                         (:right (- *plate-pregrasp-y-offset*)))
-                          :z-offset *plate-2nd-pregrasp-z-offset*))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :plate))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :side))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :y-offset (ecase arm
+                                                   (:left *plate-pregrasp-y-offset*)
+                                                   (:right (- *plate-pregrasp-y-offset*)))
+                                       :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :plate))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :side))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :y-offset (ecase arm
+                                                   (:left *plate-pregrasp-y-offset*)
+                                                   (:right (- *plate-pregrasp-y-offset*)))
+                                       :z-offset *plate-2nd-pregrasp-z-offset*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bottle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -216,17 +216,19 @@
     #2A((0 0 1)
         (1 0 0)
         (0 1 0)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :bottle))
-                                          arm
-                                          (grasp (eql :front))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset (- *bottle-pregrasp-xy-offset*)
-                                     :z-offset *lift-z-offset*))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :bottle))
-                                              arm
-                                              (grasp (eql :front))
-                                              grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset (- *bottle-pregrasp-xy-offset*)))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :bottle))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :front))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :x-offset (- *bottle-pregrasp-xy-offset*)
+                                                       :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :bottle))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :front))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :x-offset (- *bottle-pregrasp-xy-offset*)))
 
 ;;; SIDE grasp
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :bottle))
@@ -255,34 +257,38 @@
     #2A((-1 0 0)
         (0 0 1)
         (0 1 0)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :bottle))
-                                          arm
-                                          (grasp (eql :side))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose
-                          :y-offset (ecase arm
-                                      (:left *bottle-pregrasp-xy-offset*)
-                                      (:right (- *bottle-pregrasp-xy-offset*)))
-                          :z-offset *lift-z-offset*))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :bottle))
-                                              arm
-                                              (grasp (eql :side))
-                                              grasp-pose)
-  (cram-tf:translate-pose grasp-pose
-                          :y-offset (ecase arm
-                                      (:left *bottle-pregrasp-xy-offset*)
-                                      (:right (- *bottle-pregrasp-xy-offset*)))))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :bottle))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :side))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :y-offset (ecase arm
+                                                   (:left *bottle-pregrasp-xy-offset*)
+                                                   (:right (- *bottle-pregrasp-xy-offset*)))
+                                       :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :bottle))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :side))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :y-offset (ecase arm
+                                                   (:left *bottle-pregrasp-xy-offset*)
+                                                   (:right (- *bottle-pregrasp-xy-offset*)))))
 
 ;;; DRINK is the same as BOTTLE
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :drink))
                                                  object-name arm grasp)
   (get-object-type-to-gripper-transform :bottle object-name arm grasp))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :drink))
-                                          arm grasp grasp-pose)
-  (get-object-type-pregrasp-pose :bottle arm grasp grasp-pose))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :drink))
-                                              arm grasp grasp-pose)
-  (get-object-type-2nd-pregrasp-pose :bottle arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :drink))
+                                                          object-name
+                                                          arm grasp grasp-pose)
+  (get-object-type-to-gripper-pregrasp-transform :bottle object-name arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :drink))
+                                                              object-name
+                                                              arm grasp grasp-pose)
+  (get-object-type-to-gripper-2nd-pregrasp-transform :bottle object-name arm grasp grasp-pose))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -302,17 +308,19 @@
     #2A((0 0 1)
         (1 0 0)
         (0 1 0)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :cup))
-                                          arm
-                                          (grasp (eql :front))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)
-                                     :z-offset *lift-z-offset*))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :cup))
-                                              arm
-                                              (grasp (eql :front))
-                                              grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset (- *cup-pregrasp-xy-offset*)))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :cup))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :front))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :x-offset (- *cup-pregrasp-xy-offset*)
+                                                       :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :cup))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :front))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :x-offset (- *cup-pregrasp-xy-offset*)))
 
 ;;; TOP grasp
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :cup))
@@ -330,11 +338,12 @@
     #2A((1 0 0)
         (0 -1 0)
         (0 0 -1)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :cup))
-                                          arm
-                                          (grasp (eql :top))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :cup))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :top))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :z-offset *lift-z-offset*))
 
 ;;; SIDE grasp
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :cup))
@@ -363,23 +372,25 @@
     #2A((-1 0 0)
         (0 0 1)
         (0 1 0)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :cup))
-                                          arm
-                                          (grasp (eql :side))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose
-                          :y-offset (ecase arm
-                                      (:left *cup-pregrasp-xy-offset*)
-                                      (:right (- *cup-pregrasp-xy-offset*)))
-                          :z-offset *lift-z-offset*))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :cup))
-                                              arm
-                                              (grasp (eql :side))
-                                              grasp-pose)
-  (cram-tf:translate-pose grasp-pose
-                          :y-offset (ecase arm
-                                      (:left *cup-pregrasp-xy-offset*)
-                                      (:right (- *cup-pregrasp-xy-offset*)))))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :cup))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :side))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :y-offset (ecase arm
+                                                   (:left *cup-pregrasp-xy-offset*)
+                                                   (:right (- *cup-pregrasp-xy-offset*)))
+                                       :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :cup))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :side))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :y-offset (ecase arm
+                                                   (:left *cup-pregrasp-xy-offset*)
+                                                   (:right (- *cup-pregrasp-xy-offset*)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -399,17 +410,19 @@
     #2A((0 0 1)
         (1 0 0)
         (0 1 0)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :milk))
-                                          arm
-                                          (grasp (eql :front))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset (- *milk-pregrasp-xy-offset*)
-                                     :z-offset *lift-z-offset*))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :milk))
-                                              arm
-                                              (grasp (eql :front))
-                                              grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset (- *milk-pregrasp-xy-offset*)))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :milk))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :front))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :x-offset (- *milk-pregrasp-xy-offset*)
+                                                       :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :milk))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :front))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :x-offset (- *milk-pregrasp-xy-offset*)))
 
 ;;; SIDE grasp
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :milk))
@@ -438,23 +451,25 @@
     #2A((-1 0 0)
         (0 0 1)
         (0 1 0)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :milk))
-                                          arm
-                                          (grasp (eql :side))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose
-                          :y-offset (ecase arm
-                                      (:left *milk-pregrasp-xy-offset*)
-                                      (:right (- *milk-pregrasp-xy-offset*)))
-                          :z-offset *lift-z-offset*))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :milk))
-                                              arm
-                                              (grasp (eql :side))
-                                              grasp-pose)
-  (cram-tf:translate-pose grasp-pose
-                          :y-offset (ecase arm
-                                      (:left *milk-pregrasp-xy-offset*)
-                                      (:right (- *milk-pregrasp-xy-offset*)))))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :milk))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :side))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :y-offset (ecase arm
+                                                   (:left *milk-pregrasp-xy-offset*)
+                                                   (:right (- *milk-pregrasp-xy-offset*)))
+                                       :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :milk))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :side))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :y-offset (ecase arm
+                                                   (:left *milk-pregrasp-xy-offset*)
+                                                   (:right (- *milk-pregrasp-xy-offset*)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -474,11 +489,12 @@
     #2A((0 1 0)
         (1 0 0)
         (0 0 -1)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :cereal))
-                                          arm
-                                          (grasp (eql :top))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :cereal))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :top))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :z-offset *lift-z-offset*))
 
 ;;; BACK grasp
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :cereal))
@@ -496,17 +512,19 @@
     #2A((0 0 1)
         (1 0 0)
         (0 1 0)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :cereal))
-                                          arm
-                                          (grasp (eql :back))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset (- *cereal-pregrasp-xy-offset*)
-                                     :z-offset *lift-z-offset*))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :cereal))
-                                              arm
-                                              (grasp (eql :back))
-                                              grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset (- *cereal-pregrasp-xy-offset*)))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :cereal))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :back))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :x-offset (- *cereal-pregrasp-xy-offset*)
+                                                       :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :cereal))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :back))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :x-offset (- *cereal-pregrasp-xy-offset*)))
 
 ;;; FRONT grasp
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :cereal))
@@ -524,28 +542,30 @@
     #2A((0 0 -1)
         (-1 0 0)
         (0 1 0)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :cereal))
-                                          arm
-                                          (grasp (eql :front))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset *cereal-pregrasp-xy-offset*
-                                     :z-offset *lift-z-offset*))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :cereal))
-                                              arm
-                                              (grasp (eql :front))
-                                              grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset *cereal-pregrasp-xy-offset*))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :cereal))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :front))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :x-offset *cereal-pregrasp-xy-offset*
+                                                       :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :cereal))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :front))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :x-offset *cereal-pregrasp-xy-offset*))
 
 ;;; BREAKFAST-CEREAL is the same as CEREAL
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :breakfast-cereal))
                                                  object-name arm grasp)
   (get-object-type-to-gripper-transform :cereal object-name arm grasp))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :breakfast-cereal))
-                                          arm grasp grasp-pose)
-  (get-object-type-pregrasp-pose :cereal arm grasp grasp-pose))
-(defmethod get-object-type-2nd-pregrasp-pose ((object-type (eql :breakfast-cereal))
-                                              arm grasp grasp-pose)
-  (get-object-type-2nd-pregrasp-pose :cereal arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :breakfast-cereal))
+                                                          object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-pregrasp-transform :cereal object-name arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :breakfast-cereal))
+                                                              object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-2nd-pregrasp-transform :cereal object-name arm grasp grasp-pose))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -565,11 +585,12 @@
     #2A((1 0 0)
         (0 -1 0)
         (0 0 -1)))))
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :bowl))
-                                          arm
-                                          (grasp (eql :top))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :bowl))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :top))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform :z-offset *lift-z-offset*))
 
 
 (def-fact-group pnp-object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)

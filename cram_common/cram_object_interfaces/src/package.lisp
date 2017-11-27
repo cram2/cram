@@ -40,10 +40,10 @@
    #:get-object-type-gripping-effort
    #:get-object-type-gripper-opening
    #:get-object-type-to-gripper-transform
-   #:get-object-type-pregrasp-pose
-   #:get-object-type-2nd-pregrasp-pose
-   #:get-object-type-lift-pose
-   #:get-object-type-2nd-lift-pose
+   #:get-object-type-to-gripper-pregrasp-transform
+   #:get-object-type-to-gripper-2nd-pregrasp-transform
+   #:get-object-type-to-gripper-lift-transform
+   #:get-object-type-to-gripper-2nd-lift-transform
    #:get-object-grasping-poses
    #:object-rotationally-symmetric
    #:orientation-matters
