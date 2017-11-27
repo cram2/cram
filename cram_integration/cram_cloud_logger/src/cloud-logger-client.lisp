@@ -176,6 +176,12 @@
             (convert-to-prolog-str "http://qudt.org/vocab/unit#NewtonMeter") effort)))
     (send-rdf-query a b c)))
 
+(defun send-position-action-parameter (action-inst position)
+  (let ((a (convert-to-prolog-str action-inst))
+        (b "knowrob:position")
+        (c (create-float-owl-literal position)))
+    (send-rdf-query a b c)))
+
 (defun send-rdf-query (a b c)
   (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
@@ -278,7 +284,12 @@
   (let ((location-id (send-instance-from-class "ConnectedSpaceRegion"))
         (location-describtion
           (cond ((desig::desig-prop-value location-designator :ON)
-                 "on-Physical"))))
+                 "onPhysical"))))
+    (print (convert-to-prolog-str location-id))
+    (print (concatenate 'string "knowrob:" location-describtion))
+    (print (convert-to-prolog-str
+                     (concatenate 'string "http://knowrob.org/kb/iai-kitchen.owl#"
+                                  (desig::desig-prop-value location-designator :name))))
     (send-rdf-query (convert-to-prolog-str location-id)
                     (concatenate 'string "knowrob:" location-describtion)
                     (convert-to-prolog-str
