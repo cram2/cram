@@ -163,8 +163,10 @@
 
 (defun send-object-action-parameter (action-inst object-designator)
   (let ((object-instance-id (symbol-name (desig:desig-prop-value object-designator :NAME))))
-    (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:objectActedOn" (convert-to-prolog-str object-instance-id))
-    object-instance-id))
+    (when object-instance-id
+      (progn
+        (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:objectActedOn" (convert-to-prolog-str object-instance-id))
+        object-instance-id))))
 
 (defun get-object-name (object-name)
   (if (eq (search "|" object-name) 1)
