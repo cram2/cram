@@ -179,6 +179,7 @@ similar to what we have for locations.")
 
 (defun log-action-parameter (designator action-id)
   (cond ((desig-prop-value designator :effort) (ccl::send-effort-action-parameter action-id (write-to-string (desig-prop-value designator :effort))))
+        ((desig-prop-value designator :position) (ccl::send-position-action-parameter action-id (desig-prop-value designator :position)))
         ((desig-prop-value designator :object) (ccl::send-object-action-parameter action-id (desig-prop-value designator :object)))
         ((desig-prop-value designator :arm) (ccl::send-arm-action-parameter action-id (desig-prop-value designator :arm)))
         ((desig-prop-value designator :gripper) (ccl::send-gripper-action-parameter action-id (desig-prop-value designator :gripper)))
