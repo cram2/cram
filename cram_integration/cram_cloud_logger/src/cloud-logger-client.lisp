@@ -285,11 +285,6 @@
         (location-describtion
           (cond ((desig::desig-prop-value location-designator :ON)
                  "onPhysical"))))
-    (print (convert-to-prolog-str location-id))
-    (print (concatenate 'string "knowrob:" location-describtion))
-    (print (convert-to-prolog-str
-                     (concatenate 'string "http://knowrob.org/kb/iai-kitchen.owl#"
-                                  (desig::desig-prop-value location-designator :name))))
     (send-rdf-query (convert-to-prolog-str location-id)
                     (concatenate 'string "knowrob:" location-describtion)
                     (convert-to-prolog-str
