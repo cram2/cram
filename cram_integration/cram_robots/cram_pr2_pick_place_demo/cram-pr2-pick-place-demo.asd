@@ -79,5 +79,10 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "demo" :depends-on ("package"))
-     (:file "testing" :depends-on ("package"))))))
+     (:file "projection-utilities" :depends-on ("package"))
+     (:file "costmaps" :depends-on ("package"))
+     (:file "projection-demo" :depends-on ("package" "projection-utilities" "costmaps"))
+     (:file "fetch-and-deliver-plans" :depends-on ("package" "projection-utilities"))
+     (:file "fetch-and-deliver-designators" :depends-on ("package" "fetch-and-deliver-plans"))
+     (:file "demo" :depends-on ("package"
+                                "projection-demo" "fetch-and-deliver-designators" "costmaps"))))))
