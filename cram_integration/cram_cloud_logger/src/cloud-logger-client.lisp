@@ -248,9 +248,18 @@
           ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
 
 (defun send-location-action-parameter (action-inst location-designator)
-  (print action-inst)
-  (print location-designator)
-  (print "LOCATION"))
+  (let ((location-id (send-instance-from-class "ConnectedSpaceRegion"))
+        (location-describtion
+          (cond ((desig::desig-prop-value location-designator :ON)
+                 "on-Physical"))))
+    (send-rdf-query (convert-to-prolog-str location-id)
+                    (concatenate 'string "knowrob:" location-describtion)
+                    (convert-to-prolog-str
+                     (concatenate 'string "http://knowrob.org/kb/iai-kitchen.owl#"
+                                  (desig::desig-prop-value location-designator :name))))
+    (send-rdf-query (convert-to-prolog-str action-inst)
+                    "knowrob:goalLocation"
+                    (convert-to-prolog-str location-id))))
 
 (defun send-target-action-parameter (action-inst location-designator)
   (if (desig::desig-prop-value location-designator :POSE)
