@@ -158,6 +158,12 @@
             (convert-to-prolog-str "http://qudt.org/vocab/unit#NewtonMeter") effort)))
     (send-rdf-query a b c)))
 
+(defun send-position-action-parameter (action-inst position)
+  (let ((a (convert-to-prolog-str action-inst))
+        (b "knowrob:position")
+        (c (create-float-owl-literal position)))
+    (send-rdf-query a b c)))
+
 (defun send-rdf-query (a b c)
   (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
