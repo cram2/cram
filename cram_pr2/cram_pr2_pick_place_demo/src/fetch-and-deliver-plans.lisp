@@ -160,6 +160,7 @@
             ?perceived-object-pose-in-base
             cram-tf:*fixed-frame*
             :use-zero-time t)))
+
     (roslisp:ros-info (pp-plans fetch) "Found object ~a" ?perceived-object-desig)
 
     (cpl:with-failure-handling
