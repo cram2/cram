@@ -56,9 +56,12 @@
 
   (cram-bullet-reasoning:clear-costmap-vis-object)
 
+  (setf ccl::*is-logging-enabled* nil)
+
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
-  (ccl::connect-to-cloud-logger))
+  ;; (ccl::connect-to-cloud-logger)
+  )
 
 (roslisp-utilities:register-ros-init-function init-projection)
 

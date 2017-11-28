@@ -72,7 +72,8 @@
                cram-robosherlock
                cram-pr2-process-modules
 
-               cram-cloud-logger)
+               cram-cloud-logger
+               cram-pr2-cloud)
 
   :components
   ((:module "src"

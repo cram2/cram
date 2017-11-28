@@ -204,14 +204,15 @@
 
 
 
-(defun main ()
+(defun main (&optional (real? t))
   (pr2-cloud::init)
   (let ((location (with-simulated-robot
                     (pr2-cloud::environment-articulation-plan
                      :projected-or-original :projected))))
     (sleep 3.0)
-    (with-real-robot
-      (pr2-cloud::environment-articulation-plan 
-       :projected-or-original :projected
-       :location-designator location))))
+    (when real?
+     (with-real-robot
+       (pr2-cloud::environment-articulation-plan 
+        :projected-or-original :projected
+        :location-designator location)))))
 
