@@ -3,7 +3,7 @@
 
 (defparameter *cloud-logger-client* nil)
 (defparameter *is-client-connected* nil)
-(defparameter *is-logging-enabled* t)
+(defparameter *is-logging-enabled* nil)
 
 (defparameter *host* "'https://localhost'")
 ;;(defparameter *host* "'https://192.168.101.42'")
