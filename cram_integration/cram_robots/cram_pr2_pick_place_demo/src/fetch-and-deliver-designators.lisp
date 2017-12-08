@@ -58,11 +58,11 @@
     (spec:property ?action-designator (:target ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator))
 
-  (<- (desig:action-grounding ?action-designator (fetch-and-deliver
+  (<- (desig:action-grounding ?action-designator (transport
                                                   ?object-designator
-                                                  ?fetching-location-desginator
+                                                  ?fetching-location-designator
                                                   ?delivering-location-designator))
-    (spec:property ?action-designator (:type :fetching-and-delivering))
+    (spec:property ?action-designator (:type :transporting))
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
     (spec:property ?action-designator (:location ?some-fetching-location-designator))
