@@ -41,7 +41,6 @@
      (cpl:top-level
        ,@body)))
 
-
 (defun initialize-or-finalize ()
   (cpl:with-failure-handling
       ((cpl:plan-failure (e)
@@ -110,6 +109,11 @@
               ((common-fail:high-level-failure (e)
                  (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
                  (return)))
-            (fetch-and-deliver ?object-to-fetch ?fetching-location ?delivering-location))))))
+            (exe:perform
+             (desig:an action
+                       (type transporting)
+                       (object ?object-to-fetch)
+                       (location ?fetching-location)
+                       (target ?delivering-location))))))))
 
   (initialize-or-finalize))

@@ -327,8 +327,7 @@
                  (target (desig:a location
                                   (pose ?placing-pose))))))))
 
-(cpl:def-cram-function fetch-and-deliver (?object-designator
-                                          ?fetching-location ?delivering-location)
+(cpl:def-cram-function transport (?object-designator ?fetching-location ?delivering-location)
   (let ((?fetched-object
           (exe:perform (desig:an action
                                  (type fetching)
