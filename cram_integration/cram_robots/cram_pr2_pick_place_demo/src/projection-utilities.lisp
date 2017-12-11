@@ -36,7 +36,7 @@
                ,@body))))
      (car (cram-projection::projection-environment-result-result results))))
 
-(defun add-objects-to-mesh-list (&optional (ros-package "cram_pr2_pick_place_demo"))
+(defun add-objects-to-mesh-list (ros-package)
   (mapcar (lambda (object-filename-and-object-extension)
             (declare (type list object-filename-and-object-extension))
             (destructuring-bind (object-filename object-extension)

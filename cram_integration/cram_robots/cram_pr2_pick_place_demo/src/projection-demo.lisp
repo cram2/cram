@@ -72,7 +72,7 @@
 
 (defun spawn-objects-on-sink-counter (&optional (spawning-poses *object-spawning-poses*))
   (btr-utils:kill-all-objects)
-  (add-objects-to-mesh-list)
+  (add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
   (let ((object-types '(:breakfast-cereal :cup :bowl :spoon :milk)))
     ;; spawn objects at default poses
@@ -88,7 +88,7 @@
 
 (defun spawn-objects-on-sink-counter-randomly ()
   (btr-utils:kill-all-objects)
-  (add-objects-to-mesh-list)
+  (add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (let ((object-types '(:cereal :cup :bowl :spoon :milk)))
     ;; spawn at default location
     (let ((objects (mapcar (lambda (object-type)
