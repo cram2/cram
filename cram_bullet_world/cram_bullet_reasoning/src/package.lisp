@@ -86,6 +86,7 @@
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects
            item-dimensions
+           add-objects-to-mesh-list
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
            with-world copied-world with-copied-world
