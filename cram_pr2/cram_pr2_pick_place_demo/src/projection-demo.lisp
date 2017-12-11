@@ -164,7 +164,7 @@
 (defun demo-hard-coded ()
   (spawn-objects-on-sink-counter)
 
-  (with-simulated-robot
+  (pr2-proj:with-simulated-robot
 
     (dolist (object-type '(:breakfast-cereal :cup :bowl :spoon :milk))
 

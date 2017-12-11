@@ -29,13 +29,6 @@
 
 (in-package :demo)
 
-(defmacro with-simulated-robot (&body body)
-  `(let ((results
-           (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
-             (cpl:top-level
-               ,@body))))
-     (car (cram-projection::projection-environment-result-result results))))
-
 (defun add-objects-to-mesh-list (ros-package)
   (mapcar (lambda (object-filename-and-object-extension)
             (declare (type list object-filename-and-object-extension))
