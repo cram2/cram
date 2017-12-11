@@ -55,7 +55,7 @@
                   (directory (physics-utils:parse-uri
                               (format nil "package://~a/resource/*.*" ros-package))))))
 
-(defun collisions-without-attached ()
+(defun robot-colliding-objects-without-attached ()
   (let ((colliding-object-names
           (mapcar #'btr:name
                   (btr:find-objects-in-contact
@@ -96,6 +96,69 @@
    (values first-result-l-of-ls
            second-result-l-of-ls)))
 
+(defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 10))
+  (declare (type desig:location-designator navigation-location-desig))
+  "Store current world state and in the current world try to go to different
+poses that satisfy `navigation-location-desig'.
+If chosen pose results in collisions, choose another pose.
+Repeat `navigation-location-samples' + 1 times.
+Store found pose into designator or throw error if good pose not found."
+  (let* ((world btr:*current-bullet-world*)
+         (world-state (btr::get-state world)))
+
+    (unwind-protect
+         (cpl:with-retry-counters ((navigation-location-samples samples-to-try))
+           ;; If a navigation-pose-in-collisions failure happens, retry N times
+           ;; with the next solution of `navigation-location-desig'.
+           (cpl:with-failure-handling
+               ((common-fail:navigation-pose-in-collision (e)
+                  (roslisp:ros-warn (pp-plans coll-check) "Failure happened: ~a" e)
+                  (cpl:do-retry navigation-location-samples
+                    (handler-case
+                        (setf navigation-location-desig
+                              (desig:next-solution navigation-location-desig))
+                      (desig:designator-error ()
+                        (roslisp:ros-warn (pp-plans coll-check)
+                                          "Designator cannot be resolved: ~a. Propagating up." e)
+                        (cpl:fail 'common-fail:navigation-pose-in-collision)))
+                    (if navigation-location-desig
+                        (progn
+                          (roslisp:ros-warn (pp-plans coll-check) "Retrying...~%")
+                          (cpl:retry))
+                        (progn
+                          (roslisp:ros-warn (pp-plans coll-check)
+                                            "No other samples in designator.")
+                          (cpl:fail 'common-fail:navigation-pose-in-collision))))
+                  (roslisp:ros-warn (pp-plans coll-check)
+                                    "Couldn't find a nav pose for~%~a.~%Propagating up."
+                                    navigation-location-desig)
+                  (cpl:fail 'common-fail:navigation-pose-in-collision)))
+
+             ;; Pick one pose, store it in `pose-at-navigation-location'
+             ;; In projected world, drive to picked pose
+             ;; If robot is in collision with any object in the world, throw a failure.
+             ;; Otherwise, the pose was found, so return location designator,
+             ;; which is currently referenced to the found pose.
+             (handler-case
+                 (let ((pose-at-navigation-location (desig:reference navigation-location-desig)))
+                   (pr2-proj::drive pose-at-navigation-location)
+                   (when (robot-colliding-objects-without-attached)
+                     (roslisp:ros-warn (pp-plans coll-check) "Pose was in collision.")
+                     (cpl:sleep 0.1)
+                     (cpl:fail 'common-fail:navigation-pose-in-collision
+                               :pose-stamped pose-at-navigation-location))
+                   (roslisp:ros-info (pp-plans coll-check) "Found navigation pose.")
+                   navigation-location-desig)
+               (desig:designator-error (e)
+                 (roslisp:ros-warn (pp-plans coll-check)
+                                   "Desig ~a couldn't be resolved: ~a.~%Cannot navigate."
+                                   navigation-location-desig e)
+                 (cpl:fail 'common-fail:navigation-pose-in-collision)))))
+
+      ;; After playing around and messing up the world, restore the original state.
+      (btr::restore-world-state world-state world))))
+
+
 (defun check-picking-up-collisions (pick-up-action-desig &optional (retries 16))
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
@@ -107,7 +170,12 @@
                      common-fail:manipulation-pose-in-collision) (e)
                   (roslisp:ros-warn (pp-plans pick-object) "Manipulation failure happened: ~a" e)
                   (cpl:do-retry pick-up-configuration-retries
-                    (setf pick-up-action-desig (next-solution pick-up-action-desig))
+                    (handler-case
+                        (setf pick-up-action-desig (next-solution pick-up-action-desig))
+                      (desig:designator-error ()
+                        (roslisp:ros-warn (pp-plans coll-check)
+                                          "Designator cannot be resolved: ~a. Propagating up." e)
+                        (cpl:fail 'common-fail:object-unreachable)))
                     (cond
                       (pick-up-action-desig
                        (roslisp:ros-info (pp-plans pick-object) "Retrying...")
@@ -148,6 +216,7 @@
                                left-poses
                                right-poses))))))))
       (btr::restore-world-state world-state world))))
+
 
 (defun check-placing-collisions (placing-action-desig)
   (let* ((world btr:*current-bullet-world*)
