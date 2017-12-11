@@ -29,77 +29,22 @@
 
 (in-package :demo)
 
-(cpl:def-cram-function go-without-collisions (?navigation-location &optional (retries 10))
-  ;; (declare (type desig:location-designator ?navigation-location))
-
+(cpl:def-cram-function go-without-collisions (?navigation-location)
   (pp-plans:park-arms)
-
-  ;; Store current world state and in the current world try to go to different
-  ;; poses that satisfy `?navigation-location'.
-  ;; If chosen pose results in collisions, choose another pose.
-  ;; Repeat `reachable-location-retires' + 1 times.
-  ;; Store found pose into designator or throw error if good pose not found.
-  (let* ((world btr:*current-bullet-world*)
-         (world-state (btr::get-state world)))
-    (unwind-protect
-         (cpl:with-retry-counters ((reachable-location-retries retries))
-           ;; If a navigation-pose-in-collisions failure happens, retry N times
-           ;; with the next solution of `?navigation-location'.
-           (cpl:with-failure-handling
-               ((common-fail:navigation-pose-in-collision (e)
-                  (roslisp:ros-warn (pp-plans fetch) "Failure happened: ~a" e)
-                  (cpl:do-retry reachable-location-retries
-                    (handler-case
-                        (setf ?navigation-location (desig:next-solution ?navigation-location))
-                      (desig:designator-error ()
-                        (cpl:fail 'common-fail:navigation-pose-in-collision)))
-                    (if ?navigation-location
-                        (progn
-                          (roslisp:ros-warn (pp-plans check-nav-collisions) "Retrying...~%")
-                          (cpl:retry))
-                        (progn
-                          (roslisp:ros-warn (pp-plans check-nav-collisions)
-                                            "No more samples left to try :'(.")
-                          (cpl:fail 'common-fail:navigation-pose-in-collision))))
-                  (roslisp:ros-warn (pp-plans go-without-collisions)
-                                    "Couldn't find a nav pose for~%~a.~%Propagating up."
-                                    ?navigation-location)
-                  (cpl:fail 'common-fail:navigation-pose-in-collision)))
-
-             ;; Pick one pose, store it in `pose-at-navigation-location'
-             ;; In projected world, drive to picked pose
-             ;; If robot is in collision with any object in the world, throw a failure.
-             ;; Otherwise, the pose was found, so return location designator,
-             ;; which is currently referenced to the found pose.
-             (handler-case
-                 (let ((pose-at-navigation-location (desig:reference ?navigation-location)))
-                   (pr2-proj::drive pose-at-navigation-location)
-                   (when (collisions-without-attached)
-                     (roslisp:ros-warn (pp-plans fetch) "Pose was in collision.")
-                     (cpl:sleep 0.1)
-                     (cpl:fail 'common-fail:navigation-pose-in-collision
-                               :pose-stamped pose-at-navigation-location))
-                   (roslisp:ros-info (pp-plans fetch) "Found reachable pose.")
-                   ?navigation-location)
-               (desig:designator-error (e)
-                 (roslisp:ros-warn (pp-plans check-nav-collisions)
-                                   "Desig ~a couldn't be resolved: ~a.~%Cannot navigate."
-                                   ?navigation-location e)
-                 (cpl:fail 'common-fail:navigation-pose-in-collision)))))
-
-      ;; After playing around and messing up the world, restore the original state.
-      (btr::restore-world-state world-state world)))
 
   (cpl:with-failure-handling
       (((or common-fail:navigation-low-level-failure
             common-fail:actionlib-action-timed-out) (e)
-         (roslisp:ros-warn (pp-plans go-without-coll)
-                           "Navigation failed: ~a~%.Ignoring anyway." e)
+         (roslisp:ros-warn (pp-plans navigate)
+                           "Low-level navigation failed: ~a~%.Ignoring anyway." e)
          (return)
-         ;; (roslisp:ros-warn (pp-plans go-without-coll)
+         ;; (roslisp:ros-warn (pp-plans navigate)
          ;;                   "Navigation failed: ~a~%.Assuming pose in collision." e)
          ;; (cpl:fail 'common-fail:navigation-pose-in-collision)
          ))
+
+    (check-navigating-collisions ?navigation-location)
+    (setf ?navigation-location (desig:current-desig ?navigation-location))
     (exe:perform (desig:an action
                            (type going)
                            (target ?navigation-location)))))
@@ -115,7 +60,12 @@
               common-fail:navigation-pose-in-collision) (e)
            (roslisp:ros-warn (pp-plans search-for-object) "Failure happened: ~a" e)
            (cpl:do-retry search-location-retries
-             (setf ?search-location (desig:next-solution ?search-location))
+             (handler-case
+                 (setf ?search-location (desig:next-solution ?search-location))
+               (desig:designator-error ()
+                 (roslisp:ros-warn (pp-plans search-for-object)
+                                   "Designator cannot be resolved: ~a. Propagating up." e)
+                 (cpl:fail 'common-fail:object-nowhere-to-be-found)))
              (if ?search-location
                  (progn
                    (roslisp:ros-warn (pp-plans search-for-object) "Retrying...~%")
@@ -183,7 +133,12 @@
                     common-fail:high-level-failure) (e)
                  (roslisp:ros-warn (pp-plans fetch) "Object is unreachable: ~a" e)
                  (cpl:do-retry relocation-for-ik-retries
-                   (setf ?pick-up-location (next-solution ?pick-up-location))
+                   (handler-case
+                       (setf ?pick-up-location (next-solution ?pick-up-location))
+                     (desig:designator-error ()
+                       (roslisp:ros-warn (pp-plans fetch)
+                                         "Designator cannot be resolved: ~a. Propagating up." e)
+                       (cpl:fail 'common-fail:object-unfetchable)))
                    (if ?pick-up-location
                        (progn
                          (roslisp:ros-info (pp-plans fetch) "Relocating...")
@@ -236,7 +191,12 @@
               common-fail:navigation-pose-in-collision) (e)
            (roslisp:ros-warn (pp-plans deliver) "Failure happened: ~a" e)
            (cpl:do-retry target-location-retries
-             (setf ?target-location (desig:next-solution ?target-location))
+             (handler-case
+                 (setf ?target-location (desig:next-solution ?target-location))
+               (desig:designator-error ()
+                 (roslisp:ros-warn (pp-plans deliver)
+                                   "Designator cannot be resolved: ~a. Propagating up." e)
+                 (cpl:fail 'common-fail:object-undeliverable)))
              (if ?target-location
                  (progn
                    (roslisp:ros-warn (pp-plans deliver) "Retrying...~%")
@@ -260,7 +220,12 @@
                     common-fail:high-level-failure) (e)
                  (roslisp:ros-warn (pp-plans deliver) "Object is unreachable: ~a" e)
                  (cpl:do-retry relocation-for-ik-retries
-                   (setf ?nav-location (next-solution ?nav-location))
+                   (handler-case
+                       (setf ?nav-location (next-solution ?nav-location))
+                     (desig:designator-error ()
+                       (roslisp:ros-warn (pp-plans coll-check)
+                                         "Designator cannot be resolved: ~a. Propagating up." e)
+                       (cpl:fail 'common-fail:object-undeliverable)))
                    (if ?nav-location
                        (progn
                          (roslisp:ros-info (pp-plans deliver) "Relocating...")
