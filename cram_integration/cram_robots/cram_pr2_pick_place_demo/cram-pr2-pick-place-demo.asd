@@ -44,6 +44,7 @@
                cram-prolog
                cram-projection
                cram-occasions-events
+               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
 
                cram-common-failures
 

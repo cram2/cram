@@ -162,3 +162,39 @@ removes deletes the file and the compiled file after loading it."
                                         generated-param-hash-table)))
                  parameters)
            ,body)))))
+
+
+
+(defun equalize-two-list-lengths (first-list second-list)
+  "Returns two lists of equal length as VALUES.
+To achieve equal length appends NILs at the end of the shorter of `first-list' and `second-list'."
+  (let* ((first-length (length first-list))
+         (second-length (length second-list))
+         (max-length (max first-length second-length)))
+    (values
+     (if (> max-length first-length)
+        (append first-list (make-list (- max-length first-length)))
+        first-list)
+     (if (> max-length second-length)
+        (append second-list (make-list (- max-length second-length)))
+        second-list))))
+
+(defun equalize-lists-of-lists-lengths (first-list-of-lists second-list-of-lists)
+  "Equalizes the length of lists inside of lists. E.g.:
+ ((1) (2 3) (4)) and ((a b) (c)) becomes ((1 NIL) (2 3) (4)) and ((a b) (c NIL) NIL)."
+  (let ((max-length (max (length first-list-of-lists)
+                         (length second-list-of-lists)))
+        first-result-l-of-ls second-result-l-of-ls)
+
+   (loop for i from 0 to (1- max-length)
+         do (let ((first-list (nth i first-list-of-lists))
+                  (second-list (nth i second-list-of-lists)))
+              (multiple-value-bind (first-equalized second-equalized)
+                  (equalize-two-list-lengths first-list second-list)
+                (setf first-result-l-of-ls
+                      (append first-result-l-of-ls first-equalized)
+                      second-result-l-of-ls
+                      (append second-result-l-of-ls second-equalized)))))
+
+   (values first-result-l-of-ls
+           second-result-l-of-ls)))

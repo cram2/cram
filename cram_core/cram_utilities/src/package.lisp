@@ -117,6 +117,7 @@
       #:style-warn
       #:compare
       #:choose
+      #:equalize-two-list-lengths #:equalize-lists-of-lists-lengths
       ;; time
       #:current-timestamp
       #:set-default-timestamp-function
