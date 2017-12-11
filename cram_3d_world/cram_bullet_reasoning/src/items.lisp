@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -44,6 +45,27 @@
     (:glasses "package://cram_bullet_reasoning/resource/glasses.stl" nil)
     (:glove "package://cram_bullet_reasoning/resource/glove.stl" nil)
     (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil)))
+
+(defun add-objects-to-mesh-list (ros-package)
+  "Adds all meshes from `ros-package' resource directory into *mesh-files* list.
+The name in the list is a keyword that is created by lispifying the filename."
+  (mapcar (lambda (object-filename-and-object-extension)
+            (declare (type list object-filename-and-object-extension))
+            (destructuring-bind (object-filename object-extension)
+                object-filename-and-object-extension
+              (let ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
+                                object-filename :keyword)))
+                (push (list lisp-name
+                            (format nil "package://~a/resource/~a.~a"
+                                    ros-package object-filename object-extension)
+                            nil)
+                      *mesh-files*)
+                (remove-duplicates *mesh-files* :key #'car)
+                lisp-name)))
+          (mapcar (lambda (pathname)
+                    (list (pathname-name pathname) (pathname-type pathname)))
+                  (directory (physics-utils:parse-uri
+                              (format nil "package://~a/resource/*.*" ros-package))))))
 
 (defclass item (object)
   ((types :reader item-types :initarg :types)))
