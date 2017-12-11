@@ -29,17 +29,6 @@
 
 (in-package :demo)
 
-(defun robot-colliding-objects-without-attached ()
-  (let ((colliding-object-names
-          (mapcar #'btr:name
-                  (btr:find-objects-in-contact
-                   btr:*current-bullet-world*
-                   (btr:get-robot-object))))
-        (attached-object-names
-          (mapcar #'car
-                  (btr:attached-objects (btr:get-robot-object)))))
-    (set-difference colliding-object-names attached-object-names)))
-
 (defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 10))
   (declare (type desig:location-designator navigation-location-desig))
   "Store current world state and in the current world try to go to different
@@ -86,7 +75,7 @@ Store found pose into designator or throw error if good pose not found."
              (handler-case
                  (let ((pose-at-navigation-location (desig:reference navigation-location-desig)))
                    (pr2-proj::drive pose-at-navigation-location)
-                   (when (robot-colliding-objects-without-attached)
+                   (when (btr:robot-colliding-objects-without-attached)
                      (roslisp:ros-warn (pp-plans coll-check) "Pose was in collision.")
                      (cpl:sleep 0.1)
                      (cpl:fail 'common-fail:navigation-pose-in-collision
