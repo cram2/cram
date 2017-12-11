@@ -29,25 +29,6 @@
 
 (in-package :demo)
 
-(defun add-objects-to-mesh-list (ros-package)
-  (mapcar (lambda (object-filename-and-object-extension)
-            (declare (type list object-filename-and-object-extension))
-            (destructuring-bind (object-filename object-extension)
-                object-filename-and-object-extension
-              (let ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
-                                object-filename :keyword)))
-                (push (list lisp-name
-                            (format nil "package://~a/resource/~a.~a"
-                                    ros-package object-filename object-extension)
-                            nil)
-                      btr::*mesh-files*)
-                (remove-duplicates btr::*mesh-files* :key #'car)
-                lisp-name)))
-          (mapcar (lambda (pathname)
-                    (list (pathname-name pathname) (pathname-type pathname)))
-                  (directory (physics-utils:parse-uri
-                              (format nil "package://~a/resource/*.*" ros-package))))))
-
 (defun robot-colliding-objects-without-attached ()
   (let ((colliding-object-names
           (mapcar #'btr:name
@@ -58,36 +39,6 @@
           (mapcar #'car
                   (btr:attached-objects (btr:get-robot-object)))))
     (set-difference colliding-object-names attached-object-names)))
-
-(defun equalize-two-list-lengths (first-list second-list)
-  (let* ((first-length (length first-list))
-         (second-length (length second-list))
-         (max-length (max first-length second-length)))
-    (values
-     (if (> max-length first-length)
-        (append first-list (make-list (- max-length first-length)))
-        first-list)
-     (if (> max-length second-length)
-        (append second-list (make-list (- max-length second-length)))
-        second-list))))
-
-(defun equalize-lists-of-lists-lengths (first-list-of-lists second-list-of-lists)
-  (let ((max-length (max (length first-list-of-lists)
-                         (length second-list-of-lists)))
-        first-result-l-of-ls second-result-l-of-ls)
-
-   (loop for i from 0 to (1- max-length)
-         do (let ((first-list (nth i first-list-of-lists))
-                  (second-list (nth i second-list-of-lists)))
-              (multiple-value-bind (first-equalized second-equalized)
-                  (equalize-two-list-lengths first-list second-list)
-                (setf first-result-l-of-ls
-                      (append first-result-l-of-ls first-equalized)
-                      second-result-l-of-ls
-                      (append second-result-l-of-ls second-equalized)))))
-
-   (values first-result-l-of-ls
-           second-result-l-of-ls)))
 
 (defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 10))
   (declare (type desig:location-designator navigation-location-desig))
@@ -193,8 +144,8 @@ Store found pose into designator or throw error if good pose not found."
                    (let ((left-poses-list-of-lists (list left-reach-poses left-lift-poses))
                          (right-poses-list-of-lists (list right-reach-poses right-lift-poses)))
                      (multiple-value-bind (left-poses right-poses)
-                         (equalize-lists-of-lists-lengths left-poses-list-of-lists
-                                                          right-poses-list-of-lists)
+                         (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
+                                                              right-poses-list-of-lists)
                        (mapcar (lambda (left-pose right-pose)
                                  (pr2-proj::gripper-action gripper-opening arm)
                                  (pr2-proj::move-tcp left-pose right-pose)
@@ -240,8 +191,8 @@ Store found pose into designator or throw error if good pose not found."
                       (right-poses-list-of-lists
                         (list right-reach-poses right-put-poses right-retract-poses)))
                   (multiple-value-bind (left-poses right-poses)
-                      (equalize-lists-of-lists-lengths left-poses-list-of-lists
-                                                       right-poses-list-of-lists)
+                      (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
+                                                           right-poses-list-of-lists)
                     (mapcar (lambda (left-pose right-pose)
                               (pr2-proj::gripper-action :open arm)
                               (pr2-proj::move-tcp left-pose right-pose)
