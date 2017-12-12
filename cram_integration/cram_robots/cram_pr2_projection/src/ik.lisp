@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;               2017, Christopher Pollok <cpollok@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -169,9 +170,10 @@
                (roslisp:with-fields ((response-error-code (val error_code))
                                      (joint-state (joint_state solution)))
                    (progn
-                     (roslisp:wait-for-service (concatenate 'string
-                                                            (getf *ik-service-namespaces* left-or-right)
-                                                            "/get_ik_solver_info") 10.0)
+                     (roslisp:wait-for-service
+                      (concatenate 'string
+                                   (getf *ik-service-namespaces* left-or-right)
+                                   "/get_ik_solver_info") 10.0)
                      (roslisp:call-service
                       (concatenate 'string (getf *ik-service-namespaces* left-or-right) "/get_ik")
                       "moveit_msgs/GetPositionIK"
@@ -184,7 +186,8 @@
                                                      cram-tf:*robot-torso-frame*
                                                      :use-zero-time t))
                        (:joint_state :robot_state :ik_request) (or seed-state
-                                                                   (make-zero-seed-state left-or-right))
+                                                                   (make-zero-seed-state
+                                                                    left-or-right))
                        (:timeout :ik_request) 1.0)))
                  (cond ((eql response-error-code
                              (roslisp-msg-protocol:symbol-code

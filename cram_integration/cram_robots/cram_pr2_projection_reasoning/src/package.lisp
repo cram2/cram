@@ -27,37 +27,9 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defpackage cram-pr2-projection
-  (:nicknames #:pr2-proj)
-  (:use #:common-lisp
-        #:cram-prolog
-        ;; #:cram-bullet-reasoning
-        ;; #:cram-process-modules
-        ;; #:cram-projection
-        ;; #:cl-transforms-stamped
-        ;; #:cram-robot-interfaces
-        ;; #:cram-tf
-        )
+(defpackage cram-pr2-projection-reasoning
+  (:nicknames #:pr2-proj-reasoning)
+  (:use #:common-lisp)
   (:export
-   ;; projection-clock
-   #:action-duration #:projection-timestamp-function #:execute-as-action
-   ;; ik
-   #:*torso-step*
-   ;; projection-environment
-   #:with-simulated-robot #:with-projected-robot
-   #:pr2-bullet-projection-environment
-
-   ;; execute-container-opened execute-container-closed
-   ;; execute-park execute-lift execute-grasp execute-put-down execute-pour
-   ;; projection-navigation projection-ptu projection-perception
-   ;; projection-manipulation pr2-bullet-projection-environment
-   ;; action-started action-finished action-duration projection-role
-   ))
-
-;; (defpackage projection-designators
-;;   (:use #:common-lisp #:cram-designators #:cram-prolog
-;;         #:projection-process-modules #:cram-robot-interfaces)
-;;   (:import-from #:cram-process-modules
-;;                 matching-process-module available-process-module projection-running)
-;;   (:import-from #:cram-projection *projection-environment*)
-;;   (:export projection-role required-sides))
+   ;; check-collisions
+   #:check-navigating-collisions #:check-picking-up-collisions #:check-placing-collisions))
