@@ -55,7 +55,8 @@
                cram-bullet-reasoning-utilities
                cram-bullet-reasoning-designators
 
-               cram-pr2-projection ; for projection process modules
+               cram-pr2-projection ; for with-simulated-robot
+               cram-pr2-projection-reasoning ; for projection-based reasoning
 
                cram-semantic-map-costmap
                ; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
@@ -81,10 +82,11 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "projection-utilities" :depends-on ("package"))
      (:file "costmaps" :depends-on ("package"))
-     (:file "projection-demo" :depends-on ("package" "projection-utilities" "costmaps"))
-     (:file "fetch-and-deliver-plans" :depends-on ("package" "projection-utilities"))
+     (:file "projection-demo" :depends-on ("package" "costmaps"))
+     (:file "fetch-and-deliver-plans" :depends-on ("package"))
      (:file "fetch-and-deliver-designators" :depends-on ("package" "fetch-and-deliver-plans"))
      (:file "demo" :depends-on ("package"
-                                "projection-demo" "fetch-and-deliver-designators" "costmaps"))))))
+                                "projection-demo"
+                                "fetch-and-deliver-designators"
+                                "costmaps"))))))

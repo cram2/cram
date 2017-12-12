@@ -1,0 +1,24 @@
+<package format="2">
+  <name>cram_pr2_projection_reasoning</name>
+  <version>0.4.0</version>
+  <description>
+    Projection process modules for PR2
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_pr2/issues</url>
+  <url type="repository">https://github.com/cram2/cram_pr2</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_language</depend>
+  <depend>cram_utilities</depend>
+  <depend>cram_common_failures</depend>
+  <depend>cram_mobile_pick_place_plans</depend>
+  <depend>cram_bullet_reasoning</depend>
+  <depend>cram_pr2_projection</depend>
+</package>

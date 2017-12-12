@@ -43,7 +43,7 @@
          ;; (cpl:fail 'common-fail:navigation-pose-in-collision)
          ))
 
-    (check-navigating-collisions ?navigation-location)
+    (pr2-proj-reasoning:check-navigating-collisions ?navigation-location)
     (setf ?navigation-location (desig:current-desig ?navigation-location))
     (exe:perform (desig:an action
                            (type going)
@@ -161,7 +161,7 @@
                                (desig:an action
                                          (type picking-up)
                                          (object ?more-precise-perceived-object-desig))))
-                         (check-picking-up-collisions pick-up-action)
+                         (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
                          (setf pick-up-action (desig:current-desig pick-up-action))
                          (exe:perform pick-up-action)
                          (setf *obj* ?more-precise-perceived-object-desig)))))
@@ -251,7 +251,7 @@
                               (object ?object-designator)
                               (target (desig:a location
                                                (pose ?pose-at-target-location))))))
-              (check-placing-collisions placing-action)
+              (pr2-proj-reasoning:check-placing-collisions placing-action)
               (setf placing-action (desig:current-desig placing-action))
               (exe:perform placing-action)
               (return-from deliver))))

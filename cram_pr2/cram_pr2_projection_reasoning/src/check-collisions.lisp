@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;               2017, Christopher Pollok <cpollok@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -11,8 +12,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,7 +28,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :demo)
+(in-package :pr2-proj-reasoning)
 
 (defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 10))
   (declare (type desig:location-designator navigation-location-desig))
@@ -104,7 +105,8 @@ Store found pose into designator or throw error if good pose not found."
                   (roslisp:ros-warn (pp-plans pick-object) "Manipulation failure happened: ~a" e)
                   (cpl:do-retry pick-up-configuration-retries
                     (handler-case
-                        (setf pick-up-action-desig (next-solution pick-up-action-desig))
+                        (setf pick-up-action-desig
+                              (desig:next-solution pick-up-action-desig))
                       (desig:designator-error ()
                         (roslisp:ros-warn (pp-plans coll-check)
                                           "Designator cannot be resolved: ~a. Propagating up." e)
@@ -119,7 +121,7 @@ Store found pose into designator or throw error if good pose not found."
                   (roslisp:ros-warn (pp-plans pick-object) "No more retries left :'(")
                   (cpl:fail 'common-fail:object-unreachable)))
 
-             (let ((pick-up-action-referenced (reference pick-up-action-desig)))
+             (let ((pick-up-action-referenced (desig:reference pick-up-action-desig)))
                (destructuring-bind (_action object-designator arm gripper-opening _effort _grasp
                                     left-reach-poses right-reach-poses
                                     left-lift-poses right-lift-poses)
@@ -163,7 +165,7 @@ Store found pose into designator or throw error if good pose not found."
                                   e)
                 (cpl:fail 'common-fail:object-unreachable)))
 
-           (let ((placing-action-referenced (reference placing-action-desig)))
+           (let ((placing-action-referenced (desig:reference placing-action-desig)))
              (destructuring-bind (_action object-designator arm
                                   left-reach-poses right-reach-poses
                                   left-put-poses right-put-poses
@@ -209,4 +211,3 @@ Store found pose into designator or throw error if good pose not found."
                             left-poses
                             right-poses)))))))
       (btr::restore-world-state world-state world))))
-
