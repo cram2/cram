@@ -72,4 +72,5 @@
     ((:file "package")
      (:file "setup" :depends-on ("package"))
      (:file "demo" :depends-on ("package"))
+     (:file "environment-manipulation" :depends-on ("package"))
      (:file "testing" :depends-on ("package"))))))
