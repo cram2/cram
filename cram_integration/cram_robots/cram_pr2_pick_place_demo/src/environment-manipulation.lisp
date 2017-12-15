@@ -109,30 +109,65 @@
 
 ;;; OBJECT-INTERFACE METHODS
 
-(defparameter *drawer-handle-grasp-y-offset* -0.5 "in meters")
+(defparameter *drawer-handle-grasp-y-offset* -0.05 "in meters")
 (defparameter *drawer-handle-pregrasp-y-offset* 0.10 "in meters")
 (defparameter *drawer-handle-lift-y-offset* -0.4 "in meters")
 
-; Might be necessary to find out what kind of handle we are dealing with. But we could also jsut open wide and be done with it.
+; Might be necessary to find out what kind of handle we are dealing with. But we could also just open wide and be done with it.
 (defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container)))
   0.09)
 
+
+;; Commented, because to use the interface the transform has to be from the object to the gripper.
+;; The version below does this.
+;; (defmethod obj-int:get-object-type-to-gripper-transform ((object-type (eql :container))
+;;                                                  object-name
+;;                                                  arm
+;;                                                  (grasp (eql :front)))
+;;   (let ((handle-name (cl-urdf:name (get-handle-link (roslisp-utilities:rosify-underscores-lisp-name object-name)))))
+;;     (cl-transforms-stamped:make-transform-stamped
+;;      ;;(roslisp-utilities:rosify-underscores-lisp-name handle-name)
+;;      handle-name
+;;      (ecase arm
+;;        (:left cram-tf:*robot-left-tool-frame*)
+;;        (:right cram-tf:*robot-right-tool-frame*))
+;;      0.0
+;;      (cl-transforms:make-3d-vector 0.0d0 *drawer-handle-grasp-y-offset* 0.0d0)
+;;      (cl-transforms:matrix->quaternion
+;;       #2A((0 1 0)
+;;           (1 0 0)
+;;           (0 0 -1))))))
+
 ; Find out where the handle is and calculate the transform from there.
 (defmethod obj-int:get-object-type-to-gripper-transform ((object-type (eql :container))
-                                                 object-name
-                                                 arm
-                                                 (grasp (eql :front)))
-  (cl-transforms-stamped:make-transform-stamped
-   (roslisp-utilities:rosify-underscores-lisp-name object-name)
-   (ecase arm
-     (:left cram-tf:*robot-left-tool-frame*)
-     (:right cram-tf:*robot-right-tool-frame*))
-   0.0
-   (cl-transforms:make-3d-vector 0.0d0 *drawer-handle-grasp-y-offset* 0.0d0)
-   (cl-transforms:matrix->quaternion
-    #2A((0 1 0)
-        (1 0 0)
-        (0 0 -1)))))
+                                                         object-name
+                                                         arm
+                                                         (grasp (eql :front)))
+  (setf object-name (roslisp-utilities:rosify-underscores-lisp-name object-name))
+  (let* ((handle-name (cl-urdf:name (get-handle-link object-name)))
+         (handle-tf (cl-tf:transform->transform-stamped "map" handle-name 0
+                                                        (cl-tf:pose->transform
+                                                         (get-urdf-link-pose handle-name))))
+         (container-tf (cl-tf:transform->transform-stamped "map" object-name 0
+                                                           (cl-tf:pose->transform
+                                                            (get-urdf-link-pose object-name))))
+         (tool-frame (ecase arm
+                       (:left cram-tf:*robot-left-tool-frame*)
+                       (:right cram-tf:*robot-right-tool-frame*))))
+    (cram-tf:multiply-transform-stampeds object-name
+                                         tool-frame
+                                         (cram-tf:multiply-transform-stampeds object-name handle-name
+                                                                              (cram-tf:transform-stamped-inv container-tf)
+                                                                              handle-tf)
+                                         (cl-transforms-stamped:make-transform-stamped
+                                          handle-name
+                                          tool-frame
+                                          0.0
+                                          (cl-transforms:make-3d-vector 0.0d0 *drawer-handle-grasp-y-offset* 0.0d0)
+                                          (cl-transforms:matrix->quaternion
+                                           #2A((0 1 0)
+                                               (1 0 0)
+                                               (0 0 -1)))))))
 
 ; Should be fine without a joint-type.
 (defmethod obj-int:get-object-type-pregrasp-pose ((object-type (eql :container))
