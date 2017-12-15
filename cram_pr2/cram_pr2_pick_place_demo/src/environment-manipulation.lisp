@@ -240,32 +240,32 @@
   (dolist (c *container*) (close-container c)))
 
 
-(defun get-container-pose-in-base (container-name)
-  (cl-tf:transform-pose cram-tf:*transformer*
-                        :pose (cl-tf:pose->pose-stamped "map" 0
-                                                        (cl-tf:transform->pose
-                                                         (gethash (cdr (assoc container-name *container-links*))
-                                                                  (btr::link-offsets
-                                                                   (btr:object btr:*current-bullet-world* :kitchen)))))
-                        :target-frame "base_footprint"))
+;; (defun get-container-pose-in-base (container-name)
+;;   (cl-tf:transform-pose cram-tf:*transformer*
+;;                         :pose (cl-tf:pose->pose-stamped "map" 0
+;;                                                         (cl-tf:transform->pose
+;;                                                          (gethash (cdr (assoc container-name *container-links*))
+;;                                                                   (btr::link-offsets
+;;                                                                    (btr:object btr:*current-bullet-world* :kitchen)))))
+;;                         :target-frame "base_footprint"))
 
-(defun get-container-transform-in-base (container-name)
-  (cram-tf:multiply-transform-stampeds "base_footprint" (cdr (assoc container-name *container-links*))
-                                       (cl-tf:lookup-transform cram-tf:*transformer* "base_footprint" "map")
-                                       (cl-tf:transform->transform-stamped "map" (cdr (assoc container-name *container-links*)) 0
-                                                                           (gethash (cdr (assoc container-name *container-links*))
-                                                                                    (btr::link-offsets
-                                                                                     (btr:object btr:*current-bullet-world* :kitchen))))))
+;; (defun get-container-transform-in-base (container-name)
+;;   (cram-tf:multiply-transform-stampeds "base_footprint" (cdr (assoc container-name *container-links*))
+;;                                        (cl-tf:lookup-transform cram-tf:*transformer* "base_footprint" "map")
+;;                                        (cl-tf:transform->transform-stamped "map" (cdr (assoc container-name *container-links*)) 0
+;;                                                                            (gethash (cdr (assoc container-name *container-links*))
+;;                                                                                     (btr::link-offsets
+;;                                                                                      (btr:object btr:*current-bullet-world* :kitchen))))))
 
 
-(defun get-opening-desig (&optional (container :fridge))
-  (let* ((?name (cdr (assoc container *container-links*)))
-         (urdf-pose (get-urdf-link-pose ?name)))
+(defun get-opening-desig (&optional (?name 'iai_fridge_main))
+  (let* ((name-str (roslisp-utilities:rosify-underscores-lisp-name ?name))
+         (urdf-pose (get-urdf-link-pose name-str)))
     (with-simulated-robot
       (let* ((?pose (cl-tf:transform-pose-stamped cram-tf:*transformer*
                                                   :target-frame "base_footprint"
                                                   :pose (cl-tf:pose->pose-stamped "map" 0 urdf-pose)))
-             (?transform (cl-tf:make-transform-stamped "base_footprint" ?name
+             (?transform (cl-tf:make-transform-stamped "base_footprint" name-str
                                                        (cl-tf:stamp ?pose)
                                                        (cl-tf:origin ?pose)
                                                        (cl-tf:orientation ?pose))))
@@ -273,7 +273,7 @@
             (type opening)
             (object (an object
                         (type container)
-                        (name iai_fridge_main)
+                        (name ?name)
                         (part-of kitchen)
                         (pose ((pose ?pose) (transform ?transform)))
                         )))))))
