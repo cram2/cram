@@ -30,7 +30,9 @@
 
 (in-package :pr2-proj-reasoning)
 
-(defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 10))
+(defparameter *debug-sleep-duration* 0.0 "in seconds")
+
+(defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 30))
   (declare (type desig:location-designator navigation-location-desig))
   "Store current world state and in the current world try to go to different
 poses that satisfy `navigation-location-desig'.
@@ -78,7 +80,8 @@ Store found pose into designator or throw error if good pose not found."
                    (pr2-proj::drive pose-at-navigation-location)
                    (when (btr:robot-colliding-objects-without-attached)
                      (roslisp:ros-warn (pp-plans coll-check) "Pose was in collision.")
-                     (cpl:sleep 0.1)
+                     (unless (< (abs *debug-sleep-duration*) 0.0001)
+                       (cpl:sleep *debug-sleep-duration*))
                      (cpl:fail 'common-fail:navigation-pose-in-collision
                                :pose-stamped pose-at-navigation-location))
                    (roslisp:ros-info (pp-plans coll-check) "Found navigation pose.")
@@ -93,7 +96,7 @@ Store found pose into designator or throw error if good pose not found."
       (btr::restore-world-state world-state world))))
 
 
-(defun check-picking-up-collisions (pick-up-action-desig &optional (retries 16))
+(defun check-picking-up-collisions (pick-up-action-desig &optional (retries 30))
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
 
@@ -140,7 +143,8 @@ Store found pose into designator or throw error if good pose not found."
                        (mapcar (lambda (left-pose right-pose)
                                  (pr2-proj::gripper-action gripper-opening arm)
                                  (pr2-proj::move-tcp left-pose right-pose)
-                                 (sleep 0.1)
+                                 (unless (< (abs *debug-sleep-duration*) 0.0001)
+                                   (cpl:sleep *debug-sleep-duration*))
                                  (when (remove object-name
                                                (btr:find-objects-in-contact
                                                 btr:*current-bullet-world*
@@ -187,7 +191,8 @@ Store found pose into designator or throw error if good pose not found."
                     (mapcar (lambda (left-pose right-pose)
                               (pr2-proj::gripper-action :open arm)
                               (pr2-proj::move-tcp left-pose right-pose)
-                              (sleep 0.1)
+                              (unless (< (abs *debug-sleep-duration*) 0.0001)
+                                (cpl:sleep *debug-sleep-duration*))
                               (when (or
                                      (remove object-name
                                              (btr:find-objects-in-contact
