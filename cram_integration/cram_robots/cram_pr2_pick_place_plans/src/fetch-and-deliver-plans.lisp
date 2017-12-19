@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :demo)
+(in-package :pr2-pp-plans)
 
 (cpl:def-cram-function go-without-collisions (?navigation-location)
   (pp-plans:park-arms)
@@ -132,7 +132,7 @@
                  (roslisp:ros-warn (pp-plans fetch) "Object is unreachable: ~a" e)
                  (cpl:do-retry relocation-for-ik-retries
                    (handler-case
-                       (setf ?pick-up-location (next-solution ?pick-up-location))
+                       (setf ?pick-up-location (desig:next-solution ?pick-up-location))
                      (desig:designator-error ()
                        (roslisp:ros-warn (pp-plans fetch)
                                          "Designator cannot be resolved: ~a. Propagating up." e)
@@ -215,7 +215,7 @@
                  (roslisp:ros-warn (pp-plans deliver) "Object is unreachable: ~a" e)
                  (cpl:do-retry relocation-for-ik-retries
                    (handler-case
-                       (setf ?nav-location (next-solution ?nav-location))
+                       (setf ?nav-location (desig:next-solution ?nav-location))
                      (desig:designator-error ()
                        (roslisp:ros-warn (pp-plans coll-check)
                                          "Designator cannot be resolved: ~a. Propagating up." e)
