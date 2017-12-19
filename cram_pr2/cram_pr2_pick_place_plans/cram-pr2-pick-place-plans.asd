@@ -27,61 +27,30 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-pick-place-demo
+(defsystem cram-pr2-pick-place-plans
   :author "gaya"
   :license "BSD"
 
-  :depends-on (roslisp-utilities ; for ros-init-function
+  :depends-on (roslisp
 
                cl-transforms
                cl-transforms-stamped
-               cl-tf
                cram-tf
 
                cram-language
                cram-executive
                cram-designators
                cram-prolog
-               cram-projection
-               cram-occasions-events
-               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
 
                cram-common-failures
                cram-mobile-pick-place-plans
 
-               cram-knowrob-pick-place
-               cram-robosherlock
-
-               cram-physics-utils ; for reading "package://" paths
-               cl-bullet ; for handling BOUNDING-BOX datastructures
-               cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
-               cram-bullet-reasoning-utilities
-               cram-bullet-reasoning-designators
-
-               cram-semantic-map-costmap
-               ; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
-               ; cram-bullet-reasoning-designators ; not using visibility cm or collision checks
-               cram-robot-pose-gaussian-costmap
-               cram-occupancy-grid-costmap
-               cram-location-costmap
-
-               cram-pr2-projection      ; for with-simulated-robot
                cram-pr2-projection-reasoning ; for projection-based reasoning
-               cram-pr2-description
-               cram-pr2-low-level
-               cram-process-modules
-               cram-pr2-process-modules
-               cram-pr2-pick-place-plans
-
-               cram-cloud-logger
-               cram-pr2-cloud)
+               )
 
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "setup" :depends-on ("package"))
-     (:file "costmaps" :depends-on ("package"))
-     (:file "projection-demo" :depends-on ("package" "costmaps"))
-     (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))))))
+     (:file "fetch-and-deliver-plans" :depends-on ("package"))
+     (:file "fetch-and-deliver-designators" :depends-on ("package" "fetch-and-deliver-plans"))))))
