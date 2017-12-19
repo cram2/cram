@@ -56,22 +56,6 @@
                 :format-control "Designator goal ~a could not be parsed.~%~a"
                 :format-arguments (list keyword-expression error-message)))))
 
-(defun call-perform-with-logging (command arguments action-id)
-  (cpl:with-failure-handling
-      ((cpl:plan-failure (e)
-         (log-cram-finish-action action-id)
-         (ccl::send-task-success action-id "false")
-         (format t "failure string: ~a" (write-to-string e))))
-    (let ((perform-result
-            (apply command arguments)))
-      (log-cram-finish-action action-id)
-      (when (and perform-result (typep perform-result 'desig:object-designator))
-        (let ((name (desig:desig-prop-value perform-result :name)))
-          (when name
-            (ccl::send-object-action-parameter action-id perform-result))))
-      (ccl::send-task-success action-id "true")
-      perform-result)))
-
 (defgeneric perform (designator)
   (:documentation "If the action designator has a GOAL key it will be checked if the goal holds.
 TODO: there might be multiple plans that can execute the same action designator.
@@ -88,141 +72,20 @@ similar to what we have for locations.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
-
-    (if ccl::*is-logging-enabled*
-
-        (let ((action-id (log-perform-call designator)))
-          (destructuring-bind (command &rest arguments)
-              (try-reference-designator designator)
-            (if (fboundp command)
-                (let ((desig-goal (desig-prop-value designator :goal)))
-                  (if desig-goal
-                      (let ((occasion (convert-desig-goal-to-occasion desig-goal)))
-                        (if (cram-occasions-events:holds occasion)
-                            (warn 'simple-warning
-                                  :format-control "Action goal `~a' already achieved."
-                                  :format-arguments (list occasion))
-                            (call-perform-with-logging command arguments action-id))
-                        (unless (cram-occasions-events:holds occasion)
-                          (cpl:fail "Goal `~a' of action `~a' was not achieved."
-                                    designator occasion)))
-                      (call-perform-with-logging command arguments action-id)))
-                (progn
-                  (log-cram-finish-action action-id)
-                  (ccl::send-task-success action-id "false")
-                  (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
+    (destructuring-bind (command &rest arguments)
+        (try-reference-designator designator)
+      (if (fboundp command)
+          (let ((desig-goal (desig-prop-value designator :goal)))
+            (if desig-goal
+                (let ((occasion (convert-desig-goal-to-occasion desig-goal)))
+                  (if (cram-occasions-events:holds occasion)
+                      (warn 'simple-warning
+                            :format-control "Action goal `~a' already achieved."
+                            :format-arguments (list occasion))
+                      (apply command arguments))
+                  (unless (cram-occasions-events:holds occasion)
+                    (cpl:fail "Goal `~a' of action `~a' was not achieved."
+                              designator occasion)))
+                (apply command arguments)))
+          (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
                        but it isn't defined. Cannot perform action." designator command)))))
-
-        (destructuring-bind (command &rest arguments)
-            (try-reference-designator designator)
-          (if (fboundp command)
-              (let ((desig-goal (desig-prop-value designator :goal)))
-                (if desig-goal
-                    (let ((occasion (convert-desig-goal-to-occasion desig-goal)))
-                      (if (cram-occasions-events:holds occasion)
-                          (warn 'simple-warning
-                                :format-control "Action goal `~a' already achieved."
-                                :format-arguments (list occasion))
-                          (apply command arguments))
-                      (unless (cram-occasions-events:holds occasion)
-                        (cpl:fail "Goal `~a' of action `~a' was not achieved."
-                                  designator occasion)))
-                    (apply command arguments)))
-              (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
-                       but it isn't defined. Cannot perform action." designator command))))))
-
-(defun log-perform-call (designator)
-  (ccl::connect-to-cloud-logger)
-  (if ccl::*is-client-connected*
-      (let ((result "")
-            (cram-action-name (get-designator-property-value-str designator :TYPE)))
-        (setf result (ccl::get-value-of-json-prolog-dict
-                      (cdaar
-                       (ccl::send-cram-start-action
-                        (get-knowrob-action-name cram-action-name)
-                        " \\'DummyContext\\'"
-                        (get-timestamp-for-logging)
-                        "PV"
-                        "ActionInst"))
-                      "ActionInst"))
-        (log-action-parameter designator result)
-        result)
-      "NOLOGGING"))
-
-(defun get-knowrob-action-name (cram-action-name)
-  (let ((knowrob-action-name cram-action-name))
-    (cond ((string-equal cram-action-name "reaching")
-           (setf knowrob-action-name "Reaching"))
-          ((string-equal cram-action-name "retracting")
-           (setf knowrob-action-name "Retracting"))
-          ((string-equal cram-action-name "lifting")
-           (setf knowrob-action-name "LiftingAGripper"))
-          ((string-equal cram-action-name "putting")
-           (setf knowrob-action-name "SinkingAGripper"))
-          ((string-equal cram-action-name "setting-gripper")
-           (setf knowrob-action-name "SettingAGripper"))
-          ((string-equal cram-action-name "opening")
-           (setf knowrob-action-name "OpeningAGripper"))
-          ((string-equal cram-action-name "closing")
-           (setf knowrob-action-name "ClosingAGripper"))
-          ((string-equal cram-action-name "detecting")
-           (setf knowrob-action-name "VisualPerception"))
-          ((string-equal cram-action-name "placing")
-           (setf knowrob-action-name "VoluntaryBodyMovement"))
-          ((string-equal cram-action-name "picking-up")
-           (setf knowrob-action-name "VoluntaryBodyMovement"))
-          ((string-equal cram-action-name "releasing")
-           (setf knowrob-action-name "ReleasingGraspOfSomething"))
-          ((string-equal cram-action-name "gripping")
-           (setf knowrob-action-name "AcquireGraspOfSomething"))
-          ((string-equal cram-action-name "looking")
-           (setf knowrob-action-name "LookingAtLocation"))
-          ((string-equal cram-action-name "going")
-           (setf knowrob-action-name "MovingToLocation"))
-          ((string-equal cram-action-name "navigating")
-           (setf knowrob-action-name "NavigatingToLocation"))
-          ((string-equal cram-action-name "searching")
-           (setf knowrob-action-name "LookingForSomething"))
-          ((string-equal cram-action-name "fetching")
-           (setf knowrob-action-name "PickingUpAnObject"))
-          ((string-equal cram-action-name "delivering")
-           (setf knowrob-action-name "PuttingDownAnObject"))
-          ((string-equal cram-action-name "fetching-and-delivering")
-           (setf knowrob-action-name "FetchAndDeliver")))
-    (concatenate 'string "knowrob:" (ccl::convert-to-prolog-str knowrob-action-name))))
-
-(defun get-timestamp-for-logging ()
-  (write-to-string (truncate (cram-utilities:current-timestamp))))
-
-(defun log-cram-finish-action(action-id)
-  (ccl::send-cram-finish-action
-   (ccl::convert-to-prolog-str action-id ) (get-timestamp-for-logging)))
-
-(defun get-designator-property-value-str(designator property-keyname)
-  (string (cadr(assoc property-keyname (properties designator)))))
-
-(defun log-action-parameter (designator action-id)
-  (mapcar (lambda (key-value-pair)
-            (let ((key (first key-value-pair))
-                  (value (second key-value-pair)))
-             (cond ((eq key :effort)
-                    (ccl::send-effort-action-parameter
-                     action-id
-                     (write-to-string value)))
-                   ((eq key :position)
-                    (ccl::send-position-action-parameter action-id value))
-                   ((eq key :object)
-                    (ccl::send-object-action-parameter action-id value))
-                   ((eq key :arm)
-                    (ccl::send-arm-action-parameter action-id value))
-                   ((eq key :gripper)
-                    (ccl::send-gripper-action-parameter action-id value))
-                   ((eq key :left-poses)
-                    (ccl::send-pose-stamped-list-action-parameter action-id "left" value))
-                   ((eq key :right-poses)
-                    (ccl::send-pose-stamped-list-action-parameter action-id "right" value))
-                   ((eq key :location)
-                    (ccl::send-location-action-parameter action-id value))
-                   ((eq key :target)
-                    (ccl::send-target-action-parameter action-id value)))))
-          (desig:properties designator)))
