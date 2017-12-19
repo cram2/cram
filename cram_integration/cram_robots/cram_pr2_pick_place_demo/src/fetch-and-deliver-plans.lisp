@@ -177,7 +177,7 @@
 
 
 
-(defun deliver (?object-designator ?target-location)
+(cpl:def-cram-function deliver (?object-designator ?target-location)
 
   (cpl:with-retry-counters ((target-location-retries 30))
     (cpl:with-failure-handling
