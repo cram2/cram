@@ -94,15 +94,13 @@
 
 
 
-(defvar *obj* nil)
 (cpl:def-cram-function fetch (?object-designator ?search-location)
-  (let* ((object-designator-properties
-           (desig:properties ?object-designator))
-         (?perceived-object-desig
+  (let* ((?perceived-object-desig
            (exe:perform (desig:an action
                                   (type searching)
                                   (object ?object-designator)
                                   (location ?search-location))))
+
          (?perceived-object-pose-in-base
            (desig:reference (desig:a location (of ?perceived-object-desig))))
          (?perceived-object-pose-in-map
@@ -125,7 +123,7 @@
                        (location (desig:a location
                                           (pose ?perceived-object-pose-in-map))))))
 
-        (cpl:with-retry-counters ((relocation-for-ik-retries 4))
+        (cpl:with-retry-counters ((relocation-for-ik-retries 30))
           (cpl:with-failure-handling
               (((or common-fail:object-unreachable
                     common-fail:perception-low-level-failure
@@ -149,34 +147,30 @@
                  (roslisp:ros-warn (pp-plans fetch) "No more retries left :'(")
                  (cpl:fail 'common-fail:object-unfetchable)))
 
-            (flet ((reperceive (copy-of-object-designator-properties)
-                     (let* ((?copy-of-object-designator
-                              (desig:make-designator :object copy-of-object-designator-properties))
-                            (?more-precise-perceived-object-desig
-                              (exe:perform (desig:an action
-                                                     (type detecting)
-                                                     (object ?copy-of-object-designator)))))
-                       ;; (desig:equate ?object-designator ?more-precise-perceived-object-desig)
-                       (let ((pick-up-action
-                               (desig:an action
-                                         (type picking-up)
-                                         (object ?more-precise-perceived-object-desig))))
-                         (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
-                         (setf pick-up-action (desig:current-desig pick-up-action))
-                         (exe:perform pick-up-action)
-                         (setf *obj* ?more-precise-perceived-object-desig)))))
+            (exe:perform (desig:an action
+                                   (type navigating)
+                                   (location ?pick-up-location)))
+            (setf ?pick-up-location (desig:current-desig ?pick-up-location))
 
-              (exe:perform (desig:an action
-                                     (type navigating)
-                                     (location ?pick-up-location)))
-              (setf ?pick-up-location (desig:current-desig ?pick-up-location))
+            (exe:perform (desig:an action
+                                   (type looking)
+                                   (target (desig:a location
+                                                    (pose ?perceived-object-pose-in-map)))))
 
-              (exe:perform (desig:an action
-                                     (type looking)
-                                     (target (desig:a location
-                                                      (pose ?perceived-object-pose-in-map)))))
+            (let* ((?more-precise-perceived-object-desig
+                     (exe:perform (desig:an action
+                                            (type detecting)
+                                            (object ?object-designator)))))
 
-              (reperceive object-designator-properties))))))
+              (let ((pick-up-action
+                      (desig:an action
+                                (type picking-up)
+                                (object ?more-precise-perceived-object-desig))))
+
+                (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
+                (setf pick-up-action (desig:current-desig pick-up-action))
+
+                (exe:perform pick-up-action)))))))
 
     (pp-plans:park-arms)
     (desig:current-desig ?object-designator)))
@@ -185,7 +179,7 @@
 
 (defun deliver (?object-designator ?target-location)
 
-  (cpl:with-retry-counters ((target-location-retries 0))
+  (cpl:with-retry-counters ((target-location-retries 30))
     (cpl:with-failure-handling
         (((or common-fail:object-unreachable
               common-fail:navigation-pose-in-collision) (e)
@@ -213,7 +207,7 @@
                                      (location (desig:a location
                                                         (pose ?pose-at-target-location))))))
 
-        (cpl:with-retry-counters ((relocation-for-ik-retries 14))
+        (cpl:with-retry-counters ((relocation-for-ik-retries 30))
           (cpl:with-failure-handling
               (((or common-fail:object-unreachable
                     common-fail:manipulation-pose-in-collision

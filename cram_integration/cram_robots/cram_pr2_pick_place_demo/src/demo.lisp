@@ -76,44 +76,37 @@
   (initialize-or-finalize)
 
   (let ((list-of-objects '(:breakfast-cereal :milk :cup :bowl :spoon)))
-    (let* ((short-list-of-objects (remove (nth (random (length list-of-objects))
-                                               list-of-objects)
-                                          list-of-objects)))
-      (setf short-list-of-objects (remove (nth (random (length short-list-of-objects))
-                                               short-list-of-objects)
-                                          short-list-of-objects))
+    (dolist (?object-type list-of-objects)
+      (let* ((?cad-model
+               (cdr (assoc ?object-type *object-cad-models*)))
+             (?object-to-fetch
+               (desig:an object
+                         (type ?object-type)
+                         (desig:when ?cad-model
+                           (cad-model ?cad-model))))
+             (?fetching-location
+               (desig:a location
+                        (on "CounterTop")
+                        (name "iai_kitchen_sink_area_counter_top")
+                        (side left)))
+             (?placing-target-pose
+               (cl-transforms-stamped:pose->pose-stamped
+                "map" 0.0
+                (cram-bullet-reasoning:ensure-pose
+                 (cdr (assoc ?object-type *object-placing-poses*)))))
+             (?delivering-location
+               (desig:a location
+                        (pose ?placing-target-pose))))
 
-      (dolist (?object-type list-of-objects)
-        (let* ((?cad-model
-                 (cdr (assoc ?object-type *object-cad-models*)))
-               (?object-to-fetch
-                 (desig:an object
-                           (type ?object-type)
-                           (desig:when ?cad-model
-                             (cad-model ?cad-model))))
-               (?fetching-location
-                 (desig:a location
-                          (on "CounterTop")
-                          (name "iai_kitchen_sink_area_counter_top")
-                          (side left)))
-               (?placing-target-pose
-                 (cl-transforms-stamped:pose->pose-stamped
-                  "map" 0.0
-                  (cram-bullet-reasoning:ensure-pose
-                   (cdr (assoc ?object-type *object-placing-poses*)))))
-               (?delivering-location
-                 (desig:a location
-                          (pose ?placing-target-pose))))
-
-          (cpl:with-failure-handling
-              ((common-fail:high-level-failure (e)
-                 (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
-                 (return)))
-            (exe:perform
-             (desig:an action
-                       (type transporting)
-                       (object ?object-to-fetch)
-                       (location ?fetching-location)
-                       (target ?delivering-location))))))))
+        (cpl:with-failure-handling
+            ((common-fail:high-level-failure (e)
+               (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
+               (return)))
+          (exe:perform
+           (desig:an action
+                     (type transporting)
+                     (object ?object-to-fetch)
+                     (location ?fetching-location)
+                     (target ?delivering-location)))))))
 
   (initialize-or-finalize))
