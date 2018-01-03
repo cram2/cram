@@ -155,7 +155,7 @@
   (dolist (body (rigid-bodies object))
     (draw context body)))
 
-(defun make-rigid-body-name (obj-name body-name)
+(defun make-rigid-body-name (obj-name body-name &optional (package (sb-int:sane-package)))
   (flet ((ensure-string (name)
            (etypecase name
              (string name)
@@ -164,7 +164,8 @@
              'string
              (ensure-string obj-name)
              "."
-             (ensure-string body-name)))))
+             (ensure-string body-name))
+            package)))
 
 (defmethod add-object ((world bt-reasoning-world) type name pose
                        &key disable-collisions-with)
