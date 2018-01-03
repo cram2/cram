@@ -110,8 +110,8 @@
 ;;; OBJECT-INTERFACE METHODS
 
 (defparameter *drawer-handle-grasp-y-offset* -0.05 "in meters")
-(defparameter *drawer-handle-pregrasp-y-offset* 0.10 "in meters")
-(defparameter *drawer-handle-lift-y-offset* -0.4 "in meters")
+(defparameter *drawer-handle-pregrasp-y-offset* -0.10 "in meters")
+(defparameter *drawer-handle-lift-y-offset* -0.2 "in meters")
 
 ; Might be necessary to find out what kind of handle we are dealing with. But we could also just open wide and be done with it.
 (defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container)))
@@ -174,7 +174,7 @@
                                           arm
                                           (grasp (eql :front))
                                           grasp-pose)
-  (cram-tf:translate-pose grasp-pose :y-offset *drawer-handle-pregrasp-y-offset*))
+  (cram-tf:translate-pose grasp-pose :x-offset *drawer-handle-pregrasp-y-offset*))
 
 ; We need the joint-type, maybe add a optional parameter to the generic.
 ; But for now I can live with this.
@@ -186,13 +186,47 @@
                      grasp-pose
                      cram-tf:*robot-base-frame*
                      :use-zero-time t)))
-    (cram-tf:translate-pose grasp-pose :y-offset *drawer-handle-lift-y-offset*)))
+    (cram-tf:translate-pose grasp-pose :x-offset *drawer-handle-lift-y-offset*)))
+
+
+;;; PLAN
+
+(defun open-container (;;container-name
+                       ?arm ?gripper-opening
+                       ?left-reach-poses ?right-reach-poses
+                       ?left-lift-poses ?right-lift-poses)
+  (cpl:par
+    (roslisp:ros-info (environment-manipulation open-container) "Opening gripper")
+    (exe:perform
+     (desig:an action
+               (type setting-gripper)
+               (gripper ?arm)
+               (position ?gripper-opening)))
+    (roslisp:ros-info (environment-manipulation open-container) "Reaching")
+    (exe:perform
+     (desig:an action
+               (type reaching)
+               (left-poses ?left-reach-poses)
+               (right-poses ?right-reach-poses))))
+  (roslisp:ros-info (environment-manipulation open-container) "Gripping")
+  (exe:perform
+   (desig:an action
+             (type setting-gripper)
+             (gripper ?arm)
+             (position 0)))
+  (roslisp:ros-info (environment-manipulation open-container) "Opening")
+  (exe:perform
+   (desig:an action
+             (type lifting)
+             (left-poses ?left-lift-poses)
+             (right-poses ?right-lift-poses))))
 
 
 ;;; PROLOG DESIG GROUNDING
 
 (def-fact-group environment-manipulation (desig:action-grounding)
-  (<- (desig:action-grounding ?action-designator (open-container ?container-name ?arm
+  (<- (desig:action-grounding ?action-designator (open-container ;; ?container-name
+                                                                 ?arm
                                                                  ?gripper-opening
                                                                  ?left-reach-poses ?right-reach-poses
                                                                  ?left-lift-poses ?right-lift-poses))
@@ -212,7 +246,8 @@
     (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :right :front ?container-transform ?right-poses)
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
-    ))
+    )
+  )
 
 
 ;;; SIMULATION
@@ -223,21 +258,21 @@
    `((,name ,angle))
    (btr:object btr:*current-bullet-world* :kitchen)))
 
-(defun open-container (container-type)
+(defun open-container-joint (container-type)
   (format T "Open container ~a.~%" container-type)
   (move-joint (cdr (assoc container-type *container-joints*))
               (cdr (assoc container-type *container-angles*))))
 
-(defun close-container (container-type)
+(defun close-container-joint (container-type)
   (format T "Close container ~a.~%" container-type)
   (move-joint (cdr (assoc container-type *container-joints*))
               0))
 
 (defun open-all ()
-  (dolist (c *container*) (open-container c)))
+  (dolist (c *container*) (open-container-joint c)))
 
 (defun close-all ()
-  (dolist (c *container*) (close-container c)))
+  (dolist (c *container*) (close-container-joint c)))
 
 
 ;; (defun get-container-pose-in-base (container-name)
@@ -280,23 +315,36 @@
 
 
 (defun get-urdf-link-pose (name)
-  (btr:pose (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" name))))
+  (btr:pose (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" name :demo))))
 
 (defun get-container-link (container-name)
   (gethash container-name (cl-urdf:links (btr:urdf (btr:object btr:*current-bullet-world* :kitchen)))))
 
-(defun get-door-joint (container-name)
-  (car (cl-urdf:to-joints (get-container-link container-name))))
+(defun get-container-joint-type (container-name)
+  (find-container-joint-type-under-joint (cl-urdf:from-joint (get-container-link container-name))))
 
-(defun get-door-link (container-name)
-  (cl-urdf:child (get-door-joint container-name)))
-
-(defun get-handle-joint (container-name)
-  (car (cl-urdf:to-joints (get-door-link container-name))))
+(defun find-container-joint-type-under-joint (joint)
+  "Return the first joint type different from :FIXED under the given JOINT."
+  (if (eq :FIXED (cl-urdf:joint-type joint))
+      (find-container-joint-type-under-joint (car (cl-urdf:to-joints
+                                                   (cl-urdf:child joint))))
+      (cl-urdf:joint-type joint)))
 
 (defun get-handle-link (container-name)
-  (cl-urdf:child (get-handle-joint container-name)))
-  
+  (find-handle-under-link
+   (get-container-link container-name)))
+
+(defun find-handle-under-link (link)
+  (if (search "handle" (cl-urdf:name link))
+      link
+      (find-handle-under-link (cl-urdf:child
+                     (car (cl-urdf:to-joints link))))))
+
+(defun test ()
+  (let ((?desig (get-opening-desig 'sink_area_left_upper_drawer_main)))
+    (with-simulated-robot
+      (exe:perform ?desig))))
+
 ;; (gethash "iai_fridge_main" (cl-urdf:links  (btr:urdf (btr:object btr:*current-bullet-world* :kitchen))))
 
 
