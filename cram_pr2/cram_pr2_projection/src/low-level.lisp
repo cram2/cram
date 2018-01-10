@@ -355,11 +355,11 @@
                              (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint ?upper-limit)
                              (btr:bullet-world ?world)
                              (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
-                   (call-ik-service arm ee-pose :torso-angle ?torso-angle
-                                                :torso-lower-limit ?lower-limit
-                                                :torso-upper-limit ?upper-limit
-                                                ;; seed-state ; is todo
-                                                ))
+                   (call-ik-service-with-torso-resampling arm ee-pose :torso-angle ?torso-angle
+                                                                      :torso-lower-limit ?lower-limit
+                                                                      :torso-upper-limit ?upper-limit
+                                                                      ;; seed-state ; is todo
+                                                                      ))
                (unless ik-solution-msg
                  (cpl:fail 'common-fail:manipulation-pose-unreachable
                            :description (format nil "~a is unreachable for EE." ee-pose)))
