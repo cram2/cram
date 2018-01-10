@@ -200,8 +200,8 @@
 
 (defun call-ik-service-with-torso-resampling (left-or-right cartesian-pose
                                               &key seed-state test-angle torso-angle torso-lower-limit torso-upper-limit)
-  (labels ((_call-ik-service-with-torso-resampling (left-or-right cartesian-pose
-                                                    &key seed-state test-angle torso-angle torso-lower-limit torso-upper-limit)
+  (labels ((call-ik-service-with-torso-resampling-inner (left-or-right cartesian-pose
+                                                         &key seed-state test-angle torso-angle torso-lower-limit torso-upper-limit)
              (let ((ik-solution (call-ik-service left-or-right cartesian-pose seed-state)))
                (if (not ik-solution)
                    (when (or (not test-angle) (> test-angle torso-lower-limit))
@@ -215,12 +215,12 @@
                             (next-torso-offset (- next-test-angle torso-angle))
                             (pseudo-pose (cram-tf:translate-pose cartesian-pose
                                                                  :z-offset (- torso-offset next-torso-offset))))
-                       (_call-ik-service-with-torso-resampling left-or-right pseudo-pose
-                                                               :seed-state seed-state
-                                                               :test-angle next-test-angle
-                                                               :torso-angle torso-angle
-                                                               :torso-lower-limit torso-lower-limit
-                                                               :torso-upper-limit torso-upper-limit)))
+                       (call-ik-service-with-torso-resampling-inner left-or-right pseudo-pose
+                                                                    :seed-state seed-state
+                                                                    :test-angle next-test-angle
+                                                                    :torso-angle torso-angle
+                                                                    :torso-lower-limit torso-lower-limit
+                                                                    :torso-upper-limit torso-upper-limit)))
                    (values ik-solution test-angle)))))
     (let ((old-debug-lvl (roslisp:debug-level NIL)))
       (unwind-protect
