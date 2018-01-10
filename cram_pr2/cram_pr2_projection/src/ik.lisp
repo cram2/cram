@@ -226,7 +226,7 @@
       (unwind-protect
            (progn
              (roslisp:set-debug-level NIL 9)
-             (_call-ik-service-with-torso-resampling left-or-right cartesian-pose :seed-state seed-state
+             (call-ik-service-with-torso-resampling-inner left-or-right cartesian-pose :seed-state seed-state
                                                                                   :test-angle test-angle
                                                                                   :torso-angle torso-angle
                                                                                   :torso-lower-limit torso-lower-limit
