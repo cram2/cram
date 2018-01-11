@@ -49,22 +49,22 @@
    (cl-transforms:make-identity-rotation)))
 
 (defparameter *object-spawning-poses*
-  '((:breakfast-cereal . ((1.4 1.0 0.95) (0 0 0 1)))
-    (:cup . ((1.3 0.6 0.9) (0 0 0 1)))
+  '((:breakfast-cereal . ((1.34 1.0 0.95) (0 0 0 1)))
+    (:cup . ((1.35 0.6 0.9) (0 0 0 1)))
     (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
-    (:spoon . ((1.4 0.4 0.86) (0 0 0 1)))
+    (:spoon . ((1.4 0.4 0.85) (0 0 0 1)))
     (:milk . ((1.3 0.2 0.95) (0 0 0 1)))))
 
 (defparameter *object-grasping-arms*
-  '((:breakfast-cereal . :left)
-    (:cup . :right)
+  '((:breakfast-cereal . :right)
+    (:cup . :left)
     (:bowl . :left)
     (:spoon . :right)
-    (:milk . :left)))
+    (:milk . :right)))
 
 (defparameter *object-placing-poses*
   '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
-    (:cup . ((-0.81 1.35 0.9) (0 0 0.7071 0.7071)))
+    (:cup . ((-0.79 1.35 0.9) (0 0 0.7071 0.7071)))
     (:bowl . ((-0.76 1.19 0.93) (0 0 1 0)))
     (:spoon . ((-0.78 1.5 0.86) (0 0 1 0)))
     (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
