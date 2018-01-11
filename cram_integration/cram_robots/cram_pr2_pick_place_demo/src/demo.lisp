@@ -94,6 +94,8 @@
                 "map" 0.0
                 (cram-bullet-reasoning:ensure-pose
                  (cdr (assoc ?object-type *object-placing-poses*)))))
+             (?arm-to-use
+               (cdr (assoc ?object-type *object-grasping-arms*)))
              (?delivering-location
                (desig:a location
                         (pose ?placing-target-pose))))
@@ -106,6 +108,7 @@
            (desig:an action
                      (type transporting)
                      (object ?object-to-fetch)
+                     (arm ?arm-to-use)
                      (location ?fetching-location)
                      (target ?delivering-location)))))))
 
