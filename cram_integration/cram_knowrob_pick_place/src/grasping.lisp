@@ -32,6 +32,7 @@
 (defparameter *lift-z-offset* 0.15 "in meters")
 
 (defparameter *cutlery-grasp-z-offset* -0.0 "in meters") ; because TCP is not at the edge
+(defparameter *cutlery-pregrasp-z-offset* 0.15 "in meters")
 
 (defparameter *plate-diameter* 0.26 "in meters")
 (defparameter *plate-pregrasp-y-offset* 0.2 "in meters")
@@ -54,12 +55,13 @@
 (defparameter *milk-grasp-z-offset* 0.0 "in meters")
 (defparameter *milk-pregrasp-xy-offset* 0.15 "in meters")
 
-(defparameter *cereal-grasp-z-offset* 0.06 "in meters")
+(defparameter *cereal-grasp-z-offset* 0.02 "in meters")
 (defparameter *cereal-grasp-xy-offset* -0.03 "in meters")
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 
 (defparameter *bowl-grasp-x-offset* 0.07 "in meters")
 (defparameter *bowl-grasp-z-offset* 0.01 "in meters")
+(defparameter *bowl-pregrasp-z-offset* 0.15 "in meters")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -118,7 +120,13 @@
                                                           arm
                                                           (grasp (eql :top))
                                                           grasp-transform)
-  (cram-tf:translate-transform-stamped grasp-transform :z-offset *lift-z-offset*))
+  (cram-tf:translate-transform-stamped grasp-transform :z-offset *cutlery-pregrasp-z-offset*))
+(defmethod get-object-type-to-gripper-lift-transform ((object-type (eql :cutlery))
+                                                      object-name
+                                                      arm
+                                                      (grasp (eql :top))
+                                                      grasp-transform)
+  (get-object-type-to-gripper-pregrasp-transform object-type object-name arm grasp grasp-transform))
 
 ;;; FORK and KNIFE are the same as CUTLERY
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :spoon))
@@ -139,6 +147,15 @@
 (defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :knife))
                                                           object-name arm grasp grasp-pose)
   (get-object-type-to-gripper-pregrasp-transform :cutlery object-name arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-lift-transform ((object-type (eql :spoon))
+                                                          object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-lift-transform :cutlery object-name arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-lift-transform ((object-type (eql :fork))
+                                                          object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-lift-transform :cutlery object-name  arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-lift-transform ((object-type (eql :knife))
+                                                          object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-lift-transform :cutlery object-name arm grasp grasp-pose))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -590,7 +607,13 @@
                                                           arm
                                                           (grasp (eql :top))
                                                           grasp-transform)
-  (cram-tf:translate-transform-stamped grasp-transform :z-offset *lift-z-offset*))
+  (cram-tf:translate-transform-stamped grasp-transform :z-offset *bowl-pregrasp-z-offset*))
+(defmethod get-object-type-to-gripper-lift-transform ((object-type (eql :bowl))
+                                                      object-name
+                                                      arm
+                                                      (grasp (eql :top))
+                                                      grasp-transform)
+  (get-object-type-to-gripper-pregrasp-transform object-type object-name arm grasp grasp-transform))
 
 
 (def-fact-group pnp-object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
@@ -613,7 +636,7 @@
   (<- (object-type-grasp :bottle :front))
 
   (<- (object-type-grasp :cup :front))
-  (<- (object-type-grasp :cup :side))
+  ;; (<- (object-type-grasp :cup :side))
   ;; (<- (object-type-grasp :cup :top))
 
   (<- (object-type-grasp :milk :side))
