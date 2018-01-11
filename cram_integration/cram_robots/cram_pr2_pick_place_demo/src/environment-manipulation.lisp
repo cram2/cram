@@ -109,9 +109,9 @@
 
 ;;; OBJECT-INTERFACE METHODS
 
-(defparameter *drawer-handle-grasp-y-offset* -0.05 "in meters")
-(defparameter *drawer-handle-pregrasp-y-offset* -0.10 "in meters")
-(defparameter *drawer-handle-lift-y-offset* -0.2 "in meters")
+(defparameter *drawer-handle-grasp-x-offset* -0.02 "in meters")
+(defparameter *drawer-handle-pregrasp-x-offset* -0.10 "in meters")
+(defparameter *drawer-handle-lift-x-offset* -0.4 "in meters")
 
 ; Might be necessary to find out what kind of handle we are dealing with. But we could also just open wide and be done with it.
 (defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container)))
@@ -154,27 +154,29 @@
          (tool-frame (ecase arm
                        (:left cram-tf:*robot-left-tool-frame*)
                        (:right cram-tf:*robot-right-tool-frame*))))
-    (cram-tf:multiply-transform-stampeds object-name
-                                         tool-frame
-                                         (cram-tf:multiply-transform-stampeds object-name handle-name
-                                                                              (cram-tf:transform-stamped-inv container-tf)
-                                                                              handle-tf)
-                                         (cl-transforms-stamped:make-transform-stamped
-                                          handle-name
+    (cram-tf:translate-transform-stamped
+     (cram-tf:multiply-transform-stampeds object-name
                                           tool-frame
-                                          0.0
-                                          (cl-transforms:make-3d-vector 0.0d0 *drawer-handle-grasp-y-offset* 0.0d0)
-                                          (cl-transforms:matrix->quaternion
-                                           #2A((0 1 0)
-                                               (1 0 0)
-                                               (0 0 -1)))))))
+                                          (cram-tf:multiply-transform-stampeds object-name handle-name
+                                                                               (cram-tf:transform-stamped-inv container-tf)
+                                                                               handle-tf)
+                                          (cl-transforms-stamped:make-transform-stamped
+                                           handle-name
+                                           tool-frame
+                                           0.0
+                                           (cl-transforms:make-3d-vector 0.0d0 *drawer-handle-grasp-y-offset* 0.0d0)
+                                           (cl-transforms:matrix->quaternion
+                                            #2A((0 0 -1)
+                                                (0 1 0)
+                                                (1 0 0)))))
+     :x-offset *drawer-handle-grasp-x-offset*)))
 
 ; Should be fine without a joint-type.
 (defmethod obj-int:get-object-type-pregrasp-pose ((object-type (eql :container))
                                           arm
                                           (grasp (eql :front))
                                           grasp-pose)
-  (cram-tf:translate-pose grasp-pose :x-offset *drawer-handle-pregrasp-y-offset*))
+  (cram-tf:translate-pose grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
 
 ; We need the joint-type, maybe add a optional parameter to the generic.
 ; But for now I can live with this.
@@ -186,7 +188,7 @@
                      grasp-pose
                      cram-tf:*robot-base-frame*
                      :use-zero-time t)))
-    (cram-tf:translate-pose grasp-pose :x-offset *drawer-handle-lift-y-offset*)))
+    (cram-tf:translate-pose grasp-pose :x-offset *drawer-handle-lift-x-offset*)))
 
 
 ;;; PLAN
@@ -344,6 +346,15 @@
   (let ((?desig (get-opening-desig 'sink_area_left_upper_drawer_main)))
     (with-simulated-robot
       (exe:perform ?desig))))
+
+(defun move-pr2 (x y)
+  (with-simulated-robot
+        (let ((?goal (cl-transforms-stamped:make-pose-stamped
+                    "map"
+                    0.0
+                    (cl-tf:make-3d-vector x y 0.0)
+                    (cl-tf:make-identity-rotation))))
+        (exe:perform (a motion (type going) (target (a location (pose ?goal))))))))
 
 ;; (gethash "iai_fridge_main" (cl-urdf:links  (btr:urdf (btr:object btr:*current-bullet-world* :kitchen))))
 
