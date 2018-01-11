@@ -44,12 +44,15 @@
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator))
 
-  (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?location-designator))
+  (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?location-designator
+                                                        ?arm))
     (spec:property ?action-designator (:type :fetching))
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
     (spec:property ?action-designator (:location ?some-location-designator))
-    (desig:current-designator ?some-location-designator ?location-designator))
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (or (spec:property ?action-designator (:arm ?arm))
+        (equal ?arm NIL)))
 
   (<- (desig:action-grounding ?action-designator (deliver ?object-designator ?location-designator))
     (spec:property ?action-designator (:type :delivering))
@@ -61,11 +64,14 @@
   (<- (desig:action-grounding ?action-designator (transport
                                                   ?object-designator
                                                   ?fetching-location-designator
-                                                  ?delivering-location-designator))
+                                                  ?delivering-location-designator
+                                                  ?arm))
     (spec:property ?action-designator (:type :transporting))
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
     (spec:property ?action-designator (:location ?some-fetching-location-designator))
     (desig:current-designator ?some-fetching-location-designator ?fetching-location-designator)
     (spec:property ?action-designator (:target ?some-delivering-location-designator))
-    (desig:current-designator ?some-delivering-location-designator ?delivering-location-designator)))
+    (desig:current-designator ?some-delivering-location-designator ?delivering-location-designator)
+    (or (spec:property ?action-designator (:arm ?arm))
+        (equal ?arm NIL))))
