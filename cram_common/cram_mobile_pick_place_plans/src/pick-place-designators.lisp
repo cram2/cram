@@ -98,9 +98,10 @@
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
             (or (cpoe:object-in-hand ?object-designator ?arm)
-                (and (format "Wanted to place an object ~a with arm ~a, but it's not in the arm.~%"
-                             ?object-designator ?arm)
-                     (fail)))
+                (and (format "WARNING: Wanted to place an object ~a with arm ~a, ~
+                              but it's not in the arm.~%" ?object-designator ?arm)
+                     ;; (fail)
+                     ))
             (cpoe:object-in-hand ?object-designator ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
             (cpoe:object-in-hand ?object-designator ?arm)

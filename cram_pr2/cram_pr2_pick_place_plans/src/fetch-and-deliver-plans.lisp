@@ -58,7 +58,7 @@
     (cpl:with-failure-handling
         (((or common-fail:perception-low-level-failure
               common-fail:navigation-pose-in-collision) (e)
-           (roslisp:ros-warn (pp-plans search-for-object) "Failure happened: ~a" e)
+           (roslisp:ros-warn (pp-plans search-for-object) "~a" e)
            (cpl:do-retry search-location-retries
              (handler-case
                  (setf ?search-location (desig:next-solution ?search-location))
@@ -109,7 +109,9 @@
             cram-tf:*fixed-frame*
             :use-zero-time t)))
 
-    (roslisp:ros-info (pp-plans fetch) "Found object ~a" ?perceived-object-desig)
+    (roslisp:ros-info (pp-plans fetch)
+                      "Found object of type ~a~%"
+                      (desig:desig-prop-value ?perceived-object-desig :type))
 
     (cpl:with-failure-handling
         ((common-fail:navigation-pose-in-collision (e)
@@ -129,13 +131,17 @@
                     common-fail:perception-low-level-failure
                     common-fail:gripping-failed
                     common-fail:high-level-failure) (e)
-                 (roslisp:ros-warn (pp-plans fetch) "Object is unreachable: ~a" e)
+                 (roslisp:ros-warn (pp-plans fetch)
+                                   "Object of type ~a is unreachable."
+                                   (desig:desig-prop-value ?perceived-object-desig :type))
                  (cpl:do-retry relocation-for-ik-retries
                    (handler-case
                        (setf ?pick-up-location (desig:next-solution ?pick-up-location))
                      (desig:designator-error ()
                        (roslisp:ros-warn (pp-plans fetch)
-                                         "Designator cannot be resolved: ~a. Propagating up." e)
+                                         "Designator to reach object ~a cannot be resolved. ~
+                                          Propagating up."
+                                         (desig:desig-prop-value ?perceived-object-desig :type))
                        (cpl:fail 'common-fail:object-unfetchable)))
                    (if ?pick-up-location
                        (progn
@@ -207,51 +213,53 @@
                                      (location (desig:a location
                                                         (pose ?pose-at-target-location))))))
 
-        (cpl:with-retry-counters ((relocation-for-ik-retries 30))
-          (cpl:with-failure-handling
-              (((or common-fail:object-unreachable
-                    common-fail:manipulation-pose-in-collision
-                    common-fail:high-level-failure) (e)
-                 (roslisp:ros-warn (pp-plans deliver) "Object is unreachable: ~a" e)
-                 (cpl:do-retry relocation-for-ik-retries
-                   (handler-case
-                       (setf ?nav-location (desig:next-solution ?nav-location))
-                     (desig:designator-error ()
-                       (roslisp:ros-warn (pp-plans coll-check)
-                                         "Designator cannot be resolved: ~a. Propagating up." e)
-                       (cpl:fail 'common-fail:object-undeliverable)))
-                   (if ?nav-location
-                       (progn
-                         (roslisp:ros-info (pp-plans deliver) "Relocating...")
-                         (cpl:retry))
-                       (progn
-                         (roslisp:ros-warn (pp-plans deliver) "No more samples to try :'(")
-                         (cpl:fail 'common-fail:object-undeliverable))))
-                 (return)))
+        (unless
+            (cpl:with-retry-counters ((relocation-for-ik-retries 30))
+              (cpl:with-failure-handling
+                  (((or common-fail:object-unreachable
+                        common-fail:manipulation-pose-in-collision
+                        common-fail:high-level-failure) (e)
+                     (roslisp:ros-warn (pp-plans deliver) "Object is unreachable: ~a" e)
+                     (cpl:do-retry relocation-for-ik-retries
+                       (handler-case
+                           (setf ?nav-location (desig:next-solution ?nav-location))
+                         (desig:designator-error ()
+                           (roslisp:ros-warn (pp-plans coll-check)
+                                             "Designator cannot be resolved: ~a.~
+                                              Propagating up." e)
+                           (cpl:fail 'common-fail:object-undeliverable)))
+                       (if ?nav-location
+                           (progn
+                             (roslisp:ros-info (pp-plans deliver) "Relocating...")
+                             (cpl:retry))
+                           (progn
+                             (roslisp:ros-warn (pp-plans deliver) "No more samples to try :'(")
+                             (cpl:fail 'common-fail:object-undeliverable))))
+                     (return)))
 
-            (exe:perform (desig:an action
-                                   (type navigating)
-                                   (location ?nav-location)))
-            (setf ?nav-location (desig:current-desig ?nav-location))
+                (exe:perform (desig:an action
+                                       (type navigating)
+                                       (location ?nav-location)))
+                (setf ?nav-location (desig:current-desig ?nav-location))
 
-            (exe:perform (desig:an action
-                                   (type looking)
-                                   (target (desig:a location
-                                                    (pose ?pose-at-target-location)))))
+                (exe:perform (desig:an action
+                                       (type looking)
+                                       (target (desig:a location
+                                                        (pose ?pose-at-target-location)))))
 
-            (let ((placing-action
-                    (desig:an action
-                              (type placing)
-                              (object ?object-designator)
-                              (target (desig:a location
-                                               (pose ?pose-at-target-location))))))
-              (pr2-proj-reasoning:check-placing-collisions placing-action)
-              (setf placing-action (desig:current-desig placing-action))
-              (exe:perform placing-action)
-              (return-from deliver))))
+                (let ((placing-action
+                        (desig:an action
+                                  (type placing)
+                                  (object ?object-designator)
+                                  (target (desig:a location
+                                                   (pose ?pose-at-target-location))))))
+                  (pr2-proj-reasoning:check-placing-collisions placing-action)
+                  (setf placing-action (desig:current-desig placing-action))
+                  (exe:perform placing-action)
+                  T)))
 
-        (roslisp:ros-warn (pp-plans deliver) "No relocation-for-ik-retries left :'(")
-        (cpl:fail 'common-fail:object-undeliverable)))))
+         (roslisp:ros-warn (pp-plans deliver) "No relocation-for-ik-retries left :'(")
+         (cpl:fail 'common-fail:object-undeliverable))))))
 
 
 (defun drop-at-sink ()
