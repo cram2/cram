@@ -94,7 +94,7 @@
 
 
 
-(cpl:def-cram-function fetch (?object-designator ?search-location)
+(cpl:def-cram-function fetch (?object-designator ?search-location ?arm)
   (let* ((?perceived-object-desig
            (exe:perform (desig:an action
                                   (type searching)
@@ -171,6 +171,8 @@
               (let ((pick-up-action
                       (desig:an action
                                 (type picking-up)
+                                (desig:when ?arm
+                                  (arm ?arm))
                                 (object ?more-precise-perceived-object-desig))))
 
                 (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
@@ -294,10 +296,12 @@
                  (target (desig:a location
                                   (pose ?placing-pose))))))))
 
-(cpl:def-cram-function transport (?object-designator ?fetching-location ?delivering-location)
+(cpl:def-cram-function transport (?object-designator ?fetching-location ?delivering-location ?arm)
   (let ((?fetched-object
           (exe:perform (desig:an action
                                  (type fetching)
+                                 (when ?arm
+                                   (arm ?arm))
                                  (object ?object-designator)
                                  (location ?fetching-location)))))
     (cpl:with-failure-handling
