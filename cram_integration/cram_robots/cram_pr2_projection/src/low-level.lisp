@@ -335,6 +335,28 @@
 
 (defparameter *gripper-length* 0.2 "PR2's gripper length in meters, for calculating TCP -> EE")
 
+(defun arm-pose-hash-code (arm-pose-list)
+  (let* ((pose (second arm-pose-list))
+         (pose-list (cram-tf:pose->flat-list pose))
+         (sum (apply #'+ pose-list))
+         (sum-big-precise-num (* sum 100000000))
+         (pose-hash-code (floor sum-big-precise-num))
+         (arm (first arm-pose-list))
+         (overall-hash-code (ecase arm
+                              (:left (+ pose-hash-code 10000))
+                              (:right (+ pose-hash-code 20000)))))
+    overall-hash-code))
+(defun arm-poses-equal-accurate (arm-pose-list-1 arm-pose-list-2)
+  (let* ((pose-1 (second arm-pose-list-1))
+         (pose-2 (second arm-pose-list-2))
+         (arm-1 (first arm-pose-list-1))
+         (arm-2 (first arm-pose-list-2)))
+    (if (eql arm-1 arm-2)
+        (cram-tf:poses-equal-p pose-1 pose-2 0.000001d0 0.000010d0)
+        nil)))
+(sb-ext:define-hash-table-test arm-poses-equal-accurate arm-pose-hash-code)
+(defvar *ik-solution-cache* (make-hash-table :test 'arm-poses-equal-accurate))
+
 (defun move-tcp (left-tcp-pose right-tcp-pose)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
   (flet ((tcp-pose->ee-pose (tcp-pose)
@@ -359,14 +381,22 @@
                              (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint ?upper-limit)
                              (btr:bullet-world ?world)
                              (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
-                   (call-ik-service-with-torso-resampling arm ee-pose :torso-angle ?torso-angle
-                                                                      :torso-lower-limit ?lower-limit
-                                                                      :torso-upper-limit ?upper-limit
-                                                                      ;; seed-state ; is todo
-                                                                      ))
+                   (let ((hashed-result
+                           (gethash (list arm ee-pose) *ik-solution-cache*)))
+                     (if hashed-result
+                         (values (first hashed-result) (second hashed-result))
+                         (call-ik-service-with-torso-resampling
+                          arm ee-pose
+                          :torso-angle ?torso-angle
+                          :torso-lower-limit ?lower-limit
+                          :torso-upper-limit ?upper-limit
+                          ;; seed-state ; is todo
+                          ))))
                (unless ik-solution-msg
                  (cpl:fail 'common-fail:manipulation-pose-unreachable
                            :description (format nil "~a is unreachable for EE." ee-pose)))
+               (setf (gethash (list arm ee-pose) *ik-solution-cache*)
+                     (list ik-solution-msg torso-angle))
                (values
                 (map 'list #'identity
                      (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))

@@ -164,7 +164,7 @@
             (progn
               (roslisp:wait-for-service (concatenate 'string
                                                      (getf *ik-service-namespaces* left-or-right)
-                                                     "/get_ik_solver_info") 10.0)
+                                                     "/get_ik") 10.0)
               (roslisp:call-service
                (concatenate 'string (getf *ik-service-namespaces* left-or-right) "/get_ik")
                "moveit_msgs/GetPositionIK"
@@ -182,17 +182,20 @@
           (cond ((eql response-error-code
                       (roslisp-msg-protocol:symbol-code
                        'moveit_msgs-msg:moveiterrorcodes
-                       :success)) joint-state)
+                       :success))
+                 joint-state)
                 ((eql response-error-code
                       (roslisp-msg-protocol:symbol-code
                        'moveit_msgs-msg:moveiterrorcodes
-                       :no_ik_solution)) nil)
-                (T (error 'simple-error
-                          :format-control "IK service failed: ~a"
-                          :format-arguments (list
-                                             (roslisp-msg-protocol:code-symbol
-                                              'moveit_msgs-msg:moveiterrorcodes
-                                              response-error-code))))))
+                       :no_ik_solution))
+                 nil)
+                (T
+                 (error 'simple-error
+                        :format-control "IK service failed: ~a"
+                        :format-arguments (list
+                                           (roslisp-msg-protocol:code-symbol
+                                            'moveit_msgs-msg:moveiterrorcodes
+                                            response-error-code))))))
       (simple-error (e)
         (declare (ignore e))
         nil))))
