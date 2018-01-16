@@ -95,7 +95,9 @@
 
 
 (cpl:def-cram-function fetch (?object-designator ?search-location ?arm)
-  (let* ((?perceived-object-desig
+  (let* ((object-designator-properties
+           (desig:properties ?object-designator))
+         (?perceived-object-desig
            (exe:perform (desig:an action
                                   (type searching)
                                   (object ?object-designator)
@@ -131,6 +133,7 @@
                     common-fail:perception-low-level-failure
                     common-fail:gripping-failed
                     common-fail:high-level-failure) (e)
+                 (declare (ignore e))
                  (roslisp:ros-warn (pp-plans fetch)
                                    "Object of type ~a is unreachable."
                                    (desig:desig-prop-value ?perceived-object-desig :type))
@@ -163,10 +166,15 @@
                                    (target (desig:a location
                                                     (pose ?perceived-object-pose-in-map)))))
 
-            (let* ((?more-precise-perceived-object-desig
-                     (exe:perform (desig:an action
-                                            (type detecting)
-                                            (object ?object-designator)))))
+            (let* ((?copy-of-object-designator
+                     (desig:make-designator :object object-designator-properties))
+                   (?more-precise-perceived-object-desig
+                        (exe:perform (desig:an action
+                                               (type detecting)
+                                               (object ?copy-of-object-designator)))))
+
+              (unless (desig:desig-equal ?object-designator ?copy-of-object-designator)
+                (desig:equate ?object-designator ?copy-of-object-designator))
 
               (let ((pick-up-action
                       (desig:an action
