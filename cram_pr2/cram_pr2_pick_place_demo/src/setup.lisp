@@ -61,6 +61,8 @@
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
   ;; (ccl::connect-to-cloud-logger)
+
+  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   )
 
 (roslisp-utilities:register-ros-init-function init-projection)
