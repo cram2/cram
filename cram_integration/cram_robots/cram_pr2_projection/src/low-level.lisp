@@ -338,7 +338,7 @@
 (defun arm-pose-hash-code (arm-pose-list)
   (let* ((pose (second arm-pose-list))
          (pose-list (cram-tf:pose->flat-list pose))
-         (sum (apply #'+ pose-list))
+         (sum (abs (apply #'+ pose-list)))
          (sum-big-precise-num (* sum 100000000))
          (pose-hash-code (floor sum-big-precise-num))
          (arm (first arm-pose-list))
