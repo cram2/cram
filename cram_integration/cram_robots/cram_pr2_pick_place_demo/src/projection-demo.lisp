@@ -58,7 +58,7 @@
 (defparameter *object-grasping-arms*
   '((:breakfast-cereal . :right)
     (:cup . :left)
-    (:bowl . :left)
+    (:bowl . :right)
     (:spoon . :right)
     (:milk . :right)))
 
