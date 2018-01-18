@@ -53,8 +53,9 @@
     `(and (cram-robot-interfaces:robot ?robot)
           (btr:bullet-world ?w)
           (btr:assert ?w (btr:object-pose ?robot ,target)))))
-  (cram-occasions-events:on-event
-   (make-instance 'cram-plan-occasions-events:robot-state-changed)))
+  ;; (cram-occasions-events:on-event
+  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
+  )
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -66,8 +67,9 @@
           (btr:bullet-world ?w)
           (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?joint)
           (btr:assert (btr:joint-state ?w ?robot ((?joint ,joint-angle)))))))
-  (cram-occasions-events:on-event
-   (make-instance 'cram-plan-occasions-events:robot-state-changed)))
+  ;; (cram-occasions-events:on-event
+  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
+  )
 
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -134,20 +136,21 @@
                  (= tilt-angle cropped-tilt-angle))
         (cpl:fail 'common-fail:ptu-goal-unreachable
                   :description "Look action wanted to twist the neck"))
-    (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+    ;; (cram-occasions-events:on-event
+    ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
+    ))
 
-(defgeneric look-at (pose-or-frame-or-direction)
-  (:method ((pose cl-transforms-stamped:pose-stamped))
+(defgeneric look-at (goal-type pose-or-frame-or-direction)
+  (:method (goal-type (pose cl-transforms-stamped:pose-stamped))
     (look-at-pose-stamped pose))
-  (:method ((frame string))
+  (:method (goal-type (frame string))
     (look-at-pose-stamped
      (cl-transforms-stamped:make-pose-stamped
       frame
       0.0
       (cl-transforms:make-identity-vector)
       (cl-transforms:make-identity-rotation))))
-  (:method ((direction symbol))
+  (:method (goal-type (direction symbol))
     (look-at-pose-stamped
      (case direction
        (:forward (cl-transforms-stamped:make-pose-stamped
@@ -196,14 +199,14 @@
               (make-instance 'desig:object-designator-data
                 :object-identifier name
                 :pose pose-stamped-in-base-frame))
-        (desig:equate input-designator output-designator)
+        ;; (desig:equate input-designator output-designator)
 
         ;; before returning a freshly made output designator of perceived object
         ;; emit an object perceived event to update the belief state
-          (cram-occasions-events:on-event
-           (make-instance 'cram-plan-occasions-events:object-perceived-event
-             :object-designator output-designator
-             :perception-source :projection))
+          ;; (cram-occasions-events:on-event
+          ;;  (make-instance 'cram-plan-occasions-events:object-perceived-event
+          ;;    :object-designator output-designator
+          ;;    :perception-source :projection))
 
         output-designator))))
 
@@ -280,8 +283,8 @@
            (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?max-limit)))))
 
   ;; robot-state-changed event
-  (cram-occasions-events:on-event
-   (make-instance 'cram-plan-occasions-events:robot-state-changed))
+  ;; (cram-occasions-events:on-event
+  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
 
   ;; check if there is an object to grip
   (when (eql action-type :grip) ; if action was gripping check if gripper collided with an item
@@ -326,10 +329,33 @@
                      (assert ?world (btr:joint-state ?robot ,joint-name-value-list))))))))))
     (set-configuration :left left-configuration)
     (set-configuration :right right-configuration)
-    (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+    ;; (cram-occasions-events:on-event
+    ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
+    ))
 
 (defparameter *gripper-length* 0.2 "PR2's gripper length in meters, for calculating TCP -> EE")
+
+(defun arm-pose-hash-code (arm-pose-list)
+  (let* ((pose (second arm-pose-list))
+         (pose-list (cram-tf:pose->flat-list pose))
+         (sum (abs (apply #'+ pose-list)))
+         (sum-big-precise-num (* sum 100000000))
+         (pose-hash-code (floor sum-big-precise-num))
+         (arm (first arm-pose-list))
+         (overall-hash-code (ecase arm
+                              (:left (+ pose-hash-code 10000))
+                              (:right (+ pose-hash-code 20000)))))
+    overall-hash-code))
+(defun arm-poses-equal-accurate (arm-pose-list-1 arm-pose-list-2)
+  (let* ((pose-1 (second arm-pose-list-1))
+         (pose-2 (second arm-pose-list-2))
+         (arm-1 (first arm-pose-list-1))
+         (arm-2 (first arm-pose-list-2)))
+    (if (eql arm-1 arm-2)
+        (cram-tf:poses-equal-p pose-1 pose-2 0.000001d0 0.000010d0)
+        nil)))
+(sb-ext:define-hash-table-test arm-poses-equal-accurate arm-pose-hash-code)
+(defvar *ik-solution-cache* (make-hash-table :test 'arm-poses-equal-accurate))
 
 (defun move-tcp (left-tcp-pose right-tcp-pose)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
@@ -355,14 +381,22 @@
                              (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint ?upper-limit)
                              (btr:bullet-world ?world)
                              (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
-                   (call-ik-service arm ee-pose :torso-angle ?torso-angle
-                                                :torso-lower-limit ?lower-limit
-                                                :torso-upper-limit ?upper-limit
-                                                ;; seed-state ; is todo
-                                                ))
+                   (let ((hashed-result
+                           (gethash (list arm ee-pose) *ik-solution-cache*)))
+                     (if hashed-result
+                         (values (first hashed-result) (second hashed-result))
+                         (call-ik-service-with-torso-resampling
+                          arm ee-pose
+                          :torso-angle ?torso-angle
+                          :torso-lower-limit ?lower-limit
+                          :torso-upper-limit ?upper-limit
+                          ;; seed-state ; is todo
+                          ))))
                (unless ik-solution-msg
                  (cpl:fail 'common-fail:manipulation-pose-unreachable
                            :description (format nil "~a is unreachable for EE." ee-pose)))
+               (setf (gethash (list arm ee-pose) *ik-solution-cache*)
+                     (list ik-solution-msg torso-angle))
                (values
                 (map 'list #'identity
                      (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))

@@ -69,14 +69,19 @@
 (defmethod parse-json-node ((name (eql :timestamp)) node) nil)
 (defmethod parse-json-node ((name (eql :pipelineid)) node) nil)
 
+;; (defmethod parse-json-node ((name (eql :uid)) node)
+;;   (list :name (roslisp-utilities:lispify-ros-name
+;;                (let ((knowrob-string (string-trim "'" node)))
+;;                  (let* ((position-of-# (position #\# knowrob-string :from-end t)))
+;;                    (if position-of-#
+;;                        (subseq knowrob-string (1+ position-of-#))
+;;                        knowrob-string)))
+;;                :keyword)))
+(defmethod parse-json-node ((name (eql :uid)) node)
+  (list :name (intern node :keyword)))
+
 (defmethod parse-json-node ((name (eql :id)) node)
-  (list :name (roslisp-utilities:lispify-ros-name
-               (let ((knowrob-string (string-trim "'" node)))
-                 (let* ((position-of-# (position #\# knowrob-string :from-end t)))
-                   (if position-of-#
-                       (subseq knowrob-string (1+ position-of-#))
-                       knowrob-string)))
-               :keyword)))
+  (list :id node))
 
 (defmethod parse-json-node ((name (eql :type)) node)
   (list name (intern (string-upcase node) :keyword)))
@@ -92,25 +97,24 @@
 (defmethod parse-json-node ((name (eql :boundingbox)) node)
   (parse-nested-node :bb node))
 
-;; (defmethod parse-json-node ((name (eql :pose)) node)
-;;   (setf *rs-result-debug* node)
-;;   (if (getassoc "pose" node)
-;;       (list name (parse-alist node))
-;;       (let* ((frame-id (getassoc "frame_id" node))
-;;              (pos-x (getassoc "pos_x" node))
-;;              (pos-y (getassoc "pos_y" node))
-;;              (pos-z (getassoc "pos_z" node))
-;;              (rot-x (getassoc "rot_x" node))
-;;              (rot-y (getassoc "rot_y" node))
-;;              (rot-z (getassoc "rot_z" node))
-;;              (rot-w (getassoc "rot_w" node))
-;;              (stamp (getassoc "stamp" node))
-;;              (object-pose (cl-transforms-stamped:make-pose-stamped
-;;                            frame-id
-;;                            stamp
-;;                            (cl-transforms:make-3d-vector pos-x pos-y pos-z)
-;;                            (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w))))
-;;         (list name object-pose))))
+(defmethod parse-json-node ((name (eql :pose)) node)
+  (if (getassoc "pose" node)
+      (list name (parse-alist node))
+      (let* ((frame-id (getassoc "frame_id" node))
+             (pos-x (getassoc "pos_x" node))
+             (pos-y (getassoc "pos_y" node))
+             (pos-z (getassoc "pos_z" node))
+             (rot-x (getassoc "rot_x" node))
+             (rot-y (getassoc "rot_y" node))
+             (rot-z (getassoc "rot_z" node))
+             (rot-w (getassoc "rot_w" node))
+             (stamp (getassoc "stamp" node))
+             (object-pose (cl-transforms-stamped:make-pose-stamped
+                           frame-id
+                           stamp
+                           (cl-transforms:make-3d-vector pos-x pos-y pos-z)
+                           (cl-transforms:make-quaternion rot-x rot-y rot-z rot-w))))
+        (list name object-pose))))
 
 (defmethod parse-json-node ((name (eql :transform)) node)
   (let* ((frame-id (getassoc "frame_id" node))
@@ -152,7 +156,7 @@
       (list name object-transform-stamped))))
 
 (defmethod parse-json-node ((name (eql :color)) node)
-  (cons name (mapcar #'first
+  (list name (mapcar #'first
                      (subseq (sort (parse-alist node)
                                    #'> :key #'second)
                              0 3))))

@@ -86,13 +86,15 @@
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects
            item-dimensions
+           add-objects-to-mesh-list
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
            with-world copied-world with-copied-world
            obj-pose-on obj-poses-on flat-color-object-proxy drawable-list
            drawable-list-drawables make-drawable-list
-
-           get-robot-object get-robot-name
+           ;; robot-model-utils
+           #:get-robot-object #:get-robot-name
+           #:robot-colliding-objects-without-attached
 
            event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup

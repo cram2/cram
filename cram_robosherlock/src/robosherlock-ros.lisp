@@ -126,6 +126,97 @@
                                                       although there should've been ~a"
                                                  number-of-objects quantifier)))))))
 
+(defun map-rs-color-to-rgb-list (rs-color)
+  (case rs-color
+    (:white '(1.0 1.0 1.0))
+    (:red '(1.0 0.0 0.0))
+    (:orange '(1.0 0.5 0.0))
+    (:yellow '(1.0 1.0 0.0))
+    (:green '(0.0 1.0 0.0))
+    (:blue '(0.0 0.0 1.0))
+    (:cyan '(0.0 1.0 1.0))
+    (:purple '(1.0 0.0 1.0))
+    (:black '(0.0 0.0 0.0))
+    (grey '(0.5 0.5 0.5))
+    (t '(0.5 0.5 0.5))))
+
+(defun which-estimator-for-object (object-description)
+  (let ((type (second (find :type object-description :key #'car)))
+        (cad-model (find :cad-model object-description :key #'car)))
+    (if cad-model
+        :templatealignment
+        (if (eq type :spoon)
+            :2destimate
+            :3destimate))))
+
+(defun find-pose-in-camera-for-object (object-description)
+  (let* ((estimator (which-estimator-for-object object-description))
+         (all-pose-descriptions
+           (cdr (find :pose object-description :key #'car)))
+         (pose-description-we-want
+           (find-if (lambda (pose-value-pair)
+                      (let ((source (second (find :source pose-value-pair :key #'car))))
+                        (eq source estimator)))
+                    all-pose-descriptions)))
+    (unless pose-description-we-want
+      (cpl:fail 'common-fail:perception-low-level-failure
+                :description (format nil
+                                     "Robosherlock object didn't have a POSE from estimator ~a."
+                                     estimator)))
+    (second (find :pose pose-description-we-want :key #'car))))
+
+(defun make-robosherlock-designator (rs-answer keyword-key-value-pairs-list)
+  (let ((combined-properties
+          (append keyword-key-value-pairs-list
+                  (set-difference rs-answer keyword-key-value-pairs-list :key #'car))))
+
+    (let* ((name
+             (or (second (find :name combined-properties :key #'car))
+                 (cpl:fail 'common-fail:perception-low-level-failure
+                           :description "Robosherlock object didn't have a NAME")))
+           (color
+             (let ((rs-colors (assoc :color combined-properties
+                                     :test #'equal)))
+               (if rs-colors
+                   (map-rs-color-to-rgb-list
+                    (caadr rs-colors))
+                   '(0.5 0.5 0.5)))))
+
+      (let* ((pose-stamped-in-camera
+               (find-pose-in-camera-for-object combined-properties))
+             (pose-stamped-in-base-frame
+               (cram-tf:ensure-pose-in-frame
+                pose-stamped-in-camera
+                cram-tf:*robot-base-frame*
+                :use-zero-time t))
+             (pose-stamped-in-map-frame
+               (cram-tf:ensure-pose-in-frame
+                pose-stamped-in-camera
+                cram-tf:*fixed-frame*
+                :use-zero-time t))
+             (transform-stamped-in-base-frame
+               (cram-tf:pose-stamped->transform-stamped
+                pose-stamped-in-base-frame
+                name)))
+
+        (let* ((properties-without-pose
+                 (remove :pose combined-properties :key #'car))
+               (output-properties
+                 (append properties-without-pose
+                         `((:pose ((:pose ,pose-stamped-in-base-frame)
+                                   (:transform ,transform-stamped-in-base-frame)))))))
+
+          (let ((output-designator
+                  (desig:make-designator :object output-properties)))
+
+            (setf (slot-value output-designator 'desig:data)
+                  (make-instance 'desig:object-designator-data
+                    :object-identifier name
+                    :pose pose-stamped-in-map-frame
+                    :color color))
+
+            output-designator))))))
+
 (defparameter *rs-result-debug* nil)
 (defparameter *rs-result-designator* nil)
 (defun call-robosherlock-service (detect-or-inspect keyword-key-value-pairs-list
@@ -134,35 +225,30 @@
   (multiple-value-bind (key-value-pairs-list quantifier)
       (ensure-robosherlock-input-parameters keyword-key-value-pairs-list quantifier)
 
-    (flet ((make-robosherlock-designator (rs-answer)
-             (desig:make-designator
-              :object
-              ;; (reduce (alexandria:rcurry (cut:flip #'adjoin) :key #'car)
-              ;;         keyword-key-value-pairs-list
-              ;;         :initial-value rs-answer)
-              rs-answer
-              )))
-
-      (roslisp:with-fields (answer)
-          (cpl:with-failure-handling
-              (((or simple-error roslisp:service-call-error) (e)
-                 (format t "Service call error occured!~%~a~%Reinitializing...~%~%" e)
-                 (destroy-robosherlock-service)
-                 (init-robosherlock-service)
-                 (let ((restart (find-restart 'roslisp:reconnect)))
-                   (if restart
-                       (progn (roslisp:wait-duration 5.0)
-                              (invoke-restart 'roslisp:reconnect))
-                       (progn (cpl:retry))))))
-            (roslisp:call-persistent-service
-             (get-robosherlock-service)
-             (make-robosherlock-query detect-or-inspect key-value-pairs-list)))
-        (setf *rs-result-debug* answer)
-        (let* ((rs-parsed-result (ensure-robosherlock-result answer quantifier))
-               (rs-result (ecase quantifier
-                            ((:a :an :the) (make-robosherlock-designator rs-parsed-result))
-                            (:all (map 'list #'make-robosherlock-designator rs-parsed-result)))))
-          (setf *rs-result-designator* rs-result)
-          rs-result)))))
+    (roslisp:with-fields (answer)
+        (cpl:with-failure-handling
+            (((or simple-error roslisp:service-call-error) (e)
+               (format t "Service call error occured!~%~a~%Reinitializing...~%~%" e)
+               (destroy-robosherlock-service)
+               (init-robosherlock-service)
+               (let ((restart (find-restart 'roslisp:reconnect)))
+                 (if restart
+                     (progn (roslisp:wait-duration 5.0)
+                            (invoke-restart 'roslisp:reconnect))
+                     (progn (cpl:retry))))))
+          (roslisp:call-persistent-service
+           (get-robosherlock-service)
+           (make-robosherlock-query detect-or-inspect key-value-pairs-list)))
+      (setf *rs-result-debug* answer)
+      (let* ((rs-parsed-result (ensure-robosherlock-result answer quantifier))
+             (rs-result (ecase quantifier
+                          ((:a :an :the) (make-robosherlock-designator
+                                          rs-parsed-result
+                                          keyword-key-value-pairs-list))
+                          (:all (map 'list (alexandria:rcurry #'make-robosherlock-designator
+                                                              keyword-key-value-pairs-list)
+                                     rs-parsed-result)))))
+        (setf *rs-result-designator* rs-result)
+        rs-result))))
 
 ;; rosservice call /RoboSherlock/json_query "query: '{\"detect\": {\"type\": \"Wheel\"}}'"

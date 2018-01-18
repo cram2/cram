@@ -52,7 +52,7 @@
 
 ;; (roslisp-utilities:register-ros-init-function init-stuff)
 
-(defmethod costmap-generator-name->score ((name (eql 'reachability-cm))) 4)
+(defmethod location-costmap:costmap-generator-name->score ((name (eql 'reachability-cm))) 4)
 
 (defun make-mean-orientation-generator (mean-transform)
   (lambda (x y previous-orientations)
@@ -65,10 +65,10 @@
 
 (def-fact-group robot-pose-cloud-reachability-costmap (location-costmap:desig-costmap)
   (<- (location-costmap:desig-costmap ?designator ?cm)
-    (desig:desig-prop ?designator (:reachable-for ?robot))
+    (desig:desig-prop ?designator (:my-reachable-for ?robot))
     (cram-robot-interfaces:robot ?robot)
     ;; (desig:desig-prop ?designator (:arm ?arm))
-    (desig:desig-prop ?designator (:target ?location))
+    (desig:desig-prop ?designator (:location ?location))
     (desig:desig-prop ?designator (:context ?context))
     (equal ?context "OpenFridge")
     ;; (desig:desig-prop ?designator (:trajectory ?trajectory-in-map))
@@ -90,10 +90,10 @@
      ?cm)))
 
 (defun pose-to-reach-fridge ()
-  (let ((?transform-to-reach (local-handle-transform))
+  (let ((?transform-to-reach (cram-tf:strip-transform-stamped (local-handle-transform)))
         (?robot 'cram-pr2-description:pr2))
     (desig:reference (desig:a location
-                              (reachable-for ?robot)
-                              (target (desig:a location (pose ?transform-to-reach)))
+                              (my-reachable-for ?robot)
+                              (location (desig:a location (pose ?transform-to-reach)))
                               (context "OpenFridge")))))
 

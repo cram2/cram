@@ -31,8 +31,8 @@
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
-       (pr2-pms::pr2-perception-pm pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
-                                   pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+       (pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+                             pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
      (cpl:top-level
        ,@body)))
 
@@ -50,16 +50,22 @@
                    (cl-transforms:make-identity-rotation))))
        (desig:a motion (type going) (target (desig:a location (pose ?pose))))))))
 
+;; (defun test-manipulation ()
+;;   (with-real-robot
+;;     (let ((?pose (local-robot-pose-in-map-from-handle)))
+;;       (exe:perform
+;;        (desig:an action (type going) (target (desig:a location (pose ?pose))))))
+;;     (let ((?pose (strip-transform-stamped
+;;                   (car (subseq (local-gripper-trajectory-in-base "MoveFridgeHandle") 23)))))
+;;       (exe:perform
+;;        (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
+
 (defun test-manipulation ()
   (with-real-robot
-    (let ((?pose (local-robot-pose-in-map-from-handle)))
-      (exe:perform
-       (desig:an action (type going) (target (desig:a location (pose ?pose))))))
     (let ((?pose (strip-transform-stamped
-                  (car (subseq (local-gripper-trajectory-in-base "MoveFridgeHandle") 23)))))
+                  (car (local-gripper-trajectory-in-base-from-radius)))))
       (exe:perform
        (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
-
 
 (defun park-arms ()
   (let ((?left-pose (cl-transforms-stamped:make-pose-stamped
@@ -90,31 +96,36 @@
                           (cl-transforms:make-3d-vector 0 0 0)
                           (cl-transforms:make-identity-rotation))))
 
-(defun environment-articulation-plan (&key (projected-or-original :original))
+(defun environment-articulation-plan (&key (projected-or-original :original)
+                                        (location-designator))
   (let* ((?handle-pose (strip-transform-stamped (local-handle-transform)))
          (?arm (kr-cloud::arm-used-in-action "OpenFridge"))
          (?robot 'cram-pr2-description:pr2)
-         (?location-for-robot (desig:a location
-                                       (reachable-for ?robot)
-                                       (target ?handle-pose)
-                                       (context "OpenFridge")))
+         (?location-for-robot (or location-designator
+                                  (desig:a location
+                                           (my-reachable-for ?robot)
+                                           (location (desig:a location (pose ?handle-pose)))
+                                           (context "OpenFridge"))))
          (?target (ecase ?arm (:left :left-target) (:right :right-target))))
 
     (btr-utils:kill-all-objects)
     (move-projected-pr2-away)
     (cram-bullet-reasoning::clear-costmap-vis-object)
-    (park-arms)
+    (pp-plans::park-arms)
+    ;; (exe:perform (desig:a motion (type moving-torso) (joint-angle 0.15)))
 
     (cpl:with-failure-handling
         (((or common-fail:actionlib-action-timed-out
               common-fail:manipulation-low-level-failure) (e)
-           (format t "Manipulation failed: ~a. Retrying.~%" e)
+           (roslisp:ros-warn (pr2-cloud open-fridge) "Plan failed: ~a. Retrying.~%" e)
            (btr-utils:spawn-object 'red-dot :pancake-maker :color '(1 0 0 0.5)
                                                            :pose '((1.5 -1.05 1.6) (0 0 0 1)))
            (cpl:sleep 0.5)
-           (park-arms)
+           (exe:perform (desig:an action (type opening) (gripper right)))
+           (pp-plans::park-arms)
            (move-projected-pr2-away)
-           (setf ?location-for-robot (desig:next-solution ?location-for-robot))
+           (unless location-designator
+             (setf ?location-for-robot (desig:next-solution ?location-for-robot)))
            (cpl:sleep 0.5)
            (btr-utils:kill-object 'red-dot)
            (cpl:retry)))
@@ -125,45 +136,83 @@
         (exe:perform
          (desig:an action (type opening) (gripper ?arm))))
 
-      (let ((?trajectory (filter-trajectory-in-base
-                          (gripper-trajectory-in-map->in-base
-                           (ecase projected-or-original
-                             (:original
-                              (local-gripper-trajectory-in-map
-                               "MoveFridgeHandle"))
-                             (:projected
-                              (local-gripper-projected-trajectory-in-map
-                               "MoveFridgeHandle")))))))
+      (let ((?right-arm-init-config '(-0.6177226607749531d0 0.8595855682477204d0
+                                      -0.22685404643554485d0 -2.1215879821638572d0
+                                      -27.55566886200435d0 -1.9241091851082714d0
+                                      9.343508274913418d0)))
+        (exe:perform
+         (desig:a motion
+                  (type moving-arm-joints)
+                  (right-configuration ?right-arm-init-config))))
+
+      (let ((?trajectory
+              (gripper-trajectory-in-map->in-base
+               (ecase projected-or-original
+                 (:original
+                  (local-gripper-trajectory-in-map
+                   "MoveFridgeHandle"))
+                 (:projected
+                  (local-gripper-projected-trajectory-in-map
+                   "MoveFridgeHandle"))))))
 
         (cpl:with-retry-counters ((reach-retry 2))
           (cpl:with-failure-handling
               ((common-fail:low-level-failure (e)
                  (roslisp:ros-warn (pr2-cloud open-fridge) "~a" e)
                  (cpl:do-retry reach-retry
-                   (cpl:retry))))
+                   (cpl:retry))
+                 (return)))
             (let ((?pose (strip-transform-stamped (first ?trajectory))))
               (cram-pr2-low-level:visualize-marker ?pose)
               (exe:perform
                (desig:a motion
                         (type moving-tcp)
                         (?target (desig:a location (pose ?pose))))))))
-
         (exe:perform
-         (desig:an action (type closing) (gripper ?arm)))
+         (desig:an action (type gripping) (gripper ?arm) (effort 100)))
 
         (mapcar (lambda (transform)
-                  (exe:perform
-                   (let ((?pose (strip-transform-stamped transform)))
-                     (desig:a motion
-                              (type moving-tcp)
-                              (?target (desig:a location (pose ?pose)))))))
+                  (let ((?pose (strip-transform-stamped transform)))
+                    (cpl:with-failure-handling
+                        ((common-fail:manipulation-goal-not-reached (e)
+                           (when location-designator
+                             (roslisp:ros-warn (pr2-cloud execute-traj) "~a" e)
+                             (roslisp:ros-warn (pr2-cloud execute-traj) "Ignoring.")
+                             (return))))
+                      (exe:perform
+                       (desig:a motion
+                                (type moving-tcp)
+                                (?target (desig:a location (pose ?pose))))))))
                 (cdr ?trajectory))
 
         (exe:perform
          (desig:an action (type opening) (gripper ?arm)))
 
         (btr-utils:spawn-object 'green-dot :pancake-maker :color '(0 1 0 0.5)
-                                                          :pose '((1.5 -1.05 1.6) (0 0 0 1)))))))
+                                                          :pose '((1.5 -1.05 1.6) (0 0 0 1)))
 
-;;; arms down
+        (let ((?right-arm-init-config '(-2.040980560942328d0 0.2712278780562381d0
+                                        -0.6460215625664274d0 -2.028500414744249d0
+                                        -26.026134035944583d0 -1.1912449349507037d0
+                                        12.292977968464921d0)))
+        (exe:perform
+         (desig:a motion
+                  (type moving-arm-joints)
+                  (right-configuration ?right-arm-init-config))))
+
+        ?location-for-robot))))
+
+
+
+(defun main (&optional (real? t))
+  (pr2-cloud::init)
+  (let ((location (with-simulated-robot
+                    (pr2-cloud::environment-articulation-plan
+                     :projected-or-original :projected))))
+    (sleep 3.0)
+    (when real?
+     (with-real-robot
+       (pr2-cloud::environment-articulation-plan 
+        :projected-or-original :projected
+        :location-designator location)))))
 

@@ -42,6 +42,8 @@
                cram-tf
                cram-common-failures
                cram-designators
+               cram-process-modules
+               cram-prolog
                cram-object-interfaces
                cram-common-designators)
   :components
@@ -49,6 +51,6 @@
     :components
     ((:file "package")
      (:file "json-parser" :depends-on ("package"))
-     (:file "robosherlock-json" :depends-on ("package" "json-parser"))
-     (:file "api" :depends-on ("package" "robosherlock-json"))
+     (:file "robosherlock-ros" :depends-on ("package" "json-parser"))
+     (:file "api" :depends-on ("package" "robosherlock-ros"))
      (:file "designator-integration" :depends-on ("package" "api"))))))

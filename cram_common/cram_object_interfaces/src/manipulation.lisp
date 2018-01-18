@@ -39,19 +39,23 @@
   (:documentation "Returns a pose stamped.
 Gripper is defined by a convention where Z is pointing towards the object."))
 
-(defgeneric get-object-type-pregrasp-pose (object-type arm grasp grasp-pose)
-  (:documentation "Returns a pose stamped"))
+(defgeneric get-object-type-to-gripper-pregrasp-transform (object-type object-name
+                                                           arm grasp grasp-pose)
+  (:documentation "Returns a transform stamped"))
 
-(defgeneric get-object-type-2nd-pregrasp-pose (object-type arm grasp grasp-pose)
-  (:documentation "Returns a pose stamped. Default value is NIL.")
-  (:method (object-type grasp-pose arm grasp) nil))
+(defgeneric get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name
+                                                               arm grasp grasp-pose)
+  (:documentation "Returns a transform stamped. Default value is NIL.")
+  (:method (object-type object-name grasp-pose arm grasp) nil))
 
-(defgeneric get-object-type-lift-pose (object-type arm grasp grasp-pose)
-  (:documentation "Returns a pose stamped"))
+(defgeneric get-object-type-to-gripper-lift-transform (object-type object-name
+                                                       arm grasp grasp-pose)
+  (:documentation "Returns a transform stamped"))
 
-(defgeneric get-object-type-2nd-lift-pose (object-type arm grasp grasp-pose)
+(defgeneric get-object-type-to-gripper-2nd-lift-transform (object-type object-name
+                                                           arm grasp grasp-pose)
   (:documentation "Returns a pose stamped")
-  (:method (object-type grasp-pose arm grasp) nil))
+  (:method (object-type object-name grasp-pose arm grasp) nil))
 
 (defun get-object-grasping-poses (object-name object-type arm grasp object-transform)
   (declare (type symbol object-name object-type arm grasp)
@@ -72,6 +76,18 @@ Gripper is defined by a convention where Z is pointing towards the object."))
              (:right cram-tf:*robot-right-tool-frame*)))
          (object-to-standard-gripper-transform ; oTg'
            (get-object-type-to-gripper-transform object-type object-name arm grasp))
+         (object-to-standard-gripper-pregrasp-transform ; oTg'
+           (get-object-type-to-gripper-pregrasp-transform
+            object-type object-name arm grasp
+            object-to-standard-gripper-transform))
+         (object-to-standard-gripper-2nd-pregrasp-transform ; oTg'
+           (get-object-type-to-gripper-2nd-pregrasp-transform
+            object-type object-name arm grasp
+            object-to-standard-gripper-transform))
+         (object-to-standard-gripper-lift-transform ; oTg'
+           (get-object-type-to-gripper-lift-transform
+            object-type object-name arm grasp
+            object-to-standard-gripper-transform))
          (standard-to-particular-gripper-transform ; g'Tg
            (cl-tf:transform->transform-stamped
             gripper-tool-frame
@@ -84,22 +100,29 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                          (cram-robot-interfaces:standard-to-particular-gripper-transform
                           ?robot ?transform))))))))
     (when (and object-to-standard-gripper-transform standard-to-particular-gripper-transform)
-      (let* ((base-to-standard-gripper-transform
-               (cram-tf:multiply-transform-stampeds
-                cram-tf:*robot-base-frame* gripper-tool-frame
-                object-transform                    ; bTo
-                object-to-standard-gripper-transform ; oTg'
-                :result-as-pose-or-transform :transform)) ; bTo * oTg' = bTg'
-             (grasp-pose ; for particular gripper of particular robot
-               (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
-                cram-tf:*robot-base-frame* gripper-tool-frame
-                base-to-standard-gripper-transform      ; bTg'
-                standard-to-particular-gripper-transform ; g'Tg
-                :result-as-pose-or-transform :pose)))
-        (list (get-object-type-pregrasp-pose object-type arm grasp grasp-pose)
-              (get-object-type-2nd-pregrasp-pose object-type arm grasp grasp-pose)
-              grasp-pose
-              (get-object-type-lift-pose object-type arm grasp grasp-pose))))))
+
+      (flet ((object-to-standard-gripper->base-to-particular-gripper (object-to-standard-gripper)
+               (when object-to-standard-gripper
+                 (let ((base-to-standard-gripper-transform
+                         (cram-tf:multiply-transform-stampeds
+                          cram-tf:*robot-base-frame* gripper-tool-frame
+                          object-transform          ; bTo
+                          object-to-standard-gripper ; oTg'
+                          :result-as-pose-or-transform :transform))) ; bTo * oTg' = bTg'
+                   (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
+                    cram-tf:*robot-base-frame* gripper-tool-frame
+                    base-to-standard-gripper-transform      ; bTg'
+                    standard-to-particular-gripper-transform ; g'Tg
+                    :result-as-pose-or-transform :pose)))))
+
+        (list (object-to-standard-gripper->base-to-particular-gripper
+               object-to-standard-gripper-pregrasp-transform)
+              (object-to-standard-gripper->base-to-particular-gripper
+               object-to-standard-gripper-2nd-pregrasp-transform)
+              (object-to-standard-gripper->base-to-particular-gripper
+               object-to-standard-gripper-transform)
+              (object-to-standard-gripper->base-to-particular-gripper
+               object-to-standard-gripper-lift-transform))))))
 
 
 (def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)

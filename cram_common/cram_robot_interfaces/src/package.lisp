@@ -37,7 +37,8 @@
    #:hand-links #:end-effector-link #:robot-tool-frame #:gripper-link #:gripper-joint
    #:joint-lower-limit #:joint-upper-limit #:joint-type #:joint-axis #:joint-origin
    #:joint-parent-link #:joint-child-link
-   #:robot-arms-parking-joint-states #:end-effector-parking-pose
+   #:robot-arms-parking-joint-states #:robot-arms-carrying-joint-states
+   #:end-effector-parking-pose
    #:robot-pre-grasp-joint-states #:planning-group
    #:standard-to-particular-gripper-transform
    ;; designator utils

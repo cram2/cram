@@ -44,16 +44,20 @@
                cram-prolog
                cram-projection
                cram-occasions-events
+               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
 
                cram-common-failures
+               cram-mobile-pick-place-plans
+
+               cram-knowrob-pick-place
+               cram-robosherlock
 
                cram-physics-utils ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
-
-               cram-pr2-projection ; for projection process modules
+               cram-bullet-reasoning-designators
 
                cram-semantic-map-costmap
                ; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
@@ -62,15 +66,23 @@
                cram-occupancy-grid-costmap
                cram-location-costmap
 
-               cram-mobile-pick-place-plans
-               cram-knowrob-pick-place
-               cram-pr2-description)
+               cram-pr2-projection      ; for with-simulated-robot
+               cram-pr2-projection-reasoning ; for projection-based reasoning
+               cram-pr2-description
+               cram-pr2-low-level
+               cram-process-modules
+               cram-pr2-process-modules
+               cram-pr2-pick-place-plans
+
+               cram-cloud-logger
+               cram-pr2-cloud)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "demo" :depends-on ("package"))
      (:file "environment-manipulation" :depends-on ("package"))
-     (:file "testing" :depends-on ("package"))))))
+     (:file "costmaps" :depends-on ("package"))
+     (:file "projection-demo" :depends-on ("package" "costmaps"))
+     (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))))))

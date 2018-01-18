@@ -48,4 +48,5 @@
      (:file "ptu" :depends-on ("package"))
      (:file "base" :depends-on ("package"))
      (:file "arms" :depends-on ("package"))
-     (:file "perception" :depends-on ("package"))))))
+     ;; (:file "perception" :depends-on ("package"))
+     ))))
