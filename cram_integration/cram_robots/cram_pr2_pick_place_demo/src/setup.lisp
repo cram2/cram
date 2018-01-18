@@ -37,10 +37,11 @@
     (<- (location-costmap:costmap-origin -6 -6))
     (<- (location-costmap:costmap-resolution 0.05))
 
-    (<- (location-costmap:costmap-padding 0.35))
+    (<- (location-costmap:costmap-padding 0.5))
     (<- (location-costmap:costmap-manipulation-padding 0.2))
-    (<- (location-costmap:costmap-in-reach-distance 0.8))
-    (<- (location-costmap:costmap-reach-minimal-distance 0.2)))
+    (<- (location-costmap:costmap-in-reach-distance 0.7))
+    (<- (location-costmap:costmap-reach-minimal-distance 0.2))
+    (<- (location-costmap:visibility-costmap-size 2.5)))
 
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
@@ -53,7 +54,16 @@
 
   (setf prolog:*break-on-lisp-errors* t)
 
-  (cram-bullet-reasoning:clear-costmap-vis-object))
+  (cram-bullet-reasoning:clear-costmap-vis-object)
+
+  (setf ccl::*is-logging-enabled* nil)
+
+  ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
+
+  ;; (ccl::connect-to-cloud-logger)
+
+  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
+  )
 
 (roslisp-utilities:register-ros-init-function init-projection)
 

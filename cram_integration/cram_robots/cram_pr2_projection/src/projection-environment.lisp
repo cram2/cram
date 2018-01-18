@@ -57,8 +57,7 @@
   (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
                        pr2-proj-grippers pr2-proj-arms)
   :startup (set-tf-from-bullet)
-  :shutdown (setf *last-timeline* cram-bullet-reasoning:*current-timeline*)
-  )
+  :shutdown (setf *last-timeline* cram-bullet-reasoning:*current-timeline*))
 
 
 (def-fact-group pr2-available-pms (cpm:available-process-module
@@ -71,12 +70,27 @@
     (symbol-value cram-projection:*projection-environment* pr2-bullet-projection-environment))
 
   (<- (cpm::projection-running ?pm)
-    (cpm:available-process-module ?pm)))
+    (bound ?pm)
+    (once (member ?pm (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
+                                           pr2-proj-grippers pr2-proj-arms)))
+    (symbol-value cram-projection:*projection-environment* pr2-bullet-projection-environment)))
+
+
+(defmacro with-simulated-robot (&body body)
+  `(let ((results
+           (proj:with-projection-environment pr2-bullet-projection-environment
+             (cpl:top-level
+               ,@body))))
+     (car (cram-projection::projection-environment-result-result results))))
+
+(defmacro with-projected-robot (&rest args)
+  "Alias for WITH-SIMULATED-ROBOT."
+  `(with-simulated-robot ,@args))
 
 
 
 
-#+asdasdfasdfasdfasewtpiu
+#+below-is-a-very-simple-example-of-how-to-use-projection
 (
  (let ((robot (cl-urdf:parse-urdf (roslisp:get-param "robot_description")))
        (kitchen (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))

@@ -62,7 +62,7 @@
 
 
 (def-fact-group pick-and-place-plans (desig:action-grounding)
-  (<- (desig:action-grounding ?action-designator (pick-up ?object-name ?arm
+  (<- (desig:action-grounding ?action-designator (pick-up ?current-object-desig ?arm
                                                           ?gripper-opening ?effort ?grasp
                                                           ?left-reach-poses ?right-reach-poses
                                                           ?left-lift-poses ?right-lift-poses))
@@ -90,7 +90,7 @@
     (lisp-fun extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses)))
 
-  (<- (desig:action-grounding ?action-designator (place ?object-name ?arm
+  (<- (desig:action-grounding ?action-designator (place ?current-object-designator ?arm
                                                         ?left-reach-poses ?right-reach-poses
                                                         ?left-put-poses ?right-put-poses
                                                         ?left-retract-poses ?right-retract-poses))
@@ -98,9 +98,10 @@
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
             (or (cpoe:object-in-hand ?object-designator ?arm)
-                (and (format "Wanted to place an object ~a with arm ~a, but it's not in the arm.~%"
-                             ?object-designator ?arm)
-                     (fail)))
+                (and (format "WARNING: Wanted to place an object ~a with arm ~a, ~
+                              but it's not in the arm.~%" ?object-designator ?arm)
+                     ;; (fail)
+                     ))
             (cpoe:object-in-hand ?object-designator ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
             (cpoe:object-in-hand ?object-designator ?arm)

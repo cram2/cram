@@ -59,7 +59,9 @@
 
                cram-knowrob-cloud
 
-               cram-pr2-projection-sandbox
+               cram-pr2-projection
+               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-utilities
 
                cram-location-costmap
                cram-semantic-map-costmap
@@ -78,7 +80,7 @@
                                       "tf-utilities"
                                       "geometry-calculations"
                                       "cloud-data"))
-     (:file "costmaps" :depends-on ("package" "local-data"))
+     (:file "costmaps" :depends-on ("package" "local-data" "tf-utilities"))
      (:file "projection-plans" :depends-on ("package"))
      (:file "real-world-plans" :depends-on ("package"
                                             "tf-utilities"

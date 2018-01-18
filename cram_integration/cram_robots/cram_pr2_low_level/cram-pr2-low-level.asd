@@ -50,13 +50,13 @@
                geometry_msgs-msg
                visualization_msgs-msg
                moveit_msgs-msg
-               moveit_msgs-srv
                pr2_controllers_msgs-msg
                trajectory_msgs-msg
                move_base_msgs-msg
                giskard_msgs-msg
-               iai_robosherlock_msgs-msg
-               iai_robosherlock_msgs-srv)
+               ;; iai_robosherlock_msgs-msg
+               ;; iai_robosherlock_msgs-srv
+               )
   :components
   ((:module "src"
     :components
@@ -76,7 +76,8 @@
      (:file "giskard-cartesian" :depends-on ("package" "low-level-common" "giskard-common"))
      (:file "giskard-joint" :depends-on ("package" "low-level-common" "giskard-common"
                                                    "joint-states"))
-     (:file "yaml-builder" :depends-on ("package"))
-     (:file "giskard-yaml" :depends-on ("package" "giskard-common" "yaml-builder"))
-     (:file "json-parser" :depends-on ("package"))
-     (:file "robosherlock-json" :depends-on ("package" "json-parser" "low-level-common"))))))
+     ;; (:file "yaml-builder" :depends-on ("package"))
+     ;; (:file "giskard-yaml" :depends-on ("package" "giskard-common" "yaml-builder"))
+     ;; (:file "json-parser" :depends-on ("package"))
+     ;; (:file "robosherlock-json" :depends-on ("package" "json-parser" "low-level-common"))
+     ))))

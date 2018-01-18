@@ -54,14 +54,16 @@
                                                              :right single-pose-right))
                      (fill-in-with-nils goal-left max-length)
                      (fill-in-with-nils goal-right max-length))))
-         (common-fail:manipulation-low-level-failure ()
-           (cpl:fail 'common-fail:manipulation-low-level-failure :action action-designator))))
+         ;; (common-fail:manipulation-low-level-failure ()
+         ;;   (cpl:fail 'common-fail:manipulation-low-level-failure :action action-designator))
+         ))
       (cram-common-designators:move-joints
        (handler-case
            (pr2-ll:call-giskard-joint-action :left goal-left
                                              :right goal-right)
-         (common-fail:manipulation-low-level-failure ()
-           (cpl:fail 'common-fail:manipulation-low-level-failure :action action-designator)))))))
+         ;; (common-fail:manipulation-low-level-failure ()
+         ;;   (cpl:fail 'common-fail:manipulation-low-level-failure :action action-designator))
+         )))))
 
 ;;; Examples:
 ;;

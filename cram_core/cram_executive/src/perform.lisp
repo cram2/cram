@@ -29,6 +29,8 @@
 
 (in-package :exe)
 
+(defvar *logged-action-list* nil)
+
 (define-condition designator-reference-failure (cpl:simple-plan-failure)
   ((result :initarg :result :reader result :initform nil))
   (:default-initargs :format-control "designator-failure"))
@@ -85,5 +87,5 @@ similar to what we have for locations.")
                     (cpl:fail "Goal `~a' of action `~a' was not achieved."
                               designator occasion)))
                 (apply command arguments)))
-          (cpl:fail "Action designator `~a' resolved to cram function `~a',
-but it isn't defined. Cannot perform action." designator command)))))
+          (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
+                       but it isn't defined. Cannot perform action." designator command)))))

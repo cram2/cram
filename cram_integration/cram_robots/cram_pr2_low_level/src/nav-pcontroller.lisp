@@ -47,9 +47,9 @@
   (roslisp:ros-info (navigation low-level) "nav_pcontroller action client created.")
 
   (when (roslisp:has-param "/nav_pcontroller/xy_tolerance")
-    (setf *xy-goal-tolerance* (roslisp:get-param "/nav_pcontroller/xy_tolerance")))
+    (setf *xy-goal-tolerance* (+ 0.01 (roslisp:get-param "/nav_pcontroller/xy_tolerance"))))
   (when (roslisp:has-param "/nav_pcontroller/th_tolerance")
-    (setf *yaw-goal-tolerance* (roslisp:get-param "/nav_pcontroller/th_tolerance")))
+    (setf *yaw-goal-tolerance* (+ 0.01 (roslisp:get-param "/nav_pcontroller/th_tolerance"))))
 
   *nav-pcontroller-action-client*)
 
