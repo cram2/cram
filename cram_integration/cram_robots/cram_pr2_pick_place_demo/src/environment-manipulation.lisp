@@ -154,7 +154,7 @@
          (tool-frame (ecase arm
                        (:left cram-tf:*robot-left-tool-frame*)
                        (:right cram-tf:*robot-right-tool-frame*))))
-    (cram-tf:translate-transform-stamped
+    ;(cram-tf:translate-transform-stamped
      (cram-tf:multiply-transform-stampeds object-name
                                           tool-frame
                                           (cram-tf:multiply-transform-stampeds object-name handle-name
@@ -164,12 +164,13 @@
                                            handle-name
                                            tool-frame
                                            0.0
-                                           (cl-transforms:make-3d-vector 0.0d0 *drawer-handle-grasp-y-offset* 0.0d0)
+                                           (cl-transforms:make-3d-vector *drawer-handle-grasp-x-offset* 0.0d0 0.0d0)
                                            (cl-transforms:matrix->quaternion
                                             #2A((0 0 -1)
                                                 (0 1 0)
                                                 (1 0 0)))))
-     :x-offset *drawer-handle-grasp-x-offset*)))
+    ; :x-offset *drawer-handle-grasp-x-offset*
+    ))
 
 ; Should be fine without a joint-type.
 (defmethod obj-int:get-object-type-pregrasp-pose ((object-type (eql :container))
@@ -191,7 +192,7 @@
     (cram-tf:translate-pose grasp-pose :x-offset *drawer-handle-lift-x-offset*)))
 
 
-;;; PLAN
+;;; PLANS
 
 (defun open-container (;;container-name
                        ?arm ?gripper-opening
@@ -223,10 +224,30 @@
              (left-poses ?left-lift-poses)
              (right-poses ?right-lift-poses))))
 
+(defun drive-to-and-open-container (?container-desig)
+  (let* ((handle-link (get-handle-link (car (alexandria:assoc-value (desig:description ?container-desig) :name))))
+         (?handle-pose (get-urdf-link-pose (cl-urdf:name handle-link)))
+         (?manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T)))
+    ;; Drive to it
+    (exe:perform (a motion
+                    (type going)
+                    (target
+                     (a location
+                        (reachable-for pr2)
+                        (poses (?handle-pose
+                                ?manipulated-handle-pose)))))))
+  ;; Open it
+  (exe:perform (an action
+                   (type opening)
+                   (object ?container-desig)))
+  )
+
 
 ;;; PROLOG DESIG GROUNDING
 
-(def-fact-group environment-manipulation (desig:action-grounding)
+(def-fact-group environment-manipulation (desig:action-grounding
+                                          location-costmap:desig-costmap)
+  
   (<- (desig:action-grounding ?action-designator (open-container ;; ?container-name
                                                                  ?arm
                                                                  ?gripper-opening
@@ -249,10 +270,42 @@
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
     )
+
+  (<- (desig:action-grounding ?action-designator (drive-to-and-open-container ?container-designator))
+    (spec:property ?action-designator (:type :driving-and-opening))
+    (spec:property ?action-designator (:object ?container-designator))
+    (spec:property ?container-designator (:type :container))
+    ;;(spec:property ?container-designator (:name ?container-name))
+    ;;(spec:property ?container-designator (:part-of ?environment))
+    )
   )
 
 
-;;; SIMULATION
+;;; DRAWER COSTMAP
+
+(defun make-poses-cost-function (poses)
+  "`poses' are the poses according to which the relation is resolved."
+  (let ((meancovs (location-costmap:2d-pose-covariance poses 0.05)))
+    (location-costmap:make-gauss-cost-function (first meancovs)
+                                               (second meancovs))))
+
+(defmethod location-costmap:costmap-generator-name->score ((name (eql 'poses-cost-function))) 10)
+
+(def-fact-group environment-manipulation-costmap (location-costmap:desig-costmap)
+  (<- (location-costmap:desig-costmap ?designator ?costmap)
+    ;;(or (cram-robot-interfaces:visibility-designator ?desig)
+    ;;    (cram-robot-interfaces:reachability-designator ?desig))
+    (desig:desig-prop ?designator (:poses ?poses))
+    (location-costmap:costmap ?costmap)
+    (location-costmap:costmap-add-function
+     poses-cost-function
+     (make-poses-cost-function ?poses)
+     ?costmap)
+    )
+  )
+
+
+;;; SIMULATION MANIPULATION
 
 (defun move-joint (name angle)
   (format T "Move joint ~a to angle ~a.~%" name angle)
@@ -295,26 +348,7 @@
 ;;                                                                                      (btr:object btr:*current-bullet-world* :kitchen))))))
 
 
-(defun get-opening-desig (&optional (?name 'iai_fridge_main))
-  (let* ((name-str (roslisp-utilities:rosify-underscores-lisp-name ?name))
-         (urdf-pose (get-urdf-link-pose name-str)))
-    (with-simulated-robot
-      (let* ((?pose (cl-tf:transform-pose-stamped cram-tf:*transformer*
-                                                  :target-frame "base_footprint"
-                                                  :pose (cl-tf:pose->pose-stamped "map" 0 urdf-pose)))
-             (?transform (cl-tf:make-transform-stamped "base_footprint" name-str
-                                                       (cl-tf:stamp ?pose)
-                                                       (cl-tf:origin ?pose)
-                                                       (cl-tf:orientation ?pose))))
-        (an action
-            (type opening)
-            (object (an object
-                        (type container)
-                        (name ?name)
-                        (part-of kitchen)
-                        (pose ((pose ?pose) (transform ?transform)))
-                        )))))))
-
+;;; GET/FIND FUNCTIONS
 
 (defun get-urdf-link-pose (name)
   (btr:pose (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" name :demo))))
@@ -333,6 +367,8 @@
       (cl-urdf:joint-type joint)))
 
 (defun get-handle-link (container-name)
+  (when (symbolp container-name)
+    (setf container-name (string-downcase container-name)))
   (find-handle-under-link
    (get-container-link container-name)))
 
@@ -342,10 +378,85 @@
       (find-handle-under-link (cl-urdf:child
                      (car (cl-urdf:to-joints link))))))
 
-(defun test ()
-  (let ((?desig (get-opening-desig 'sink_area_left_upper_drawer_main)))
-    (with-simulated-robot
+(defun get-joint-position (joint)
+  (gethash (cl-urdf:name joint)
+           (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen))))
+
+(defun get-connecting-joint (part)
+  "Returns the connecting (moveable) joint of `part', which can be either
+  a link or a joint of the kitchen URDF."
+  (when part
+    (if (typep part 'cl-urdf:joint)
+        (or
+         (when (not (eql (cl-urdf:joint-type part) :FIXED))
+           part)
+         (get-connecting-joint (cl-urdf:parent part)))
+        (when (typep part 'cl-urdf:link)
+          (get-connecting-joint (cl-urdf:from-joint part))))))
+
+(defun get-manipulated-pose (link-name joint-position &key relative)
+  "Returns the pose of a link based on its connection joint position
+  `joint-position'. If `relative' is T, the actual value is calculated
+  by `joint-position' * <joint maximal value>. this method returns two
+  values, the new pose of the object and the joint that was changed."
+  (let ((link (get-container-link link-name)))
+    (when (typep link 'cl-urdf:link)
+      (let ((joint (get-connecting-joint link)))
+        (when joint
+          (values
+           (case (cl-urdf:joint-type joint)
+             (:PRISMATIC
+              (cl-tf:transform->pose
+               (cl-tf:transform*
+                (cl-tf:pose->transform (get-urdf-link-pose link-name))
+                (cl-tf:make-transform
+                 (cl-tf:v*
+                  (cl-urdf:axis joint)
+                  (-
+                   (if relative
+                       (* joint-position
+                          (cl-urdf:upper (cl-urdf:limits joint)))
+                       joint-position)
+                   (get-joint-position joint)))
+                 (cl-tf:make-identity-rotation)))))
+             (:REVOLUTE (error 'simple-error :format-control "Manipulation of revolute joints not implemented.")))
+           joint))))))
+
+
+;;; TEST FUNCTIONS
+
+(defun get-opening-desig (&optional (?name 'sink_area_left_upper_drawer_main))
+  (let ((?object (get-container-desig ?name)))
+    (an action
+        (type opening)
+        (object ?object))))
+
+(defun get-container-desig (&optional (?name 'sink_area_left_upper_drawer_main))
+  (let* ((name-str (roslisp-utilities:rosify-underscores-lisp-name ?name))
+         (urdf-pose (get-urdf-link-pose name-str)))
+    (let* ((?pose (cl-tf:transform-pose-stamped cram-tf:*transformer*
+                                                :target-frame "base_footprint"
+                                                :pose (cl-tf:pose->pose-stamped "map" 0 urdf-pose)))
+           (?transform (cl-tf:make-transform-stamped "base_footprint" name-str
+                                                     (cl-tf:stamp ?pose)
+                                                     (cl-tf:origin ?pose)
+                                                     (cl-tf:orientation ?pose))))
+      (an object
+          (type container)
+          (name ?name)
+          (part-of kitchen)
+          (pose ((pose ?pose) (transform ?transform)))
+          ))))
+
+(defun test-open ()
+  (with-simulated-robot
+    (let ((?desig (get-opening-desig 'sink_area_left_upper_drawer_main)))
       (exe:perform ?desig))))
+
+(defun test ()
+  (with-simulated-robot
+    (let ((?object (get-container-desig 'sink_area_left_upper_drawer_main)))
+          (exe:perform (an action (type driving-and-opening) (object ?object))))))
 
 (defun move-pr2 (x y)
   (with-simulated-robot
