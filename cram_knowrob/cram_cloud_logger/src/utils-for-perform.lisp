@@ -30,6 +30,8 @@
 
 (in-package :ccl)
 
+(cpl:define-task-variable *action-parents* '())
+
 (defun get-designator-property-value-str (designator property-keyname)
   (string (cadr (assoc property-keyname (desig:properties designator)))))
 
@@ -127,6 +129,11 @@
   (send-cram-finish-action
    (convert-to-prolog-str action-id ) (get-timestamp-for-logging)))
 
+(defun log-cram-sub-action (parent-id child-id)
+  (send-cram-set-subaction
+   (convert-to-prolog-str parent-id)
+   (convert-to-prolog-str child-id)))
+
 
 (defmethod exe:perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
@@ -136,6 +143,11 @@
                (log-cram-finish-action action-id)
                (send-task-success action-id "false")
                (format t "failure string: ~a" (write-to-string e))))
+          ;;(format t "executing ~a~%" action-id)
+          ;;(format t "logging ~a with parent ~a~%" action-id (first *action-parents*))
+          (log-cram-sub-action (car *action-parents*) action-id)
+          (push action-id *action-parents*)
+          ;;(format t "new hierarchy is : ~a~%" *action-parents*)
           (let ((perform-result (call-next-method)))
             (log-cram-finish-action action-id)
             (when (and perform-result (typep perform-result 'desig:object-designator))
