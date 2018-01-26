@@ -52,7 +52,10 @@
 
   (setf prolog:*break-on-lisp-errors* T)
 
-  (cram-bullet-reasoning:clear-costmap-vis-object))
+  (cram-bullet-reasoning:clear-costmap-vis-object)
+
+  (pr2-proj:with-simulated-robot
+    (pp-plans:park-arms)))
 
 (roslisp-utilities:register-ros-init-function init-projection)
 

@@ -31,9 +31,9 @@
 
 ;;; OBJECT-INTERFACE METHODS
 
-(defparameter *drawer-handle-grasp-x-offset* -0.025 "in meters")
+(defparameter *drawer-handle-grasp-x-offset* -0.02 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
-(defparameter *drawer-handle-lift-x-offset* 0.2 "in meters")
+(defparameter *drawer-handle-lift-x-offset* 0.4 "in meters")
 
 ; Might be necessary to find out what kind of handle we are dealing with. But we could also just open wide and be done with it.
 (defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container)))
