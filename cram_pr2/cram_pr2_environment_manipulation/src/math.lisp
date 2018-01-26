@@ -29,46 +29,32 @@
 
 (in-package :pr2-em)
 
-(defun open-container (;;container-name
-                       ?arm ?gripper-opening
-                       ?left-reach-poses ?right-reach-poses
-                       ?left-lift-poses ?right-lift-poses)
-  (cpl:par
-    (roslisp:ros-info (environment-manipulation open-container) "Opening gripper")
-    (exe:perform
-     (desig:an action
-               (type setting-gripper)
-               (gripper ?arm)
-               (position ?gripper-opening)))
-    (roslisp:ros-info (environment-manipulation open-container) "Reaching")
-    (exe:perform
-     (desig:an action
-               (type reaching)
-               (left-poses ?left-reach-poses)
-               (right-poses ?right-reach-poses))))
-  (roslisp:ros-info (environment-manipulation open-container) "Gripping")
-  (exe:perform
-   (desig:an action
-             (type setting-gripper)
-             (gripper ?arm)
-             (position 0)))
-  (roslisp:ros-info (environment-manipulation open-container) "Opening")
-  (exe:perform
-   (desig:an action
-             (type lifting)
-             (left-poses ?left-lift-poses)
-             (right-poses ?right-lift-poses))))
+(defun line-equation (x1 y1 x2 y2)
+  "Return the a, b and c values of the equation descriping a straight line through (x1,y1) and (x2,y2)."
+  (let ((x (- x2 x1))
+        (y (- y2 y1)))
+    (if (eq 0 x)
+        (values 0 x 0)
+        (let ((m (/ y x)))
+          (values
+           (- 0 m)
+           1
+           (- 0 (- y1 (* m x1))))))))
 
-(defun drive-to-and-open-container (?container-desig)
-  ;; Drive to it
-  (exe:perform (a motion
-                  (type going)
-                  (target
-                   (a location
-                      (reachable-for pr2)
-                      (container ?container-desig)))))
-  ;; Open it
-  (exe:perform (an action
-                   (type opening)
-                   (object ?container-desig)))
-  )
+(defun distance-point (a b c x y)
+  "Return the coordinates on the line described by ax + bx + c from which the distance to the point (x,y) is minimal."  
+  (values
+   (/
+    (- (* b (- (* b x) (* a y))) (* a c))
+    (+ (expt a 2) (expt b 2)))
+   (/
+    (- (* a (+ (* (- 0 b) x) (* a y))) (* b c))
+    (+ (expt a 2) (expt b 2)))))
+
+(defun line-equation-in-xy (p1 p2)
+  "Return the equation (a,b,c values) describing a line between p1 and p2 in the x-y-plane."
+  (let ((x1 (cl-tf:x p1))
+        (y1 (cl-tf:y p1))
+        (x2 (cl-tf:x p2))
+        (y2 (cl-tf:y p2)))
+    (line-equation x1 y1 x2 y2)))
