@@ -33,7 +33,7 @@
 
 (defun make-poses-reachable-cost-function (poses)
   "`poses' are the poses according to which the relation is resolved."
-  (let ((meancovs (location-costmap:2d-pose-covariance poses 0.75)))
+  (let ((meancovs (location-costmap:2d-pose-covariance poses 0.25)))
     (location-costmap:make-gauss-cost-function (first meancovs)
                                                (second meancovs))))
 
@@ -43,7 +43,7 @@
          (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T)))
     (make-poses-reachable-cost-function (list handle-pose manipulated-handle-pose))))
 
-(defun make-opened-drawer-cost-function (?container-desig)
+(defun make-opened-drawer-cost-function (?container-desig &optional (padding 0.2))
   "Resolve the relation according to the poses of the handle of `container-desig' in neutral and manipulated form."
   (let* ((handle-link (get-handle-link (car (alexandria:assoc-value (desig:description ?container-desig) :name))))
          (?handle-pose (get-urdf-link-pose (cl-urdf:name handle-link)))
@@ -64,8 +64,8 @@
                (dist (line-p-dist a b c P))
                (dist-p (line-p-dist-point a b c P)))
           (if (and
-               (< dist (/ width 2))
-               (< (cl-tf:v-norm (cl-tf:v- dist-p neutral-point)) (cl-tf:v-norm V)))
+               (< dist (+ (/ width 2) padding))
+               (< (cl-tf:v-norm (cl-tf:v- dist-p neutral-point)) (+ (cl-tf:v-norm V) padding)))
               0
               1))))))
 
@@ -110,9 +110,10 @@
      container-handle-reachable-cost-function
      (make-container-handle-reachable-cost-function ?container-designator)
      ?costmap)
+    (location-costmap:costmap-reach-minimal-distance ?padding)
     (location-costmap:costmap-add-function
      opened-drawer-cost-function
-     (make-opened-drawer-cost-function ?container-designator)
+     (make-opened-drawer-cost-function ?container-designator ?padding)
      ?costmap)
     )
   )
