@@ -97,7 +97,7 @@
     (:island-right-drawer . 0.4)
     (:trash-drawer . 0.4)
     (:dishwasher . 1.6)
-    (:kitchen-drawer . 0.4)
+    (:kitchen-drawer . 0.48)
     (:oven . 1.6)
     (:oven-left-drawer . 0.4)
     (:oven-right-drawer . 0.4)
