@@ -1,6 +1,6 @@
 <package format="1">
   <name>cram_projection_demos</name>
-  <version>0.4.0</version>
+  <version>0.5.0</version>
   <description>A metapackage for packages with demos using CRAM in projection</description>
   <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
