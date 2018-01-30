@@ -47,9 +47,7 @@
              (json-prolog:prolog-simple-1 "connect_to_user_container.")
              (print "User container connected.")
              (setf *is-client-connected* t)
-             (print "Client is connected to the cloud logger")
-             (cpl:define-task-variable *action-parents* '())
-             (print "Created action-parents variable"))
+             (print "Client is connected to the cloud logger"))
          (roslisp::ros-rpc-error () (print "No JSON Prolog service is running"))
          (simple-error () (print "Cannot connect to container"))))))
 
