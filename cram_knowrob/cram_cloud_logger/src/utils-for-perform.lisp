@@ -32,6 +32,7 @@
 
 (cpl:define-task-variable *action-parents* '())
 
+
 (defun get-designator-property-value-str (designator property-keyname)
   (string (cadr (assoc property-keyname (desig:properties designator)))))
 
@@ -141,15 +142,17 @@
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
                (log-cram-finish-action action-id)
+               (pop *action-parents*)
                (send-task-success action-id "false")
                (format t "failure string: ~a" (write-to-string e))))
           ;;(format t "executing ~a~%" action-id)
           ;;(format t "logging ~a with parent ~a~%" action-id (first *action-parents*))
           (log-cram-sub-action (car *action-parents*) action-id)
           (push action-id *action-parents*)
-          ;;(format t "new hierarchy is : ~a~%" *action-parents*)
+          (format t "new hierarchy is : ~a~%" *action-parents*)
           (let ((perform-result (call-next-method)))
             (log-cram-finish-action action-id)
+            (pop *action-parents*)
             (when (and perform-result (typep perform-result 'desig:object-designator))
               (let ((name (desig:desig-prop-value perform-result :name)))
                 (when name
