@@ -40,7 +40,6 @@
   <!-- <depend>cram_pr2_low_level</depend> -->
   <depend>cram_process_modules</depend>
   <!-- <depend>cram_pr2_process_modules</depend> -->
-  <depend>cram_cloud_logger</depend>
   <!-- <depend>cram_pr2_cloud</depend> -->
 
   <!-- launch file -->
