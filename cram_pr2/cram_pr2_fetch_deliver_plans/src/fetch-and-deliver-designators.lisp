@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-pp-plans)
+(in-package :pr2-fd-plans)
 
 (def-fact-group fetch-and-deliver-designators (desig:action-grounding)
 

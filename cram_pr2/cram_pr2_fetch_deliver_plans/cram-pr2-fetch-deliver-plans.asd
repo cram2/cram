@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-pick-place-plans
+(defsystem cram-pr2-fetch-deliver-plans
   :author "gaya"
   :license "BSD"
 

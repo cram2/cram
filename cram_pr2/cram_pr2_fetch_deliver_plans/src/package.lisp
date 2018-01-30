@@ -29,8 +29,8 @@
 
 (in-package :cl-user)
 
-(defpackage cram-pr2-pick-place-plans
-  (:nicknames #:pr2-pp-plans)
+(defpackage cram-pr2-fetch-deliver-plans
+  (:nicknames #:pr2-fd-plans)
   (:use #:common-lisp #:cram-prolog)
   (:export
    ;; setup
