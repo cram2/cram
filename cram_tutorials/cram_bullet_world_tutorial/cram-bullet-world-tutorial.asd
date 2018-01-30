@@ -58,7 +58,7 @@
                cram-location-costmap
 
                cram-pr2-projection ; for projection process modules
-               cram-pr2-pick-place-plans
+               cram-mobile-pick-place-plans
                cram-pr2-description)
 
   :components

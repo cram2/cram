@@ -31,7 +31,7 @@
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (roslisp
+  :depends-on (roslisp ; for debug statements
 
                cram-designators
                cram-executive

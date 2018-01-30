@@ -29,6 +29,8 @@
 
 (in-package :exe)
 
+(defvar *logged-action-list* nil)
+
 (define-condition designator-reference-failure (cpl:simple-plan-failure)
   ((result :initarg :result :reader result :initform nil))
   (:default-initargs :format-control "designator-failure"))
@@ -54,7 +56,10 @@
                 :format-control "Designator goal ~a could not be parsed.~%~a"
                 :format-arguments (list keyword-expression error-message)))))
 
-(defgeneric perform (designator)
+(cpl:def-cram-function perform (designator)
+  (generic-perform designator))
+
+(defgeneric generic-perform (designator)
   (:documentation "If the action designator has a GOAL key it will be checked if the goal holds.
 TODO: there might be multiple plans that can execute the same action designator.
 In PMs the solution is: try-each-in-order.
@@ -85,5 +90,5 @@ similar to what we have for locations.")
                     (cpl:fail "Goal `~a' of action `~a' was not achieved."
                               designator occasion)))
                 (apply command arguments)))
-          (cpl:fail "Action designator `~a' resolved to cram function `~a',
-but it isn't defined. Cannot perform action." designator command)))))
+          (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
+                       but it isn't defined. Cannot perform action." designator command)))))

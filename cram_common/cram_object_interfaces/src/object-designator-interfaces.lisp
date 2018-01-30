@@ -38,10 +38,16 @@
 (defun get-object-pose (object-designator)
   (car (getassoc :pose (desig:desig-prop-value object-designator :pose))))
 
-(def-fact-group object-designators (desig:desig-location-prop)
+(def-fact-group object-designators (desig:desig-location-prop desig:location-grounding)
 
   (<- (desig:desig-location-prop ?desig ?loc)
     (lisp-type ?desig ?x)
     (desig:obj-desig? ?desig)
     (lisp-fun get-object-pose ?desig ?loc)
-    (lisp-pred identity ?loc)))
+    (lisp-pred identity ?loc))
+
+  (<- (desig:location-grounding ?designator ?pose-stamped)
+    (desig:desig-prop ?designator (:of ?object-designator))
+    (lisp-type ?object-designator desig:object-designator)
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (desig:desig-location-prop ?current-object-designator ?pose-stamped)))

@@ -59,7 +59,7 @@
   (exe:perform
    (desig:an action
              (type gripping)
-             (arm ?arm)
+             (gripper ?arm)
              (effort ?grip-effort)))
   (roslisp:ros-info (boxy-plans pick-up) "Assert grasp into knowledge base")
   (cram-occasions-events:on-event

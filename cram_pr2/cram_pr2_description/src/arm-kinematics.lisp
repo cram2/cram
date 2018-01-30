@@ -59,7 +59,7 @@
 ;;     ("r_wrist_flex_joint" -1.9927790883777252d0)
 ;;     ("r_wrist_roll_joint" -2.5861844605475843d0)))
 
-(defparameter *right-parking-joint-states*
+(defparameter *right-carrying-joint-states*
   '(("r_shoulder_pan_joint" -1.712587449591307d0)
     ("r_shoulder_lift_joint" -0.2567290370386635d0)
     ("r_upper_arm_roll_joint" -1.4633501125737374d0)
@@ -67,6 +67,15 @@
     ("r_forearm_roll_joint" 1.7663253481913623d0)
     ("r_wrist_flex_joint" -0.07942669250968948d0)
     ("r_wrist_roll_joint" 0.05106258161229582d0)))
+
+(defparameter *right-parking-joint-states*
+  '(("r_shoulder_pan_joint" -0.08181428617939712d0)
+    ("r_shoulder_lift_joint" 0.9781030555170612d0)
+    ("r_upper_arm_roll_joint" -1.4665572091011352d0)
+    ("r_elbow_flex_joint" -1.6859729116108224d0)
+    ("r_forearm_roll_joint" -27.72481374424779d0)
+    ("r_wrist_flex_joint" -0.10621948550701799d0)
+    ("r_wrist_roll_joint" 7.662671673625887d0)))
 
 (defparameter *left-parking-end-effector-pose*
   (cl-transforms-stamped:make-pose-stamped
@@ -91,14 +100,23 @@
 ;;     ("l_wrist_flex_joint" -1.9927790883777252d0)
 ;;     ("l_wrist_roll_joint" 2.586184460547585d0)))
 
-(defparameter *left-parking-joint-states*
+(defparameter *left-carrying-joint-states*
   '(("l_shoulder_pan_joint" 1.9652919379395388d0)
     ("l_shoulder_lift_joint" -0.26499816732737785d0)
     ("l_upper_arm_roll_joint" 1.3837617139225473d0)
     ("l_elbow_flex_joint" -2.1224566064321584d0)
     ("l_forearm_roll_joint" 16.99646118944817d0)
     ("l_wrist_flex_joint" -0.07350789589924167d0)
-    ("l_wrist_roll_joint" -50.282675816750015d0)))
+    ("l_wrist_roll_joint" 0.0)))
+
+(defparameter *left-parking-joint-states*
+  '(("l_shoulder_pan_joint" 0.1709440184822959d0)
+    ("l_shoulder_lift_joint" 1.1472294789783886d0)
+    ("l_upper_arm_roll_joint" 1.9124515764640622d0)
+    ("l_elbow_flex_joint" -1.66700794841958d0)
+    ("l_forearm_roll_joint" 6.255471931555043d0)
+    ("l_wrist_flex_joint" -0.07476630774212056d0)
+    ("l_wrist_roll_joint" -14.7079336142174d0)))
 
 (defun get-arm-base-joint-names (arm)
   (declare (ignore arm))
@@ -196,11 +214,13 @@
                   "r_gripper_l_finger_tip_frame"
                   "r_gripper_palm_link"))))
 
-(def-fact-group pr2-arm-kinematics-facts (end-effector-link
+(def-fact-group pr2-arm-kinematics-facts (arm
+                                          end-effector-link
                                           robot-tool-frame
                                           gripper-link gripper-joint
                                           planning-group
                                           robot-arms-parking-joint-states
+                                          robot-arms-carrying-joint-states
                                           end-effector-parking-pose
                                           robot-pre-grasp-joint-states
                                           arm-joints arm-base-joints arm-tool-joints
@@ -210,6 +230,9 @@
                                           arm-links arm-base-links
                                           hand-links
                                           standard-to-particular-gripper-transform)
+
+  (<- (arm pr2 :right))
+  (<- (arm pr2 :left))
 
   (<- (end-effector-link pr2 :left "l_wrist_roll_link"))
   (<- (end-effector-link pr2 :right "r_wrist_roll_link"))
@@ -235,6 +258,17 @@
   (<- (planning-group pr2 :right "right_arm"))
   (<- (planning-group pr2 (:left :right) "both_arms"))
   (<- (planning-group pr2 (:right :left) "both_arms"))
+
+  (<- (robot-arms-carrying-joint-states pr2 ?joint-states)
+    (symbol-value *right-carrying-joint-states* ?right-joint-states)
+    (symbol-value *left-carrying-joint-states* ?left-joint-states)
+    (append ?right-joint-states ?left-joint-states ?joint-states))
+
+  (<- (robot-arms-carrying-joint-states pr2 ?joint-states :left)
+    (symbol-value *left-carrying-joint-states* ?joint-states))
+
+  (<- (robot-arms-carrying-joint-states pr2 ?joint-states :right)
+    (symbol-value *right-carrying-joint-states* ?joint-states))
 
   (<- (robot-arms-parking-joint-states pr2 ?joint-states)
     (symbol-value *right-parking-joint-states* ?right-joint-states)

@@ -140,3 +140,30 @@ Should it be taken out and made PR2-specific?"
             (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
                   (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
                      (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2))))))))
+
+
+
+(defun get-robot-object ()
+  (with-vars-bound (?robot-object)
+      (lazy-car (prolog `(and (cram-robot-interfaces:robot ?robot-name)
+                              (bullet-world ?world)
+                              (%object ?world ?robot-name ?robot-object))))
+    (unless (is-var ?robot-object)
+      ?robot-object)))
+
+(defun get-robot-name ()
+  (with-vars-bound (?robot)
+      (lazy-car (prolog `(cram-robot-interfaces:robot ?robot)))
+    (unless (is-var ?robot)
+      ?robot)))
+
+
+(defun robot-colliding-objects-without-attached ()
+  (let* ((robot-object (get-robot-object))
+         (colliding-object-names
+           (mapcar #'name
+                   (find-objects-in-contact *current-bullet-world* robot-object)))
+         (attached-object-names
+           (mapcar #'car
+                   (attached-objects robot-object))))
+    (set-difference colliding-object-names attached-object-names)))

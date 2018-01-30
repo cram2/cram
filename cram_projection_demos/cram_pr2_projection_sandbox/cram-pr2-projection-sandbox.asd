@@ -62,7 +62,8 @@
                cram-occupancy-grid-costmap
                cram-location-costmap
 
-               cram-pr2-pick-place-plans
+               cram-mobile-pick-place-plans
+               cram-knowrob-pick-place
                cram-pr2-description)
 
   :components
@@ -70,4 +71,5 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "pouring-demo" :depends-on ("package"))))))
+     (:file "pouring-demo" :depends-on ("package"))
+     (:file "costmaps" :depends-on ("package"))))))

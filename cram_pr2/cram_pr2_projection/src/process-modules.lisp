@@ -50,11 +50,11 @@
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-ptu (motion-designator)
-  (destructuring-bind (command argument) (desig:reference motion-designator)
+  (destructuring-bind (command goal-type goal) (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-head
        (handler-case
-           (look-at argument))))))
+           (look-at goal-type goal))))))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

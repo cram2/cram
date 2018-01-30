@@ -30,8 +30,14 @@
 
 (defmethod cram-occasions-events:on-event btr-attach-object ((event cpoe:object-attached))
   (let ((robot-object (btr:get-robot-object))
-        (link (cpoe:event-link event))
-        (btr-object (btr:object btr:*current-bullet-world* (cpoe:event-object-name event))))
+        (btr-object (btr:object btr:*current-bullet-world* (cpoe:event-object-name event)))
+        (link (cut:var-value
+               '?ee-link
+               (car (prolog:prolog
+                     `(and (cram-robot-interfaces:robot ?robot)
+                           (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
+                                                                    ?ee-link)))))))
+    (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
     (when btr-object
       (if (btr:object-attached robot-object btr-object)
           (btr:attach-object robot-object btr-object link :loose t)
@@ -39,9 +45,15 @@
 
 (defmethod cram-occasions-events:on-event btr-detach-object ((event cpoe:object-detached))
   (let ((robot-object (btr:get-robot-object))
-        (link (cpoe:event-link event))
+        (btr-object (btr:object btr:*current-bullet-world* (cpoe:event-object-name event)))
         ;; (object-name (desig:object-identifier (desig:reference (cpoe:event-object-name event))))
-        (btr-object (btr:object btr:*current-bullet-world* (cpoe:event-object-name event))))
+        (link (cut:var-value
+               '?ee-link
+               (car (prolog:prolog
+                     `(and (cram-robot-interfaces:robot ?robot)
+                           (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
+                                                                    ?ee-link)))))))
+    (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (when btr-object
       (btr:detach-object robot-object btr-object link)
       (btr:simulate btr:*current-bullet-world* 10))))

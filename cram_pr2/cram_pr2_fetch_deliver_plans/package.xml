@@ -1,0 +1,25 @@
+<package format="2">
+  <name>cram_pr2_fetch_deliver_plans</name>
+  <version>0.4.0</version>
+  <description>Plans for actions such as NAVIGATE, SEARCH, FETCH, DELIVER, etc.</description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="repository">http://github.com/cram2/cram</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cram_tf</depend>
+  <depend>cram_language</depend>
+  <depend>cram_executive</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_common_failures</depend>
+  <depend>cram_mobile_pick_place_plans</depend>
+  <depend>cram_pr2_projection_reasoning</depend>
+</package>
