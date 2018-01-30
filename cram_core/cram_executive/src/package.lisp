@@ -38,4 +38,4 @@
    #:designator-reference-failure
    #:designator-goal-parsing-failure
    #:try-reference-designator
-   #:perform))
+   #:perform #:generic-perform))
