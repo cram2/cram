@@ -1,6 +1,6 @@
 <package>
   <name>cram_language</name>
-  <version>0.4.0</version>
+  <version>0.5.0</version>
   <description>
     The CRAM plan language is the core of the CRAM framework. It
     provides the basic functionality to write flexible and robust

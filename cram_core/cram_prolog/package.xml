@@ -1,6 +1,6 @@
 <package format="2">
   <name>cram_prolog</name>
-  <version>0.4.0</version>
+  <version>0.5.0</version>
   <description>
     This package implements a simple interpreter for a Prolog-like
     language and an implementation of the RETE algorithm.
