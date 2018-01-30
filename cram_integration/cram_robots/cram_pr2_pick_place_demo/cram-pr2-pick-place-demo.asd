@@ -72,7 +72,7 @@
                ;; cram-pr2-low-level
                cram-process-modules
                ;; cram-pr2-process-modules
-               cram-pr2-pick-place-plans
+               cram-pr2-fetch-deliver-plans
 
                ;; cram-pr2-cloud
                )
