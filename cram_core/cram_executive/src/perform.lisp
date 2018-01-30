@@ -56,7 +56,10 @@
                 :format-control "Designator goal ~a could not be parsed.~%~a"
                 :format-arguments (list keyword-expression error-message)))))
 
-(defgeneric perform (designator)
+(cpl:def-cram-function perform (designator)
+  (generic-perform designator))
+
+(defgeneric generic-perform (designator)
   (:documentation "If the action designator has a GOAL key it will be checked if the goal holds.
 TODO: there might be multiple plans that can execute the same action designator.
 In PMs the solution is: try-each-in-order.
