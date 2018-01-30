@@ -74,7 +74,6 @@
                ;; cram-pr2-process-modules
                cram-pr2-pick-place-plans
 
-               cram-cloud-logger
                ;; cram-pr2-cloud
                )
 
