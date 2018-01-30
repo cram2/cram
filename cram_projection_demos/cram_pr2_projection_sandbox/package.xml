@@ -33,7 +33,8 @@
   <depend>cram_robot_pose_gaussian_costmap</depend>
   <depend>cram_occupancy_grid_costmap</depend>
   <depend>cram_location_costmap</depend>
-  <depend>cram_pr2_pick_place_plans</depend>
+  <depend>cram_mobile_pick_place_plans</depend>
+  <depend>cram_knowrob_pick_place</depend>
   <depend>cram_pr2_description</depend>
 
   <!-- launch file -->

@@ -36,7 +36,7 @@
         #:cram-designators
         #:cram-executive
         #:btr-utils
-        #:pr2-pp-plans)
+        #:pp-plans)
   (:shadowing-import-from #:cram-bullet-reasoning #:object-pose)
   (:export
    ;; setup

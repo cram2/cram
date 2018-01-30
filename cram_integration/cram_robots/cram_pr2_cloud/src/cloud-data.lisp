@@ -44,15 +44,6 @@
                             20 21 22 23 24 25 26 27)
                           :old-db-or-new :old))
 
-(defun init ()
-  (setf *cloud-handle-transform* nil)
-  (setf *cloud-joint-transform* nil)
-  (setf *local-handle-transform* nil)
-  (setf *local-joint-transform* nil)
-  (init-connection)
-  (load-trajectory-episode))
-
-
 (defun cloud-handle-transform ()
   (or *cloud-handle-transform*
       (multiple-value-bind (handle joint)

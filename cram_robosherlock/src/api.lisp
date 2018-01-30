@@ -33,59 +33,63 @@
   "Toggles if we want to use the robosherlock service for detecting or just
 look up stuff from TF.")
 
+(defun perceive-in-no-robosherlock-mode (detect-or-inspect object-designator)
+  "Uses TF to find out object coordinates"
+  (let* ((object-type
+           (desig:desig-prop-value object-designator :type))
+         (find-object-type
+           (ecase detect-or-inspect
+             (:detect object-type)
+             (:inspect (let ((inspect-for
+                               (car (desig:desig-prop-value object-designator :for))))
+                         (ecase inspect-for
+                           (:pose object-type)
+                           (:object (ecase object-type
+                                      (:axle-holder :axle)
+                                      (:chassis-holder :chassis)
+                                      (:accessory-holder :seat))))))))
+         (all-objects
+           (loop for i = 1 then (1+ i)
+                 for object-frame = (concatenate 'string
+                                                 (remove #\- (string-capitalize
+                                                              (symbol-name find-object-type)))
+                                                 (write-to-string i))
+                 for object-name = (intern (concatenate 'string
+                                                        (string-upcase
+                                                         (symbol-name find-object-type))
+                                                        (write-to-string i))
+                                           :keyword)
+                 for transform = (handler-case
+                                     (cl-transforms-stamped:lookup-transform
+                                      cram-tf:*transformer*
+                                      cram-tf:*robot-base-frame*
+                                      object-frame
+                                      :time 0.0
+                                      :timeout 0.0)
+                                   (cl-transforms-stamped:transform-stamped-error ()
+                                     NIL))
+                 until (not transform)
+                 collect (desig:make-designator
+                          :object
+                          `((:name ,object-name)
+                            (:type ,find-object-type)
+                            (:pose ((:transform ,transform))))
+                          ;; (desig:update-designator-properties
+                          ;;  `((:pose ((:transform ,transform)))
+                          ;;    (:name ,object-name)
+                          ;;    (:type ,find-object-type))
+                          ;;  (desig:properties object-designator))
+                          ))))
+    (setf *rs-result-debug* all-objects)
+    (ecase (desig:quantifier object-designator)
+      ((:a :an) (car all-objects))
+      (:all all-objects))))
+
 (defun perceive (detect-or-inspect object-designator)
   (declare (type desig:object-designator object-designator))
   (if *no-robosherlock-mode*
       ;; use TF to find out object coordinates
-      (let* ((object-type
-               (desig:desig-prop-value object-designator :type))
-             (find-object-type
-               (ecase detect-or-inspect
-                 (:detect object-type)
-                 (:inspect (let ((inspect-for
-                                   (car (desig:desig-prop-value object-designator :for))))
-                             (ecase inspect-for
-                               (:pose object-type)
-                               (:object (ecase object-type
-                                   (:axle-holder :axle)
-                                   (:chassis-holder :chassis)
-                                   (:accessory-holder :seat))))))))
-             (all-objects
-               (loop for i = 1 then (1+ i)
-                     for object-frame = (concatenate 'string
-                                                     (remove #\- (string-capitalize
-                                                                  (symbol-name find-object-type)))
-                                                     (write-to-string i))
-                     for object-name = (intern (concatenate 'string
-                                                            (string-upcase
-                                                             (symbol-name find-object-type))
-                                                            (write-to-string i))
-                                               :keyword)
-                     for transform = (handler-case
-                                         (cl-transforms-stamped:lookup-transform
-                                          cram-tf:*transformer*
-                                          cram-tf:*robot-base-frame*
-                                          object-frame
-                                          :time 0.0
-                                          :timeout 0.0)
-                                       (cl-transforms-stamped:transform-stamped-error ()
-                                         NIL))
-                     until (not transform)
-                     collect (desig:make-designator
-                              :object
-                              `((:name ,object-name)
-                                (:type ,find-object-type)
-                                (:pose ((:transform ,transform))))
-                              ;; (desig:update-designator-properties
-                              ;;  `((:pose ((:transform ,transform)))
-                              ;;    (:name ,object-name)
-                              ;;    (:type ,find-object-type))
-                              ;;  (desig:properties object-designator))
-                              ))))
-        (setf *rs-result-debug* all-objects)
-        (ecase (desig:quantifier object-designator)
-          ((:a :an) (car all-objects))
-          (:all all-objects)))
+      (perceive-in-no-robosherlock-mode detect-or-inspect object-designator)
       ;; use RoboSherlock to find out object coordinates
       (call-robosherlock-service detect-or-inspect
                                  (desig:properties object-designator)

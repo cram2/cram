@@ -63,23 +63,29 @@
     (z pointing_axis) 0.0
     target (cl-transforms-stamped:to-msg point-stamped)))
 
-(defun ensure-ptu-input-parameters (frame point)
+(defun ensure-ptu-input-parameters (frame point direction)
   (declare (type (or null string) frame)
            (type (or cl-transforms:3d-vector
                      cl-transforms:point cl-transforms-stamped:point-stamped
-                     cl-transforms:pose cl-transforms-stamped:pose-stamped)))
+                     cl-transforms:pose cl-transforms-stamped:pose-stamped))
+           (type (or null symbol) direction))
   "Returns a point-stamped in `frame'"
   (let ((frame (or (when (typep point 'cl-transforms-stamped:pose-stamped)
                      (cl-transforms-stamped:frame-id point))
                    frame
                    cram-tf:*robot-base-frame*)))
-    (cram-tf:ensure-point-in-frame
-     (etypecase point
-       (cl-transforms:point ; also covers 3d-vector and point-stamped
-        point)
-       (cl-transforms:pose  ; also covers pose-stamped
-        (cl-transforms:origin point)))
-     frame)))
+    (if direction
+        (cl-transforms-stamped:make-point-stamped
+         cram-tf:*robot-base-frame*
+         0.0
+         (cl-transforms:make-3d-vector 3.0 0.0 1.5))
+        (cram-tf:ensure-point-in-frame
+         (etypecase point
+           (cl-transforms:point ; also covers 3d-vector and point-stamped
+            point)
+           (cl-transforms:pose          ; also covers pose-stamped
+            (cl-transforms:origin point)))
+         frame))))
 
 (defun ensure-ptu-goal-reached (status)
   (when (eql status :timeout)
@@ -92,13 +98,14 @@
   )
 
 (defun call-ptu-action (&key (frame cram-tf:*robot-base-frame*)
-                          (point (cl-transforms:make-identity-vector))
+                          (pose (cl-transforms:make-identity-pose))
+                          direction
                           (action-timeout *ptu-action-timeout*))
   (declare (type (or null string) frame)
            (type (or cl-transforms:3d-vector
                      cl-transforms:point cl-transforms-stamped:point-stamped
                      cl-transforms:pose cl-transforms-stamped:pose-stamped)))
-  (let ((goal-point-stamped (ensure-ptu-input-parameters frame point)))
+  (let ((goal-point-stamped (ensure-ptu-input-parameters frame pose direction)))
     (multiple-value-bind (result status)
         (cpl:with-failure-handling
             ((simple-error (e)
@@ -115,8 +122,8 @@
 
 (defun shake-head (n-times)
   (dotimes (n n-times)
-    (call-ptu-action :point (cl-transforms:make-3d-vector 5.0 1.0 1.2))
-    (call-ptu-action :point (cl-transforms:make-3d-vector 5.0 -1.0 1.2))))
+    (call-ptu-action :pose (cl-transforms:make-3d-vector 5.0 1.0 1.2))
+    (call-ptu-action :pose (cl-transforms:make-3d-vector 5.0 -1.0 1.2))))
 
 (defun look-at-gripper (left-or-right)
   (call-ptu-action :frame (ecase left-or-right

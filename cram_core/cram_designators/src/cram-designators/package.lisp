@@ -64,7 +64,7 @@
            #:assert-desig-binding
            #:retract-desig-binding
            #:object-designator
-           #:object-designator-data #:object-pose #:object-identifier
+           #:object-designator-data #:object-pose #:object-color #:object-identifier
            #:register-object-desig-resolver
            #:resolve-object-desig
            #:action-designator #:action-grounding #:action

@@ -80,12 +80,12 @@
                 object-filename-and-object-extension
               (let ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
                                 object-filename :keyword)))
-                (pushnew (list lisp-name
-                               (format nil "package://~a/resource/~a.~a"
-                                       ros-package object-filename object-extension)
-                               nil)
-                         btr::*mesh-files*
-                         :key #'car)
+                (push (list lisp-name
+                            (format nil "package://~a/resource/~a.~a"
+                                    ros-package object-filename object-extension)
+                            nil)
+                      btr::*mesh-files*)
+                (remove-duplicates btr::*mesh-files* :key #'car)
                 lisp-name)))
           (mapcar (lambda (pathname)
                     (list (pathname-name pathname) (pathname-type pathname)))
@@ -170,7 +170,7 @@
         (let ((?navigation-goal *meal-table-right-base-pose*)
               (?ptu-goal *meal-table-right-base-look-pose*))
           (cpl:par
-            (pr2-pp-plans::park-arms)
+            (pp-plans::park-arms)
             (exe:perform (desig:a motion
                                   (type going)
                                   (target (desig:a location (pose ?navigation-goal))))))
@@ -203,7 +203,7 @@
             (cpl:top-level
               (let ((?bottle-desig (desig:an object (type ?object-type))))
                 (flet ((step-1-inner ()
-                         (let ((?perceived-bottle-desig (pr2-pp-plans::perceive ?bottle-desig)))
+                         (let ((?perceived-bottle-desig (pp-plans::perceive ?bottle-desig)))
                            (cpl:par
                              (exe:perform (desig:an action
                                                     (type looking)

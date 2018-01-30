@@ -41,13 +41,18 @@
   (:export
    ;; projection-clock
    #:action-duration #:projection-timestamp-function #:execute-as-action
+   ;; ik
+   #:*torso-step*
+   ;; projection-environment
+   #:with-simulated-robot #:with-projected-robot
+   #:pr2-bullet-projection-environment
 
    ;; execute-container-opened execute-container-closed
-           ;; execute-park execute-lift execute-grasp execute-put-down execute-pour
-           ;; projection-navigation projection-ptu projection-perception
-           ;; projection-manipulation pr2-bullet-projection-environment
-           ;; action-started action-finished action-duration projection-role
-           ))
+   ;; execute-park execute-lift execute-grasp execute-put-down execute-pour
+   ;; projection-navigation projection-ptu projection-perception
+   ;; projection-manipulation pr2-bullet-projection-environment
+   ;; action-started action-finished action-duration projection-role
+   ))
 
 ;; (defpackage projection-designators
 ;;   (:use #:common-lisp #:cram-designators #:cram-prolog

@@ -31,7 +31,7 @@
 
 (defvar *giskard-action-client* nil)
 
-(defparameter *giskard-action-timeout* 10.0
+(defparameter *giskard-action-timeout* 30.0
   "How many seconds to wait before returning from giskard action.")
 (defparameter *giskard-convergence-delta-xy* 0.005 "in meters")
 (defparameter *giskard-convergence-delta-theta* 0.1 "in radiants, about 6 degrees")
@@ -42,7 +42,7 @@
 
 (defun init-giskard-action-client ()
   (setf *giskard-action-client* (actionlib:make-action-client
-                                 "controller_action_server/move"
+                                 "qp_controller/command"
                                  "giskard_msgs/WholeBodyAction"))
   (loop until (actionlib:wait-for-server *giskard-action-client* 5.0)
         do (roslisp:ros-info (giskard-action-client) "Waiting for giskard action server..."))

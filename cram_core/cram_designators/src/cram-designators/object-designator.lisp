@@ -32,7 +32,8 @@
 (defclass object-designator-data ()
   ((pose :reader object-pose :initarg :pose)
    (object-identifier :reader object-identifier :initarg :object-identifier
-                      :initform (gensym "OBJECT-")))
+                      :initform (gensym "OBJECT-"))
+   (color :reader object-color :initarg :color))
   (:documentation "Base class for all objects that are bound to an
   object designator's data slot. The minimum data that needs to be
   provided is the pose of the object and an identifier for the

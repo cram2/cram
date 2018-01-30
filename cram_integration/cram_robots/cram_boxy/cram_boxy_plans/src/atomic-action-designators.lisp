@@ -56,7 +56,7 @@
 
   (<- (desig:action-grounding ?action-designator (grip ?left-or-right ?object-grip-effort))
     (property ?action-designator (:type :gripping))
-    (property ?action-designator (:arm ?left-or-right))
+    (property ?action-designator (:gripper ?left-or-right))
     (once (or (property ?action-designator (:effort ?object-grip-effort))
               (equal ?effort nil))))
 
