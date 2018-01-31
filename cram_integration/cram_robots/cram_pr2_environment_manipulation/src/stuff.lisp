@@ -96,4 +96,5 @@
                     0.0
                     (cl-tf:make-3d-vector x y 0.0)
                     (cl-tf:make-identity-rotation))))
-        (exe:perform (a motion (type going) (target (a location (pose ?goal))))))))
+        (exe:perform (an action (type going) (target (a location (pose ?goal))))))))
+
