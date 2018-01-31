@@ -58,3 +58,19 @@
         (x2 (cl-tf:x p2))
         (y2 (cl-tf:y p2)))
     (line-equation x1 y1 x2 y2)))
+
+(defun line-p-dist (a b c p)
+  "Return the disctance between the line described by ax + bx + c and the point p (in the x-y plane)."
+  (let ((x (cl-tf:x p))
+        (y (cl-tf:y p)))
+    (/
+     (abs (+ (* a x) (* b y) c))
+     (sqrt (+ (expt a 2) (expt b 2))))))
+
+(defun line-p-dist-point (a b c p)
+  "Return the point on the line described by ax + bx + c from which the distance to the point (x,y) is minimal."
+  (let ((px (cl-tf:x p))
+        (py (cl-tf:y p)))
+    (multiple-value-bind (x y)
+        (distance-point a b c px py)
+      (cl-tf:make-3d-vector x y 0))))
