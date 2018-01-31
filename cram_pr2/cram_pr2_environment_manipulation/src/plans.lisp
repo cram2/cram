@@ -71,12 +71,13 @@
 
 (defun drive-to-and-open-container (?container-desig)
   ;; Drive to it
-  (exe:perform (a motion
+  (exe:perform (a action
                   (type going)
                   (target
                    (a location
                       (reachable-for pr2)
                       (container ?container-desig)))))
+  (setf ?container-desig (get-container-desig (car (alexandria:assoc-value (desig:description ?container-desig) :name))))
   ;; Open it
   (exe:perform (an action
                    (type opening)
