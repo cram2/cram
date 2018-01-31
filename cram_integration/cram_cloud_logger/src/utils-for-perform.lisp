@@ -14,7 +14,7 @@
 ;;;     * Neither the name of the Institute for Artificial Intelligence/
 ;;;       Universitaet Bremen nor the names of its contributors may be used to
 ;;;       endorse or promote products derived from this software without
-;;;       specific prior written permission.
+;;;       specific prior written permission
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -31,6 +31,7 @@
 (in-package :ccl)
 
 (cpl:define-task-variable *action-parents* '())
+(defparameter *action-siblings* (make-hash-table))
 
 
 (defun get-designator-property-value-str (designator property-keyname)
@@ -135,6 +136,21 @@
    (convert-to-prolog-str parent-id)
    (convert-to-prolog-str child-id)))
 
+(defun log-cram-sibling-action (parent-id child-id)
+  (let ((hash-value (gethash parent-id *action-siblings*)))
+    (if hash-value
+      (progn (log-cram-prev-action
+              (car hash-value) child-id)
+             (log-cram-next-action
+              (car hash-value) child-id)
+             (setf  (gethash parent-id *action-siblings*) (cons child-id hash-value)))
+      (setf (gethash parent-id *action-siblings*) (cons child-id '())))))
+
+(defun log-cram-prev-action (previous-id current-id)
+  (format t "Previous ~a of ~a" previous-id current-id))
+
+(defun log-cram-next-action (current-id next-id)
+  (format t "Next ~a of ~a" current-id next-id))
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
@@ -142,17 +158,16 @@
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
                (log-cram-finish-action action-id)
-               (pop *action-parents*)
                (send-task-success action-id "false")
                (format t "failure string: ~a" (write-to-string e))))
           ;;(format t "executing ~a~%" action-id)
           ;;(format t "logging ~a with parent ~a~%" action-id (first *action-parents*))
           (log-cram-sub-action (car *action-parents*) action-id)
+          (log-cram-sibling-action (car *action-parents*) action-id)
           (push action-id *action-parents*)
           (format t "new hierarchy is : ~a~%" *action-parents*)
           (let ((perform-result (call-next-method)))
             (log-cram-finish-action action-id)
-            (pop *action-parents*)
             (when (and perform-result (typep perform-result 'desig:object-designator))
               (let ((name (desig:desig-prop-value perform-result :name)))
                 (when name
