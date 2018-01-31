@@ -33,7 +33,7 @@
 
 (defun make-poses-reachable-cost-function (poses)
   "`poses' are the poses according to which the relation is resolved."
-  (let ((meancovs (location-costmap:2d-pose-covariance poses 0.25)))
+  (let ((meancovs (location-costmap:2d-pose-covariance poses 0.125)))
     (location-costmap:make-gauss-cost-function (first meancovs)
                                                (second meancovs))))
 
@@ -43,19 +43,34 @@
          (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T)))
     (make-poses-reachable-cost-function (list handle-pose manipulated-handle-pose))))
 
+(defun get-aabb (container-name)
+  (btr:aabb (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" container-name :pr2-em))))
+
+(defun get-width (container-name direction)
+  "Return the width of the container with name `container-name', appropiate for the joint `direction' given."
+  (let ((dimensions (cl-bullet:bounding-box-dimensions (get-aabb container-name)))
+        (norm-direction (cl-tf:normalize-vector direction)))
+    (if (> (abs (cl-tf:x norm-direction)) (abs (cl-tf:y norm-direction)))
+        (cl-tf:y dimensions)
+        (cl-tf:x dimensions))))
+  
 (defun make-opened-drawer-cost-function (?container-desig &optional (padding 0.2))
   "Resolve the relation according to the poses of the handle of `container-desig' in neutral and manipulated form."
-  (let* ((handle-link (get-handle-link (car (alexandria:assoc-value (desig:description ?container-desig) :name))))
-         (?handle-pose (get-urdf-link-pose (cl-urdf:name handle-link)))
-         (?manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T))
-         (width 0.7)
-         (neutral-x (cl-tf:x (cl-tf:origin ?handle-pose)))
-         (neutral-y (cl-tf:y (cl-tf:origin ?handle-pose)))
-         (manipulated-x (cl-tf:x (cl-tf:origin ?manipulated-handle-pose)))
-         (manipulated-y (cl-tf:y (cl-tf:origin ?manipulated-handle-pose)))
-         (neutral-point (cl-tf:make-3d-vector neutral-x neutral-y 0))
-         (manipulated-point (cl-tf:make-3d-vector manipulated-x manipulated-y 0))
-         (V (cl-tf:v- manipulated-point neutral-point)))
+  (let* ((container-name (string-downcase
+                          (car (alexandria:assoc-value
+                                (desig:description ?container-desig)
+                                :name))))
+         (handle-link (get-handle-link container-name))
+         (handle-pose (get-urdf-link-pose (cl-urdf:name handle-link)))
+         (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T))
+         (neutral-point (cl-tf:make-3d-vector (cl-tf:x (cl-tf:origin handle-pose))
+                                              (cl-tf:y (cl-tf:origin handle-pose))
+                                              0))
+         (manipulated-point (cl-tf:make-3d-vector (cl-tf:x (cl-tf:origin manipulated-handle-pose))
+                                                  (cl-tf:y (cl-tf:origin manipulated-handle-pose))
+                                                  0))
+         (V (cl-tf:v- manipulated-point neutral-point))
+         (width (get-width container-name V)))
     (lambda (x y)
       (multiple-value-bind (a b c)
           (line-equation-in-xy neutral-point
@@ -68,22 +83,6 @@
                (< (cl-tf:v-norm (cl-tf:v- dist-p neutral-point)) (+ (cl-tf:v-norm V) padding)))
               0
               1))))))
-
-(defun line-p-dist (a b c p)
-  "Return the disctance between the line described by ax + bx + c and the point p (in the x-y plane)."
-  (let ((x (cl-tf:x p))
-        (y (cl-tf:y p)))
-    (/
-     (abs (+ (* a x) (* b y) c))
-     (sqrt (+ (expt a 2) (expt b 2))))))
-
-(defun line-p-dist-point (a b c p)
-  "Return the point on the line described by ax + bx + c from which the distance to the point (x,y) is minimal."
-  (let ((px (cl-tf:x p))
-        (py (cl-tf:y p)))
-    (multiple-value-bind (x y)
-        (distance-point a b c px py)
-      (cl-tf:make-3d-vector x y 0))))
 
 (defmethod location-costmap:costmap-generator-name->score ((name (eql 'poses-reachable-cost-function))) 10)
 
