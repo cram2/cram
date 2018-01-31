@@ -36,9 +36,11 @@
                                                                  ?arm
                                                                  ?gripper-opening
                                                                  ?left-reach-poses ?right-reach-poses
-                                                                 ?left-lift-poses ?right-lift-poses))
+                                                                 ?left-lift-poses ?right-lift-poses
+                                                                 ?joint-name ?joint-angle ?environment-obj))
     (spec:property ?action-designator (:type :opening))
     (spec:property ?action-designator (:object ?container-designator))
+    (desig:desig-prop ?action-designator (:opening-distance ?joint-angle))
     (spec:property ?container-designator (:type :container))
     (spec:property ?container-designator (:name ?container-name))
     (spec:property ?container-designator (:part-of ?environment))
@@ -46,6 +48,14 @@
         (true)
         (and (cram-robot-interfaces:robot ?robot)
              (cram-robot-interfaces:arm ?robot ?arm)))
+    ;; infer joint information
+    ;; joint-name
+    (lisp-fun get-container-link ?container-name ?container-link)
+    (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
+    (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
+    ;; environment
+    (btr:bullet-world ?world)
+    (lisp-fun btr:object ?world ?environment ?environment-obj)
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun obj-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
     (lisp-fun obj-int:get-object-transform ?container-designator ?container-transform)

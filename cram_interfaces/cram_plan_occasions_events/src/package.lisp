@@ -46,6 +46,11 @@
            #:link #:event-link #:side #:event-side
            #:opening-distance
 
+           #:environment-manipulation-event
+           #:joint-name
+           #:joint-angle
+           #:environment
+
            #:object-gripped
            #:event-arm #:event-object #:event-grasp
            #:object-released

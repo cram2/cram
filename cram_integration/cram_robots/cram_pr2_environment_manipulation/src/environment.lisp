@@ -33,6 +33,8 @@
   (btr:pose (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" name :pr2-em))))
 
 (defun get-container-link (container-name)
+  (when (symbolp container-name)
+    (setf container-name (string-downcase container-name)))
   (gethash container-name (cl-urdf:links (btr:urdf (btr:object btr:*current-bullet-world* :kitchen)))))
 
 (defun get-container-joint-type (container-name)
