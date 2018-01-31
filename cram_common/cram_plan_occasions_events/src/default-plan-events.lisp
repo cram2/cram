@@ -108,6 +108,23 @@
                 'simple-error
                 :format-control "OBJECT-ARTICULATION-EVENT requires an opening distance."))))
 
+(defclass environment-manipulation-event (event)
+  ((joint-name
+    :initarg :joint-name :reader joint-name
+    :initform (error
+               'simple-error
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a joint-name."))
+   (joint-angle
+    :initarg :joint-angle :reader joint-angle
+    :initform (error
+               'simple-error
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a joint-angle."))
+   (environment
+    :initarg :environment :reader environment
+    :initform (error
+               'simple-error
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a environment."))))
+
 ;; (defclass object-gripped (cram-occasions-events:event)
 ;;   ((arm :initarg :arm
 ;;         :reader event-arm

@@ -59,6 +59,7 @@
   (let ((?object (get-container-desig ?name)))
     (an action
         (type opening)
+        (opening-distance 0.48)
         (object ?object))))
 
 (defun get-container-desig (&optional (?name 'sink_area_left_upper_drawer_main))

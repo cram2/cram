@@ -140,6 +140,13 @@
        (desig:object-identifier perceived-object)
        cpoe:opening-distance))))
 
+(defmethod cram-occasions-events:on-event manipulate-environment
+    ((event cpoe:environment-manipulation-event))
+  (with-slots (cpoe:joint-name cpoe:joint-angle cpoe:environment) event
+    (btr:set-robot-state-from-joints
+     `((,cpoe:joint-name ,cpoe:joint-angle))
+     cpoe:environment)))
+
 (defmethod cram-occasions-events:on-event object-perceived ((event cpoe:object-perceived-event))
   (if cram-projection:*projection-environment*
       ;; if in projection, only add the object name to perceived designators list

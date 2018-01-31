@@ -32,7 +32,11 @@
 (defun open-container (;;container-name
                        ?arm ?gripper-opening
                        ?left-reach-poses ?right-reach-poses
-                       ?left-lift-poses ?right-lift-poses)
+                       ?left-lift-poses ?right-lift-poses
+                       &optional
+                         (joint-name nil)
+                         (joint-angle nil)
+                         (environment nil))
   (cpl:par
     (roslisp:ros-info (environment-manipulation open-container) "Opening gripper")
     (exe:perform
@@ -57,7 +61,13 @@
    (desig:an action
              (type lifting)
              (left-poses ?left-lift-poses)
-             (right-poses ?right-lift-poses))))
+             (right-poses ?right-lift-poses)))
+  (when (and joint-name joint-angle environment)
+    (cram-occasions-events:on-event
+     (make-instance 'cpoe:environment-manipulation-event
+                    :joint-name joint-name
+                    :joint-angle joint-angle
+                    :environment environment))))
 
 (defun drive-to-and-open-container (?container-desig)
   ;; Drive to it
@@ -70,5 +80,6 @@
   ;; Open it
   (exe:perform (an action
                    (type opening)
+                   (opening-distance 0.48)
                    (object ?container-desig)))
   )
