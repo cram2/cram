@@ -37,11 +37,14 @@
     (location-costmap:make-gauss-cost-function (first meancovs)
                                                (second meancovs))))
 
+;; NOTE(cpo): Maybe this should take the current position and get a desired position of the handle, so the
+;; costmap is more precise. Now it calculates the min and max position, so everything should be reachable.
 (defun make-container-handle-reachable-cost-function (container-desig)
+  "Make a cost function for the the PR2 to reach a containers handle in neutral and manipulated position."
   (let* ((handle-link (get-handle-link (car (alexandria:assoc-value (desig:description container-desig) :name))))
-         (handle-pose (get-urdf-link-pose (cl-urdf:name handle-link)))
+         (neutral-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 0 :relative T))
          (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T)))
-    (make-poses-reachable-cost-function (list handle-pose manipulated-handle-pose))))
+    (make-poses-reachable-cost-function (list neutral-handle-pose manipulated-handle-pose))))
 
 (defun get-aabb (container-name)
   (btr:aabb (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" container-name :pr2-em))))
@@ -53,7 +56,8 @@
     (if (> (abs (cl-tf:x norm-direction)) (abs (cl-tf:y norm-direction)))
         (cl-tf:y dimensions)
         (cl-tf:x dimensions))))
-  
+
+;; NOTE(cpo): Same as above.
 (defun make-opened-drawer-cost-function (?container-desig &optional (padding 0.2))
   "Resolve the relation according to the poses of the handle of `container-desig' in neutral and manipulated form."
   (let* ((container-name (string-downcase
@@ -61,7 +65,7 @@
                                 (desig:description ?container-desig)
                                 :name))))
          (handle-link (get-handle-link container-name))
-         (handle-pose (get-urdf-link-pose (cl-urdf:name handle-link)))
+         (handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 0 :relative T))
          (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T))
          (neutral-point (cl-tf:make-3d-vector (cl-tf:x (cl-tf:origin handle-pose))
                                               (cl-tf:y (cl-tf:origin handle-pose))
