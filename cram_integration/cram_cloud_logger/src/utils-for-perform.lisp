@@ -148,10 +148,10 @@
       (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
 
 (defun log-cram-prev-action (previous-id current-id)
-  (format t "Previous ~a of ~a" previous-id current-id))
+ ( send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)))
 
 (defun log-cram-next-action (current-id next-id)
-  (format t "Next ~a of ~a" current-id next-id))
+  (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id)))
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
