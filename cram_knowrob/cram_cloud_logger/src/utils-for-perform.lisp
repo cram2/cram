@@ -140,11 +140,12 @@
   (let ((hash-value (gethash parent-id *action-siblings*)))
     (if hash-value
       (progn (log-cram-prev-action
-              (car hash-value) child-id)
+              (car (cpl:value hash-value)) child-id)
              (log-cram-next-action
-              (car hash-value) child-id)
-             (setf  (gethash parent-id *action-siblings*) (cons child-id hash-value)))
-      (setf (gethash parent-id *action-siblings*) (cons child-id '())))))
+              (car (cpl:value hash-value)) child-id)
+             (setf (cpl:value hash-value) (cons child-id (cpl:value hash-value)))
+             (setf  (gethash parent-id *action-siblings*) hash-value))
+      (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
 
 (defun log-cram-prev-action (previous-id current-id)
   (format t "Previous ~a of ~a" previous-id current-id))
