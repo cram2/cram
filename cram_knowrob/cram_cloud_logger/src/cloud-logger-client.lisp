@@ -204,6 +204,12 @@
     (send-rdf-query (convert-to-prolog-str object-instance-id) "knowrob:action" (convert-to-prolog-str action-inst))
     object-instance-id))
 
+(defun send-cram-next-action (current-action-name next-action-name)
+  (send-rdf-query current-action-name "knowrob:nextAction" next-action-name))
+
+(defun send-cram-previous-action (previous-action-name current-action-name)
+      (send-rdf-query previous-action-name "knowrob:previousAction" current-action-name))
+
 (defun create-owl-literal (literal-type literal-value)
   (concatenate 'string "literal(type(" literal-type "," literal-value "))"))
 
