@@ -393,6 +393,7 @@
                           ;; seed-state ; is todo
                           ))))
                (unless ik-solution-msg
+                 (format t "~%~%IK NOT FOUND: ~a or ~a~%~%" left-tcp-pose right-tcp-pose)
                  (cpl:fail 'common-fail:manipulation-pose-unreachable
                            :description (format nil "~a is unreachable for EE." ee-pose)))
                (setf (gethash (list arm ee-pose) *ik-solution-cache*)

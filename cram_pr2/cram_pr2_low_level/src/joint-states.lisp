@@ -91,19 +91,20 @@ as multiple values."
 (defun joint-positions (names)
   "Returns the joint positions as a list + timestamp"
   (let ((last-joint-state-msg (cpl:value *robot-joint-states-msg*)))
-    (values
-     (mapcar (lambda (name)
-               (let ((index (position
-                             name
-                             (roslisp:msg-slot-value last-joint-state-msg :name)
-                             :test #'string-equal)))
-                 (when index
-                   (aref (roslisp:msg-slot-value last-joint-state-msg :position)
-                         index))))
-             names)
-     (roslisp:msg-slot-value
-      (roslisp:msg-slot-value last-joint-state-msg :header)
-      :stamp))))
+    (when last-joint-state-msg
+      (values
+       (mapcar (lambda (name)
+                 (let ((index (position
+                               name
+                               (roslisp:msg-slot-value last-joint-state-msg :name)
+                               :test #'string-equal)))
+                   (when index
+                     (aref (roslisp:msg-slot-value last-joint-state-msg :position)
+                           index))))
+               names)
+       (roslisp:msg-slot-value
+        (roslisp:msg-slot-value last-joint-state-msg :header)
+        :stamp)))))
 
 (defun get-arm-joint-states (arm)
   (joint-positions (mapcar (alexandria:curry
