@@ -69,13 +69,12 @@
                cram-pr2-projection      ; for with-simulated-robot
                cram-pr2-projection-reasoning ; for projection-based reasoning
                cram-pr2-description
-               ;; cram-pr2-low-level
+               cram-pr2-low-level
                cram-process-modules
-               ;; cram-pr2-process-modules
+               cram-pr2-process-modules
                cram-pr2-fetch-deliver-plans
 
-               ;; cram-pr2-cloud
-               )
+               cram-pr2-cloud)
 
   :components
   ((:module "src"
