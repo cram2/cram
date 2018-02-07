@@ -221,7 +221,7 @@
   (mapc (compose #'clear-tasks #'cdr) (task-tree-node-children task-tree-node))
   task-tree-node)
 
-(defun task-tree-node (path)
+(defun task-tree-node (path &optional (node *task-tree*))
   "Returns the task-tree node for path or nil."
   (labels ((get-tree-node-internal (path &optional (node *task-tree*))
              (let ((child (cdr (assoc (car path) (task-tree-node-children node)
@@ -232,7 +232,7 @@
                       nil)
                      (t
                       (get-tree-node-internal (cdr path) child))))))
-    (get-tree-node-internal (reverse path))))
+    (get-tree-node-internal (reverse path) node)))
 
 (defun ensure-tree-node (path &optional (task-tree *task-tree*))
   (labels ((worker (path node walked-path)
@@ -337,17 +337,20 @@
 (defun task-tree-node-parameters (task-tree-node)
   "Return the parameters with which the task was called. Assume node is not stale."
   (let ((code (task-tree-node-code task-tree-node)))
-    (code-parameters code)))
+    (when code
+     (code-parameters code))))
 
 (defun task-tree-node-status-fluent (task-tree-node)
   "Return the tasks status fluent. Assume node is not stale."
   (let ((code (task-tree-node-code task-tree-node)))
-    (status (code-task code))))
+    (when code
+     (status (code-task code)))))
 
 (defun task-tree-node-result (task-tree-node)
   "Return the tasks result. Assume node is not stale."
   (let ((code (task-tree-node-code task-tree-node)))
-    (result (code-task code))))
+    (when code
+     (result (code-task code)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Goal task tree utilities
