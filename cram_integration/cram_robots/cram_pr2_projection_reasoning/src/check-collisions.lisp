@@ -90,9 +90,10 @@ Store found pose into designator or throw error if good pose not found."
                                      navigation-location-desig)
                    navigation-location-desig)
                (desig:designator-error (e)
+                 (declare (ignore e))
                  (roslisp:ros-warn (pp-plans coll-check)
                                    "Desig ~a could not be resolved.~%Cannot navigate."
-                                   navigation-location-desig e)
+                                   navigation-location-desig)
                  (cpl:fail 'common-fail:navigation-pose-in-collision)))))
 
       ;; After playing around and messing up the world, restore the original state.
@@ -108,6 +109,7 @@ Store found pose into designator or throw error if good pose not found."
            (cpl:with-failure-handling
                (((or common-fail:manipulation-pose-unreachable
                      common-fail:manipulation-pose-in-collision) (e)
+                  (declare (ignore e))
                   ;; (roslisp:ros-warn (pp-plans pick-object) "Manipulation failure happened: ~a" e)
                   (cpl:do-retry pick-up-configuration-retries
                     (handler-case
@@ -172,6 +174,7 @@ Store found pose into designator or throw error if good pose not found."
     (unwind-protect
          (cpl:with-failure-handling
              ((common-fail:manipulation-pose-unreachable (e)
+                (declare (ignore e))
                 (roslisp:ros-warn (pp-plans deliver)
                                   "Placing pose of ~a is unreachable.~%Propagating up."
                                   placing-action-desig)
