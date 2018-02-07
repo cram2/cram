@@ -36,7 +36,8 @@
         #:alexandria
         #:desig
         #:cram-utilities
-        #:cram-execution-trace)
+        ;; #:cram-execution-trace
+        )
   (:nicknames #:occasions-events)
   (:shadowing-import-from #:cpl #:name)
   (:shadow event)
