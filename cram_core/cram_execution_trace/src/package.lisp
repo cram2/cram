@@ -41,6 +41,8 @@
    #:durable-copy
    ;; episode-knwoledge.lisp
    #:throughout
+   ;; todo: sort these guy in:
+   #:during #:at
    #:episode-knowledge
    #:live-episode-knowledge
    #:offline-episode-knowledge
