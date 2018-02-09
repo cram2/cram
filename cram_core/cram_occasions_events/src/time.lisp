@@ -38,32 +38,32 @@
   ;; NOTE:
   ;; (throughout a b) -> including a, excluding b
   ;; (during a b) -> including a, excluding b
-  
-  (<- (duration-includes (throughout ?t1 ?t2) (at ?a))
+
+  (<- (duration-includes (cram-execution-trace:throughout ?t1 ?t2) (cram-execution-trace:at ?a))
     (bound-time ?t1)
     (bound-time ?t2)
     (bound-time ?a)
     (and (<= ?t1 ?a) (< ?a ?t2)))
-  
-  (<- (duration-includes (throughout ?t1 ?t2) (at ?a))
+
+  (<- (duration-includes (cram-execution-trace:throughout ?t1 ?t2) (cram-execution-trace:at ?a))
     (bound-time ?t1)
     (bound-time ?t2)
     (not (bound ?a))
     (== ?a ?t1))
 
-   (<- (duration-includes (throughout ?t1 ?t2) (throughout ?a ?b))
+   (<- (duration-includes (cram-execution-trace:throughout ?t1 ?t2) (cram-execution-trace:throughout ?a ?b))
     (bound-time ?t1)
     (bound-time ?t2)
     (bound-time ?a)
     (bound-time ?b)
     (and (<= ?t1 ?a) (< ?a ?b) (<= ?b ?t2)))
 
-   (<- (duration-includes (throughout ?t1 ?t2) (during ?a ?b))
+   (<- (duration-includes (cram-execution-trace:throughout ?t1 ?t2) (cram-execution-trace:during ?a ?b))
     (bound-time ?t1)
     (bound-time ?t2)
     (bound-time ?a)
     (bound-time ?b)
-    (and (< ?t1 ?b) (< ?a ?b) (< ?a ?t2)))) 
+    (and (< ?t1 ?b) (< ?a ?b) (< ?a ?t2))))
 
 ;;; An attempt to a more general time handling follows. Turned out not
 ;;; so general and not at all elegant, maybe something emerges in the
