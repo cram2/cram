@@ -132,6 +132,10 @@
     (bound ?top-level-name)
     (lisp-fun cpl:get-top-level-task-tree ?top-level-name ?top-level-task-node))
 
+  (<- (top-level-episode-knowledge ?top-level-name ?top-level-episode)
+    (bound ?top-level-name)
+    (lisp-fun cet:get-top-level-episode-knowledge ?top-level-name ?top-level-episode))
+
   ;; util
   (<- (task-full-path ?task-node ?path)
     (bound ?task-node)
@@ -162,8 +166,8 @@
   (<- (subtask ?task ?subtask)
     (not (bound ?task))
     (bound ?subtask)
-    (lisp-fun task-tree-node-parent ?subtask ?task)
-    (not (== ?task nil)))
+    (lisp-fun cpl:task-tree-node-parent ?subtask ?task)
+    (lisp-pred identity ?task))
 
   ;; (<- (subtask ?task ?subtask)
   ;;   (not (bound ?task))
@@ -210,6 +214,7 @@
 
   (<- (fluent-value ?fluent ?value)
     (bound ?fluent)
+    (not (equal ?fluent NIL))
     (lisp-fun cpl:value ?fluent ?value))
 
   (<- (task-status ?task ?status)
@@ -217,48 +222,72 @@
     (task-status-fluent ?task ?fluent)
     (fluent-value ?fluent ?status))
 
-  ;; (<- (holds (fluent-value ?fluent ?value) ?t)
-  ;;   (bound ?fluent)
-  ;;   (lisp-fun cet:episode-knowledge-fluent-durations ?fluent ?durations)
-  ;;   (member (?value . ?duration) ?durations)
-  ;;   (duration-includes ?duration ?t))
-
-  ;; ;; HOLDS TASK-STATUS
-  ;; (<- (holds (task-status ?task ?status) ?t)
-  ;;   (task-status-fluent ?task ?status-fluent)
-  ;;   (holds (cpl:fluent-value ?status-fluent ?status) ?t))
-
-  ;; task-outcome
   (<- (task-outcome ?task ?outcome)
     (bound ?task)
     (member ?outcome (:succeeded :failed :evaporated))
-    ;; (holds (task-status ?task ?outcome) ?_)
     (task-status ?task ?outcome))
 
-  ;; task-error
   (<- (task-error ?task ?error)
     (bound ?task)
     (task-outcome ?task :failed)
     (task-result ?task ?result)
     (lisp-fun extract-task-error ?result ?error))
 
-  ;; ;; TASK-CREATED-AT
-  ;; (<- (task-created-at ?task ?time)
-  ;;   (holds (task-status ?task :created) (at ?time)))
+  ;; execution trace related
+  (<- (holds (fluent-value ?fluent ?value) ?top-level-name ?time)
+    (bound ?fluent)
+    (bound ?top-level-name)
+    (top-level-episode-knowledge ?top-level-name ?episode)
+    (lisp-pred identity ?fluent)
+    (lisp-fun cpl-impl:name ?fluent ?fluent-name)
+    (lisp-fun cet:episode-knowledge-fluent-durations ?fluent-name ?episode ?durations)
+    (member (?value . ?duration) ?durations)
+    (cram-occasions-events:duration-includes ?duration ?time))
 
-  ;; (<- (task-started-at ?task ?time)
-  ;;   (task ?task)
-  ;;   (bagof ?t (holds (task-status ?task :running) (at ?t))
-  ;;          ?times)
-  ;;   (sort ?times < (?time . ?_)))
+  (<- (holds (task-status ?task ?status) ?top-level-name ?time)
+    (bound ?top-level-name)
+    (task-status-fluent ?task ?status-fluent)
+    (holds (fluent-value ?status-fluent ?status) ?top-level-name ?time))
 
-  ;; ;; TASK-ENDED-AT
-  ;; (<- (task-ended-at ?task ?time)
-  ;;   (task ?task)
-  ;;   (member ?status (:succeeded :failed :evaporated))
-  ;;   (holds (task-status ?task ?status) (at ?time)))
+  ;; task times
+  (<- (task-created-at ?top-level-name ?task ?time)
+    (bound ?top-level-name)
+    (bound ?task)
+    (holds (task-status ?task :created) ?top-level-name (cram-execution-trace:at ?time)))
 
-  ;; perform TASK-GOAL
+  (<- (task-started-at ?top-level-name ?task ?time)
+    (bound ?top-level-name)
+    (bound ?task)
+    ;; (task ?task)
+    (bagof ?time
+           (holds (task-status ?task :running) ?top-level-name (cram-execution-trace:at ?time))
+           ?times)
+    (sort ?times < (?time . ?_)))
+
+  (<- (task-ended-at ?top-level-name ?task ?time)
+    (bound ?top-level-name)
+    (bound ?task)
+    ;; (task ?task)
+    (member ?status (:succeeded :failed :evaporated))
+    (holds (task-status ?task ?status) ?top-level-name (cram-execution-trace:at ?time)))
+
+  ;; task next sibling
+  (<- (task-next-sibling ?top-level-name ?task ?next-task)
+    (bound ?top-level-name)
+    (bound ?task)
+    (bagof ?sibling (task-sibling ?task ?sibling) ?siblings)
+    (member ?next-task ?siblings)
+    (task-created-at ?top-level-name ?task ?created-time-task)
+    (task-created-at ?top-level-name ?next-task ?created-time-next-task)
+    (<= ?created-time-task ?created-time-next-task)
+    (forall (and
+             (member ?other-next-task ?siblings)
+             (not (== ?next-task ?other-next-task))
+             (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
+             (<= ?created-time-task ?created-time-other-next-task))
+            (<= ?created-time-next-task ?created-time-other-next-task)))
+
+  ;; perform tasks
   (<- (perform-task-of-top-level ?top-level-name ?task-node)
     (bound ?top-level-name)
     (task-of-top-level ?top-level-name ?task-node)
@@ -272,41 +301,54 @@
     (lisp-fun cpl:task-tree-node-path ?task-node (?path . ?_))
     (equal ?path (cpl:goal (perform ?_) . ?_)))
 
-  ;; TASK-NEXT-SIBLING
-  ;; FIXME: we should not simply use temporal, but rater causal relations
-  ;; (<- (task-next-sibling ?task ?next)
-  ;;   (bound ?task)
-  ;;   (bagof ?sib (task-sibling ?task ?sib) ?siblings)
-  ;;   (member ?next ?siblings)
-  ;;   (task-created-at ?task ?ct-task)
-  ;;   (task-created-at ?next ?ct-next)
-  ;;   (<= ?ct-task ?ct-next)
-  ;;   (forall (and
-  ;;            (member ?other ?siblings)
-  ;;            (not (== ?next ?other))
-  ;;            (task-created-at ?other ?ct-other)
-  ;;            (<= ?ct-task ?ct-other))
-  ;;           (<= ?ct-next ?ct-other)))
-
-  (<- (task-specific-action ?top-level-name ?subtree-path ?action-type ?param)
+  (<- (task-specific-action ?top-level-name ?subtree-path ?action-type ?task ?designator)
     (bound ?top-level-name)
     (bound ?subtree-path)
     (perform-task ?top-level-name ?subtree-path ?task)
-    (task-parameter ?task ?param)
-    (lisp-type ?param desig:action-designator)
-    (spec:property ?param (:type ?action-type)))
+    (task-parameter ?task ?designator)
+    (lisp-type ?designator desig:action-designator)
+    (spec:property ?designator (:type ?action-type)))
 
-  (<- (task-navigating-action ?top-level-name ?subtree-path ?designator)
-    (task-specific-action ?top-level-name ?subtree-path :navigating ?designator))
+  (<- (task-navigating-action ?top-level-name ?subtree-path ?task ?designator)
+    (task-specific-action ?top-level-name ?subtree-path :navigating ?task ?designator))
 
-  (<- (task-fetching-action ?top-level-name ?subtree-path ?designator)
-    (task-specific-action ?top-level-name ?subtree-path :fetching ?designator)))
+  (<- (task-fetching-action ?top-level-name ?subtree-path ?task ?designator)
+    (task-specific-action ?top-level-name ?subtree-path :fetching ?task ?designator))
+
+  (<- (task-picking-up-action ?top-level-name ?subtree-path ?task ?designator)
+    (task-specific-action ?top-level-name ?subtree-path :picking-up ?task ?designator)))
 
 
 (defun test ()
+  (cet:enable-fluent-tracing)
+
   (pr2-proj:with-simulated-robot
-    (let ((path-1 (demo-random nil))
-          (path-2 (demo-random nil)))
-      (append
-       (cut:force-ll (prolog:prolog `(task-navigating-action :top-level ,path-1 ?designator)))
-       (cut:force-ll (prolog:prolog `(task-navigating-action :top-level ,path-2 ?designator)))))))
+    (demo-random nil))
+
+  (cut:force-ll (prolog:prolog `(task-navigating-action :top-level ((demo-random))
+                                                        ?task ?designator))))
+
+(defun test-next-sibling-time ()
+  (cet:enable-fluent-tracing)
+
+  (pr2-proj:with-simulated-robot
+    (demo-random nil))
+
+  (cut:force-ll
+   (prolog:prolog `(and (task-navigating-action :top-level ((demo-random)) ?task ?des)
+                        (task-next-sibling :top-level ?task ?next-task)
+                        (task-created-at :top-level ?task ?created)
+                        (task-created-at :top-level ?next-task ?next-created)
+                        (format "time: ~a   time next: ~a~%" ?created ?next-created)))))
+
+(defun test-failed-actions ()
+  (cet:enable-fluent-tracing)
+
+  (pr2-proj:with-simulated-robot
+    (demo-random))
+
+  (cut:force-ll
+   (prolog:prolog `(and (task-specific-action :top-level ((demo-random)) :fetching ?task ?desig)
+                        (task-outcome ?task :failed)
+                        (format "desig: ~a~%" ?desig)))))
+
