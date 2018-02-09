@@ -343,13 +343,13 @@
 (defun task-tree-node-status-fluent (task-tree-node)
   "Return the tasks status fluent. Assume node is not stale."
   (let ((code (task-tree-node-code task-tree-node)))
-    (when code
+    (when (and code (code-task code))
      (status (code-task code)))))
 
 (defun task-tree-node-result (task-tree-node)
   "Return the tasks result. Assume node is not stale."
   (let ((code (task-tree-node-code task-tree-node)))
-    (when code
+    (when (and code (code-task code))
      (result (code-task code)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
