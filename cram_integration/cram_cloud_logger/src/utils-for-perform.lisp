@@ -132,22 +132,27 @@
    (convert-to-prolog-str action-id ) (get-timestamp-for-logging)))
 
 (defun log-cram-sub-action (parent-id child-id)
-  (send-cram-set-subaction
-   (convert-to-prolog-str parent-id)
-   (convert-to-prolog-str child-id)))
+  (if parent-id 
+      (progn
+        (send-cram-set-subaction
+         (convert-to-prolog-str parent-id)
+         (convert-to-prolog-str child-id)))))
 
 (defun log-cram-sibling-action (parent-id child-id)
   (let ((hash-value (gethash parent-id *action-siblings*)))
     (if hash-value
-      (progn (log-cram-prev-action
-              (car (cpl:value hash-value)) child-id)
-             (log-cram-next-action
-              (car (cpl:value hash-value)) child-id)
-             (setf (cpl:value hash-value) (cons child-id (cpl:value hash-value)))
-             (setf  (gethash parent-id *action-siblings*) hash-value))
+      (let ((previous-id (car (cpl:value hash-value))))
+          (progn (log-cram-prev-action
+                  child-id previous-id)
+                 (format t "PREVIOUS: ~a previous ~a " child-id previous-id)
+                 (log-cram-next-action
+                  previous-id child-id)
+                 (format t "NEXT: ~a next ~a "previous-id child-id)
+                 (setf (cpl:value hash-value) (cons child-id (cpl:value hash-value)))
+                 (setf  (gethash parent-id *action-siblings*) hash-value)))
       (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
 
-(defun log-cram-prev-action (previous-id current-id)
+(defun log-cram-prev-action (current-id previous-id)
  ( send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)))
 
 (defun log-cram-next-action (current-id next-id)
