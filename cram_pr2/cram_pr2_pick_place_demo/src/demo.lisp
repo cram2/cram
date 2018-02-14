@@ -125,7 +125,7 @@
   (:method ((err cpl:common-lisp-error-envelope))
     (cpl:envelop-error err)))
 
-(def-fact-group tasks ()
+(def-fact-group tasks (coe:holds)
 
   ;; top-level
   (<- (top-level-task ?top-level-name ?top-level-task-node)
@@ -234,7 +234,7 @@
     (lisp-fun extract-task-error ?result ?error))
 
   ;; execution trace related
-  (<- (holds (fluent-value ?fluent ?value) ?top-level-name ?time)
+  (<- (coe:holds (fluent-value ?fluent ?value) ?top-level-name ?time)
     (bound ?fluent)
     (bound ?top-level-name)
     (top-level-episode-knowledge ?top-level-name ?episode)
@@ -244,23 +244,23 @@
     (member (?value . ?duration) ?durations)
     (cram-occasions-events:duration-includes ?duration ?time))
 
-  (<- (holds (task-status ?task ?status) ?top-level-name ?time)
+  (<- (coe:holds (task-status ?task ?status) ?top-level-name ?time)
     (bound ?top-level-name)
     (task-status-fluent ?task ?status-fluent)
-    (holds (fluent-value ?status-fluent ?status) ?top-level-name ?time))
+    (coe:holds (fluent-value ?status-fluent ?status) ?top-level-name ?time))
 
   ;; task times
   (<- (task-created-at ?top-level-name ?task ?time)
     (bound ?top-level-name)
     (bound ?task)
-    (holds (task-status ?task :created) ?top-level-name (cram-execution-trace:at ?time)))
+    (coe:holds (task-status ?task :created) ?top-level-name (coe:at ?time)))
 
   (<- (task-started-at ?top-level-name ?task ?time)
     (bound ?top-level-name)
     (bound ?task)
     ;; (task ?task)
     (bagof ?time
-           (holds (task-status ?task :running) ?top-level-name (cram-execution-trace:at ?time))
+           (coe:holds (task-status ?task :running) ?top-level-name (coe:at ?time))
            ?times)
     (sort ?times < (?time . ?_)))
 
@@ -269,9 +269,9 @@
     (bound ?task)
     ;; (task ?task)
     (member ?status (:succeeded :failed :evaporated))
-    (holds (task-status ?task ?status) ?top-level-name (cram-execution-trace:at ?time)))
+    (coe:holds (task-status ?task ?status) ?top-level-name (coe:at ?time)))
 
-  ;; task next sibling
+  ;; task next and previous sibling
   (<- (task-next-sibling ?top-level-name ?task ?next-task)
     (bound ?top-level-name)
     (bound ?task)
@@ -286,6 +286,21 @@
              (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
              (<= ?created-time-task ?created-time-other-next-task))
             (<= ?created-time-next-task ?created-time-other-next-task)))
+
+  (<- (task-previous-sibling ?top-level-name ?task ?next-task)
+    (bound ?top-level-name)
+    (bound ?task)
+    (bagof ?sibling (task-sibling ?task ?sibling) ?siblings)
+    (member ?next-task ?siblings)
+    (task-created-at ?top-level-name ?task ?created-time-task)
+    (task-created-at ?top-level-name ?next-task ?created-time-next-task)
+    (>= ?created-time-task ?created-time-next-task)
+    (forall (and
+             (member ?other-next-task ?siblings)
+             (not (== ?next-task ?other-next-task))
+             (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
+             (>= ?created-time-task ?created-time-other-next-task))
+            (>= ?created-time-next-task ?created-time-other-next-task)))
 
   ;; perform tasks
   (<- (perform-task-of-top-level ?top-level-name ?task-node)
@@ -307,7 +322,7 @@
     (perform-task ?top-level-name ?subtree-path ?task)
     (task-parameter ?task ?designator)
     (lisp-type ?designator desig:action-designator)
-    (spec:property ?designator (:type ?action-type)))
+    (desig:desig-prop ?designator (:type ?action-type)))
 
   (<- (task-navigating-action ?top-level-name ?subtree-path ?task ?designator)
     (task-specific-action ?top-level-name ?subtree-path :navigating ?task ?designator))
@@ -316,11 +331,51 @@
     (task-specific-action ?top-level-name ?subtree-path :fetching ?task ?designator))
 
   (<- (task-picking-up-action ?top-level-name ?subtree-path ?task ?designator)
-    (task-specific-action ?top-level-name ?subtree-path :picking-up ?task ?designator)))
+    (task-specific-action ?top-level-name ?subtree-path :picking-up ?task ?designator))
+
+    ;; task next and previous perform action sibling
+  (<- (task-next-action-sibling ?top-level-name ?subtree-path ?task ?action-type ?next-task)
+    (bound ?top-level-name)
+    (bound ?subtree-path)
+    (bound ?task)
+    ;; (bound ?action-type)
+    (bagof ?sibling (task-sibling ?task ?sibling) ?siblings)
+    (member ?next-task ?siblings)
+    (task-specific-action ?top-level-name ?subtree-path ?action-type ?next-task ?_)
+    (task-created-at ?top-level-name ?task ?created-time-task)
+    (task-created-at ?top-level-name ?next-task ?created-time-next-task)
+    (<= ?created-time-task ?created-time-next-task)
+    (forall (and
+             (member ?other-next-task ?siblings)
+             (task-specific-action ?top-level-name ?subtree-path ?action-type ?other-next-task ?_)
+             (not (== ?next-task ?other-next-task))
+             (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
+             (<= ?created-time-task ?created-time-other-next-task))
+            (<= ?created-time-next-task ?created-time-other-next-task)))
+
+  (<- (task-previous-action-sibling ?top-level-name ?subtree-path ?task ?action-type ?next-task)
+    (bound ?top-level-name)
+    (bound ?subtree-path)
+    (bound ?task)
+    ;; (bound ?action-type)
+    (bagof ?sibling (task-sibling ?task ?sibling) ?siblings)
+    (member ?next-task ?siblings)
+    (task-specific-action ?top-level-name ?subtree-path ?action-type ?next-task ?_)
+    (task-created-at ?top-level-name ?task ?created-time-task)
+    (task-created-at ?top-level-name ?next-task ?created-time-next-task)
+    (>= ?created-time-task ?created-time-next-task)
+    (forall (and
+             (member ?other-next-task ?siblings)
+             (not (== ?next-task ?other-next-task))
+             (task-specific-action ?top-level-name ?subtree-path ?action-type ?other-next-task ?_)
+             (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
+             (>= ?created-time-task ?created-time-other-next-task))
+            (>= ?created-time-next-task ?created-time-other-next-task))))
 
 
 (defun test ()
   (cet:enable-fluent-tracing)
+  (cpl-impl::remove-top-level-task-tree :top-level)
 
   (pr2-proj:with-simulated-robot
     (demo-random nil))
@@ -330,6 +385,7 @@
 
 (defun test-next-sibling-time ()
   (cet:enable-fluent-tracing)
+  (cpl-impl::remove-top-level-task-tree :top-level)
 
   (pr2-proj:with-simulated-robot
     (demo-random nil))
@@ -343,6 +399,7 @@
 
 (defun test-failed-actions ()
   (cet:enable-fluent-tracing)
+  (cpl-impl::remove-top-level-task-tree :top-level)
 
   (pr2-proj:with-simulated-robot
     (demo-random))
@@ -352,3 +409,30 @@
                         (task-outcome ?task :failed)
                         (format "desig: ~a~%" ?desig)))))
 
+(defun find-location-for-pick-up ()
+  (cet:enable-fluent-tracing)
+  (cpl-impl::remove-top-level-task-tree :top-level)
+
+  (proj:with-projection-environment pr2-proj:pr2-bullet-projection-environment
+    (cpl-impl::named-top-level (:name :top-level)
+      (demo-random nil))
+
+    (let ((top-level-name :top-level))
+      (cut:var-value
+       '?pick-location
+       (car
+        (prolog:prolog
+         `(and (task-fetching-action ,top-level-name ((demo-random)) ?fetching-task ?_)
+               (task-full-path ?fetching-task ?fetching-path)
+               (task-picking-up-action ,top-level-name ?fetching-path ?picking-up-task ?_)
+               (task-outcome ?picking-up-task :succeeded)
+               (task-started-at ,top-level-name ?picking-up-task ?picking-up-start)
+               ;; (task-ended-at ,top-level-name ?picking-up-task ?picking-up-end)
+               ;; (task-previous-action-sibling ,top-level-name ?fetching-path ?picking-up-task
+               ;;                               :navigating ?navigating-task)
+               ;; (task-navigating-action ,top-level-name ?fetching-path ?navigating-task
+               ;;                         ?navigating-designator)
+               (cram-robot-interfaces:robot ?robot)
+               (btr:timeline ?timeline)
+               (coe:holds ?timeline (cpoe:loc ?robot ?pick-location)
+                          (coe:at ?picking-up-start)))))))))

@@ -38,9 +38,20 @@
         #:cram-utilities
         ;; #:cram-execution-trace
         )
-  (:nicknames #:occasions-events)
+  (:nicknames #:occasions-events #:coe)
   (:shadowing-import-from #:cpl #:name)
   (:shadow event)
+  (:import-from #:cpl-impl
+                #:make-fluent
+                #:value
+                #:plan-failure
+                #:common-lisp-error-envelope
+                #:task-tree-node-children
+                #:task-tree-node-status-fluent)
+  (:shadowing-import-from #:cram-prolog
+                          #:fail)
+  (:import-from #:cram-execution-trace
+                #:throughout)
   (:export #:clear-belief
            #:assert-occasion
            #:retract-occasion
@@ -58,6 +69,7 @@
            #:task-error
            #:error-type
            #:holds
+           #:occurs
            #:task-status
            #:duration-includes
            #:throughout
@@ -69,13 +81,4 @@
            #:subtask+
            #:at
            #:event #:on-event
-           #:event-timestamp)
-  (:import-from #:cpl-impl
-                #:make-fluent
-                #:value
-                #:plan-failure
-                #:common-lisp-error-envelope
-                #:task-tree-node-children
-                #:task-tree-node-status-fluent)
-  (:shadowing-import-from #:cram-prolog
-                          #:fail))
+           #:event-timestamp))
