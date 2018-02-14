@@ -41,8 +41,6 @@
    #:durable-copy
    ;; episode-knwoledge.lisp
    #:throughout
-   ;; todo: sort these guy in:
-   #:during #:at
    #:episode-knowledge
    #:live-episode-knowledge
    #:offline-episode-knowledge
@@ -80,5 +78,4 @@
    #:disable-auto-tracing
    #:auto-tracing-enabled
    #:set-auto-tracing-directory
-   #:setup-auto-tracing
-   ))
+   #:setup-auto-tracing))
