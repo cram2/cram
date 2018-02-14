@@ -75,7 +75,8 @@
 
   (initialize-or-finalize)
 
-  (let ((list-of-objects '(:breakfast-cereal; :milk :cup :bowl :spoon
+  (let ((list-of-objects '(;; :breakfast-cereal
+                           :milk ;; :cup :bowl :spoon
                            )))
     (dolist (?object-type list-of-objects)
       (let* ((?cad-model
@@ -333,6 +334,9 @@
   (<- (task-picking-up-action ?top-level-name ?subtree-path ?task ?designator)
     (task-specific-action ?top-level-name ?subtree-path :picking-up ?task ?designator))
 
+  (<- (task-delivering-action ?top-level-name ?subtree-path ?task ?designator)
+    (task-specific-action ?top-level-name ?subtree-path :delivering ?task ?designator))
+
     ;; task next and previous perform action sibling
   (<- (task-next-action-sibling ?top-level-name ?subtree-path ?task ?action-type ?next-task)
     (bound ?top-level-name)
@@ -409,7 +413,7 @@
                         (task-outcome ?task :failed)
                         (format "desig: ~a~%" ?desig)))))
 
-(defun find-location-for-pick-up ()
+(defun find-location-for-pick-up-using-occasions ()
   (cet:enable-fluent-tracing)
   (cpl-impl::remove-top-level-task-tree :top-level)
 
@@ -427,12 +431,107 @@
                (task-picking-up-action ,top-level-name ?fetching-path ?picking-up-task ?_)
                (task-outcome ?picking-up-task :succeeded)
                (task-started-at ,top-level-name ?picking-up-task ?picking-up-start)
-               ;; (task-ended-at ,top-level-name ?picking-up-task ?picking-up-end)
-               ;; (task-previous-action-sibling ,top-level-name ?fetching-path ?picking-up-task
-               ;;                               :navigating ?navigating-task)
-               ;; (task-navigating-action ,top-level-name ?fetching-path ?navigating-task
-               ;;                         ?navigating-designator)
                (cram-robot-interfaces:robot ?robot)
                (btr:timeline ?timeline)
                (coe:holds ?timeline (cpoe:loc ?robot ?pick-location)
                           (coe:at ?picking-up-start)))))))))
+
+(defun find-location-for-pick-up (&optional (projection-run-count 5))
+  (flet ((get-pick-up-location (top-level-name path)
+           (let* ((bindings
+                    (car
+                     (prolog:prolog
+                      `(and
+                        (task-fetching-action ,top-level-name ,path
+                                              ?fetching-task ?_)
+                        (task-full-path ?fetching-task ?fetching-path)
+                        (task-picking-up-action ,top-level-name ?fetching-path
+                                                ?picking-up-task ?picking-up-designator)
+                        (task-outcome ?picking-up-task :succeeded)
+                        (task-previous-action-sibling ,top-level-name ?fetching-path
+                                                      ?picking-up-task
+                                                      :navigating ?navigating-task)
+                        (task-navigating-action ,top-level-name ?fetching-path ?navigating-task
+                                                ?navigating-designator)))))
+                  (picking-action
+                    (cut:var-value '?picking-up-designator bindings))
+                  (picking-action-newest
+                    (unless (cut:is-var picking-action)
+                      (desig:newest-effective-designator picking-action)))
+                  (picking-arm
+                    (when picking-action-newest
+                      (third (desig:reference picking-action-newest))))
+                  (navigating-action
+                    (cut:var-value '?navigating-designator bindings))
+                  (navigating-action-newest
+                    (unless (cut:is-var navigating-action)
+                      (desig:newest-effective-designator navigating-action)))
+                  (picking-location
+                    (when navigating-action
+                      (desig:newest-effective-designator
+                       (desig:desig-prop-value navigating-action :location)))))
+             (list picking-location picking-arm))))
+
+    (cet:enable-fluent-tracing)
+    (cpl-impl::remove-top-level-task-tree :top-level)
+
+    (let (paths)
+      (proj:with-projection-environment pr2-proj:pr2-bullet-projection-environment
+        (cpl-impl::named-top-level (:name :top-level)
+          (dotimes (n projection-run-count)
+            (push (demo-random nil) paths))))
+
+      (mapcar (alexandria:curry #'get-pick-up-location :top-level)
+              paths))))
+
+(defun find-location-for-pick-up-with-successful-put-down (&optional (projection-run-count 5))
+  (flet ((get-pick-up-location (top-level-name path)
+           (let* ((bindings
+                    (car
+                     (prolog:prolog
+                      `(and
+                        (task-fetching-action ,top-level-name ,path
+                                              ?fetching-task ?_)
+                        (task-full-path ?fetching-task ?fetching-path)
+                        (task-picking-up-action ,top-level-name ?fetching-path
+                                                ?picking-up-task ?picking-up-designator)
+                        (task-outcome ?picking-up-task :succeeded)
+                        (task-previous-action-sibling ,top-level-name ?fetching-path
+                                                      ?picking-up-task
+                                                      :navigating ?navigating-task)
+                        (task-navigating-action ,top-level-name ?fetching-path ?navigating-task
+                                                ?navigating-designator)
+                        (task-delivering-action ,top-level-name ,path
+                                                ?delivering-task ?_)
+                        (task-outcome ?delivering-task :succeeded)))))
+                  (picking-action
+                    (cut:var-value '?picking-up-designator bindings))
+                  (picking-action-newest
+                    (unless (cut:is-var picking-action)
+                      (desig:newest-effective-designator picking-action)))
+                  (picking-arm
+                    (when picking-action-newest
+                      (third (desig:reference picking-action-newest))))
+                  (navigating-action
+                    (cut:var-value '?navigating-designator bindings))
+                  (navigating-action-newest
+                    (unless (cut:is-var navigating-action)
+                      (desig:newest-effective-designator navigating-action)))
+                  (picking-location
+                    (when navigating-action-newest
+                      (desig:newest-effective-designator
+                       (desig:desig-prop-value navigating-action-newest :location)))))
+             (list picking-location picking-arm))))
+
+    (cet:enable-fluent-tracing)
+    (cpl-impl::remove-top-level-task-tree :top-level)
+
+    (let (paths)
+      (proj:with-projection-environment pr2-proj:pr2-bullet-projection-environment
+        (cpl-impl::named-top-level (:name :top-level)
+          (dotimes (n projection-run-count)
+            (push (demo-random nil) paths))))
+
+      (mapcar (alexandria:curry #'get-pick-up-location :top-level)
+              paths))))
+
