@@ -61,7 +61,9 @@
       (exe:perform (desig:an action (type opening) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))))
 
-(cpl:def-cram-function demo-random (&optional (random t))
+(cpl:def-cram-function demo-random (&optional
+                                    (random t)
+                                    (list-of-objects '(:breakfast-cereal :milk :cup :bowl :spoon)))
   (btr:detach-all-objects (btr:get-robot-object))
   (btr-utils:kill-all-objects)
 
@@ -75,44 +77,41 @@
 
   (initialize-or-finalize)
 
-  (let ((list-of-objects '(;; :breakfast-cereal
-                           :milk ;; :cup :bowl :spoon
-                           )))
-    (dolist (?object-type list-of-objects)
-      (let* ((?cad-model
-               (cdr (assoc ?object-type *object-cad-models*)))
-             (?object-to-fetch
-               (desig:an object
-                         (type ?object-type)
-                         (desig:when ?cad-model
-                           (cad-model ?cad-model))))
-             (?fetching-location
-               (desig:a location
-                        (on "CounterTop")
-                        (name "iai_kitchen_sink_area_counter_top")
-                        (side left)))
-             (?placing-target-pose
-               (cl-transforms-stamped:pose->pose-stamped
-                "map" 0.0
-                (cram-bullet-reasoning:ensure-pose
-                 (cdr (assoc ?object-type *object-placing-poses*)))))
-             (?arm-to-use
-               (cdr (assoc ?object-type *object-grasping-arms*)))
-             (?delivering-location
-               (desig:a location
-                        (pose ?placing-target-pose))))
+  (dolist (?object-type list-of-objects)
+    (let* ((?cad-model
+             (cdr (assoc ?object-type *object-cad-models*)))
+           (?object-to-fetch
+             (desig:an object
+                       (type ?object-type)
+                       (desig:when ?cad-model
+                         (cad-model ?cad-model))))
+           (?fetching-location
+             (desig:a location
+                      (on "CounterTop")
+                      (name "iai_kitchen_sink_area_counter_top")
+                      (side left)))
+           (?placing-target-pose
+             (cl-transforms-stamped:pose->pose-stamped
+              "map" 0.0
+              (cram-bullet-reasoning:ensure-pose
+               (cdr (assoc ?object-type *object-placing-poses*)))))
+           (?arm-to-use
+             (cdr (assoc ?object-type *object-grasping-arms*)))
+           (?delivering-location
+             (desig:a location
+                      (pose ?placing-target-pose))))
 
-        (cpl:with-failure-handling
-            ((common-fail:high-level-failure (e)
-               (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
-               (return)))
-          (exe:perform
-           (desig:an action
-                     (type transporting)
-                     (object ?object-to-fetch)
-                     ;; (arm ?arm-to-use)
-                     (location ?fetching-location)
-                     (target ?delivering-location)))))))
+      (cpl:with-failure-handling
+          ((common-fail:high-level-failure (e)
+             (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
+             (return)))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object ?object-to-fetch)
+                   ;; (arm ?arm-to-use)
+                   (location ?fetching-location)
+                   (target ?delivering-location))))))
 
   (initialize-or-finalize)
 
@@ -484,26 +483,60 @@
       (mapcar (alexandria:curry #'get-pick-up-location :top-level)
               paths))))
 
-(defun find-location-for-pick-up-with-successful-put-down (&optional (projection-run-count 5))
+
+
+(defun find-successful-transporting-parameters (&optional (projection-run-count 5))
   (flet ((get-pick-up-location (top-level-name path)
            (let* ((bindings
                     (car
                      (prolog:prolog
                       `(and
-                        (task-fetching-action ,top-level-name ,path
+                        ;; find successful picking-up action
+                        (task-specific-action ,top-level-name ,path :transporting
+                                              ?transporting-task ?_)
+                        (task-outcome ?transporting-task :succeeded)
+                        (task-full-path ?transporting-task ?transporting-path)
+                        (task-specific-action ,top-level-name ?transporting-path :fetching
                                               ?fetching-task ?_)
                         (task-full-path ?fetching-task ?fetching-path)
-                        (task-picking-up-action ,top-level-name ?fetching-path
-                                                ?picking-up-task ?picking-up-designator)
+                        (task-specific-action ,top-level-name ?fetching-path :picking-up
+                                              ?picking-up-task ?picking-up-designator)
                         (task-outcome ?picking-up-task :succeeded)
+                        ;; find closest navigation action before pick-up
                         (task-previous-action-sibling ,top-level-name ?fetching-path
                                                       ?picking-up-task
-                                                      :navigating ?navigating-task)
-                        (task-navigating-action ,top-level-name ?fetching-path ?navigating-task
-                                                ?navigating-designator)
-                        (task-delivering-action ,top-level-name ,path
-                                                ?delivering-task ?_)
-                        (task-outcome ?delivering-task :succeeded)))))
+                                                      :navigating ?picking-navigating-task)
+                        (task-specific-action ,top-level-name ?fetching-path :navigating
+                                              ?picking-navigating-task
+                                              ?picking-navigating-designator)
+                        ;; make sure that the corresponding delivering action succeeded
+                        (task-specific-action ,top-level-name ?transporting-path :delivering
+                                              ?delivering-task ?_)
+                        (task-outcome ?delivering-task :succeeded)
+                        ;; find closest navigation action before place
+                        (task-full-path ?delivering-task ?delivering-path)
+                        (task-specific-action ,top-level-name ?delivering-path :placing
+                                              ?placing-task ?placing-designator)
+                        (task-outcome ?placing-task :succeeded)
+                        (task-previous-action-sibling ,top-level-name ?delivering-path
+                                                      ?placing-task
+                                                      :navigating ?placing-navigating-task)
+                        (task-specific-action ,top-level-name ?delivering-path :navigating
+                                              ?placing-navigating-task
+                                              ?placing-navigating-designator)
+                        ;; ;; calculate navigation distances
+                        ;; (btr:timeline ?timeline)
+                        ;; (bagof ?distance
+                        ;;        (and
+                        ;;         (task-specific-action ,top-level-name ?transporting-task
+                        ;;                               :navigating ?navigating-task ?_)
+                        ;;         (task-started-at ,top-level-name ?navigating-task ?start-time)
+                        ;;         (coe:holds ?timeline (cpoe:loc ?robot ?start-location)
+                        ;;                    (coe:at ?start-time))
+                        ;;         (task-ended-at ,top-level-name ?navigating-task ?end-time)
+                        ;;         (coe:holds ?timeline (cpoe:loc ?robot ?end-location)
+                        ;;                    (coe:at ?end-time))))
+                        ))))
                   (picking-action
                     (cut:var-value '?picking-up-designator bindings))
                   (picking-action-newest
@@ -512,16 +545,30 @@
                   (picking-arm
                     (when picking-action-newest
                       (third (desig:reference picking-action-newest))))
-                  (navigating-action
-                    (cut:var-value '?navigating-designator bindings))
-                  (navigating-action-newest
-                    (unless (cut:is-var navigating-action)
-                      (desig:newest-effective-designator navigating-action)))
+                  (picking-grasp
+                    (when picking-action-newest
+                      (sixth (desig:reference picking-action-newest))))
+                  (picking-navigating-action
+                    (cut:var-value '?picking-navigating-designator bindings))
+                  (picking-navigating-action-newest
+                    (unless (cut:is-var picking-navigating-action)
+                      (desig:newest-effective-designator picking-navigating-action)))
                   (picking-location
-                    (when navigating-action-newest
-                      (desig:newest-effective-designator
-                       (desig:desig-prop-value navigating-action-newest :location)))))
-             (list picking-location picking-arm))))
+                    (when picking-navigating-action-newest
+                      (desig:reference
+                       (desig:newest-effective-designator
+                        (desig:desig-prop-value picking-navigating-action-newest :location)))))
+                  (placing-navigating-action
+                    (cut:var-value '?placing-navigating-designator bindings))
+                  (placing-navigating-action-newest
+                    (unless (cut:is-var placing-navigating-action)
+                      (desig:newest-effective-designator placing-navigating-action)))
+                  (placing-location
+                    (when placing-navigating-action-newest
+                      (desig:reference
+                       (desig:newest-effective-designator
+                        (desig:desig-prop-value placing-navigating-action-newest :location))))))
+             (list picking-location picking-arm picking-grasp placing-location))))
 
     (cet:enable-fluent-tracing)
     (cpl-impl::remove-top-level-task-tree :top-level)
@@ -530,8 +577,79 @@
       (proj:with-projection-environment pr2-proj:pr2-bullet-projection-environment
         (cpl-impl::named-top-level (:name :top-level)
           (dotimes (n projection-run-count)
-            (push (demo-random nil) paths))))
+            (push (demo-random nil '(:milk)) paths))))
 
-      (mapcar (alexandria:curry #'get-pick-up-location :top-level)
-              paths))))
+      (let* ((parameter-lists
+               (mapcar (alexandria:curry #'get-pick-up-location :top-level)
+                       paths))
+             (parameter-lists-only-poses
+               (mapcar (lambda (set-of-params)
+                         (list (first set-of-params)
+                               (fourth set-of-params)))
+                       parameter-lists))
+             (current-robot-pose
+               ;; todo: actually should use cram-tf:robot-current-pose
+               (cl-transforms-stamped:pose->pose-stamped
+                cram-tf:*fixed-frame*
+                0.0
+                (btr:pose (btr:get-robot-object))))
+             (best-parameter-list-index
+               (find-best-projection-run-by-distance
+                current-robot-pose
+                parameter-lists-only-poses))
+             (best-parameters
+               (nth best-parameter-list-index parameter-lists)))
+        (print parameter-lists)
+        best-parameters))))
 
+(defun estimate-distance-between-pose-stamped (pose-stamped-1 pose-stamped-2
+                                               &optional
+                                                 (translational-weight 1.0)
+                                                 (rotational-weight 1.0))
+  (assert pose-stamped-1)
+  (assert pose-stamped-2)
+  (assert (string-equal (cl-transforms-stamped:frame-id pose-stamped-1)
+                        (cl-transforms-stamped:frame-id pose-stamped-2)))
+  (+ (* translational-weight
+        (cl-transforms:v-dist
+         (cl-transforms:origin pose-stamped-1)
+         (cl-transforms:origin pose-stamped-2)))
+     (* rotational-weight
+        (abs
+         (cl-transforms:normalize-angle
+          (cl-transforms:angle-between-quaternions
+           (cl-transforms:orientation pose-stamped-1)
+           (cl-transforms:orientation pose-stamped-2)))))))
+
+(defun estimate-distances-starting-from-current-pose (current-pose-stamped list-of-pose-stampeds)
+  (unless (some #'null list-of-pose-stampeds)
+    (reduce #'+
+            (maplist (lambda (sublist)
+                       (if (>= (length sublist) 2)
+                           (estimate-distance-between-pose-stamped
+                            (first sublist)
+                            (second sublist))
+                           0.0))
+                     (cons current-pose-stamped list-of-pose-stampeds)))))
+
+(defun find-best-projection-run-by-distance (current-pose-stamped lists-of-pose-stampeds)
+  (let* ((distances
+           (mapcar (alexandria:curry #'estimate-distances-starting-from-current-pose
+                                     current-pose-stamped)
+                   lists-of-pose-stampeds))
+         (min-distances
+           (reduce (lambda (x y)
+                     (if x
+                         (if y
+                             (min x y)
+                             x)
+                         (if y
+                             y
+                             NIL)))
+                   distances)))
+    (values (position min-distances distances)
+            min-distances)))
+
+
+(defun main-experiment ()
+  (find-successful-transporting-parameters 3))
