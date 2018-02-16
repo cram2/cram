@@ -77,7 +77,9 @@
         (and (cram-robot-interfaces:robot ?robot)
              (cram-robot-interfaces:arm ?robot ?arm)))
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
-    (obj-int:object-type-grasp ?object-type ?grasp)
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (obj-int:object-type-grasp ?object-type ?grasp))
     (lisp-fun obj-int:get-object-type-gripping-effort ?object-type ?effort)
     (lisp-fun obj-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
     (lisp-fun cram-object-interfaces:get-object-transform ?current-object-desig ?object-transform)
