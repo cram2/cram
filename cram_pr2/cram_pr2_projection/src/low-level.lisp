@@ -369,6 +369,46 @@
                (cl-transforms:make-pose
                 (cl-transforms:make-3d-vector (- *gripper-length*) 0 0)
                 (cl-transforms:make-identity-rotation))))))
+         (ee-pose-in-base->ee-pose-in-torso (ee-pose-in-base)
+           (when ee-pose-in-base
+             (if (string-equal
+                  (cl-transforms-stamped:frame-id ee-pose-in-base)
+                  cram-tf:*robot-base-frame*)
+                 ;; tPe: tTe = tTb * bTe = tTm * mTb * bTe = (mTt)-1 * mTb * bTe
+                 (let* ((map-torso-transform
+                          (cram-tf:pose->transform-stamped
+                           cram-tf:*fixed-frame*
+                           cram-tf:*robot-torso-frame*
+                           0.0
+                           (btr:link-pose
+                            (btr:get-robot-object)
+                            cram-tf:*robot-torso-frame*)))
+                        (torso-map-transform
+                          (cram-tf:transform-stamped-inv map-torso-transform))
+                        (map-base-transform
+                          (cram-tf:pose->transform-stamped
+                           cram-tf:*fixed-frame*
+                           cram-tf:*robot-base-frame*
+                           0.0
+                           (btr:pose (btr:get-robot-object))))
+                        (torso-base-transform
+                          (cram-tf:multiply-transform-stampeds
+                           cram-tf:*robot-torso-frame*
+                           cram-tf:*robot-base-frame*
+                           torso-map-transform
+                           map-base-transform))
+                        (base-ee-transform
+                          (cram-tf:pose-stamped->transform-stamped
+                           ee-pose-in-base
+                           ;; dummy link name for T x T to work
+                           "end_effector_link")))
+                   (cram-tf:multiply-transform-stampeds
+                    cram-tf:*robot-torso-frame*
+                    "end_effector_link"
+                    torso-base-transform
+                    base-ee-transform
+                    :result-as-pose-or-transform :pose))
+                 (error "Arm movement goals should be given in robot base frame"))))
          (get-ik-joint-positions (arm ee-pose)
            (when ee-pose
              (multiple-value-bind (ik-solution-msg torso-angle)
@@ -405,9 +445,13 @@
                      (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))
                 torso-angle)))))
     (multiple-value-bind (left-ik left-torso-angle)
-        (get-ik-joint-positions :left (tcp-pose->ee-pose left-tcp-pose))
+        (get-ik-joint-positions :left
+                                (ee-pose-in-base->ee-pose-in-torso
+                                 (tcp-pose->ee-pose left-tcp-pose)))
       (multiple-value-bind (right-ik right-torso-angle)
-          (get-ik-joint-positions :right (tcp-pose->ee-pose right-tcp-pose))
+          (get-ik-joint-positions :right
+                                  (ee-pose-in-base->ee-pose-in-torso
+                                   (tcp-pose->ee-pose right-tcp-pose)))
         (cond
           ((and left-torso-angle right-torso-angle)
            (when (not (eq left-torso-angle right-torso-angle))
