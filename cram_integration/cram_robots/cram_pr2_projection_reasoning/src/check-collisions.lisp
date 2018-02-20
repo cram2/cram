@@ -60,7 +60,6 @@ Store found pose into designator or throw error if good pose not found."
                         (cpl:fail 'common-fail:navigation-pose-in-collision)))
                     (if navigation-location-desig
                         (progn
-                          ;; (roslisp:ros-warn (pp-plans coll-check) "Retrying...~%")
                           (cpl:retry))
                         (progn
                           (roslisp:ros-warn (pp-plans coll-check)
@@ -110,7 +109,6 @@ Store found pose into designator or throw error if good pose not found."
                (((or common-fail:manipulation-pose-unreachable
                      common-fail:manipulation-pose-in-collision) (e)
                   (declare (ignore e))
-                  ;; (roslisp:ros-warn (pp-plans pick-object) "Manipulation failure happened: ~a" e)
                   (cpl:do-retry pick-up-configuration-retries
                     (handler-case
                         (setf pick-up-action-desig
@@ -122,7 +120,6 @@ Store found pose into designator or throw error if good pose not found."
                         (cpl:fail 'common-fail:object-unreachable)))
                     (cond
                       (pick-up-action-desig
-                       ;; (roslisp:ros-info (pp-plans pick-object) "Retrying...")
                        (cpl:retry))
                       (t
                        (roslisp:ros-warn (pp-plans coll-check)
@@ -150,6 +147,8 @@ Store found pose into designator or throw error if good pose not found."
                        (mapcar (lambda (left-pose right-pose)
                                  (pr2-proj::gripper-action gripper-opening arm)
                                  (pr2-proj::move-tcp left-pose right-pose)
+                                 (cram-occasions-events:on-event
+                                  (make-instance 'cram-plan-occasions-events:robot-state-changed))
                                  (unless (< (abs *debug-short-sleep-duration*) 0.0001)
                                    (cpl:sleep *debug-short-sleep-duration*))
                                  (when (remove object-name
@@ -202,6 +201,8 @@ Store found pose into designator or throw error if good pose not found."
                     (mapcar (lambda (left-pose right-pose)
                               (pr2-proj::gripper-action :open arm)
                               (pr2-proj::move-tcp left-pose right-pose)
+                              (cram-occasions-events:on-event
+                               (make-instance 'cram-plan-occasions-events:robot-state-changed))
                               (unless (< (abs *debug-short-sleep-duration*) 0.0001)
                                 (cpl:sleep *debug-short-sleep-duration*))
                               (when (or
