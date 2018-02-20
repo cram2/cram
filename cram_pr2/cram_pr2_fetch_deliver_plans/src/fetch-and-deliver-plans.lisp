@@ -94,99 +94,76 @@
 
 
 
-(cpl:def-cram-function fetch (?object-designator ?search-location ?arm)
-  (let* ((object-designator-properties
-           (desig:properties ?object-designator))
-         (?perceived-object-desig
-           (exe:perform (desig:an action
-                                  (type searching)
-                                  (object ?object-designator)
-                                  (location ?search-location))))
-
-         (?perceived-object-pose-in-base
-           (desig:reference (desig:a location (of ?perceived-object-desig))))
-         (?perceived-object-pose-in-map
+(cpl:def-cram-function fetch (?object-designator ?arm)
+  (let* ((?object-pose-in-base
+           (desig:reference (desig:a location (of ?object-designator))))
+         (?object-pose-in-map
            (cram-tf:ensure-pose-in-frame
-            ?perceived-object-pose-in-base
-            cram-tf:*fixed-frame*
-            :use-zero-time t)))
-
-    (roslisp:ros-info (pp-plans fetch)
-                      "Found object of type ~a~%"
-                      (desig:desig-prop-value ?perceived-object-desig :type))
-
-    (cpl:with-failure-handling
-        ((common-fail:navigation-pose-in-collision (e)
-           (declare (ignore e))
-           (roslisp:ros-warn (pp-plans fetch) "Object ~a is unfetchable." ?object-designator)
-           (cpl:fail 'common-fail:object-unfetchable :object ?object-designator)))
-
-      (let ((?pick-up-location
-              (desig:a location
-                       (reachable-for pr2)
-                       (location (desig:a location
-                                          (pose ?perceived-object-pose-in-map))))))
-
-        (cpl:with-retry-counters ((relocation-for-ik-retries 30))
-          (cpl:with-failure-handling
-              (((or common-fail:object-unreachable
-                    common-fail:perception-low-level-failure
-                    common-fail:gripping-failed
-                    common-fail:high-level-failure) (e)
-                 (declare (ignore e))
-                 (roslisp:ros-warn (pp-plans fetch)
-                                   "Object of type ~a is unreachable."
-                                   (desig:desig-prop-value ?perceived-object-desig :type))
-                 (cpl:do-retry relocation-for-ik-retries
-                   (handler-case
-                       (setf ?pick-up-location (desig:next-solution ?pick-up-location))
-                     (desig:designator-error ()
-                       (roslisp:ros-warn (pp-plans fetch)
-                                         "Designator to reach object ~a cannot be resolved. ~
+            ?object-pose-in-base cram-tf:*fixed-frame* :use-zero-time t))
+         (?pick-up-location
+            (desig:a location
+                     (reachable-for pr2)
+                     (location (desig:a location
+                                        (pose ?object-pose-in-map))))))
+    (cpl:with-retry-counters ((relocation-for-ik-retries 30))
+      (cpl:with-failure-handling
+          (((or common-fail:object-unreachable
+                common-fail:perception-low-level-failure
+                common-fail:gripping-failed
+                common-fail:high-level-failure
+                common-fail:navigation-pose-in-collision) (e)
+             (declare (ignore e))
+             (roslisp:ros-warn (pp-plans fetch)
+                               "Object of type ~a is unreachable."
+                               (desig:desig-prop-value ?object-designator :type))
+             (cpl:do-retry relocation-for-ik-retries
+               (handler-case
+                   (setf ?pick-up-location (desig:next-solution ?pick-up-location))
+                 (desig:designator-error ()
+                   (roslisp:ros-warn (pp-plans fetch)
+                                     "Designator to reach object ~a cannot be resolved. ~
                                           Propagating up."
-                                         (desig:desig-prop-value ?perceived-object-desig :type))
-                       (cpl:fail 'common-fail:object-unfetchable)))
-                   (if ?pick-up-location
-                       (progn
-                         (roslisp:ros-info (pp-plans fetch) "Relocating...")
-                         (cpl:retry))
-                       (progn
-                         (roslisp:ros-warn (pp-plans fetch) "No more samples to try :'(")
-                         (cpl:fail 'common-fail:object-unfetchable))))
-                 (roslisp:ros-warn (pp-plans fetch) "No more retries left :'(")
-                 (cpl:fail 'common-fail:object-unfetchable)))
+                                     (desig:desig-prop-value ?object-designator :type))
+                   (cpl:fail 'common-fail:object-unfetchable :object ?object-designator)))
+               (if ?pick-up-location
+                   (progn
+                     (roslisp:ros-info (pp-plans fetch) "Relocating...")
+                     (cpl:retry))
+                   (progn
+                     (roslisp:ros-warn (pp-plans fetch) "No more samples to try :'(")
+                     (cpl:fail 'common-fail:object-unfetchable))))
+             (roslisp:ros-warn (pp-plans fetch) "No more retries left :'(")
+             (cpl:fail 'common-fail:object-unfetchable :object ?object-designator)))
 
-            (exe:perform (desig:an action
-                                   (type navigating)
-                                   (location ?pick-up-location)))
-            (setf ?pick-up-location (desig:current-desig ?pick-up-location))
+        (exe:perform (desig:an action
+                               (type navigating)
+                               (location ?pick-up-location)))
+        (setf ?pick-up-location (desig:current-desig ?pick-up-location))
 
-            (exe:perform (desig:an action
-                                   (type looking)
-                                   (target (desig:a location
-                                                    (pose ?perceived-object-pose-in-map)))))
+        (exe:perform (desig:an action
+                               (type looking)
+                               (target (desig:a location
+                                                (pose ?object-pose-in-map)))))
 
-            (let* ((?copy-of-object-designator
-                     (desig:make-designator :object object-designator-properties))
-                   (?more-precise-perceived-object-desig
-                        (exe:perform (desig:an action
-                                               (type detecting)
-                                               (object ?copy-of-object-designator)))))
+        (let ((?more-precise-perceived-object-desig
+                (exe:perform (desig:an action
+                                       (type detecting)
+                                       (object ?object-designator)))))
 
-              (unless (desig:desig-equal ?object-designator ?copy-of-object-designator)
-                (desig:equate ?object-designator ?copy-of-object-designator))
+          ;; (unless (desig:desig-equal ?object-designator ?more-precise-perceived-object-desig)
+          ;;   (desig:equate ?object-designator ?more-precise-perceived-object-desig))
 
-              (let ((pick-up-action
-                      (desig:an action
-                                (type picking-up)
-                                (desig:when ?arm
-                                  (arm ?arm))
-                                (object ?more-precise-perceived-object-desig))))
+          (let ((pick-up-action
+                  (desig:an action
+                            (type picking-up)
+                            (desig:when ?arm
+                              (arm ?arm))
+                            (object ?more-precise-perceived-object-desig))))
 
-                (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
-                (setf pick-up-action (desig:current-desig pick-up-action))
+            (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
+            (setf pick-up-action (desig:current-desig pick-up-action))
 
-                (exe:perform pick-up-action)))))))
+            (exe:perform pick-up-action)))))
 
     (pp-plans:park-arms)
     (desig:current-desig ?object-designator)))
@@ -194,7 +171,6 @@
 
 
 (cpl:def-cram-function deliver (?object-designator ?target-location)
-
   (cpl:with-retry-counters ((target-location-retries 30))
     (cpl:with-failure-handling
         (((or common-fail:object-unreachable
@@ -304,19 +280,29 @@
                  (target (desig:a location
                                   (pose ?placing-pose))))))))
 
-(cpl:def-cram-function transport (?object-designator ?fetching-location ?delivering-location ?arm)
-  (let ((?fetched-object
+(cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm)
+  (let ((?perceived-object-designator
           (exe:perform (desig:an action
-                                 (type fetching)
-                                 (when ?arm
-                                   (arm ?arm))
+                                 (type searching)
                                  (object ?object-designator)
-                                 (location ?fetching-location)))))
-    (cpl:with-failure-handling
-        ((common-fail:high-level-failure (e)
-           (declare (ignore e))
-           (drop-at-sink)))
-      (exe:perform (desig:an action
-                             (type delivering)
-                             (object ?fetched-object)
-                             (target ?delivering-location))))))
+                                 (location ?search-location)))))
+    (roslisp:ros-info (pp-plans transport)
+                      "Found object of type ~a."
+                      (desig:desig-prop-value ?perceived-object-designator :type))
+
+    (let ((?fetched-object
+            (exe:perform (desig:an action
+                                   (type fetching)
+                                   (when ?arm
+                                     (arm ?arm))
+                                   (object ?perceived-object-designator)))))
+      (roslisp:ros-info (pp-plans transport) "Fetched the object.")
+
+      (cpl:with-failure-handling
+          ((common-fail:high-level-failure (e)
+             (declare (ignore e))
+             (drop-at-sink)))
+        (exe:perform (desig:an action
+                               (type delivering)
+                               (object ?fetched-object)
+                               (target ?delivering-location)))))))
