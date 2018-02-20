@@ -44,13 +44,12 @@
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator))
 
-  (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?location-designator
-                                                        ?arm))
+  (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?arm))
     (spec:property ?action-designator (:type :fetching))
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
-    (spec:property ?action-designator (:location ?some-location-designator))
-    (desig:current-designator ?some-location-designator ?location-designator)
+    ;; (spec:property ?action-designator (:location ?some-location-designator))
+    ;; (desig:current-designator ?some-location-designator ?location-designator)
     (or (spec:property ?action-designator (:arm ?arm))
         (equal ?arm NIL)))
 
