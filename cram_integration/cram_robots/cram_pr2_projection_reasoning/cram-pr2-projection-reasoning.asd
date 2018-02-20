@@ -35,8 +35,6 @@
                cram-designators
                cram-language
                cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
-               cram-occasions-events
-               cram-plan-occasions-events
 
                cram-common-failures
                cram-mobile-pick-place-plans

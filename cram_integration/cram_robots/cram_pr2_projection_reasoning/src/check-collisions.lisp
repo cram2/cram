@@ -147,8 +147,6 @@ Store found pose into designator or throw error if good pose not found."
                        (mapcar (lambda (left-pose right-pose)
                                  (pr2-proj::gripper-action gripper-opening arm)
                                  (pr2-proj::move-tcp left-pose right-pose)
-                                 (cram-occasions-events:on-event
-                                  (make-instance 'cram-plan-occasions-events:robot-state-changed))
                                  (unless (< (abs *debug-short-sleep-duration*) 0.0001)
                                    (cpl:sleep *debug-short-sleep-duration*))
                                  (when (remove object-name
@@ -198,8 +196,6 @@ Store found pose into designator or throw error if good pose not found."
                     (mapcar (lambda (left-pose right-pose)
                               (pr2-proj::gripper-action :open arm)
                               (pr2-proj::move-tcp left-pose right-pose)
-                              (cram-occasions-events:on-event
-                               (make-instance 'cram-plan-occasions-events:robot-state-changed))
                               (unless (< (abs *debug-short-sleep-duration*) 0.0001)
                                 (cpl:sleep *debug-short-sleep-duration*))
                               (when (or
