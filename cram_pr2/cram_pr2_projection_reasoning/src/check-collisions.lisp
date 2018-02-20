@@ -152,10 +152,7 @@ Store found pose into designator or throw error if good pose not found."
                                  (unless (< (abs *debug-short-sleep-duration*) 0.0001)
                                    (cpl:sleep *debug-short-sleep-duration*))
                                  (when (remove object-name
-                                               (btr:find-objects-in-contact
-                                                btr:*current-bullet-world*
-                                                (btr:get-robot-object))
-                                               :key #'btr:name)
+                                               (btr:robot-colliding-objects-without-attached))
                                    (roslisp:ros-warn (pp-plans coll-check)
                                                      "Robot is in collision with environment.")
                                    (cpl:sleep *debug-long-sleep-duration*)
@@ -206,11 +203,9 @@ Store found pose into designator or throw error if good pose not found."
                               (unless (< (abs *debug-short-sleep-duration*) 0.0001)
                                 (cpl:sleep *debug-short-sleep-duration*))
                               (when (or
-                                     (remove object-name
-                                             (btr:find-objects-in-contact
-                                              btr:*current-bullet-world*
-                                              (btr:get-robot-object))
-                                             :key #'btr:name)
+                                     ;; either robot collides with environment
+                                     (btr:robot-colliding-objects-without-attached)
+                                     ;; or object in the hand collides with environment
                                      (remove (btr:name
                                               (find-if (lambda (x)
                                                          (typep x 'btr:semantic-map-object))
