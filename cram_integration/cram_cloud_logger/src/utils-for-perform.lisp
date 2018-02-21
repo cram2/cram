@@ -181,3 +181,151 @@
             (send-task-success action-id "true")
             perform-result)))
       (call-next-method)))
+
+
+(defmethod obj-int:get-object-type-gripping-effort :around (object-type)
+  (print "MY FIRST AROUND LISP METHOD")
+  (call-next-method))
+
+
+action-siblings*) hash-value)))
+      (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
+
+(defun log-cram-prev-action (current-id previous-id)
+ ( send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)))
+
+(defun log-cram-next-action (current-id next-id)
+  (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id)))
+
+(defmethod exe:generic-perform :around ((designator desig:action-designator))
+  (if *is-logging-enabled*
+      (let ((action-id (log-perform-call designator)))
+        (cpl:with-failure-handling
+            ((cpl:plan-failure (e)
+               (log-cram-finish-action action-id)
+               (send-task-success action-id "false")
+               (format t "failure string: ~a" (write-to-string e))))
+          ;;(format t "executing ~a~%" action-id)
+          ;;(format t "logging ~a with parent ~a~%" action-id (first *action-parents*))
+          (log-cram-sub-action (car *action-parents*) action-id)
+          (log-cram-sibling-action (car *action-parents*) action-id)
+          (push action-id *action-parents*)
+          (format t "new hierarchy is : ~a~%" *action-parents*)
+          (let ((perform-result (call-next-method)))
+            (log-cram-finish-action action-id)
+            (when (and perform-result (typep perform-result 'desig:object-designator))
+              (let ((name (desig:desig-prop-value perform-result :name)))
+                (when name
+                  (send-object-action-parameter action-id perform-result))))
+            (send-task-success action-id "true")
+            perform-result)))
+      (call-next-method)))
+
+
+(defmethod obj-int:get-object-type-gripping-effort :around (object-type)
+  (print "MY FIRST AROUND LISP METHOD")
+  (call-next-method))
+
+
+action-siblings*) hash-value)))
+      (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
+
+(defun log-cram-prev-action (current-id previous-id)
+ ( send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)))
+
+(defun log-cram-next-action (current-id next-id)
+  (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id)))
+
+(defmethod exe:generic-perform :around ((designator desig:action-designator))
+  (if *is-logging-enabled*
+      (let ((action-id (log-perform-call designator)))
+        (cpl:with-failure-handling
+            ((cpl:plan-failure (e)
+               (log-cram-finish-action action-id)
+               (send-task-success action-id "false")
+               (format t "failure string: ~a" (write-to-string e))))
+          ;;(format t "executing ~a~%" action-id)
+          ;;(format t "logging ~a with parent ~a~%" action-id (first *action-parents*))
+          (log-cram-sub-action (car *action-parents*) action-id)
+          (log-cram-sibling-action (car *action-parents*) action-id)
+          (push action-id *action-parents*)
+          (format t "new hierarchy is : ~a~%" *action-parents*)
+          (let ((perform-result (call-next-method)))
+            (log-cram-finish-action action-id)
+            (when (and perform-result (typep perform-result 'desig:object-designator))
+              (let ((name (desig:desig-prop-value perform-result :name)))
+                (when name
+                  (send-object-action-parameter action-id perform-result))))
+            (send-task-success action-id "true")
+            perform-result)))
+      (call-next-method)))
+
+
+(defmethod obj-int:get-object-type-gripping-effort :around (object-type)
+  (format t "Asking for EFFORT for the object: ~a~%" object-type)
+  (let ((query-result (call-next-method)))
+    (format t "EFFORT Result is ~a~% for the object: ~a~%" query-result object-type)
+    query-result))
+
+(defmethod obj-int:get-object-type-gripper-opening :around (object-type)
+  (format t "Asking for GRIPPER OPENING for the object: ~a~%" object-type)
+  (let ((query-result (call-next-method)))
+    (format t "GRIPPER OPENING Result is ~a~% for the object: ~a~%" query-result object-type)
+    query-result))
+
+(defmethod obj-int:get-object-type-to-gripper-lift-transform :around (object-type
+                                                                      object-name
+                                                                      arm
+                                                                      grasp
+                                                                      grasp-transform)
+  (format t "Asking for GRIPPER LIFT TRANSFORMATION for the object: ~a~%" object-type)
+  (let ((query-result (call-next-method)))
+    (format t "GRIPPER LIFT TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
+    query-result))
+
+(defmethod obj-int:get-object-type-to-gripper-transform :around (object-type
+                                                                 object-name
+                                                                 arm
+                                                                 grasp)
+  (format t "Asking for GRIPPER TRANSFORM for the object: ~a~%" object-type)
+  (let ((query-result (call-next-method)))
+    (format t "GRIPPER TRANSFORM Result is ~a~% for the object: ~a~%" query-result object-type)
+    query-result))
+
+(defmethod obj-int:get-object-type-to-gripper-pregrasp-transform :around (object-type
+                                                                      object-name
+                                                                      arm
+                                                                      grasp
+                                                                      grasp-transform)
+  (format t "Asking for GRIPPER PREGRASP TRANSFORMATION for the object: ~a~%" object-type)
+  (let ((query-result (call-next-method)))
+    (format t "GRIPPER PREGRASP TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
+    query-result))
+
+(defmethod obj-int:get-object-type-to-gripper-2nd-pregrasp-transform :around (object-type
+                                                                      object-name
+                                                                      arm
+                                                                      grasp
+                                                                      grasp-transform)
+  (format t "Asking for GRIPPER 2ND PREGRASP TRANSFORMATION for the object: ~a~%" object-type)
+  (let ((query-result (call-next-method)))
+    (format t "GRIPPER 2ND PREGRASP TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
+    query-result))
+
+(defmethod obj-int:get-object-grasping-poses :around (object-name object-type arm grasp object-transform)
+  (format t "Asking for GRASPING POSES for the object: ~a~%" object-type)
+  (let ((query-result (call-next-method)))
+    (format t "Asking for GRASPING POSES Result is ~a~% for the object: ~a~%" query-result object-type)
+    query-result))
+
+
+;; ;; object-designator-interfaces
+;;   #:get-object-transform
+;;   #:get-object-pose
+;;   ;; manipulation
+;;get-object-type-to-gripper-2nd-lift-transform
+;;   #:get-object-grasping-poses
+;;   #:object-rotationally-symmetric
+;;   #:orientation-matters
+;;   #:object-type-grasp
+
