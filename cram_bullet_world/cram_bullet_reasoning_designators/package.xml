@@ -19,6 +19,7 @@
   <build_depend>cram_designators</build_depend>
   <build_depend>cram_location_costmap</build_depend>
   <build_depend>cram_tf</build_depend>
+  <build_depend>cl_transforms_stamped</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_bullet_reasoning_belief_state</build_depend>
   <build_depend>cram_robot_interfaces</build_depend>
@@ -29,6 +30,7 @@
 
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_tf</run_depend>
+  <run_depend>cl_transforms_stamped</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_math</run_depend>
   <run_depend>cram_bullet_reasoning</run_depend>
