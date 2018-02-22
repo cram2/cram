@@ -94,17 +94,21 @@
 
 
 
-(cpl:def-cram-function fetch (?object-designator ?arm)
+(cpl:def-cram-function fetch (?object-designator ?arm ?pick-up-robot-location pick-up-action)
   (let* ((?object-pose-in-base
-           (desig:reference (desig:a location (of ?object-designator))))
+           (desig:reference (desig:a location (of-item-object ?object-designator))))
          (?object-pose-in-map
            (cram-tf:ensure-pose-in-frame
             ?object-pose-in-base cram-tf:*fixed-frame* :use-zero-time t))
-         (?pick-up-location
+         (?pick-up-robot-location-with-pose
             (desig:a location
                      (reachable-for pr2)
                      (location (desig:a location
                                         (pose ?object-pose-in-map))))))
+
+    (desig:equate ?pick-up-robot-location ?pick-up-robot-location-with-pose)
+    (setf ?pick-up-robot-location (desig:current-desig ?pick-up-robot-location))
+
     (cpl:with-retry-counters ((relocation-for-ik-retries 30))
       (cpl:with-failure-handling
           (((or common-fail:object-unreachable
@@ -118,14 +122,14 @@
                                (desig:desig-prop-value ?object-designator :type))
              (cpl:do-retry relocation-for-ik-retries
                (handler-case
-                   (setf ?pick-up-location (desig:next-solution ?pick-up-location))
+                   (setf ?pick-up-robot-location (desig:next-solution ?pick-up-robot-location))
                  (desig:designator-error ()
                    (roslisp:ros-warn (pp-plans fetch)
                                      "Designator to reach object ~a cannot be resolved. ~
                                           Propagating up."
                                      (desig:desig-prop-value ?object-designator :type))
                    (cpl:fail 'common-fail:object-unfetchable :object ?object-designator)))
-               (if ?pick-up-location
+               (if ?pick-up-robot-location
                    (progn
                      (roslisp:ros-info (pp-plans fetch) "Relocating...")
                      (cpl:retry))
@@ -137,8 +141,8 @@
 
         (exe:perform (desig:an action
                                (type navigating)
-                               (location ?pick-up-location)))
-        (setf ?pick-up-location (desig:current-desig ?pick-up-location))
+                               (location ?pick-up-robot-location)))
+        (setf ?pick-up-robot-location (desig:current-desig ?pick-up-robot-location))
 
         (exe:perform (desig:an action
                                (type looking)
@@ -153,12 +157,15 @@
           ;; (unless (desig:desig-equal ?object-designator ?more-precise-perceived-object-desig)
           ;;   (desig:equate ?object-designator ?more-precise-perceived-object-desig))
 
-          (let ((pick-up-action
+          (let ((pick-up-action-with-object
                   (desig:an action
                             (type picking-up)
                             (desig:when ?arm
                               (arm ?arm))
                             (object ?more-precise-perceived-object-desig))))
+
+            (desig:equate pick-up-action pick-up-action-with-object)
+            (setf pick-up-action (desig:current-desig pick-up-action-with-object))
 
             (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
             (setf pick-up-action (desig:current-desig pick-up-action))
@@ -170,7 +177,8 @@
 
 
 
-(cpl:def-cram-function deliver (?object-designator ?target-location)
+(cpl:def-cram-function deliver (?object-designator ?target-location
+                                                   ?target-robot-location place-action)
   (cpl:with-retry-counters ((target-location-retries 30))
     (cpl:with-failure-handling
         (((or common-fail:object-unreachable
@@ -193,11 +201,15 @@
            (roslisp:ros-warn (pp-plans deliver) "No target-location-retries left :'(~%")
            (cpl:fail 'common-fail:object-undeliverable)))
 
-      (let* ((?pose-at-target-location (desig:reference ?target-location))
-             (?nav-location (desig:a location
-                                     (reachable-for pr2)
-                                     (location (desig:a location
-                                                        (pose ?pose-at-target-location))))))
+      (let* ((?pose-at-target-location
+               (desig:reference ?target-location))
+             (?target-robot-location-with-pose
+               (desig:a location
+                        (reachable-for pr2)
+                        (location (desig:a location
+                                           (pose ?pose-at-target-location))))))
+        (desig:equate ?target-robot-location ?target-robot-location-with-pose)
+        (setf ?target-robot-location (desig:current-desig ?target-robot-location))
 
         (unless
             (cpl:with-retry-counters ((relocation-for-ik-retries 30))
@@ -208,13 +220,14 @@
                      (roslisp:ros-warn (pp-plans deliver) "Object is unreachable: ~a" e)
                      (cpl:do-retry relocation-for-ik-retries
                        (handler-case
-                           (setf ?nav-location (desig:next-solution ?nav-location))
+                           (setf ?target-robot-location
+                                 (desig:next-solution ?target-robot-location))
                          (desig:designator-error ()
                            (roslisp:ros-warn (pp-plans coll-check)
                                              "Designator cannot be resolved: ~a.~
                                               Propagating up." e)
                            (cpl:fail 'common-fail:object-undeliverable)))
-                       (if ?nav-location
+                       (if ?target-robot-location
                            (progn
                              (roslisp:ros-info (pp-plans deliver) "Relocating...")
                              (cpl:retry))
@@ -225,27 +238,31 @@
 
                 (exe:perform (desig:an action
                                        (type navigating)
-                                       (location ?nav-location)))
-                (setf ?nav-location (desig:current-desig ?nav-location))
+                                       (location ?target-robot-location)))
+                (setf ?target-robot-location (desig:current-desig ?target-robot-location))
 
                 (exe:perform (desig:an action
                                        (type looking)
                                        (target (desig:a location
                                                         (pose ?pose-at-target-location)))))
 
-                (let ((placing-action
+                (let ((placing-action-with-pose
                         (desig:an action
                                   (type placing)
                                   (object ?object-designator)
                                   (target (desig:a location
                                                    (pose ?pose-at-target-location))))))
-                  (pr2-proj-reasoning:check-placing-collisions placing-action)
-                  (setf placing-action (desig:current-desig placing-action))
-                  (exe:perform placing-action)
+                  (desig:equate place-action placing-action-with-pose)
+                  (setf place-action (desig:current-desig place-action))
+
+                  (pr2-proj-reasoning:check-placing-collisions place-action)
+                  (setf place-action (desig:current-desig place-action))
+                  (exe:perform place-action)
                   T)))
 
          (roslisp:ros-warn (pp-plans deliver) "No relocation-for-ik-retries left :'(")
          (cpl:fail 'common-fail:object-undeliverable))))))
+
 
 
 (defun drop-at-sink ()
@@ -280,6 +297,8 @@
                  (target (desig:a location
                                   (pose ?placing-pose))))))))
 
+
+
 (cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm)
   (let ((?perceived-object-designator
           (exe:perform (desig:an action
@@ -290,19 +309,53 @@
                       "Found object of type ~a."
                       (desig:desig-prop-value ?perceived-object-designator :type))
 
-    (let ((?fetched-object
-            (exe:perform (desig:an action
-                                   (type fetching)
-                                   (when ?arm
-                                     (arm ?arm))
-                                   (object ?perceived-object-designator)))))
-      (roslisp:ros-info (pp-plans transport) "Fetched the object.")
+    (let ((?fetch-robot-location
+            (desig:a location
+                     (reachable-for pr2)
+                     (object ?perceived-object-designator)))
+          (?fetch-pick-up-action
+            (desig:an action
+                      (type picking-up)
+                      (desig:when ?arm
+                        (arm ?arm))
+                      (object ?perceived-object-designator)))
+          (?deliver-robot-location
+            (desig:a location
+                     (reachable-for pr2)
+                     (location ?delivering-location)))
+          (?deliver-place-action
+            (desig:an action
+                      (type placing)
+                      (object ?perceived-object-designator)
+                      (target ?delivering-location))))
 
-      (cpl:with-failure-handling
-          ((common-fail:high-level-failure (e)
-             (declare (ignore e))
-             (drop-at-sink)))
-        (exe:perform (desig:an action
-                               (type delivering)
-                               (object ?fetched-object)
-                               (target ?delivering-location)))))))
+      ;; If running on the real robot, execute below task tree in projection
+      ;; N times first, then pick the best parameterization
+      ;; and use that parameterization in the real world.
+      ;; If running in projection, just execute the task tree below as normal.
+      (pr2-proj-reasoning:with-projected-task-tree
+          (?fetch-robot-location ?fetch-pick-up-action
+           ?deliver-robot-location ?deliver-place-action)
+          3
+          #'pr2-proj-reasoning:pick-best-parameters-by-distance
+
+        (let ((?fetched-object
+                (exe:perform (desig:an action
+                                       (type fetching)
+                                       (when ?arm
+                                         (arm ?arm))
+                                       (object ?perceived-object-designator)
+                                       (robot-location ?fetch-robot-location)
+                                       (pick-up-action ?fetch-pick-up-action)))))
+          (roslisp:ros-info (pp-plans transport) "Fetched the object.")
+
+          (cpl:with-failure-handling
+              ((common-fail:high-level-failure (e)
+                 (declare (ignore e))
+                 (drop-at-sink)))
+            (exe:perform (desig:an action
+                                   (type delivering)
+                                   (object ?fetched-object)
+                                   (target ?delivering-location)
+                                   (robot-location ?deliver-robot-location)
+                                   (place-action ?deliver-place-action)))))))))
