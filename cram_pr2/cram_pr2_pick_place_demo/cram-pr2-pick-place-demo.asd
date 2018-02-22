@@ -83,5 +83,4 @@
      (:file "setup" :depends-on ("package"))
      (:file "costmaps" :depends-on ("package"))
      (:file "projection-demo" :depends-on ("package" "costmaps"))
-     (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))
-     (:file "projection-prediction" :depends-on ("package" "demo"))))))
+     (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))))))

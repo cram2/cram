@@ -30,14 +30,24 @@
   :author "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (roslisp
+  :depends-on (alexandria ; for WITH-GENSYMS in proj-pred and for CURRY
+
+               roslisp
 
                cram-designators
                cram-language
-               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
+               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS and prolog utils
+               cram-projection ; for checking if projection is running in proj-pred
+               cram-prolog ; for asking Prolog about task tree stuff
+               ;; for Prolog facts, might get rid of this soon
+               cram-execution-trace
+               cram-occasions-events
 
                cram-common-failures
                cram-mobile-pick-place-plans
+               cram-tf
+               cl-transforms-stamped
+               cl-transforms
 
                cram-bullet-reasoning
 
@@ -46,4 +56,6 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "check-collisions" :depends-on ("package"))))))
+     (:file "check-collisions" :depends-on ("package"))
+     (:file "task-tree-prolog" :depends-on ("package"))
+     (:file "projection-prediction" :depends-on ("package" "task-tree-prolog"))))))
