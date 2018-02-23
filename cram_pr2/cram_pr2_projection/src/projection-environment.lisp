@@ -40,7 +40,7 @@
     (make-instance 'cl-tf:transformer))
    ;; TODO: use custom tf topic "tf_sim"
    ;; For that first change tf2_ros/TransformListener to accept custom topic names
-   ;; (*current-bullet-world* (cl-bullet:copy-world *current-bullet-world*))
+   ;; (*current-bullet-world* (cl-bullet:copy-world btr:*current-bullet-world*))
    (cram-bullet-reasoning:*current-timeline*
     (btr:timeline-init btr:*current-bullet-world*))
    (desig:*default-role*
@@ -72,7 +72,7 @@
     (symbol-value cram-projection:*projection-environment* pr2-bullet-projection-environment))
 
   (<- (cpm::projection-running ?pm)
-    (bound ?pm)
+    ;; (bound ?pm)
     (once (member ?pm (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
                                            pr2-proj-grippers pr2-proj-arms)))
     (symbol-value cram-projection:*projection-environment* pr2-bullet-projection-environment)))
