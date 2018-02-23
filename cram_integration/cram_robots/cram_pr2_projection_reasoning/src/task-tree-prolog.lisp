@@ -219,14 +219,14 @@
     (bound ?top-level-name)
     (task-of-top-level ?top-level-name ?task-node)
     (lisp-fun cpl:task-tree-node-path ?task-node (?path . ?_))
-    (equal ?path (cpl:goal (perform ?_) . ?_)))
+    (equal ?path (cpl:goal (exe:perform ?_) . ?_)))
 
   (<- (perform-task ?top-level-name ?subtree-path ?task-node)
     (bound ?top-level-name)
     (bound ?subtree-path)
     (task ?top-level-name ?subtree-path ?task-node)
     (lisp-fun cpl:task-tree-node-path ?task-node (?path . ?_))
-    (equal ?path (cpl:goal (perform ?_) . ?_)))
+    (equal ?path (cpl:goal (exe:perform ?_) . ?_)))
 
   (<- (task-specific-action ?top-level-name ?subtree-path ?action-type ?task ?designator)
     (bound ?top-level-name)
