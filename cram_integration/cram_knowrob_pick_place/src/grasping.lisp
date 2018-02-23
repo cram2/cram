@@ -554,7 +554,7 @@
      (:left cram-tf:*robot-left-tool-frame*)
      (:right cram-tf:*robot-right-tool-frame*))
    0.0
-   (cl-transforms:make-3d-vector *cereal-grasp-xy-offset* 0.0d0 *cereal-grasp-z-offset*)
+   (cl-transforms:make-3d-vector (- *cereal-grasp-xy-offset*) 0.0d0 *cereal-grasp-z-offset*)
    (cl-transforms:matrix->quaternion
     #2A((0 0 -1)
         (-1 0 0)
