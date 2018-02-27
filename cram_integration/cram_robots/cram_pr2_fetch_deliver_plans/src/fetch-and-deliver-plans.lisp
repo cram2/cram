@@ -53,7 +53,9 @@
 
 (cpl:def-cram-function search-for-object (?object-designator ?search-location
                                                              &optional (retries 4))
+  "Searches for `?object-designator' in its likely location `?search-location'."
 
+  ;; take new `?search-location' sample if a failure happens and retry
   (cpl:with-retry-counters ((search-location-retries retries))
     (cpl:with-failure-handling
         (((or common-fail:perception-low-level-failure
@@ -76,6 +78,7 @@
            (roslisp:ros-warn (pp-plans search-for-object) "No retries left :'(~%")
            (cpl:fail 'common-fail:object-nowhere-to-be-found)))
 
+      ;; navigate, look and detect
       (let* ((?pose-at-search-location (desig:reference ?search-location))
              (?nav-location (desig:a location
                                      (visible-for pr2)
@@ -87,10 +90,10 @@
         (exe:perform (desig:an action
                                (type looking)
                                (target (desig:a location
-                                                (pose ?pose-at-search-location))))))
-      (exe:perform (desig:an action
-                             (type detecting)
-                             (object ?object-designator))))))
+                                                (pose ?pose-at-search-location)))))
+        (exe:perform (desig:an action
+                               (type detecting)
+                               (object ?object-designator)))))))
 
 
 
@@ -106,6 +109,7 @@
                      (location (desig:a location
                                         (pose ?object-pose-in-map))))))
 
+    ;; take a new `?pick-up-robot-location' sample if a failure happens
     (desig:equate ?pick-up-robot-location ?pick-up-robot-location-with-pose)
     (setf ?pick-up-robot-location (desig:current-desig ?pick-up-robot-location))
 
@@ -139,6 +143,7 @@
              (roslisp:ros-warn (pp-plans fetch) "No more retries left :'(")
              (cpl:fail 'common-fail:object-unfetchable :object ?object-designator)))
 
+        ;; navigate, look, detect and pick-up
         (exe:perform (desig:an action
                                (type navigating)
                                (location ?pick-up-robot-location)))
@@ -179,6 +184,8 @@
 
 (cpl:def-cram-function deliver (?object-designator ?target-location
                                                    ?target-robot-location place-action)
+
+  ;; take a new `?target-location' sample if a failure happens
   (cpl:with-retry-counters ((target-location-retries 30))
     (cpl:with-failure-handling
         (((or common-fail:object-unreachable
@@ -212,6 +219,7 @@
         (setf ?target-robot-location (desig:current-desig ?target-robot-location))
 
         (unless
+            ;; take a new `?target-robot-location' sample if a failure happens
             (cpl:with-retry-counters ((relocation-for-ik-retries 30))
               (cpl:with-failure-handling
                   (((or common-fail:object-unreachable
@@ -236,6 +244,7 @@
                              (cpl:fail 'common-fail:object-undeliverable))))
                      (return)))
 
+                ;; navigate, look, place
                 (exe:perform (desig:an action
                                        (type navigating)
                                        (location ?target-robot-location)))
