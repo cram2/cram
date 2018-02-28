@@ -114,11 +114,11 @@
     :initform (error
                'simple-error
                :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a joint-name."))
-   (joint-angle
-    :initarg :joint-angle :reader joint-angle
+   (side
+    :initarg :side :reader side
     :initform (error
                'simple-error
-               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a joint-angle."))
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a side."))
    (environment
     :initarg :environment :reader environment
     :initform (error

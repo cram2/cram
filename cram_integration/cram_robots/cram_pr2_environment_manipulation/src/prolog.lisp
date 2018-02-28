@@ -29,18 +29,16 @@
 
 (in-package :pr2-em)
 
-(def-fact-group environment-manipulation (desig:action-grounding
-                                          location-costmap:desig-costmap)
+(def-fact-group environment-manipulation (desig:action-grounding)
   
   (<- (desig:action-grounding ?action-designator (open-container ;; ?container-name
                                                                  ?arm
                                                                  ?gripper-opening
                                                                  ?left-reach-poses ?right-reach-poses
                                                                  ?left-lift-poses ?right-lift-poses
-                                                                 ?joint-name ?joint-angle ?environment-obj))
+                                                                 ?joint-name ?environment-obj))
     (spec:property ?action-designator (:type :opening))
     (spec:property ?action-designator (:object ?container-designator))
-    (desig:desig-prop ?action-designator (:opening-distance ?joint-angle))
     (spec:property ?container-designator (:type :container))
     (spec:property ?container-designator (:name ?container-name))
     (spec:property ?container-designator (:part-of ?environment))
@@ -69,7 +67,7 @@
     (spec:property ?action-designator (:type :driving-and-opening))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type :container))
-    ;;(spec:property ?container-designator (:name ?container-name))
-    ;;(spec:property ?container-designator (:part-of ?environment))
     )
+
+  
   )

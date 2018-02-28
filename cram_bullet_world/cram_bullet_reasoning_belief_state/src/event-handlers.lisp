@@ -140,12 +140,30 @@
        (desig:object-identifier perceived-object)
        cpoe:opening-distance))))
 
-(defmethod cram-occasions-events:on-event manipulate-environment
-    ((event cpoe:environment-manipulation-event))
-  (with-slots (cpoe:joint-name cpoe:joint-angle cpoe:environment) event
-    (btr:set-robot-state-from-joints
-     `((,cpoe:joint-name ,cpoe:joint-angle))
-     cpoe:environment)))
+;; TODO(cpo): Think about adding timeline advancement.
+(let ((previous-tcp-pose))
+  (defmethod cram-occasions-events:on-event manipulate-environment
+      ((event cpoe:environment-manipulation-event))
+    (with-slots (cpoe:joint-name cpoe:side cpoe:environment) event
+      (let ((current-tcp-pose
+              (cl-tf:lookup-transform cram-tf:*transformer*
+                                      (cut:var-value '?frame
+                                                     (car (prolog:prolog
+                                                           `(and (cram-robot-interfaces:robot ?robot)
+                                                                 (cram-robot-interfaces:robot-tool-frame
+                                                                  ?robot
+                                                                  ,cpoe:side
+                                                                  ?frame)))))
+                                      cram-tf:*fixed-frame*)))
+        (if previous-tcp-pose
+            (progn
+              (btr:set-robot-state-from-joints
+               `((,cpoe:joint-name
+                  ,(cl-tf:v-dist (cl-tf:translation previous-tcp-pose)
+                                 (cl-tf:translation current-tcp-pose))))
+               cpoe:environment)
+              (setf previous-tcp-pose NIL))
+            (setf previous-tcp-pose current-tcp-pose))))))
 
 (defmethod cram-occasions-events:on-event object-perceived ((event cpoe:object-perceived-event))
   (if cram-projection:*projection-environment*
