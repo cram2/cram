@@ -79,7 +79,7 @@
 (defmacro with-simulated-robot (&body body)
   `(let ((results
            (proj:with-projection-environment pr2-bullet-projection-environment
-             (cpl:top-level
+             (cpl-impl::named-top-level (:name :top-level)
                ,@body))))
      (car (cram-projection::projection-environment-result-result results))))
 

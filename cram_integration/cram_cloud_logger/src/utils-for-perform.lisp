@@ -128,7 +128,7 @@
    (convert-to-prolog-str action-id ) (get-timestamp-for-logging)))
 
 
-(defmethod exe:perform :around ((designator desig:action-designator))
+(defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
       (let ((action-id (log-perform-call designator)))
         (cpl:with-failure-handling

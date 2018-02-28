@@ -56,7 +56,7 @@
 
   (cram-bullet-reasoning:clear-costmap-vis-object)
 
-  (setf ccl::*is-logging-enabled* nil)
+  ;; (setf ccl::*is-logging-enabled* nil)
 
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
