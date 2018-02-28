@@ -90,15 +90,15 @@
     ))
 
 (defparameter *container-angles*
-  '((:fridge . 1.6)
+  `((:fridge . ,(/ pi 2))
     (:fridge-drawer . 0.4)
     (:island-left-drawer . 0.4)
     (:island-middle-drawer . 0.4)
     (:island-right-drawer . 0.4)
     (:trash-drawer . 0.4)
-    (:dishwasher . 1.6)
+    (:dishwasher . ,(/ pi 2))
     (:kitchen-drawer . 0.48)
-    (:oven . 1.6)
+    (:oven . ,(/ pi 2))
     (:oven-left-drawer . 0.4)
     (:oven-right-drawer . 0.4)
     (:oven-drawer . 0.4)
