@@ -248,19 +248,20 @@
             (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
 
 (cpl:def-cram-function navigate (?location-designator)
-  (cpl:with-retry-counters ((nav-retries 0))
-    (cpl:with-failure-handling
-        ((common-fail:navigation-low-level-failure (e)
-           (roslisp:ros-warn (pick-and-place go)
-                             "Some low-level failure happened: ~a"
-                             e)
-           (cpl:do-retry nav-retries
-             (roslisp:ros-warn (pick-and-place go) "Retrying...")
-             (cpl:retry))))
-      (exe:perform
-       (desig:a motion (type going) (target ?location-designator)))
-      (cram-occasions-events:on-event
-       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
+  (unwind-protect
+       (cpl:with-retry-counters ((nav-retries 0))
+         (cpl:with-failure-handling
+             ((common-fail:navigation-low-level-failure (e)
+                (roslisp:ros-warn (pick-and-place go)
+                                  "Some low-level failure happened: ~a"
+                                  e)
+                (cpl:do-retry nav-retries
+                  (roslisp:ros-warn (pick-and-place go) "Retrying...")
+                  (cpl:retry))))
+           (exe:perform
+            (desig:a motion (type going) (target ?location-designator)))))
+    (cram-occasions-events:on-event
+       (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 (cpl:def-cram-function perceive (?object-designator
                                  &key
