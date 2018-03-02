@@ -33,6 +33,7 @@
 
 (defparameter *cutlery-grasp-z-offset* -0.0 "in meters") ; because TCP is not at the edge
 (defparameter *cutlery-pregrasp-z-offset* 0.20 "in meters")
+(defparameter *cutlery-pregrasp-xy-offset* 0.10 "in meters")
 
 (defparameter *plate-diameter* 0.26 "in meters")
 (defparameter *plate-pregrasp-y-offset* 0.2 "in meters")
@@ -77,7 +78,7 @@
 (defmethod get-object-type-gripping-effort ((object-type (eql :cup))) 50)
 (defmethod get-object-type-gripping-effort ((object-type (eql :milk))) 15)
 (defmethod get-object-type-gripping-effort ((object-type (eql :cereal))) 15)
-(defmethod get-object-type-gripping-effort ((object-type (eql :breakfast-cereal))) 15)
+(defmethod get-object-type-gripping-effort ((object-type (eql :breakfast-cereal))) 20)
 (defmethod get-object-type-gripping-effort ((object-type (eql :bowl))) 100)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -120,13 +121,23 @@
                                                           arm
                                                           (grasp (eql :top))
                                                           grasp-transform)
-  (cram-tf:translate-transform-stamped grasp-transform :z-offset *cutlery-pregrasp-z-offset*))
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       ;; :y-offset (- *cutlery-pregrasp-xy-offset*)
+                                       :z-offset *cutlery-pregrasp-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :cutlery))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :top))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :z-offset *cutlery-pregrasp-z-offset*))
 (defmethod get-object-type-to-gripper-lift-transform ((object-type (eql :cutlery))
                                                       object-name
                                                       arm
                                                       (grasp (eql :top))
                                                       grasp-transform)
-  (get-object-type-to-gripper-pregrasp-transform object-type object-name arm grasp grasp-transform))
+  (get-object-type-to-gripper-pregrasp-transform
+   object-type object-name arm grasp grasp-transform))
 
 ;;; FORK and KNIFE are the same as CUTLERY
 (defmethod get-object-type-to-gripper-transform ((object-type (eql :spoon))
@@ -147,8 +158,17 @@
 (defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :knife))
                                                           object-name arm grasp grasp-pose)
   (get-object-type-to-gripper-pregrasp-transform :cutlery object-name arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :spoon))
+                                                              object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-2nd-pregrasp-transform :cutlery object-name arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :fork))
+                                                              object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-2nd-pregrasp-transform :cutlery object-name  arm grasp grasp-pose))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :knife))
+                                                              object-name arm grasp grasp-pose)
+  (get-object-type-to-gripper-2nd-pregrasp-transform :cutlery object-name arm grasp grasp-pose))
 (defmethod get-object-type-to-gripper-lift-transform ((object-type (eql :spoon))
-                                                          object-name arm grasp grasp-pose)
+                                                      object-name arm grasp grasp-pose)
   (get-object-type-to-gripper-lift-transform :cutlery object-name arm grasp grasp-pose))
 (defmethod get-object-type-to-gripper-lift-transform ((object-type (eql :fork))
                                                           object-name arm grasp grasp-pose)
@@ -619,7 +639,7 @@
 (def-fact-group pnp-object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
 
   (<- (object-rotationally-symmetric ?object-type)
-    (member ?object-type (:plate :bottle :drink :cup ;; :bowl
+    (member ?object-type (:plate :bottle :drink :cup :bowl :milk
                                  )))
 
   (<- (orientation-matters ?object-type)
