@@ -184,11 +184,6 @@
 
 
 (defmethod obj-int:get-object-type-gripping-effort :around (object-type)
-  (print "MY FIRST AROUND LISP METHOD")
-  (call-next-method))
-
-
-(defmethod obj-int:get-object-type-gripping-effort :around (object-type)
   (format t "Asking for EFFORT for the object: ~a~%" object-type)
   (let ((query-result (call-next-method)))
     (format t "EFFORT Result is ~a~% for the object: ~a~%" query-result object-type)
@@ -246,12 +241,9 @@
     query-result))
 
 
-;; ;; object-designator-interfaces
-;;   #:get-object-transform
-;;   #:get-object-pose
-;;   ;; manipulation
-;;get-object-type-to-gripper-2nd-lift-transform
-;;   #:object-rotationally-symmetric
-;;   #:orientation-matters
-;;   #:object-type-grasp
+(defmethod prolog:prolog :around (query &optional (binds nil))
+  ;;(format t "Asking prolog for ~a~% with binds ~a~%" (car query) binds)
+  (let ((result (call-next-method)))
+    ;;(format t "The query result is ~a~%" result)
+    result))
 
