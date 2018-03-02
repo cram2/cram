@@ -188,10 +188,11 @@ form (renamed-fact new-binds)"
 (define-hook cram-utilities::on-prepare-prolog-prove (query binds))
 (define-hook cram-utilities::on-finish-prolog-prove (log-id success))
 
-(defun prolog (query &optional (binds nil))
-  (let ((log-id (first (cram-utilities::on-prepare-prolog-prove query binds))))
-    (let ((result
-            (lazy-mapcar (rcurry (curry #'filter-bindings query) binds)
-                         (prove-all (list query) binds))))
-      (cram-utilities::on-finish-prolog-prove log-id (not (eql result nil)))
-      result)))
+(defgeneric prolog (query &optional binds)
+  (:method (query &optional (binds nil))
+    (let ((log-id (first (cram-utilities::on-prepare-prolog-prove query binds))))
+      (let ((result
+              (lazy-mapcar (rcurry (curry #'filter-bindings query) binds)
+                           (prove-all (list query) binds))))
+        (cram-utilities::on-finish-prolog-prove log-id (not (eql result nil)))
+        result))))
