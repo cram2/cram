@@ -32,6 +32,8 @@
 
 (cpl:define-task-variable *action-parents* '())
 (defparameter *action-siblings* (make-hash-table))
+(defparameter *prolog-queries* (cpl:make-fluent :value '()))
+
 
 
 (defun get-designator-property-value-str (designator property-keyname)
@@ -243,7 +245,10 @@
 
 (defmethod prolog:prolog :around (query &optional (binds nil))
   ;;(format t "Asking prolog for ~a~% with binds ~a~%" (car query) binds)
+  (setf (cpl:value *prolog-queries*) (cons (create-rdf-assert-query (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#PrologQueryRandom") "knowrob:predicate" (create-string-owl-literal (write-to-string (car query)))) (cpl:value *prolog-queries*)))
   (let ((result (call-next-method)))
-    ;;(format t "The query result is ~a~%" result)
+    ;;(format t "The query result is ~a~%" (car (cpl:value *prolog-queries*)))
+    ;;(print (list-length (cpl:value *prolog-queries*)))
     result))
+
 
