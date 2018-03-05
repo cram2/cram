@@ -162,18 +162,22 @@
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
-      (let ((action-id (log-perform-call designator)))
+      (let ((action-id (log-perform-call designator)) (is-parent-action nil))
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
                (log-cram-finish-action action-id)
                (send-task-success action-id "false")
-               (format t "failure string: ~a" (write-to-string e))))
+               (format t "failure string: ~a" (write-to-string e))
+               (if is-parent-action
+                   (send-batch-query))))
           ;;(format t "executing ~a~%" action-id)
           ;;(format t "logging ~a with parent ~a~%" action-id (first *action-parents*))
           (log-cram-sub-action (car *action-parents*) action-id)
           (log-cram-sibling-action (car *action-parents*) action-id)
+          (if (not *action-parents*)
+              (setq is-parent-action t))
           (push action-id *action-parents*)
-          (format t "new hierarchy is : ~a~%" *action-parents*)
+          ;;(format t "new hierarchy is : ~a~%" *action-parents*)
           (let ((perform-result (call-next-method)))
             (log-cram-finish-action action-id)
             (when (and perform-result (typep perform-result 'desig:object-designator))
@@ -181,6 +185,8 @@
                 (when name
                   (send-object-action-parameter action-id perform-result))))
             (send-task-success action-id "true")
+            (if is-parent-action
+                   (send-batch-query))
             perform-result)))
       (call-next-method)))
 
@@ -250,5 +256,8 @@
     ;;(format t "The query result is ~a~%" (car (cpl:value *prolog-queries*)))
     ;;(print (list-length (cpl:value *prolog-queries*)))
     result))
+
+(defun send-batch-query ()
+  (print "SENDING BATCH QUERY"))
 
 
