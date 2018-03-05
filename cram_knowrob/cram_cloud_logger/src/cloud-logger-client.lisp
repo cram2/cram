@@ -3,7 +3,7 @@
 
 (defparameter *cloud-logger-client* nil)
 (defparameter *is-client-connected* nil)
-(defparameter *is-logging-enabled* t)
+(defparameter *is-logging-enabled* nil)
 
 (defparameter *host* "'https://localhost'")
 ;;(defparameter *host* "'https://192.168.101.42'")
@@ -32,8 +32,8 @@
 
 (defun connect-to-cloud-logger ()
   (when *is-logging-enabled*
-   (if (and *is-client-connected*)
-       (print "Already connected to cloud logger")
+   (if (not *is-client-connected*)
+       ;;(print "Already connected to cloud logger")
        (handler-case
            (progn
              (print "Connecting to cloud logger ...")
