@@ -96,7 +96,7 @@
         result)))
 
 (defun create-query (query-name parameter-list)
-  (concatenate 'string query-name "(" (create-parameters parameter-list) ")."))
+  (concatenate 'string query-name "(" (create-parameters parameter-list) ")"))
 
 (defun send-cram-start-parent-action (owl-action-class task-context start-time
                                prev-action parent-task action-inst)

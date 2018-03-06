@@ -251,13 +251,29 @@
 
 (defmethod prolog:prolog :around (query &optional (binds nil))
   ;;(format t "Asking prolog for ~a~% with binds ~a~%" (car query) binds)
-  (setf (cpl:value *prolog-queries*) (cons (create-rdf-assert-query (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#PrologQueryRandom") "knowrob:predicate" (create-string-owl-literal (write-to-string (car query)))) (cpl:value *prolog-queries*)))
+  (setf (cpl:value *prolog-queries*)
+        (cons (create-prolog-log-query (car query))
+              (cpl:value *prolog-queries*)))
+  ;;(print (create-prolog-log-query (car query)))
   (let ((result (call-next-method)))
     ;;(format t "The query result is ~a~%" (car (cpl:value *prolog-queries*)))
     ;;(print (list-length (cpl:value *prolog-queries*)))
     result))
 
 (defun send-batch-query ()
-  (print "SENDING BATCH QUERY"))
+  (send-prolog-query-1 (create-batch-query)))
 
+(defun create-prolog-log-query (predicate-name)
+  (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8))))))
+  (ccl::create-query
+   "rdf_instance_from_class"
+   (list "knowrob:\\'PrologQuery\\'" "\\'LoggingGraph\\'" query-id))))
+
+
+(defun create-batch-query()
+  (let ((batch-query (car (cpl:value *prolog-queries*))))
+    (dolist (item (cdr (cpl:value *prolog-queries*)))
+      (setq batch-query (concatenate 'string batch-query "," item)))
+    (setf (cpl:value *prolog-queries*) '())
+    batch-query))
 
