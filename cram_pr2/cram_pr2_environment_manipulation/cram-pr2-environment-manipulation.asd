@@ -67,7 +67,7 @@
                  cram-pr2-projection-reasoning ; for projection-based reasoning
                  cram-pr2-description
                  cram-process-modules
-                 cram-pr2-pick-place-plans
+                 ;; cram-pr2-pick-place-plans
                  )
   :components
   ((:module "src"

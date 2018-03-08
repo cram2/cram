@@ -48,8 +48,9 @@
 
            #:environment-manipulation-event
            #:joint-name
-           #:joint-angle
            #:environment
+           #:container-opening-event
+           #:container-closing-event
 
            #:object-gripped
            #:event-arm #:event-object #:event-grasp

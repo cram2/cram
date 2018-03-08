@@ -123,7 +123,11 @@
     :initarg :environment :reader environment
     :initform (error
                'simple-error
-               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a environment."))))
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an environment."))))
+
+(defclass container-opening-event (environment-manipulation-event) ())
+
+(defclass container-closing-event (environment-manipulation-event) ())
 
 ;; (defclass object-gripped (cram-occasions-events:event)
 ;;   ((arm :initarg :arm

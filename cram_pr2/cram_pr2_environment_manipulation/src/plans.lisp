@@ -58,7 +58,7 @@
   (roslisp:ros-info (environment-manipulation open-container) "Opening")
   (when (and joint-name environment)
     (cram-occasions-events:on-event
-     (make-instance 'cpoe:environment-manipulation-event
+     (make-instance 'cpoe:container-opening-event
                     :joint-name joint-name
                     :side ?arm
                     :environment environment)))
@@ -69,7 +69,7 @@
              (right-poses ?right-lift-poses)))
   (when (and joint-name environment)
     (cram-occasions-events:on-event
-     (make-instance 'cpoe:environment-manipulation-event
+     (make-instance 'cpoe:container-opening-event
                     :joint-name joint-name
                     :side ?arm
                     :environment environment))))
