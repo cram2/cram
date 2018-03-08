@@ -259,7 +259,7 @@
         ;;      (cons (create-query "cram_finish_action" (list query-id (get-timestamp-for-logging)))
         ;;            (cpl:value *prolog-queries*)))
         (setf (cpl:value *prolog-queries*)
-              (cons (concatenate 'string query-id (write-to-string (get-timestamp-for-logging)) "\\n")
+              (cons (concatenate 'string query-id (write-to-string (get-timestamp-for-logging))  '(#\newline))
                     (cpl:value *prolog-queries*)))
         result)
       (call-next-method)))
