@@ -214,7 +214,7 @@
   (concatenate 'string "literal(type(" literal-type "," literal-value "))"))
 
 (defun create-rdf-assert-query (a b c)
-  (concatenate 'string "rdf_assert(" a "," b "," c ", \\'LoggingGraph\\')."))
+  (concatenate 'string "rdf_assert(" a "," b "," c ", \\'LoggingGraph\\')"))
 
 (defun convert-to-prolog-str(lisp-str)
   (if (eq 0 (search "'" lisp-str))
