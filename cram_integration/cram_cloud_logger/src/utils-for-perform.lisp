@@ -83,6 +83,9 @@
 (defun get-timestamp-for-logging ()
   (write-to-string (truncate (cram-utilities:current-timestamp))))
 
+(defun get-more-specific-timestamp-for-logging ()
+  (format nil "~d"  (truncate (* 1000000 (cram-utilities:current-timestamp)))))
+
 (defun log-action-parameter (designator action-id)
   (mapcar (lambda (key-value-pair)
             (let ((key (first key-value-pair))
@@ -258,9 +261,10 @@
         ;;(setf (cpl:value *prolog-queries*)
         ;;      (cons (create-query "cram_finish_action" (list query-id (get-timestamp-for-logging)))
         ;;            (cpl:value *prolog-queries*)))
-        (setf (cpl:value *prolog-queries*)
-              (cons (concatenate 'string query-id (write-to-string (get-timestamp-for-logging))  '(#\newline))
-                    (cpl:value *prolog-queries*)))
+        (if query-id 
+            (setf (cpl:value *prolog-queries*)
+                  (cons (concatenate 'string query-id (get-more-specific-timestamp-for-logging)  '(#\newline))
+                        (cpl:value *prolog-queries*))))
         result)
       (call-next-method)))
 
@@ -275,7 +279,10 @@
   (print "Batch query is done"))
 
 (defun create-prolog-log-query (predicate-name)
-  (if (string/= (string-downcase (write-to-string predicate-name)) "cram-prolog:lalal")
+  (if (and (string/= (string-downcase (write-to-string predicate-name)) "bound")
+           (string/= (string-downcase (write-to-string predicate-name)) "and")
+           (string/= (string-downcase (write-to-string predicate-name)) "or")
+                      (string/= (string-downcase (write-to-string predicate-name)) "cram-prolog:bound")) 
       (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8))))))
         ;;(setf (cpl:value *prolog-queries*)
         ;;      (cons (create-rdf-assert-query query-id "rdf:type" " owl:\\'NamedIndividual\\'")
@@ -295,7 +302,7 @@
         ;;                   "PV"
         ;;                   query-id))
         ;;            (cpl:value *prolog-queries*)))
-        (concatenate 'string (write-to-string predicate-name) ";" (write-to-string (get-timestamp-for-logging)) ";"))
+        (concatenate 'string (write-to-string predicate-name) ";" (get-more-specific-timestamp-for-logging) ";"))
       nil)
   )
 
