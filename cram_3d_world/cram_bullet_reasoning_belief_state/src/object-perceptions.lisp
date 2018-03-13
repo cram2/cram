@@ -108,9 +108,9 @@ just updated. Otherwise a new instance is created."))
                               ;; (gensym (string (desig:object-identifier data)))
                               (desig:object-identifier data)))))
     ;; below is a hack to deal with shitty identity resolution on RS / KnowRob side :P
-    ;; (prolog `(and (btr:bullet-world ?world)
-    ;;               (btr:item-type ?world ?name ,type)
-    ;;               (btr:retract ?world (btr:object ?name))))
+    (prolog `(and (btr:bullet-world ?world)
+                  (btr:item-type ?world ?name ,type)
+                  (btr:retract ?world (btr:object ?name))))
     (prolog `(and (btr:bullet-world ?world)
                   (-> (btr:object ?world ,instance-name)
                       (btr:assert ?world
@@ -121,7 +121,8 @@ just updated. Otherwise a new instance is created."))
                                               :mass 0.2 ;; ,(object-mass data)
                                               ;; :types ,(list type)
                                               ;; :disable-face-culling t
-                                              :color ,(desig:object-color data))))))))
+                                              :color ,(desig:object-color data))))
+                  (btr:simulate ?world 10)))))
 
 (defmethod register-object-designator-data
     ((data cram-physics-utils:object-point-data-mixin) &key type)

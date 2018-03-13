@@ -80,19 +80,28 @@
 
 (defun ensure-robosherlock-input-parameters (key-value-pairs-list quantifier)
   (let ((key-value-pairs-list
-          (mapcar (lambda (key-value-pair)
-                    (destructuring-bind (key value)
-                        key-value-pair
-                      (list (etypecase key
-                              (keyword (string-downcase (symbol-name key)))
-                              (string (string-downcase key)))
-                            (etypecase value ; RS is only case-sensitive on "TYPE"s
-                              (keyword (remove #\- (string-capitalize (symbol-name value))))
-                              (string value)
-                              (list (mapcar (lambda (item)
-                                              (string-downcase (symbol-name item)))
-                                            value))))))
-                  key-value-pairs-list))
+          (remove-if
+           #'null
+           (mapcar (lambda (key-value-pair)
+                     (destructuring-bind (key &rest values)
+                         key-value-pair
+                       (let ((value (car values))
+                             (key-string
+                               (etypecase key
+                                 (keyword (string-downcase (symbol-name key)))
+                                 (string (string-downcase key)))))
+                         ;; below are the only keys supported by RS at the moment
+                         (if (or (string-equal key-string "type")
+                                 ;; (string-equal key-string "shape")
+                                 (string-equal key-string "cad-model"))
+                             (list key-string
+                                   (etypecase value ; RS is only case-sensitive on "TYPE"s
+                                     (keyword (remove #\- (string-capitalize (symbol-name value))))
+                                     (string value)
+                                     (list (mapcar (lambda (item)
+                                                     (string-downcase (symbol-name item)))
+                                                   value))))))))
+                   key-value-pairs-list)))
         (quantifier quantifier
           ;; (etypecase quantifier
           ;;   (keyword (ecase quantifier
@@ -166,9 +175,15 @@
     (second (find :pose pose-description-we-want :key #'car))))
 
 (defun make-robosherlock-designator (rs-answer keyword-key-value-pairs-list)
+  (when (and (find :type rs-answer :key #'car)
+             (find :type keyword-key-value-pairs-list :key #'car))
+    (setf rs-answer (remove :type rs-answer :key #'car)))
+  ;; (when (and (find :pose rs-answer :key #'car)
+  ;;            (find :pose keyword-key-value-pairs-list :key #'car))
+  ;;   (remove :pose keyword-key-value-pairs-list :key #'car))
   (let ((combined-properties
-          (append keyword-key-value-pairs-list
-                  (set-difference rs-answer keyword-key-value-pairs-list :key #'car))))
+          (append rs-answer ; <- overwrite old stuff with new stuff
+                  (set-difference keyword-key-value-pairs-list rs-answer :key #'car))))
 
     (let* ((name
              (or (second (find :name combined-properties :key #'car))

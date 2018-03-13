@@ -235,7 +235,7 @@
                         :torso-angle torso-angle
                         :torso-lower-limit torso-lower-limit
                         :torso-upper-limit torso-upper-limit)))
-                   (values ik-solution test-angle)))))
+                   (values ik-solution (or test-angle torso-angle))))))
 
     (let ((old-debug-lvl (roslisp:debug-level NIL)))
       (unwind-protect

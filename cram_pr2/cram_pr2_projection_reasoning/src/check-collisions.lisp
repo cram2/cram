@@ -60,7 +60,6 @@ Store found pose into designator or throw error if good pose not found."
                         (cpl:fail 'common-fail:navigation-pose-in-collision)))
                     (if navigation-location-desig
                         (progn
-                          ;; (roslisp:ros-warn (pp-plans coll-check) "Retrying...~%")
                           (cpl:retry))
                         (progn
                           (roslisp:ros-warn (pp-plans coll-check)
@@ -90,9 +89,10 @@ Store found pose into designator or throw error if good pose not found."
                                      navigation-location-desig)
                    navigation-location-desig)
                (desig:designator-error (e)
+                 (declare (ignore e))
                  (roslisp:ros-warn (pp-plans coll-check)
                                    "Desig ~a could not be resolved.~%Cannot navigate."
-                                   navigation-location-desig e)
+                                   navigation-location-desig)
                  (cpl:fail 'common-fail:navigation-pose-in-collision)))))
 
       ;; After playing around and messing up the world, restore the original state.
@@ -108,7 +108,7 @@ Store found pose into designator or throw error if good pose not found."
            (cpl:with-failure-handling
                (((or common-fail:manipulation-pose-unreachable
                      common-fail:manipulation-pose-in-collision) (e)
-                  ;; (roslisp:ros-warn (pp-plans pick-object) "Manipulation failure happened: ~a" e)
+                  (declare (ignore e))
                   (cpl:do-retry pick-up-configuration-retries
                     (handler-case
                         (setf pick-up-action-desig
@@ -120,7 +120,6 @@ Store found pose into designator or throw error if good pose not found."
                         (cpl:fail 'common-fail:object-unreachable)))
                     (cond
                       (pick-up-action-desig
-                       ;; (roslisp:ros-info (pp-plans pick-object) "Retrying...")
                        (cpl:retry))
                       (t
                        (roslisp:ros-warn (pp-plans coll-check)
@@ -151,10 +150,7 @@ Store found pose into designator or throw error if good pose not found."
                                  (unless (< (abs *debug-short-sleep-duration*) 0.0001)
                                    (cpl:sleep *debug-short-sleep-duration*))
                                  (when (remove object-name
-                                               (btr:find-objects-in-contact
-                                                btr:*current-bullet-world*
-                                                (btr:get-robot-object))
-                                               :key #'btr:name)
+                                               (btr:robot-colliding-objects-without-attached))
                                    (roslisp:ros-warn (pp-plans coll-check)
                                                      "Robot is in collision with environment.")
                                    (cpl:sleep *debug-long-sleep-duration*)
@@ -164,14 +160,13 @@ Store found pose into designator or throw error if good pose not found."
                                right-poses))))))))
       (btr::restore-world-state world-state world))))
 
-
 (defun check-placing-collisions (placing-action-desig)
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
-
     (unwind-protect
          (cpl:with-failure-handling
              ((common-fail:manipulation-pose-unreachable (e)
+                (declare (ignore e))
                 (roslisp:ros-warn (pp-plans deliver)
                                   "Placing pose of ~a is unreachable.~%Propagating up."
                                   placing-action-desig)
@@ -202,23 +197,22 @@ Store found pose into designator or throw error if good pose not found."
                               (unless (< (abs *debug-short-sleep-duration*) 0.0001)
                                 (cpl:sleep *debug-short-sleep-duration*))
                               (when (or
-                                     (remove object-name
-                                             (btr:find-objects-in-contact
-                                              btr:*current-bullet-world*
-                                              (btr:get-robot-object))
-                                             :key #'btr:name)
-                                     (remove (btr:name
-                                              (find-if (lambda (x)
-                                                         (typep x 'btr:semantic-map-object))
-                                                       (btr:objects btr:*current-bullet-world*)))
-                                             (remove (btr:get-robot-name)
-                                                     (btr:find-objects-in-contact
-                                                      btr:*current-bullet-world*
-                                                      (btr:object
-                                                       btr:*current-bullet-world*
-                                                       object-name))
-                                                     :key #'btr:name)
-                                             :key #'btr:name))
+                                     ;; either robot collides with environment
+                                     (btr:robot-colliding-objects-without-attached)
+                                     ;; or object in the hand collides with environment
+                                     ;; (remove (btr:name
+                                     ;;          (find-if (lambda (x)
+                                     ;;                     (typep x 'btr:semantic-map-object))
+                                     ;;                   (btr:objects btr:*current-bullet-world*)))
+                                     ;;         (remove (btr:get-robot-name)
+                                     ;;                 (btr:find-objects-in-contact
+                                     ;;                  btr:*current-bullet-world*
+                                     ;;                  (btr:object
+                                     ;;                   btr:*current-bullet-world*
+                                     ;;                   object-name))
+                                     ;;                 :key #'btr:name)
+                                     ;;         :key #'btr:name)
+                                     )
                                 (roslisp:ros-warn (pp-plans coll-check)
                                                   "Robot is in collision with environment.")
                                 (cpl:sleep *debug-long-sleep-duration*)
