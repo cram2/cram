@@ -30,8 +30,9 @@
 (in-package :demo)
 
 (defparameter *object-cad-models*
-  '((:cup . "cup_eco_orange")
-    (:bowl . "edeka_red_bowl")))
+  '(;; (:cup . "cup_eco_orange")
+    ;; (:bowl . "edeka_red_bowl")
+    ))
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
@@ -61,12 +62,14 @@
       (exe:perform (desig:an action (type opening) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))))
 
+
 (cpl:def-cram-function demo-random (&optional
                                     (random t)
-                                    (list-of-objects '(:breakfast-cereal :milk :cup :bowl :spoon)))
+                                    (list-of-objects '(:milk :cup :breakfast-cereal :bowl :spoon)))
   (btr:detach-all-objects (btr:get-robot-object))
   (btr-utils:kill-all-objects)
 
+  ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
   (when (eql cram-projection:*projection-environment*
              'cram-pr2-projection::pr2-bullet-projection-environment)
     (if random
