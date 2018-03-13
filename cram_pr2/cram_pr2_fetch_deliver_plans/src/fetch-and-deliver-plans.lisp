@@ -98,22 +98,18 @@
 
 
 (cpl:def-cram-function fetch (?object-designator ?arm ?pick-up-robot-location pick-up-action)
-  (let* ((?object-pose-in-base
+
+  (let* ((?object-pose-in-map
            (desig:reference (desig:a location (of-item-object ?object-designator))))
-         (?object-pose-in-map
-           (cram-tf:ensure-pose-in-frame
-            ?object-pose-in-base cram-tf:*fixed-frame* :use-zero-time t))
-         (?pick-up-robot-location-with-pose
-            (desig:a location
-                     (reachable-for pr2)
-                     (location (desig:a location
-                                        (pose ?object-pose-in-map))))))
+         (?pick-up-robot-location
+            (or (desig:current-desig ?pick-up-robot-location)
+                (desig:a location
+                         (reachable-for pr2)
+                         (location (desig:a location
+                                            (pose ?object-pose-in-map)))))))
 
     ;; take a new `?pick-up-robot-location' sample if a failure happens
-    (desig:equate ?pick-up-robot-location ?pick-up-robot-location-with-pose)
-    (setf ?pick-up-robot-location (desig:current-desig ?pick-up-robot-location))
-
-    (cpl:with-retry-counters ((relocation-for-ik-retries 30))
+    (cpl:with-retry-counters ((relocation-for-ik-retries 20))
       (cpl:with-failure-handling
           (((or common-fail:object-unreachable
                 common-fail:perception-low-level-failure
@@ -159,19 +155,26 @@
                                        (type detecting)
                                        (object ?object-designator)))))
 
-          ;; (unless (desig:desig-equal ?object-designator ?more-precise-perceived-object-desig)
-          ;;   (desig:equate ?object-designator ?more-precise-perceived-object-desig))
+          (let ((pick-up-action
+                  ;; if pick-up-action already exists, use its params for picking up
+                  (or (when pick-up-action
+                        (destructuring-bind (_action _object-designator ?arm
+                                             _gripper-opening _effort ?grasp
+                                             _left-reach-poses _right-reach-poses
+                                             _left-lift-poses _right-lift-poses)
+                            (desig:reference pick-up-action)
+                          (desig:an action
+                                    (type picking-up)
+                                    (arm ?arm)
+                                    (grasp ?grasp)
+                                    (object ?more-precise-perceived-object-desig))))
+                      (desig:an action
+                                (type picking-up)
+                                (desig:when ?arm
+                                  (arm ?arm))
+                                (object ?more-precise-perceived-object-desig)))))
 
-          (let ((pick-up-action-with-object
-                  (desig:an action
-                            (type picking-up)
-                            (desig:when ?arm
-                              (arm ?arm))
-                            (object ?more-precise-perceived-object-desig))))
-
-            (desig:equate pick-up-action pick-up-action-with-object)
-            (setf pick-up-action (desig:current-desig pick-up-action-with-object))
-
+            (setf pick-up-action (desig:current-desig pick-up-action))
             (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
             (setf pick-up-action (desig:current-desig pick-up-action))
 
@@ -186,7 +189,7 @@
                                                    ?target-robot-location place-action)
 
   ;; take a new `?target-location' sample if a failure happens
-  (cpl:with-retry-counters ((target-location-retries 30))
+  (cpl:with-retry-counters ((target-location-retries 20))
     (cpl:with-failure-handling
         (((or common-fail:object-unreachable
               common-fail:navigation-pose-in-collision) (e)
@@ -210,17 +213,16 @@
 
       (let* ((?pose-at-target-location
                (desig:reference ?target-location))
-             (?target-robot-location-with-pose
-               (desig:a location
-                        (reachable-for pr2)
-                        (location (desig:a location
-                                           (pose ?pose-at-target-location))))))
-        (desig:equate ?target-robot-location ?target-robot-location-with-pose)
-        (setf ?target-robot-location (desig:current-desig ?target-robot-location))
+             (?target-robot-location
+               (or (desig:current-desig ?target-robot-location)
+                   (desig:a location
+                            (reachable-for pr2)
+                            (location (desig:a location
+                                               (pose ?pose-at-target-location)))))))
 
         (unless
             ;; take a new `?target-robot-location' sample if a failure happens
-            (cpl:with-retry-counters ((relocation-for-ik-retries 30))
+            (cpl:with-retry-counters ((relocation-for-ik-retries 20))
               (cpl:with-failure-handling
                   (((or common-fail:object-unreachable
                         common-fail:manipulation-pose-in-collision
@@ -249,28 +251,52 @@
                                        (type navigating)
                                        (location ?target-robot-location)))
                 (setf ?target-robot-location (desig:current-desig ?target-robot-location))
+                (let* ((mTt
+                         (cram-tf:pose-stamped->transform-stamped
+                          ?pose-at-target-location
+                          "placing_target_location")) ; bTt = bTm * mTt = (mTb)-1 * mTt
+                       (mTb
+                         (cram-tf:pose->transform-stamped
+                          cram-tf:*fixed-frame*
+                          cram-tf:*robot-base-frame*
+                          0.0
+                          (btr:pose (btr:get-robot-object))))
+                       (mTb-1
+                         (cram-tf:transform-stamped-inv
+                          mTb))
+                       (bTt
+                         (cram-tf:multiply-transform-stampeds
+                          cram-tf:*robot-base-frame*
+                          "placing_target_location"
+                          mTb-1 mTt
+                          :result-as-pose-or-transform :pose))
+                       (?pose-at-target-loc-in-base
+                         bTt))
 
-                (exe:perform (desig:an action
-                                       (type looking)
-                                       (target (desig:a location
-                                                        (pose ?pose-at-target-location)))))
+                  (exe:perform (desig:an action
+                                         (type looking)
+                                         (target (desig:a location
+                                                          (pose ?pose-at-target-loc-in-base)))))
 
-                (let ((placing-action-with-pose
-                        (desig:an action
-                                  (type placing)
-                                  (object ?object-designator)
-                                  (target (desig:a location
-                                                   (pose ?pose-at-target-location))))))
-                  (desig:equate place-action placing-action-with-pose)
-                  (setf place-action (desig:current-desig place-action))
+                  (let ((place-action
+                          (or
+                           ;; TODO: maybe pass the placing action as well?
+                           ;; place-action
+                           (desig:an action
+                                     (type placing)
+                                     (object ?object-designator)
+                                     (target (desig:a location
+                                                      (pose ?pose-at-target-loc-in-base)))))))
 
-                  (pr2-proj-reasoning:check-placing-collisions place-action)
-                  (setf place-action (desig:current-desig place-action))
-                  (exe:perform place-action)
-                  T)))
+                    (setf place-action (desig:current-desig place-action))
+                    (pr2-proj-reasoning:check-placing-collisions place-action)
+                    (setf place-action (desig:current-desig place-action))
 
-         (roslisp:ros-warn (pp-plans deliver) "No relocation-for-ik-retries left :'(")
-         (cpl:fail 'common-fail:object-undeliverable))))))
+                    (exe:perform place-action)
+                    T))))
+
+          (roslisp:ros-warn (pp-plans deliver) "No relocation-for-ik-retries left :'(")
+          (cpl:fail 'common-fail:object-undeliverable))))))
 
 
 
@@ -307,7 +333,6 @@
                                   (pose ?placing-pose))))))))
 
 
-
 (cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm)
   (let ((?perceived-object-designator
           (exe:perform (desig:an action
@@ -318,25 +343,10 @@
                       "Found object of type ~a."
                       (desig:desig-prop-value ?perceived-object-designator :type))
 
-    (let ((?fetch-robot-location
-            (desig:a location
-                     (reachable-for pr2)
-                     (object ?perceived-object-designator)))
-          (?fetch-pick-up-action
-            (desig:an action
-                      (type picking-up)
-                      (desig:when ?arm
-                        (arm ?arm))
-                      (object ?perceived-object-designator)))
-          (?deliver-robot-location
-            (desig:a location
-                     (reachable-for pr2)
-                     (location ?delivering-location)))
-          (?deliver-place-action
-            (desig:an action
-                      (type placing)
-                      (object ?perceived-object-designator)
-                      (target ?delivering-location))))
+    (let (?fetch-robot-location
+          ?fetch-pick-up-action
+          ?deliver-robot-location
+          ?deliver-place-action)
 
       ;; If running on the real robot, execute below task tree in projection
       ;; N times first, then pick the best parameterization
@@ -345,7 +355,7 @@
       (pr2-proj-reasoning:with-projected-task-tree
           (?fetch-robot-location ?fetch-pick-up-action
            ?deliver-robot-location ?deliver-place-action)
-          3
+          4
           #'pr2-proj-reasoning:pick-best-parameters-by-distance
 
         (let ((?fetched-object
@@ -361,7 +371,8 @@
           (cpl:with-failure-handling
               ((common-fail:high-level-failure (e)
                  (declare (ignore e))
-                 (drop-at-sink)))
+                 (drop-at-sink)
+                 (return)))
             (exe:perform (desig:an action
                                    (type delivering)
                                    (object ?fetched-object)
