@@ -56,8 +56,13 @@
                 :format-control "Designator goal ~a could not be parsed.~%~a"
                 :format-arguments (list keyword-expression error-message)))))
 
-(cpl:def-cram-function perform (designator)
-  (generic-perform designator))
+(cpl:declare-goal perform (designator)
+  (declare (ignore designator))
+  "Performs the action or motion defined by `designator'. This goal
+  infers which process module to use and calls pm-execute in it.")
+
+(cpl:def-goal (perform ?designator)
+  (generic-perform ?designator))
 
 (defgeneric generic-perform (designator)
   (:documentation "If the action designator has a GOAL key it will be checked if the goal holds.

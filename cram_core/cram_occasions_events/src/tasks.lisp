@@ -52,7 +52,7 @@
   ;; FLUENT
   (<- (fluent ?fluent)
     (not (bound ?fluent))
-    (lisp-fun episode-knowledge-traced-fluent-names ?fluents)
+    (lisp-fun cet:episode-knowledge-traced-fluent-names ?fluents)
     (member ?fluent ?fluents))
 
   (<- (fluent ?fluent)
@@ -63,7 +63,7 @@
   ;; HOLDS FLUENT-VALUE
   (<- (holds (fluent-value ?fluent ?value) ?t)
     (fluent ?fluent)
-    (lisp-fun episode-knowledge-fluent-durations ?fluent ?durations)
+    (lisp-fun cet:episode-knowledge-fluent-durations ?fluent ?durations)
     (member (?value . ?duration) ?durations)
     (duration-includes ?duration ?t))
 
@@ -75,15 +75,15 @@
 
   ;; TOP-LEVEL
   (<- (top-level ?top-level-task)
-    (lisp-fun episode-knowledge-task-tree ?top-level-task))
+    (lisp-fun cet:episode-knowledge-task-tree ?top-level-task))
   
   ;; TASK
   (<- (task ?task)
-    (lisp-fun episode-knowledge-task-list ?tasks)
+    (lisp-fun cet:episode-knowledge-task-list ?tasks)
     (member ?task ?tasks))
 
   (<- (goal-task ?task)
-    (lisp-fun episode-knowledge-goal-task-list ?tasks)
+    (lisp-fun cet:episode-knowledge-goal-task-list ?tasks)
     (member ?task ?tasks))
 
   (<- (task-path ?task ?path)

@@ -95,8 +95,7 @@
            ;; robot-model-utils
            #:get-robot-object #:get-robot-name
            #:robot-colliding-objects-without-attached
-
+           ;; temporal-reasoning
            event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup
-           holds-in-world holds occurs at
-           during throughout with-timeline))
+           holds-in-world with-timeline))

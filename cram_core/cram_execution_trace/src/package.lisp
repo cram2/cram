@@ -78,5 +78,4 @@
    #:disable-auto-tracing
    #:auto-tracing-enabled
    #:set-auto-tracing-directory
-   #:setup-auto-tracing
-   ))
+   #:setup-auto-tracing))
