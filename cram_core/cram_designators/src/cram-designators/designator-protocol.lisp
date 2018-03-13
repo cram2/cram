@@ -224,6 +224,9 @@ class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
   (if (null (successor desig))
       desig
       (current-desig (successor desig))))
+(defmethod current-desig ((desig null))
+  "Allow asking current-desig also on NULL objects."
+  NIL)
 
 (defun newest-effective-designator (desig)
   (labels ((find-effective-desig (desig)
