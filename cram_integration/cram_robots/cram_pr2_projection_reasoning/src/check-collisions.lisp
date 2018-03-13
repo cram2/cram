@@ -160,11 +160,9 @@ Store found pose into designator or throw error if good pose not found."
                                right-poses))))))))
       (btr::restore-world-state world-state world))))
 
-
 (defun check-placing-collisions (placing-action-desig)
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
-
     (unwind-protect
          (cpl:with-failure-handling
              ((common-fail:manipulation-pose-unreachable (e)
@@ -202,18 +200,19 @@ Store found pose into designator or throw error if good pose not found."
                                      ;; either robot collides with environment
                                      (btr:robot-colliding-objects-without-attached)
                                      ;; or object in the hand collides with environment
-                                     (remove (btr:name
-                                              (find-if (lambda (x)
-                                                         (typep x 'btr:semantic-map-object))
-                                                       (btr:objects btr:*current-bullet-world*)))
-                                             (remove (btr:get-robot-name)
-                                                     (btr:find-objects-in-contact
-                                                      btr:*current-bullet-world*
-                                                      (btr:object
-                                                       btr:*current-bullet-world*
-                                                       object-name))
-                                                     :key #'btr:name)
-                                             :key #'btr:name))
+                                     ;; (remove (btr:name
+                                     ;;          (find-if (lambda (x)
+                                     ;;                     (typep x 'btr:semantic-map-object))
+                                     ;;                   (btr:objects btr:*current-bullet-world*)))
+                                     ;;         (remove (btr:get-robot-name)
+                                     ;;                 (btr:find-objects-in-contact
+                                     ;;                  btr:*current-bullet-world*
+                                     ;;                  (btr:object
+                                     ;;                   btr:*current-bullet-world*
+                                     ;;                   object-name))
+                                     ;;                 :key #'btr:name)
+                                     ;;         :key #'btr:name)
+                                     )
                                 (roslisp:ros-warn (pp-plans coll-check)
                                                   "Robot is in collision with environment.")
                                 (cpl:sleep *debug-long-sleep-duration*)
