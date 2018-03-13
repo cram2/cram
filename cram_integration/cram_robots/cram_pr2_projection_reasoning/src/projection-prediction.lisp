@@ -29,6 +29,8 @@
 
 (in-package :pr2-proj-reasoning)
 
+(defparameter *projection-reasoning-enabled* t)
+
 (defun extract-successful-transporting-designators (top-level-name path)
   (let* ((bindings
            (car
@@ -43,27 +45,24 @@
                                      ,path
                                      :fetching
                                      ?fetching-task ?_)
-               (format "FETCHING TASK: ~A~%" ?fetching-task)
                (task-full-path ?fetching-task ?fetching-path)
                (task-specific-action ,top-level-name ?fetching-path :picking-up
                                      ?picking-up-task ?picking-up-designator)
                (task-outcome ?picking-up-task :succeeded)
-               (format "PICKING TASK: ~a~%" ?picking-up-task)
-               ;; find closest navigation action before pick-up
-               (task-previous-action-sibling ,top-level-name ?fetching-path
-                                             ?picking-up-task
-                                             :navigating ?picking-navigating-task)
-               (format "PREVIOUS SIBLING: ~a~%" ?picking-navigating-task)
-               (task-specific-action ,top-level-name ?fetching-path :navigating
-                                     ?picking-navigating-task
-                                     ?picking-navigating-designator)
-               (format "NAVIGATING TASK: ~a~%" ?picking-navigating-task)
                ;; make sure that the corresponding delivering action succeeded
                (task-specific-action ,top-level-name ;; ?transporting-path
                                      ,path
                                      :delivering
                                      ?delivering-task ?_)
                (task-outcome ?delivering-task :succeeded)
+
+               ;; find closest navigation action before pick-up
+               (task-previous-action-sibling ,top-level-name ?fetching-path
+                                             ?picking-up-task
+                                             :navigating ?picking-navigating-task)
+               (task-specific-action ,top-level-name ?fetching-path :navigating
+                                     ?picking-navigating-task
+                                     ?picking-navigating-designator)
                ;; find closest navigation action before place
                (task-full-path ?delivering-task ?delivering-path)
                (task-specific-action ,top-level-name ?delivering-path :placing
@@ -193,23 +192,31 @@
             parameter-lists-only-poses))
          (best-parameters
            (nth best-parameter-list-index parameter-lists)))
-    (print parameter-lists)
     best-parameters))
-
 
 (defmacro with-projected-task-tree (designators number-of-runs cost-function &body body)
   (alexandria:with-gensyms (paths)
-    `(if cram-projection:*projection-environment*
-         ,@body
-         (let (,paths)
-           (cpl:with-tags
-             ,@(loop for i to (1- number-of-runs)
-                     collecting
-                     (let ((task-variable (gensym "PREDICTION-TASK-")))
-                       `(progn
-                          (:tag ,task-variable
-                            ,@body)
-                          (push (cpl:task-path ,task-variable) ,paths)))))
+    `(if (or cram-projection:*projection-environment*
+             (not *projection-reasoning-enabled*))
+         (progn
+           ,@body)
+         (let* (,paths
+                (world btr:*current-bullet-world*)
+                (world-state (btr::get-state world)))
+           (time
+            (unwind-protect
+                 (proj:with-projection-environment pr2-proj:pr2-bullet-projection-environment
+                   (cpl:with-tags
+                     ,@(loop for i to (1- number-of-runs)
+                             collecting
+                             (let ((task-variable (gensym "PREDICTION-TASK-")))
+                               `(progn
+                                  (:tag ,task-variable
+                                    (btr::restore-world-state world-state world)
+                                    (pr2-proj::set-tf-from-bullet)
+                                    ,@body)
+                                  (push (cpl:task-path ,task-variable) ,paths))))))
+              (btr::restore-world-state world-state world)))
            (destructuring-bind ,designators
-               (funcall ,cost-function ,paths)
+               (time (funcall ,cost-function ,paths))
              ,@body)))))
