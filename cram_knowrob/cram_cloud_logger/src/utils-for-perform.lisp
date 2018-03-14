@@ -148,10 +148,8 @@
       (let ((previous-id (car (cpl:value hash-value))))
           (progn (log-cram-prev-action
                   child-id previous-id)
-                 ;;(format t "PREVIOUS: ~a previous ~a " child-id previous-id)
                  (log-cram-next-action
                   previous-id child-id)
-                 ;;(format t "NEXT: ~a next ~a "previous-id child-id)
                  (setf (cpl:value hash-value) (cons child-id (cpl:value hash-value)))
                  (setf  (gethash parent-id *action-siblings*) hash-value)))
       (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
@@ -172,14 +170,11 @@
                (format t "failure string: ~a" (write-to-string e))
                (if is-parent-action
                    (send-batch-query))))
-          ;;(format t "executing ~a~%" action-id)
-          ;;(format t "logging ~a with parent ~a~%" action-id (first *action-parents*))
           (log-cram-sub-action (car *action-parents*) action-id)
           (log-cram-sibling-action (car *action-parents*) action-id)
           (if (not *action-parents*)
               (setq is-parent-action t))
           (push action-id *action-parents*)
-          ;;(format t "new hierarchy is : ~a~%" *action-parents*)
           (let ((perform-result (call-next-method)))
             (log-cram-finish-action action-id)
             (when (and perform-result (typep perform-result 'desig:object-designator))
@@ -251,16 +246,9 @@
     query-result))
 
 
-(defmethod prolog:prolog :around (query &optional (binds nil))
-  ;;(format t "Asking prolog for ~a~% with binds ~a~%" (car query) binds)
-  ;;(print (create-prolog-log-query (car query)))
+(defmethod prolog::prove-one :around (query binds &optional rethrow-cut)
   (if *is-logging-enabled*
       (let ((query-id (create-prolog-log-query (car query)))(result (call-next-method)))
-        ;;(format t "The query result is ~a~%" (car (cpl:value *prolog-queries*)))
-        ;;(print (list-length (cpl:value *prolog-queries*)))
-        ;;(setf (cpl:value *prolog-queries*)
-        ;;      (cons (create-query "cram_finish_action" (list query-id (get-timestamp-for-logging)))
-        ;;            (cpl:value *prolog-queries*)))
         (if query-id 
             (setf (cpl:value *prolog-queries*)
                   (cons (concatenate 'string query-id (get-more-specific-timestamp-for-logging)  '(#\newline))
@@ -270,20 +258,24 @@
 
 (defun send-batch-query ()
   (print "Sending batch query ...")
-  ;;(send-prolog-query-1 (create-batch-query))
-  (with-open-file (str "PROLOG-CRAM-LOG.csv"
-                     :direction :output
-                     :if-exists :append
-                     :if-does-not-exist :create)
-  (format str (create-batch-query)))
+  ;;Remove this if clause when the predicate white-list is done
+  (if nil
+      (with-open-file (str "PROLOG-CRAM-LOG.csv"
+                           :direction :output
+                           :if-exists :append
+                           :if-does-not-exist :create)
+        (format str (create-batch-query))))
   (print "Batch query is done"))
 
 (defun create-prolog-log-query (predicate-name)
   (if (and (string/= (string-downcase (write-to-string predicate-name)) "bound")
            (string/= (string-downcase (write-to-string predicate-name)) "and")
            (string/= (string-downcase (write-to-string predicate-name)) "or")
-                      (string/= (string-downcase (write-to-string predicate-name)) "cram-prolog:bound")) 
+           (string/= (string-downcase (write-to-string predicate-name)) "cram-prolog:bound")
+           (string-downcase (write-to-string predicate-name))
+           ) 
       (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8))))))
+        ;;Use this block again if you will decided to log the predicates in OWL
         ;;(setf (cpl:value *prolog-queries*)
         ;;      (cons (create-rdf-assert-query query-id "rdf:type" " owl:\\'NamedIndividual\\'")
         ;;            (cpl:value *prolog-queries*)))
@@ -307,11 +299,20 @@
   )
 
 
+;;Use this version of create-batch-query when you will decide to log the predicates in OWL
+;;(defun create-batch-query()
+;;  (let ((batch-query ""))
+;;    (dolist (item (cdr (cpl:value *prolog-queries*)))
+;;      (setq batch-query (concatenate 'string batch-query item)))
+;;    (setf (cpl:value *prolog-queries*) '())
+;;    batch-query))
+
 (defun create-batch-query()
-  (let ((batch-query ""))
-    (dolist (item (cdr (cpl:value *prolog-queries*)))
-      (setq batch-query (concatenate 'string batch-query item)))
-    (setf (cpl:value *prolog-queries*) '())
+  (let ((batch-query "") (i 0))
+    (loop while (and (cpl:value *prolog-queries*))
+          do (setq batch-query
+                   (concatenate 'string batch-query
+                                (pop (cpl:value *prolog-queries*)))))
     batch-query))
 
 (defun string-start-with (str prefix)
