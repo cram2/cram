@@ -40,4 +40,5 @@
    ;; belief-state
    #:*robot-urdf* #:*kitchen-urdf*
    #:*robot-parameter* #:*kitchen-parameter*
+   #:*spawn-debug-window*
    #:setup-world-database))
