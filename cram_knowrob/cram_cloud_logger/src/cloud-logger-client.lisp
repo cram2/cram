@@ -189,8 +189,18 @@
   (let ((object-instance-id (symbol-name (desig:desig-prop-value object-designator :NAME))))
     (when (not (string-equal object-instance-id "nil"))
       (progn
-        (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:objectActedOn" (convert-to-prolog-str object-instance-id))
-        object-instance-id))))
+        (send-rdf-query
+         (convert-to-prolog-str action-inst)
+         "knowrob:objectActedOn"
+         (convert-to-prolog-str object-instance-id)))))
+
+  (let ((object-type (symbol-name (desig:desig-prop-value object-designator :TYPE))))
+    (when (not (string-equal object-type "nil"))
+      (progn
+        (send-rdf-query
+         (convert-to-prolog-str action-inst)
+         "knowrob:objectType"
+         (convert-to-prolog-str object-type))))))
 
 (defun get-object-name (object-name)
   (if (eq (search "|" object-name) 1)
