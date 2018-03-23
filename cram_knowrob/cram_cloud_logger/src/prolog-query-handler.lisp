@@ -1,6 +1,8 @@
 (in-package :ccl)
 
 (defparameter *prolog-queries* (cpl:make-fluent :value '()))
+(defparameter *prolog-query-save-path* nil)
+(defparameter *prolog-query-filenames* (cpl:make-fluent :value '()))
 
 
 (defmethod prolog::prove-one :around (query binds &optional rethrow-cut)
@@ -15,22 +17,23 @@
 
 (defun send-batch-query ()
   (print "Sending batch query ...")
-  ;;Remove this if clause when the predicate white-list is done
-  (if nil
-      (with-open-file (str "PROLOG-CRAM-LOG.csv"
-                           :direction :output
-                           :if-exists :append
-                           :if-does-not-exist :create)
-        (format str (create-batch-query))))
+  (if *prolog-query-save-path*
+      (let ((query-filename (format nil "~x.csv" (random (expt 16 8)))))
+        (with-open-file (str (concatenate 'string *prolog-query-save-path* query-filename)
+                             :direction :output
+                             :if-exists :append
+                             :if-does-not-exist :create)
+          (format str (create-batch-query)))
+        (setf (cpl:value *prolog-query-filenames*)
+                  (cons query-filename
+                        (cpl:value *prolog-query-filenames*)))))
   (print "Batch query is done"))
 
 (defun create-prolog-log-query (predicate-name)
-  (if (and (string/= (string-downcase (write-to-string predicate-name)) "bound")
-           (string/= (string-downcase (write-to-string predicate-name)) "and")
-           (string/= (string-downcase (write-to-string predicate-name)) "or")
-           (string/= (string-downcase (write-to-string predicate-name)) "cram-prolog:bound")
-           (string-downcase (write-to-string predicate-name))
-           ) 
+  (if (or (string-equal (string-downcase (write-to-string predicate-name))
+                        "cram-object-interfaces:object-type-grasp")
+          (string-equal (string-downcase (write-to-string predicate-name))
+                        "cram-object-interfaces:object-rotationally-symmetric")) 
       (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8))))))
         ;;Use this block again if you will decided to log the predicates in OWL
         ;;(setf (cpl:value *prolog-queries*)
@@ -65,10 +68,34 @@
 ;;    batch-query))
 
 (defun create-batch-query()
-  (let ((batch-query "") (i 0))
-    (loop while (and (cpl:value *prolog-queries*))
+  (let ((batch-query ""))
+    (loop while (cpl:value *prolog-queries*)
           do (setq batch-query
                    (concatenate 'string batch-query
                                 (pop (cpl:value *prolog-queries*)))))
     batch-query))
+
+(defun merge-all-csv-files ()
+  (if *prolog-query-save-path*
+      (progn (with-open-file (str (concatenate 'string *prolog-query-save-path* "main.csv")
+                                  :direction :output
+                                  :if-exists :append
+                                  :if-does-not-exist :create)
+               (format str (concatenate 'string "PREDICATE;STARTTIME;ENDTIME" '(#\newline))))
+             (loop while (cpl:value *prolog-query-filenames*)
+                   do (with-open-file (str (concatenate 'string *prolog-query-save-path* "main.csv")
+                                  :direction :output
+                                  :if-exists :append
+                                  :if-does-not-exist :create)
+                        (format str (file-string
+                                     (concatenate 'string
+                                                  *prolog-query-save-path*
+                                                  (pop (cpl:value *prolog-query-filenames*))))))))))
+
+
+(defun file-string (path)
+  (with-open-file (stream path)
+    (let ((data (make-string (file-length stream))))
+      (read-sequence data stream)
+      data)))
 
