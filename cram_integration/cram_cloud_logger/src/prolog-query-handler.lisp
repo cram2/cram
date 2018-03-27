@@ -37,16 +37,11 @@
   (if (is-predicate-in-white-list predicate-name)
       (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8)))))
             (queries '()))
-        ;;Use this block again if you will decided to log the predicates in OWL
-        ;;(setf queries
-        ;;      (cons (create-rdf-assert-query query-id "rdf:type" " owl:\\'NamedIndividual\\'")
-        ;;            queries))
         (setf queries
               (cons (create-rdf-assert-query
                      query-id
                      "knowrob:predicate"
                      (convert-to-prolog-str (write-to-string predicate-name)))
-                     ;;(create-string-owl-literal (write-to-string predicate-name)))
                     queries))
         (setf queries
               (cons (create-query
@@ -76,7 +71,6 @@
       (string-equal (string-downcase (write-to-string predicate-name))
                     "cram-designators:location-grounding")))
 
-;;Use this version of create-batch-query when you will decide to log the predicates in OWL
 (defun create-batch-query()
   (let ((batch-query (car (cpl:value *prolog-queries*))))
     (dolist (item (cdr (cpl:value *prolog-queries*)))
@@ -94,28 +88,4 @@
         (if (not variable-bind)
             (setq solution-variable-list (cons item solution-variable-list)))))
     solution-variable-list))
-
-(defun merge-all-csv-files ()
-  (if *prolog-query-save-path*
-      (progn (with-open-file (str (concatenate 'string *prolog-query-save-path* "main.csv")
-                                  :direction :output
-                                  :if-exists :append
-                                  :if-does-not-exist :create)
-               (format str (concatenate 'string "PREDICATE;STARTTIME;ENDTIME" '(#\newline))))
-             (loop while (cpl:value *prolog-query-filenames*)
-                   do (with-open-file (str (concatenate 'string *prolog-query-save-path* "main.csv")
-                                  :direction :output
-                                  :if-exists :append
-                                  :if-does-not-exist :create)
-                        (format str (file-string
-                                     (concatenate 'string
-                                                  *prolog-query-save-path*
-                                                  (pop (cpl:value *prolog-query-filenames*))))))))))
-
-
-(defun file-string (path)
-  (with-open-file (stream path)
-    (let ((data (make-string (file-length stream))))
-      (read-sequence data stream)
-      data)))
 
