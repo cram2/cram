@@ -9,7 +9,8 @@
       (string= prefix (subseq str 0 (length prefix)))))
 
 (defun get-timestamp-for-logging ()
-  (write-to-string (truncate (cram-utilities:current-timestamp))))
+  ;;(write-to-string (truncate (cram-utilities:current-timestamp))))
+  (get-more-specific-timestamp-for-logging))
 
 (defun get-more-specific-timestamp-for-logging ()
   (format nil "~d"  (truncate (* 1000000 (cram-utilities:current-timestamp)))))
