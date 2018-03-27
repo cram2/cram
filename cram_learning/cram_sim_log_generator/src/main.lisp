@@ -17,5 +17,4 @@
                (pr2-proj:with-simulated-robot (demo::demo-random))
                (ccl::export-log-to-owl (concatenate 'string experiment-id ".owl"))
                (format t "Done with experiment ~a~%" experiment-id)
-               (asdf-utils:run-program (concatenate 'string "docker cp seba:/home/ros/user_data/" experiment-id ".owl " experiment-save-path))
-               (ccl::merge-all-csv-files)))))
+               (asdf-utils:run-program (concatenate 'string "docker cp seba:/home/ros/user_data/" experiment-id ".owl " experiment-save-path))))))
