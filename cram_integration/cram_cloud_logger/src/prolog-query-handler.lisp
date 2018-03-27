@@ -7,7 +7,13 @@
 
 (defmethod prolog::prove-one :around (query binds &optional rethrow-cut)
   (if *is-logging-enabled*
-      (let ((query-id (create-prolog-log-query (car query)))(result (call-next-method)))
+      (let ((query-id (create-prolog-log-query query))(result (call-next-method)))
+        (when query-id
+          (let ((solution-variable-list (print-prolog-predicate query binds)))
+            (dolist (item solution-variable-list)
+              (let ((variable-bind (assoc item (CRAM-UTILITIES:LAZY-CAR result))))
+                (when variable-bind
+                  variable-bind)))))
         (if query-id 
             (setf (cpl:value *prolog-queries*)
                   (cons (concatenate 'string query-id (get-more-specific-timestamp-for-logging)  '(#\newline))
@@ -29,11 +35,8 @@
                         (cpl:value *prolog-query-filenames*)))))
   (print "Batch query is done"))
 
-(defun create-prolog-log-query (predicate-name)
-  (if (or (string-equal (string-downcase (write-to-string predicate-name))
-                        "cram-object-interfaces:object-type-grasp")
-          (string-equal (string-downcase (write-to-string predicate-name))
-                        "cram-object-interfaces:object-rotationally-symmetric")) 
+(defun create-prolog-log-query (query)
+  (if (is-predicate-in-white-list (car query))
       (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8))))))
         ;;Use this block again if you will decided to log the predicates in OWL
         ;;(setf (cpl:value *prolog-queries*)
@@ -54,10 +57,25 @@
         ;;                   "PV"
         ;;                   query-id))
         ;;            (cpl:value *prolog-queries*)))
-        (concatenate 'string (write-to-string predicate-name) ";" (get-more-specific-timestamp-for-logging) ";"))
+        (concatenate 'string (write-to-string (car query)) ";" (get-more-specific-timestamp-for-logging) ";"))
       nil)
   )
 
+(defun is-predicate-in-white-list (predicate-name)
+  (or (string-equal (string-downcase (write-to-string predicate-name))
+                    "cram-object-interfaces:object-type-grasp")
+      (string-equal (string-downcase (write-to-string predicate-name))
+                    "cram-object-interfaces:object-rotationally-symmetric")
+      (string-equal (string-downcase (write-to-string predicate-name))
+                    "cram-semantic-map-costmap::semantic-map-desig-objects")
+      (string-equal (string-downcase (write-to-string predicate-name))
+                    "cram-semantic-map-costmap:semantic-map-objects")
+      (string-equal (string-downcase (write-to-string predicate-name))
+                    "cram-designators:action-grounding")
+      (string-equal (string-downcase (write-to-string predicate-name))
+                    "cram-designators:motion-grounding")
+      (string-equal (string-downcase (write-to-string predicate-name))
+                    "cram-designators:location-grounding")))
 
 ;;Use this version of create-batch-query when you will decide to log the predicates in OWL
 ;;(defun create-batch-query()
@@ -66,6 +84,16 @@
 ;;      (setq batch-query (concatenate 'string batch-query item)))
 ;;    (setf (cpl:value *prolog-queries*) '())
 ;;    batch-query))
+
+(defun print-prolog-predicate (query binds)
+  (let ((predicate-name (car query))
+        (predicate-parameter-list (cdr query))
+        (solution-variable-list '()))
+    (dolist (item predicate-parameter-list)
+      (let ((variable-bind (assoc item binds)))
+        (if (not variable-bind)
+            (setq solution-variable-list (cons item solution-variable-list)))))
+    solution-variable-list))
 
 (defun create-batch-query()
   (let ((batch-query ""))
