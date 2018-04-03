@@ -39,6 +39,12 @@
             (queries '()))
         (setf queries
               (cons (create-rdf-assert-query
+                     (convert-to-prolog-str (car ccl::*action-parents*))
+                     "knowrob:reasoningTask"
+                     query-id)
+                    queries))
+        (setf queries
+              (cons (create-rdf-assert-query
                      query-id
                      "knowrob:predicate"
                      (convert-to-prolog-str (write-to-string predicate-name)))
