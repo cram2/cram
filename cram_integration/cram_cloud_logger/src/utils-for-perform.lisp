@@ -40,7 +40,8 @@
             ((cpl:plan-failure (e)
                (log-cram-finish-action action-id)
                (send-task-success action-id "false")
-               (format t "failure string: ~a" (write-to-string e))
+               (log-failure action-id e)
+               ;;(format t "failure string: ~a" (write-to-string e))
                (if is-parent-action
                    (send-batch-query))))
           (log-cram-sub-action (car *action-parents*) action-id)
@@ -77,6 +78,12 @@
         (log-action-parameter designator result)
         result)
       "NOLOGGING"))
+
+(defun log-failure (action-id failure-type)
+  (let ((failure-str (write-to-string failure-type)))
+    (send-rdf-query (convert-to-prolog-str action-id)
+                    "knowrob:failure"
+                    (convert-to-prolog-str (subseq failure-str 2 (search " " failure-str))))))
 
 (defun log-cram-finish-action (action-id)
   (send-cram-finish-action
