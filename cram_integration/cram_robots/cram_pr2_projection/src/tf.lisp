@@ -93,7 +93,7 @@
                    (if (= prev-link-count (length urdf-link-names))
                        (progn
                            (roslisp:ros-error (pr2-proj tf) "Somehow a virtual link with no parents in ~
-						   the bullet world was found in the urdf. This should never happen.")
+                           the bullet world was found in the urdf. This should never happen.")
                            (return))
                        (setf prev-link-count (length urdf-link-names)))
                    (let (next-round)
@@ -105,7 +105,7 @@
                                            display-warnings)
                                   (roslisp:ros-warn (pr2-proj tf)
                                                     "Joint of ~a is ~a. Only links on FIXED joints should ~
-													be asserted as virtual links."
+                                                    be asserted as virtual links."
                                                     (cl-urdf:name link-joint)
                                                     (cl-urdf:joint-type link-joint)))
                                 (if (member parent-name bullet-links)
