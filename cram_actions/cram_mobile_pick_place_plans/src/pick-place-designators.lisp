@@ -50,13 +50,13 @@
         left-reach-poses left-put-poses left-retract-poses
         right-reach-poses right-put-poses right-retract-poses)
     (when (member :left arm-as-list)
-      (setf left-reach-poses (subseq left-manipulation-poses 0 1)
-            left-put-poses (subseq left-manipulation-poses 1 2)
-            left-retract-poses (subseq left-manipulation-poses 2)))
+      (setf left-reach-poses (subseq left-manipulation-poses 0 2)
+            left-put-poses (subseq left-manipulation-poses 2 3)
+            left-retract-poses (subseq left-manipulation-poses 3)))
     (when (member :right arm-as-list)
-      (setf right-reach-poses (subseq right-manipulation-poses 0 1)
-            right-put-poses (subseq right-manipulation-poses 1 2)
-            right-retract-poses (subseq right-manipulation-poses 2)))
+      (setf right-reach-poses (subseq right-manipulation-poses 0 2)
+            right-put-poses (subseq right-manipulation-poses 2 3)
+            right-retract-poses (subseq right-manipulation-poses 3)))
     (list left-reach-poses right-reach-poses left-put-poses right-put-poses
           left-retract-poses right-retract-poses)))
 
