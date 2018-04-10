@@ -213,7 +213,7 @@
                                `(progn
                                   (:tag ,task-variable
                                     (btr::restore-world-state world-state world)
-                                    (pr2-proj::set-tf-from-bullet)
+                                    (cram-bullet-reasoning-belief-state::set-tf-from-bullet)
                                     ,@body)
                                   (push (cpl:task-path ,task-variable) ,paths))))))
               (btr::restore-world-state world-state world)))
