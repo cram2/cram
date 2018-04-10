@@ -52,6 +52,7 @@
                  cram-object-interfaces
                  cram-robot-interfaces
                  cram-utilities ; lazy in pose-generators
+                 cram-occasions-events ; for temporal reasoning
                  cram-tf
                  cram-physics-utils)
     :components

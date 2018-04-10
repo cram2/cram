@@ -56,7 +56,9 @@
   :process-module-definitions
   (pr2-proj-navigation pr2-proj-torso pr2-proj-ptu pr2-proj-perception
                        pr2-proj-grippers pr2-proj-arms)
-  :startup (set-tf-from-bullet)
+  :startup (progn
+             (cram-bullet-reasoning-belief-state:set-tf-from-bullet)
+             (cram-bullet-reasoning-belief-state:update-bullet-transforms))
   :shutdown (setf *last-timeline* cram-bullet-reasoning:*current-timeline*))
 
 
