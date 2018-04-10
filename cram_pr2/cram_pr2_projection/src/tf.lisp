@@ -28,6 +28,7 @@
 
 (in-package :pr2-proj)
 
+<<<<<<< HEAD
 (defun set-tf-from-bullet (&key (transformer cram-tf:*transformer*)
                              (fixed-frame cram-tf:*fixed-frame*)
                              (odom-frame cram-tf:*odom-frame*)
@@ -81,16 +82,18 @@
     ;; execute the TF update callbacks
     (cl-tf:execute-changed-callbacks transformer))))
 
+=======
+>>>>>>> b8d5ae6... finished prototype of TF broadcasting from projection:
 (defmethod cram-occasions-events:on-event
     update-tf ((event cram-plan-occasions-events:robot-state-changed))
   (when (eql cram-projection:*projection-environment*
            'cram-pr2-projection::pr2-bullet-projection-environment)
-    (set-tf-from-bullet)))
+    (cram-bullet-reasoning-belief-state:set-tf-from-bullet)))
 
 (defmethod cram-robot-interfaces:compute-iks
     :before (pose-stamped &key link-name arm robot-state seed-state
                             pose-stamped-frame tcp-in-ee-pose)
   (declare (ignore pose-stamped link-name arm robot-state seed-state
                    pose-stamped-frame tcp-in-ee-pose))
-  (set-tf-from-bullet))
+  (cram-bullet-reasoning-belief-state:set-tf-from-bullet))
 
