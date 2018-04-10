@@ -30,8 +30,10 @@
 
 (in-package :pr2-proj-reasoning)
 
-(defparameter *debug-short-sleep-duration* 0.0 "in seconds")
-(defparameter *debug-long-sleep-duration* 0.0 "in seconds")
+(defparameter *debug-short-sleep-duration* 0.0
+  "in seconds, sleeps after each movement during reasoning")
+(defparameter *debug-long-sleep-duration* 0.0
+  "in seconds, sleeps to show colliding configurations")
 
 (defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 30))
   (declare (type desig:location-designator navigation-location-desig))
