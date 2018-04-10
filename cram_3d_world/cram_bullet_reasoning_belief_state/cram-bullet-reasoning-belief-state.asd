@@ -30,7 +30,8 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (cram-prolog
+  :depends-on (sb-thread
+               cram-prolog
                cram-utilities
                cram-projection
                cram-designators
@@ -44,6 +45,7 @@
                roslisp
                cram-robot-interfaces
                cram-tf
+               cl-tf ; for tf broadcaster
                cl-transforms-stamped
                cl-transforms
                cl-bullet)
