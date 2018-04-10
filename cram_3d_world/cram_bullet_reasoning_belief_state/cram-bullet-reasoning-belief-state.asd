@@ -30,8 +30,7 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (sb-thread
-               cram-prolog
+  :depends-on (cram-prolog
                cram-utilities
                cram-projection
                cram-designators
@@ -45,16 +44,20 @@
                roslisp
                cram-robot-interfaces
                cram-tf
-               cl-tf ; for tf broadcaster
+               cl-tf ; for tf broadcaster and for setting transforms from bullet to tf
                cl-transforms-stamped
                cl-transforms
-               cl-bullet)
+               cl-bullet
+               tf2_msgs-msg
+               geometry_msgs-msg)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "belief-state" :depends-on ("package"))
      (:file "time" :depends-on ("package"))
+     (:file "tf" :depends-on ("package"))
+     (:file "broadcaster" :depends-on ("package" "tf"))
      (:file "object-perceptions" :depends-on ("package"))
      (:file "occasions" :depends-on ("package" "object-perceptions"))
      (:file "event-handlers" :depends-on ("package" "object-perceptions"))))))
