@@ -88,6 +88,10 @@ Gripper is defined by a convention where Z is pointing towards the object."))
            (get-object-type-to-gripper-lift-transform
             object-type object-name arm grasp
             object-to-standard-gripper-transform))
+         (object-to-standard-gripper-2nd-lift-transform ; oTg'
+           (get-object-type-to-gripper-2nd-lift-transform
+            object-type object-name arm grasp
+            object-to-standard-gripper-transform))
          (standard-to-particular-gripper-transform ; g'Tg
            (cl-tf:transform->transform-stamped
             gripper-tool-frame
@@ -115,14 +119,12 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                     standard-to-particular-gripper-transform ; g'Tg
                     :result-as-pose-or-transform :pose)))))
 
-        (list (object-to-standard-gripper->base-to-particular-gripper
-               object-to-standard-gripper-pregrasp-transform)
-              (object-to-standard-gripper->base-to-particular-gripper
-               object-to-standard-gripper-2nd-pregrasp-transform)
-              (object-to-standard-gripper->base-to-particular-gripper
-               object-to-standard-gripper-transform)
-              (object-to-standard-gripper->base-to-particular-gripper
-               object-to-standard-gripper-lift-transform))))))
+        (mapcar #'object-to-standard-gripper->base-to-particular-gripper
+                (list object-to-standard-gripper-pregrasp-transform
+                      object-to-standard-gripper-2nd-pregrasp-transform
+                      object-to-standard-gripper-transform
+                      object-to-standard-gripper-lift-transform
+                      object-to-standard-gripper-2nd-lift-transform))))))
 
 
 (def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
