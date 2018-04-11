@@ -13,6 +13,7 @@
                :cram-prolog
                :cram-robot-interfaces
                :cl-tf
+               :tf2_msgs-msg ; for TF broadcaster
                :roslisp-utilities
                :roslisp
                :cram-designator-specification)
@@ -20,7 +21,8 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "setup" :depends-on ("package"))
+             (:file "tf-broadcaster" :depends-on ("package"))
+             (:file "setup" :depends-on ("package" "tf-broadcaster"))
              (:file "designator-extensions" :depends-on ("package" "setup"))
              (:file "robot-current-pose" :depends-on ("package" "setup"))
              (:file "designator-filters" :depends-on ("package"))

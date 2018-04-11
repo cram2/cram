@@ -26,6 +26,7 @@
   <depend>cram_robot_interfaces</depend>
   <depend>cram_designator_specification</depend>
   <depend>cl_tf</depend>
+  <depend>tf2_msgs</depend>
   <depend>roslisp_utilities</depend>
   <depend>roslisp</depend>
 </package>
