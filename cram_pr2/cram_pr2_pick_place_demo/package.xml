@@ -1,6 +1,6 @@
 <package format="2">
   <name>cram_pr2_pick_place_demo</name>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
   <description>Demo code for picking and placing objects on counters</description>
   <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>

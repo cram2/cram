@@ -1,6 +1,6 @@
 <package>
   <name>cram_common_failures</name>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
   <description>
     This package defines general plan failures used, e.g., by the PR2 pick and place plan library.
   </description>

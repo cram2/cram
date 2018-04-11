@@ -1,6 +1,6 @@
 <package>
   <name>cram_robot_interfaces</name>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
   <description>
     CRAM Manipulation Knowledge package
   </description>
