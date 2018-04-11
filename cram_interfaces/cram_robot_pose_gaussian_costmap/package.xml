@@ -1,6 +1,6 @@
 <package>
   <name>cram_robot_pose_gaussian_costmap</name>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
   <description>
     Gaussian distribution costmaps for robot poses
   </description>
