@@ -28,62 +28,6 @@
 
 (in-package :pr2-proj)
 
-<<<<<<< HEAD
-(defun set-tf-from-bullet (&key (transformer cram-tf:*transformer*)
-                             (fixed-frame cram-tf:*fixed-frame*)
-                             (odom-frame cram-tf:*odom-frame*)
-                             (base-frame cram-tf:*robot-base-frame*)
-                             (time (cut:current-timestamp)))
-  "Sets the transform from fixed frame to odom and then robot and all robot link transforms"
-  ;; get the robot bullet object instance
-  (cut:with-vars-bound (?robot-instance)
-      (cut:lazy-car
-       (prolog:prolog `(and (cram-robot-interfaces:robot ?robot)
-                            (btr:bullet-world ?world)
-                            (btr:%object ?world ?robot ?robot-instance))))
-    (assert (not (cut:is-var ?robot-instance)))
-
-    (let* ((robot-pose-in-map (btr:link-pose ?robot-instance base-frame))
-         (reference-transform-inv (cl-transforms:transform-inv
-                                   (cl-transforms:reference-transform robot-pose-in-map))))
-
-    ;; tell the tf transformer that the global fixed frame and the odom frame are the same
-    (cl-tf:set-transform
-     transformer
-     (cl-tf:make-transform-stamped
-      fixed-frame odom-frame time
-      (cl-transforms:make-identity-vector)
-      (cl-transforms:make-identity-rotation))
-     :suppress-callbacks t)
-
-    ;; tell the tf transformer where the robot is in the odometry frame
-    (cl-tf:set-transform
-     transformer
-     (cl-tf:transform->transform-stamped
-      odom-frame base-frame time
-      (cl-transforms:pose->transform robot-pose-in-map))
-     :suppress-callbacks t)
-
-    ;; tell the tf transformer the current configuration of robot's joints
-    (dolist (link (btr:link-names ?robot-instance))
-      (unless (equal link base-frame)
-        (let ((transform (cl-transforms:transform*
-                          reference-transform-inv
-                          (cl-transforms:reference-transform
-                           (btr:link-pose ?robot-instance link)))))
-          (cl-tf:set-transform
-           transformer
-           (cl-tf:make-transform-stamped
-            base-frame link time
-            (cl-transforms:translation transform)
-            (cl-transforms:rotation transform))
-           :suppress-callbacks t))))
-
-    ;; execute the TF update callbacks
-    (cl-tf:execute-changed-callbacks transformer))))
-
-=======
->>>>>>> b8d5ae6... finished prototype of TF broadcasting from projection:
 (defmethod cram-occasions-events:on-event
     update-tf ((event cram-plan-occasions-events:robot-state-changed))
   (when (eql cram-projection:*projection-environment*
