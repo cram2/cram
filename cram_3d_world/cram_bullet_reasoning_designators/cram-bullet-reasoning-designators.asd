@@ -35,6 +35,7 @@
                cram-designators
                cram-location-costmap
                cram-tf
+               cl-transforms-stamped
                cram-utilities
                cram-bullet-reasoning-belief-state ; for obj-desig <-> bullet instance
                cram-robot-interfaces
@@ -52,4 +53,5 @@
                                                      "costmap-generators"
                                                      "visibility-costmap"))
      (:file "location-designator-integration" :depends-on ("package"
-                                                           "location-designator-facts"))))))
+                                                           "location-designator-facts"))
+     (:file "location-of-item-object" :depends-on ("package"))))))

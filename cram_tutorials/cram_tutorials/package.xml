@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>cram_tutorials</name>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
   <description>
     The cram_tutorials package conatins a set of tutorials and examples for CRAM
   </description>

@@ -41,7 +41,6 @@
 (def-fact-group object-designators (desig:desig-location-prop desig:location-grounding)
 
   (<- (desig:desig-location-prop ?desig ?loc)
-    (lisp-type ?desig ?x)
     (desig:obj-desig? ?desig)
     (lisp-fun get-object-pose ?desig ?loc)
     (lisp-pred identity ?loc))

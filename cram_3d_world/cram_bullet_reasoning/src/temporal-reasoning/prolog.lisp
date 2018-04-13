@@ -45,7 +45,7 @@
                                      (make-instance 'bt-reasoning-world))))
         (prolog ?occasion bdgs)))))
 
-(def-fact-group timeline-predicates (holds occurs)
+(def-fact-group timeline-predicates (coe:holds coe:occurs)
 
   (<- (timeline ?timeline)
     (not (bound ?timeline))
@@ -57,28 +57,32 @@
          (lisp-fun timeline-init ?world ?timeline)
          (set-symbol-value *current-timeline* ?timeline))))
 
-  (<- (occurs ?timeline ?ev ?t)
+  (<- (timeline ?timeline)
+    (bound ?timeline)
+    (lisp-type ?timeline timeline))
+
+  (<- (coe:occurs ?timeline ?ev ?t)
     (timeline ?timeline)
     (get-slot-value ?timeline events ?events)
     (member ?event-instance ?events)
     (get-slot-value ?event-instance timestamp ?t)
     (get-slot-value ?event-instance event ?ev))
-  
-  (<- (holds ?timeline ?occ (at ?t))
+
+  (<- (coe:holds ?timeline ?occ (coe:at ?t))
     (bound ?occ)
     (timeline ?timeline)
     (timeline-world-at ?timeline ?t ?world)
     (holds-in-stored-world ?world ?occ))
 
-  (<- (holds ?timeline ?occ (during ?t-1 ?t-2))
+  (<- (coe:holds ?timeline ?occ (coe:during ?t-1 ?t-2))
     (bound ?occ)
-    (timeline ?timeline)    
+    (timeline ?timeline)
     (timeline-world-at ?timeline ?t ?world)
     (lisp-pred >= ?t ?t-1)
     (lisp-pred < ?t ?t-2)
     (holds-in-stored-world ?world ?occ))
 
-  (<- (holds ?timeline ?occ (throughout ?t-1 ?t-2))
+  (<- (coe:holds ?timeline ?occ (coe:throughout ?t-1 ?t-2))
     (bound ?occ)
     (timeline ?timeline)
     (every (and (timeline-world-at ?timeline ?t ?world)
@@ -94,5 +98,5 @@
   (<- (timeline-world-at ?timeline ?t ?world)
     (not (bound ?t))
     (timeline ?timeline)
-    (occurs ?timeline ?_ ?t)
+    (coe:occurs ?timeline ?_ ?t)
     (timeline-world-at ?timeline ?t ?world)))

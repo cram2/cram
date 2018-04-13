@@ -28,18 +28,12 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(defmethod cram-occasions-events:clear-belief cram-bullet-reasoning-belief-state ()
-  (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-  (setup-world-database)
-  (let ((robot-object (btr:get-robot-object)))
-    (if robot-object
-        (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
-        (warn "ROBOT was not defined. Have you loaded a robot package?"))) )
-
 (defvar *robot-urdf* nil)
 (defvar *kitchen-urdf* nil)
 (defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
+(defparameter *spawn-debug-window* t
+  "If the debug window should be spawned when belief state is set up.")
 
 (defun replace-all (string part replacement &key (test #'char=))
   "Returns a new string in which all the occurences of the part
@@ -73,7 +67,8 @@ is replaced with replacement.
      (cut:force-ll
       (prolog `(and
                 (btr:bullet-world ?w)
-                (btr:debug-window ?w)
+                ,@(when *spawn-debug-window*
+                    '((btr:debug-window ?w)))
                 (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
                                            :normal (0 0 1) :constant 0))
                 (btr:assert ?w (btr:object :semantic-map :kitchen ((0 0 0) (0 0 0 1))
@@ -85,3 +80,12 @@ is replaced with replacement.
                          (assert (btr:joint-state ?world ?robot ?joint-states))
                          (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15)))))
                     (warn "ROBOT was not defined. Have you loaded a robot package?"))))))))
+
+
+(defmethod cram-occasions-events:clear-belief cram-bullet-reasoning-belief-state ()
+  (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+  (setup-world-database)
+  (let ((robot-object (btr:get-robot-object)))
+    (if robot-object
+        (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
+        (warn "ROBOT was not defined. Have you loaded a robot package?"))) )

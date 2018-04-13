@@ -1,6 +1,6 @@
 <package>
   <name>cram_bullet_reasoning_belief_state</name>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
   <description>
      cram_bullet_reasoning_belief_state
   </description>
@@ -14,6 +14,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>sbcl</build_depend> <!-- for sb-thread for broadcaster mutex -->
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_designators</build_depend>
@@ -28,10 +29,14 @@
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_robot_interfaces</build_depend>
   <build_depend>cram_tf</build_depend>
+  <build_depend>cl_tf</build_depend>
   <build_depend>cl_transforms_stamped</build_depend>
   <build_depend>cl_transforms</build_depend>
   <build_depend>cl_bullet</build_depend>
+  <build_depend>tf2_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
 
+  <run_depend>sbcl</run_depend>
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_designators</run_depend>
@@ -46,9 +51,13 @@
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
   <run_depend>cram_tf</run_depend>
+  <run_depend>cl_tf</run_depend>
   <run_depend>cl_transforms_stamped</run_depend>
   <run_depend>cl_transforms</run_depend>
   <run_depend>cl_bullet</run_depend>
+  <run_depend>tf2_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+
 </package>
 
 

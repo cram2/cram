@@ -1,6 +1,6 @@
 <package>
   <name>cram_projection</name>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
   <description>
      Library which enables execution of cram plans in a simulated
      environment, so called 'projections'. Additionally, provides means

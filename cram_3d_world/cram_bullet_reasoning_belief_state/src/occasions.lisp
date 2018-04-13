@@ -69,7 +69,7 @@
     (lisp-fun get-designator-object-name ?object-designator
               ?object-name)
     (lisp-pred identity ?object-name))
-  
+
   (<- (object-at-location ?world ?object-name ?location-designator)
     (lisp-type ?location-designator desig:location-designator)
     (btr:bullet-world ?world)
@@ -84,7 +84,10 @@
     (not (bound ?location))
     (btr:bullet-world ?world)
     (btr:object-pose ?world ?object-name ?object-pose)
-    (desig:designator :location ((:pose ?object-pose))
+    (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
+    (lisp-fun cl-transforms-stamped:pose->pose-stamped ?fixed-frame 0.0 ?object-pose
+              ?object-pose-stamped)
+    (desig:designator :location ((:pose ?object-pose-stamped))
                       ?location-designator)))
 
 (defun unique-object-designators ()
