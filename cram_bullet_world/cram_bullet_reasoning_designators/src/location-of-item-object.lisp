@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Institute for Artificial Intelligence/
-;;;       Universitaet Bremen nor the names of its contributors may be used to
-;;;       endorse or promote products derived from this software without
-;;;       specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence /
+;;;       Universitaet Bremen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
+;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,12 +26,16 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
+;;;
 
-(defpackage cram-pr2-projection-reasoning
-  (:nicknames #:pr2-proj-reasoning)
-  (:use #:common-lisp #:cram-prolog)
-  (:export
-   ;; check-collisions
-   #:check-navigating-collisions #:check-picking-up-collisions #:check-placing-collisions
-   ;; projection-prediction
-   #:pick-best-parameters-by-distance #:with-projected-task-tree))
+(in-package :btr-desig)
+
+(def-fact-group object-designators (desig:location-grounding)
+  (<- (desig:location-grounding ?designator ?pose-stamped)
+    (desig:desig-prop ?designator (:of-item-object ?object-designator))
+    (lisp-type ?object-designator desig:object-designator)
+    (desig:desig-prop ?object-designator (:name ?name))
+    (btr:bullet-world ?world)
+    (btr:object-pose ?w ?name ?pose)
+    (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
+    (lisp-fun cl-transforms-stamped:pose->pose-stamped ?fixed-frame 0.0 ?pose ?pose-stamped)))

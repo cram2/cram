@@ -34,6 +34,9 @@
         #:cl-transforms-stamped #:cl-transforms
         #:cram-robot-interfaces)
   (:export #:make-euclidean-distance-filter
+           ;; tf-broadcaster
+           #:make-tf-broadcaster #:add-transform #:remove-transform #:publish-transforms
+           #:start-publishing-transforms #:stop-publishing-transforms
            ;; utilities
            #:poses-equal-p
            #:frame-to-pose-in-fixed-frame
@@ -60,4 +63,6 @@
            #:*tf-default-timeout*
            #:*fixed-frame* #:*robot-base-frame* #:*odom-frame*
            #:*robot-torso-frame* #:*robot-torso-joint*
-           #:*robot-left-tool-frame* #:*robot-right-tool-frame*))
+           #:*robot-left-tool-frame* #:*robot-right-tool-frame*
+           #:*broadcaster*
+           *tf-broadcasting-enabled* *tf-broadcasting-topic* *tf-broadcasting-interval*))

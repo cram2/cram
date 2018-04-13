@@ -1,3 +1,52 @@
+v0.6.0
+
+2018-04-10  Gayane Kazhoyan <gayanek@gmail.com>
+  * implemented broadcasting of TF from projection (robot + items)
+2018-04-04  Christopher Pollok <cpollok@uni-bremen.de>
+  * [obj-int] Add second lift pose to get-object-grasping-poses.
+2018-03-16  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [btr-belief] added *SPAWN-DEBUG-WINDOW* parameters for belief state setup
+2018-03-13  Gayane Kazhoyan <gayanek@gmail.com>
+  * [cram-pr2] made projection reasoning work on the robot
+  * [pr2-pp-demo] don't use cad model fitter for perception of CUP and BOWL
+  * [desig] allow asking CURRENT-DESIG also on NULL objects
+2018-03-02  Gayane Kazhoyan <gayanek@gmail.com>
+  * [pr2-pp-demo] made placing locations more easily reachable
+  * [pr2-pp-plans] assert ROBOT-STATE-CHANGED even if navigation action failed
+  * [btr-belief] simulate world after spawning perceived obj
+2018-02-28  Christopher Pollok <cpollok@uni-bremen.de>
+  * [pr2-proj] Add virtual links in the PR2 URDF to the projection tf tree.
+2018-02-23  Gayane Kazhoyan <gayanek@gmail.com>
+  * [pr2-proj] fixed PROJECTION-RUNNING predicate
+  * [pr2-pp-demo] WITH-REAL-ROBOT now creates a named top level
+  * [rs] only supporting input parameters such as TYPE and CAD-MODEL
+2018-02-22  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-fd-plans] made relevant desigs into explicit args
+  * [pr2-proj-reason] implemented WITH-PROJECTED-TASK-TREE
+2018-02-20  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-transporting-plans] moved SEARCHING out of FETCHING into TRANSPORTING
+  * [pr2-proj-reasoning] bugfix: when checking for collisions ignore attached objects
+  * [pr2-proj-reasoning] bugfix: IK solver only works if every arm movement is asserted into TF
+2018-02-16  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-pp-demo] found best projection round according to driving distance
+  * [pick-place] GRASP is now an attribute of PICKING-UP action desig
+2018-02-14  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * fixed (HOLDS ?TIMELINE ?OCC ...)
+  * [btr-belief] LOC occasion now returns a designator with pose-stamped
+2018-02-09  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-pp-demo] added some more predicates and testing functions for traversing task tree
+  * [cram-occ-events] decided that AT and DURING and THROUGHOUT should be from cet package
+  * [cpl] null pointer guards
+2018-02-07  Gayane Kazhoyan <gayanek@gmail.com>
+  * [pr2-pp-demo] started working on projection for plan parameterization
+  * [exe] change PERFORM from cram function into goal to use execution trace tools
+  * moved CET:*EPISODE-KNOWLEDGE* projection var declaration into pr2-proj package
+  * [cpl] TASK-TREE-NODE now has an optional NODE param
+2018-02-06  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * pick and place is stable-ish on real robot
+
+v0.5.0
+
 2018-01-30  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
   * [pr2-proj] WITH-SIMULATED-ROBOT now creates a named top level
   * [exe], [ccl] made PERFORM into a cram function and renamed the generic function into GENERIC-PERFORM

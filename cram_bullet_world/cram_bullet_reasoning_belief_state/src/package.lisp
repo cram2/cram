@@ -33,6 +33,10 @@
   (:export
    ;; utilities
    #:get-designator-object-name #:get-designator-object
+   ;; tf
+   #:set-tf-from-bullet
+   ;; broadcaster
+   #:update-bullet-transforms
    ;; occasions
    #:object-designator-name
    ;; event handlers
@@ -40,4 +44,5 @@
    ;; belief-state
    #:*robot-urdf* #:*kitchen-urdf*
    #:*robot-parameter* #:*kitchen-parameter*
+   #:*spawn-debug-window*
    #:setup-world-database))

@@ -44,22 +44,35 @@
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator))
 
-  (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?location-designator
-                                                        ?arm))
+  (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?arm
+                                                        ?location-designator
+                                                        ?pick-up-action-designator))
     (spec:property ?action-designator (:type :fetching))
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
-    (spec:property ?action-designator (:location ?some-location-designator))
+    (desig:desig-prop ;; spec:property
+     ?action-designator (:robot-location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
+    (desig:desig-prop ;; spec:property
+     ?action-designator (:pick-up-action ?some-pick-up-action-designator))
+    (desig:current-designator ?some-pick-up-action-designator ?pick-up-action-designator)
     (or (spec:property ?action-designator (:arm ?arm))
         (equal ?arm NIL)))
 
-  (<- (desig:action-grounding ?action-designator (deliver ?object-designator ?location-designator))
+  (<- (desig:action-grounding ?action-designator (deliver ?object-designator ?location-designator
+                                                          ?robot-location-designator
+                                                          ?place-action-designator))
     (spec:property ?action-designator (:type :delivering))
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
     (spec:property ?action-designator (:target ?some-location-designator))
-    (desig:current-designator ?some-location-designator ?location-designator))
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (desig:desig-prop ;; spec:property
+     ?action-designator (:robot-location ?some-robot-location-designator))
+    (desig:current-designator ?some-robot-location-designator ?robot-location-designator)
+    (desig:desig-prop ;; spec:property
+     ?action-designator (:place-action ?some-place-action-designator))
+    (desig:current-designator ?some-place-action-designator ?place-action-designator))
 
   (<- (desig:action-grounding ?action-designator (transport
                                                   ?object-designator
