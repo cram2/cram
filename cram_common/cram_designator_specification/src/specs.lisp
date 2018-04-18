@@ -128,7 +128,13 @@
   (<- (property ?designator (:for ?for-value))
     (lisp-pred typep ?designator desig:action-designator)
     (property-member (:for ?for-value) ?designator)
-    (assert-type ?for-value (or keyword desig:object-designator) "ACTION SPEC:PROPERTY")))
+    (assert-type ?for-value (or keyword desig:object-designator) "ACTION SPEC:PROPERTY"))
+
+  (<- (property ?designator (?retract-arms-key ?retract-arms))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?retract-arms-key (:retract :retract-arms))
+    (property-member (?retract-arms-key ?retract-arms) ?designator)
+    (assert-type ?retract-arms boolean "ACTION SPEC:PROPERTY")))
 
 
 (def-fact-group location-designator-specs (property)

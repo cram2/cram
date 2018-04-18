@@ -29,8 +29,9 @@
 
 (in-package :pr2-fd-plans)
 
-(cpl:def-cram-function go-without-collisions (?navigation-location)
-  (pp-plans:park-arms)
+(cpl:def-cram-function go-without-collisions (?navigation-location &optional (?retract-arms t))
+  (when ?retract-arms
+    (pp-plans:park-arms))
 
   (cpl:with-failure-handling
       (((or common-fail:navigation-low-level-failure
@@ -52,7 +53,7 @@
 
 
 (cpl:def-cram-function search-for-object (?object-designator ?search-location
-                                                             &optional (retries 4))
+                                                             &optional (retries 4) (?retract-arms T))
   "Searches for `?object-designator' in its likely location `?search-location'."
 
   ;; take new `?search-location' sample if a failure happens and retry
@@ -86,7 +87,8 @@
                                                         (pose ?pose-at-search-location))))))
         (exe:perform (desig:an action
                                (type navigating)
-                               (location ?nav-location)))
+                               (location ?nav-location)
+                               (retract-arms ?retract-arms)))
         (exe:perform (desig:an action
                                (type looking)
                                (target (desig:a location
@@ -97,7 +99,7 @@
 
 
 
-(cpl:def-cram-function fetch (?object-designator ?arm ?pick-up-robot-location pick-up-action)
+(cpl:def-cram-function fetch (?object-designator ?arm ?pick-up-robot-location pick-up-action ?retract-arms)
 
   (let* ((?object-pose-in-map
            (desig:reference (desig:a location (of-item-object ?object-designator))))
@@ -180,14 +182,15 @@
 
             (exe:perform pick-up-action)))))
 
-    (pp-plans:park-arms)
+    (when ?retract-arms
+      (pp-plans:park-arms))
     (desig:current-desig ?object-designator)))
 
 
 
 (cpl:def-cram-function deliver (?object-designator ?target-location
-                                                   ?target-robot-location place-action)
-
+                                                   ?target-robot-location place-action
+                                                   &optional (?retract-arms t))
   ;; take a new `?target-location' sample if a failure happens
   (cpl:with-retry-counters ((target-location-retries 20))
     (cpl:with-failure-handling
@@ -249,7 +252,8 @@
                 ;; navigate, look, place
                 (exe:perform (desig:an action
                                        (type navigating)
-                                       (location ?target-robot-location)))
+                                       (location ?target-robot-location)
+                                       (retract-arms ?retract-arms)))
                 (setf ?target-robot-location (desig:current-desig ?target-robot-location))
                 (let* ((mTt
                          (cram-tf:pose-stamped->transform-stamped
@@ -333,7 +337,8 @@
                                   (pose ?placing-pose))))))))
 
 
-(cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm)
+(cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location
+                                                     ?arm &optional (?retract-arms t))
   (let ((?perceived-object-designator
           (exe:perform (desig:an action
                                  (type searching)
@@ -365,7 +370,8 @@
                                          (arm ?arm))
                                        (object ?perceived-object-designator)
                                        (robot-location ?fetch-robot-location)
-                                       (pick-up-action ?fetch-pick-up-action)))))
+                                       (pick-up-action ?fetch-pick-up-action)
+                                       (retract-arms ?retract-arms)))))
           (roslisp:ros-info (pp-plans transport) "Fetched the object.")
 
           (cpl:with-failure-handling
@@ -378,4 +384,5 @@
                                    (object ?fetched-object)
                                    (target ?delivering-location)
                                    (robot-location ?deliver-robot-location)
-                                   (place-action ?deliver-place-action)))))))))
+                                   (place-action ?deliver-place-action)
+                                   (retract-arms ?retract-arms)))))))))
