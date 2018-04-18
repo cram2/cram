@@ -80,6 +80,7 @@
 (defmethod get-object-type-gripping-effort ((object-type (eql :cereal))) 15)
 (defmethod get-object-type-gripping-effort ((object-type (eql :breakfast-cereal))) 20)
 (defmethod get-object-type-gripping-effort ((object-type (eql :bowl))) 100)
+(defmethod get-object-type-gripping-effort ((object-type (eql :tray))) 100)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -91,7 +92,7 @@
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :fork))) 0.03)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :knife))) 0.03)
 (defmethod get-object-type-gripper-opening ((object-type (eql :plate))) 0.02)
-
+(defmethod get-object-type-gripper-opening ((object-type (eql :tray))) 0.02)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-object-type-to-gripper-lift-transform (object-type object-name
@@ -635,11 +636,70 @@
                                                       grasp-transform)
   (get-object-type-to-gripper-pregrasp-transform object-type object-name arm grasp grasp-transform))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TRAY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; SIDE grasp
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :tray))
+                                                 object-name
+                                                 (arm (eql :left))
+                                                 (grasp (eql :side)))
+  (let ((sin-roll (sin *plate-grasp-roll-offset*))
+        (cos-roll (cos *plate-grasp-roll-offset*)))
+    (cl-transforms-stamped:make-transform-stamped
+     (roslisp-utilities:rosify-underscores-lisp-name object-name)
+     cram-tf:*robot-left-tool-frame*
+     0.0
+     (cl-transforms:make-3d-vector 0.0d0 *plate-grasp-y-offset* *plate-grasp-z-offset*)
+     (cl-transforms:matrix->quaternion
+      (make-array '(3 3)
+                  :initial-contents
+                  `((0             1 0)
+                    (,sin-roll     0 ,(- cos-roll))
+                    (,(- cos-roll) 0 ,(- sin-roll))))))))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :tray))
+                                                 object-name
+                                                 (arm (eql :right))
+                                                 (grasp (eql :side)))
+  (let ((sin-roll (sin *plate-grasp-roll-offset*))
+        (cos-roll (cos *plate-grasp-roll-offset*)))
+    (cl-transforms-stamped:make-transform-stamped
+     (roslisp-utilities:rosify-underscores-lisp-name object-name)
+     cram-tf:*robot-right-tool-frame*
+     0.0
+     (cl-transforms:make-3d-vector 0.0d0 (- *plate-grasp-y-offset*) *plate-grasp-z-offset*)
+     (cl-transforms:matrix->quaternion
+      (make-array '(3 3)
+                  :initial-contents
+                  `((0             -1 0)
+                    (,(- sin-roll) 0 ,cos-roll)
+                    (,(- cos-roll) 0 ,(- sin-roll))))))))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :tray))
+                                                          object-name
+                                                          arm
+                                                          (grasp (eql :side))
+                                                          grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :y-offset (ecase arm
+                                                   (:left *plate-pregrasp-y-offset*)
+                                                   (:right (- *plate-pregrasp-y-offset*)))
+                                       :z-offset *lift-z-offset*))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :tray))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :side))
+                                                              grasp-transform)
+  (cram-tf:translate-transform-stamped grasp-transform
+                                       :y-offset (ecase arm
+                                                   (:left *plate-pregrasp-y-offset*)
+                                                   (:right (- *plate-pregrasp-y-offset*)))
+                                       :z-offset *plate-2nd-pregrasp-z-offset*))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group pnp-object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
 
   (<- (object-rotationally-symmetric ?object-type)
-    (member ?object-type (:plate :bottle :drink :cup :bowl :milk
+    (member ?object-type (:plate :bottle :drink :cup :bowl :milk :tray
                                  )))
 
   (<- (orientation-matters ?object-type)
@@ -652,6 +712,8 @@
 
   (<- (object-type-grasp :plate :side))
 
+  (<- (object-type-grasp :tray :side))
+  
   (<- (object-type-grasp :bottle :side))
   (<- (object-type-grasp :bottle :front))
 
