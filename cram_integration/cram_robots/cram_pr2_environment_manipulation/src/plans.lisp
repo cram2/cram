@@ -62,17 +62,31 @@
                     :joint-name joint-name
                     :side ?arm
                     :environment environment)))
-  (exe:perform
-   (desig:an action
-             (type lifting)
-             (left-poses ?left-lift-poses)
-             (right-poses ?right-lift-poses)))
-  (when (and joint-name environment)
-    (cram-occasions-events:on-event
-     (make-instance 'cpoe:container-opening-event
-                    :joint-name joint-name
-                    :side ?arm
-                    :environment environment))))
+  (let ((?left-lift-pose (list (first ?left-lift-poses)))
+        (?left-2nd-lift-pose (list (second ?left-lift-poses)))
+        (?right-lift-pose (list (first ?right-lift-poses)))
+        (?right-2nd-lift-pose (list (second ?right-lift-poses))))
+    (exe:perform
+     (desig:an action
+               (type lifting)
+               (left-poses ?left-lift-pose)
+               (right-poses ?right-lift-pose)))
+    (when (and joint-name environment)
+      (cram-occasions-events:on-event
+       (make-instance 'cpoe:container-opening-event
+                      :joint-name joint-name
+                      :side ?arm
+                      :environment environment)))
+    (exe:perform
+     (desig:an action
+               (type setting-gripper)
+               (gripper ?arm)
+               (position 0.1)))
+    (exe:perform
+     (desig:an action
+               (type lifting)
+               (left-poses ?left-2nd-lift-pose)
+               (right-poses ?right-2nd-lift-pose)))))
 
 (defun drive-to-and-open-container (?container-desig)
   ;; Drive to it
