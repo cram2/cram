@@ -34,6 +34,7 @@
 (defparameter *drawer-handle-grasp-x-offset* -0.02 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
 (defparameter *drawer-handle-lift-x-offset* 0.48 "in meters")
+(defparameter *drawer-handle-2nd-lift-x-offset* 0.58 "in meters")
 
 ; Might be necessary to find out what kind of handle we are dealing with. But we could also just open wide and be done with it.
 (defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container)))
@@ -87,3 +88,10 @@
                                                               grasp-pose)
   (let ((grasp-pose grasp-pose))
     (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-lift-x-offset*)))
+
+(defmethod obj-int:get-object-type-to-gripper-2nd-lift-transform ((object-type (eql :container))
+                                                                  object-name
+                                                                  arm
+                                                                  (grasp (eql :front))
+                                                                  grasp-pose)
+  (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-2nd-lift-x-offset*))
