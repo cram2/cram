@@ -34,6 +34,8 @@
   "in seconds, sleeps after each movement during reasoning")
 (defparameter *debug-long-sleep-duration* 0.0
   "in seconds, sleeps to show colliding configurations")
+(defparameter *allow-kitchen-collision* nil
+  "set to T if collision with kitchen should be ignored. for reaching into containers.")
 
 (defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 30))
   (declare (type desig:location-designator navigation-location-desig))
@@ -151,13 +153,17 @@ Store found pose into designator or throw error if good pose not found."
                                  (pr2-proj::move-tcp left-pose right-pose)
                                  (unless (< (abs *debug-short-sleep-duration*) 0.0001)
                                    (cpl:sleep *debug-short-sleep-duration*))
-                                 (when (remove object-name
-                                               (btr:robot-colliding-objects-without-attached))
-                                   (roslisp:ros-warn (pp-plans coll-check)
-                                                     "Robot is in collision with environment.")
-                                   (cpl:sleep *debug-long-sleep-duration*)
-                                   (btr::restore-world-state world-state world)
-                                   (cpl:fail 'common-fail:manipulation-pose-in-collision)))
+                                 (let ((collisions
+                                         (remove object-name
+                                                 (btr:robot-colliding-objects-without-attached))))
+                                   (when *allow-kitchen-collision*
+                                     (setf collisions (remove :kitchen collisions)))
+                                   (when collisions 
+                                     (roslisp:ros-warn (pp-plans coll-check)
+                                                       "Robot is in collision with environment.")
+                                     (cpl:sleep *debug-long-sleep-duration*)
+                                     (btr::restore-world-state world-state world)
+                                     (cpl:fail 'common-fail:manipulation-pose-in-collision))))
                                left-poses
                                right-poses))))))))
       (btr::restore-world-state world-state world))))
