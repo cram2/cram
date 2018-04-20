@@ -57,8 +57,38 @@
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun obj-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
     (lisp-fun obj-int:get-object-transform ?container-designator ?container-transform)
-    (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :left :front ?container-transform ?left-poses)
-    (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :right :front ?container-transform ?right-poses)
+    (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :left :open ?container-transform ?left-poses)
+    (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :right :open ?container-transform ?right-poses)
+    (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
+              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
+    )
+
+  (<- (desig:action-grounding ?action-designator (close-container ?arm ?gripper-opening
+                                                                  ?left-reach-poses ?right-reach-poses
+                                                                  ?left-lift-poses ?right-lift-poses
+                                                                  ?joint-name ?environment-obj))
+    (spec:property ?action-designator (:type :closing))
+    (spec:property ?action-designator (:object ?container-designator))
+    (spec:property ?container-designator (:type :container))
+    (spec:property ?container-designator (:name ?container-name))
+    (spec:property ?container-designator (:part-of ?environment))
+    (-> (spec:property ?action-designator (:arm ?arm))
+        (true)
+        (and (cram-robot-interfaces:robot ?robot)
+             (cram-robot-interfaces:arm ?robot ?arm)))
+    ;; infer joint information
+    ;; joint-name
+    (lisp-fun get-container-link ?container-name ?container-link)
+    (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
+    (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
+    ;; environment
+    (btr:bullet-world ?world)
+    (lisp-fun btr:object ?world ?environment ?environment-obj)
+    ;; infer missing information like ?gripper-opnening, closing trajectory
+    (lisp-fun obj-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
+    (lisp-fun obj-int:get-object-transform ?container-designator ?container-transform)
+    (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :left :close ?container-transform ?left-poses)
+    (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :right :close ?container-transform ?right-poses)
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
     )
