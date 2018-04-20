@@ -35,16 +35,17 @@
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
 (defparameter *drawer-handle-lift-x-offset* 0.48 "in meters")
 (defparameter *drawer-handle-2nd-lift-x-offset* 0.58 "in meters")
+(defparameter *drawer-handle-2nd-lift-closing-x-offset* -0.38 "in meters")
 
-; Might be necessary to find out what kind of handle we are dealing with. But we could also just open wide and be done with it.
+;; Might be necessary to find out what kind of handle we are dealing with. But we could also just open wide and be done with it.
 (defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container)))
   0.09)
 
-; Find out where the handle is and calculate the transform from there.
+;; Find out where the handle is and calculate the transform from there.
 (defmethod obj-int:get-object-type-to-gripper-transform ((object-type (eql :container))
                                                          object-name
                                                          arm
-                                                         (grasp (eql :front)))
+                                                         grasp)
   (setf object-name (roslisp-utilities:rosify-underscores-lisp-name object-name))
   (let* ((handle-name (cl-urdf:name (get-handle-link object-name)))
          (handle-tf (cl-tf:transform->transform-stamped "map" handle-name 0
@@ -75,23 +76,38 @@
 (defmethod obj-int:get-object-type-to-gripper-pregrasp-transform ((object-type (eql :container))
                                                                    object-name
                                                                    arm
-                                                                   (grasp (eql :front))
-                                                                   grasp-transform)
-  (cram-tf:translate-transform-stamped grasp-transform :x-offset *drawer-handle-pregrasp-x-offset*))
+                                                                   grasp
+                                                                   grasp-pose)
+  (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
 
-; We need the joint-type, maybe add a optional parameter to the generic.
-; But for now I can live with this.
+;; We need the joint-type, maybe contain it in the object-type e.g. 'container-prismatic'.
 (defmethod obj-int:get-object-type-to-gripper-lift-transform ((object-type (eql :container))
                                                               object-name
                                                               arm
-                                                              (grasp (eql :front))
+                                                              (grasp (eql :open))
                                                               grasp-pose)
   (let ((grasp-pose grasp-pose))
     (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-lift-x-offset*)))
 
+(defmethod obj-int:get-object-type-to-gripper-lift-transform ((object-type (eql :container))
+                                                              object-name
+                                                              arm
+                                                              (grasp (eql :close))
+                                                              grasp-pose)
+  (let ((grasp-pose grasp-pose))
+    (cram-tf:translate-transform-stamped grasp-pose :x-offset (- *drawer-handle-lift-x-offset*))))
+
+
 (defmethod obj-int:get-object-type-to-gripper-2nd-lift-transform ((object-type (eql :container))
                                                                   object-name
                                                                   arm
-                                                                  (grasp (eql :front))
+                                                                  (grasp (eql :open))
                                                                   grasp-pose)
   (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-2nd-lift-x-offset*))
+
+(defmethod obj-int:get-object-type-to-gripper-2nd-lift-transform ((object-type (eql :container))
+                                                                  object-name
+                                                                  arm
+                                                                  (grasp (eql :close))
+                                                                  grasp-pose)
+  (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-2nd-lift-closing-x-offset*))
