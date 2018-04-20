@@ -29,8 +29,7 @@
 
 (in-package :pr2-em)
 
-(defun open-container (;;container-name
-                       ?arm ?gripper-opening
+(defun open-container (?arm ?gripper-opening
                        ?left-reach-poses ?right-reach-poses
                        ?left-lift-poses ?right-lift-poses
                        &optional
@@ -88,13 +87,12 @@
                (left-poses ?left-2nd-lift-pose)
                (right-poses ?right-2nd-lift-pose)))))
 
-(defun close-container (;;container-name
-                       ?arm ?gripper-opening
-                       ?left-reach-poses ?right-reach-poses
-                       ?left-lift-poses ?right-lift-poses
-                       &optional
-                         (joint-name nil)
-                         (environment nil))
+(defun close-container (?arm ?gripper-opening
+                        ?left-reach-poses ?right-reach-poses
+                        ?left-lift-poses ?right-lift-poses
+                        &optional
+                          (joint-name nil)
+                          (environment nil))
   (cpl:par
     (roslisp:ros-info (environment-manipulation close-container) "Opening gripper")
     (exe:perform
@@ -159,5 +157,4 @@
   ;; Open it
   (exe:perform (an action
                    (type opening)
-                   (object ?container-desig)))
-  )
+                   (object ?container-desig))))

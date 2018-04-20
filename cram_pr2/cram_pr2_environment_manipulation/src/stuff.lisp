@@ -76,8 +76,7 @@
           (type container)
           (name ?name)
           (part-of kitchen)
-          (pose ((pose ?pose) (transform ?transform)))
-          ))))
+          (pose ((pose ?pose) (transform ?transform)))))))
 
 (defun test-open ()
   (cram-pr2-projection:with-simulated-robot
@@ -100,4 +99,3 @@
                     (cl-tf:make-3d-vector x y 0.0)
                     (cl-tf:make-identity-rotation))))
         (exe:perform (an action (type going) (target (a location (pose ?goal))))))))
-
