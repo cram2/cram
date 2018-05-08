@@ -86,10 +86,10 @@
 (defun test ()
   (cram-pr2-projection:with-simulated-robot
     (let ((?object (get-container-desig 'sink_area_left_upper_drawer_main)))
-      (exe:perform (an action (type driving-and-opening) (object ?object))))
+      (exe:perform (an action (type driving-and-opening) (object ?object) (arm :right))))
     (sleep 1)
     (let ((?object (get-container-desig 'sink_area_left_upper_drawer_main)))
-      (exe:perform (an action (type closing) (object ?object))))))
+      (exe:perform (an action (type closing) (object ?object) (arm :right))))))
 
 (defun move-pr2 (x y)
   (cram-pr2-projection:with-simulated-robot

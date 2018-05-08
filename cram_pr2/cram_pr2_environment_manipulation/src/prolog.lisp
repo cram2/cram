@@ -93,10 +93,14 @@
               (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
     )
 
-  (<- (desig:action-grounding ?action-designator (drive-to-and-open-container ?container-designator))
+  (<- (desig:action-grounding ?action-designator (drive-to-and-open-container ?container-designator ?arm))
     (spec:property ?action-designator (:type :driving-and-opening))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type :container))
+    (-> (spec:property ?action-designator (:arm ?arm))
+        (true)
+        (and (cram-robot-interfaces:robot ?robot)
+             (cram-robot-interfaces:arm ?robot ?arm)))
     )
 
   
