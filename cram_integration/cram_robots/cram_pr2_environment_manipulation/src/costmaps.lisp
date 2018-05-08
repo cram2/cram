@@ -33,7 +33,7 @@
 
 (defun make-poses-reachable-cost-function (poses)
   "`poses' are the poses according to which the relation is resolved."
-  (let ((meancovs (location-costmap:2d-pose-covariance poses 0.125)))
+  (let ((meancovs (location-costmap:2d-pose-covariance poses 0.09)))
     (location-costmap:make-gauss-cost-function (first meancovs)
                                                (second meancovs))))
 
@@ -88,11 +88,38 @@
               0
               1))))))
 
+(defun make-opened-drawer-side-cost-function (?container-desig arm)
+  (let* ((container-name (string-downcase
+                          (car (alexandria:assoc-value
+                                (desig:description ?container-desig)
+                                :name))))
+         (handle-link (get-handle-link container-name))
+         (handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 0 :relative T))
+         (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T))
+         (neutral-point (cl-tf:make-3d-vector (cl-tf:x (cl-tf:origin handle-pose))
+                                              (cl-tf:y (cl-tf:origin handle-pose))
+                                              0))
+         (manipulated-point (cl-tf:make-3d-vector (cl-tf:x (cl-tf:origin manipulated-handle-pose))
+                                                  (cl-tf:y (cl-tf:origin manipulated-handle-pose))
+                                                  0))
+         (AB (cl-tf:v- manipulated-point neutral-point)))
+    (lambda (x y)
+      (let ((d (cl-tf:z (cl-tf:cross-product AB
+                                             (cl-tf:v- (cl-tf:make-3d-vector x y 0)
+                                                       neutral-point)))))
+        (if (and (< d 0) (eql arm :right))
+            1.0
+            (if (and (> d 0) (eql arm :left))
+                1.0
+                0.0))))))
+
 (defmethod location-costmap:costmap-generator-name->score ((name (eql 'poses-reachable-cost-function))) 10)
 
 (defmethod location-costmap:costmap-generator-name->score ((name (eql 'container-handle-reachable-cost-function))) 10)
 
 (defmethod location-costmap:costmap-generator-name->score ((name (eql 'opened-drawer-cost-function))) 10)
+
+(defmethod location-costmap:costmap-generator-name->score ((name (eql 'opened-drawer-side-cost-function))) 10)
 
 (def-fact-group environment-manipulation-costmap (location-costmap:desig-costmap)
   (<- (location-costmap:desig-costmap ?designator ?costmap)
@@ -117,6 +144,11 @@
     (location-costmap:costmap-add-function
      opened-drawer-cost-function
      (make-opened-drawer-cost-function ?container-designator ?padding)
+     ?costmap)
+    (desig:desig-prop ?designator (:arm ?arm))
+    (location-costmap:costmap-add-function
+     opened-drawer-side-cost-function
+     (make-opened-drawer-side-cost-function ?container-designator ?arm)
      ?costmap)
     )
   )
