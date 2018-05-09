@@ -83,6 +83,18 @@
     (let ((?desig (get-opening-desig 'sink_area_left_upper_drawer_main)))
       (exe:perform ?desig))))
 
+(defparameter *drawer-links*
+  '(fridge_area_lower_drawer_main
+    sink_area_trash_drawer_main
+    sink_area_left_upper_drawer_main
+    oven_area_area_left_drawer_main
+    oven_area_area_right_drawer_main
+    oven_area_area_middle_upper_drawer_main
+    kitchen_island_left_upper_drawer_main
+    kitchen_island_middle_upper_drawer_main
+    kitchen_island_right_upper_drawer_main
+    ))
+
 (defun test ()
   (cram-pr2-projection:with-simulated-robot
     (let ((?object (get-container-desig 'sink_area_left_upper_drawer_main)))
@@ -91,11 +103,21 @@
     (let ((?object (get-container-desig 'sink_area_left_upper_drawer_main)))
       (exe:perform (an action (type closing) (object ?object) (arm :right))))))
 
+(defun test-elaborate ()
+  (dolist (drawer *drawer-links*)
+    (cram-pr2-projection:with-simulated-robot
+      (let ((?object (get-container-desig drawer)))
+        (exe:perform (an action (type driving-and-opening) (object ?object) (arm :right))))
+      (let ((?object (get-container-desig drawer)))
+        (exe:perform (an action (type closing) (object ?object) (arm :right)))))
+    (sleep 0.5)
+    (move-pr2 0 0)))
+
 (defun move-pr2 (x y)
   (cram-pr2-projection:with-simulated-robot
-        (let ((?goal (cl-transforms-stamped:make-pose-stamped
-                    "map"
-                    0.0
-                    (cl-tf:make-3d-vector x y 0.0)
-                    (cl-tf:make-identity-rotation))))
-        (exe:perform (an action (type going) (target (a location (pose ?goal))))))))
+    (let ((?goal (cl-transforms-stamped:make-pose-stamped
+                  "map"
+                  0.0
+                  (cl-tf:make-3d-vector x y 0.0)
+                  (cl-tf:make-identity-rotation))))
+      (exe:perform (an action (type going) (target (a location (pose ?goal))))))))

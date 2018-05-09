@@ -46,6 +46,12 @@
          (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T)))
     (make-poses-reachable-cost-function (list neutral-handle-pose manipulated-handle-pose))))
 
+(defun get-drawer-min-max-pose (container-desig)
+  (let* ((handle-link (get-handle-link (car (alexandria:assoc-value (desig:description container-desig) :name))))
+         (neutral-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 0 :relative T))
+         (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T)))
+    (list neutral-handle-pose manipulated-handle-pose)))
+
 (defun get-aabb (container-name)
   (btr:aabb (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" container-name :pr2-em))))
 
@@ -121,6 +127,9 @@
 
 (defmethod location-costmap:costmap-generator-name->score ((name (eql 'opened-drawer-side-cost-function))) 10)
 
+(defparameter *orientation-samples* 3)
+(defparameter *orientation-sample-step* (/ pi 18))
+
 (def-fact-group environment-manipulation-costmap (location-costmap:desig-costmap)
   (<- (location-costmap:desig-costmap ?designator ?costmap)
     ;;(or (cram-robot-interfaces:visibility-designator ?desig)
@@ -149,6 +158,13 @@
     (location-costmap:costmap-add-function
      opened-drawer-side-cost-function
      (make-opened-drawer-side-cost-function ?container-designator ?arm)
+     ?costmap)
+    (lisp-fun get-drawer-min-max-pose ?container-designator ?poses)
+    (lisp-fun location-costmap:2d-pose-covariance ?poses 0.09 (?mean ?covariance))
+    (symbol-value *orientation-samples* ?samples)
+    (symbol-value *orientation-sample-step* ?sample-step)
+    (location-costmap:costmap-add-orientation-generator
+     (location-costmap:make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
      ?costmap)
     )
   )
