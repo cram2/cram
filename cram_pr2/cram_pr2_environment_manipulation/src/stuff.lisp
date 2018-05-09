@@ -104,6 +104,7 @@
       (exe:perform (an action (type closing) (object ?object) (arm :right))))))
 
 (defun test-elaborate ()
+  (move-pr2 0 0)
   (dolist (drawer *drawer-links*)
     (cram-pr2-projection:with-simulated-robot
       (let ((?object (get-container-desig drawer)))

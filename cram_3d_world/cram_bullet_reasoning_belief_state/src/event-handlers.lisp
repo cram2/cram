@@ -141,39 +141,42 @@
        cpoe:opening-distance))))
 
 ;; TODO(cpo): Think about adding timeline advancement.
-;; TODO(cpo): Make sure that the event can be only called twice.
 ;; TODO(cpo): Limit manipulation-distance to one axis. 
 (let ((previous-tcp-pose))
-  (flet ((move-joint-by-event (event open-or-close)
-           (with-slots (cpoe:joint-name cpoe:side cpoe:environment) event
-             (let ((current-tcp-pose
-                     (cl-tf:lookup-transform cram-tf:*transformer*
-                                      (cut:var-value '?frame
-                                                     (car (prolog:prolog
-                                                           `(and (cram-robot-interfaces:robot ?robot)
-                                                                 (cram-robot-interfaces:robot-tool-frame
-                                                                  ?robot
-                                                                  ,cpoe:side
-                                                                  ?frame)))))
-                                      cram-tf:*fixed-frame*)))
-               (if previous-tcp-pose
-                   (progn
-                     (let* ((current-opening (gethash cpoe:joint-name (btr:joint-states cpoe:environment)))
-                            (manipulation-distance (cl-tf:v-dist (cl-tf:translation previous-tcp-pose)
-                                                            (cl-tf:translation current-tcp-pose)))
-                            (new-joint-angle (apply
-                                              (case open-or-close
-                                                (:open #'+)
-                                                (:close #'-))
-                                              (list
-                                               current-opening
-                                               manipulation-distance))))
-                       (btr:set-robot-state-from-joints
-                        `((,cpoe:joint-name
-                           ,new-joint-angle))
-                        cpoe:environment))
-                     (setf previous-tcp-pose NIL))
-                   (setf previous-tcp-pose current-tcp-pose))))))
+  (labels ((get-current-tcp (event)
+             (with-slots (cpoe:joint-name cpoe:side cpoe:environment) event
+               (cl-tf:lookup-transform cram-tf:*transformer*
+                                       (cut:var-value '?frame
+                                                      (car (prolog:prolog
+                                                            `(and (cram-robot-interfaces:robot ?robot)
+                                                                  (cram-robot-interfaces:robot-tool-frame
+                                                                   ?robot
+                                                                   ,cpoe:side
+                                                                   ?frame)))))
+                                       cram-tf:*fixed-frame*)))
+           (move-joint-by-event (event open-or-close)
+             (with-slots (cpoe:joint-name cpoe:side cpoe:environment) event
+               (let ((current-tcp-pose (get-current-tcp event)))
+                 (progn
+                   (let* ((current-opening (gethash cpoe:joint-name (btr:joint-states cpoe:environment)))
+                          (manipulation-distance (cl-tf:v-dist (cl-tf:translation previous-tcp-pose)
+                                                               (cl-tf:translation current-tcp-pose)))
+                          (new-joint-angle (apply
+                                            (case open-or-close
+                                              (:open #'+)
+                                              (:close #'-))
+                                            (list
+                                             current-opening
+                                             manipulation-distance))))
+                     (btr:set-robot-state-from-joints
+                      `((,cpoe:joint-name
+                         ,new-joint-angle))
+                      cpoe:environment))
+                   (setf previous-tcp-pose NIL))))))
+
+    (defmethod cram-occasions-events:on-event grasp-container-handle
+        ((event cpoe:container-handle-grasping-event))
+      (setf previous-tcp-pose (get-current-tcp event)))
 
     (defmethod cram-occasions-events:on-event open-container
         ((event cpoe:container-opening-event))
@@ -181,10 +184,7 @@
 
     (defmethod cram-occasions-events:on-event close-container
         ((event cpoe:container-closing-event))
-      (move-joint-by-event event :close))
-    ))
-
-
+      (move-joint-by-event event :close))))
 
 (defmethod cram-occasions-events:on-event object-perceived ((event cpoe:object-perceived-event))
   (if cram-projection:*projection-environment*
