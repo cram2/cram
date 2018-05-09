@@ -85,7 +85,9 @@
      (desig:an action
                (type lifting)
                (left-poses ?left-2nd-lift-pose)
-               (right-poses ?right-2nd-lift-pose)))))
+               (right-poses ?right-2nd-lift-pose))))
+  (when (btr:robot-colliding-objects-without-attached)
+    (error 'common-fail:manipulation-pose-in-collision)))
 
 (defun close-container (?arm ?gripper-opening
                         ?left-reach-poses ?right-reach-poses
@@ -143,7 +145,9 @@
      (desig:an action
                (type lifting)
                (left-poses ?left-2nd-lift-pose)
-               (right-poses ?right-2nd-lift-pose)))))
+               (right-poses ?right-2nd-lift-pose))))
+  (when (btr:robot-colliding-objects-without-attached)
+    (error 'common-fail:manipulation-pose-in-collision)))
 
 (defun drive-to-and-open-container (?container-desig ?arm)
   ;; Drive to it
