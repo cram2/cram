@@ -31,21 +31,6 @@
 
 ;;; DRAWER COSTMAP
 
-(defun make-poses-reachable-cost-function (poses)
-  "`poses' are the poses according to which the relation is resolved."
-  (let ((meancovs (location-costmap:2d-pose-covariance poses 0.09)))
-    (location-costmap:make-gauss-cost-function (first meancovs)
-                                               (second meancovs))))
-
-;; NOTE(cpo): Maybe this should take the current position and get a desired position of the handle, so the
-;; costmap is more precise. Now it calculates the min and max position, so everything should be reachable.
-(defun make-container-handle-reachable-cost-function (container-desig)
-  "Make a cost function for the the PR2 to reach a containers handle in neutral and manipulated position."
-  (let* ((handle-link (get-handle-link (car (alexandria:assoc-value (desig:description container-desig) :name))))
-         (neutral-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 0 :relative T))
-         (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T)))
-    (make-poses-reachable-cost-function (list neutral-handle-pose manipulated-handle-pose))))
-
 (defun get-drawer-min-max-pose (container-desig)
   (let* ((handle-link (get-handle-link (car (alexandria:assoc-value (desig:description container-desig) :name))))
          (neutral-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 0 :relative T))
@@ -63,7 +48,7 @@
         (cl-tf:y dimensions)
         (cl-tf:x dimensions))))
 
-;; NOTE(cpo): Same as above.
+;; NOTE(cpo): It might be useful to pass this the desired position and calculate the current one to make the costmap more precise.
 (defun make-opened-drawer-cost-function (?container-desig &optional (padding 0.2))
   "Resolve the relation according to the poses of the handle of `container-desig' in neutral and manipulated form."
   (let* ((container-name (string-downcase
@@ -132,22 +117,14 @@
 
 (def-fact-group environment-manipulation-costmap (location-costmap:desig-costmap)
   (<- (location-costmap:desig-costmap ?designator ?costmap)
-    ;;(or (cram-robot-interfaces:visibility-designator ?desig)
-    ;;    (cram-robot-interfaces:reachability-designator ?desig))
-    (desig:desig-prop ?designator (:poses ?poses))
-    (location-costmap:costmap ?costmap)
-    (location-costmap:costmap-add-function
-     poses-reachable-cost-function
-     (make-poses-reachable-cost-function ?poses)
-     ?costmap))
-
-  (<- (location-costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:container ?container-designator))
     (desig:desig-prop ?container-designator (:type :container))
     (location-costmap:costmap ?costmap)
+    (lisp-fun get-drawer-min-max-pose ?container-designator ?poses)
+    (lisp-fun location-costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
     (location-costmap:costmap-add-function
      container-handle-reachable-cost-function
-     (make-container-handle-reachable-cost-function ?container-designator)
+     (location-costmap:make-gauss-cost-function ?mean ?covariance)
      ?costmap)
     (location-costmap:costmap-reach-minimal-distance ?padding)
     (location-costmap:costmap-add-function
@@ -159,12 +136,8 @@
      opened-drawer-side-cost-function
      (make-opened-drawer-side-cost-function ?container-designator ?arm)
      ?costmap)
-    (lisp-fun get-drawer-min-max-pose ?container-designator ?poses)
-    (lisp-fun location-costmap:2d-pose-covariance ?poses 0.09 (?mean ?covariance))
     (symbol-value *orientation-samples* ?samples)
     (symbol-value *orientation-sample-step* ?sample-step)
     (location-costmap:costmap-add-orientation-generator
      (location-costmap:make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
-     ?costmap)
-    )
-  )
+     ?costmap)))
