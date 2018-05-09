@@ -125,6 +125,8 @@
                'simple-error
                :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an environment."))))
 
+(defclass container-handle-grasping-event (environment-manipulation-event) ())
+
 (defclass container-opening-event (environment-manipulation-event) ())
 
 (defclass container-closing-event (environment-manipulation-event) ())

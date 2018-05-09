@@ -49,6 +49,7 @@
            #:environment-manipulation-event
            #:joint-name
            #:environment
+           #:container-handle-grasping-event
            #:container-opening-event
            #:container-closing-event
 

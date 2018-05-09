@@ -57,7 +57,7 @@
   (roslisp:ros-info (environment-manipulation open-container) "Opening")
   (when (and joint-name environment)
     (cram-occasions-events:on-event
-     (make-instance 'cpoe:container-opening-event
+     (make-instance 'cpoe:container-handle-grasping-event
                     :joint-name joint-name
                     :side ?arm
                     :environment environment)))
@@ -115,7 +115,7 @@
   (roslisp:ros-info (environment-manipulation close-container) "Closing")
   (when (and joint-name environment)
     (cram-occasions-events:on-event
-     (make-instance 'cpoe:container-closing-event
+     (make-instance 'cpoe:container-handle-grasping-event
                     :joint-name joint-name
                     :side ?arm
                     :environment environment)))
