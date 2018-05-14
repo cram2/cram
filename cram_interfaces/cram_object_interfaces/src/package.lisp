@@ -44,6 +44,8 @@
    #:get-object-type-to-gripper-2nd-pregrasp-transform
    #:get-object-type-to-gripper-lift-transform
    #:get-object-type-to-gripper-2nd-lift-transform
+   #:def-object-type-to-gripper-transforms
+   #:remove-object-type-to-gripper-transforms
    #:get-object-grasping-poses
    #:object-rotationally-symmetric
    #:orientation-matters
