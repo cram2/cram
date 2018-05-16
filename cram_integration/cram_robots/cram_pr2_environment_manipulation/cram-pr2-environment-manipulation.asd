@@ -74,7 +74,6 @@
             :components
             ((:file "package")
              (:file "setup" :depends-on ("package"))
-             (:file "data" :depends-on ("package"))
              (:file "math" :depends-on ("package"))
              (:file "environment" :depends-on ("package"))
              (:file "costmaps" :depends-on ("package" "math"))
