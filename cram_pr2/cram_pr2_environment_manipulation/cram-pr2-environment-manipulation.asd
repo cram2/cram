@@ -78,5 +78,5 @@
              (:file "environment" :depends-on ("package"))
              (:file "costmaps" :depends-on ("package" "math"))
              (:file "grasping" :depends-on ("package"))
-             (:file "prolog" :depends-on ("package" "grasping"))
+             (:file "action-designators" :depends-on ("package" "grasping"))
              (:file "plans" :depends-on ("package" "environment"))))))
