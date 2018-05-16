@@ -44,6 +44,9 @@
                ;;(format t "failure string: ~a" (write-to-string e))
                (if is-parent-action
                    (send-batch-query))))
+          (if cram-projection:*projection-environment*
+            (send-performed-in-projection action-id "true")
+            (send-performed-in-projection action-id "false"))
           (log-cram-sub-action (car *action-parents*) action-id)
           (log-cram-sibling-action (car *action-parents*) action-id)
           (if (not *action-parents*)

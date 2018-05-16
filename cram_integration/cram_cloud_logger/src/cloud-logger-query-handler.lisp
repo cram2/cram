@@ -67,6 +67,12 @@
         (c (create-owl-literal "xsd:boolean" is-sucessful)))
     (send-rdf-query a b c)))
 
+(defun send-performed-in-projection (action-inst is-performed-in-projection)
+  (let ((a (convert-to-prolog-str action-inst))
+        (b "knowrob:performedInProjection")
+        (c (create-owl-literal "xsd:boolean" is-performed-in-projection)))
+    (send-rdf-query a b c)))
+
 (defun send-effort-action-parameter (action-inst effort)
   (let ((a (convert-to-prolog-str action-inst))
         (b "knowrob:effort")
