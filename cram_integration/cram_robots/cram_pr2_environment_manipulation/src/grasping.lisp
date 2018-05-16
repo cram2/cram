@@ -48,10 +48,10 @@
                                                          grasp)
   (setf object-name (roslisp-utilities:rosify-underscores-lisp-name object-name))
   (let* ((handle-name (cl-urdf:name (get-handle-link object-name)))
-         (handle-tf (cl-tf:transform->transform-stamped "map" handle-name 0
+         (handle-tf (cl-tf:transform->transform-stamped cram-tf:*fixed-frame* handle-name 0
                                                         (cl-tf:pose->transform
                                                          (get-urdf-link-pose handle-name))))
-         (container-tf (cl-tf:transform->transform-stamped "map" object-name 0
+         (container-tf (cl-tf:transform->transform-stamped cram-tf:*fixed-frame* object-name 0
                                                            (cl-tf:pose->transform
                                                             (get-urdf-link-pose object-name))))
          (tool-frame (ecase arm
