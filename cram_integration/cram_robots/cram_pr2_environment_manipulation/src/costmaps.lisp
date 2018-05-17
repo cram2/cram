@@ -38,7 +38,7 @@
     (list neutral-handle-pose manipulated-handle-pose)))
 
 (defun get-aabb (container-name)
-  (btr:aabb (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" container-name :pr2-em))))
+  (btr:aabb (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" container-name))))
 
 (defun get-width (container-name direction)
   "Return the width of the container with name `container-name', appropiate for the joint `direction' given."

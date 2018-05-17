@@ -30,7 +30,7 @@
 (in-package :pr2-em)
 
 (defun get-urdf-link-pose (name)
-  (btr:pose (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" name :pr2-em))))
+  (btr:pose (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" name))))
 
 (defun get-container-link (container-name)
   (when (symbolp container-name)
