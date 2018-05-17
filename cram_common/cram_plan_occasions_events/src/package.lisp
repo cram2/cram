@@ -47,8 +47,9 @@
            #:opening-distance
 
            #:environment-manipulation-event
-           #:joint-name
-           #:environment
+           #:environment-event-joint-name
+           #:environment-event-arm
+           #:environment-event-object
            #:container-handle-grasping-event
            #:container-opening-event
            #:container-closing-event
