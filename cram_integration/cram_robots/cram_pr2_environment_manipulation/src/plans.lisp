@@ -148,19 +148,3 @@
                (right-poses ?right-2nd-lift-pose))))
   (when (btr:robot-colliding-objects-without-attached)
     (error 'common-fail:manipulation-pose-in-collision)))
-
-(defun drive-to-and-open-container (?container-desig ?arm)
-  ;; Drive to it
-  (exe:perform (a action
-                  (type going)
-                  (target
-                   (a location
-                      (reachable-for pr2)
-                      (arm ?arm)
-                      (container ?container-desig)))))
-  (setf ?container-desig (get-container-desig (car (alexandria:assoc-value (desig:description ?container-desig) :name))))
-  ;; Open it
-  (exe:perform (an action
-                   (type opening)
-                   (arm ?arm)
-                   (object ?container-desig))))
