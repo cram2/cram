@@ -110,20 +110,23 @@
 
 (defclass environment-manipulation-event (event)
   ((joint-name
-    :initarg :joint-name :reader joint-name
+    :documentation "The name of the joint that is being manipulated."
+    :initarg :joint-name :reader environment-event-joint-name
     :initform (error
                'simple-error
                :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a joint-name."))
-   (side
-    :initarg :side :reader side
+   (arm
+    :documentation "Which arm is used to manipulate."
+    :initarg :side :reader environment-event-arm
     :initform (error
                'simple-error
-               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a side."))
-   (environment
-    :initarg :environment :reader environment
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an arm."))
+   (object
+    :documentation "The btr:object in which the joint can be found with the joint-name."
+    :initarg :environment :reader environment-event-object
     :initform (error
                'simple-error
-               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an environment."))))
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an object."))))
 
 (defclass container-handle-grasping-event (environment-manipulation-event) ())
 

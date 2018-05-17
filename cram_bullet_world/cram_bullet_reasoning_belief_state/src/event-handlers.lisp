@@ -144,35 +144,41 @@
 ;; TODO(cpo): Limit manipulation-distance to one axis. 
 (let ((previous-tcp-pose))
   (labels ((get-current-tcp (event)
-             (with-slots (cpoe:joint-name cpoe:side cpoe:environment) event
-               (cl-tf:lookup-transform cram-tf:*transformer*
-                                       (cut:var-value '?frame
-                                                      (car (prolog:prolog
-                                                            `(and (cram-robot-interfaces:robot ?robot)
-                                                                  (cram-robot-interfaces:robot-tool-frame
-                                                                   ?robot
-                                                                   ,cpoe:side
-                                                                   ?frame)))))
-                                       cram-tf:*fixed-frame*)))
+             (let ((arm (cpoe:environment-event-arm event)))
+               (cl-tf:lookup-transform
+                cram-tf:*transformer*
+                (cut:var-value
+                 '?frame
+                 (car (prolog:prolog
+                       `(and (cram-robot-interfaces:robot ?robot)
+                             (cram-robot-interfaces:robot-tool-frame
+                              ?robot
+                              ,arm
+                              ?frame)))))
+                cram-tf:*fixed-frame*)))
            (move-joint-by-event (event open-or-close)
-             (with-slots (cpoe:joint-name cpoe:side cpoe:environment) event
-               (let ((current-tcp-pose (get-current-tcp event)))
+               (let ((joint-name (cpoe:environment-event-joint-name event))
+                     (object (cpoe:environment-event-arm event))
+                     (current-tcp-pose (get-current-tcp event)))
                  (progn
-                   (let* ((current-opening (gethash cpoe:joint-name (btr:joint-states cpoe:environment)))
-                          (manipulation-distance (cl-tf:v-dist (cl-tf:translation previous-tcp-pose)
-                                                               (cl-tf:translation current-tcp-pose)))
-                          (new-joint-angle (apply
-                                            (case open-or-close
-                                              (:open #'+)
-                                              (:close #'-))
-                                            (list
-                                             current-opening
-                                             manipulation-distance))))
+                   (let* ((current-opening (gethash joint-name
+                                                    (btr:joint-states object)))
+                          (manipulation-distance
+                            (cl-tf:v-dist (cl-tf:translation previous-tcp-pose)
+                                          (cl-tf:translation current-tcp-pose)))
+                          (new-joint-angle
+                            (apply
+                             (case open-or-close
+                               (:open #'+)
+                               (:close #'-))
+                             (list
+                              current-opening
+                              manipulation-distance))))
                      (btr:set-robot-state-from-joints
-                      `((,cpoe:joint-name
+                      `((,joint-name
                          ,new-joint-angle))
-                      cpoe:environment))
-                   (setf previous-tcp-pose NIL))))))
+                      object))
+                   (setf previous-tcp-pose NIL)))))
 
     (defmethod cram-occasions-events:on-event grasp-container-handle
         ((event cpoe:container-handle-grasping-event))
