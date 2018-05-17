@@ -31,8 +31,7 @@
 
 (def-fact-group environment-manipulation (desig:action-grounding)
   
-  (<- (desig:action-grounding ?action-designator (open-container ;; ?container-name
-                                                                 ?arm
+  (<- (desig:action-grounding ?action-designator (open-container ?arm
                                                                  ?gripper-opening
                                                                  ?left-reach-poses ?right-reach-poses
                                                                  ?left-lift-poses ?right-lift-poses
@@ -60,8 +59,7 @@
     (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :left :open ?container-transform ?left-poses)
     (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :right :open ?container-transform ?right-poses)
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
-    )
+              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses)))
 
   (<- (desig:action-grounding ?action-designator (close-container ?arm ?gripper-opening
                                                                   ?left-reach-poses ?right-reach-poses
@@ -90,18 +88,4 @@
     (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :left :close ?container-transform ?left-poses)
     (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :right :close ?container-transform ?right-poses)
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
-    )
-
-  (<- (desig:action-grounding ?action-designator (drive-to-and-open-container ?container-designator ?arm))
-    (spec:property ?action-designator (:type :driving-and-opening))
-    (spec:property ?action-designator (:object ?container-designator))
-    (spec:property ?container-designator (:type :container))
-    (-> (spec:property ?action-designator (:arm ?arm))
-        (true)
-        (and (cram-robot-interfaces:robot ?robot)
-             (cram-robot-interfaces:arm ?robot ?arm)))
-    )
-
-  
-  )
+              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))))
