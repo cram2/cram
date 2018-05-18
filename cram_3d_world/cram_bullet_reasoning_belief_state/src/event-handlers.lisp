@@ -158,7 +158,7 @@
                 cram-tf:*fixed-frame*)))
            (move-joint-by-event (event open-or-close)
                (let ((joint-name (cpoe:environment-event-joint-name event))
-                     (object (cpoe:environment-event-arm event))
+                     (object (cpoe:environment-event-object event))
                      (current-tcp-pose (get-current-tcp event)))
                  (progn
                    (let* ((current-opening (gethash joint-name
