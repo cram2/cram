@@ -86,16 +86,14 @@
                                                               arm
                                                               (grasp (eql :open))
                                                               grasp-pose)
-  (let ((grasp-pose grasp-pose))
-    (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-lift-x-offset*)))
+    (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-lift-x-offset*))
 
 (defmethod obj-int:get-object-type-to-gripper-lift-transform ((object-type (eql :container))
                                                               object-name
                                                               arm
                                                               (grasp (eql :close))
                                                               grasp-pose)
-  (let ((grasp-pose grasp-pose))
-    (cram-tf:translate-transform-stamped grasp-pose :x-offset (- *drawer-handle-lift-x-offset*))))
+    (cram-tf:translate-transform-stamped grasp-pose :x-offset (- *drawer-handle-lift-x-offset*)))
 
 
 (defmethod obj-int:get-object-type-to-gripper-2nd-lift-transform ((object-type (eql :container))
