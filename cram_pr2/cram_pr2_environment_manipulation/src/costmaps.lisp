@@ -110,9 +110,6 @@
 
 (defmethod location-costmap:costmap-generator-name->score ((name (eql 'opened-drawer-side-cost-function))) 10)
 
-(defparameter *orientation-samples* 3)
-(defparameter *orientation-sample-step* (/ pi 18))
-
 (def-fact-group environment-manipulation-costmap (location-costmap:desig-costmap)
   (<- (location-costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:container ?container-designator))
@@ -134,8 +131,8 @@
      opened-drawer-side-cost-function
      (make-opened-drawer-side-cost-function ?container-designator ?arm)
      ?costmap)
-    (symbol-value *orientation-samples* ?samples)
-    (symbol-value *orientation-sample-step* ?sample-step)
+    (location-costmap:orientation-samples ?samples)
+    (location-costmap:orientation-sample-step ?sample-step)
     (location-costmap:costmap-add-orientation-generator
      (location-costmap:make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
      ?costmap)))
