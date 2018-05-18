@@ -30,9 +30,7 @@
     :author "Christopher Pollok"
     :license "BSD"
 
-    :depends-on (roslisp-utilities  ;; for ros-init-function
-
-                 cl-transforms
+    :depends-on (cl-transforms
                  cl-transforms-stamped
                  cl-tf
                  cram-tf
@@ -47,11 +45,7 @@
 
                  cram-common-failures
                  cram-mobile-pick-place-plans
-
-                 cram-knowrob-pick-place
-                 cram-robosherlock
-
-                 cram-physics-utils ; for reading "package://" paths
+                 
                  cl-bullet ; for handling BOUNDING-BOX datastructures
                  cram-bullet-reasoning
                  cram-bullet-reasoning-belief-state
@@ -62,12 +56,6 @@
                  cram-robot-pose-gaussian-costmap
                  cram-occupancy-grid-costmap
                  cram-location-costmap
-
-                 cram-pr2-projection      ; for with-simulated-robot
-                 cram-pr2-projection-reasoning ; for projection-based reasoning
-                 cram-pr2-description
-                 cram-process-modules
-                 ;; cram-pr2-pick-place-plans
                  )
   :components
   ((:module "src"
