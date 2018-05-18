@@ -29,8 +29,6 @@
 
 (in-package :pr2-em)
 
-;;; DRAWER COSTMAP
-
 (defun get-drawer-min-max-pose (container-desig)
   (let* ((handle-link (get-handle-link (car (alexandria:assoc-value (desig:description container-desig) :name))))
          (neutral-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 0 :relative T))
