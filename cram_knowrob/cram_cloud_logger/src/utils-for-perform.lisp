@@ -75,7 +75,7 @@
                        (send-cram-start-action
                         (get-knowrob-action-name cram-action-name)
                         " \\'TableSetting\\'"
-                        (get-timestamp-for-logging)
+                        (convert-to-prolog-str (get-timestamp-for-logging))
                         "PV"
                         "ActionInst"))
                       "ActionInst"))
@@ -91,7 +91,7 @@
 
 (defun log-cram-finish-action (action-id)
   (send-cram-finish-action
-   (convert-to-prolog-str action-id ) (get-timestamp-for-logging)))
+   (convert-to-prolog-str action-id ) (convert-to-prolog-str (get-timestamp-for-logging))))
 
 (defun log-cram-sub-action (parent-id child-id)
   (if parent-id 
