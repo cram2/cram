@@ -86,7 +86,7 @@
         (when joint
           (values
            (case (cl-urdf:joint-type joint)
-             (:PRISMATIC
+             (:prismatic
               (cl-tf:transform->pose
                (cl-tf:transform*
                 (cl-tf:pose->transform (get-urdf-link-pose link-name))
@@ -100,5 +100,5 @@
                        joint-position)
                    (get-joint-position joint)))
                  (cl-tf:make-identity-rotation)))))
-             (:REVOLUTE (error 'simple-error :format-control "Manipulation of revolute joints not implemented.")))
+             (:revolute (error 'simple-error :format-control "Manipulation of revolute joints not implemented.")))
            joint))))))
