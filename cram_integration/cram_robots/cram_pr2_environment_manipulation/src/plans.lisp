@@ -31,7 +31,8 @@
 
 (defun open-container (?arm ?gripper-opening
                        ?left-reach-poses ?right-reach-poses
-                       ?left-lift-poses ?right-lift-poses
+                       ?left-lift-pose ?left-2nd-lift-pose
+                       ?right-lift-pose ?right-2nd-lift-pose
                        &optional
                          (joint-name nil)
                          (environment nil))
@@ -61,37 +62,35 @@
                     :joint-name joint-name
                     :side ?arm
                     :environment environment)))
-  (let ((?left-lift-pose (list (first ?left-lift-poses)))
-        (?left-2nd-lift-pose (list (second ?left-lift-poses)))
-        (?right-lift-pose (list (first ?right-lift-poses)))
-        (?right-2nd-lift-pose (list (second ?right-lift-poses))))
-    (exe:perform
-     (desig:an action
-               (type lifting)
-               (left-poses ?left-lift-pose)
-               (right-poses ?right-lift-pose)))
-    (when (and joint-name environment)
-      (cram-occasions-events:on-event
-       (make-instance 'cpoe:container-opening-event
-                      :joint-name joint-name
-                      :side ?arm
-                      :environment environment)))
-    (exe:perform
-     (desig:an action
-               (type setting-gripper)
-               (gripper ?arm)
-               (position 0.1)))
-    (exe:perform
-     (desig:an action
-               (type lifting)
-               (left-poses ?left-2nd-lift-pose)
-               (right-poses ?right-2nd-lift-pose))))
+  (exe:perform
+   (desig:an action
+             (type lifting)
+             (left-poses ?left-lift-pose)
+             (right-poses ?right-lift-pose)))
+  (when (and joint-name environment)
+    (cram-occasions-events:on-event
+     (make-instance 'cpoe:container-opening-event
+                    :joint-name joint-name
+                    :side ?arm
+                    :environment environment)))
+  (exe:perform
+   (desig:an action
+             (type setting-gripper)
+             (gripper ?arm)
+             (position 0.1)))
+  (setf ?left-2nd-lift-pose nil)
+  (exe:perform
+   (desig:an action
+             (type lifting)
+             (left-poses ?left-2nd-lift-pose)
+             (right-poses ?right-2nd-lift-pose)))
   (when (btr:robot-colliding-objects-without-attached)
     (error 'common-fail:manipulation-pose-in-collision)))
 
 (defun close-container (?arm ?gripper-opening
                         ?left-reach-poses ?right-reach-poses
-                        ?left-lift-poses ?right-lift-poses
+                        ?left-lift-pose ?left-2nd-lift-pose
+                        ?right-lift-pose ?right-2nd-lift-pose
                         &optional
                           (joint-name nil)
                           (environment nil))
@@ -121,30 +120,26 @@
                     :joint-name joint-name
                     :side ?arm
                     :environment environment)))
-  (let ((?left-lift-pose (list (first ?left-lift-poses)))
-        (?left-2nd-lift-pose (list (second ?left-lift-poses)))
-        (?right-lift-pose (list (first ?right-lift-poses)))
-        (?right-2nd-lift-pose (list (second ?right-lift-poses))))
-    (exe:perform
-     (desig:an action
-               (type lifting)
-               (left-poses ?left-lift-pose)
-               (right-poses ?right-lift-pose)))
-    (when (and joint-name environment)
-      (cram-occasions-events:on-event
-       (make-instance 'cpoe:container-closing-event
-                      :joint-name joint-name
-                      :side ?arm
-                      :environment environment)))
-    (exe:perform
-     (desig:an action
-               (type setting-gripper)
-               (gripper ?arm)
-               (position 0.1)))
-    (exe:perform
-     (desig:an action
-               (type lifting)
-               (left-poses ?left-2nd-lift-pose)
-               (right-poses ?right-2nd-lift-pose))))
+  (exe:perform
+   (desig:an action
+             (type lifting)
+             (left-poses ?left-lift-pose)
+             (right-poses ?right-lift-pose)))
+  (when (and joint-name environment)
+    (cram-occasions-events:on-event
+     (make-instance 'cpoe:container-closing-event
+                    :joint-name joint-name
+                    :side ?arm
+                    :environment environment)))
+  (exe:perform
+   (desig:an action
+             (type setting-gripper)
+             (gripper ?arm)
+             (position 0.1)))
+  (exe:perform
+   (desig:an action
+             (type lifting)
+             (left-poses ?left-2nd-lift-pose)
+             (right-poses ?right-2nd-lift-pose)))
   (when (btr:robot-colliding-objects-without-attached)
     (error 'common-fail:manipulation-pose-in-collision)))
