@@ -33,8 +33,12 @@
   
   (<- (desig:action-grounding ?action-designator (open-container ?arm
                                                                  ?gripper-opening
-                                                                 ?left-reach-poses ?right-reach-poses
-                                                                 ?left-lift-poses ?right-lift-poses
+                                                                 ?left-reach-poses
+                                                                 ?right-reach-poses
+                                                                 (?left-lift-pose)
+                                                                 (?left-2nd-lift-pose)
+                                                                 (?right-lift-pose)
+                                                                 (?right-2nd-lift-pose)
                                                                  ?joint-name ?environment-obj))
     (spec:property ?action-designator (:type :opening))
     (spec:property ?action-designator (:object ?container-designator))
@@ -56,15 +60,29 @@
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun obj-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
     (lisp-fun obj-int:get-object-transform ?container-designator ?container-transform)
-    (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :left :open ?container-transform ?left-poses)
-    (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :right :open ?container-transform ?right-poses)
-    (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses)))
+    (lisp-fun obj-int:get-object-grasping-poses ?container-name
+              :container :left :open ?container-transform ?left-poses)
+    (lisp-fun obj-int:get-object-grasping-poses ?container-name
+              :container :right :open ?container-transform ?right-poses)
+    (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
+              ?arm ?left-poses ?right-poses
+              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
+    (-> (lisp-pred identity ?left-lift-poses)
+        (equal ?left-lift-poses (?left-lift-pose ?left-2nd-lift-pose))
+        (equal (NIL NIL) (?left-lift-pose ?left-2nd-lift-pose)))
+    (-> (lisp-pred identity ?right-lift-poses)
+        (equal ?right-lift-poses (?right-lift-pose ?right-2nd-lift-pose))
+        (equal (NIL NIL) (?right-lift-pose ?right-2nd-lift-pose))))
 
   (<- (desig:action-grounding ?action-designator (close-container ?arm ?gripper-opening
-                                                                  ?left-reach-poses ?right-reach-poses
-                                                                  ?left-lift-poses ?right-lift-poses
-                                                                  ?joint-name ?environment-obj))
+                                                                  ?left-reach-poses
+                                                                  ?right-reach-poses
+                                                                  (?left-lift-pose)
+                                                                  (?left-2nd-lift-pose)
+                                                                  (?right-lift-pose)
+                                                                  (?right-2nd-lift-pose)
+                                                                  ?joint-name
+                                                                  ?environment-obj))
     (spec:property ?action-designator (:type :closing))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type :container))
@@ -85,7 +103,16 @@
     ;; infer missing information like ?gripper-opnening, closing trajectory
     (lisp-fun obj-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
     (lisp-fun obj-int:get-object-transform ?container-designator ?container-transform)
-    (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :left :close ?container-transform ?left-poses)
-    (lisp-fun obj-int:get-object-grasping-poses ?container-name :container :right :close ?container-transform ?right-poses)
-    (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))))
+    (lisp-fun obj-int:get-object-grasping-poses ?container-name
+              :container :left :close ?container-transform ?left-poses)
+    (lisp-fun obj-int:get-object-grasping-poses ?container-name
+              :container :right :close ?container-transform ?right-poses)
+    (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
+              ?arm ?left-poses ?right-poses
+              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
+    (-> (lisp-pred identity ?left-lift-poses)
+        (equal ?left-lift-poses (?left-lift-pose ?left-2nd-lift-pose))
+        (equal (NIL NIL) (?left-lift-pose ?left-2nd-lift-pose)))
+    (-> (lisp-pred identity ?right-lift-poses)
+        (equal ?right-lift-poses (?right-lift-pose ?right-2nd-lift-pose))
+        (equal (NIL NIL) (?right-lift-pose ?right-2nd-lift-pose)))))
