@@ -149,4 +149,9 @@
   (<- (property ?designator (:name ?name))
     (lisp-pred typep ?designator desig:object-designator)
     (property-member (:name ?name) ?designator)
-    (assert-type ?name (or symbol string) "OBJECT SPEC:PROPERTY")))
+    (assert-type ?name (or symbol string) "OBJECT SPEC:PROPERTY"))
+
+  (<- (property ?designator (:part-of ?environment))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:part-of ?environment) ?designator)
+    (assert-type ?environment keyword "OBJECT SPEC:PROPERTY")))
