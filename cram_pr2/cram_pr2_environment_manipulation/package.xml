@@ -1,0 +1,48 @@
+<package format="2">
+  <name>cram_pr2_environment_manipulation</name>
+  <version>0.6.0</version>
+  <description>The cram_pr2_environment_manipulation package</description>
+  <author>Christopher Pollok</author>
+  <maintainer email="cpollok@uni-bremen.de">Christopher Pollok</maintainer>
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="repository">https://github.com/cram2/cram</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp_utilities</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cl_tf</depend>
+  <depend>cram_tf</depend>
+  <depend>cram_language</depend>
+  <depend>cram_executive</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_projection</depend>
+  <depend>cram_occasions_events</depend>
+  <depend>cram_common_failures</depend>
+  <depend>cram_physics_utils</depend>
+  <depend>cl_bullet</depend>
+  <depend>cram_bullet_reasoning</depend>
+  <depend>cram_bullet_reasoning_belief_state</depend>
+  <depend>cram_bullet_reasoning_utilities</depend>
+  <depend>cram_pr2_projection</depend>
+  <depend>cram_pr2_projection_reasoning</depend>
+  <depend>cram_semantic_map_costmap</depend>
+  <depend>cram_robot_pose_gaussian_costmap</depend>
+  <depend>cram_occupancy_grid_costmap</depend>
+  <depend>cram_location_costmap</depend>
+  <depend>cram_mobile_pick_place_plans</depend>
+  <depend>cram_pr2_description</depend>
+  <depend>cram_process_modules</depend>
+
+  <exec_depend>iai_maps</exec_depend>
+  <exec_depend>iai_kitchen</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>json_prolog</exec_depend>
+  <exec_depend>pr2_description</exec_depend>
+  <exec_depend>pr2_arm_kinematics</exec_depend>
+  <exec_depend>map_server</exec_depend>
+</package>
