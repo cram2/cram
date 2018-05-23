@@ -40,6 +40,7 @@
 (defmethod get-object-type-gripping-effort ((object-type (eql :fork))) 100)
 (defmethod get-object-type-gripping-effort ((object-type (eql :knife))) 100)
 (defmethod get-object-type-gripping-effort ((object-type (eql :plate))) 100)
+(defmethod get-object-type-gripping-effort ((object-type (eql :tray))) 100)
 (defmethod get-object-type-gripping-effort ((object-type (eql :bottle))) 60)
 (defmethod get-object-type-gripping-effort ((object-type (eql :cup))) 50)
 (defmethod get-object-type-gripping-effort ((object-type (eql :milk))) 15)
@@ -55,6 +56,7 @@
 (defmethod get-object-type-gripper-opening ((object-type (eql :fork))) 0.04)
 (defmethod get-object-type-gripper-opening ((object-type (eql :knife))) 0.04)
 (defmethod get-object-type-gripper-opening ((object-type (eql :plate))) 0.02)
+(defmethod get-object-type-gripper-opening ((object-type (eql :tray))) 0.02)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -75,6 +77,7 @@
   (<- (object-type-grasp :knife :top))
 
   (<- (object-type-grasp :plate :side))
+  (<- (object-type-grasp :tray :side))
 
   (<- (object-type-grasp :bottle :side))
   (<- (object-type-grasp :bottle :back))
@@ -122,7 +125,7 @@
 (defparameter *plate-2nd-pregrasp-z-offset* 0.03 "in meters") ; grippers can't go into table
 
 ;; SIDE grasp
-(def-object-type-to-gripper-transforms :plate :left :side
+(def-object-type-to-gripper-transforms '(:plate :tray) :left :side
   :grasp-translation `(0.0 ,*plate-grasp-y-offset* ,*plate-grasp-z-offset*)
   :grasp-rot-matrix
   `((0             1 0)
