@@ -28,7 +28,7 @@
 
 (in-package :cram-pr2-description)
 
-(def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
+;; (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
 (def-fact-group pr2-metadata (robot
                               robot-base-frame robot-torso-link-joint
