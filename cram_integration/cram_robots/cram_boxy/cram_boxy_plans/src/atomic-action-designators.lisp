@@ -31,17 +31,6 @@
 
 (def-fact-group boxy-atomic-actions (desig:action-grounding)
 
-  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence ?left-poses
-                                                                        ?right-poses))
-    (or (property ?action-designator (:type :reaching))
-        (property ?action-designator (:type :retracting))
-        (property ?action-designator (:type :lifting))
-        (property ?action-designator (:type :putting)))
-    (once (or (property ?action-designator (:left-poses ?left-poses))
-              (equal ?left-poses nil)))
-    (once (or (property ?action-designator (:right-poses ?right-poses))
-              (equal ?right-poses nil))))
-
   (<- (desig:action-grounding ?action-designator (wiggle ?left-poses ?right-poses))
     (property ?action-designator (:type :pushing))
     (once (or (property ?action-designator (:left-poses ?left-poses))
@@ -49,28 +38,7 @@
     (once (or (property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil))))
 
-  (<- (desig:action-grounding ?action-designator (release ?left-or-right))
-    (or (property ?action-designator (:type :releasing))
-        (property ?action-designator (:type :opening)))
-    (property ?action-designator (:gripper ?left-or-right)))
-
-  (<- (desig:action-grounding ?action-designator (grip ?left-or-right ?object-grip-effort))
-    (property ?action-designator (:type :gripping))
-    (property ?action-designator (:gripper ?left-or-right))
-    (once (or (property ?action-designator (:effort ?object-grip-effort))
-              (equal ?effort nil))))
-
-  (<- (desig:action-grounding ?action-designator (close-gripper ?left-or-right))
-    (property ?action-designator (:type :closing))
-    (property ?action-designator (:gripper ?left-or-right)))
-
-  (<- (desig:action-grounding ?action-designator (set-gripper-to-position ?left-or-right
-                                                                          ?position))
-    (property ?action-designator (:type :setting-gripper))
-    (property ?action-designator (:gripper ?left-or-right))
-    (property ?action-designator (:position ?position)))
-
-  (<- (desig:action-grounding ?action-designator (perceive :inspecting ?augmented-designator))
+  (<- (desig:action-grounding ?action-designator (cram-inspect ?augmented-designator))
     (property ?action-designator (:type :inspecting))
     (property ?action-designator (:object ?object-designator))
     (property ?action-designator (:for ?for-value))

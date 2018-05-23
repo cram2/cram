@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-pr2-description)
+(in-package :cram-robot-interfaces)
 
 ;; TODO: actually, the SRDF contains more information (such as groupings of
 ;; joints/links into collections such as right/left arm, hand links etc.
@@ -101,3 +101,37 @@ is replaced with replacement."
   (let* ((joint-description (get-joint-description joint-name)))
     (when joint-description
       (cl-urdf:name (cl-urdf:child joint-description)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;; rules for extracting joint properties
+(def-fact-group urdf-joint-facts (joint-upper-limit joint-lower-limit joint-type
+                                                    joint-axis joint-origin
+                                                    joint-parent-link joint-child-link)
+
+  ;; Unifies a joint name with the lower limit for that joint.
+  (<- (joint-lower-limit ?_ ?joint-name ?value)
+    (lisp-fun get-joint-lower-limit ?joint-name ?value))
+
+  ;; Unifies a joint name with the upper limit for that joint.
+  (<- (joint-upper-limit ?_ ?joint-name ?value)
+    (lisp-fun get-joint-upper-limit ?joint-name ?value))
+
+  ;; Unifies a joint name with the type for that joint.
+  (<- (joint-type ?_ ?joint-name ?type)
+    (lisp-fun get-joint-type ?joint-name ?type))
+
+  ;; Unifies a joint name with the axis for that joint.
+  (<- (joint-axis ?_ ?joint-name ?axis)
+    (lisp-fun get-joint-axis ?joint-name ?axis))
+
+  ;; Unifies a joint name with the origin transform for that joint.
+  (<- (joint-origin ?_ ?joint-name ?transform)
+    (lisp-fun get-joint-origin ?joint-name ?transform))
+
+  ;; Unifies a joint name with the parent link name for that joint.
+  (<- (joint-parent ?_ ?joint-name ?parent)
+    (lisp-fun get-joint-parent ?joint-name ?parent))
+
+  ;; Unifies a joint name with the child link name for that joint.
+  (<- (joint-child ?_ ?joint-name ?child)
+    (lisp-fun get-joint-child ?joint-name ?child)))
