@@ -41,7 +41,9 @@
     (<- (location-costmap:costmap-manipulation-padding 0.2))
     (<- (location-costmap:costmap-in-reach-distance 0.7))
     (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-    (<- (location-costmap:visibility-costmap-size 2.5)))
+    (<- (location-costmap:visibility-costmap-size 2.5))
+    (<- (location-costmap:orientation-samples 3))
+    (<- (location-costmap:orientation-sample-step 0.1)))
 
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
