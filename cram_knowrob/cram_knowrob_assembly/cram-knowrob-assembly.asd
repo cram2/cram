@@ -43,10 +43,13 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "conversions" :depends-on ("package"))
-     (:file "assertions" :depends-on ("package" "conversions"))
-     (:file "extracting-info" :depends-on ("package" "conversions"))
-     (:file "event-handlers" :depends-on ("package" "conversions" "assertions" "extracting-info"))
-     (:file "grasping" :depends-on ("package" "extracting-info"))
-     (:file "placing" :depends-on ("package" "grasping" "extracting-info"))
-     (:file "looking" :depends-on ("package" "extracting-info"))))))
+     ;; (:file "conversions" :depends-on ("package"))
+     ;; (:file "assertions" :depends-on ("package" "conversions"))
+     ;; (:file "extracting-info" :depends-on ("package" "conversions"))
+     ;; (:file "event-handlers" :depends-on ("package" "conversions" "assertions" "extracting-info"))
+     (:file "grasping" :depends-on ("package" ;; "extracting-info"
+                                              ))
+     (:file "placing" :depends-on ("package" "grasping" ;; "extracting-info"
+                                             ))
+     (:file "looking" :depends-on ("package" ;; "extracting-info"
+                                             ))))))

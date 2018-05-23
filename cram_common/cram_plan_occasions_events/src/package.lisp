@@ -54,9 +54,9 @@
            #:container-opening-event
            #:container-closing-event
 
-           #:object-gripped
-           #:event-arm #:event-object #:event-grasp
-           #:object-released
+           ;; #:object-gripped
+           ;; #:event-arm #:event-object #:event-grasp
+           ;; #:object-released
 
            ;; object connection event
            #:event-arm #:event-object-name

@@ -51,6 +51,7 @@
                  cram-semantic-map-utils
                  cram-object-interfaces
                  cram-robot-interfaces
+                 cram-occasions-events
                  cram-utilities ; lazy in pose-generators
                  cram-occasions-events ; for temporal reasoning
                  cram-tf

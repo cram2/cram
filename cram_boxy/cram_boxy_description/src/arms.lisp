@@ -32,8 +32,11 @@
 (defparameter *standard-to-boxy-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
 
-(def-fact-group boxy-arm-facts (end-effector-link robot-tool-frame
+(def-fact-group boxy-arm-facts (end-effector-link
+                                robot-tool-frame
                                 arm-joints arm-links
+                                gripper-joint
+                                gripper-link
                                 standard-to-particular-gripper-transform)
 
   (<- (end-effector-link boxy :left "left_arm_7_link"))
@@ -57,20 +60,32 @@
                                "right_arm_5_joint"
                                "right_arm_6_joint")))
 
-  (<- (arm-links boxy :left ("left_arm_0_link"
-                             "left_arm_1_link"
+  (<- (arm-links boxy :left ("left_arm_1_link"
                              "left_arm_2_link"
                              "left_arm_3_link"
                              "left_arm_4_link"
                              "left_arm_5_link"
-                             "left_arm_6_link")))
-  (<- (arm-links boxy :right ("right_arm_0_link"
-                              "right_arm_1_link"
+                             "left_arm_6_link"
+                             "left_arm_7_link")))
+  (<- (arm-links boxy :right ("right_arm_1_link"
                               "right_arm_2_link"
                               "right_arm_3_link"
                               "right_arm_4_link"
                               "right_arm_5_link"
-                              "right_arm_6_link")))
+                              "right_arm_6_link"
+                              "right_arm_7_link")))
+
+  (<- (gripper-joint boxy :left "left_gripper_joint"))
+  (<- (gripper-joint boxy :right "right_gripper_joint"))
+
+  (<- (gripper-link boxy :left ?link)
+    (bound ?link)
+    (lisp-fun search "left_gripper" ?link ?pos)
+    (lisp-pred identity ?pos))
+  (<- (gripper-link boxy :right ?link)
+    (bound ?link)
+    (lisp-fun search "right_gripper" ?link ?pos)
+    (lisp-pred identity ?pos))
 
   (<- (standard-to-particular-gripper-transform boxy ?transform)
     (symbol-value *standard-to-boxy-gripper-transform* ?transform)))
