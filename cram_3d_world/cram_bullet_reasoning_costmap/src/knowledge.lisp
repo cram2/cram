@@ -1,9 +1,9 @@
 ;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -29,7 +29,6 @@
 (in-package :btr-costmap)
 
 ;; TODO change after near and far is refactored
-;; TODO maybe remove collision costmap completely, but rather just disable and uncomment
 (def-fact-group costmap-params ()
   (<- (collision-costmap-padding-in-meters 0.01d0)) ; for collision costmap
   (<- (near-costmap-gauss-std 1.0d0)) ; reference object size dependent maybe TODO
@@ -52,7 +51,7 @@
   (<- (%item-type-shape :knife :rectangle))
   (<- (%item-type-shape :pancake-maker :circle))
   (<- (%item-type-shape :spatula :rectangle))
-  
+  ;;
   (<- (item-type-shape ?type ?shape)
     (setof ?a-type (%item-type-shape ?a-type ?_)
            ?defined-type-shapes)
@@ -61,17 +60,17 @@
         (== ?shape :rectangle)))
   ;;
   (<- (object-shape ?world ?object-name ?shape)
-    (item-type ?world ?object-name ?object-type)
+    (btr:item-type ?world ?object-name ?object-type)
     (item-type-shape ?object-type ?shape))
   (<- (object-shape ?world ?object-name ?shape)
-    (not (item-type ?world ?object-name ?_))
+    (not (btr:item-type ?world ?object-name ?_))
     (== ?shape :rectangle))
   ;;
   (<- (object-type-handle-size :pot 0.12d0)) ; both handles together
   (<- (object-type-handle-size :mug 0.04d0))
   ;;
   (<- (object-handle-size ?world ?obj-name ?handle-size)
-    (item-type ?world ?obj-name ?object-type)
+    (btr:item-type ?world ?obj-name ?object-type)
     (object-type-handle-size ?object-type ?handle-size))
 
   ;; padding related
@@ -86,7 +85,7 @@
   (<- (object-type-padding-size :spatula 0.01d0))
   ;;
   (<- (padding-size ?world ?object-name ?padding)
-    (item-type ?world ?object-name ?object-type)
+    (btr:item-type ?world ?object-name ?object-type)
     (setof ?a-type (object-type-padding-size ?a-type ?_)
            ?defined-types-padding)
     (-> (member ?object-type ?defined-types-padding)
@@ -105,7 +104,7 @@
   (<- (object-type-costmap-threshold :knife 0.8d0)) ; 0.99d0))
   ;;
   (<- (object-costmap-threshold ?world ?object-name ?threshold)
-    (item-type ?world ?object-name ?object-type)
+    (btr:item-type ?world ?object-name ?object-type)
     (object-type-costmap-threshold ?object-type ?threshold))
 
   ;; table setting related
