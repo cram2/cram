@@ -28,7 +28,7 @@
 ;;;
 
 (defpackage cram-location-costmap
-  (:nicknames #:location-costmap)
+  (:nicknames #:location-costmap #:costmap)
   (:use #:cl #:prolog #:cram-utilities #:roslisp-utilities
         #:alexandria #:roslisp #:cram-tf #:cram-designators
         #:cl-transforms-stamped)
