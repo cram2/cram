@@ -136,17 +136,22 @@
    :use-current-ros-time use-current-ros-time))
 
 (defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :origin (let ((pose-origin (cl-transforms:origin pose)))
-             (cl-transforms:copy-3d-vector
-              pose-origin
-              :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
-                   (+ x-pose-origin x-offset))
-              :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
-                   (+ y-pose-origin y-offset))
-              :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
-                   (+ z-pose-origin z-offset))))))
+  (let* ((pose-origin
+           (cl-transforms:origin pose))
+         (new-origin
+           (cl-transforms:copy-3d-vector
+            pose-origin
+            :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
+                 (+ x-pose-origin x-offset))
+            :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
+                 (+ y-pose-origin y-offset))
+            :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
+                 (+ z-pose-origin z-offset)))))
+    (etypecase pose
+      (cl-transforms-stamped:pose-stamped
+       (cl-transforms-stamped:copy-pose-stamped pose :origin new-origin))
+      (cl-transforms:pose
+       (cl-transforms:copy-pose pose :origin new-origin)))))
 
 (defun rotate-pose (pose axis angle)
   (cl-transforms-stamped:copy-pose-stamped
