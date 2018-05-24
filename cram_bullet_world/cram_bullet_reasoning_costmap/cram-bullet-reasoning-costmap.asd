@@ -29,18 +29,24 @@
 (defsystem cram-bullet-reasoning-costmap
   :author "Gayane Kazhoyan"
   :license "BSD"
-  :depends-on (cram-designators
-               cram-location-costmap
+  :depends-on (;; cost-functions
+               cl-bullet
+               cl-transforms
+               cram-semantic-map-utils
+               cram-utilities ; for lazy list stuff
+               ;; knowledge
                cram-prolog
-               cram-semantic-map-costmap
+               ;; prolog
+               cram-location-costmap
+               cram-designators
                cram-bullet-reasoning
-               cram-utilities
-               cram-bullet-reasoning-belief-state)
+               cram-bullet-reasoning-belief-state
+               cram-semantic-map-costmap)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "designator-integration" :depends-on ("package"))
      (:file "cost-functions" :depends-on ("package"))
-     (:file "prolog" :depends-on ("package"))
-     (:file "knowledge" :depends-on ("package"))))))
+     (:file "knowledge" :depends-on ("package"))
+     (:file "prolog" :depends-on ("package" "cost-functions" "knowledge"))
+     (:file "designator-integration" :depends-on ("package" "prolog"))))))
