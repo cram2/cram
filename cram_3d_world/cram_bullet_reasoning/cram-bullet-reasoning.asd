@@ -92,9 +92,9 @@
        (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
        (:file "visibility-facts"
         :depends-on ("package" "world-facts" "visibility-reasoning" "robot-model-facts"))
-       (:file "reachability" :depends-on ("package" "robot-model-utils"))
-       (:file "reachability-facts"
-        :depends-on ("package" "world-facts" "prolog-handlers" "robot-model-utils" "reachability"))
+       ;; (:file "reachability" :depends-on ("package" "robot-model-utils"))
+       ;; (:file "reachability-facts"
+       ;;  :depends-on ("package" "world-facts" "prolog-handlers" "robot-model-utils" "reachability"))
        (:file "semantic-map" :depends-on ("package" "objects" "utils"))
        (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
        (:file "urdf-semantic-map"
