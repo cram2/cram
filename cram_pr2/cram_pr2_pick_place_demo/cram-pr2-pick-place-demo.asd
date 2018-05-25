@@ -58,6 +58,7 @@
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
                cram-bullet-reasoning-designators
+               cram-bullet-reasoning-costmap
 
                cram-semantic-map-costmap
                ; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet

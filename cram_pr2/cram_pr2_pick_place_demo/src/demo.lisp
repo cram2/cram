@@ -41,8 +41,8 @@
                                    (far-from (an object (type bowl)))
                                    (for (an object (type breakfast-cereal)))))
     (:cup . ,(desig:a location
-                      (right-of (an object (type spoon)))
-                      (behind (an object (type bowl)))
+                      (left-of (an object (type spoon))) ;; TODO FIX THIS
+                      (in-front-of (an object (type spoon)))
                       (near (an object (type spoon)))
                       (for (an object (type cup)))))
     (:bowl . ,(desig:a location
