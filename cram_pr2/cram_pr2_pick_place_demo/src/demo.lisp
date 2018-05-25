@@ -29,6 +29,38 @@
 
 (in-package :demo)
 
+(defun pose-list->desig (pose-list)
+  (let ((?pose (cl-transforms-stamped:pose->pose-stamped
+                "map" 0.0
+                (btr:ensure-pose pose-list))))
+    (desig:a location (pose ?pose))))
+
+(defparameter *object-placing-locations*
+  `((:breakfast-cereal . ,(desig:a location
+                                   (left-of (an object (type bowl)))
+                                   (far-from (an object (type bowl)))
+                                   (for (an object (type breakfast-cereal)))))
+    (:cup . ,(desig:a location
+                      (right-of (an object (type spoon)))
+                      (behind (an object (type bowl)))
+                      (near (an object (type spoon)))
+                      (for (an object (type cup)))))
+    (:bowl . ,(desig:a location
+                       (on "CounterTop")
+                       (name "iai_kitchen_kitchen_island_counter_top")
+                       (context table-setting)
+                       (for (an object (type bowl)))
+                       (object-count 3)
+                       (side back)))
+    (:spoon . ,(desig:a location
+                        (right-of (an object (type bowl)))
+                        (near (an object (type bowl)))
+                        (for (an object (type spoon)))))
+    (:milk . ,(desig:a location
+                       (right-of (an object (type bowl)))
+                       (far-from (an object (type bowl)))
+                       (for (an object (type milk)))))))
+
 (defparameter *object-cad-models*
   '(;; (:cup . "cup_eco_orange")
     ;; (:bowl . "edeka_red_bowl")
@@ -63,9 +95,10 @@
       (exe:perform (desig:an action (type looking) (direction forward))))))
 
 
+
 (cpl:def-cram-function demo-random (&optional
                                     (random t)
-                                    (list-of-objects '(:milk :cup :breakfast-cereal :bowl :spoon)))
+                                    (list-of-objects '(:bowl :spoon :cup :milk :breakfast-cereal)))
   (btr:detach-all-objects (btr:get-robot-object))
   (btr-utils:kill-all-objects)
 
@@ -93,16 +126,10 @@
                       (on "CounterTop")
                       (name "iai_kitchen_sink_area_counter_top")
                       (side left)))
-           (?placing-target-pose
-             (cl-transforms-stamped:pose->pose-stamped
-              "map" 0.0
-              (cram-bullet-reasoning:ensure-pose
-               (cdr (assoc ?object-type *object-placing-poses*)))))
-           (?arm-to-use
-             (cdr (assoc ?object-type *object-grasping-arms*)))
            (?delivering-location
-             (desig:a location
-                      (pose ?placing-target-pose))))
+             (cdr (assoc ?object-type *object-placing-locations*)))
+           (?arm-to-use
+             (cdr (assoc ?object-type *object-grasping-arms*))))
 
       (cpl:with-failure-handling
           ((common-fail:high-level-failure (e)
