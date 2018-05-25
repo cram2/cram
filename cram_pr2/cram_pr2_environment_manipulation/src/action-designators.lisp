@@ -29,6 +29,17 @@
 
 (in-package :pr2-em)
 
+(defun get-container-pose-and-transform (name)
+  (let* ((name-rosified (roslisp-utilities:rosify-underscores-lisp-name name))
+         (urdf-pose (get-urdf-link-pose name-rosified))
+         (pose (cl-tf:transform-pose-stamped cram-tf:*transformer*
+                                             :target-frame cram-tf:*robot-base-frame*
+                                             :pose (cl-tf:pose->pose-stamped cram-tf:*fixed-frame*
+                                                                             0
+                                                                             urdf-pose)))
+         (transform (cram-tf:pose-stamped->transform-stamped pose name-rosified)))
+    (list pose transform)))
+
 (def-fact-group environment-manipulation (desig:action-grounding)
   
   (<- (desig:action-grounding ?action-designator (open-container ?arm
@@ -59,7 +70,8 @@
     (lisp-fun btr:object ?world ?environment ?environment-obj)
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun obj-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
-    (lisp-fun obj-int:get-object-transform ?container-designator ?container-transform)
+    (lisp-fun get-container-pose-and-transform ?container-name
+              (?container-pose ?container-transform))
     (lisp-fun obj-int:get-object-grasping-poses ?container-name
               :container :left :open ?container-transform ?left-poses)
     (lisp-fun obj-int:get-object-grasping-poses ?container-name
@@ -102,7 +114,8 @@
     (lisp-fun btr:object ?world ?environment ?environment-obj)
     ;; infer missing information like ?gripper-opnening, closing trajectory
     (lisp-fun obj-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
-    (lisp-fun obj-int:get-object-transform ?container-designator ?container-transform)
+    (lisp-fun get-container-pose-and-transform ?container-name
+              (?container-pose ?container-transform))
     (lisp-fun obj-int:get-object-grasping-poses ?container-name
               :container :left :close ?container-transform ?left-poses)
     (lisp-fun obj-int:get-object-grasping-poses ?container-name
