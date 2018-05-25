@@ -69,7 +69,8 @@
           (type container)
           (name ?name)
           (part-of kitchen)
-          (pose ((pose ?pose) (transform ?transform)))))))
+          ;;(pose ((pose ?pose) (transform ?transform)))
+          ))))
 
 (defun get-opening-desig (&optional (?name 'sink_area_left_upper_drawer_main))
   (let ((?object (get-container-desig ?name)))
