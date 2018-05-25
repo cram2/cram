@@ -50,6 +50,59 @@
                            (target ?navigation-location)))))
 
 
+(cpl:def-cram-function turn-towards (?look-target)
+  (flet ((calculate-navigation-goal-towards-target (look-pose-stamped robot-pose-stamped)
+           "Given a `look-pose-stamped' and a `robot-pose-stamped',
+calculate the new robot-pose-stamped, which is rotate with an angle to point towards
+the `look-pose-stamped'."
+           (let* ((world->robot-transform
+                    (cram-tf:pose-stamped->transform-stamped robot-pose-stamped "robot"))
+                  (robot->world-transform
+                    (cl-transforms:transform-inv world->robot-transform))
+                  (world->look-pose-origin
+                    (cl-transforms:origin look-pose-stamped))
+                  (look-pose-in-robot-frame
+                    (cl-transforms:transform-point
+                     robot->world-transform
+                     world->look-pose-origin))
+                  (rotation-angle
+                    (atan
+                     (cl-transforms:y look-pose-in-robot-frame)
+                     (cl-transforms:x look-pose-in-robot-frame))))
+             (cram-tf:rotate-pose robot-pose-stamped :z rotation-angle))))
+
+    (let (?navigation-goal)
+      (cpl:with-retry-counters ((turn-around-retries 1))
+        (cpl:with-failure-handling
+            (((or common-fail:ptu-goal-unreachable) (e)
+               (roslisp:ros-warn (pp-plans turn-towards)
+                                 "PTU action wanted to twist the neck~%.~a~%Turning around." e)
+               (cpl:do-retry turn-around-retries
+                 (let (look-target-pose)
+                   (handler-case
+                       (setf look-target-pose (desig:reference ?look-target))
+                     (desig:designator-error ()
+                       (roslisp:ros-warn (pp-plans turn-towards)
+                                         "Designator cannot be resolved: ~a. Propagating up."
+                                         ?look-target)
+                       (cpl:fail 'common-fail:high-level-failure)))
+                   (setf ?navigation-goal
+                         (calculate-navigation-goal-towards-target
+                          look-target-pose
+                          (cram-tf:robot-current-pose))))
+                 (cpl:retry))
+               (roslisp:ros-warn (pp-plans turn-towards) "Turning around didn't work :'(~%")
+               (cpl:fail 'common-fail:high-level-failure)))
+
+          (when ?navigation-goal
+            (exe:perform (desig:an action
+                                   (type navigating)
+                                   (location (desig:a location
+                                                      (pose ?navigation-goal))))))
+          (exe:perform (desig:an action
+                                 (type looking)
+                                 (target ?look-target))))))))
+
 
 (cpl:def-cram-function search-for-object (?object-designator ?search-location
                                                              &optional (retries 4))
@@ -88,7 +141,7 @@
                                (type navigating)
                                (location ?nav-location)))
         (exe:perform (desig:an action
-                               (type looking)
+                               (type turning-towards)
                                (target (desig:a location
                                                 (pose ?pose-at-search-location)))))
         (exe:perform (desig:an action
@@ -146,7 +199,7 @@
         (setf ?pick-up-robot-location (desig:current-desig ?pick-up-robot-location))
 
         (exe:perform (desig:an action
-                               (type looking)
+                               (type turning-towards)
                                (target (desig:a location
                                                 (pose ?object-pose-in-map)))))
 
@@ -184,74 +237,86 @@
     (desig:current-desig ?object-designator)))
 
 
-
 (cpl:def-cram-function deliver (?object-designator ?target-location
                                                    ?target-robot-location place-action)
 
-  ;; take a new `?target-location' sample if a failure happens
-  (cpl:with-retry-counters ((target-location-retries 20))
-    (cpl:with-failure-handling
-        (((or common-fail:object-unreachable
-              common-fail:navigation-pose-in-collision) (e)
-           (roslisp:ros-warn (pp-plans deliver) "Failure happened: ~a" e)
-           (cpl:do-retry target-location-retries
-             (handler-case
-                 (setf ?target-location (desig:next-solution ?target-location))
-               (desig:designator-error ()
-                 (roslisp:ros-warn (pp-plans deliver)
-                                   "Designator cannot be resolved: ~a. Propagating up." e)
-                 (cpl:fail 'common-fail:object-undeliverable)))
-             (if ?target-location
-                 (progn
-                   (roslisp:ros-warn (pp-plans deliver) "Retrying...~%")
-                   (cpl:retry))
-                 (progn
-                   (roslisp:ros-warn (pp-plans deliver) "No samples left :'(~%")
-                   (cpl:fail 'common-fail:object-undeliverable))))
-           (roslisp:ros-warn (pp-plans deliver) "No target-location-retries left :'(~%")
-           (cpl:fail 'common-fail:object-undeliverable)))
+  ;; Reference the `?target-location' to see if that works at all
+  ;; If not, delivering is impossible so throw a OBJECT-UNDERLIVERABLE failure
+  (let* (?pose-at-target-location ?target-robot-location)
+    (handler-case
+        (setf ?pose-at-target-location (desig:reference ?target-location))
+      (desig:designator-error ()
+        (roslisp:ros-warn (pp-plans deliver)
+                          "Designator cannot be resolved: ~a. Propagating up."
+                          ?target-location)
+        (cpl:fail 'common-fail:object-undeliverable)))
+    (setf ?target-robot-location
+          (or (desig:current-desig ?target-robot-location)
+              (desig:a location
+                       (reachable-for pr2)
+                       (location (desig:a location
+                                          (pose ?pose-at-target-location))))))
 
-      (let* ((?pose-at-target-location
-               (desig:reference ?target-location))
-             (?target-robot-location
-               (or (desig:current-desig ?target-robot-location)
-                   (desig:a location
-                            (reachable-for pr2)
-                            (location (desig:a location
-                                               (pose ?pose-at-target-location)))))))
+    ;; take a new `?target-robot-location' sample if a failure happens
+    (cpl:with-retry-counters ((relocation-for-ik-retries 5))
+      (cpl:with-failure-handling
+          (((or common-fail:manipulation-pose-in-collision
+                common-fail:navigation-pose-in-collision) (e)
+             (roslisp:ros-warn (pp-plans deliver)
+                               "Object is undeliverable from current base location.~%~a" e)
+             (cpl:do-retry relocation-for-ik-retries
+               (handler-case
+                   (setf ?target-robot-location
+                         (desig:next-solution ?target-robot-location))
+                 (desig:designator-error ()
+                   (roslisp:ros-warn (pp-plans coll-check)
+                                     "Designator cannot be resolved: ~a.~
+                                      Propagating up." e)
+                   (cpl:fail 'common-fail:object-undeliverable)))
+               (if ?target-robot-location
+                   (progn
+                     (roslisp:ros-info (pp-plans deliver) "Relocating...")
+                     (cpl:retry))
+                   (progn
+                     (roslisp:ros-warn (pp-plans deliver) "No more samples to try :'(")
+                     (cpl:fail 'common-fail:object-undeliverable))))))
+
+        ;; navigate
+        (exe:perform (desig:an action
+                               (type navigating)
+                               (location ?target-robot-location)))
+        (setf ?target-robot-location (desig:current-desig ?target-robot-location))
 
         (unless
-            ;; take a new `?target-robot-location' sample if a failure happens
-            (cpl:with-retry-counters ((relocation-for-ik-retries 20))
+            ;; take a new `?target-location' sample if a failure happens
+            (cpl:with-retry-counters ((target-location-retries 10))
               (cpl:with-failure-handling
                   (((or common-fail:object-unreachable
-                        common-fail:manipulation-pose-in-collision
-                        common-fail:high-level-failure) (e)
-                     (roslisp:ros-warn (pp-plans deliver) "Object is unreachable: ~a" e)
-                     (cpl:do-retry relocation-for-ik-retries
+                        common-fail:manipulation-pose-unreachable
+                        common-fail:manipulation-pose-in-collision) (e)
+                     (roslisp:ros-warn (pp-plans deliver) "Failure happened: ~a" e)
+                     (cpl:do-retry target-location-retries
                        (handler-case
-                           (setf ?target-robot-location
-                                 (desig:next-solution ?target-robot-location))
+                           (setf ?target-location (desig:next-solution ?target-location))
                          (desig:designator-error ()
-                           (roslisp:ros-warn (pp-plans coll-check)
-                                             "Designator cannot be resolved: ~a.~
-                                              Propagating up." e)
+                           (roslisp:ros-warn (pp-plans deliver)
+                                             "Designator cannot be resolved: ~a. Propagating up."
+                                             ?target-location)
                            (cpl:fail 'common-fail:object-undeliverable)))
-                       (if ?target-robot-location
+                       (if ?target-location
                            (progn
-                             (roslisp:ros-info (pp-plans deliver) "Relocating...")
+                             (roslisp:ros-warn (pp-plans deliver) "Retrying...~%")
                              (cpl:retry))
                            (progn
-                             (roslisp:ros-warn (pp-plans deliver) "No more samples to try :'(")
+                             (roslisp:ros-warn (pp-plans deliver) "No samples left :'(~%")
                              (cpl:fail 'common-fail:object-undeliverable))))
+                     (roslisp:ros-warn (pp-plans deliver) "No target-location-retries left :'(~%")
+                     (cpl:fail 'common-fail:manipulation-pose-in-collision)
                      (return)))
 
-                ;; navigate, look, place
-                (exe:perform (desig:an action
-                                       (type navigating)
-                                       (location ?target-robot-location)))
-                (setf ?target-robot-location (desig:current-desig ?target-robot-location))
-                (let* ((mTt
+                ;; look, place
+                (let* ((?pose-at-target-location (desig:reference ?target-location))
+                       (mTt
                          (cram-tf:pose-stamped->transform-stamped
                           ?pose-at-target-location
                           "placing_target_location")) ; bTt = bTm * mTt = (mTb)-1 * mTt
@@ -274,7 +339,7 @@
                          bTt))
 
                   (exe:perform (desig:an action
-                                         (type looking)
+                                         (type turning-towards)
                                          (target (desig:a location
                                                           (pose ?pose-at-target-loc-in-base)))))
 

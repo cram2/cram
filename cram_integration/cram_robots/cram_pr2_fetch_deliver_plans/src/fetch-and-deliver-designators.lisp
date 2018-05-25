@@ -36,6 +36,11 @@
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator))
 
+  (<- (desig:action-grounding ?action-designator (turn-towards ?location-designator))
+    (spec:property ?action-designator (:type :turning-towards))
+    (spec:property ?action-designator (:target ?some-location-designator))
+    (desig:current-designator ?some-location-designator ?location-designator))
+
   (<- (desig:action-grounding ?action-designator (search-for-object
                                                   ?object-designator ?location-designator))
     (spec:property ?action-designator (:type :searching))
