@@ -138,7 +138,7 @@ Store found pose into designator or throw error if good pose not found."
                  (declare (ignore _action _effort))
                  (let ((object-name
                          (desig:desig-prop-value object-designator :name)))
-                   (roslisp:ros-info (pp-plans manipulation)
+                   (roslisp:ros-info (pp-plans coll-check)
                                      "Trying grasp ~a on object ~a with arm ~a~%"
                                      _grasp object-name arm)
                    (let ((left-poses-list-of-lists (list left-reach-poses left-lift-poses))
@@ -183,7 +183,7 @@ Store found pose into designator or throw error if good pose not found."
                (declare (ignore _action))
                (let ((object-name
                        (desig:desig-prop-value object-designator :name)))
-                 (roslisp:ros-info (pp-plans manipulation)
+                 (roslisp:ros-info (pp-plans coll-check)
                                    "Trying to place object ~a with arm ~a~%"
                                    object-name arm)
                 (let ((left-poses-list-of-lists
