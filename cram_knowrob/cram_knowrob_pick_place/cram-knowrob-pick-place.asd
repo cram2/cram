@@ -45,5 +45,4 @@
   ((:module "src"
     :components
     ((:file "package")
-     ;; (:file "event-handlers" :depends-on ("package" "conversions" "assertions" "extracting-info"))
      (:file "grasping" :depends-on ("package"))))))

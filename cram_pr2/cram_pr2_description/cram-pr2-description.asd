@@ -43,5 +43,4 @@
     :components
     ((:file "package")
      (:file "pr2-knowledge" :depends-on ("package"))
-     (:file "urdf" :depends-on ("package"))
-     (:file "arm-kinematics" :depends-on ("package" "urdf"))))))
+     (:file "arm-kinematics" :depends-on ("package"))))))

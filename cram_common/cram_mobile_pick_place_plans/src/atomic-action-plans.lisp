@@ -120,132 +120,131 @@
        (when (member :right arm)
          (setf ?right-configuration (get-arm-parking-joint-states :right)))
 
-       (cpl:with-failure-handling
-           ((common-fail:manipulation-low-level-failure (e)
-              (roslisp:ros-warn (pick-and-place park-arms)
-                                "A low-level manipulation failure happened: ~a~%Ignoring." e)
-              (return)))
+       (unwind-protect
+            (cpl:with-failure-handling
+                ((common-fail:manipulation-low-level-failure (e)
+                   (roslisp:ros-warn (pick-and-place park-arms)
+                                     "A low-level manipulation failure happened: ~a~%Ignoring." e)
+                   (return)))
 
-         (if carry?
-             (cpl:seq
-               (exe:perform
-                (desig:a motion
-                         (type moving-arm-joints)
-                         (right-configuration ?right-configuration)))
-               (exe:perform
-                (desig:a motion
-                         (type moving-arm-joints)
-                         (left-configuration ?left-configuration)))
-               (cram-occasions-events:on-event
-                (make-instance 'cram-plan-occasions-events:robot-state-changed)))
-             (cpl:seq
-               (exe:perform
-                (desig:a motion
-                         (type moving-arm-joints)
-                         (left-configuration ?left-configuration)))
-               (exe:perform
-                (desig:a motion
-                         (type moving-arm-joints)
-                         (right-configuration ?right-configuration)))
-               (cram-occasions-events:on-event
-                (make-instance 'cram-plan-occasions-events:robot-state-changed)))))))))
+              (if carry?
+                  (cpl:seq
+                    (exe:perform
+                     (desig:a motion
+                              (type moving-arm-joints)
+                              (right-configuration ?right-configuration)))
+                    (exe:perform
+                     (desig:a motion
+                              (type moving-arm-joints)
+                              (left-configuration ?left-configuration))))
+                  (cpl:seq
+                    (exe:perform
+                     (desig:a motion
+                              (type moving-arm-joints)
+                              (left-configuration ?left-configuration)))
+                    (exe:perform
+                     (desig:a motion
+                              (type moving-arm-joints)
+                              (right-configuration ?right-configuration))))))
+         (cram-occasions-events:on-event
+          (make-instance 'cram-plan-occasions-events:robot-state-changed)))))))
 
 
 (cpl:def-cram-function release (?left-or-right)
-  (cpl:with-failure-handling
-      ((common-fail:low-level-failure (e) ; ignore failures
-         (roslisp:ros-warn (pick-and-place release) "~a" e)
-         (return)))
-    (exe:perform
-     (desig:a motion
-              (type opening)
-              (gripper ?left-or-right)))
+  (unwind-protect
+       (cpl:with-failure-handling
+           ((common-fail:low-level-failure (e) ; ignore failures
+              (roslisp:ros-warn (pick-and-place release) "~a" e)
+              (return)))
+         (exe:perform
+          (desig:a motion
+                   (type opening)
+                   (gripper ?left-or-right))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
 (cpl:def-cram-function grip (?left-or-right ?effort)
-  (cpl:with-retry-counters ((grasping-retries 1))
-    (cpl:with-failure-handling
-        ((common-fail:low-level-failure (e) ; regrasp once then propagate up
-           (cpl:do-retry grasping-retries
-             (roslisp:ros-warn (pick-and-place grip) "~a~%Retrying" e)
-             (cpl:retry))
-           (roslisp:ros-warn (pick-and-place grip) "No retries left.")))
-      (exe:perform
-         (desig:a motion
-                  (type gripping)
-                  (gripper ?left-or-right)
-                  (effort ?effort)))
-      (cram-occasions-events:on-event
-       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
+  (unwind-protect
+       (cpl:with-retry-counters ((grasping-retries 1))
+         (cpl:with-failure-handling
+             ((common-fail:low-level-failure (e) ; regrasp once then propagate up
+                (cpl:do-retry grasping-retries
+                  (roslisp:ros-warn (pick-and-place grip) "~a~%Retrying" e)
+                  (cpl:retry))
+                (roslisp:ros-warn (pick-and-place grip) "No retries left.")))
+           (exe:perform
+            (desig:a motion
+                     (type gripping)
+                     (gripper ?left-or-right)
+                     (desig:when ?effort
+                       (effort ?effort))))))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 (cpl:def-cram-function close-gripper (?left-or-right)
-  (cpl:with-failure-handling
-      ((common-fail:low-level-failure (e) ; ignore failures
-         (roslisp:ros-warn (pick-and-place close-gripper) "~a" e)
-         (return)))
-    (exe:perform
-     (desig:a motion
-              (type closing)
-              (gripper ?left-or-right)))
+  (unwind-protect
+       (cpl:with-failure-handling
+           ((common-fail:low-level-failure (e) ; ignore failures
+              (roslisp:ros-warn (pick-and-place close-gripper) "~a" e)
+              (return)))
+         (exe:perform
+          (desig:a motion
+                   (type closing)
+                   (gripper ?left-or-right))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 (cpl:def-cram-function set-gripper-to-position (?left-or-right ?position)
-  (cpl:with-failure-handling
-      ((common-fail:low-level-failure (e) ; ignore failures
-         (roslisp:ros-warn (pick-and-place set-gripper-to-pos) "~a" e)
-         (return)))
-    (exe:perform
-     (desig:a motion
-              (type moving-gripper-joint)
-              (gripper ?left-or-right)
-              (joint-angle ?position)))
+  (unwind-protect
+       (cpl:with-failure-handling
+           ((common-fail:low-level-failure (e) ; ignore failures
+              (roslisp:ros-warn (pick-and-place set-gripper-to-pos) "~a" e)
+              (return)))
+         (exe:perform
+          (desig:a motion
+                   (type moving-gripper-joint)
+                   (gripper ?left-or-right)
+                   (joint-angle ?position))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 (cpl:def-cram-function look-at (&key target frame direction object)
-  (cond (target
-         (let* ((?target target)
-                (motion (desig:a motion
-                                 (type looking)
-                                 (target ?target))))
-           (cpl:with-retry-counters ((look-retries 2))
-             (cpl:with-failure-handling
-                 ((common-fail:ptu-low-level-failure (e)
-                    (roslisp:ros-warn (pp-plans look-at) "Looking-at had a problem: ~a" e)
-                    (cpl:do-retry look-retries
-                      (when (setf motion (desig:next-solution motion))
-                        (roslisp:ros-warn (pp-plans look-at) "Retrying.")
-                        (cpl:retry)))))
-               (exe:perform motion)
-               (cram-occasions-events:on-event
-                (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
-        (frame
-         (let ((?frame frame))
-           (exe:perform
-            (desig:a motion
-                     (type looking)
-                     (frame ?frame)))
-           (cram-occasions-events:on-event
-            (make-instance 'cram-plan-occasions-events:robot-state-changed))))
-        (direction
-         (let ((?direction direction))
-          (exe:perform
-           (desig:a motion
-                    (type looking)
-                    (direction ?direction)))
-           (cram-occasions-events:on-event
-            (make-instance 'cram-plan-occasions-events:robot-state-changed))))
-        (object
-         (let ((?pose (cram-object-interfaces:get-object-pose object)))
-           (exe:perform
-            (desig:a motion
-                     (type looking)
-                     (target (desig:a location (pose ?pose)))))
-           (cram-occasions-events:on-event
-            (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
+  (unwind-protect
+       (cond (target
+              (let* ((?target target)
+                     (motion (desig:a motion
+                                      (type looking)
+                                      (target ?target))))
+                (cpl:with-retry-counters ((look-retries 2))
+                  (cpl:with-failure-handling
+                      ((common-fail:ptu-low-level-failure (e)
+                         (roslisp:ros-warn (pp-plans look-at) "Looking-at had a problem: ~a" e)
+                         (cpl:do-retry look-retries
+                           (when (setf motion (desig:next-solution motion))
+                             (roslisp:ros-warn (pp-plans look-at) "Retrying.")
+                             (cpl:retry)))))
+                    (exe:perform motion)))))
+             (frame
+              (let ((?frame frame))
+                (exe:perform
+                 (desig:a motion
+                          (type looking)
+                          (frame ?frame)))))
+             (direction
+              (let ((?direction direction))
+                (exe:perform
+                 (desig:a motion
+                          (type looking)
+                          (direction ?direction)))))
+             (object
+              (let ((?pose (cram-object-interfaces:get-object-pose object)))
+                (exe:perform
+                 (desig:a motion
+                          (type looking)
+                          (target (desig:a location (pose ?pose))))))))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 (cpl:def-cram-function navigate (?location-designator)
   (unwind-protect

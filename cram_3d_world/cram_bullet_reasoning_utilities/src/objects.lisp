@@ -40,8 +40,8 @@
   (typep (object-instance object-name) 'btr:object))
 
 
-(defgeneric spawn-object (name type &key pose color world)
-  (:method (name type &key pose color world)
+(defgeneric spawn-object (name type &key pose color mass world)
+  (:method (name type &key pose color mass world)
     (if (btr:object (or world *current-bullet-world*) name)
         (when pose
           (move-object name pose))
@@ -60,7 +60,8 @@
                       `(bullet-world ?world))
                  (scenario-object-shape ,type ?shape)
                  (scenario-object-extra-attributes ?_ ,type ?attributes)
-                 (append (object ?world ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
+                 (append (object ?world ?shape ,name ?pose :mass ,(or mass 0.2) :color ?color)
+                         ?attributes
                          ?object-description)
                  (assert ?object-description)
                  (%object ?world ,name ?object-instance))))))))

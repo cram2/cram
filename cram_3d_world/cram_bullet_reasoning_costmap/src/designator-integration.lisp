@@ -1,9 +1,9 @@
 ;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -28,14 +28,14 @@
 
 (in-package :btr-costmap)
 
-(register-location-validation-function
- 5 potential-field-costmap-pose-validator
- "The potential field cost-function that we use for spatial relations is too wide - 180
-  degrees. Theoretically it is correct, but for practical use we need to make the angle
-  narrower. At the smaller angles the solutions have the highest values, so we put a
-  threshold on the solution values.")
+;; (desig::register-location-validation-function
+;;  5 potential-field-costmap-pose-validator
+;;  "The potential field cost-function that we use for spatial relations is too wide - 180
+;;   degrees. Theoretically it is correct, but for practical use we need to make the angle
+;;   narrower. At the smaller angles the solutions have the highest values, so we put a
+;;   threshold on the solution values.")
 
-(register-location-validation-function
+(desig:register-location-validation-function
  6 collision-pose-validator
  "If a location was generated for an item, then it is checked if the
   generated pose causes collisions of that object with other items,
@@ -46,24 +46,24 @@
    In that case a specific costmap spread angle might be needed for that object, i.e.
    a threshold on costmap values is specified for that object in the knowledge base."
   (if (typep pose 'cl-transforms:pose)
-      (let ((for-prop-value (desig-prop-value desig :for)))
+      (let ((for-prop-value (desig:desig-prop-value desig :for)))
         (if for-prop-value
-            (let* ((cm (location-costmap::get-cached-costmap desig))
+            (let* ((cm (costmap::get-cached-costmap desig))
                    (p (cl-transforms:origin pose)))
               (if cm
-                  (let ((costmap-value (/ (get-map-value
+                  (let ((costmap-value (/ (costmap:get-map-value
                                            cm
                                            (cl-transforms:x p)
                                            (cl-transforms:y p))
-                                          (location-costmap::get-cached-costmap-maxvalue cm))))
-                    (with-vars-bound (?threshold)
-                        (lazy-car
+                                          (costmap::get-cached-costmap-maxvalue cm))))
+                    (cut:with-vars-bound (?threshold)
+                        (cut:lazy-car
                          (prolog `(and
-                                   (bullet-world ?w)
-                                   (object-instance-name ,for-prop-value ?obj-name)
+                                   (btr:bullet-world ?w)
+                                   (object-designator-name ,for-prop-value ?obj-name)
                                    (object-costmap-threshold ?w ?obj-name ?threshold))))
                       (sb-ext:gc :full t)
-                      (if (is-var ?threshold)
+                      (if (cut:is-var ?threshold)
                           :accept
                           (if (> costmap-value ?threshold)
                               :accept
@@ -73,14 +73,16 @@
       :unknown))
 
 (defun collision-pose-validator (desig pose)
+  (declare (type desig:designator desig)
+           (type cl-transforms-stamped:pose pose))
   "Checks if desig has a property FOR. If so, checks if the object described by FOR is
    an item. If so, uses the prolog predicate desig-solution-not-in-collision."
   (if (typep pose 'cl-transforms:pose)
-      (let ((for-prop-value (desig-prop-value desig :for)))
+      (let ((for-prop-value (desig:desig-prop-value desig :for)))
         (if (and for-prop-value
                  (prolog `(and
-                           (object-instance-name ,for-prop-value ?object-name)
-                           (item-type ?world ?object-name ?_))))
+                           (object-designator-name ,for-prop-value ?object-name)
+                           (btr:item-type ?world ?object-name ?_))))
             (if (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose))
                 :accept
                 :reject)

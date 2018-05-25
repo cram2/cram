@@ -38,11 +38,11 @@
 
 (defun location-costmap-vis-init ()
   (setf *location-costmap-publisher*
-        (advertise "~cram_location_costmap" "visualization_msgs/MarkerArray"))
+        (advertise "cram_location_costmap" "visualization_msgs/MarkerArray"))
   (setf *occupancy-grid-publisher*
-        (advertise "~location_occupancy_grid" "nav_msgs/OccupancyGrid"))  
+        (advertise "cram_location_occupancy_grid" "nav_msgs/OccupancyGrid"))
   (setf *marker-publisher*
-        (advertise "~location_marker" "visualization_msgs/Marker")))
+        (advertise "cram_location_marker" "visualization_msgs/Marker")))
 
 (roslisp-utilities:register-ros-init-function location-costmap-vis-init)
 
