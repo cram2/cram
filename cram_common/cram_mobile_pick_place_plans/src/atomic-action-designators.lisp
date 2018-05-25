@@ -87,7 +87,7 @@
         (equal ?camera :head)
         (true)))
 
-  (<- (desig:action-grounding ?action-designator (navigate ?location-designator))
+  (<- (desig:action-grounding ?action-designator (go-to-target ?location-designator))
     (spec:property ?action-designator (:type :going))
     (spec:property ?action-designator (:target ?location-designator)))
 
