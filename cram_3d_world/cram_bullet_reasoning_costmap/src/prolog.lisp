@@ -31,6 +31,7 @@
 (defmethod costmap:costmap-generator-name->score ((name (eql 'supporting-object))) 3)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'slot-generator))) 5)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'collision))) 10)
+(defmethod costmap:costmap-generator-name->score ((name (eql 'side-generator))) 5)
 
 (defclass range-generator () ())
 (defmethod costmap:costmap-generator-name->score ((name range-generator)) 2)
@@ -43,15 +44,28 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def-fact-group location-desig-utils ()
+(def-fact-group location-desig-utils (desig:desig-location-prop)
   ;; to get names of object designators
   (<- (object-designator-name ?name ?name)
     (lisp-type ?name symbol))
   ;;
   (<- (object-designator-name ?designator ?name)
     (desig:obj-desig? ?designator)
-    (lisp-fun cram-bullet-reasoning-belief-state:get-designator-object-name
-              ?designator ?name))
+    (lisp-fun btr-belief:get-designator-object-name ?designator ?belief-name)
+    (-> (lisp-pred identity ?belief-name)
+        (equal ?name ?belief-name)
+        (and (desig:desig-prop ?designator (:type ?object-type))
+             (btr:bullet-world ?w)
+             (btr:item-type ?world ?name ?object-type))))
+  ;;
+  (<- (desig:desig-location-prop ?designator ?location)
+    (desig:obj-desig? ?designator)
+    (desig:desig-prop ?designator (:type ?type))
+    (not (desig:desig-prop ?designator (:name ?name)))
+    (not (desig:desig-prop ?designator (:pose ?pose)))
+    (btr:bullet-world ?world)
+    (btr:item-type ?world ?name ?type)
+    (btr:pose ?world ?name ?location))
 
   ;; returns diameter or something similar in meters
   (<- (object-size-without-handles ?world ?obj-name ?size)
@@ -83,12 +97,12 @@
     (lisp-fun get-link-rigid-body ?supp-object ?supp-object-link-name
               ?supporting-rigid-body))
   ;;
-  (<- (supporting-semantic-map-link ?world ?obj-name ?supp-link-object)
-    (btr:bullet-world ?world)
-    (btr:object ?world ?obj-name)
-    (btr:supported-by ?world ?obj-name ?supp-object-name ?supp-object-link-name)
-    (btr:%object ?world ?supp-object-name ?supp-object)
-    (lisp-fun get-sem-map-part ?supp-object ?supp-object-link-name ?supp-link-object))
+  ;; (<- (supporting-semantic-map-link ?world ?obj-name ?supp-link-object)
+  ;;   (btr:bullet-world ?world)
+  ;;   (btr:object ?world ?obj-name)
+  ;;   (btr:supported-by ?world ?obj-name ?supp-object-name ?supp-object-link-name)
+  ;;   (btr:%object ?world ?supp-object-name ?supp-object)
+  ;;   (lisp-fun get-sem-map-part ?supp-object ?supp-object-link-name ?supp-link-object))
 
   ;; for validators
   (<- (desig-solution-not-in-collision ?desig ?object-to-check ?pose)
@@ -126,7 +140,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group spatial-relations-costmap (costmap:desig-costmap)
-  ;; near and far-from for bullet objects or locations
+  ;;;;;;;;;; NEAR and FAR-FROM for bullet objects or locations ;;;;;;;;;;;
   (<- (near-or-far-costmap ?ref-obj-pose ?min-radius ?max-radius ?costmap)
     (instance-of range-generator ?range-generator-id-1)
     (costmap:costmap-add-function
@@ -197,7 +211,7 @@
                           ?for-obj-size ?for-padding ?costmap)))
 
 
-  ;; left-of for bullet objects or locations using potential field cost-function
+  ;;;;;;;;;;;;; LEFT-OF etc. for bullet objects or locations ;;;;;;;;;;;;;;;;;;
   ;; uses make-potential-field-cost-function to resolve the designator
   (<- (potential-field-costmap ?edge ?relation ?reference-pose ?supp-obj-pose ?costmap)
     (relation-axis-and-pred ?edge ?relation ?axis ?pred)
@@ -236,17 +250,12 @@
                   ;; (btr:assert (btr:object-pose ?world ?supporting-object-name
                   ;;                              ((0 0 0) (0 0 0 1))))
                   (lisp-fun cl-bullet:pose ?supporting-rigid-body ?supp-obj-pose)
-                  (lisp-fun btr::set-object-pose ?supporting-rigid-body ((0 0 0) (0 0 0 1)) ?_)
-                  (lisp-fun cl-bullet:aabb ?supporting-rigid-body ?aabb)
-                  (lisp-fun btr::set-object-pose ?supporting-rigid-body ?supp-obj-pose ?_)
-                  (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?supp-obj-dims)
+                  (lisp-fun calculate-bb-dims ?supporting-rigid-body ?supp-obj-dims)
                   (lisp-fun get-closest-edge ?reference-pose ?supp-obj-pose ?supp-obj-dims ?edge))
                  (and (equal ?edge :front)
                       (lisp-fun cl-transforms:make-identity-pose ?supp-obj-pose)))))
     (potential-field-costmap ?edge ?relation ?reference-pose ?supp-obj-pose ?costmap))
-
-
-
+  ;;
   ;; Disabled.
   ;; collision avoidance costmap for the spatial relations desigs
   ;; uses make-objects-bounding-box-costmap-generator
@@ -259,7 +268,7 @@
      collision
      (make-aabbs-costmap-generator ?objs :invert t :padding ?padding)
      ?cm))
-
+  ;;
   ;; should be using make-aabb-costmap-generator I guess
   (<- (costmap:desig-costmap ?desig ?cm)
     (fail)
@@ -281,10 +290,10 @@
          (collision-invert-costmap ?desig ?overall-padding ?cm))
         (collision-invert-costmap ?desig ?padding ?cm)))
 
-  ;; for plates on table
+  ;;;;;;;;;;;;;; for TABLE-SETTING context ON (SLOTS) ;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; '((on counter-top) (name kitchen-island)
   ;;   (context :table-setting) (for plate-1) (object-count 4))
-    ;; uses make-slot-cost-function
+  ;; uses make-slot-cost-function
   (<- (slot-costmap ?designator ?supp-object ?context ?object-type ?object-count
                     ?costmap)
     (lisp-fun sem-map-utils:name ?supp-object ?supp-object-name)
@@ -301,7 +310,7 @@
                               ?object-count ?max-slot-size ?min-slot-size
                               ?pos-dev-threshold)
      ?costmap))
-
+  ;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?_))
     (desig:desig-prop ?designator (:name ?supp-obj-name))
@@ -316,8 +325,22 @@
     (member ?supp-object ?supp-objects)
     (slot-costmap ?designator ?supp-object :table-setting ?object-type ?object-count
                   ?costmap))
+  ;;
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (desig:desig-prop ?designator (:on ?_))
+    (desig:desig-prop ?designator (:name ?supp-obj-name))
+    (desig:desig-prop ?designator (:side ?relation))
+    (member ?relation (:left :right :front :back))
+    (costmap:costmap ?costmap)
+    (lisp-fun sem-map-desig:designator->semantic-map-objects ?designator ?supp-objects)
+    (member ?supp-object ?supp-objects)
+    (relation-axis-and-pred ?relation :in-front-of ?axis ?sign)
+    (costmap:costmap-add-function
+     side-generator
+     (make-side-costmap-generator ?supp-object ?axis ?sign)
+     ?costmap))
 
-  ;; height generators
+  ;;;;;;;;;;;;;;;;;;;;;; HEIGHT GENERATORS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; height generator for locations ((on something) (name something) (for some-obj))
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?_))
@@ -353,8 +376,7 @@
                  (and (object-designator-name ?for-obj ?for-obj-name)
                       (btr:object ?world ?for-obj-name)
                       (btr:%object ?world ?for-obj-name ?for-object-instance)
-                      (lisp-fun cl-bullet:aabb ?for-object-instance ?aabb)
-                      (lisp-fun cl-bullet:bounding-box-dimensions ?aabb ?dimensions)
+                      (lisp-fun calculate-bb-dims ?for-object-instance ?dimensions)
                       (lisp-fun cl-transforms:z ?dimensions ?height)
                       (lisp-fun / ?height 2 ?offset)
                       (lisp-fun + ?highest-z ?offset ?resulting-z))
