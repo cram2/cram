@@ -246,7 +246,7 @@
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
-(cpl:def-cram-function navigate (?location-designator)
+(cpl:def-cram-function go-to-target (?location-designator)
   (unwind-protect
        (cpl:with-retry-counters ((nav-retries 0))
          (cpl:with-failure-handling
