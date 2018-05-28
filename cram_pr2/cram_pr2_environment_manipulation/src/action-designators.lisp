@@ -32,16 +32,18 @@
 (defun get-container-pose-and-transform (name)
   (let* ((name-rosified (roslisp-utilities:rosify-underscores-lisp-name name))
          (urdf-pose (get-urdf-link-pose name-rosified))
-         (pose (cl-tf:transform-pose-stamped cram-tf:*transformer*
-                                             :target-frame cram-tf:*robot-base-frame*
-                                             :pose (cl-tf:pose->pose-stamped cram-tf:*fixed-frame*
-                                                                             0
-                                                                             urdf-pose)))
+         (pose (cram-tf:ensure-pose-in-frame
+                (cl-tf:pose->pose-stamped
+                 cram-tf:*fixed-frame*
+                 0.0
+                 urdf-pose)
+                cram-tf:*robot-base-frame*
+                :use-zero-time t))
          (transform (cram-tf:pose-stamped->transform-stamped pose name-rosified)))
     (list pose transform)))
 
 (def-fact-group environment-manipulation (desig:action-grounding)
-  
+
   (<- (desig:action-grounding ?action-designator (open-container ?arm
                                                                  ?gripper-opening
                                                                  ?left-reach-poses
