@@ -30,7 +30,9 @@
     :author "Christopher Pollok"
     :license "BSD"
 
-    :depends-on (cl-transforms
+    :depends-on (roslisp-utilities
+
+                 cl-transforms
                  cl-transforms-stamped
                  cl-tf
                  cram-tf
