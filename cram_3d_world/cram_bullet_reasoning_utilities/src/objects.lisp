@@ -74,6 +74,20 @@
   (:method ()
     (prolog-?w `(item-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail))))
 
+(defun respawn-object (object)
+  (typecase object
+    (btr:item (let ((name (btr:name object))
+                    (type (car (slot-value object 'btr::types)))
+                    (pose (btr:pose object))
+                    (color (slot-value (slot-value (car (btr:rigid-bodies object))
+                                                   'cl-bullet::collision-shape)
+                                       'cl-bullet-vis::color))
+                    (mass (slot-value (car (btr:rigid-bodies object)) 'cl-bullet:mass)))
+                (btr:remove-object btr:*current-bullet-world* name)
+                (btr:add-object btr:*current-bullet-world* :mesh name pose
+                                :color color :mass mass :mesh type)))
+    (t nil)))
+
 
 (defun move-object (object-name &optional new-pose)
   (if new-pose
