@@ -89,6 +89,50 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
       (+ (cl-transforms:z (cl-bullet:bounding-box-center body-aabb))
          (/ (cl-transforms:z (cl-bullet:bounding-box-dimensions body-aabb)) 2)))))
 
+(defun pose-within-aabb (object-pose rigid-body)
+  (labels ((inside-aabb (min max pt)
+             "Checks if `pt' lies in the axis-alligned bounding box specified by
+  the two points `min' and `max'"
+             (let ((x (cl-transforms:x pt))
+                   (y (cl-transforms:y pt))
+                   ;; (z (cl-transforms:z pt))
+                   )
+               (declare (type double-float x y ;; z
+                              ))
+               (and (>= x (cl-transforms:x min))
+                    (<= x (cl-transforms:x max))
+                    (>= y (cl-transforms:y min))
+                    (<= y (cl-transforms:y max))
+                    ;; (>= z (cl-transforms:z min))
+                    ;; (<= z (cl-transforms:z max))
+                    )))
+           (2d-object-bb (aabb)
+             (let ((center (cl-bullet:bounding-box-center aabb))
+                   (dim/2 (cl-transforms:v* (cl-bullet:bounding-box-dimensions aabb) 0.5)))
+               (list (cl-transforms:v- center dim/2)
+                     (cl-transforms:v+ center dim/2)))))
+    (let* ((aabb (btr:aabb rigid-body))
+           (bb (2d-object-bb aabb))
+           (transform (cl-transforms:make-transform
+                       (cl-bullet:bounding-box-center aabb)
+                       (cl-transforms:make-identity-rotation)))
+           (pt (cl-transforms:make-3d-vector
+                (cl-transforms:x (cl-transforms:origin object-pose))
+                (cl-transforms:y (cl-transforms:origin object-pose))
+                (cl-transforms:z (cl-transforms:translation transform)))))
+      (inside-aabb (first bb) (second bb) pt))))
+
+(defun get-highest-rigid-body-below-object (rigid-bodies object)
+  (loop for body in rigid-bodies
+        for current-z = (get-rigid-body-aabb-top-z body)
+        with object-z = (get-rigid-body-aabb-top-z object)
+        and highest-z = 0.0 and highest-body
+        do (when (and (>= current-z highest-z)
+                         (< current-z object-z))
+                (setf highest-z current-z)
+                (setf highest-body body))
+        finally (return highest-body)))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

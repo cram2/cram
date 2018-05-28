@@ -89,13 +89,21 @@
     (lisp-fun - ?obj-size ?handle-size ?size))
 
   ;; getting the supporting object of an object
-  (<- (supporting-rigid-body ?world ?obj-name ?supporting-rigid-body)
+  (<- (supporting-rigid-body ?world ?obj-name ?highest-supporting-rigid-body)
     (btr:bullet-world ?world)
     (btr:object ?world ?obj-name)
-    (btr:supported-by ?world ?obj-name ?supp-object-name ?supp-object-link-name)
-    (btr:%object ?world ?supp-object-name ?supp-object)
-    (lisp-fun get-link-rigid-body ?supp-object ?supp-object-link-name
-              ?supporting-rigid-body))
+    (btr:%object ?world ?obj-name ?object)
+    (btr:object-pose ?world ?obj-name ?object-pose)
+    (bagof ?supp-rigid-body
+           (and (btr:above ?world ?obj-name ?supp-object-name ?supp-object-link-name)
+                (btr:%object ?world ?supp-object-name ?supp-object)
+                (lisp-fun get-link-rigid-body ?supp-object ?supp-object-link-name ?supp-rigid-body)
+                (lisp-pred pose-within-aabb ?object-pose ?supp-rigid-body))
+           ?supporting-rigid-bodies-bag)
+    (lisp-fun cut:force-ll ?supporting-rigid-bodies-bag ?supporting-rigid-bodies)
+    (lisp-fun get-highest-rigid-body-below-object
+              ?supporting-rigid-bodies ?object
+              ?highest-supporting-rigid-body))
   ;;
   ;; (<- (supporting-semantic-map-link ?world ?obj-name ?supp-link-object)
   ;;   (btr:bullet-world ?world)
@@ -140,7 +148,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group spatial-relations-costmap (costmap:desig-costmap)
-  ;;;;;;;;;; NEAR and FAR-FROM for bullet objects or locations ;;;;;;;;;;;
+;;;;;;;;;; NEAR and FAR-FROM for bullet objects or locations ;;;;;;;;;;;
   (<- (near-or-far-costmap ?ref-obj-pose ?min-radius ?max-radius ?costmap)
     (instance-of range-generator ?range-generator-id-1)
     (costmap:costmap-add-function
@@ -211,7 +219,7 @@
                           ?for-obj-size ?for-padding ?costmap)))
 
 
-  ;;;;;;;;;;;;; LEFT-OF etc. for bullet objects or locations ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;; LEFT-OF etc. for bullet objects or locations ;;;;;;;;;;;;;;;;;;
   ;; uses make-potential-field-cost-function to resolve the designator
   (<- (potential-field-costmap ?edge ?relation ?reference-pose ?supp-obj-pose ?costmap)
     (relation-axis-and-pred ?edge ?relation ?axis ?pred)
@@ -290,7 +298,7 @@
          (collision-invert-costmap ?desig ?overall-padding ?cm))
         (collision-invert-costmap ?desig ?padding ?cm)))
 
-  ;;;;;;;;;;;;;; for TABLE-SETTING context ON (SLOTS) ;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;; for TABLE-SETTING context ON (SLOTS) ;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; '((on counter-top) (name kitchen-island)
   ;;   (context :table-setting) (for plate-1) (object-count 4))
   ;; uses make-slot-cost-function
@@ -340,7 +348,7 @@
      (make-side-costmap-generator ?supp-object ?axis ?sign)
      ?costmap))
 
-  ;;;;;;;;;;;;;;;;;;;;;; HEIGHT GENERATORS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;; HEIGHT GENERATORS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; height generator for locations ((on something) (name something) (for some-obj))
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?_))
