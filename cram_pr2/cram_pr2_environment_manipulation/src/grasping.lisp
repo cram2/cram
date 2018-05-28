@@ -31,13 +31,18 @@
 
 ;;; OBJECT-INTERFACE METHODS
 
-(defparameter *drawer-handle-grasp-x-offset* -0.02 "in meters")
+(defparameter *drawer-handle-grasp-x-offset* 0.0 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
-(defparameter *drawer-handle-lift-x-offset* 0.48 "in meters")
-(defparameter *drawer-handle-2nd-lift-x-offset* 0.58 "in meters")
-(defparameter *drawer-handle-2nd-lift-closing-x-offset* -0.38 "in meters")
+(defparameter *drawer-handle-lift-x-offset* 0.30 "in meters")
+(defparameter *drawer-handle-2nd-lift-x-offset* (+ *drawer-handle-lift-x-offset*
+                                                   *drawer-handle-pregrasp-x-offset*)
+  "in meters")
+(defparameter *drawer-handle-2nd-lift-closing-x-offset* (+ (- *drawer-handle-lift-x-offset*)
+                                                           *drawer-handle-pregrasp-x-offset*)
+  "in meters")
 
-;; Might be necessary to find out what kind of handle we are dealing with. But we could also just open wide and be done with it.
+;; Might be necessary to find out what kind of handle we are dealing with.
+;; But we could also just open wide and be done with it.
 (defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container)))
   0.09)
 
@@ -78,6 +83,13 @@
                                                                    arm
                                                                    grasp
                                                                    grasp-pose)
+  (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
+
+(defmethod obj-int:get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :container))
+                                                                      object-name
+                                                                      arm
+                                                                      grasp
+                                                                      grasp-pose)
   (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
 
 ;; We need the joint-type, maybe contain it in the object-type e.g. 'container-prismatic'.
