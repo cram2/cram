@@ -51,7 +51,8 @@
                        (context table-setting)
                        (for (an object (type bowl)))
                        (object-count 3)
-                       (side back)))
+                       (side back)
+                       (side right)))
     (:spoon . ,(desig:a location
                         (right-of (an object (type bowl)))
                         (near (an object (type bowl)))
