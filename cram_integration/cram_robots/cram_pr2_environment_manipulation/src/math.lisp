@@ -55,17 +55,17 @@ from which the distance to the point (x,y) is minimal."
 
 (defun line-equation-in-xy (p1 p2)
   "Return the equation (a,b,c values) describing a line between p1 and p2 in the x-y-plane."
-  (let ((x1 (cl-tf:x p1))
-        (y1 (cl-tf:y p1))
-        (x2 (cl-tf:x p2))
-        (y2 (cl-tf:y p2)))
+  (let ((x1 (cl-transforms:x p1))
+        (y1 (cl-transforms:y p1))
+        (x2 (cl-transforms:x p2))
+        (y2 (cl-transforms:y p2)))
     (line-equation x1 y1 x2 y2)))
 
 (defun line-p-dist (a b c p)
   "Return the disctance between the line described by ax + bx + c
 and the point p (in the x-y plane)."
-  (let ((x (cl-tf:x p))
-        (y (cl-tf:y p)))
+  (let ((x (cl-transforms:x p))
+        (y (cl-transforms:y p)))
     (/
      (abs (+ (* a x) (* b y) c))
      (sqrt (+ (expt a 2) (expt b 2))))))
@@ -73,8 +73,8 @@ and the point p (in the x-y plane)."
 (defun line-p-dist-point (a b c p)
   "Return the point on the line described by ax + bx + c
 from which the distance to the point (x,y) is minimal."
-  (let ((px (cl-tf:x p))
-        (py (cl-tf:y p)))
+  (let ((px (cl-transforms:x p))
+        (py (cl-transforms:y p)))
     (multiple-value-bind (x y)
         (distance-point a b c px py)
-      (cl-tf:make-3d-vector x y 0))))
+      (cl-transforms:make-3d-vector x y 0))))

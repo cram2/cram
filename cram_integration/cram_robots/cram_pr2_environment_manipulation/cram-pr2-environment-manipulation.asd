@@ -34,7 +34,6 @@
 
                cl-transforms
                cl-transforms-stamped
-               cl-tf
                cram-tf
 
                cram-language

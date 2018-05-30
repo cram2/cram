@@ -14,7 +14,6 @@
   <depend>roslisp_utilities</depend>
   <depend>cl_transforms</depend>
   <depend>cl_transforms_stamped</depend>
-  <depend>cl_tf</depend>
   <depend>cram_tf</depend>
   <depend>cram_language</depend>
   <depend>cram_executive</depend>
