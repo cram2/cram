@@ -27,45 +27,45 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (defsystem cram-pr2-environment-manipulation
-    :author "Christopher Pollok"
-    :license "BSD"
+  :author "Christopher Pollok"
+  :license "BSD"
 
-    :depends-on (roslisp-utilities
+  :depends-on (roslisp-utilities
 
-                 cl-transforms
-                 cl-transforms-stamped
-                 cl-tf
-                 cram-tf
+               cl-transforms
+               cl-transforms-stamped
+               cl-tf
+               cram-tf
 
-                 cram-language
-                 cram-executive
-                 cram-designators
-                 cram-prolog
-                 cram-projection
-                 cram-occasions-events
-                 cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
+               cram-language
+               cram-executive
+               cram-designators
+               cram-prolog
+               cram-projection
+               cram-occasions-events
+               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
 
-                 cram-common-failures
-                 cram-mobile-pick-place-plans
-                 
-                 cl-bullet ; for handling BOUNDING-BOX datastructures
-                 cram-bullet-reasoning
-                 cram-bullet-reasoning-belief-state
-                 cram-bullet-reasoning-utilities
-                 cram-bullet-reasoning-designators
+               cram-common-failures
+               cram-mobile-pick-place-plans
+               cram-robot-interfaces ; for REACHABILITY-DESIGNATOR predicate
+               cram-designator-specification
 
-                 cram-semantic-map-costmap
-                 cram-robot-pose-gaussian-costmap
-                 cram-occupancy-grid-costmap
-                 cram-location-costmap
-                 )
+               cl-bullet ; for handling BOUNDING-BOX datastructures
+               cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-utilities
+
+               cram-semantic-map-costmap
+               cram-robot-pose-gaussian-costmap
+               cram-occupancy-grid-costmap
+               cram-location-costmap)
   :components
   ((:module "src"
-            :components
-            ((:file "package")
-             (:file "math" :depends-on ("package"))
-             (:file "environment" :depends-on ("package"))
-             (:file "costmaps" :depends-on ("package" "math"))
-             (:file "grasping" :depends-on ("package"))
-             (:file "action-designators" :depends-on ("package" "grasping"))
-             (:file "plans" :depends-on ("package" "environment"))))))
+    :components
+    ((:file "package")
+     (:file "math" :depends-on ("package"))
+     (:file "environment" :depends-on ("package"))
+     (:file "costmaps" :depends-on ("package" "math" "environment"))
+     (:file "grasping" :depends-on ("package"))
+     (:file "action-designators" :depends-on ("package" "grasping"))
+     (:file "plans" :depends-on ("package" "environment"))))))

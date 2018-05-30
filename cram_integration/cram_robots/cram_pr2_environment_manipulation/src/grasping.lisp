@@ -51,46 +51,60 @@
                                                          object-name
                                                          arm
                                                          grasp)
-  (setf object-name (roslisp-utilities:rosify-underscores-lisp-name object-name))
-  (let* ((handle-name (cl-urdf:name (get-handle-link object-name)))
-         (handle-tf (cl-tf:transform->transform-stamped cram-tf:*fixed-frame* handle-name 0
-                                                        (cl-tf:pose->transform
-                                                         (get-urdf-link-pose handle-name))))
-         (container-tf (cl-tf:transform->transform-stamped cram-tf:*fixed-frame* object-name 0
-                                                           (cl-tf:pose->transform
-                                                            (get-urdf-link-pose object-name))))
-         (tool-frame (ecase arm
-                       (:left cram-tf:*robot-left-tool-frame*)
-                       (:right cram-tf:*robot-right-tool-frame*))))
-     (cram-tf:multiply-transform-stampeds object-name
-                                          tool-frame
-                                          (cram-tf:multiply-transform-stampeds object-name handle-name
-                                                                               (cram-tf:transform-stamped-inv container-tf)
-                                                                               handle-tf)
-                                          (cl-transforms-stamped:make-transform-stamped
-                                           handle-name
-                                           tool-frame
-                                           0.0
-                                           (cl-transforms:make-3d-vector *drawer-handle-grasp-x-offset* 0.0d0 0.0d0)
-                                           (cl-transforms:matrix->quaternion
-                                            #2A((0 0 -1)
-                                                (0 1 0)
-                                                (1 0 0)))))))
+  (let* ((object-name
+           (roslisp-utilities:rosify-underscores-lisp-name object-name))
+         (handle-name
+           (cl-urdf:name (get-handle-link object-name)))
+         (handle-tf
+           (cl-transforms-stamped:transform->transform-stamped
+            cram-tf:*fixed-frame*
+            handle-name
+            0
+            (cl-transforms:pose->transform (get-urdf-link-pose handle-name))))
+         (container-tf
+           (cl-transforms-stamped:transform->transform-stamped
+            cram-tf:*fixed-frame*
+            object-name
+            0
+            (cl-transforms:pose->transform (get-urdf-link-pose object-name))))
+         (tool-frame
+           (ecase arm
+             (:left cram-tf:*robot-left-tool-frame*)
+             (:right cram-tf:*robot-right-tool-frame*))))
+    (cram-tf:multiply-transform-stampeds
+     object-name
+     tool-frame
+     (cram-tf:multiply-transform-stampeds
+      object-name
+      handle-name
+      (cram-tf:transform-stamped-inv container-tf)
+      handle-tf)
+     (cl-transforms-stamped:make-transform-stamped
+      handle-name
+      tool-frame
+      0.0
+      (cl-transforms:make-3d-vector *drawer-handle-grasp-x-offset* 0.0d0 0.0d0)
+      (cl-transforms:matrix->quaternion
+       #2A((0 0 -1)
+           (0 1 0)
+           (1 0 0)))))))
 
-; Should be fine without a joint-type.
+;; Should be fine without a joint-type.
 (defmethod obj-int:get-object-type-to-gripper-pregrasp-transform ((object-type (eql :container))
-                                                                   object-name
-                                                                   arm
-                                                                   grasp
-                                                                   grasp-pose)
-  (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
+                                                                  object-name
+                                                                  arm
+                                                                  grasp
+                                                                  grasp-pose)
+  (cram-tf:translate-transform-stamped
+   grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
 
 (defmethod obj-int:get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :container))
                                                                       object-name
                                                                       arm
                                                                       grasp
                                                                       grasp-pose)
-  (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
+  (cram-tf:translate-transform-stamped
+   grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
 
 ;; We need the joint-type, maybe contain it in the object-type e.g. 'container-prismatic'.
 (defmethod obj-int:get-object-type-to-gripper-lift-transform ((object-type (eql :container))
@@ -98,14 +112,16 @@
                                                               arm
                                                               (grasp (eql :open))
                                                               grasp-pose)
-    (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-lift-x-offset*))
+  (cram-tf:translate-transform-stamped
+   grasp-pose :x-offset *drawer-handle-lift-x-offset*))
 
 (defmethod obj-int:get-object-type-to-gripper-lift-transform ((object-type (eql :container))
                                                               object-name
                                                               arm
                                                               (grasp (eql :close))
                                                               grasp-pose)
-    (cram-tf:translate-transform-stamped grasp-pose :x-offset (- *drawer-handle-lift-x-offset*)))
+  (cram-tf:translate-transform-stamped
+   grasp-pose :x-offset (- *drawer-handle-lift-x-offset*)))
 
 
 (defmethod obj-int:get-object-type-to-gripper-2nd-lift-transform ((object-type (eql :container))
@@ -113,11 +129,13 @@
                                                                   arm
                                                                   (grasp (eql :open))
                                                                   grasp-pose)
-  (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-2nd-lift-x-offset*))
+  (cram-tf:translate-transform-stamped
+   grasp-pose :x-offset *drawer-handle-2nd-lift-x-offset*))
 
 (defmethod obj-int:get-object-type-to-gripper-2nd-lift-transform ((object-type (eql :container))
                                                                   object-name
                                                                   arm
                                                                   (grasp (eql :close))
                                                                   grasp-pose)
-  (cram-tf:translate-transform-stamped grasp-pose :x-offset *drawer-handle-2nd-lift-closing-x-offset*))
+  (cram-tf:translate-transform-stamped
+   grasp-pose :x-offset *drawer-handle-2nd-lift-closing-x-offset*))
