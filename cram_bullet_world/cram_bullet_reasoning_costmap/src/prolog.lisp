@@ -28,8 +28,8 @@
 
 (in-package :btr-costmap)
 
-(defmethod costmap:costmap-generator-name->score ((name (eql 'supporting-object))) 3)
-(defmethod costmap:costmap-generator-name->score ((name (eql 'slot-generator))) 5)
+(defmethod costmap:costmap-generator-name->score ((name (eql 'supporting-object))) 9)
+(defmethod costmap:costmap-generator-name->score ((name (eql 'slot-generator))) 6)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'collision))) 10)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'side-generator))) 5)
 
@@ -37,7 +37,7 @@
 (defmethod costmap:costmap-generator-name->score ((name range-generator)) 2)
 
 (defclass gaussian-generator () ())
-(defmethod costmap:costmap-generator-name->score ((name gaussian-generator)) 6)
+(defmethod costmap:costmap-generator-name->score ((name gaussian-generator)) 4)
 
 (defclass field-generator () ())
 (defmethod costmap:costmap-generator-name->score ((name field-generator)) 7)
