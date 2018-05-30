@@ -33,7 +33,7 @@
   (let* ((name-rosified (roslisp-utilities:rosify-underscores-lisp-name name))
          (urdf-pose (get-urdf-link-pose name-rosified))
          (pose (cram-tf:ensure-pose-in-frame
-                (cl-tf:pose->pose-stamped
+                (cl-transforms-stamped:pose->pose-stamped
                  cram-tf:*fixed-frame*
                  0.0
                  urdf-pose)
