@@ -76,7 +76,7 @@
                cram-pr2-fetch-deliver-plans
 
                ;; cram-pr2-cloud
-               )
+               cram-pr2-environment-manipulation)
 
   :components
   ((:module "src"
