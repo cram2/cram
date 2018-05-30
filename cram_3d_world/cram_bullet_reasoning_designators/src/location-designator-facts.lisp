@@ -155,19 +155,19 @@
     (btr:object ?_ ?o)
     (btr:pose ?_ ?o ?loc))
 
-  (<- (desig-check-to-reach ?desig ?robot-pose)
-    (bullet-world ?w)
-    (robot ?robot)
-    (assert (object-pose ?w ?robot ?robot-pose))
-    (object-not-in-collision ?w ?robot)
-    (forall (cram-robot-interfaces:designator-reach-pose ?desig ?robot-pose ?pose ?side)
-            (or
-             (and
-              (lisp-type ?pose cl-transforms:pose)
-              (pose-reachable ?w ?robot ?pose ?side))
-             (and
-              (lisp-type ?pose cl-transforms:3d-vector)
-              (point-reachable ?w ?robot ?pose ?side)))))
+  ;; (<- (desig-check-to-reach ?desig ?robot-pose)
+  ;;   (bullet-world ?w)
+  ;;   (robot ?robot)
+  ;;   (assert (object-pose ?w ?robot ?robot-pose))
+  ;;   (object-not-in-collision ?w ?robot)
+  ;;   (forall (cram-robot-interfaces:designator-reach-pose ?desig ?robot-pose ?pose ?side)
+  ;;           (or
+  ;;            (and
+  ;;             (lisp-type ?pose cl-transforms:pose)
+  ;;             (pose-reachable ?w ?robot ?pose ?side))
+  ;;            (and
+  ;;             (lisp-type ?pose cl-transforms:3d-vector)
+  ;;             (point-reachable ?w ?robot ?pose ?side)))))
 
   (<- (desig-check-to-see ?desig ?robot-pose)
     (or (desig-prop ?desig (:obj ?obj))
@@ -216,10 +216,10 @@
     (or (desig-prop ?desig (:obj ?obj))
         (desig-prop ?desig (:object ?obj))))
 
-  (<- (location-valid
-       ?desig ?pose
-       (desig-check-to-reach ?desig ?pose))
-    (cram-robot-interfaces:reachability-designator ?desig))
+  ;; (<- (location-valid
+  ;;      ?desig ?pose
+  ;;      (desig-check-to-reach ?desig ?pose))
+  ;;   (cram-robot-interfaces:reachability-designator ?desig))
 
   (<- (btr-desig-solution-valid ?desig ?solution)
     (btr-desig-solution-valid ?desig ?solution ?_))
