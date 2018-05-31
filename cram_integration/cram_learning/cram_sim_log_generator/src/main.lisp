@@ -2,7 +2,7 @@
 
 (defun main (num-experiments)
   (setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
-  (setf cram-bullet-reasoning-belief-state::*bullet-tf-broadcasting-enabled* t)
+  (setf cram-tf:*tf-broadcasting-enabled* t)
   (roslisp-utilities:startup-ros :name "cram" :anonymous nil)
   (setf ccl::*is-logging-enabled* t)
   (ccl::connect-to-cloud-logger)
