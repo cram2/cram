@@ -99,8 +99,9 @@ in neutral and manipulated form."
                (dist-p (line-p-dist-point a b c P)))
           (if (and
                (< dist (+ (/ width 2) padding))
-               (< (cl-transforms:v-norm (cl-transforms:v- dist-p neutral-point))
-                  (+ (cl-transforms:v-norm V) padding)))
+               ;;(< (cl-transforms:v-norm (cl-transforms:v- dist-p neutral-point))
+               ;;   (+ (cl-transforms:v-norm V) padding))
+               )
               0
               1))))))
 
@@ -142,6 +143,30 @@ in neutral and manipulated form."
                 1.0
                 0.0))))))
 
+(defun point-to-point-direction (x y pos1 pos2)
+  "Takes an X and Y coordinate, but ignores them, and returns a quaternion
+to face from `pos1' towards `pos2'."
+  (declare (ignore x y))
+  (let* ((point1 (etypecase pos1
+                   (cl-transforms:pose (cl-transforms:origin pos1))
+                   (cl-transforms:3d-vector pos1)))
+         (point2 (etypecase pos2
+                   (cl-transforms:pose (cl-transforms:origin pos2))
+                   (cl-transforms:3d-vector pos2)))
+         (p-rel (cl-transforms:v- point2 point1)))
+    (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))
+
+(defun make-point-to-point-generator (pos1 pos2 &key (samples 1) sample-step)
+  "Returns a function that takes an X and Y coordinate and returns a lazy-list of
+quaternions to face from `pos1' to `pos2'."
+  (location-costmap:make-orientation-generator
+   (alexandria:rcurry
+    #'point-to-point-direction
+    pos1
+    pos2)
+   :samples samples
+   :sample-step sample-step))
+
 (defmethod costmap:costmap-generator-name->score
     ((name (eql 'poses-reachable-cost-function))) 10)
 
@@ -181,8 +206,14 @@ in neutral and manipulated form."
      (make-opened-drawer-side-cost-function ?container-designator ?arm)
      ?costmap)
     ;; orientation generator
+    (equal ?poses (?pose1 ?pose2))
     (costmap:orientation-samples ?samples)
     (costmap:orientation-sample-step ?sample-step)
     (costmap:costmap-add-orientation-generator
-     (costmap:make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
-     ?costmap)))
+     (make-point-to-point-generator
+      ?pose2
+      ?pose1
+      :samples ?samples
+      :sample-step ?sample-step)
+     ?costmap)
+    ))
