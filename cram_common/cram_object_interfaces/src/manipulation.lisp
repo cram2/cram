@@ -174,11 +174,11 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                  object-type arm grasp)))))
 
 
-(defgeneric get-object-grasping-poses (object-name object-type arm grasp object-transform) 
+(defgeneric get-object-grasping-poses (object-name object-type arm grasp object-transform)
+  (:documentation "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)")
   (:method (object-name object-type arm grasp object-transform)
     (declare (type symbol object-name object-type arm grasp)
              (type cl-transforms-stamped:transform-stamped object-transform))
-    "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
 
     ;; First correct the object transform such that rotationally-symmetric objects
     ;; would not be grasped in an awkward way with weird orientations
