@@ -74,7 +74,6 @@
                cram-process-modules
                ;; cram-pr2-process-modules
                cram-pr2-fetch-deliver-plans
-
                ;; cram-pr2-cloud
                cram-pr2-environment-manipulation)
 
