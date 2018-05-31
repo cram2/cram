@@ -1,6 +1,6 @@
 <package>
   <name>cram_occasions_events</name>
-  <version>0.4.0</version>
+  <version>0.6.0</version>
   <description>
     Defines the event protocol for process modules and utilities to work with occasions.
   </description>

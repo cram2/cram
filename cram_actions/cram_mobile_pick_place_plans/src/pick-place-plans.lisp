@@ -30,7 +30,7 @@
 (in-package :pp-plans)
 
 (cpl:def-cram-function pick-up (?object-designator
-                                ?arm ?gripper-opening  ?grip-effort ?grasp
+                                ?arm ?gripper-opening ?grip-effort ?grasp
                                 ?left-reach-poses ?right-reach-poses
                                 ?left-lift-poses ?right-lift-poses)
   (cpl:par
@@ -111,7 +111,6 @@
   (exe:perform
    (desig:an action
              (type releasing)
-             (object ?object-designator)
              (gripper ?arm)))
   (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
   (cram-occasions-events:on-event

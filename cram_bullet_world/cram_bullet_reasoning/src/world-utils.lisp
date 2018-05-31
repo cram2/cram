@@ -30,7 +30,7 @@
 
 (in-package :btr)
 
-(defparameter *bb-comparison-validity-threshold* 0.01d0
+(defparameter *bb-comparison-validity-threshold* 0.0d0
   "Used in COMPARE-BOUNDING-BOX-VALUES")
 
 (defun simulate (world secs &optional (dt 0.1) realtime)
@@ -121,10 +121,12 @@ with two parameters, bottom of `bounding-box-1` and the top of
 `bounding-box-2, holds."
   (declare (type function predicate key))
   (funcall predicate
-           (- (funcall key (bounding-box-center bounding-box-1))
-              (/ (funcall key (bounding-box-dimensions bounding-box-1)) 2))
-           (+ (funcall key (bounding-box-center bounding-box-2))
-              (/ (funcall key (bounding-box-dimensions bounding-box-2)) 2))))
+           ;; (- (funcall key (bounding-box-center bounding-box-1))
+           ;;    (/ (funcall key (bounding-box-dimensions bounding-box-1)) 2))
+           ;; (+ (funcall key (bounding-box-center bounding-box-2))
+           ;;    (/ (funcall key (bounding-box-dimensions bounding-box-2)) 2))
+           (funcall key (bounding-box-center bounding-box-1))
+           (funcall key (bounding-box-center bounding-box-2))))
 
 (defun make-compare-function (predicate &key (threshold 0.0d0))
   (lambda (lhs rhs)

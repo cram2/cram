@@ -40,8 +40,8 @@
   (typep (object-instance object-name) 'btr:object))
 
 
-(defgeneric spawn-object (name type &key pose color world)
-  (:method (name type &key pose color world)
+(defgeneric spawn-object (name type &key pose color mass world)
+  (:method (name type &key pose color mass world)
     (if (btr:object (or world *current-bullet-world*) name)
         (when pose
           (move-object name pose))
@@ -60,7 +60,8 @@
                       `(bullet-world ?world))
                  (scenario-object-shape ,type ?shape)
                  (scenario-object-extra-attributes ?_ ,type ?attributes)
-                 (append (object ?world ?shape ,name ?pose :mass 0.2 :color ?color) ?attributes
+                 (append (object ?world ?shape ,name ?pose :mass ,(or mass 0.2) :color ?color)
+                         ?attributes
                          ?object-description)
                  (assert ?object-description)
                  (%object ?world ,name ?object-instance))))))))
@@ -72,6 +73,20 @@
 (defgeneric kill-all-objects ()
   (:method ()
     (prolog-?w `(item-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail))))
+
+(defun respawn-object (object)
+  (typecase object
+    (btr:item (let ((name (btr:name object))
+                    (type (car (slot-value object 'btr::types)))
+                    (pose (btr:pose object))
+                    (color (slot-value (slot-value (car (btr:rigid-bodies object))
+                                                   'cl-bullet::collision-shape)
+                                       'cl-bullet-vis::color))
+                    (mass (slot-value (car (btr:rigid-bodies object)) 'cl-bullet:mass)))
+                (btr:remove-object btr:*current-bullet-world* name)
+                (btr:add-object btr:*current-bullet-world* :mesh name pose
+                                :color color :mass mass :mesh type)))
+    (t nil)))
 
 
 (defun move-object (object-name &optional new-pose)

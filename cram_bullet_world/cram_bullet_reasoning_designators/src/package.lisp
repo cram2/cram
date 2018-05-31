@@ -33,4 +33,6 @@
   (:use #:common-lisp #:prolog #:desig #:location-costmap
         #:btr #:cram-tf #:cut #:cram-robot-interfaces)
   (:shadowing-import-from #:btr object pose object-pose width height)
-  (:export *check-ik-joint-states* *robot-valid-sides*))
+  (:export ;; *check-ik-joint-states*
+           ;; *robot-valid-sides*
+           ))

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cram_commander</name>
-  <version>0.4.0</version>
+  <version>0.6.0</version>
   <description>cram_commander</description>
   <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
