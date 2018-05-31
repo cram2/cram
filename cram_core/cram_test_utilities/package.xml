@@ -1,6 +1,6 @@
 <package format="2">
   <name>cram_test_utilities</name>
-  <version>0.4.0</version>
+  <version>0.6.0</version>
   <description>
     Some utilities to make writing unit tests for various cram packages
     easier. This should not depend on any other cram package so package

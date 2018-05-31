@@ -30,12 +30,6 @@
 
 (defpackage cram-bullet-reasoning-costmap
   (:nicknames #:btr-costmap)
-  (:use #:desig
-        #:location-costmap
-        #:common-lisp
-        #:cram-prolog
-        #:semantic-map-costmap
-        #:btr
-        #:cram-utilities)
-  (:shadowing-import-from #:btr object pose object-pose width height))
+  (:use #:common-lisp
+        #:cram-prolog))
 

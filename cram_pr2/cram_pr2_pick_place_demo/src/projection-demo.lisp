@@ -49,11 +49,11 @@
    (cl-transforms:make-identity-rotation)))
 
 (defparameter *object-spawning-poses*
-  '((:breakfast-cereal . ((1.34 1.0 0.95) (0 0 0 1)))
+  '((:breakfast-cereal . ((1.34 1.0 0.95) (0 0 1 0)))
     (:cup . ((1.35 0.6 0.9) (0 0 0 1)))
     (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
     (:spoon . ((1.4 0.4 0.85) (0 0 0 1)))
-    (:milk . ((1.3 0.2 0.95) (0 0 0 1)))))
+    (:milk . ((1.3 0.2 0.95) (0 0 1 0)))))
 
 (defparameter *object-grasping-arms*
   '((:breakfast-cereal . :right)
@@ -65,8 +65,8 @@
 (defparameter *object-placing-poses*
   '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
     (:cup . ((-0.79 1.35 0.9) (0 0 0.7071 0.7071)))
-    (:bowl . ((-0.76 1.19 0.93) (0 0 1 0)))
-    (:spoon . ((-0.78 1.5 0.86) (0 0 1 0)))
+    (:bowl . ((-0.76 1.19 0.88) (0 0 0.7071 0.7071)))
+    (:spoon . ((-0.78 1.5 0.86) (0 0 0 1)))
     (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
 
 
@@ -179,3 +179,187 @@
         (pick-object object-type arm-to-use)
         (place-object placing-target arm-to-use)))))
 
+
+
+
+
+
+
+
+
+;; (defun test-projection ()
+;;   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;     (cpl:top-level
+;;       (exe:perform
+;;        (let ((?pose (cl-tf:make-pose-stamped
+;;                      cram-tf:*robot-base-frame* 0.0
+;;                      (cl-transforms:make-3d-vector -0.5 0 0)
+;;                      (cl-transforms:make-identity-rotation))))
+;;          (desig:a motion (type going) (target (desig:a location (pose ?pose))))))
+;;       (exe:perform
+;;        (desig:a motion (type moving-torso) (joint-angle 0.3)))
+;;       (exe:perform
+;;        (desig:a motion (type opening) (gripper left)))
+;;       (exe:perform
+;;        (desig:a motion (type looking) (direction forward)))
+;;       (exe:perform
+;;        (let ((?pose (cl-tf:make-pose-stamped
+;;                      cram-tf:*robot-base-frame* 0.0
+;;                      (cl-transforms:make-3d-vector 0.7 0.3 0.85)
+;;                      (cl-transforms:make-identity-rotation))))
+;;          (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose)))))))))
+
+;; (defun test-desigs ()
+;;   (let ((?pose (desig:reference (desig:a location
+;;                                          (on "CounterTop")
+;;                                          (name "iai_kitchen_meal_table_counter_top")))))
+;;     (desig:reference (desig:a location
+;;                               (to see)
+;;                               (object (desig:an object (at (desig:a location (pose ?pose)))))))))
+
+;; (defun spawn-bottle ()
+;;   (add-objects-to-mesh-list)
+;;   (btr-utils:kill-all-objects)
+;;   (btr-utils:spawn-object :bottle-1 :bottle :color '(1 0.5 0))
+;;   (btr-utils:move-object :bottle-1 (cl-transforms:make-pose
+;;                                     (cl-transforms:make-3d-vector -2 -1.0 0.861667d0)
+;;                                     (cl-transforms:make-identity-rotation)))
+;;   ;; stabilize world
+;;   (btr:simulate btr:*current-bullet-world* 100))
+
+;; (defun spawn-objects ()
+;;   (let ((object-types (add-objects-to-mesh-list)))
+;;     ;; spawn at default location
+;;     (let ((objects (mapcar (lambda (object-type)
+;;                              (btr-utils:spawn-object
+;;                               (intern (format nil "~a-1" object-type) :keyword)
+;;                               object-type))
+;;                            object-types)))
+;;       ;; move on top of counter tops
+;;       (mapcar (lambda (btr-object)
+;;                 (let* ((aabb-z (cl-transforms:z
+;;                                 (cl-bullet:bounding-box-dimensions (btr:aabb btr-object))))
+;;                        (new-pose (cram-tf:translate-pose
+;;                                   (desig:reference
+;;                                    (desig:a location
+;;                                             (on "CounterTop")
+;;                                             (name "iai_kitchen_meal_table_counter_top")))
+;;                                   :z-offset (/ aabb-z 2.0))))
+;;                   (btr-utils:move-object (btr:name btr-object) new-pose)))
+;;               objects)
+;;       ;; bottle gets special treatment
+;;       (btr-utils:move-object :bottle-1 (cl-transforms:make-pose
+;;                                         (cl-transforms:make-3d-vector -2 -1.0 0.861667d0)
+;;                                         (cl-transforms:make-identity-rotation)))))
+;;   ;; stabilize world
+;;   (btr:simulate btr:*current-bullet-world* 100))
+
+;; (defparameter *meal-table-left-base-pose*
+;;   (cl-transforms-stamped:make-pose-stamped
+;;    "map"
+;;    0.0
+;;    (cl-transforms:make-3d-vector -1.12d0 -0.42d0 0.0)
+;;    (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
+;; (defparameter *meal-table-right-base-pose*
+;;   (cl-transforms-stamped:make-pose-stamped
+;;    "map"
+;;    0.0
+;;    (cl-transforms:make-3d-vector -2.0547d0 -0.481d0 0.0d0)
+;;    (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
+;; (defparameter *meal-table-left-base-look-pose*
+;;   (cl-transforms-stamped:make-pose-stamped
+;;    "base_footprint"
+;;    0.0
+;;    (cl-transforms:make-3d-vector 0.75d0 -0.12d0 1.11d0)
+;;    (cl-transforms:make-identity-rotation)))
+;; (defparameter *meal-table-right-base-look-pose*
+;;   (cl-transforms-stamped:make-pose-stamped
+;;    "base_footprint"
+;;    0.0
+;;    (cl-transforms:make-3d-vector 0.65335d0 0.076d0 0.758d0)
+;;    (cl-transforms:make-identity-rotation)))
+;; (defparameter *meal-table-left-base-look-down-pose*
+;;   (cl-transforms-stamped:make-pose-stamped
+;;    "base_footprint"
+;;    0.0
+;;    (cl-transforms:make-3d-vector 0.7d0 -0.12d0 0.7578d0)
+;;    (cl-transforms:make-identity-rotation)))
+
+
+;; (defun prepare ()
+;;   (cpl:with-failure-handling
+;;           ((common-fail:low-level-failure (e)
+;;              (roslisp:ros-warn (demo step-0) "~a" e)
+;;              (return)))
+
+;;         (let ((?navigation-goal *meal-table-right-base-pose*)
+;;               (?ptu-goal *meal-table-right-base-look-pose*))
+;;           (cpl:par
+;;             (pp-plans::park-arms)
+;;             (exe:perform (desig:a motion
+;;                                   (type going)
+;;                                   (target (desig:a location (pose ?navigation-goal))))))
+;;           (exe:perform (desig:a motion
+;;                                 (type looking)
+;;                                 (target (desig:a location (pose ?ptu-goal))))))))
+;; (defun test-pr2-plans ()
+;;   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;     (cpl:top-level
+;;       (prepare))))
+
+;; (defun test-projection-perception ()
+;;   (spawn-objects)
+;;   (test-pr2-plans)
+;;   (cpl:sleep 1)
+;;   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;     (cpl:top-level
+;;       (exe:perform
+;;        (let ((?object-designator
+;;                (desig:an object (type bottle))))
+;;          (desig:a motion
+;;                   (type detecting)
+;;                   (object ?object-designator)))))))
+
+;; (defun test-grasp-and-place-object (&optional (?object-type :bottle) (?arm :right))
+;;   (let ((proj-result
+;;           (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;             (cpl:top-level
+;;               (prepare))
+;;             (cpl:top-level
+;;               (let ((?bottle-desig (desig:an object (type ?object-type))))
+;;                 (flet ((step-1-inner ()
+;;                          (let ((?perceived-bottle-desig (pp-plans::perceive ?bottle-desig)))
+;;                            (cpl:par
+;;                              (exe:perform (desig:an action
+;;                                                     (type looking)
+;;                                                     (object ?perceived-bottle-desig)))
+;;                              (exe:perform (desig:an action
+;;                                                     (type picking-up)
+;;                                                     (arm ?arm)
+;;                                                     (object ?perceived-bottle-desig)))))))
+;;                   (cpl:with-retry-counters ((bottle-grasp-tries 2))
+;;                     (cpl:with-failure-handling
+;;                         ((common-fail:low-level-failure (e)
+;;                            (roslisp:ros-warn (demo step-1) "~a" e)
+;;                            (cpl:do-retry bottle-grasp-tries
+;;                              (roslisp:ros-warn (demo step-1) "~a" e)
+;;                              (prepare)
+;;                              (cpl:retry))))
+
+;;                       (step-1-inner))))
+;;                 (desig:current-desig ?bottle-desig))))))
+;;     (cpl:sleep 1.0)
+;;     (let ((?result-object (car (proj::projection-environment-result-result proj-result))))
+;;       (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;         (cpl:top-level
+;;           (exe:perform (desig:an action
+;;                                  (type placing)
+;;                                  (arm ?arm)
+;;                                  (object ?result-object))))))))
+
+;; (defun test-place-bottle ()
+;;   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;     (cpl:top-level
+;;       (exe:perform (desig:an action
+;;                              (type placing)
+;;                              (arm right))))))

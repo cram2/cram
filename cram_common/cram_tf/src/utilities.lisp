@@ -72,6 +72,18 @@
          (w (cl-transforms:w qqqw)))
     (list x y z w q1 q2 q3)))
 
+(defun pose->list (pose)
+  (let* ((xyz (cl-transforms:origin pose))
+         (qqqw (cl-transforms:orientation pose))
+         (x (cl-transforms:x xyz))
+         (y (cl-transforms:y xyz))
+         (z (cl-transforms:z xyz))
+         (q1 (cl-transforms:x qqqw))
+         (q2 (cl-transforms:y qqqw))
+         (q3 (cl-transforms:z qqqw))
+         (w (cl-transforms:w qqqw)))
+    `((,x ,y ,z) (,q1 ,q2 ,q3 ,w))))
+
 (defun flat-list->pose (pose-list)
   (destructuring-bind (x y z q1 q2 q3 w)
       pose-list
@@ -81,6 +93,13 @@
 
 (defun flat-list-w-first->pose (pose-list)
   (destructuring-bind (x y z w q1 q2 q3)
+      pose-list
+    (cl-transforms:make-pose
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
+
+(defun list->pose (pose-list)
+  (destructuring-bind ((x y z) (q1 q2 q3 w))
       pose-list
     (cl-transforms:make-pose
      (cl-transforms:make-3d-vector x y z)
@@ -117,17 +136,22 @@
    :use-current-ros-time use-current-ros-time))
 
 (defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :origin (let ((pose-origin (cl-transforms:origin pose)))
-             (cl-transforms:copy-3d-vector
-              pose-origin
-              :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
-                   (+ x-pose-origin x-offset))
-              :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
-                   (+ y-pose-origin y-offset))
-              :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
-                   (+ z-pose-origin z-offset))))))
+  (let* ((pose-origin
+           (cl-transforms:origin pose))
+         (new-origin
+           (cl-transforms:copy-3d-vector
+            pose-origin
+            :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
+                 (+ x-pose-origin x-offset))
+            :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
+                 (+ y-pose-origin y-offset))
+            :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
+                 (+ z-pose-origin z-offset)))))
+    (etypecase pose
+      (cl-transforms-stamped:pose-stamped
+       (cl-transforms-stamped:copy-pose-stamped pose :origin new-origin))
+      (cl-transforms:pose
+       (cl-transforms:copy-pose pose :origin new-origin)))))
 
 (defun rotate-pose (pose axis angle)
   (cl-transforms-stamped:copy-pose-stamped
@@ -145,12 +169,10 @@
 
 (defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
   (let* ((pose-in-frame
-           (cl-transforms-stamped:transform-pose-stamped
-            cram-tf:*transformer*
-            :pose goal-pose-stamped
-            :target-frame goal-frame
-            :timeout cram-tf:*tf-default-timeout*
-            :use-current-ros-time t))
+           (cram-tf:ensure-pose-in-frame
+            goal-pose-stamped
+            goal-frame
+            :use-zero-time t))
          (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
                          (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
          (goal-angle (cl-transforms:normalize-angle

@@ -32,7 +32,8 @@
 (def-fact-group boxy-metadata (robot
                                robot-odom-frame
                                robot-base-frame robot-torso-link-joint
-                               arm)
+                               arm
+                               camera-frame)
   (<- (robot boxy))
 
   (<- (robot-odom-frame boxy "odom"))
@@ -41,4 +42,6 @@
   (<- (robot-torso-link-joint boxy "triangle_base_link" "triangle_base_joint"))
 
   (<- (arm boxy :left))
-  (<- (arm boxy :right)))
+  (<- (arm boxy :right))
+
+  (<- (camera-frame boxy "head_mount_kinect2_rgb_optical_frame")))

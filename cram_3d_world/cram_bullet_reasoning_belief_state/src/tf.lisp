@@ -42,33 +42,38 @@
       ;; while there are still links left to be asserted in tf
       (loop while (> (length urdf-link-names) 0)
             do ;; if no links were asserted last loop, we are stuck and have to return
-               (if (= prev-link-count (length urdf-link-names))
-                   (progn
-                     (roslisp:ros-error (pr2-proj tf) "Somehow a virtual link with no parents in ~
-                           the bullet world was found in the urdf. This should never happen.")
-                     (return))
-                   (setf prev-link-count (length urdf-link-names)))
+               (when (= prev-link-count (length urdf-link-names))
+                 (when display-warnings
+                   (roslisp:ros-warn (pr2-proj tf)
+                                      "Somehow a virtual link with no parents in ~
+                                       the bullet world was found in the urdf. ~
+                                       This should never happen."))
+                 (return virtual-joint-transforms))
+               (setf prev-link-count (length urdf-link-names))
                (let (next-round)
-                 ;; try to assert a transform from a parent in the bullet world to the virtual links
+                 ;; try to assert a transform from a parent in the bullet world
+                 ;; to the virtual links
                  (loop for link-name in urdf-link-names
-                       do (let* ((link-joint (cl-urdf:from-joint (gethash link-name urdf-links)))
-                                 (parent-name (cl-urdf:name (cl-urdf:parent link-joint))))
-                            (when (and (not (eq (cl-urdf:joint-type link-joint) :FIXED))
-                                       display-warnings)
-                              (roslisp:ros-warn (pr2-proj tf)
-                                                "Joint of ~a is ~a. Only links on FIXED joints should ~
-                                                    be asserted as virtual links."
-                                                (cl-urdf:name link-joint)
-                                                (cl-urdf:joint-type link-joint)))
-                            (if (member parent-name bullet-links)
-                                (progn
-                                  (push
-                                   (cl-tf:transform->transform-stamped
-                                    parent-name link-name time
-                                    (cl-urdf:origin link-joint))
-                                   virtual-joint-transforms)
-                                  (push link-name bullet-links))
-                                (push link-name next-round))))
+                       do (let ((link-joint (cl-urdf:from-joint (gethash link-name urdf-links))))
+                            (when link-joint
+                              (let ((parent-name (cl-urdf:name (cl-urdf:parent link-joint))))
+                                (when (and (not (eq (cl-urdf:joint-type link-joint) :FIXED))
+                                           display-warnings)
+                                  (roslisp:ros-warn (pr2-proj tf)
+                                                    "Joint of ~a is ~a. ~
+                                                     Only links on FIXED joints should ~
+                                                     be asserted as virtual links."
+                                                    (cl-urdf:name link-joint)
+                                                    (cl-urdf:joint-type link-joint)))
+                                (if (member parent-name bullet-links)
+                                    (progn
+                                      (push
+                                       (cl-tf:transform->transform-stamped
+                                        parent-name link-name time
+                                        (cl-urdf:origin link-joint))
+                                       virtual-joint-transforms)
+                                      (push link-name bullet-links))
+                                    (push link-name next-round))))))
                  (setf urdf-link-names next-round)
                  (setf next-round (list)))))
     virtual-joint-transforms))

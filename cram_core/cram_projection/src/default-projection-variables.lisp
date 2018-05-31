@@ -30,5 +30,5 @@
 
 ;;; When projecting, store the episode knowledge in the projection
 ;;; result for easy access.
-(cram-projection:define-special-projection-variable
-    cet:*episode-knowledge* cet:*episode-knowledge*)
+;; (cram-projection:define-special-projection-variable
+;;     cet:*episode-knowledge* cet:*episode-knowledge*)

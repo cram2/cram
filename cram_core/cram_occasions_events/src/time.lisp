@@ -38,13 +38,13 @@
   ;; NOTE:
   ;; (throughout a b) -> including a, excluding b
   ;; (during a b) -> including a, excluding b
-  
+
   (<- (duration-includes (throughout ?t1 ?t2) (at ?a))
     (bound-time ?t1)
     (bound-time ?t2)
     (bound-time ?a)
     (and (<= ?t1 ?a) (< ?a ?t2)))
-  
+
   (<- (duration-includes (throughout ?t1 ?t2) (at ?a))
     (bound-time ?t1)
     (bound-time ?t2)
@@ -63,7 +63,7 @@
     (bound-time ?t2)
     (bound-time ?a)
     (bound-time ?b)
-    (and (< ?t1 ?b) (< ?a ?b) (< ?a ?t2)))) 
+    (and (< ?t1 ?b) (< ?a ?b) (< ?a ?t2))))
 
 ;;; An attempt to a more general time handling follows. Turned out not
 ;;; so general and not at all elegant, maybe something emerges in the

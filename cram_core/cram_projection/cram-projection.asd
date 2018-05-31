@@ -34,7 +34,8 @@
                cram-language
                cram-utilities
                cram-process-modules
-               cram-execution-trace)
+               ;; cram-execution-trace
+               )
   :components
   ((:module "src"
     :components

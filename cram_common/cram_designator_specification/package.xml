@@ -1,6 +1,6 @@
 <package format="2">
   <name>cram_designator_specification</name>
-  <version>0.4.0</version>
+  <version>0.6.0</version>
   <description>
     This package gives a more constrained definition of what different designators are,
 which fields can have which datatypes etc.

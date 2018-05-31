@@ -1,6 +1,6 @@
 <package format="2">
   <name>cram_robosherlock</name>
-  <version>0.4.0</version>
+  <version>0.6.0</version>
   <description>
     CRAM interfaces to talk to RoboSherlock
   </description>
@@ -14,7 +14,7 @@
   <depend>yason</depend>
   <depend>roslisp</depend>
   <depend>roslisp_utilities</depend>
-  <depend>iai_robosherlock_msgs</depend>
+  <depend>robosherlock_msgs</depend>
   <depend>cl_transforms</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cram_tf</depend>

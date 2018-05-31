@@ -1,6 +1,6 @@
 <package format="2">
   <name>metabang_bind</name>
-  <version>0.4.0</version>
+  <version>0.6.0</version>
   <description>
       3rd party library: metabang-bind
   </description>
