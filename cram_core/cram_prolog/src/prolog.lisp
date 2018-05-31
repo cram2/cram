@@ -95,8 +95,8 @@
            (invoke-nth-restart ,nesting-level :rest (,cut-continuation-name cut)))))))
 
 (defgeneric prove-one (goal binds &optional rethrow-cut)
-      ;;"Proves the `goal' under `binds' and returns the new bindings or NIL
-;;if none could be found."
+  (:documentation "Proves the `goal' under `binds' and returns the new bindings
+or NIL if none could be found.")
   (:method (goal binds &optional rethrow-cut)
     (let ((handler (get-prolog-handler (car goal))))
       (or
