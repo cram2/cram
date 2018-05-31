@@ -58,16 +58,17 @@
 (defun get-container-desig (&optional (?name 'sink_area_left_upper_drawer_main))
   (let* ((name-str (roslisp-utilities:rosify-underscores-lisp-name ?name))
          (urdf-pose (pr2-em::get-urdf-link-pose name-str)))
-    (let* ((?pose (cl-tf:transform-pose-stamped cram-tf:*transformer*
-                                                :target-frame "base_footprint"
-                                                :pose (cl-tf:pose->pose-stamped "map" 0 urdf-pose)))
+    (let* ((?pose (cl-tf:transform-pose-stamped
+                   cram-tf:*transformer*
+                   :target-frame "base_footprint"
+                   :pose (cl-tf:pose->pose-stamped "map" 0 urdf-pose)))
            (?transform (cl-tf:make-transform-stamped "base_footprint" name-str
                                                      (cl-tf:stamp ?pose)
                                                      (cl-tf:origin ?pose)
                                                      (cl-tf:orientation ?pose))))
       (an object
           (type container)
-          (name ?name)
+          (urdf-name ?name)
           (part-of kitchen)
           ;;(pose ((pose ?pose) (transform ?transform)))
           ))))
@@ -84,21 +85,59 @@
     (let ((?desig (get-opening-desig 'sink_area_left_upper_drawer_main)))
       (exe:perform ?desig))))
 
-(defun test ()
+(defun test (&key
+               (container-name 'sink_area_left_upper_drawer_main)
+               (?arm :right))
   (cram-pr2-projection:with-simulated-robot
-    (let ((?object (get-container-desig 'sink_area_left_upper_drawer_main)))
+    (pp-plans:park-arms)
+    (let ((?object (get-container-desig container-name)))
       (exe:perform (an action
                        (type going)
                        (target
                         (a location
                            (reachable-for pr2)
-                           (arm :left)
+                           (arm ?arm)
                            (container ?object)))))
-      (setf ?object (get-container-desig 'sink_area_left_upper_drawer_main))
-      (exe:perform (an action (type opening) (object ?object) (arm :left)))
-      (setf ?object (get-container-desig 'sink_area_left_upper_drawer_main))
-      (exe:perform (an action (type closing) (object ?object) (arm :left))))))
-    
+      (setf ?object (get-container-desig container-name))
+      (exe:perform (an action (type opening) (object ?object) (arm ?arm)))
+      (setf ?object (get-container-desig container-name))
+      (exe:perform (an action (type closing) (object ?object) (arm ?arm))))))
+
+(defun test-elaborate ()
+  (dolist (c
+           (list 'sink_area_left_upper_drawer_main
+                 'kitchen_island_left_upper_drawer_main
+                 'kitchen_island_middle_upper_drawer_main
+                 'kitchen_island_right_upper_drawer_main
+                 'sink_area_trash_drawer_main
+                 'sink_area_left_upper_drawer_main
+                 'oven_area_area_left_drawer_main
+                 'oven_area_area_right_drawer_main
+                 'oven_area_area_middle_upper_drawer_main)
+                 )
+    (let ((?arm (alexandria:random-elt '(:left ))))
+      (cram-pr2-projection:with-simulated-robot
+        (pp-plans:park-arms)
+        (let ((?object (get-container-desig c)))
+          (exe:perform (an action
+                           (type going)
+                           (target
+                            (a location
+                               (reachable-for pr2)
+                               (arm ?arm)
+                               (container ?object)))))
+          (setf ?object (get-container-desig c))
+          (exe:perform (an action
+                           (type opening)
+                           (object ?object)
+                           (arm ?arm)))
+          (setf ?object (get-container-desig c))
+          (exe:perform (an action
+                           (type closing)
+                           (object ?object)
+                           (arm ?arm)))))))
+  (sleep 1))
+
 
 (defun move-pr2 (x y)
   (cram-pr2-projection:with-simulated-robot
@@ -107,4 +146,18 @@
                     0.0
                     (cl-tf:make-3d-vector x y 0.0)
                     (cl-tf:make-identity-rotation))))
-        (exe:perform (an action (type going) (target (a location (pose ?goal))))))))
+        (exe:perform
+         (an action
+             (type going)
+             (target
+              (a location
+                 (pose ?goal))))))))
+
+(defun loc-test ()
+  (pr2-proj:with-simulated-robot
+    (let ((?object (get-container-desig 'sink_area_left_upper_drawer_main)))
+      (reference
+       (a location
+          (reachable-for pr2)
+          (arm :left)
+          (container ?object))))))

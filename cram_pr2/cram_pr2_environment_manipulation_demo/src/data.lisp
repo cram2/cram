@@ -59,6 +59,18 @@
     (:oven-drawer . "oven_area_area_middle_upper_drawer_main")
     ))
 
+(defparameter *container-link-syms*
+  '((:fridge-drawer . 'fridge_area_lower_drawer_main)
+    (:island-left-drawer . 'kitchen_island_left_upper_drawer_main)
+    (:island-middle-drawer . 'kitchen_island_middle_upper_drawer_main)
+    (:island-right-drawer . 'kitchen_island_right_upper_drawer_main)
+    (:trash-drawer . 'sink_area_trash_drawer_main)
+    (:kitchen-drawer . 'sink_area_left_upper_drawer_main)
+    (:oven-left-drawer . 'oven_area_area_left_drawer_main)
+    (:oven-right-drawer . 'oven_area_area_right_drawer_main)
+    (:oven-drawer . 'oven_area_area_middle_upper_drawer_main)
+    ))
+
 (defparameter *container-handle-links*
   '((:fridge . "iai_fridge_door_handle")
     (:fridge-drawer . "fridge_area_lower_drawer_drawer_handle")
