@@ -31,15 +31,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;; UTIL FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun calculate-bb-dims (bullet-object)
-  (let ((world-state (btr::get-state btr:*current-bullet-world*)))
+  (let ((old-pose (btr:pose bullet-object))
+        aabb)
     (unwind-protect
-         (let ((old-pose (btr:pose bullet-object))
-               aabb)
+         (progn
            (setf (btr:pose bullet-object) (cl-transforms:make-identity-pose))
-           (setf aabb (cl-bullet:aabb bullet-object))
-           (setf (btr:pose bullet-object) old-pose)
-           (cl-bullet:bounding-box-dimensions aabb))
-      (btr::restore-world-state world-state btr:*current-bullet-world*))))
+           (setf aabb (cl-bullet:aabb bullet-object)))
+      (setf (btr:pose bullet-object) old-pose))
+    (cl-bullet:bounding-box-dimensions aabb)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;; NEAR and FAR calculations
 
@@ -77,9 +76,9 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;; SUPPORTING OBJECT calculations
 
-(defun get-sem-map-part (environment-object urdf-name)
-  (let ((owl-name (sem-map-utils:urdf-name->obj-name urdf-name)))
-    (sem-map-utils:semantic-map-part (btr:semantic-map environment-object) owl-name)))
+;; (defun get-sem-map-part (environment-object urdf-name)
+;;   (let ((owl-name (sem-map-utils:urdf-name->obj-name urdf-name)))
+;;     (sem-map-utils:semantic-map-part (btr:semantic-map environment-object) owl-name)))
 
 (defun get-link-rigid-body (environment-object link-name)
   (gethash link-name (btr:links environment-object)))
@@ -89,6 +88,50 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
     (let ((body-aabb (cl-bullet:aabb rigid-body)))
       (+ (cl-transforms:z (cl-bullet:bounding-box-center body-aabb))
          (/ (cl-transforms:z (cl-bullet:bounding-box-dimensions body-aabb)) 2)))))
+
+(defun pose-within-aabb (object-pose rigid-body)
+  (labels ((inside-aabb (min max pt)
+             "Checks if `pt' lies in the axis-alligned bounding box specified by
+  the two points `min' and `max'"
+             (let ((x (cl-transforms:x pt))
+                   (y (cl-transforms:y pt))
+                   ;; (z (cl-transforms:z pt))
+                   )
+               (declare (type double-float x y ;; z
+                              ))
+               (and (>= x (cl-transforms:x min))
+                    (<= x (cl-transforms:x max))
+                    (>= y (cl-transforms:y min))
+                    (<= y (cl-transforms:y max))
+                    ;; (>= z (cl-transforms:z min))
+                    ;; (<= z (cl-transforms:z max))
+                    )))
+           (2d-object-bb (aabb)
+             (let ((center (cl-bullet:bounding-box-center aabb))
+                   (dim/2 (cl-transforms:v* (cl-bullet:bounding-box-dimensions aabb) 0.5)))
+               (list (cl-transforms:v- center dim/2)
+                     (cl-transforms:v+ center dim/2)))))
+    (let* ((aabb (btr:aabb rigid-body))
+           (bb (2d-object-bb aabb))
+           (transform (cl-transforms:make-transform
+                       (cl-bullet:bounding-box-center aabb)
+                       (cl-transforms:make-identity-rotation)))
+           (pt (cl-transforms:make-3d-vector
+                (cl-transforms:x (cl-transforms:origin object-pose))
+                (cl-transforms:y (cl-transforms:origin object-pose))
+                (cl-transforms:z (cl-transforms:translation transform)))))
+      (inside-aabb (first bb) (second bb) pt))))
+
+(defun get-highest-rigid-body-below-object (rigid-bodies object)
+  (loop for body in rigid-bodies
+        for current-z = (get-rigid-body-aabb-top-z body)
+        with object-z = (get-rigid-body-aabb-top-z object)
+        and highest-z = 0.0 and highest-body
+        do (when (and (>= current-z highest-z)
+                         (< current-z object-z))
+                (setf highest-z current-z)
+                (setf highest-body body))
+        finally (return highest-body)))
 
 
 
@@ -353,8 +396,6 @@ The function returns one of the following keys: :front, :back, :left, :right."
            (cl-transforms:z (calculate-bb-dims for-object)))
          (for-object-z
            (+ semantic-map-object-top (/ for-object-height 2))))
-    (format t "sem map top: ~a~%height: ~a~%name: ~a~%for z: ~a~%~%~%" semantic-map-object-top
-            for-object-height (btr:name for-object) for-object-z)
     (constantly
      (list for-object-z))))
 
@@ -391,3 +432,19 @@ The function returns one of the following keys: :front, :back, :left, :right."
     (when (< (cl-transforms:z (cl-transforms:orientation supp-obj-pose)) 0)
       (setf supp-angle (- (* 2 pi) supp-angle)))
     (+ supp-angle angle-in-supp)))
+
+
+
+(defun make-side-costmap-generator (obj axis sign)
+  "Returns a lambda function which for each (x y) gives 1.0
+if it is on the sign side of the axis. "
+  (when obj
+    (let* ((bb-center (cl-transforms:origin (sem-map-utils:pose obj)))
+           (bb-x (cl-transforms:x bb-center))
+           (bb-y (cl-transforms:y bb-center)))
+      (lambda (x y)
+        (if (case axis
+              (:x (funcall sign x bb-x))
+              (:y (funcall sign y bb-y)))
+            1.0
+            0.0)))))

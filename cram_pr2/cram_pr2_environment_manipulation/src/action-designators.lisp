@@ -32,16 +32,18 @@
 (defun get-container-pose-and-transform (name)
   (let* ((name-rosified (roslisp-utilities:rosify-underscores-lisp-name name))
          (urdf-pose (get-urdf-link-pose name-rosified))
-         (pose (cl-tf:transform-pose-stamped cram-tf:*transformer*
-                                             :target-frame cram-tf:*robot-base-frame*
-                                             :pose (cl-tf:pose->pose-stamped cram-tf:*fixed-frame*
-                                                                             0
-                                                                             urdf-pose)))
+         (pose (cram-tf:ensure-pose-in-frame
+                (cl-transforms-stamped:pose->pose-stamped
+                 cram-tf:*fixed-frame*
+                 0.0
+                 urdf-pose)
+                cram-tf:*robot-base-frame*
+                :use-zero-time t))
          (transform (cram-tf:pose-stamped->transform-stamped pose name-rosified)))
     (list pose transform)))
 
 (def-fact-group environment-manipulation (desig:action-grounding)
-  
+
   (<- (desig:action-grounding ?action-designator (open-container ?arm
                                                                  ?gripper-opening
                                                                  ?left-reach-poses
@@ -54,7 +56,7 @@
     (spec:property ?action-designator (:type :opening))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type :container))
-    (spec:property ?container-designator (:name ?container-name))
+    (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?environment))
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
@@ -98,7 +100,7 @@
     (spec:property ?action-designator (:type :closing))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type :container))
-    (spec:property ?container-designator (:name ?container-name))
+    (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?environment))
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)

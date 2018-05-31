@@ -30,109 +30,159 @@
 (in-package :pr2-em)
 
 (defun get-drawer-min-max-pose (container-desig)
-  (let* ((handle-link (get-handle-link (car (alexandria:assoc-value (desig:description container-desig) :name))))
-         (neutral-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 0 :relative T))
-         (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T)))
+  (let* ((handle-link
+           (get-handle-link
+            (desig:desig-prop-value container-desig :urdf-name)))
+         (neutral-handle-pose
+           (get-manipulated-pose
+            (cl-urdf:name handle-link)
+            0 :relative T))
+         (manipulated-handle-pose
+           (get-manipulated-pose
+            (cl-urdf:name handle-link)
+            1 :relative T)))
     (list neutral-handle-pose manipulated-handle-pose)))
 
 (defun get-aabb (container-name)
-  (btr:aabb (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" container-name))))
+  (btr:aabb
+   (btr:rigid-body
+    (btr:object btr:*current-bullet-world* :kitchen)
+    (btr::make-rigid-body-name "KITCHEN" container-name))))
 
 (defun get-width (container-name direction)
-  "Return the width of the container with name `container-name', appropiate for the joint `direction' given."
+  "Return the width of the container with name `container-name',
+appropriate for the joint `direction' given."
   (let ((dimensions (cl-bullet:bounding-box-dimensions (get-aabb container-name)))
-        (norm-direction (cl-tf:normalize-vector direction)))
-    (if (> (abs (cl-tf:x norm-direction)) (abs (cl-tf:y norm-direction)))
-        (cl-tf:y dimensions)
-        (cl-tf:x dimensions))))
+        (norm-direction (cl-transforms:normalize-vector direction)))
+    (if (> (abs (cl-transforms:x norm-direction))
+           (abs (cl-transforms:y norm-direction)))
+        (cl-transforms:y dimensions)
+        (cl-transforms:x dimensions))))
 
-;; NOTE(cpo): It might be useful to pass this the desired position and calculate the current one to make the costmap more precise.
+;; NOTE(cpo): It might be useful to pass this the desired position
+;; and calculate the current one to make the costmap more precise.
 (defun make-opened-drawer-cost-function (?container-desig &optional (padding 0.2))
-  "Resolve the relation according to the poses of the handle of `container-desig' in neutral and manipulated form."
-  (let* ((container-name (string-downcase
-                          (car (alexandria:assoc-value
-                                (desig:description ?container-desig)
-                                :name))))
-         (handle-link (get-handle-link container-name))
-         (handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 0 :relative T))
-         (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T))
-         (neutral-point (cl-tf:make-3d-vector (cl-tf:x (cl-tf:origin handle-pose))
-                                              (cl-tf:y (cl-tf:origin handle-pose))
-                                              0))
-         (manipulated-point (cl-tf:make-3d-vector (cl-tf:x (cl-tf:origin manipulated-handle-pose))
-                                                  (cl-tf:y (cl-tf:origin manipulated-handle-pose))
-                                                  0))
-         (V (cl-tf:v- manipulated-point neutral-point))
-         (width (get-width container-name V)))
+  "Resolve the relation according to the poses of the handle of `container-desig'
+in neutral and manipulated form."
+  (let* ((container-name
+           (string-downcase
+            (desig:desig-prop-value ?container-desig :urdf-name)))
+         (handle-link
+           (get-handle-link container-name))
+         (handle-pose
+           (get-manipulated-pose
+            (cl-urdf:name handle-link)
+            0 :relative T))
+         (manipulated-handle-pose
+           (get-manipulated-pose
+            (cl-urdf:name handle-link)
+            1 :relative T))
+         (neutral-point
+           (cl-transforms:make-3d-vector
+            (cl-transforms:x (cl-transforms:origin handle-pose))
+            (cl-transforms:y (cl-transforms:origin handle-pose))
+            0))
+         (manipulated-point
+           (cl-transforms:make-3d-vector
+            (cl-transforms:x (cl-transforms:origin manipulated-handle-pose))
+            (cl-transforms:y (cl-transforms:origin manipulated-handle-pose))
+            0))
+         (V
+           (cl-transforms:v- manipulated-point neutral-point))
+         (width
+           (get-width container-name V)))
     (lambda (x y)
       (multiple-value-bind (a b c)
-          (line-equation-in-xy neutral-point
-                               manipulated-point)
-        (let* ((P (cl-tf:make-3d-vector x y 0))
+          (line-equation-in-xy neutral-point manipulated-point)
+        (let* ((P (cl-transforms:make-3d-vector x y 0))
                (dist (line-p-dist a b c P))
                (dist-p (line-p-dist-point a b c P)))
           (if (and
                (< dist (+ (/ width 2) padding))
-               (< (cl-tf:v-norm (cl-tf:v- dist-p neutral-point)) (+ (cl-tf:v-norm V) padding)))
+               (< (cl-transforms:v-norm (cl-transforms:v- dist-p neutral-point))
+                  (+ (cl-transforms:v-norm V) padding)))
               0
               1))))))
 
 (defun make-opened-drawer-side-cost-function (?container-desig arm)
-  (let* ((container-name (string-downcase
-                          (car (alexandria:assoc-value
-                                (desig:description ?container-desig)
-                                :name))))
-         (handle-link (get-handle-link container-name))
-         (handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 0 :relative T))
-         (manipulated-handle-pose (get-manipulated-pose (cl-urdf:name handle-link) 1 :relative T))
-         (neutral-point (cl-tf:make-3d-vector (cl-tf:x (cl-tf:origin handle-pose))
-                                              (cl-tf:y (cl-tf:origin handle-pose))
-                                              0))
-         (manipulated-point (cl-tf:make-3d-vector (cl-tf:x (cl-tf:origin manipulated-handle-pose))
-                                                  (cl-tf:y (cl-tf:origin manipulated-handle-pose))
-                                                  0))
-         (AB (cl-tf:v- manipulated-point neutral-point)))
+  (let* ((container-name
+           (string-downcase
+            (desig:desig-prop-value ?container-desig :urdf-name)))
+         (handle-link
+           (get-handle-link container-name))
+         (handle-pose
+           (get-manipulated-pose
+            (cl-urdf:name handle-link)
+            0 :relative T))
+         (manipulated-handle-pose
+           (get-manipulated-pose
+            (cl-urdf:name handle-link)
+            1 :relative T))
+         (neutral-point
+           (cl-transforms:make-3d-vector
+            (cl-transforms:x (cl-transforms:origin handle-pose))
+            (cl-transforms:y (cl-transforms:origin handle-pose))
+            0))
+         (manipulated-point
+           (cl-transforms:make-3d-vector
+            (cl-transforms:x (cl-transforms:origin manipulated-handle-pose))
+            (cl-transforms:y (cl-transforms:origin manipulated-handle-pose))
+            0))
+         (AB
+           (cl-transforms:v- manipulated-point neutral-point)))
     (lambda (x y)
-      (let ((d (cl-tf:z (cl-tf:cross-product AB
-                                             (cl-tf:v- (cl-tf:make-3d-vector x y 0)
-                                                       neutral-point)))))
+      (let ((d (cl-transforms:z
+                (cl-transforms:cross-product
+                 AB
+                 (cl-transforms:v- (cl-transforms:make-3d-vector x y 0)
+                                   neutral-point)))))
         (if (and (< d 0) (eql arm :right))
             1.0
             (if (and (> d 0) (eql arm :left))
                 1.0
                 0.0))))))
 
-(defmethod location-costmap:costmap-generator-name->score ((name (eql 'poses-reachable-cost-function))) 10)
+(defmethod costmap:costmap-generator-name->score
+    ((name (eql 'poses-reachable-cost-function))) 10)
 
-(defmethod location-costmap:costmap-generator-name->score ((name (eql 'container-handle-reachable-cost-function))) 10)
+(defmethod costmap:costmap-generator-name->score
+    ((name (eql 'container-handle-reachable-cost-function))) 10)
 
-(defmethod location-costmap:costmap-generator-name->score ((name (eql 'opened-drawer-cost-function))) 10)
+(defmethod costmap:costmap-generator-name->score
+    ((name (eql 'opened-drawer-cost-function))) 10)
 
-(defmethod location-costmap:costmap-generator-name->score ((name (eql 'opened-drawer-side-cost-function))) 10)
+(defmethod costmap:costmap-generator-name->score
+    ((name (eql 'opened-drawer-side-cost-function))) 10)
 
-(def-fact-group environment-manipulation-costmap (location-costmap:desig-costmap)
-  (<- (location-costmap:desig-costmap ?designator ?costmap)
-    (desig:desig-prop ?designator (:container ?container-designator))
-    (desig:desig-prop ?container-designator (:type :container))
-    (location-costmap:costmap ?costmap)
+(def-fact-group environment-manipulation-costmap (costmap:desig-costmap)
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (cram-robot-interfaces:reachability-designator ?designator)
+    (spec:property ?designator (:container ?container-designator))
+    (spec:property ?container-designator (:type :container))
+    (spec:property ?container-designator (:urdf-name ?container-name))
+    (spec:property ?designator (:arm ?arm))
+    (costmap:costmap ?costmap)
+    ;; reachability gaussian costmap
     (lisp-fun get-drawer-min-max-pose ?container-designator ?poses)
-    (lisp-fun location-costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
-    (location-costmap:costmap-add-function
+    (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
+    (costmap:costmap-add-function
      container-handle-reachable-cost-function
-     (location-costmap:make-gauss-cost-function ?mean ?covariance)
+     (costmap:make-gauss-cost-function ?mean ?covariance)
      ?costmap)
-    (location-costmap:costmap-reach-minimal-distance ?padding)
-    (location-costmap:costmap-add-function
+    ;; cutting out drawer costmap
+    (costmap:costmap-reach-minimal-distance ?padding)
+    (costmap:costmap-add-function
      opened-drawer-cost-function
      (make-opened-drawer-cost-function ?container-designator ?padding)
      ?costmap)
-    (desig:desig-prop ?designator (:arm ?arm))
-    (location-costmap:costmap-add-function
+    ;; cutting out for specific arm costmap
+    (costmap:costmap-add-function
      opened-drawer-side-cost-function
      (make-opened-drawer-side-cost-function ?container-designator ?arm)
      ?costmap)
-    (location-costmap:orientation-samples ?samples)
-    (location-costmap:orientation-sample-step ?sample-step)
-    (location-costmap:costmap-add-orientation-generator
-     (location-costmap:make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
+    ;; orientation generator
+    (costmap:orientation-samples ?samples)
+    (costmap:orientation-sample-step ?sample-step)
+    (costmap:costmap-add-orientation-generator
+     (costmap:make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
      ?costmap)))

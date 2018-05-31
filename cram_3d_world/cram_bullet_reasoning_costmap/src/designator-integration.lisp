@@ -28,12 +28,12 @@
 
 (in-package :btr-costmap)
 
-;; (desig::register-location-validation-function
-;;  5 potential-field-costmap-pose-validator
-;;  "The potential field cost-function that we use for spatial relations is too wide - 180
-;;   degrees. Theoretically it is correct, but for practical use we need to make the angle
-;;   narrower. At the smaller angles the solutions have the highest values, so we put a
-;;   threshold on the solution values.")
+(desig:register-location-validation-function
+ 5 potential-field-costmap-pose-validator
+ "The potential field cost-function that we use for spatial relations is too wide - 180
+degrees. Theoretically it is correct, but for practical use, for certain objects
+we might need to make the angle narrower. At the smaller angles the solutions
+have the highest values, so we put a threshold on the solution values.")
 
 (desig:register-location-validation-function
  6 collision-pose-validator
@@ -62,7 +62,7 @@
                                    (btr:bullet-world ?w)
                                    (object-designator-name ,for-prop-value ?obj-name)
                                    (object-costmap-threshold ?w ?obj-name ?threshold))))
-                      (sb-ext:gc :full t)
+                      ;; (sb-ext:gc :full t)
                       (if (cut:is-var ?threshold)
                           :accept
                           (if (> costmap-value ?threshold)

@@ -30,21 +30,28 @@
 (in-package :pr2-em)
 
 (defun get-urdf-link-pose (name)
-  (btr:pose (btr:rigid-body (btr:object btr:*current-bullet-world* :kitchen) (btr::make-rigid-body-name "KITCHEN" name))))
+  (btr:pose
+   (btr:rigid-body
+    (btr:object btr:*current-bullet-world* :kitchen)
+    (btr::make-rigid-body-name "KITCHEN" name))))
 
 (defun get-container-link (container-name)
   (when (symbolp container-name)
     (setf container-name (string-downcase container-name)))
-  (gethash container-name (cl-urdf:links (btr:urdf (btr:object btr:*current-bullet-world* :kitchen)))))
+  (gethash container-name
+           (cl-urdf:links
+            (btr:urdf
+             (btr:object btr:*current-bullet-world* :kitchen)))))
 
 (defun get-container-joint-type (container-name)
-  (find-container-joint-type-under-joint (cl-urdf:from-joint (get-container-link container-name))))
+  (find-container-joint-type-under-joint
+   (cl-urdf:from-joint (get-container-link container-name))))
 
 (defun find-container-joint-type-under-joint (joint)
   "Return the first joint type different from :FIXED under the given JOINT."
   (if (eq :FIXED (cl-urdf:joint-type joint))
-      (find-container-joint-type-under-joint (car (cl-urdf:to-joints
-                                                   (cl-urdf:child joint))))
+      (find-container-joint-type-under-joint
+       (car (cl-urdf:to-joints (cl-urdf:child joint))))
       (cl-urdf:joint-type joint)))
 
 (defun get-handle-link (container-name)
@@ -87,11 +94,11 @@
           (values
            (case (cl-urdf:joint-type joint)
              (:prismatic
-              (cl-tf:transform->pose
-               (cl-tf:transform*
-                (cl-tf:pose->transform (get-urdf-link-pose link-name))
-                (cl-tf:make-transform
-                 (cl-tf:v*
+              (cl-transforms:transform->pose
+               (cl-transforms:transform*
+                (cl-transforms:pose->transform (get-urdf-link-pose link-name))
+                (cl-transforms:make-transform
+                 (cl-transforms:v*
                   (cl-urdf:axis joint)
                   (-
                    (if relative
@@ -99,6 +106,8 @@
                           (cl-urdf:upper (cl-urdf:limits joint)))
                        joint-position)
                    (get-joint-position joint)))
-                 (cl-tf:make-identity-rotation)))))
-             (:revolute (error 'simple-error :format-control "Manipulation of revolute joints not implemented.")))
+                 (cl-transforms:make-identity-rotation)))))
+             (:revolute
+              (error 'simple-error
+                     :format-control "Manipulation of revolute joints not implemented.")))
            joint))))))

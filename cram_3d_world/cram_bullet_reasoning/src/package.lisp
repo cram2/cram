@@ -38,7 +38,7 @@
   (:import-from #:desig designator-groundings)
   (:shadowing-import-from #:cl-bullet points pose)
   (:shadow copy-object)
-  (:export *current-bullet-world* *current-timeline*
+  (:export *current-bullet-world* *current-timeline* *visibility-threshold* 
            merge-bounding-boxes aabb with-stored-world *debug-window*
            add-debug-window add-costmap-function-object
            add-costmap-sample-object clear-costmap-vis-object

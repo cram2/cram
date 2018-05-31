@@ -35,7 +35,7 @@
   (def-fact-group costmap-metadata ()
     (<- (location-costmap:costmap-size 12 12))
     (<- (location-costmap:costmap-origin -6 -6))
-    (<- (location-costmap:costmap-resolution 0.05))
+    (<- (location-costmap:costmap-resolution 0.04))
 
     (<- (location-costmap:costmap-padding 0.5))
     (<- (location-costmap:costmap-manipulation-padding 0.2))
