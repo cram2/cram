@@ -29,7 +29,7 @@
 (defsystem spatial-relations-demo
   :author "gaya"
   :license "BSD"
-  :depends-on (cram-bullet-reasoning-costmap
+  :depends-on (cram-btr-spatial-relations-costmap
                cl-urdf
                cram-designators
                cram-location-costmap

@@ -58,10 +58,9 @@
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
                cram-btr-visibility-costmap
-               cram-bullet-reasoning-costmap
+               cram-btr-spatial-relations-costmap
 
                cram-semantic-map-costmap
-               ; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap

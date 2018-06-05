@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,8 +9,8 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Institute for Artificial Intelligence /
-;;;       Universitaet Bremen nor the names of its contributors
+;;;     * Neither the name of the Intelligent Autonomous Systems Group/
+;;;       Technische Universitaet Muenchen nor the names of its contributors
 ;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
@@ -26,16 +25,11 @@
 ;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
-;;;
 
-(in-package :btr-costmap)
+(in-package :cl-user)
 
-(def-fact-group object-designators (desig:location-grounding)
-  (<- (desig:location-grounding ?designator ?pose-stamped)
-    (desig:desig-prop ?designator (:of-item-object ?object-designator))
-    (lisp-type ?object-designator desig:object-designator)
-    (desig:desig-prop ?object-designator (:name ?name))
-    (btr:bullet-world ?world)
-    (btr:object-pose ?w ?name ?pose)
-    (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
-    (lisp-fun cl-transforms-stamped:pose->pose-stamped ?fixed-frame 0.0 ?pose ?pose-stamped)))
+(defpackage cram-btr-spatial-relations-costmap
+  (:nicknames #:btr-spatial-cm)
+  (:use #:common-lisp
+        #:cram-prolog))
+
