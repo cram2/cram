@@ -1,4 +1,5 @@
 ;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
+;;;                     Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -136,6 +137,34 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-object-bounding-box-costmap-generator (object)
+  (let* ((bounding-box (cl-bullet:aabb object))
+         (dimensions-x/2 (/ (cl-transforms:x (cl-bullet:bounding-box-dimensions bounding-box))
+                            2))
+         (dimensions-y/2 (/ (cl-transforms:y (cl-bullet:bounding-box-dimensions bounding-box))
+                            2)))
+    (lambda (x y)
+      (if (and
+           (< x (+ (cl-transforms:x (cl-bullet:bounding-box-center bounding-box))
+                   dimensions-x/2))
+           (> x (- (cl-transforms:x (cl-bullet:bounding-box-center bounding-box))
+                   dimensions-x/2))
+           (< y (+ (cl-transforms:y (cl-bullet:bounding-box-center bounding-box))
+                   dimensions-y/2))
+           (> y (- (cl-transforms:y (cl-bullet:bounding-box-center bounding-box))
+                   dimensions-y/2)))
+          1.0 0.0))))
+
+(defun make-object-bounding-box-height-generator (object)
+  (let ((bounding-box (cl-bullet:aabb object)))
+    (constantly (list
+                 (+ (cl-transforms:z
+                     (cl-bullet:bounding-box-center bounding-box))
+                    (/ (cl-transforms:z
+                        (cl-bullet:bounding-box-dimensions bounding-box))
+                       2))))))
+
 
 ;;; TODO: maybe include bb into deciding not just the pose and ratio
 (defun get-closest-edge (obj-pose supp-obj-pose supp-obj-dims)
