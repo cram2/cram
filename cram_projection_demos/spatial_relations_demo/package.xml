@@ -10,7 +10,7 @@
   <url type="repository">http://github.com/cram2/cram_projection_demos</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>cram_bullet_reasoning_costmap</depend>
+  <depend>cram_btr_spatial_relations_costmap</depend>
   <depend>cram_tf</depend>
   <depend>cram_designators</depend>
   <depend>cram_location_costmap</depend>
