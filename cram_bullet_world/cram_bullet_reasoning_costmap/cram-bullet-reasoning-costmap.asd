@@ -49,4 +49,5 @@
      (:file "cost-functions" :depends-on ("package"))
      (:file "knowledge" :depends-on ("package"))
      (:file "prolog" :depends-on ("package" "cost-functions" "knowledge"))
-     (:file "designator-integration" :depends-on ("package" "prolog"))))))
+     (:file "designator-integration" :depends-on ("package" "prolog"))
+     (:file "location-of-item-object" :depends-on ("package"))))))

@@ -45,7 +45,7 @@
                cram-pr2-synch-projection-pms
                cram-occupancy-grid-costmap
                cram-plan-library
-               cram-bullet-reasoning-designators
+               cram-btr-visibility-costmap
                cram-common-designators
                cram-semantic-map-designators
                alexandria

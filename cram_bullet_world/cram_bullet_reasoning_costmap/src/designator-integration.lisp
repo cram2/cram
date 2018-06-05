@@ -60,7 +60,7 @@ have the highest values, so we put a threshold on the solution values.")
                         (cut:lazy-car
                          (prolog `(and
                                    (btr:bullet-world ?w)
-                                   (object-designator-name ,for-prop-value ?obj-name)
+                                   (btr-belief:object-designator-name ,for-prop-value ?obj-name)
                                    (object-costmap-threshold ?w ?obj-name ?threshold))))
                       ;; (sb-ext:gc :full t)
                       (if (cut:is-var ?threshold)
@@ -81,7 +81,7 @@ have the highest values, so we put a threshold on the solution values.")
       (let ((for-prop-value (desig:desig-prop-value desig :for)))
         (if (and for-prop-value
                  (prolog `(and
-                           (object-designator-name ,for-prop-value ?object-name)
+                           (btr-belief:object-designator-name ,for-prop-value ?object-name)
                            (btr:item-type ?world ?object-name ?_))))
             (if (prolog `(desig-solution-not-in-collision ,desig ,for-prop-value ,pose))
                 :accept

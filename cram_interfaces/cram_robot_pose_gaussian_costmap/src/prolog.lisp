@@ -31,8 +31,9 @@
 (defparameter *orientation-samples* 5)
 (defparameter *orientation-sample-step* (/ pi 18))
 
-(defmethod costmap-generator-name->score ((name (eql 'pose-distribution)))
-  5)
+(defmethod costmap-generator-name->score ((name (eql 'pose-distribution))) 5)
+(defmethod costmap-generator-name->score ((name (eql 'reachable-from-space))) 5)
+(defmethod costmap-generator-name->score ((name (eql 'reachable-from-weighted))) 4)
 
 (defclass pose-distribution-range-include-generator () ())
 
@@ -92,4 +93,18 @@
     (symbol-value *orientation-sample-step* ?sample-step)
     (costmap-add-orientation-generator
      (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
-     ?cm)))
+     ?cm))
+
+  ;; poses reachable-from ?pose for the robot
+  ;; ?pose should usually be robot's current pose I suppose
+  (<- (desig-costmap ?desig ?cm)
+    (costmap ?cm)
+    (desig-prop ?desig (:reachable-from ?pose))
+    (lisp-fun cl-transforms:origin ?pose ?point)
+    (costmap-in-reach-distance ?distance)
+    (costmap-add-function reachable-from-space
+                          (make-range-cost-function ?point ?distance)
+                          ?cm)
+    (costmap-add-function reachable-from-weighted
+                          (make-location-cost-function ?pose ?distance)
+                          ?cm)))

@@ -1,19 +1,19 @@
 ;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-bullet-reasoning-designators)
+(in-package :cram-btr-visibility-costmap)
 
 (defparameter *vertex-shader*
   "#version 110
@@ -53,7 +53,7 @@ void main(void)
 (defclass shader-camera (camera) ()
   (:default-initargs :fov-y 90))
 
-(defmethod gl-execute-with-camera ((camera shader-camera) (function function))
+(defmethod btr:gl-execute-with-camera ((camera shader-camera) (function function))
   (let ((shader-program (make-instance 'white-shader-program)))
     (unwind-protect
          (bt-vis:call-with-shader-program shader-program #'call-next-method)
@@ -106,13 +106,14 @@ void main(void)
                                     (cl-transforms:make-pose
                                      (cl-transforms:make-identity-vector)
                                      (cl-transforms:q*
-                                      (cl-transforms:euler->quaternion :az (* (mod (+ i 1) 4) (/ pi 2)))
+                                      (cl-transforms:euler->quaternion
+                                       :az (* (mod (+ i 1) 4) (/ pi 2)))
                                       base-orientation)))
                              :width width
                              :height height)
               for depth-image = (normalize-depth-buffer
                                  camera
-                                 (second (render-to-framebuffer
+                                 (second (btr:render-to-framebuffer
                                           rendering-context drawable camera
                                           :get-pixelbuffer nil :get-depthbuffer t
                                           :mirror t)))
@@ -218,17 +219,27 @@ square depth image of size `pixels' and the index of the depth image."
                     (/ (aref costmap (- pixels y 1) x)
                        maximal-value)))))))))
 
+(defun visibility-costmap
+    (drawable pose camera-minimal-height camera-maximal-height size resolution)
+  (costmap:make-matrix-cost-function
+   (- (cl-transforms:x (cl-transforms:origin pose)) (/ size 2))
+   (- (cl-transforms:y (cl-transforms:origin pose)) (/ size 2))
+   resolution (calculate-visibility-costmap-matrix
+               drawable
+               (cl-transforms:origin pose)
+               camera-minimal-height camera-maximal-height size resolution)))
+
 (defun make-location-visibility-costmap
     (world location robot-name camera-minimal-height camera-maximal-height size resolution)
   (declare (type btr:bt-reasoning-world world)
-           (type location-designator location)
+           (type desig:location-designator location)
            (type (or symbol string) robot-name)
            (type number camera-maximal-height camera-minimal-height size resolution))
   (let* ((robot (btr:object world robot-name))
          (objects-to-render (remove robot (objects world))))
     (visibility-costmap
      (btr:make-drawable-list :drawables objects-to-render)
-     (reference (current-desig location)) camera-minimal-height camera-maximal-height
+     (desig:reference (desig:current-desig location)) camera-minimal-height camera-maximal-height
      size resolution)))
 
 (defun make-object-visibility-costmap
@@ -244,14 +255,5 @@ square depth image of size `pixels' and the index of the depth image."
                                        (objects world))))
     (visibility-costmap
      (btr:make-drawable-list :drawables objects-to-render)
-     (bullet:pose object) camera-minimal-height camera-maximal-height
+     (btr:pose object) camera-minimal-height camera-maximal-height
      size resolution)))
-
-(defun visibility-costmap (drawable pose camera-minimal-height camera-maximal-height size resolution)
-  (make-matrix-cost-function
-   (- (cl-transforms:x (cl-transforms:origin pose)) (/ size 2))
-   (- (cl-transforms:y (cl-transforms:origin pose)) (/ size 2))
-   resolution (calculate-visibility-costmap-matrix
-               drawable
-               (cl-transforms:origin pose)
-               camera-minimal-height camera-maximal-height size resolution)))

@@ -41,9 +41,8 @@
 (def-fact-group semantic-map-data ()
   (<- (semantic-map-object-name :kitchen)))
 
-;; (disable-location-validation-function 'btr-desig::validate-designator-solution)
 ;; finding a good IK solution takes forever, so disabling this thing and letting collisions happen
-(disable-location-validation-function 'btr-desig::check-ik-solution)
+;; (disable-location-validation-function 'btr-desig::check-ik-solution)
 
 (setf *tf-default-timeout* 0.0)
 ;; (setf cram-designators::*print-location-validation-function-results* t)
