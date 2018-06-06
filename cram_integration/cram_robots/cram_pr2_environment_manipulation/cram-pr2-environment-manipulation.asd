@@ -55,7 +55,6 @@
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
 
-               cram-semantic-map-costmap
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap)
