@@ -99,6 +99,7 @@ in neutral and manipulated form."
                (dist-p (line-p-dist-point a b c P)))
           (if (and
                (< dist (+ (/ width 2) padding))
+               ;; Commenting this out for now, so there won't be poses in front of the drawer.
                ;;(< (cl-transforms:v-norm (cl-transforms:v- dist-p neutral-point))
                ;;   (+ (cl-transforms:v-norm V) padding))
                )
@@ -206,6 +207,7 @@ quaternions to face from `pos1' to `pos2'."
      (make-opened-drawer-side-cost-function ?container-designator ?arm)
      ?costmap)
     ;; orientation generator
+    ;; generate an orientation opposite to the axis of the drawer
     (equal ?poses (?pose1 ?pose2))
     (costmap:orientation-samples ?samples)
     (costmap:orientation-sample-step ?sample-step)
