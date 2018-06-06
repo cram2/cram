@@ -142,41 +142,18 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun make-object-bounding-box-costmap-generator (object)
-  (let* ((bounding-box (cl-bullet:aabb object))
-         (dimensions-x/2 (/ (cl-transforms:x (cl-bullet:bounding-box-dimensions bounding-box))
-                            2))
-         (dimensions-y/2 (/ (cl-transforms:y (cl-bullet:bounding-box-dimensions bounding-box))
-                            2)))
+  (let* ((bounding-box-dims (calculate-bb-dims object))
+         (dimensions-x/2 (/ (cl-transforms:x bounding-box-dims) 2))
+         (dimensions-y/2 (/ (cl-transforms:y bounding-box-dims) 2))
+         (center-x (cl-transforms:x (cl-transforms:origin (btr:pose object))))
+         (center-y (cl-transforms:y (cl-transforms:origin (btr:pose object)))))
     (lambda (x y)
       (if (and
-           (< x (+ (cl-transforms:x (cl-bullet:bounding-box-center bounding-box))
-                   dimensions-x/2))
-           (> x (- (cl-transforms:x (cl-bullet:bounding-box-center bounding-box))
-                   dimensions-x/2))
-           (< y (+ (cl-transforms:y (cl-bullet:bounding-box-center bounding-box))
-                   dimensions-y/2))
-           (> y (- (cl-transforms:y (cl-bullet:bounding-box-center bounding-box))
-                   dimensions-y/2)))
+           (< x (+ center-x dimensions-x/2))
+           (> x (- center-x dimensions-x/2))
+           (< y (+ center-y dimensions-y/2))
+           (> y (- center-y dimensions-y/2)))
           1.0 0.0))))
-
-(defparameter *board-thickness* 0.035)
-
-(defun make-object-bounding-box-height-generator (object &optional (tag :on))
-  (let ((bounding-box (cl-bullet:aabb object)))
-    (constantly (list
-                 (ecase tag
-                   (:on (+ (cl-transforms:z
-                            (cl-bullet:bounding-box-center bounding-box))
-                           (/ (cl-transforms:z
-                               (cl-bullet:bounding-box-dimensions bounding-box))
-                              2.0)))
-                   (:in (+ (cl-transforms:z
-                            (cl-bullet:bounding-box-center bounding-box))
-                           (- (/ (cl-transforms:z
-                                  (cl-bullet:bounding-box-dimensions bounding-box))
-                                 2.0))
-                           *board-thickness*)))))))
-
 
 ;;; TODO: maybe include bb into deciding not just the pose and ratio
 (defun get-closest-edge (obj-pose supp-obj-pose supp-obj-dims)
@@ -294,11 +271,10 @@ The function returns one of the following keys: :front, :back, :left, :right."
     (let ((bbcenterx-bbcentery-dimx/2-dimy/2-lists
             (loop for obj in (cut:force-ll objs)
                   collecting
-                  (let* ((aabb (cl-bullet:aabb obj))
-                         (bb-center (cl-bullet:bounding-box-center aabb))
+                  (let* ((bb-center (cl-transforms:origin (btr:pose obj)))
                          (bb-center-x (cl-transforms:x bb-center))
                          (bb-center-y (cl-transforms:y bb-center))
-                         (bb-dim (cl-bullet::bounding-box-dimensions aabb))
+                         (bb-dim (calculate-bb-dims obj))
                          (dimensions-x/2 (+ (/ (cl-transforms:x bb-dim) 2) padding))
                          (dimensions-y/2 (+ (/ (cl-transforms:y bb-dim) 2) padding)))
                     (list bb-center-x bb-center-y dimensions-x/2 dimensions-y/2)))))
@@ -330,23 +306,23 @@ The function returns one of the following keys: :front, :back, :left, :right."
    `paddings-list' is of format '(padd-x+ padd-x- padd-y+ padd-y-).
    The `supp-object' is supposed to be rectangular with y axis pointing to the left
    and x - to the back."
-  (declare (type sem-map-utils::semantic-map-part supp-object)
+  (declare ;; (type sem-map-utils::semantic-map-part supp-object)
            (type list paddings-list)
            (type keyword preferred-supporting-object-side)
            (type integer object-count)
            (type real max-slot-size min-slot-size position-deviation-threshold))
-  (flet ((calculate-points (distance point-count longer-side-axis coord-on-other-axis)
+  (flet ((calculate-points (distance point-count longer-side-axis coord-on-shorter-axis)
            (loop repeat point-count
                  for next-coord = (* (/ (1- point-count) 2) distance)
                    then (- next-coord distance)
                  collecting
                  (cond
                    ((eql longer-side-axis #'cl-transforms:x)
-                    (list next-coord coord-on-other-axis))
+                    (list next-coord coord-on-shorter-axis))
                    ((eql longer-side-axis #'cl-transforms:y)
-                    (list coord-on-other-axis next-coord))))))
+                    (list coord-on-shorter-axis next-coord))))))
     (let* ((supp-obj-dims-in-sem-map-coords
-             (sem-map-utils:dimensions supp-object))
+             (calculate-bb-dims supp-object))
            (padded-supp-obj-dims-in-sem-map-coords
              (cl-transforms:v-
               supp-obj-dims-in-sem-map-coords
@@ -379,25 +355,27 @@ The function returns one of the following keys: :front, :back, :left, :right."
                (ceiling object-count 2))
              (object-count-on-other-side
                (floor object-count 2))
-             (coord-on-other-axis
-               (/ (funcall shorter-side-axis padded-supp-obj-dims-in-sem-map-coords)
-                  4.0))
+             (coord-on-shorter-axis
+               (- (/ (funcall shorter-side-axis padded-supp-obj-dims-in-sem-map-coords)
+                     2.0)
+                  (/ min-slot-size
+                     2.0)))
              (distance
                (/ longer-side-length object-count-on-preferred-side)))
         (when (> distance max-slot-size)
           (setf distance max-slot-size))
         (ecase preferred-supporting-object-side
           (:+ nil)
-          (:- (setf coord-on-other-axis (- coord-on-other-axis))))
+          (:- (setf coord-on-shorter-axis (- coord-on-shorter-axis))))
         (let* ((placement-points
                  (concatenate
                   'list
                   (calculate-points distance object-count-on-preferred-side
-                                    longer-side-axis coord-on-other-axis)
+                                    longer-side-axis coord-on-shorter-axis)
                   (calculate-points distance object-count-on-other-side
-                                    longer-side-axis (- coord-on-other-axis))))
+                                    longer-side-axis (- coord-on-shorter-axis))))
                (supp-obj-pose
-                 (sem-map-utils:pose supp-object))
+                 (btr:pose supp-object))
                (world->supp-transform
                  (cl-transforms:pose->transform supp-obj-pose))
                (supp->world-transform
@@ -422,24 +400,59 @@ The function returns one of the following keys: :front, :back, :left, :right."
                   1.0
                   0.0))))))))
 
-(defun make-object-on-object-bb-height-generator (semantic-map-objects for-object)
-  (let* ((semantic-map-object-top
+
+(defun make-side-costmap-generator (obj axis sign)
+  "Returns a lambda function which for each (x y) gives 1.0
+if it is on the sign side of the axis. "
+  (when obj
+    (let* ((pose-origin (cl-transforms:origin (btr:pose obj)))
+           (bb-x (cl-transforms:x pose-origin))
+           (bb-y (cl-transforms:y pose-origin)))
+      (lambda (x y)
+        (if (case axis
+              (:x (funcall sign x bb-x))
+              (:y (funcall sign y bb-y)))
+            1.0
+            0.0)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HEIGHT GENERATORS ;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *board-thickness* 0.035)
+
+(defun make-object-bounding-box-height-generator (object &optional (tag :on))
+  (constantly (list
+               (ecase tag
+                 (:on (+ (cl-transforms:z
+                          (cl-transforms:origin (btr:pose object)))
+                         (/ (cl-transforms:z
+                             (calculate-bb-dims object))
+                            2.0)))
+                 (:in (+ (cl-transforms:z
+                          (cl-transforms:origin (btr:pose object)))
+                         (- (/ (cl-transforms:z
+                                (calculate-bb-dims object))
+                               2.0))
+                         *board-thickness*))))))
+
+(defun make-object-on-object-bb-height-generator (environment-objects for-object)
+  (let* ((environment-object-top
            (apply #'max
-                  (mapcar (lambda (semantic-map-object)
+                  (mapcar (lambda (environment-object)
                             (+ (cl-transforms:z
-                                (cl-transforms:origin
-                                 (sem-map-utils:pose semantic-map-object)))
-                               (/ (cl-transforms:z
-                                   (sem-map-utils:dimensions semantic-map-object))
-                                  2)))
-                          semantic-map-objects)))
+                                (cl-transforms:origin (btr:pose environment-object)))
+                               (/ (cl-transforms:z (calculate-bb-dims environment-object))
+                                  2.0)))
+                          (if (listp environment-objects)
+                              environment-objects
+                              (list environment-objects)))))
          (for-object-height
            (cl-transforms:z (calculate-bb-dims for-object)))
          (for-object-z
-           (+ semantic-map-object-top (/ for-object-height 2))))
+           (+ environment-object-top (/ for-object-height 2))))
     (constantly
      (list for-object-z))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;; ORIENTATION GENERATORS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun supporting-obj-aligned-direction (x y supp-obj-pose supp-obj-dims supp-obj-z
                                           &key ref-obj-dependent ref-obj-pose)
@@ -473,19 +486,3 @@ The function returns one of the following keys: :front, :back, :left, :right."
     (when (< (cl-transforms:z (cl-transforms:orientation supp-obj-pose)) 0)
       (setf supp-angle (- (* 2 pi) supp-angle)))
     (+ supp-angle angle-in-supp)))
-
-
-
-(defun make-side-costmap-generator (obj axis sign)
-  "Returns a lambda function which for each (x y) gives 1.0
-if it is on the sign side of the axis. "
-  (when obj
-    (let* ((bb-center (cl-transforms:origin (sem-map-utils:pose obj)))
-           (bb-x (cl-transforms:x bb-center))
-           (bb-y (cl-transforms:y bb-center)))
-      (lambda (x y)
-        (if (case axis
-              (:x (funcall sign x bb-x))
-              (:y (funcall sign y bb-y)))
-            1.0
-            0.0)))))
