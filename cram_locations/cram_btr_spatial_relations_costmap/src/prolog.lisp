@@ -277,11 +277,12 @@
          (collision-invert-costmap ?desig ?overall-padding ?cm))
         (collision-invert-costmap ?desig ?padding ?cm)))
 
-;;;;;;;;;;;;;;; spatial relation ON for bullet objects ;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;; spatial relation ON for item objects ;;;;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?object))
-    (btr:bullet-world ?world)
     (btr-belief:object-designator-name ?object ?object-instance-name)
+    (btr:bullet-world ?world)
+    (btr:item-type ?world ?object-instance-name ?_)
     (btr:%object ?world ?object-instance-name ?object-instance)
     (costmap:costmap ?costmap)
     (costmap:costmap-add-function
@@ -290,6 +291,44 @@
      ?costmap)
     (costmap:costmap-add-cached-height-generator
      (make-object-bounding-box-height-generator ?object-instance)
+     ?costmap))
+
+;;;;;;;;;;;;;;; spatial relation ON for item objects ;;;;;;;;;;;;;;;;;;;;;;
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (desig:desig-prop ?designator (:on ?object))
+    (spec:property ?object (:urdf-name ?urdf-name))
+    (spec:property ?object (:part-of ?environment-name))
+    (btr:bullet-world ?world)
+    (btr:%object ?world ?environment-name ?environment)
+    (lisp-fun get-link-rigid-body ?environment ?urdf-name ?environment-link)
+    (lisp-pred identity ?environment-link)
+    (costmap:costmap ?costmap)
+    (costmap:costmap-add-function
+     on-bounding-box
+     (make-object-bounding-box-costmap-generator ?environment-link)
+     ?costmap)
+    (costmap:costmap-add-cached-height-generator
+     (make-object-bounding-box-height-generator ?environment-link :on)
+     ?costmap))
+
+;;;;;;;;;;;;;;; spatial relation IN for environment objects ;;;;;;;;;;;;;;;;;;;
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (desig:desig-prop ?designator (:in ?object))
+    (spec:property ?object (:type ?object-type))
+    (obj-int:object-type-subtype :container ?object-type)
+    (spec:property ?object (:urdf-name ?urdf-name))
+    (spec:property ?object (:part-of ?environment-name))
+    (btr:bullet-world ?world)
+    (btr:%object ?world ?environment-name ?environment)
+    (lisp-fun get-link-rigid-body ?environment ?urdf-name ?environment-link)
+    (lisp-pred identity ?environment-link)
+    (costmap:costmap ?costmap)
+    (costmap:costmap-add-function
+     on-bounding-box
+     (make-object-bounding-box-costmap-generator ?environment-link)
+     ?costmap)
+    (costmap:costmap-add-cached-height-generator
+     (make-object-bounding-box-height-generator ?environment-link :in)
      ?costmap))
 
 ;;;;;;;;;;;;;; for TABLE-SETTING context ON (SLOTS) ;;;;;;;;;;;;;;;;;;;;;;;;;

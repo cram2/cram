@@ -82,7 +82,10 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
 ;;     (sem-map-utils:semantic-map-part (btr:semantic-map environment-object) owl-name)))
 
 (defun get-link-rigid-body (environment-object link-name)
-  (gethash link-name (btr:links environment-object)))
+  (gethash (if (symbolp link-name)
+               (roslisp-utilities:rosify-underscores-lisp-name link-name)
+               link-name)
+           (btr:links environment-object)))
 
 (defun get-rigid-body-aabb-top-z (rigid-body)
   (when rigid-body
@@ -156,14 +159,23 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
                    dimensions-y/2)))
           1.0 0.0))))
 
-(defun make-object-bounding-box-height-generator (object)
+(defparameter *board-thickness* 0.035)
+
+(defun make-object-bounding-box-height-generator (object &optional (tag :on))
   (let ((bounding-box (cl-bullet:aabb object)))
     (constantly (list
-                 (+ (cl-transforms:z
-                     (cl-bullet:bounding-box-center bounding-box))
-                    (/ (cl-transforms:z
-                        (cl-bullet:bounding-box-dimensions bounding-box))
-                       2))))))
+                 (ecase tag
+                   (:on (+ (cl-transforms:z
+                            (cl-bullet:bounding-box-center bounding-box))
+                           (/ (cl-transforms:z
+                               (cl-bullet:bounding-box-dimensions bounding-box))
+                              2.0)))
+                   (:in (+ (cl-transforms:z
+                            (cl-bullet:bounding-box-center bounding-box))
+                           (- (/ (cl-transforms:z
+                                  (cl-bullet:bounding-box-dimensions bounding-box))
+                                 2.0))
+                           *board-thickness*)))))))
 
 
 ;;; TODO: maybe include bb into deciding not just the pose and ratio
