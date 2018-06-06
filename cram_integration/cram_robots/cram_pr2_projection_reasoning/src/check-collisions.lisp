@@ -36,12 +36,16 @@
   "in seconds, sleeps to show colliding configurations")
 
 (defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 30))
-  (declare (type desig:location-designator navigation-location-desig))
+  (declare (type (or desig:location-designator null) navigation-location-desig))
   "Store current world state and in the current world try to go to different
 poses that satisfy `navigation-location-desig'.
 If chosen pose results in collisions, choose another pose.
 Repeat `navigation-location-samples' + 1 times.
 Store found pose into designator or throw error if good pose not found."
+
+  (unless navigation-location-desig
+    (cpl:fail 'common-fail:high-level-failure "Wanted to navigate to NIL location O_O"))
+
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
 
