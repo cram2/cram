@@ -138,9 +138,9 @@
     (property-member (:pose ?pose-stamped) ?designator)
     (assert-type ?pose-stamped cl-transforms-stamped:pose-stamped "LOCATION SPEC:PROPERTY"))
 
-  (<- (property ?designator (:container ?value))
+  (<- (property ?designator (:object ?value))
     (lisp-pred typep ?designator desig:location-designator)
-    (property-member (:container ?value) ?designator)
+    (property-member (:object ?value) ?designator)
     (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
 
   (<- (property ?designator (?keyword-key ?value))
