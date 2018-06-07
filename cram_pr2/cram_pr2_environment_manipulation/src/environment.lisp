@@ -29,23 +29,35 @@
 
 (in-package :pr2-em)
 
-(defun get-urdf-link-pose (name)
+(defun get-current-environment ()
+  (find 'btr::urdf-semantic-map-object
+        (btr:objects btr:*current-bullet-world*)
+        :key #'type-of))
+
+(defun get-urdf-link-pose (name btr-environment)
   (btr:pose
    (btr:rigid-body
-    (btr:object btr:*current-bullet-world* :kitchen)
-    (btr::make-rigid-body-name "KITCHEN" name))))
+    (btr:object btr:*current-bullet-world*
+                btr-environment)
+    (btr::make-rigid-body-name
+     (string-upcase btr-environment)
+     name))))
 
-(defun get-container-link (container-name)
+(defun get-container-link (container-name btr-environment)
   (when (symbolp container-name)
-    (setf container-name (string-downcase container-name)))
+    (setf container-name
+          (roslisp-utilities:rosify-underscores-lisp-name container-name)))
   (gethash container-name
            (cl-urdf:links
             (btr:urdf
-             (btr:object btr:*current-bullet-world* :kitchen)))))
+             (btr:object btr:*current-bullet-world*
+                         btr-environment)))))
 
-(defun get-container-joint-type (container-name)
+(defun get-container-joint-type (container-name btr-environment)
   (find-container-joint-type-under-joint
-   (cl-urdf:from-joint (get-container-link container-name))))
+   (cl-urdf:from-joint
+    (get-container-link container-name
+                        btr-environment))))
 
 (defun find-container-joint-type-under-joint (joint)
   "Return the first joint type different from :FIXED under the given JOINT."
@@ -54,11 +66,12 @@
        (car (cl-urdf:to-joints (cl-urdf:child joint))))
       (cl-urdf:joint-type joint)))
 
-(defun get-handle-link (container-name)
+(defun get-handle-link (container-name btr-environment)
   (when (symbolp container-name)
-    (setf container-name (string-downcase container-name)))
+    (setf container-name
+          (roslisp-utilities:rosify-underscores-lisp-name container-name)))
   (find-handle-under-link
-   (get-container-link container-name)))
+   (get-container-link container-name btr-environment)))
 
 (defun find-handle-under-link (link)
   (if (search "handle" (cl-urdf:name link))
@@ -66,13 +79,13 @@
       (find-handle-under-link (cl-urdf:child
                      (car (cl-urdf:to-joints link))))))
 
-(defun get-joint-position (joint)
+(defun get-joint-position (joint btr-environment)
   (gethash (cl-urdf:name joint)
-           (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen))))
+           (btr:joint-states (btr:object btr:*current-bullet-world* btr-environment))))
 
 (defun get-connecting-joint (part)
   "Returns the connecting (moveable) joint of `part', which can be either
-  a link or a joint of the kitchen URDF."
+  a link or a joint of an URDF."
   (when part
     (if (typep part 'cl-urdf:joint)
         (or
@@ -82,12 +95,12 @@
         (when (typep part 'cl-urdf:link)
           (get-connecting-joint (cl-urdf:from-joint part))))))
 
-(defun get-manipulated-pose (link-name joint-position &key relative)
+(defun get-manipulated-pose (link-name joint-position btr-environment &key relative)
   "Returns the pose of a link based on its connection joint position
   `joint-position'. If `relative' is T, the actual value is calculated
   by `joint-position' * <joint maximal value>. this method returns two
   values, the new pose of the object and the joint that was changed."
-  (let ((link (get-container-link link-name)))
+  (let ((link (get-container-link link-name btr-environment)))
     (when (typep link 'cl-urdf:link)
       (let ((joint (get-connecting-joint link)))
         (when joint
@@ -96,7 +109,7 @@
              (:prismatic
               (cl-transforms:transform->pose
                (cl-transforms:transform*
-                (cl-transforms:pose->transform (get-urdf-link-pose link-name))
+                (cl-transforms:pose->transform (get-urdf-link-pose link-name btr-environment))
                 (cl-transforms:make-transform
                  (cl-transforms:v*
                   (cl-urdf:axis joint)
@@ -105,7 +118,7 @@
                        (* joint-position
                           (cl-urdf:upper (cl-urdf:limits joint)))
                        joint-position)
-                   (get-joint-position joint)))
+                   (get-joint-position joint btr-environment)))
                  (cl-transforms:make-identity-rotation)))))
              (:revolute
               (error 'simple-error

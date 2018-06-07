@@ -29,32 +29,37 @@
 
 (in-package :pr2-em)
 
-(defun get-drawer-min-max-pose (container-name)
+(defun get-drawer-min-max-pose (container-name btr-environment)
   (let* ((handle-link
            (get-handle-link
-            container-name))
+            container-name
+            btr-environment))
          (neutral-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            0 :relative T))
+            0
+            btr-environment
+            :relative T))
          (manipulated-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            1 :relative T)))
+            1
+            btr-environment
+            :relative T)))
     (list neutral-handle-pose manipulated-handle-pose)))
 
-(defun get-aabb (container-name)
+(defun get-aabb (container-name btr-environment)
   (btr:aabb
    (btr:rigid-body
-    (btr:object btr:*current-bullet-world* :kitchen)
+    (btr:object btr:*current-bullet-world* btr-environment)
     (btr::make-rigid-body-name
-     "KITCHEN"
+     (string-upcase btr-environment)
      (roslisp-utilities:rosify-underscores-lisp-name container-name)))))
 
-(defun get-width (container-name direction)
+(defun get-width (container-name direction btr-environment)
   "Return the width of the container with name `container-name',
 appropriate for the joint `direction' given."
-  (let ((dimensions (cl-bullet:bounding-box-dimensions (get-aabb container-name)))
+  (let ((dimensions (cl-bullet:bounding-box-dimensions (get-aabb container-name btr-environment)))
         (norm-direction (cl-transforms:normalize-vector direction)))
     (if (> (abs (cl-transforms:x norm-direction))
            (abs (cl-transforms:y norm-direction)))
@@ -63,19 +68,24 @@ appropriate for the joint `direction' given."
 
 ;; NOTE(cpo): It might be useful to pass this the desired position
 ;; and calculate the current one to make the costmap more precise.
-(defun make-opened-drawer-cost-function (container-name &optional (padding 0.2))
+(defun make-opened-drawer-cost-function (container-name btr-environment &optional (padding 0.2))
   "Resolve the relation according to the poses of the handle of `container-name'
 in neutral and manipulated form."
   (let* ((handle-link
-           (get-handle-link container-name))
+           (get-handle-link container-name
+                            btr-environment))
          (handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            0 :relative T))
+            0
+            btr-environment
+            :relative T))
          (manipulated-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            1 :relative T))
+            1
+            btr-environment
+            :relative T))
          (neutral-point
            (cl-transforms:make-3d-vector
             (cl-transforms:x (cl-transforms:origin handle-pose))
@@ -89,13 +99,14 @@ in neutral and manipulated form."
          (V
            (cl-transforms:v- manipulated-point neutral-point))
          (width
-           (get-width container-name V)))
+           (get-width container-name V btr-environment)))
     (lambda (x y)
       (multiple-value-bind (a b c)
           (line-equation-in-xy neutral-point manipulated-point)
         (let* ((P (cl-transforms:make-3d-vector x y 0))
                (dist (line-p-dist a b c P))
-               (dist-p (line-p-dist-point a b c P)))
+               ;;(dist-p (line-p-dist-point a b c P))
+               )
           (if (and
                (< dist (+ (/ width 2) padding))
                ;; Commenting this out for now, so there won't be poses in front of the drawer.
@@ -105,17 +116,22 @@ in neutral and manipulated form."
               0
               1))))))
 
-(defun make-opened-drawer-side-cost-function (container-name arm)
+(defun make-opened-drawer-side-cost-function (container-name arm btr-environment)
   (let* ((handle-link
-           (get-handle-link container-name))
+           (get-handle-link container-name
+                            btr-environment))
          (handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            0 :relative T))
+            0
+            btr-environment
+            :relative T))
          (manipulated-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            1 :relative T))
+            1
+            btr-environment
+            :relative T))
          (neutral-point
            (cl-transforms:make-3d-vector
             (cl-transforms:x (cl-transforms:origin handle-pose))
@@ -183,10 +199,11 @@ quaternions to face from `pos1' to `pos2'."
     (spec:property ?container-designator (:type ?container-type))
     (obj-int:object-type-subtype :container ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
+    (spec:property ?container-designator (:part-of ?btr-environment))
     (spec:property ?designator (:arm ?arm))
     (costmap:costmap ?costmap)
     ;; reachability gaussian costmap
-    (lisp-fun get-drawer-min-max-pose ?container-name ?poses)
+    (lisp-fun get-drawer-min-max-pose ?container-name ?btr-environment ?poses)
     (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
     (costmap:costmap-add-function
      container-handle-reachable-cost-function
@@ -196,12 +213,12 @@ quaternions to face from `pos1' to `pos2'."
     (costmap:costmap-reach-minimal-distance ?padding)
     (costmap:costmap-add-function
      opened-drawer-cost-function
-     (make-opened-drawer-cost-function ?container-name ?padding)
+     (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
      ?costmap)
     ;; cutting out for specific arm costmap
     (costmap:costmap-add-function
      opened-drawer-side-cost-function
-     (make-opened-drawer-side-cost-function ?container-name ?arm)
+     (make-opened-drawer-side-cost-function ?container-name ?arm ?btr-environment)
      ?costmap)
     ;; orientation generator
     ;; generate an orientation opposite to the axis of the drawer
