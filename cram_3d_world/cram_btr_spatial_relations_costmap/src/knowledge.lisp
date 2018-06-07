@@ -112,7 +112,7 @@
 
   ;; table setting related
   (<- (%paddings-list :kitchen-island-surface :table-setting (0.03d0 0.03d0 0.03d0 0.03d0)))
-  (<- (%paddings-list :kitchen-sink-area-surface :table-setting (0.03d0 0.03d0 0.03d0 0.03d0)))
+  (<- (%paddings-list :sink-area-surface :table-setting (0.03d0 0.03d0 0.03d0 0.03d0)))
   (<- (paddings-list ?environment-object-name :table-setting ?paddings-list)
     (setof ?object-name (%paddings-list ?object-name :table-setting ?_)
            ?defined-paddings-list-objects)
@@ -121,7 +121,7 @@
         (equal ?paddings-list (0.0d0 0.0d0 0.0d0 0.0d0))))
   ;;
   (<- (%preferred-supporting-object-side :kitchen-island-surface :table-setting :+))
-  (<- (%preferred-supporting-object-side :kitchen-sink-area-surface :table-setting :+))
+  (<- (%preferred-supporting-object-side :sink-area-surface :table-setting :+))
   (<- (preferred-supporting-object-side ?environment-object-name :table-setting ?side)
     (setof ?object-name (%preferred-supporting-object-side ?object-name :table-setting ?_)
            ?defined-preferred-side-objects)
@@ -130,7 +130,7 @@
         (equal ?side :+)))
   ;;
   (<- (%max-slot-size :plate :table-setting 0.8))
-  (<- (%max-slot-size :bowl :table-setting 1.0))
+  (<- (%max-slot-size :bowl :table-setting 0.6))
   (<- (max-slot-size ?environment-object-name :table-setting ?size)
     (setof ?object-name (%max-slot-size ?object-name :table-setting ?_)
            ?defined-objects)
@@ -138,7 +138,7 @@
         (%max-slot-size ?environment-object-name :table-setting ?size)
         (equal ?size 0.8)))
   (<- (%min-slot-size :plate :table-setting 0.5))
-  (<- (%min-slot-size :bowl :table-setting 0.3))
+  (<- (%min-slot-size :bowl :table-setting 0.2))
   (<- (min-slot-size ?environment-object-name :table-setting ?size)
     (setof ?object-name (%min-slot-size ?object-name :table-setting ?_)
            ?defined-objects)
