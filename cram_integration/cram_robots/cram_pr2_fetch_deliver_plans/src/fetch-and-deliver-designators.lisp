@@ -41,13 +41,30 @@
     (spec:property ?action-designator (:target ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator))
 
+  (<- (desig:action-grounding ?action-designator (manipulate-environment ?object-designator ?arm))
+    (spec:property ?action-designator (:type :accessing))
+    (spec:property ?action-designator (:location ?some-location-designator))
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (desig:desig-prop ?location-designator (:in ?some-object-designator))
+    (desig:current-designator ?some-object-designator ?object-designator)
+    (-> (spec:property ?action-designator (:arm ?arm))
+        (true)
+        (and (cram-robot-interfaces:robot ?robot)
+             (cram-robot-interfaces:arm ?robot ?arm)
+             (equal ?arm :left))))
+
   (<- (desig:action-grounding ?action-designator (search-for-object
-                                                  ?object-designator ?location-designator))
+                                                  ?object-designator
+                                                  ?location-designator
+                                                  ?location-accessible))
     (spec:property ?action-designator (:type :searching))
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
     (spec:property ?action-designator (:location ?some-location-designator))
-    (desig:current-designator ?some-location-designator ?location-designator))
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (-> (desig:desig-prop ?location-designator (:in ?_))
+        (equal ?location-accessible NIL)
+        (equal ?location-accessible T)))
 
   (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?arm
                                                         ?location-designator

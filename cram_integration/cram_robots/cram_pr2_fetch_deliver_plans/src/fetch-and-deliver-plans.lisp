@@ -104,9 +104,33 @@ the `look-pose-stamped'."
                                  (target ?look-target))))))))
 
 
-(cpl:def-cram-function search-for-object (?object-designator ?search-location
+(cpl:def-cram-function manipulate-environment (?object-to-access ?arm)
+  (exe:perform (desig:an action
+                         (type navigating)
+                         (location (desig:a location
+                                            (reachable-for pr2)
+                                            (arm ?arm)
+                                            (object ?object-to-access)))))
+  (let ((offset cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset*))
+    (setf cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset* 0.10)
+    (exe:perform (desig:an action
+                           (type opening)
+                           (arm ?arm)
+                           (object ?object-to-access)))
+    (exe:perform (desig:an action
+                           (type closing)
+                           (arm ?arm)
+                           (object ?object-to-access)))
+    (setf cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset* offset)))
+
+
+(cpl:def-cram-function search-for-object (?object-designator ?search-location location-accessible
                                                              &optional (retries 4))
   "Searches for `?object-designator' in its likely location `?search-location'."
+  (unless location-accessible
+    (exe:perform (desig:an action
+                           (type accessing)
+                           (location ?search-location))))
 
   ;; take new `?search-location' sample if a failure happens and retry
   (cpl:with-retry-counters ((search-location-retries retries))
