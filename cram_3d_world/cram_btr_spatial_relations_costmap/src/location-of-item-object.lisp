@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :btr-desig)
+(in-package :btr-spatial-cm)
 
 (def-fact-group object-designators (desig:location-grounding)
   (<- (desig:location-grounding ?designator ?pose-stamped)

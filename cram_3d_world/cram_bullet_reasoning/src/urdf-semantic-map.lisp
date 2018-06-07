@@ -73,21 +73,23 @@ Be especially careful with BTR::COPY-OBJECT."))
              unless (eql new-state old-state) collect name)))))
 
 (defmethod (setf joint-state) :before (new-value (sem-map urdf-semantic-map-object) name)
-  (attach-contacting-objects
-   sem-map :detach-invalid t
-   :test (lambda (obj link-name)
-           (declare (ignore link-name))
-           (typep obj 'item))))
+  ;; (attach-contacting-objects
+  ;;  sem-map :detach-invalid t
+  ;;  :test (lambda (obj link-name)
+  ;;          (declare (ignore link-name))
+  ;;          (typep obj 'item)))
+  )
 
 (defmethod (setf joint-state) :after (new-value (sem-map urdf-semantic-map-object) name)
   (update-semantic-map-joint sem-map name))
 
 (defmethod (setf link-pose) :before (new-value (sem-map urdf-semantic-map-object) name)
-  (attach-contacting-objects
-   sem-map :detach-invalid t
-   :test (lambda (obj link-name)
-           (declare (ignore link-name))
-           (typep obj 'item))))
+  ;; (attach-contacting-objects
+  ;;  sem-map :detach-invalid t
+  ;;  :test (lambda (obj link-name)
+  ;;          (declare (ignore link-name))
+  ;;          (typep obj 'item)))
+  )
 
 (defmethod (setf link-pose) :around (new-value (sem-map urdf-semantic-map-object) name)
   (with-slots (urdf links link-offsets semantic-map) sem-map
