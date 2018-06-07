@@ -51,22 +51,25 @@
                                                          object-name
                                                          arm
                                                          grasp)
-  (let* ((object-name
+  (let* ((btr-environment
+           ;; This is a workaround due to the limitations of the grasping API.
+           (btr:name (get-current-environment)))
+         (object-name
            (roslisp-utilities:rosify-underscores-lisp-name object-name))
          (handle-name
-           (cl-urdf:name (get-handle-link object-name)))
+           (cl-urdf:name (get-handle-link object-name btr-environment)))
          (handle-tf
            (cl-transforms-stamped:transform->transform-stamped
             cram-tf:*fixed-frame*
             handle-name
             0
-            (cl-transforms:pose->transform (get-urdf-link-pose handle-name))))
+            (cl-transforms:pose->transform (get-urdf-link-pose handle-name btr-environment))))
          (container-tf
            (cl-transforms-stamped:transform->transform-stamped
             cram-tf:*fixed-frame*
             object-name
             0
-            (cl-transforms:pose->transform (get-urdf-link-pose object-name))))
+            (cl-transforms:pose->transform (get-urdf-link-pose object-name btr-environment))))
          (tool-frame
            (ecase arm
              (:left cram-tf:*robot-left-tool-frame*)
