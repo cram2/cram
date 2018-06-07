@@ -63,6 +63,37 @@
                        (far-from (an object (type bowl)))
                        (for (an object (type milk)))))))
 
+(defparameter *object-fetching-locations*
+  `((:breakfast-cereal . ,(desig:a location
+                                   ;; (side left)
+                                   (on (desig:an object
+                                                 (type counter-top)
+                                                 (urdf-name sink-area-surface)
+                                                 (part-of kitchen)))))
+    (:cup . ,(desig:a location
+                      ;; (side left)
+                      (on (desig:an object
+                                    (type counter-top)
+                                    (urdf-name sink-area-surface)
+                                    (part-of kitchen)))))
+    (:bowl . ,(desig:a location
+                       ;; (side left)
+                       (on (desig:an object
+                                     (type counter-top)
+                                     (urdf-name sink-area-surface)
+                                     (part-of kitchen)))))
+    (:spoon . ,(desig:a location
+                        (in (desig:an object
+                                      (type drawer)
+                                      (urdf-name sink-area-left-upper-drawer-main)
+                                      (part-of kitchen)))))
+    (:milk . ,(desig:a location
+                       ;; (side left)
+                       (on (desig:an object
+                                     (type counter-top)
+                                     (urdf-name sink-area-surface)
+                                     (part-of kitchen)))))))
+
 (defparameter *object-cad-models*
   '(;; (:cup . "cup_eco_orange")
     ;; (:bowl . "edeka_red_bowl")
@@ -124,10 +155,7 @@
                        (desig:when ?cad-model
                          (cad-model ?cad-model))))
            (?fetching-location
-             (desig:a location
-                      (on "CounterTop")
-                      (name "iai_kitchen_sink_area_counter_top")
-                      (side left)))
+             (cdr (assoc ?object-type *object-fetching-locations*)))
            (?delivering-location
              (cdr (assoc ?object-type *object-placing-locations*)))
            (?arm-to-use
