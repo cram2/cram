@@ -97,7 +97,7 @@
                         (a location
                            (reachable-for pr2)
                            (arm ?arm)
-                           (container ?object)))))
+                           (object ?object)))))
       (setf ?object (get-container-desig container-name))
       (exe:perform (an action (type opening) (object ?object) (arm ?arm)))
       (setf ?object (get-container-desig container-name))
@@ -125,7 +125,7 @@
                             (a location
                                (reachable-for pr2)
                                (arm ?arm)
-                               (container ?object)))))
+                               (object ?object)))))
           (setf ?object (get-container-desig c))
           (exe:perform (an action
                            (type opening)
@@ -160,4 +160,4 @@
        (a location
           (reachable-for pr2)
           (arm :left)
-          (container ?object))))))
+          (object ?object))))))
