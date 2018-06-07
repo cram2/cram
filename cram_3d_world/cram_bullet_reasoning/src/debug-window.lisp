@@ -130,3 +130,10 @@
                                  :color '(1.0 0.0 0.0 0.5))))
       (when *debug-window*
         (push *current-costmap-sample* (gl-objects *debug-window*))))))
+
+
+(defmethod costmap:on-visualize-costmap opengl ((map costmap:location-costmap))
+  (add-costmap-function-object map))
+
+(defmethod costmap:on-visualize-costmap-sample opengl ((point cl-transforms:3d-vector))
+  (add-costmap-sample-object point))

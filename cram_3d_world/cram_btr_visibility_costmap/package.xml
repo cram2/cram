@@ -1,8 +1,8 @@
 <package>
-  <name>cram_bullet_reasoning_designators</name>
+  <name>cram_btr_visibility_costmap</name>
   <version>0.6.0</version>
   <description>
-     cram_bullet_reasoning_designators
+    cram_btr_visibility_costmap
   </description>
   <author>Lorenz Moesenlechner</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
@@ -15,30 +15,26 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>cram_prolog</build_depend>
-  <build_depend>cram_bullet_reasoning</build_depend>
   <build_depend>cram_designators</build_depend>
-  <build_depend>cram_location_costmap</build_depend>
-  <build_depend>cram_tf</build_depend>
-  <build_depend>cl_transforms_stamped</build_depend>
   <build_depend>cram_utilities</build_depend>
-  <build_depend>cram_bullet_reasoning_belief_state</build_depend>
-  <build_depend>cram_robot_interfaces</build_depend>
   <build_depend>cram_math</build_depend>
-  <build_depend>cl_opengl</build_depend>
-  <build_depend>cl_bullet</build_depend>
+  <build_depend>cram_location_costmap</build_depend>
+  <build_depend>cram_robot_interfaces</build_depend>
+  <build_depend>cl_transforms</build_depend>
   <build_depend>cl_bullet_vis</build_depend>
+  <build_depend>cl_opengl</build_depend>
+  <build_depend>cram_bullet_reasoning</build_depend>
+  <build_depend>cram_bullet_reasoning_belief_state</build_depend>
 
   <run_depend>cram_prolog</run_depend>
-  <run_depend>cram_tf</run_depend>
-  <run_depend>cl_transforms_stamped</run_depend>
+  <run_depend>cram_designators</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_math</run_depend>
-  <run_depend>cram_bullet_reasoning</run_depend>
-  <run_depend>cram_designators</run_depend>
   <run_depend>cram_location_costmap</run_depend>
-  <run_depend>cram_bullet_reasoning_belief_state</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
-  <run_depend>cl_opengl</run_depend>
-  <run_depend>cl_bullet</run_depend>
+  <run_depend>cl_transforms</run_depend>
   <run_depend>cl_bullet_vis</run_depend>
+  <run_depend>cl_opengl</run_depend>
+  <run_depend>cram_bullet_reasoning</run_depend>
+  <run_depend>cram_bullet_reasoning_belief_state</run_depend>
 </package>

@@ -46,13 +46,14 @@
                       (near (an object (type spoon)))
                       (for (an object (type cup)))))
     (:bowl . ,(desig:a location
-                       (on "CounterTop")
-                       (name "iai_kitchen_kitchen_island_counter_top")
+                       (on (desig:an object
+                                     (type counter-top)
+                                     (urdf-name kitchen-island-surface)
+                                     (part-of kitchen)))
                        (context table-setting)
                        (for (an object (type bowl)))
                        (object-count 3)
-                       (side back)
-                       (side right)))
+                       (side back)))
     (:spoon . ,(desig:a location
                         (right-of (an object (type bowl)))
                         (near (an object (type bowl)))

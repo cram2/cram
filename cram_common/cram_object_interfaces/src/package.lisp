@@ -36,6 +36,8 @@
    ;; object-designator-interfaces
    #:get-object-transform
    #:get-object-pose
+   #:object-type-subtype
+   #:object-type-direct-subtype
    ;; manipulation
    #:get-object-type-gripping-effort
    #:get-object-type-gripper-opening

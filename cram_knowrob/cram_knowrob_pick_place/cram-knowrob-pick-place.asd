@@ -45,4 +45,5 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "grasping" :depends-on ("package"))))))
+     (:file "grasping" :depends-on ("package"))
+     (:file "type-hierarchy" :depends-on ("package"))))))

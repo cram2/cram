@@ -29,7 +29,7 @@
 (defsystem spatial-relations-demo
   :author "gaya"
   :license "BSD"
-  :depends-on (cram-bullet-reasoning-costmap
+  :depends-on (cram-btr-spatial-relations-costmap
                cl-urdf
                cram-designators
                cram-location-costmap
@@ -45,7 +45,7 @@
                cram-pr2-synch-projection-pms
                cram-occupancy-grid-costmap
                cram-plan-library
-               cram-bullet-reasoning-designators
+               cram-btr-visibility-costmap
                cram-common-designators
                cram-semantic-map-designators
                alexandria
