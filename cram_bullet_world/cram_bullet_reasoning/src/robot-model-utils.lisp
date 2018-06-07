@@ -115,7 +115,7 @@ sensor_msgs/JointStates message."
 (defun calculate-pan-tilt (robot pan-link tilt-link pose)
   "Calculates values for the pan and tilt joints so that they pose on
   `pose'. Returns (LIST PAN-VALUE TILT-VALUE)
-Used in desig-check-to-see of btr-desigs.
+Used in desig-check-to-see of btr-visibility-costmap.
 Should it be taken out and made PR2-specific?"
   (let* ((pan-transform (cl-transforms:reference-transform
                          (link-pose robot pan-link)))

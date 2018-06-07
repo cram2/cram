@@ -27,24 +27,44 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :gaussian-costmap)
 
-(defpackage cram-bullet-reasoning-utilities
-  (:use #:common-lisp #:cram-bullet-reasoning #:cram-prolog #:cram-designators
-        #:cram-utilities #:cram-robot-interfaces #:cram-tf)
-  (:nicknames #:btr-utils #:bullet-reasoning-utilities)
-  (:shadowing-import-from #:btr object object-pose pose)
-  (:export
-   ;; misc.lisp
-   visualize-designator-costmaps
-   ;; object-database.lisp
-   scenario-objects-init-pose scenario-objects-default-color scenario-object-color
-   scenario-object-shape scenario-object-extra-attributes
-   ;; objects.lisp
-   spawn-object kill-object kill-all-objects respawn-object move-object ;; move-object-onto
-   object-instance object-pose object-exists item-exists
-   assert-object-pose assert-object-pose-on
-   ;; robot.lisp
-   robot-name move-robot move-robot-away park-robot
-   ;; setup.lisp
-   semantic-map-object-name init start-ros-and-bullet))
+(defun robot-current-pose-tf-generator (desig)
+  (when (or (cram-robot-interfaces:reachability-designator-p desig)
+            (cram-robot-interfaces:visibility-designator-p desig))
+    (when cram-tf:*transformer*
+      (handler-case
+          (list (cram-tf:robot-current-pose))
+        (cl-transforms-stamped:transform-stamped-error () nil)))))
+
+(desig:register-location-generator
+ 3 robot-current-pose-tf-generator
+ "We should move the robot only if we really need to move. Try the
+ current robot pose as a first solution.")
+
+
+(defun robot-location-on-floor (designator pose)
+  (cond ((not (or (cram-robot-interfaces:reachability-designator-p designator)
+                  (cram-robot-interfaces:visibility-designator-p designator)))
+         :unknown)
+        ((< (cl-transforms:z (cl-transforms:origin pose)) 0.05)
+         :accept)
+        (t
+         :reject)))
+
+(desig:register-location-validation-function
+ 1 robot-location-on-floor
+ "Verifies that the z coordinate of the robot is actually on the floor
+ if searching for poses where the robot should stand")
+
+
+
+;; (defun robot-current-pose-bullet-generator (desig)
+;;   (when (or (cram-robot-interfaces:reachability-designator-p desig)
+;;             (cram-robot-interfaces:visibility-designator-p desig))
+;;     (handler-case
+;;         (cut:var-value '?pose
+;;                        (car (prolog `(and (btr:bullet-world ?w)
+;;                                           (cram-robot-interfaces:robot ?robot-name)
+;;                                           (btr:object-pose ?w ?robot-name ?pose)))))
+;;       (error () nil))))

@@ -1,19 +1,19 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -26,32 +26,25 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-bullet-reasoning-designators
-  :author "Lorenz Moesenlechner"
+(defsystem cram-btr-spatial-relations-costmap
+  :author "Gayane Kazhoyan"
   :license "BSD"
-
-  :depends-on (cram-prolog
-               cram-bullet-reasoning
-               cram-designators
+  :depends-on (cl-bullet
+               cl-transforms
+               cram-semantic-map-utils
+               cram-utilities ; for lazy list stuff
+               cram-prolog
                cram-location-costmap
-               cram-tf
-               cl-transforms-stamped
-               cram-utilities
-               cram-bullet-reasoning-belief-state ; for obj-desig <-> bullet instance
-               cram-robot-interfaces
-               cram-math
-               cl-opengl
-               cl-bullet
-               cl-bullet-vis)
+               cram-designators
+               cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state
+               cram-semantic-map-costmap)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "costmap-generators" :depends-on ("package"))
-     (:file "visibility-costmap" :depends-on ("package"))
-     (:file "location-designator-facts" :depends-on ("package"
-                                                     "costmap-generators"
-                                                     "visibility-costmap"))
-     (:file "location-designator-integration" :depends-on ("package"
-                                                           "location-designator-facts"))
+     (:file "cost-functions" :depends-on ("package"))
+     (:file "knowledge" :depends-on ("package"))
+     (:file "prolog" :depends-on ("package" "cost-functions" "knowledge"))
+     (:file "designator-integration" :depends-on ("package" "prolog"))
      (:file "location-of-item-object" :depends-on ("package"))))))

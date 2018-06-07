@@ -19,7 +19,7 @@
   <run_depend>cffi_ros_utils</run_depend>
   <run_depend>cram_physics_utils</run_depend>
   <run_depend>cram_bullet_reasoning</run_depend>
-  <run_depend>cram_bullet_reasoning_designators</run_depend>
+  <run_depend>cram_btr_visibility_costmap</run_depend>
   <run_depend>cram_bullet_reasoning_belief_state</run_depend>
   <run_depend>cram_bullet_reasoning_utilities</run_depend>
 

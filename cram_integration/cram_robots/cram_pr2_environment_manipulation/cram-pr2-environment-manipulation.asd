@@ -47,6 +47,7 @@
                cram-common-failures
                cram-mobile-pick-place-plans
                cram-robot-interfaces ; for REACHABILITY-DESIGNATOR predicate
+               cram-object-interfaces
                cram-designator-specification
 
                cl-bullet ; for handling BOUNDING-BOX datastructures
@@ -54,7 +55,6 @@
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
 
-               cram-semantic-map-costmap
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap)

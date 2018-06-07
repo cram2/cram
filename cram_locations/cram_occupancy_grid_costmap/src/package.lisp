@@ -26,31 +26,8 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :btr-desig)
+(in-package :cl-user)
 
-(defun make-object-bounding-box-costmap-generator (object)
-  (let* ((bounding-box (aabb object))
-         (dimensions-x/2 (/ (cl-transforms:x (bullet:bounding-box-dimensions bounding-box))
-                            2))
-         (dimensions-y/2 (/ (cl-transforms:y (bullet:bounding-box-dimensions bounding-box))
-                            2)))
-    (lambda (x y)
-      (if (and
-           (< x (+ (cl-transforms:x (cl-bullet:bounding-box-center bounding-box))
-                   dimensions-x/2))
-           (> x (- (cl-transforms:x (cl-bullet:bounding-box-center bounding-box))
-                   dimensions-x/2))
-           (< y (+ (cl-transforms:y (cl-bullet:bounding-box-center bounding-box))
-                   dimensions-y/2))
-           (> y (- (cl-transforms:y (cl-bullet:bounding-box-center bounding-box))
-                   dimensions-y/2)))
-          1.0 0.0))))
-
-(defun make-object-bounding-box-height-generator (object)
-  (let ((bounding-box (aabb object)))
-    (constantly (list
-                 (+ (cl-transforms:z
-                     (cl-bullet:bounding-box-center bounding-box))
-                    (/ (cl-transforms:z
-                        (cl-bullet:bounding-box-dimensions bounding-box))
-                       2))))))
+(defpackage cram-occupancy-grid-costmap
+  (:nicknames #:occupancy-grid-costmap)
+  (:use #:common-lisp #:desig #:location-costmap #:prolog))

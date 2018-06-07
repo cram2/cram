@@ -51,13 +51,12 @@
                cl-bullet ; for handling BOUNDING-BOX datastructures
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
+               cram-btr-visibility-costmap
                cram-bullet-reasoning-utilities
 
                cram-pr2-projection ; for projection process modules
 
                cram-semantic-map-costmap
-               ; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
-               ; cram-bullet-reasoning-designators ; not using visibility cm or collision checks
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap
