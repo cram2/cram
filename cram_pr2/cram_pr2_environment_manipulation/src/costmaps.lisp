@@ -29,10 +29,10 @@
 
 (in-package :pr2-em)
 
-(defun get-drawer-min-max-pose (container-desig)
+(defun get-drawer-min-max-pose (container-name)
   (let* ((handle-link
            (get-handle-link
-            (desig:desig-prop-value container-desig :urdf-name)))
+            container-name))
          (neutral-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
@@ -47,7 +47,9 @@
   (btr:aabb
    (btr:rigid-body
     (btr:object btr:*current-bullet-world* :kitchen)
-    (btr::make-rigid-body-name "KITCHEN" container-name))))
+    (btr::make-rigid-body-name
+     "KITCHEN"
+     (roslisp-utilities:rosify-underscores-lisp-name container-name)))))
 
 (defun get-width (container-name direction)
   "Return the width of the container with name `container-name',
@@ -61,13 +63,10 @@ appropriate for the joint `direction' given."
 
 ;; NOTE(cpo): It might be useful to pass this the desired position
 ;; and calculate the current one to make the costmap more precise.
-(defun make-opened-drawer-cost-function (?container-desig &optional (padding 0.2))
-  "Resolve the relation according to the poses of the handle of `container-desig'
+(defun make-opened-drawer-cost-function (container-name &optional (padding 0.2))
+  "Resolve the relation according to the poses of the handle of `container-name'
 in neutral and manipulated form."
-  (let* ((container-name
-           (string-downcase
-            (desig:desig-prop-value ?container-desig :urdf-name)))
-         (handle-link
+  (let* ((handle-link
            (get-handle-link container-name))
          (handle-pose
            (get-manipulated-pose
@@ -106,11 +105,8 @@ in neutral and manipulated form."
               0
               1))))))
 
-(defun make-opened-drawer-side-cost-function (?container-desig arm)
-  (let* ((container-name
-           (string-downcase
-            (desig:desig-prop-value ?container-desig :urdf-name)))
-         (handle-link
+(defun make-opened-drawer-side-cost-function (container-name arm)
+  (let* ((handle-link
            (get-handle-link container-name))
          (handle-pose
            (get-manipulated-pose
@@ -190,7 +186,7 @@ quaternions to face from `pos1' to `pos2'."
     (spec:property ?designator (:arm ?arm))
     (costmap:costmap ?costmap)
     ;; reachability gaussian costmap
-    (lisp-fun get-drawer-min-max-pose ?container-designator ?poses)
+    (lisp-fun get-drawer-min-max-pose ?container-name ?poses)
     (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
     (costmap:costmap-add-function
      container-handle-reachable-cost-function
@@ -200,12 +196,12 @@ quaternions to face from `pos1' to `pos2'."
     (costmap:costmap-reach-minimal-distance ?padding)
     (costmap:costmap-add-function
      opened-drawer-cost-function
-     (make-opened-drawer-cost-function ?container-designator ?padding)
+     (make-opened-drawer-cost-function ?container-name ?padding)
      ?costmap)
     ;; cutting out for specific arm costmap
     (costmap:costmap-add-function
      opened-drawer-side-cost-function
-     (make-opened-drawer-side-cost-function ?container-designator ?arm)
+     (make-opened-drawer-side-cost-function ?container-name ?arm)
      ?costmap)
     ;; orientation generator
     ;; generate an orientation opposite to the axis of the drawer
