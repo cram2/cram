@@ -31,14 +31,12 @@
   :license "BSD"
   :depends-on (cl-bullet
                cl-transforms
-               cram-semantic-map-utils
                cram-utilities ; for lazy list stuff
                cram-prolog
                cram-location-costmap
                cram-designators
                cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
-               cram-semantic-map-costmap)
+               cram-bullet-reasoning-belief-state)
   :components
   ((:module "src"
     :components

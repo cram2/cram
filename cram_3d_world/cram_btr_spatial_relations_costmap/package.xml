@@ -15,7 +15,6 @@
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_utilities</build_depend>
   <build_depend>cram_location_costmap</build_depend>
-  <build_depend>cram_semantic_map_costmap</build_depend>
   <build_depend>cram_bullet_reasoning</build_depend>
   <build_depend>cram_bullet_reasoning_belief_state</build_depend>
 
@@ -23,7 +22,6 @@
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cram_location_costmap</run_depend>
-  <run_depend>cram_semantic_map_costmap</run_depend>
   <run_depend>cram_bullet_reasoning</run_depend>
   <run_depend>cram_bullet_reasoning_belief_state</run_depend>
 </package>

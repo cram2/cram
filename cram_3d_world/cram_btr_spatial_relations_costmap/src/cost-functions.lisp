@@ -306,7 +306,7 @@ The function returns one of the following keys: :front, :back, :left, :right."
    `paddings-list' is of format '(padd-x+ padd-x- padd-y+ padd-y-).
    The `supp-object' is supposed to be rectangular with y axis pointing to the left
    and x - to the back."
-  (declare ;; (type sem-map-utils::semantic-map-part supp-object)
+  (declare (type cl-bullet:rigid-body supp-object)
            (type list paddings-list)
            (type keyword preferred-supporting-object-side)
            (type integer object-count)
