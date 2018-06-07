@@ -293,7 +293,7 @@
      (make-object-bounding-box-height-generator ?object-instance :on)
      ?costmap))
 
-;;;;;;;;;;;;;;; spatial relation ON for item objects ;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;; spatial relation ON for environment objects ;;;;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?object))
     (spec:property ?object (:urdf-name ?urdf-name))
