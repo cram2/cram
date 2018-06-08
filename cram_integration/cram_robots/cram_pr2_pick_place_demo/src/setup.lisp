@@ -61,6 +61,9 @@
   (setf cram-tf:*tf-broadcasting-enabled* t)
 
   ;; (setf ccl::*is-logging-enabled* nil)
+  ;; (setf ccl::*host* "'https://192.168.100.172'")
+  ;; (setf ccl::*cert-path* "'/home/ease/openease-certificates/sebastian4.pem'")
+  ;; (setf ccl::*api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
 
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
