@@ -59,6 +59,13 @@
                    :faces (physics-utils:3d-model-faces model)
                    :points (physics-utils:3d-model-vertices model))))
 
+(defmethod urdf-make-collision-shape ((compound-mesh cl-urdf::compound-mesh) &optional (color '(0.8 0.8 0.8 1.0)))
+  (let ((model (load-mesh compound-mesh T)))
+    (make-instance 'compound-mesh-shape
+                   :color (apply-alpha-value color)
+                   :faces (physics-utils:3d-model-faces model)
+                   :points (physics-utils:3d-model-vertices model))))
+
 (defstruct collision-information
   rigid-body-name flags)
 
@@ -86,7 +93,12 @@ of the object should _not_ be updated."
    (initial-pose :initarg :pose
                  :documentation "Pose that got passed in initially. It
                  is returned by the `pose' method if `reference-body'
-                 is invalid.")))
+                 is invalid.")
+   (compound :initarg :compound
+             :initform nil
+             :reader compound
+             :documentation "Determines, if the URDFs meshes are build as
+             a compound of meshes, or one single convex hull shape.")))
 
 (defgeneric joint-names (robot-object)
   (:documentation "Returns the list of joints")
@@ -221,7 +233,8 @@ of the object should _not_ be updated."
 (defmethod initialize-instance :after ((robot-object robot-object)
                                        &key color name pose
                                          (collision-group :character-filter)
-                                         (collision-mask '(:default-filter :static-filter)))
+                                         (collision-mask '(:default-filter :static-filter))
+                                         (compound nil))
   (with-slots (rigid-bodies links urdf pose-reference-body) robot-object
     (labels ((make-link-bodies (pose link)
                "Returns the list of rigid bodies of `link' and all its sub-links"
@@ -302,7 +315,7 @@ of the object should _not_ be updated."
      :attached-objects (copy-list (attached-objects obj)))))
 
 (defmethod add-object ((world bt-world) (type (eql :urdf)) name pose
-                       &key urdf (color '(0.8 0.8 0.8 1.0)))
+                       &key urdf (color '(0.8 0.8 0.8 1.0)) compound)
   (make-instance 'robot-object
     :name name
     :world world
@@ -311,7 +324,8 @@ of the object should _not_ be updated."
             (cl-urdf:robot urdf)
             (string (handler-bind ((cl-urdf:urdf-type-not-supported #'muffle-warning))
                       (cl-urdf:parse-urdf urdf))))
-    :color color))
+    :color color
+    :compound compound))
 
 (defun update-attached-object-poses (robot-object link pose)
   "Updates the poses of all objects that are attached to
@@ -573,9 +587,14 @@ current joint states"
             (list r g b (or *robot-model-alpha* 1.0)))
           (error "Color of an object has to be a list of 3 or 4 values"))))
 
-(defun load-mesh (mesh)
+(defun load-mesh (mesh &optional (compound nil))
   "Loads and resizes the 3d-model"
-  (let ((model (physics-utils:load-3d-model (physics-utils:parse-uri (cl-urdf:filename mesh)))))
-      (cond ((cl-urdf:scale mesh) (physics-utils:scale-3d-model model (cl-urdf:scale mesh)))
-            ((cl-urdf:size mesh) (physics-utils:resize-3d-model model (cl-urdf:size mesh)))
-            (t model))))
+  (let ((model (physics-utils:load-3d-model (physics-utils:parse-uri (cl-urdf:filename mesh))
+                                            :compound compound)))
+    (cond ((cl-urdf:scale mesh) (mapcar (lambda (model-part)
+                                          (physics-utils:scale-3d-model model-part (cl-urdf:scale mesh)))
+                                        model))
+          ((cl-urdf:size mesh) (mapcar (lambda (model-part)
+                                         (physics-utils:resize-3d-model model-part (cl-urdf:size mesh)))
+                                       model))
+          (t model))))
