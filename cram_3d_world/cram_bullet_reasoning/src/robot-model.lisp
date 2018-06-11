@@ -32,15 +32,17 @@
 
 (defvar *robot-model-alpha* nil)
 
-(defgeneric urdf-make-collision-shape (geometry &optional color))
+(defgeneric urdf-make-collision-shape (geometry &optional color compound))
 
-(defmethod urdf-make-collision-shape ((box cl-urdf:box) &optional (color '(0.8 0.8 0.8 1.0)))
+(defmethod urdf-make-collision-shape ((box cl-urdf:box)
+                                      &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
   (make-instance 'colored-box-shape
     :half-extents (cl-transforms:v*
                    (cl-urdf:size box) 0.5)
     :color (apply-alpha-value color)))
 
-(defmethod urdf-make-collision-shape ((cylinder cl-urdf:cylinder) &optional (color '(0.8 0.8 0.8 1.0)))
+(defmethod urdf-make-collision-shape ((cylinder cl-urdf:cylinder)
+                                      &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
   (make-instance 'colored-cylinder-shape
     :half-extents (cl-transforms:make-3d-vector
                    (cl-urdf:radius cylinder)
@@ -48,23 +50,26 @@
                    (* 0.5 (cl-urdf:cylinder-length cylinder)))
     :color (apply-alpha-value color)))
 
-(defmethod urdf-make-collision-shape ((sphere cl-urdf:sphere) &optional (color '(0.8 0.8 0.8 1.0)))
+(defmethod urdf-make-collision-shape ((sphere cl-urdf:sphere)
+                                      &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
   (make-instance 'colored-sphere-shape :radius (cl-urdf:radius sphere)
     :color (apply-alpha-value color)))
 
-(defmethod urdf-make-collision-shape ((mesh cl-urdf:mesh) &optional (color '(0.8 0.8 0.8 1.0)))
-  (let ((model (load-mesh mesh)))
+(defmethod urdf-make-collision-shape ((mesh cl-urdf:mesh)
+                                      &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
+  (let ((model (load-mesh mesh compound)))
+    (break)
     (make-instance 'convex-hull-mesh-shape
                    :color (apply-alpha-value color)
                    :faces (physics-utils:3d-model-faces model)
                    :points (physics-utils:3d-model-vertices model))))
 
-(defmethod urdf-make-collision-shape ((compound-mesh cl-urdf::compound-mesh) &optional (color '(0.8 0.8 0.8 1.0)))
-  (let ((model (load-mesh compound-mesh T)))
-    (make-instance 'compound-mesh-shape
-                   :color (apply-alpha-value color)
-                   :faces (physics-utils:3d-model-faces model)
-                   :points (physics-utils:3d-model-vertices model))))
+;; (defmethod urdf-make-collision-shape ((compound-mesh cl-urdf::compound-mesh) &optional (color '(0.8 0.8 0.8 1.0)))
+;;   (let ((model (load-mesh compound-mesh T)))
+;;     (make-instance 'compound-mesh-shape
+;;                    :color (apply-alpha-value color)
+;;                    :faces (physics-utils:3d-model-faces model)
+;;                    :points (physics-utils:3d-model-vertices model))))
 
 (defstruct collision-information
   rigid-body-name flags)
@@ -266,7 +271,8 @@ of the object should _not_ be updated."
                                                      color
                                                      (let ((some-gray (/ (+ (random 5) 3) 10.0)))
                                                        (list some-gray some-gray some-gray
-                                                             (or *robot-model-alpha* 1.0))))))
+                                                             (or *robot-model-alpha* 1.0)))))
+                                                compound)
                               :collision-flags :cf-default
                               :group collision-group
                               :mask collision-mask))
@@ -591,6 +597,7 @@ current joint states"
   "Loads and resizes the 3d-model"
   (let ((model (physics-utils:load-3d-model (physics-utils:parse-uri (cl-urdf:filename mesh))
                                             :compound compound)))
+    
     (cond ((cl-urdf:scale mesh) (mapcar (lambda (model-part)
                                           (physics-utils:scale-3d-model model-part (cl-urdf:scale mesh)))
                                         model))
