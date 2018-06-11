@@ -33,5 +33,4 @@
   <depend>trajectory_msgs</depend>
   <depend>move_base_msgs</depend>
   <depend>giskard_msgs</depend>
-  <!-- <depend>iai_robosherlock_msgs</depend> -->
 </package>
