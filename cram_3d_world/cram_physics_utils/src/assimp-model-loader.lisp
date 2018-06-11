@@ -215,12 +215,13 @@
            (let ((meshes (multiple-value-list
                         (build-model-mesh scene :fix-normals fix-normals :compound compound))))
              ;; TODO CHANGE BEHAVIOR FOR COMPOUND
-             (if remove-identical-vertices
-                 (mapcar
-                  (lambda (mesh) (make-3d-model
-                                  :vertices (remove-identical-vertices (3d-model-vertices mesh))
-                                  :faces (3d-model-faces mesh))) meshes)
-                 meshes)))
+             (values-list
+              (if remove-identical-vertices
+                  (mapcar
+                   (lambda (mesh) (make-3d-model
+                                   :vertices (remove-identical-vertices (3d-model-vertices mesh))
+                                   :faces (3d-model-faces mesh))) meshes)
+                  meshes))))
       (when scene
         (ai-release-import scene)))))
 
@@ -242,14 +243,11 @@
                            (foreign-slot-value ai-node '(:struct ai-node)
                                                'transform))))))
                (if compound
-                   (dotimes (i (foreign-slot-value ai-node '(:struct ai-node)
-                                                   'num-meshes))
-                     (let ((mesh (aref meshes
-                                       (mem-aref
-                                        (foreign-slot-value ai-node '(:struct ai-node) 'meshes)
-                                        :unsigned-int i))))
-                       (when mesh
-                         (push mesh (compound-3d-model-models 3d-model))))))
+                   (setf 3d-model
+                         (make-compound-3d-model
+                          :models
+                          (map 'list #'identity
+                               (get-meshes scene :post-process-vertex-index #'identity))))
                    (progn (dotimes (i (foreign-slot-value ai-node '(:struct ai-node)
                                                           'num-meshes))
                             (let ((mesh (aref meshes
@@ -264,7 +262,7 @@
                                   (insert-node
                                    (mem-aref (foreign-slot-value ai-node '(:struct ai-node) 'children)
                                              :pointer i)
-                                   meshes node-transformation 3d-model)))))
+                                   meshes node-transformation 3d-model))))))
                3d-model))
     (let ((result (insert-node
                    (foreign-slot-value scene '(:struct ai-scene) 'root-node)
