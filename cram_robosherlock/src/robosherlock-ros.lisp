@@ -115,7 +115,7 @@
 
 (defun ensure-robosherlock-result (result quantifier)
   (unless result
-    (cpl:fail 'common-fail:low-level-failure :description "robosherlock didn't answer"))
+    (cpl:fail 'common-fail:perception-low-level-failure :description "robosherlock didn't answer"))
   (let ((number-of-objects (length result)))
     (when (< number-of-objects 1)
       (cpl:fail 'common-fail:perception-object-not-found :description "couldn't find the object"))
