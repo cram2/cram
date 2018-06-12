@@ -58,6 +58,31 @@
  if searching for poses where the robot should stand")
 
 
+(defun reachable-location-validator (designator pose)
+  (if (cram-robot-interfaces:reachability-designator-p designator)
+      (cut:with-vars-bound (?to-reach-point ?min-distance ?max-distance)
+          (cut:lazy-car
+           (prolog:prolog
+            `(and (bagof ?pose
+                         (cram-robot-interfaces:designator-reach-pose ,designator ?pose ?_)
+                         ?poses)
+                  (lisp-fun costmap:2d-pose-covariance ?poses 0.5 (?to-reach-point ?_))
+                  (costmap:costmap-reach-minimal-distance ?min-distance)
+                  (costmap:costmap-in-reach-distance ?max-distance))))
+        (if (or (cut:is-var ?to-reach-point)
+                (cut:is-var ?min-distance)
+                (cut:is-var ?max-distance))
+            :unknown
+            (let ((dist (cl-transforms:v-dist ?to-reach-point (cl-transforms:origin pose))))
+              (if (and (< dist ?max-distance)
+                       (> dist ?min-distance))
+                  :accept
+                  :reject))))
+      :unknown))
+
+(desig:register-location-validation-function
+ 5 reachable-location-validator
+ "Verifies that reachable location is indeed in close distance to pose")
 
 ;; (defun robot-current-pose-bullet-generator (desig)
 ;;   (when (or (cram-robot-interfaces:reachability-designator-p desig)
