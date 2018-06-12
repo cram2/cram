@@ -234,11 +234,12 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
                      (validate
                       (cdr validation-functions) designator solution
                       (if (eq result :accept) :accept :maybe-reject)))))))))
-    (let ((validation-functions (location-resolution-function-list
-                                 (remove-if (lambda (validation-function)
-                                              (member validation-function *disabled-validation-functions*))
-                                            *location-validation-functions*
-                                            :key #'location-resolution-function-function))))
+    (let ((validation-functions
+            (location-resolution-function-list
+             (remove-if (lambda (validation-function)
+                          (member validation-function *disabled-validation-functions*))
+                        *location-validation-functions*
+                        :key #'location-resolution-function-function))))
       (block nil
         (restart-case
             (validate validation-functions designator solution)
