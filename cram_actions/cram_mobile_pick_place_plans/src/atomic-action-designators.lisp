@@ -31,6 +31,14 @@
 
 (def-fact-group pick-and-place-atomic-actions (desig:action-grounding)
 
+  (<- (desig:action-grounding ?action-designator (go-to-target ?location-designator))
+    (spec:property ?action-designator (:type :going))
+    (spec:property ?action-designator (:target ?location-designator)))
+
+  (<- (desig:action-grounding ?action-designator (perceive ?object-designator))
+    (spec:property ?action-designator (:type :detecting))
+      (spec:property ?action-designator (:object ?object-designator)))
+
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
     (or (spec:property ?action-designator (:type :reaching))
         (spec:property ?action-designator (:type :lifting))
@@ -42,8 +50,7 @@
               (equal ?right-poses nil))))
 
   (<- (desig:action-grounding ?action-designator (release ?left-or-right-or-both))
-    (or (spec:property ?action-designator (:type :releasing))
-        (spec:property ?action-designator (:type :opening)))
+    (spec:property ?action-designator (:type :releasing))
     (spec:property ?action-designator (:gripper ?left-or-right-or-both)))
 
   (<- (desig:action-grounding ?action-designator (grip ?left-or-right-or-both ?object-grip-effort))
@@ -52,8 +59,11 @@
     (once (or (spec:property ?action-designator (:effort ?object-grip-effort))
               (equal ?object-grip-effort nil))))
 
-  (<- (desig:action-grounding ?action-designator (close-gripper ?left-or-right-or-both))
-    (spec:property ?action-designator (:type :closing))
+  (<- (desig:action-grounding ?action-designator (open-or-close-gripper ?left-or-right-or-both
+                                                                        ?action-type))
+    (or (spec:property ?action-designator (:type :closing))
+        (spec:property ?action-designator (:type :opening)))
+    (spec:property ?action-designator (:type ?action-type))
     (spec:property ?action-designator (:gripper ?left-or-right-or-both)))
 
   (<- (desig:action-grounding ?action-designator (set-gripper-to-position
@@ -87,10 +97,4 @@
         (equal ?camera :head)
         (true)))
 
-  (<- (desig:action-grounding ?action-designator (go-to-target ?location-designator))
-    (spec:property ?action-designator (:type :going))
-    (spec:property ?action-designator (:target ?location-designator)))
-
-  (<- (desig:action-grounding ?action-designator (perceive ?object-designator))
-    (spec:property ?action-designator (:type :detecting))
-    (spec:property ?action-designator (:object ?object-designator))))
+)
