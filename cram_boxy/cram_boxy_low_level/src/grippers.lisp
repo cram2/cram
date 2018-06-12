@@ -137,7 +137,7 @@
           (cpl:wait-for reached-fluent)
           (cpl:seq
             (cpl:sleep *gripper-action-timeout*)
-            (cpl:fail 'common-fail:gripping-failed
+            (cpl:fail 'common-fail:gripper-goal-not-reached
                       :description (format nil "gripper did not reach goal: is ~a, should be ~a."
                                            (car (joint-positions '("left_gripper_joint")
                                                                  *robot-joint-states-msg*))
