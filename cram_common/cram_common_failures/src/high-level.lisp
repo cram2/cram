@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,38 @@
 
 (in-package :common-fail)
 
-(define-condition navigation-low-level-failure (low-level-failure)
-  ((location :initarg :location :initform nil :reader navigation-failure-location)))
+(define-condition navigation-high-level-failure (high-level-failure) ())
 
-(define-condition navigation-pose-unreachable (navigation-low-level-failure) ()
-  (:documentation "When calculated that navigation pose cannot be reached."))
+(define-condition navigation-goal-in-collision (navigation-high-level-failure)
+  ((pose-stamped :initarg :pose-stamped :initform nil :reader navigation-failure-pose-stamped)))
 
-(define-condition navigation-goal-not-reached (navigation-low-level-failure) ()
-  (:documentation "When action tried to move base but ended up not reaching goal."))
+(define-condition looking-high-level-failure (high-level-failure) ())
+
+(define-condition object-unreachable (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader object-unreachable-object))
+  (:documentation "Thrown when no IK found for particular base pose."))
+
+(define-condition manipulation-goal-in-collision (high-level-failure) ()
+  (:documentation "Thrown when executing action results in a collision."))
+
+
+
+(define-condition object-unfetchable (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader object-unfetchable-object))
+  (:documentation "Thrown when no base positioning can assure a reachable pose."))
+
+(define-condition object-undeliverable (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader object-undeliverable-object))
+  (:documentation "Thrown when no base positioning can assure a reachable pose."))
+
+(define-condition object-nowhere-to-be-found (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader object-nowhere-to-be-found-object))
+  (:documentation "Thrown when no base positioning can assure a reachable pose."))
