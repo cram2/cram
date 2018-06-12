@@ -250,7 +250,8 @@
                    (cram-robot-interfaces:gripper-link ?robot ,arm ?link)
                    (btr:%object ?world ?object-name ?object-instance)
                    (prolog:lisp-type ?object-instance btr:item)))
-      (cpl:fail 'common-fail:gripping-failed :description "There was no object to grip"))))
+      (cpl:fail 'common-fail:gripper-closed-completely
+                :description "There was no object to grip"))))
 
 (defun gripper-action (action-type arm &optional maximum-effort)
   (if (and arm (listp arm))
