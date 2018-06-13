@@ -56,6 +56,7 @@
    #:gripper-low-level-failure
    #:gripper-failure-action
    #:gripper-closed-completely
+   #:gripper-goal-not-reached
    #:manipulation-goal-not-reached
    #:manipulation-pose-unreachable
    ;; navigation
