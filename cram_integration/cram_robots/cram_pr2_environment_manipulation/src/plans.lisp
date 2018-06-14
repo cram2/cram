@@ -85,7 +85,7 @@
              (left-poses ?left-2nd-lift-pose)
              (right-poses ?right-2nd-lift-pose)))
   (when (btr:robot-colliding-objects-without-attached)
-    (error 'common-fail:manipulation-pose-in-collision)))
+    (error 'common-fail:manipulation-goal-in-collision)))
 
 (defun close-container (?arm ?gripper-opening
                         ?left-reach-poses ?right-reach-poses
@@ -142,4 +142,4 @@
              (left-poses ?left-2nd-lift-pose)
              (right-poses ?right-2nd-lift-pose)))
   (when (btr:robot-colliding-objects-without-attached)
-    (error 'common-fail:manipulation-pose-in-collision)))
+    (error 'common-fail:manipulation-goal-in-collision)))

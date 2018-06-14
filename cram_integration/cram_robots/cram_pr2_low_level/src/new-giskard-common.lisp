@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,14 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :common-fail)
+(in-package :pr2-ll)
 
-(define-condition navigation-low-level-failure (low-level-failure)
-  ((location :initarg :location :initform nil :reader navigation-failure-location)))
+(defun make-giskard-action-client ()
+  (actionlib-client:make-simple-action-client
+   'giskard-action
+   "qp_controller/command" "giskard_msgs/MoveAction"
+   60))
 
-(define-condition navigation-pose-unreachable (navigation-low-level-failure) ()
-  (:documentation "When calculated that navigation pose cannot be reached."))
+(roslisp-utilities:register-ros-init-function make-giskard-action-client)
 
-(define-condition navigation-goal-not-reached (navigation-low-level-failure) ()
-  (:documentation "When action tried to move base but ended up not reaching goal."))
+

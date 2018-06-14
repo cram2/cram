@@ -37,10 +37,14 @@
    #:low-level-failure
    #:actionlib-action-timed-out
    #:high-level-failure
+   ;; high-level
+   #:navigation-high-level-failure
+   #:navigation-goal-in-collision
+   #:navigation-failure-pose-stamped
+   #:looking-high-level-failure
    #:object-unreachable
    #:object-unreachable-object
-   #:manipulation-pose-in-collision
-   #:navigation-pose-unreachable
+   #:manipulation-goal-in-collision
    #:object-unfetchable
    #:object-unfetchable-object
    #:object-undeliverable
@@ -49,20 +53,26 @@
    #:object-nowhere-to-be-found-object
    ;; manipulation
    #:manipulation-low-level-failure
-   #:gripping-failed
-   #:gripping-failed-action
+   #:gripper-low-level-failure
+   #:gripper-failure-action
    #:gripper-closed-completely
+   #:gripper-goal-not-reached
    #:manipulation-goal-not-reached
    #:manipulation-pose-unreachable
    ;; navigation
    #:navigation-low-level-failure
    #:navigation-failure-location
-   #:navigation-pose-in-collision
-   #:navigation-failure-pose-stamped
+   #:navigation-pose-unreachable
+   #:navigation-goal-not-reached
    ;; perception
    #:perception-low-level-failure
    #:perception-object-not-found
    #:object-not-found-object
    ;; ptu
    #:ptu-low-level-failure
-   #:ptu-goal-unreachable))
+   #:ptu-goal-unreachable
+   #:ptu-goal-not-reached
+   ;; torso
+   #:torso-low-level-failure
+   #:torso-goal-unreachable
+   #:torso-goal-not-reached))
