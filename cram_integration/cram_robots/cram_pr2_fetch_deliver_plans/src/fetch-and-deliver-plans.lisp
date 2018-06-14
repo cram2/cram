@@ -239,6 +239,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                    (roslisp:ros-warn (fd-plans fetch) "Misgrasp happened: ~a~%" e)
                    (cpl:do-retry regrasping-retries
                      (roslisp:ros-info (fd-plans fetch) "Reperceiving and repicking...")
+                     (pp-plans:park-arms)
                      (cpl:retry))
                    (roslisp:ros-warn (fd-plans fetch) "No more regrasping retries left :'(")
                    (cpl:fail 'common-fail:object-unreachable
