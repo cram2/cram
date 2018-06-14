@@ -30,6 +30,11 @@
 
 (in-package :pr2-proj)
 
+(defparameter *debug-short-sleep-duration* 0.0
+  "in seconds, sleeps after each movement during reasoning")
+(defparameter *debug-long-sleep-duration* 0.0
+  "in seconds, sleeps to show colliding configurations")
+
 (defun robot-transform-in-map ()
   (let ((pose-in-map
           (cut:var-value
@@ -48,25 +53,52 @@
 
 (defun drive (target)
   (declare (type cl-transforms-stamped:pose-stamped target))
-  (assert
-   (prolog:prolog
-    `(and (cram-robot-interfaces:robot ?robot)
-          (btr:bullet-world ?w)
-          (btr:assert ?w (btr:object-pose ?robot ,target)))))
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-  )
+  (let* ((world btr:*current-bullet-world*)
+         (world-state (btr::get-state world)))
+    (unwind-protect
+         (assert
+          (prolog:prolog
+           `(and (cram-robot-interfaces:robot ?robot)
+                 (btr:bullet-world ?w)
+                 (btr:assert ?w (btr:object-pose ?robot ,target)))))
+      (when (btr:robot-colliding-objects-without-attached)
+        (unless (< (abs *debug-short-sleep-duration*) 0.0001)
+          (cpl:sleep *debug-short-sleep-duration*))
+        (btr::restore-world-state world-state world)
+        (cpl:fail 'common-fail:navigation-pose-unreachable :pose-stamped target))))
+    ;; (cram-occasions-events:on-event
+    ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
+    )
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun move-torso (joint-angle)
   (declare (type number joint-angle))
-  (assert
-   (prolog:prolog
-    `(and (cram-robot-interfaces:robot ?robot)
-          (btr:bullet-world ?w)
-          (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?joint)
-          (btr:assert (btr:joint-state ?w ?robot ((?joint ,joint-angle)))))))
+  (let* ((bindings
+           (car
+            (prolog:prolog
+             `(and (cram-robot-interfaces:robot ?robot)
+                   (btr:bullet-world ?w)
+                   (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?joint)
+                   (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?lower)
+                   (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?upper)))))
+         (lower-limit
+           (cut:var-value '?lower bindings))
+         (upper-limit
+           (cut:var-value '?upper bindings))
+         (cropped-joint-angle
+           (if (< joint-angle lower-limit)
+               lower-limit
+               (if (> joint-angle upper-limit)
+                   upper-limit
+                   joint-angle))))
+    (prolog:prolog
+     `(btr:assert (btr:joint-state ?w ?robot ((?joint ,cropped-joint-angle))))
+     bindings)
+    (unless (< (abs (- joint-angle cropped-joint-angle)) 0.0001)
+      (cpl:fail 'common-fail:torso-goal-not-reached
+                :description (format nil "Torso goal ~a was out of joint limits" joint-angle)
+                :torso joint-angle)))
   ;; (cram-occasions-events:on-event
   ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
   )
@@ -78,7 +110,8 @@
   (let* ((bindings
            (car
             (prolog:prolog
-             '(and (cram-robot-interfaces:robot ?robot)
+             '(and
+               (cram-robot-interfaces:robot ?robot)
                (cram-robot-interfaces:robot-pan-tilt-links ?robot ?pan-link ?tilt-link)
                (cram-robot-interfaces:robot-pan-tilt-joints ?robot ?pan-joint ?tilt-joint)
                (cram-robot-interfaces:joint-lower-limit ?robot ?pan-joint ?pan-lower)
@@ -132,10 +165,10 @@
                    (btr:joint-state
                     ?robot ((,pan-joint ,cropped-pan-angle)
                             (,tilt-joint ,cropped-tilt-angle))))))
-    (unless (and (= pan-angle cropped-pan-angle)
-                 (= tilt-angle cropped-tilt-angle))
-        (cpl:fail 'common-fail:ptu-goal-unreachable
-                  :description "Look action wanted to twist the neck"))
+    (unless (and (< (abs (- pan-angle cropped-pan-angle)) 0.00001)
+                 (< (abs (- tilt-angle cropped-tilt-angle)) 0.00001))
+      (cpl:fail 'common-fail:ptu-goal-not-reached
+                :description "Look action wanted to twist the neck"))
     ;; (cram-occasions-events:on-event
     ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
     ))
@@ -151,16 +184,17 @@
       (cl-transforms:make-identity-vector)
       (cl-transforms:make-identity-rotation))))
   (:method (goal-type (direction symbol))
-    (look-at-pose-stamped
-     (case direction
-       (:forward (cl-transforms-stamped:make-pose-stamped
-                  cram-tf:*robot-base-frame*
-                  0.0
-                  (cl-transforms:make-3d-vector 3.0 0.0 1.5)
-                  (cl-transforms:make-quaternion 0.0 0.0 0.0 1.0)))
-       (t (error 'simple-error
-                 :format-control "~a direction is unknown for PR2 projection PTU"
-                 :format-arguments direction))))))
+    (case direction
+      (:forward (prolog:prolog
+                 `(and
+                   (cram-robot-interfaces:robot ?robot)
+                   (cram-robot-interfaces:robot-pan-tilt-joints ?robot ?pan-joint ?tilt-joint)
+                   (btr:bullet-world ?w)
+                   (assert ?world
+                           (btr:joint-state ?robot ((?pan-joint 0.0) (?tilt-joint 0.0)))))))
+      (t (error 'simple-error
+                :format-control "~a direction is unknown for PR2 projection PTU"
+                :format-arguments direction)))))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -295,7 +329,8 @@
                    (cram-robot-interfaces:gripper-link ?robot ,arm ?link)
                    (btr:%object ?world ?object-name ?object-instance)
                    (prolog:lisp-type ?object-instance btr:item)))
-      (cpl:fail 'common-fail:gripping-failed :description "There was no object to grip"))))
+      (cpl:fail 'common-fail:gripper-closed-completely
+                :description "There was no object to grip"))))
 
 (defun gripper-action (action-type arm &optional maximum-effort)
   (if (and arm (listp arm))
