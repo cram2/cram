@@ -49,8 +49,8 @@
                                                                  ?left-reach-poses
                                                                  ?right-reach-poses
                                                                  (?left-lift-pose)
-                                                                 (?left-2nd-lift-pose)
                                                                  (?right-lift-pose)
+                                                                 (?left-2nd-lift-pose)
                                                                  (?right-2nd-lift-pose)
                                                                  ?joint-name ?environment-obj))
     (spec:property ?action-designator (:type :opening))
@@ -93,8 +93,8 @@
                                                                   ?left-reach-poses
                                                                   ?right-reach-poses
                                                                   (?left-lift-pose)
-                                                                  (?left-2nd-lift-pose)
                                                                   (?right-lift-pose)
+                                                                  (?left-2nd-lift-pose)
                                                                   (?right-2nd-lift-pose)
                                                                   ?joint-name
                                                                   ?environment-obj))
