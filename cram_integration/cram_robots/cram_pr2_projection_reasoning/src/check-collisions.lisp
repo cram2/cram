@@ -84,6 +84,8 @@ Store found pose into designator or throw error if good pose not found."
           navigation-location-desig)))))
 
 
+
+
 (defun check-picking-up-collisions (pick-up-action-desig &optional (retries 30))
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
@@ -158,6 +160,8 @@ Store found pose into designator or throw error if good pose not found."
                                  right-poses)))))))))
       (btr::restore-world-state world-state world))))
 
+
+
 (defun check-placing-collisions (placing-action-desig)
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
@@ -227,4 +231,63 @@ Store found pose into designator or throw error if good pose not found."
                                 (cpl:fail 'common-fail:manipulation-goal-in-collision)))
                             left-poses
                             right-poses)))))))
+      (btr::restore-world-state world-state world))))
+
+
+
+(defun check-environment-manipulation-collisions (action-desig)
+  (let* ((world btr:*current-bullet-world*)
+         (world-state (btr::get-state world)))
+    (unwind-protect
+         (cpl:with-failure-handling
+             ((desig:designator-error (e)
+                (roslisp:ros-warn (coll-check environment)
+                                  "Desig ~a could not be resolved: ~a~%Cannot manipulate."
+                                  action-desig e)
+                (cpl:fail 'common-fail:environment-unreachable
+                          :description "Designator could not be resolved"))
+
+              ((or common-fail:manipulation-goal-in-collision
+                   common-fail:manipulation-low-level-failure) (e)
+                (declare (ignore e))
+                (roslisp:ros-warn (coll-check environment)
+                                  "Manipulation pose of ~a is unreachable.~%Propagating up."
+                                  action-desig)
+                (cpl:fail 'common-fail:environment-unreachable
+                          :description "Manipulation pose in collision or unreachable.")))
+
+           (let ((action-referenced (desig:reference action-desig)))
+             (destructuring-bind (_action arm _gripper-opening
+                                  left-reach-poses right-reach-poses
+                                  left-pull-push-poses right-pull-push-poses
+                                  left-retract-poses right-retract-poses
+                                  joint-name _environment-object)
+                 action-referenced
+               (declare (ignore _action _gripper-opening _environment-object))
+
+               (pr2-proj::gripper-action :open arm)
+
+               (roslisp:ros-info (coll-check environment)
+                                 "Trying to open joint ~a with arm ~a~%"
+                                 joint-name arm)
+               (let ((left-poses-list-of-lists
+                       (list left-reach-poses left-pull-push-poses left-retract-poses))
+                     (right-poses-list-of-lists
+                       (list right-reach-poses right-pull-push-poses right-retract-poses)))
+                 (multiple-value-bind (left-poses right-poses)
+                     (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
+                                                          right-poses-list-of-lists)
+                   (mapcar (lambda (left-pose right-pose)
+                             (pr2-proj::move-tcp left-pose right-pose)
+                             (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
+                               (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
+                             ;; (when (btr:robot-colliding-objects-without-attached)
+                             ;;   (roslisp:ros-warn (coll-check environment)
+                             ;;                     "Robot is in collision with environment.")
+                             ;;   (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
+                             ;;   (btr::restore-world-state world-state world)
+                             ;;   (cpl:fail 'common-fail:manipulation-goal-in-collision))
+                             )
+                           left-poses
+                           right-poses))))))
       (btr::restore-world-state world-state world))))
