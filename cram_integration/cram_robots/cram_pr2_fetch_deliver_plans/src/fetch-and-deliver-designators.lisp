@@ -41,9 +41,10 @@
     (spec:property ?action-designator (:target ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator))
 
-  (<- (desig:action-grounding ?action-designator (manipulate-environment ?object-designator
+  (<- (desig:action-grounding ?action-designator (manipulate-environment ?action-type
+                                                                         ?object-designator
                                                                          ?arm
-                                                                         ?action-type))
+                                                                         ?distance))
     (or (spec:property ?action-designator (:type :accessing))
         (spec:property ?action-designator (:type :sealing)))
     (spec:property ?action-designator (:type ?action-type))
@@ -55,7 +56,9 @@
         (true)
         (and (cram-robot-interfaces:robot ?robot)
              (cram-robot-interfaces:arm ?robot ?arm)
-             (equal ?arm :left))))
+             (equal ?arm :left)))
+    (or (spec:property ?action-designator (:distance ?distance))
+        (equal ?distance NIL)))
 
   (<- (desig:action-grounding ?action-designator (search-for-object
                                                   ?object-designator

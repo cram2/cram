@@ -50,6 +50,7 @@
            #:environment-event-joint-name
            #:environment-event-arm
            #:environment-event-object
+           #:environment-event-distance
            #:container-handle-grasping-event
            #:container-opening-event
            #:container-closing-event

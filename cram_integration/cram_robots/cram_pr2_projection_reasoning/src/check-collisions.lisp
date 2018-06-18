@@ -257,13 +257,13 @@ Store found pose into designator or throw error if good pose not found."
                           :description "Manipulation pose in collision or unreachable.")))
 
            (let ((action-referenced (desig:reference action-desig)))
-             (destructuring-bind (_action arm _gripper-opening
+             (destructuring-bind (action arm _gripper-opening distance
                                   left-reach-poses right-reach-poses
                                   left-pull-push-poses right-pull-push-poses
                                   left-retract-poses right-retract-poses
                                   joint-name _environment-object)
                  action-referenced
-               (declare (ignore _action _gripper-opening _environment-object))
+               (declare (ignore _gripper-opening _environment-object))
 
                (pr2-proj::gripper-action :open arm)
 
@@ -280,14 +280,15 @@ Store found pose into designator or throw error if good pose not found."
                    (mapcar (lambda (left-pose right-pose)
                              (pr2-proj::move-tcp left-pose right-pose)
                              (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
-                               (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
-                             ;; (when (btr:robot-colliding-objects-without-attached)
-                             ;;   (roslisp:ros-warn (coll-check environment)
-                             ;;                     "Robot is in collision with environment.")
-                             ;;   (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
-                             ;;   (btr::restore-world-state world-state world)
-                             ;;   (cpl:fail 'common-fail:manipulation-goal-in-collision))
-                             )
+                               (cpl:sleep pr2-proj:*debug-short-sleep-duration*)))
                            left-poses
-                           right-poses))))))
+                           right-poses)
+                   (when (eq (desig:desig-prop-value action-desig :type) :opening)
+                     (format t "~%~%CHECKING COLLISIONS~%~%")
+                     (when (btr:robot-colliding-objects-without-attached)
+                       (roslisp:ros-warn (coll-check environment)
+                                         "Robot is in collision with environment.")
+                       (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
+                       (btr::restore-world-state world-state world)
+                       (cpl:fail 'common-fail:manipulation-goal-in-collision))))))))
       (btr::restore-world-state world-state world))))
