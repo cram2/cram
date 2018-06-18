@@ -89,7 +89,7 @@
   "List of validation function names that should not be used although
   registered.")
 
-(defparameter *location-generator-max-retries* 200)
+(defparameter *location-generator-max-retries* 30)
 
 (defparameter *print-location-validation-function-results* nil
   "Enable this to get a text output by each rejected location designator solution.")
