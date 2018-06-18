@@ -31,7 +31,7 @@
 
 ;;; OBJECT-INTERFACE METHODS
 
-(defparameter *drawer-handle-grasp-x-offset* 0.0 "in meters")
+(defparameter *drawer-handle-grasp-x-offset* -0.02 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
 (defparameter *drawer-handle-lift-x-offset* 0.30 "in meters")
 (defparameter *drawer-handle-2nd-lift-x-offset* (+ *drawer-handle-lift-x-offset*
@@ -43,8 +43,7 @@
 
 ;; Might be necessary to find out what kind of handle we are dealing with.
 ;; But we could also just open wide and be done with it.
-(defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container)))
-  0.09)
+(defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container))) 0.10)
 
 ;; Find out where the handle is and calculate the transform from there.
 (defmethod obj-int:get-object-type-to-gripper-transform ((object-type (eql :container))
