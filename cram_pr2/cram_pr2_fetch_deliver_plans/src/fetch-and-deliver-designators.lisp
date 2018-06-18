@@ -41,8 +41,12 @@
     (spec:property ?action-designator (:target ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator))
 
-  (<- (desig:action-grounding ?action-designator (manipulate-environment ?object-designator ?arm))
-    (spec:property ?action-designator (:type :accessing))
+  (<- (desig:action-grounding ?action-designator (manipulate-environment ?object-designator
+                                                                         ?arm
+                                                                         ?action-type))
+    (or (spec:property ?action-designator (:type :accessing))
+        (spec:property ?action-designator (:type :sealing)))
+    (spec:property ?action-designator (:type ?action-type))
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     (desig:desig-prop ?location-designator (:in ?some-object-designator))
@@ -55,16 +59,12 @@
 
   (<- (desig:action-grounding ?action-designator (search-for-object
                                                   ?object-designator
-                                                  ?location-designator
-                                                  ?location-accessible))
+                                                  ?location-designator))
     (spec:property ?action-designator (:type :searching))
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
     (spec:property ?action-designator (:location ?some-location-designator))
-    (desig:current-designator ?some-location-designator ?location-designator)
-    (-> (desig:desig-prop ?location-designator (:in ?_))
-        (equal ?location-accessible NIL)
-        (equal ?location-accessible T)))
+    (desig:current-designator ?some-location-designator ?location-designator))
 
   (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?arm
                                                         ?location-designator
@@ -100,7 +100,8 @@
                                                   ?object-designator
                                                   ?fetching-location-designator
                                                   ?delivering-location-designator
-                                                  ?arm))
+                                                  ?arm
+                                                  ?fetching-location-accessible))
     (spec:property ?action-designator (:type :transporting))
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
@@ -109,4 +110,7 @@
     (spec:property ?action-designator (:target ?some-delivering-location-designator))
     (desig:current-designator ?some-delivering-location-designator ?delivering-location-designator)
     (or (spec:property ?action-designator (:arm ?arm))
-        (equal ?arm NIL))))
+        (equal ?arm NIL))
+    (-> (desig:desig-prop ?fetching-location-designator (:in ?_))
+        (equal ?fetching-location-accessible NIL)
+        (equal ?fetching-location-accessible T))))
