@@ -69,7 +69,7 @@ Store found pose into designator or throw error if good pose not found."
                                      Propagating up."
                                navigation-location-desig)
              (cpl:fail 'common-fail:navigation-goal-in-collision
-                       "Couldn't find a nav pose after all retries")))
+                       :description "Couldn't find a nav pose after all retries")))
 
         ;; Pick one pose, store it in `pose-at-navigation-location'
         ;; In projected world, drive to picked pose
