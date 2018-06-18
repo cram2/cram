@@ -64,3 +64,9 @@
            :initform NIL
            :reader object-nowhere-to-be-found-object))
   (:documentation "Thrown when no base positioning can assure a reachable pose."))
+
+(define-condition environment-unreachable (high-level-failure) ()
+  (:documentation "Thrown when environment manipulation in collision or unreachable."))
+
+(define-condition environment-manipulation-impossible (high-level-failure) ()
+  (:documentation "Thrown when environment manipulation cannot be achieved."))
