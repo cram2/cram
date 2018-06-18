@@ -328,7 +328,8 @@
                    (btr:contact ?world ?robot ?object-name ?link)
                    (cram-robot-interfaces:gripper-link ?robot ,arm ?link)
                    (btr:%object ?world ?object-name ?object-instance)
-                   (prolog:lisp-type ?object-instance btr:item)))
+                   (or (prolog:lisp-type ?object-instance btr:item)
+                       (prolog:lisp-type ?object-instance btr:semantic-map-object))))
       (cpl:fail 'common-fail:gripper-closed-completely
                 :description "There was no object to grip"))))
 
