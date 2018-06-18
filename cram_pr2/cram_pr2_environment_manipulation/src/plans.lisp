@@ -29,7 +29,7 @@
 
 (in-package :pr2-em)
 
-(defun open-container (?arm ?gripper-opening
+(defun open-container (?arm ?gripper-opening distance
                        ?left-reach-poses ?right-reach-poses
                        ?left-lift-pose ?right-lift-pose
                        ?left-2nd-lift-pose ?right-2nd-lift-pose
@@ -62,12 +62,12 @@
              (gripper ?arm)))
   (roslisp:ros-info (environment-manipulation open-container) "Opening")
 
-  (when (and joint-name environment)
-    (cram-occasions-events:on-event
-     (make-instance 'cpoe:container-handle-grasping-event
-       :joint-name joint-name
-       :side ?arm
-       :environment environment)))
+  ;; (when (and joint-name environment)
+  ;;   (cram-occasions-events:on-event
+  ;;    (make-instance 'cpoe:container-handle-grasping-event
+  ;;      :joint-name joint-name
+  ;;      :side ?arm
+  ;;      :environment environment)))
 
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -86,7 +86,8 @@
      (make-instance 'cpoe:container-opening-event
        :joint-name joint-name
        :side ?arm
-       :environment environment)))
+       :environment environment
+       :distance distance)))
 
   (exe:perform
    (desig:an action
@@ -105,7 +106,7 @@
                (left-poses ?left-2nd-lift-pose)
                (right-poses ?right-2nd-lift-pose)))))
 
-(defun close-container (?arm ?gripper-opening
+(defun close-container (?arm ?gripper-opening distance
                         ?left-reach-poses ?right-reach-poses
                         ?left-lift-pose ?right-lift-pose
                         ?left-2nd-lift-pose ?right-2nd-lift-pose
@@ -136,12 +137,12 @@
   ;;            (gripper ?arm)
   ;;            (position 0)))
   (roslisp:ros-info (environment-manipulation close-container) "Closing")
-  (when (and joint-name environment)
-    (cram-occasions-events:on-event
-     (make-instance 'cpoe:container-handle-grasping-event
-                    :joint-name joint-name
-                    :side ?arm
-                    :environment environment)))
+  ;; (when (and joint-name environment)
+  ;;   (cram-occasions-events:on-event
+  ;;    (make-instance 'cpoe:container-handle-grasping-event
+  ;;                   :joint-name joint-name
+  ;;                   :side ?arm
+  ;;                   :environment environment)))
 
   (exe:perform
    (desig:an action
@@ -154,7 +155,8 @@
      (make-instance 'cpoe:container-closing-event
        :joint-name joint-name
        :side ?arm
-       :environment environment)))
+       :environment environment
+       :distance distance)))
   ;; (exe:perform
   ;;  (desig:an action
   ;;            (type setting-gripper)

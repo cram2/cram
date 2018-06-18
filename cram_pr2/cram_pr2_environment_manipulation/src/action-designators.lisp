@@ -42,10 +42,12 @@
          (transform (cram-tf:pose-stamped->transform-stamped pose name-rosified)))
     (list pose transform)))
 
+;; TODO: incorporate DISTANCE property of designator in GET-OBJECT-GRASPING-POSES
 (def-fact-group environment-manipulation (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (open-container ?arm
                                                                  ?gripper-opening
+                                                                 ?distance
                                                                  ?left-reach-poses
                                                                  ?right-reach-poses
                                                                  (?left-lift-pose)
@@ -63,6 +65,7 @@
         (true)
         (and (cram-robot-interfaces:robot ?robot)
              (cram-robot-interfaces:arm ?robot ?arm)))
+    (spec:property ?action-designator (:distance ?distance))
     ;; infer joint information
     ;; joint-name
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
@@ -89,7 +92,9 @@
         (equal ?right-lift-poses (?right-lift-pose ?right-2nd-lift-pose))
         (equal (NIL NIL) (?right-lift-pose ?right-2nd-lift-pose))))
 
-  (<- (desig:action-grounding ?action-designator (close-container ?arm ?gripper-opening
+  (<- (desig:action-grounding ?action-designator (close-container ?arm
+                                                                  ?gripper-opening
+                                                                  ?distance
                                                                   ?left-reach-poses
                                                                   ?right-reach-poses
                                                                   (?left-lift-pose)
@@ -108,6 +113,7 @@
         (true)
         (and (cram-robot-interfaces:robot ?robot)
              (cram-robot-interfaces:arm ?robot ?arm)))
+    (spec:property ?action-designator (:distance ?distance))
     ;; infer joint information
     ;; joint-name
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)

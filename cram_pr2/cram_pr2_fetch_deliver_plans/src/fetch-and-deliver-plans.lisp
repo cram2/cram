@@ -107,7 +107,7 @@ the `look-pose-stamped'."
                                  (target ?look-target))))))))
 
 
-(cpl:def-cram-function manipulate-environment (?object-to-manipulate ?arm action-type)
+(cpl:def-cram-function manipulate-environment (action-type ?object-to-manipulate ?arm ?distance)
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans environment) "~a~%Propagating up." e)
@@ -154,11 +154,13 @@ the `look-pose-stamped'."
                     (:accessing (desig:an action
                                           (type opening)
                                           (arm ?arm)
-                                          (object ?object-to-manipulate)))
+                                          (object ?object-to-manipulate)
+                                          (distance ?distance)))
                     (:sealing (desig:an action
                                         (type closing)
                                         (arm ?arm)
-                                        (object ?object-to-manipulate))))))
+                                        (object ?object-to-manipulate)
+                                        (distance ?distance))))))
 
             (pr2-proj-reasoning:check-environment-manipulation-collisions manipulation-action)
             (setf manipulation-action (desig:current-desig manipulation-action))
@@ -486,7 +488,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
   (unless search-location-accessible
     (exe:perform (desig:an action
                            (type accessing)
-                           (location ?search-location))))
+                           (location ?search-location)
+                           (distance 0.3))))
 
   (let ((?perceived-object-designator
           (exe:perform (desig:an action
@@ -537,4 +540,5 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
   (unless search-location-accessible
     (exe:perform (desig:an action
                            (type sealing)
-                           (location ?search-location)))))
+                           (location ?search-location)
+                           (distance 0.3)))))
