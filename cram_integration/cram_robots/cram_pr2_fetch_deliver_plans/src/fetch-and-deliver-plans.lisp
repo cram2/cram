@@ -107,34 +107,75 @@ the `look-pose-stamped'."
                                  (target ?look-target))))))))
 
 
-(cpl:def-cram-function manipulate-environment (?object-to-access ?arm)
-  (exe:perform (desig:an action
-                         (type navigating)
-                         (location (desig:a location
-                                            (reachable-for pr2)
-                                            (arm ?arm)
-                                            (object ?object-to-access)))))
-  (let ((offset cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset*))
-    (setf cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset* 0.10)
-    (exe:perform (desig:an action
-                           (type opening)
-                           (arm ?arm)
-                           (object ?object-to-access)))
-    (exe:perform (desig:an action
-                           (type closing)
-                           (arm ?arm)
-                           (object ?object-to-access)))
-    (setf cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset* offset)))
+(cpl:def-cram-function manipulate-environment (?object-to-manipulate ?arm action-type)
+  (cpl:with-failure-handling
+      ((desig:designator-error (e)
+         (roslisp:ros-warn (fd-plans environment) "~a~%Propagating up." e)
+         (cpl:fail 'common-fail:environment-manipulation-impossible
+                   :description "Some designator could not be resolved.")))
+
+    (let ((?manipulate-robot-location
+            (desig:a location
+                     (reachable-for pr2)
+                     (arm ?arm)
+                     (object ?object-to-manipulate))))
+
+      (cpl:with-retry-counters ((relocation-retries 10))
+        (cpl:with-failure-handling
+            (((or common-fail:navigation-goal-in-collision
+                  common-fail:environment-unreachable
+                  common-fail:gripper-low-level-failure) (e)
+               (roslisp:ros-warn (fd-plans environment) "~a" e)
+               (cpl:do-retry relocation-retries
+                 (setf ?manipulate-robot-location (desig:next-solution ?manipulate-robot-location))
+                 (if ?manipulate-robot-location
+                     (progn
+                       (roslisp:ros-info (fd-plans environment) "Relocating...")
+                       (cpl:retry))
+                     (progn
+                       (roslisp:ros-warn (fd-plans environment) "No more samples to try :'(")
+                       (cpl:fail 'common-fail:environment-manipulation-impossible
+                                 :description "No more samples in navigation designator."))))
+               (roslisp:ros-warn (fd-plans environment) "No more retries left :'(")
+               (cpl:fail 'common-fail:environment-manipulation-impossible
+                         :description "No more retries left.")))
+
+          ;; navigate, open / close
+          (exe:perform (desig:an action
+                                 (type navigating)
+                                 (location ?manipulate-robot-location)))
+
+          (let (;; (offset cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset*)
+              )
+          ;; (setf cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset* 0.10)
+
+          (let ((manipulation-action
+                  (ecase action-type
+                    (:accessing (desig:an action
+                                          (type opening)
+                                          (arm ?arm)
+                                          (object ?object-to-manipulate)))
+                    (:sealing (desig:an action
+                                        (type closing)
+                                        (arm ?arm)
+                                        (object ?object-to-manipulate))))))
+
+            (pr2-proj-reasoning:check-environment-manipulation-collisions manipulation-action)
+            (setf manipulation-action (desig:current-desig manipulation-action))
+
+            (exe:perform manipulation-action))
+
+          ;; (exe:perform (desig:an action
+          ;;                        (type closing)
+          ;;                        (arm ?arm)
+          ;;                        (object ?object-to-access)))
+          ;; (setf cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset* offset)
+          ))))))
 
 
-(cpl:def-cram-function search-for-object (?object-designator ?search-location location-accessible
+(cpl:def-cram-function search-for-object (?object-designator ?search-location
                                                              &optional (retries 4))
   "Searches for `?object-designator' in its likely location `?search-location'."
-  (unless location-accessible
-    ;; (exe:perform (desig:an action
-    ;;                        (type accessing)
-    ;;                        (location ?search-location)))
-    )
 
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -342,7 +383,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                        (location ?target-robot-location)))
 
                 ;; take a new `?target-location' sample if a failure happens
-                (cpl:with-retry-counters ((target-location-retries 5))
+                (cpl:with-retry-counters ((target-location-retries 10))
                   (cpl:with-failure-handling
                       (((or common-fail:looking-high-level-failure
                             common-fail:object-unreachable) (e)
@@ -362,7 +403,12 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                            "No target-location-retries left :'(~%")
                          (cpl:fail 'common-fail:object-undeliverable)))
 
-                    ;; look, place
+                    ;; look
+                    (exe:perform (desig:an action
+                                           (type turning-towards)
+                                           (target ?target-location)))
+
+                    ;; place
                     (let* ((?pose-at-target-location
                              (desig:reference ?target-location))
                            (mTt
@@ -386,11 +432,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                               :result-as-pose-or-transform :pose))
                            (?pose-at-target-loc-in-base
                              bTt))
-
-                      (exe:perform (desig:an action
-                                             (type turning-towards)
-                                             (target (desig:a location
-                                                              (pose ?pose-at-target-loc-in-base)))))
 
                       (let ((place-action
                               (or
@@ -432,10 +473,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                  (type going)
                  (target (desig:a location
                                   (pose ?map-in-front-of-sink-pose))))))
-    (cpl:with-failure-handling
-        ((cpl:plan-failure (e)
-           (declare (ignore e))
-           (return)))
+    (cpl:with-failure-handling ()
       (exe:perform
        (desig:an action
                  (type placing)
@@ -443,7 +481,13 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                   (pose ?placing-pose))))))))
 
 
-(cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm)
+(cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm
+                                                     search-location-accessible)
+  (unless search-location-accessible
+    (exe:perform (desig:an action
+                           (type accessing)
+                           (location ?search-location))))
+
   (let ((?perceived-object-designator
           (exe:perform (desig:an action
                                  (type searching)
@@ -464,7 +508,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
       ;; If running in projection, just execute the task tree below as normal.
       (pr2-proj-reasoning:with-projected-task-tree
           (?fetch-robot-location ?fetch-pick-up-action
-           ?deliver-robot-location ?deliver-place-action)
+                                 ?deliver-robot-location ?deliver-place-action)
           4
           #'pr2-proj-reasoning:pick-best-parameters-by-distance
 
@@ -476,8 +520,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                        (object ?perceived-object-designator)
                                        (robot-location ?fetch-robot-location)
                                        (pick-up-action ?fetch-pick-up-action)))))
-          (roslisp:ros-info (pp-plans transport) "Fetched the object.")
 
+          (roslisp:ros-info (pp-plans transport) "Fetched the object.")
           (cpl:with-failure-handling
               ((common-fail:object-undeliverable (e)
                  (declare (ignore e))
@@ -488,4 +532,9 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                    (object ?fetched-object)
                                    (target ?delivering-location)
                                    (robot-location ?deliver-robot-location)
-                                   (place-action ?deliver-place-action)))))))))
+                                   (place-action ?deliver-place-action))))))))
+
+  (unless search-location-accessible
+    (exe:perform (desig:an action
+                           (type sealing)
+                           (location ?search-location)))))
