@@ -56,22 +56,10 @@
 ;;; TESTING
 
 (defun get-container-desig (&optional (?name 'sink_area_left_upper_drawer_main))
-  (let* ((name-str (roslisp-utilities:rosify-underscores-lisp-name ?name))
-         (urdf-pose (pr2-em::get-urdf-link-pose name-str)))
-    (let* ((?pose (cl-tf:transform-pose-stamped
-                   cram-tf:*transformer*
-                   :target-frame "base_footprint"
-                   :pose (cl-tf:pose->pose-stamped "map" 0 urdf-pose)))
-           (?transform (cl-tf:make-transform-stamped "base_footprint" name-str
-                                                     (cl-tf:stamp ?pose)
-                                                     (cl-tf:origin ?pose)
-                                                     (cl-tf:orientation ?pose))))
-      (an object
-          (type container)
-          (urdf-name ?name)
-          (part-of kitchen)
-          ;;(pose ((pose ?pose) (transform ?transform)))
-          ))))
+  (an object
+      (type container)
+      (urdf-name ?name)
+      (part-of kitchen)))
 
 (defun get-opening-desig (&optional (?name 'sink_area_left_upper_drawer_main))
   (let ((?object (get-container-desig ?name)))
@@ -97,7 +85,7 @@
                         (a location
                            (reachable-for pr2)
                            (arm ?arm)
-                           (container ?object)))))
+                           (object ?object)))))
       (setf ?object (get-container-desig container-name))
       (exe:perform (an action (type opening) (object ?object) (arm ?arm)))
       (setf ?object (get-container-desig container-name))
@@ -125,7 +113,7 @@
                             (a location
                                (reachable-for pr2)
                                (arm ?arm)
-                               (container ?object)))))
+                               (object ?object)))))
           (setf ?object (get-container-desig c))
           (exe:perform (an action
                            (type opening)
@@ -160,4 +148,4 @@
        (a location
           (reachable-for pr2)
           (arm :left)
-          (container ?object))))))
+          (object ?object))))))
