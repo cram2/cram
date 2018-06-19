@@ -87,9 +87,10 @@
                            (arm ?arm)
                            (object ?object)))))
       (setf ?object (get-container-desig container-name))
-      (exe:perform (an action (type opening) (object ?object) (arm ?arm)))
+      (exe:perform (an action (type opening) (object ?object) (arm ?arm) (distance 0.3)))
       (setf ?object (get-container-desig container-name))
-      (exe:perform (an action (type closing) (object ?object) (arm ?arm))))))
+      (exe:perform (an action (type closing) (object ?object) (arm ?arm) (distance 0.3)))
+      )))
 
 (defun test-elaborate ()
   (dolist (c
