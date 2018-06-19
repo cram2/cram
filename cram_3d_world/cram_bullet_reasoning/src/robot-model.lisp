@@ -221,7 +221,9 @@ of the object should _not_ be updated."
 (defmethod initialize-instance :after ((robot-object robot-object)
                                        &key color name pose
                                          (collision-group :character-filter)
-                                         (collision-mask '(:default-filter :static-filter)))
+                                         (collision-mask '(:default-filter
+                                                           :static-filter
+                                                           :character-filter)))
   (with-slots (rigid-bodies links urdf pose-reference-body) robot-object
     (labels ((make-link-bodies (pose link)
                "Returns the list of rigid bodies of `link' and all its sub-links"
