@@ -30,6 +30,10 @@
 (in-package :kr-pp)
 
 (def-fact-group object-type-hierarchy (obj-int:object-type-direct-subtype)
-  (<- (obj-int:object-type-direct-subtype :container :drawer))
-  (<- (obj-int:object-type-direct-subtype :container :refrigerator))
-  (<- (obj-int:object-type-direct-subtype :refrigerator :fridge)))
+  (<- (obj-int:object-type-direct-subtype :container :container-prismatic))
+  (<- (obj-int:object-type-direct-subtype :container :container-revolute))
+
+  (<- (obj-int:object-type-direct-subtype :container-prismatic :drawer))
+
+  (<- (obj-int:object-type-direct-subtype :container-revolute :fridge))
+  (<- (obj-int:object-type-direct-subtype :container-revolute :oven)))

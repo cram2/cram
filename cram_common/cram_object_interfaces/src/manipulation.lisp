@@ -193,7 +193,10 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                (:left cram-tf:*robot-left-tool-frame*)
                (:right cram-tf:*robot-right-tool-frame*)))
            (object-to-standard-gripper-transform ; oTg'
-             (get-object-type-to-gripper-transform object-type object-name arm grasp))
+             (get-object-type-to-gripper-transform
+              (find-most-specific-type-for-generic
+               #'get-object-type-to-gripper-transform object-type)
+              object-name arm grasp))
            (object-to-standard-gripper-pregrasp-transform ; oTg'
              (get-object-type-to-gripper-pregrasp-transform
               object-type object-name arm grasp
@@ -269,3 +272,28 @@ Gripper is defined by a convention where Z is pointing towards the object.")
 ;; todo: object-type-grasp should be calculated based on *grasps*
 ;; it should also have an additional argument ARM
 
+(defun make-specifier-list (generic object-type)
+  (cons
+   `(eql ,object-type)
+   (make-list
+    (- (length (sb-pcl:generic-function-lambda-list generic)) 1)
+    :initial-element t)))
+
+(defun probe (generic object-type)
+  (find-method generic
+               '()
+               (make-specifier-list generic object-type)
+               nil))
+
+(defun get-direct-supertypes (object-type)
+  (mapcar
+   (lambda (x) (cut:with-vars-bound (?super) x ?super))
+   (cut:force-ll
+    (prolog:prolog `(object-type-direct-subtype ?super ,object-type)))))
+
+(defun find-most-specific-type-for-generic (generic object-type)
+  (if (probe generic object-type)
+      object-type
+      (car (mapcar
+            (alexandria:curry #'find-most-specific-type-for-generic generic)
+            (get-direct-supertypes object-type)))))
