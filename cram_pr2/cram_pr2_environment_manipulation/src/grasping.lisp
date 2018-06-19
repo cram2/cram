@@ -31,7 +31,7 @@
 
 ;;; OBJECT-INTERFACE METHODS
 
-(defparameter *drawer-handle-grasp-x-offset* 0.0 "in meters")
+(defparameter *drawer-handle-grasp-x-offset* -0.02 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
 (defparameter *drawer-handle-lift-x-offset* 0.30 "in meters")
 (defparameter *drawer-handle-2nd-lift-x-offset* (+ *drawer-handle-lift-x-offset*
@@ -43,30 +43,32 @@
 
 ;; Might be necessary to find out what kind of handle we are dealing with.
 ;; But we could also just open wide and be done with it.
-(defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container)))
-  0.09)
+(defmethod obj-int:get-object-type-gripper-opening ((object-type (eql :container))) 0.10)
 
 ;; Find out where the handle is and calculate the transform from there.
 (defmethod obj-int:get-object-type-to-gripper-transform ((object-type (eql :container))
                                                          object-name
                                                          arm
                                                          grasp)
-  (let* ((object-name
+  (let* ((btr-environment
+           ;; This is a workaround due to the limitations of the grasping API.
+           (btr:name (get-current-environment)))
+         (object-name
            (roslisp-utilities:rosify-underscores-lisp-name object-name))
          (handle-name
-           (cl-urdf:name (get-handle-link object-name)))
+           (cl-urdf:name (get-handle-link object-name btr-environment)))
          (handle-tf
            (cl-transforms-stamped:transform->transform-stamped
             cram-tf:*fixed-frame*
             handle-name
             0
-            (cl-transforms:pose->transform (get-urdf-link-pose handle-name))))
+            (cl-transforms:pose->transform (get-urdf-link-pose handle-name btr-environment))))
          (container-tf
            (cl-transforms-stamped:transform->transform-stamped
             cram-tf:*fixed-frame*
             object-name
             0
-            (cl-transforms:pose->transform (get-urdf-link-pose object-name))))
+            (cl-transforms:pose->transform (get-urdf-link-pose object-name btr-environment))))
          (tool-frame
            (ecase arm
              (:left cram-tf:*robot-left-tool-frame*)

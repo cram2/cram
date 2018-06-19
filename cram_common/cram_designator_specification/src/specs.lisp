@@ -109,7 +109,7 @@
 
   (<- (property ?designator (?keyword-or-list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?keyword-or-list-key (:gripper :arm :direction :grasp :camera))
+    (member ?keyword-or-list-key (:gripper :arm :direction :grasp :camera :type))
     (property-member (?keyword-or-list-key ?value) ?designator)
     (assert-type ?value (or keyword list) "ACTION SPEC:PROPERTY"))
 
@@ -138,9 +138,9 @@
     (property-member (:pose ?pose-stamped) ?designator)
     (assert-type ?pose-stamped cl-transforms-stamped:pose-stamped "LOCATION SPEC:PROPERTY"))
 
-  (<- (property ?designator (:container ?value))
+  (<- (property ?designator (:object ?value))
     (lisp-pred typep ?designator desig:location-designator)
-    (property-member (:container ?value) ?designator)
+    (property-member (:object ?value) ?designator)
     (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
 
   (<- (property ?designator (?keyword-key ?value))

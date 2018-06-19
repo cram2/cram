@@ -32,4 +32,8 @@
 (define-condition ptu-low-level-failure (low-level-failure)
   ((target :initarg :location :initform nil :reader ptu-failure-target)))
 
-(define-condition ptu-goal-unreachable (ptu-low-level-failure) ())
+(define-condition ptu-goal-unreachable (ptu-low-level-failure) ()
+  (:documentation "When calculated that goal cannot be reached."))
+(define-condition ptu-goal-not-reached (ptu-low-level-failure) ()
+  (:documentation "When PTU action was called but when it returned goal
+was still not reached."))

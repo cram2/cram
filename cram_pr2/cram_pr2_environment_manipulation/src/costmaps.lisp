@@ -29,30 +29,37 @@
 
 (in-package :pr2-em)
 
-(defun get-drawer-min-max-pose (container-desig)
+(defun get-drawer-min-max-pose (container-name btr-environment)
   (let* ((handle-link
            (get-handle-link
-            (desig:desig-prop-value container-desig :urdf-name)))
+            container-name
+            btr-environment))
          (neutral-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            0 :relative T))
+            0
+            btr-environment
+            :relative T))
          (manipulated-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            1 :relative T)))
+            1
+            btr-environment
+            :relative T)))
     (list neutral-handle-pose manipulated-handle-pose)))
 
-(defun get-aabb (container-name)
+(defun get-aabb (container-name btr-environment)
   (btr:aabb
    (btr:rigid-body
-    (btr:object btr:*current-bullet-world* :kitchen)
-    (btr::make-rigid-body-name "KITCHEN" container-name))))
+    (btr:object btr:*current-bullet-world* btr-environment)
+    (btr::make-rigid-body-name
+     (string-upcase btr-environment)
+     (roslisp-utilities:rosify-underscores-lisp-name container-name)))))
 
-(defun get-width (container-name direction)
+(defun get-width (container-name direction btr-environment)
   "Return the width of the container with name `container-name',
 appropriate for the joint `direction' given."
-  (let ((dimensions (cl-bullet:bounding-box-dimensions (get-aabb container-name)))
+  (let ((dimensions (cl-bullet:bounding-box-dimensions (get-aabb container-name btr-environment)))
         (norm-direction (cl-transforms:normalize-vector direction)))
     (if (> (abs (cl-transforms:x norm-direction))
            (abs (cl-transforms:y norm-direction)))
@@ -61,22 +68,24 @@ appropriate for the joint `direction' given."
 
 ;; NOTE(cpo): It might be useful to pass this the desired position
 ;; and calculate the current one to make the costmap more precise.
-(defun make-opened-drawer-cost-function (?container-desig &optional (padding 0.2))
-  "Resolve the relation according to the poses of the handle of `container-desig'
+(defun make-opened-drawer-cost-function (container-name btr-environment &optional (padding 0.2))
+  "Resolve the relation according to the poses of the handle of `container-name'
 in neutral and manipulated form."
-  (let* ((container-name
-           (string-downcase
-            (desig:desig-prop-value ?container-desig :urdf-name)))
-         (handle-link
-           (get-handle-link container-name))
+  (let* ((handle-link
+           (get-handle-link container-name
+                            btr-environment))
          (handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            0 :relative T))
+            0
+            btr-environment
+            :relative T))
          (manipulated-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            1 :relative T))
+            1
+            btr-environment
+            :relative T))
          (neutral-point
            (cl-transforms:make-3d-vector
             (cl-transforms:x (cl-transforms:origin handle-pose))
@@ -90,34 +99,39 @@ in neutral and manipulated form."
          (V
            (cl-transforms:v- manipulated-point neutral-point))
          (width
-           (get-width container-name V)))
+           (get-width container-name V btr-environment)))
     (lambda (x y)
       (multiple-value-bind (a b c)
           (line-equation-in-xy neutral-point manipulated-point)
         (let* ((P (cl-transforms:make-3d-vector x y 0))
                (dist (line-p-dist a b c P))
-               (dist-p (line-p-dist-point a b c P)))
+               ;;(dist-p (line-p-dist-point a b c P))
+               )
           (if (and
                (< dist (+ (/ width 2) padding))
-               (< (cl-transforms:v-norm (cl-transforms:v- dist-p neutral-point))
-                  (+ (cl-transforms:v-norm V) padding)))
+               ;; Commenting this out for now, so there won't be poses in front of the drawer.
+               ;;(< (cl-transforms:v-norm (cl-transforms:v- dist-p neutral-point))
+               ;;   (+ (cl-transforms:v-norm V) padding))
+               )
               0
               1))))))
 
-(defun make-opened-drawer-side-cost-function (?container-desig arm)
-  (let* ((container-name
-           (string-downcase
-            (desig:desig-prop-value ?container-desig :urdf-name)))
-         (handle-link
-           (get-handle-link container-name))
+(defun make-opened-drawer-side-cost-function (container-name arm btr-environment)
+  (let* ((handle-link
+           (get-handle-link container-name
+                            btr-environment))
          (handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            0 :relative T))
+            0
+            btr-environment
+            :relative T))
          (manipulated-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            1 :relative T))
+            1
+            btr-environment
+            :relative T))
          (neutral-point
            (cl-transforms:make-3d-vector
             (cl-transforms:x (cl-transforms:origin handle-pose))
@@ -142,6 +156,30 @@ in neutral and manipulated form."
                 1.0
                 0.0))))))
 
+(defun point-to-point-direction (x y pos1 pos2)
+  "Takes an X and Y coordinate, but ignores them, and returns a quaternion
+to face from `pos1' towards `pos2'."
+  (declare (ignore x y))
+  (let* ((point1 (etypecase pos1
+                   (cl-transforms:pose (cl-transforms:origin pos1))
+                   (cl-transforms:3d-vector pos1)))
+         (point2 (etypecase pos2
+                   (cl-transforms:pose (cl-transforms:origin pos2))
+                   (cl-transforms:3d-vector pos2)))
+         (p-rel (cl-transforms:v- point2 point1)))
+    (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))
+
+(defun make-point-to-point-generator (pos1 pos2 &key (samples 1) sample-step)
+  "Returns a function that takes an X and Y coordinate and returns a lazy-list of
+quaternions to face from `pos1' to `pos2'."
+  (location-costmap:make-orientation-generator
+   (alexandria:rcurry
+    #'point-to-point-direction
+    pos1
+    pos2)
+   :samples samples
+   :sample-step sample-step))
+
 (defmethod costmap:costmap-generator-name->score
     ((name (eql 'poses-reachable-cost-function))) 10)
 
@@ -157,13 +195,15 @@ in neutral and manipulated form."
 (def-fact-group environment-manipulation-costmap (costmap:desig-costmap)
   (<- (costmap:desig-costmap ?designator ?costmap)
     (cram-robot-interfaces:reachability-designator ?designator)
-    (spec:property ?designator (:container ?container-designator))
-    (spec:property ?container-designator (:type :container))
+    (spec:property ?designator (:object ?container-designator))
+    (spec:property ?container-designator (:type ?container-type))
+    (obj-int:object-type-subtype :container ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
+    (spec:property ?container-designator (:part-of ?btr-environment))
     (spec:property ?designator (:arm ?arm))
     (costmap:costmap ?costmap)
     ;; reachability gaussian costmap
-    (lisp-fun get-drawer-min-max-pose ?container-designator ?poses)
+    (lisp-fun get-drawer-min-max-pose ?container-name ?btr-environment ?poses)
     (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
     (costmap:costmap-add-function
      container-handle-reachable-cost-function
@@ -173,16 +213,23 @@ in neutral and manipulated form."
     (costmap:costmap-reach-minimal-distance ?padding)
     (costmap:costmap-add-function
      opened-drawer-cost-function
-     (make-opened-drawer-cost-function ?container-designator ?padding)
+     (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
      ?costmap)
     ;; cutting out for specific arm costmap
     (costmap:costmap-add-function
      opened-drawer-side-cost-function
-     (make-opened-drawer-side-cost-function ?container-designator ?arm)
+     (make-opened-drawer-side-cost-function ?container-name ?arm ?btr-environment)
      ?costmap)
     ;; orientation generator
+    ;; generate an orientation opposite to the axis of the drawer
+    (equal ?poses (?pose1 ?pose2))
     (costmap:orientation-samples ?samples)
     (costmap:orientation-sample-step ?sample-step)
     (costmap:costmap-add-orientation-generator
-     (costmap:make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
-     ?costmap)))
+     (make-point-to-point-generator
+      ?pose2
+      ?pose1
+      :samples ?samples
+      :sample-step ?sample-step)
+     ?costmap)
+    ))
