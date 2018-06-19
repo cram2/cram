@@ -60,7 +60,7 @@
                cram-btr-visibility-costmap
                cram-btr-spatial-relations-costmap
 
-               cram-semantic-map-costmap
+               ;; cram-semantic-map-costmap
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap

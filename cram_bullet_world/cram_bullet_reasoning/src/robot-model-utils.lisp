@@ -176,5 +176,8 @@ Should it be taken out and made PR2-specific?"
                    (find-objects-in-contact *current-bullet-world* robot-object)))
          (attached-object-names
            (mapcar #'car
-                   (attached-objects robot-object))))
-    (set-difference colliding-object-names attached-object-names)))
+                   (attached-objects robot-object)))
+         (robot-object-name-list
+           (list (name robot-object))))
+    (reduce #'set-difference
+            (list colliding-object-names attached-object-names robot-object-name-list))))
