@@ -346,6 +346,9 @@ of the object should _not_ be updated."
                                                  :key #'car))))))))))
 
 (defun update-link-poses (robot-object link pose)
+  (declare (type cl-urdf:link link)
+           (type robot-object robot-object)
+           (type (or cl-transforms:transform cl-transforms:pose) pose))
   "Updates the pose of `link' and all its children according to
 current joint states"
   (let ((links (links robot-object))
@@ -539,11 +542,19 @@ current joint states"
             (t nil)))))
 
 (defmethod (setf link-pose) (new-value (obj robot-object) name)
+  (declare (type cl-transforms:pose new-value)
+           (type string name))
+  "Gets the `name' of the link and sets its new pose.
+`new-value' is a pose in map frame.
+Updates poses of links in the bullet world and sets the new joint angle of the parent of link.
+Only one joint state changes in this situation, so only one joint state is updated."
   (with-slots (urdf) obj
     (let* ((links (links obj))
            (link (gethash name (cl-urdf:links urdf)))
            (body (gethash name links)))
-      ;; Should we throw an error here?
+      ;; `link' is a cl-urdf object, `body' is a bullet rigid body
+      ;; only uses `body' to check if it exists, otherwise setting pose is impossible
+      ;; Note(Lorenz): Should we throw an error here?
       (when body
         (update-link-poses obj link new-value)
         (let ((joint (cl-urdf:from-joint link)))
@@ -552,10 +563,13 @@ current joint states"
                   (calculate-joint-state obj (cl-urdf:name joint)))))))))
 
 (defmethod pose ((obj robot-object))
+  "Gives the pose of root link rigid body"
   (with-slots (urdf) obj
     (link-pose obj (cl-urdf:name (cl-urdf:root-link urdf)))))
 
 (defmethod (setf pose) (new-value (obj robot-object))
+  (declare (type cl-transforms:pose new-value))
+  "Uses (SETF LINK-POSE) to set the pose of root link and recursively all children"
   (with-slots (urdf) obj
     (setf (link-pose obj (cl-urdf:name (cl-urdf:root-link urdf)))
           new-value)))
