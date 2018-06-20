@@ -60,6 +60,8 @@
 
   (setf cram-tf:*tf-broadcasting-enabled* t)
 
+  (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+
   ;; (setf ccl::*is-logging-enabled* nil)
   ;; (setf ccl::*host* "'https://192.168.100.172'")
   ;; (setf ccl::*cert-path* "'/home/ease/openease-certificates/sebastian4.pem'")
