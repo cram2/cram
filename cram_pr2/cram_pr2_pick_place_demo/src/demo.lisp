@@ -40,6 +40,9 @@
     ;; (:bowl . "edeka_red_bowl")
     ))
 
+(defparameter *object-colors*
+  '((:spoon . "blue")))
+
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
        (rs:robosherlock-perception-pm
@@ -75,6 +78,9 @@
                                     (list-of-objects '(:bowl :spoon :cup :milk :breakfast-cereal)))
   (btr:detach-all-objects (btr:get-robot-object))
   (btr-utils:kill-all-objects)
+  (setf (btr:joint-state (btr:object btr:*current-bullet-world* :kitchen)
+                         "sink_area_left_upper_drawer_main_joint")
+        0.0)
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
@@ -95,29 +101,36 @@
                                            (on (desig:an object
                                                          (type counter-top)
                                                          (urdf-name sink-area-surface)
+                                                         (owl-name
+                                                          "kitchen_sink_block_counter_top")
                                                          (part-of kitchen)))))
             (:cup . ,(desig:a location
                               (side left)
                               (on (desig:an object
                                             (type counter-top)
                                             (urdf-name sink-area-surface)
+                                            (owl-name "kitchen_sink_block_counter_top")
                                             (part-of kitchen)))))
             (:bowl . ,(desig:a location
                                (side left)
                                (on (desig:an object
                                              (type counter-top)
                                              (urdf-name sink-area-surface)
+                                             (owl-name "kitchen_sink_block_counter_top")
                                              (part-of kitchen)))))
             (:spoon . ,(desig:a location
                                 (in (desig:an object
                                               (type drawer)
                                               (urdf-name sink-area-left-upper-drawer-main)
+                                              (owl-name "drawer_sinkblock_upper_open")
                                               (part-of kitchen)))))
             (:milk . ,(desig:a location
                                (side left)
                                (on (desig:an object
                                              (type counter-top)
                                              (urdf-name sink-area-surface)
+                                             (owl-name "kitchen_sink_block_counter_top")
+                                             (owl-name "drawer_fridge_upper_interior")
                                              (part-of kitchen)))))))
         (object-placing-locations
           `((:breakfast-cereal . ,(desig:a location
@@ -147,32 +160,40 @@
                                (far-from (an object (type bowl)))
                                (for (an object (type milk))))))))
 
-    (dolist (?object-type list-of-objects)
-            (let* ((?cad-model
-                     (cdr (assoc ?object-type *object-cad-models*)))
-                   (?object-to-fetch
-                     (desig:an object
-                               (type ?object-type)
-                               (desig:when ?cad-model
-                                 (cad-model ?cad-model))))
-                   (?fetching-location
-                     (cdr (assoc ?object-type object-fetching-locations)))
-                   (?delivering-location
-                     (cdr (assoc ?object-type object-placing-locations)))
-                   (?arm-to-use
-                     (cdr (assoc ?object-type *object-grasping-arms*))))
+    ;; (an object
+    ;;     (obj-part "drawer_sinkblock_upper_handle"))
 
-              (cpl:with-failure-handling
-                  ((common-fail:high-level-failure (e)
-                     (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
-                     (return)))
-                (exe:perform
-                 (desig:an action
-                           (type transporting)
-                           (object ?object-to-fetch)
-                           ;; (arm ?arm-to-use)
-                           (location ?fetching-location)
-                           (target ?delivering-location)))))))
+    (dolist (?object-type list-of-objects)
+      (let* ((?fetching-location
+               (cdr (assoc ?object-type object-fetching-locations)))
+             (?delivering-location
+               (cdr (assoc ?object-type object-placing-locations)))
+             (?arm-to-use
+               (cdr (assoc ?object-type *object-grasping-arms*)))
+             (?cad-model
+               (cdr (assoc ?object-type *object-cad-models*)))
+             (?color
+               (cdr (assoc ?object-type *object-colors*)))
+             (?object-to-fetch
+               (desig:an object
+                         (type ?object-type)
+                         (location ?fetching-location)
+                         (desig:when ?cad-model
+                           (cad-model ?cad-model))
+                         (desig:when ?color
+                           (color ?color)))))
+
+        (cpl:with-failure-handling
+            ((common-fail:high-level-failure (e)
+               (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
+               (return)))
+          (exe:perform
+           (desig:an action
+                     (type transporting)
+                     (object ?object-to-fetch)
+                     ;; (arm ?arm-to-use)
+                     (location ?fetching-location)
+                     (target ?delivering-location)))))))
 
   (initialize-or-finalize)
 
