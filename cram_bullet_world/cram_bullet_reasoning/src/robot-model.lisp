@@ -78,7 +78,6 @@
             compound-shape)
           (make-ch-mesh-shape (car model))))))
 
-
 (defstruct collision-information
   rigid-body-name flags)
 
@@ -107,6 +106,19 @@ of the object should _not_ be updated."
                  :documentation "Pose that got passed in initially. It
                  is returned by the `pose' method if `reference-body'
                  is invalid.")
+   (collision-group :initarg :collision-group
+                    :initform :character-filter
+                    :reader collision-group
+                    :documentation "Contains the collision group of the robot.
+                    Defaults to :character-filter for PR2, should be set to
+                    :static-filter when used on the kitchen URDF.")
+   (collision-mask :initarg :collision-mask
+                    :initform '(:default-filter :static-filter)
+                    :reader collision-mask
+                    :documentation "List of filters, with whom the robot detects
+                    collisions with. Contains the :default-filter for regular objects
+                    and :static-filter for the kitchen. Swap to :character-filter if
+                    this objects is a kitchen.")
    (compound :initarg :compound
              :initform nil
              :reader compound
@@ -329,7 +341,10 @@ of the object should _not_ be updated."
      :attached-objects (copy-list (attached-objects obj)))))
 
 (defmethod add-object ((world bt-world) (type (eql :urdf)) name pose
-                       &key urdf (color '(0.8 0.8 0.8 1.0)) compound)
+                       &key urdf (color '(0.8 0.8 0.8 1.0))
+                         (collision-group :character-filter)
+                         (collision-mask  '(:default-filter :static-filter))
+                         compound)
   (make-instance 'robot-object
     :name name
     :world world
@@ -339,6 +354,8 @@ of the object should _not_ be updated."
             (string (handler-bind ((cl-urdf:urdf-type-not-supported #'muffle-warning))
                       (cl-urdf:parse-urdf urdf))))
     :color color
+    :collision-group collision-group
+    :collision-mask collision-mask
     :compound compound))
 
 (defun update-attached-object-poses (robot-object link pose)
