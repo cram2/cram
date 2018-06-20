@@ -50,22 +50,19 @@
 
 (defun update-bullet-transforms (&optional (broadcaster cram-tf:*broadcaster*))
   (when cram-tf:*tf-broadcasting-enabled*
-    (dolist (transform (get-transforms-from-bullet))
-      (cram-tf:add-transform broadcaster transform))
+    ;; put robot TF in the broadcaster but only if in projection mode
+    (when cram-projection:*projection-environment*
+      (dolist (transform (get-transforms-from-bullet))
+        (cram-tf:add-transform broadcaster transform)))
+    ;; put bullet object coordinates in broadcaster
     (dolist (transform (get-bullet-object-transforms))
       (cram-tf:add-transform broadcaster transform))
     (cram-tf:publish-transforms broadcaster)))
 
 (defmethod cram-occasions-events:on-event
     update-broadcaster ((event cram-plan-occasions-events:robot-state-changed))
-  (when cram-tf:*tf-broadcasting-enabled*
-    ;; (eql cram-projection:*projection-environment*
-    ;;      'cram-pr2-projection::pr2-bullet-projection-environment)
-    (update-bullet-transforms)))
+  (update-bullet-transforms))
 
 (defmethod cram-occasions-events:on-event
     update-broadcaster ((event cpoe:object-perceived-event))
-  (when cram-tf:*tf-broadcasting-enabled*
-    ;; (eql cram-projection:*projection-environment*
-    ;;      'cram-pr2-projection::pr2-bullet-projection-environment)
-    (update-bullet-transforms)))
+  (update-bullet-transforms))

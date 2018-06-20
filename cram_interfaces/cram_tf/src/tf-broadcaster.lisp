@@ -72,13 +72,14 @@
   (:method ((broadcaster tf-broadcaster))
     (with-slots (transforms mutex publisher) broadcaster
       (sb-thread:with-mutex (mutex)
-        (let* ((transform-list
-                 (loop for transform being the hash-values in transforms collect transform))
-               (tf-message
-                 (roslisp:make-message
-                  'tf2_msgs-msg:tfmessage
-                  :transforms (map 'vector #'cl-transforms-stamped:to-msg transform-list))))
-          (roslisp:publish publisher tf-message))))))
+        (let ((transform-list
+                (loop for transform being the hash-values in transforms collect transform)))
+          (when transform-list
+            (let ((tf-message
+                    (roslisp:make-message
+                     'tf2_msgs-msg:tfmessage
+                     :transforms (map 'vector #'cl-transforms-stamped:to-msg transform-list))))
+              (roslisp:publish publisher tf-message))))))))
 
 (defgeneric start-publishing-transforms (broadcaster)
   (:method ((broadcaster tf-broadcaster))

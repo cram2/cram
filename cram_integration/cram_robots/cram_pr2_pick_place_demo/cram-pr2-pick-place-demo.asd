@@ -57,11 +57,10 @@
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
-               cram-bullet-reasoning-designators
+               cram-btr-visibility-costmap
+               cram-btr-spatial-relations-costmap
 
-               cram-semantic-map-costmap
-               ; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
-               ; cram-bullet-reasoning-designators ; not using visibility cm or collision checks
+               ;; cram-semantic-map-costmap
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap
@@ -73,9 +72,8 @@
                cram-process-modules
                ;; cram-pr2-process-modules
                cram-pr2-fetch-deliver-plans
-
                ;; cram-pr2-cloud
-               )
+               cram-pr2-environment-manipulation)
 
   :components
   ((:module "src"

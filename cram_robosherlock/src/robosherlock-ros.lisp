@@ -32,7 +32,7 @@
 (defvar *robosherlock-service* nil
   "Persistent service client for querying RoboSherlock JSON interface.")
 
-(defparameter *robosherlock-service-name* "/RoboSherlock/json_query")
+(defparameter *robosherlock-service-name* "/RoboSherlock/query")
 
 (defun init-robosherlock-service ()
   "Initializes *robosherlock-service* ROS publisher"
@@ -42,7 +42,7 @@
       (setf *robosherlock-service*
             (make-instance 'roslisp:persistent-service
               :service-name *robosherlock-service-name*
-              :service-type 'iai_robosherlock_msgs-srv:rsqueryservice))
+              :service-type 'robosherlock_msgs-srv:rsqueryservice))
     (roslisp:ros-info (robosherlock-service) "Robosherlock service client created.")))
 
 (defun get-robosherlock-service ()
@@ -75,7 +75,7 @@
          (query-without-last-comma (string-right-trim '(#\, #\ ) query))
          (query-with-closing-bracket (concatenate 'string query-without-last-comma "}}")))
     (roslisp:make-request
-     iai_robosherlock_msgs-srv:rsqueryservice
+     robosherlock_msgs-srv:rsqueryservice
      :query query-with-closing-bracket)))
 
 (defun ensure-robosherlock-input-parameters (key-value-pairs-list quantifier)
@@ -92,7 +92,8 @@
                                  (string (string-downcase key)))))
                          ;; below are the only keys supported by RS at the moment
                          (if (or (string-equal key-string "type")
-                                 ;; (string-equal key-string "shape")
+                                 (string-equal key-string "shape")
+                                 (string-equal key-string "color")
                                  (string-equal key-string "cad-model"))
                              (list key-string
                                    (etypecase value ; RS is only case-sensitive on "TYPE"s
@@ -114,7 +115,7 @@
 
 (defun ensure-robosherlock-result (result quantifier)
   (unless result
-    (cpl:fail 'common-fail:low-level-failure :description "robosherlock didn't answer"))
+    (cpl:fail 'common-fail:perception-low-level-failure :description "robosherlock didn't answer"))
   (let ((number-of-objects (length result)))
     (when (< number-of-objects 1)
       (cpl:fail 'common-fail:perception-object-not-found :description "couldn't find the object"))
@@ -161,18 +162,22 @@
 (defun find-pose-in-camera-for-object (object-description)
   (let* ((estimator (which-estimator-for-object object-description))
          (all-pose-descriptions
-           (cdr (find :pose object-description :key #'car)))
+           (second (find :poses object-description :key #'car)))
          (pose-description-we-want
-           (find-if (lambda (pose-value-pair)
-                      (let ((source (second (find :source pose-value-pair :key #'car))))
-                        (eq source estimator)))
+           (find-if (lambda (source-pose-pair)
+                      (eq (car source-pose-pair) estimator)
+                      ;; (let ((source (second (find :source pose-value-pair :key #'car))))
+                      ;;   (eq source estimator))
+                      )
                     all-pose-descriptions)))
     (unless pose-description-we-want
       (cpl:fail 'common-fail:perception-low-level-failure
                 :description (format nil
                                      "Robosherlock object didn't have a POSE from estimator ~a."
                                      estimator)))
-    (second (find :pose pose-description-we-want :key #'car))))
+    (second pose-description-we-want
+            ;; (find :pose pose-description-we-want :key #'car)
+            )))
 
 (defun make-robosherlock-designator (rs-answer keyword-key-value-pairs-list)
   (when (and (find :type rs-answer :key #'car)
@@ -200,22 +205,26 @@
       (let* ((pose-stamped-in-camera
                (find-pose-in-camera-for-object combined-properties))
              (pose-stamped-in-base-frame
-               (cram-tf:ensure-pose-in-frame
-                pose-stamped-in-camera
-                cram-tf:*robot-base-frame*
-                :use-zero-time t))
+               (if cram-tf:*robot-base-frame*
+                   (cram-tf:ensure-pose-in-frame
+                    pose-stamped-in-camera
+                    cram-tf:*robot-base-frame*
+                    :use-zero-time t)
+                   pose-stamped-in-camera))
              (pose-stamped-in-map-frame
-               (cram-tf:ensure-pose-in-frame
-                pose-stamped-in-camera
-                cram-tf:*fixed-frame*
-                :use-zero-time t))
+               (if cram-tf:*fixed-frame*
+                   (cram-tf:ensure-pose-in-frame
+                    pose-stamped-in-camera
+                    cram-tf:*fixed-frame*
+                    :use-zero-time t)
+                   pose-stamped-in-camera))
              (transform-stamped-in-base-frame
                (cram-tf:pose-stamped->transform-stamped
                 pose-stamped-in-base-frame
                 name)))
 
         (let* ((properties-without-pose
-                 (remove :pose combined-properties :key #'car))
+                 (remove :poses combined-properties :key #'car))
                (output-properties
                  (append properties-without-pose
                          `((:pose ((:pose ,pose-stamped-in-base-frame)
@@ -234,12 +243,14 @@
 
 (defparameter *rs-result-debug* nil)
 (defparameter *rs-result-designator* nil)
+(defparameter *rs-query-debug* nil)
 (defun call-robosherlock-service (detect-or-inspect keyword-key-value-pairs-list
                                   &key (quantifier :all))
   (declare (type (or keyword number) quantifier))
   (multiple-value-bind (key-value-pairs-list quantifier)
       (ensure-robosherlock-input-parameters keyword-key-value-pairs-list quantifier)
 
+    (setf *rs-query-debug* key-value-pairs-list)
     (roslisp:with-fields (answer)
         (cpl:with-failure-handling
             (((or simple-error roslisp:service-call-error) (e)
@@ -266,4 +277,4 @@
         (setf *rs-result-designator* rs-result)
         rs-result))))
 
-;; rosservice call /RoboSherlock/json_query "query: '{\"detect\": {\"type\": \"Wheel\"}}'"
+;; rosservice call /RoboSherlock/query "query: '{\"detect\": {\"type\": \"Wheel\"}}'"

@@ -32,8 +32,8 @@
 (define-condition navigation-low-level-failure (low-level-failure)
   ((location :initarg :location :initform nil :reader navigation-failure-location)))
 
-(define-condition navigation-pose-unreachable (navigation-low-level-failure) ())
+(define-condition navigation-pose-unreachable (navigation-low-level-failure) ()
+  (:documentation "When calculated that navigation pose cannot be reached."))
 
-;; (define-condition location-not-reached-failure (navigation-failure) ())
-
-;; (define-condition location-reached-but-not-terminated (plan-failure) ())
+(define-condition navigation-goal-not-reached (navigation-low-level-failure) ()
+  (:documentation "When action tried to move base but ended up not reaching goal."))

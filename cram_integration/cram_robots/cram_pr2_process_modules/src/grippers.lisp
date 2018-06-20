@@ -36,8 +36,9 @@
       (cram-common-designators:move-gripper-joint
        (handler-case
            (pr2-ll:call-gripper-action which-gripper action-type :max-effort max-effort)
-         (common-fail:gripping-failed ()
-           (cpl:fail 'common-fail:gripping-failed :action action-designator)))))))
+         ;; (common-fail:gripper-low-level-failure ()
+         ;;   (cpl:fail 'common-fail:gripper-low-level-failure :action action-designator))
+         )))))
 
 ;;; Example:
 ;; (cram-process-modules:with-process-modules-running

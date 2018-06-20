@@ -38,4 +38,5 @@
     :components
     ((:file "package")
      (:file "general-knowledge" :depends-on ("package"))
-     (:file "arms" :depends-on ("package"))))))
+     (:file "arms" :depends-on ("package"))
+     (:file "neck" :depends-on ("package"))))))
