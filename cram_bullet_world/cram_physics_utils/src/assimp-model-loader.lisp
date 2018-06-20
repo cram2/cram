@@ -38,6 +38,10 @@
   vertices
   faces)
 
+(defstruct compound-3d-model
+  (models '() :type list))
+
+
 (define-condition 3d-model-import-error (simple-error) ())
 
 (defun ai-vector-3d->3d-vector (ai-vector-plist)
@@ -185,9 +189,10 @@
 
 (defun load-3d-model (filename &key
                       flip-winding-order
-                      (remove-identical-vertices t) (fix-normals t))
+                      (remove-identical-vertices t) (fix-normals t) (compound nil))
   "Loads the mesh with index `mesh-index' from the file named
-`filename' and returns an instance of type 3D-MODEL."
+  `filename' and returns an instance of type 3D-MODEL. If `compound' is T, the single
+  meshes are returned as multiple-values-list."
   (let ((scene nil))
     (unwind-protect
          (progn
@@ -208,18 +213,22 @@
            (unless (> (foreign-slot-value scene '(:struct ai-scene) 'num-meshes) 0)
              (error '3d-model-import-error
                     :format-control "The file does not contain any meshes."))
-           (let ((mesh (build-model-mesh scene :fix-normals fix-normals)))
-             (if remove-identical-vertices
-                 (make-3d-model
-                  :vertices (remove-identical-vertices (3d-model-vertices mesh))
-                  :faces (3d-model-faces mesh))
-                 mesh)))
+           (let ((meshes (multiple-value-list
+                        (build-model-mesh scene :fix-normals fix-normals :compound compound))))
+             (values-list
+              (if remove-identical-vertices
+                  (mapcar
+                   (lambda (mesh) (make-3d-model
+                                   :vertices (remove-identical-vertices (3d-model-vertices mesh))
+                                   :faces (3d-model-faces mesh))) meshes)
+                  meshes))))
       (when scene
         (ai-release-import scene)))))
 
-(defun build-model-mesh (scene &key (fix-normals t))
+(defun build-model-mesh (scene &key (fix-normals t) (compound nil))
   "Recursively traverses all scene nodes and builds a single mesh file
-  from it."
+  from it, unless `compound' is T, in which case they are returned as
+  values-list of 3d-models."
   (labels ((insert-node (ai-node meshes parent-transformation 3d-model)
              (let ((node-transformation
                      ;; Assimp's root node transformation might do
@@ -234,44 +243,54 @@
                           (ai-matrix4x4->transform
                            (foreign-slot-value ai-node '(:struct ai-node)
                                                'transform))))))
-               (dotimes (i (foreign-slot-value ai-node '(:struct ai-node)
-                                               'num-meshes))
-                 (let ((mesh (aref meshes
-                                   (mem-aref
-                                    (foreign-slot-value ai-node '(:struct ai-node) 'meshes)
-                                    :unsigned-int i))))
-                   (when mesh
-                     (setf 3d-model (insert-mesh mesh 3d-model node-transformation)))))
-               (dotimes (i (foreign-slot-value ai-node '(:struct ai-node)
-                                               'num-children))
-                 (setf 3d-model
-                       (insert-node
-                        (mem-aref (foreign-slot-value ai-node '(:struct ai-node) 'children)
-                                  :pointer i)
-                        meshes node-transformation 3d-model)))
-               3d-model)))
+               (if compound
+                   (setf 3d-model
+                         (make-compound-3d-model
+                          :models
+                          (map 'list #'identity
+                               (get-meshes scene :post-process-vertex-index #'identity))))
+                   (progn (dotimes (i (foreign-slot-value ai-node '(:struct ai-node)
+                                                          'num-meshes))
+                            (let ((mesh (aref meshes
+                                              (mem-aref
+                                               (foreign-slot-value ai-node '(:struct ai-node) 'meshes)
+                                               :unsigned-int i))))
+                              (when mesh
+                                (setf 3d-model (insert-mesh mesh 3d-model node-transformation)))))
+                          (dotimes (i (foreign-slot-value ai-node '(:struct ai-node)
+                                                          'num-children))
+                            (setf 3d-model
+                                  (insert-node
+                                   (mem-aref (foreign-slot-value ai-node '(:struct ai-node) 'children)
+                                             :pointer i)
+                                   meshes node-transformation 3d-model))))))
+               3d-model))
     (let ((result (insert-node
                    (foreign-slot-value scene '(:struct ai-scene) 'root-node)
                    (get-meshes scene :post-process-vertex-index #'identity)
                    (cl-transforms:make-identity-transform)
-                   (make-3d-model
-                    :vertices #()
-                    :faces #()))))
-      (make-3d-model
-       :vertices (3d-model-vertices result)
-       :faces (map 'vector
-                   (lambda (face)
-                     (let ((new-face
-                             (make-face
-                              :points (mapcar (lambda (index)
-                                                (aref (3d-model-vertices result)
-                                                      index))
-                                              (face-points face))
-                              :normals (face-normals face))))
-                       (if fix-normals
-                           (fix-face-normals new-face)
-                           face)))
-                   (3d-model-faces result))))))
+                   (if compound
+                       (make-compound-3d-model)
+                       (make-3d-model :vertices #() :faces #())))))
+      (flet ((make-faces (vertices-model)
+               (make-3d-model
+                :vertices (3d-model-vertices vertices-model)
+                :faces (map 'vector
+                            (lambda (face)
+                              (let ((new-face
+                                      (make-face
+                                       :points (mapcar (lambda (index)
+                                                         (aref (3d-model-vertices vertices-model)
+                                                               index))
+                                                       (face-points face))
+                                       :normals (face-normals face))))
+                                (if fix-normals
+                                    (fix-face-normals new-face)
+                                    face)))
+                            (3d-model-faces vertices-model)))))
+        (if compound
+            (values-list (mapcar #'make-faces (compound-3d-model-models result)))
+            (make-faces result))))))
 
 (defun insert-mesh (3d-model destination-3d-model transform)
   "Inserts `3d-model' into `destination-3d-model' at `transform'. All
