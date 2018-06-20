@@ -30,9 +30,11 @@
 (in-package :pr2-em)
 
 (defun get-current-environment ()
-  (find 'btr::urdf-semantic-map-object
-        (btr:objects btr:*current-bullet-world*)
-        :key #'type-of))
+  (btr:object btr:*current-bullet-world* :kitchen)
+  ;; (find 'btr::urdf-semantic-map-object
+  ;;       (btr:objects btr:*current-bullet-world*)
+  ;;       :key #'type-of)
+  )
 
 (defun get-urdf-link-pose (name btr-environment)
   (btr:pose

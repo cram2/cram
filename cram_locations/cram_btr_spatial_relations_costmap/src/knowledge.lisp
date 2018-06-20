@@ -83,6 +83,7 @@
   (<- (object-type-padding-size :knife 0.005d0))
   (<- (object-type-padding-size :pancake-maker 0.018d0))
   (<- (object-type-padding-size :spatula 0.01d0))
+  (<- (object-type-padding-size :cup 0.1d0))
   ;;
   (<- (padding-size ?world ?object-name ?padding)
     (btr:item-type ?world ?object-name ?object-type)
@@ -103,6 +104,7 @@
   (<- (object-type-costmap-threshold :fork 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold :spoon 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold :knife 0.8d0)) ; 0.99d0))
+  (<- (object-type-costmap-threshold :cup 0.8d0)) ; 0.99d0))
   ;;
   (<- (object-costmap-threshold ?world ?object-name ?threshold)
     (btr:item-type ?world ?object-name ?object-type)
@@ -111,7 +113,7 @@
         (equal ?threshold 0.2)))
 
   ;; table setting related
-  (<- (%paddings-list :kitchen-island-surface :table-setting (0.03d0 0.03d0 0.03d0 0.03d0)))
+  (<- (%paddings-list :kitchen-island-surface :table-setting (0.03d0 0.03d0 0.8d0 0.03d0)))
   (<- (%paddings-list :sink-area-surface :table-setting (0.03d0 0.03d0 0.03d0 0.03d0)))
   (<- (paddings-list ?environment-object-name :table-setting ?paddings-list)
     (setof ?object-name (%paddings-list ?object-name :table-setting ?_)

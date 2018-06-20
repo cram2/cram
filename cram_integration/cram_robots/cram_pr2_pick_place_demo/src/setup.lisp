@@ -48,7 +48,7 @@
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
 
-  (sem-map:get-semantic-map)
+  ;; (sem-map:get-semantic-map)
 
   (cram-occasions-events:clear-belief)
 

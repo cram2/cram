@@ -140,8 +140,11 @@
        (desig:object-identifier perceived-object)
        cpoe:opening-distance))))
 
+
+
 ;; TODO(cpo): Think about adding timeline advancement.
-;; TODO(cpo): Limit manipulation-distance to one axis. 
+;; TODO(cpo): Limit manipulation-distance to one axis.
+#+comment-out
 (let ((previous-tcp-pose))
   (labels ((get-current-tcp (event)
              (let ((arm (cpoe:environment-event-arm event)))
@@ -151,10 +154,7 @@
                  '?frame
                  (car (prolog:prolog
                        `(and (cram-robot-interfaces:robot ?robot)
-                             (cram-robot-interfaces:robot-tool-frame
-                              ?robot
-                              ,arm
-                              ?frame)))))
+                             (cram-robot-interfaces:robot-tool-frame ?robot ,arm ?frame)))))
                 cram-tf:*fixed-frame*)))
            (move-joint-by-event (event open-or-close)
                (let ((joint-name (cpoe:environment-event-joint-name event))
@@ -191,6 +191,34 @@
     (defmethod cram-occasions-events:on-event close-container
         ((event cpoe:container-closing-event))
       (move-joint-by-event event :close))))
+
+(defun move-joint-by-event (event open-or-close)
+  (let* ((joint-name (cpoe:environment-event-joint-name event))
+         (object (cpoe:environment-event-object event))
+         (distance (cpoe:environment-event-distance event))
+         (current-opening (gethash joint-name (btr:joint-states object)))
+         (new-joint-angle
+           (funcall
+            (case open-or-close
+              (:open #'+)
+              (:close #'-))
+            current-opening
+            distance)))
+    (format t "CURRENT JOINT : ~A~%~%SETTING TO ~A~%~%" current-opening new-joint-angle)
+    (btr:set-robot-state-from-joints
+     `((,joint-name
+        ,new-joint-angle))
+     object)))
+
+(defmethod cram-occasions-events:on-event open-container
+    ((event cpoe:container-opening-event))
+  (move-joint-by-event event :open))
+
+(defmethod cram-occasions-events:on-event close-container
+    ((event cpoe:container-closing-event))
+  (move-joint-by-event event :close))
+
+
 
 (defmethod cram-occasions-events:on-event object-perceived ((event cpoe:object-perceived-event))
   (if cram-projection:*projection-environment*

@@ -71,7 +71,7 @@ is replaced with replacement.
                     '((btr:debug-window ?w)))
                 (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
                                            :normal (0 0 1) :constant 0))
-                (btr:assert ?w (btr:object :semantic-map :kitchen ((0 0 0) (0 0 0 1))
+                (btr:assert ?w (btr:object ::urdf :kitchen ((0 0 0) (0 0 0 1))
                                            ,@(when kitchen
                                                `(:urdf ,kitchen))))
                 (-> (cram-robot-interfaces:robot ?robot)
