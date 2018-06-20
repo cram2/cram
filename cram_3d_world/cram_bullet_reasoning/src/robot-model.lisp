@@ -673,7 +673,7 @@ Only one joint state changes in this situation, so only one joint state is updat
   (let ((model (multiple-value-list
                 (physics-utils:load-3d-model (physics-utils:parse-uri (cl-urdf:filename mesh))
                                             :compound compound))))
-    (cond ((cl-urdf:scale mesh) 
+    (cond ((cl-urdf:scale mesh)
            (mapcar (lambda (model-part)
                      (physics-utils:scale-3d-model model-part (cl-urdf:scale mesh)))
                    model))
