@@ -144,7 +144,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
-          (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+          (error "Second pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp)))))
 
 (defgeneric get-object-type-to-gripper-lift-transform (object-type object-name
@@ -157,7 +157,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
-          (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+          (error "Lift transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp)))))
 
 (defgeneric get-object-type-to-gripper-2nd-lift-transform (object-type object-name
@@ -170,7 +170,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
-          (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+          (error "Second lift transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp)))))
 
 
@@ -197,21 +197,36 @@ Gripper is defined by a convention where Z is pointing towards the object.")
               (find-most-specific-type-for-generic
                #'get-object-type-to-gripper-transform object-type)
               object-name arm grasp))
+           (test
+             (get-object-type-to-gripper-2nd-pregrasp-transform
+              (find-most-specific-type-for-generic
+               #'get-object-type-to-gripper-2nd-pregrasp-transform object-type)
+              object-name arm grasp
+              object-to-standard-gripper-transform))
            (object-to-standard-gripper-pregrasp-transform ; oTg'
              (get-object-type-to-gripper-pregrasp-transform
-              object-type object-name arm grasp
+              (find-most-specific-type-for-generic
+               #'get-object-type-to-gripper-pregrasp-transform object-type)
+              object-name arm grasp
               object-to-standard-gripper-transform))
+           (test2 (print "test geht"))
            (object-to-standard-gripper-2nd-pregrasp-transform ; oTg'
              (get-object-type-to-gripper-2nd-pregrasp-transform
-              object-type object-name arm grasp
+              (find-most-specific-type-for-generic
+               #'get-object-type-to-gripper-2nd-pregrasp-transform object-type)
+              object-name arm grasp
               object-to-standard-gripper-transform))
            (object-to-standard-gripper-lift-transform ; oTg'
              (get-object-type-to-gripper-lift-transform
-              object-type object-name arm grasp
+              (find-most-specific-type-for-generic
+               #'get-object-type-to-gripper-lift-transform object-type)
+              object-name arm grasp
               object-to-standard-gripper-transform))
            (object-to-standard-gripper-2nd-lift-transform ; oTg'
              (get-object-type-to-gripper-2nd-lift-transform
-              object-type object-name arm grasp
+              (find-most-specific-type-for-generic
+               #'get-object-type-to-gripper-2nd-lift-transform object-type)
+              object-name arm grasp
               object-to-standard-gripper-transform))
            (standard-to-particular-gripper-transform ; g'Tg
              (cl-tf:transform->transform-stamped
@@ -272,18 +287,29 @@ Gripper is defined by a convention where Z is pointing towards the object.")
 ;; todo: object-type-grasp should be calculated based on *grasps*
 ;; it should also have an additional argument ARM
 
-(defun make-specifier-list (generic object-type)
-  (cons
-   `(eql ,object-type)
-   (make-list
-    (- (length (sb-pcl:generic-function-lambda-list generic)) 1)
-    :initial-element t)))
+;; (defun make-specifier-list (generic object-type)
+;;   (cons
+;;    `(eql ,object-type)
+;;    (make-list
+;;     (- (length (sb-pcl:generic-function-lambda-list generic)) 1)
+;;     :initial-element t)))
 
-(defun probe (generic object-type)
-  (find-method generic
-               '()
-               (make-specifier-list generic object-type)
-               nil))
+;; (defun probe (generic object-type)
+;;   (find-method generic
+;;                '()
+;;                (make-specifier-list generic object-type)
+;;                nil))
+
+(defun probe-sbcl (generic object-type)
+  (let ((gfms (sb-pcl:generic-function-methods generic)))
+    (find object-type gfms
+          :key (lambda (x)
+                 (car (sb-pcl:method-specializers x)))
+          :test (lambda (x y)
+                  (when (eql (type-of y) 'sb-mop:eql-specializer)
+                    (eql
+                     (sb-mop:eql-specializer-object y)
+                     x))))))
 
 (defun get-direct-supertypes (object-type)
   (mapcar
@@ -291,9 +317,12 @@ Gripper is defined by a convention where Z is pointing towards the object.")
    (cut:force-ll
     (prolog:prolog `(object-type-direct-subtype ?super ,object-type)))))
 
-(defun find-most-specific-type-for-generic (generic object-type)
-  (if (probe generic object-type)
-      object-type
+(defun find-most-specific-type-for-generic (generic object-type &rest args)
+  "Find the most specific method of `generic' based on `object-type' and the
+`args'."
+  (if (probe-sbcl generic object-type)
+      (progn
+        object-type)
       (car (mapcar
             (alexandria:curry #'find-most-specific-type-for-generic generic)
             (get-direct-supertypes object-type)))))
