@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,11 @@
 
 (in-package :common-fail)
 
-(define-condition navigation-low-level-failure (low-level-failure)
-  ((location :initarg :location :initform nil :reader navigation-failure-location)))
+(define-condition torso-low-level-failure (manipulation-low-level-failure)
+  ((torso :initarg :location :initform nil :reader torso-failure-target)))
 
-(define-condition navigation-pose-unreachable (navigation-low-level-failure) ()
-  (:documentation "When calculated that navigation pose cannot be reached."))
-
-(define-condition navigation-goal-not-reached (navigation-low-level-failure) ()
-  (:documentation "When action tried to move base but ended up not reaching goal."))
+(define-condition torso-goal-unreachable (torso-low-level-failure) ()
+  (:documentation "When calculated that goal cannot be reached."))
+(define-condition torso-goal-not-reached (torso-low-level-failure) ()
+  (:documentation "When torso action was called but when it returned goal
+was still not reached."))

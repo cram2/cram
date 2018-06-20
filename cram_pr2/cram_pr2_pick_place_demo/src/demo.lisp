@@ -35,65 +35,6 @@
                 (btr:ensure-pose pose-list))))
     (desig:a location (pose ?pose))))
 
-(defparameter *object-placing-locations*
-  `((:breakfast-cereal . ,(desig:a location
-                                   (left-of (an object (type bowl)))
-                                   (far-from (an object (type bowl)))
-                                   (for (an object (type breakfast-cereal)))))
-    (:cup . ,(desig:a location
-                      (right-of (an object (type spoon)))
-                      (behind (an object (type spoon)))
-                      (near (an object (type spoon)))
-                      (for (an object (type cup)))))
-    (:bowl . ,(desig:a location
-                       (on (desig:an object
-                                     (type counter-top)
-                                     (urdf-name kitchen-island-surface)
-                                     (part-of kitchen)))
-                       (context table-setting)
-                       (for (an object (type bowl)))
-                       (object-count 3)
-                       (side back)))
-    (:spoon . ,(desig:a location
-                        (right-of (an object (type bowl)))
-                        (near (an object (type bowl)))
-                        (for (an object (type spoon)))))
-    (:milk . ,(desig:a location
-                       (left-of (an object (type bowl)))
-                       (far-from (an object (type bowl)))
-                       (for (an object (type milk)))))))
-
-(defparameter *object-fetching-locations*
-  `((:breakfast-cereal . ,(desig:a location
-                                   ;; (side left)
-                                   (on (desig:an object
-                                                 (type counter-top)
-                                                 (urdf-name sink-area-surface)
-                                                 (part-of kitchen)))))
-    (:cup . ,(desig:a location
-                      ;; (side left)
-                      (on (desig:an object
-                                    (type counter-top)
-                                    (urdf-name sink-area-surface)
-                                    (part-of kitchen)))))
-    (:bowl . ,(desig:a location
-                       ;; (side left)
-                       (on (desig:an object
-                                     (type counter-top)
-                                     (urdf-name sink-area-surface)
-                                     (part-of kitchen)))))
-    (:spoon . ,(desig:a location
-                        (in (desig:an object
-                                      (type drawer)
-                                      (urdf-name sink-area-left-upper-drawer-main)
-                                      (part-of kitchen)))))
-    (:milk . ,(desig:a location
-                       ;; (side left)
-                       (on (desig:an object
-                                     (type counter-top)
-                                     (urdf-name sink-area-surface)
-                                     (part-of kitchen)))))))
-
 (defparameter *object-cad-models*
   '(;; (:cup . "cup_eco_orange")
     ;; (:bowl . "edeka_red_bowl")
@@ -135,6 +76,8 @@
   (btr:detach-all-objects (btr:get-robot-object))
   (btr-utils:kill-all-objects)
 
+  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
+
   ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
   (when (eql cram-projection:*projection-environment*
              'cram-pr2-projection::pr2-bullet-projection-environment)
@@ -146,32 +89,90 @@
 
   (initialize-or-finalize)
 
-  (dolist (?object-type list-of-objects)
-    (let* ((?cad-model
-             (cdr (assoc ?object-type *object-cad-models*)))
-           (?object-to-fetch
-             (desig:an object
-                       (type ?object-type)
-                       (desig:when ?cad-model
-                         (cad-model ?cad-model))))
-           (?fetching-location
-             (cdr (assoc ?object-type *object-fetching-locations*)))
-           (?delivering-location
-             (cdr (assoc ?object-type *object-placing-locations*)))
-           (?arm-to-use
-             (cdr (assoc ?object-type *object-grasping-arms*))))
+  (let ((object-fetching-locations
+          `((:breakfast-cereal . ,(desig:a location
+                                           (side left)
+                                           (on (desig:an object
+                                                         (type counter-top)
+                                                         (urdf-name sink-area-surface)
+                                                         (part-of kitchen)))))
+            (:cup . ,(desig:a location
+                              (side left)
+                              (on (desig:an object
+                                            (type counter-top)
+                                            (urdf-name sink-area-surface)
+                                            (part-of kitchen)))))
+            (:bowl . ,(desig:a location
+                               (side left)
+                               (on (desig:an object
+                                             (type counter-top)
+                                             (urdf-name sink-area-surface)
+                                             (part-of kitchen)))))
+            (:spoon . ,(desig:a location
+                                (in (desig:an object
+                                              (type drawer)
+                                              (urdf-name sink-area-left-upper-drawer-main)
+                                              (part-of kitchen)))))
+            (:milk . ,(desig:a location
+                               (side left)
+                               (on (desig:an object
+                                             (type counter-top)
+                                             (urdf-name sink-area-surface)
+                                             (part-of kitchen)))))))
+        (object-placing-locations
+          `((:breakfast-cereal . ,(desig:a location
+                                           (left-of (an object (type bowl)))
+                                           (far-from (an object (type bowl)))
+                                           (for (an object (type breakfast-cereal)))))
+            (:cup . ,(desig:a location
+                              (right-of (an object (type bowl)))
+                              ;; (behind (an object (type bowl)))
+                              (near (an object (type bowl)))
+                              (for (an object (type cup)))))
+            (:bowl . ,(desig:a location
+                               (on (desig:an object
+                                             (type counter-top)
+                                             (urdf-name kitchen-island-surface)
+                                             (part-of kitchen)))
+                               (context table-setting)
+                               (for (an object (type bowl)))
+                               (object-count 3)
+                               (side back)))
+            (:spoon . ,(desig:a location
+                                (right-of (an object (type bowl)))
+                                (near (an object (type bowl)))
+                                (for (an object (type spoon)))))
+            (:milk . ,(desig:a location
+                               (left-of (an object (type bowl)))
+                               (far-from (an object (type bowl)))
+                               (for (an object (type milk))))))))
 
-      (cpl:with-failure-handling
-          ((common-fail:high-level-failure (e)
-             (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
-             (return)))
-        (exe:perform
-         (desig:an action
-                   (type transporting)
-                   (object ?object-to-fetch)
-                   ;; (arm ?arm-to-use)
-                   (location ?fetching-location)
-                   (target ?delivering-location))))))
+    (dolist (?object-type list-of-objects)
+            (let* ((?cad-model
+                     (cdr (assoc ?object-type *object-cad-models*)))
+                   (?object-to-fetch
+                     (desig:an object
+                               (type ?object-type)
+                               (desig:when ?cad-model
+                                 (cad-model ?cad-model))))
+                   (?fetching-location
+                     (cdr (assoc ?object-type object-fetching-locations)))
+                   (?delivering-location
+                     (cdr (assoc ?object-type object-placing-locations)))
+                   (?arm-to-use
+                     (cdr (assoc ?object-type *object-grasping-arms*))))
+
+              (cpl:with-failure-handling
+                  ((common-fail:high-level-failure (e)
+                     (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
+                     (return)))
+                (exe:perform
+                 (desig:an action
+                           (type transporting)
+                           (object ?object-to-fetch)
+                           ;; (arm ?arm-to-use)
+                           (location ?fetching-location)
+                           (target ?delivering-location)))))))
 
   (initialize-or-finalize)
 

@@ -84,12 +84,11 @@
 (defun ensure-giskard-joint-goal-reached (status
                                           goal-configuration-left goal-configuration-right
                                           convergence-delta-joint)
-  (when (eql status :timeout)
-    (cpl:fail 'common-fail:actionlib-action-timed-out
-              :description "Giskard action timed out"))
   (when (eql status :preempted)
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
     (return-from ensure-giskard-joint-goal-reached))
+  (when (eql status :timeout)
+    (roslisp:ros-warn (pr2-ll giskard-joint) "Giskard action timed out."))
   (flet ((ensure-giskard-joint-arm-goal-reached (arm goal-configuration)
            (let ((configuration (get-arm-joint-states arm)))
              (unless (values-converged (normalize-joint-angles configuration)

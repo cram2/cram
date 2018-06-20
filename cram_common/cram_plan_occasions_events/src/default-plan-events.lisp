@@ -126,9 +126,15 @@
     :initarg :environment :reader environment-event-object
     :initform (error
                'simple-error
-               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an object."))))
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an object."))
+   (distance
+    :documentation "Joint angle distance to open or close container."
+    :initarg :distance :reader environment-event-distance
+    :initform (error
+               'simple-error
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a distance."))))
 
-(defclass container-handle-grasping-event (environment-manipulation-event) ())
+;; (defclass container-handle-grasping-event (environment-manipulation-event) ())
 
 (defclass container-opening-event (environment-manipulation-event) ())
 

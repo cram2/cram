@@ -29,6 +29,57 @@
 
 (in-package :pp-plans)
 
+(cpl:def-cram-function go-to-target (?location-designator)
+  (unwind-protect
+       (cpl:with-retry-counters ((nav-retries 0))
+         (cpl:with-failure-handling
+             ((common-fail:navigation-low-level-failure (e)
+                (roslisp:ros-warn (pick-and-place go)
+                                  "Some low-level failure happened: ~a"
+                                  e)
+                (cpl:do-retry nav-retries
+                  (roslisp:ros-warn (pick-and-place go) "Retrying...")
+                  (cpl:retry))))
+           (exe:perform
+            (desig:a motion (type going) (target ?location-designator)))))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
+
+(cpl:def-cram-function perceive (?object-designator
+                                 &key
+                                 (object-chosing-function #'identity))
+  (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
+                     1
+                     4)))
+    (cpl:with-retry-counters ((perceive-retries retries))
+      (cpl:with-failure-handling
+          ((common-fail:perception-low-level-failure (e)
+             (cpl:do-retry perceive-retries
+               (roslisp:ros-warn (pick-and-place perceive) "~a" e)
+               (cpl:retry))))
+        (let* ((resulting-designators
+                 (exe:perform
+                  (desig:a motion
+                           (type detecting)
+                           (object ?object-designator))))
+               (resulting-designator
+                 (funcall object-chosing-function resulting-designators)))
+          (if (listp resulting-designators)
+              (mapcar (lambda (desig)
+                        (cram-occasions-events:on-event
+                         (make-instance 'cram-plan-occasions-events:object-perceived-event
+                           :object-designator desig
+                           :perception-source :whatever)))
+                      resulting-designators)
+              (cram-occasions-events:on-event
+               (make-instance 'cram-plan-occasions-events:object-perceived-event
+                 :object-designator resulting-designators
+                 :perception-source :whatever)))
+          (desig:equate ?object-designator resulting-designator)
+          resulting-designator)))))
+
+
 (cpl:def-cram-function move-arms-in-sequence (left-poses right-poses)
   "Make `?left-poses' and `?right-poses' to lists if they are not already"
 
@@ -74,9 +125,7 @@
       (cpl:with-failure-handling
           ((common-fail:manipulation-low-level-failure (e)
              ;; propagate failures up
-             (roslisp:ros-error (pick-place move-arms-in-sequence) "~a~%Failing." e)
-             ;; (return)
-             ))
+             (roslisp:ros-error (pick-place move-arms-in-sequence) "~a~%Failing." e)))
 
         (exe:perform
          (desig:a motion
@@ -107,9 +156,8 @@
                                  ?robot ?joint-states ,arm)))))
                    (joint-states (cut:var-value '?joint-states (car bindings))))
               (unless joint-states
-                (cpl:fail 'common-fail:low-level-failure
-                          "ROBOT-ARMS-PARKING-JOINT-STATES undefined! ~
-                          Did you forget to load a robot description package?"))
+                (error "ROBOT-ARMS-PARKING-JOINT-STATES undefined! ~
+                        Did you forget to load a robot description package?"))
               (mapcar #'second joint-states))))
 
      (unless (listp arm)
@@ -153,7 +201,7 @@
 (cpl:def-cram-function release (?left-or-right)
   (unwind-protect
        (cpl:with-failure-handling
-           ((common-fail:low-level-failure (e) ; ignore failures
+           ((common-fail:gripper-low-level-failure (e) ; ignore failures
               (roslisp:ros-warn (pick-and-place release) "~a" e)
               (return)))
          (exe:perform
@@ -163,34 +211,15 @@
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
-
-(cpl:def-cram-function grip (?left-or-right ?effort)
-  (unwind-protect
-       (cpl:with-retry-counters ((grasping-retries 1))
-         (cpl:with-failure-handling
-             ((common-fail:low-level-failure (e) ; regrasp once then propagate up
-                (cpl:do-retry grasping-retries
-                  (roslisp:ros-warn (pick-and-place grip) "~a~%Retrying" e)
-                  (cpl:retry))
-                (roslisp:ros-warn (pick-and-place grip) "No retries left.")))
-           (exe:perform
-            (desig:a motion
-                     (type gripping)
-                     (gripper ?left-or-right)
-                     (desig:when ?effort
-                       (effort ?effort))))))
-    (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
-
-(cpl:def-cram-function close-gripper (?left-or-right)
+(cpl:def-cram-function open-or-close-gripper (?left-or-right ?action-type)
   (unwind-protect
        (cpl:with-failure-handling
-           ((common-fail:low-level-failure (e) ; ignore failures
+           ((common-fail:gripper-low-level-failure (e) ; ignore failures
               (roslisp:ros-warn (pick-and-place close-gripper) "~a" e)
               (return)))
          (exe:perform
           (desig:a motion
-                   (type closing)
+                   (type ?action-type)
                    (gripper ?left-or-right))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
@@ -198,7 +227,7 @@
 (cpl:def-cram-function set-gripper-to-position (?left-or-right ?position)
   (unwind-protect
        (cpl:with-failure-handling
-           ((common-fail:low-level-failure (e) ; ignore failures
+           ((common-fail:gripper-low-level-failure (e) ; ignore failures
               (roslisp:ros-warn (pick-and-place set-gripper-to-pos) "~a" e)
               (return)))
          (exe:perform
@@ -209,88 +238,58 @@
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
-(cpl:def-cram-function look-at (&key target frame direction object)
+(cpl:def-cram-function grip (?left-or-right ?effort)
   (unwind-protect
-       (cond (target
-              (let* ((?target target)
-                     (motion (desig:a motion
-                                      (type looking)
-                                      (target ?target))))
-                (cpl:with-retry-counters ((look-retries 2))
-                  (cpl:with-failure-handling
-                      ((common-fail:ptu-low-level-failure (e)
-                         (roslisp:ros-warn (pp-plans look-at) "Looking-at had a problem: ~a" e)
-                         (cpl:do-retry look-retries
-                           (when (setf motion (desig:next-solution motion))
-                             (roslisp:ros-warn (pp-plans look-at) "Retrying.")
-                             (cpl:retry)))))
-                    (exe:perform motion)))))
-             (frame
-              (let ((?frame frame))
-                (exe:perform
-                 (desig:a motion
-                          (type looking)
-                          (frame ?frame)))))
-             (direction
-              (let ((?direction direction))
-                (exe:perform
-                 (desig:a motion
-                          (type looking)
-                          (direction ?direction)))))
-             (object
-              (let ((?pose (cram-object-interfaces:get-object-pose object)))
-                (exe:perform
-                 (desig:a motion
-                          (type looking)
-                          (target (desig:a location (pose ?pose))))))))
+       (cpl:with-retry-counters ((grasping-retries 1))
+         (cpl:with-failure-handling
+             ((common-fail:gripper-low-level-failure (e) ; regrasp once then propagate up
+                (cpl:do-retry grasping-retries
+                  (roslisp:ros-warn (pick-and-place grip) "~a~%Retrying" e)
+                  (cpl:retry))
+                (roslisp:ros-warn (pick-and-place grip) "No retries left. Propagating up.")))
+           (exe:perform
+            (desig:a motion
+                     (type gripping)
+                     (gripper ?left-or-right)
+                     (desig:when ?effort
+                       (effort ?effort))))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
-(cpl:def-cram-function go-to-target (?location-designator)
-  (unwind-protect
-       (cpl:with-retry-counters ((nav-retries 0))
-         (cpl:with-failure-handling
-             ((common-fail:navigation-low-level-failure (e)
-                (roslisp:ros-warn (pick-and-place go)
-                                  "Some low-level failure happened: ~a"
-                                  e)
-                (cpl:do-retry nav-retries
-                  (roslisp:ros-warn (pick-and-place go) "Retrying...")
-                  (cpl:retry))))
-           (exe:perform
-            (desig:a motion (type going) (target ?location-designator)))))
-    (cram-occasions-events:on-event
-       (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
-(cpl:def-cram-function perceive (?object-designator
-                                 &key
-                                 (object-chosing-function #'identity))
-  (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
-                     1
-                     4)))
-    (cpl:with-retry-counters ((perceive-retries retries))
-      (cpl:with-failure-handling
-          ((common-fail:perception-object-not-found (e)
-             (cpl:do-retry perceive-retries
-               (roslisp:ros-warn (pick-and-place perceive) "~a" e)
-               (cpl:retry))))
-        (let* ((resulting-designators
-                 (exe:perform
-                  (desig:a motion
-                           (type detecting)
-                           (object ?object-designator))))
-               (resulting-designator
-                 (funcall object-chosing-function resulting-designators)))
-          (if (listp resulting-designators)
-              (mapcar (lambda (desig)
-                        (cram-occasions-events:on-event
-                         (make-instance 'cram-plan-occasions-events:object-perceived-event
-                           :object-designator desig
-                           :perception-source :whatever)))
-                      resulting-designators)
-              (cram-occasions-events:on-event
-               (make-instance 'cram-plan-occasions-events:object-perceived-event
-                 :object-designator resulting-designators
-                 :perception-source :whatever)))
-          (desig:equate ?object-designator resulting-designator)
-          resulting-designator)))))
+(cpl:def-cram-function look-at (&key target frame direction object)
+  (unwind-protect
+       (cpl:with-retry-counters ((look-retries 1))
+         (cpl:with-failure-handling
+             ((common-fail:ptu-low-level-failure (e)
+                (roslisp:ros-warn (pp-plans look-at) "Looking-at had a problem: ~a" e)
+                (cpl:do-retry look-retries
+                  (roslisp:ros-warn (pp-plans look-at) "Retrying.")
+                  (cpl:retry)))))
+
+         (cond (target
+                (let ((?target target))
+                  (exe:perform
+                   (desig:a motion
+                            (type looking)
+                            (target ?target)))))
+               (frame
+                (let ((?frame frame))
+                  (exe:perform
+                   (desig:a motion
+                            (type looking)
+                            (frame ?frame)))))
+               (direction
+                (let ((?direction direction))
+                  (exe:perform
+                   (desig:a motion
+                            (type looking)
+                            (direction ?direction)))))
+               (object
+                (let ((?pose (cram-object-interfaces:get-object-pose object)))
+                  (exe:perform
+                   (desig:a motion
+                            (type looking)
+                            (target (desig:a location (pose ?pose)))))))))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))

@@ -49,10 +49,6 @@ Returns a ROS JointState message with solution states of the joints in the `arm'
     ;; (robot ?robot)
     )
 
-  ;; (<- (reachability-designator ?designator)
-  ;;   (desig-prop ?designator (:to :execute))
-  ;;   (desig-prop ?designator (:action ?_)))
-
   (<- (visibility-designator ?designator)
     (desig-prop ?designator (:visible-for ?robot))
     ;; (robot ?robot)

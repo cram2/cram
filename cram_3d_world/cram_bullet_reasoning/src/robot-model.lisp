@@ -221,7 +221,9 @@ of the object should _not_ be updated."
 (defmethod initialize-instance :after ((robot-object robot-object)
                                        &key color name pose
                                          (collision-group :character-filter)
-                                         (collision-mask '(:default-filter :static-filter)))
+                                         (collision-mask '(:default-filter
+                                                           :static-filter
+                                                           :character-filter)))
   (with-slots (rigid-bodies links urdf pose-reference-body) robot-object
     (labels ((make-link-bodies (pose link)
                "Returns the list of rigid bodies of `link' and all its sub-links"
@@ -346,6 +348,9 @@ of the object should _not_ be updated."
                                                  :key #'car))))))))))
 
 (defun update-link-poses (robot-object link pose)
+  (declare (type cl-urdf:link link)
+           (type robot-object robot-object)
+           (type (or cl-transforms:transform cl-transforms:pose) pose))
   "Updates the pose of `link' and all its children according to
 current joint states"
   (let ((links (links robot-object))
@@ -386,50 +391,75 @@ current joint states"
 
 (defun calculate-joint-state (obj name)
   (with-slots (urdf) obj
-    (let ((links (links obj))
-          (joint (gethash name (cl-urdf:joints urdf))))
-      (when joint
-        (let* ((parent (cl-urdf:parent joint))
-               (parent-pose (find-parent-pose obj name))
-               (child (cl-urdf:child joint))
-               (child-body (gethash (cl-urdf:name child) links)))
+    (let ((links (links obj)) ; hash tbl of name <-> ridig body
+          (urdf-joint (gethash name (cl-urdf:joints urdf)))) ; urdf-joint
+      (when urdf-joint
+        (let* ((parent-link
+                 (cl-urdf:parent urdf-joint))
+               (parent-body-pose-in-map
+                 (find-parent-pose obj name))
+               (map-to-parent-body-transform
+                 (cl-transforms:reference-transform parent-body-pose-in-map))
+               (child-link
+                 (cl-urdf:child urdf-joint))
+               (child-body
+                 (gethash (cl-urdf:name child-link) links)))
           (when child-body
-            (let ((origin (cl-transforms:transform*
-                           (cl-transforms:reference-transform parent-pose)
-                           (if (cl-urdf:collision parent)
-                               (cl-transforms:transform-inv
-                                (cl-transforms:reference-transform
-                                 (cl-urdf:origin (cl-urdf:collision parent))))
-                               (cl-transforms:make-identity-transform))
-                           (cl-urdf:origin joint)))
-                  (child-transform (cl-transforms:transform*
-                                    (cl-transforms:reference-transform
-                                     (pose child-body))
-                                    (cl-transforms:transform-inv
-                                     (cl-transforms:reference-transform
-                                      (cl-urdf:origin (cl-urdf:collision child)))))))
-              (case (cl-urdf:joint-type joint)
+            (let* ((parent-body-to-its-link-transform
+                     (if (cl-urdf:collision parent-link)
+                         (cl-transforms:transform-inv
+                          (cl-transforms:reference-transform
+                           (cl-urdf:origin (cl-urdf:collision parent-link))))
+                         (cl-transforms:make-identity-transform)))
+                   (parent-link-to-urdf-joint-transform
+                     (cl-urdf:origin urdf-joint))
+                   (map-to-urdf-joint-transform
+                     (cl-transforms:transform*
+                      map-to-parent-body-transform
+                      parent-body-to-its-link-transform
+                      parent-link-to-urdf-joint-transform))
+                   (map-to-child-body-transform
+                     (cl-transforms:reference-transform
+                      (pose child-body)))
+                   (child-body-to-its-link-transform
+                     (cl-transforms:transform-inv
+                       (cl-transforms:reference-transform
+                        (cl-urdf:origin (cl-urdf:collision child-link)))))
+                   (map-to-child-link-transform
+                     (cl-transforms:transform*
+                      map-to-child-body-transform
+                      child-body-to-its-link-transform)))
+              (case (cl-urdf:joint-type urdf-joint)
                 ((:revolute :continuous)
                  (multiple-value-bind (angle axis)
                      (cl-transforms:angle-between-quaternions
-                      (cl-transforms:rotation origin)
-                      (cl-transforms:rotation child-transform))
+                      (cl-transforms:rotation map-to-urdf-joint-transform)
+                      (cl-transforms:rotation map-to-child-link-transform))
                    (if (< (cl-transforms:dot-product
-                           axis (cl-urdf:axis joint))
+                           axis (cl-urdf:axis urdf-joint))
                           0)
                        (* angle -1)
                        angle)))
                 (:prismatic
-                 (* (cl-transforms:v-dist
-                     (cl-transforms:translation origin)
-                     (cl-transforms:translation child-transform))
-                    (if (< (cl-transforms:dot-product
-                            (cl-transforms:v-
-                             (cl-transforms:translation child-transform)
-                             (cl-transforms:translation origin))
-                            (cl-urdf:axis joint))
-                           0)
-                        -1 1)))
+                 (let ((urdf-joint-to-child-link-transform
+                         (cl-transforms:transform*
+                          (cl-transforms:transform-inv
+                           map-to-urdf-joint-transform)
+                          map-to-child-link-transform)))
+                   (cl-transforms:dot-product
+                    (cl-transforms:translation urdf-joint-to-child-link-transform)
+                    (cl-urdf:axis urdf-joint))
+                   ;; (* (cl-transforms:v-dist
+                   ;;     (cl-transforms:translation map-to-urdf-joint-transform)
+                   ;;     (cl-transforms:translation map-to-child-link-transform))
+                   ;;    (if (< (cl-transforms:dot-product
+                   ;;            (cl-transforms:v-
+                   ;;             (cl-transforms:translation map-to-child-link-transform)
+                   ;;             (cl-transforms:translation map-to-urdf-joint-transform))
+                   ;;            (cl-urdf:axis urdf-joint))
+                   ;;           0)
+                   ;;        -1 1))
+                   ))
                 (t 0.0d0)))))))))
 
 (defmethod invalidate-object :after ((obj robot-object))
@@ -477,9 +507,10 @@ current joint states"
                          &optional
                            (current-pose (cl-transforms:make-identity-pose)))
   "Tries to find the pose of the parent link of the joint named
-  `joint-name'. The algorithm works as follows: if the parent link has
-  a rigid body, use its pose. If not, walk the tree up, apply the
-  inverse joint transform of parent's from-joint and try again."
+`joint-name'. The pose is absolute (fixed frame).
+The algorithm works as follows: if the parent link has
+a rigid body, use its pose. If not, walk the tree up, apply the
+inverse joint transform of parent's from-joint and try again."
   (with-slots (urdf links joint-states) obj
     (let* ((joint (gethash joint-name (cl-urdf:joints urdf)))
            (parent (and joint (cl-urdf:parent joint))))
@@ -539,11 +570,19 @@ current joint states"
             (t nil)))))
 
 (defmethod (setf link-pose) (new-value (obj robot-object) name)
+  (declare (type cl-transforms:pose new-value)
+           (type string name))
+  "Gets the `name' of the link and sets its new pose.
+`new-value' is a pose in map frame.
+Updates poses of links in the bullet world and sets the new joint angle of the parent of link.
+Only one joint state changes in this situation, so only one joint state is updated."
   (with-slots (urdf) obj
     (let* ((links (links obj))
            (link (gethash name (cl-urdf:links urdf)))
            (body (gethash name links)))
-      ;; Should we throw an error here?
+      ;; `link' is a cl-urdf object, `body' is a bullet rigid body
+      ;; only uses `body' to check if it exists, otherwise setting pose is impossible
+      ;; Note(Lorenz): Should we throw an error here?
       (when body
         (update-link-poses obj link new-value)
         (let ((joint (cl-urdf:from-joint link)))
@@ -552,10 +591,13 @@ current joint states"
                   (calculate-joint-state obj (cl-urdf:name joint)))))))))
 
 (defmethod pose ((obj robot-object))
+  "Gives the pose of root link rigid body"
   (with-slots (urdf) obj
     (link-pose obj (cl-urdf:name (cl-urdf:root-link urdf)))))
 
 (defmethod (setf pose) (new-value (obj robot-object))
+  (declare (type cl-transforms:pose new-value))
+  "Uses (SETF LINK-POSE) to set the pose of root link and recursively all children"
   (with-slots (urdf) obj
     (setf (link-pose obj (cl-urdf:name (cl-urdf:root-link urdf)))
           new-value)))
