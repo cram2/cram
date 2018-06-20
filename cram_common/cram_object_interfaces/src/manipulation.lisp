@@ -197,19 +197,12 @@ Gripper is defined by a convention where Z is pointing towards the object.")
               (find-most-specific-type-for-generic
                #'get-object-type-to-gripper-transform object-type)
               object-name arm grasp))
-           (test
-             (get-object-type-to-gripper-2nd-pregrasp-transform
-              (find-most-specific-type-for-generic
-               #'get-object-type-to-gripper-2nd-pregrasp-transform object-type)
-              object-name arm grasp
-              object-to-standard-gripper-transform))
            (object-to-standard-gripper-pregrasp-transform ; oTg'
              (get-object-type-to-gripper-pregrasp-transform
               (find-most-specific-type-for-generic
                #'get-object-type-to-gripper-pregrasp-transform object-type)
               object-name arm grasp
               object-to-standard-gripper-transform))
-           (test2 (print "test geht"))
            (object-to-standard-gripper-2nd-pregrasp-transform ; oTg'
              (get-object-type-to-gripper-2nd-pregrasp-transform
               (find-most-specific-type-for-generic
