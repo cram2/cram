@@ -155,7 +155,8 @@ Store found pose into designator or throw error if good pose not found."
                                                        "Robot is in collision with environment.")
                                      (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
                                      (btr::restore-world-state world-state world)
-                                     (cpl:fail 'common-fail:manipulation-goal-in-collision)))
+                                     ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
+                                     ))
                                  left-poses
                                  right-poses)))))))))
       (btr::restore-world-state world-state world))))
