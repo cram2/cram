@@ -123,11 +123,11 @@ or in general at compile-time.")
 
 
 (defun init-tf-broadcaster ()
-  (when *tf-broadcasting-enabled*
-    (setf *broadcaster*
+  (setf *broadcaster*
           (make-tf-broadcaster
            *tf-broadcasting-topic*
            *tf-broadcasting-interval*))
+  (when *tf-broadcasting-enabled*
     (start-publishing-transforms *broadcaster*)))
 
 (defun destroy-tf-broadcaster ()
