@@ -51,6 +51,8 @@
    #:object-undeliverable-object
    #:object-nowhere-to-be-found
    #:object-nowhere-to-be-found-object
+   #:environment-manipulation-impossible
+   #:environment-unreachable
    ;; manipulation
    #:manipulation-low-level-failure
    #:gripper-low-level-failure

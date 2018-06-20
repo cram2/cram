@@ -58,6 +58,12 @@
      pose-distribution
      (make-gauss-cost-function ?mean ?covariance)
      ?cm)
+    (costmap:visibility-costmap-size ?distance)
+    (instance-of pose-distribution-range-include-generator ?include-generator-id)
+    (costmap-add-function
+     ?include-generator-id
+     (make-range-cost-function ?mean ?distance)
+     ?cm)
     (symbol-value *orientation-samples* ?samples)
     (symbol-value *orientation-sample-step* ?sample-step)
     (costmap-add-orientation-generator
