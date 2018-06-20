@@ -46,18 +46,5 @@
    ;; projection-environment
    #:with-simulated-robot #:with-projected-robot
    #:pr2-bullet-projection-environment
-
-   ;; execute-container-opened execute-container-closed
-   ;; execute-park execute-lift execute-grasp execute-put-down execute-pour
-   ;; projection-navigation projection-ptu projection-perception
-   ;; projection-manipulation pr2-bullet-projection-environment
-   ;; action-started action-finished action-duration projection-role
-   ))
-
-;; (defpackage projection-designators
-;;   (:use #:common-lisp #:cram-designators #:cram-prolog
-;;         #:projection-process-modules #:cram-robot-interfaces)
-;;   (:import-from #:cram-process-modules
-;;                 matching-process-module available-process-module projection-running)
-;;   (:import-from #:cram-projection *projection-environment*)
-;;   (:export projection-role required-sides))
+   ;; low-level
+   #:*debug-short-sleep-duration* #:*debug-long-sleep-duration*))

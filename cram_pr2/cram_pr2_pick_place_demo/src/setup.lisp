@@ -35,18 +35,20 @@
   (def-fact-group costmap-metadata ()
     (<- (location-costmap:costmap-size 12 12))
     (<- (location-costmap:costmap-origin -6 -6))
-    (<- (location-costmap:costmap-resolution 0.05))
+    (<- (location-costmap:costmap-resolution 0.04))
 
     (<- (location-costmap:costmap-padding 0.5))
     (<- (location-costmap:costmap-manipulation-padding 0.2))
     (<- (location-costmap:costmap-in-reach-distance 0.7))
     (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-    (<- (location-costmap:visibility-costmap-size 2.5)))
+    (<- (location-costmap:visibility-costmap-size 2.5))
+    (<- (location-costmap:orientation-samples 3))
+    (<- (location-costmap:orientation-sample-step 0.1)))
 
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
 
-  (sem-map:get-semantic-map)
+  ;; (sem-map:get-semantic-map)
 
   (cram-occasions-events:clear-belief)
 
@@ -56,19 +58,14 @@
 
   (cram-bullet-reasoning:clear-costmap-vis-object)
 
+  (setf cram-tf:*tf-broadcasting-enabled* t)
+
   ;; (setf ccl::*is-logging-enabled* nil)
 
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
   ;; (ccl::connect-to-cloud-logger)
 
-  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  )
+  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo"))
 
 (roslisp-utilities:register-ros-init-function init-projection)
-
-(defmethod location-costmap:on-visualize-costmap opengl ((map location-costmap:location-costmap))
-  (btr:add-costmap-function-object map))
-
-(defmethod location-costmap:on-visualize-costmap-sample opengl ((point cl-transforms:3d-vector))
-  (btr:add-costmap-sample-object point))

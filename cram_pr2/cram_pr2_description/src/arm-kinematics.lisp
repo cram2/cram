@@ -224,9 +224,6 @@
                                           end-effector-parking-pose
                                           robot-pre-grasp-joint-states
                                           arm-joints arm-base-joints arm-tool-joints
-                                          joint-lower-limit joint-upper-limit
-                                          joint-type joint-axis joint-origin
-                                          joint-parent-link joint-child-link
                                           arm-links arm-base-links
                                           hand-links
                                           standard-to-particular-gripper-transform)
@@ -307,27 +304,6 @@
 
   (<- (arm-tool-joints pr2 ?arm ?joints)
     (lisp-fun get-arm-tool-joint-names ?arm ?joints))
-
-  (<- (joint-lower-limit pr2 ?joint-name ?value)
-    (lisp-fun get-joint-lower-limit ?joint-name ?value))
-
-  (<- (joint-upper-limit pr2 ?joint-name ?value)
-    (lisp-fun get-joint-upper-limit ?joint-name ?value))
-
-  (<- (joint-type pr2 ?joint-name ?type)
-    (lisp-fun get-joint-type ?joint-name ?type))
-
-  (<- (joint-axis pr2 ?joint-name ?axis)
-    (lisp-fun get-joint-axis ?joint-name ?axis))
-
-  (<- (joint-origin pr2 ?joint-name ?transform)
-    (lisp-fun get-joint-origin ?joint-name ?transform))
-
-  (<- (joint-parent-link pr2 ?joint-name ?parent)
-    (lisp-fun get-joint-parent ?joint-name ?parent))
-
-  (<- (joint-child-link pr2 ?joint-name ?child)
-    (lisp-fun get-joint-child ?joint-name ?child))
 
   (<- (arm-links pr2 ?arm ?links)
     (lisp-fun get-arm-link-names ?arm ?links))

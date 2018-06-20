@@ -191,7 +191,8 @@
                       flip-winding-order
                       (remove-identical-vertices t) (fix-normals t) (compound nil))
   "Loads the mesh with index `mesh-index' from the file named
-`filename' and returns an instance of type 3D-MODEL."
+  `filename' and returns an instance of type 3D-MODEL. If `compound' is T, the single
+  meshes are returned as multiple-values-list."
   (let ((scene nil))
     (unwind-protect
          (progn
@@ -227,7 +228,8 @@
 
 (defun build-model-mesh (scene &key (fix-normals t) (compound nil))
   "Recursively traverses all scene nodes and builds a single mesh file
-  from it."
+  from it, unless `compound' is T, in which case they are returned as
+  values-list of 3d-models."
   (labels ((insert-node (ai-node meshes parent-transformation 3d-model)
              (let ((node-transformation
                      ;; Assimp's root node transformation might do
