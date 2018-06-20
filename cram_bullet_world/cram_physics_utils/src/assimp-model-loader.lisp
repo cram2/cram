@@ -215,7 +215,6 @@
                     :format-control "The file does not contain any meshes."))
            (let ((meshes (multiple-value-list
                         (build-model-mesh scene :fix-normals fix-normals :compound compound))))
-             ;; TODO CHANGE BEHAVIOR FOR COMPOUND
              (values-list
               (if remove-identical-vertices
                   (mapcar
