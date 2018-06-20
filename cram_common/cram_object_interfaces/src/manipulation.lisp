@@ -310,7 +310,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
    (cut:force-ll
     (prolog:prolog `(object-type-direct-subtype ?super ,object-type)))))
 
-(defun find-most-specific-type-for-generic (generic object-type &rest args)
+(defun find-most-specific-type-for-generic (generic object-type)
   "Find the most specific method of `generic' based on `object-type' and the
 `args'."
   (if (probe-sbcl generic object-type)
