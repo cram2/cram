@@ -33,9 +33,6 @@
     (setof ?object (cpoe:object-in-hand ?object ?_) ?objects)
     (member ?object ?objects))
 
-  (<- (cpoe:object-picked ?object)
-    (cpoe:object-in-hand ?object))
-
   (<- (cpoe:object-in-hand ?object ?side)
     (btr:bullet-world ?world)
     (cram-robot-interfaces:robot ?robot)
@@ -44,6 +41,9 @@
      (and (object-designator-name ?object ?object-name)
           (desig:obj-desig? ?object)))
     (cram-robot-interfaces:end-effector-link ?robot ?side ?link))
+
+  (<- (cpoe:object-picked ?object)
+    (cpoe:object-in-hand ?object))
 
   (<- (cpoe:object-placed-at ?object ?location)
     (cpoe:loc ?object ?location))
@@ -64,7 +64,8 @@
     (lisp-type ?name symbol))
 
   (<- (object-designator-name ?object-designator ?object-name)
-    (or (desig:obj-desig? ?object-designator)
+    (or (and (bound ?object-designator)
+             (desig:obj-desig? ?object-designator))
         (and (not (bound ?object-designator))
              (lisp-fun unique-object-designators ?object-designators)
              (member ?one-object-designator-from-chain ?object-designators)

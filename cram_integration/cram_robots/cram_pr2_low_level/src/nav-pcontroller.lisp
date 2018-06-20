@@ -69,11 +69,10 @@
 
 (defun ensure-nav-p-goal-reached (status goal-pose convergence-delta-xy convergence-delta-theta)
   (when (eql status :timeout)
-    (cpl:fail 'common-fail:actionlib-action-timed-out
-              :description "Nav-pcontroller action timed out"))
+    (roslisp:ros-warn (pr2-ll nav-p) "Nav-pcontroller action timed out."))
   (unless (cram-tf:tf-frame-converged cram-tf:*robot-base-frame* goal-pose
-                              convergence-delta-xy convergence-delta-theta)
-    (cpl:fail 'common-fail:navigation-low-level-failure
+                                      convergence-delta-xy convergence-delta-theta)
+    (cpl:fail 'common-fail:navigation-goal-not-reached
               :description (format nil "Nav-pcontroller did not converge to goal:
 ~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
                                    cram-tf:*robot-base-frame* goal-pose

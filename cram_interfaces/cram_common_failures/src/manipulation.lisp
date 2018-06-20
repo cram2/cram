@@ -31,15 +31,15 @@
 
 (define-condition manipulation-low-level-failure (low-level-failure) ())
 
-(define-condition gripping-failed (manipulation-low-level-failure)
-  ((action :initarg :object :initform nil :reader gripping-failed-action)))
-
-(define-condition gripper-closed-completely (gripping-failed) ())
-
 (define-condition manipulation-goal-not-reached (manipulation-low-level-failure) ()
   (:documentation "Thrown when after executing the action, goal is still not reached."))
 
 (define-condition manipulation-pose-unreachable (manipulation-low-level-failure) ()
   (:documentation "Thrown when no IK solution can be found."))
 
+(define-condition gripper-low-level-failure (manipulation-low-level-failure)
+  ((action :initarg :object :initform nil :reader gripper-failure-action)))
 
+(define-condition gripper-closed-completely (gripper-low-level-failure) ())
+
+(define-condition gripper-goal-not-reached (gripper-low-level-failure) ())

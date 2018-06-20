@@ -55,8 +55,8 @@
    (cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*
     (alexandria:copy-hash-table
      cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*))
-   (cram-semantic-map::*semantic-map*
-    (sem-map-utils:copy-semantic-map-object (cram-semantic-map:get-semantic-map)))
+   ;; (cram-semantic-map::*semantic-map*
+   ;;  (sem-map-utils:copy-semantic-map-object (cram-semantic-map:get-semantic-map)))
    (cet:*episode-knowledge*
     cet:*episode-knowledge*))
   :process-module-definitions
