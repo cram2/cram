@@ -46,7 +46,7 @@
     (<- (location-costmap:orientation-sample-step 0.1)))
 
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
-  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
+  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description_obj")
 
   ;; (sem-map:get-semantic-map)
 
