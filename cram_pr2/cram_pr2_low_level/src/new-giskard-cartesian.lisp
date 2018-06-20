@@ -38,7 +38,9 @@
            (type string pose-base-frame left-tool-frame right-tool-frame))
   (roslisp:make-message
    'giskard_msgs-msg:MoveGoal
-   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal :plan_and_execute)
+   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal ;; :plan_only
+                              :plan_and_execute
+                              )
    :cmd_seq (vector (roslisp:make-message
                      'giskard_msgs-msg:movecmd
                      :controllers (vector (roslisp:make-message
@@ -89,7 +91,9 @@
                                           'giskard_msgs-msg:collisionentry
                                           :type (roslisp:symbol-code
                                                  'giskard_msgs-msg:collisionentry
-                                                 :allow_all_collisions)))))))
+                                                 ;; :allow_all_collisions
+                                                 :avoid_all_collisions)
+                                          :min_dist 0.03))))))
 
 (defun ensure-giskard-cartesian-input-parameters (frame left-pose right-pose)
   (values (cram-tf:ensure-pose-in-frame
