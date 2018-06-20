@@ -144,11 +144,17 @@
   ;;                   :side ?arm
   ;;                   :environment environment)))
 
-  (exe:perform
-   (desig:an action
-             (type putting)
-             (left-poses ?left-lift-pose)
-             (right-poses ?right-lift-pose)))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (env-plans open)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type putting)
+               (left-poses ?left-lift-pose)
+               (right-poses ?right-lift-pose))))
 
   (when (and joint-name environment)
     (cram-occasions-events:on-event
