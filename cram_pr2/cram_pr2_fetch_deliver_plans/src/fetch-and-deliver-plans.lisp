@@ -246,7 +246,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                              (pose ?object-pose-in-map)))))))
 
       ;; take a new `?pick-up-robot-location' sample if a failure happens
-      (cpl:with-retry-counters ((relocation-for-ik-retries 20))
+      (cpl:with-retry-counters ((relocation-for-ik-retries 10))
         (cpl:with-failure-handling
             (((or common-fail:navigation-goal-in-collision
                   common-fail:looking-high-level-failure
@@ -386,7 +386,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                        (location ?target-robot-location)))
 
                 ;; take a new `?target-location' sample if a failure happens
-                (cpl:with-retry-counters ((target-location-retries 10))
+                (cpl:with-retry-counters ((target-location-retries 5))
                   (cpl:with-failure-handling
                       (((or common-fail:looking-high-level-failure
                             common-fail:object-unreachable) (e)
@@ -513,7 +513,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
       (pr2-proj-reasoning:with-projected-task-tree
           (?fetch-robot-location ?fetch-pick-up-action
                                  ?deliver-robot-location ?deliver-place-action)
-          4
+          2
           #'pr2-proj-reasoning:pick-best-parameters-by-distance
 
         (let ((?fetched-object
