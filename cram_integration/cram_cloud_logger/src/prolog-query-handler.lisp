@@ -101,47 +101,52 @@
     (concatenate 'string class-name "_")))
 
 (defun create-prolog-log-query (predicate-name)
-  (if (is-predicate-in-white-list predicate-name)
-      (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8)))))
-            (queries '()))
-        (setf queries
-              (cons (create-rdf-assert-query
-                     (convert-to-prolog-str (car ccl::*action-parents*))
-                     "knowrob:reasoningTask"
-                     query-id)
-                    queries))
-        (setf queries
-              (cons (create-rdf-assert-query
-                     query-id
-                     "knowrob:predicate"
-                     (convert-to-prolog-str (write-to-string predicate-name)))
-                    queries))
-        (setf queries
-              (cons (create-query
-                     "cram_start_action"
-                     (list  (concatenate 'string "knowrob:" (convert-to-prolog-str "PrologQuery"))
-                           "\\'TableSetting\\'"
-                           (get-timestamp-for-logging)
-                           "PV"
-                           query-id))
-                    queries))
-        (list query-id queries))
-      nil))
+  (let ((predicate-name-str
+          (concatenate 'string
+                       (package-name (symbol-package predicate-name))
+                       ":"
+                       (symbol-name predicate-name))))
+    (if (is-predicate-in-white-list predicate-name-str)
+        (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8)))))
+              (queries '()))
+          (setf queries
+                (cons (create-rdf-assert-query
+                       (convert-to-prolog-str (car ccl::*action-parents*))
+                       "knowrob:reasoningTask"
+                       query-id)
+                      queries))
+          (setf queries
+                (cons (create-rdf-assert-query
+                       query-id
+                       "knowrob:predicate"
+                       (convert-to-prolog-str predicate-name-str))
+                      queries))
+          (setf queries
+                (cons (create-query
+                       "cram_start_action"
+                       (list  (concatenate 'string "knowrob:" (convert-to-prolog-str "PrologQuery"))
+                              "\\'TableSetting\\'"
+                              (get-timestamp-for-logging)
+                              "PV"
+                              query-id))
+                      queries))
+          (list query-id queries))
+        nil)))
 
 (defun is-predicate-in-white-list (predicate-name)
-  (or (string-equal (string-downcase (write-to-string predicate-name))
+  (or (string-equal (string-downcase predicate-name)
                     "cram-object-interfaces:object-type-grasp")
-      (string-equal (string-downcase (write-to-string predicate-name))
+      (string-equal (string-downcase predicate-name)
                     "cram-object-interfaces:object-rotationally-symmetric")
-      (string-equal (string-downcase (write-to-string predicate-name))
+      (string-equal (string-downcase predicate-name)
                     "cram-semantic-map-costmap::semantic-map-desig-objects")
-      (string-equal (string-downcase (write-to-string predicate-name))
+      (string-equal (string-downcase predicate-name)
                     "cram-semantic-map-costmap:semantic-map-objects")
-      (string-equal (string-downcase (write-to-string predicate-name))
+      (string-equal (string-downcase predicate-name)
                     "cram-designators:action-grounding")
-      (string-equal (string-downcase (write-to-string predicate-name))
+      (string-equal (string-downcase predicate-name)
                     "cram-designators:motion-grounding")
-      (string-equal (string-downcase (write-to-string predicate-name))
+      (string-equal (string-downcase predicate-name)
                     "cram-designators:location-grounding")))
 
 (defun is-predicate-an-obj-interface-predicate (predicate-name)
