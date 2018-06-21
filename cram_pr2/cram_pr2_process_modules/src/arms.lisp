@@ -29,41 +29,33 @@
 
 (in-package :pr2-pms)
 
-(defun fill-in-with-nils (some-list desired-length)
-  (let ((current-length (length some-list)))
-    (if (> desired-length current-length)
-        (append some-list (make-list (- desired-length current-length)))
-        some-list)))
+;; (defun fill-in-with-nils (some-list desired-length)
+;;   (let ((current-length (length some-list)))
+;;     (if (> desired-length current-length)
+;;         (append some-list (make-list (- desired-length current-length)))
+;;         some-list)))
 
 (def-process-module pr2-arms-pm (action-designator)
   (destructuring-bind (command goal-left goal-right)
       (reference action-designator)
     (ecase command
       (cram-common-designators:move-tcp
-       (handler-case
-           (progn
-             (unless (listp goal-left)
-               (setf goal-left (list goal-left)))
-             (unless (listp goal-right)
-               (setf goal-right (list goal-right)))
-             (let ((max-length (max (length goal-left) (length goal-right))))
-               (mapc (lambda (single-pose-left single-pose-right)
-                       ;; (pr2-ll:visualize-marker (list single-pose-left single-pose-right)
-                       ;;                          :r-g-b-list '(1 0 1))
-                       (pr2-ll:call-giskard-cartesian-action :left single-pose-left
-                                                             :right single-pose-right))
-                     (fill-in-with-nils goal-left max-length)
-                     (fill-in-with-nils goal-right max-length))))
-         ;; (common-fail:manipulation-low-level-failure ()
-         ;;   (cpl:fail 'common-fail:manipulation-low-level-failure :action action-designator))
-         ))
+       (pr2-ll:call-giskard-cartesian-action :goal-pose-left goal-left
+                                             :goal-pose-right goal-right)
+       ;; (unless (listp goal-left)
+       ;;   (setf goal-left (list goal-left)))
+       ;; (unless (listp goal-right)
+       ;;   (setf goal-right (list goal-right)))
+       ;; (let ((max-length (max (length goal-left) (length goal-right))))
+       ;;   (mapc (lambda (single-pose-left single-pose-right)
+       ;;           (pr2-ll:call-giskard-cartesian-action :goal-pose-left single-pose-left
+       ;;                                                 :goal-pose-right single-pose-right))
+       ;;         (fill-in-with-nils goal-left max-length)
+       ;;         (fill-in-with-nils goal-right max-length)))
+       )
       (cram-common-designators:move-joints
-       (handler-case
-           (pr2-ll:call-giskard-joint-action :left goal-left
-                                             :right goal-right)
-         ;; (common-fail:manipulation-low-level-failure ()
-         ;;   (cpl:fail 'common-fail:manipulation-low-level-failure :action action-designator))
-         )))))
+       (pr2-ll:call-giskard-joint-action :goal-configuration-left goal-left
+                                         :goal-configuration-right goal-right)))))
 
 ;;; Examples:
 ;;

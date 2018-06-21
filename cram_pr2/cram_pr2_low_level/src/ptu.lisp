@@ -78,7 +78,7 @@
         (cl-transforms-stamped:make-point-stamped
          cram-tf:*robot-base-frame*
          0.0
-         (cl-transforms:make-3d-vector 3.0 0.0 1.5))
+         (cl-transforms:make-3d-vector 10.0 0.0 1.5))
         (cram-tf:ensure-point-in-frame
          (etypecase point
            (cl-transforms:point ; also covers 3d-vector and point-stamped
@@ -89,9 +89,9 @@
 
 (defun ensure-ptu-goal-reached (status)
   (when (eql status :timeout)
-    (cpl:fail 'common-fail:actionlib-action-timed-out :description "PTU action timed out."))
+    (roslisp:ros-warn (pr2-ll ptu) "PTU action timed out."))
   (unless (eql status :succeeded)
-    (cpl:fail 'common-fail:low-level-failure :description "PTU action did not succeed."))
+    (cpl:fail 'common-fail:ptu-low-level-failure :description "PTU action did not succeed."))
   ;; todo: would be nice to check if the point is actually visible from the
   ;; end configuration
   ;; using looking-at or point-head-at from cram_3d_world

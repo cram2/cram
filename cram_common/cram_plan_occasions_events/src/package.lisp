@@ -46,9 +46,18 @@
            #:link #:event-link #:side #:event-side
            #:opening-distance
 
-           #:object-gripped
-           #:event-arm #:event-object #:event-grasp
-           #:object-released
+           #:environment-manipulation-event
+           #:environment-event-joint-name
+           #:environment-event-arm
+           #:environment-event-object
+           #:environment-event-distance
+           #:container-handle-grasping-event
+           #:container-opening-event
+           #:container-closing-event
+
+           ;; #:object-gripped
+           ;; #:event-arm #:event-object #:event-grasp
+           ;; #:object-released
 
            ;; object connection event
            #:event-arm #:event-object-name
