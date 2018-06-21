@@ -8,7 +8,7 @@
   (ccl::connect-to-cloud-logger)
   (setq roslisp::*debug-stream* nil)
   (loop for x from 1 to num-experiments
-        do (let ((experiment-id (ccl::get-timestamp-for-logging)))
+        do (let ((experiment-id (format nil "~d" (truncate (* 1000000 (cram-utilities:current-timestamp))))))
              (let ((experiment-save-path
                      (concatenate 'string
                                   "~/projection-experiments/" experiment-id "/")))

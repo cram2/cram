@@ -13,7 +13,8 @@
   (get-more-specific-timestamp-for-logging))
 
 (defun get-more-specific-timestamp-for-logging ()
-  (format nil "~d"  (truncate (* 1000000 (cram-utilities:current-timestamp)))))
+  ;;  (format nil "~d"  (truncate (* 1000000 (cram-utilities:current-timestamp)))))
+  (format nil "~f"(cram-utilities:current-timestamp)))
 
 (defun get-id-from-query-result (query-result)
   (let ((x (string (cdaar query-result))))
