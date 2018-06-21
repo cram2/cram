@@ -36,5 +36,3 @@
    60))
 
 (roslisp-utilities:register-ros-init-function make-giskard-action-client)
-
-
