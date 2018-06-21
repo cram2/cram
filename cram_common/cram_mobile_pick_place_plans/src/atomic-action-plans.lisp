@@ -80,7 +80,7 @@
           resulting-designator)))))
 
 
-(cpl:def-cram-function move-arms-in-sequence (left-poses right-poses)
+(cpl:def-cram-function move-arms-in-sequence (left-poses right-poses &optional ?allow-collisions)
   "Make `?left-poses' and `?right-poses' to lists if they are not already"
 
   (flet ((fill-in-with-nils (some-list desired-length)
@@ -133,7 +133,9 @@
                   (desig:when ?left-pose
                     (left-target (desig:a location (pose ?left-pose))))
                   (desig:when ?right-pose
-                    (right-target (desig:a location (pose ?right-pose))))))
+                    (right-target (desig:a location (pose ?right-pose))))
+                  (desig:when ?allow-collisions
+                    (allow-collisions ?allow-collisions))))
 
         (cram-occasions-events:on-event
          (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
