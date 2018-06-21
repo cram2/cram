@@ -31,9 +31,9 @@
 
 ;;; OBJECT-INTERFACE METHODS
 
-(defparameter *drawer-handle-grasp-x-offset* -0.02 "in meters")
+(defparameter *drawer-handle-grasp-x-offset* 0.0 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
-(defparameter *drawer-handle-lift-x-offset* 0.30 "in meters")
+(defparameter *drawer-handle-lift-x-offset* 0.3 "in meters")
 (defparameter *drawer-handle-2nd-lift-x-offset* (+ *drawer-handle-lift-x-offset*
                                                    *drawer-handle-pregrasp-x-offset*)
   "in meters")
