@@ -204,19 +204,18 @@
               (:close #'-))
             current-opening
             distance)))
-    (format t "CURRENT JOINT : ~A~%~%SETTING TO ~A~%~%" current-opening new-joint-angle)
     (btr:set-robot-state-from-joints
      `((,joint-name
         ,new-joint-angle))
      object)))
 
-(defmethod cram-occasions-events:on-event open-container
-    ((event cpoe:container-opening-event))
-  (move-joint-by-event event :open))
+(defmethod cram-occasions-events:on-event open-container ((event cpoe:container-opening-event))
+  (move-joint-by-event event :open)
+  (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event))))
 
-(defmethod cram-occasions-events:on-event close-container
-    ((event cpoe:container-closing-event))
-  (move-joint-by-event event :close))
+(defmethod cram-occasions-events:on-event close-container ((event cpoe:container-closing-event))
+  (move-joint-by-event event :close)
+  (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event))))
 
 
 
