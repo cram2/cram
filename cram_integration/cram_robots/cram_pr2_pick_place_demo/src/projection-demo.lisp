@@ -104,10 +104,13 @@
                                   (cram-tf:translate-pose
                                    (desig:reference
                                     (desig:a location
-                                             (on "CounterTop")
-                                             (name "iai_kitchen_sink_area_counter_top")
                                              (side left)
-                                             (centered-with-padding 0.1)))
+                                             (on (desig:an object
+                                                           (type counter-top)
+                                                           (urdf-name sink-area-surface)
+                                                           (part-of kitchen)))
+                                             ;; (centered-with-padding 0.1)
+                                             ))
                                    :z-offset (/ aabb-z 2.0))
                                   :z (/ pi (random 10.0)))))
                   (btr-utils:move-object (btr:name btr-object) new-pose)))

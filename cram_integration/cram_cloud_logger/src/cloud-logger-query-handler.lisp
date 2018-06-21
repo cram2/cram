@@ -107,6 +107,8 @@
          (convert-to-prolog-str object-type))))))
 
 
+
+
 (defun send-create-object (action-inst object-name object-type)
   (let ((object-instance-id (send-instance-from-class "object")))
     (send-rdf-query (convert-to-prolog-str object-instance-id) "knowrob:objectName" (convert-to-prolog-str object-name))
@@ -178,42 +180,91 @@
           ((string-equal ":LEFT" gripper-value-str) (send-rdf-query (convert-to-prolog-str action-inst) "knowrob:bodyPartsUsed" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_left_gripper"))))))
 
 (defun send-location-action-parameter (action-inst location-designator)
-  (let ((location-id (send-instance-from-class "ConnectedSpaceRegion"))
-        (location-describtion
-          (cond ((desig::desig-prop-value location-designator :ON)
-                 "onPhysical"))))
-    (send-rdf-query (convert-to-prolog-str location-id)
-                    (concatenate 'string "knowrob:" location-describtion)
-                    (convert-to-prolog-str
-                     (concatenate 'string "http://knowrob.org/kb/iai-kitchen.owl#"
-                                  (desig::desig-prop-value location-designator :name))))
-    (send-rdf-query (convert-to-prolog-str action-inst)
-                    "knowrob:goalLocation"
-                    (convert-to-prolog-str location-id))))
+   (send-location-designator action-inst location-designator "knowrob:goalLocation"))
 
 (defun send-target-action-parameter (action-inst location-designator)
-  (if (desig::desig-prop-value location-designator :POSE)
-      (let (
-            (pose-id (send-create-pose-stamped
-                      (desig::desig-prop-value location-designator :POSE))))
-          (send-rdf-query (convert-to-prolog-str action-inst)
-                          "knowrob:goalLocation"
-                          (convert-to-prolog-str pose-id))))
-  
-  (let ((location (desig::desig-prop-value location-designator :LOCATION)))
-    (if location
-        (let ((pose-id (send-create-pose-stamped (desig::desig-prop-value location :POSE))))
-          (send-rdf-query (convert-to-prolog-str action-inst)
-                          "knowrob:goalLocation"
-                          (convert-to-prolog-str pose-id))
-          (cond ((desig::desig-prop-value location-designator :REACHABLE-FOR)
-                 (send-rdf-query (convert-to-prolog-str pose-id)
-                          "knowrob:inReachOf"
-                          (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#PR2Robot1")))
-                ((desig::desig-prop-value location-designator :VISIBLE-FOR)
-                 (send-rdf-query (convert-to-prolog-str pose-id)
-                          "knowrob:inFieldOfView"
-                          (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#PR2Robot1"))))))))
+  (send-location-designator action-inst location-designator "knowrob:targetLocation"))
 
 (defun send-finish-query(id)
   (json-prolog:prolog-simple-1 (concatenate 'string "send_finish_query('" id "').")))
+
+
+(defun send-location-designator (action-id designator predicate-name)
+  (if (desig::desig-prop-value designator :POSE)
+      (let ((pose-id (send-create-pose-stamped
+                      (desig::desig-prop-value designator :POSE))))
+          (send-rdf-query (convert-to-prolog-str action-id)
+                          "knowrob:goalLocation"
+                          (convert-to-prolog-str pose-id)))
+      (let ((location-id (send-instance-from-class "ConnectedSpaceRegion")))
+        (mapcar (lambda (key-value-pair)
+                  (let ((key (first key-value-pair))
+                        (value (second key-value-pair)))
+                    (cond ((eq key :on)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:onPhysical"
+                                           (convert-to-prolog-str (get-object-name value))))
+                          ((eq key :in)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:in"
+                                           (convert-to-prolog-str (get-object-name value))))
+                          ((eq key :pose)
+                           (let ((pose-id
+                                   (send-create-pose-stamped value)))
+                             (send-rdf-query (convert-to-prolog-str location-id)
+                                             "knowrob:goalLocation"
+                                             (convert-to-prolog-str pose-id))))
+                          ((eq key :visible-for)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:inFieldOfView"
+                                           (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#PR2Robot1")))
+                          ((eq key :reachable-for)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:inReachOf"
+                                           (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#PR2Robot1")))
+                          ((eq key :arm)
+                           (send-arm-action-parameter location-id value))
+                          ((eq key :location)
+                           (send-location-designator location-id value "knowrob:goalLocation"))
+                          ((eq key :right-of)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:rightOf"
+                                           (convert-to-prolog-str (get-object-name value))))
+                          ((eq key :left-of)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:leftOf"
+                                           (convert-to-prolog-str (get-object-name value))))
+                          ((eq key :behind)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:behind"
+                                           (convert-to-prolog-str (get-object-name value))))
+                          ((eq key :near)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:near"
+                                           (convert-to-prolog-str (get-object-name value))))
+                          ((eq key :far-from)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:farFrom"
+                                           (convert-to-prolog-str (get-object-name value))))
+                          ((eq key :context)
+                           (print key))
+                          ((eq key :for)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:for"
+                                           (convert-to-prolog-str (get-object-name value))))
+                          ((eq key :object-count)
+                           (print key))
+                          ((eq key :side)
+                           (send-rdf-query (convert-to-prolog-str location-id)
+                                           "knowrob:side"
+                                           (convert-to-prolog-str (symbol-name value)))))))
+                (desig:properties designator))
+        (send-rdf-query (convert-to-prolog-str action-id) predicate-name (convert-to-prolog-str location-id)))))
+
+
+
+(defun get-object-name (object-designator)
+   (let ((object-instance-id (symbol-name (desig:desig-prop-value object-designator :NAME))))
+     (if (not (string-equal object-instance-id "nil"))
+         object-instance-id
+         (symbol-name (desig:desig-prop-value object-designator :TYPE)))))

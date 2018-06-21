@@ -44,6 +44,7 @@
                ;;(format t "failure string: ~a" (write-to-string e))
                (if is-parent-action
                    (send-batch-query))))
+          ;;(print designator)
           (if cram-projection:*projection-environment*
             (send-performed-in-projection action-id "true")
             (send-performed-in-projection action-id "false"))
@@ -74,7 +75,7 @@
                        (send-cram-start-action
                         (get-knowrob-action-name cram-action-name)
                         " \\'TableSetting\\'"
-                        (get-timestamp-for-logging)
+                        (convert-to-prolog-str (get-timestamp-for-logging))
                         "PV"
                         "ActionInst"))
                       "ActionInst"))
@@ -90,7 +91,7 @@
 
 (defun log-cram-finish-action (action-id)
   (send-cram-finish-action
-   (convert-to-prolog-str action-id ) (get-timestamp-for-logging)))
+   (convert-to-prolog-str action-id ) (convert-to-prolog-str (get-timestamp-for-logging))))
 
 (defun log-cram-sub-action (parent-id child-id)
   (if parent-id 
@@ -112,7 +113,7 @@
       (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
 
 (defun log-cram-prev-action (current-id previous-id)
- ( send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)))
+ (send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)))
 
 (defun log-cram-next-action (current-id next-id)
   (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id)))
