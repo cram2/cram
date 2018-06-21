@@ -38,6 +38,7 @@
   <depend>cram_location_costmap</depend>
   <depend>cram_mobile_pick_place_plans</depend>
   <depend>cram_knowrob_pick_place</depend>
+  <depend>cram_cloud_logger</depend>
   <depend>cram_pr2_description</depend>
   <depend>cram_pr2_low_level</depend>
   <depend>cram_process_modules</depend>

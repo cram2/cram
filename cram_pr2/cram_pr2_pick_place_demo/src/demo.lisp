@@ -81,6 +81,8 @@
   (setf (btr:joint-state (btr:object btr:*current-bullet-world* :kitchen)
                          "sink_area_left_upper_drawer_main_joint")
         0.0)
+  (btr-belief::publish-environment-joint-state
+   (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
@@ -196,5 +198,9 @@
                      (target ?delivering-location)))))))
 
   (initialize-or-finalize)
+
+  (when ccl::*is-logging-enabled*
+    (ccl::export-log-to-owl "ease_milestone_2018.owl")
+    (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
 
   cpl:*current-path*)

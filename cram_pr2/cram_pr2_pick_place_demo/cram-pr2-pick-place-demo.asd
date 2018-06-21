@@ -51,8 +51,9 @@
 
                cram-knowrob-pick-place
                cram-robosherlock
+               cram-cloud-logger
 
-               cram-physics-utils ; for reading "package://" paths
+               cram-physics-utils     ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
