@@ -103,7 +103,7 @@
       (progn
         (send-rdf-query
          (convert-to-prolog-str action-inst)
-         "knowrob:objectType"
+         "knowrob:objectActedOn"
          (convert-to-prolog-str object-type))))))
 
 
