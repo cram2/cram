@@ -202,9 +202,9 @@
   (when (and (find :location rs-answer :key #'car) ; <- LOCATION comes from original query
              (find :location keyword-key-value-pairs-list :key #'car))
     (setf rs-answer (remove :location rs-answer :key #'car)))
-  (when (and (find :color rs-answer :key #'car) ; <- COLOR comes from original query
-             (find :color keyword-key-value-pairs-list :key #'car))
-    (setf rs-answer (remove :color rs-answer :key #'car)))
+  ;; (when (and (find :color rs-answer :key #'car) ; <- COLOR comes from original query
+  ;;            (find :color keyword-key-value-pairs-list :key #'car)))
+  (setf rs-answer (remove :color rs-answer :key #'car))
   (setf rs-answer (remove :shape rs-answer :key #'car))
   ;; (when (and (find :pose rs-answer :key #'car)
   ;;            (find :pose keyword-key-value-pairs-list :key #'car))
