@@ -22,6 +22,15 @@
 (defun send-cram-set-subaction (sup sub)
   (send-prolog-query-1 (create-query "cram_set_subaction" (list sup sub))))
 
+(defun send-cram-set-submotion (sup sub)
+  (print "Sending submotion ...")
+  (print sup)
+  (print sub)
+  (let ((a  sup)
+        (b "knowrob:subMotion")
+        (c  sub))
+    (send-rdf-query a b c)))
+
 (defun send-cram-add-image-to-event (event image-url)
   (send-prolog-query-1 (create-query "cram_add_image_to_event" (list event image-url))))
 
