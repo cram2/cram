@@ -23,9 +23,6 @@
   (send-prolog-query-1 (create-query "cram_set_subaction" (list sup sub))))
 
 (defun send-cram-set-submotion (sup sub)
-  (print "Sending submotion ...")
-  (print sup)
-  (print sub)
   (let ((a  sup)
         (b "knowrob:subMotion")
         (c  sub))
@@ -129,7 +126,13 @@
   (send-rdf-query current-action-name "knowrob:nextAction" next-action-name))
 
 (defun send-cram-previous-action (current-action-name previous-action-name)
-      (send-rdf-query current-action-name "knowrob:previousAction" previous-action-name))
+  (send-rdf-query current-action-name "knowrob:previousAction" previous-action-name))
+
+(defun send-cram-next-motion (current-motion-name next-motion-name)
+  (send-rdf-query current-motion-name "knowrob:nextMotion" next-motion-name))
+
+(defun send-cram-previous-motion (current-motion-name previous-motion-name)
+  (send-rdf-query current-motion-name "knowrob:previousMotion" previous-motion-name))
 
 (defun send-instance-from-class (instance-class-name)
   (let ((instance-class-id
@@ -196,7 +199,6 @@
 
 (defun send-finish-query(id)
   (json-prolog:prolog-simple-1 (concatenate 'string "send_finish_query('" id "').")))
-
 
 (defun send-location-designator (action-id designator predicate-name)
   (if (desig::desig-prop-value designator :POSE)
