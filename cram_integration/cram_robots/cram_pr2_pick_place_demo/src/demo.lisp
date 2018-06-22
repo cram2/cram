@@ -86,7 +86,8 @@
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
-  ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+  (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+  (setf ccl::*is-logging-enabled* nil)
   (when (eql cram-projection:*projection-environment*
              'cram-pr2-projection::pr2-bullet-projection-environment)
     (if random
@@ -148,6 +149,7 @@
                                (on (desig:an object
                                              (type counter-top)
                                              (urdf-name kitchen-island-surface)
+                                             (owl-name "kitchen_island_counter_top")
                                              (part-of kitchen)))
                                (context table-setting)
                                (for (an object (type bowl)))

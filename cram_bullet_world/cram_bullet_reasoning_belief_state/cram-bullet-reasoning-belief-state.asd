@@ -49,7 +49,10 @@
                cl-transforms
                cl-bullet
                tf2_msgs-msg
-               geometry_msgs-msg)
+               geometry_msgs-msg
+               giskard_msgs-msg
+               giskard_msgs-srv
+               shape_msgs-msg)
   :components
   ((:module "src"
     :components
@@ -58,7 +61,9 @@
      (:file "time" :depends-on ("package"))
      (:file "tf" :depends-on ("package"))
      (:file "broadcaster" :depends-on ("package" "tf"))
-     (:file "environment-joint-publisher" :depends-on ("package" "tf"))
+     (:file "environment-joint-publisher" :depends-on ("package"))
+     (:file "giskard-environment-client" :depends-on ("package"))
      (:file "object-perceptions" :depends-on ("package"))
      (:file "occasions" :depends-on ("package" "object-perceptions"))
-     (:file "event-handlers" :depends-on ("package" "object-perceptions"))))))
+     (:file "event-handlers" :depends-on ("package" "object-perceptions"
+                                                    "giskard-environment-client"))))))

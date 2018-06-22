@@ -126,6 +126,7 @@ Store found pose into designator or throw error if good pose not found."
                (let ((pick-up-action-referenced (desig:reference pick-up-action-desig)))
                  (destructuring-bind (_action object-designator arm gripper-opening _effort _grasp
                                       left-reach-poses right-reach-poses
+                                      left-grasp-poses right-grasp-poses
                                       left-lift-poses right-lift-poses)
                      pick-up-action-referenced
                    (declare (ignore _action _effort))
@@ -140,8 +141,12 @@ Store found pose into designator or throw error if good pose not found."
                      (roslisp:ros-info (coll-check pick)
                                        "Trying grasp ~a on object ~a with arm ~a~%"
                                        _grasp object-name arm)
-                     (let ((left-poses-list-of-lists (list left-reach-poses left-lift-poses))
-                           (right-poses-list-of-lists (list right-reach-poses right-lift-poses)))
+                     (let ((left-poses-list-of-lists (list left-reach-poses
+                                                           left-grasp-poses
+                                                           left-lift-poses))
+                           (right-poses-list-of-lists (list right-reach-poses
+                                                            right-grasp-poses
+                                                            right-lift-poses)))
                        (multiple-value-bind (left-poses right-poses)
                            (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
                                                                 right-poses-list-of-lists)

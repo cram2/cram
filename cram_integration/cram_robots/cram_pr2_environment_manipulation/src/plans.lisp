@@ -77,7 +77,7 @@
          (return)))
     (exe:perform
      (desig:an action
-               (type lifting)
+               (type pulling)
                (left-poses ?left-lift-pose)
                (right-poses ?right-lift-pose))))
 
@@ -152,7 +152,7 @@
          (return)))
     (exe:perform
      (desig:an action
-               (type putting)
+               (type pushing)
                (left-poses ?left-lift-pose)
                (right-poses ?right-lift-pose))))
 

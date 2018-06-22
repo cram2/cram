@@ -29,34 +29,81 @@
 (in-package :cram-bullet-reasoning-belief-state)
 
 (defmethod cram-occasions-events:on-event btr-attach-object ((event cpoe:object-attached))
-  (let ((robot-object (btr:get-robot-object))
-        (btr-object (btr:object btr:*current-bullet-world* (cpoe:event-object-name event)))
-        (link (cut:var-value
-               '?ee-link
-               (car (prolog:prolog
-                     `(and (cram-robot-interfaces:robot ?robot)
-                           (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
-                                                                    ?ee-link)))))))
+  (let* ((robot-object (btr:get-robot-object))
+         (btr-object-name (cpoe:event-object-name event))
+         (btr-object-name-string (symbol-name btr-object-name))
+         (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
+         (link (cut:var-value
+                '?ee-link
+                (car (prolog:prolog
+                      `(and (cram-robot-interfaces:robot ?robot)
+                            (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
+                                                                     ?ee-link)))))))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
     (when btr-object
       (if (btr:object-attached robot-object btr-object)
           (btr:attach-object robot-object btr-object link :loose t)
-          (btr:attach-object robot-object btr-object link :loose nil)))))
+          (btr:attach-object robot-object btr-object link :loose nil))
+
+      (call-giskard-environment-service
+       :kill
+       btr-object-name-string)
+      (call-giskard-environment-service
+       :attached
+       ;; btr-object-name-string
+       "attached"
+       (let* ((map-to-ee-transform (cl-transforms-stamped:lookup-transform
+                                    cram-tf:*transformer*
+                                    cram-tf:*fixed-frame*
+                                    link
+                                    :timeout 2
+                                    :time 0))
+              (ee-to-map-transform (cram-tf:transform-stamped-inv map-to-ee-transform))
+              (map-to-obj-transform (cram-tf:pose->transform-stamped
+                                     cram-tf:*fixed-frame*
+                                     btr-object-name-string
+                                     0.0
+                                     (btr:pose btr-object)))
+              (ee-to-object-transform (cram-tf:multiply-transform-stampeds
+                                       link btr-object-name-string
+                                       ee-to-map-transform map-to-obj-transform)))
+         (cram-tf:strip-transform-stamped ee-to-object-transform))
+       (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+           (btr-spatial-cm::calculate-bb-dims btr-object)
+         (list cl-transforms:x cl-transforms:y cl-transforms:z))))))
 
 (defmethod cram-occasions-events:on-event btr-detach-object ((event cpoe:object-detached))
-  (let ((robot-object (btr:get-robot-object))
-        (btr-object (btr:object btr:*current-bullet-world* (cpoe:event-object-name event)))
-        ;; (object-name (desig:object-identifier (desig:reference (cpoe:event-object-name event))))
-        (link (cut:var-value
-               '?ee-link
-               (car (prolog:prolog
-                     `(and (cram-robot-interfaces:robot ?robot)
-                           (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
-                                                                    ?ee-link)))))))
+  (let* ((robot-object (btr:get-robot-object))
+         (btr-object-name (cpoe:event-object-name event))
+         (btr-object-name-string (symbol-name btr-object-name))
+         (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
+         ;; (object-name (desig:object-identifier (desig:reference (cpoe:event-object-name event))))
+         (link (cut:var-value
+                '?ee-link
+                (car (prolog:prolog
+                      `(and (cram-robot-interfaces:robot ?robot)
+                            (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
+                                                                     ?ee-link)))))))
+
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (when btr-object
       (btr:detach-object robot-object btr-object link)
-      (btr:simulate btr:*current-bullet-world* 10))))
+      (btr:simulate btr:*current-bullet-world* 10)
+
+      (call-giskard-environment-service
+       :kill
+       "attached")
+
+      (call-giskard-environment-service
+       :add
+       btr-object-name-string
+       (cl-transforms-stamped:pose->pose-stamped
+        cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
+       (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+           (btr-spatial-cm::calculate-bb-dims btr-object)
+         (list cl-transforms:x cl-transforms:y cl-transforms:z))))))
+
+
 
 ;; (defmethod cram-occasions-events:on-event attach-objects ((event cpoe:object-attached))
 ;;   (let* ((robot (btr:get-robot-object))
@@ -157,28 +204,28 @@
                              (cram-robot-interfaces:robot-tool-frame ?robot ,arm ?frame)))))
                 cram-tf:*fixed-frame*)))
            (move-joint-by-event (event open-or-close)
-               (let ((joint-name (cpoe:environment-event-joint-name event))
-                     (object (cpoe:environment-event-object event))
-                     (current-tcp-pose (get-current-tcp event)))
-                 (progn
-                   (let* ((current-opening (gethash joint-name
-                                                    (btr:joint-states object)))
-                          (manipulation-distance
-                            (cl-tf:v-dist (cl-tf:translation previous-tcp-pose)
-                                          (cl-tf:translation current-tcp-pose)))
-                          (new-joint-angle
-                            (apply
-                             (case open-or-close
-                               (:open #'+)
-                               (:close #'-))
-                             (list
-                              current-opening
-                              manipulation-distance))))
-                     (btr:set-robot-state-from-joints
-                      `((,joint-name
-                         ,new-joint-angle))
-                      object))
-                   (setf previous-tcp-pose NIL)))))
+             (let ((joint-name (cpoe:environment-event-joint-name event))
+                   (object (cpoe:environment-event-object event))
+                   (current-tcp-pose (get-current-tcp event)))
+               (progn
+                 (let* ((current-opening (gethash joint-name
+                                                  (btr:joint-states object)))
+                        (manipulation-distance
+                          (cl-tf:v-dist (cl-tf:translation previous-tcp-pose)
+                                        (cl-tf:translation current-tcp-pose)))
+                        (new-joint-angle
+                          (apply
+                           (case open-or-close
+                             (:open #'+)
+                             (:close #'-))
+                           (list
+                            current-opening
+                            manipulation-distance))))
+                   (btr:set-robot-state-from-joints
+                    `((,joint-name
+                       ,new-joint-angle))
+                    object))
+                 (setf previous-tcp-pose NIL)))))
 
     (defmethod cram-occasions-events:on-event grasp-container-handle
         ((event cpoe:container-handle-grasping-event))
@@ -211,11 +258,13 @@
 
 (defmethod cram-occasions-events:on-event open-container ((event cpoe:container-opening-event))
   (move-joint-by-event event :open)
-  (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event))))
+  (unless cram-projection:*projection-environment*
+    (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event)))))
 
 (defmethod cram-occasions-events:on-event close-container ((event cpoe:container-closing-event))
   (move-joint-by-event event :close)
-  (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event))))
+  (unless cram-projection:*projection-environment*
+    (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event)))))
 
 
 
@@ -230,9 +279,25 @@
                         *object-identifier-to-instance-mappings*)
                (desig:object-identifier object-data))))
       ;; otherwise, spawn a new object in the bullet world
-      (register-object-designator-data
-       (desig:reference (cpoe:event-object-designator event))
-       :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))))
+      (progn
+        (register-object-designator-data
+         (desig:reference (cpoe:event-object-designator event))
+         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))
+
+        (let* ((object-name (desig:desig-prop-value (cpoe:event-object-designator event) :name))
+               (object-name-string (symbol-name object-name))
+               (btr-object (btr:object btr:*current-bullet-world* object-name)))
+          ;; (call-giskard-environment-service
+          ;;  :kill
+          ;;  object-name-string)
+          (call-giskard-environment-service
+           :add
+           object-name-string
+           (cl-transforms-stamped:pose->pose-stamped
+            cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
+           (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+               (btr-spatial-cm::calculate-bb-dims btr-object)
+             (list cl-transforms:x cl-transforms:y cl-transforms:z)))))))
 
 (defun update-object-designator-location (object-designator location-designator)
   (desig:make-designator
