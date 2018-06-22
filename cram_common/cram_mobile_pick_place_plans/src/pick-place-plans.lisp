@@ -32,6 +32,7 @@
 (cpl:def-cram-function pick-up (?object-designator
                                 ?arm ?gripper-opening ?grip-effort ?grasp
                                 ?left-reach-poses ?right-reach-poses
+                                ?left-grasping-poses ?right-grasping-poses
                                 ?left-lift-poses ?right-lift-poses)
   (cpl:par
     (roslisp:ros-info (pick-place pick-up) "Opening gripper")
@@ -52,6 +53,17 @@
                  (type reaching)
                  (left-poses ?left-reach-poses)
                  (right-poses ?right-reach-poses)))))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (pp-plans pick-up)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type grasping)
+               (left-poses ?left-grasping-poses)
+               (right-poses ?right-grasping-poses))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
   (exe:perform
    (desig:an action

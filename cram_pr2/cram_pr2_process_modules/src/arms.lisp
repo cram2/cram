@@ -42,7 +42,7 @@
       (cram-common-designators:move-tcp
        (pr2-ll:call-giskard-cartesian-action :goal-pose-left argument-1
                                              :goal-pose-right (first rest-arguments)
-                                             :allow-collisions (second rest-arguments))
+                                             :collision-mode (second rest-arguments))
        ;; (unless (listp goal-left)
        ;;   (setf goal-left (list goal-left)))
        ;; (unless (listp goal-right)

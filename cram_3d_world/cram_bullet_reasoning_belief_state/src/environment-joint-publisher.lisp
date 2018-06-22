@@ -36,7 +36,9 @@
   "Initializes *joint-state-pub* ROS publisher"
   (setf *joint-state-pub*
         (roslisp:advertise "kitchen/cram_joint_states"
-                           "sensor_msgs/JointState")))
+                           "sensor_msgs/JointState"))
+  (cpl:sleep 1.0)
+  *joint-state-pub*)
 
 (defun get-joint-state-pub ()
   (or *joint-state-pub*
