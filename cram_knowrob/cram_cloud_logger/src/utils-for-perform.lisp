@@ -54,7 +54,7 @@
            (car *action-parents*)
            action-id
            (get-knowrob-action-name cram-action-name))
-          (log-cram-sibling-action (car *action-parents*) action-id)
+          (log-cram-sibling-action (car *action-parents*) action-id (get-knowrob-action-name cram-action-name))
           (if (not *action-parents*)
               (setq is-parent-action t))
           (push action-id *action-parents*)
@@ -120,20 +120,24 @@
            (setf motion t)))
     motion))
 
-(defun log-cram-sibling-action (parent-id child-id)
+(defun log-cram-sibling-action (parent-id child-id child-knowrob-name)
   (let ((hash-value (gethash parent-id *action-siblings*)))
     (if hash-value
       (let ((previous-id (car (cpl:value hash-value))))
           (progn (log-cram-prev-action
-                  child-id previous-id)
+                  child-id previous-id child-knowrob-name)
                  (log-cram-next-action
-                  previous-id child-id)
+                  previous-id child-id child-knowrob-name)
                  (setf (cpl:value hash-value) (cons child-id (cpl:value hash-value)))
                  (setf  (gethash parent-id *action-siblings*) hash-value)))
       (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
 
-(defun log-cram-prev-action (current-id previous-id)
- (send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)))
+(defun log-cram-prev-action (current-id previous-id current-knowrob-name)
+  (if (is-motion current-knowrob-name)
+      (send-cram-previous-motion (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id))
+      (send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id))))
 
-(defun log-cram-next-action (current-id next-id)
-  (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id)))
+(defun log-cram-next-action (current-id next-id current-knowrob-name)
+  (if (is-motion current-knowrob-name)
+      (send-cram-next-motion (convert-to-prolog-str current-id) (convert-to-prolog-str next-id))
+      (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id))))
