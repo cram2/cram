@@ -35,7 +35,9 @@
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
-      (let ((action-id (log-perform-call designator)) (is-parent-action nil))
+      (let ((action-id (log-perform-call designator))
+            (is-parent-action nil)
+            (cram-action-name (get-designator-property-value-str designator :TYPE)))
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
                (log-cram-finish-action action-id)
@@ -48,7 +50,10 @@
           (if cram-projection:*projection-environment*
             (send-performed-in-projection action-id "true")
             (send-performed-in-projection action-id "false"))
-          (log-cram-sub-action (car *action-parents*) action-id)
+          (log-cram-sub-action
+           (car *action-parents*)
+           action-id
+           (get-knowrob-action-name cram-action-name))
           (log-cram-sibling-action (car *action-parents*) action-id)
           (if (not *action-parents*)
               (setq is-parent-action t))
@@ -73,7 +78,7 @@
         (setf result (get-value-of-json-prolog-dict
                       (cdaar
                        (send-cram-start-action
-                        (get-knowrob-action-name cram-action-name)
+                        (get-knowrob-action-name-uri cram-action-name)
                         " \\'TableSetting\\'"
                         (convert-to-prolog-str (get-timestamp-for-logging))
                         "PV"
@@ -93,12 +98,27 @@
   (send-cram-finish-action
    (convert-to-prolog-str action-id ) (convert-to-prolog-str (get-timestamp-for-logging))))
 
-(defun log-cram-sub-action (parent-id child-id)
-  (if parent-id 
-      (progn
-        (send-cram-set-subaction
-         (convert-to-prolog-str parent-id)
-         (convert-to-prolog-str child-id)))))
+(defun log-cram-sub-action (parent-id child-id child-knowrob-action-name)
+  (if parent-id
+      (if (is-motion child-knowrob-action-name)
+          (progn
+            (send-cram-set-submotion
+             (convert-to-prolog-str parent-id)
+             (convert-to-prolog-str child-id)))
+          (progn
+            (send-cram-set-subaction
+             (convert-to-prolog-str parent-id)
+             (convert-to-prolog-str child-id))))))
+
+(defun is-motion (knowrob-action-name)
+  (let ((motion nil))
+    (cond ((string-equal knowrob-action-name "BaseMovement")
+           (setf motion t))
+          ((string-equal knowrob-action-name "AcquireGraspOfSomething")
+           (setf motion t))
+          ((string-equal knowrob-action-name "Retracting")
+           (setf motion t)))
+    motion))
 
 (defun log-cram-sibling-action (parent-id child-id)
   (let ((hash-value (gethash parent-id *action-siblings*)))

@@ -1,5 +1,8 @@
 (in-package :ccl)
 
+(defun get-knowrob-action-name-uri (cram-action-name)
+  (concatenate 'string "knowrob:" (convert-to-prolog-str (get-knowrob-action-name cram-action-name))))
+
 (defun get-knowrob-action-name (cram-action-name)
   (let ((knowrob-action-name cram-action-name))
     (cond ((string-equal cram-action-name "reaching")
@@ -42,4 +45,4 @@
            (setf knowrob-action-name "FetchAndDeliver"))
           ((string-equal cram-action-name "Turning-Towards")
            (setf knowrob-action-name "MovingToLocation")))
-    (concatenate 'string "knowrob:" (convert-to-prolog-str knowrob-action-name))))
+    knowrob-action-name))
