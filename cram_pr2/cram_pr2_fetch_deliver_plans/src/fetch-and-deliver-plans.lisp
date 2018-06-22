@@ -459,7 +459,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
           (cl-transforms-stamped:make-pose-stamped
            cram-tf:*fixed-frame*
            0.0
-           (cl-transforms:make-3d-vector 0.7 -0.4 0)
+           (cl-transforms:make-3d-vector 0.7 -0.2 0)
            (cl-transforms:make-identity-rotation)))
         (?placing-pose
           (cl-transforms-stamped:make-pose-stamped
