@@ -209,6 +209,7 @@
   ;; (when (and (find :pose rs-answer :key #'car)
   ;;            (find :pose keyword-key-value-pairs-list :key #'car))
   ;;   (remove :pose keyword-key-value-pairs-list :key #'car))
+  (setf keyword-key-value-pairs-list (remove :pose keyword-key-value-pairs-list :key #'car))
   (let ((combined-properties
           (append rs-answer ; <- overwrite old stuff with new stuff
                   (set-difference keyword-key-value-pairs-list rs-answer :key #'car))))
@@ -246,6 +247,8 @@
                (cram-tf:pose-stamped->transform-stamped
                 pose-stamped-in-base-frame
                 name)))
+
+        (cram-tf:visualize-marker pose-stamped-in-camera :r-g-b-list '(0 0 1) :id 1234)
 
         (let* ((properties-without-pose
                  (remove :poses combined-properties :key #'car))
