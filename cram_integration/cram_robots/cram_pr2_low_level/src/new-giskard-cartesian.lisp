@@ -125,7 +125,8 @@
                                            (cram-pr2-description:get-hand-link-names :right)
                                            '("r_forearm_link"
                                              "r_wrist_flex_link"
-                                             "r_wrist_roll_link")))))))
+                                             "r_wrist_roll_link")))
+                                        (list "attached")))))
                        (:allow-all
                         (vector (roslisp:make-message
                                  'giskard_msgs-msg:collisionentry
@@ -192,7 +193,7 @@
   (when (or goal-pose-left goal-pose-right)
     (multiple-value-bind (goal-pose-left goal-pose-right)
         (ensure-giskard-cartesian-input-parameters pose-base-frame goal-pose-left goal-pose-right)
-      (visualize-marker (list goal-pose-left goal-pose-right) :r-g-b-list '(1 0 1))
+      (cram-tf:visualize-marker (list goal-pose-left goal-pose-right) :r-g-b-list '(1 0 1))
       (multiple-value-bind (result status)
           (actionlib-client:call-simple-action-client
            'giskard-action

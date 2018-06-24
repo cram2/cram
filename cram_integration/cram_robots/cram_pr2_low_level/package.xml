@@ -28,7 +28,6 @@
   <depend>cram_simple_actionlib_client</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>visualization_msgs</depend>
   <depend>moveit_msgs</depend>
   <depend>pr2_controllers_msgs</depend>
   <depend>trajectory_msgs</depend>

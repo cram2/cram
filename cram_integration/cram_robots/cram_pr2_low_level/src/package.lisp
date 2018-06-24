@@ -49,5 +49,4 @@
    #:get-arm-joint-states
    #:normalize-joint-angles
    ;; low-level-common
-   #:values-converged
-   #:visualize-marker))
+   #:values-converged))

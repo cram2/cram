@@ -80,7 +80,7 @@
                (setf goal-right (list goal-right)))
              (let ((max-length (max (length goal-left) (length goal-right))))
                (mapc (lambda (single-pose-left single-pose-right)
-                       (boxy-ll::visualize-marker (list single-pose-left single-pose-right)
+                       (cram-tf:visualize-marker (list single-pose-left single-pose-right)
                                                   :r-g-b-list '(1 0 1))
                        (boxy-ll:move-arms-giskard-cartesian :goal-pose-left single-pose-left
                                                             :goal-pose-right single-pose-right))
