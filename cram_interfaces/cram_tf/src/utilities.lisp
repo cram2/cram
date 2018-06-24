@@ -210,18 +210,18 @@ Take xTy, ensure it's from x-frame.
 Multiply from the right with the yTz transform -- xTy * yTz == xTz."
 
   (unless (string-equal (cl-transforms-stamped:frame-id x-y-transform) x-frame)
-    (error "In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
               correct parent frame: ~a and ~a"
            (cl-transforms-stamped:frame-id x-y-transform) x-frame))
 
   (unless (string-equal (cl-transforms-stamped:child-frame-id y-z-transform) z-frame)
-    (error "In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
               correct child frame: ~a and ~a"
            (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
 
   (unless (string-equal (cl-transforms-stamped:child-frame-id x-y-transform)
                         (cl-transforms-stamped:frame-id y-z-transform))
-    (error "In multiply-transform-stampeds X-Y-TRANSFORM and ~
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM and ~
               Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
            (cl-transforms-stamped:child-frame-id x-y-transform)
            (cl-transforms-stamped:frame-id y-z-transform)))
