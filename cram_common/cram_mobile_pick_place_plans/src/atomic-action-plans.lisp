@@ -178,15 +178,20 @@
                    (return)))
 
               (if carry?
-                  (cpl:seq
-                    (exe:perform
+                  (exe:perform
                      (desig:a motion
                               (type moving-arm-joints)
+                              (left-configuration ?left-configuration)
                               (right-configuration ?right-configuration)))
-                    (exe:perform
-                     (desig:a motion
-                              (type moving-arm-joints)
-                              (left-configuration ?left-configuration))))
+                  ;; (cpl:seq
+                  ;;   (exe:perform
+                  ;;    (desig:a motion
+                  ;;             (type moving-arm-joints)
+                  ;;             (right-configuration ?right-configuration)))
+                  ;;   (exe:perform
+                  ;;    (desig:a motion
+                  ;;             (type moving-arm-joints)
+                  ;;             (left-configuration ?left-configuration))))
                   (cpl:seq
                     (exe:perform
                      (desig:a motion
