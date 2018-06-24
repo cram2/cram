@@ -36,7 +36,8 @@
                cram-prolog
 
                cram-boxy-designators
-               cram-boxy-low-level)
+               cram-boxy-low-level
+               cram-tf)
   :components
   ((:module "src"
     :components

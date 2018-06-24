@@ -34,6 +34,9 @@
                                 ?left-reach-poses ?right-reach-poses
                                 ?left-grasping-poses ?right-grasping-poses
                                 ?left-lift-poses ?right-lift-poses)
+  (cram-tf:visualize-marker (obj-int:get-object-pose ?object-designator)
+                            :r-g-b-list '(1 1 0) :id 300)
+
   (cpl:par
     (roslisp:ros-info (pick-place pick-up) "Opening gripper")
     (exe:perform
