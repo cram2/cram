@@ -46,7 +46,7 @@
     (<- (location-costmap:orientation-sample-step 0.1)))
 
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
-  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description_obj")
+  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
 
   ;; (sem-map:get-semantic-map)
 
@@ -63,7 +63,7 @@
   (setf pr2-proj-reasoning::*projection-reasoning-enabled* t)
 
   (setf ccl::*is-client-connected* nil)
-  (setf ccl::*is-logging-enabled* t)
+  (setf ccl::*is-logging-enabled* nil)
   (setf ccl::*host* "'https://192.168.100.172'")
   (setf ccl::*cert-path* "'/home/ease/openease-certificates/sebastian.pem'")
   (setf ccl::*api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
