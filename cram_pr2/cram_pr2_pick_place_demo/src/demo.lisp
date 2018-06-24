@@ -129,10 +129,9 @@
                                               (part-of kitchen)))))
             (:milk . ,(desig:a location
                                (side left)
-                               (on (desig:an object
+                               (in (desig:an object
                                              (type counter-top)
-                                             (urdf-name sink-area-surface)
-                                             (owl-name "kitchen_sink_block_counter_top")
+                                             (urdf-name iai-fridge-main)
                                              (owl-name "drawer_fridge_upper_interior")
                                              (part-of kitchen)))))))
         (object-placing-locations
