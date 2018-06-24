@@ -82,7 +82,7 @@
              :type (roslisp:symbol-code
                     'giskard_msgs-msg:worldbody
                     :primitive_body)
-             :name "some_name"
+             :name name
              :shape (roslisp:make-msg
                      'shape_msgs-msg:solidprimitive
                      :type (roslisp:symbol-code 'shape_msgs-msg:solidprimitive :box)
@@ -94,7 +94,7 @@
       :operation (roslisp:symbol-code
                   'giskard_msgs-srv:updateworld-request
                   :remove)
-      :body (roslisp:make-msg 'giskard_msgs-msg:worldbody :name "some_name")))
+      :body (roslisp:make-msg 'giskard_msgs-msg:worldbody :name name)))
     (:attached
      (roslisp:make-request
       'giskard_msgs-srv:updateworld
@@ -107,7 +107,7 @@
              :type (roslisp:symbol-code
                     'giskard_msgs-msg:worldbody
                     :primitive_body)
-             :name "some_name"
+             :name name
              :shape (roslisp:make-msg
                      'shape_msgs-msg:solidprimitive
                      :type (roslisp:symbol-code 'shape_msgs-msg:solidprimitive :box)
