@@ -29,30 +29,18 @@
 
 (in-package :btr-spatial-cm)
 
-;;;;;;;;;;;;;;;;;;;;;;;; UTIL FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun calculate-bb-dims (bullet-object)
-  (let ((old-pose (btr:pose bullet-object))
-        aabb)
-    (unwind-protect
-         (progn
-           (setf (btr:pose bullet-object) (cl-transforms:make-identity-pose))
-           (setf aabb (cl-bullet:aabb bullet-object)))
-      (setf (btr:pose bullet-object) old-pose))
-    (cl-bullet:bounding-box-dimensions aabb)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;; NEAR and FAR calculations
 
 (defun get-aabb-min-length (object)
-  (let ((dims (calculate-bb-dims object)))
+  (let ((dims (btr:calculate-bb-dims object)))
     (min (cl-transforms:x dims) (cl-transforms:y dims))))
 
 (defun get-aabb-circle-diameter (object)
-  (cl-transforms:x (calculate-bb-dims object)))
+  (cl-transforms:x (btr:calculate-bb-dims object)))
 
 (defun get-aabb-oval-diameter (object)
   "We assume the radius of the oval is the max of its two radia"
-  (let ((dims (calculate-bb-dims object)))
+  (let ((dims (btr:calculate-bb-dims object)))
     (max (cl-transforms:x dims) (cl-transforms:y dims))))
 
 (defun calculate-near-costmap-min-radius (ref-obj-size for-obj-size
@@ -142,7 +130,7 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun make-object-bounding-box-costmap-generator (object)
-  (let* ((bounding-box-dims (calculate-bb-dims object))
+  (let* ((bounding-box-dims (btr:calculate-bb-dims object))
          (dimensions-x/2 (/ (cl-transforms:x bounding-box-dims) 2))
          (dimensions-y/2 (/ (cl-transforms:y bounding-box-dims) 2))
          (center-x (cl-transforms:x (cl-transforms:origin (btr:pose object))))
@@ -274,7 +262,7 @@ The function returns one of the following keys: :front, :back, :left, :right."
                   (let* ((bb-center (cl-transforms:origin (btr:pose obj)))
                          (bb-center-x (cl-transforms:x bb-center))
                          (bb-center-y (cl-transforms:y bb-center))
-                         (bb-dim (calculate-bb-dims obj))
+                         (bb-dim (btr:calculate-bb-dims obj))
                          (dimensions-x/2 (+ (/ (cl-transforms:x bb-dim) 2) padding))
                          (dimensions-y/2 (+ (/ (cl-transforms:y bb-dim) 2) padding)))
                     (list bb-center-x bb-center-y dimensions-x/2 dimensions-y/2)))))
@@ -322,7 +310,7 @@ The function returns one of the following keys: :front, :back, :left, :right."
                    ((eql longer-side-axis #'cl-transforms:y)
                     (list coord-on-shorter-axis next-coord))))))
     (let* ((supp-obj-dims-in-sem-map-coords
-             (calculate-bb-dims supp-object))
+             (btr:calculate-bb-dims supp-object))
            (padded-supp-obj-dims-in-sem-map-coords
              (cl-transforms:v-
               supp-obj-dims-in-sem-map-coords
@@ -425,12 +413,12 @@ if it is on the sign side of the axis. "
                  (:on (+ (cl-transforms:z
                           (cl-transforms:origin (btr:pose object)))
                          (/ (cl-transforms:z
-                             (calculate-bb-dims object))
+                             (btr:calculate-bb-dims object))
                             2.0)))
                  (:in (+ (cl-transforms:z
                           (cl-transforms:origin (btr:pose object)))
                          (- (/ (cl-transforms:z
-                                (calculate-bb-dims object))
+                                (btr:calculate-bb-dims object))
                                2.0))
                          *board-thickness*))))))
 
@@ -440,13 +428,13 @@ if it is on the sign side of the axis. "
                   (mapcar (lambda (environment-object)
                             (+ (cl-transforms:z
                                 (cl-transforms:origin (btr:pose environment-object)))
-                               (/ (cl-transforms:z (calculate-bb-dims environment-object))
+                               (/ (cl-transforms:z (btr:calculate-bb-dims environment-object))
                                   2.0)))
                           (if (listp environment-objects)
                               environment-objects
                               (list environment-objects)))))
          (for-object-height
-           (cl-transforms:z (calculate-bb-dims for-object)))
+           (cl-transforms:z (btr:calculate-bb-dims for-object)))
          (for-object-z
            (+ environment-object-top (/ for-object-height 2))))
     (constantly

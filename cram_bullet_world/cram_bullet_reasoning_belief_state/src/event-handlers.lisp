@@ -69,7 +69,7 @@
                                        ee-to-map-transform map-to-obj-transform)))
          (cram-tf:strip-transform-stamped ee-to-object-transform))
        (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
-           (btr-spatial-cm::calculate-bb-dims btr-object)
+           (btr:calculate-bb-dims btr-object)
          (list cl-transforms:x cl-transforms:y cl-transforms:z))))))
 
 (defmethod cram-occasions-events:on-event btr-detach-object ((event cpoe:object-detached))
@@ -100,7 +100,7 @@
        (cl-transforms-stamped:pose->pose-stamped
         cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
        (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
-           (btr-spatial-cm::calculate-bb-dims btr-object)
+           (btr:calculate-bb-dims btr-object)
          (list cl-transforms:x cl-transforms:y cl-transforms:z))))))
 
 
@@ -296,7 +296,7 @@
            (cl-transforms-stamped:pose->pose-stamped
             cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
            (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
-               (btr-spatial-cm::calculate-bb-dims btr-object)
+               (btr:calculate-bb-dims btr-object)
              (list cl-transforms:x cl-transforms:y cl-transforms:z)))))))
 
 (defun update-object-designator-location (object-designator location-designator)
