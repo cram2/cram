@@ -43,13 +43,13 @@
 (defparameter *object-colors*
   '((:spoon . "blue")))
 
-;; (defmacro with-real-robot (&body body)
-;;   `(cram-process-modules:with-process-modules-running
-;;        (rs:robosherlock-perception-pm
-;;         pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
-;;         pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
-;;      (cpl-impl::named-top-level (:name :top-level)
-;;        ,@body)))
+(defmacro with-real-robot (&body body)
+  `(cram-process-modules:with-process-modules-running
+       (rs:robosherlock-perception-pm
+        pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+        pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+     (cpl-impl::named-top-level (:name :top-level)
+       ,@body)))
 
 (cpl:def-cram-function initialize-or-finalize ()
   (cpl:with-failure-handling
