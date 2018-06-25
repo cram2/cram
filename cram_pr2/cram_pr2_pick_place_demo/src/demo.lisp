@@ -43,13 +43,13 @@
 (defparameter *object-colors*
   '((:spoon . "blue")))
 
-(defmacro with-real-robot (&body body)
-  `(cram-process-modules:with-process-modules-running
-       (rs:robosherlock-perception-pm
-        pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
-        pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
-     (cpl-impl::named-top-level (:name :top-level)
-       ,@body)))
+;; (defmacro with-real-robot (&body body)
+;;   `(cram-process-modules:with-process-modules-running
+;;        (rs:robosherlock-perception-pm
+;;         pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+;;         pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+;;      (cpl-impl::named-top-level (:name :top-level)
+;;        ,@body)))
 
 (cpl:def-cram-function initialize-or-finalize ()
   (cpl:with-failure-handling
@@ -84,7 +84,8 @@
   (btr-belief::publish-environment-joint-state
    (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
 
-  (json-prolog:prolog-simple "belief_forget.")
+  (unless proj:*projection-environment*
+    (json-prolog:prolog-simple "belief_forget."))
 
   (btr-belief::call-giskard-environment-service :kill-all "attached")
   (cram-bullet-reasoning-belief-state::call-giskard-environment-service
@@ -99,7 +100,6 @@
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
   (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
-  (setf ccl::*is-logging-enabled* nil)
   (when (eql cram-projection:*projection-environment*
              'cram-pr2-projection::pr2-bullet-projection-environment)
     (if random
@@ -215,6 +215,7 @@
 
   (when ccl::*is-logging-enabled*
     (ccl::export-log-to-owl "ease_milestone_2018.owl")
-    (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
+    ;;(ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl")
+    )
 
   cpl:*current-path*)
