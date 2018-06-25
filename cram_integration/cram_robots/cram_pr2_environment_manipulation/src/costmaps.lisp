@@ -210,7 +210,7 @@ quaternions to face from `pos1' to `pos2'."
      (costmap:make-gauss-cost-function ?mean ?covariance)
      ?costmap)
     ;; cutting out drawer costmap
-    (costmap:costmap-reach-minimal-distance ?padding)
+    (costmap:costmap-manipulation-padding ?padding)
     (costmap:costmap-add-function
      opened-drawer-cost-function
      (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
