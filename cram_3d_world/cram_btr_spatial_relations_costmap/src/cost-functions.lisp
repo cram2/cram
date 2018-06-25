@@ -262,7 +262,7 @@ The function returns one of the following keys: :front, :back, :left, :right."
                   (let* ((bb-center (cl-transforms:origin (btr:pose obj)))
                          (bb-center-x (cl-transforms:x bb-center))
                          (bb-center-y (cl-transforms:y bb-center))
-                         (bb-dim (btr:calculate-bb-dims obj))
+                         (bb-dim (cl-bullet:bounding-box-dimensions (btr:aabb obj)))
                          (dimensions-x/2 (+ (/ (cl-transforms:x bb-dim) 2) padding))
                          (dimensions-y/2 (+ (/ (cl-transforms:y bb-dim) 2) padding)))
                     (list bb-center-x bb-center-y dimensions-x/2 dimensions-y/2)))))
