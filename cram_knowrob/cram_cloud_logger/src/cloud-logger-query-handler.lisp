@@ -22,6 +22,12 @@
 (defun send-cram-set-subaction (sup sub)
   (send-prolog-query-1 (create-query "cram_set_subaction" (list sup sub))))
 
+(defun send-cram-set-submotion (sup sub)
+  (let ((a  sup)
+        (b "knowrob:subMotion")
+        (c  sub))
+    (send-rdf-query a b c)))
+
 (defun send-cram-add-image-to-event (event image-url)
   (send-prolog-query-1 (create-query "cram_add_image_to_event" (list event image-url))))
 
@@ -103,7 +109,7 @@
       (progn
         (send-rdf-query
          (convert-to-prolog-str action-inst)
-         "knowrob:objectType"
+         "knowrob:objectActedOn"
          (convert-to-prolog-str object-type))))))
 
 
@@ -120,7 +126,13 @@
   (send-rdf-query current-action-name "knowrob:nextAction" next-action-name))
 
 (defun send-cram-previous-action (current-action-name previous-action-name)
-      (send-rdf-query current-action-name "knowrob:previousAction" previous-action-name))
+  (send-rdf-query current-action-name "knowrob:previousAction" previous-action-name))
+
+(defun send-cram-next-motion (current-motion-name next-motion-name)
+  (send-rdf-query current-motion-name "knowrob:nextMotion" next-motion-name))
+
+(defun send-cram-previous-motion (current-motion-name previous-motion-name)
+  (send-rdf-query current-motion-name "knowrob:previousMotion" previous-motion-name))
 
 (defun send-instance-from-class (instance-class-name)
   (let ((instance-class-id
@@ -165,7 +177,7 @@
     (if pose-stamp (progn 
                      (send-rdf-query (convert-to-prolog-str action-inst)
                                      "knowrob:goalLocation" (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
-                     (if (string-equal" left" list-name)
+                     (if (string-equal "left" list-name)
                          (send-gripper-action-parameter action-inst :left)
                          (send-gripper-action-parameter action-inst :right))))))
 
@@ -187,7 +199,6 @@
 
 (defun send-finish-query(id)
   (json-prolog:prolog-simple-1 (concatenate 'string "send_finish_query('" id "').")))
-
 
 (defun send-location-designator (action-id designator predicate-name)
   (if (desig::desig-prop-value designator :POSE)
