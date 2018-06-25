@@ -87,6 +87,16 @@
   (unless proj:*projection-environment*
     (json-prolog:prolog-simple "belief_forget."))
 
+  (btr-belief::call-giskard-environment-service :kill-all "attached")
+  (cram-bullet-reasoning-belief-state::call-giskard-environment-service
+   :add-kitchen
+   "kitchen"
+   (cl-transforms-stamped:make-pose-stamped
+    "map"
+    0.0
+    (cl-transforms:make-identity-vector)
+    (cl-transforms:make-identity-rotation)))
+
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
   (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
@@ -131,7 +141,8 @@
                                               (part-of kitchen)))))
             (:milk . ,(desig:a location
                                (side left)
-                               (in (desig:an object
+                               (on;; in
+                                (desig:an object
                                              (type counter-top)
                                              (urdf-name iai-fridge-main)
                                              (owl-name "drawer_fridge_upper_interior")
