@@ -177,7 +177,7 @@ the `look-pose-stamped'."
 
 
 (cpl:def-cram-function search-for-object (?object-designator ?search-location
-                                                             &optional (retries 4))
+                                                             &optional (retries 9))
   "Searches for `?object-designator' in its likely location `?search-location'."
 
   (cpl:with-failure-handling
@@ -363,7 +363,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                                   (pose ?pose-at-target-location)))))))
 
             ;; take a new `?target-robot-location' sample if a failure happens
-            (cpl:with-retry-counters ((relocation-for-ik-retries 5))
+            (cpl:with-retry-counters ((relocation-for-ik-retries 2))
               (cpl:with-failure-handling
                   (((or common-fail:navigation-goal-in-collision
                         common-fail:object-undeliverable
