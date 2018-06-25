@@ -94,14 +94,25 @@
                          (if (or (string-equal key-string "type")
                                  (string-equal key-string "shape")
                                  (string-equal key-string "color")
-                                 (string-equal key-string "cad-model"))
+                                 (string-equal key-string "cad-model")
+                                 (string-equal key-string "location")
+                                 (string-equal key-string "obj-part"))
                              (list key-string
                                    (etypecase value ; RS is only case-sensitive on "TYPE"s
                                      (keyword (remove #\- (string-capitalize (symbol-name value))))
                                      (string value)
                                      (list (mapcar (lambda (item)
-                                                     (string-downcase (symbol-name item)))
-                                                   value))))))))
+                                                     (etypecase item
+                                                       (keyword
+                                                        (string-downcase (symbol-name item)))
+                                                       (string
+                                                        item)))
+                                                   value))
+                                     (desig:location-designator
+                                      (desig:desig-prop-value
+                                       (or (desig:desig-prop-value value :on)
+                                           (desig:desig-prop-value value :in))
+                                       :owl-name))))))))
                    key-value-pairs-list)))
         (quantifier quantifier
           ;; (etypecase quantifier
@@ -137,6 +148,8 @@
                                                  number-of-objects quantifier)))))))
 
 (defun map-rs-color-to-rgb-list (rs-color)
+  (when (stringp rs-color)
+    (setf rs-color (intern (string-upcase rs-color) :keyword)))
   (case rs-color
     (:white '(1.0 1.0 1.0))
     (:red '(1.0 0.0 0.0))
@@ -152,12 +165,15 @@
 
 (defun which-estimator-for-object (object-description)
   (let ((type (second (find :type object-description :key #'car)))
-        (cad-model (find :cad-model object-description :key #'car)))
+        (cad-model (find :cad-model object-description :key #'car))
+        (obj-part (find :obj-part object-description :key #'car)))
     (if cad-model
         :templatealignment
         (if (eq type :spoon)
             :2destimate
-            :3destimate))))
+            (if obj-part
+                :handleannotator
+                :3destimate)))))
 
 (defun find-pose-in-camera-for-object (object-description)
   (let* ((estimator (which-estimator-for-object object-description))
@@ -180,16 +196,23 @@
             )))
 
 (defun make-robosherlock-designator (rs-answer keyword-key-value-pairs-list)
-  (when (and (find :type rs-answer :key #'car)
+  (when (and (find :type rs-answer :key #'car) ; <- TYPE comes from original query
              (find :type keyword-key-value-pairs-list :key #'car))
     (setf rs-answer (remove :type rs-answer :key #'car)))
+  (when (and (find :location rs-answer :key #'car) ; <- LOCATION comes from original query
+             (find :location keyword-key-value-pairs-list :key #'car))
+    (setf rs-answer (remove :location rs-answer :key #'car)))
+  ;; (when (and (find :color rs-answer :key #'car) ; <- COLOR comes from original query
+  ;;            (find :color keyword-key-value-pairs-list :key #'car)))
+  (setf rs-answer (remove :color rs-answer :key #'car))
+  (setf rs-answer (remove :shape rs-answer :key #'car))
   ;; (when (and (find :pose rs-answer :key #'car)
   ;;            (find :pose keyword-key-value-pairs-list :key #'car))
   ;;   (remove :pose keyword-key-value-pairs-list :key #'car))
+  (setf keyword-key-value-pairs-list (remove :pose keyword-key-value-pairs-list :key #'car))
   (let ((combined-properties
           (append rs-answer ; <- overwrite old stuff with new stuff
                   (set-difference keyword-key-value-pairs-list rs-answer :key #'car))))
-
     (let* ((name
              (or (second (find :name combined-properties :key #'car))
                  (cpl:fail 'common-fail:perception-low-level-failure
@@ -199,7 +222,9 @@
                                      :test #'equal)))
                (if rs-colors
                    (map-rs-color-to-rgb-list
-                    (caadr rs-colors))
+                    (if (listp (cadr rs-colors))
+                        (caadr rs-colors)
+                        (cadr rs-colors)))
                    '(0.5 0.5 0.5)))))
 
       (let* ((pose-stamped-in-camera
@@ -222,6 +247,8 @@
                (cram-tf:pose-stamped->transform-stamped
                 pose-stamped-in-base-frame
                 name)))
+
+        (cram-tf:visualize-marker pose-stamped-in-camera :r-g-b-list '(0 0 1) :id 1234)
 
         (let* ((properties-without-pose
                  (remove :poses combined-properties :key #'car))

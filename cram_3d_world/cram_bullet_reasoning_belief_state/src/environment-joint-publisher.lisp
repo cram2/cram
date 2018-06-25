@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,36 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :cram-bullet-reasoning-belief-state)
 
-(defpackage cram-pr2-low-level
-  (:nicknames #:pr2-ll)
-  (:use #:common-lisp #:cram-tf)
-  (:export
-   ;; actionlib actions
-   #:call-giskard-cartesian-action
-   #:call-giskard-joint-action
-   #:call-gripper-action
-   #:call-joint-trajectory-action
-   #:call-joint-angle-action
-   #:call-nav-pcontroller-action
-   #:call-ptu-action
-   #:call-torso-action
-   ;; #:call-robosherlock-service
-   ;; joint-states
-   #:joint-states
-   #:joint-positions
-   #:get-arm-joint-states
-   #:normalize-joint-angles
-   ;; low-level-common
-   #:values-converged))
+(defvar *joint-state-pub* nil
+  "Joint state publisher for the environment for RViz (and giskard collision scene)")
+
+(defun init-joint-state-pub ()
+  "Initializes *joint-state-pub* ROS publisher"
+  (setf *joint-state-pub*
+        (roslisp:advertise "kitchen/cram_joint_states"
+                           "sensor_msgs/JointState"))
+  (cpl:sleep 1.0)
+  *joint-state-pub*)
+
+(defun get-joint-state-pub ()
+  (or *joint-state-pub*
+      (init-joint-state-pub)))
+
+(defun destroy-joint-state-pub ()
+  (setf *joint-state-pub* nil))
+
+(roslisp-utilities:register-ros-cleanup-function destroy-joint-state-pub)
+
+
+(defun publish-environment-joint-state (joint-state-hash-table
+                                        &optional (timestamp (roslisp:ros-time)))
+  (let* ((joint-state-list
+           (loop for key being the hash-keys in joint-state-hash-table
+                   using (hash-value value)
+            collect (list key value)))
+         (joint-state-msg
+           (btr:make-joint-state-message
+            joint-state-list :time-stamp timestamp)))
+    (roslisp:publish (get-joint-state-pub) joint-state-msg)))

@@ -49,12 +49,12 @@
                cram-simple-actionlib-client
                sensor_msgs-msg
                geometry_msgs-msg
-               visualization_msgs-msg
                moveit_msgs-msg
                pr2_controllers_msgs-msg
                trajectory_msgs-msg
                move_base_msgs-msg
-               giskard_msgs-msg)
+               giskard_msgs-msg
+               giskard_msgs-srv)
   :components
   ((:module "src"
     :components

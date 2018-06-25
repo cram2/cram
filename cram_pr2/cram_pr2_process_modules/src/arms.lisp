@@ -36,12 +36,13 @@
 ;;         some-list)))
 
 (def-process-module pr2-arms-pm (action-designator)
-  (destructuring-bind (command goal-left goal-right)
+  (destructuring-bind (command argument-1 &rest rest-arguments)
       (reference action-designator)
     (ecase command
       (cram-common-designators:move-tcp
-       (pr2-ll:call-giskard-cartesian-action :goal-pose-left goal-left
-                                             :goal-pose-right goal-right)
+       (pr2-ll:call-giskard-cartesian-action :goal-pose-left argument-1
+                                             :goal-pose-right (first rest-arguments)
+                                             :collision-mode (second rest-arguments))
        ;; (unless (listp goal-left)
        ;;   (setf goal-left (list goal-left)))
        ;; (unless (listp goal-right)
@@ -54,8 +55,8 @@
        ;;         (fill-in-with-nils goal-right max-length)))
        )
       (cram-common-designators:move-joints
-       (pr2-ll:call-giskard-joint-action :goal-configuration-left goal-left
-                                         :goal-configuration-right goal-right)))))
+       (pr2-ll:call-giskard-joint-action :goal-configuration-left argument-1
+                                         :goal-configuration-right (first rest-arguments))))))
 
 ;;; Examples:
 ;;

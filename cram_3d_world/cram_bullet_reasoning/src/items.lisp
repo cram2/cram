@@ -57,14 +57,17 @@ The name in the list is a keyword that is created by lispifying the filename."
                       (string-equal object-extension extension)
                       (or (string-equal object-extension "stl")
                           (string-equal object-extension "dae")))
-                  (let ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
-                                    object-filename :keyword)))
-                    (push (list lisp-name
-                                (format nil "package://~a/~a/~a.~a"
-                                        ros-package directory object-filename object-extension)
-                                nil)
-                          *mesh-files*)
-                    (setf *mesh-files* (remove-duplicates *mesh-files* :key #'car))
+                  (let* ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
+                                    object-filename :keyword))
+                         (new-entry (list lisp-name
+                                          (format nil "package://~a/~a/~a.~a"
+                                                  ros-package directory
+                                                  object-filename object-extension)
+                                          nil))
+                         (position-of-entry (position lisp-name *mesh-files* :key #'car)))
+                    (if position-of-entry
+                        (setf (nth position-of-entry *mesh-files*) new-entry)
+                        (push new-entry *mesh-files*))
                     lisp-name))))
           (mapcar (lambda (pathname)
                     (list (pathname-name pathname) (pathname-type pathname)))

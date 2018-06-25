@@ -37,10 +37,11 @@
           (list (cram-tf:robot-current-pose))
         (cl-transforms-stamped:transform-stamped-error () nil)))))
 
-(desig:register-location-generator
- 3 robot-current-pose-tf-generator
- "We should move the robot only if we really need to move. Try the
- current robot pose as a first solution.")
+;; TODO: disabling this for now, in the future use next-different-solution instead of next-solution
+;; (desig:register-location-generator
+;;  3 robot-current-pose-tf-generator
+;;  "We should move the robot only if we really need to move. Try the
+;;  current robot pose as a first solution.")
 
 
 (defun robot-location-on-floor (designator pose)

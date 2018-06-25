@@ -32,15 +32,19 @@
 
 (defvar *robot-model-alpha* nil)
 
-(defgeneric urdf-make-collision-shape (geometry &optional color))
+(defgeneric urdf-make-collision-shape (geometry &optional color compound))
 
-(defmethod urdf-make-collision-shape ((box cl-urdf:box) &optional (color '(0.8 0.8 0.8 1.0)))
+(defmethod urdf-make-collision-shape ((box cl-urdf:box)
+                                      &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
+  (declare (ignore compound))
   (make-instance 'colored-box-shape
     :half-extents (cl-transforms:v*
                    (cl-urdf:size box) 0.5)
     :color (apply-alpha-value color)))
 
-(defmethod urdf-make-collision-shape ((cylinder cl-urdf:cylinder) &optional (color '(0.8 0.8 0.8 1.0)))
+(defmethod urdf-make-collision-shape ((cylinder cl-urdf:cylinder)
+                                      &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
+  (declare (ignore compound))
   (make-instance 'colored-cylinder-shape
     :half-extents (cl-transforms:make-3d-vector
                    (cl-urdf:radius cylinder)
@@ -48,16 +52,36 @@
                    (* 0.5 (cl-urdf:cylinder-length cylinder)))
     :color (apply-alpha-value color)))
 
-(defmethod urdf-make-collision-shape ((sphere cl-urdf:sphere) &optional (color '(0.8 0.8 0.8 1.0)))
+(defmethod urdf-make-collision-shape ((sphere cl-urdf:sphere)
+                                      &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
+  (declare (ignore compound))
   (make-instance 'colored-sphere-shape :radius (cl-urdf:radius sphere)
     :color (apply-alpha-value color)))
 
-(defmethod urdf-make-collision-shape ((mesh cl-urdf:mesh) &optional (color '(0.8 0.8 0.8 1.0)))
-  (let ((model (load-mesh mesh)))
-    (make-instance 'convex-hull-mesh-shape
-                   :color (apply-alpha-value color)
-                   :faces (physics-utils:3d-model-faces model)
-                   :points (physics-utils:3d-model-vertices model))))
+(defmethod urdf-make-collision-shape ((mesh cl-urdf:mesh)
+                                      &optional (color '(0.8 0.8 0.8 1.0)) (compound nil))
+  "Loads the meshes from the specified filename in `mesh' and creates either:
+  a `convex-hull-shape' if `compound' is NIL or
+  a `compound-shape' if compound it T.
+  The former combines all meshes and faces into one convex-hull-shape, while the latter
+  contains every single mesh as a seperate convex-hull-shape as children in a compound-shape."
+  (let* ((model (load-mesh mesh compound)))
+    (flet ((make-ch-mesh-shape (model-part)
+             (make-instance 'convex-hull-mesh-shape
+                            :color (apply-alpha-value color)
+                            :faces (physics-utils:3d-model-faces model-part)
+                            :points (physics-utils:3d-model-vertices model-part))))
+      (if compound
+          (let ((compound-shape (make-instance 'compound-shape))
+                (id-pose (cl-transforms:make-pose
+                          (cl-transforms:make-3d-vector 0 0 0)
+                          (cl-tf:make-identity-rotation))))
+            (mapcar (alexandria:compose
+                     (alexandria:curry #'add-child-shape compound-shape id-pose)
+                     #'make-ch-mesh-shape)
+                    model)
+            compound-shape)
+          (make-ch-mesh-shape (car model))))))
 
 (defstruct collision-information
   rigid-body-name flags)
@@ -86,7 +110,25 @@ of the object should _not_ be updated."
    (initial-pose :initarg :pose
                  :documentation "Pose that got passed in initially. It
                  is returned by the `pose' method if `reference-body'
-                 is invalid.")))
+                 is invalid.")
+   (collision-group :initarg :collision-group
+                    :initform :character-filter
+                    :reader collision-group
+                    :documentation "Contains the collision group of the robot.
+                    Defaults to :character-filter for PR2, should be set to
+                    :static-filter when used on the kitchen URDF.")
+   (collision-mask :initarg :collision-mask
+                    :initform '(:default-filter :static-filter)
+                    :reader collision-mask
+                    :documentation "List of filters, with whom the robot detects
+                    collisions with. Contains the :default-filter for regular objects
+                    and :static-filter for the kitchen. Swap to :character-filter if
+                    this objects is a kitchen.")
+   (compound :initarg :compound
+             :initform nil
+             :reader compound
+             :documentation "Determines, if the URDFs meshes are build as
+             a compound of meshes, or one single convex hull shape.")))
 
 (defgeneric joint-names (robot-object)
   (:documentation "Returns the list of joints")
@@ -221,9 +263,13 @@ of the object should _not_ be updated."
 (defmethod initialize-instance :after ((robot-object robot-object)
                                        &key color name pose
                                          (collision-group :character-filter)
-                                         (collision-mask '(:default-filter
-                                                           :static-filter
-                                                           :character-filter)))
+                                         (collision-mask '(:default-filter :static-filter))
+                                         (compound nil))
+  "Translates the rigid bodies, links and joints of the `robot-object' to create and spawn
+  the robot. Is usually called by `add-object' to add a URDF object. The `collision-mask'
+  contains all `collision-groups' that this robot object will detect collision with.
+  Set `compound' T to spawn the robot as compound-shapes, instead of colored-boxes
+  or convex-hull-shapes."
   (with-slots (rigid-bodies links urdf pose-reference-body) robot-object
     (labels ((make-link-bodies (pose link)
                "Returns the list of rigid bodies of `link' and all its sub-links"
@@ -255,7 +301,8 @@ of the object should _not_ be updated."
                                                      color
                                                      (let ((some-gray (/ (+ (random 5) 3) 10.0)))
                                                        (list some-gray some-gray some-gray
-                                                             (or *robot-model-alpha* 1.0))))))
+                                                             (or *robot-model-alpha* 1.0)))))
+                                                compound)
                               :collision-flags :cf-default
                               :group collision-group
                               :mask collision-mask))
@@ -304,7 +351,10 @@ of the object should _not_ be updated."
      :attached-objects (copy-list (attached-objects obj)))))
 
 (defmethod add-object ((world bt-world) (type (eql :urdf)) name pose
-                       &key urdf (color '(0.8 0.8 0.8 1.0)))
+                       &key urdf (color '(0.8 0.8 0.8 1.0))
+                         (collision-group :character-filter)
+                         (collision-mask  '(:default-filter :static-filter))
+                         compound)
   (make-instance 'robot-object
     :name name
     :world world
@@ -313,7 +363,10 @@ of the object should _not_ be updated."
             (cl-urdf:robot urdf)
             (string (handler-bind ((cl-urdf:urdf-type-not-supported #'muffle-warning))
                       (cl-urdf:parse-urdf urdf))))
-    :color color))
+    :color color
+    :collision-group collision-group
+    :collision-mask collision-mask
+    :compound compound))
 
 (defun update-attached-object-poses (robot-object link pose)
   "Updates the poses of all objects that are attached to
@@ -615,9 +668,17 @@ Only one joint state changes in this situation, so only one joint state is updat
             (list r g b (or *robot-model-alpha* 1.0)))
           (error "Color of an object has to be a list of 3 or 4 values"))))
 
-(defun load-mesh (mesh)
-  "Loads and resizes the 3d-model"
-  (let ((model (physics-utils:load-3d-model (physics-utils:parse-uri (cl-urdf:filename mesh)))))
-      (cond ((cl-urdf:scale mesh) (physics-utils:scale-3d-model model (cl-urdf:scale mesh)))
-            ((cl-urdf:size mesh) (physics-utils:resize-3d-model model (cl-urdf:size mesh)))
-            (t model))))
+(defun load-mesh (mesh &optional (compound nil))
+  "Loads and resizes the 3d-model. If `compound' is T we have a list of meshes, instead of one."
+  (let ((model (multiple-value-list
+                (physics-utils:load-3d-model (physics-utils:parse-uri (cl-urdf:filename mesh))
+                                            :compound compound))))
+    (cond ((cl-urdf:scale mesh)
+           (mapcar (lambda (model-part)
+                     (physics-utils:scale-3d-model model-part (cl-urdf:scale mesh)))
+                   model))
+          ((cl-urdf:size mesh)
+           (mapcar (lambda (model-part)
+                     (physics-utils:resize-3d-model model-part (cl-urdf:size mesh)))
+                   model))
+          (t model))))

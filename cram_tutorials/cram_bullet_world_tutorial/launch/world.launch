@@ -7,7 +7,7 @@
 
   <!-- kitchen URDF -->
   <param name="kitchen_description"
-         command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf/IAI_kitchen.urdf.xacro'"/>
+         command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
   <node pkg="joint_state_publisher" type="joint_state_publisher"
         name="joint_state_publisher" output="screen">
     <remap from="robot_description" to="kitchen_description"/>

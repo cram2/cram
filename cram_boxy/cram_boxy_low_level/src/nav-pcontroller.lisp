@@ -75,7 +75,7 @@
            (type boolean visualize))
   (let ((goal-pose (cram-tf:ensure-pose-in-frame goal-pose cram-tf:*fixed-frame*)))
     (when visualize
-      (visualize-marker goal-pose :topic "low-level-goals"))
+      (cram-tf:visualize-marker goal-pose :topic "low-level-goals"))
     (multiple-value-bind (result status)
         (call-simple-action-client
          'nav-pcontroller-action
