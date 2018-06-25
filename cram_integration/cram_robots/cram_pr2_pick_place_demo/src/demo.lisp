@@ -84,6 +84,8 @@
   (btr-belief::publish-environment-joint-state
    (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
 
+  (json-prolog:prolog-simple "belief_forget.")
+
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
   (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
