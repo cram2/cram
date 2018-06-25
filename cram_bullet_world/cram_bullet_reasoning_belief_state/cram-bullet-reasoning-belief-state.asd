@@ -52,7 +52,8 @@
                geometry_msgs-msg
                giskard_msgs-msg
                giskard_msgs-srv
-               shape_msgs-msg)
+               shape_msgs-msg
+               cram-json-prolog)
   :components
   ((:module "src"
     :components
