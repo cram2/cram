@@ -131,7 +131,7 @@
     (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
               (?container-pose ?container-transform))
     (lisp-fun obj-int:get-object-grasping-poses ?container-name
-              :container-prisamtic :left :close ?container-transform ?left-poses)
+              :container-prismatic :left :close ?container-transform ?left-poses)
     (lisp-fun obj-int:get-object-grasping-poses ?container-name
               :container-prismatic :right :close ?container-transform ?right-poses)
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
