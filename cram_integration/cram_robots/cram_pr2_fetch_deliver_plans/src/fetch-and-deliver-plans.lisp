@@ -124,7 +124,8 @@ the `look-pose-stamped'."
         (cpl:with-failure-handling
             (((or common-fail:navigation-goal-in-collision
                   common-fail:environment-unreachable
-                  common-fail:gripper-low-level-failure) (e)
+                  common-fail:gripper-low-level-failure
+                  common-fail:manipulation-low-level-failure) (e)
                (roslisp:ros-warn (fd-plans environment) "~a" e)
                (cpl:do-retry relocation-retries
                  (setf ?manipulate-robot-location (desig:next-solution ?manipulate-robot-location))
@@ -251,7 +252,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
             (((or common-fail:navigation-goal-in-collision
                   common-fail:looking-high-level-failure
                   common-fail:perception-low-level-failure
-                  common-fail:object-unreachable) (e)
+                  common-fail:object-unreachable
+                  common-fail:manipulation-low-level-failure) (e)
                (roslisp:ros-warn (fd-plans fetch)
                                  "Object of type ~a is unreachable: ~a"
                                  (desig:desig-prop-value ?object-designator :type) e)
@@ -364,7 +366,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
             (cpl:with-retry-counters ((relocation-for-ik-retries 5))
               (cpl:with-failure-handling
                   (((or common-fail:navigation-goal-in-collision
-                        common-fail:object-undeliverable) (e)
+                        common-fail:object-undeliverable
+                        common-fail:manipulation-low-level-failure) (e)
                      (roslisp:ros-warn (fd-plans deliver)
                                        "Object is undeliverable from current base location.~%~a" e)
                      (cpl:do-retry relocation-for-ik-retries
