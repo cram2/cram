@@ -43,6 +43,9 @@
 (defparameter *object-colors*
   '((:spoon . "blue")))
 
+(defmethod exe:generic-perform :before (designator)
+  (format t "~%PERFORMING~%~A~%~%" designator))
+
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
        (rs:robosherlock-perception-pm
@@ -85,17 +88,16 @@
    (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
 
   (unless proj:*projection-environment*
-    (json-prolog:prolog-simple "belief_forget."))
-
-  (btr-belief::call-giskard-environment-service :kill-all "attached")
-  (cram-bullet-reasoning-belief-state::call-giskard-environment-service
-   :add-kitchen
-   "kitchen"
-   (cl-transforms-stamped:make-pose-stamped
-    "map"
-    0.0
-    (cl-transforms:make-identity-vector)
-    (cl-transforms:make-identity-rotation)))
+    (json-prolog:prolog-simple "belief_forget.")
+    (btr-belief::call-giskard-environment-service :kill-all "attached")
+    (cram-bullet-reasoning-belief-state::call-giskard-environment-service
+     :add-kitchen
+     "kitchen"
+     (cl-transforms-stamped:make-pose-stamped
+      "map"
+      0.0
+      (cl-transforms:make-identity-vector)
+      (cl-transforms:make-identity-rotation))))
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
@@ -215,7 +217,6 @@
 
   (when ccl::*is-logging-enabled*
     (ccl::export-log-to-owl "ease_milestone_2018.owl")
-    ;;(ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl")
-    )
+    (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
 
   cpl:*current-path*)
