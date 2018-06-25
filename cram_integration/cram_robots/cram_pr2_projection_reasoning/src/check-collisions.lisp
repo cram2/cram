@@ -291,7 +291,6 @@ Store found pose into designator or throw error if good pose not found."
                            left-poses
                            right-poses)
                    (when (eq (desig:desig-prop-value action-desig :type) :opening)
-                     (format t "~%~%CHECKING COLLISIONS~%~%")
                      (when (btr:robot-colliding-objects-without-attached)
                        (roslisp:ros-warn (coll-check environment)
                                          "Robot is in collision with environment.")
