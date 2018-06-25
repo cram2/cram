@@ -40,7 +40,8 @@
       (spec:property ?action-designator (:object ?object-designator)))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
-    (or (spec:property ?action-designator (:type :retracting)))
+    (or (spec:property ?action-designator (:type :reaching))
+        (spec:property ?action-designator (:type :retracting)))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
@@ -48,8 +49,7 @@
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?left-poses ?right-poses :allow-hand))
-    (or (spec:property ?action-designator (:type :reaching))
-        (spec:property ?action-designator (:type :lifting)))
+    (or (spec:property ?action-designator (:type :lifting)))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
