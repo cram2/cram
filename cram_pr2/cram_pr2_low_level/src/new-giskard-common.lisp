@@ -33,6 +33,6 @@
   (actionlib-client:make-simple-action-client
    'giskard-action
    "qp_controller/command" "giskard_msgs/MoveAction"
-   20))
+   60))
 
 (roslisp-utilities:register-ros-init-function make-giskard-action-client)
