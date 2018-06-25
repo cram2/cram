@@ -50,7 +50,8 @@
            (roslisp:ros-warn (pp-plans pick-up)
                              "Manipulation messed up: ~a~%Ignoring."
                              e)
-           (return)))
+           ;; (return)
+           ))
       (exe:perform
        (desig:an action
                  (type reaching)
@@ -61,7 +62,8 @@
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         (return)))
+         (return)
+         ))
     (exe:perform
      (desig:an action
                (type grasping)
@@ -104,7 +106,8 @@
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         (return)))
+         ;; (return)
+         ))
     (exe:perform
      (desig:an action
                (type reaching)
@@ -138,7 +141,8 @@
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         (return)))
+         (return)
+         ))
     (exe:perform
      (desig:an action
                (type retracting)
