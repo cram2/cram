@@ -177,7 +177,7 @@
     (if pose-stamp (progn 
                      (send-rdf-query (convert-to-prolog-str action-inst)
                                      "knowrob:goalLocation" (convert-to-prolog-str (send-create-pose-stamped pose-stamp)))
-                     (if (string-equal" left" list-name)
+                     (if (string-equal "left" list-name)
                          (send-gripper-action-parameter action-inst :left)
                          (send-gripper-action-parameter action-inst :right))))))
 
