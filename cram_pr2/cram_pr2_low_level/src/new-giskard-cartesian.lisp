@@ -29,9 +29,9 @@
 
 (in-package :pr2-ll)
 
-(defparameter *giskard-convergence-delta-xy* 0.02 ;; 0.005
+(defparameter *giskard-convergence-delta-xy* 0.1 ;; 0.005
   "in meters")
-(defparameter *giskard-convergence-delta-theta* 0.3 ;; 0.1
+(defparameter *giskard-convergence-delta-theta* 0.5 ;; 0.1
   "in radiants, about 6 degrees")
 
 (defun make-giskard-cartesian-action-goal (left-pose right-pose
@@ -166,7 +166,10 @@
   (when (eql status :timeout)
     (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
   (when (eql status :aborted)
-    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action aborted! With result ~a" result))
+    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action aborted! With result ~a" result)
+    ;; (cpl:fail 'common-fail:manipulation-goal-not-reached
+    ;;           :description "Giskard did not converge to goal because of collision")
+    )
   (when goal-position-left
     (unless (cram-tf:tf-frame-converged goal-frame-left goal-position-left
                                         convergence-delta-xy convergence-delta-theta)
@@ -195,20 +198,22 @@
   (declare (type (or null cl-transforms-stamped:pose-stamped) goal-pose-left goal-pose-right)
            (type (or null number) action-timeout convergence-delta-xy convergence-delta-theta)
            (type (or null string) pose-base-frame left-tool-frame right-tool-frame))
-  (when (or goal-pose-left goal-pose-right)
-    (multiple-value-bind (goal-pose-left goal-pose-right)
-        (ensure-giskard-cartesian-input-parameters pose-base-frame goal-pose-left goal-pose-right)
-      (cram-tf:visualize-marker (list goal-pose-left goal-pose-right) :r-g-b-list '(1 0 1))
-      (multiple-value-bind (result status)
-          (actionlib-client:call-simple-action-client
-           'giskard-action
-           :action-goal (make-giskard-cartesian-action-goal
+  (if (or goal-pose-left goal-pose-right)
+      (multiple-value-bind (goal-pose-left goal-pose-right)
+          (ensure-giskard-cartesian-input-parameters pose-base-frame goal-pose-left goal-pose-right)
+        (cram-tf:visualize-marker (list goal-pose-left goal-pose-right) :r-g-b-list '(1 0 1))
+        (multiple-value-bind (result status)
+            (let ((goal (make-giskard-cartesian-action-goal
                          goal-pose-left goal-pose-right
                          pose-base-frame left-tool-frame right-tool-frame
-                         collision-mode)
-           :action-timeout action-timeout)
-        (ensure-giskard-cartesian-goal-reached result status goal-pose-left goal-pose-right
-                                               left-tool-frame right-tool-frame
-                                               convergence-delta-xy convergence-delta-theta)
-        (values result status)))))
+                         collision-mode)))
+              (actionlib-client:call-simple-action-client
+               'giskard-action
+               :action-goal goal
+               :action-timeout action-timeout))
+          (ensure-giskard-cartesian-goal-reached result status goal-pose-left goal-pose-right
+                                                 left-tool-frame right-tool-frame
+                                                 convergence-delta-xy convergence-delta-theta)
+          (values result status)))
+      (roslisp:ros-info (pr2-ll giskard-cart) "Got an empty goal...")))
 
