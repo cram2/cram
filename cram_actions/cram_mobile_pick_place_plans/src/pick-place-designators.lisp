@@ -33,14 +33,19 @@
   "`?arm' can be :left, :right or (:left :right)."
   (let ((arm-as-list (if (listp arm) arm (list arm)))
         left-reach-poses left-lift-poses
+        left-grasp-poses right-grasp-poses
         right-reach-poses right-lift-poses)
     (when (member :left arm-as-list)
-      (setf left-reach-poses (subseq left-manipulation-poses 0 3)
+      (setf left-reach-poses (subseq left-manipulation-poses 0 2)
+            left-grasp-poses (subseq left-manipulation-poses 2 3)
             left-lift-poses (subseq left-manipulation-poses 3)))
     (when (member :right arm-as-list)
-      (setf right-reach-poses (subseq right-manipulation-poses 0 3)
+      (setf right-reach-poses (subseq right-manipulation-poses 0 2)
+            right-grasp-poses (subseq right-manipulation-poses 2 3)
             right-lift-poses (subseq right-manipulation-poses 3)))
-    (list left-reach-poses right-reach-poses left-lift-poses right-lift-poses)))
+    (list left-reach-poses right-reach-poses
+          left-grasp-poses right-grasp-poses
+          left-lift-poses right-lift-poses)))
 
 (defun extract-place-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
   "`?arm' can be :left, :right or (:left :right)."
@@ -57,7 +62,8 @@
       (setf right-reach-poses (subseq right-manipulation-poses 0 2)
             right-put-poses (subseq right-manipulation-poses 2 3)
             right-retract-poses (subseq right-manipulation-poses 3)))
-    (list left-reach-poses right-reach-poses left-put-poses right-put-poses
+    (list left-reach-poses right-reach-poses
+          left-put-poses right-put-poses
           left-retract-poses right-retract-poses)))
 
 
@@ -65,6 +71,7 @@
   (<- (desig:action-grounding ?action-designator (pick-up ?current-object-desig ?arm
                                                           ?gripper-opening ?effort ?grasp
                                                           ?left-reach-poses ?right-reach-poses
+                                                          ?left-grasp-poses ?right-grasp-poses
                                                           ?left-lift-poses ?right-lift-poses))
     ;; extract info from ?action-designator
     (spec:property ?action-designator (:type :picking-up))
@@ -90,7 +97,9 @@
               ?object-name ?object-type :right ?grasp ?object-transform
               ?right-poses)
     (lisp-fun extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses)))
+              (?left-reach-poses ?right-reach-poses
+                                 ?left-grasp-poses ?right-grasp-poses
+                                 ?left-lift-poses ?right-lift-poses)))
 
   (<- (desig:action-grounding ?action-designator (place ?current-object-designator ?arm
                                                         ?left-reach-poses ?right-reach-poses

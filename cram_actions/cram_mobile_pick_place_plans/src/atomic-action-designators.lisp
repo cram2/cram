@@ -40,10 +40,27 @@
       (spec:property ?action-designator (:object ?object-designator)))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
+    (or (spec:property ?action-designator (:type :retracting)))
+    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil))))
+
+  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?left-poses ?right-poses :allow-hand))
     (or (spec:property ?action-designator (:type :reaching))
-        (spec:property ?action-designator (:type :lifting))
+        (spec:property ?action-designator (:type :lifting)))
+    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil))))
+
+  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?left-poses ?right-poses :allow-all))
+    (or (spec:property ?action-designator (:type :pulling))
+        (spec:property ?action-designator (:type :pushing))
         (spec:property ?action-designator (:type :putting))
-        (spec:property ?action-designator (:type :retracting)))
+        (spec:property ?action-designator (:type :grasping)))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))

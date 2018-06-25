@@ -74,7 +74,8 @@
                                           'giskard_msgs-msg:collisionentry
                                           :type (roslisp:symbol-code
                                                  'giskard_msgs-msg:collisionentry
-                                                 :allow_all_collisions)))))))
+                                                 :avoid_all_collisions)
+                                          :min_dist 0.05))))))
 
 (defun get-arm-joint-states-alist (arm &optional joint-positions)
   (let ((joint-names

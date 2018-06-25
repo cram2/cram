@@ -67,7 +67,7 @@
              (if (> desired-length current-length)
                  (append some-list (make-list (- desired-length current-length)))
                  some-list))))
-    (destructuring-bind (command argument-1 argument-2)
+    (destructuring-bind (command argument-1 argument-2 &optional argument-3)
         (desig:reference motion-designator)
       (ecase command
         (boxy-desig:move-tcp
@@ -80,7 +80,7 @@
                (setf goal-right (list goal-right)))
              (let ((max-length (max (length goal-left) (length goal-right))))
                (mapc (lambda (single-pose-left single-pose-right)
-                       (boxy-ll::visualize-marker (list single-pose-left single-pose-right)
+                       (cram-tf:visualize-marker (list single-pose-left single-pose-right)
                                                   :r-g-b-list '(1 0 1))
                        (boxy-ll:move-arms-giskard-cartesian :goal-pose-left single-pose-left
                                                             :goal-pose-right single-pose-right))

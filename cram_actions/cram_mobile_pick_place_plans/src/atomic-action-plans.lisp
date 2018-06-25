@@ -80,7 +80,7 @@
           resulting-designator)))))
 
 
-(cpl:def-cram-function move-arms-in-sequence (left-poses right-poses)
+(cpl:def-cram-function move-arms-in-sequence (left-poses right-poses &optional ?collision-mode)
   "Make `?left-poses' and `?right-poses' to lists if they are not already"
 
   (flet ((fill-in-with-nils (some-list desired-length)
@@ -133,7 +133,9 @@
                   (desig:when ?left-pose
                     (left-target (desig:a location (pose ?left-pose))))
                   (desig:when ?right-pose
-                    (right-target (desig:a location (pose ?right-pose))))))
+                    (right-target (desig:a location (pose ?right-pose))))
+                  (desig:when ?collision-mode
+                    (collision-mode ?collision-mode))))
 
         (cram-occasions-events:on-event
          (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
@@ -176,15 +178,20 @@
                    (return)))
 
               (if carry?
-                  (cpl:seq
-                    (exe:perform
+                  (exe:perform
                      (desig:a motion
                               (type moving-arm-joints)
+                              (left-configuration ?left-configuration)
                               (right-configuration ?right-configuration)))
-                    (exe:perform
-                     (desig:a motion
-                              (type moving-arm-joints)
-                              (left-configuration ?left-configuration))))
+                  ;; (cpl:seq
+                  ;;   (exe:perform
+                  ;;    (desig:a motion
+                  ;;             (type moving-arm-joints)
+                  ;;             (right-configuration ?right-configuration)))
+                  ;;   (exe:perform
+                  ;;    (desig:a motion
+                  ;;             (type moving-arm-joints)
+                  ;;             (left-configuration ?left-configuration))))
                   (cpl:seq
                     (exe:perform
                      (desig:a motion

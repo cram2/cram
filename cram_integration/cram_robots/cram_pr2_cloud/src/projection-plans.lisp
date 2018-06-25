@@ -73,7 +73,7 @@
        (intern (format nil "cereal-~a" i) :keyword)
        :visualization-box
        :pose pose)
-      (cram-pr2-low-level:visualize-marker pose :id (+ i 0) :r-g-b-list '(0.5 0 1))
+      (cram-tf:visualize-marker pose :id (+ i 0) :r-g-b-list '(0.5 0 1))
       (incf i))))
 
 

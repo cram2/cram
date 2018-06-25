@@ -60,11 +60,18 @@
 
   (setf cram-tf:*tf-broadcasting-enabled* t)
 
-  ;; (setf ccl::*is-logging-enabled* nil)
+  (setf pr2-proj-reasoning::*projection-reasoning-enabled* t)
+
+  (setf ccl::*is-client-connected* nil)
+  (setf ccl::*is-logging-enabled* nil)
+  (setf ccl::*host* "'https://192.168.100.172'")
+  (setf ccl::*cert-path* "'/home/ease/openease-certificates/sebastian.pem'")
+  (setf ccl::*api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
 
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
-  ;; (ccl::connect-to-cloud-logger)
+  (ccl::connect-to-cloud-logger)
+  (ccl::reset-logged-owl)
 
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo"))
 

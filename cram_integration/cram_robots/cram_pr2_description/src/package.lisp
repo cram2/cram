@@ -32,4 +32,8 @@
   (:use #:common-lisp
         #:cram-prolog
         #:cram-robot-interfaces)
-  (:export #:pr2))
+  (:export
+   ;; pr2-knowledge
+   #:pr2
+   ;; arm-kinematics
+   #:get-hand-link-names))

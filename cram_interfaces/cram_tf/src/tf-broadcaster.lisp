@@ -34,7 +34,8 @@
                :documentation "Hash table of transforms indexed by (frame-id child-frame-id).")
    (mutex :initform (sb-thread:make-mutex :name (string (gensym "TF-BROADCASTER-")))
           :documentation "Mutex to lock the hash table when manipulating it")
-   (thread :documentation "Handle to the publisher thread")
+   (broadcaster-thread :initform nil
+                       :documentation "Handle to the publisher thread")
 
    (tf-topic :reader tf-topic :initarg :tf-topic :initform "tf"
              :documentation "the topic on which to publish")
@@ -83,15 +84,17 @@
 
 (defgeneric start-publishing-transforms (broadcaster)
   (:method ((broadcaster tf-broadcaster))
-    (with-slots (thread interval) broadcaster
-      (setf thread (sb-thread:make-thread
-                    #'(lambda ()
-                        (roslisp:loop-at-most-every interval
-                          (publish-transforms broadcaster)))
-                    :name "TF broadcaster thread")))))
+    (with-slots (broadcaster-thread interval) broadcaster
+      (setf broadcaster-thread
+            (sb-thread:make-thread
+             #'(lambda ()
+                 (roslisp:loop-at-most-every interval
+                   (publish-transforms broadcaster)))
+             :name "TF broadcaster thread")))))
 
 (defgeneric stop-publishing-transforms (broadcaster)
   (:method ((broadcaster tf-broadcaster))
-    (with-slots (thread) broadcaster
-      (when thread
-        (sb-thread:terminate-thread thread)))))
+    (when broadcaster
+      (let ((broadcaster-thread (slot-value broadcaster 'broadcaster-thread)))
+       (when broadcaster-thread
+         (sb-thread:terminate-thread broadcaster-thread))))))

@@ -99,7 +99,7 @@
 
 (def-fact-group arm-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-tcp ?left-pose ?right-pose))
+  (<- (motion-grounding ?designator (move-tcp ?left-pose ?right-pose ?collision-mode))
     (property ?designator (:type :moving-tcp))
     (-> (property ?designator (:left-target ?left-location))
         (and (designator-groundings ?left-location ?left-poses)
@@ -108,7 +108,10 @@
     (-> (property ?designator (:right-target ?right-location))
         (and (designator-groundings ?right-location ?right-poses)
              (member ?right-pose ?right-poses))
-        (equal ?right-pose nil)))
+        (equal ?right-pose nil))
+    (-> (desig:desig-prop ?designator (:collision-mode ?collision-mode))
+        (true)
+        (equal ?collision-mode nil)))
 
   (<- (motion-grounding ?designator (move-joints ?left-config ?right-config))
     (property ?designator (:type :moving-arm-joints))

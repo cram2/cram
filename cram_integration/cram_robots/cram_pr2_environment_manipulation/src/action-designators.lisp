@@ -48,8 +48,8 @@
   (<- (desig:action-grounding ?action-designator (open-container ?arm
                                                                  ?gripper-opening
                                                                  ?distance
-                                                                 ?left-reach-poses
-                                                                 ?right-reach-poses
+                                                                 ?left-reach-pull-poses
+                                                                 ?right-reach-pull-poses
                                                                  (?left-lift-pose)
                                                                  (?right-lift-pose)
                                                                  (?left-2nd-lift-pose)
@@ -79,12 +79,16 @@
     (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
               (?container-pose ?container-transform))
     (lisp-fun obj-int:get-object-grasping-poses ?container-name
-              :container :left :open ?container-transform ?left-poses)
+              :container-prismatic :left :open ?container-transform ?left-poses)
     (lisp-fun obj-int:get-object-grasping-poses ?container-name
-              :container :right :open ?container-transform ?right-poses)
+              :container-prismatic :right :open ?container-transform ?right-poses)
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
               ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
+              (?left-reach-poses ?right-reach-poses
+                                 ?left-pull-poses ?right-pull-poses
+                                 ?left-lift-poses ?right-lift-poses))
+    (lisp-fun append ?left-reach-poses ?left-pull-poses ?left-reach-pull-poses)
+    (lisp-fun append ?right-reach-poses ?right-pull-poses ?right-reach-pull-poses)
     (-> (lisp-pred identity ?left-lift-poses)
         (equal ?left-lift-poses (?left-lift-pose ?left-2nd-lift-pose))
         (equal (NIL NIL) (?left-lift-pose ?left-2nd-lift-pose)))
@@ -95,8 +99,8 @@
   (<- (desig:action-grounding ?action-designator (close-container ?arm
                                                                   ?gripper-opening
                                                                   ?distance
-                                                                  ?left-reach-poses
-                                                                  ?right-reach-poses
+                                                                  ?left-reach-push-poses
+                                                                  ?right-reach-push-poses
                                                                   (?left-lift-pose)
                                                                   (?right-lift-pose)
                                                                   (?left-2nd-lift-pose)
@@ -127,12 +131,16 @@
     (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
               (?container-pose ?container-transform))
     (lisp-fun obj-int:get-object-grasping-poses ?container-name
-              :container :left :close ?container-transform ?left-poses)
+              :container-prismatic :left :close ?container-transform ?left-poses)
     (lisp-fun obj-int:get-object-grasping-poses ?container-name
-              :container :right :close ?container-transform ?right-poses)
+              :container-prismatic :right :close ?container-transform ?right-poses)
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
               ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses ?left-lift-poses ?right-lift-poses))
+              (?left-reach-poses ?right-reach-poses
+                                 ?left-push-poses ?right-push-poses
+                                 ?left-lift-poses ?right-lift-poses))
+    (lisp-fun append ?left-reach-poses ?left-push-poses ?left-reach-push-poses)
+    (lisp-fun append ?right-reach-poses ?right-push-poses ?right-reach-push-poses)
     (-> (lisp-pred identity ?left-lift-poses)
         (equal ?left-lift-poses (?left-lift-pose ?left-2nd-lift-pose))
         (equal (NIL NIL) (?left-lift-pose ?left-2nd-lift-pose)))
