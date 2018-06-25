@@ -266,6 +266,7 @@ Store found pose into designator or throw error if good pose not found."
            (let ((action-referenced (desig:reference action-desig)))
              (destructuring-bind (action arm _gripper-opening distance
                                   left-reach-poses right-reach-poses
+                                  left-grasp-poses right-grasp-poses
                                   left-pull-push-poses right-pull-push-poses
                                   left-retract-poses right-retract-poses
                                   joint-name _environment-object)
@@ -278,9 +279,11 @@ Store found pose into designator or throw error if good pose not found."
                                  "Trying to open joint ~a with arm ~a~%"
                                  joint-name arm)
                (let ((left-poses-list-of-lists
-                       (list left-reach-poses left-pull-push-poses left-retract-poses))
+                       (list left-reach-poses left-grasp-poses
+                             left-pull-push-poses left-retract-poses))
                      (right-poses-list-of-lists
-                       (list right-reach-poses right-pull-push-poses right-retract-poses)))
+                       (list right-reach-poses right-grasp-poses
+                             right-pull-push-poses right-retract-poses)))
                  (multiple-value-bind (left-poses right-poses)
                      (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
                                                           right-poses-list-of-lists)

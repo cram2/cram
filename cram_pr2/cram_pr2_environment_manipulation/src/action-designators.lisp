@@ -48,8 +48,10 @@
   (<- (desig:action-grounding ?action-designator (open-container ?arm
                                                                  ?gripper-opening
                                                                  ?distance
-                                                                 ?left-reach-pull-poses
-                                                                 ?right-reach-pull-poses
+                                                                 ?left-reach-poses
+                                                                 ?right-reach-poses
+                                                                 ?left-grasp-poses
+                                                                 ?right-grasp-poses
                                                                  (?left-lift-pose)
                                                                  (?right-lift-pose)
                                                                  (?left-2nd-lift-pose)
@@ -85,11 +87,9 @@
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
               ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses
-                                 ?left-pull-poses ?right-pull-poses
+                                 ?left-grasp-poses ?right-grasp-poses
                                  ?left-lift-poses ?right-lift-poses))
-    (lisp-fun append ?left-reach-poses ?left-pull-poses ?left-reach-pull-poses)
-    (lisp-fun append ?right-reach-poses ?right-pull-poses ?right-reach-pull-poses)
-    (-> (lisp-pred identity ?left-lift-poses)
+     (-> (lisp-pred identity ?left-lift-poses)
         (equal ?left-lift-poses (?left-lift-pose ?left-2nd-lift-pose))
         (equal (NIL NIL) (?left-lift-pose ?left-2nd-lift-pose)))
     (-> (lisp-pred identity ?right-lift-poses)
@@ -99,8 +99,10 @@
   (<- (desig:action-grounding ?action-designator (close-container ?arm
                                                                   ?gripper-opening
                                                                   ?distance
-                                                                  ?left-reach-push-poses
-                                                                  ?right-reach-push-poses
+                                                                  ?left-reach-poses
+                                                                  ?right-reach-poses
+                                                                  ?left-grasp-poses
+                                                                  ?right-grasp-poses
                                                                   (?left-lift-pose)
                                                                   (?right-lift-pose)
                                                                   (?left-2nd-lift-pose)
@@ -137,10 +139,8 @@
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
               ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses
-                                 ?left-push-poses ?right-push-poses
+                                 ?left-grasp-poses ?right-grasp-poses
                                  ?left-lift-poses ?right-lift-poses))
-    (lisp-fun append ?left-reach-poses ?left-push-poses ?left-reach-push-poses)
-    (lisp-fun append ?right-reach-poses ?right-push-poses ?right-reach-push-poses)
     (-> (lisp-pred identity ?left-lift-poses)
         (equal ?left-lift-poses (?left-lift-pose ?left-2nd-lift-pose))
         (equal (NIL NIL) (?left-lift-pose ?left-2nd-lift-pose)))
