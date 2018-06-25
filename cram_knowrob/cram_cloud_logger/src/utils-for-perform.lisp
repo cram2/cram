@@ -53,8 +53,9 @@
           (log-cram-sub-action
            (car *action-parents*)
            action-id
-           (get-knowrob-action-name cram-action-name))
-          (log-cram-sibling-action (car *action-parents*) action-id (get-knowrob-action-name cram-action-name))
+           (get-knowrob-action-name cram-action-name designator))
+          (log-cram-sibling-action
+           (car *action-parents*) action-id (get-knowrob-action-name cram-action-name designator))
           (if (not *action-parents*)
               (setq is-parent-action t))
           (push action-id *action-parents*)
@@ -78,7 +79,7 @@
         (setf result (get-value-of-json-prolog-dict
                       (cdaar
                        (send-cram-start-action
-                        (get-knowrob-action-name-uri cram-action-name)
+                        (get-knowrob-action-name-uri cram-action-name designator)
                         " \\'TableSetting\\'"
                         (convert-to-prolog-str (get-timestamp-for-logging))
                         "PV"
@@ -114,7 +115,7 @@
   (let ((motion nil))
     (cond ((string-equal knowrob-action-name "BaseMovement")
            (setf motion t))
-          ((string-equal knowrob-action-name "AcquireGraspOfSomething")
+          ((string-equal knowrob-action-name "OpeningAGripper")
            (setf motion t))
           ((string-equal knowrob-action-name "Reaching")
            (setf motion t))
@@ -124,7 +125,9 @@
            (setf motion t))
           ((string-equal knowrob-action-name "LoweringAnArm")
            (setf motion t))
-          ((string-equal knowrob-action-name "ReleasingGraspOfSomething")
+          ((string-equal knowrob-action-name "ClosingAGripper")
+           (setf motion t))
+          ((string-equal knowrob-action-name "LookingAtLocation")
            (setf motion t))
           ((string-equal knowrob-action-name "Retracting")
            (setf motion t)))
