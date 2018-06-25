@@ -34,7 +34,7 @@
 (defparameter *action-siblings* (make-hash-table))
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
-  (if *is-logging-enabled*
+  (if (and *is-logging-enabled* (not (string-equal (get-designator-property-value-str designator :TYPE) "grasping")))
       (let ((action-id (log-perform-call designator))
             (is-parent-action nil)
             (cram-action-name (get-designator-property-value-str designator :TYPE)))
@@ -128,6 +128,10 @@
           ((string-equal knowrob-action-name "ClosingAGripper")
            (setf motion t))
           ((string-equal knowrob-action-name "LookingAtLocation")
+           (setf motion t))
+          ((string-equal knowrob-action-name "Pushing")
+           (setf motion t))
+          ((string-equal knowrob-action-name "Pulling")
            (setf motion t))
           ((string-equal knowrob-action-name "Retracting")
            (setf motion t)))
