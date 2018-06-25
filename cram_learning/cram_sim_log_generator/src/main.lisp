@@ -1,10 +1,13 @@
 (in-package :cslg)
 
 (defun main (num-experiments)
-  (setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
+  ;;(setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
   (setf cram-tf:*tf-broadcasting-enabled* t)
   (roslisp-utilities:startup-ros :name "cram" :anonymous nil)
   (setf ccl::*is-logging-enabled* t)
+  (setf ccl::*host* "'https://localhost'")
+  (setf ccl::*cert-path* "'/home/koralewski/Desktop/localhost.pem'")
+  (setf ccl::*api-key* "'K103jdr40Rp8UX4egmRf42VbdB1b5PW7qYOOVvTDAoiNG6lcQoaDHONf5KaFcefs'")
   (ccl::connect-to-cloud-logger)
   (setq roslisp::*debug-stream* nil)
   (loop for x from 1 to num-experiments
