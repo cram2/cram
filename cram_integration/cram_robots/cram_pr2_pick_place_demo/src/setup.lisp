@@ -41,7 +41,7 @@
     (<- (location-costmap:costmap-manipulation-padding 0.4))
     (<- (location-costmap:costmap-in-reach-distance 0.7))
     (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-    (<- (location-costmap:visibility-costmap-size 2.5))
+    (<- (location-costmap:visibility-costmap-size 2))
     (<- (location-costmap:orientation-samples 3))
     (<- (location-costmap:orientation-sample-step 0.1)))
 
@@ -63,7 +63,7 @@
   (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
 
   (setf ccl::*is-client-connected* nil)
-  (setf ccl::*is-logging-enabled* t)
+  (setf ccl::*is-logging-enabled* nil)
   (setf ccl::*host* "'https://192.168.100.172'")
   (setf ccl::*cert-path* "'/home/ease/openease-certificates/sebastian.pem'")
   (setf ccl::*api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
