@@ -104,7 +104,8 @@
   (<- (desig:action-grounding ?action-designator (place ?current-object-designator ?arm
                                                         ?left-reach-poses ?right-reach-poses
                                                         ?left-put-poses ?right-put-poses
-                                                        ?left-retract-poses ?right-retract-poses))
+                                                        ?left-retract-poses ?right-retract-poses
+                                                        ?location))
     (spec:property ?action-designator (:type :placing))
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
@@ -137,8 +138,11 @@
              (lisp-fun roslisp-utilities:rosify-underscores-lisp-name ?object-name ?tf-name)
              (lisp-fun cram-tf:pose-stamped->transform-stamped ?target-pose-in-base ?tf-name
                        ?target-transform))
-        (lisp-fun cram-object-interfaces:get-object-transform
-                  ?current-object-designator ?target-transform))
+        (and (lisp-fun cram-object-interfaces:get-object-transform
+                       ?current-object-designator ?target-transform)
+             (lisp-fun cram-object-interfaces:get-object-pose
+                       ?current-object-designator ?target-pose)
+             (desig:designator :location ((:pose ?target-pose)) ?location)))
     (lisp-fun obj-int:get-object-grasping-poses
               ?object-name ?object-type :left ?grasp ?target-transform
               ?left-poses)

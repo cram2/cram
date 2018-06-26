@@ -192,9 +192,10 @@ Store found pose into designator or throw error if good pose not found."
              (destructuring-bind (_action object-designator arm
                                   left-reach-poses right-reach-poses
                                   left-put-poses right-put-poses
-                                  left-retract-poses right-retract-poses)
+                                  left-retract-poses right-retract-poses
+                                  _placing-location)
                  placing-action-referenced
-               (declare (ignore _action))
+               (declare (ignore _action _placing-location))
 
                (pr2-proj::gripper-action :open arm)
 
