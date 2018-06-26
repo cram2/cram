@@ -301,6 +301,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                               (destructuring-bind (_action _object-designator ?arm
                                                    _gripper-opening _effort ?grasp
                                                    _left-reach-poses _right-reach-poses
+                                                   _left-grasp-poses _right-grasp-poses
                                                    _left-lift-poses _right-lift-poses)
                                   (desig:reference pick-up-action)
                                 (desig:an action
@@ -516,7 +517,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
       (pr2-proj-reasoning:with-projected-task-tree
           (?fetch-robot-location ?fetch-pick-up-action
                                  ?deliver-robot-location ?deliver-place-action)
-          2
+          3
           #'pr2-proj-reasoning:pick-best-parameters-by-distance
 
         (let ((?fetched-object
