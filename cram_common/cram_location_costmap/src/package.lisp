@@ -28,7 +28,7 @@
 ;;;
 
 (defpackage cram-location-costmap
-  (:nicknames #:location-costmap #:costmap)
+  (:nicknames #:location-costmap)
   (:use #:cl #:prolog #:cram-utilities #:roslisp-utilities
         #:alexandria #:roslisp #:cram-tf #:cram-designators
         #:cl-transforms-stamped)
@@ -110,7 +110,6 @@
            #:costmap-padding #:costmap-manipulation-padding
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance
            #:visibility-costmap-size
-           #:orientation-samples #:orientation-sample-step
            ;; facts
            #:make-angle-to-point-generator #:make-orientation-generator
            #:2d-pose-covariance)

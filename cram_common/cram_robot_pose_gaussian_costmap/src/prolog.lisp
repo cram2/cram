@@ -31,9 +31,8 @@
 (defparameter *orientation-samples* 5)
 (defparameter *orientation-sample-step* (/ pi 18))
 
-(defmethod costmap-generator-name->score ((name (eql 'pose-distribution))) 5)
-(defmethod costmap-generator-name->score ((name (eql 'reachable-from-space))) 5)
-(defmethod costmap-generator-name->score ((name (eql 'reachable-from-weighted))) 4)
+(defmethod costmap-generator-name->score ((name (eql 'pose-distribution)))
+  5)
 
 (defclass pose-distribution-range-include-generator () ())
 
@@ -58,19 +57,10 @@
      pose-distribution
      (make-gauss-cost-function ?mean ?covariance)
      ?cm)
-    (costmap:visibility-costmap-size ?distance)
-    (instance-of pose-distribution-range-include-generator ?include-generator-id)
-    (costmap-add-function
-     ?include-generator-id
-     (make-range-cost-function ?mean ?distance)
-     ?cm)
     (symbol-value *orientation-samples* ?samples)
     (symbol-value *orientation-sample-step* ?sample-step)
     (costmap-add-orientation-generator
      (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
-     ?cm)
-    (costmap-add-height-generator
-     (make-constant-height-function 0.0)
      ?cm))
 
   (<- (desig-costmap ?desig ?cm)
@@ -102,26 +92,4 @@
     (symbol-value *orientation-sample-step* ?sample-step)
     (costmap-add-orientation-generator
      (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
-     ?cm)
-    (costmap-add-height-generator
-     (make-constant-height-function 0.0)
-     ?cm))
-
-  ;; poses reachable-from ?pose for the robot
-  ;; ?pose should usually be robot's current pose I suppose
-  (<- (desig-costmap ?desig ?cm)
-    (costmap ?cm)
-    (desig-prop ?desig (:reachable-from ?from-what))
-    (or (and (lisp-type ?from-what symbol)
-             ;; (cram-robot-interfaces:robot ?from-what)
-             (lisp-fun cram-tf:robot-current-pose ?pose))
-        (and (lisp-type ?from-what cl-transforms:pose)
-             (equal ?pose ?from-what)))
-    (lisp-fun cl-transforms:origin ?pose ?point)
-    (costmap-in-reach-distance ?distance)
-    (costmap-add-function reachable-from-space
-                          (make-range-cost-function ?point ?distance)
-                          ?cm)
-    (costmap-add-function reachable-from-weighted
-                          (make-location-cost-function ?pose ?distance)
-                          ?cm)))
+     ?cm)))

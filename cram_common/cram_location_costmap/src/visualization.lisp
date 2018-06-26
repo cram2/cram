@@ -33,16 +33,16 @@
 (defvar *marker-publisher* nil)
 (defvar *occupancy-grid-publisher* nil)
 
-(defparameter *z-padding* 1.0)
+(defparameter *z-padding* 0.0)
 (defparameter *last-published-marker-index* nil)
 
 (defun location-costmap-vis-init ()
   (setf *location-costmap-publisher*
-        (advertise "cram_location_costmap" "visualization_msgs/MarkerArray"))
+        (advertise "~cram_location_costmap" "visualization_msgs/MarkerArray"))
   (setf *occupancy-grid-publisher*
-        (advertise "cram_location_occupancy_grid" "nav_msgs/OccupancyGrid"))
+        (advertise "~location_occupancy_grid" "nav_msgs/OccupancyGrid"))  
   (setf *marker-publisher*
-        (advertise "cram_location_marker" "visualization_msgs/Marker")))
+        (advertise "~location_marker" "visualization_msgs/Marker")))
 
 (roslisp-utilities:register-ros-init-function location-costmap-vis-init)
 
@@ -93,7 +93,7 @@ respectively."
                                              hsv-colormap
                                              (intensity-colormap nil)
                                              (base-color (vector 0 0 1))
-                                             (elevate-costmap nil))
+                                             (elevate-costmap t))
   (with-slots (origin-x origin-y resolution) map
     (let* ((map-array (get-cost-map map))
            (boxes nil)

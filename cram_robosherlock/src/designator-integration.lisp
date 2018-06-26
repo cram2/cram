@@ -35,7 +35,10 @@
       (cram-common-designators:detect
        (handler-case
            (perceive :detect argument-1)))
-      (cram-common-designators:inspect
+      ;; (cram-common-designators:inspect
+      ;;  (handler-case
+      ;;      (perceive :inspect argument-1)))
+      (:inspect
        (handler-case
            (perceive :inspect argument-1))))))
 
@@ -44,8 +47,7 @@
                               cpm:available-process-module)
 
   (prolog:<- (cpm:matching-process-module ?motion-designator robosherlock-perception-pm)
-    (or (desig:desig-prop ?motion-designator (:type :detecting))
-        (desig:desig-prop ?motion-designator (:type :inspecting))))
+    (desig:desig-prop ?motion-designator (:type :detecting)))
 
   (prolog:<- (cpm:available-process-module robosherlock-perception-pm)
     (prolog:not (cpm:projection-running ?_))))

@@ -108,7 +108,7 @@ If the value is greater than 1, the samples' orientations differ by `sample-step
     (list (cl-transforms:make-3d-vector mean-x mean-y 0.0d0)
           result)))
 
-(def-fact-group location-costmap-utils (desig-costmap)
+(def-fact-group location-costmap-utils ()
 
   ;; default costmap resolver to define the predicate
   (<- (desig-costmap ?designator ?costmap)

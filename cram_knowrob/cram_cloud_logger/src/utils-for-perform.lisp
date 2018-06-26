@@ -30,40 +30,80 @@
 
 (in-package :ccl)
 
-(cpl:define-task-variable *action-parents* '())
-(defparameter *action-siblings* (make-hash-table))
+(defun get-designator-property-value-str (designator property-keyname)
+  (string (cadr (assoc property-keyname (desig:properties designator)))))
 
-(defmethod exe:generic-perform :around ((designator desig:action-designator))
-  (if *is-logging-enabled*
-      (let ((action-id (log-perform-call designator)) (is-parent-action nil))
-        (cpl:with-failure-handling
-            ((cpl:plan-failure (e)
-               (log-cram-finish-action action-id)
-               (send-task-success action-id "false")
-               (log-failure action-id e)
-               ;;(format t "failure string: ~a" (write-to-string e))
-               (if is-parent-action
-                   (send-batch-query))))
-          ;;(print designator)
-          (if cram-projection:*projection-environment*
-            (send-performed-in-projection action-id "true")
-            (send-performed-in-projection action-id "false"))
-          (log-cram-sub-action (car *action-parents*) action-id)
-          (log-cram-sibling-action (car *action-parents*) action-id)
-          (if (not *action-parents*)
-              (setq is-parent-action t))
-          (push action-id *action-parents*)
-          (let ((perform-result (call-next-method)))
-            (log-cram-finish-action action-id)
-            (when (and perform-result (typep perform-result 'desig:object-designator))
-              (let ((name (desig:desig-prop-value perform-result :name)))
-                (when name
-                  (send-object-action-parameter action-id perform-result))))
-            (send-task-success action-id "true")
-            (if is-parent-action
-                   (send-batch-query))
-            perform-result)))
-      (call-next-method)))
+(defun get-knowrob-action-name (cram-action-name)
+  (let ((knowrob-action-name cram-action-name))
+    (cond ((string-equal cram-action-name "reaching")
+           (setf knowrob-action-name "Reaching"))
+          ((string-equal cram-action-name "retracting")
+           (setf knowrob-action-name "Retracting"))
+          ((string-equal cram-action-name "lifting")
+           (setf knowrob-action-name "LiftingAGripper"))
+          ((string-equal cram-action-name "putting")
+           (setf knowrob-action-name "SinkingAGripper"))
+          ((string-equal cram-action-name "setting-gripper")
+           (setf knowrob-action-name "SettingAGripper"))
+          ((string-equal cram-action-name "opening")
+           (setf knowrob-action-name "OpeningAGripper"))
+          ((string-equal cram-action-name "closing")
+           (setf knowrob-action-name "ClosingAGripper"))
+          ((string-equal cram-action-name "detecting")
+           (setf knowrob-action-name "VisualPerception"))
+          ((string-equal cram-action-name "placing")
+           (setf knowrob-action-name "VoluntaryBodyMovement"))
+          ((string-equal cram-action-name "picking-up")
+           (setf knowrob-action-name "VoluntaryBodyMovement"))
+          ((string-equal cram-action-name "releasing")
+           (setf knowrob-action-name "ReleasingGraspOfSomething"))
+          ((string-equal cram-action-name "gripping")
+           (setf knowrob-action-name "AcquireGraspOfSomething"))
+          ((string-equal cram-action-name "looking")
+           (setf knowrob-action-name "LookingAtLocation"))
+          ((string-equal cram-action-name "going")
+           (setf knowrob-action-name "MovingToLocation"))
+          ((string-equal cram-action-name "navigating")
+           (setf knowrob-action-name "NavigatingToLocation"))
+          ((string-equal cram-action-name "searching")
+           (setf knowrob-action-name "LookingForSomething"))
+          ((string-equal cram-action-name "fetching")
+           (setf knowrob-action-name "PickingUpAnObject"))
+          ((string-equal cram-action-name "delivering")
+           (setf knowrob-action-name "PuttingDownAnObject"))
+          ((string-equal cram-action-name "fetching-and-delivering")
+           (setf knowrob-action-name "FetchAndDeliver")))
+    (concatenate 'string "knowrob:" (convert-to-prolog-str knowrob-action-name))))
+
+(defun get-timestamp-for-logging ()
+  (write-to-string (truncate (cram-utilities:current-timestamp))))
+
+(defun log-action-parameter (designator action-id)
+  (mapcar (lambda (key-value-pair)
+            (let ((key (first key-value-pair))
+                  (value (second key-value-pair)))
+             (cond ((eq key :effort)
+                    (send-effort-action-parameter
+                     action-id
+                     (write-to-string value)))
+                   ((eq key :position)
+                    (send-position-action-parameter action-id value))
+                   ((eq key :object)
+                    (send-object-action-parameter action-id value))
+                   ((eq key :arm)
+                    (send-arm-action-parameter action-id value))
+                   ((eq key :gripper)
+                    (send-gripper-action-parameter action-id value))
+                   ((eq key :left-poses)
+                    (send-pose-stamped-list-action-parameter action-id "left" value))
+                   ((eq key :right-poses)
+                    (send-pose-stamped-list-action-parameter action-id "right" value))
+                   ((eq key :location)
+                    (send-location-action-parameter action-id value))
+                   ((eq key :target)
+                    (send-target-action-parameter action-id value)))))
+          (desig:properties designator)))
+
 
 (defun log-perform-call (designator)
   (connect-to-cloud-logger)
@@ -74,8 +114,8 @@
                       (cdaar
                        (send-cram-start-action
                         (get-knowrob-action-name cram-action-name)
-                        " \\'TableSetting\\'"
-                        (convert-to-prolog-str (get-timestamp-for-logging))
+                        " \\'DummyContext\\'"
+                        (get-timestamp-for-logging)
                         "PV"
                         "ActionInst"))
                       "ActionInst"))
@@ -83,37 +123,25 @@
         result)
       "NOLOGGING"))
 
-(defun log-failure (action-id failure-type)
-  (let ((failure-str (write-to-string failure-type)))
-    (send-rdf-query (convert-to-prolog-str action-id)
-                    "knowrob:failure"
-                    (convert-to-prolog-str (subseq failure-str 2 (search " " failure-str))))))
-
 (defun log-cram-finish-action (action-id)
   (send-cram-finish-action
-   (convert-to-prolog-str action-id ) (convert-to-prolog-str (get-timestamp-for-logging))))
+   (convert-to-prolog-str action-id ) (get-timestamp-for-logging)))
 
-(defun log-cram-sub-action (parent-id child-id)
-  (if parent-id 
-      (progn
-        (send-cram-set-subaction
-         (convert-to-prolog-str parent-id)
-         (convert-to-prolog-str child-id)))))
 
-(defun log-cram-sibling-action (parent-id child-id)
-  (let ((hash-value (gethash parent-id *action-siblings*)))
-    (if hash-value
-      (let ((previous-id (car (cpl:value hash-value))))
-          (progn (log-cram-prev-action
-                  child-id previous-id)
-                 (log-cram-next-action
-                  previous-id child-id)
-                 (setf (cpl:value hash-value) (cons child-id (cpl:value hash-value)))
-                 (setf  (gethash parent-id *action-siblings*) hash-value)))
-      (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
-
-(defun log-cram-prev-action (current-id previous-id)
- (send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id)))
-
-(defun log-cram-next-action (current-id next-id)
-  (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id)))
+(defmethod exe:generic-perform :around ((designator desig:action-designator))
+  (if *is-logging-enabled*
+      (let ((action-id (log-perform-call designator)))
+        (cpl:with-failure-handling
+            ((cpl:plan-failure (e)
+               (log-cram-finish-action action-id)
+               (send-task-success action-id "false")
+               (format t "failure string: ~a" (write-to-string e))))
+          (let ((perform-result (call-next-method)))
+            (log-cram-finish-action action-id)
+            (when (and perform-result (typep perform-result 'desig:object-designator))
+              (let ((name (desig:desig-prop-value perform-result :name)))
+                (when name
+                  (send-object-action-parameter action-id perform-result))))
+            (send-task-success action-id "true")
+            perform-result)))
+      (call-next-method)))

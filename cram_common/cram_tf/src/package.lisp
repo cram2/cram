@@ -41,9 +41,7 @@
            #:poses-equal-p
            #:frame-to-pose-in-fixed-frame
            #:pose->flat-list #:pose->flat-list-w-first
-           #:pose->list
            #:flat-list->pose #:flat-list-w-first->pose
-           #:list->pose
            #:ensure-pose-in-frame #:ensure-point-in-frame
            #:translate-pose #:rotate-pose
            #:tf-frame-converged

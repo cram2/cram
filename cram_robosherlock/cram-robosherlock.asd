@@ -35,8 +35,8 @@
                yason
                roslisp
                roslisp-utilities
-               robosherlock_msgs-srv
-               robosherlock_msgs-msg
+               iai_robosherlock_msgs-srv
+               iai_robosherlock_msgs-msg
                cl-transforms
                cl-transforms-stamped
                cram-tf

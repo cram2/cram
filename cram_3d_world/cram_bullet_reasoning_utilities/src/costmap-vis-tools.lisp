@@ -35,15 +35,12 @@
   (format t "[BTR-UTILS CM] Visualizing costmaps of ~a~%" designator)
   (mapcar
    (lambda (costmap-pair)
-     (let* ((costmap (cdar costmap-pair))
-            (functions (car (location-costmap:cost-functions costmap))))
-       (if functions
-           (progn
-             (format t "[BTR-UTILS CM] Costmap named ~a~%"
-                     (location-costmap:generator-name functions))
-             (location-costmap:get-cost-map costmap)
-             (sleep 3))
-           (format t "[BTR-UTILS CM] No cost functions registered~%"))))
+     (let ((costmap (cdar costmap-pair)))
+       (format t "[BTR-UTILS CM] Costmap named ~a~%"
+               (location-costmap:generator-name
+                (car (location-costmap:cost-functions costmap))))
+       (location-costmap:get-cost-map costmap)
+       (sleep 3)))
    (force-ll (prolog `(and (location-costmap:desig-costmap ,designator ?cm)))))
   (format t "[BTR-UTILS CM] Combined costmap~%")
   (desig:reference designator))

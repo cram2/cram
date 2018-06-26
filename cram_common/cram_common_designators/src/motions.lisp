@@ -67,11 +67,6 @@
   (<- (motion-grounding ?designator (detect ?current-object-designator))
     (property ?designator (:type :detecting))
     (property ?designator (:object ?object-designator))
-    (current-designator ?object-designator ?current-object-designator))
-
-  (<- (motion-grounding ?designator (inspect ?current-object-designator))
-    (property ?designator (:type :inspecting))
-    (property ?designator (:object ?object-designator))
     (current-designator ?object-designator ?current-object-designator)))
 
 

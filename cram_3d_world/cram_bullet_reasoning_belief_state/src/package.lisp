@@ -30,7 +30,6 @@
 
 (defpackage cram-bullet-reasoning-belief-state
   (:use #:common-lisp #:cram-prolog)
-  (:nicknames #:btr-belief)
   (:export
    ;; utilities
    #:get-designator-object-name #:get-designator-object

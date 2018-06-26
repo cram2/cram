@@ -164,8 +164,7 @@
              'string
              (ensure-string obj-name)
              "."
-             (ensure-string body-name))
-            :keyword)))
+             (ensure-string body-name)))))
 
 (defmethod add-object ((world bt-reasoning-world) type name pose
                        &key disable-collisions-with)

@@ -46,7 +46,6 @@
                cram-robot-interfaces
                cram-pr2-description ; for tool frames
                cram-common-failures
-               cram-simple-actionlib-client
                sensor_msgs-msg
                geometry_msgs-msg
                visualization_msgs-msg
@@ -54,7 +53,10 @@
                pr2_controllers_msgs-msg
                trajectory_msgs-msg
                move_base_msgs-msg
-               giskard_msgs-msg)
+               giskard_msgs-msg
+               ;; iai_robosherlock_msgs-msg
+               ;; iai_robosherlock_msgs-srv
+               )
   :components
   ((:module "src"
     :components
@@ -70,11 +72,12 @@
      (:file "kinematics-trajectory" :depends-on ("package"
                                                  "joint-trajectory"
                                                  "joint-states"))
-     (:file "new-giskard-common" :depends-on ("package" "low-level-common"))
-     (:file "new-giskard-cartesian" :depends-on ("package" "low-level-common"
-                                                           "new-giskard-common"))
-     (:file "new-giskard-joint" :depends-on ("package" "low-level-common" "joint-states"
-                                                       "new-giskard-common"))
+     (:file "giskard-common" :depends-on ("package" "low-level-common"))
+     (:file "giskard-cartesian" :depends-on ("package" "low-level-common" "giskard-common"))
+     (:file "giskard-joint" :depends-on ("package" "low-level-common" "giskard-common"
+                                                   "joint-states"))
      ;; (:file "yaml-builder" :depends-on ("package"))
      ;; (:file "giskard-yaml" :depends-on ("package" "giskard-common" "yaml-builder"))
+     ;; (:file "json-parser" :depends-on ("package"))
+     ;; (:file "robosherlock-json" :depends-on ("package" "json-parser" "low-level-common"))
      ))))

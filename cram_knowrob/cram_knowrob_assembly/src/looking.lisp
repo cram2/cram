@@ -29,6 +29,11 @@
 
 (in-package :kr-assembly)
 
+(defparameter *neck-good-looking-state* '(-1.176d0 -3.1252d0 -0.8397d0 0.83967d0 1.1347d0 -0.0266d0))
+
+(defparameter *neck-out-of-arm-workspace-state* '(-1.3155d0 -1.181355d0 -1.9562d0
+                                                  0.142417d0 1.13492d0 0.143467d0))
+
 (defparameter *left-arm-out-of-field-of-view-state*
   '(-1.858d0 0.70571d0 0.9614d0 -0.602d0 -2.5922d0 -1.94065d0 -1.28735d0))
 (defparameter *right-arm-out-of-field-of-view-state*

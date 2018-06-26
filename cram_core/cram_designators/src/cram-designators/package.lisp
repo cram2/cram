@@ -77,7 +77,7 @@
            #:list-location-validation-functions
            #:accept-solution
            #:reject-solution
-           #:location-grounding ;; #:obj-desig-location
+           #:location-grounding #:obj-desig-location
            #:desig-reference
            #:designator-groundings
            #:loc-desig-location

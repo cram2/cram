@@ -35,6 +35,8 @@
    #:arm #:required-arms #:available-arms
    #:arm-joints #:arm-links #:arm-base-joints #:arm-base-links #:arm-tool-joints
    #:hand-links #:end-effector-link #:robot-tool-frame #:gripper-link #:gripper-joint
+   #:joint-lower-limit #:joint-upper-limit #:joint-type #:joint-axis #:joint-origin
+   #:joint-parent-link #:joint-child-link
    #:robot-arms-parking-joint-states #:robot-arms-carrying-joint-states
    #:end-effector-parking-pose
    #:robot-pre-grasp-joint-states #:planning-group
@@ -45,24 +47,17 @@
    #:reachability-designator-p #:visibility-designator-p
    #:trajectory-desig? #:constraints-desig?
    ;; grasps
-   ;; #:def-grasp #:def-tool #:get-grasp #:get-grasps #:get-grasp-names
-   ;; #:calculate-bounding-box-tool-length #:get-tool-direction-vector
-   ;; #:get-tool-length #:get-tool-vector #:calculate-tool
-   ;; #:grasp #:side #:object-type-grasp #:object-designator-grasp
+   #:def-grasp #:def-tool #:get-grasp #:get-grasps #:get-grasp-names
+   #:calculate-bounding-box-tool-length #:get-tool-direction-vector
+   #:get-tool-length #:get-tool-vector #:calculate-tool
+   #:grasp #:side #:object-type-grasp #:object-designator-grasp
    ;; ptu
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
    #:robot-pan-tilt-links #:robot-pan-tilt-joints
-   #:robot-neck-parking-joint-states
-   #:robot-neck-looking-joint-states
    ;; robot
    #:robot #:robot-base-frame #:robot-torso-link-joint #:robot-odom-frame
    #:current-robot-symbol #:current-robot-package #:current-robot-name
    ;; trajectories
    #:trajectory-point
    ;; utilities
-   #:symbol-to-prolog-rule
-   ;; urdf
-   #:get-joint-type #:get-joint-lower-limit #:get-joint-upper-limit
-   #:get-joint-axis #:get-joint-origin #:get-joint-parent #:get-joint-child
-   #:joint-lower-limit #:joint-upper-limit #:joint-type #:joint-axis #:joint-origin
-   #:joint-parent-link #:joint-child-link))
+   #:symbol-to-prolog-rule))

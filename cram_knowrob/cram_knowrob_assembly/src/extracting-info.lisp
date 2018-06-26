@@ -50,16 +50,16 @@
 ;;     (car (intersection kr-classes '(:axle :axle-holder :chassis :chassis-holder :camaro-body)))))
 ;; Ugly hack because knowrob cannot tell what's the class of an object in any better way :P
 
-;; (defun get-object-transform (object-id)
-;;   (let* ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
-;;          (transform-list
-;;            (cut:var-value
-;;             '?transform
-;;             (car
-;;              (json-prolog:prolog-1 `("get_object_transform" ,kr-object-id ?transform)
-;;                                    :mode 1
-;;                                    :package :kr-assembly)))))
-;;     (knowrob->cram :transform transform-list)))
+(defun get-object-transform (object-id)
+  (let* ((kr-object-id (cram->knowrob object-id :namespace-id :thorin_simulation))
+         (transform-list
+           (cut:var-value
+            '?transform
+            (car
+             (json-prolog:prolog-1 `("get_object_transform" ,kr-object-id ?transform)
+                                   :mode 1
+                                   :package :kr-assembly)))))
+    (knowrob->cram :transform transform-list)))
 
 (defun get-all-object-transforms ()
   (mapcar (lambda (bindings)

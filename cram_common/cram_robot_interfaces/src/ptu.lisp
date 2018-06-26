@@ -29,9 +29,7 @@
 (in-package :cram-robot-interfaces)
 
 (def-fact-group ptu (camera-frame camera-minimal-height camera-maximal-height
-                                  robot-pan-tilt-links robot-pan-tilt-joints
-                                  robot-neck-parking-joint-states
-                                  robot-neck-looking-joint-states)
+                                  robot-pan-tilt-links robot-pan-tilt-joints)
   ;; Unifies ?frame with the name of the camera frame present on the ?robot
   (<- (camera-frame ?robot ?frame)
     (fail))
@@ -51,9 +49,4 @@
   (<- (robot-pan-tilt-links ?robot ?pan-link ?tilt-link)
     (fail))
   (<- (robot-pan-tilt-joints ?robot ?pan-joint ?tilt-joint)
-    (fail))
-
-  (<- (robot-neck-parking-joint-states ?robot ?max-height)
-    (fail))
-  (<- (robot-neck-looking-joint-states ?robot ?max-height)
     (fail)))

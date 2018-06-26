@@ -94,11 +94,11 @@
 (defun ensure-giskard-cartesian-goal-reached (status goal-position-left goal-position-right
                                               goal-frame-left goal-frame-right
                                               convergence-delta-xy convergence-delta-theta)
+  (when (eql status :timeout)
+    (cpl:fail 'common-fail:actionlib-action-timed-out :description "Giskard action timed out"))
   (when (eql status :preempted)
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
     (return-from ensure-giskard-cartesian-goal-reached))
-  (when (eql status :timeout)
-    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
   (when goal-position-left
     (unless (cram-tf:tf-frame-converged goal-frame-left goal-position-left
                                         convergence-delta-xy convergence-delta-theta)

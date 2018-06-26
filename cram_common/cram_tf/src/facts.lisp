@@ -110,7 +110,7 @@
   (<- (desig-location-prop ?object-designator ?pose-stamped)
     (obj-desig? ?object-designator)
     (desig-prop ?object-designator (:part-of ?robot))
-    (cram-robot-interfaces:robot ?robot)
+    (lisp-fun symbol-to-prolog-rule ?robot ?robot-name)
     (desig-prop ?object-designator (:link ?link))
     (-> (desig-prop ?object-designator (:which-link ?params))
         (lisp-fun symbol-to-prolog-rule ?link ?robot-name ?params ?link-name)

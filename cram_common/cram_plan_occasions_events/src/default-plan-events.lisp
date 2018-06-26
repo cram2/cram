@@ -108,38 +108,6 @@
                 'simple-error
                 :format-control "OBJECT-ARTICULATION-EVENT requires an opening distance."))))
 
-(defclass environment-manipulation-event (event)
-  ((joint-name
-    :documentation "The name of the joint that is being manipulated."
-    :initarg :joint-name :reader environment-event-joint-name
-    :initform (error
-               'simple-error
-               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a joint-name."))
-   (arm
-    :documentation "Which arm is used to manipulate."
-    :initarg :side :reader environment-event-arm
-    :initform (error
-               'simple-error
-               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an arm."))
-   (object
-    :documentation "The btr:object in which the joint can be found with the joint-name."
-    :initarg :environment :reader environment-event-object
-    :initform (error
-               'simple-error
-               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an object."))
-   (distance
-    :documentation "Joint angle distance to open or close container."
-    :initarg :distance :reader environment-event-distance
-    :initform (error
-               'simple-error
-               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a distance."))))
-
-;; (defclass container-handle-grasping-event (environment-manipulation-event) ())
-
-(defclass container-opening-event (environment-manipulation-event) ())
-
-(defclass container-closing-event (environment-manipulation-event) ())
-
 ;; (defclass object-gripped (cram-occasions-events:event)
 ;;   ((arm :initarg :arm
 ;;         :reader event-arm

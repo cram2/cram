@@ -1,0 +1,31 @@
+<launch>
+  <arg name="model" default="$(find iai_kitchen_defs)/room/kitchen_area.urdf.xml"/>
+  <param name="kitchen_description" command="$(find xacro)/xacro.py '$(arg model)'" />
+  
+  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster" 
+    args="-3.45 -4.35 0 -3.141 0 0 /map /iai_kitchen/kitchen_link 200">
+  </node>
+
+  <node pkg="robot_state_chain_publisher" type="state_chain_publisher"
+    name="kitchen_state_publisher" output="screen">
+    <param name="tf_prefix" value="/iai_kitchen"/>
+    <param name="publish_frequency" value="2"/>
+    <remap from="robot_description" to="kitchen_description" />
+  </node>
+
+  <param name="initial_package" type="string" value="knowrob_map_data" />
+  <param name="initial_goal" type="string" value="owl_parse('package://spatial_relations_demo/owl/room.owl')" />
+  <node name="json_prolog" pkg="json_prolog" type="json_prolog_node" cwd="node" output="screen" />
+
+  <include file="$(find iai_maps)/launch/map.launch" />
+
+  <param name="robot_description_lowres"
+         command="$(find xacro)/xacro.py
+                  '$(find pr2_description_lowres)/robots/pr2.urdf.xacro'"/>
+  <!-- we have to use both lowres and highres descriptions ATM, as we don't have a
+       corresponding srdf for the lowres, but highres is too heavy for a lightweight
+       reasoning engine -->
+  <param name="robot_description"
+         command="$(find xacro)/xacro.py
+                  '$(find pr2_description)/robots/pr2.urdf.xacro'"/>
+</launch>

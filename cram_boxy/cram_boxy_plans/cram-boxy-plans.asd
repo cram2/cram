@@ -42,7 +42,6 @@
                cram-designator-specification
                cram-common-failures
                cram-plan-occasions-events
-               cram-mobile-pick-place-plans
 
                cram-object-interfaces
                cram-knowrob-assembly
@@ -55,6 +54,6 @@
     ((:file "package")
      (:file "atomic-action-plans" :depends-on ("package"))
      (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
-     (:file "connect-look-plans" :depends-on ("package" "atomic-action-designators"))
-     (:file "connect-look-place-designators" :depends-on ("package" "connect-look-plans"))
-     (:file "high-level-plans" :depends-on ("package" "connect-look-place-designators"))))))
+     (:file "composite-plans" :depends-on ("package" "atomic-action-designators"))
+     (:file "composite-plan-designators" :depends-on ("package" "composite-plans"))
+     (:file "high-level-plans" :depends-on ("package" "composite-plan-designators"))))))

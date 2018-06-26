@@ -35,13 +35,11 @@
                cram-location-costmap
                cram-robot-interfaces
                cram-tf
-               cl-transforms
                cl-transforms-stamped)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "prolog" :depends-on ("package"))
-     (:file "current-pose-generator-and-pose-validator" :depends-on ("package"
-                                                                     "prolog"))))))
+     (:file "current-pose-generator" :depends-on ("package"))))))
 

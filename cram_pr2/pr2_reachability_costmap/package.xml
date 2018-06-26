@@ -1,0 +1,27 @@
+<package format="2">
+  <name>pr2_reachability_costmap</name>
+  <version>0.6.0</version>
+  <description>
+     pr2_reachability_costmap
+  </description>
+  <author>Lorenz Moesenlechner</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_pr2/issues</url>
+  <url type="repository">https://github.com/cram2/cram_pr2</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp</depend>
+  <depend>moveit_msgs</depend>
+  <depend>cram_location_costmap</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_tf</depend>
+  <depend>cram_utilities</depend>
+  <depend>cram_math</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_robot_interfaces</depend>
+  <depend>cram_tf</depend>
+</package>

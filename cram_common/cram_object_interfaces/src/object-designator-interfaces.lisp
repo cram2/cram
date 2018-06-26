@@ -39,6 +39,7 @@
   (car (getassoc :pose (desig:desig-prop-value object-designator :pose))))
 
 (def-fact-group object-designators (desig:desig-location-prop desig:location-grounding)
+
   (<- (desig:desig-location-prop ?desig ?loc)
     (desig:obj-desig? ?desig)
     (lisp-fun get-object-pose ?desig ?loc)
@@ -49,13 +50,3 @@
     (lisp-type ?object-designator desig:object-designator)
     (desig:current-designator ?object-designator ?current-object-designator)
     (desig:desig-location-prop ?current-object-designator ?pose-stamped)))
-
-(def-fact-group object-type-hierarchy (object-type-direct-subtype)
-  (<- (object-type-direct-subtype ?type ?direct-subtype)
-    (fail))
-
-  (<- (object-type-subtype ?type ?type))
-
-  (<- (object-type-subtype ?type ?subtype)
-    (object-type-direct-subtype ?type ?type-s-child)
-    (object-type-subtype ?type-s-child ?subtype)))

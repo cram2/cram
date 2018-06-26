@@ -48,3 +48,33 @@
   (:documentation "Failure thrown by high-level modules, i.e. plans.")
   (:report (lambda (condition stream)
              (format stream (error-description condition)))))
+
+(define-condition object-unreachable (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader object-unreachable-object))
+  (:documentation "Thrown when no IK found for particular base pose."))
+
+(define-condition manipulation-pose-in-collision (high-level-failure) ()
+  (:documentation "Thrown when executing action results in a collision."))
+
+(define-condition navigation-pose-in-collision (high-level-failure)
+  ((pose-stamped :initarg :pose-stamped :initform nil :reader navigation-failure-pose-stamped)))
+
+(define-condition object-unfetchable (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader object-unfetchable-object))
+  (:documentation "Thrown when no base positioning can assure a reachable pose."))
+
+(define-condition object-undeliverable (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader object-undeliverable-object))
+  (:documentation "Thrown when no base positioning can assure a reachable pose."))
+
+(define-condition object-nowhere-to-be-found (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader object-nowhere-to-be-found-object))
+  (:documentation "Thrown when no base positioning can assure a reachable pose."))

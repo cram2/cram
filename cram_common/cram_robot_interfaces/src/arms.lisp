@@ -1,10 +1,9 @@
 ;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
-;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
-;;;
+;;; 
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;;
+;;; 
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +13,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;;
+;;; 
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -33,6 +32,9 @@
                       arm required-arms available-arms
                       arm-joints arm-links arm-base-joints arm-base-links arm-tool-joints
                       hand-links end-effector-link robot-tool-frame gripper-joint gripper-link
+                      ;; rules for extracting joint properties
+                      joint-upper-limit joint-lower-limit joint-type joint-axis joint-origin
+                      joint-parent-link joint-child-link
                       ;; specific configurations
                       robot-arms-parking-joint-states robot-arms-carrying-joint-states
                       end-effector-parking-pose
@@ -93,6 +95,36 @@
 
   ;; Defines links of the grippers of the robot
   (<- (gripper-link ?robot ?arm ?link)
+    (fail))
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;; rules for extracting joint properties
+
+  ;; Unifies a joint name with the lower limit for that joint.
+  (<- (joint-lower-limit ?robot ?joint-name ?value)
+    (fail))
+
+  ;; Unifies a joint name with the upper limit for that joint.
+  (<- (joint-upper-limit ?robot ?joint-name ?value)
+    (fail))
+
+  ;; Unifies a joint name with the type for that joint.
+  (<- (joint-type ?robot ?joint-name ?type)
+    (fail))
+
+  ;; Unifies a joint name with the axis for that joint.
+  (<- (joint-axis ?robot ?joint-name ?axis)
+    (fail))
+
+  ;; Unifies a joint name with the origin transform for that joint.
+  (<- (joint-origin ?robot ?joint-name ?transform)
+    (fail))
+
+  ;; Unifies a joint name with the parent link name for that joint.
+  (<- (joint-parent ?robot ?joint-name ?parent)
+    (fail))
+
+  ;; Unifies a joint name with the child link name for that joint.
+  (<- (joint-child ?robot ?joint-name ?child)
     (fail))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;; specific configurations

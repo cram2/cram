@@ -64,11 +64,9 @@
     (costmap-add-function semantic-map-objects
                           (make-semantic-map-costmap ?objects)
                           ?cm)
-    (-> (not (desig-prop ?desig (:for ?_)))
-        (costmap-add-cached-height-generator
-         (make-semantic-map-height-function ?objects :on)
-         ?cm)
-        (true)))
+    (costmap-add-cached-height-generator
+     (make-semantic-map-height-function ?objects :on)
+     ?cm))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (:in ?_))
@@ -77,12 +75,10 @@
     (costmap-add-function semantic-map-objects
                           (make-semantic-map-costmap ?objects)
                           ?cm)
-    (-> (not (desig-prop ?desig (:for ?_)))
-        (costmap-add-cached-height-generator
-         (make-semantic-map-height-function ?objects :in)
-         ?cm)
-        (true)))
-
+    (costmap-add-cached-height-generator
+     (make-semantic-map-height-function ?objects :in)
+     ?cm))
+  
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (:centered-with-padding ?padding))
     (costmap ?cm)

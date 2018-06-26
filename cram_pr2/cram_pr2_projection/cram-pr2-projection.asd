@@ -59,9 +59,9 @@
     :components
     ((:file "package")
      (:file "projection-clock" :depends-on ("package"))
-     (:file "tf" :depends-on ("package"))
+     (:file "tf" :depends-on ("package" "projection-clock"))
      (:file "ik" :depends-on ("package"))
-     (:file "low-level" :depends-on ("package" "tf" "ik"))
+     (:file "low-level" :depends-on ("package" "projection-clock" "tf" "ik"))
      (:file "process-modules" :depends-on ("package" "low-level"))
      (:file "projection-environment" :depends-on ("package" "projection-clock" "tf"
                                                             "process-modules"))

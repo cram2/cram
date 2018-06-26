@@ -89,7 +89,7 @@
   "List of validation function names that should not be used although
   registered.")
 
-(defparameter *location-generator-max-retries* 30)
+(defparameter *location-generator-max-retries* 200)
 
 (defparameter *print-location-validation-function-results* nil
   "Enable this to get a text output by each rejected location designator solution.")
@@ -234,12 +234,11 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
                      (validate
                       (cdr validation-functions) designator solution
                       (if (eq result :accept) :accept :maybe-reject)))))))))
-    (let ((validation-functions
-            (location-resolution-function-list
-             (remove-if (lambda (validation-function)
-                          (member validation-function *disabled-validation-functions*))
-                        *location-validation-functions*
-                        :key #'location-resolution-function-function))))
+    (let ((validation-functions (location-resolution-function-list
+                                 (remove-if (lambda (validation-function)
+                                              (member validation-function *disabled-validation-functions*))
+                                            *location-validation-functions*
+                                            :key #'location-resolution-function-function))))
       (block nil
         (restart-case
             (validate validation-functions designator solution)

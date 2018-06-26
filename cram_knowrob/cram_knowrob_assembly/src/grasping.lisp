@@ -31,121 +31,33 @@
 
 (defparameter *default-z-offset* 0.2 "in meters")
 (defparameter *default-small-z-offset* 0.07 "in meters")
-(defparameter *default-lift-offsets `(0.0 0.0 ,*default-z-offset*))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmethod get-object-type-gripping-effort (object-type) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :bolt))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :upper-body))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :bottom-wing))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :underbody))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :window))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :front-wheel))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :nut))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :chassis))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :propeller))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :top-wing))) 35)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmethod get-object-type-gripper-opening (object-type) 0.10)
-(defmethod get-object-type-gripper-opening ((object-type (eql :bolt))) 0.02)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def-fact-group asm-object-knowledge (obj-int:object-type-grasp)
-  ;; (<- (obj-int:object-type-grasp :porsche-body :top))
-  ;; (<- (obj-int:object-type-grasp :camaro-body :top))
-  ;; (<- (obj-int:object-type-grasp :chassis :side))
-  ;; (<- (obj-int:object-type-grasp :axle :top))
-  ;; (<- (obj-int:object-type-grasp :wheel :top))
-  (<- (obj-int:object-type-grasp :chassis :top))
-
-  )
-
-
-;; (defmethod get-object-type-to-gripper-transform (object-type object-name arm grasp)
-;;   (declare (ignore object-type))
-;;   "Default implementation when using KnowRob's get_grasp_position query."
-;;   (cram-tf:transform-stamped-inv ; oTg
-;;    (get-object-manipulation-transform :grasp  ; gTo
-;;                                       (ecase arm
-;;                                         (:left "left_gripper")
-;;                                         (:right "right_gripper"))
-;;                                       object-name
-;;                                       grasp)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;; CHASSIS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defparameter *chassis-grasp-z-offset* -0.02)
-
-;; TOP grasp
-(def-object-type-to-gripper-transforms :chassis '(:left :right) :top
-  :grasp-translation `(0.0 0.0 ,*chassis-grasp-z-offset*)
-  :grasp-rot-matrix *top-across-x-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets
-  :2nd-pregrasp-offsets *default-lift-offsets
-  :lift-offsets *default-lift-offsets
-  :2nd-lift-offsets *default-lift-offsets)
-
-
-
-
-
-#+everything-below-is-commented-out
-(
+(defmethod get-object-type-gripping-effort (object-type)
+    "Default value is 35 Nm."
+    35)
 (defmethod get-object-type-gripping-effort ((object-type (eql :porsche-body))) 35)
 (defmethod get-object-type-gripping-effort ((object-type (eql :camaro-body))) 35)
 (defmethod get-object-type-gripping-effort ((object-type (eql :chassis))) 50)
 (defmethod get-object-type-gripping-effort ((object-type (eql :axle))) 50)
 (defmethod get-object-type-gripping-effort ((object-type (eql :wheel))) 40)
-(defmethod get-object-type-gripping-effort ((object-type (eql :rear-wing))) 35)
 
+
+(defmethod get-object-type-gripper-opening (object-type)
+  "Default value is 0.10."
+  0.10)
 (defmethod get-object-type-gripper-opening ((object-type (eql :axle))) 0.02)
 
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :axle))
-                                                 object-name
-                                                 (arm (eql :left))
-                                                 (grasp (eql :top)))
-  (cl-transforms-stamped:make-transform-stamped
-   object-name
-   cram-tf:*robot-left-tool-frame*
-   0.0
-   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
-   (cl-transforms:matrix->quaternion
-    #2A((-1 0 0)
-        (0 1 0)
-        (0 0 -1)))))
 
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :chassis))
-                                                 object-name
-                                                 (arm (eql :left))
-                                                 (grasp (eql :side)))
-  (cl-transforms-stamped:make-transform-stamped
-   object-name
-   cram-tf:*robot-left-tool-frame*
-   0.0
-   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
-   (cl-transforms:matrix->quaternion
-    #2A((0 0 1)
-        (-1 0 0)
-        (0 -1 0)))))
-
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :camaro-body))
-                                                 object-name
-                                                 (arm (eql :left))
-                                                 (grasp (eql :top)))
-  (cl-transforms-stamped:make-transform-stamped
-   object-name
-   cram-tf:*robot-left-tool-frame*
-   0.0
-   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
-   (cl-transforms:matrix->quaternion
-    #2A((0 1 0)
-        (1 0 0)
-        (0 0 -1)))))
+(defmethod get-object-type-to-gripper-transform (object-type object-name arm grasp)
+  (declare (ignore object-type))
+  "Default implementation when using KnowRob's get_grasp_position query."
+  (cram-tf:transform-stamped-inv ; oTg
+   (get-object-manipulation-transform :grasp  ; gTo
+                                      (ecase arm
+                                        (:left "left_gripper")
+                                        (:right "right_gripper"))
+                                      object-name
+                                      grasp)))
 
 
 (defmethod get-object-type-pregrasp-pose ((object-type (eql :axle))
@@ -214,4 +126,56 @@
                                       (grasp (eql :top))
                                       grasp-pose)
   (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
+
+
+#+everything-below-is-commented-out
+(
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :axle))
+                                                 object-name
+                                                 (arm (eql :left))
+                                                 (grasp (eql :top)))
+  (cl-transforms-stamped:make-transform-stamped
+   object-name
+   cram-tf:*robot-left-tool-frame*
+   0.0
+   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
+   (cl-transforms:matrix->quaternion
+    #2A((-1 0 0)
+        (0 1 0)
+        (0 0 -1)))))
+
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :chassis))
+                                                 object-name
+                                                 (arm (eql :left))
+                                                 (grasp (eql :side)))
+  (cl-transforms-stamped:make-transform-stamped
+   object-name
+   cram-tf:*robot-left-tool-frame*
+   0.0
+   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
+   (cl-transforms:matrix->quaternion
+    #2A((0 0 1)
+        (-1 0 0)
+        (0 -1 0)))))
+
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :camaro-body))
+                                                 object-name
+                                                 (arm (eql :left))
+                                                 (grasp (eql :top)))
+  (cl-transforms-stamped:make-transform-stamped
+   object-name
+   cram-tf:*robot-left-tool-frame*
+   0.0
+   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
+   (cl-transforms:matrix->quaternion
+    #2A((0 1 0)
+        (1 0 0)
+        (0 0 -1)))))
 )
+
+(def-fact-group asm-object-knowledge (object-type)
+  (<- object-type-grasp :porsche-body :top)
+  (<- object-type-grasp :camaro-body :top)
+  (<- object-type-grasp :chassis :side)
+  (<- object-type-grasp :axle :top)
+  (<- object-type-grasp :wheel :top))

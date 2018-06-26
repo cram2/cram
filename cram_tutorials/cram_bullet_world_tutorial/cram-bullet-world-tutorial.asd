@@ -51,7 +51,7 @@
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
 
-               cram-btr-visibility-costmap
+               cram-bullet-reasoning-designators ; for visibility cm or collision checks
                cram-semantic-map-costmap
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
@@ -59,8 +59,7 @@
 
                cram-pr2-projection ; for projection process modules
                cram-mobile-pick-place-plans
-               cram-pr2-description
-               cram-knowrob-pick-place)
+               cram-pr2-description)
 
   :components
   ((:module "src"
