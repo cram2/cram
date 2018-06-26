@@ -390,7 +390,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                        (location ?target-robot-location)))
 
                 ;; take a new `?target-location' sample if a failure happens
-                (cpl:with-retry-counters ((target-location-retries 5))
+                (cpl:with-retry-counters ((target-location-retries 2))
                   (cpl:with-failure-handling
                       (((or common-fail:looking-high-level-failure
                             common-fail:object-unreachable) (e)
@@ -441,14 +441,22 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                              bTt))
 
                       (let ((place-action
-                              (or
-                               ;; TODO: maybe pass the placing action as well?
-                               ;; place-action
-                               (desig:an action
-                                         (type placing)
-                                         (object ?object-designator)
-                                         (target (desig:a location
-                                                          (pose ?pose-at-target-loc-in-base)))))))
+                              (or (when place-action
+                                    (destructuring-bind (_action _object-designator ?arm
+                                                         _left-reach-poses _right-reach-poses
+                                                         _left-put-poses _right-put-poses
+                                                         _left-lift-poses _right-lift-poses
+                                                         ?target-location)
+                                        (desig:reference place-action)
+                                      (desig:an action
+                                                (type placing)
+                                                (object ?object-designator)
+                                                (target ?target-location))))
+                                  (desig:an action
+                                            (type placing)
+                                            (object ?object-designator)
+                                            (target (desig:a location
+                                                             (pose ?pose-at-target-loc-in-base)))))))
 
                         (setf place-action (desig:current-desig place-action))
                         (pr2-proj-reasoning:check-placing-collisions place-action)
@@ -480,7 +488,10 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                  (type going)
                  (target (desig:a location
                                   (pose ?map-in-front-of-sink-pose))))))
-    (cpl:with-failure-handling ()
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (declare (ignore e))
+           (return)))
       (exe:perform
        (desig:an action
                  (type placing)

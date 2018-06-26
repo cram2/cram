@@ -99,7 +99,8 @@
                               ?arm
                               ?left-reach-poses ?right-reach-poses
                               ?left-put-poses ?right-put-poses
-                              ?left-retract-poses ?right-retract-poses)
+                              ?left-retract-poses ?right-retract-poses
+                              ?placing-location)
   (roslisp:ros-info (pick-place place) "Reaching")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
