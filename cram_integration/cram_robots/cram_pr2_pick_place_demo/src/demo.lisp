@@ -88,7 +88,7 @@
    (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
 
   (unless proj:*projection-environment*
-    (json-prolog:prolog-simple "belief_forget.")
+    (json-prolog:prolog-simple "rdf_retractall(A,B,C,belief_state).")
     (btr-belief::call-giskard-environment-service :kill-all "attached")
     (cram-bullet-reasoning-belief-state::call-giskard-environment-service
      :add-kitchen
@@ -101,14 +101,13 @@
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
-  (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
   (when (eql cram-projection:*projection-environment*
              'cram-pr2-projection::pr2-bullet-projection-environment)
     (if random
         (spawn-objects-on-sink-counter-randomly)
         (spawn-objects-on-sink-counter)))
 
-  (setf cram-robot-pose-guassian-costmap::*orientation-samples* 1)
+  ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
 
   (initialize-or-finalize)
 
@@ -201,6 +200,24 @@
                          (desig:when ?color
                            (color ?color)))))
 
+        (case ?object-type
+          (:bowl
+           (cpl:with-failure-handling
+               ((common-fail:high-level-failure (e)
+                  (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping the search" e)
+                  (return)))
+             (exe:perform
+              (desig:an action
+                        (type searching)
+                        (object (desig:an object
+                                          (type breakfast-cereal)))
+                        (location ?fetching-location)))))
+          (:spoon
+           (pp-plans:park-arms)
+           (break))
+          (:breakfast-cereal
+           (setf pr2-proj-reasoning::*projection-reasoning-enabled* t)))
+
         (cpl:with-failure-handling
             ((common-fail:high-level-failure (e)
                (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
@@ -211,7 +228,9 @@
                      (object ?object-to-fetch)
                      ;; (arm ?arm-to-use)
                      (location ?fetching-location)
-                     (target ?delivering-location)))))))
+                     (target ?delivering-location))))
+
+        (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil))))
 
   (initialize-or-finalize)
 
