@@ -32,8 +32,10 @@
 (defmethod costmap:costmap-generator-name->score ((name (eql 'supporting-object))) 9)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'slot-generator))) 6)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'collision))) 10)
-(defmethod costmap:costmap-generator-name->score ((name (eql 'side-generator))) 5)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'on-bounding-box))) 5)
+
+(defclass side-generator () ())
+(defmethod costmap:costmap-generator-name->score ((name side-generator)) 5)
 
 (defclass range-generator () ())
 (defmethod costmap:costmap-generator-name->score ((name range-generator)) 2)
@@ -455,10 +457,20 @@
     (btr:%object ?world ?environment-name ?environment-object)
     (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?environment-link)
     (lisp-pred identity ?environment-link)
+    (lisp-fun btr:pose ?environment-link ?object-pose)
     (relation-axis-and-pred ?relation :in-front-of ?axis ?sign)
+    (instance-of side-generator ?side-generator-id)
     (costmap:costmap-add-function
-     side-generator
+     ?side-generator-id
      (make-side-costmap-generator ?environment-link ?axis ?sign)
-     ?costmap))
-
-)
+     ?costmap)
+    (-> (or (and (desig:desig-prop ?designator (:range ?range))
+                 (equal ?invert nil))
+            (and (desig:desig-prop ?designator (:range-invert ?range))
+                 (equal ?invert t)))
+        (and (instance-of range-generator ?range-generator-id)
+             (costmap:costmap-add-function
+              ?range-generator-id
+              (costmap:make-range-cost-function ?object-pose ?range :invert ?invert)
+              ?costmap))
+        (true))))
