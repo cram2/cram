@@ -79,6 +79,12 @@
 (cpl:def-cram-function demo-random (&optional
                                     (random t)
                                     (list-of-objects '(:bowl :spoon :cup :milk :breakfast-cereal)))
+
+  (when ccl::*is-logging-enabled*
+      (setf ccl::*is-client-connected* nil)
+      (ccl::connect-to-cloud-logger)
+      (ccl::reset-logged-owl))
+
   (btr:detach-all-objects (btr:get-robot-object))
   (btr-utils:kill-all-objects)
   (setf (btr:joint-state (btr:object btr:*current-bullet-world* :kitchen)
