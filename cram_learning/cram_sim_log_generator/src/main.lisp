@@ -1,7 +1,7 @@
 (in-package :cslg)
 
 (defun main (num-experiments)
-  ;;(setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
+  (setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
   (setf cram-tf:*tf-broadcasting-enabled* t)
   (roslisp-utilities:startup-ros :name "cram" :anonymous nil)
   (setf ccl::*is-logging-enabled* t)
@@ -20,8 +20,8 @@
                (format t "Starting experiment ~a~%" experiment-id)
                (asdf-utils:run-program (concatenate 'string "rosrun mongodb_log mongodb_log -c " experiment-id " &"))
                (unwind-protect
-                    (pr2-proj:with-simulated-robot (demo::demo-random nil '(:bowl :spoon)))
-;;                    (pr2-proj:with-simulated-robot (demo::demo-random))
+;;                    (pr2-proj:with-simulated-robot (demo::demo-random nil '(:bowl :spoon)))
+                    (pr2-proj:with-simulated-robot (demo::demo-random))
                  (ccl::export-log-to-owl (concatenate 'string experiment-id ".owl"))
                  (format t "Done with experiment ~a~%" experiment-id)
                  (asdf-utils:run-program (concatenate 'string "docker cp seba:/home/ros/user_data/" experiment-id ".owl " experiment-save-path))
