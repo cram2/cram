@@ -83,7 +83,7 @@
   (let ((a (convert-to-prolog-str action-inst))
         (b "knowrob:effort")
         (c (create-owl-literal
-            (convert-to-prolog-str "http://qudt.org/vocab/unit#NewtonMeter") effort)))
+            (convert-to-prolog-str "http://qudt.org/vocab/unit#NewtonMeter") (write-to-string effort))))
     (send-rdf-query a b c)))
 
 (defun send-position-action-parameter (action-inst position)
@@ -171,6 +171,12 @@
       (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation" (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
       (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion" (create-string-owl-literal (convert-to-prolog-str quaternion-id))))
     pose-stamped-instance-id))
+
+(defun send-left-pose-stamped-list-action-parameter (action-inst pose-stamped-list)
+  (send-pose-stamped-list-action-parameter action-inst "left" pose-stamped-list))
+
+(defun send-right-pose-stamped-list-action-parameter (action-inst pose-stamped-list)
+  (send-pose-stamped-list-action-parameter action-inst "right" pose-stamped-list))
 
 (defun send-pose-stamped-list-action-parameter (action-inst list-name pose-stamped-list)
   (let ((pose-stamp (get-last-element-in-list pose-stamped-list)))
