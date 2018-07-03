@@ -59,8 +59,7 @@
 
                cram-pr2-projection ; for projection process modules
                cram-mobile-pick-place-plans
-               cram-pr2-description
-               cram-knowrob-pick-place)
+               cram-pr2-description)
 
   :components
   ((:module "src"

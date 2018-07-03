@@ -68,7 +68,10 @@ The name in the list is a keyword that is created by lispifying the filename."
                               (format nil "package://~a/resource/*.*" ros-package))))))
 
 (defclass item (object)
-  ((types :reader item-types :initarg :types)))
+  ((types :reader item-types :initarg :types)
+   (attached-items :type 'list
+                   :initform (list)
+                   :accessor attached-items)))
 
 (defmethod copy-object ((object item) (world bt-reasoning-world))
   (change-class (call-next-method) 'item
@@ -264,3 +267,43 @@ The name in the list is a keyword that is created by lispifying the filename."
                 :collision-shape (make-instance 'colored-box-shape
                                    :half-extents (ensure-vector size)
                                    :color color)))))
+(defgeneric attach-item (attachment-name attach-to)
+  (:documentation "Adds an attachment to the a-list of `attached-items'. The new
+  entry has the `attachment's name as car and the pose of the item `attach-to' as
+  cadr. Since we save the original `attach-to' pose at the time attaching, you are
+  able to calculate the transformation of the `attach-to' item, when its pose changes,
+  to change the pose of its attachments as well.")
+  (:method (attachment-name (attach-to item))
+    (unless (member attachment-name (attached-items attach-to)) 
+      (push attachment-name (attached-items attach-to))
+      (setf (mass (car (rigid-bodies (object *current-bullet-world* attachment-name)))) 0.0))))
+
+(defgeneric detach-item (attachment-name attached-to)
+  (:documentation "Removes the item of name `attachment-name' from the `attached-items'
+  list of the item `attached-to'.")
+  (:method (attachment-name (attached-to item))
+    (setf (attached-items attached-to) (remove attachment-name (attached-items attached-to)))
+    (setf (mass (car (rigid-bodies (object *current-bullet-world* attachment-name)))) 0.2)))
+
+(defgeneric detach-all-items (attached-to)
+  (:documentation "Removes all items from the list of `attached-items' of the item `attached-to'.")
+  (:method ((attached-to item))
+    (loop for attachment in (attached-items attached-to)
+          do (detach-item attachment attached-to))))
+
+(defmethod (setf pose) :around (new-value (object item))
+  "TODO: Maybe check for both-directional attachments to be sure..."
+  (if (and (slot-boundp object 'attached-items)
+           (< 0 (length (attached-items object))))
+      (let ((carrier-transform
+              (cl-transforms:transform-diff (cl-tf:pose->transform (cl-tf:copy-pose new-value))
+                                            (cl-tf:pose->transform (cl-tf:copy-pose (pose object))))))
+        (call-next-method)
+        (dolist (attachment (attached-items object))
+          (let ((current-attachment-pose (object-pose attachment)))
+            (when (and carrier-transform current-attachment-pose)
+              (setf (pose (btr:object btr:*current-bullet-world* attachment))
+                    (cl-transforms:transform-pose
+                     carrier-transform
+                     current-attachment-pose))))))
+      (call-next-method)))

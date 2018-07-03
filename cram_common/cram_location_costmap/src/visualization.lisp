@@ -40,7 +40,7 @@
   (setf *location-costmap-publisher*
         (advertise "cram_location_costmap" "visualization_msgs/MarkerArray"))
   (setf *occupancy-grid-publisher*
-        (advertise "cram_location_occupancy_grid" "nav_msgs/OccupancyGrid"))
+        (advertise "cram_location_occupancy_grid" "nav_msgs/OccupancyGrid"))  
   (setf *marker-publisher*
         (advertise "cram_location_marker" "visualization_msgs/Marker")))
 
