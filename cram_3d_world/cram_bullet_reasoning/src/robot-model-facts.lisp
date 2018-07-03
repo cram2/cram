@@ -125,6 +125,17 @@
   (<- (assert (attached ?world ?robot ?link-name ?object))
     (assert ?world (attached ?robot ?link-name ?object)))
 
+  (<- (assert (retract ?world ?robot-name ?object-name ?link-name))
+    ;; ?link-name is not mandatory
+    (bound ?robot-name)
+    (bound ?object-name)
+    (bullet-world ?world)
+    (attached ?world ?robot-name ?link-name ?object-name)
+    (%object ?world ?robot-name ?robot)
+    (%object ?world ?object-name ?object)
+    (lisp-fun detach-object ?robot ?object ?link-name ?_)
+    (not (attached ?world ?robot-name ?link-name ?object-name)))
+  
   (<- (retract ?world (attached ?robot ?object))
     (bullet-world ?world)
     (%object ?world ?robot ?robot-instance)
