@@ -534,7 +534,11 @@ current joint states"
     (let* ((joint-states (joint-states obj))
            (joint (gethash name (cl-urdf:joints urdf)))
            (parent (cl-urdf:parent joint))
-           (parent-pose (find-parent-pose obj name)))
+           (parent-pose (find-parent-pose obj name))
+           (limits (cl-urdf:limits joint)))
+      (when limits
+        (setf new-value (min (max new-value (cl-urdf:lower limits))
+                             (cl-urdf:upper limits))))
       (when joint
         (let ((joint-transform
                 (cl-transforms:transform*
