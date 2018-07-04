@@ -75,7 +75,8 @@
   (connect-to-cloud-logger)
   (if *is-client-connected*
       (let ((result "")
-            (cram-action-name (get-designator-property-value-str designator :TYPE)))
+            (cram-action-name (get-designator-property-value-str designator :TYPE))
+            (action-designator-parameters (desig:properties designator)))
         (setf result (get-value-of-json-prolog-dict
                       (cdaar
                        (send-cram-start-action
@@ -85,7 +86,8 @@
                         "PV"
                         "ActionInst"))
                       "ActionInst"))
-        (log-action-parameter designator result)
+        (log-action-designator-parameters-for-logged-action-designator
+         action-designator-parameters result)
         result)
       "NOLOGGING"))
 
