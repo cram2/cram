@@ -67,11 +67,10 @@
   (setf ccl::*host* "'https://192.168.100.172'")
   (setf ccl::*cert-path* "'/home/ease/openease-certificates/sebastian.pem'")
   (setf ccl::*api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
-
-  ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
-
   (ccl::connect-to-cloud-logger)
   (ccl::reset-logged-owl)
+
+  ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo"))
 
