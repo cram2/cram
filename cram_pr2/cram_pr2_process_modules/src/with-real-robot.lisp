@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,28 +29,10 @@
 
 (in-package :pr2-pms)
 
-(def-process-module pr2-perception-pm (action-designator)
-  (destructuring-bind (command object-key-value-pairs quantifier)
-      (reference action-designator)
-    (ecase command
-      (cram-common-designators:detect
-       (handler-case
-           (pr2-ll:call-robosherlock-service
-            object-key-value-pairs :quantifier quantifier)
-         ;; (cram-plan-failures:manipulation-failed ()
-         ;;   (cpl:fail 'cram-plan-failures:manipulation-failed :action action-designator))
-         )))))
-
-;;; Examples:
-;;
-;; (cram-process-modules:with-process-modules-running
-;;     (pr2-pms::pr2-perception-pm)
-;;   (cpl:top-level
-;;     (cpm:pm-execute-matching
-;;      (desig:an action (to detect) (object (desig:an object (color red) (type "fork_red_plastic")))))))
-;;
-;; (cram-process-modules:with-process-modules-running
-;;     (pr2-pms::pr2-perception-pm)
-;;   (cpl:top-level
-;;     (cpm:pm-execute-matching
-;;      (desig:an action (to detect) (object "fork_red_plastic")))))
+(defmacro with-real-robot (&body body)
+  `(cram-process-modules:with-process-modules-running
+       (rs:robosherlock-perception-pm
+        pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
+        pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+     (cpl-impl::named-top-level (:name :top-level)
+       ,@body)))
