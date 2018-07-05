@@ -31,4 +31,7 @@
 
 (defpackage cram-pr2-process-modules
   (:nicknames :pr2-pms)
-  (:use #:common-lisp #:cram-process-modules #:cram-prolog #:cram-designators))
+  (:use #:common-lisp #:cram-process-modules #:cram-prolog #:cram-designators)
+  (:export
+   ;; with-real-robot
+   #:with-real-robot))

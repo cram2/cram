@@ -17,4 +17,6 @@
   <depend>cram_tf</depend>
   <depend>cram_common_failures</depend>
   <depend>cram_common_designators</depend>
+  <depend>cram_language</depend>
+  <depend>cram_robosherlock</depend>
 </package>
