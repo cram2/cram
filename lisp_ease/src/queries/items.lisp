@@ -7,12 +7,13 @@
 
 ; List of all the .stl files, of the newly added items. aka list of meshes. 
 (defparameter *mesh-files*
-  '((:ba-bowl "package://lisp_ease/resource/ba_bowl.stl" t)
-    (:ba-cup "package://lisp_ease/resource/ba_cup.stl" t)
-    (:ba-muesli "package://lisp_ease/resource/ba_muesli.stl" t)
-    (:ba-fork "package://lisp_ease/resource/ba_fork.stl" t)
-    (:ba-milk "package://lisp_ease/resource/ba_milk.stl" t)
-    (:ba-axes "package://lisp_ease/resource/ba_axes.stl" t)))
+  '((:ba-bowl "package://lisp_ease/resource/edeka_red_bowl.stl" t)
+    (:ba-cup "package://lisp_ease/resource/cup_eco_orange.stl" t)
+    (:ba-muesli "package://lisp_ease/resource/koelln_muesli_knusper_honig_nuss.stl" t)
+    (:ba-fork "package://lisp_ease/resource/fork_blue_plastic.stl" t)
+    (:ba-milk "package://lisp_ease/resource/weide_milch_small.stl" t)
+    (:ba-axes "package://lisp_ease/resource/axes.stl" t)
+    (:ba-spoon "package://lisp_ease/resource/spoon_blue_plastic.stl" t)))
 
 ; appends the newly defined objects in the *mesh-files* variable to the *mesh-files*
 ; of btr, so that they can be loaded
