@@ -43,7 +43,6 @@
   <exec_depend>iai_maps</exec_depend>
   <exec_depend>iai_kitchen</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
-  <exec_depend>json_prolog</exec_depend>
   <exec_depend>pr2_description</exec_depend>
   <exec_depend>pr2_arm_kinematics</exec_depend>
   <exec_depend>map_server</exec_depend>
