@@ -4,15 +4,15 @@
 (defun spawn-with-quaternion ()
   "spawns all the objects within the episode at their locations, also moves the robot already in position to pick up the last object. In this function th eobjects are being spawned wth the already fixed quaternion."
   (get-next-obj-poses 0)
-  (move-object  (make-poses-with-quaternion "?PoseObjStart") 'ba-muesli)
+  (move-object  (make-poses-with-quaternion "?PoseObjStart") 'koelln-muesli-knusper-honig-nuss)
   (get-next-obj-poses 1)
-  (move-object  (make-poses-with-quaternion "?PoseObjStart") 'ba-milk)
+  (move-object  (make-poses-with-quaternion "?PoseObjStart") 'weide-milch-small)
   (get-next-obj-poses 2)
-  (move-object  (make-poses-with-quaternion "?PoseObjStart") 'ba-cup)
+  (move-object  (make-poses-with-quaternion "?PoseObjStart") 'cup-eco-orange)
   (get-next-obj-poses 3)
-  (move-object  (make-poses-with-quaternion "?PoseObjStart") 'ba-bowl)
+  (move-object  (make-poses-with-quaternion "?PoseObjStart") 'edeka-red-bowl)
   (get-next-obj-poses 4)
-  (move-object  (make-poses-with-quaternion "?PoseObjStart") 'ba-fork)
+  (move-object  (make-poses-with-quaternion "?PoseObjStart") 'fork-blue-plastic)
 
   (move-to-object (set-grasp-base-pose (make-poses-with-quaternion "?PoseCameraStart")) (set-grasp-look-pose (make-poses-with-quaternion "?PoseObjStart"))))
 
@@ -20,15 +20,15 @@
 (defun spawn-without-transform ()
   "Spawns objects without the applying the transform which fixes the offset between the Virtual Reality and the bullet world."
   (get-next-obj-poses 0)
-  (move-object  (make-poses-without-transform "?PoseObjStart") 'ba-muesli)
+  (move-object  (make-poses-without-transform "?PoseObjStart") 'koelln-muesli-knusper-honig-nuss)
   (get-next-obj-poses 1)
-  (move-object  (make-poses-without-transform "?PoseObjStart") 'ba-milk)
+  (move-object  (make-poses-without-transform "?PoseObjStart") 'weide-milch-small)
   (get-next-obj-poses 2)
-  (move-object  (make-poses-without-transform "?PoseObjStart") 'ba-cup)
+  (move-object  (make-poses-without-transform "?PoseObjStart") 'cup-eco-orange)
   (get-next-obj-poses 3)
-  (move-object  (make-poses-without-transform "?PoseObjStart") 'ba-bowl)
+  (move-object  (make-poses-without-transform "?PoseObjStart") 'edeka-red-bowl)
   (get-next-obj-poses 4)
-  (move-object  (make-poses-without-transform "?PoseObjStart") 'ba-fork)
+  (move-object  (make-poses-without-transform "?PoseObjStart") 'fork-blue-plastic)
 
   (move-to-object (set-grasp-base-pose (make-poses-without-transform "?PoseCameraStart")) (set-grasp-look-pose (make-poses-without-transform "?PoseObjStart"))))
  
@@ -40,13 +40,13 @@
   ;; muesli
   (move-object
    (add-pos-offset-to-transform
-    (make-poses "?PoseObjStart") 0.05 0.0 0.0) 'ba-muesli)
+    (make-poses "?PoseObjStart") 0.05 0.0 0.0) 'koelln-muesli-knusper-honig-nuss)
   
   ;; milk
   (get-next-obj-poses 1)
   (move-object
    (add-pos-offset-to-transform
-    (make-poses "?PoseObjStart") 0.05 0.0 0.0) 'ba-milk)
+    (make-poses "?PoseObjStart") 0.05 0.0 0.0) 'weide-milch-small)
 
   ;; cup
   (get-next-obj-poses 2)
@@ -56,13 +56,13 @@
      (add-pos-offset-to-transform
       (make-poses "?PoseObjStart") 0.05 0.0 0.0))
      (cl-tf:make-identity-rotation))
-   'ba-cup)
+   'cup-eco-orange)
 
   ;; bowl
   (get-next-obj-poses 3)
   (move-object
    (add-pos-offset-to-transform
-    (make-poses "?PoseObjStart") 0.05 0.0 0.0) 'ba-bowl)
+    (make-poses "?PoseObjStart") 0.05 0.0 0.0) 'edeka-red-bowl)
 
   ;; fork
   (get-next-obj-poses 4)
@@ -71,30 +71,30 @@
     (cl-tf:translation
      (add-pos-offset-to-transform
       (make-poses "?PoseObjStart") 0.05 0.0 0.0))
-    (cl-tf:make-quaternion  0 0 1 1)) 'ba-fork))
+    (cl-tf:make-quaternion  0 0 1 1)) 'fork-blue-plastic))
 
 
 (defun demo-spawn-obj-in-place ()
   "Spawns all objects of the current Episode at their places without any offsets."
   (get-grasp-something-poses)
   ;; muesli
-  (alternative-demo 'ba-muesli)
+  (alternative-demo 'koelln-muesli-knusper-honig-nuss)
   
   ;; milk
   (get-next-obj-poses 1)
-  (alternative-demo 'ba-milk)
+  (alternative-demo 'weide-milch-small)
 
   ;; cup
   (get-next-obj-poses 2)
-  (alternative-demo 'ba-cup)
+  (alternative-demo 'cup-eco-orange)
 
   ;; bowl
   (get-next-obj-poses 3)
-  (alternative-demo 'ba-bowl)
+  (alternative-demo 'edeka-red-bowl)
 
   ;; fork
   (get-next-obj-poses 4)
-  (alternative-demo 'ba-fork))
+  (alternative-demo 'fork-blue-plastic))
 
 (defun spawn-all-own-obj ()
   "Spawns all the objects with which the robot can interact in the world."

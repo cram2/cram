@@ -16,7 +16,7 @@
           NIL)))
 
 
-;; killing object from bullet world. ex: 'ba-axes
+;; killing object from bullet world. ex: 'axes
 (defun kill-obj (object)
   "Removes an object from the bullet world."
   (btr-utils:kill-object object)) 
@@ -129,15 +129,15 @@
           (cl-tf:make-transform
            (cl-tf:translation transf_r)
            (cl-tf:rotation transf_r)))
-    (move-object transf_r 'ba-axes)
+    (move-object transf_r 'axes)
     (setq transf_l
           (cl-tf:make-transform
            (cl-tf:translation transf_l)
            (cl-tf:rotation transf_l)))
     
-    (move-object transf_r 'ba-axes)
-    (move-object transf_l 'ba-axes2)
-    (move-object (make-poses "?PoseHandStart") 'ba-axes3)))
+    (move-object transf_r 'axes)
+    (move-object transf_l 'axes2)
+    (move-object (make-poses "?PoseHandStart") 'axes3)))
 
                                         ;splits the list of the pose into pose and quaternion
                                         ;for specific usecase test function
@@ -150,7 +150,7 @@
     (get-grasp-something-poses)
     (dotimes (c max )
       (get-next-obj-poses c)
-      (setf temp-name (intern (concatenate 'string  "ba-muesli" (write-to-string c))))
+      (setf temp-name (intern (concatenate 'string  "koelln-muesli-knusper-honig-nuss" (write-to-string c))))
       (add-muesli temp-name)
       (format nil "added: ~D out of: ~D ~%" c max)
       (move-object (make-poses "?PoseCameraStart") temp-name)))

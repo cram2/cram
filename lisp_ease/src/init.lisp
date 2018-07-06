@@ -94,10 +94,10 @@
   
   ;;axes 3
   (prolog:prolog '(and (btr:bullet-world ?world)
-                   (assert (btr:object ?world :mesh ba-axes3 ((2 2 1) (0 0 0 1))
-                            :mass 0.2 :color (1 0 0) :mesh :ba-axes))))
+                   (assert (btr:object ?world :mesh axes3 ((2 2 1) (0 0 0 1))
+                            :mass 0.2 :color (1 0 0) :mesh :axes))))
   ;; axes 2 
   (prolog:prolog '(and (btr:bullet-world ?world)
-                   (assert (btr:object ?world :mesh ba-axes2 ((2 2 1) (0 0 0 1))
-                            :mass 0.2 :color (0 1 0) :mesh :ba-axes)))))
+                   (assert (btr:object ?world :mesh axes2 ((2 2 1) (0 0 0 1))
+                            :mass 0.2 :color (0 1 0) :mesh :axes)))))
 
