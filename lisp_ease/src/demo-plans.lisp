@@ -6,13 +6,13 @@
   (get-next-obj-poses 0)
   (pick-up-object (set-grasp-base-pose (make-poses "?PoseCameraStart"))
                   (set-grasp-look-pose (make-poses "?PoseObjStart"))
-                  :ba-muesli
+                  :koelln-muesli-knusper-honig-nuss
                   nil)
   
 (get-next-obj-poses 1)
   (pick-up-object (set-grasp-base-pose (make-poses "?PoseCameraStart"))
                   (set-grasp-look-pose (make-poses "?PoseObjStart"))
-                  :ba-milk
+                  :weide-milch-small
                   t)
 
 ;; place two
@@ -35,13 +35,13 @@
   (get-next-obj-poses 2)
   (pick-up-object (set-grasp-base-pose (make-poses "?PoseCameraStart"))
                   (set-grasp-look-pose (make-poses "?PoseObjStart"))
-                  :ba-cup
+                  :cup-eco-orange
                   nil)
   
 (get-next-obj-poses 3)
   (pick-up-object (set-grasp-base-pose (make-poses "?PoseCameraStart"))
                   (set-grasp-look-pose (make-poses "?PoseObjStart"))
-                  :ba-bowl
+                  :edeka-red-bowl
                   t)
 
 ;; place two
@@ -63,7 +63,7 @@
 (get-next-obj-poses 4)
   (pick-up-object (set-grasp-base-pose (make-poses "?PoseCameraStart"))
                   (set-grasp-look-pose (make-poses "?PoseObjStart"))
-                  :ba-fork
+                  :fork-blue-plastic
                   nil)
 
 ;; place two
@@ -78,42 +78,42 @@
 (defun demo-all-pick-place ()
   "Picks and places all objects of an episode one by one. Meaning the robot will always hold on to just one object and finish placing it before going back to picking up another one. "
   (get-next-obj-poses 0)
-  (execute-pick-and-place :ba-muesli)
+  (execute-pick-and-place :koelln-muesli-knusper-honig-nuss)
   (get-next-obj-poses 1)
   
-  (execute-pick-and-place :ba-milk)
+  (execute-pick-and-place :weide-milch-small)
   (get-next-obj-poses 2)
-  (execute-pick-and-place :ba-cup)
+  (execute-pick-and-place :cup-eco-orange)
   (get-next-obj-poses 3)
-  (execute-pick-and-place :ba-bowl)
+  (execute-pick-and-place :edeka-red-bowl)
   (get-next-obj-poses 4)
-  (execute-pick-and-place :ba-fork))
+  (execute-pick-and-place :fork-blue-plastic))
 
 
 (defun demo-all-obj ()
   "For the entire episode, first place the object at the location where it was for the robot to pick up, and then pick it up and place it. "
   (get-grasp-something-poses)
   ;; muesli
-  (alternative-demo 'ba-muesli)
-  (execute-pick-and-place :ba-muesli)
+  (alternative-demo 'koelln-muesli-knusper-honig-nuss)
+  (execute-pick-and-place :koelln-muesli-knusper-honig-nuss)
 
   ;; milk
   (get-next-obj-poses 1)
-  (alternative-demo 'ba-milk)
-  (execute-pick-and-place :ba-milk)
+  (alternative-demo 'weide-milch-small)
+  (execute-pick-and-place :weide-milch-small)
 
   ;; cup
   (get-next-obj-poses 2)
-  (alternative-demo 'ba-cup)
-  (execute-pick-and-place :ba-cup)
+  (alternative-demo 'cup-eco-orange)
+  (execute-pick-and-place :cup-eco-orange)
 
   ;; bowl
   (get-next-obj-poses 3)
-  (alternative-demo 'ba-bowl)
-  (execute-pick-and-place :ba-bowl)
+  (alternative-demo 'edeka-red-bowl)
+  (execute-pick-and-place :edeka-red-bowl)
 
   ;; fork
   (get-next-obj-poses 4)
-  (alternative-demo 'ba-fork)
-  (execute-pick-and-place :ba-fork)
+  (alternative-demo 'fork-blue-plastic)
+  (execute-pick-and-place :fork-blue-plastic)
   )

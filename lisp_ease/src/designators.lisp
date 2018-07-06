@@ -6,12 +6,12 @@
 (cram-prolog:def-fact-group ba-pnp-object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
 
   (cram-prolog:<- (orientation-matters ?object-type)
-    (member ?object-type (:ba-fork)))
-  (cram-prolog:<- (object-type-grasp :ba-fork :human-grasp))
-  (cram-prolog:<- (object-type-grasp :ba-milk :human-grasp))
-  (cram-prolog:<- (object-type-grasp :ba-cup :human-grasp))
-  (cram-prolog:<- (object-type-grasp :ba-muesli :human-grasp))
-  (cram-prolog:<- (object-type-grasp :ba-bowl :human-grasp)))
+    (member ?object-type (:fork-blue-plastic)))
+  (cram-prolog:<- (object-type-grasp :fork-blue-plastic :human-grasp))
+  (cram-prolog:<- (object-type-grasp :weide-milch-small :human-grasp))
+  (cram-prolog:<- (object-type-grasp :cup-eco-orange :human-grasp))
+  (cram-prolog:<- (object-type-grasp :koelln-muesli-knusper-honig-nuss :human-grasp))
+  (cram-prolog:<- (object-type-grasp :edeka-red-bowl :human-grasp)))
 
 (cram-prolog:def-fact-group pick-and-place-plans (desig:action-grounding)
   (cram-prolog:<- (desig:action-grounding ?action-designator (pick-up ?current-object-desig ?arm

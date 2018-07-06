@@ -26,18 +26,18 @@
 (defparameter *cutlery-pregrasp-z-offset* 0.20 "in meters")
 
 ;; grasping force in Nm --------------------------------------------------------
-(defmethod get-object-type-gripping-effort ((object-type (eql :ba-muesli))) 15)
-(defmethod get-object-type-gripping-effort ((object-type (eql :ba-milk))) 15)
-(defmethod get-object-type-gripping-effort ((object-type (eql :ba-bowl))) 15)
-(defmethod get-object-type-gripping-effort ((object-type (eql :ba-cup))) 15)
-(defmethod get-object-type-gripping-effort ((object-type (eql :ba-fork))) 100)
+(defmethod get-object-type-gripping-effort ((object-type (eql :koelln-muesli-knusper-honig-nuss))) 15)
+(defmethod get-object-type-gripping-effort ((object-type (eql :weide-milch-small))) 15)
+(defmethod get-object-type-gripping-effort ((object-type (eql :edeka-red-bowl))) 15)
+(defmethod get-object-type-gripping-effort ((object-type (eql :cup-eco-orange))) 15)
+(defmethod get-object-type-gripping-effort ((object-type (eql :fork-blue-plastic))) 100)
 
 ;; gripper oppening ------------------------------------------------------------
-(defmethod get-object-type-gripper-opening ((object-type (eql :ba-muesli))) 0.2)
-(defmethod get-object-type-gripper-opening ((object-type (eql :ba-milk))) 0.2)
-(defmethod get-object-type-gripper-opening ((object-type (eql :ba-bowl))) 0.2)
-(defmethod get-object-type-gripper-opening ((object-type (eql :ba-cup))) 0.2)
-(defmethod get-object-type-gripper-opening ((object-type (eql :ba-fork))) 0.03)
+(defmethod get-object-type-gripper-opening ((object-type (eql :koelln-muesli-knusper-honig-nuss))) 0.2)
+(defmethod get-object-type-gripper-opening ((object-type (eql :weide-milch-small))) 0.2)
+(defmethod get-object-type-gripper-opening ((object-type (eql :edeka-red-bowl))) 0.2)
+(defmethod get-object-type-gripper-opening ((object-type (eql :cup-eco-orange))) 0.2)
+(defmethod get-object-type-gripper-opening ((object-type (eql :fork-blue-plastic))) 0.03)
 (defmethod get-object-type-gripper-opening (object-type)
   "Default value is 0.10. In meters."
   0.10)
@@ -51,7 +51,7 @@
 ;;  MUESLI
 ;------------------------------------------------------------------------------------------------
 
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :ba-muesli))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :koelln-muesli-knusper-honig-nuss))
                                                  object-name
                                                  arm
                                                  (grasp (eql :human-grasp)))
@@ -83,14 +83,14 @@
     (print end-transf)
     end-transf))
 
-(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :ba-muesli))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :koelln-muesli-knusper-honig-nuss))
                                                           object-name
                                                           arm
                                                           (grasp (eql :human-grasp))
                                                           grasp-transform)
   (cram-tf:translate-transform-stamped grasp-transform :x-offset (- *muesli-pregrasp-xy-offset*)
                                                        :z-offset *lift-z-offset*))
-(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :ba-muesli))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :koelln-muesli-knusper-honig-nuss))
                                                               object-name
                                                               arm
                                                               (grasp (eql :human-grasp))
@@ -99,7 +99,7 @@
 ;------------------------------------------------------------------------------------------------
 ;; MILK -----------------------------------------------------------------------------------------
 ;------------------------------------------------------------------------------------------------
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :ba-milk))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :weide-milch-small))
                                                  object-name
                                                  arm
                                                  (grasp (eql :human-grasp)))
@@ -131,7 +131,7 @@
     (print end-transf)
     end-transf))
 
-(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :ba-milk))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :weide-milch-small))
                                                           object-name
                                                           arm
                                                           (grasp (eql :human-grasp))
@@ -140,7 +140,7 @@
                                                        :z-offset *lift-z-offset*))
 
 
-(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :ba-milk))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :weide-milch-small))
                                                               object-name
                                                               arm
                                                               (grasp (eql :human-grasp))
@@ -152,7 +152,7 @@
 ;------------------------------------------------------------------------------------------------
 ; BOWL ------------------------------------------------------------------------------------------
 ;------------------------------------------------------------------------------------------------
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :ba-bowl))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :edeka-red-bowl))
                                                  object-name
                                                  arm
                                                  (grasp (eql :human-grasp)))
@@ -184,7 +184,7 @@
     (print end-transf)
     end-transf))
 
-(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :ba-bowl))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :edeka-red-bowl))
                                                           object-name
                                                           arm
                                                           (grasp (eql :human-grasp))
@@ -193,7 +193,7 @@
                                                        :z-offset *lift-z-offset*))
 
 
-(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :ba-bowl))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :edeka-red-bowl))
                                                               object-name
                                                               arm
                                                               (grasp (eql :human-grasp))
@@ -203,7 +203,7 @@
 ; CUP -------------------------------------------------------------------------------------------
 ;------------------------------------------------------------------------------------------------
 
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :ba-cup))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :cup-eco-orange))
                                                  object-name
                                                  arm
                                                  (grasp (eql :human-grasp)))
@@ -235,14 +235,14 @@
     (print end-transf)
     end-transf))
 
-(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :ba-cup))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :cup-eco-orange))
                                                           object-name
                                                           arm
                                                           (grasp (eql :human-grasp))
                                                           grasp-transform)
   (cram-tf:translate-transform-stamped grasp-transform :x-offset (- *cup-pregrasp-xy-offset*)
                                                        :z-offset *lift-z-offset*))
-(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :ba-cup))
+(defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql :cup-eco-orange))
                                                               object-name
                                                               arm
                                                               (grasp (eql :human-grasp))
@@ -253,7 +253,7 @@
 ;;-----------------------------------------------------------------------------
 ;; FORK
 ;;----------------------------------------------------------------------------
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :ba-fork))
+(defmethod get-object-type-to-gripper-transform ((object-type (eql :fork-blue-plastic))
                                                  object-name
                                                  arm
                                                  (grasp (eql :human-grasp)))
@@ -284,13 +284,13 @@
     (print "------------------------------")
     (print end-transf)
     end-transf))
-(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :ba-fork))
+(defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql :fork-blue-plastic))
                                                           object-name
                                                           arm
                                                           (grasp (eql :human-grasp))
                                                           grasp-transform)
   (cram-tf:translate-transform-stamped grasp-transform :z-offset *cutlery-pregrasp-z-offset*))
-(defmethod get-object-type-to-gripper-lift-transform ((object-type (eql :ba-fork))
+(defmethod get-object-type-to-gripper-lift-transform ((object-type (eql :fork-blue-plastic))
                                                       object-name
                                                       arm
                                                       (grasp (eql :human-grasp))
