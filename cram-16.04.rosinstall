@@ -17,6 +17,12 @@
     uri: https://github.com/code-iai/iai_common_msgs.git
     version: 673045b2364e54b569438794b0240486e4afae2b
 
+############## Giskard msgs repository ############
+- git:
+    local-name: giskard_msgs
+    uri: https://github.com/SemRoCo/giskard_msgs.git
+    version: 3cea851f1823e5fa58164700e06a8e34cd78a639
+
 ############## PR2 inverse kinematics solver #########
 - git:
     local-name: pr2_kinematics
