@@ -50,7 +50,6 @@
                cram-mobile-pick-place-plans
 
                cram-knowrob-pick-place
-               cram-robosherlock
                cram-cloud-logger
 
                cram-physics-utils     ; for reading "package://" paths
