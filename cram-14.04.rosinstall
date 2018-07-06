@@ -9,7 +9,7 @@
 - git:
     local-name: iai_maps
     uri: https://github.com/code-iai/iai_maps.git
-    version: d214931eb136fc4f41e6c153cf4eaf413ee51fe2
+    version: a28676db193002f4c8c0b17becfb52fc9aacee68
 
 ############## IAI common msgs repository ############
 - git:
