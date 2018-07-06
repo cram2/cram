@@ -14,7 +14,7 @@ RETURNS: "
 
 (defun execute-pick-up-object (type)
   "Executes only the picking up action on an object given the type of the object.
-TYPE: The type of the object. Could be :ba-muesli for the cereal box.
+TYPE: The type of the object. Could be :koelln-muesli-knusper-honig-nuss for the cereal box.
 RETURNS: "
   (pick-up-object (set-grasp-base-pose (make-poses "?PoseCameraStart"))
                   (set-grasp-look-pose (make-poses "?PoseObjStart"))

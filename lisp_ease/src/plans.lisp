@@ -176,7 +176,7 @@ RETURNS: The object designator of the object that has been picked up in this pla
                            (object ?obj-desig))))
 
         ;;remove later
-        ;; (move-object (make-poses "?PoseHandStart") 'ba-axes3)
+        ;; (move-object (make-poses "?PoseHandStart") 'axess3)
 
         ;; pick up obj
         (exe:perform 
