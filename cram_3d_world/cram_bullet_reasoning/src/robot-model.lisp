@@ -453,7 +453,7 @@ current joint states"
            (parent (cl-urdf:parent joint))
            (parent-pose (find-parent-pose obj name))
            (limits (cl-urdf:limits joint)))
-      (when limits
+      (when (and limits (not (eq (cl-urdf:lower limits) (cl-urdf:upper limits))))
         (setf new-value (min (max new-value (cl-urdf:lower limits))
                              (cl-urdf:upper limits))))
       (when joint
