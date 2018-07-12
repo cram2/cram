@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA version="1.4.0" xmlns="http://www.collada.org/2005/11/COLLADASchema">
+	<asset>
+		<contributor>
+			<author>NxuStream2 converter - http://www.ageia.com</author>
+			<authoring_tool>PhysX Rocket, PhysX Viewer, or CreateDynamics</authoring_tool>
+			<comments>questions to: jratcliff@ageia.com</comments>
+			<copyright></copyright>
+			<source_data>chair_gothic_tilted</source_data>
+		</contributor>
+		<unit meter="1" name="meter"/>
+		<up_axis>Y_UP</up_axis>
+	</asset>
+   <library_materials>
+      <material id="Material" name="Material">
+         <instance_effect url="#Material-fx"></instance_effect>
+      </material>
+   </library_materials>
+   <library_effects>
+      <effect id="Material-fx" name="Material">
+         <profile_COMMON>
+            <technique id="Material-fx-COMMON" sid="COMMON">
+               <phong>
+                  <ambient>
+                     <color>0.803922 0.588235 0.92549 1</color>
+                  </ambient>
+                  <diffuse>
+                     <color>0.803922 0.588235 0.92549 1</color>
+                  </diffuse>
+                  <specular>
+                     <color>0.631373 0.631373 0.631373 1</color>
+                  </specular>
+                  <shininess>
+                     <float>1</float>
+                  </shininess>
+                  <reflective>
+                     <color>0 0 0 1</color>
+                  </reflective>
+                  <transparent>
+                     <color>1 1 1 1</color>
+                  </transparent>
+                  <transparency>
+                     <float>0</float>
+                  </transparency>
+               </phong>
+           </technique>
+         </profile_COMMON>
+      </effect>
+   </library_effects>
+  <library_geometries>
+    <geometry id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_0-Mesh" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_0-Mesh">
+      <convex_mesh>
+        <source id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_0-Position">
+          <float_array count="24" id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_0-Position-array">
+            -0.124426477 -0.000832 -0.174490497  -0.038612999 0.110127471 -0.016273251  -0.126918003 -0.000825649 -0.016273251  -0.038612999 0.111192442 -0.174490497  
+            -0.068991326 0.106694974 -0.174490497  -0.070985161 0.10538099 -0.016273251  -0.095785826 0.057077639 -0.174490497  -0.111452416 0.030444819 -0.016273251  
+          </float_array>
+          <technique_common>
+            <accessor count="8" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_0-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_0-Vertex">
+					<input semantic="POSITION" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_0-Position"/>
+				</vertices>
+				<triangles material="Material" count="12">
+					<input offset="0" semantic="VERTEX" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_0-Vertex"/>
+           <p>
+             0 1 2  3 0 4  3 1 0  5 1 3  
+             5 3 4  5 2 1  6 5 4  6 4 0  
+             6 0 2  7 2 5  7 5 6  7 6 2  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_1-Mesh" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_1-Mesh">
+      <convex_mesh>
+        <source id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_1-Position">
+          <float_array count="27" id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_1-Position-array">
+            -0.038612865 -0.109411769 -0.016273251  -0.07800325 -0.097658999 -0.016273251  -0.071008503 -0.100588001 -0.174490497  -0.124426477 -0.000832 -0.174490497  
+            -0.1269155 -0.000832 -0.016292106  -0.038612865 -0.110253774 -0.174490497  -0.105921596 -0.054114118 -0.174490497  -0.095459796 -0.074422061 -0.016273251  
+            -0.126717001 -0.005463298 -0.174490497  
+          </float_array>
+          <technique_common>
+            <accessor count="9" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_1-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_1-Vertex">
+					<input semantic="POSITION" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_1-Position"/>
+				</vertices>
+				<triangles material="Material" count="14">
+					<input offset="0" semantic="VERTEX" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_1-Vertex"/>
+           <p>
+             0 1 2  3 4 0  5 0 2  5 2 3  
+             5 3 0  6 2 1  6 3 2  7 4 6  
+             7 6 1  7 0 4  7 1 0  8 4 3  
+             8 3 6  8 6 4  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_2-Mesh" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_2-Mesh">
+      <convex_mesh>
+        <source id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_2-Position">
+          <float_array count="36" id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_2-Position-array">
+            0.137276828 0.079028577 -0.016273251  0.226503 0.079393998 0.014043  0.138097495 0.079398997 0.120942518  0.137276828 0.125525981 -0.100109249  
+            0.138097495 0.126994982 0.049438354  0.205594003 0.124402002 -0.037847001  0.137276828 0.079408996 -0.121162519  0.196339995 0.121258996 0.066335  
+            0.138097495 0.118698023 0.112937599  0.176961005 0.079392001 -0.101310998  0.224163994 0.079392001 -0.029159  0.180401996 0.121262997 -0.086613998  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_2-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_2-Vertex">
+					<input semantic="POSITION" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_2-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_2-Vertex"/>
+           <p>
+             0 1 2  3 4 5  3 6 0  7 1 5  
+             7 5 4  7 2 1  8 2 7  8 7 4  
+             8 4 3  8 3 0  8 0 2  9 0 6  
+             10 1 0  10 0 9  10 5 1  11 5 10  
+             11 10 9  11 3 5  11 6 3  11 9 6  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_3-Mesh" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_3-Mesh">
+      <convex_mesh>
+        <source id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_3-Position">
+          <float_array count="36" id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_3-Position-array">
+            0.203509003 -0.079407997 0.074386001  0.225876004 -0.079392001 -0.017441999  0.134577081 -0.076198302 0.12222971  0.213358 -0.123866998 -0.006075  
+            0.171564996 -0.127006993 0.061691001  0.137784004 -0.126947999 -0.0836  0.137770995 -0.125275001 0.098849997  0.180401996 -0.121262997 -0.086613998  
+            0.197762996 -0.079396002 -0.081758998  0.137784004 -0.079397999 -0.120416  0.137784004 -0.118538 -0.113688  0.207987994 -0.120166004 0.048401002  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_3-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_3-Vertex">
+					<input semantic="POSITION" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_3-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_3-Vertex"/>
+           <p>
+             0 1 2  3 4 5  6 0 2  6 2 5  
+             6 5 4  7 1 3  7 3 5  8 1 7  
+             8 7 9  8 9 2  8 2 1  10 9 7  
+             10 7 5  10 5 2  10 2 9  11 0 6  
+             11 6 4  11 4 3  11 1 0  11 3 1  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_4-Mesh" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_4-Mesh">
+      <convex_mesh>
+        <source id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_4-Position">
+          <float_array count="24" id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_4-Position-array">
+            -0.124432072 -0.002474069 0.141944006  -0.038260698 -0.108674847 0.141944006  -0.038260698 -0.002474069 0.141944006  -0.126213402 -0.002474069 -0.016273251  
+            -0.038260698 -0.109516844 -0.016273251  -0.07800325 -0.097658999 -0.016273251  -0.084997997 -0.094729997 0.141944006  -0.095459796 -0.074422061 -0.016273251  
+          </float_array>
+          <technique_common>
+            <accessor count="8" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_4-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_4-Vertex">
+					<input semantic="POSITION" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_4-Position"/>
+				</vertices>
+				<triangles material="Material" count="12">
+					<input offset="0" semantic="VERTEX" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_4-Vertex"/>
+           <p>
+             0 1 2  3 0 2  4 5 3  4 3 2  
+             4 2 1  4 1 5  6 0 3  6 5 1  
+             6 1 0  7 3 5  7 5 6  7 6 3  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_5-Mesh" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_5-Mesh">
+      <convex_mesh>
+        <source id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_5-Position">
+          <float_array count="36" id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_5-Position-array">
+            -0.038612865 -0.109411769 -0.016273251  0.137784004 -0.126330838 -0.016273251  0.053797692 -0.000335741 -0.016273251  0.049698304 -0.000335741 -0.127119124  
+            0.137784004 -0.079397999 -0.120416  -0.038612865 -0.110253774 -0.174490497  0.137784004 -0.118538 -0.113688  0.051220763 -0.073219769 -0.174490497  
+            0.137784004 -0.079403602 -0.016273251  0.055137932 -0.112878583 -0.174490497  0.049692001 -0.127021 -0.110849001  0.00308075 -0.12185175 -0.016273251  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_5-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_5-Vertex">
+					<input semantic="POSITION" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_5-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_5-Vertex"/>
+           <p>
+             0 1 2  3 2 4  3 5 0  3 0 2  
+             6 4 1  7 5 3  7 3 4  8 2 1  
+             8 1 4  8 4 2  9 5 7  9 4 6  
+             9 7 4  10 6 1  10 9 6  10 5 9  
+             11 1 0  11 10 1  11 0 5  11 5 10  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_6-Mesh" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_6-Mesh">
+      <convex_mesh>
+        <source id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_6-Position">
+          <float_array count="36" id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_6-Position-array">
+            -0.038612999 0.110127471 -0.016273251  0.049692001 -0.000832 -0.016273251  0.137276828 0.126042649 -0.016273251  0.049692001 -0.000832 -0.127291784  
+            -0.038612999 0.111192442 -0.174490497  0.137276828 0.125525981 -0.100109249  0.137276828 0.079408996 -0.121162519  0.040408939 0.122545719 -0.174490497  
+            0.137276828 0.079028577 -0.016273251  0.049692001 0.072291456 -0.174490497  0.062295999 -0.000034 -0.126922995  0.059101649 0.10071744 -0.174490497  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_6-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_6-Vertex">
+					<input semantic="POSITION" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_6-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_6-Vertex"/>
+           <p>
+             0 1 2  3 1 0  3 0 4  5 2 6  
+             7 2 5  7 4 0  7 0 2  8 6 2  
+             8 2 1  9 3 4  9 4 7  10 3 9  
+             10 9 6  10 6 8  10 1 3  10 8 1  
+             11 6 9  11 9 7  11 5 6  11 7 5  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_7-Mesh" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_7-Mesh">
+      <convex_mesh>
+        <source id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_7-Position">
+          <float_array count="36" id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_7-Position-array">
+            -0.038260698 -0.002474069 0.141944006  0.023114 -0.126986995 0.141944006  0.058871001 -0.000047 0.141944006  0.049692001 -0.00003935 -0.016273251  
+            -0.038260698 -0.109516844 -0.016273251  0.134578243 -0.076184534 -0.016273251  -0.038260698 -0.108674847 0.141944006  0.049692001 -0.123981625 -0.016273251  
+            0.134577081 -0.076198302 0.12222971  0.060886472 -0.00003935 -0.016273251  0.00308075 -0.12185175 -0.016273251  0.049692001 -0.118896998 0.141944006  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_7-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_7-Vertex">
+					<input semantic="POSITION" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_7-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_7-Vertex"/>
+           <p>
+             0 1 2  3 0 2  3 4 0  3 5 4  
+             6 0 4  6 4 1  6 1 0  7 5 8  
+             7 4 5  9 2 8  9 8 5  9 5 3  
+             9 3 2  10 1 4  10 4 7  10 7 1  
+             11 1 7  11 7 8  11 2 1  11 8 2  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_8-Mesh" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_8-Mesh">
+      <convex_mesh>
+        <source id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_8-Position">
+          <float_array count="36" id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_8-Position-array">
+            -0.127119005 0.003812 0.141944006  -0.126213402 -0.002474069 -0.016273251  0.058868051 -0.000006 0.141944006  0.050127 0.121437997 0.141944006  
+            0.06091962 -0.000006 -0.016273251  0.138097495 0.1263403 -0.016273251  -0.070985161 0.10538099 -0.016273251  -0.072979003 0.104066998 0.141944006  
+            0.138097495 0.079404481 -0.016273251  0.138097003 0.104211003 0.118070997  0.138097003 0.126718998 0.093456998  0.138097495 0.079399362 0.120942533  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_8-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_8-Vertex">
+					<input semantic="POSITION" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_8-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_8-Vertex"/>
+           <p>
+             0 1 2  0 2 3  4 2 1  4 1 5  
+             6 1 0  6 3 5  6 5 1  7 0 3  
+             7 3 6  7 6 0  8 4 5  8 5 9  
+             10 5 3  10 3 9  10 9 5  11 8 9  
+             11 2 4  11 4 8  11 3 2  11 9 3  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_9-Mesh" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_9-Mesh">
+      <convex_mesh>
+        <source id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_9-Position">
+          <float_array count="36" id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_9-Position-array">
+            -0.126717001 -0.005463298 -0.174490497  0.042013038 -0.116873629 -0.174490497  0.040408939 0.122545719 -0.174490497  0.060451001 -0.107006997 -0.483204991  
+            -0.057018999 -0.106445998 -0.490925014  -0.126324996 -0.014508 -0.483058006  -0.065084003 0.109269999 -0.484548986  -0.068991326 0.106694974 -0.174490497  
+            -0.071008503 -0.100588001 -0.174490497  0.031249 0.123545997 -0.486728013  0.068173997 0.080649003 -0.479582012  0.059101649 0.10071744 -0.174490497  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_9-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_9-Vertex">
+					<input semantic="POSITION" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_9-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_9-Vertex"/>
+           <p>
+             0 1 2  3 1 4  5 0 6  5 6 4  
+             7 0 2  7 6 0  8 0 5  8 5 4  
+             8 4 1  8 1 0  9 6 7  9 7 2  
+             9 10 3  9 3 4  9 2 10  9 4 6  
+             11 1 3  11 3 10  11 2 1  11 10 2  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+  </library_geometries>
+  <library_visual_scenes>
+	  <visual_scene id="Scene0-Visual" name="Scene0-Visual">
+      <node id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw-Node" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw" type="NODE">
+        <translate>0 0 0</translate>
+        <rotate>1 0 0  0</rotate>
+      </node>
+  	  </visual_scene>
+  </library_visual_scenes>
+  <library_physics_materials>
+    <physics_material id="pmat0_0-PhysicsMaterial" name="pmat0_0-PhysicsMaterial">
+      <technique_common>
+        <dynamic_friction>0.5</dynamic_friction>
+        <restitution>0</restitution>
+        <static_friction>0.5</static_friction>
+      </technique_common>
+    </physics_material>
+  </library_physics_materials>
+  <library_physics_models>
+    <physics_model id="Scene0-PhysicsModel">
+      <rigid_body sid="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw-RigidBody" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw">
+        <technique_common>
+          <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_0-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_1-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_2-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_3-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_4-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_5-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_6-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_7-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_8-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw_9-Mesh"/>
+         </shape>
+        <dynamic>true</dynamic>
+        <mass>1</mass>
+		   	</technique_common>
+        <extra>
+          <technique profile="PhysX">
+            <extra>
+              <technique profile="PhysX">
+                <linearDamping>0</linearDamping>
+                <angularDamping>0</angularDamping>
+                <solverIterationCount>32</solverIterationCount>
+              </technique>
+            </extra>
+            <disable_collision>false</disable_collision>
+          </technique>
+        </extra>
+  	  </rigid_body>
+    </physics_model>
+  </library_physics_models>
+  <library_physics_scenes>
+    <physics_scene id="Scene0-Physics">
+      <instance_physics_model url="#Scene0-PhysicsModel">
+        <instance_rigid_body target="#/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw-Node" body="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_yaw-RigidBody"/>
+      <extra>
+        <technique profile="PhysX">
+        </technique>
+      </extra>
+      </instance_physics_model>
+      <technique_common>
+        <gravity>0 -9.800000191 0</gravity>
+      </technique_common>
+    </physics_scene>
+  </library_physics_scenes>
+  <scene>
+    <instance_visual_scene url="#Scene0-Visual"/>
+    <instance_physics_scene url="#Scene0-Physics"/>
+  </scene>
+</COLLADA>
