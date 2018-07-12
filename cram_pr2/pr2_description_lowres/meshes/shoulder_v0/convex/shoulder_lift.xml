@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <NXUSTREAM2>
+    <NxuPhysicsCollection id="beshon" sdkVersion="244" nxuVersion="100">
+      <NxPhysicsSDKDesc id="SDK">
+        <hwPageSize>65536</hwPageSize>
+        <hwPageMax>256</hwPageMax>
+        <hwConvexMax>2048</hwConvexMax>
+      </NxPhysicsSDKDesc>
+  <NxConvexMeshDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_0">
+    <points>
+      0.120999999 0.000108 -0.072999999  0.100235 0.000108 -0.072999999  0.078633003 0.000108 -0.09967  0.078625999 0.075107999 -0.099661  
+      0.101081997 0.075107001 -0.077009998  0.117104001 0.075107999 -0.049150001  0.076390497 0.000108 -0.096858002  0.121179 0.018494001 -0.070858002  
+      0.120999999 0.074107997 -0.016971  0.118000001 0.071277998 -0.017183  0.076733999 0.075107999 -0.097289003  0.118000001 0.074814998 -0.017263001  
+    </points>
+    <triangles>
+      0 1 2  3 0 2  4 3 5  6 3 2  
+      6 2 1  7 4 5  7 0 3  7 3 4  
+      7 8 0  7 5 8  9 6 1  9 0 8  
+      9 1 0  10 3 6  10 6 9  10 5 3  
+      11 8 5  11 5 10  11 9 8  11 10 9  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_1">
+    <points>
+      0.100235 0.000108 -0.072999999  0.120999999 -0.071676999 -0.016971  0.120999999 0.000108 -0.072999999  0.076390497 0.000108 -0.096858002  
+      0.097955003 -0.074891999 -0.081524998  0.117104001 -0.074891999 -0.049150001  0.078580998 -0.074891999 -0.099604003  0.076047003 -0.074891999 -0.096427001  
+      0.078633003 0.000108 -0.09967  0.118000001 -0.074891999 -0.017971  0.121174999 -0.018278999 -0.070859998  0.120999999 -0.074891999 -0.029798999  
+    </points>
+    <triangles>
+      0 1 2  0 2 3  4 5 6  7 3 6  
+      7 6 5  8 2 6  8 6 3  8 3 2  
+      9 7 5  9 3 7  9 1 0  9 0 3  
+      10 5 4  10 6 2  10 4 6  10 2 1  
+      11 5 10  11 10 1  11 1 9  11 9 5  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_2">
+    <points>
+      0.120999999 0.000108 0.072999999  0.076431289 0.000108 0.097410664  0.118000001 0.071892999 0.016971  0.102499999 0.000108 0.115101002  
+      0.078519002 0.075107999 0.099811003  0.120075002 0.000108 0.102885999  0.120015003 0.020528 0.094154  0.090555251 0.000108 0.115121558  
+      0.108231999 0.010114 0.112462997  0.104730003 0.075107999 0.073345996  0.117104001 0.075107999 0.049150001  0.120999999 0.075107999 0.029798999  
+    </points>
+    <triangles>
+      0 1 2  1 0 3  4 2 1  5 3 0  
+      5 0 6  7 1 3  7 3 4  7 4 1  
+      8 6 4  8 5 6  8 4 3  8 3 5  
+      9 4 6  9 6 10  9 10 4  11 10 6  
+      11 2 4  11 4 10  11 0 2  11 6 0  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_3">
+    <points>
+      0.077907003 -0.074891001 0.099045001  0.076501124 0.000108 0.097389586  0.118000001 -0.073891997 0.016971  0.120999999 0.000108 0.072999999  
+      0.102499999 0.000108 0.115101002  0.120075002 0.000108 0.102885999  0.090555251 0.000108 0.115121558  0.095574997 -0.074891999 0.084284998  
+      0.118666001 -0.013005 0.102044001  0.117104001 -0.074891999 0.049150001  0.109889999 -0.005571 0.113724001  0.120999999 -0.074891999 0.029798999  
+    </points>
+    <triangles>
+      0 1 2  3 2 1  3 1 4  5 3 4  
+      6 0 4  6 4 1  6 1 0  7 8 0  
+      7 0 9  7 9 8  10 8 5  10 5 4  
+      10 4 0  10 0 8  11 3 5  11 8 9  
+      11 5 8  11 2 3  11 0 2  11 9 0  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_4">
+    <points>
+      -0.069113001 -0.074891999 -0.107055001  -0.008046 -0.074891001 -0.126062006  -0.089828245 -0.074891992 -0.085396864  -0.071393996 0.075104997 -0.105626002  
+      -0.05273826 0.000108 -0.115559049  -0.032365002 -0.074888997 -0.123227999  -0.008058637 0.075107999 -0.126288876  -0.044195 0.075107001 -0.119162001  
+      -0.089713998 -0.074891999 -0.090006001  -0.00787842 -0.074891232 -0.123079807  -0.089902855 0.075104006 -0.085471481  -0.091577001 0.075106002 -0.087366  
+    </points>
+    <triangles>
+      0 1 2  3 4 0  5 1 0  5 0 4  
+      5 6 1  7 6 5  7 5 4  7 4 3  
+      8 0 2  8 3 0  9 1 6  9 6 10  
+      9 10 2  9 2 1  11 3 8  11 2 10  
+      11 8 2  11 6 7  11 7 3  11 10 6  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_5">
+    <points>
+      -0.007909 0.075107999 -0.123630002  0.076046713 -0.074891485 -0.09642709  0.076733999 0.075107999 -0.097289003  0.038711 0.075108998 -0.121146001  
+      0.039917 -0.074891999 -0.120844997  0 -0.074891999 -0.127000004  -0.007878 -0.074891999 -0.12308  0.075530998 -0.074891999 -0.102449998  
+      0.013302 0.075107999 -0.126367003  0.075672001 0.075107999 -0.102293  -0.008085 -0.010328 -0.126754999  0.078580543 -0.074868552 -0.09960442  
+    </points>
+    <triangles>
+      0 1 2  3 0 2  4 1 5  6 5 1  
+      6 1 0  7 1 4  8 3 4  8 4 5  
+      8 0 3  9 4 3  9 7 4  9 3 2  
+      10 0 8  10 8 5  10 5 6  10 6 0  
+      11 7 9  11 9 2  11 2 1  11 1 7  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_6">
+    <points>
+      -0.114661001 0.075107999 0.054784  -0.124462001 0.075106002 0.02691  -0.117412999 -0.074886002 0.049222998  -0.091967218 -0.074890986 0.08736524  
+      -0.091715015 0.075105011 0.087113038  -0.127091005 0.075107999 0.000017  -0.124011002 0.075107999 0.000002  -0.126785994 -0.074891999 0.000002  
+      -0.08982636 -0.074706338 0.08522439  -0.124673001 -0.074891999 0.024524  -0.089802109 0.075106002 0.085200131  -0.124200001 -0.074888997 0.000002  
+    </points>
+    <triangles>
+      0 1 2  0 3 4  0 2 3  5 6 7  
+      8 4 3  9 1 5  9 5 7  9 2 1  
+      9 7 3  9 3 2  10 4 8  10 8 6  
+      10 6 5  10 5 1  10 1 0  10 0 4  
+      11 7 6  11 6 8  11 3 7  11 8 3  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_7">
+    <points>
+      -0.089902855 0.075104006 -0.085471481  -0.115042999 0.075107001 -0.054823998  -0.124011002 0.075107999 0.000002  -0.125153005 0.075107001 -0.022557  
+      -0.122672997 -0.073891997 -0.032869998  -0.096339002 0.075106002 -0.083058  -0.091950364 -0.074788816 -0.087518983  -0.110146999 -0.054892 -0.063219003  
+      -0.127091005 0.074942999 0.000002  -0.124200001 -0.074888997 0.000002  -0.089828245 -0.074891992 -0.085396864  -0.126785994 -0.074891999 0.000002  
+    </points>
+    <triangles>
+      0 1 2  3 2 1  3 1 4  5 1 0  
+      5 0 6  7 1 5  7 5 6  7 6 4  
+      7 4 1  8 9 2  8 2 3  10 6 0  
+      10 2 9  10 0 2  11 6 10  11 10 9  
+      11 3 4  11 8 3  11 9 8  11 4 6  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_8">
+    <points>
+      -0.034395002 -0.074891999 0.122450002  -0.040442001 0.075107001 0.120674998  -0.066505998 -0.074891001 0.109096996  -0.008790698 -0.074891008 0.126660749  
+      -0.008775444 0.075107992 0.126443565  -0.008526167 0.075107001 0.122894645  -0.08982636 -0.074706338 0.08522439  -0.089802109 0.075106002 0.085200131  
+      -0.090134002 -0.074891001 0.089538001  -0.085692003 0.075104997 0.093923002  -0.008559531 -0.074891999 0.123369634  -0.064323999 0.075107001 0.109621003  
+    </points>
+    <triangles>
+      0 1 2  0 3 4  0 4 1  5 6 7  
+      5 7 4  5 4 3  8 3 0  8 0 2  
+      8 9 7  8 7 6  8 2 9  10 3 8  
+      10 8 6  10 6 5  10 5 3  11 4 7  
+      11 7 9  11 9 2  11 2 1  11 1 4  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxConvexMeshDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_9">
+    <points>
+      0.076445252 0.075107999 0.09742818  0.076417372 -0.074645154 0.097393215  -0.008526167 0.075107001 0.122894645  0 0.075107999 0.127000004  
+      0.090555251 0.000108 0.115121558  0 -0.074891999 0.127000004  0.050074 0.075107999 0.117211998  0.038507 -0.074891001 0.121344998  
+      -0.008559531 -0.074891999 0.123369634  0.065581001 -0.074891001 0.109342001  -0.008546 0.066111997 0.126618996  0.077214003 0.075107999 0.101127997  
+    </points>
+    <triangles>
+      0 1 2  0 2 3  4 1 0  4 3 5  
+      6 0 3  6 3 4  7 4 5  8 7 5  
+      8 2 1  9 7 8  9 8 1  9 1 4  
+      9 4 7  10 3 2  10 2 8  10 5 3  
+      10 8 5  11 4 0  11 0 6  11 6 4  
+    </triangles>
+  </NxConvexMeshDesc>
+  <NxSceneDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift">
+        <filterBool>false</filterBool>
+        <filterOp0>NX_FILTEROP_AND</filterOp0>
+        <filterOp1>NX_FILTEROP_AND</filterOp1>
+        <filterOp2>NX_FILTEROP_AND</filterOp2>
+        <NxGroupsMask id="groupMask0" bits0="0" bits1="0" bits2="0" bits3="0"/>
+        <NxGroupsMask id="groupMask1" bits0="0" bits1="0" bits2="0" bits3="0"/>
+        <gravity>0 -9.800000191 0</gravity>
+        <maxTimestep>0.016666668</maxTimestep>
+        <maxIter>8</maxIter>
+        <timeStepMethod>NX_TIMESTEP_FIXED</timeStepMethod>
+        <maxBounds>FLT_MIN FLT_MIN FLT_MIN  FLT_MAX FLT_MAX FLT_MAX</maxBounds>
+        <NxSceneLimits id="limits">
+          <maxNbActors>0</maxNbActors>
+          <maxNbBodies>0</maxNbBodies>
+          <maxNbStaticShapes>0</maxNbStaticShapes>
+          <maxNbDynamicShapes>0</maxNbDynamicShapes>
+          <maxNbJoints>0</maxNbJoints>
+        </NxSceneLimits>
+        <simType>NX_SIMULATION_SW</simType>
+        <groundPlane>true</groundPlane>
+        <boundsPlanes>false</boundsPlanes>
+        <NxSceneFlags id="flags">
+          <NX_SF_DISABLE_SSE>false</NX_SF_DISABLE_SSE>
+          <NX_SF_DISABLE_COLLISIONS>false</NX_SF_DISABLE_COLLISIONS>
+          <NX_SF_SIMULATE_SEPARATE_THREAD>true</NX_SF_SIMULATE_SEPARATE_THREAD>
+          <NX_SF_ENABLE_MULTITHREAD>false</NX_SF_ENABLE_MULTITHREAD>
+        </NxSceneFlags>
+        <internalThreadCount>0</internalThreadCount>
+        <backgroundThreadCount>0</backgroundThreadCount>
+        <threadMask>1431655764</threadMask>
+        <backgroundThreadMask>1431655764</backgroundThreadMask>
+        <NxMaterialDesc id="Material_0" userProperties="" hasSpring="false" materialIndex="0">
+          <dynamicFriction>0.5</dynamicFriction>
+          <staticFriction>0.5</staticFriction>
+          <restitution>0</restitution>
+          <dynamicFrictionV>0</dynamicFrictionV>
+          <staticFrictionV>0</staticFrictionV>
+          <frictionCombineMode>NX_CM_AVERAGE</frictionCombineMode>
+          <restitutionCombineMode>NX_CM_AVERAGE</restitutionCombineMode>
+          <dirOfAnisotropy>1 0 0</dirOfAnisotropy>
+          <NxMaterialFlag id="flags">
+            <NX_MF_ANISOTROPIC>false</NX_MF_ANISOTROPIC>
+            <NX_MF_DISABLE_FRICTION>false</NX_MF_DISABLE_FRICTION>
+            <NX_MF_DISABLE_STRONG_FRICTION>false</NX_MF_DISABLE_STRONG_FRICTION>
+          </NxMaterialFlag>
+        </NxMaterialDesc>
+    <NxActorDesc id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift" userProperties="" hasBody="true" name="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift">
+      <globalPose>1 0 0    0 1 0    0 0 1    0 0 0 </globalPose>
+			<NxBodyDesc>
+        <mass>1</mass>
+        <linearDamping>0</linearDamping>
+        <angularDamping>0</angularDamping>
+        <solverIterationCount>32</solverIterationCount>
+        <NxBodyFlag id="flags">
+          <NX_BF_POSE_SLEEP_TEST>true</NX_BF_POSE_SLEEP_TEST>
+          <NX_AF_DISABLE_COLLISION>false</NX_AF_DISABLE_COLLISION>
+        </NxBodyFlag>
+      </NxBodyDesc>
+      <name>Bip01 Pelvis</name>
+      <NxConvexShapeDesc id="Shape_0" meshData="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_0">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_1" meshData="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_1">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_2" meshData="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_2">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_3" meshData="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_3">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_4" meshData="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_4">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_5" meshData="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_5">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_6" meshData="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_6">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_7" meshData="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_7">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_8" meshData="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_8">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+      <NxConvexShapeDesc id="Shape_9" meshData="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift_9">
+      <NxShapeDesc>
+        <localPose>1 0 0    0 1 0    0 0 1    0 0 0 </localPose>
+        <skinWidth>0</skinWidth>
+      </NxShapeDesc>
+      </NxConvexShapeDesc>
+    </NxActorDesc>
+  </NxSceneDesc>
+	 <NxSceneInstance id="/home/hasu/ros_workspace/cram_ws/src/cram/cram_pr2/pr2_description_lowres/meshes/shoulder_v0/convex/shoulder_lift">
+	 	 <sceneName>beshon</sceneName>
+	 	 <NxuUserProperties></NxuUserProperties>
+	 	 <rootNode>1	0	0	0	1	0	0	0	1	0	0 0</rootNode>
+	 	 <newScene>false</newScene>
+	 	 <ignorePlane>true</ignorePlane>
+	 	 <numSceneInstances>0</numSceneInstances>
+	 </NxSceneInstance>
+  </NxuPhysicsCollection>
+</NXUSTREAM2>
