@@ -1,9 +1,10 @@
-(in-package :le)
+(in-package :kvr)
 
 ;; --- DESIG FACT GROUP --------------------------------------------------------------------
 ;; the fact groups were taken from Gayane Kazhoyan's "mobile-pick-and-place-plans" and were adapted to the needs of this thesis. (link to original: https://github.com/cram2/cram/blob/master/cram_common/cram_mobile_pick_place_plans/src/pick-place-designators.lisp)
 
-(cram-prolog:def-fact-group ba-pnp-object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
+(cram-prolog:def-fact-group ba-pnp-object-knowledge
+    (object-rotationally-symmetric orientation-matters object-type-grasp)
 
   (cram-prolog:<- (orientation-matters ?object-type)
     (member ?object-type (:fork-blue-plastic)))
@@ -14,10 +15,12 @@
   (cram-prolog:<- (object-type-grasp :edeka-red-bowl :human-grasp)))
 
 (cram-prolog:def-fact-group pick-and-place-plans (desig:action-grounding)
-  (cram-prolog:<- (desig:action-grounding ?action-designator (pick-up ?current-object-desig ?arm
-                                                          ?gripper-opening ?effort ?grasp
-                                                          ?left-reach-poses ?right-reach-poses
-                                                          ?left-lift-poses ?right-lift-poses))
+  (cram-prolog:<- (desig:action-grounding
+                   ?action-designator
+                   (pick-up ?current-object-desig ?arm
+                            ?gripper-opening ?effort ?grasp
+                            ?left-reach-poses ?right-reach-poses
+                            ?left-lift-poses ?right-lift-poses))
     ;; extract info from ?action-designator
     (spec:property ?action-designator (:type :picking-up))
     (spec:property ?action-designator (:object ?object-designator))

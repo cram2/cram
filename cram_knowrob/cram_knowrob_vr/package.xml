@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>lisp_ease</name>
+  <name>cram_knowrob_vr</name>
   <version>0.0.0</version>
-  <description>The lisp_ease package</description>
+  <description>The cram_knowrob_vr package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

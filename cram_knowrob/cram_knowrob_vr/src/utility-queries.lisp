@@ -1,4 +1,118 @@
-(in-package :le)
+(in-package :kvr)
+;; TODO maybe remove this? They are not really necessary anymore?
+;; --- queries important for initialization ---
+(defun register-ros-package (package-name)
+  (prolog-simple-1
+   (concatenate 'string  "register_ros_package(" package-name ")") :mode 1))
+
+(defun u-load-episodes (episodes-path)
+  (prolog-simple-1
+   (concatenate 'string "u_load_episodes('" episodes-path "')") :mode 1))
+
+(defun owl-parse (semantic-map-path)
+  (prolog-simple-1
+   (concatenate 'string "owl_parse('" semantic-map-path "')") :mode 1))
+
+(defun connect-to-db (db-name)
+  (prolog-simple-1
+   (concatenate 'string "connect_to_db('" db-name "')") :mode 1))
+
+(defun sem-map-inst (map-inst &optional (stop "."))
+  (prolog-simple-1
+   (concatenate 'string "sem_map_inst(" map-inst ")" stop) :mode 1))
+
+(defun marker-update (obj &optional)
+  (prolog-simple-1
+   (concatenate 'string "marker_update(" obj ")"):mode 1))
+
+(defun object (instance)
+  (prolog-simple-1
+   (concatenate 'string "object(" instance ")") :mode 1))
+
+(defun prolog-cut ()
+  (prolog-simple-1
+   (concatenate 'string "!") :mode 1))
+
+;; this one is used for sure
+(defun map-marker-init ()
+  (prolog-simple "sem_map_inst(MapInst),!,marker_update(object(MapInst))." ))
+
+
+;;--- other queries ---
+
+(defun u-occurs (ep-inst event-inst start end)
+  (prolog-simple-1
+   (concatenate 'string "u_occurs(" ep-inst ", " event-inst ", " start "," end ")") :mode 1))
+
+(defun event-type (event-inst event-type)
+  (prolog-simple-1
+   (concatenate 'string "event_type(" event-inst ", " event-type ")") :mode 1))
+
+(defun rdf-has (event-inst obj-acted-on obj-acted-on-inst)
+  (prolog-simple-1
+   (concatenate 'string "rdf_has(" event-inst ", " obj-acted-on ", " obj-acted-on-inst ")") :mode 1))
+
+(defun u-marker-remove-all ()
+  (prolog-simple-1 "u_marker_remove_all"))
+
+(defun performed-by (event-inst hand-inst)
+  (prolog-simple-1
+   (concatenate 'string "performed_by(" event-inst ", " hand-inst ")" ) :mode 1))
+
+(defun iri-xml-namespace (obj obj-short)
+  (prolog-simple-1
+   (concatenate 'string "iri_xml_namespace(" obj ", _, " obj-short ")") :mode 1))
+
+(defun obj-type (obj-inst obj-type)
+  (prolog-simple-1
+   (concatenate 'string "obj_type(" obj-inst ", " obj-type ")") :mode 1))
+
+(defun atom-concat (a1 a2 a3)
+  (prolog-simple-1
+   (concatenate 'string "atom_concat(" a1 ", " a2 ", " a3 ")") :mode 1))
+
+(defun view-bone-meshes (ep-inst obj-inst-short-name start model-path)
+  (prolog-simple-1
+   (concatenate 'string "view_bones_meshes(" ep-inst ", " obj-inst-short-name ", " start ", " model-path ")" ) :mode 1))
+
+(defun actor-pose (ep-inst obj-short-name start pose)
+  (prolog-simple-1
+   (concatenate 'string "actor_pose(" ep-inst ", " obj-short-name ", " start ", " pose ")") :mode 1))
+
+(defun u-split-pose (pose pos quat)
+  (prolog-simple-1
+   (concatenate 'string "u_split_pose(" pose ", " pos ", " quat ")") :mode 1))
+
+(defun marker-pose (obj pose)
+  (prolog-simple-1
+   (concatenate 'string "marker_pose(" obj ", " pose ")") :mode 1))
+
+(defun pose (pos quat)
+  (prolog-simple-1
+   (concatenate 'string "pose(" pos ", " quat ")") :mode 1))
+
+(defun view-actor-traj (ep-inst obj-short-name start end point color size length)
+  (prolog-simple-1
+   (concatenate 'string "view_actor_traj(" ep-inst ", " obj-short-name ", " start ", " end ", " point ", " color  ", " size ", " length ")") :mode 1))
+
+(defun object-pose-at-time (obj-inst start pose)
+  (prolog-simple-1
+   (concatenate 'string "oject_pose_at_time(" obj-inst ", " start ", " pose ")") :mode 1))
+
+(defun findall (event-inst obj event-list)
+  (prolog-simple-1
+   (concatenate 'string "findall(" event-inst ", " obj ", " event-list ")") :mode 1))
+
+(defun ep-inst (episode-inst)
+  (string
+   (cdaar
+    (prolog-simple-1
+     (concatenate 'string "ep_inst(" episode-inst ")") :mode 1))))
+
+;; NOTE old queries which extract the data from clean table and set table data
+;; prerecorded data I started out with from Andrei
+;; These might actually neeed to be removed
+
 
 ;;ct: clean table, st: set table
 (defun ct-grasp-something-poses ()
@@ -99,116 +213,8 @@
    u_split_pose(PoseC, PosC, QuatC),
    marker_pose(object(CameraInst), pose(PosC,QuatC))."))
 
-
-;;useful queries. need to be generalized
-
-(defun get-episode-instance ()
-  (prolog-simple "ep_inst(Ep_Inst)"))
-
-;nop
-(defun get-pose-of-actor ()
-  (prolog-simple "actor_pose(EpInst, ObjShortName, Start, Pose)."))
-
-(defun get-grasping-events ()
-  (prolog-simple "event_type(EventInst, knowrob:'GraspSomething')."))
-
-(defun get-obj-instance ()
-  (prolog-simple "obj_type(CameraInst, knowrob:'CharacterCamera')."))
-
-
-(defun get-hand-from-event ()
-  (prolog-simple "performed_by(EventInst, HandType)."))
-
-(defun get-object-acted-on ()
-  (prolog-simple "rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst)."))
-
-;; this might be unreal dependant!
-(defun get-events-occured-in-episodes ()
-  (prolog-simple "u_occurs(EpInst, EventInst, Start, End)."))
-
-(defun split-pose ()
-  (prolog-simple "u_split_pose(Pose, Pos, Quat)."))
-
-(defun get-all-events-in-episode-old ()
-  (prolog-simple "ep_inst(EpInst), findall(EventInst, u_occurs(EpInst, EventInst, Start, End), EventList)."))
-;;---------------------------------------------
-
-
-
-(defun event-type-old (EventInst EventClassName)
-  (prolog-simple (concatenate 'string "event_type("
-            EventInst ", " "knowrob:'" EventClassName "')")))
-
-;; ObjectActedOnName and EventInst swapped places. maybe important?
-(defun rdf-has-old (EventInst ObjActedOnName ObjActedOnInst)
- (prolog-simple (concatenate 'string "rdf_has(" EventInst ", " ObjActedOnName ", " ObjActedOnInst ")")))
-
-
-(defun iri-xml-namespace-old (A B)
-  (prolog-simple (concatenate 'string "u_occurs(EpInst, EventInst, Start, End), rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst)," "iri_xml_namespace("
-            A ", _, " B ")")))
-
-(defun get-object-type-old (ObjInst ObjType)
-  (prolog-simple (concatenate 'string "obj_type(" ObjInst ", " ObjType ")" )))
-
-
-(defun test ()
-  (prolog-simple "ep_inst(EpInst),
-    u_occurs(EpInst, EventInst, Start, End),
-    event_type(EventInst, knowrob:'GraspingSomething'),
-    rdf_has(EventInst, knowrob:'objectActedOn',ObjActedOnInst),
-    performed_by(EventInst, HandInst),
-    iri_xml_namespace(HandInst,_, HandInstShortName),
-    obj_type(HandInst, HandType),
-    iri_xml_namespace(HandType, _, HandTypeName),
-    iri_xml_namespace(ObjActedOnInst, _, ObjShortName),
-    object_pose_at_time(ObjActedOnInst, Start, PoseAtStart),
-    actor_pose(EpInst, HandInstShortName, Start, PoseHandStart),
-    actor_pose(EpInst, HandInstShortName, End, PoseHandEnd).")
- )
-
-(defun test2 ()
-  (prolog-simple "ep_inst(EpInst),
-    u_occurs(EpInst, EventInst, Start, End),
-    event_type(EventInst, knowrob:'GraspingSomething'),
-    rdf_has(EventInst, knowrob:'objectActedOn',ObjActedOnInst),
-    performed_by(EventInst, EffectorInst),
-    iri_xml_namespace(ObjActedOnInst, _, ObjShortName),
-    actor_pose(EpInst, ObjShortName, End, Pose)."))
-
-(defstruct object name type pose)
-
-
-(defun get-event-old ()
-  (ep-inst "EpInst")
-  (u-occurs "EpInst" "EventInst" "Start" "End"))
-
-;; but why doesn't it work the other way? T_T
-(defun get-event-by-type-old (type)
-  (cut:lazy-append
-   (prolog-simple (concatenate 'string "ep_inst(EpInst),
-    u_occurs(EpInst, EventInst, Start, End),
-    event_type(EventInst, knowrob:'" type "')."))
-    (prolog-simple (concatenate 'string "ep_inst(EpInst),
-    u_occurs(EpInst, EventInst, Start, End),
-    event_type(EventInst, knowrob_u:'" type "')."))))
-
-
-(defun get-all-events-old (&optional (type NIL))
-  (if type
-      (cut:force-ll (get-event-by-type type)) 
-      (cut:force-ll (get-event))))
-
-(defun get-actor-effector-pose(EpInst EventInst EventClassName ObjActedOnInst ObjActedOnName ObjShortName EffectorInst EffectorType Start End Pose)
-  (ep-inst EpInst)
-  ;(u-occurs EpInst EventInst Start End)
-  (event-type EventInst EventClassName)
-  (rdf-has EventInst ObjActedOnName ObjActedOnInst)
-  (performed-by EventInst EffectorInst)
-  (get-object-type EffectorInst EffectorType)
-  (iri-xml-namespace ObjActedOnInst ObjShortName)
-  (prolog-simple (concatenate 'string "actor_pose(" EpInst ", " ObjShortName ", " Start ", " Pose ").")))
-
+;; NOTE These are and were experimental functions, which could have been used,
+;; but weren't. Maybe worth looking into them deeper?
 
 (defun get-plan-subevents (plan)
   (cut:force-ll (prolog-simple (concatenate 'string "plan_subevents(knowrob:'" plan "', Sub)."))))
@@ -221,10 +227,5 @@
   (cut:force-ll (prolog-simple (concatenate 'string "required_cap_for_action(knowrob:'" action-name "', Cap)."))))
 
 
-
-
-
-
-
-
-
+;; TODO ???
+(defstruct object name type pose)
