@@ -163,7 +163,7 @@
                    (cpl:retry))
                  (return)))
             (let ((?pose (strip-transform-stamped (first ?trajectory))))
-              (cram-pr2-low-level:visualize-marker ?pose)
+              (cram-tf:visualize-marker ?pose)
               (exe:perform
                (desig:a motion
                         (type moving-tcp)

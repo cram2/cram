@@ -29,18 +29,22 @@
 
 (in-package :demo)
 
+(defun pose-list->desig (pose-list)
+  (let ((?pose (cl-transforms-stamped:pose->pose-stamped
+                "map" 0.0
+                (btr:ensure-pose pose-list))))
+    (desig:a location (pose ?pose))))
+
 (defparameter *object-cad-models*
   '(;; (:cup . "cup_eco_orange")
     ;; (:bowl . "edeka_red_bowl")
     ))
 
-;; (defmacro with-real-robot (&body body)
-;;   `(cram-process-modules:with-process-modules-running
-;;        (rs:robosherlock-perception-pm
-;;         pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
-;;         pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
-;;      (cpl-impl::named-top-level (:name :top-level)
-;;        ,@body)))
+(defparameter *object-colors*
+  '((:spoon . "blue")))
+
+(defmethod exe:generic-perform :before (designator)
+  (format t "~%PERFORMING~%~A~%~%" designator))
 
 (cpl:def-cram-function initialize-or-finalize ()
   (cpl:with-failure-handling
@@ -63,59 +67,173 @@
       (exe:perform (desig:an action (type looking) (direction forward))))))
 
 
+
 (cpl:def-cram-function demo-random (&optional
                                     (random t)
-                                    (list-of-objects '(:milk :cup :breakfast-cereal :bowl :spoon)))
+                                    (list-of-objects '(:bowl :spoon :cup :milk :breakfast-cereal)))
+
+  (when ccl::*is-logging-enabled*
+      (setf ccl::*is-client-connected* nil)
+      (ccl::connect-to-cloud-logger)
+      (ccl::reset-logged-owl))
+
   (btr:detach-all-objects (btr:get-robot-object))
   (btr-utils:kill-all-objects)
+  (setf (btr:joint-state (btr:object btr:*current-bullet-world* :kitchen)
+                         "sink_area_left_upper_drawer_main_joint")
+        0.0)
+  (btr-belief::publish-environment-joint-state
+   (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
 
-  ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+  (unless proj:*projection-environment*
+    (json-prolog:prolog-simple "rdf_retractall(A,B,C,belief_state).")
+    (btr-belief::call-giskard-environment-service :kill-all "attached")
+    (cram-bullet-reasoning-belief-state::call-giskard-environment-service
+     :add-kitchen
+     "kitchen"
+     (cl-transforms-stamped:make-pose-stamped
+      "map"
+      0.0
+      (cl-transforms:make-identity-vector)
+      (cl-transforms:make-identity-rotation))))
+
+  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
+
   (when (eql cram-projection:*projection-environment*
              'cram-pr2-projection::pr2-bullet-projection-environment)
     (if random
         (spawn-objects-on-sink-counter-randomly)
         (spawn-objects-on-sink-counter)))
 
-  (setf cram-robot-pose-guassian-costmap::*orientation-samples* 1)
+  ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
 
   (initialize-or-finalize)
 
-  (dolist (?object-type list-of-objects)
-    (let* ((?cad-model
-             (cdr (assoc ?object-type *object-cad-models*)))
-           (?object-to-fetch
-             (desig:an object
-                       (type ?object-type)
-                       (desig:when ?cad-model
-                         (cad-model ?cad-model))))
-           (?fetching-location
-             (desig:a location
-                      (on "CounterTop")
-                      (name "iai_kitchen_sink_area_counter_top")
-                      (side left)))
-           (?placing-target-pose
-             (cl-transforms-stamped:pose->pose-stamped
-              "map" 0.0
-              (cram-bullet-reasoning:ensure-pose
-               (cdr (assoc ?object-type *object-placing-poses*)))))
-           (?arm-to-use
-             (cdr (assoc ?object-type *object-grasping-arms*)))
-           (?delivering-location
-             (desig:a location
-                      (pose ?placing-target-pose))))
+  (let ((object-fetching-locations
+          `((:breakfast-cereal . ,(desig:a location
+                                           (on (desig:an object
+                                                         (type counter-top)
+                                                         (urdf-name sink-area-surface)
+                                                         (owl-name "kitchen_sink_block_counter_top")
+                                                         (part-of kitchen)))
+                                           (side left)
+                                           (side front)
+                                           (range 0.5)))
+            (:cup . ,(desig:a location
+                              (side left)
+                              (on (desig:an object
+                                            (type counter-top)
+                                            (urdf-name sink-area-surface)
+                                            (owl-name "kitchen_sink_block_counter_top")
+                                            (part-of kitchen)))))
+            (:bowl . ,(desig:a location
+                               (on (desig:an object
+                                             (type counter-top)
+                                             (urdf-name sink-area-surface)
+                                             (owl-name "kitchen_sink_block_counter_top")
+                                             (part-of kitchen)))
+                               (side left)
+                               (side front)
+                               (range-invert 0.5)))
+            (:spoon . ,(desig:a location
+                                (in (desig:an object
+                                              (type drawer)
+                                              (urdf-name sink-area-left-upper-drawer-main)
+                                              (owl-name "drawer_sinkblock_upper_open")
+                                              (part-of kitchen)))
+                                (side front)))
+            (:milk . ,(desig:a location
+                               (side left)
+                               (on;; in
+                                (desig:an object
+                                             (type counter-top)
+                                             (urdf-name iai-fridge-main)
+                                             (owl-name "drawer_fridge_upper_interior")
+                                             (part-of kitchen)))))))
+        (object-placing-locations
+          `((:breakfast-cereal . ,(desig:a location
+                                           (left-of (an object (type bowl)))
+                                           (far-from (an object (type bowl)))
+                                           (for (an object (type breakfast-cereal)))
+                                           (on (desig:an object
+                                                         (type counter-top)
+                                                         (urdf-name kitchen-island-surface)
+                                                         (owl-name "kitchen_island_counter_top")
+                                                         (part-of kitchen)))
+                                           (side back)))
+            (:cup . ,(desig:a location
+                              (right-of (an object (type bowl)))
+                              ;; (behind (an object (type bowl)))
+                              (near (an object (type bowl)))
+                              (for (an object (type cup)))))
+            (:bowl . ,(desig:a location
+                               (on (desig:an object
+                                             (type counter-top)
+                                             (urdf-name kitchen-island-surface)
+                                             (owl-name "kitchen_island_counter_top")
+                                             (part-of kitchen)))
+                               (context table-setting)
+                               (for (an object (type bowl)))
+                               (object-count 3)
+                               (side back)
+                               (side right)
+                               (range-invert 0.5)))
+            (:spoon . ,(desig:a location
+                                (right-of (an object (type bowl)))
+                                (near (an object (type bowl)))
+                                (for (an object (type spoon)))))
+            (:milk . ,(desig:a location
+                               (left-of (an object (type bowl)))
+                               (far-from (an object (type bowl)))
+                               (for (an object (type milk))))))))
 
-      (cpl:with-failure-handling
-          ((common-fail:high-level-failure (e)
-             (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
-             (return)))
-        (exe:perform
-         (desig:an action
-                   (type transporting)
-                   (object ?object-to-fetch)
-                   ;; (arm ?arm-to-use)
-                   (location ?fetching-location)
-                   (target ?delivering-location))))))
+    ;; (an object
+    ;;     (obj-part "drawer_sinkblock_upper_handle"))
+
+    (dolist (?object-type list-of-objects)
+      (let* ((?fetching-location
+               (cdr (assoc ?object-type object-fetching-locations)))
+             (?delivering-location
+               (cdr (assoc ?object-type object-placing-locations)))
+             (?arm-to-use
+               (cdr (assoc ?object-type *object-grasping-arms*)))
+             (?cad-model
+               (cdr (assoc ?object-type *object-cad-models*)))
+             (?color
+               (cdr (assoc ?object-type *object-colors*)))
+             (?object-to-fetch
+               (desig:an object
+                         (type ?object-type)
+                         (location ?fetching-location)
+                         (desig:when ?cad-model
+                           (cad-model ?cad-model))
+                         (desig:when ?color
+                           (color ?color)))))
+
+        (cpl:with-failure-handling
+            ((common-fail:high-level-failure (e)
+               (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
+               (return)))
+          (if (eq ?object-type :bowl)
+              (exe:perform
+               (desig:an action
+                         (type transporting)
+                         (object ?object-to-fetch)
+                         (arm right)
+                         (location ?fetching-location)
+                         (target ?delivering-location)))
+              (exe:perform
+               (desig:an action
+                         (type transporting)
+                         (object ?object-to-fetch)
+                         ;; (arm ?arm-to-use)
+                         (location ?fetching-location)
+                         (target ?delivering-location))))))))
 
   (initialize-or-finalize)
+
+  (when ccl::*is-logging-enabled*
+    (ccl::export-log-to-owl "ease_milestone_2018.owl")
+    (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
 
   cpl:*current-path*)

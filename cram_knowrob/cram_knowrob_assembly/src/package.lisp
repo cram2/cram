@@ -31,5 +31,5 @@
 
 (defpackage cram-knowrob-assembly
   (:nicknames #:kr-assembly)
-  (:use #:common-lisp #:cram-object-interfaces)
+  (:use #:common-lisp #:cram-object-interfaces #:cram-prolog)
   (:export ))

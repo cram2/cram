@@ -115,9 +115,11 @@
                                     goal-position
                                     convergence-delta)
   (when (eql status :timeout)
-    (cpl:fail 'common-fail:actionlib-action-timed-out :description "Gripping action timed out"))
+    (roslisp:ros-warn (pr2-ll gripper) "Gripper action timed out."))
   (let* ((current-position
            (pr2_controllers_msgs-msg:position result))
+         ;; TODO: use current-position from joint state message, not result
+         ;; (current-position (car (joint-positions (list cram-tf:*left-gripper-joint*))))
          (converged-p
            (values-converged current-position goal-position convergence-delta)))
     (if (eql original-goal-position :grip) ; gripper should not completely close
@@ -125,7 +127,7 @@
           (cpl:fail 'common-fail:gripper-closed-completely
                     :description "Tried to grasp but ended up closing the gripper."))
         (unless converged-p
-          (cpl:fail 'common-fail:gripping-failed
+          (cpl:fail 'common-fail:gripper-goal-not-reached
                     :description (format nil "Gripper action did not converge to the goal:
 goal: ~a, current: ~a, delta: ~a." goal-position current-position convergence-delta))))))
 

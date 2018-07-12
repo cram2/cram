@@ -31,6 +31,7 @@
 (in-package :btr)
 
 (defvar *rendering-context* nil)
+(defvar *visibility-threshold* 0.9)
 
 (defstruct object-visibility
   percentage
@@ -177,13 +178,13 @@
                                                       T))))
                                        object-proxies))))))))))))
 
-(defun object-visible-p (world camera-pose object &optional(threshold 0.9))
+(defun object-visible-p (world camera-pose object &optional(threshold *visibility-threshold*))
   "Returns T if at least `threshold' of the object is visible"
   (let ((visibility (calculate-object-visibility world camera-pose object)))
     (>= (object-visibility-percentage visibility)
         threshold)))
 
-(defun occluding-objects (world camera-pose object &optional (threshold 0.9))
+(defun occluding-objects (world camera-pose object &optional (threshold *visibility-threshold*))
   "Returns the list of occluding objects if less than `threshold' of `object' is visible"
   (let ((visibility (calculate-object-visibility world camera-pose object)))
     (when (< (object-visibility-percentage visibility) threshold)

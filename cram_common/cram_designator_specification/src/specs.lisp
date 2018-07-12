@@ -109,7 +109,7 @@
 
   (<- (property ?designator (?keyword-or-list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?keyword-or-list-key (:gripper :arm :direction :grasp))
+    (member ?keyword-or-list-key (:gripper :arm :direction :grasp :camera :type))
     (property-member (?keyword-or-list-key ?value) ?designator)
     (assert-type ?value (or keyword list) "ACTION SPEC:PROPERTY"))
 
@@ -136,7 +136,18 @@
   (<- (property ?designator (:pose ?pose-stamped))
     (lisp-pred typep ?designator desig:location-designator)
     (property-member (:pose ?pose-stamped) ?designator)
-    (assert-type ?pose-stamped cl-transforms-stamped:pose-stamped "LOCATION SPEC:PROPERTY")))
+    (assert-type ?pose-stamped cl-transforms-stamped:pose-stamped "LOCATION SPEC:PROPERTY"))
+
+  (<- (property ?designator (:object ?value))
+    (lisp-pred typep ?designator desig:location-designator)
+    (property-member (:object ?value) ?designator)
+    (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
+
+  (<- (property ?designator (?keyword-key ?value))
+    (lisp-pred typep ?designator desig:location-designator)
+    (member ?keyword-key (:arm))
+    (property-member (?keyword-key ?value) ?designator)
+    (assert-type ?value keyword "LOCATION SPEC:PROPERTY")))
 
 
 (def-fact-group object-designator-specs (property)
@@ -146,7 +157,13 @@
     (property-member (:type ?type) ?designator)
     (assert-type ?type keyword "OBJECT SPEC:PROPERTY"))
 
-  (<- (property ?designator (:name ?name))
+  (<- (property ?designator (?keyword-key ?name))
     (lisp-pred typep ?designator desig:object-designator)
-    (property-member (:name ?name) ?designator)
-    (assert-type ?name (or symbol string) "OBJECT SPEC:PROPERTY")))
+    (member ?keyword-key (:name :urdf-name))
+    (property-member (?keyword-key ?name) ?designator)
+    (assert-type ?name symbol "OBJECT SPEC:PROPERTY"))
+
+  (<- (property ?designator (:part-of ?environment))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:part-of ?environment) ?designator)
+    (assert-type ?environment keyword "OBJECT SPEC:PROPERTY")))

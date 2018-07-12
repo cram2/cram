@@ -43,4 +43,5 @@
     :components
     ((:file "package")
      (:file "object-designator-interfaces" :depends-on ("package"))
-     (:file "manipulation" :depends-on ("package"))))))
+     (:file "manipulation" :depends-on ("package"))
+     (:file "standard-grasps" :depends-on ("package"))))))

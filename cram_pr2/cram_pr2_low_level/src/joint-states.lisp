@@ -32,13 +32,22 @@
 (defvar *joint-state-sub* nil
   "Subscriber for robot's joint state topic.")
 
+(defvar *joint-state-sub-counter* 0
+  "Counter to decrease the frequency of the subscriber callback")
+
+(defparameter *joint-state-sub-frequency-cut* 100 "in times")
+
 (defvar *robot-joint-states-msg* (cpl:make-fluent :name :robot-joint-states)
   "ROS message containing robot's current joint states.")
 
 (defun init-joint-state-sub ()
   "Initializes *joint-state-sub*"
   (flet ((joint-state-sub-cb (joint-state-msg)
-           (setf (cpl:value *robot-joint-states-msg*) joint-state-msg)))
+           (incf *joint-state-sub-counter*)
+           (if (> *joint-state-sub-counter* *joint-state-sub-frequency-cut*)
+               (progn
+                 (setf *joint-state-sub-counter* 0)
+                 (setf (cpl:value *robot-joint-states-msg*) joint-state-msg)))))
     (setf *joint-state-sub*
           (roslisp:subscribe "joint_states"
                              "sensor_msgs/JointState"
@@ -88,9 +97,9 @@ as multiple values."
       (roslisp:msg-slot-value last-joint-state-msg :header)
       :stamp))))
 
-(defun joint-positions (names)
+(defun joint-positions (names &optional state-fluent)
   "Returns the joint positions as a list + timestamp"
-  (let ((last-joint-state-msg (cpl:value *robot-joint-states-msg*)))
+  (let ((last-joint-state-msg (cpl:value (or state-fluent *robot-joint-states-msg*))))
     (when last-joint-state-msg
       (values
        (mapcar (lambda (name)
@@ -106,18 +115,22 @@ as multiple values."
         (roslisp:msg-slot-value last-joint-state-msg :header)
         :stamp)))))
 
-(defun get-arm-joint-states (arm)
-  (joint-positions (mapcar (alexandria:curry
-                            #'concatenate 'string (ecase arm
-                                                    (:left "l")
-                                                    (:right "r")))
-                           (list "_shoulder_pan_joint"
-                                 "_shoulder_lift_joint"
-                                 "_upper_arm_roll_joint"
-                                 "_elbow_flex_joint"
-                                 "_forearm_roll_joint"
-                                 "_wrist_flex_joint"
-                                 "_wrist_roll_joint"))))
+(defun joint-velocities (names &optional state-fluent)
+  "Returns the joint velocities as a list + timestamp"
+  (let ((last-joint-state-msg (cpl:value (or state-fluent *robot-joint-states-msg*))))
+    (values
+     (mapcar (lambda (name)
+               (let ((index (position
+                             name
+                             (roslisp:msg-slot-value last-joint-state-msg :name)
+                             :test #'string-equal)))
+                 (when index
+                   (aref (roslisp:msg-slot-value last-joint-state-msg :velocity)
+                         index))))
+             names)
+     (roslisp:msg-slot-value
+      (roslisp:msg-slot-value last-joint-state-msg :header)
+      :stamp))))
 
 (defun normalize-joint-angles (list-of-angles)
   (mapcar #'cl-transforms:normalize-angle list-of-angles))
