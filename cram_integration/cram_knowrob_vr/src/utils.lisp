@@ -1,4 +1,4 @@
-(in-package :le)
+(in-package :kvr)
 ;; usefull bullet world infos
 
 ;; get-info of an object
@@ -46,8 +46,7 @@
   (cl-tf:transform->transform-stamped "map" "hand" 0.0 (make-poses "?PoseHandStart"))
 
   ;; unreal hand T standard gripper
-  (human-to-robot-hand-transform)
-  )
+  (human-to-robot-hand-transform))
 
 ;; look up transfrom from tf. ex: "l_wrist_roll_link" "l_gripper_l_finger_tip_link" 
 (defun lookup-tf-transform (parent_frame child_frame)
@@ -57,7 +56,8 @@
 
 
 (defun alternative-demo (object)
-  "Moves the object and robot to their respective locations at the beginning of the episode. . "
+  "Moves the object and robot to their respective locations at the beginning of
+the episode. . "
   (move-object  (make-poses "?PoseObjStart") object)
   ;; (move-to-object (set-grasp-base-pose (make-poses "?PoseCameraStart")) (set-grasp-look-pose (make-poses "?PoseObjStart")))
   )

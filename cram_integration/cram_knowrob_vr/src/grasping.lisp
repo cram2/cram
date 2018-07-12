@@ -1,12 +1,10 @@
-(in-package :le)
+(in-package :kvr)
 
 ;; orientation source: cram_knowrob_pick_place
 
 ;; grasps ----------------------------------------------------------------------
-                                        ;-------------------------------------------------------------------------------
 ;;  General Grasp
 ;; TODO: generalize this grasp. Type could and should be derived from the VR data
-                                        ;-------------------------------------------------------------------------------
 
 (defmethod get-object-type-to-gripper-transform (object-type
                                                  object-name

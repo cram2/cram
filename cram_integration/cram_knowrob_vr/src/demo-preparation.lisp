@@ -1,8 +1,9 @@
-(in-package :le)
-
+(in-package :kvr)
 
 (defun spawn-with-quaternion ()
-  "spawns all the objects within the episode at their locations, also moves the robot already in position to pick up the last object. In this function th eobjects are being spawned wth the already fixed quaternion."
+  "spawns all the objects within the episode at their locations, also moves the
+robot already in position to pick up the last object. In this function the
+objects are being spawned wth the already fixed quaternion."
   (get-next-obj-poses 0)
   (move-object  (make-poses-with-quaternion "?PoseObjStart") 'koelln-muesli-knusper-honig-nuss)
   (get-next-obj-poses 1)
@@ -18,7 +19,8 @@
 
 
 (defun spawn-without-transform ()
-  "Spawns objects without the applying the transform which fixes the offset between the Virtual Reality and the bullet world."
+  "Spawns objects without the applying the transform which fixes the offset
+ between the Virtual Reality and the bullet world."
   (get-next-obj-poses 0)
   (move-object  (make-poses-without-transform "?PoseObjStart") 'koelln-muesli-knusper-honig-nuss)
   (get-next-obj-poses 1)
@@ -30,25 +32,27 @@
   (get-next-obj-poses 4)
   (move-object  (make-poses-without-transform "?PoseObjStart") 'fork-blue-plastic)
 
-  (move-to-object (set-grasp-base-pose (make-poses-without-transform "?PoseCameraStart")) (set-grasp-look-pose (make-poses-without-transform "?PoseObjStart"))))
+  (move-to-object
+   (set-grasp-base-pose (make-poses-without-transform "?PoseCameraStart"))
+   (set-grasp-look-pose (make-poses-without-transform "?PoseObjStart"))))
  
 
 (defun demo-spawn-obj-in-place-offset ()
   "Spawns all object of the Episode with a given offset."
   (get-grasp-something-poses)
   (get-next-obj-poses 0)
-  ;; muesli
+  ; muesli
   (move-object
    (add-pos-offset-to-transform
     (make-poses "?PoseObjStart") 0.05 0.0 0.0) 'koelln-muesli-knusper-honig-nuss)
   
-  ;; milk
+  ; milk
   (get-next-obj-poses 1)
   (move-object
    (add-pos-offset-to-transform
     (make-poses "?PoseObjStart") 0.05 0.0 0.0) 'weide-milch-small)
 
-  ;; cup
+  ; cup
   (get-next-obj-poses 2)
   (move-object
    (cl-tf:make-transform
@@ -58,13 +62,13 @@
      (cl-tf:make-identity-rotation))
    'cup-eco-orange)
 
-  ;; bowl
+  ; bowl
   (get-next-obj-poses 3)
   (move-object
    (add-pos-offset-to-transform
     (make-poses "?PoseObjStart") 0.05 0.0 0.0) 'edeka-red-bowl)
 
-  ;; fork
+  ; fork
   (get-next-obj-poses 4)
   (move-object
    (cl-tf:make-transform
@@ -77,14 +81,14 @@
 (defun demo-spawn-obj-in-place ()
   "Spawns all objects of the current Episode at their places without any offsets."
   (get-grasp-something-poses)
-  ;; muesli
+  ; muesli
   (alternative-demo 'koelln-muesli-knusper-honig-nuss)
   
-  ;; milk
+  ; milk
   (get-next-obj-poses 1)
   (alternative-demo 'weide-milch-small)
 
-  ;; cup
+  ; cup
   (get-next-obj-poses 2)
   (alternative-demo 'cup-eco-orange)
 
@@ -92,7 +96,7 @@
   (get-next-obj-poses 3)
   (alternative-demo 'edeka-red-bowl)
 
-  ;; fork
+  ; fork
   (get-next-obj-poses 4)
   (alternative-demo 'fork-blue-plastic))
 

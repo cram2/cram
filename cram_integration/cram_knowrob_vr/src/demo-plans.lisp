@@ -1,4 +1,4 @@
-(in-package :le)
+(in-package :kvr)
 
 (defun test-full-execution ()
   "executes the pick and place task for the entire episode, using both hands of the robot. Maaning: two objects are being carried at once. "

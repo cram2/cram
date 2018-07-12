@@ -1,4 +1,4 @@
-(asdf:defsystem lisp-ease
+(asdf:defsystem cram-knowrob-vr
 	:depends-on (roslisp
                cram-language
                cram-json-prolog
@@ -14,7 +14,7 @@
 	  :components
 	  ((:file "package")
 	   (:file "queries" :depends-on ("package"))
-     (:file "basic-queries")           
+     (:file "utility-queries")           
      (:file "utils" :depends-on ("package"))
      (:file "demo-plans" :depends-on ("package"))
      

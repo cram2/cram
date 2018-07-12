@@ -1,4 +1,4 @@
-(in-package :le)
+(in-package :kvr)
 
 ;; Incomplete and experimental code for implementing gaussians
 (defvar *gaussian-poses-list* nil)

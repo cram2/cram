@@ -1,14 +1,14 @@
-(in-package :le)
+;;; initializes the episode data by connecting to OpenEase and loads the Episode data within OpenEase
+;;; contains paths to the Episode data and SemanticMap
+;;; which might need to be adjusted, if other episode data is to be loaded. 
 
-; initializes the episode data by connecting to OpenEase and loads the Episode data within OpenEase
-; contains paths to the Episode data and SemanticMap
-; which might need to be adjusted, if other episode data is to be loaded. 
+;;; care to give the right rcg stamp
+;;; rcg_c is for finding out the displacement
+;;; rcg_f has the to date better grasps
+;;; eval2 has best full set pick and place
+;;; rcg_d different grasps
+(in-package :kvr)
 
-;; care to give the right rcg stamp
-;; rcg_c is for finding out the displacement
-;; rcg_f has the to date better grasps
-;; eval2 has best full set pick and place
-;; rcg_d different grasps
 (defun init-episode ()
   (start-ros-node "lisp_ease")
   (register-ros-package "knowrob_robcog")
@@ -82,7 +82,11 @@
 
 
 (defun init-reset-sim ()
-  "Resets the simulation, but can also be used to initialize it (although I prefer to initilize it manually so I can see where it fails if it does.) Spawns all the objects which are necessary for the current scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis objects for debugging."
+  "Resets the simulation, but can also be used to initialize it
+(although I prefer to initilize it manually so I can see where it fails if
+it does.) Spawns all the objects which are necessary for the current
+scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
+objects for debugging."
   (init-episode)
   (init-bullet-world)
   (add-bowl)
