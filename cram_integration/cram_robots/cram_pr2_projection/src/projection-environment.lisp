@@ -40,6 +40,10 @@
     (make-instance 'cl-tf:transformer))
    ;; TODO: use custom tf topic "tf_sim"
    ;; For that first change tf2_ros/TransformListener to accept custom topic names
+   (cram-tf:*broadcaster*
+    (cram-tf:make-tf-broadcaster
+     "tf_projection"
+     cram-tf:*tf-broadcasting-interval*))
    ;; (*current-bullet-world* (cl-bullet:copy-world btr:*current-bullet-world*))
    (cram-bullet-reasoning:*current-timeline*
     (btr:timeline-init btr:*current-bullet-world*))
@@ -51,8 +55,8 @@
    (cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*
     (alexandria:copy-hash-table
      cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*))
-   (cram-semantic-map::*semantic-map*
-    (sem-map-utils:copy-semantic-map-object (cram-semantic-map:get-semantic-map)))
+   ;; (cram-semantic-map::*semantic-map*
+   ;;  (sem-map-utils:copy-semantic-map-object (cram-semantic-map:get-semantic-map)))
    (cet:*episode-knowledge*
     cet:*episode-knowledge*))
   :process-module-definitions
@@ -60,8 +64,11 @@
                        pr2-proj-grippers pr2-proj-arms)
   :startup (progn
              (cram-bullet-reasoning-belief-state:set-tf-from-bullet)
-             (cram-bullet-reasoning-belief-state:update-bullet-transforms))
-  :shutdown (setf *last-timeline* cram-bullet-reasoning:*current-timeline*))
+             (cram-bullet-reasoning-belief-state:update-bullet-transforms)
+             (cram-tf:start-publishing-transforms cram-tf:*broadcaster*))
+  :shutdown (progn
+              (setf *last-timeline* cram-bullet-reasoning:*current-timeline*)
+              (cram-tf:stop-publishing-transforms cram-tf:*broadcaster*)))
 
 
 (def-fact-group pr2-available-pms (cpm:available-process-module

@@ -30,11 +30,6 @@
 
 (in-package :pr2-proj-reasoning)
 
-(defparameter *debug-short-sleep-duration* 0.0
-  "in seconds, sleeps after each movement during reasoning")
-(defparameter *debug-long-sleep-duration* 0.0
-  "in seconds, sleeps to show colliding configurations")
-
 (defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 30))
   (declare (type desig:location-designator navigation-location-desig))
   "Store current world state and in the current world try to go to different
@@ -42,63 +37,53 @@ poses that satisfy `navigation-location-desig'.
 If chosen pose results in collisions, choose another pose.
 Repeat `navigation-location-samples' + 1 times.
 Store found pose into designator or throw error if good pose not found."
-  (let* ((world btr:*current-bullet-world*)
-         (world-state (btr::get-state world)))
 
-    (unwind-protect
-         (cpl:with-retry-counters ((navigation-location-samples samples-to-try))
-           ;; If a navigation-pose-in-collisions failure happens, retry N times
-           ;; with the next solution of `navigation-location-desig'.
-           (cpl:with-failure-handling
-               ((common-fail:navigation-pose-in-collision (e)
-                  ;; (roslisp:ros-warn (pp-plans coll-check) "Pose was in collision.")
-                  (cpl:do-retry navigation-location-samples
-                    (handler-case
-                        (setf navigation-location-desig
-                              (desig:next-solution navigation-location-desig))
-                      (desig:designator-error ()
-                        (roslisp:ros-warn (pp-plans coll-check)
-                                          "Designator cannot be resolved: ~a. Propagating up." e)
-                        (cpl:fail 'common-fail:navigation-pose-in-collision)))
-                    (if navigation-location-desig
-                        (progn
-                          (cpl:retry))
-                        (progn
-                          (roslisp:ros-warn (pp-plans coll-check)
-                                            "No other samples in designator. Propagating up.")
-                          (cpl:fail 'common-fail:navigation-pose-in-collision))))
-                  (roslisp:ros-warn (pp-plans coll-check)
-                                    "Couldn't find a nav pose for~%~a.~%Propagating up."
-                                    navigation-location-desig)
-                  (cpl:fail 'common-fail:navigation-pose-in-collision)))
+  (cpl:with-failure-handling
+      ((desig:designator-error (e)
+         (roslisp:ros-warn (coll-check nav)
+                           "Desig ~a could not be resolved: ~a~%Cannot navigate."
+                           navigation-location-desig e)
+         (cpl:fail 'common-fail:navigation-goal-in-collision
+                   :description "Designator could not be resolved")))
 
-             ;; Pick one pose, store it in `pose-at-navigation-location'
-             ;; In projected world, drive to picked pose
-             ;; If robot is in collision with any object in the world, throw a failure.
-             ;; Otherwise, the pose was found, so return location designator,
-             ;; which is currently referenced to the found pose.
-             (handler-case
-                 (let ((pose-at-navigation-location (desig:reference navigation-location-desig)))
-                   (pr2-proj::drive pose-at-navigation-location)
-                   (when (btr:robot-colliding-objects-without-attached)
-                     ;; (roslisp:ros-warn (pp-plans coll-check) "Pose was in collision.")
-                     (unless (< (abs *debug-short-sleep-duration*) 0.0001)
-                       (cpl:sleep *debug-short-sleep-duration*))
-                     (cpl:fail 'common-fail:navigation-pose-in-collision
-                               :pose-stamped pose-at-navigation-location))
-                   (roslisp:ros-info (pp-plans coll-check)
-                                     "Found non-colliding pose to satisfy ~a."
-                                     navigation-location-desig)
-                   navigation-location-desig)
-               (desig:designator-error (e)
-                 (declare (ignore e))
-                 (roslisp:ros-warn (pp-plans coll-check)
-                                   "Desig ~a could not be resolved.~%Cannot navigate."
-                                   navigation-location-desig)
-                 (cpl:fail 'common-fail:navigation-pose-in-collision)))))
+    (cpl:with-retry-counters ((navigation-location-samples samples-to-try))
+      ;; If a navigation-low-level-failure happens, retry N times
+      ;; with the next solution of `navigation-location-desig'.
+      (cpl:with-failure-handling
+          ((common-fail:navigation-low-level-failure (e)
+             (declare (ignore e))
+             (roslisp:ros-warn (coll-check nav) "Pose was in collision.")
+             (cpl:do-retry navigation-location-samples
+               (if (desig:next-solution navigation-location-desig)
+                   (progn
+                     (setf navigation-location-desig
+                           (desig:next-solution navigation-location-desig))
+                     (cpl:retry))
+                   (progn
+                     (roslisp:ros-warn (coll-check nav)
+                                       "No other samples in designator. Propagating up.")
+                     (cpl:fail 'common-fail:navigation-goal-in-collision
+                               :description "No other samples in designator"))))
+             (roslisp:ros-warn (coll-check nav)
+                               "Couldn't find a nav pose after all retries for~%~a.~%~
+                                     Propagating up."
+                               navigation-location-desig)
+             (cpl:fail 'common-fail:navigation-goal-in-collision
+                       :description "Couldn't find a nav pose after all retries")))
 
-      ;; After playing around and messing up the world, restore the original state.
-      (btr::restore-world-state world-state world))))
+        ;; Pick one pose, store it in `pose-at-navigation-location'
+        ;; In projected world, drive to picked pose
+        ;; If robot is in collision with any object in the world, driving throws a failure.
+        ;; Otherwise, the pose was found, so return location designator,
+        ;; which is currently referenced to the found pose.
+        (let ((pose-at-navigation-location (desig:reference navigation-location-desig)))
+          (pr2-proj::drive pose-at-navigation-location)
+          ;; (roslisp:ros-info (coll-check nav)
+          ;;                   "Found non-colliding pose~%~a to satisfy~%~a."
+          ;;                   pose-at-navigation-location navigation-location-desig)
+          navigation-location-desig)))))
+
+
 
 
 (defun check-picking-up-collisions (pick-up-action-desig &optional (retries 30))
@@ -106,70 +91,99 @@ Store found pose into designator or throw error if good pose not found."
          (world-state (btr::get-state world)))
 
     (unwind-protect
-         (cpl:with-retry-counters ((pick-up-configuration-retries retries))
-           (cpl:with-failure-handling
-               (((or common-fail:manipulation-pose-unreachable
-                     common-fail:manipulation-pose-in-collision) (e)
-                  (declare (ignore e))
-                  (cpl:do-retry pick-up-configuration-retries
-                    (handler-case
-                        (setf pick-up-action-desig
-                              (desig:next-solution pick-up-action-desig))
-                      (desig:designator-error ()
-                        (roslisp:ros-warn (pp-plans coll-check)
-                                          "Designator ~a cannot be resolved. Propagating up."
-                                          pick-up-action-desig)
-                        (cpl:fail 'common-fail:object-unreachable)))
-                    (cond
-                      (pick-up-action-desig
-                       (cpl:retry))
-                      (t
-                       (roslisp:ros-warn (pp-plans coll-check)
-                                         "No more pick-up samples to try. Object unreachable.")
-                       (cpl:fail 'common-fail:object-unreachable))))
-                  (roslisp:ros-warn (pp-plans pick-object) "No more retries left :'(")
-                  (cpl:fail 'common-fail:object-unreachable)))
+         (cpl:with-failure-handling
+             ((desig:designator-error (e)
+                (roslisp:ros-warn (coll-check pick)
+                                  "Desig ~a could not be resolved: ~a~%Cannot pick."
+                                  pick-up-action-desig e)
+                (cpl:fail 'common-fail:object-unreachable
+                          :description "Designator could not be resolved")))
 
-             (let ((pick-up-action-referenced (desig:reference pick-up-action-desig)))
-               (destructuring-bind (_action object-designator arm gripper-opening _effort _grasp
-                                    left-reach-poses right-reach-poses
-                                    left-lift-poses right-lift-poses)
-                   pick-up-action-referenced
-                 (declare (ignore _action _effort))
-                 (let ((object-name
-                         (desig:desig-prop-value object-designator :name)))
-                   (roslisp:ros-info (pp-plans manipulation)
-                                     "Trying grasp ~a on object ~a with arm ~a~%"
-                                     _grasp object-name arm)
-                   (let ((left-poses-list-of-lists (list left-reach-poses left-lift-poses))
-                         (right-poses-list-of-lists (list right-reach-poses right-lift-poses)))
-                     (multiple-value-bind (left-poses right-poses)
-                         (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
-                                                              right-poses-list-of-lists)
-                       (mapcar (lambda (left-pose right-pose)
-                                 (pr2-proj::gripper-action gripper-opening arm)
-                                 (pr2-proj::move-tcp left-pose right-pose)
-                                 (unless (< (abs *debug-short-sleep-duration*) 0.0001)
-                                   (cpl:sleep *debug-short-sleep-duration*))
-                                 (when (remove object-name
-                                               (btr:robot-colliding-objects-without-attached))
-                                   (roslisp:ros-warn (pp-plans coll-check)
-                                                     "Robot is in collision with environment.")
-                                   (cpl:sleep *debug-long-sleep-duration*)
-                                   (btr::restore-world-state world-state world)
-                                   (cpl:fail 'common-fail:manipulation-pose-in-collision)))
-                               left-poses
-                               right-poses))))))))
+           ;; When the pick-up goal configuration is unreachable based on projection
+           ;; or if resulting configuration collides with environment,
+           ;; take a new configuration and retry.
+           ;; If no configuration is good, throw `object-unreachable' failure
+           (cpl:with-retry-counters ((pick-up-configuration-retries retries))
+             (cpl:with-failure-handling
+                 (((or common-fail:manipulation-pose-unreachable
+                       common-fail:manipulation-goal-in-collision) (e)
+                    (declare (ignore e))
+                    (cpl:do-retry pick-up-configuration-retries
+                      (setf pick-up-action-desig
+                            (desig:next-solution pick-up-action-desig))
+                      (if pick-up-action-desig
+                          (cpl:retry)
+                          (progn
+                            (roslisp:ros-warn (coll-check pick)
+                                              "No more pick-up samples to try.~
+                                               Object unreachable.")
+                            (cpl:fail 'common-fail:object-unreachable
+                                      :description "No more pick-up samples to try."))))
+                    (roslisp:ros-warn (coll-check pick) "No more retries left :'(")
+                    (cpl:fail 'common-fail:object-unreachable
+                              :description "No more grasp retries left.")))
+
+               (let ((pick-up-action-referenced (desig:reference pick-up-action-desig)))
+                 (destructuring-bind (_action object-designator arm gripper-opening _effort _grasp
+                                      left-reach-poses right-reach-poses
+                                      left-grasp-poses right-grasp-poses
+                                      left-lift-poses right-lift-poses)
+                     pick-up-action-referenced
+                   (declare (ignore _action _effort))
+
+                   (pr2-proj::gripper-action gripper-opening arm)
+
+                   ;; Go over all the trajectory via points and check for collisions
+                   ;; with any object except the one to pick up.
+                   ;; If collision happens, throw `manipulation-goal-in-collision' failure.
+                   (let ((object-name
+                           (desig:desig-prop-value object-designator :name)))
+                     (roslisp:ros-info (coll-check pick)
+                                       "Trying grasp ~a on object ~a with arm ~a~%"
+                                       _grasp object-name arm)
+                     (let ((left-poses-list-of-lists (list left-reach-poses
+                                                           left-grasp-poses
+                                                           left-lift-poses))
+                           (right-poses-list-of-lists (list right-reach-poses
+                                                            right-grasp-poses
+                                                            right-lift-poses)))
+                       (multiple-value-bind (left-poses right-poses)
+                           (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
+                                                                right-poses-list-of-lists)
+                         (mapcar (lambda (left-pose right-pose)
+                                   (pr2-proj::move-tcp left-pose right-pose)
+                                   (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
+                                     (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
+                                   (when (remove object-name
+                                                 (btr:robot-colliding-objects-without-attached))
+                                     (roslisp:ros-warn (coll-check pick)
+                                                       "Robot is in collision with environment.")
+                                     (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
+                                     (btr::restore-world-state world-state world)
+                                     ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
+                                     ))
+                                 left-poses
+                                 right-poses)))))))))
       (btr::restore-world-state world-state world))))
+
+
 
 (defun check-placing-collisions (placing-action-desig)
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
     (unwind-protect
          (cpl:with-failure-handling
-             ((common-fail:manipulation-pose-unreachable (e)
+             ((desig:designator-error (e)
+                (roslisp:ros-warn (coll-check place)
+                                  "Desig ~a could not be resolved: ~a~%Cannot pick."
+                                  placing-action-desig e)
+                (cpl:fail 'common-fail:object-unreachable
+                          :description "Designator could not be resolved"))
+
+              ((or common-fail:manipulation-goal-in-collision
+                   common-fail:manipulation-low-level-failure) (e)
                 (declare (ignore e))
-                (roslisp:ros-warn (pp-plans deliver)
+                (roslisp:ros-warn (coll-check place)
                                   "Placing pose of ~a is unreachable.~%Propagating up."
                                   placing-action-desig)
                 (cpl:fail 'common-fail:object-unreachable)))
@@ -178,12 +192,15 @@ Store found pose into designator or throw error if good pose not found."
              (destructuring-bind (_action object-designator arm
                                   left-reach-poses right-reach-poses
                                   left-put-poses right-put-poses
-                                  left-retract-poses right-retract-poses)
+                                  left-retract-poses right-retract-poses
+                                  _placing-location)
                  placing-action-referenced
-               (declare (ignore _action))
-               (let ((object-name
-                       (desig:desig-prop-value object-designator :name)))
-                 (roslisp:ros-info (pp-plans manipulation)
+               (declare (ignore _action _placing-location))
+
+               (pr2-proj::gripper-action :open arm)
+
+               (let ((object-name (desig:desig-prop-value object-designator :name)))
+                 (roslisp:ros-info (coll-check place)
                                    "Trying to place object ~a with arm ~a~%"
                                    object-name arm)
                 (let ((left-poses-list-of-lists
@@ -194,10 +211,9 @@ Store found pose into designator or throw error if good pose not found."
                       (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
                                                            right-poses-list-of-lists)
                     (mapcar (lambda (left-pose right-pose)
-                              (pr2-proj::gripper-action :open arm)
                               (pr2-proj::move-tcp left-pose right-pose)
-                              (unless (< (abs *debug-short-sleep-duration*) 0.0001)
-                                (cpl:sleep *debug-short-sleep-duration*))
+                              (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
+                                (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
                               (when (or
                                      ;; either robot collides with environment
                                      (btr:robot-colliding-objects-without-attached)
@@ -215,11 +231,74 @@ Store found pose into designator or throw error if good pose not found."
                                      ;;                 :key #'btr:name)
                                      ;;         :key #'btr:name)
                                      )
-                                (roslisp:ros-warn (pp-plans coll-check)
+                                (roslisp:ros-warn (coll-check place)
                                                   "Robot is in collision with environment.")
-                                (cpl:sleep *debug-long-sleep-duration*)
+                                (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
                                 (btr::restore-world-state world-state world)
-                                (cpl:fail 'common-fail:manipulation-pose-in-collision)))
+                                ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
+                                ))
                             left-poses
                             right-poses)))))))
+      (btr::restore-world-state world-state world))))
+
+
+
+(defun check-environment-manipulation-collisions (action-desig)
+  (let* ((world btr:*current-bullet-world*)
+         (world-state (btr::get-state world)))
+    (unwind-protect
+         (cpl:with-failure-handling
+             ((desig:designator-error (e)
+                (roslisp:ros-warn (coll-check environment)
+                                  "Desig ~a could not be resolved: ~a~%Cannot manipulate."
+                                  action-desig e)
+                (cpl:fail 'common-fail:environment-unreachable
+                          :description "Designator could not be resolved"))
+
+              ((or common-fail:manipulation-goal-in-collision
+                   common-fail:manipulation-low-level-failure) (e)
+                (declare (ignore e))
+                (roslisp:ros-warn (coll-check environment)
+                                  "Manipulation pose of ~a is unreachable.~%Propagating up."
+                                  action-desig)
+                (cpl:fail 'common-fail:environment-unreachable
+                          :description "Manipulation pose in collision or unreachable.")))
+
+           (let ((action-referenced (desig:reference action-desig)))
+             (destructuring-bind (action arm _gripper-opening distance
+                                  left-reach-poses right-reach-poses
+                                  left-grasp-poses right-grasp-poses
+                                  left-pull-push-poses right-pull-push-poses
+                                  left-retract-poses right-retract-poses
+                                  joint-name _environment-object)
+                 action-referenced
+               (declare (ignore _gripper-opening _environment-object))
+
+               (pr2-proj::gripper-action :open arm)
+
+               (roslisp:ros-info (coll-check environment)
+                                 "Trying to open joint ~a with arm ~a~%"
+                                 joint-name arm)
+               (let ((left-poses-list-of-lists
+                       (list left-reach-poses left-grasp-poses
+                             left-pull-push-poses left-retract-poses))
+                     (right-poses-list-of-lists
+                       (list right-reach-poses right-grasp-poses
+                             right-pull-push-poses right-retract-poses)))
+                 (multiple-value-bind (left-poses right-poses)
+                     (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
+                                                          right-poses-list-of-lists)
+                   (mapcar (lambda (left-pose right-pose)
+                             (pr2-proj::move-tcp left-pose right-pose)
+                             (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
+                               (cpl:sleep pr2-proj:*debug-short-sleep-duration*)))
+                           left-poses
+                           right-poses)
+                   (when (eq (desig:desig-prop-value action-desig :type) :opening)
+                     (when (btr:robot-colliding-objects-without-attached)
+                       (roslisp:ros-warn (coll-check environment)
+                                         "Robot is in collision with environment.")
+                       (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
+                       (btr::restore-world-state world-state world)
+                       (cpl:fail 'common-fail:manipulation-goal-in-collision))))))))
       (btr::restore-world-state world-state world))))

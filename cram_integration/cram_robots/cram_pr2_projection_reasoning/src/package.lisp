@@ -33,5 +33,6 @@
   (:export
    ;; check-collisions
    #:check-navigating-collisions #:check-picking-up-collisions #:check-placing-collisions
+   #:check-environment-manipulation-collisions
    ;; projection-prediction
    #:pick-best-parameters-by-distance #:with-projected-task-tree))

@@ -38,8 +38,9 @@
   (:import-from #:desig designator-groundings)
   (:shadowing-import-from #:cl-bullet points pose)
   (:shadow copy-object)
-  (:export *current-bullet-world* *current-timeline*
-           merge-bounding-boxes aabb with-stored-world *debug-window*
+  (:export *current-bullet-world* *current-timeline* *visibility-threshold*
+           merge-bounding-boxes aabb calculate-bb-dims
+           with-stored-world *debug-window*
            add-debug-window add-costmap-function-object
            add-costmap-sample-object clear-costmap-vis-object
            camera width
@@ -77,12 +78,13 @@
            object-grasp
            point-reachable pose-reachable blocking debug-window
            debug-costmap head-pointing-at with-current-bullet-world prolog-?w ?w
-           reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
-           object-reachable-p pose-reachable-p calculate-orientation-in-robot
-           calculate-object-tool-length set-robot-state-from-joints
+           ;; reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
+           ;; object-reachable-p pose-reachable-p calculate-orientation-in-robot
+           ;; calculate-object-tool-length
+           set-robot-state-from-joints
            calculate-pan-tilt
            init-ros-object-database clear-bullet-world
-           ros-household-object execute open close reach-ik-solution
+           ros-household-object execute open close ;; reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects
            item-dimensions

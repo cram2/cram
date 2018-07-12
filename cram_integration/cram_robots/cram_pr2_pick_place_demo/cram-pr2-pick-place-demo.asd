@@ -50,18 +50,17 @@
                cram-mobile-pick-place-plans
 
                cram-knowrob-pick-place
-               cram-robosherlock
+               cram-cloud-logger
 
-               cram-physics-utils ; for reading "package://" paths
+               cram-physics-utils     ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
-               cram-bullet-reasoning-designators
+               cram-btr-visibility-costmap
+               cram-btr-spatial-relations-costmap
 
-               cram-semantic-map-costmap
-               ; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
-               ; cram-bullet-reasoning-designators ; not using visibility cm or collision checks
+               ;; cram-semantic-map-costmap
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap
@@ -69,13 +68,8 @@
                cram-pr2-projection      ; for with-simulated-robot
                cram-pr2-projection-reasoning ; for projection-based reasoning
                cram-pr2-description
-               ;; cram-pr2-low-level
-               cram-process-modules
-               ;; cram-pr2-process-modules
                cram-pr2-fetch-deliver-plans
-
-               ;; cram-pr2-cloud
-               )
+               cram-pr2-environment-manipulation)
 
   :components
   ((:module "src"

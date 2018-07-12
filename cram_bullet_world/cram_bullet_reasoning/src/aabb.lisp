@@ -73,3 +73,13 @@
               :z (- (cl-transforms:z (bounding-box-center bounding-box))
                     (/ (cl-transforms:z
                         (bounding-box-dimensions bounding-box)) 2))))))
+
+(defun calculate-bb-dims (bullet-object)
+  (let ((old-pose (pose bullet-object))
+        aabb)
+    (unwind-protect
+         (progn
+           (setf (pose bullet-object) (cl-transforms:make-identity-pose))
+           (setf aabb (cl-bullet:aabb bullet-object)))
+      (setf (pose bullet-object) old-pose))
+    (cl-bullet:bounding-box-dimensions aabb)))

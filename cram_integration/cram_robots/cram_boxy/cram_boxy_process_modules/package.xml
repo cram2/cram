@@ -15,4 +15,5 @@
   <depend>cram_prolog</depend>
   <depend>cram_boxy_designators</depend>
   <depend>cram_boxy_low_level</depend>
+  <depend>cram_tf</depend>
 </package>

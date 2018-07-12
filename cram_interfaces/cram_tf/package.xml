@@ -29,4 +29,5 @@
   <depend>tf2_msgs</depend>
   <depend>roslisp_utilities</depend>
   <depend>roslisp</depend>
+  <depend>visualization_msgs</depend>
 </package>

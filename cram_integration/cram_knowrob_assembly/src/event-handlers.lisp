@@ -31,16 +31,15 @@
 
 ;;; object-in-hand assert and retract
 
-(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-gripped))
+(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-attached))
   (let* (;; (arm (cpoe:event-arm event))
          ;; (grasp (cpoe:event-grasp event))
-         (object-designator (cpoe:event-object event))
-         (object-name (desig:desig-prop-value object-designator :name))
+         (object-name (cpoe:event-object-name event))
          (gripper-id "left_gripper")
          (kr-grasp-class (car (get-possible-object-grasps object-name gripper-id))))
     (assert-object-grasped gripper-id object-name "boxy" kr-grasp-class)))
 
-(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-released))
+(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-detached))
   (let* (;; (arm (cpoe:event-arm event))
          (object-designator (cpoe:event-object event))
          (object-name (desig:desig-prop-value object-designator :name))
