@@ -69,8 +69,16 @@
                                  )))
 
   (<- (orientation-matters ?object-type)
-    (member ?object-type (:knife :fork :spoon :cutlery :spatula)))
-
+    (member ?object-type (:knife :fork :spoon :cutlery :spatula
+                          :fork-blue-plastic
+                          :weide-milch-small
+                          :cup-eco-orange
+                          :koelln-muesli-knusper-honig-nuss
+                          :edeka-red-bowl
+                          :spoon-blue-plastic)))
+  
+  (<- (object-type-grasp :fork-blue-plastic :human-grasp))
+  (<- (object-type-grasp :spoon-blue-plastic :human-grasp))
   (<- (object-type-grasp :cutlery :top))
   (<- (object-type-grasp :spoon :top))
   (<- (object-type-grasp :fork :top))
@@ -82,22 +90,26 @@
   (<- (object-type-grasp :bottle :side))
   (<- (object-type-grasp :bottle :back))
 
+  (<- (object-type-grasp :cup-eco-orange :human-grasp))
   (<- (object-type-grasp :cup :back))
   ;; (<- (object-type-grasp :cup :side))
   ;; (<- (object-type-grasp :cup :top))
 
+  (<- (object-type-grasp :weide-milch-small :human-grasp))
   (<- (object-type-grasp :milk :back))
   (<- (object-type-grasp :milk :side))
   (<- (object-type-grasp :milk :front))
   ;; (<- (object-type-grasp :milk :top))
 
   ;; (<- (object-type-grasp :cereal :top))
+  (<- (object-type-grasp :koelln-muesli-knusper-honig-nuss :human-grasp))
   (<- (object-type-grasp :cereal :back))
   (<- (object-type-grasp :cereal :front))
   ;; (<- (object-type-grasp :breakfast-cereal :top))
   (<- (object-type-grasp :breakfast-cereal :back))
   (<- (object-type-grasp :breakfast-cereal :front))
 
+  (<- (object-type-grasp :edeka-red-bowl :human-grasp))
   (<- (object-type-grasp :bowl :top)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
