@@ -51,7 +51,7 @@
                cram-mobile-pick-place-plans
 
                cram-knowrob-assembly
-               cram-robosherlock
+               ;; cram-robosherlock
 
                cram-physics-utils ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
