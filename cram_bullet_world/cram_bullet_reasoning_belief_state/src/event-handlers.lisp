@@ -65,34 +65,35 @@
                (ee-to-object-pose (cram-tf:strip-transform-stamped ee-to-object-transform)))
 
         ;;; knowrob event
-          (let ((origin (cl-transforms:origin ee-to-object-pose))
-                (orientation (cl-transforms:orientation ee-to-object-pose)))
-            (with-slots ((x cl-transforms:x) (y cl-transforms:y) (z cl-transforms:z))
-                origin
-              (with-slots ((q1 cl-transforms:x) (q2 cl-transforms:y) (q3 cl-transforms:z)
-                           (w cl-transforms:w))
-                  orientation
-                (json-prolog:prolog-simple
-                 (let ((query
-                         (format nil "belief_at_update('~a', ([~f,~f,~f],[~f,~f,~f,~f]), ~
-                                    'http://knowrob.org/kb/PR2.owl#pr2_~a')."
-                                 btr-object-name
-                                 x y z q1 q2 q3 w
-                                 link)))
-                   query)))))
+          ;; (let ((origin (cl-transforms:origin ee-to-object-pose))
+          ;;       (orientation (cl-transforms:orientation ee-to-object-pose)))
+          ;;   (with-slots ((x cl-transforms:x) (y cl-transforms:y) (z cl-transforms:z))
+          ;;       origin
+          ;;     (with-slots ((q1 cl-transforms:x) (q2 cl-transforms:y) (q3 cl-transforms:z)
+          ;;                  (w cl-transforms:w))
+          ;;         orientation
+          ;;       (json-prolog:prolog-simple
+          ;;        (let ((query
+          ;;                (format nil "belief_at_update('~a', ([~f,~f,~f],[~f,~f,~f,~f]), ~
+          ;;                           'http://knowrob.org/kb/PR2.owl#pr2_~a')."
+          ;;                        btr-object-name
+          ;;                        x y z q1 q2 q3 w
+          ;;                        link)))
+          ;;          query)))))
 
         ;;; giskard event
-          (call-giskard-environment-service
-           :kill
-           btr-object-name-string)
-          (call-giskard-environment-service
-           :attached
-           ;; btr-object-name-string
-           "attached"
-           ee-to-object-pose
-           (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
-               (btr:calculate-bb-dims btr-object)
-             (list cl-transforms:x cl-transforms:y cl-transforms:z))))))))
+          ;; (call-giskard-environment-service
+          ;;  :kill
+          ;;  btr-object-name-string)
+          ;; (call-giskard-environment-service
+          ;;  :attached
+          ;;  ;; btr-object-name-string
+          ;;  "attached"
+          ;;  ee-to-object-pose
+          ;;  (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+          ;;      (btr:calculate-bb-dims btr-object)
+          ;;    (list cl-transforms:x cl-transforms:y cl-transforms:z)))
+          )))))
 
 (defmethod cram-occasions-events:on-event btr-detach-object ((event cpoe:object-detached))
   (let* ((robot-object (btr:get-robot-object))
@@ -113,31 +114,32 @@
 
       (unless cram-projection:*projection-environment*
         ;; knowrob event
-        (let ((origin (cl-transforms:origin (btr:pose btr-object)))
-              (orientation (cl-transforms:orientation (btr:pose btr-object))))
-          (with-slots ((x cl-transforms:x) (y cl-transforms:y) (z cl-transforms:z))
-              origin
-            (with-slots ((q1 cl-transforms:x) (q2 cl-transforms:y) (q3 cl-transforms:z)
-                         (w cl-transforms:w))
-                orientation
-              (json-prolog:prolog-simple
-               (let ((query
-                       (format nil "belief_at_update('~a', ([~f,~f,~f],[~f,~f,~f,~f]))."
-                               btr-object-name x y z q1 q2 q3 w)))
-                 query)))))
+        ;; (let ((origin (cl-transforms:origin (btr:pose btr-object)))
+        ;;       (orientation (cl-transforms:orientation (btr:pose btr-object))))
+        ;;   (with-slots ((x cl-transforms:x) (y cl-transforms:y) (z cl-transforms:z))
+        ;;       origin
+        ;;     (with-slots ((q1 cl-transforms:x) (q2 cl-transforms:y) (q3 cl-transforms:z)
+        ;;                  (w cl-transforms:w))
+        ;;         orientation
+        ;;       (json-prolog:prolog-simple
+        ;;        (let ((query
+        ;;                (format nil "belief_at_update('~a', ([~f,~f,~f],[~f,~f,~f,~f]))."
+        ;;                        btr-object-name x y z q1 q2 q3 w)))
+        ;;          query)))))
 
         ;; giskard event
-        (call-giskard-environment-service
-         :kill
-         "attached")
-        (call-giskard-environment-service
-         :add
-         btr-object-name-string
-         (cl-transforms-stamped:pose->pose-stamped
-          cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
-         (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
-             (btr:calculate-bb-dims btr-object)
-           (list cl-transforms:x cl-transforms:y cl-transforms:z)))))))
+        ;; (call-giskard-environment-service
+        ;;  :kill
+        ;;  "attached")
+        ;; (call-giskard-environment-service
+        ;;  :add
+        ;;  btr-object-name-string
+        ;;  (cl-transforms-stamped:pose->pose-stamped
+        ;;   cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
+        ;;  (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+        ;;      (btr:calculate-bb-dims btr-object)
+        ;;    (list cl-transforms:x cl-transforms:y cl-transforms:z)))
+        ))))
 
 
 
@@ -326,14 +328,15 @@
           ;; (call-giskard-environment-service
           ;;  :kill
           ;;  object-name-string)
-          (call-giskard-environment-service
-           :add
-           object-name-string
-           (cl-transforms-stamped:pose->pose-stamped
-            cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
-           (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
-               (btr:calculate-bb-dims btr-object)
-             (list cl-transforms:x cl-transforms:y cl-transforms:z)))))))
+          ;; (call-giskard-environment-service
+          ;;  :add
+          ;;  object-name-string
+          ;;  (cl-transforms-stamped:pose->pose-stamped
+          ;;   cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
+          ;;  (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+          ;;      (btr:calculate-bb-dims btr-object)
+          ;;    (list cl-transforms:x cl-transforms:y cl-transforms:z)))
+          ))))
 
 (defun update-object-designator-location (object-designator location-designator)
   (desig:make-designator
