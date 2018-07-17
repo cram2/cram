@@ -4,7 +4,7 @@
 
   <!-- kitchen URDF -->
   <param name="kitchen_description"
-         command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf/IAI_kitchen.urdf.xacro'"/>
+         command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
   <node pkg="joint_state_publisher" type="joint_state_publisher"
         name="kitchen_joint_state_publisher" output="screen">
     <remap from="robot_description" to="kitchen_description"/>
@@ -23,11 +23,6 @@
     <remap from="joint_states" to="kitchen/joint_states" />
   </node>
 
-  <!-- kitchen (new) semantic map -->
-  <param name="initial_package" type="string" value="knowrob_map_data" />
-  <param name="initial_goal" type="string" value="owl_parse('package://iai_semantic_maps/owl/kitchen.owl')" />
-  <node name="json_prolog" pkg="json_prolog" type="json_prolog_node" cwd="node" output="screen" />
-
   <!-- boxy naive kinematics simulator -->
   <arg name="sim" default="true" />
   <arg name="plot" default="false" />
@@ -38,4 +33,7 @@
     <arg name="rviz" value="$(arg rviz)" />
   </include>
   <include file="$(find wsg_50_simulation)/launch/wsg_50_for_kinematic_sim.launch" />
+
+  <!-- TF buffer server -->
+  <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" />
 </launch>

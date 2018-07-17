@@ -31,7 +31,7 @@
   <depend>cram_mobile_pick_place_plans</depend>
 
   <depend>cram_knowrob_assembly</depend>
-  <depend>cram_robosherlock</depend>
+  <!-- <depend>cram_robosherlock</depend> -->
 
   <depend>cram_physics_utils</depend>
   <depend>cl_bullet</depend>
@@ -56,5 +56,5 @@
   <exec_depend>iai_kitchen</exec_depend>
   <exec_depend>json_prolog</exec_depend>
   <exec_depend>map_server</exec_depend>
-  <exec_depend>giskard_boxy</exec_depend>
+  <exec_depend>giskardpy</exec_depend>
 </package>
