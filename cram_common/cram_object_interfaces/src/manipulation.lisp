@@ -246,6 +246,47 @@ Gripper is defined by a convention where Z is pointing towards the object."))
   (:documentation "How wide to open the gripper before grasping, in m."))
 
 
+(defun calculate-object-faces (robot-to-object-transform)
+  (flet ((calculate-vector-face (vector)
+           (let* ((axis-index->face
+                    '(((:x +1) . :front)
+                      ((:x -1) . :back)
+                      ((:y +1) . :left-side)
+                      ((:y -1) . :right-side)
+                      ((:z +1) . :top)
+                      ((:z -1) . :bottom)))
+                  (axis-index-list
+                    (loop for x in vector
+                          for i = 0 then (1+ i)
+                          with max-value = most-negative-single-float
+                          with max-index
+                          with max-sign
+                          do (when (> (abs x) max-value)
+                               (setf max-value (abs x))
+                               (setf max-index i)
+                               (setf max-sign (if (= x 0) +1 (truncate (/ x (abs x))))))
+                          finally (return (list (ecase max-index
+                                                  (0 :x)
+                                                  (1 :y)
+                                                  (2 :z))
+                                                max-sign)))))
+             (cdr (assoc axis-index-list axis-index->face :test #'equal)))))
+    (let* ((object-to-robot-transform
+             (cram-tf:transform-stamped-inv robot-to-object-transform))
+           (matrix
+             (cl-transforms:quaternion->matrix
+              (cl-transforms:rotation object-to-robot-transform)))
+           (robot-negative-x-vector
+             (list (- (aref matrix 0 0)) (- (aref matrix 1 0)) (- (aref matrix 2 0))))
+           (robot-negative-z-vector
+             (list (- (aref matrix 0 2)) (- (aref matrix 1 2)) (- (aref matrix 2 2))))
+           (facing-robot-face
+             (calculate-vector-face robot-negative-x-vector))
+           (bottom-face
+             (calculate-vector-face robot-negative-z-vector)))
+      (list facing-robot-face bottom-face))))
+
+
 (def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
 
   (<- (object-rotationally-symmetric ?object-type)
