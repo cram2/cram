@@ -29,21 +29,27 @@
 
 (in-package :cram-object-interfaces)
 
-(defvar *grasps* (make-hash-table :test #'equal)
-  "Hash table of all known grasps, i.e. object to gripper transforms.
-E.g.:
- (spoon left top)  -> xxx
- (spoon right top) -> xxx (same)
- (spoon left side) -> yyy
- (bottle left front) -> zzz")
-(defvar *pregrasps* (make-hash-table :test #'equal)
-  "Hash table of all known pregrasp offsets, structured similarly to *grasps*")
-(defvar *2nd-pregrasps* (make-hash-table :test #'equal)
-  "Hash table of all known 2nd-pregrasp offsets, structured similarly to *grasps*")
-(defvar *lifts* (make-hash-table :test #'equal)
-  "Hash table of all known lift offsets, structured similarly to *grasps*")
-(defvar *2nd-lifts* (make-hash-table :test #'equal)
-  "Hash table of all known 2nd-lift offsets, structured similarly to *grasps*")
+(defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
+  (:documentation "Returns a pose stamped.
+Gripper is defined by a convention where Z is pointing towards the object."))
+
+(defgeneric get-object-type-to-gripper-pregrasp-transform (object-type object-name
+                                                           arm grasp grasp-transform)
+  (:documentation "Returns a transform stamped"))
+
+(defgeneric get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name
+                                                               arm grasp grasp-transform)
+  (:documentation "Returns a transform stamped. Default value is NIL."))
+
+(defgeneric get-object-type-to-gripper-lift-transform (object-type object-name
+                                                       arm grasp grasp-transform)
+  (:documentation "Returns a transform stamped"))
+
+(defgeneric get-object-type-to-gripper-2nd-lift-transform (object-type object-name
+                                                           arm grasp grasp-transform)
+  (:documentation "Returns a transform stamped"))
+
+
 
 (defmacro def-object-type-to-gripper-transforms (object-type arm grasp-type
                                                  &key
@@ -86,31 +92,12 @@ E.g.:
                                     (cl-transforms:matrix->quaternion
                                      (make-array '(3 3)
                                                  :initial-contents evaled-grasp-rot-matrix)))))
-                             (setf (gethash (list object arm evaled-grasp-type) *grasps*)
-                                   transform))
-                           (setf (gethash (list object arm evaled-grasp-type) *pregrasps*)
-                                 evaled-pregrasp-offsets)
-                           (setf (gethash (list object arm evaled-grasp-type) *2nd-pregrasps*)
-                                 evaled-2nd-pregrasp-offsets)
-                           (setf (gethash (list object arm evaled-grasp-type) *lifts*)
-                                 evaled-lift-offsets)
-                           (setf (gethash (list object arm evaled-grasp-type) *2nd-lifts*)
-                                 evaled-2nd-lift-offsets))
-                         arm-list))
-               object-list))))
 
-(defun remove-object-type-to-gripper-transforms (object-type arm grasp-type)
-  (remhash (list object-type arm grasp-type) *grasps*)
-  (remhash (list object-type arm grasp-type) *pregrasps*)
-  (remhash (list object-type arm grasp-type) *2nd-pregrasps*)
-  (remhash (list object-type arm grasp-type) *lifts*)
-  (remhash (list object-type arm grasp-type) *2nd-lifts*))
-
-(defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
-  (:documentation "Returns a pose stamped.
-Gripper is defined by a convention where Z is pointing towards the object.")
-  (:method (object-type object-name arm grasp)
-    (let ((grasp-transform (gethash (list object-type arm grasp) *grasps*)))
+  (defmethod get-object-type-to-gripper-transform ((object-type (eql object))
+                                                   object-name
+                                                   (arm (eql arm))
+                                                   (grasp (eql evaled-grasp-type)))
+    (let ((grasp-transform transform))
       (if grasp-transform
           (cram-tf:copy-transform-stamped
            grasp-transform
@@ -119,59 +106,67 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                              (:left cram-tf:*robot-left-tool-frame*)
                              (:right cram-tf:*robot-right-tool-frame*)))
           (error "Grasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
-                 object-type arm grasp)))))
+                 object-type arm grasp))))
 
-(defgeneric get-object-type-to-gripper-pregrasp-transform (object-type object-name arm grasp
-                                                           grasp-transform)
-  (:documentation "Returns a transform stamped")
-  (:method (object-type object-name arm grasp grasp-transform)
-    (let ((pregrasp-offsets (gethash (list object-type arm grasp) *pregrasps*)))
+  (defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql object))
+                                                            object-name
+                                                            (arm (eql arm))
+                                                            (grasp (eql evaled-grasp-type))
+                                                            grasp-transform)
+    (let ((pregrasp-offsets evaled-pregrasp-offsets))
       (if pregrasp-offsets
           (destructuring-bind (x y z) pregrasp-offsets
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
           (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
-                 object-type arm grasp)))))
+                 object-type arm grasp))))
 
-(defgeneric get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name
-                                                               arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped. Default value is NIL.")
-  (:method (object-type object-name arm grasp grasp-transform)
-    (let ((offsets (gethash (list object-type arm grasp) *2nd-pregrasps*)))
+  (defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql object))
+                                                                object-name
+                                                                (arm (eql arm))
+                                                                (grasp (eql evaled-grasp-type))
+                                                                grasp-transform)
+    (let ((offsets evaled-2nd-pregrasp-offsets))
       (if offsets
           (destructuring-bind (x y z) offsets
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
           (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
-                 object-type arm grasp)))))
+                 object-type arm grasp))))
 
-(defgeneric get-object-type-to-gripper-lift-transform (object-type object-name
-                                                       arm grasp grasp-pose)
-  (:documentation "Returns a transform stamped")
-  (:method (object-type object-name arm grasp grasp-transform)
-    (let ((offsets (gethash (list object-type arm grasp) *lifts*)))
+  (defmethod get-object-type-to-gripper-lift-transform ((object-type (eql object))
+                                                        object-name
+                                                        (arm (eql arm))
+                                                        (grasp (eql evaled-grasp-type))
+                                                        grasp-transform)
+    (let ((offsets evaled-lift-offsets))
       (if offsets
           (destructuring-bind (x y z) offsets
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
           (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
-                 object-type arm grasp)))))
+                 object-type arm grasp))))
 
-(defgeneric get-object-type-to-gripper-2nd-lift-transform (object-type object-name
-                                                           arm grasp grasp-pose)
-  (:documentation "Returns a pose stamped")
-  (:method (object-type object-name arm grasp grasp-transform)
-    (let ((offsets (gethash (list object-type arm grasp) *2nd-lifts*)))
+  (defmethod get-object-type-to-gripper-2nd-lift-transform ((object-type (eql object))
+                                                            object-name
+                                                            (arm (eql arm))
+                                                            (grasp (eql evaled-grasp-type))
+                                                            grasp-transform)
+    (let ((offsets evaled-2nd-lift-offsets))
       (if offsets
           (destructuring-bind (x y z) offsets
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
           (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
-                 object-type arm grasp)))))
+                 object-type arm grasp))))
+
+                             ))
+                         arm-list))
+               object-list))))
 
 
 (defgeneric get-object-grasping-poses (object-name object-type arm grasp object-transform)
@@ -211,7 +206,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
               object-type object-name arm grasp
               object-to-standard-gripper-transform))
            (standard-to-particular-gripper-transform ; g'Tg
-             (cl-tf:transform->transform-stamped
+             (cl-transforms-stamped:transform->transform-stamped
               gripper-tool-frame
               gripper-tool-frame
               0.0
