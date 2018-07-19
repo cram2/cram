@@ -65,7 +65,7 @@
                                       object-type-grasp)
 
   (<- (object-rotationally-symmetric ?object-type)
-    (member ?object-type (:plate :bottle :drink :cup :bowl :milk
+    (member ?object-type (;; :plate :bottle :drink :cup :bowl :milk
                                  )))
 
   (<- (orientation-matters ?object-type)
