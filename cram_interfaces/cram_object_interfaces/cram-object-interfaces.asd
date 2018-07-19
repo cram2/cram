@@ -37,6 +37,7 @@
                cram-tf
                cl-transforms-stamped
                cram-robot-interfaces ; for gripper transform calculations
+               cram-utilities ; for lazy lists in manipulation.lisp
                )
   :components
   ((:module "src"
