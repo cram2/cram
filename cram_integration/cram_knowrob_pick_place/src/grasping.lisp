@@ -84,8 +84,10 @@
   (<- (object-type-grasp :bottle :left-side))
   (<- (object-type-grasp :bottle :right-side))
   (<- (object-type-grasp :bottle :back))
+  (<- (object-type-grasp :bottle :front))
 
   (<- (object-type-grasp :cup :back))
+  (<- (object-type-grasp :cup :front))
   (<- (object-type-grasp :cup :left-side))
   (<- (object-type-grasp :cup :right-side))
   ;; (<- (object-type-grasp :cup :top))
@@ -182,6 +184,15 @@
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 
+;; FRONT grasp
+(def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :front
+  :grasp-translation `(,*bottle-grasp-xy-offset* 0.0d0 ,*bottle-grasp-z-offset*)
+  :grasp-rot-matrix *front-grasp-rotation*
+  :pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-offsets *lift-offset*
+  :2nd-lift-offsets *lift-offset*)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *cup-pregrasp-xy-offset* 0.15 "in meters")
@@ -219,6 +230,15 @@
 (def-object-type-to-gripper-transforms :cup '(:left :right) :back
   :grasp-translation `(,*cup-grasp-xy-offset* 0.0d0 ,*cup-grasp-z-offset*)
   :grasp-rot-matrix *back-grasp-rotation*
+  :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-offsets *lift-offset*
+  :2nd-lift-offsets *lift-offset*)
+
+;; FRONT grasp
+(def-object-type-to-gripper-transforms :cup '(:left :right) :front
+  :grasp-translation `(,*cup-grasp-xy-offset* 0.0d0 ,*cup-grasp-z-offset*)
+  :grasp-rot-matrix *front-grasp-rotation*
   :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
