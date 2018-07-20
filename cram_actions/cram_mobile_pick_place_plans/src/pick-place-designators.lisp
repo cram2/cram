@@ -92,7 +92,7 @@
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
         (and (lisp-fun obj-int:get-object-type-grasps
-                       ?object-type ?facing-robot-face ?bottom-face ?rotatiationally-symmetric
+                       ?object-type ?facing-robot-face ?bottom-face ?rotatiationally-symmetric ?arm
                        ?grasps)
              (member ?grasp ?grasps)))
     (lisp-fun obj-int:get-object-type-gripping-effort ?object-type ?effort)
