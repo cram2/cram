@@ -192,6 +192,7 @@
             parameter-lists-only-poses))
          (best-parameters
            (nth best-parameter-list-index parameter-lists)))
+    (format t "~%BEST PARAMETERS CHOSEN: ~A~%~%" best-parameters)
     best-parameters))
 
 (defmacro with-projected-task-tree (designators number-of-runs cost-function &body body)
@@ -214,7 +215,13 @@
                                   (:tag ,task-variable
                                     (btr::restore-world-state world-state world)
                                     (cram-bullet-reasoning-belief-state::set-tf-from-bullet)
-                                    ,@body)
+                                    (cpl:with-failure-handling
+                                        ((cpl:plan-failure (e)
+                                           (roslisp:ros-warn
+                                            (pr2-proj-reason proj-prediction)
+                                            "PROJECTION RUN HAD A FAILURE...~%~a~%" e)
+                                           (return)))
+                                      ,@body))
                                   (push (cpl:task-path ,task-variable) ,paths))))))
               (btr::restore-world-state world-state world)))
            (destructuring-bind ,designators

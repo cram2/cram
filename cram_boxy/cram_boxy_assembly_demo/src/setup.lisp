@@ -57,16 +57,16 @@
               (error "[setup-bullet-world] cram-tf:*robot-base-frame* was undefined or smt.")))
     ;; get rid of Boxy's camera obstacle thing, it's bad for visibility reasoning
     ;; it's an annoying hack anyway...
-    (setf (slot-value
-           (gethash "neck_obstacle"
-                    (cl-urdf:links cram-boxy-assembly-demo::*robot-urdf*))
-           'cl-urdf:collision)
-          NIL)
-    (setf (slot-value
-           (gethash "neck_look_target"
-                    (cl-urdf:links cram-boxy-assembly-demo::*robot-urdf*))
-           'cl-urdf:collision)
-          NIL)
+    ;; (setf (slot-value
+    ;;        (gethash "neck_obstacle"
+    ;;                 (cl-urdf:links cram-boxy-assembly-demo::*robot-urdf*))
+    ;;        'cl-urdf:collision)
+    ;;       NIL)
+    ;; (setf (slot-value
+    ;;        (gethash "neck_look_target"
+    ;;                 (cl-urdf:links cram-boxy-assembly-demo::*robot-urdf*))
+    ;;        'cl-urdf:collision)
+    ;;       NIL)
 
     (assert
      (cut:force-ll
@@ -75,9 +75,12 @@
                 (btr:debug-window ?w)
                 (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
                                                          :normal (0 0 1) :constant 0))
-                (btr:assert ?w (btr:object :semantic-map :kitchen ((0 0 0) (0 0 0 1))
+                (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
+                                           :collision-group :static-filter
+                                           :collision-mask (:default-filter :character-filter)
                                            ,@(when kitchen
-                                               `(:urdf ,kitchen))))
+                                               `(:urdf ,kitchen))
+                                           :compound T))
                 (-> (cram-robot-interfaces:robot ?robot)
                     (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))
                     (warn "ROBOT was not defined. Have you loaded a robot package?")))))))
@@ -85,7 +88,9 @@
   (let ((robot-object (btr:get-robot-object)))
     (if robot-object
         (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
-        (warn "ROBOT was not defined. Have you loaded a robot package?"))))
+        (warn "ROBOT was not defined. Have you loaded a robot package?")))
+
+  (btr-utils:move-robot '((-2.3 1.5 0) (0 0 0 1))))
 
 (defun init-projection ()
   (def-fact-group costmap-metadata ()
@@ -98,8 +103,6 @@
     (<- (location-costmap:costmap-in-reach-distance 0.7))
     (<- (location-costmap:costmap-reach-minimal-distance 0.2))
     (<- (location-costmap:visibility-costmap-size 2.5)))
-
-  (sem-map:get-semantic-map)
 
   (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
@@ -115,9 +118,3 @@
   (btr:add-objects-to-mesh-list "assembly_models" :directory "battat/convention" :extension "stl"))
 
 (roslisp-utilities:register-ros-init-function init-projection)
-
-(defmethod location-costmap:on-visualize-costmap opengl ((map location-costmap:location-costmap))
-  (btr:add-costmap-function-object map))
-
-(defmethod location-costmap:on-visualize-costmap-sample opengl ((point cl-transforms:3d-vector))
-  (btr:add-costmap-sample-object point))

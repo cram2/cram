@@ -187,6 +187,32 @@
                          spawning-poses)))
     objects))
 
+#+examples
+(
+ (boxy-proj:with-projected-robot
+    (cram-executive:perform
+     (desig:an action
+               (type detecting)
+               (object (desig:an object (type chassis))))))
+
+ (boxy-proj:with-simulated-robot
+  (exe:perform
+   (desig:an action
+            (type opening)
+            (gripper left))))
+
+ (boxy-proj:with-projected-robot
+    (cram-executive:perform
+     (desig:an action
+               (type placing)
+               (arm left))))
+ )
+
+
+
+
+
+
 
 #+everything-below-is-pr2-s-stuff-so-need-new-things-for-boxy
 (

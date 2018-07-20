@@ -88,6 +88,22 @@
                      :type (roslisp:symbol-code 'shape_msgs-msg:solidprimitive :box)
                      :dimensions (map 'vector #'identity dimensions)))
       :pose (cl-transforms-stamped:to-msg pose)))
+    (:add-kitchen
+     (roslisp:make-request
+      'giskard_msgs-srv:updateworld
+      :operation (roslisp:symbol-code
+                  'giskard_msgs-srv:updateworld-request
+                  :add)
+      :rigidly_attached nil
+      :body (roslisp:make-msg
+             'giskard_msgs-msg:worldbody
+             :type (roslisp:symbol-code
+                    'giskard_msgs-msg:worldbody
+                    :urdf_body)
+             :name name
+             :urdf (roslisp:get-param cram-bullet-reasoning-belief-state::*kitchen-parameter* nil)
+             :joint_state_topic "kitchen/joint_states")
+      :pose (cl-transforms-stamped:to-msg pose)))
     (:kill
      (roslisp:make-request
       'giskard_msgs-srv:updateworld
@@ -95,6 +111,12 @@
                   'giskard_msgs-srv:updateworld-request
                   :remove)
       :body (roslisp:make-msg 'giskard_msgs-msg:worldbody :name name)))
+    (:kill-all
+     (roslisp:make-request
+      'giskard_msgs-srv:updateworld
+      :operation (roslisp:symbol-code
+                  'giskard_msgs-srv:updateworld-request
+                  :remove_all)))
     (:attached
      (roslisp:make-request
       'giskard_msgs-srv:updateworld
@@ -147,10 +169,6 @@
 
   ;; (multiple-value-bind (key-value-pairs-list quantifier)
   ;;     (ensure-robosherlock-input-parameters keyword-key-value-pairs-list quantifier)
-
-
-  (format t "CALLING SERVICE WITH ~A ~A ~A ~a~%~%" add-or-kill-or-attached name pose dimensions)
-
   (roslisp:with-fields (giskard_msgs-srv:error_msg)
         (cpl:with-failure-handling
             (((or simple-error roslisp:service-call-error) (e)
