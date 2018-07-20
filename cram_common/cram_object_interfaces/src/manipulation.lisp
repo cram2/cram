@@ -329,9 +329,9 @@ Gripper is defined by a convention where Z is pointing towards the object."))
       (calculate-vector-face robot-grasp-vector))))
 
 (defgeneric get-object-type-grasps (object-type facing-robot-face bottom-face
-                                    rotationally-symmetric-p)
+                                    rotationally-symmetric-p arm)
   (:documentation "Returns a lazy list of all possible grasps for `object-type'")
-  (:method (object-type facing-robot-face bottom-face rotationally-symmetric-p)
+  (:method (object-type facing-robot-face bottom-face rotationally-symmetric-p arm)
     ;; (cut:lazy-list ((i 0))
     ;;   (when (< i 10) (cut:cont i (1+ i))))
     (cut:lazy-mapcar
