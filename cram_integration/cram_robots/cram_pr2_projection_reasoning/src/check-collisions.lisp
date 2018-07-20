@@ -160,8 +160,7 @@ Store found pose into designator or throw error if good pose not found."
                                                        "Robot is in collision with environment.")
                                      (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
                                      (btr::restore-world-state world-state world)
-                                     ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
-                                     ))
+                                     (cpl:fail 'common-fail:manipulation-goal-in-collision)))
                                  left-poses
                                  right-poses)))))))))
       (btr::restore-world-state world-state world))))
@@ -192,9 +191,10 @@ Store found pose into designator or throw error if good pose not found."
              (destructuring-bind (_action object-designator arm
                                   left-reach-poses right-reach-poses
                                   left-put-poses right-put-poses
-                                  left-retract-poses right-retract-poses)
+                                  left-retract-poses right-retract-poses
+                                  _placing-location)
                  placing-action-referenced
-               (declare (ignore _action))
+               (declare (ignore _action _placing-location))
 
                (pr2-proj::gripper-action :open arm)
 
@@ -266,6 +266,7 @@ Store found pose into designator or throw error if good pose not found."
            (let ((action-referenced (desig:reference action-desig)))
              (destructuring-bind (action arm _gripper-opening distance
                                   left-reach-poses right-reach-poses
+                                  left-grasp-poses right-grasp-poses
                                   left-pull-push-poses right-pull-push-poses
                                   left-retract-poses right-retract-poses
                                   joint-name _environment-object)
@@ -278,9 +279,11 @@ Store found pose into designator or throw error if good pose not found."
                                  "Trying to open joint ~a with arm ~a~%"
                                  joint-name arm)
                (let ((left-poses-list-of-lists
-                       (list left-reach-poses left-pull-push-poses left-retract-poses))
+                       (list left-reach-poses left-grasp-poses
+                             left-pull-push-poses left-retract-poses))
                      (right-poses-list-of-lists
-                       (list right-reach-poses right-pull-push-poses right-retract-poses)))
+                       (list right-reach-poses right-grasp-poses
+                             right-pull-push-poses right-retract-poses)))
                  (multiple-value-bind (left-poses right-poses)
                      (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
                                                           right-poses-list-of-lists)
@@ -291,7 +294,6 @@ Store found pose into designator or throw error if good pose not found."
                            left-poses
                            right-poses)
                    (when (eq (desig:desig-prop-value action-desig :type) :opening)
-                     (format t "~%~%CHECKING COLLISIONS~%~%")
                      (when (btr:robot-colliding-objects-without-attached)
                        (roslisp:ros-warn (coll-check environment)
                                          "Robot is in collision with environment.")

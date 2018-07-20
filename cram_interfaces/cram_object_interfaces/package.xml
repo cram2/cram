@@ -19,4 +19,5 @@
   <depend>cram_tf</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cram_robot_interfaces</depend>
+  <depend>cram_utilities</depend>
 </package>

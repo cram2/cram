@@ -31,6 +31,7 @@
 
 (defun open-container (?arm ?gripper-opening distance
                        ?left-reach-poses ?right-reach-poses
+                       ?left-grasp-poses ?right-grasp-poses
                        ?left-lift-pose ?right-lift-pose
                        ?left-2nd-lift-pose ?right-2nd-lift-pose
                        &optional
@@ -49,12 +50,25 @@
            (roslisp:ros-warn (env-plans open)
                              "Manipulation messed up: ~a~%Ignoring."
                              e)
-           (return)))
+           ;; (return)
+           ))
       (exe:perform
        (desig:an action
                  (type reaching)
                  (left-poses ?left-reach-poses)
                  (right-poses ?right-reach-poses)))))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (env-plans open)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         ;; (return)
+         ))
+    (exe:perform
+     (desig:an action
+               (type grasping)
+               (left-poses ?left-grasp-poses)
+               (right-poses ?right-grasp-poses))))
   (roslisp:ros-info (environment-manipulation open-container) "Gripping")
   (exe:perform
    (desig:an action
@@ -108,6 +122,7 @@
 
 (defun close-container (?arm ?gripper-opening distance
                         ?left-reach-poses ?right-reach-poses
+                        ?left-grasp-poses ?right-grasp-poses
                         ?left-lift-pose ?right-lift-pose
                         ?left-2nd-lift-pose ?right-2nd-lift-pose
                         &optional
@@ -124,12 +139,25 @@
          (roslisp:ros-warn (env-plans open)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         (return)))
+         ;; (return)
+         ))
     (exe:perform
      (desig:an action
                (type reaching)
                (left-poses ?left-reach-poses)
                (right-poses ?right-reach-poses))))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (env-plans open)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         ;; (return)
+         ))
+    (exe:perform
+     (desig:an action
+               (type grasping)
+               (left-poses ?left-grasp-poses)
+               (right-poses ?right-grasp-poses))))
   ;; (roslisp:ros-info (environment-manipulation close-container) "Gripping")
   ;; (exe:perform
   ;;  (desig:an action

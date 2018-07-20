@@ -83,13 +83,20 @@
         (true)
         (and (cram-robot-interfaces:robot ?robot)
              (cram-robot-interfaces:arm ?robot ?arm)))
+    (lisp-fun obj-int:get-object-transform ?current-object-desig ?object-transform)
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
+    (lisp-fun obj-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
+    (-> (obj-int:object-rotationally-symmetric ?object-type)
+        (equal ?rotationally-symmetric t)
+        (equal ?rotationally-symmetric nil))
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (obj-int:object-type-grasp ?object-type ?grasp))
+        (and (lisp-fun obj-int:get-object-type-grasps
+                       ?object-type ?facing-robot-face ?bottom-face ?rotatiationally-symmetric
+                       ?grasps)
+             (member ?grasp ?grasps)))
     (lisp-fun obj-int:get-object-type-gripping-effort ?object-type ?effort)
     (lisp-fun obj-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
-    (lisp-fun cram-object-interfaces:get-object-transform ?current-object-desig ?object-transform)
     (lisp-fun obj-int:get-object-grasping-poses
               ?object-name ?object-type :left ?grasp ?object-transform
               ?left-poses)
@@ -104,7 +111,8 @@
   (<- (desig:action-grounding ?action-designator (place ?current-object-designator ?arm
                                                         ?left-reach-poses ?right-reach-poses
                                                         ?left-put-poses ?right-put-poses
-                                                        ?left-retract-poses ?right-retract-poses))
+                                                        ?left-retract-poses ?right-retract-poses
+                                                        ?location))
     (spec:property ?action-designator (:type :placing))
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
@@ -137,8 +145,9 @@
              (lisp-fun roslisp-utilities:rosify-underscores-lisp-name ?object-name ?tf-name)
              (lisp-fun cram-tf:pose-stamped->transform-stamped ?target-pose-in-base ?tf-name
                        ?target-transform))
-        (lisp-fun cram-object-interfaces:get-object-transform
-                  ?current-object-designator ?target-transform))
+        (and (lisp-fun obj-int:get-object-transform ?current-object-designator ?target-transform)
+             (lisp-fun obj-int:get-object-pose ?current-object-designator ?target-pose)
+             (desig:designator :location ((:pose ?target-pose)) ?location)))
     (lisp-fun obj-int:get-object-grasping-poses
               ?object-name ?object-type :left ?grasp ?target-transform
               ?left-poses)

@@ -124,7 +124,8 @@ the `look-pose-stamped'."
         (cpl:with-failure-handling
             (((or common-fail:navigation-goal-in-collision
                   common-fail:environment-unreachable
-                  common-fail:gripper-low-level-failure) (e)
+                  common-fail:gripper-low-level-failure
+                  common-fail:manipulation-low-level-failure) (e)
                (roslisp:ros-warn (fd-plans environment) "~a" e)
                (cpl:do-retry relocation-retries
                  (setf ?manipulate-robot-location (desig:next-solution ?manipulate-robot-location))
@@ -176,7 +177,7 @@ the `look-pose-stamped'."
 
 
 (cpl:def-cram-function search-for-object (?object-designator ?search-location
-                                                             &optional (retries 4))
+                                                             &optional (retries 9))
   "Searches for `?object-designator' in its likely location `?search-location'."
 
   (cpl:with-failure-handling
@@ -251,7 +252,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
             (((or common-fail:navigation-goal-in-collision
                   common-fail:looking-high-level-failure
                   common-fail:perception-low-level-failure
-                  common-fail:object-unreachable) (e)
+                  common-fail:object-unreachable
+                  common-fail:manipulation-low-level-failure) (e)
                (roslisp:ros-warn (fd-plans fetch)
                                  "Object of type ~a is unreachable: ~a"
                                  (desig:desig-prop-value ?object-designator :type) e)
@@ -299,6 +301,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                               (destructuring-bind (_action _object-designator ?arm
                                                    _gripper-opening _effort ?grasp
                                                    _left-reach-poses _right-reach-poses
+                                                   _left-grasp-poses _right-grasp-poses
                                                    _left-lift-poses _right-lift-poses)
                                   (desig:reference pick-up-action)
                                 (desig:an action
@@ -361,10 +364,11 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                                   (pose ?pose-at-target-location)))))))
 
             ;; take a new `?target-robot-location' sample if a failure happens
-            (cpl:with-retry-counters ((relocation-for-ik-retries 5))
+            (cpl:with-retry-counters ((relocation-for-ik-retries 2))
               (cpl:with-failure-handling
                   (((or common-fail:navigation-goal-in-collision
-                        common-fail:object-undeliverable) (e)
+                        common-fail:object-undeliverable
+                        common-fail:manipulation-low-level-failure) (e)
                      (roslisp:ros-warn (fd-plans deliver)
                                        "Object is undeliverable from current base location.~%~a" e)
                      (cpl:do-retry relocation-for-ik-retries
@@ -386,7 +390,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                        (location ?target-robot-location)))
 
                 ;; take a new `?target-location' sample if a failure happens
-                (cpl:with-retry-counters ((target-location-retries 5))
+                (cpl:with-retry-counters ((target-location-retries 2))
                   (cpl:with-failure-handling
                       (((or common-fail:looking-high-level-failure
                             common-fail:object-unreachable) (e)
@@ -437,14 +441,22 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                              bTt))
 
                       (let ((place-action
-                              (or
-                               ;; TODO: maybe pass the placing action as well?
-                               ;; place-action
-                               (desig:an action
-                                         (type placing)
-                                         (object ?object-designator)
-                                         (target (desig:a location
-                                                          (pose ?pose-at-target-loc-in-base)))))))
+                              (or (when place-action
+                                    (destructuring-bind (_action _object-designator ?arm
+                                                         _left-reach-poses _right-reach-poses
+                                                         _left-put-poses _right-put-poses
+                                                         _left-lift-poses _right-lift-poses
+                                                         ?target-location)
+                                        (desig:reference place-action)
+                                      (desig:an action
+                                                (type placing)
+                                                (object ?object-designator)
+                                                (target ?target-location))))
+                                  (desig:an action
+                                            (type placing)
+                                            (object ?object-designator)
+                                            (target (desig:a location
+                                                             (pose ?pose-at-target-loc-in-base)))))))
 
                         (setf place-action (desig:current-desig place-action))
                         (pr2-proj-reasoning:check-placing-collisions place-action)
@@ -476,7 +488,10 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                  (type going)
                  (target (desig:a location
                                   (pose ?map-in-front-of-sink-pose))))))
-    (cpl:with-failure-handling ()
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (declare (ignore e))
+           (return)))
       (exe:perform
        (desig:an action
                  (type placing)
@@ -513,7 +528,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
       (pr2-proj-reasoning:with-projected-task-tree
           (?fetch-robot-location ?fetch-pick-up-action
                                  ?deliver-robot-location ?deliver-place-action)
-          2
+          3
           #'pr2-proj-reasoning:pick-best-parameters-by-distance
 
         (let ((?fetched-object

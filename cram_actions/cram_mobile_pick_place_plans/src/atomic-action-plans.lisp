@@ -110,7 +110,9 @@
                           (desig:when ?left-pose
                             (left-target (desig:a location (pose ?left-pose))))
                           (desig:when ?right-pose
-                            (right-target (desig:a location (pose ?right-pose))))))
+                            (right-target (desig:a location (pose ?right-pose))))
+                          (desig:when ?collision-mode
+                            (collision-mode ?collision-mode))))
 
                 (cram-occasions-events:on-event
                  (make-instance 'cram-plan-occasions-events:robot-state-changed))))

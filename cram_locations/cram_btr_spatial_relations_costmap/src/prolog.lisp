@@ -28,11 +28,14 @@
 
 (in-package :btr-spatial-cm)
 
+(defmethod costmap:costmap-generator-name->score ((name (eql 'environment-free-space))) 4)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'supporting-object))) 9)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'slot-generator))) 6)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'collision))) 10)
-(defmethod costmap:costmap-generator-name->score ((name (eql 'side-generator))) 5)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'on-bounding-box))) 5)
+
+(defclass side-generator () ())
+(defmethod costmap:costmap-generator-name->score ((name side-generator)) 5)
 
 (defclass range-generator () ())
 (defmethod costmap:costmap-generator-name->score ((name range-generator)) 2)
@@ -127,7 +130,28 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group spatial-relations-costmap (costmap:desig-costmap)
-;;;;;;;;;; NEAR and FAR-FROM for bullet objects or locations ;;;;;;;;;;;
+  ;;;;;;;;;; REACHABILITY AND VISIBILITY LOCATION padded from environment ;;;;;;
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (or (cram-robot-interfaces:visibility-designator ?designator)
+        (cram-robot-interfaces:reachability-designator ?designator))
+    (costmap:costmap ?costmap)
+    (btr:bullet-world ?world)
+    (btr:%object ?world :kitchen ?kitchen-object)
+    (lisp-fun btr:rigid-bodies ?kitchen-object ?rigid-bodies)
+    (costmap:costmap-padding ?padding)
+    (costmap:costmap-add-function
+     environment-free-space
+     (make-aabbs-costmap-generator
+      ?rigid-bodies :invert t :padding ?padding)
+     ?costmap)
+    ;; Locations to see and to reach are on the floor, so we can use a
+    ;; constant height of 0
+    (costmap:costmap-add-cached-height-generator
+     (costmap:make-constant-height-function 0.0)
+     ?costmap))
+
+
+  ;;;;;;;;; NEAR and FAR-FROM for bullet objects or locations ;;;;;;;;;;;
   (<- (near-or-far-costmap ?ref-obj-pose ?min-radius ?max-radius ?costmap)
     (instance-of range-generator ?range-generator-id-1)
     (costmap:costmap-add-function
@@ -433,10 +457,20 @@
     (btr:%object ?world ?environment-name ?environment-object)
     (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?environment-link)
     (lisp-pred identity ?environment-link)
+    (lisp-fun btr:pose ?environment-link ?object-pose)
     (relation-axis-and-pred ?relation :in-front-of ?axis ?sign)
+    (instance-of side-generator ?side-generator-id)
     (costmap:costmap-add-function
-     side-generator
+     ?side-generator-id
      (make-side-costmap-generator ?environment-link ?axis ?sign)
-     ?costmap))
-
-)
+     ?costmap)
+    (-> (or (and (desig:desig-prop ?designator (:range ?range))
+                 (equal ?invert nil))
+            (and (desig:desig-prop ?designator (:range-invert ?range))
+                 (equal ?invert t)))
+        (and (instance-of range-generator ?range-generator-id)
+             (costmap:costmap-add-function
+              ?range-generator-id
+              (costmap:make-range-cost-function ?object-pose ?range :invert ?invert)
+              ?costmap))
+        (true))))
