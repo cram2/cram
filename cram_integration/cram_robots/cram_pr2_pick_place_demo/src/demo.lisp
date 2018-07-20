@@ -278,6 +278,9 @@
     (btr:detach-all-objects (btr:get-robot-object))
     (btr-utils:kill-all-objects)
 
+    (setf cram-pr2-projection::*ik-solution-cache*
+          (make-hash-table :test 'cram-pr2-projection::arm-poses-equal-accurate))
+
     (when debug-mode
       (btr-utils:spawn-object 'red-dot
                               :pancake-maker
@@ -286,7 +289,9 @@
       (btr-utils:spawn-object 'green-dot
                               :pancake-maker
                               :color '(0 1 0 0.5)
-                              :pose '((0.0 0.0 -1.0) (0 0 0 1))))
+                              :pose '((0.0 0.0 -1.0) (0 0 0 1)))
+      (setf pr2-proj::*debug-long-sleep-duration* 0.5)
+      (setf pr2-proj::*debug-short-sleep-duration* 0.1))
 
     (unwind-protect
          (dolist (?object-type '(:bowl :spoon :cup :milk :breakfast-cereal))
@@ -357,7 +362,7 @@
                                           (pick-up-action-designator
                                             (desig:an action
                                                       (type picking-up)
-                                                      ;; (arm left)
+                                                      (arm left)
                                                       (object ?object-designator))))
                                      (pr2-proj-reasoning:check-picking-up-collisions
                                       pick-up-action-designator)
@@ -367,8 +372,9 @@
                                      (btr:detach-object (btr:get-robot-object) btr-object))))))))))))
              (btr:remove-object btr:*current-bullet-world* 'object-to-grasp)))
 
-      (btr:remove-object btr:*current-bullet-world* 'object-to-grasp))
-
-    (when debug-mode
-      (btr-utils:kill-object 'red-dot)
-      (btr-utils:kill-object 'green-dot))))
+      (btr:remove-object btr:*current-bullet-world* 'object-to-grasp)
+      (when debug-mode
+        (btr-utils:kill-object 'red-dot)
+        (btr-utils:kill-object 'green-dot)
+        (setf pr2-proj::*debug-long-sleep-duration* 0.5)
+        (setf pr2-proj::*debug-short-sleep-duration* 0.1)))))
