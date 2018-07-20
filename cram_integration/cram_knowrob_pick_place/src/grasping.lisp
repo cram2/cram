@@ -237,10 +237,10 @@
 
 ;; FRONT grasp
 (def-object-type-to-gripper-transforms :cup '(:left :right) :front
-  :grasp-translation `(,*cup-grasp-xy-offset* 0.0d0 ,*cup-grasp-z-offset*)
+  :grasp-translation `(,(- *cup-grasp-xy-offset*) 0.0d0 ,*cup-grasp-z-offset*)
   :grasp-rot-matrix *front-grasp-rotation*
-  :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
+  :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 
@@ -277,7 +277,7 @@
 
 ;; FRONT grasp
 (def-object-type-to-gripper-transforms :milk '(:left :right) :front
-  :grasp-translation `(,*milk-grasp-xy-offset* 0.0d0 ,*milk-grasp-z-offset*)
+  :grasp-translation `(,(- *milk-grasp-xy-offset*) 0.0d0 ,*milk-grasp-z-offset*)
   :grasp-rot-matrix *front-grasp-rotation*
   :pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 0.0)
@@ -287,7 +287,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *cereal-grasp-z-offset* 0.04 "in meters")
-(defparameter *cereal-grasp-xy-offset* -0.03 "in meters")
+(defparameter *cereal-grasp-xy-offset* 0.03 "in meters")
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 
 ;; TOP grasp
@@ -301,7 +301,7 @@
 
 ;; BACK grasp
 (def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :back
-  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix *back-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
@@ -310,7 +310,7 @@
 
 ;; FRONT grasp
 (def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :front
-  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix *front-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
