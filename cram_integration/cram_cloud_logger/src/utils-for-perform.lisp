@@ -34,7 +34,9 @@
 (defparameter *action-siblings* (make-hash-table))
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
-  (if (and *is-logging-enabled* (not (string-equal (get-designator-property-value-str designator :TYPE) "grasping")))
+  (if *is-logging-enabled*
+      ;;This hack was needed for the milestone 2018
+      ;;(if (and *is-logging-enabled* (not (string-equal (get-designator-property-value-str designator :TYPE) "grasping")))
       (let ((action-id (log-perform-call designator))
             (is-parent-action nil)
             (cram-action-name (get-designator-property-value-str designator :TYPE)))
@@ -103,7 +105,9 @@
 
 (defun log-cram-sub-action (parent-id child-id child-knowrob-action-name)
   (if parent-id
-      (if (is-motion child-knowrob-action-name)
+      ;;Motion is hacked currently, we need a cleaner implementiaon
+      ;;(if (is-motion child-knowrob-action-name)
+      (if nil
           (progn
             (send-cram-set-submotion
              (convert-to-prolog-str parent-id)
@@ -152,11 +156,13 @@
       (setf (gethash parent-id *action-siblings*) (cpl:make-fluent :name parent-id :value (cons child-id '()))))))
 
 (defun log-cram-prev-action (current-id previous-id current-knowrob-name)
-  (if (is-motion current-knowrob-name)
+  ;;(if (is-motion current-knowrob-name)
+  (if nil
       (send-cram-previous-motion (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id))
       (send-cram-previous-action (convert-to-prolog-str current-id) (convert-to-prolog-str previous-id))))
 
 (defun log-cram-next-action (current-id next-id current-knowrob-name)
-  (if (is-motion current-knowrob-name)
+  ;;(if (is-motion current-knowrob-name)
+  (if nil
       (send-cram-next-motion (convert-to-prolog-str current-id) (convert-to-prolog-str next-id))
       (send-cram-next-action (convert-to-prolog-str current-id) (convert-to-prolog-str next-id))))
