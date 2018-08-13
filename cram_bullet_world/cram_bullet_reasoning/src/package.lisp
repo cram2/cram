@@ -96,6 +96,7 @@
            drawable-list-drawables make-drawable-list
            ;; robot-model-utils
            #:get-robot-object #:get-robot-name
+           #:get-environment-object
            #:robot-colliding-objects-without-attached
            ;; temporal-reasoning
            event make-event timeline timeline-init timeline-advance
