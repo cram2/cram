@@ -76,6 +76,7 @@
       (ccl::reset-logged-owl))
 
   (btr:detach-all-objects (btr:get-robot-object))
+  (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
   (btr-utils:kill-all-objects)
   (setf (btr:joint-state (btr:object btr:*current-bullet-world* :kitchen)
                          "sink_area_left_upper_drawer_main_joint")
@@ -83,25 +84,24 @@
   (btr-belief::publish-environment-joint-state
    (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
 
-  (unless proj:*projection-environment*
-    (json-prolog:prolog-simple "rdf_retractall(A,B,C,belief_state).")
-    (btr-belief::call-giskard-environment-service :kill-all "attached")
-    (cram-bullet-reasoning-belief-state::call-giskard-environment-service
-     :add-kitchen
-     "kitchen"
-     (cl-transforms-stamped:make-pose-stamped
-      "map"
-      0.0
-      (cl-transforms:make-identity-vector)
-      (cl-transforms:make-identity-rotation))))
-
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
-  (when (eql cram-projection:*projection-environment*
-             'cram-pr2-projection::pr2-bullet-projection-environment)
-    (if random
-        (spawn-objects-on-sink-counter-randomly)
-        (spawn-objects-on-sink-counter)))
+  (cond ((eql cram-projection:*projection-environment*
+              'cram-pr2-projection::pr2-bullet-projection-environment)
+         (if random
+             (spawn-objects-on-sink-counter-randomly)
+             (spawn-objects-on-sink-counter)))
+        (t
+         (json-prolog:prolog-simple "rdf_retractall(A,B,C,belief_state).")
+         (btr-belief::call-giskard-environment-service :kill-all "attached")
+         (cram-bullet-reasoning-belief-state::call-giskard-environment-service
+          :add-kitchen
+          "kitchen"
+          (cl-transforms-stamped:make-pose-stamped
+           "map"
+           0.0
+           (cl-transforms:make-identity-vector)
+           (cl-transforms:make-identity-rotation)))))
 
   ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
 
