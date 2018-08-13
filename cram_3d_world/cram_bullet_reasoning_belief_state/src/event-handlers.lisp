@@ -30,6 +30,7 @@
 
 (defmethod cram-occasions-events:on-event btr-attach-object ((event cpoe:object-attached))
   (let* ((robot-object (btr:get-robot-object))
+         (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
          (btr-object-name-string (symbol-name btr-object-name))
          (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
@@ -40,6 +41,10 @@
                             (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
                                                                      ?ee-link)))))))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
+    ;; first detach from environment in case it is attached
+    (when (btr:object-attached environment-object btr-object)
+      (btr:detach-object environment-object btr-object))
+    ;; now attach to the robot-object
     (when btr-object
       (if (btr:object-attached robot-object btr-object)
           (btr:attach-object robot-object btr-object link :loose t)
