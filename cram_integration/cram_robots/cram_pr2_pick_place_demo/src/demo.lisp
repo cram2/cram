@@ -74,8 +74,6 @@
       (exe:perform (desig:an action (type opening) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))))
 
-
-
 (cpl:def-cram-function demo-random (&optional
                                     (random t)
                                     (list-of-objects '(:bowl :spoon :cup :milk :breakfast-cereal)))
@@ -154,48 +152,61 @@
                                 (side front)))
             (:milk . ,(desig:a location
                                (side left)
+                               (side front)
+                               (range 0.5)
                                (on;; in
                                 (desig:an object
                                              (type counter-top)
-                                             (urdf-name iai-fridge-main)
-                                             (owl-name "drawer_fridge_upper_interior")
+                                             (urdf-name sink-area-surface ;; iai-fridge-main
+                                                        )
+                                             (owl-name "kitchen_sink_block_counter_top"
+                                                       ;; "drawer_fridge_upper_interior"
+                                                       )
                                              (part-of kitchen)))))))
         (object-placing-locations
-          `((:breakfast-cereal . ,(desig:a location
-                                           (left-of (an object (type bowl)))
-                                           (far-from (an object (type bowl)))
-                                           (for (an object (type breakfast-cereal)))
-                                           (on (desig:an object
-                                                         (type counter-top)
-                                                         (urdf-name kitchen-island-surface)
-                                                         (owl-name "kitchen_island_counter_top")
-                                                         (part-of kitchen)))
-                                           (side back)))
-            (:cup . ,(desig:a location
-                              (right-of (an object (type bowl)))
-                              ;; (behind (an object (type bowl)))
-                              (near (an object (type bowl)))
-                              (for (an object (type cup)))))
-            (:bowl . ,(desig:a location
-                               (on (desig:an object
-                                             (type counter-top)
-                                             (urdf-name kitchen-island-surface)
-                                             (owl-name "kitchen_island_counter_top")
-                                             (part-of kitchen)))
-                               (context table-setting)
-                               (for (an object (type bowl)))
-                               (object-count 3)
-                               (side back)
-                               (side right)
-                               (range-invert 0.5)))
-            (:spoon . ,(desig:a location
+          (let ((?pose
+                  (cl-transforms-stamped:make-pose-stamped
+                   "map"
+                   0.0
+                   (cl-transforms:make-3d-vector -0.78 0.8 0.95)
+                   (cl-transforms:make-quaternion 0 0 0.6 0.4))))
+            `((:breakfast-cereal . ,(desig:a location
+                                             (pose ?pose)
+                                             ;; (left-of (an object (type bowl)))
+                                             ;; (far-from (an object (type bowl)))
+                                             ;; (for (an object (type breakfast-cereal)))
+                                             ;; (on (desig:an object
+                                             ;;               (type counter-top)
+                                             ;;               (urdf-name kitchen-island-surface)
+                                             ;;               (owl-name "kitchen_island_counter_top")
+                                             ;;               (part-of kitchen)))
+                                             ;; (side back)
+                                             ))
+              (:cup . ,(desig:a location
                                 (right-of (an object (type bowl)))
+                                ;; (behind (an object (type bowl)))
                                 (near (an object (type bowl)))
-                                (for (an object (type spoon)))))
-            (:milk . ,(desig:a location
-                               (left-of (an object (type bowl)))
-                               (far-from (an object (type bowl)))
-                               (for (an object (type milk))))))))
+                                (for (an object (type cup)))))
+              (:bowl . ,(desig:a location
+                                 (on (desig:an object
+                                               (type counter-top)
+                                               (urdf-name kitchen-island-surface)
+                                               (owl-name "kitchen_island_counter_top")
+                                               (part-of kitchen)))
+                                 (context table-setting)
+                                 (for (an object (type bowl)))
+                                 (object-count 3)
+                                 (side back)
+                                 (side right)
+                                 (range-invert 0.5)))
+              (:spoon . ,(desig:a location
+                                  (right-of (an object (type bowl)))
+                                  (near (an object (type bowl)))
+                                  (for (an object (type spoon)))))
+              (:milk . ,(desig:a location
+                                 (left-of (an object (type bowl)))
+                                 (far-from (an object (type bowl)))
+                                 (for (an object (type milk)))))))))
 
     ;; (an object
     ;;     (obj-part "drawer_sinkblock_upper_handle"))
@@ -220,23 +231,17 @@
                          (desig:when ?color
                            (color ?color)))))
 
-        (case ?object-type
-          (:bowl
-           (cpl:with-failure-handling
-               ((common-fail:high-level-failure (e)
-                  (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping the search" e)
-                  (return)))
-             (let ((?loc (cdr (assoc :breakfast-cereal object-fetching-locations))))
-               (exe:perform
-                (desig:an action
-                          (type searching)
-                          (object (desig:an object (type breakfast-cereal)))
-                          (location ?loc))))))
-          (:spoon
-           (pp-plans:park-arms)
-           (break))
-          (:breakfast-cereal
-           (setf pr2-proj-reasoning::*projection-reasoning-enabled* t)))
+        (when (eq ?object-type :bowl)
+          (cpl:with-failure-handling
+              ((common-fail:high-level-failure (e)
+                 (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping the search" e)
+                 (return)))
+            (let ((?loc (cdr (assoc :breakfast-cereal object-fetching-locations))))
+              (exe:perform
+               (desig:an action
+                         (type searching)
+                         (object (desig:an object (type breakfast-cereal)))
+                         (location ?loc))))))
 
         (cpl:with-failure-handling
             ((common-fail:high-level-failure (e)
@@ -250,17 +255,26 @@
                          (arm right)
                          (location ?fetching-location)
                          (target ?delivering-location)))
-              (exe:perform
-               (desig:an action
-                         (type transporting)
-                         (object ?object-to-fetch)
-                         ;; (arm ?arm-to-use)
-                         (location ?fetching-location)
-                         (target ?delivering-location)))))
+              (if (eq ?object-type :breakfast-cereal)
+                  (exe:perform
+                   (desig:an action
+                             (type transporting)
+                             (object ?object-to-fetch)
+                             ;; (arm right)
+                             (location ?fetching-location)
+                             (target ?delivering-location)))
+                  (exe:perform
+                   (desig:an action
+                             (type transporting)
+                             (object ?object-to-fetch)
+                             ;; (arm ?arm-to-use)
+                             (location ?fetching-location)
+                             (target ?delivering-location))))))
 
-        (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil))))
+        ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+        )))
 
-  (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+  ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
 
   (initialize-or-finalize)
 
