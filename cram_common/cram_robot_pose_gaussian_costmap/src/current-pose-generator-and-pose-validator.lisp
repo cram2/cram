@@ -68,7 +68,8 @@
 
 (defun reachable-location-validator (designator pose)
   (if (cram-robot-interfaces:reachability-designator-p designator)
-      (cut:with-vars-bound (?to-reach-point ?min-distance ?max-distance)
+      (cut:with-vars-bound (?to-reach-point ?min-distance ?max-distance
+                                            ?orientation-samples ?orientation-sample-step)
           (cut:lazy-car
            (prolog:prolog
             `(and (bagof ?pose
@@ -76,7 +77,9 @@
                          ?poses)
                   (lisp-fun costmap:2d-pose-covariance ?poses 0.5 (?to-reach-point ?_))
                   (costmap:costmap-reach-minimal-distance ?min-distance)
-                  (costmap:costmap-in-reach-distance ?max-distance))))
+                  (costmap:costmap-in-reach-distance ?max-distance)
+                  (costmap:orientation-samples ?orientation-samples)
+                  (costmap:orientation-sample-step ?orientation-sample-step))))
         (if (or (cut:is-var ?to-reach-point)
                 (cut:is-var ?min-distance)
                 (cut:is-var ?max-distance))
@@ -86,8 +89,8 @@
                                   (cl-transforms:x (cl-transforms:origin pose))
                                   (cl-transforms:y (cl-transforms:origin pose))
                                   ?to-reach-point))
-                  (allowed-range (* *orientation-sample-step*
-                                    (ceiling (/ *orientation-samples* 2))))
+                  (allowed-range (* ?orientation-sample-step
+                                    (ceiling (/ ?orientation-samples 2))))
                   (generated-angle (calculate-z-angle pose)))
               (if (and (< dist ?max-distance)
                        (> dist ?min-distance)
@@ -103,7 +106,8 @@
 
 (defun visible-location-validator (designator pose)
   (if (cram-robot-interfaces:visibility-designator-p designator)
-      (cut:with-vars-bound (?to-see-pose ?max-distance)
+      (cut:with-vars-bound (?to-see-pose ?max-distance
+                                         ?orientation-samples ?orientation-sample-step)
           (cut:lazy-car
            (prolog:prolog
             `(and (or (and (or (desig:desig-prop ,designator (:obj ?object))
@@ -113,7 +117,9 @@
                            (btr:object-pose ?world ?object-name ?to-see-pose))
                       (and (desig:desig-prop ,designator (:location ?location))
                            (desig:desig-prop ?location (:pose ?to-see-pose))))
-                  (costmap:visibility-costmap-size ?max-distance))))
+                  (costmap:visibility-costmap-size ?max-distance)
+                  (costmap:orientation-samples ?orientation-samples)
+                  (costmap:orientation-sample-step ?orientation-sample-step))))
         (if (or (cut:is-var ?to-see-pose) (cut:is-var ?max-distance))
             :unknown
             (let ((dist (cl-transforms:v-dist
@@ -123,8 +129,8 @@
                                   (cl-transforms:x (cl-transforms:origin pose))
                                   (cl-transforms:y (cl-transforms:origin pose))
                                   ?to-see-pose))
-                  (allowed-range (* *orientation-sample-step*
-                                    (ceiling (/ *orientation-samples* 2))))
+                  (allowed-range (* ?orientation-sample-step
+                                    (ceiling (/ ?orientation-samples 2))))
                   (generated-angle (calculate-z-angle pose)))
               (if (and (< dist ?max-distance)
                        (<= (abs (- perfect-angle generated-angle)) allowed-range))
