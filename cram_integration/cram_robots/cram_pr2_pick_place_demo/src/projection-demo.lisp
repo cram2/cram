@@ -50,10 +50,10 @@
 
 (defparameter *object-spawning-poses*
   '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
-    (:cup . ((1.35 0.6 0.9) (0 0 0 1)))
+    (:cup . ((1.3 0.6 0.9) (0 0 0 1)))
     (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
     (:spoon . ((1.4 1.0 0.74132) (0 0 1 0)))
-    (:milk . ((1.3 1.0 0.95) (0 0 1 0)))))
+    (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
 
 (defparameter *object-grasping-arms*
   '((:breakfast-cereal . :right)
