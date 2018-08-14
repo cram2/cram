@@ -242,7 +242,7 @@
                (desig:an action
                          (type transporting)
                          (object ?object-to-fetch)
-                         (arm right)
+                         ;; (arm right)
                          (location ?fetching-location)
                          (target ?delivering-location)))
               (if (eq ?object-type :breakfast-cereal)
