@@ -1,6 +1,6 @@
 <package>
   <name>cl_bullet</name>
-  <version>0.6.0</version>
+  <version>0.7.0</version>
   <description>
      cl_bullet: A Common Lisp wrapper of the bullet physics engine
   </description>

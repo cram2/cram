@@ -1,6 +1,6 @@
 <package format="2">
   <name>cram_pr2_environment_manipulation</name>
-  <version>0.6.0</version>
+  <version>0.7.0</version>
   <description>The cram_pr2_environment_manipulation package</description>
   <author>Christopher Pollok</author>
   <maintainer email="cpollok@uni-bremen.de">Christopher Pollok</maintainer>
