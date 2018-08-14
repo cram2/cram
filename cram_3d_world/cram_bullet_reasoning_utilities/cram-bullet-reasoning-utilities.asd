@@ -43,7 +43,7 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "costmap-vis-tools" :depends-on ("package"))
      (:file "objects-database" :depends-on ("package"))
      (:file "objects" :depends-on ("package" "objects-database"))
+     (:file "vis-tools" :depends-on ("package" "objects"))
      (:file "robot" :depends-on ("package"))))))

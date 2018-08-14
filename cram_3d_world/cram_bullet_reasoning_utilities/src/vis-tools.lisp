@@ -47,3 +47,41 @@
    (force-ll (prolog `(and (location-costmap:desig-costmap ,designator ?cm)))))
   (format t "[BTR-UTILS CM] Combined costmap~%")
   (desig:reference designator))
+
+(defun visualize-gripper (pose arm)
+  (let ((tool-frame (ecase arm
+                      (:left cram-tf:*robot-left-tool-frame*)
+                      (:right cram-tf:*robot-right-tool-frame*))))
+    (btr-utils:spawn-object
+     (ecase arm
+       (:left :left-gripper-grasp)
+       (:right :right-gripper-grasp))
+     :gripper
+     :mass 0.0
+     :color (ecase arm
+              (:left '(0 1 0 0.5))
+              (:right '(0 0 1 0.5)))
+     :pose (cl-transforms:transform->pose
+            (cram-tf:multiply-transform-stampeds
+             cram-tf:*fixed-frame*
+             tool-frame
+             (cram-tf:pose-stamped->transform-stamped
+              (cram-tf:robot-current-pose)
+              cram-tf:*robot-base-frame*)
+             (cram-tf:multiply-transform-stampeds
+              cram-tf:*robot-base-frame*
+              tool-frame
+              (cram-tf:pose-stamped->transform-stamped
+               pose
+               tool-frame)
+              (cram-tf:transform-stamped-inv
+               (cl-transforms-stamped:transform->transform-stamped
+                tool-frame
+                tool-frame
+                0.0
+                (cut:var-value
+                 '?transform
+                 (car (prolog:prolog
+                       `(and (cram-robot-interfaces:robot ?robot)
+                             (cram-robot-interfaces:standard-to-particular-gripper-transform
+                              ?robot ?transform)))))))))))))

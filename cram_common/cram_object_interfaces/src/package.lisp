@@ -47,8 +47,11 @@
    #:get-object-type-to-gripper-lift-transform
    #:get-object-type-to-gripper-2nd-lift-transform
    #:def-object-type-to-gripper-transforms
-   #:remove-object-type-to-gripper-transforms
    #:get-object-grasping-poses
+   #:calculate-object-faces
+   #:object-type-grasp->robot-grasp
+   #:robot-grasp->object-type-grasp
+   #:get-object-type-grasps
    #:object-rotationally-symmetric
    #:orientation-matters
    #:object-type-grasp

@@ -35,8 +35,8 @@
   (:nicknames #:btr-utils #:bullet-reasoning-utilities)
   (:shadowing-import-from #:btr object object-pose pose)
   (:export
-   ;; misc.lisp
-   visualize-designator-costmaps
+   ;; vis-tools.lisp
+   #:visualize-designator-costmaps #:visualize-gripper
    ;; object-database.lisp
    scenario-objects-init-pose scenario-objects-default-color scenario-object-color
    scenario-object-shape scenario-object-extra-attributes
@@ -45,6 +45,4 @@
    object-instance object-pose object-exists item-exists
    assert-object-pose assert-object-pose-on
    ;; robot.lisp
-   robot-name move-robot move-robot-away park-robot
-   ;; setup.lisp
-   semantic-map-object-name init start-ros-and-bullet))
+   robot-name move-robot move-robot-away park-robot))
