@@ -8,6 +8,16 @@ v0.7.0
   * [btr-spatial-cm] enabling to combine RANGE and RANGE-INVERT in one desig
 2018-08-13  Gayane Kazhoyan <gayanek@gmail.com>
   * [gaussian-cm] orientation-samples variable is now a prolog predicate
+2018-07-20  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pnp] added ARM as an argument of OBJ-INT:GET-OBJECT-TYPE-GRASPS
+2018-07-19  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-pp-demo] wrote a script for generating training data
+  * [pr2-proj-reason] collision failures are in again for picking
+  * [kr-pnp] started ignoring rotational symmetry, it's buggy
+  * [mobile-pp-plans] using GET-OBJECT-TYPE-GRASPS for picking up actions now
+  * [btr] added ugly gripper cad model
+  * [btr-utils] added VISUALIZE-GRIPPER function
+  * [kr-pnp] SIDE grasp is now LEFT-SIDE + RIGHT-SIDE grasp
 2018-07-17  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
   * [obj-int] implemented functions for discretizing object orientation for learning grasps
   * [obj-int] reimplemented grasping interface: now macros generate defmethods
