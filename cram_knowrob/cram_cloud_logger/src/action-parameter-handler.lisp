@@ -1,27 +1,20 @@
 (in-package :ccl)
 
-(defun log-action-parameter (designator action-id)
-  (mapcar (lambda (key-value-pair)
-            (let ((key (first key-value-pair))
-                  (value (second key-value-pair)))
-             (cond ((eq key :effort)
-                    (send-effort-action-parameter
-                     action-id
-                     (write-to-string value)))
-                   ((eq key :position)
-                    (send-position-action-parameter action-id value))
-                   ((eq key :object)
-                    (send-object-action-parameter action-id value))
-                   ((eq key :arm)
-                    (send-arm-action-parameter action-id value))
-                   ((eq key :gripper)
-                    (send-gripper-action-parameter action-id value))
-                   ((eq key :left-poses)
-                    (send-pose-stamped-list-action-parameter action-id "left" value))
-                   ((eq key :right-poses)
-                    (send-pose-stamped-list-action-parameter action-id "right" value))
-                   ((eq key :location)
-                    (send-location-action-parameter action-id value))
-                   ((eq key :target)
-                    (send-target-action-parameter action-id value)))))
-          (desig:properties designator)))
+
+(define-all-action-designator-parameter-logging-functions)
+
+(defun log-action-designator-parameters-for-logged-action-designator
+    (action-designator-parameters action-designator-logging-id)
+  (mapcar (lambda (action-designator-parameter)
+            (let ((parameter-name (first action-designator-parameter))
+                  (parameter-value (second action-designator-parameter)))
+              (let ((logging-function (get-logging-function-for-action-designator-parameter parameter-name))
+                    (logging-args (list action-designator-logging-id parameter-value)))
+                (execute-logging-function-with-arguments
+                  logging-function logging-args))))
+          action-designator-parameters))
+
+(defun execute-logging-function-with-arguments
+    (logging-parameter-function logging-parameter-function-arguments)
+    (when logging-parameter-function 
+      (apply logging-parameter-function logging-parameter-function-arguments)))
