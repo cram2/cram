@@ -168,6 +168,9 @@ Should it be taken out and made PR2-specific?"
     (unless (is-var ?robot)
       ?robot)))
 
+(defun get-environment-object ()
+  (object *current-bullet-world* :kitchen))
+
 
 (defun robot-colliding-objects-without-attached ()
   (let* ((robot-object (get-robot-object))
