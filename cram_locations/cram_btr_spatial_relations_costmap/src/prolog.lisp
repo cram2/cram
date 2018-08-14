@@ -464,13 +464,17 @@
      ?side-generator-id
      (make-side-costmap-generator ?environment-link ?axis ?sign)
      ?costmap)
-    (-> (or (and (desig:desig-prop ?designator (:range ?range))
-                 (equal ?invert nil))
-            (and (desig:desig-prop ?designator (:range-invert ?range))
-                 (equal ?invert t)))
+    (-> (desig:desig-prop ?designator (:range ?range))
         (and (instance-of range-generator ?range-generator-id)
              (costmap:costmap-add-function
               ?range-generator-id
-              (costmap:make-range-cost-function ?object-pose ?range :invert ?invert)
+              (costmap:make-range-cost-function ?object-pose ?range :invert nil)
+              ?costmap))
+        (true))
+    (-> (desig:desig-prop ?designator (:range-invert ?range-invert))
+        (and (instance-of range-generator ?range-generator-another-id)
+             (costmap:costmap-add-function
+              ?range-generator-another-id
+              (costmap:make-range-cost-function ?object-pose ?range-invert :invert t)
               ?costmap))
         (true))))

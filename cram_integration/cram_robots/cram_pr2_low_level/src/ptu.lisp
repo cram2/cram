@@ -55,7 +55,7 @@
 (defun make-ptu-action-goal (point-stamped)
   (actionlib:make-action-goal
       (get-ptu-action-client)
-    max_velocity 10
+    max_velocity 1
     min_duration 0.3
     pointing_frame "high_def_frame"
     (x pointing_axis) 1.0
