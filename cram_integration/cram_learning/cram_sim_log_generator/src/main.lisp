@@ -9,7 +9,7 @@
   (setf ccl::*cert-path* "'/home/koralewski/Desktop/localhost.pem'")
   (setf ccl::*api-key* "'K103jdr40Rp8UX4egmRf42VbdB1b5PW7qYOOVvTDAoiNG6lcQoaDHONf5KaFcefs'")
   (ccl::connect-to-cloud-logger)
-  (setq roslisp::*debug-stream* nil)
+  ;;(setq roslisp::*debug-stream* nil)
   (loop for x from 1 to num-experiments
         do (let ((experiment-id (format nil "~d" (truncate (* 1000000 (cram-utilities:current-timestamp))))))
              (let ((experiment-save-path
@@ -20,8 +20,9 @@
                (format t "Starting experiment ~a~%" experiment-id)
                (asdf-utils:run-program (concatenate 'string "rosrun mongodb_log mongodb_log -c " experiment-id " &"))
                (unwind-protect
-;;                    (pr2-proj:with-simulated-robot (demo::demo-random nil '(:bowl :spoon)))
-                    (pr2-proj:with-simulated-robot (demo::demo-random))
+                    (pr2-proj:with-simulated-robot (demo::demo-random nil '(:bowl :spoon)))
+;;                    (pr2-proj:with-simulated-robot (demo::demo-random))
+;;                    (demo::generate-training-data)
                  (ccl::export-log-to-owl (concatenate 'string experiment-id ".owl"))
                  (format t "Done with experiment ~a~%" experiment-id)
                  (asdf-utils:run-program (concatenate 'string "docker cp seba:/home/ros/user_data/" experiment-id ".owl " experiment-save-path))
