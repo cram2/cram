@@ -31,7 +31,7 @@
 
 (defparameter *default-z-offset* 0.2 "in meters")
 (defparameter *default-small-z-offset* 0.07 "in meters")
-(defparameter *default-lift-offsets `(0.0 0.0 ,*default-z-offset*))
+(defparameter *default-lift-offsets* `(0.0 0.0 ,*default-z-offset*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -85,10 +85,10 @@
 (def-object-type-to-gripper-transforms :chassis '(:left :right) :top
   :grasp-translation `(0.0 0.0 ,*chassis-grasp-z-offset*)
   :grasp-rot-matrix *top-across-x-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets
-  :2nd-pregrasp-offsets *default-lift-offsets
-  :lift-offsets *default-lift-offsets
-  :2nd-lift-offsets *default-lift-offsets)
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
 
 
 

@@ -49,11 +49,11 @@
    (cl-transforms:make-identity-rotation)))
 
 (defparameter *object-spawning-poses*
-  '((:breakfast-cereal . ((1.34 1.0 0.95) (0 0 1 0)))
-    (:cup . ((1.35 0.6 0.9) (0 0 0 1)))
+  '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
+    (:cup . ((1.3 0.6 0.9) (0 0 0 1)))
     (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
-    (:spoon . ((1.4 0.4 0.85) (0 0 0 1)))
-    (:milk . ((1.3 0.2 0.95) (0 0 1 0)))))
+    (:spoon . ((1.4 1.0 0.74132) (0 0 1 0)))
+    (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
 
 (defparameter *object-grasping-arms*
   '((:breakfast-cereal . :right)
@@ -84,7 +84,11 @@
                            object-types)))
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
-      objects)))
+      objects))
+
+  (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+                     (btr:object btr:*current-bullet-world* :spoon-1)
+                     "sink_area_left_upper_drawer_main"))
 
 (defun spawn-objects-on-sink-counter-randomly ()
   (btr-utils:kill-all-objects)
@@ -103,20 +107,35 @@
                        (new-pose (cram-tf:rotate-pose
                                   (cram-tf:translate-pose
                                    (desig:reference
-                                    (desig:a location
-                                             (side left)
-                                             (on (desig:an object
-                                                           (type counter-top)
-                                                           (urdf-name sink-area-surface)
-                                                           (part-of kitchen)))
-                                             ;; (centered-with-padding 0.1)
-                                             ))
+                                    (if (eq (car (btr::item-types btr-object)) :spoon)
+                                        (desig:a location
+                                                 (side front)
+                                                 (in (desig:an object
+                                                               (type drawer)
+                                                               (urdf-name
+                                                                sink-area-left-upper-drawer-main)
+                                                               (part-of kitchen)))
+                                                 (range 0.2)
+                                                 (range-invert 0.12))
+                                        (desig:a location
+                                                 (side left)
+                                                 (side front)
+                                                 (on (desig:an object
+                                                               (type counter-top)
+                                                               (urdf-name sink-area-surface)
+                                                               (part-of kitchen)))
+                                                 ;; (centered-with-padding 0.1)
+                                                 )))
                                    :z-offset (/ aabb-z 2.0))
                                   :z (/ pi (random 10.0)))))
                   (btr-utils:move-object (btr:name btr-object) new-pose)))
               objects)))
   ;; stabilize world
-  (btr:simulate btr:*current-bullet-world* 100))
+  (btr:simulate btr:*current-bullet-world* 100)
+  ;; attach spoon to drawer
+  (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+                     (btr:object btr:*current-bullet-world* :spoon-1)
+                     "sink_area_left_upper_drawer_main"))
 
 (defun go-to-sink-or-island (&optional (sink-or-island :sink))
   (let ((?navigation-goal (ecase sink-or-island

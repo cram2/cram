@@ -13,7 +13,7 @@ Navigating towards a location for conveniently opening / closing drawer:
           (?container-desig
             (an object
                 (type drawer)
-                (urdf-name sink_area_left_middle_drawer_main)
+                (urdf-name sink-area-left-middle-drawer-main)
                 (part-of kitchen))))
       (exe:perform (an action
                        (type navigating)
@@ -35,7 +35,8 @@ Opening or closing a drawer:
               (arm left)
               (object (an object
                        (type drawer)
-                       (urdf-name sink_area_left_upper_drawer_main)
-                       (part-of kitchen))))))
+                       (urdf-name sink-area-left-upper-drawer-main)
+                       (part-of kitchen)
+                       (distance 0.3))))))
 
 ```

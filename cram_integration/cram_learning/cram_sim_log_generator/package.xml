@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cram_sim_log_generator</name>
-  <version>0.0.0</version>
+  <version>0.7.0</version>
   <description>The cram_sim_log_generator package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
