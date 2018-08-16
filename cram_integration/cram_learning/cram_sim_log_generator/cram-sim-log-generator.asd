@@ -13,4 +13,5 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "main" :depends-on ("package"))))))
+     (:file "main" :depends-on ("package"))
+     (:file "neem-generator" :depends-on ("package"))))))
