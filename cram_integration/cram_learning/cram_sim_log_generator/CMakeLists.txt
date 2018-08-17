@@ -9,6 +9,7 @@ project(cram_sim_log_generator)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   cram_language
+  roslisp
 )
 
 ## System dependencies are found with CMake's conventions
@@ -195,3 +196,5 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_lisp_executable(cram-sim-log-generator cram-sim-log-generator cram-sim-log-generator::generate-neem)
