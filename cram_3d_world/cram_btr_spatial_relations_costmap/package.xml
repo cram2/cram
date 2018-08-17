@@ -1,6 +1,6 @@
 <package>
   <name>cram_btr_spatial_relations_costmap</name>
-  <version>0.6.0</version>
+  <version>0.7.0</version>
   <description>
      Costmaps that use the Bullet World, e.g. spatial relations from AABBs
   </description>

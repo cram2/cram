@@ -1,3 +1,120 @@
+v0.7.0
+
+2018-08-13  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * handling objects attached to kitchen in case of env. manipulation:
+    objects attached to kitchen get detached upon grasping
+    spoon in the demo gets spawned in the drawer and is attached to it
+  * [btr] new function GET-ENVIRONMENT-OBJECT can be used to access kitchen object
+  * [btr-spatial-cm] enabling to combine RANGE and RANGE-INVERT in one desig
+2018-08-13  Gayane Kazhoyan <gayanek@gmail.com>
+  * [gaussian-cm] orientation-samples variable is now a prolog predicate
+2018-07-20  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pnp] added ARM as an argument of OBJ-INT:GET-OBJECT-TYPE-GRASPS
+2018-07-19  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-pp-demo] wrote a script for generating training data
+  * [pr2-proj-reason] collision failures are in again for picking
+  * [kr-pnp] started ignoring rotational symmetry, it's buggy
+  * [mobile-pp-plans] using GET-OBJECT-TYPE-GRASPS for picking up actions now
+  * [btr] added ugly gripper cad model
+  * [btr-utils] added VISUALIZE-GRIPPER function
+  * [kr-pnp] SIDE grasp is now LEFT-SIDE + RIGHT-SIDE grasp
+2018-07-17  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [obj-int] implemented functions for discretizing object orientation for learning grasps
+  * [obj-int] reimplemented grasping interface: now macros generate defmethods
+  * [btr] added Alina's axis object for easier debugging of poses
+  * [boxy-proj] changed from cpp giskard to giskardpy
+2018-07-06  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [rosinstall] added dep on giskard_msgs :(
+  * [rosinstalls] updated iai_maps version and removed knowrob
+2018-06-26  Gayane Kazhoyan <gayanek@gmail.com>
+  * [spatial-cm] SIDE can be used multiple times now, together with RANGE
+2018-06-25  Gayane Kazhoyan <gayanek@gmail.com>
+  * [spatial-cm] for robot base pose CMs always CM with clear space of environment URDF is added
+2018-06-25  Gayane Kazhoyan <gayanek@gmail.com>
+  * [pr2-pp-demo] added knowrob beliefstate reset
+  * [btr-belief] added knowrob belief state event updates
+2018-06-24  Gayane Kazhoyan <gayanek@gmail.com>
+  * VISUALIZE-MARKER moved to CRAM-TF
+  * [3d-world] moved CALCULATE-BB-DIMS from SPATIAL-CM into BTR
+2018-06-22  Gayane Kazhoyan <gayanek@gmail.com>
+  * integrated using giskard collision environment for manipulation
+2018-06-21  Gayane Kazhoyan <gayanek@gmail.com>
+  * differentiating between collision-free and collision-ok movements with Giskard
+  * [btr-belief] publishing joint states of environment on open/close events
+  * [pr2-proj-reason] let giskard take care of placing collisions
+2018-06-21  Sebastian Koralewski <seba@cs.uni-bremen.de>
+  * flatten costmap visualization in RViz
+2018-06-20  Gayane Kazhoyan <gayanek@gmail.com>
+  * [pr2-proj-reason] turned off collision checks when picking: Giskard will take care of that
+  * [pr2-pp-demo] switched to .OBJ kitchen urdf
+  * [rs] updated to new rs interfaces
+2018-06-20  Arthur Niedzwiecki <arthur.niedzwiecki@gmail.com>
+  * Add collision group and mask to prolog predicate to spawn special URDFs:
+    this enables collisions between robot and kitchen, although they are both pure URDF objects
+2018-06-19  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * completely got rid of knowrob dependency for pr2-pp-demo muahahHAHAHAHAHAAHAHAH
+  * [btr] fixed the damn bug with calculating prismatic joint state
+2018-06-18  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * added DISTANCE to environment events and used it
+  * [pr2-fd-plans] failure handling and improvements for environment manip plans
+  * [pr2-proj-reasoning] first projection check for environment manip
+  * [pr2-proj] one can grip items and handles of environment
+  * [common-fail] added environment-related high-level failures
+  * [gauss-cm] added validation function for visibility costmap
+  * [gauss-cm] reduce size of visibility costmap to VISIBILITY-CM-SIZE
+  * [desig] reduced number of validation samples in location designator to 30
+2018-06-14  Gayane Kazhoyan <gayanek@gmail.com>
+  * [fd-plans] if gripper empty, park arms before reperceiving
+2018-06-13  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-ll] switched from old giskard to new giskardpy interface
+2018-06-12  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * cleaned up failure handling thoroughly in manipulation plans
+  * [gauss-cm] added pose validator for reachable location
+  * [exe] designator-reference failures from EXE are now also children of desig:desig-error
+2018-06-11  Arthur Niedzwiecki <arthur.niedzwiecki@gmail.com>
+  * Implemented support for loading compound .obj meshes as btr:compound-mesh object
+2018-06-07  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [spatial-cm] got rid of dependency on semantic map packages
+  * moved deprecated DUMMY_PMS, PLAN_LIB, PROJ_DEMOS into cram_experimental
+  * [pr2-fetch-deliver] added first simple version of environment manipulation plans
+2018-06-06  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [spatial-cm] implemented IN and ON for URDF environment objects
+  * [btr] in URDF object stop attaching everything when doing environment manipulation
+  * [obj-int] added predicate OBJECT-TYPE-SUBTYPE
+2018-06-05  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * CRAM-BTR-COSTMAP -> CRAM-BTR-SPATIAL-RELATIONS-COSTMAP
+  * major revision of CRAM-BTR-DESIGNATORS: reachability got commented out, only visibility left
+2018-05-31  Christopher Pollok <cpollok@uni-bremen.de>
+  * [pr2-em] Adjusted costmaps for drawers to only generate poses to the sides of them.
+    And adjusted the orientation generator, so that the robot aligns itself with the drawer axis.
+2018-05-28  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [cram-pr2] moved deprecated packages into cram_experimental
+2018-05-28  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [btr-utils] added new util function RESPAWN-OBJECT
+2018-05-25  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pp-demo] use the (old) new spatial relations to set the table
+2018-05-23  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * Added tray meshes and grasping poses: manual merge from Arthur's https://github.com/cram2/cram/pull/48
+  * [pr2-descr] DEF-TOOL doesn't exist anymore
+2018-05-21  Christopher Pollok <cpollok@uni-bremen.de>
+  * [pr2-em] Move data management from plans to designator referencing.
+2018-05-18  Christopher Pollok <cpollok@uni-bremen.de>
+  * [location-costmap] Add orientation-samples and orientation-sample-step predicates.
+2018-05-16  Sebastian Koralewski <seba@cs.uni-bremen.de>
+  * [ccl] It is possible to differ if a task was executed in simulation or real world
+2018-05-15  Sebastian Koralewski <seba@cs.uni-bremen.de>
+  * [ccl] Added clear owl file method and support for logging tf
+2018-05-14  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * Simplified a lot grasp definition code
+2018-05-09  Christopher Pollok <cpollok@uni-bremen.de>
+  * [pr2_em] Add orientation generation to drawer costmap.
+2018-04-20  Christopher Pollok <cpollok@uni-bremen.de>
+  * {pr2-em] Add close-container plan.
+2018-04-18  Arthur Niedzwiecki <arthur.niedzwiecki@gmail.com>
+  * [btr-desig] Add variable for visibility threshold, so that setups can be more or less forgiving with occlusion
+2018-04-18  Christopher Pollok <cpollok@uni-bremen.de>
+  * [pr2-em] working on robot performing environment manipulation
+
 v0.6.0
 
 2018-04-10  Gayane Kazhoyan <gayanek@gmail.com>
