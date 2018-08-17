@@ -70,10 +70,10 @@
                                     (random t)
                                     (list-of-objects '(:bowl :spoon :cup :milk :breakfast-cereal)))
 
-  (when ccl::*is-logging-enabled*
-      (setf ccl::*is-client-connected* nil)
-      (ccl::connect-to-cloud-logger)
-      (ccl::reset-logged-owl))
+  ;;(when ccl::*is-logging-enabled*
+  ;;    (setf ccl::*is-client-connected* nil)
+  ;;    (ccl::connect-to-cloud-logger)
+  ;;    (ccl::reset-logged-owl))
 
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
@@ -268,9 +268,9 @@
 
   (initialize-or-finalize)
 
-  (when ccl::*is-logging-enabled*
-    (ccl::export-log-to-owl "ease_milestone_2018.owl")
-    (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
+  ;;(when ccl::*is-logging-enabled*
+  ;;  (ccl::export-log-to-owl "ease_milestone_2018.owl")
+  ;;  (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
 
   cpl:*current-path*)
 
