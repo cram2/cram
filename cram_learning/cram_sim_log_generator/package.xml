@@ -52,6 +52,7 @@
   <build_depend>cram_language</build_depend>
   <build_export_depend>cram_language</build_export_depend>
   <exec_depend>cram_language</exec_depend>
+  <depend>roslisp</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
