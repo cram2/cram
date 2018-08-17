@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>cram_knowrob</name>
-  <version>0.6.0</version>
+  <version>0.7.0</version>
   <description>The cram_knowrob metapackage</description>
 
   <author>Gayane Kazhoyan</author>

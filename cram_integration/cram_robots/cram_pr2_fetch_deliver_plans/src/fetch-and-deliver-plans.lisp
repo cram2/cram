@@ -497,9 +497,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
       (exe:perform
        (desig:an action
                  (type placing)
-                 ;; (target (desig:a location
-                 ;;                  (pose ?placing-pose)))
-                 )))))
+                 (target (desig:a location
+                                  (pose ?placing-pose))))))))
 
 
 (cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm
