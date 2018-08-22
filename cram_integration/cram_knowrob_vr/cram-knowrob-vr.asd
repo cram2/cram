@@ -29,4 +29,5 @@
      (:file "grasping" :depends-on ("package")) ; specifies how to grasp obj
      (:file "gaussian" :depends-on ("package"))
      (:file "demo-preparation" :depends-on ("package"))
+     ;(:file "reference-queries" :depends-on ("package")) can this jsut be ignored?
      ))))
