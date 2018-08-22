@@ -5,19 +5,6 @@
 ;;; They each have different spawning points.
 
 (in-package :kvr)
-;; appends the newly defined objects in the *mesh-files* variable to the
-;; *mesh-files* of btr, so that they can be loaded
-;; NOTE (Gaya)  If this does not work or compile, add the second argument --
-;;      directory where to search for cad models. In your case -- "resource".
-;; TODO the function call can be added directly to initialization and does not
-;; need an extra function wrapped around it.
-;; Beware renaming though.
-(defun append-meshes-to-list ()
-  "Appends the newly defined objects in the *mesh-files* variable to the
-*mesh-files* of btr, so that they can be loaded in the bullet world."
-     (btr:add-objects-to-mesh-list "lisp_ease"))
-
-
 
 (defun add-bowl (&optional (?name 'edeka-red-bowl))
   "Adds an object of type edeka-red-bowl to the bullet world.
