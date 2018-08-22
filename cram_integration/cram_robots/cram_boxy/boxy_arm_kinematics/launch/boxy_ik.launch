@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="boxy_arm_kinematics" type="ros.py" name="boxy_arm_kinematics" output="screen" />
+</launch>
