@@ -283,55 +283,109 @@
                      (btr:bullet-world ?world)
                      (cram-robot-interfaces:robot ?robot)
                      (assert ?world (btr:joint-state ?robot ,joint-name-value-list))))))))))
-    (move-arms-giskard-joint :goal-configuration-left left-configuration
-                             :goal-configuration-right right-configuration)
     (set-configuration :left left-configuration)
     (set-configuration :right right-configuration)
     ;; (cram-occasions-events:on-event
     ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
     ))
 
-;; (defparameter *gripper-length* 0.3191d0
-;;   "Boxy's gripper length in meters, for calculating TCP -> EE")
-
-(defvar *real-world-tf-listener* nil)
-(defun init-projection-real-world-tf-listener ()
-  (setf *real-world-tf-listener* (make-instance 'cl-tf2:buffer-client)))
-(defun destroy-projection-real-world-tf-listener ()
-  (setf *real-world-tf-listener* nil))
-(roslisp-utilities:register-ros-init-function init-projection-real-world-tf-listener)
-(roslisp-utilities:register-ros-cleanup-function destroy-projection-real-world-tf-listener)
+(defparameter *gripper-length* 0.3191d0
+  "Boxy's gripper length in meters, for calculating TCP -> EE")
 
 (defun move-tcp (left-tcp-pose right-tcp-pose)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
-  (cpl:with-failure-handling
-      (((or common-fail:actionlib-action-timed-out
-            common-fail:manipulation-goal-not-reached) (e)
-         (declare (ignore e))
-         ;; (roslisp:ros-warn (pp-plans pick-up) "Manipulation messed up. Ignoring.")
-         (return)))
-    (move-arms-giskard-cartesian
-     :goal-pose-left left-tcp-pose
-     :goal-pose-right right-tcp-pose))
-  (btr:set-robot-state-from-tf
-   *real-world-tf-listener*
-   (btr:get-robot-object)
-   :only-these-links
-   '("torso_base_link"
-     "triangle_base_link"
-     "triangle_left_arm_link"
-     "calib_left_arm_base_link"
-     "left_arm_1_link"
-     "left_arm_2_link"
-     "left_arm_3_link"
-     "left_arm_4_link"
-     "left_arm_5_link"
-     "left_arm_6_link"
-     "triangle_right_arm_link"
-     "calib_right_arm_base_link"
-     "right_arm_1_link"
-     "right_arm_2_link"
-     "right_arm_3_link"
-     "right_arm_4_link"
-     "right_arm_5_link"
-     "right_arm_6_link")))
+  (flet ((tcp-pose->ee-pose (tcp-pose)
+           (when tcp-pose
+             (cl-transforms-stamped:pose->pose-stamped
+              (cl-transforms-stamped:frame-id tcp-pose)
+              (cl-transforms-stamped:stamp tcp-pose)
+              (cl-transforms:transform-pose
+               (cl-transforms:pose->transform tcp-pose)
+               (cl-transforms:make-pose
+                (cl-transforms:make-3d-vector (- *gripper-length*) 0 0)
+                (cl-transforms:make-identity-rotation))))))
+         (ee-pose-in-base->ee-pose-in-torso (ee-pose-in-base)
+           (when ee-pose-in-base
+             (if (string-equal
+                  (cl-transforms-stamped:frame-id ee-pose-in-base)
+                  cram-tf:*robot-base-frame*)
+                 ;; tPe: tTe = tTb * bTe = tTm * mTb * bTe = (mTt)-1 * mTb * bTe
+                 (let* ((map-torso-transform
+                          (cram-tf:pose->transform-stamped
+                           cram-tf:*fixed-frame*
+                           cram-tf:*robot-torso-frame*
+                           0.0
+                           (btr:link-pose
+                            (btr:get-robot-object)
+                            cram-tf:*robot-torso-frame*)))
+                        (torso-map-transform
+                          (cram-tf:transform-stamped-inv map-torso-transform))
+                        (map-base-transform
+                          (cram-tf:pose->transform-stamped
+                           cram-tf:*fixed-frame*
+                           cram-tf:*robot-base-frame*
+                           0.0
+                           (btr:pose (btr:get-robot-object))))
+                        (torso-base-transform
+                          (cram-tf:multiply-transform-stampeds
+                           cram-tf:*robot-torso-frame*
+                           cram-tf:*robot-base-frame*
+                           torso-map-transform
+                           map-base-transform))
+                        (base-ee-transform
+                          (cram-tf:pose-stamped->transform-stamped
+                           ee-pose-in-base
+                           ;; dummy link name for T x T to work
+                           "end_effector_link")))
+                   (cram-tf:multiply-transform-stampeds
+                    cram-tf:*robot-torso-frame*
+                    "end_effector_link"
+                    torso-base-transform
+                    base-ee-transform
+                    :result-as-pose-or-transform :pose))
+                 (error "Arm movement goals should be given in robot base frame"))))
+         (get-ik-joint-positions (arm ee-pose)
+           (when ee-pose
+             (multiple-value-bind (ik-solution-msg torso-angle)
+                 (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
+                     (car (prolog:prolog
+                           `(and
+                             (cram-robot-interfaces:robot ?robot)
+                             (cram-robot-interfaces:robot-torso-link-joint ?robot
+                                                                           ?_ ?torso-joint)
+                             (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint
+                                                                      ?lower-limit)
+                             (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint
+                                                                      ?upper-limit)
+                             (btr:bullet-world ?world)
+                             (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
+                   (call-ik-service-with-torso-resampling
+                          arm ee-pose
+                          :torso-angle ?torso-angle
+                          :torso-lower-limit ?lower-limit
+                          :torso-upper-limit ?upper-limit))
+               (unless ik-solution-msg
+                 (cpl:fail 'common-fail:manipulation-pose-unreachable
+                           :description (format nil "~a is unreachable for EE." ee-pose)))
+               (values
+                (map 'list #'identity
+                     (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))
+                torso-angle)))))
+    (multiple-value-bind (left-ik left-torso-angle)
+        (get-ik-joint-positions :left
+                                (ee-pose-in-base->ee-pose-in-torso
+                                 (tcp-pose->ee-pose left-tcp-pose)))
+      (multiple-value-bind (right-ik right-torso-angle)
+          (get-ik-joint-positions :right
+                                  (ee-pose-in-base->ee-pose-in-torso
+                                   (tcp-pose->ee-pose right-tcp-pose)))
+        (cond
+          ((and left-torso-angle right-torso-angle)
+           (when (not (eq left-torso-angle right-torso-angle))
+             (cpl:fail 'common-fail:manipulation-pose-unreachable
+                       :description (format nil "In MOVE-TCP goals for the two arms ~
+                                                 require different torso angles).")))
+           (move-torso left-torso-angle))
+          (left-torso-angle (move-torso left-torso-angle))
+          (right-torso-angle (move-torso right-torso-angle)))
+        (move-joints left-ik right-ik)))))

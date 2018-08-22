@@ -51,14 +51,15 @@
                cram-semantic-map ; for special projection variable definition
                cram-bullet-reasoning-belief-state ; for special projection variable definition
                cram-simple-actionlib-client ; for communicating with giskard
-               giskard_msgs-msg ; for communicating with giskard
-               )
+               moveit_msgs-msg ; for IK queries
+               moveit_msgs-srv)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "tf" :depends-on ("package"))
-     (:file "giskard" :depends-on ("package"))
+     ;; (:file "giskard" :depends-on ("package"))
+     (:file "ik" :depends-on ("package"))
      (:file "low-level" :depends-on ("package" "tf" "giskard"))
      (:file "process-modules" :depends-on ("package" "low-level"))
      (:file "projection-environment" :depends-on ("package" "tf" "process-modules"))))))
