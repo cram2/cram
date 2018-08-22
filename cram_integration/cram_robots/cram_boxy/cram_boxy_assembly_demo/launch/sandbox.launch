@@ -35,5 +35,5 @@
   <include file="$(find wsg_50_simulation)/launch/wsg_50_for_kinematic_sim.launch" />
 
   <!-- TF buffer server -->
-  <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" />
+  <!-- <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" /> -->
 </launch>
