@@ -289,21 +289,30 @@
     ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
     ))
 
-(defparameter *gripper-length* 0.3191d0
-  "Boxy's gripper length in meters, for calculating TCP -> EE")
+(defparameter *tcp-pose-in-ee* (cl-transforms:make-pose
+                                (cl-transforms:make-3d-vector 0 0 0.3191d0)
+                                (cl-transforms:make-identity-rotation))
+  "In meters, Teetcp, EE -> TCP but a Pose")
 
 (defun move-tcp (left-tcp-pose right-tcp-pose)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
-  (flet ((tcp-pose->ee-pose (tcp-pose)
+  (flet ((tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame)
            (when tcp-pose
-             (cl-transforms-stamped:pose->pose-stamped
-              (cl-transforms-stamped:frame-id tcp-pose)
-              (cl-transforms-stamped:stamp tcp-pose)
-              (cl-transforms:transform-pose
-               (cl-transforms:pose->transform tcp-pose)
-               (cl-transforms:make-pose
-                (cl-transforms:make-3d-vector (- *gripper-length*) 0 0)
-                (cl-transforms:make-identity-rotation))))))
+             (cram-tf:strip-transform-stamped
+              (cram-tf:multiply-transform-stampeds
+               cram-tf:*robot-base-frame*
+               end-effector-frame
+               (cram-tf:pose->transform-stamped
+                cram-tf:*robot-base-frame*
+                tool-frame
+                0.0
+                tcp-pose)
+               (cram-tf:transform-stamped-inv
+                (cram-tf:pose->transform-stamped
+                 end-effector-frame
+                 tool-frame
+                 0.0
+                 *tcp-pose-in-ee*))))))
          (ee-pose-in-base->ee-pose-in-torso (ee-pose-in-base)
            (when ee-pose-in-base
              (if (string-equal
@@ -360,10 +369,10 @@
                              (btr:bullet-world ?world)
                              (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
                    (call-ik-service-with-torso-resampling
-                          arm ee-pose
-                          :torso-angle ?torso-angle
-                          :torso-lower-limit ?lower-limit
-                          :torso-upper-limit ?upper-limit))
+                    arm ee-pose
+                    :torso-angle ?torso-angle
+                    :torso-lower-limit ?lower-limit
+                    :torso-upper-limit ?upper-limit))
                (unless ik-solution-msg
                  (cpl:fail 'common-fail:manipulation-pose-unreachable
                            :description (format nil "~a is unreachable for EE." ee-pose)))
@@ -371,21 +380,41 @@
                 (map 'list #'identity
                      (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))
                 torso-angle)))))
-    (multiple-value-bind (left-ik left-torso-angle)
-        (get-ik-joint-positions :left
-                                (ee-pose-in-base->ee-pose-in-torso
-                                 (tcp-pose->ee-pose left-tcp-pose)))
-      (multiple-value-bind (right-ik right-torso-angle)
-          (get-ik-joint-positions :right
+
+    (let* ((frame-bindings
+             (cut:lazy-car
+              (prolog:prolog
+               `(and (cram-robot-interfaces:robot ?robot)
+                     (cram-robot-interfaces:robot-tool-frame ?robot :left ?left-tool-frame)
+                     (cram-robot-interfaces:robot-tool-frame ?robot :right ?right-tool-frame)
+                     (cram-robot-interfaces:end-effector-link ?robot :left ?left-ee-frame)
+                     (cram-robot-interfaces:end-effector-link ?robot :right ?right-ee-frame)))))
+           (left-tcp-frame
+             (cut:var-value '?left-tool-frame frame-bindings))
+           (right-tcp-frame
+             (cut:var-value '?right-tool-frame frame-bindings))
+           (left-ee-frame
+             (cut:var-value '?left-ee-frame frame-bindings))
+           (right-ee-frame
+             (cut:var-value '?right-ee-frame frame-bindings)))
+
+      (multiple-value-bind (left-ik left-torso-angle)
+          (get-ik-joint-positions :left
                                   (ee-pose-in-base->ee-pose-in-torso
-                                   (tcp-pose->ee-pose right-tcp-pose)))
-        (cond
-          ((and left-torso-angle right-torso-angle)
-           (when (not (eq left-torso-angle right-torso-angle))
-             (cpl:fail 'common-fail:manipulation-pose-unreachable
-                       :description (format nil "In MOVE-TCP goals for the two arms ~
+                                   (tcp-pose->ee-pose left-tcp-pose
+                                                      left-tcp-frame left-ee-frame)))
+        (multiple-value-bind (right-ik right-torso-angle)
+            (get-ik-joint-positions :right
+                                    (ee-pose-in-base->ee-pose-in-torso
+                                     (tcp-pose->ee-pose right-tcp-pose
+                                                        right-tcp-frame right-ee-frame)))
+          (cond
+            ((and left-torso-angle right-torso-angle)
+             (when (not (eq left-torso-angle right-torso-angle))
+               (cpl:fail 'common-fail:manipulation-pose-unreachable
+                         :description (format nil "In MOVE-TCP goals for the two arms ~
                                                  require different torso angles).")))
-           (move-torso left-torso-angle))
-          (left-torso-angle (move-torso left-torso-angle))
-          (right-torso-angle (move-torso right-torso-angle)))
-        (move-joints left-ik right-ik)))))
+             (move-torso left-torso-angle))
+            (left-torso-angle (move-torso left-torso-angle))
+            (right-torso-angle (move-torso right-torso-angle)))
+          (move-joints left-ik right-ik))))))
