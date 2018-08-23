@@ -51,10 +51,12 @@
 
 (cpm:def-process-module boxy-proj-ptu (motion-designator)
   (destructuring-bind (command goal-type goal) (desig:reference motion-designator)
+    (declare (ignore goal-type))
     (ecase command
       (cram-common-designators:move-head
        (handler-case
-           (look-at goal-type goal))))))
+           (look-at ;; goal-type
+                    goal))))))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -86,8 +88,10 @@
        (handler-case
            (move-joints arg-1 (car arg-2))))
       (cram-common-designators::move-with-constraints
-       (handler-case
-           (move-with-constraints arg-1))))))
+       (roslisp:ros-warn (boxy pms) "move-with-constraints is not supported")
+       ;; (handler-case
+       ;;     (move-with-constraints arg-1))
+       ))))
 
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
