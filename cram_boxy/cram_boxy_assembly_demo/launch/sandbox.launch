@@ -36,4 +36,7 @@
 
   <!-- TF buffer server -->
   <!-- <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" /> -->
+
+  <!-- Boxy IK solver -->
+  <include file="$(find boxy_arm_kinematics)/launch/boxy_ik.launch" />
 </launch>
