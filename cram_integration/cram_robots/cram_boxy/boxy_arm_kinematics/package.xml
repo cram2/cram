@@ -12,16 +12,7 @@
   <exec_depend>python_orocos_kdl</exec_depend>
   <exec_depend>urdfdom_py</exec_depend>
   <exec_depend>kdl_parser_py</exec_depend>
-
-<!--  <build_depend>angles</build_depend>
-  <build_depend>tf_conversions</build_depend>
-  <build_depend>urdf</build_depend>
-  <build_depend>kdl_parser</build_depend>-->
-
-  <depend>moveit_msgs</depend>
-  <depend>std_msgs</depend>
-  <depend>geometry_msgs</depend>
-
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>moveit_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
 </package>

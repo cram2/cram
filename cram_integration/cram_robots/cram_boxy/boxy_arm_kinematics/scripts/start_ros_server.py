@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+
 import rospy
 import moveit_msgs.srv
-import ik
-import tf2_ros
 import geometry_msgs.msg
+import boxy_arm_kinematics.ik
+
 
 def callback(request):
     #print "Got request %s"%(request)
@@ -34,7 +36,7 @@ def callback(request):
     print timeout
 
     response.solution.joint_state = joint_state
-    new_joint_state_vector, success = ik.calculate_ik(base_link, end_effector_link, joint_state.position, transform_stamped)
+    new_joint_state_vector, success = boxy_arm_kinematics.ik.calculate_ik(base_link, end_effector_link, joint_state.position, transform_stamped)
     print new_joint_state_vector
     response.solution.joint_state.position = new_joint_state_vector
 
@@ -48,7 +50,7 @@ def callback(request):
 
 def server_main():
     rospy.init_node('boxy_arm_kinematics')
-    server = rospy.Service('get_ik', moveit_msgs.srv.GetPositionIK, callback)
+    server = rospy.Service('~get_ik', moveit_msgs.srv.GetPositionIK, callback)
     print "IK server ready."
     rospy.spin()
 
