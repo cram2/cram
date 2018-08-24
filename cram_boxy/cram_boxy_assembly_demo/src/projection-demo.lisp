@@ -86,12 +86,48 @@
 (defparameter *gray-plane* '(0.482 0.537 0.549))
 
 (defparameter *object-spawning-data*
-  `((chassis :chassis ,*yellow-plane*
-             ((0.2 0.9 ,*chassis-rad-z*) ,*rotation-around-z-90*))
-    (big-wooden-plate :big-wooden-plate (0.823 0.698 0.513)
+  `((big-wooden-plate :big-wooden-plate (0.823 0.698 0.513)
                       ((,*plate-rad-x* ,*plate-rad-y* ,(- *plate-rad-z*)) (0 0 0 1)))
     (holder-bolt :holder-bolt ,*yellow-plastic*
                  ((,*holder-bolt-rad-x* ,*holder-bolt-rad-y* ,*holder-bolt-rad-z*) (0 0 0 1)))
+    (holder-upper-body :holder-upper-body ,*yellow-plastic*
+                       ((,(+ 0.05 *holder-upperbody-rad-x*) 0.10 ,*holder-upperbody-rad-z*)
+                        (0 0 0 1)))
+    (holder-bottom-wing :holder-bottom-wing ,*gray-plastic*
+                        ((,(+ 0.1 *holder-bottom-wing-rad-x*)
+                          ,(- 0.3 *holder-bottom-wing-rad-y*)
+                          ,*holder-bottom-wing-rad-z*)
+                         ,*rotation-around-z-90*))
+    (holder-underbody :holder-underbody ,*yellow-plastic*
+                      ((,(+ 0.05 *holder-underbody-rad-x*) 0.4 ,*holder-underbody-rad-z*)
+                       (0 0 0 1)))
+    (holder-plane-horizontal :holder-plane-horizontal ,*yellow-plastic*
+                             ((,(+ 0.05 *holder-plane-horizontal-rad-x*)
+                               0.6
+                               ,*holder-plane-horizontal-rad-z*)
+                              (0 0 0 1)))
+    (holder-window :holder-window ,*gray-plastic*
+                   ((,*holder-window-rad-x*
+                     ,(+ 0.75 *holder-window-rad-y*)
+                     ,*holder-window-rad-z*)
+                    (0 0 0 1)))
+    (holder-plane-vertical :holder-plane-vertical ,*yellow-plastic*
+                           ((,*holder-plane-vertical-rad-x*
+                             ,(- 1.0 *holder-plane-vertical-rad-y*)
+                             ,*holder-plane-vertical-rad-z*)
+                            (0 0 0 1)))
+    (holder-top-wing :holder-top-wing ,*yellow-plastic*
+                     ((,(+ 0.15 *holder-top-wing-rad-x*)
+                       ,(- 1.15 *holder-top-wing-rad-y*)
+                       ,*holder-top-wing-rad-z*)
+                      ,*rotation-around-z-90*))
+
+    ;; rear wing is already well positioned
+    (rear-wing :rear-wing ,*yellow-plane*
+               ((0.079 0.599 0.056)
+                ,*rotation-around-z+90*))
+
+    ;; bolts are used intermediately
     (bolt-1 :bolt ,*gray-plane*
             ((0.015 0.0125 ,*bolt-rad-z*) (0 0 0 1)))
     (bolt-2 :bolt ,*gray-plane*
@@ -102,60 +138,32 @@
             ((0.0675 0.0375 ,*bolt-rad-z*) (0 0 0 1)))
     (bolt-5 :bolt ,*gray-plane*
             ((0.085 0.0125 ,*bolt-rad-z*) (0 0 0 1)))
-    (holder-upper-body :holder-upper-body ,*yellow-plastic*
-                       ((,(+ 0.05 *holder-upperbody-rad-x*) 0.10 ,*holder-upperbody-rad-z*)
-                        (0 0 0 1)))
-    (upper-body :upper-body ,*red-plane*
-               ((0.119 0.1003 0.0482) (0 0 0 1)))
-    (holder-bottom-wing :holder-bottom-wing ,*gray-plastic*
-                        ((,(+ 0.1 *holder-bottom-wing-rad-x*)
-                          ,(- 0.3 *holder-bottom-wing-rad-y*)
-                          ,*holder-bottom-wing-rad-z*)
-                         ,*rotation-around-z-90*))
+
+    ;; first part of scenario on horizontal holder
+    (chassis :chassis ,*yellow-plane*
+             ((0.2 0.9 ,*chassis-rad-z*) ,*rotation-around-z-90*))
     (bottom-wing :bottom-wing ,*cyan-plane*
                  ((0.134 0.25 0.093) (0 0 0 1)))
-    (holder-underbody :holder-underbody ,*yellow-plastic*
-                     ((,(+ 0.05 *holder-underbody-rad-x*) 0.4 ,*holder-underbody-rad-z*)
-                      (0 0 0 1)))
     (underbody :underbody ,*red-plane*
                ((0.145 0.399 0.024) (0 0 0 1)))
-    (holder-plane-horizontal :holder-plane-horizontal ,*yellow-plastic*
-                             ((,(+ 0.05 *holder-plane-horizontal-rad-x*)
-                               0.6
-                               ,*holder-plane-horizontal-rad-z*)
-                              (0 0 0 1)))
-    (rear-wing :rear-wing ,*yellow-plane*
-               ((0.079 0.599 0.056)
-                ,*rotation-around-z+90*))
-    (holder-window :holder-window ,*gray-plastic*
-                   ((,*holder-window-rad-x*
-                    ,(+ 0.75 *holder-window-rad-y*)
-                    ,*holder-window-rad-z*)
-                   (0 0 0 1)))
+    (upper-body :upper-body ,*red-plane*
+                ((0.119 0.1003 0.0482) (0 0 0 1)))
+    (top-wing :top-wing ,*cyan-plane*
+              ((0.18522 1.11423 0.08852) (0 0 0 1)))
     (window :window ,*transparent-plane*
             ((0.024 0.775 0.01962) (0 0 0 1)))
+
+    ;; second part of scenario on vertical holder
+    (propeller :propeller ,*yellow-plane*
+               ((0.075 1.10 0) (0 0 0 1)))
     (front-wheel-1 :front-wheel ,*black-plane*
                    ((0.15 0.775 ,*front-wheel-rad-z*) (0 0 0 1)))
     (front-wheel-2 :front-wheel ,*black-plane*
-                 ((0.215 0.775 ,*front-wheel-rad-z*) (0 0 0 1)))
+                   ((0.215 0.775 ,*front-wheel-rad-z*) (0 0 0 1)))
     (nut-1 :nut ,*gray-plane*
            ((0.15 0.725 ,*nut-rad-z*) (0 0 0 1)))
     (nut-2 :nut ,*gray-plane*
-           ((0.215 0.725 ,*nut-rad-z*) (0 0 0 1)))
-    (holder-plane-vertical :holder-plane-vertical ,*yellow-plastic*
-                              ((,*holder-plane-vertical-rad-x*
-                                ,(- 1.0 *holder-plane-vertical-rad-y*)
-                                ,*holder-plane-vertical-rad-z*)
-                               (0 0 0 1)))
-    (propeller :propeller ,*yellow-plane*
-               ((0.075 1.10 0) (0 0 0 1)))
-    (holder-top-wing :holder-top-wing ,*yellow-plastic*
-                     ((,(+ 0.15 *holder-top-wing-rad-x*)
-                       ,(- 1.15 *holder-top-wing-rad-y*)
-                       ,*holder-top-wing-rad-z*)
-                      ,*rotation-around-z-90*))
-    (top-wing :top-wing ,*cyan-plane*
-              ((0.18522 1.11423 0.08852) (0 0 0 1)))))
+           ((0.215 0.725 ,*nut-rad-z*) (0 0 0 1)))))
 
 (defun spawn-objects-on-plate (&optional (spawning-poses *object-spawning-data*))
   (btr-utils:kill-all-objects)
