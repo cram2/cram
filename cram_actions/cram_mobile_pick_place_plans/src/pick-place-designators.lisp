@@ -92,7 +92,7 @@
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
         (and (lisp-fun obj-int:get-object-type-grasps
-                       ?object-type ?facing-robot-face ?bottom-face ?rotatiationally-symmetric ?arm
+                       ?object-type ?facing-robot-face ?bottom-face ?rotationally-symmetric ?arm
                        ?grasps)
              (member ?grasp ?grasps)))
     (lisp-fun obj-int:get-object-type-gripping-effort ?object-type ?effort)
@@ -133,7 +133,14 @@
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
     ;; infer missing information
-    (obj-int:object-type-grasp ?object-type ?grasp)
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (and (lisp-fun obj-int:get-object-type-grasps
+                       ?object-type nil nil nil ?arm
+                       ?grasps)
+             (member ?grasp ?grasps)))
+    ;; TODO: grasp should be stored in the knowledge base!!
+    ;; (obj-int:object-type-grasp ?object-type ?grasp)
     ;; take object-pose from action-designator target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location))
         (and (desig:current-designator ?location ?current-location-designator)

@@ -62,7 +62,8 @@
 
 (def-fact-group pnp-object-knowledge (object-rotationally-symmetric
                                       orientation-matters
-                                      object-type-grasp)
+                                      ;; object-type-grasp
+                                      )
 
   (<- (object-rotationally-symmetric ?object-type)
     (member ?object-type (;; :plate :bottle :drink :cup :bowl :milk
@@ -71,41 +72,42 @@
   (<- (orientation-matters ?object-type)
     (member ?object-type (:knife :fork :spoon :cutlery :spatula)))
 
-  (<- (object-type-grasp :cutlery :top))
-  (<- (object-type-grasp :spoon :top))
-  (<- (object-type-grasp :fork :top))
-  (<- (object-type-grasp :knife :top))
+  ;; (<- (object-type-grasp :cutlery :top))
+  ;; (<- (object-type-grasp :spoon :top))
+  ;; (<- (object-type-grasp :fork :top))
+  ;; (<- (object-type-grasp :knife :top))
 
-  (<- (object-type-grasp :plate :left-side))
-  (<- (object-type-grasp :plate :right-side))
-  (<- (object-type-grasp :tray :left-side))
-  (<- (object-type-grasp :tray :right-side))
+  ;; (<- (object-type-grasp :plate :left-side))
+  ;; (<- (object-type-grasp :plate :right-side))
+  ;; (<- (object-type-grasp :tray :left-side))
+  ;; (<- (object-type-grasp :tray :right-side))
 
-  (<- (object-type-grasp :bottle :left-side))
-  (<- (object-type-grasp :bottle :right-side))
-  (<- (object-type-grasp :bottle :back))
-  (<- (object-type-grasp :bottle :front))
+  ;; (<- (object-type-grasp :bottle :left-side))
+  ;; (<- (object-type-grasp :bottle :right-side))
+  ;; (<- (object-type-grasp :bottle :back))
+  ;; (<- (object-type-grasp :bottle :front))
 
-  (<- (object-type-grasp :cup :back))
-  (<- (object-type-grasp :cup :front))
-  (<- (object-type-grasp :cup :left-side))
-  (<- (object-type-grasp :cup :right-side))
-  ;; (<- (object-type-grasp :cup :top))
+  ;; (<- (object-type-grasp :cup :back))
+  ;; (<- (object-type-grasp :cup :front))
+  ;; (<- (object-type-grasp :cup :left-side))
+  ;; (<- (object-type-grasp :cup :right-side))
+  ;; ;; (<- (object-type-grasp :cup :top))
 
-  (<- (object-type-grasp :milk :back))
-  (<- (object-type-grasp :milk :left-side))
-  (<- (object-type-grasp :milk :right-side))
-  (<- (object-type-grasp :milk :front))
-  ;; (<- (object-type-grasp :milk :top))
+  ;; (<- (object-type-grasp :milk :back))
+  ;; (<- (object-type-grasp :milk :left-side))
+  ;; (<- (object-type-grasp :milk :right-side))
+  ;; (<- (object-type-grasp :milk :front))
+  ;; ;; (<- (object-type-grasp :milk :top))
 
-  ;; (<- (object-type-grasp :cereal :top))
-  (<- (object-type-grasp :cereal :back))
-  (<- (object-type-grasp :cereal :front))
-  ;; (<- (object-type-grasp :breakfast-cereal :top))
-  (<- (object-type-grasp :breakfast-cereal :back))
-  (<- (object-type-grasp :breakfast-cereal :front))
+  ;; ;; (<- (object-type-grasp :cereal :top))
+  ;; (<- (object-type-grasp :cereal :back))
+  ;; (<- (object-type-grasp :cereal :front))
+  ;; ;; (<- (object-type-grasp :breakfast-cereal :top))
+  ;; (<- (object-type-grasp :breakfast-cereal :back))
+  ;; (<- (object-type-grasp :breakfast-cereal :front))
 
-  (<- (object-type-grasp :bowl :top)))
+  ;; (<- (object-type-grasp :bowl :top))
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

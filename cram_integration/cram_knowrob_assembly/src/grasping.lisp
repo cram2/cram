@@ -63,11 +63,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def-fact-group asm-object-knowledge (obj-int:object-type-grasp)
-  (<- (obj-int:object-type-grasp :chassis :top))
-  
-
-  )
+;; (def-fact-group asm-object-knowledge (obj-int:object-type-grasp)
+;;   (<- (obj-int:object-type-grasp :chassis :top)))
 
 
 ;; (defmethod get-object-type-to-gripper-transform (object-type object-name arm grasp)

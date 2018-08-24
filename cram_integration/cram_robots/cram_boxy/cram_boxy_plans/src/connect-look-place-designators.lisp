@@ -103,7 +103,12 @@
     (lisp-fun cram-object-interfaces:get-object-transform ?current-on-object-designator
               ?on-object-transform)
     ;; infer missing information
-    (obj-int:object-type-grasp ?object-type ?grasp)
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (and (lisp-fun obj-int:get-object-type-grasps
+                       ?object-type nil nil nil ?arm
+                       ?grasps)
+             (member ?grasp ?grasps)))
     (lisp-fun kr-assembly::get-object-placing-poses ?on-object-name ?on-object-type
               ?object-name ?object-type :left ?grasp
               ?on-object-transform ?left-poses)
@@ -148,7 +153,12 @@
     (lisp-fun obj-int:get-object-transform ?current-with-object-designator
               ?with-object-transform)
     ;; infer missing information
-    (obj-int:object-type-grasp ?object-type ?grasp)
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (and (lisp-fun obj-int:get-object-type-grasps
+                       ?object-type nil nil nil ?arm
+                       ?grasps)
+             (member ?grasp ?grasps)))
     (lisp-fun kr-assembly::get-object-placing-poses ?with-object-name ?with-object-type
               ?object-name ?object-type :left ?grasp
               ?with-object-transform ?left-poses)

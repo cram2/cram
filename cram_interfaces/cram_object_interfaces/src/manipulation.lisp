@@ -29,6 +29,10 @@
 
 (in-package :cram-object-interfaces)
 
+(defvar *known-grasp-types* nil
+  "A list of symbols representing all known grasp types")
+
+
 (defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
   (:documentation "Returns a pose stamped.
 Gripper is defined by a convention where Z is pointing towards the object."))
@@ -48,7 +52,6 @@ Gripper is defined by a convention where Z is pointing towards the object."))
 (defgeneric get-object-type-to-gripper-2nd-lift-transform (object-type object-name
                                                            arm grasp grasp-transform)
   (:documentation "Returns a transform stamped"))
-
 
 
 (defmacro def-object-type-to-gripper-transforms (object-type arm grasp-type
@@ -92,6 +95,8 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                                     (cl-transforms:matrix->quaternion
                                      (make-array '(3 3)
                                                  :initial-contents evaled-grasp-rot-matrix)))))
+
+                             (pushnew evaled-grasp-type *known-grasp-types*)
 
   (defmethod get-object-type-to-gripper-transform ((object-type (eql object))
                                                    object-name
@@ -332,6 +337,32 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                                     rotationally-symmetric-p arm)
   (:documentation "Returns a lazy list of all possible grasps for `object-type'")
   (:method (object-type facing-robot-face bottom-face rotationally-symmetric-p arm)
+    #-solution-using-sbcl-API
+    (remove-if
+     #'null
+     (mapcar (lambda (grasp-type)
+               (when (find-method #'obj-int:get-object-type-to-gripper-transform
+                                  '()
+                                  `((eql ,object-type) T (eql ,arm) (eql ,grasp-type))
+                                  nil)
+                 grasp-type))
+             #+sbcl
+             (remove-if
+              #'null
+              (remove-duplicates
+               (mapcar
+                (lambda (generic-method)
+                  (let ((grasp-specializer (fourth (sb-pcl:method-specializers generic-method))))
+                    (when (typep grasp-specializer 'sb-mop:eql-specializer)
+                      (sb-mop:eql-specializer-object grasp-specializer))))
+                (sb-pcl:generic-function-methods
+                 #'obj-int:get-object-type-to-gripper-transform))))
+             #-sbcl
+             (error "CRAM object manipulation code only works under SBCL...")
+             #+solution-using-grasp-defining-macros-doesnt-work-for-custom-methods-like-env-manip
+             *known-grasp-types*))
+
+    #+solution-using-lazy-lists-and-Prolog
     ;; (cut:lazy-list ((i 0))
     ;;   (when (< i 10) (cut:cont i (1+ i))))
     (cut:lazy-mapcar
@@ -340,8 +371,8 @@ Gripper is defined by a convention where Z is pointing towards the object."))
      (prolog:prolog `(obj-int:object-type-grasp ,object-type ?grasp)))))
 
 
-
-(def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters object-type-grasp)
+(def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters ;; object-type-grasp
+                                                                )
 
   (<- (object-rotationally-symmetric ?object-type)
     (fail))
@@ -353,9 +384,6 @@ Gripper is defined by a convention where Z is pointing towards the object."))
   (<- (orientation-matters ?object-type-symbol)
     (fail))
 
-  (<- (object-type-grasp ?object-type ?grasp)
-    (fail)))
-
-;; todo: object-type-grasp should be calculated based on *grasps*
-;; it should also have an additional argument ARM
-
+  ;; (<- (object-type-grasp ?object-type ?grasp)
+  ;;   (fail))
+  )
