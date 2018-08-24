@@ -53,8 +53,8 @@
   <!-- launch file -->
   <exec_depend>iai_maps</exec_depend>
   <exec_depend>iai_kitchen</exec_depend>
-  <exec_depend>json_prolog</exec_depend>
   <exec_depend>map_server</exec_depend>
   <exec_depend>boxy_arm_kinematics</exec_depend>
-  <!-- <exec_depend>giskardpy</exec_depend> -->
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>iai_boxy_description</exec_depend>
 </package>
