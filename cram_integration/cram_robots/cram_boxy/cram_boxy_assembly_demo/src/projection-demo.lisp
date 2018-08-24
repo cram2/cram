@@ -200,8 +200,14 @@
  (boxy-proj:with-projected-robot
     (cram-executive:perform
      (desig:an action
-               (type detecting)
-               (object (desig:an object (type chassis))))))
+               (type looking)
+               (direction down))))
+
+ (boxy-proj:with-projected-robot
+     (cram-executive:perform
+      (desig:an action
+                (type detecting)
+                (object (desig:an object (type chassis))))))
 
  (boxy-proj:with-simulated-robot
   (exe:perform

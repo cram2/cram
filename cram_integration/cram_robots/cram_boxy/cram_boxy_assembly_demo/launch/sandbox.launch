@@ -23,19 +23,22 @@
     <remap from="joint_states" to="kitchen/joint_states" />
   </node>
 
+  <!-- Boxy URDF -->
+  <include file="$(find iai_boxy_description)/launch/upload_boxy.launch" />
+
   <!-- boxy naive kinematics simulator -->
-  <arg name="sim" default="true" />
-  <arg name="plot" default="false" />
-  <arg name="rviz" default="true" />
-  <include file="$(find giskard_boxy)/launch/interactive_markers.launch" >
-    <arg name="sim" value="$(arg sim)" />
-    <arg name="plot" value="$(arg plot)" />
-    <arg name="rviz" value="$(arg rviz)" />
-  </include>
-  <include file="$(find wsg_50_simulation)/launch/wsg_50_for_kinematic_sim.launch" />
+  <!-- <arg name="sim" default="true" /> -->
+  <!-- <arg name="plot" default="false" /> -->
+  <!-- <arg name="rviz" default="true" /> -->
+  <!-- <include file="$(find giskard_boxy)/launch/interactive_markers.launch" > -->
+  <!--   <arg name="sim" value="$(arg sim)" /> -->
+  <!--   <arg name="plot" value="$(arg plot)" /> -->
+  <!--   <arg name="rviz" value="$(arg rviz)" /> -->
+  <!-- </include> -->
+  <!-- <include file="$(find wsg_50_simulation)/launch/wsg_50_for_kinematic_sim.launch" /> -->
 
   <!-- TF buffer server -->
-  <!-- <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" /> -->
+  <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" />
 
   <!-- Boxy IK solver -->
   <include file="$(find boxy_arm_kinematics)/launch/boxy_ik.launch" />
