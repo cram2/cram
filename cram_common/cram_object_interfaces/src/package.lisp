@@ -54,7 +54,7 @@
    #:get-object-type-grasps
    #:object-rotationally-symmetric
    #:orientation-matters
-   #:object-type-grasp
+   ;; #:object-type-grasp
    ;; standard-grasps
    #:*back-grasp-rotation*
    #:*front-grasp-rotation*
