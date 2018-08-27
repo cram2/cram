@@ -16,7 +16,7 @@ RETURNS: the given pose with the flipped quaternion."
      (cl-tf:make-quaternion
       (cl-tf:y quaternion)
       (cl-tf:z quaternion)
-      (cl-tf:w  quaternion)
+      (cl-tf:w quaternion)
       (cl-tf:x quaternion)))))
 
 
@@ -46,7 +46,7 @@ RETURNS: a cl-transform."
                       (,(- (sin alpha)) 0 ,(cos alpha))))))))
 
 
-
+;; TODO this needs to be adapted to the changes
 (defun place-pose-btr-island ()
   "Calculates the placing pose for an object, relative to the bullet world
 kitchen island. This is needed, since the OpenEase kitchen island and the

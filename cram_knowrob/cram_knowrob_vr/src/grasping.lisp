@@ -47,7 +47,7 @@
 ;; grasps ----------------------------------------------------------------------
 ;;  General Grasp
 ;; TODO: generalize this grasp. Type could and should be derived from the VR data
-
+;; Name of type string or use filter?
 (defmethod get-object-type-to-gripper-transform (object-type
                                                  object-name
                                                  arm
@@ -59,8 +59,9 @@
     (setq transf
           (cl-tf:transform*
            (cl-tf:transform-inv
-            (make-poses "?PoseObjStart"))
-           (make-poses "?PoseHandStart")
+            ;; TODO object-name or type?
+            (get-object-location-at-start-by-object-type object-name))
+           (get-hand-location-at-start-by-object-type object-name)
            (human-to-robot-hand-transform)))
     (setf end-transf
           (cl-tf:transform->transform-stamped

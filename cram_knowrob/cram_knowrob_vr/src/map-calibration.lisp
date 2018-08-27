@@ -14,7 +14,7 @@
 
 
 (in-package :kvr)
-;; TODO: this doesn't quite work yet?? <<< check if it does
+;; TODO: this doesn't quite work anymore - make poses changed. yet?? <<< check if it does
 (defun get-all-food-drink-poses ()
   "Extracts all the positions of the cereals and milks and spawns the according objects. "
   (let* (poses-list)
