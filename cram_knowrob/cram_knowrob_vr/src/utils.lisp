@@ -1,19 +1,32 @@
 (in-package :kvr)
-;; usefull bullet world infos
 
-;; get-info of an object
-(defun get-info (infoObj)
-  "returns contents of a specific field from the read out data."
-  (cut:var-value (intern infoObj)  *poses-list*))
+(defun object-type-filter-prolog (object-type)
+  "Maps the simple name of an object, e.g. cup to the one known in the database
+for that object, e.g. CupEcoOrange."
+  ;;do some filtering for exact object names
+    (case object-type
+      (muesli (setq object-type "KoellnMuesliKnusperHonigNuss"))
+      (cup (setq object-type "CupEcoOrange"))
+      (bowl (setq object-type "IkeaBowl"))
+      (milk (setq object-type "MilramButtermilchErdbeere"))
+      (fork (setq object-type "PlasticBlueFork"))
+      (spoon (setq object-type "PlasticBlueSpoon"))
+      (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon"))))
 
-;; returns the hand used in the curretnly loaded episode
-(defun get-hand ()
-  "returns which hand was used to interact with the object"
-  (if (search "Left" (string (get-info "?HandInstShortName")))
-      :left
-      (if (search "Right" (string (get-info "?HandInstShortName")))
-          :right
-          NIL)))
+(defun object-type-filter-bullet(object-type)
+  "Maps the simple name of an object, e.g. cup to the one known in the database
+for that object, e.g. CupEcoOrange."
+  ;;do some filtering for exact object names
+    (case object-type
+      (muesli (setq object-type 'koelln-muesli-knusper-honig-nuss))
+      (cup (setq object-type 'cup-eco-orange))
+      (bowl (setq object-type 'edeka-red-bowl))
+      (milk (setq object-type 'weide-milch-small))
+      (fork (setq object-type 'fork-blue-plastic))
+      (spoon (setq object-type 'spoon-blue-plastic))
+      (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon"))))
+
+
 
 
 ;; killing object from bullet world. ex: 'axes
@@ -23,9 +36,9 @@
 
 ;; all kind of transform utils
 
-(defun make-transform-hand-std-pr2 ()
+(defun make-transform-hand-std-pr2 (object)
   "Make a transform from human hand to the standart pr2"
-  (cl-tf:transform* (make-poses "?PoseHandStart")
+  (cl-tf:transform* (get-hand-location-at-start-by-object-type object)
                     (human-to-robot-hand-transform)
                     cram-pr2-description::*standard-to-pr2-gripper-transform*))
 
@@ -40,10 +53,19 @@
   "Calculating the grasping transform manually for debugging puposes."
   ;; inverse of map to object, therefore object to map
   ;; object T map
-  (cram-tf:transform-stamped-inv  (cl-tf:transform->stamped-transform "map" "ba_muesli"  0.0 (make-poses "?PoseObjStart")))
+  (cram-tf:transform-stamped-inv
+   (cl-tf:transform->stamped-transform "map"
+                                       "ba_muesli"
+                                       0.0
+                                       (get-object-location-at-start-by-object-type
+                                        (object-type-filter-prolog 'muesli))))
 
   ;; map T unreal hand
-  (cl-tf:transform->transform-stamped "map" "hand" 0.0 (make-poses "?PoseHandStart"))
+   (cl-tf:transform->transform-stamped "map"
+                                       "hand"
+                                       0.0
+                                       (get-hand-location-at-start-by-object-type
+                                        (object-type-filter-prolog 'muesli)))
 
   ;; unreal hand T standard gripper
   (human-to-robot-hand-transform))
@@ -58,12 +80,12 @@
 (defun alternative-demo (object)
   "Moves the object and robot to their respective locations at the beginning of
 the episode. . "
-  (move-object  (make-poses "?PoseObjStart") object)
-  ;; (move-to-object (set-grasp-base-pose (make-poses "?PoseCameraStart")) (set-grasp-look-pose (make-poses "?PoseObjStart")))
-  )
+  (move-object (get-object-location-at-start-by-object-type
+                (object-type-filter-prolog object))
+               (object-type-filter-bullet object)))
 
 
-;; new now! maybe rename...
+
 (defun apply-bullet-transform (transform)
   "Applies the transform of the VR to bullet world and the rotation."
   (cl-tf:transform*
@@ -100,7 +122,7 @@ the episode. . "
   (btr:object btr:*current-bullet-world* object-name))
 
 
-(defun start-sim ()
+(defun run-simulation-physics ()
   "simulates the world for a second."
   (prolog:prolog '(and (btr:bullet-world ?world)
                    (btr:simulate ?world 10))))
@@ -112,7 +134,7 @@ the episode. . "
 
 
 
-(defun set-axes ()
+(defun set-axes (object)
   "Sets the axes to the robots hands and to the position of the grasping pose of the human. "
   (let* ((transf_r)
          (transf_l))
@@ -137,24 +159,13 @@ the episode. . "
     
     (move-object transf_r 'axes)
     (move-object transf_l 'axes2)
-    (move-object (make-poses "?PoseHandStart") 'axes3)))
+    (move-object
+     (get-hand-location-at-start-by-object-type
+      (object-type-filter-prolog object)) 'axes3)))
 
                                         ;splits the list of the pose into pose and quaternion
                                         ;for specific usecase test function
 
-;; for spawning boxes on the edges of the table
-;; or generally to be used when more then one object of one kind needs to be spawned somewhere. 
-(defun table-calibration (max)
-  "Function used to calibrate offset between the open ease and the bullet world. "
-  (let (temp-name)
-    (get-grasp-something-poses)
-    (dotimes (c max )
-      (get-next-obj-poses c)
-      (setf temp-name (intern (concatenate 'string  "koelln-muesli-knusper-honig-nuss" (write-to-string c))))
-      (add-muesli temp-name)
-      (format nil "added: ~D out of: ~D ~%" c max)
-      (move-object (make-poses "?PoseCameraStart") temp-name)))
-)
 
 
 ;;; evaluation
@@ -167,17 +178,17 @@ the episode. . "
         x-offset
         (cl-tf:x
          (cl-tf:translation
-          (make-poses "?PoseObjStart"))))
+          (get-object-location-at-start-by-object-type object))))
        (+
         y-offset
         (cl-tf:y
          (cl-tf:translation
-          (make-poses "?PoseObjStart"))))
+          (get-object-location-at-start-by-object-type object))))
        (cl-tf:z
         (cl-tf:translation 
-         (make-poses "?PoseObjStart"))))
+         (get-object-location-at-start-by-object-type object))))
       (cl-tf:rotation
-       (make-poses "?PoseObjStart"))) object))
+       (get-object-location-at-start-by-object-type object))) object))
 ;;--------------------------------------------------------------
 
 
@@ -191,19 +202,6 @@ the episode. . "
       (+ y (cl-tf:y (cl-tf:translation transform)))
       (+ z (cl-tf:z (cl-tf:translation transform))))
      (cl-tf:rotation transform)))
-
-;; name "?PoseObjStart"
-(defun make-poses-without-transform (name &optional (poses-list *poses-list*))
-  "Makes poses without the application of the transform, which is needed to display them in the bullet world correctly. This is used to demonstrate the offset between the two worlds. "
-  (make-pose (cut:var-value (intern name) poses-list)))
-
-
-(defun make-poses-with-quaternion (name &optional (poses-list *poses-list*))
-  "Makes poses with the fixed quaternion."
-  (quaternion-w-flip
-   (make-pose (cut:var-value (intern name) poses-list))))
-
-
 
 (defun move-head (pose)
   "Moves the head of the robot to the given POSE."
