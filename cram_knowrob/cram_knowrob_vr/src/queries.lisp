@@ -43,19 +43,25 @@
 ;; returns the hand used in the curretnly loaded episode
 (defun get-hand (object-type)
   "returns which hand was used to interact with the object"
-   (cut:var-value (intern "?HandTypeName")
-                  (cut:lazy-car
-                   (prolog-simple 
-                    (concatenate 'string
-                     "owl_has(Obj, rdf:type, knowrob:'" object-type "'),
-                      rdf_has(EventInst, knowrob:'objectActedOn', Obj),
-                      rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst),
-                      u_occurs(EpInst, EventInst, Start, End),
+  (let* ((hand
+           (cut:var-value (intern "?HandTypeName")
+                          (cut:lazy-car
+                           (prolog-simple 
+                            (concatenate 'string
+                             "owl_has(Obj, rdf:type, knowrob:'" object-type "'),
+                              rdf_has(EventInst, knowrob:'objectActedOn', Obj),
+                              rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst),
+                              u_occurs(EpInst, EventInst, Start, End),
 
-                      performed_by(EventInst, HandInst),
-                      iri_xml_namespace(HandInst,_, HandInstShortName),
-                      obj_type(HandInst, HandType),
-                      iri_xml_namespace(HandType, _, HandTypeName).")))))
+                              performed_by(EventInst, HandInst),
+                              iri_xml_namespace(HandInst,_, HandInstShortName),
+                              obj_type(HandInst, HandType),
+                              iri_xml_namespace(HandType, _, HandTypeName)."))))))
+    (if (search "Left" (string hand))
+        :left
+        (if (search "Right" (string hand))
+            :right
+            NIL))))
 
 
 
