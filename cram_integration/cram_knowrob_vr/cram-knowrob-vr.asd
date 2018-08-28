@@ -22,7 +22,7 @@
      (:file "openease-to-bullet" :depends-on ("package"))
      (:file "items" :depends-on ("package"))
      (:file "data-extraction" :depends-on ("package"))
-     (:file "map-calibration" :depends-on ("package"))
+     (:file "designators.lisp" :depends-on ("package"))
      (:file "plans" :depends-on ("package"))
      (:file "plan-execution" :depends-on ("package"))
      (:file "robot-positions-calculations" :depends-on ("package"))
