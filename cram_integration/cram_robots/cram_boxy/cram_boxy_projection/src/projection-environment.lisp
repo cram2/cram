@@ -91,7 +91,7 @@
                ,@body))))
      (car (cram-projection::projection-environment-result-result results))))
 
-(defmacro with-projected-robot (&rest args)
+(defmacro with-projected-robot (&body args)
   "Alias for WITH-SIMULATED-ROBOT."
   `(with-simulated-robot ,@args))
 
