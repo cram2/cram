@@ -118,7 +118,7 @@
 ;; TOP grasp
 (def-object-type-to-gripper-transforms '(:cutlery :spoon :fork :knife) '(:left :right) :top
   :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
-  :grasp-rot-matrix *top-across-x-grasp-rotation*
+  :grasp-rot-matrix *z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :lift-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
@@ -164,14 +164,14 @@
 ;; SIDE grasp
 (def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :left-side
   :grasp-translation `(0.0d0 ,(- *bottle-grasp-xy-offset*) ,*bottle-grasp-z-offset*)
-  :grasp-rot-matrix *left-side-grasp-rotation*
+  :grasp-rot-matrix *y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,*bottle-pregrasp-xy-offset* ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,*bottle-pregrasp-xy-offset* 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 (def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*bottle-grasp-xy-offset* ,*bottle-grasp-z-offset*)
-  :grasp-rot-matrix *right-side-grasp-rotation*
+  :grasp-rot-matrix *-y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,(- *bottle-pregrasp-xy-offset*) ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,(- *bottle-pregrasp-xy-offset*) 0.0)
   :lift-offsets *lift-offset*
@@ -180,7 +180,7 @@
 ;; BACK grasp
 (def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :back
   :grasp-translation `(,*bottle-grasp-xy-offset* 0.0d0 ,*bottle-grasp-z-offset*)
-  :grasp-rot-matrix *back-grasp-rotation*
+  :grasp-rot-matrix *-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
@@ -189,7 +189,7 @@
 ;; FRONT grasp
 (def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :front
   :grasp-translation `(,*bottle-grasp-xy-offset* 0.0d0 ,*bottle-grasp-z-offset*)
-  :grasp-rot-matrix *front-grasp-rotation*
+  :grasp-rot-matrix *x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
@@ -206,7 +206,7 @@
 ;; TOP grasp
 (def-object-type-to-gripper-transforms :cup '(:left :right) :top
   :grasp-translation `(,(- *cup-top-grasp-x-offset*) 0.0d0 ,*cup-top-grasp-z-offset*)
-  :grasp-rot-matrix *top-across-y-grasp-rotation*
+  :grasp-rot-matrix *z-across-y-grasp-rotation*
   :pregrasp-offsets *lift-offset*
   :2nd-pregrasp-offsets *lift-offset*
   :lift-offsets *lift-offset*
@@ -215,14 +215,14 @@
 ;; SIDE grasp
 (def-object-type-to-gripper-transforms :cup '(:left :right) :left-side
   :grasp-translation `(0.0d0 ,(- *cup-grasp-xy-offset*) ,*cup-grasp-z-offset*)
-  :grasp-rot-matrix *left-side-grasp-rotation*
+  :grasp-rot-matrix *y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 (def-object-type-to-gripper-transforms :cup '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*cup-grasp-xy-offset* ,*cup-grasp-z-offset*)
-  :grasp-rot-matrix *right-side-grasp-rotation*
+  :grasp-rot-matrix *-y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) 0.0)
   :lift-offsets *lift-offset*
@@ -231,7 +231,7 @@
 ;; BACK grasp
 (def-object-type-to-gripper-transforms :cup '(:left :right) :back
   :grasp-translation `(,*cup-grasp-xy-offset* 0.0d0 ,*cup-grasp-z-offset*)
-  :grasp-rot-matrix *back-grasp-rotation*
+  :grasp-rot-matrix *-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
@@ -240,7 +240,7 @@
 ;; FRONT grasp
 (def-object-type-to-gripper-transforms :cup '(:left :right) :front
   :grasp-translation `(,(- *cup-grasp-xy-offset*) 0.0d0 ,*cup-grasp-z-offset*)
-  :grasp-rot-matrix *front-grasp-rotation*
+  :grasp-rot-matrix *x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-offsets *lift-offset*
@@ -255,14 +255,14 @@
 ;; SIDE grasp
 (def-object-type-to-gripper-transforms :milk '(:left :right) :left-side
   :grasp-translation `(0.0d0 ,(- *milk-grasp-xy-offset*) ,*milk-grasp-z-offset*)
-  :grasp-rot-matrix *left-side-grasp-rotation*
+  :grasp-rot-matrix *y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 (def-object-type-to-gripper-transforms :milk '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*milk-grasp-xy-offset* ,*milk-grasp-z-offset*)
-  :grasp-rot-matrix *right-side-grasp-rotation*
+  :grasp-rot-matrix *-y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) 0.0)
   :lift-offsets *lift-offset*
@@ -271,7 +271,7 @@
 ;; BACK grasp
 (def-object-type-to-gripper-transforms :milk '(:left :right) :back
   :grasp-translation `(,*milk-grasp-xy-offset* 0.0d0 ,*milk-grasp-z-offset*)
-  :grasp-rot-matrix *back-grasp-rotation*
+  :grasp-rot-matrix *-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *milk-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *milk-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
@@ -280,7 +280,7 @@
 ;; FRONT grasp
 (def-object-type-to-gripper-transforms :milk '(:left :right) :front
   :grasp-translation `(,(- *milk-grasp-xy-offset*) 0.0d0 ,*milk-grasp-z-offset*)
-  :grasp-rot-matrix *front-grasp-rotation*
+  :grasp-rot-matrix *x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 0.0)
   :lift-offsets *lift-offset*
@@ -295,7 +295,7 @@
 ;; TOP grasp
 (def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :top
   :grasp-translation `(0.0d0 0.0d0 ,*cereal-grasp-z-offset*)
-  :grasp-rot-matrix *top-across-x-grasp-rotation*
+  :grasp-rot-matrix *z-across-x-grasp-rotation*
   :pregrasp-offsets *lift-offset*
   :2nd-pregrasp-offsets *lift-offset*
   :lift-offsets *lift-offset*
@@ -304,7 +304,7 @@
 ;; BACK grasp
 (def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :back
   :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
-  :grasp-rot-matrix *back-grasp-rotation*
+  :grasp-rot-matrix *-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
@@ -313,7 +313,7 @@
 ;; FRONT grasp
 (def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :front
   :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
-  :grasp-rot-matrix *front-grasp-rotation*
+  :grasp-rot-matrix *x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
   :lift-offsets *lift-offset*
@@ -328,7 +328,7 @@
 ;; TOP grasp
 (def-object-type-to-gripper-transforms :bowl '(:left :right) :top
   :grasp-translation `(,(- *bowl-grasp-x-offset*) 0.0d0 ,*bowl-grasp-z-offset*)
-  :grasp-rot-matrix *top-across-y-grasp-rotation*
+  :grasp-rot-matrix *z-across-y-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :lift-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
