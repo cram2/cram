@@ -29,27 +29,59 @@
 
 (in-package :cram-object-interfaces)
 
-(defparameter *back-grasp-rotation*
-  '((0 0 1)
-    (1 0 0)
-    (0 1 0)))
-(defparameter *front-grasp-rotation*
+(defparameter *sin-pi/4* (sin (/ pi 4)))
+(defparameter *-sin-pi/4* (- (sin (/ pi 4))))
+
+;; back / front
+(defparameter *x-across-z-grasp-rotation*
   '(( 0  0 -1)
     (-1  0  0)
     ( 0  1  0)))
-(defparameter *left-side-grasp-rotation*
+(defparameter *-x-across-z-grasp-rotation*
+  '((0 0 1)
+    (1 0 0)
+    (0 1 0)))
+(defparameter *x-across-y-grasp-rotation*
+  '(( 0  0 -1)
+    ( 0 -1  0)
+    (-1  0  0)))
+(defparameter *-x-across-y-grasp-rotation*
+  '(( 0  0  1)
+    ( 0  1  0)
+    (-1  0  0)))
+(defparameter *-x-across-y-grasp-rotation*
+  '(( 0  0  1)
+    ( 0  1  0)
+    (-1  0  0)))
+
+;; side
+(defparameter *y-across-z-grasp-rotation*
   '((1  0  0)
     (0  0 -1)
     (0  1  0)))
-(defparameter *right-side-grasp-rotation*
+(defparameter *-y-across-z-grasp-rotation*
   '((-1 0 0)
     ( 0 0 1)
     ( 0 1 0)))
-(defparameter *top-across-x-grasp-rotation*
+(defparameter *y-across-x-grasp-rotation*
+  '((0   1  0)
+    (0   0  -1)
+    (-1  0  0)))
+(defparameter *-y-across-x-grasp-rotation*
+  '((0  -1  0)
+    (0   0  1)
+    (-1  0  0)))
+
+;; top
+(defparameter *z-across-x-grasp-rotation*
   '((0  1  0)
     (1  0  0)
     (0  0 -1)))
-(defparameter *top-across-y-grasp-rotation*
+(defparameter *z-across-y-grasp-rotation*
   '((1  0  0)
     (0 -1  0)
     (0  0 -1)))
+(defparameter *z-diagonal-grasp-rotation*
+  `((,*-sin-pi/4* ,*sin-pi/4*  0)
+    (,*sin-pi/4*  ,*sin-pi/4*  0)
+    (0            0           -1)))
