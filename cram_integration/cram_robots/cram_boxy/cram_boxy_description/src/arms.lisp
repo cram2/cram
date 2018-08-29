@@ -32,12 +32,32 @@
 (defparameter *standard-to-boxy-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
 
+(defparameter *left-parking-joint-states*
+  '(("left_arm_0_joint" -1.858d0)
+    ("left_arm_1_joint" 0.70571d0)
+    ("left_arm_2_joint" 0.9614d0)
+    ("left_arm_3_joint" -0.602d0)
+    ("left_arm_4_joint" -2.5922d0)
+    ("left_arm_5_joint" -1.94065d0)
+    ("left_arm_6_joint" -1.28735d0)))
+
+(defparameter *right-parking-joint-states*
+  '(("right_arm_0_joint" 0.0)
+    ("right_arm_1_joint" 0.0)
+    ("right_arm_2_joint" 0.0)
+    ("right_arm_3_joint" 0.0)
+    ("right_arm_4_joint" 0.0)
+    ("right_arm_5_joint" 0.0)
+    ("right_arm_6_joint" 0.0)))
+
+
 (def-fact-group boxy-arm-facts (end-effector-link
                                 robot-tool-frame
                                 arm-joints arm-links
                                 gripper-joint
                                 gripper-link
-                                standard-to-particular-gripper-transform)
+                                standard-to-particular-gripper-transform
+                                robot-arms-parking-joint-states)
 
   (<- (end-effector-link boxy :left "left_arm_7_link"))
   (<- (end-effector-link boxy :right "right_arm_7_link"))
@@ -88,4 +108,15 @@
     (lisp-pred identity ?pos))
 
   (<- (standard-to-particular-gripper-transform boxy ?transform)
-    (symbol-value *standard-to-boxy-gripper-transform* ?transform)))
+    (symbol-value *standard-to-boxy-gripper-transform* ?transform))
+
+  (<- (robot-arms-parking-joint-states boxy ?joint-states)
+    (symbol-value *right-parking-joint-states* ?right-joint-states)
+    (symbol-value *left-parking-joint-states* ?left-joint-states)
+    (append ?right-joint-states ?left-joint-states ?joint-states))
+
+  (<- (robot-arms-parking-joint-states boxy ?joint-states :left)
+    (symbol-value *left-parking-joint-states* ?joint-states))
+
+  (<- (robot-arms-parking-joint-states boxy ?joint-states :right)
+    (symbol-value *right-parking-joint-states* ?joint-states)))
