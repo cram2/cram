@@ -88,9 +88,7 @@
   (let ((robot-object (btr:get-robot-object)))
     (if robot-object
         (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
-        (warn "ROBOT was not defined. Have you loaded a robot package?")))
-
-  (btr-utils:move-robot '((-2.3 1.5 0) (0 0 0 1))))
+        (warn "ROBOT was not defined. Have you loaded a robot package?"))))
 
 (defun init-projection ()
   (def-fact-group costmap-metadata ()
