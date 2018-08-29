@@ -61,24 +61,6 @@
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :front-wheel))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :nut))) 0.1)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (def-fact-group asm-object-knowledge (obj-int:object-type-grasp)
-;;   (<- (obj-int:object-type-grasp :chassis :top)))
-
-
-;; (defmethod get-object-type-to-gripper-transform (object-type object-name arm grasp)
-;;   (declare (ignore object-type))
-;;   "Default implementation when using KnowRob's get_grasp_position query."
-;;   (cram-tf:transform-stamped-inv ; oTg
-;;    (get-object-manipulation-transform :grasp  ; gTo
-;;                                       (ecase arm
-;;                                         (:left "left_gripper")
-;;                                         (:right "right_gripper"))
-;;                                       object-name
-;;                                       grasp)))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CHASSIS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *chassis-grasp-z-offset* -0.02)
@@ -86,13 +68,128 @@
 ;; TOP grasp
 (def-object-type-to-gripper-transforms :chassis '(:left :right) :top
   :grasp-translation `(0.0 0.0 ,*chassis-grasp-z-offset*)
-  :grasp-rot-matrix *top-across-x-grasp-rotation*
+  :grasp-rot-matrix *z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
   :lift-offsets *default-lift-offsets*
   :2nd-lift-offsets *default-lift-offsets*)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOTTOM-WING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defparameter *bottom-wing-grasp-x-offset* 0.07)
+(defparameter *bottom-wing-grasp-y-offset* 0.01)
+(defparameter *bottom-wing-grasp-z-offset* 0.02)
+
+;; SIDE grasp
+(def-object-type-to-gripper-transforms :bottom-wing :left :right-side
+  :grasp-translation `(,(- *bottom-wing-grasp-x-offset*)
+                       ,*bottom-wing-grasp-y-offset*
+                       ,*bottom-wing-grasp-z-offset*)
+  :grasp-rot-matrix *y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0 ,*default-z-offset* ,*default-z-offset*)
+  :2nd-pregrasp-offsets `(0 ,*default-z-offset* 0.0)
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+(def-object-type-to-gripper-transforms :bottom-wing :right :right-side
+  :grasp-translation `(,*bottom-wing-grasp-x-offset*
+                       ,(- *bottom-wing-grasp-y-offset*)
+                       ,*bottom-wing-grasp-z-offset*)
+  :grasp-rot-matrix *-y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0 ,(- *default-z-offset*) ,*default-z-offset*)
+  :2nd-pregrasp-offsets `(0 ,(- *default-z-offset*) 0.0)
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+;; BACK grasp
+(def-object-type-to-gripper-transforms :bottom-wing '(:left :right) :back
+  :grasp-translation `(,(- *bottom-wing-grasp-x-offset*)
+                       0.0
+                       ,*bottom-wing-grasp-z-offset*)
+  :grasp-rot-matrix *-x-across-y-grasp-rotation*
+  :pregrasp-offsets `(,(- *default-z-offset*) 0.0 ,*default-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *default-z-offset*) 0.0 0.0)
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; UNDERBODY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *underbody-grasp-y-offset* 0.03)
+(defparameter *underbody-grasp-z-offset* 0.0)
+
+;; TOP grasp
+(def-object-type-to-gripper-transforms :underbody :left :top
+  :grasp-translation `(0.0 ,*underbody-grasp-y-offset* ,*underbody-grasp-z-offset*)
+  :grasp-rot-matrix *z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+(def-object-type-to-gripper-transforms :underbody :right :top
+  :grasp-translation `(0.0 ,(- *underbody-grasp-y-offset*) ,*underbody-grasp-z-offset*)
+  :grasp-rot-matrix *z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; UPPER-BODY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *upper-body-grasp-x-offset* 0.09)
+(defparameter *upper-body-grasp-z-offset* 0.0)
+
+;; TOP grasp
+(def-object-type-to-gripper-transforms :upper-body '(:left :right) :top
+  :grasp-translation `(,(- *upper-body-grasp-x-offset*) 0.0 ,*upper-body-grasp-z-offset*)
+  :grasp-rot-matrix *z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; TOP-WING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *top-wing-grasp-x-offset* 0.08)
+(defparameter *top-wing-grasp-y-offset* 0.01)
+(defparameter *top-wing-grasp-z-offset* 0.03)
+
+;; BACK grasp
+(def-object-type-to-gripper-transforms :top-wing '(:left :right) :back
+  :grasp-translation `(,(- *top-wing-grasp-x-offset*)
+                       0.0
+                       ,*top-wing-grasp-z-offset*)
+  :grasp-rot-matrix *-x-across-y-grasp-rotation*
+  :pregrasp-offsets `(,(- *default-z-offset*) 0.0 ,*default-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *default-z-offset*) 0.0 0.0)
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; WINDOW ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *window-grasp-x-offset* 0.025)
+(defparameter *window-grasp-y-offset* 0.012)
+(defparameter *window-grasp-z-offset* 0.015)
+
+(def-object-type-to-gripper-transforms :window '(:left :right) :top
+  :grasp-translation `(,(- *window-grasp-x-offset*)
+                        ,*window-grasp-y-offset*
+                        ,(- *window-grasp-z-offset*))
+  :grasp-rot-matrix *z-diagonal-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOLT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def-object-type-to-gripper-transforms :bolt '(:left :right) :top
+  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-rot-matrix *z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
 
 
 
