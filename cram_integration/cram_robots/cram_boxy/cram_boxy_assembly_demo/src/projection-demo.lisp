@@ -29,7 +29,7 @@
 
 (in-package :demo)
 
-(defparameter *plate-x* -1.108)
+(defparameter *plate-x* -1.1115)
 (defparameter *plate-y* 1.6)
 (defparameter *plate-z* 0.8626)
 
@@ -165,6 +165,24 @@
     (nut-2 :nut ,*gray-plane*
            ((0.215 0.725 ,*nut-rad-z*) (0 0 0 1)))))
 
+
+(defparameter *left-arm-nicer-configuration*
+  '(-1.2274070978164673
+    0.8496202230453491
+    -0.10349386930465698
+    -1.0852965116500854
+    -0.4587952196598053
+    1.259474515914917
+    -0.06962397694587708))
+
+(defparameter *base-x* -2.4)
+(defparameter *base-very-left-side-left-hand-pose* `((,*base-x* 1.7 0) (0 0 0 1)))
+(defparameter *base-left-side-left-hand-pose* `((,*base-x* 1.5 0) (0 0 0 1)))
+(defparameter *base-middle-side-left-hand-pose* `((,*base-x* 1.1 0) (0 0 0 1)))
+(defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.9 0) (0 0 0 1)))
+(defparameter *base-very-right-side-left-hand-pose* `((,*base-x* 0.7 0) (0 0 0 1)))
+
+
 (defun spawn-objects-on-plate (&optional (spawning-poses *object-spawning-data*))
   (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
@@ -194,6 +212,78 @@
                                          object-relative-pose)))))))
                          spawning-poses)))
     objects))
+
+;;; ASSEMBLY STEPS:
+;;; (1) put chassis on holder (bump inwards)
+;;; (2) put bottom wing on chassis
+;;; (3) put underbody on bottom wing
+;;; (4) put upperbody on underbody
+;;; (5) screw rear hole
+;;; (6) put top wing on body
+;;; (7) screw top wing
+;;; (8) put window on body
+;;; * screw window
+;;; * put plane on vertical holder
+;;; * put propeller on grill
+;;; * screw propeller
+;;; * put wheel on
+;;; * screw nut onto wheel
+;;; * put other wheel on
+;;; * screw nut onto wheel
+;;; * screw bottom body
+(defun demo ()
+  (spawn-objects-on-plate)
+  (boxy-proj:with-projected-robot
+    (go-pick-place :chassis *base-left-side-left-hand-pose*)            ; 1
+    (go-pick-place :bottom-wing *base-right-side-left-hand-pose*)       ; 2
+    (go-pick-place :underbody *base-middle-side-left-hand-pose*)        ; 3
+    (go-pick-place :upper-body *base-very-right-side-left-hand-pose*)   ; 4
+    (go-pick-place :bolt *base-very-right-side-left-hand-pose*)         ; 5
+    (go-pick-place :top-wing *base-very-left-side-left-hand-pose*)      ; 6
+    (go-pick-place :bolt *base-very-right-side-left-hand-pose*)         ; 7
+    (go-pick-place :window *base-left-side-left-hand-pose*)             ; 8
+    (go-pick-place :bolt *base-very-right-side-left-hand-pose*)         ; 9
+    ))
+
+(defun go-pick-place (?object-type ?nav-goal)
+  ;; park arms
+  (pp-plans:park-arms :carry nil)
+  ;; drive to right location
+  (let ((?pose (cl-transforms-stamped:pose->pose-stamped
+                cram-tf:*fixed-frame*
+                0.0
+                (btr:ensure-pose ?nav-goal))))
+    (exe:perform
+     (desig:an action
+               (type going)
+               (target (desig:a location
+                                (pose ?pose))))))
+  ;; look down
+  (exe:perform
+   (desig:an action
+             (type looking)
+             (direction down)))
+  ;; perceive bottom wing
+  (let ((?object
+          (exe:perform
+           (desig:an action
+                     (type detecting)
+                     (object (desig:an object (type ?object-type)))))))
+    ;; look away
+    (exe:perform
+     (desig:an action
+               (type looking)
+               (direction away)))
+    ;; pick up chassis
+    (exe:perform
+     (desig:an action
+               (type picking-up)
+               (arm left)
+               (object ?object)))
+    ;; put the cookie down
+    (exe:perform
+     (desig:an action
+               (type placing)))))
 
 #+examples
 (
@@ -230,105 +320,6 @@
 
 #+everything-below-is-pr2-s-stuff-so-need-new-things-for-boxy
 (
-(defparameter *sink-nav-goal*
-  (cl-transforms-stamped:make-pose-stamped
-   "map"
-   0.0
-   (cl-transforms:make-3d-vector 0.75d0 0.70d0 0.0)
-   (cl-transforms:make-identity-rotation)))
-(defparameter *island-nav-goal*
-  (cl-transforms-stamped:make-pose-stamped
-   "map"
-   0.0
-   (cl-transforms:make-3d-vector -0.2d0 1.5d0 0.0)
-   (cl-transforms:make-quaternion 0 0 1 0)))
-(defparameter *look-goal*
-  (cl-transforms-stamped:make-pose-stamped
-   "base_footprint"
-   0.0
-   (cl-transforms:make-3d-vector 0.5d0 0.0d0 1.0d0)
-   (cl-transforms:make-identity-rotation)))
-
-(defparameter *object-grasping-arms*
-  '((:breakfast-cereal . :right)
-    (:cup . :left)
-    (:bowl . :right)
-    (:spoon . :right)
-    (:milk . :right)))
-
-(defparameter *object-placing-poses*
-  '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
-    (:cup . ((-0.79 1.35 0.9) (0 0 0.7071 0.7071)))
-    (:bowl . ((-0.76 1.19 0.88) (0 0 0.7071 0.7071)))
-    (:spoon . ((-0.78 1.5 0.86) (0 0 0 1)))
-    (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
-
-(defun go-to-sink-or-island (&optional (sink-or-island :sink))
-  (let ((?navigation-goal (ecase sink-or-island
-                            (:sink *sink-nav-goal*)
-                            (:island *island-nav-goal*)))
-        (?ptu-goal *look-goal*))
-    (cpl:par
-      (pp-plans::park-arms)
-      (exe:perform (desig:a motion
-                            (type going)
-                            (target (desig:a location (pose ?navigation-goal))))))
-    (exe:perform (desig:a motion
-                          (type looking)
-                          (target (desig:a location (pose ?ptu-goal)))))))
-
-(defun pick-object (&optional (?object-type :breakfast-cereal) (?arm :right))
-  (pp-plans:park-arms)
-  (go-to-sink-or-island :sink)
-  (let* ((?object-desig
-           (desig:an object (type ?object-type)))
-         (?perceived-object-desig
-           (exe:perform (desig:an action
-                                  (type detecting)
-                                  (object ?object-desig)))))
-    (cpl:par
-      (exe:perform (desig:an action
-                             (type looking)
-                             (object ?perceived-object-desig)))
-      (exe:perform (desig:an action
-                             (type picking-up)
-                             (arm ?arm)
-                             (object ?perceived-object-desig))))))
-
-(defun place-object (?target-pose &optional (?arm :right))
-  (pp-plans:park-arms)
-  (go-to-sink-or-island :island)
-  (cpl:par
-    (exe:perform (desig:a motion
-                          (type looking)
-                          (target (desig:a location
-                                           (pose ?target-pose)))))
-    (exe:perform (desig:an action
-                           (type placing)
-                           (arm ?arm)
-                           (target (desig:a location
-                                            (pose ?target-pose)))))))
-
-
-;;; ASSEMBLY STEPS:
-;;; * put chassis on holder (bump inwards)
-;;; * put bottom wing on chassis
-;;; * put underbody on bottom wing
-;;; * put upperbody on underbody
-;;; * screw rear hole
-;;; * put top wing on body
-;;; * screw top wing
-;;; * put window on body
-;;; * screw window
-;;; * put plane on vertical holder
-;;; * put propeller on grill
-;;; * screw propeller
-;;; * put wheel on
-;;; * screw nut onto wheel
-;;; * put other wheel on
-;;; * screw nut onto wheel
-;;; * screw bottom body
-;;;
 (defun demo-hard-coded ()
   (spawn-objects-on-plate)
 
