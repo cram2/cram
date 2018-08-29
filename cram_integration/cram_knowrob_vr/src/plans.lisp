@@ -35,7 +35,7 @@ RETURNS: Errors or a successfull movement action of the robot."
 ?TYPE: The type of the object that is to be picked up.
 RETURNS: Errors or a successfull movement action of the robot."
   (let* ((?obj-desig nil)
-         (?arm (get-hand)))
+         (?arm (get-hand ?type)))
     (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
       (cpl:top-level
         (setf ?obj-desig
@@ -63,7 +63,7 @@ and at which the robot will look for it.
 ?TYPE: the type of the object the robot should look for and which to pick up.
 RETURNS: The object designator of the object that has been picked up in this plan."
   (let* ((?obj-desig nil)
-         (?arm (get-hand)))
+         (?arm (get-hand ?type)))
     (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
       (cpl:top-level
         ; make sure the arms are not in the way
