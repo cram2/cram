@@ -89,3 +89,14 @@ Can be used to make sure the indivisual queries data is correct."
                  actor_pose(EpInst, HandInstShortName, End, PoseHandEnd).")))
 
 
+
+;; name "?PoseObjStart"
+(defun make-poses-without-transform (name &optional (poses-list *poses-list*))
+  "Makes poses without the application of the transform, which is needed to display them in the bullet world correctly. This is used to demonstrate the offset between the two worlds. "
+  (make-pose (cut:var-value (intern name) poses-list)))
+
+
+(defun make-poses-with-quaternion (name &optional (poses-list *poses-list*))
+  "Makes poses with the fixed quaternion."
+  (quaternion-w-flip
+   (make-pose (cut:var-value (intern name) poses-list))))

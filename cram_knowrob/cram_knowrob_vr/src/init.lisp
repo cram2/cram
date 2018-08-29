@@ -72,7 +72,7 @@
     (prolog:prolog
      `(and (btr:bullet-world ?world)
            (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                                    :urdf ,kitchen-urdf))))))
+                                         :urdf ,kitchen-urdf))))))
 
 (defun init-items ()
   (ros-info (kvr) "spawning objects for experiments...")
