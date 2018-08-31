@@ -34,9 +34,4 @@
   (:use #:common-lisp #:cram-prolog #:cram-designator-specification)
   (:export
    ;; motions
-   #:move-base
-   #:move-neck
-   #:move-gripper-joint
-   #:move-tcp
-   #:move-arm-joints
    #:move-tcp-wiggle))
