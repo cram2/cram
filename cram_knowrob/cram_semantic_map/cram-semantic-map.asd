@@ -39,4 +39,5 @@
     :components
     ((:file "package")
      (:file "semantic-map-cache" :depends-on ("package"))
-     (:file "events" :depends-on ("package"))))))
+     ;; (:file "events" :depends-on ("package"))
+     ))))
