@@ -31,12 +31,12 @@
 
 (def-fact-group boxy-atomic-actions (desig:action-grounding)
 
-  (<- (desig:action-grounding ?action-designator (wiggle ?left-poses ?right-poses))
-    (property ?action-designator (:type :pushing))
-    (once (or (property ?action-designator (:left-poses ?left-poses))
-              (equal ?left-poses nil)))
-    (once (or (property ?action-designator (:right-poses ?right-poses))
-              (equal ?right-poses nil))))
+  ;; (<- (desig:action-grounding ?action-designator (wiggle ?left-poses ?right-poses))
+  ;;   (property ?action-designator (:type :wiggling))
+  ;;   (once (or (property ?action-designator (:left-poses ?left-poses))
+  ;;             (equal ?left-poses nil)))
+  ;;   (once (or (property ?action-designator (:right-poses ?right-poses))
+  ;;             (equal ?right-poses nil))))
 
   (<- (desig:action-grounding ?action-designator (cram-inspect ?augmented-designator))
     (property ?action-designator (:type :inspecting))
