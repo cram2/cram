@@ -7,7 +7,8 @@
                cl-transforms-stamped
                cl-tf
                cram-bullet-world-tutorial
-               cram-knowrob-pick-place)
+               cram-knowrob-pick-place
+               cram-object-interfaces)
 	:components
 	
 	((:module "src"

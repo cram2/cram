@@ -86,9 +86,7 @@
   (add-axes 'axes3))
 
 (defun init-full-simulation ()
-  "Resets the simulation, but can also be used to initialize it
-(although I prefer to initilize it manually so I can see where it fails if
-it does.) Spawns all the objects which are necessary for the current
+  "Spawns all the objects which are necessary for the current
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
   (init-episode)

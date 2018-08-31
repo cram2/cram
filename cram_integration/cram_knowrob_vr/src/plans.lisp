@@ -63,7 +63,8 @@ and at which the robot will look for it.
 ?TYPE: the type of the object the robot should look for and which to pick up.
 RETURNS: The object designator of the object that has been picked up in this plan."
   (let* ((?obj-desig nil)
-         (?arm (get-hand ?type)))
+         (?arm (get-hand (object-type-filter-prolog ?type)))
+         (?obj-name (object-type-filter-bullet ?type)))
     (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
       (cpl:top-level
         ; make sure the arms are not in the way
@@ -86,15 +87,14 @@ RETURNS: The object designator of the object that has been picked up in this pla
               (exe:perform
                (desig:an action
                          (type detecting)
-                         (object (desig:an
-                                  object
-                                  (type ?type))))))
+                         (object (desig:an object (type ?obj-name))))))
         
         (print  (desig:reference
                  (desig:an action
                            (type picking-up)
                            (arm ?arm)
                            (object ?obj-desig))))
+        (print "BREAK")
 
         ;; pick up obj
         (exe:perform 
@@ -152,7 +152,8 @@ holds in his hand and which is to be placed."
                    (target (desig:a location (pose ?place-pose)))))
         (pp-plans::park-arms)))))
 
-(defun pick-and-place (?grasping-base-pose ?grasping-look-pose ?placing-base-pose ?placing-look-pose ?place-pose ?type)
+(defun pick-and-place (?grasping-base-pose ?grasping-look-pose
+                       ?placing-base-pose ?placing-look-pose ?place-pose ?type)
   "Picks up and object and places it down based on Virtual Reality data.
 ?GRASPING-BASE-POSE: The pose the robot should stand at, in order to be able to
 grasp the object.

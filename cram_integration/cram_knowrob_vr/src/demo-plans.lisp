@@ -4,8 +4,12 @@
   "executes the pick and place task for the entire episode, using both hands of the robot. Maaning: two objects are being carried at once. "
   ;; pick up two
   (get-next-obj-poses 0)
-  (pick-up-object (set-grasp-base-pose (make-poses "?PoseCameraStart"))
-                  (set-grasp-look-pose (make-poses "?PoseObjStart"))
+  (pick-up-object (set-grasp-base-pose
+                   (get-camera-location-at-start-by-object-type
+                    (object-type-filter-prolog type)))
+                  (set-grasp-look-pose
+                   (get-object-location-at-start-by-object-type
+                    (object-type-filter-prolog type)))
                   :koelln-muesli-knusper-honig-nuss
                   nil)
   
@@ -117,3 +121,15 @@
   (alternative-demo 'fork-blue-plastic)
   (execute-pick-and-place :fork-blue-plastic)
   )
+
+
+
+(defun execution-adjustment-test (type)
+  (pick-up-object (set-grasp-base-pose
+                   (get-camera-location-at-start-by-object-type
+                    (object-type-filter-prolog type)))
+                  (set-grasp-look-pose
+                   (get-object-location-at-start-by-object-type
+                    (object-type-filter-prolog type)))
+                  :cup-eco-orange
+                  ))
