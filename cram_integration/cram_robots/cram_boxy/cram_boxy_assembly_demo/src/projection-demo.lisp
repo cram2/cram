@@ -166,15 +166,6 @@
            ((0.215 0.725 ,*nut-rad-z*) (0 0 0 1)))))
 
 
-(defparameter *left-arm-nicer-configuration*
-  '(-1.2274070978164673
-    0.8496202230453491
-    -0.10349386930465698
-    -1.0852965116500854
-    -0.4587952196598053
-    1.259474515914917
-    -0.06962397694587708))
-
 (defparameter *base-x* -2.4)
 (defparameter *base-very-left-side-left-hand-pose* `((,*base-x* 1.7 0) (0 0 0 1)))
 (defparameter *base-left-side-left-hand-pose* `((,*base-x* 1.5 0) (0 0 0 1)))
@@ -213,6 +204,11 @@
                          spawning-poses)))
     objects))
 
+
+(defmethod exe:generic-perform :before (designator)
+  (format t "~%PERFORMING~%~A~%~%" designator))
+
+
 ;;; ASSEMBLY STEPS:
 ;;; (1) put chassis on holder (bump inwards)
 ;;; (2) put bottom wing on chassis
@@ -222,7 +218,7 @@
 ;;; (6) put top wing on body
 ;;; (7) screw top wing
 ;;; (8) put window on body
-;;; * screw window
+;;; (9) screw window
 ;;; * put plane on vertical holder
 ;;; * put propeller on grill
 ;;; * screw propeller
@@ -234,18 +230,61 @@
 (defun demo ()
   (spawn-objects-on-plate)
   (boxy-proj:with-projected-robot
-    (go-pick-place :chassis *base-left-side-left-hand-pose*)            ; 1
-    (go-pick-place :bottom-wing *base-right-side-left-hand-pose*)       ; 2
-    (go-pick-place :underbody *base-middle-side-left-hand-pose*)        ; 3
-    (go-pick-place :upper-body *base-very-right-side-left-hand-pose*)   ; 4
-    (go-pick-place :bolt *base-very-right-side-left-hand-pose*)         ; 5
-    (go-pick-place :top-wing *base-very-left-side-left-hand-pose*)      ; 6
-    (go-pick-place :bolt *base-very-right-side-left-hand-pose*)         ; 7
-    (go-pick-place :window *base-left-side-left-hand-pose*)             ; 8
-    (go-pick-place :bolt *base-very-right-side-left-hand-pose*)         ; 9
-    ))
+    ;; 1
+    (go-connect :chassis *base-left-side-left-hand-pose*
+                :holder-plane-horizontal *base-middle-side-left-hand-pose*
+                :chassis-attachment)
+    (when T
+     ;; 2
+     (go-connect :bottom-wing *base-right-side-left-hand-pose*
+                 :chassis *base-middle-side-left-hand-pose*
+                 :wing-attachment)
+     ;; 3
+     (go-connect :underbody *base-middle-side-left-hand-pose*
+                 :bottom-wing *base-middle-side-left-hand-pose*
+                 :body-attachment)
+     ;; 4
+     (go-connect :upper-body *base-very-right-side-left-hand-pose*
+                 :underbody *base-left-side-left-hand-pose*
+                 :body-on-body)
+     ;; 5
+     (go-connect :bolt *base-very-right-side-left-hand-pose*
+                 :upper-body *base-left-side-left-hand-pose*
+                 :rear-thread)
+     ;; 6
+     (go-connect :top-wing *base-very-left-side-left-hand-pose*
+                 :upper-body *base-left-side-left-hand-pose*
+                 :wing-attachment)
+     ;; 7
+     (go-connect :bolt *base-very-right-side-left-hand-pose*
+                 :top-wing *base-left-side-left-hand-pose*
+                 :middle-thread)
+     ;; 8
+     (go-connect :window *base-left-side-left-hand-pose*
+                 :top-wing *base-left-side-left-hand-pose*
+                 :window-attachment)
+     ;; 9
+     (go-connect :bolt *base-very-right-side-left-hand-pose*
+                 :window *base-left-side-left-hand-pose*
+                 :window-thread))
+    (pp-plans:park-arms :carry nil)))
 
-(defun go-pick-place (?object-type ?nav-goal)
+(defun go-connect (?object-type ?nav-goal ?other-object-type ?other-nav-goal ?attachment-type)
+  ;; go and pick up object
+  (let ((?object
+          (go-pick ?object-type ?nav-goal)))
+    ;; go and perceive other object
+    (let ((?other-object
+            (go-perceive ?other-object-type ?other-nav-goal)))
+      (exe:perform
+       (desig:an action
+                 (type connecting)
+                 (arm left)
+                 (object ?object)
+                 (to-object ?other-object)
+                 (attachment ?attachment-type))))))
+
+(defun go-perceive (?object-type ?nav-goal)
   ;; park arms
   (pp-plans:park-arms :carry nil)
   ;; drive to right location
@@ -263,7 +302,7 @@
    (desig:an action
              (type looking)
              (direction down)))
-  ;; perceive bottom wing
+  ;; perceive object
   (let ((?object
           (exe:perform
            (desig:an action
@@ -274,16 +313,29 @@
      (desig:an action
                (type looking)
                (direction away)))
-    ;; pick up chassis
+    ?object))
+
+(defun go-pick (?object-type ?nav-goal)
+  ;; go and perceive object
+  (let ((?object
+          (go-perceive ?object-type ?nav-goal)))
+    ;; pick object
     (exe:perform
      (desig:an action
                (type picking-up)
                (arm left)
                (object ?object)))
+    ?object))
+
+(defun go-pick-place (?object-type ?nav-goal)
+  ;; go and pick up object
+  (let ((?object
+          (go-pick ?object-type ?nav-goal)))
     ;; put the cookie down
     (exe:perform
      (desig:an action
-               (type placing)))))
+               (type placing)
+               (object ?object)))))
 
 #+examples
 (
