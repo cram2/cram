@@ -1,6 +1,5 @@
 (in-package :kvr)
 
-
 ;; grasps ----------------------------------------------------------------------
 ;;  General Grasp
 ;; TODO: generalize this grasp. Type could and should be derived from the VR data
@@ -11,15 +10,17 @@
                                                  (grasp (eql :human-grasp)))
   (let* (transf
          end-transf)
-
     ;; transf. from Map to Obj?
+    (print (string object-name))
     (setq transf
           (cl-tf:transform*
            (cl-tf:transform-inv
             ;; TODO object-name or type?
-            (get-object-location-at-start-by-object-type object-name))
-           (get-hand-location-at-start-by-object-type object-name)
-           (human-to-robot-hand-transform)))
+            (get-object-location-at-start-by-object-type
+             (roslisp-utilities:rosify-lisp-name object-name)))
+           (get-hand-location-at-start-by-object-type
+            (roslisp-utilities:rosify-lisp-name object-name))
+          (human-to-robot-hand-transform)))
     (setf end-transf
           (cl-tf:transform->transform-stamped
            (roslisp-utilities:rosify-underscores-lisp-name object-name)

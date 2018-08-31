@@ -18,12 +18,12 @@ for that object, e.g. CupEcoOrange."
 for that object, e.g. CupEcoOrange."
   ;;do some filtering for exact object names
     (case object-type
-      (muesli (setq object-type 'koelln-muesli-knusper-honig-nuss))
-      (cup (setq object-type 'cup-eco-orange))
-      (bowl (setq object-type 'edeka-red-bowl))
-      (milk (setq object-type 'weide-milch-small))
-      (fork (setq object-type 'fork-blue-plastic))
-      (spoon (setq object-type 'spoon-blue-plastic))
+      (muesli (setq object-type :koelln-muesli-knusper-honig-nuss))
+      (cup (setq object-type :cup-eco-orange))
+      (bowl (setq object-type :edeka-red-bowl))
+      (milk (setq object-type :weide-milch-small))
+      (fork (setq object-type :fork-blue-plastic))
+      (spoon (setq object-type :spoon-blue-plastic))
       (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon"))))
 
 
@@ -171,24 +171,29 @@ the episode. . "
 ;;; evaluation
 (defun move-obj-with-offset (x-offset y-offset object)
   "Moves an object to a given x y offset from it's starting position. "
-(move-object 
-     (cl-tf:make-transform 
-      (cl-tf:make-3d-vector
-       (+
-        x-offset
-        (cl-tf:x
-         (cl-tf:translation
-          (get-object-location-at-start-by-object-type object))))
-       (+
-        y-offset
-        (cl-tf:y
-         (cl-tf:translation
-          (get-object-location-at-start-by-object-type object))))
-       (cl-tf:z
-        (cl-tf:translation 
-         (get-object-location-at-start-by-object-type object))))
-      (cl-tf:rotation
-       (get-object-location-at-start-by-object-type object))) object))
+  (move-object 
+   (cl-tf:make-transform 
+    (cl-tf:make-3d-vector
+     (+
+      x-offset
+      (cl-tf:x
+       (cl-tf:translation
+        (get-object-location-at-start-by-object-type
+         (object-type-filter-prolog object)))))
+     (+
+      y-offset
+      (cl-tf:y
+       (cl-tf:translation
+        (get-object-location-at-start-by-object-type
+         (object-type-filter-prolog object)))))
+     (cl-tf:z
+      (cl-tf:translation 
+       (get-object-location-at-start-by-object-type
+        (object-type-filter-prolog object)))))
+    (cl-tf:rotation
+     (get-object-location-at-start-by-object-type
+      (object-type-filter-prolog object))))
+   (object-type-filter-bullet object)))
 ;;--------------------------------------------------------------
 
 

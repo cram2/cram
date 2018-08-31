@@ -22,7 +22,7 @@ RETURNS: "
                     (place-pose-btr-island))
                    old-type))
 
-(defun execute-pick-up-object (type old-type)
+(defun execute-pick-up-object (type)
   "Executes only the picking up action on an object given the type of the object.
 TYPE: The type of the object. Could be :koelln-muesli-knusper-honig-nuss for
 the cereal box.
@@ -30,10 +30,13 @@ RETURNS:"
   (pick-up-object (set-grasp-base-pose
                    (get-camera-location-at-start-by-object-type
                     (object-type-filter-prolog type)))
+                  
                   (set-grasp-look-pose
-                   (get-object-location-at-end-by-object-type
+                   (get-object-location-at-start-by-object-type
                     (object-type-filter-prolog type)))
-                  old-type))
+                  
+                  type
+                  ))
 
 (defun execute-place-object (?obj-desig type)
   "Executes the placing action given the object designator of the picked up and
@@ -45,5 +48,4 @@ and which should be placed down."
                  (get-camera-location-at-end-by-object-type type))
                 (set-grasp-look-pose (place-pose-btr-island))
                 (set-grasp-look-pose (place-pose-btr-island))
-                (cram-projection::projection-environment-result-result ?obj-desig)
-                ))
+                (cram-projection::projection-environment-result-result ?obj-desig)))

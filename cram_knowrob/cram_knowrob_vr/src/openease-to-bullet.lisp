@@ -84,6 +84,6 @@ robot in the bullet world should place the object currently in hand."
           (cl-tf:transform*
            table-pose-bullet
            (cl-tf:transform-inv table-pose-oe)
-           (make-poses "?PoseObjEnd")))
+           (get-object-location-at-end-by-object-type type)))
     place-pose))
     

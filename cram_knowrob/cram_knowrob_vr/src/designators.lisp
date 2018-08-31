@@ -1,7 +1,7 @@
 (in-package :kvr)
 
 ;; object knowledge-------------------------------------------------------------
-(prolog:def-fact-group kvr-object-knowledge (object-rotationally-symmetric
+(cram-prolog:def-fact-group kvr-object-knowledge (object-rotationally-symmetric
                                              orientation-matters
                                              obj-int:object-type-grasp)
   
