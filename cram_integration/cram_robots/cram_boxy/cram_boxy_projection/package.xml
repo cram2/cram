@@ -27,6 +27,7 @@
   <depend>cram_plan_occasions_events</depend>
   <depend>cram_boxy_description</depend>
   <depend>cram_common_designators</depend>
+  <depend>cram_boxy_designators</depend>
   <depend>cram_common_failures</depend>
   <depend>cram_process_modules</depend>
   <depend>roslisp_utilities</depend>

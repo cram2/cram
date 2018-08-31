@@ -44,6 +44,7 @@
                cram-plan-occasions-events
                cram-boxy-description ; to get kinematic structure names
                cram-common-designators
+               cram-boxy-designators ; for wiggling
                cram-common-failures
                cram-process-modules
                alexandria ; for CURRY in low-level perception
