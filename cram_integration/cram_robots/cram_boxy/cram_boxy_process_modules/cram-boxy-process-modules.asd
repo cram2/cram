@@ -35,6 +35,7 @@
                cram-designators
                cram-prolog
 
+               cram-common-designators
                cram-boxy-designators
                cram-boxy-low-level
                cram-tf)
