@@ -78,7 +78,7 @@
              (object ?object-designator)))
   (roslisp:ros-info (pick-place pick-up) "Assert grasp into knowledge base")
   (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-attached
+   (make-instance 'cpoe:object-attached-robot
      :object-name (desig:desig-prop-value ?object-designator :name)
      :arm ?arm))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
@@ -133,7 +133,7 @@
              (gripper ?arm)))
   (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
   (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-detached
+   (make-instance 'cpoe:object-detached-robot
      :arm ?arm
      :object-name (desig:desig-prop-value ?object-designator :name)))
   (roslisp:ros-info (pick-place place) "Retracting")
@@ -162,11 +162,11 @@
 ;; (cpl:def-cram-function pick-up (action-designator object arm grasp)
 ;;   (perform-phases-in-sequence action-designator)
 ;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-gripped :object object :arm arm :grasp grasp)))
+;;    (make-instance 'cpoe:object-attached-robot :object object :arm arm :grasp grasp)))
 
 
 ;; (cpl:def-cram-function place (action-designator object arm)
 ;;   (perform-phases-in-sequence action-designator)
 ;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-released :arm arm :object object)))
+;;    (make-instance 'cpoe:object-detached-robot :arm arm :object object)))
 
