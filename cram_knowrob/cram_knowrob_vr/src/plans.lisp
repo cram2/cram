@@ -94,7 +94,6 @@ RETURNS: The object designator of the object that has been picked up in this pla
                            (type picking-up)
                            (arm ?arm)
                            (object ?obj-desig))))
-        (print "BREAK")
 
         ;; pick up obj
         (exe:perform 

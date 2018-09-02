@@ -6,6 +6,7 @@
 ;;; care of that. 
 (in-package :kvr)
 
+
 (defun quaternion-w-flip (pose)
   "Flips the quaternion from OpenEase wxyz notation to the ros xyzw notation.
 POSE: is the pose, from which the quaternion will be taken and flipped.
@@ -48,42 +49,42 @@ RETURNS: a cl-transform."
 
 ;; TODO this needs to be adapted to the changes
 (defun place-pose-btr-island ()
-  "Calculates the placing pose for an object, relative to the bullet world
-kitchen island. This is needed, since the OpenEase kitchen island and the
-bullet world kitchen island, are slightly offset to one another, and the offset
-fixing the general semantic map offset, is not enough to fix it.
-Therefore relative poses are being calculated.
-RETURNS: A cl-tf:transform representing the pose and orientation, at which the
-robot in the bullet world should place the object currently in hand."
+;  "Calculates the placing pose for an object, relative to the bullet world
+;kitchen island. This is needed, since the OpenEase kitchen island and the
+;bullet world kitchen island, are slightly offset to one another, and the offset
+;fixing the general semantic map offset, is not enough to fix it.
+;Therefore relative poses are being calculated.
+;RETURNS: A cl-tf:transform representing the pose and orientation, at which the
+;robot in the bullet world should place the object currently in hand."
   ;FIXME A wrong pose is being calculated. I don't know why yet. 
-  (let* (table-pose-oe
-         table-pose-bullet
-         place-pose)
+;  (let* (table-pose-oe
+;         table-pose-bullet
+;         place-pose)
     ; get pose of Table in map frame
-    (setq table-pose-oe
-          (make-poses "?PoseTable"
-                      (cut:lazy-car
-                       (prolog-simple "ep_inst(EpInst),
-                                       u_occurs(EpInst, EventInst, Start, End),
-                                       obj_type(TableInst, knowrob:'IslandArea'),
-                                       iri_xml_namespace(TableInst, _, TableShortName),
-                                       actor_pose(EpInst, TableShortName, Start, PoseTable)."))))
-                                    ; get pose of table in bullet world
-    (print table-pose-oe)
-    (setq table-pose-bullet
-          (cl-tf:pose->transform
-           (btr:pose
-            (gethash ':|KITCHEN.kitchen_island| ;or kitchen_island_surface?
-                     (slot-value
-                      (btr:object btr:*current-bullet-world* :kitchen)
-                      'cram-bullet-reasoning:rigid-bodies)))))
+;    (setq table-pose-oe
+;          (make-poses "?PoseTable"
+;                      (cut:lazy-car
+;                       (prolog-simple "ep_inst(EpInst),
+;                                       u_occurs(EpInst, EventInst, Start, End),
+;                                       obj_type(TableInst, knowrob:'IslandArea'),
+;                                       iri_xml_namespace(TableInst, _, TableShortName),
+;                                       actor_pose(EpInst, TableShortName, Start, PoseTable)."))))
+;                                    ; get pose of table in bullet world
+;    (print table-pose-oe)
+;    (setq table-pose-bullet
+;          (cl-tf:pose->transform
+;           (btr:pose
+;            (gethash ':|KITCHEN.kitchen_island| ;or kitchen_island_surface?
+;                     (slot-value
+;                      (btr:object btr:*current-bullet-world* :kitchen)
+;                      'cram-bullet-reasoning:rigid-bodies)))))
 
-    (print table-pose-bullet)
-    ; calculate place pose relative to bullet table
-    (setq place-pose
-          (cl-tf:transform*
-           table-pose-bullet
-           (cl-tf:transform-inv table-pose-oe)
-           (get-object-location-at-end-by-object-type type)))
-    place-pose))
-    
+;    (print table-pose-bullet)
+;    ; calculate place pose relative to bullet table
+;    (setq place-pose
+;          (cl-tf:transform*
+;           table-pose-bullet
+;           (cl-tf:transform-inv table-pose-oe)
+;           (get-object-location-at-end-by-object-type type)))
+;    place-pose))
+ )   

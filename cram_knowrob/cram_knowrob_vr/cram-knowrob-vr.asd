@@ -14,21 +14,34 @@
 	((:module "src"
 	  :components
 	  ((:file "package")
-	   (:file "queries" :depends-on ("package"))
-     (:file "utility-queries" :depends-on ("package"))           
-     (:file "utils" :depends-on ("package"))
-     (:file "demo-plans" :depends-on ("package")) ; plans for demonstrations
      
-     (:file "init" :depends-on ("package")) ; initialisation
-     (:file "openease-to-bullet" :depends-on ("package"))
      (:file "items" :depends-on ("package"))
+     (:file "utils" :depends-on ("package"))
      (:file "data-extraction" :depends-on ("package"))
-     (:file "designators" :depends-on ("package"))
-     (:file "plans" :depends-on ("package"))
-     (:file "plan-execution" :depends-on ("package"))
      (:file "robot-positions-calculations" :depends-on ("package"))
+     (:file "init" :depends-on ("package"
+                                "utils")) ; initialisation    
+	   (:file "queries" :depends-on ("package"
+                                   "utils"))
+     (:file "demo-preparation" :depends-on ("package"
+                                            "queries"
+                                            "utils"))
+     (:file "openease-to-bullet" :depends-on ("package"
+                                              "utils"))
+     (:file "demo-plans" :depends-on ("package"
+                                      "queries")) ; plans for demonstrations     
+     (:file "designators" :depends-on ("package"))
+     (:file "plans" :depends-on ("package"
+                                 "designators"
+                                 "utils"))
+     (:file "plan-execution" :depends-on ("package"
+                                          "plans"
+                                          "utils"))
      (:file "grasping" :depends-on ("package")) ; specifies how to grasp obj
      (:file "gaussian" :depends-on ("package"))
-     (:file "demo-preparation" :depends-on ("package"))
+     
+     ;; TODO remove?
+     (:file "utility-queries" :depends-on ("package")) 
+     
      ;(:file "reference-queries" :depends-on ("package")) can this jsut be ignored?
      ))))

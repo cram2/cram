@@ -8,6 +8,7 @@
                                                  object-name
                                                  arm
                                                  (grasp (eql :human-grasp)))
+
   (let* (transf
          end-transf)
     ;; transf. from Map to Obj?
@@ -20,7 +21,8 @@
              (roslisp-utilities:rosify-lisp-name object-name)))
            (get-hand-location-at-start-by-object-type
             (roslisp-utilities:rosify-lisp-name object-name))
-          (human-to-robot-hand-transform)))
+           (human-to-robot-hand-transform)))
+
     (setf end-transf
           (cl-tf:transform->transform-stamped
            (roslisp-utilities:rosify-underscores-lisp-name object-name)
@@ -50,4 +52,20 @@
   (cram-tf:translate-transform-stamped
    grasp-transform
    :x-offset (- cram-knowrob-pick-place::*cereal-pregrasp-xy-offset*)))
+
+(defmethod get-object-type-to-gripper-lift-transform (object-type
+                                                      object-name
+                                                      arm
+                                                      (grasp (eql :human-grasp))
+                                                       grasp-transform)
+                                                      
+  (cram-tf:translate-transform-stamped grasp-transform :z-offset cram-knowrob-pick-place::*lift-z-offset*))
+
+(defmethod obj-int:get-object-type-to-gripper-2nd-lift-transform (object-type
+                                                                  object-name
+                                                                  arm
+                                                                  (grasp (eql :human-grasp))
+                                                                  grasp-pose)
+  (cram-tf:translate-transform-stamped
+   grasp-pose :x-offset 0.0)) ;??? *drawer-handle-2nd-lift-x-offset*
 
