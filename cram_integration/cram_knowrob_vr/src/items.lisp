@@ -6,7 +6,7 @@
 
 (in-package :kvr)
 
-(defun add-bowl (&optional (?name 'edeka-red-bowl))
+(defun add-bowl (&optional (?name :edeka-red-bowl))
   "Adds an object of type edeka-red-bowl to the bullet world.
 OPTIONAL NAME: Name of the object. If not set, the default name will be
 'edeka-red-bowl.
@@ -15,7 +15,7 @@ RETURNS: Lazy list containing the created edeka-red-bowl-object."
                    (assert (btr:object ?world :mesh ,?name ((0 1 3) (0 0 0 1))
                             :mass 0.2 :color (1 1 1) :mesh :edeka-red-bowl)))))
 
-(defun add-cup (&optional (?name 'cup-eco-orange))
+(defun add-cup (&optional (?name :cup-eco-orange))
   "Adds an object of type cup-eco-orange to the bullet world.
 OPTIONAL NAME: Name of the object. If not set, the default name will be
 'cup-eco-orange.
@@ -24,7 +24,7 @@ RETURNS: Lazy list containing the created cup-eco-orange-object."
                    (assert (btr:object ?world :mesh ,?name ((0 2 3) (0 0 0 1))
                             :mass 0.2 :color (1 1 0) :mesh :cup-eco-orange)))))
 
-(defun add-muesli (&optional (?name 'koelln-muesli-knusper-honig-nuss))
+(defun add-muesli (&optional (?name :koelln-muesli-knusper-honig-nuss))
   "Adds an object of type koelln-muesli-knusper-honig-nuss to the bullet world.
 OPTIONAL NAME: Name of the object. If not set, the default name will be
 'koelln-muesli-knusper-honig-nuss.
@@ -33,7 +33,7 @@ RETURNS: Lazy list containing the created koelln-muesli-knusper-honig-nuss-objec
                    (assert (btr:object ?world :mesh ,?name ((0 3 3) (0 0 0 1))
                             :mass 0.2 :color (1 0 1) :mesh :koelln-muesli-knusper-honig-nuss)))))
 
-(defun add-fork (&optional (?name 'fork-blue-plastic))
+(defun add-fork (&optional (?name :fork-blue-plastic))
   "Adds an object of type fork-blue-plastic to the bullet world.
 OPTIONAL NAME: Name of the object. If not set, the default name will be 'fork-blue-plastic.
 RETURNS: Lazy list containing the created fork-blue-plastic-object."
@@ -41,7 +41,7 @@ RETURNS: Lazy list containing the created fork-blue-plastic-object."
                    (assert (btr:object ?world :mesh ,?name ((0 4 3) (0 0 0 1))
                                        :mass 0.2 :color (0 0 1) :mesh :fork-blue-plastic)))))
 
-(defun add-spoon (&optional (?name 'spoon-blue-plastic))
+(defun add-spoon (&optional (?name :spoon-blue-plastic))
   "Adds an object of type spoon-blue-plastic to the bullet world.
 OPTIONAL NAME: Name of the object. If not set, the default name will be 'spoon-blue-plastic.
 RETURNS: Lazy list containing the created spoon-blue-plastic-object."
@@ -58,7 +58,7 @@ RETURNS: Lazy list containing the created weide-milch-small-object."
                    (assert (btr:object ?world :mesh ,?name ((0 6 3) (0 0 0 1))
                             :mass 0.2 :color (1 0 0) :mesh :weide-milch-small)))))
 
-(defun add-axes (&optional (?name 'axes))
+(defun add-axes (&optional (?name :axes))
   "Adds an object of type axes to the bullet world.
 OPTIONAL NAME: Name of the object. If not set, the default name will be 'axes.
 RETURNS: Lazy list containing the created axes-object."

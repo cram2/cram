@@ -82,8 +82,8 @@
   (add-fork)
   (add-cup)
   (add-milk)
-  (add-axes 'axes2)
-  (add-axes 'axes3))
+  (add-axes :axes2)
+  (add-axes :axes3))
 
 (defun init-full-simulation ()
   "Spawns all the objects which are necessary for the current
