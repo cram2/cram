@@ -5,8 +5,8 @@
                                              orientation-matters
                                              obj-int:object-type-grasp)
   
-  (prolog:<- (object-rotationally-symmetric ?object-type)
-    (member ?object-type (:cup-eco-orange :weide-milch-small)))
+;  (prolog:<- (object-rotationally-symmetric ?object-type)
+;    (member ?object-type (:cup-eco-orange :weide-milch-small)))
 
   (prolog:<- (orientation-matters ?object-type)
     (member ?object-type (:fork-blue-plastic
