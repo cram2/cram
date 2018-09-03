@@ -27,6 +27,8 @@ for that object, e.g. CupEcoOrange."
       (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon"))))
 
 (defun object-type-fixer(object-type)
+  "Takes care of the few cases where the name of the object within the recorded
+VR data and the object within the bullet world, are different."
   (case object-type
     (:weide-milch-small (setq object-type :milram-buttermilch-erdbeere))
     (:edeka-red-bowl (setq object-type :ikea-bowl))
