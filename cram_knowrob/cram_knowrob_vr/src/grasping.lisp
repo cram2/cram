@@ -9,6 +9,7 @@
                                                  arm
                                                  (grasp (eql :human-grasp)))
 
+  
   (let* (transf
          end-transf)
     ;; transf. from Map to Obj?
@@ -18,9 +19,11 @@
            (cl-tf:transform-inv
             ;; TODO object-name or type?
             (get-object-location-at-start-by-object-type
-             (roslisp-utilities:rosify-lisp-name object-name)))
+             (roslisp-utilities:rosify-lisp-name
+              (object-type-fixer object-name))))
            (get-hand-location-at-start-by-object-type
-            (roslisp-utilities:rosify-lisp-name object-name))
+            (roslisp-utilities:rosify-lisp-name
+             (object-type-fixer object-name)))
            (human-to-robot-hand-transform)))
 
     (setf end-transf

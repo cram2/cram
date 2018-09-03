@@ -49,7 +49,7 @@ RETURNS: Lazy list containing the created spoon-blue-plastic-object."
                    (assert (btr:object ?world :mesh ,?name ((0 4 3) (0 0 0 1))
                             :mass 0.2 :color (0 0 1) :mesh :spoon-blue-plastic)))))
 
-(defun add-milk (&optional (?name 'weide-milch-small))
+(defun add-milk (&optional (?name :weide-milch-small))
   "Adds an object of type weide-milch-small to the bullet world.
 OPTIONAL NAME: Name of the object. If not set, the default name will be
 'weide-milch-small.

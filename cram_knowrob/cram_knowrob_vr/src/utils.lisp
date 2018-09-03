@@ -26,7 +26,13 @@ for that object, e.g. CupEcoOrange."
       (spoon (setq object-type :spoon-blue-plastic))
       (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon"))))
 
-
+(defun object-type-fixer(object-type)
+  (case object-type
+    (:weide-milch-small (setq object-type :milram-buttermilch-erdbeere))
+    (:edeka-red-bowl (setq object-type :ikea-bowl))
+    (:fork-blue-plastic (setq object-type :plastic-blue-fork))
+    (:spoon-blue-plastic (setq object-type :plastic-blue-spoon))
+    (t object-type)))
 
 
 ;; killing object from bullet world. ex: 'axes
