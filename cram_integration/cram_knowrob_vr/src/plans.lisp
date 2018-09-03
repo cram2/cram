@@ -1,7 +1,5 @@
 (in-package :kvr)
-;;------------------- from tutorials ----------------------
-;;example call: (move-to-object (set-grasp-base-pose
-;; (make-poses "?PoseCameraStart")) (set-grasp-look-pose (make-poses "?PoseObjStart")))
+
 (defun move-to-object (?grasping-base-pose ?grasping-look-pose)
   "Moves the robot into the position which the human had when interacting
 with an object. The robot is placed at the spot where the human was standing and
@@ -35,13 +33,14 @@ RETURNS: Errors or a successfull movement action of the robot."
 ?TYPE: The type of the object that is to be picked up.
 RETURNS: Errors or a successfull movement action of the robot."
   (let* ((?obj-desig nil)
-         (?arm (get-hand ?type)))
+         (?arm (get-hand ?type))
+         (?obj-name (object-type-filter-prolog ?type)))
     (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
       (cpl:top-level
         (setf ?obj-desig
               (exe:perform (desig:an action
                                      (type detecting)
-                                     (object (desig:an object (type ?type))))))
+                                     (object (desig:an object (type ?obj-name))))))
         ; TODO replace with ros-warn or remove complety after testing.
         (print  (desig:reference
                  (desig:an action
@@ -111,7 +110,7 @@ RETURNS: The object designator of the object that has been picked up in this pla
         ))))
 
 
-
+;; TODO
 (defun place-object (?placing-base-pose ?placing-look-pose ?place-pose ?obj-desig)
   "A plan to place an object which is currently in one of the robots hands.
 ?PLACING-BASE-POSE: The pose the robot should stand at in order to place the
@@ -125,7 +124,9 @@ Relative to the Kitchen Island table.
 holds in his hand and which is to be placed."
   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
     (cpl:top-level
-      (let* ((?arm (get-hand)))
+      (let* ((?arm (get-hand
+                    (object-type-filter-prolog
+                     (desig:desig-prop-value ?obj-desig :type)))))
         ; move to obj
         (pp-plans::park-arms)         
         ; move the robot to location
@@ -165,7 +166,8 @@ the object.
 ?PLACE-POSE: The actual placing pose of the object.
 ?TYPE: The type of the object the robot should interact with."
   (let* ((?obj-desig nil)
-         (?arm (get-hand)))
+         (?arm (get-hand  (object-type-filter-prolog ?type)))
+         (?obj-name (object-type-filter-bullet ?type)))
     (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
       (cpl:top-level
         ;; make sure the arms are not in the way
@@ -185,7 +187,7 @@ the object.
               (exe:perform
                (desig:an action
                          (type detecting)
-                         (object (desig:an object (type ?type))))))
+                         (object (desig:an object (type ?obj-name))))))
         (print  (desig:reference
                  (desig:an action
                            (type picking-up)
