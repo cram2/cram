@@ -17,12 +17,11 @@ RETURNS: "
                     (get-camera-location-at-end-by-object-type
                      (object-type-filter-prolog type)))
                    (set-grasp-look-pose
-                    (place-pose-btr-island
-                     (object-type-filter-prolog type)))
+                    (place-pose-btr-island type)))
                    (set-grasp-look-pose
                     (place-pose-btr-island
                      (object-type-filter-prolog type)))
-                   type))
+  type)
 
 (defun execute-pick-up-object (type)
   "Executes only the picking up action on an object given the type of the object.
@@ -31,14 +30,13 @@ the cereal box.
 RETURNS:"
   (pick-up-object (set-grasp-base-pose
                    (get-camera-location-at-start-by-object-type
-                    (object-type-filter-prolog type)))
-                  
+                    (object-type-filter-prolog type)))                 
+
                   (set-grasp-look-pose
                    (get-object-location-at-start-by-object-type
                     (object-type-filter-prolog type)))
                   
-                  type
-                  ))
+                  type))
 ;; TODO
 (defun execute-place-object (?obj-desig type)
   "Executes the placing action given the object designator of the picked up and
