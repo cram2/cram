@@ -226,3 +226,8 @@ the object.
                    (object ?obj-desig)
                    (target (desig:a location (pose ?place-pose)))))))))
 
+(defun reset-robot ()
+  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+  (cpl:top-level 
+    (cpl:seq
+      (pp-plans::park-arms)))))
