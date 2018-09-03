@@ -92,10 +92,19 @@ In order for the robot to be able to perform a picking up action, the objects ha
 
     (demo-spawn-all-obj-in-place)
     
+Will move all the objects that have been used in the current VR episode, to the location at which they were in the beginning of the episode.    
+
+### Running a pick-and-place-action (plan-execution.lisp)
+In order to have the simulated robot pick an object up and bring it to the kitchen island, one can call:
     
+    (execute-pick-and-place 'cup)
     
-    
-    
+The parameter of this function is the name of the object that should be manipulated. Currently six objects are supported, which are: muesli, cup, milk, bowl, fork and spoon.
+
+If anything goes wrong, try a different object or check the API for more debugging options.
+
+
+
 ## Function descriptions    
 ### init.lisp
 #### (init-episode())
@@ -118,22 +127,22 @@ Contains all the item spawning functions.
 Adds a new bowl object to the scene, at a hardcoded pose somewhere above the robot. (Since the bowl will be moved to where it was in the scenario, the initial pose does not matter.)
 A new name can be given to the bowl, which is important if one needs more then one. If the ?name variable is not set, the default name will be: edeka-red-bowl.
 
-#### (add-cup (&optional (?name 'cup-eco-orange))) 
+#### (add-cup (&optional (?name :cup-eco-orange))) 
 same as the above
 
-#### (add-muesli (&optional (?name 'koelln-muesli-knusper-honig-nuss)))
+#### (add-muesli (&optional (?name :koelln-muesli-knusper-honig-nuss)))
 same as the above
 
-#### (add-fork (&optional (?name 'fork-blue-plastic)))
+#### (add-fork (&optional (?name :fork-blue-plastic)))
 same as the above
 
-#### (add-spoon (&optional (?name 'spoon-blue-plastic)))
+#### (add-spoon (&optional (?name :spoon-blue-plastic)))
 same as the above
 
-#### (add-milk (&optional (?name 'weide-milch-small)))
+#### (add-milk (&optional (?name :weide-milch-small)))
 same as the above
 
-#### (add-axes (?optional (?name 'axes)))
+#### (add-axes (?optional (?name :axes)))
 Adds an axes object which can be used for pose debugging at a random pose in the world. (Initial pose does not matter.)
 A new name can be given to the axes object, which is important if one needs more then one. If the ?name variable is not set, the default name will be: axes.
 
@@ -143,4 +152,33 @@ Contains all the queries that can be used to access information stored in the Mo
 Each query gets the name of an object as a parameter, and will output the pose or other information about this object, based on when a 'GraspingSomething' event occured.
 
 #### (base-query (object-type))
-Contains the query which 
+Contains the query on which all the other queries are based, and which is used within the other queries. It asks for an Event based on the given type of the object. Also, the event has to contain an "objectActedOn", meaning it is a "GraspingSomething" event. It also asks for the Start and End time of the event.
+
+#### (get-event-by-object-type (object-type))
+Returns the event in which an "objectActedOn" event has been performed on the object of the given type.
+
+#### (get-object-location-at-start-by-object-type (object-type))
+Returns the location of an object of given type at the beginning of the event in the form of a cl-tf:transform.
+Meaning, the pose which the object had before it was manipulated by the human. (pick up pose)
+
+#### (get-object-location-at-end-by-object-type (object-type))
+Returns the location of an object of given type at the end of the event in the form of a cl-tf:transform.
+(placing pose)
+
+#### (get-hand (object-type))
+Returns which hand has been used to manipulate the given object. The result can be :left or :right.
+
+#### (get-hand-location-at-start-by-object-type (object-type))
+Returns a cl-tf:transform which describes the pose the humans hand had at the start of the "GraspingSomething" Event. The grasping pose the robot uses for his gripper is based on this pose.
+
+#### (get-hand-location-at-end-by-object-type (object-type))
+Returns a cl-tf:transform which describes the pose the humans hand had at the end of the "GraspingSomething" Event. 
+
+#### (get-camera-location-at-start-by-object-type (object-type))
+Returns a cl-tf:transform which describes the pose of the humans head during the pick up action. The robots location during the pick up action within the environment is based on this pose.
+
+#### (get-camera-location-at-end-by-object-type (object-type))
+Returns a cl-tf:transform which describes the pose of the humans head at the placing action. The robots location during the placing action within the environment is based on this pose.
+
+#### (get-table-location)
+Returns a cl-tf:transform of the pose of the kitchen-island-table within the environment, which is used for the calculation of the placing pose of the object.

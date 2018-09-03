@@ -39,6 +39,7 @@
                                           "utils"))
      (:file "grasping" :depends-on ("package")) ; specifies how to grasp obj
      (:file "gaussian" :depends-on ("package"))
+     (:file "debugging-utils" :depends-on ("package")) 
      
      ;; TODO remove?
      (:file "utility-queries" :depends-on ("package")) 
