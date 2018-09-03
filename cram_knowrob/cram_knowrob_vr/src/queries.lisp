@@ -122,6 +122,16 @@
                     iri_xml_namespace(CameraInst, _, CameraShortName),
                     actor_pose(EpInst, CameraShortName, End, PoseCameraEnd)."))))))
 
+(defun get-table-location ()
+  (make-pose
+   (cut:var-value
+    (intern "?PoseTable")
+    (cut:lazy-car
+     (prolog-simple "ep_inst(EpInst),
+                     u_occurs(EpInst, EventInst, Start, End),
+                     obj_type(TableInst, knowrob:'IslandArea'),
+                     iri_xml_namespace(TableInst, _, TableShortName),
+                     actor_pose(EpInst, TableShortName, Start, PoseTable).")))))
 
 
 

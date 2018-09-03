@@ -1,6 +1,6 @@
 (in-package :kvr)
 
-(defun execute-pick-and-place (type old-type)
+(defun execute-pick-and-place (type)
   "Executes the pick and place plan on an object of the given type.
 The positions of where the robot looks for the object and where he is placing
 it down are the ones extracted from Virtual Reality.
@@ -17,10 +17,12 @@ RETURNS: "
                     (get-camera-location-at-end-by-object-type
                      (object-type-filter-prolog type)))
                    (set-grasp-look-pose
-                    (place-pose-btr-island))
+                    (place-pose-btr-island
+                     (object-type-filter-prolog type)))
                    (set-grasp-look-pose
-                    (place-pose-btr-island))
-                   old-type))
+                    (place-pose-btr-island
+                     (object-type-filter-prolog type)))
+                   type))
 
 (defun execute-pick-up-object (type)
   "Executes only the picking up action on an object given the type of the object.
@@ -37,7 +39,7 @@ RETURNS:"
                   
                   type
                   ))
-
+;; TODO
 (defun execute-place-object (?obj-desig type)
   "Executes the placing action given the object designator of the picked up and
 held in hand object. The placing pose is the one used in VR for that kind of 
