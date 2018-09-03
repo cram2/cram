@@ -94,8 +94,4 @@ objects for debugging."
   (init-bullet-world)
   (init-items))
 
-(defun reset-simulation ()
-  "Resets the simulation and belief state. Re-spawns the objects at their
-initial position."
-  (cram-occasions-events:clear-belief)
-  (init-items))
+
