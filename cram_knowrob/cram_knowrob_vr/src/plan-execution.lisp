@@ -49,3 +49,13 @@ and which should be placed down."
                 (set-grasp-look-pose (place-pose-btr-island))
                 (set-grasp-look-pose (place-pose-btr-island))
                 (cram-projection::projection-environment-result-result ?obj-desig)))
+
+(defun execute-move-to-object (type)
+  "Moves the robot to the position where the human was standing in order to
+grasp the object."
+  (move-to-object (set-grasp-base-pose
+                   (get-camera-location-at-start-by-object-type
+                    (object-type-filter-prolog type)))
+                  (set-grasp-look-pose
+                   (get-object-location-at-start-by-object-type
+                    (object-type-filter-prolog type)))))

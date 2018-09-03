@@ -82,6 +82,7 @@
   (add-fork)
   (add-cup)
   (add-milk)
+  (add-spoon)
   (add-axes :axes2)
   (add-axes :axes3))
 
@@ -91,4 +92,10 @@ scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
   (init-episode)
   (init-bullet-world)
+  (init-items))
+
+(defun reset-simulation ()
+  "Resets the simulation and belief state. Re-spawns the objects at their
+initial position."
+  (cram-occasions-events:clear-belief)
   (init-items))
