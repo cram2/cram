@@ -234,39 +234,38 @@
     (go-connect :chassis *base-left-side-left-hand-pose*
                 :holder-plane-horizontal *base-middle-side-left-hand-pose*
                 :chassis-attachment)
-    (when T
-     ;; 2
-     (go-connect :bottom-wing *base-right-side-left-hand-pose*
-                 :chassis *base-middle-side-left-hand-pose*
-                 :wing-attachment)
-     ;; 3
-     (go-connect :underbody *base-middle-side-left-hand-pose*
-                 :bottom-wing *base-middle-side-left-hand-pose*
-                 :body-attachment)
-     ;; 4
-     (go-connect :upper-body *base-very-right-side-left-hand-pose*
-                 :underbody *base-left-side-left-hand-pose*
-                 :body-on-body)
-     ;; 5
-     (go-connect :bolt *base-very-right-side-left-hand-pose*
-                 :upper-body *base-left-side-left-hand-pose*
-                 :rear-thread)
-     ;; 6
-     (go-connect :top-wing *base-very-left-side-left-hand-pose*
-                 :upper-body *base-left-side-left-hand-pose*
-                 :wing-attachment)
-     ;; 7
-     (go-connect :bolt *base-very-right-side-left-hand-pose*
-                 :top-wing *base-left-side-left-hand-pose*
-                 :middle-thread)
-     ;; 8
-     (go-connect :window *base-left-side-left-hand-pose*
-                 :top-wing *base-left-side-left-hand-pose*
-                 :window-attachment)
-     ;; 9
-     (go-connect :bolt *base-very-right-side-left-hand-pose*
-                 :window *base-left-side-left-hand-pose*
-                 :window-thread))
+    ;; 2
+    (go-connect :bottom-wing *base-right-side-left-hand-pose*
+                :chassis *base-middle-side-left-hand-pose*
+                :wing-attachment)
+    ;; 3
+    (go-connect :underbody *base-middle-side-left-hand-pose*
+                :bottom-wing *base-middle-side-left-hand-pose*
+                :body-attachment)
+    ;; 4
+    (go-connect :upper-body *base-very-right-side-left-hand-pose*
+                :underbody *base-left-side-left-hand-pose*
+                :body-on-body)
+    ;; 5
+    (go-connect :bolt *base-very-right-side-left-hand-pose*
+                :upper-body *base-left-side-left-hand-pose*
+                :rear-thread)
+    ;; ;; 6
+    (go-connect :top-wing *base-very-left-side-left-hand-pose*
+                :upper-body *base-left-side-left-hand-pose*
+                :wing-attachment)
+    ;; ;; 7
+    (go-connect :bolt *base-very-right-side-left-hand-pose*
+                :top-wing *base-left-side-left-hand-pose*
+                :middle-thread)
+    ;; ;; 8
+    (go-connect :window *base-left-side-left-hand-pose*
+                :top-wing *base-left-side-left-hand-pose*
+                :window-attachment)
+    ;; ;; 9
+    (go-connect :bolt *base-very-right-side-left-hand-pose*
+                :window *base-left-side-left-hand-pose*
+                :window-thread)
     (pp-plans:park-arms :carry nil)))
 
 (defun go-connect (?object-type ?nav-goal ?other-object-type ?other-nav-goal ?attachment-type)
