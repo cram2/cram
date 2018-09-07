@@ -40,14 +40,19 @@
                                        other-object-name other-object-type other-object-transform
                                        attachment-type)
   (declare (ignore object-transform))
-  "Returns a a transform in robot base frame where the object named `object-name' should go"
-  ;; bToo * ooTo = bTo
-  (cram-tf:multiply-transform-stampeds
-   cram-tf:*robot-base-frame*
-   (roslisp-utilities:rosify-underscores-lisp-name other-object-name)
-   other-object-transform
-   (get-object-type-in-other-object-transform ; oToo
-    object-type object-name other-object-type other-object-name attachment-type)))
+  "Returns a transform in robot base frame where the object named `object-name' should go"
+  (let* ((base-frame
+           cram-tf:*robot-base-frame*)
+         (object-frame
+           (roslisp-utilities:rosify-underscores-lisp-name object-name))
+         (base-to-object-transform  ; bTo = bToo * ooTo
+           (cram-tf:multiply-transform-stampeds
+            base-frame
+            object-frame
+            other-object-transform
+            (get-object-type-in-other-object-transform ; ooTo
+             object-type object-name other-object-type other-object-name attachment-type))))
+    base-to-object-transform))
 
 
 
@@ -74,8 +79,8 @@
                  (mapcar (lambda (other-object)
                            (let ((transform
                                    (cl-transforms-stamped:make-transform-stamped
-                                    (roslisp-utilities:rosify-underscores-lisp-name object)
                                     (roslisp-utilities:rosify-underscores-lisp-name other-object)
+                                    (roslisp-utilities:rosify-underscores-lisp-name object)
                                     0.0
                                     (cl-transforms:make-3d-vector
                                      (first evaled-attachment-translation)
@@ -105,61 +110,55 @@
 
 
 (defparameter *rotation-around-z-90-matrix*
+  '(( 0  1  0)
+    (-1  0  0)
+    ( 0  0  1)))
+
+(defparameter *rotation-around-z+90-matrix*
   '((0 -1  0)
     (1  0  0)
     (0  0  1)))
+
+(defparameter *identity-matrix*
+  '((1 0 0)
+    (0 1 0)
+    (0 0 1)))
 
 (def-object-type-in-other-object-transform :chassis :holder-plane-horizontal :chassis-attachment
   :attachment-translation `(0.084 0.0 0.022)
   :attachment-rot-matrix *rotation-around-z-90-matrix*)
 
 (def-object-type-in-other-object-transform :bottom-wing :chassis :wing-attachment
-  :attachment-translation `(0.0 0.0 0.0)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :attachment-translation `(0.0 -0.02 0.0)
+  :attachment-rot-matrix *identity-matrix*)
 
 (def-object-type-in-other-object-transform :underbody :bottom-wing :body-attachment
-  :attachment-translation `(0.0 0.0 0.09)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :attachment-translation `(0.0 -0.025 0.02)
+  :attachment-rot-matrix *rotation-around-z+90-matrix*)
 
 (def-object-type-in-other-object-transform :upper-body :underbody :body-on-body
-  :attachment-translation `(0.0 0.0 0.05)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :attachment-translation `(-0.025 0.0 0.0425)
+  :attachment-rot-matrix *identity-matrix*)
 
 (def-object-type-in-other-object-transform :bolt :upper-body :rear-thread
-  :attachment-translation `(0.0 0.0 0.0)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :attachment-translation `(-0.0525 0.0 -0.025)
+  :attachment-rot-matrix *identity-matrix*)
 
 (def-object-type-in-other-object-transform :top-wing :upper-body :wing-attachment
-  :attachment-translation `(0.0 0.0 0.0)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :attachment-translation `(0.05 0.0 0.0025)
+  :attachment-rot-matrix *rotation-around-z-90-matrix*)
 
 (def-object-type-in-other-object-transform :bolt :top-wing :middle-thread
-  :attachment-translation `(0.0 0.0 0.0)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :attachment-translation `(0.0 0.025 -0.005)
+  :attachment-rot-matrix *identity-matrix*)
 
 (def-object-type-in-other-object-transform :window :top-wing :window-attachment
-  :attachment-translation `(0.0 0.0 0.03)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :attachment-translation `(0.0 -0.0525 0.0075)
+  :attachment-rot-matrix *rotation-around-z+90-matrix*)
 
 (def-object-type-in-other-object-transform :bolt :window :window-thread
-  :attachment-translation `(0.0 0.0 0.0)
-  :attachment-rot-matrix '((1 0 0)
-                           (0 1 0)
-                           (0 0 1)))
+  :attachment-translation `(-0.0125 0.0 -0.02)
+  :attachment-rot-matrix *identity-matrix*)
 
 
 
