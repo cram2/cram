@@ -17,7 +17,7 @@
      
      (:file "items" :depends-on ("package"))
      (:file "utils" :depends-on ("package"))
-     (:file "data-extraction" :depends-on ("package"))
+
      (:file "robot-positions-calculations" :depends-on ("package"))
      (:file "init" :depends-on ("package"
                                 "utils")) ; initialisation    
@@ -39,7 +39,9 @@
                                           "utils"))
      (:file "grasping" :depends-on ("package")) ; specifies how to grasp obj
      (:file "gaussian" :depends-on ("package"))
-     (:file "debugging-utils" :depends-on ("package")) 
+     (:file "debugging-utils" :depends-on ("package"))
+     (:file "movement" :depends-on ("package"))
+     (:file "data-manipulation" :depends-on ("package"))
      
      ;; TODO remove?
      (:file "utility-queries" :depends-on ("package")) 

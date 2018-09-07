@@ -123,6 +123,3 @@
 (defun get-necessary-capabilities-for-action (action-name)
   (cut:force-ll (prolog-simple (concatenate 'string "required_cap_for_action(knowrob:'" action-name "', Cap)."))))
 
-
-;; TODO ???
-(defstruct object name type pose)

@@ -35,8 +35,7 @@ RETURNS: a new pose with the z coordinate within the translation  set to 0.0"
   "Defines the offset between the human hand from the virtual reality to the
 robot standart gripper, which has been calculated manually.
 RETURNS: a cl-transform."
-  (let ((alpha  0; (/ pi 4)
-                ))
+  (let ((alpha  0)) ; (/ pi 4)               
       (cl-tf:make-transform
        (cl-tf:make-3d-vector 0.0 -0.07 0.2)
        (cl-tf:matrix->quaternion 
@@ -60,9 +59,7 @@ robot in the bullet world should place the object currently in hand."
   (let* ((table-pose-oe (get-table-location))
          table-pose-bullet
          place-pose)
-                                        ; get pose of Table in map frame
-    (print "Table pose in Data")
-    (print table-pose-oe)
+    ; get pose of Table in map frame
     (setq table-pose-bullet
           (cl-tf:pose->transform
            (btr:pose
@@ -70,8 +67,6 @@ robot in the bullet world should place the object currently in hand."
                      (slot-value
                       (btr:object btr:*current-bullet-world* :kitchen)
                       'cram-bullet-reasoning:rigid-bodies)))))
-    (print "table pose in bullet")
-    (print table-pose-bullet)
     ; calculate place pose relative to bullet table
     (setq place-pose
           (cl-tf:transform*
