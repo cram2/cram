@@ -1,7 +1,7 @@
 (in-package :kvr)
 
 ;; General Grasp
-;; Name of type string or use filter?
+;; Name of type string or use filter
 (defmethod get-object-type-to-gripper-transform (object-type
                                                  object-name
                                                  arm
@@ -10,12 +10,9 @@
   
   (let* (transf
          end-transf)
-    ;; transf. from Map to Obj?
-    (print (string object-name))
     (setq transf
           (cl-tf:transform*
            (cl-tf:transform-inv
-            ;; TODO object-name or type?
             (get-object-location-at-start-by-object-type
              (roslisp-utilities:rosify-lisp-name
               (object-type-fixer object-name))))

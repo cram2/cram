@@ -5,7 +5,6 @@ This package provides the functionality to import data which has been recorded i
 This currently means, that from a recorded episode, 'GraspingSomething' Events are extracted and for each event, the start and end time stamps are given, the positions of the object, the head of the user and the hand which has performed the grasping action at the start and end of the event are extracted. 
 The package also contains tools for adapting the poses from the Virtual Reality environment and map to the one used within CRAM and the CRAM bullet world simulation. 
 
-
 ## Initialisation of the Environment
 In order to be able to use this package, several other programs need to be running. This paragraph will explain which files need to be launched in which order, for the system to be usable.
 
@@ -123,7 +122,7 @@ Calls the three fucntions above in one swoop.
 ### items.lisp
 Contains all the item spawning functions.
 
-#### (add-bowl (&optional (?name 'edeka-red-bowl)))
+#### (add-bowl (&optional (?name :edeka-red-bowl)))
 Adds a new bowl object to the scene, at a hardcoded pose somewhere above the robot. (Since the bowl will be moved to where it was in the scenario, the initial pose does not matter.)
 A new name can be given to the bowl, which is important if one needs more then one. If the ?name variable is not set, the default name will be: edeka-red-bowl.
 
@@ -180,5 +179,203 @@ Returns a cl-tf:transform which describes the pose of the humans head during the
 #### (get-camera-location-at-end-by-object-type (object-type))
 Returns a cl-tf:transform which describes the pose of the humans head at the placing action. The robots location during the placing action within the environment is based on this pose.
 
-#### (get-table-location)
+#### (get-table-location ())
 Returns a cl-tf:transform of the pose of the kitchen-island-table within the environment, which is used for the calculation of the placing pose of the object.
+
+### openease-to-bullet.lisp
+Contains all functions which manipulate the data that is obtained from the VR environment, so that it can be used in the plans. Some further manipulation is sometimes necessary depending on the use case of the data, some are more generic and therefore in a different file.
+
+#### (apply-bullet-transform (transform))
+Applies a transform to the given transform so that the position of the object within the bullet world is correct. Without this offset, the object would appear in a different spot within the bullet world as in the VR world, even if both environments are the same. There is an offset between the two worlds which is corrected by applying this function to the transform of an object or the robot.
+
+#### (apply-bullet-rotation (transform))
+Same as the above, just that it fixes the rotation only and not the 3d-vector offset between the two environments (VR and bullet world kitchen.)
+
+#### (quaternion-w-flip (pose))
+Flips the quaternion of the recived pose from wxyz (OpenEase standard) into xyzw (CRAM standard). Is not needed when using the data from the mongoBD directly, but when using OpenEase, it might need to be commented in again (in the make-pose function within the data-manipulation) file, depending on the used OpenEase version.
+
+#### (remove-z (pose))
+Removes the z component of a transform. Is used for deducing the position within the kitchen of the human/robot, since the only data one can deduce the positon from is the position of the camera/head of the human. 
+
+#### (human-ro-tobot-hand-transform ())
+Defines the offset between the human hand from the virtual reality to the
+robot standart gripper, which has been calculated manually.
+
+
+### data-manipulation.lisp
+Contains the remaining, more general data manipulating functions, which don't necessarily have anything to do with correcting the offset between the VR and bullet world.
+
+#### (make-pose (pose))
+Makes a proper cl-tf:transform out of the data received from the mongoDB or OpenEase, since in both cases the received result would have been a list of seven values. These are separated into the 3d vector and the quaternion here, which form the resulting transform. Also the correcting steps which fix the offsets between the two worlds and which were described in the previous file, are applied here. 
+
+#### (apply-rotation (transform))
+Rotates the given transform around the z axis for pi/2.
+
+#### (add-pos-offset-to-transform (transform x y z))
+Adds a position offset to a given transform. Can be used to add an offset to the positon of an object, in order to test if the robot would still be able to interact with it, even if the position expected does not match.
+
+### designators.lisp
+Contains the designator definitions for grasping the objects relevant for the current scenario, which are all the objects described and added in the items.lisp file.
+
+### movement.lisp
+All the functions which move either the robot, parts of the robot or objects within the bullet world are collected here.
+
+#### (move-obj-with-offset (x-offset y-offset object))
+Moves the object to the given x and y offset. It does not change the z aspect of the object, since the usecase of this function is to just move an object on the surface of the table to test if the robot would still be able to interact with it, even after a change in position.
+
+#### (move-head (pose))
+Moves the head of the robot to the given pose.
+
+#### (move-object (transform object))
+Moves the given object to the given transform.
+
+#### (move-robot (transform))
+Moves the robot to the given transform.
+
+#### (move-torso-up (?angle))
+Moves the torso up by a given angle.
+
+### utils.lisp
+Contains many of the utility functions. Some of them are just handy and make the usage a bit easier and basically don't have to be used and are therefore convenience functions. 
+
+#### (object-type-filter-prolog (object-type))
+Maps the simple name of an object, e.g. 'cup to the proper one used within the mondoDB or OpenEase database, e.g. "CupEcoOrange".
+
+#### (object-type-filter-bullet (object-type))
+Maps the simple name of an object, e.g. 'cup to the proper one used within the bullet world, e.g. :cup-eco-orange
+
+#### (object-type-fixer (object-type))
+Since some names of the objects differ between the known names in bullet world and the names known to the database, this function makes sure that if they are mismatched, it will get fixed to the proper one so that the plans can still be executed.
+This function can be removed once new data is recorded and the object names will be the same for the bullet world and the Virtual Reality.
+
+#### (move-object-to-starting-pose (object))
+Moves the object to it's starting position. Sarting position meaning where the object was located when the human started picking it up in the Virtual Reality.
+
+#### (place-offset-transform ())
+Contains the transform which describes the offset for placing an object.
+
+#### (parse-str (str))
+A string parser. Parses the output from knowrob into a proper string which can be used within prolog. 
+
+#### (transform-to-pose-stamped (transform))
+Converts the given transform into a stamped one within the "map" frame and a time stamp of 0.0.
+
+
+### robot-positions-calculations.lisp
+Functions which calculate the positions the robot has to navigate to or to move his head or hand to, in order to interact with the objects. 
+
+#### param: \*human-feet-offset* 0.05
+Sets the human-feet-offset, which corrects the robots positon. This is necessary in cases and episodes, where the human was standing too close to a table in the VR, and therefore if the robot would try to move to the same position, he would hit the base of the table, since the robots base (or foot) is a lot larger then the human one. 
+In some VR episodes this parameter is not needed at all and can be set to 0.0, but at the moment it is safer to keep it at 0.05.
+
+#### (set-grasp-base-pose (transform))
+Calculates the transform of where the robot should stand in order to interact
+with an object. Based on data from Virtual Reality. This function removes the z
+component of the Camera pose of the human and also fixes the quaternion so that
+the robot won't tilt into the pane of the floor.
+
+#### (set-grasp-look-pose (transform))
+Transforms the given transform of the position of an object, into a pose
+stamped, at which the robot will look for an object.
+
+#### (set-place-pose (transform))
+Takes the given transform of the placing the object pose, sets the
+quaternion to an identity one and transforms the transform into a pose stamped.
+
+#### (place-pose-btr-island (type))
+Calculates the placing pose for an object, relative to the bullet world
+kitchen island. This is needed, since the OpenEase kitchen island and the
+bullet world kitchen island, are slightly offset to one another, and the offset
+fixing the general semantic map offset, is not enough to fix it.
+
+### grasping.lisp
+Implements several of the functions needed in order for the robot to perform a succesfull grasp, based on the one performed by the human in the Virtual Reality. Aka. Calculates the grasping pose, pre-pose and the lifting poses. 
+
+#### (get-object-type-to-gripper-transform (object-type object-name arm grasp (eql :human-grasp)))
+Calculates the object-type to gripper transform based on the transform the human has used in the Virtual Reality. 
+
+#### (get-object-type-to-gripper-pregrasp-transform ((object-type object-name arm(grasp (eql :human-grasp)) grasp-transform))
+Calculates the object-type to gripper pre-transform based on the transform the human has used in the Virtual Reality. 
+
+#### (get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name arm(grasp (eql :human-grasp)) grasp-transform))
+Calculates the object-type to gripper 2nd-pre-transform based on the transform the human has used in the Virtual Reality. 
+
+#### (get-object-type-to-gripper-lift-transform ((object-type object-name arm(grasp (eql :human-grasp)) grasp-transform)))
+Calculates the lift transform for the gripper.
+
+
+#### (get-object-type-to-gripper-2nd-lift-transform ((object-type object-name arm(grasp (eql :human-grasp)) grasp-transform)))
+Calculates the 2nd lift transform for the gripper.
+
+### plans.lisp
+Contains all the plans for pick and place manipulation with designators.
+
+#### (move-to-object (?grasping-base-pose ?grasping-look-pose))
+Moves the robot into the position which the human had when interacting
+with an object. The robot is placed at the spot where the human was standing and
+is looking at the spot where the object was in Virtual Reality.
+
+#### (pick-up-obj (?type))
+Picks up an object of the given type.
+
+#### (pick-up-object (?grasping-base-pose ?grasping-look-pose ?type))
+A plan to pick up an object of the given time. This time the grasping base position and looking positon cam be passed to this function.
+
+#### (place-object (?placing-base-pose ?placing-look-pose ?place-pose ?obj-desig))
+A plan to place an object which is currently in one of the robots hands.
+
+#### (pick-and-place (?grasping-base-pose ?grasping-look-pose ?placing-base-pose ?placing-look-pose ?place-pose ?type))
+Picks up and object and places it down based on Virtual Reality data.
+
+### demo-preparation.lisp
+Functions which prepare the environment for the pick and place execution.
+
+#### (demo-spawn-all-obj-in-place ())
+Spawns all the objects which are present in the current episode in the respective locations.
+
+### plan-execution.lisp
+Executes some of the plans that are specified in the plan.lisp file.
+
+#### (execute-pick-and-place (type))
+Executes the pick and place plan on an object of the given type.
+The positions of where the robot looks for the object and where he is placing
+it down are the ones extracted from Virtual Reality.
+
+#### (execute-pick-up-object (type))
+Executes only the picking up action on an object given the type of the object.
+
+#### (execute-place-object (?obj-desig type))
+Executes the placing action given the object designator of the picked up and
+held in hand object. The placing pose is the one used in VR for that kind of 
+object.
+#### execute-move-to-object (type)
+Moves the robot to the position where the human was standing in order to
+grasp the object.
+
+### demo-plans.lisp
+Contains some of the plan-executions used for demo puposes.
+
+#### (demo-all-pick-place ())
+Picks and places all objects of an episode one by one. Meaning the robot will always hold on to just one object and finish placing it before going back to picking up another one.
+
+#### (demo-all-obj ())
+For the entire episode, first place the object at the location where it was
+for the robot to pick up, and then pick it up and place it.
+
+#### (execution-adjustment-test (type))
+Function to test if the newly done adjustments to the plans are still working. Calls one pick-up-object plan.
+
+### gaussian.lisp
+(In progress) will contain an implementation auf gaussian functions for the base-pose of the robot and maybe more.
+
+### debugging-utils.lisp
+Contains a lot of debuggin convenience functions, which the average user probably (hopefully) will not need.
+
+#### (reset-simulation ())
+Resets the simulation and respawns the objects. 
+
+### utility-queries.lisp
+Contains the lisp implementations of many of the prolog queries, so that they can be called easier, within lisp, with just a string as a parameter, instead of having to use the prolg-simple function. One can use them, but one can also just call prolog directly. Preference choice. 
+
+
+

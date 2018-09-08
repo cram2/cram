@@ -15,9 +15,10 @@
 	  :components
 	  ((:file "package")
      (:file "utility-queries" :depends-on ("package")) 
-     (:file "items" :depends-on ("package"))  
+     (:file "items" :depends-on ("package"))
+     (:file "openease-to-bullet" :depends-on ("package")) 
      (:file "data-manipulation" :depends-on ("package"))
-     (:file "openease-to-bullet" :depends-on ("package"))     
+         
      (:file "designators" :depends-on ("package" "items"))
      (:file "init" :depends-on ("package" "utility-queries" "items")) ; initialisation     
      (:file "queries" :depends-on ("package" "data-manipulation"))
