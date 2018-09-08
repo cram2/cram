@@ -72,3 +72,31 @@ RETURNS: A pose stamped, with an identity quaternion."
            0.0
            (cl-tf:origin (cl-tf:transform->pose transform))
            (cl-tf:make-identity-rotation)))))
+
+(defun place-pose-btr-island (type)
+  "Calculates the placing pose for an object, relative to the bullet world
+kitchen island. This is needed, since the OpenEase kitchen island and the
+bullet world kitchen island, are slightly offset to one another, and the offset
+fixing the general semantic map offset, is not enough to fix it.
+Therefore relative poses are being calculated.
+RETURNS: A cl-tf:transform representing the pose and orientation, at which the
+robot in the bullet world should place the object currently in hand."
+  ;FIXME A wrong pose is being calculated. I don't know why yet. 
+  (let* ((table-pose-oe (get-table-location))
+         table-pose-bullet
+         place-pose)
+    ; get pose of Table in map frame
+    (setq table-pose-bullet
+          (cl-tf:pose->transform
+           (btr:pose
+            (gethash ':|KITCHEN.kitchen_island| ;or kitchen_island_surface?
+                     (slot-value
+                      (btr:object btr:*current-bullet-world* :kitchen)
+                      'cram-bullet-reasoning:rigid-bodies)))))
+    ; calculate place pose relative to bullet table
+    (setq place-pose
+          (cl-tf:transform*
+           table-pose-bullet
+           (cl-tf:transform-inv table-pose-oe)
+           (get-object-location-at-end-by-object-type type)))
+    place-pose))  

@@ -37,7 +37,7 @@ RETURNS:"
                     (object-type-filter-prolog type)))
                   
                   type))
-;; TODO
+
 (defun execute-place-object (?obj-desig type)
   "Executes the placing action given the object designator of the picked up and
 held in hand object. The placing pose is the one used in VR for that kind of 
