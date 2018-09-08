@@ -1,8 +1,6 @@
 (in-package :kvr)
 
-;; grasps ----------------------------------------------------------------------
-;;  General Grasp
-;; TODO: generalize this grasp. Type could and should be derived from the VR data
+;; General Grasp
 ;; Name of type string or use filter?
 (defmethod get-object-type-to-gripper-transform (object-type
                                                  object-name

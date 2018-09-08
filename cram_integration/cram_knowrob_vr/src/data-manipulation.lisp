@@ -1,15 +1,6 @@
 ;;; Contains all the functions necessary to extract data from OpenEase into CRAM.
 (in-package :kvr)
 
-(defun apply-bullet-transform (transform)
-  "Applies the transform of the VR to bullet world and the rotation."
-  (cl-tf:transform*
-   (cl-tf:make-transform (cl-tf:make-3d-vector -2.65 -0.7 0.0)
-                         (cl-tf:axis-angle->quaternion
-                          (cl-tf:make-3d-vector 0 0 1)
-                          pi)) 
-   transform))
-
 (defun make-pose (pose)
   "Makes a proper cl-tf:transform with a 3d-vector for translation and a
 quaternion for rotation.
@@ -21,15 +12,6 @@ RETURNS: A cl-tf:transform consisting of a 3d-vector and a quaternion."
      (apply #'cl-tf:make-3d-vector (subseq pose 0 3))
      (apply #'cl-tf:make-quaternion (subseq pose 3 7)))));)
 
-
-(defun apply-bullet-rotation (transform)
-  "Applies only the offset rotation between the VR and the bullet world."
-  (cl-tf:transform*
-   (cl-tf:make-transform (cl-tf:make-3d-vector 0.0 0.0 0.0)
-                         (cl-tf:axis-angle->quaternion
-                          (cl-tf:make-3d-vector 0 0 1)
-                          pi)) 
-   transform))
 
 (defun apply-rotation (transform)
   (cl-tf:transform*
