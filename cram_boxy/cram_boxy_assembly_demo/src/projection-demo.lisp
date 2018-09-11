@@ -166,14 +166,6 @@
            ((0.215 0.725 ,*nut-rad-z*) (0 0 0 1)))))
 
 
-(defparameter *base-x* -2.4)
-(defparameter *base-very-left-side-left-hand-pose* `((,*base-x* 1.7 0) (0 0 0 1)))
-(defparameter *base-left-side-left-hand-pose* `((,*base-x* 1.5 0) (0 0 0 1)))
-(defparameter *base-middle-side-left-hand-pose* `((,*base-x* 1.1 0) (0 0 0 1)))
-(defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.9 0) (0 0 0 1)))
-(defparameter *base-very-right-side-left-hand-pose* `((,*base-x* 0.7 0) (0 0 0 1)))
-
-
 (defun spawn-objects-on-plate (&optional (spawning-poses *object-spawning-data*))
   (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
@@ -209,6 +201,14 @@
   (format t "~%PERFORMING~%~A~%~%" designator))
 
 
+(defparameter *base-x* -2.4)
+(defparameter *base-very-left-side-left-hand-pose* `((,*base-x* 1.7 0) (0 0 0 1)))
+(defparameter *base-left-side-left-hand-pose* `((,*base-x* 1.5 0) (0 0 0 1)))
+(defparameter *base-somewhat-left-side-left-hand-pose* `((,*base-x* 1.3 0) (0 0 0 1)))
+(defparameter *base-middle-side-left-hand-pose* `((,*base-x* 1.1 0) (0 0 0 1)))
+(defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.9 0) (0 0 0 1)))
+(defparameter *base-very-right-side-left-hand-pose* `((,*base-x* 0.7 0) (0 0 0 1)))
+
 ;;; ASSEMBLY STEPS:
 ;;; (1) put chassis on holder (bump inwards)
 ;;; (2) put bottom wing on chassis
@@ -231,12 +231,12 @@
   (spawn-objects-on-plate)
   (boxy-proj:with-projected-robot
     ;; 1
-    (go-connect :chassis *base-left-side-left-hand-pose*
+    (go-connect :chassis *base-very-left-side-left-hand-pose*
                 :holder-plane-horizontal *base-middle-side-left-hand-pose*
                 :chassis-attachment)
     ;; 2
     (go-connect :bottom-wing *base-right-side-left-hand-pose*
-                :chassis *base-middle-side-left-hand-pose*
+                :chassis *base-left-side-left-hand-pose*
                 :wing-attachment)
     ;; 3
     (go-connect :underbody *base-middle-side-left-hand-pose*
@@ -250,38 +250,23 @@
     (go-connect :bolt *base-very-right-side-left-hand-pose*
                 :upper-body *base-left-side-left-hand-pose*
                 :rear-thread)
-    ;; ;; 6
+    ;; 6
     (go-connect :top-wing *base-very-left-side-left-hand-pose*
                 :upper-body *base-left-side-left-hand-pose*
                 :wing-attachment)
-    ;; ;; 7
+    ;; 7
     (go-connect :bolt *base-very-right-side-left-hand-pose*
                 :top-wing *base-left-side-left-hand-pose*
                 :middle-thread)
-    ;; ;; 8
-    (go-connect :window *base-left-side-left-hand-pose*
+    ;; 8
+    (go-connect :window *base-somewhat-left-side-left-hand-pose*
                 :top-wing *base-left-side-left-hand-pose*
                 :window-attachment)
-    ;; ;; 9
+    ;; 9
     (go-connect :bolt *base-very-right-side-left-hand-pose*
                 :window *base-left-side-left-hand-pose*
                 :window-thread)
     (pp-plans:park-arms :carry nil)))
-
-(defun go-connect (?object-type ?nav-goal ?other-object-type ?other-nav-goal ?attachment-type)
-  ;; go and pick up object
-  (let ((?object
-          (go-pick ?object-type ?nav-goal)))
-    ;; go and perceive other object
-    (let ((?other-object
-            (go-perceive ?other-object-type ?other-nav-goal)))
-      (exe:perform
-       (desig:an action
-                 (type connecting)
-                 (arm left)
-                 (object ?object)
-                 (to-object ?other-object)
-                 (attachment ?attachment-type))))))
 
 (defun go-perceive (?object-type ?nav-goal)
   ;; park arms
@@ -335,6 +320,21 @@
      (desig:an action
                (type placing)
                (object ?object)))))
+
+(defun go-connect (?object-type ?nav-goal ?other-object-type ?other-nav-goal ?attachment-type)
+  ;; go and pick up object
+  (let ((?object
+          (go-pick ?object-type ?nav-goal)))
+    ;; go and perceive other object
+    (let ((?other-object
+            (go-perceive ?other-object-type ?other-nav-goal)))
+      (exe:perform
+       (desig:an action
+                 (type connecting)
+                 (arm left)
+                 (object ?object)
+                 (to-object ?other-object)
+                 (attachment ?attachment-type))))))
 
 #+examples
 (
