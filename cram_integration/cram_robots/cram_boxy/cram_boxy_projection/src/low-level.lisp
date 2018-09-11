@@ -224,9 +224,7 @@
                                                     (:open '?max-limit)
                                                     ((:close :grip) '?min-limit)
                                                     (t (if (numberp action-type)
-                                                           (* action-type 5.0)
-                                                           ;; commanded with meters
-                                                           ;; but asserted with rads
+                                                           action-type
                                                            (error "[PROJ GRIP] failed")))))))))
       solution-bindings))
 
