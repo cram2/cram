@@ -64,15 +64,25 @@
                     (cram-robot-interfaces:robot-arms-carrying-joint-states ?robot ?joint-states)
                     (assert (btr:joint-state ?world ?robot ?joint-states))
                     (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15d0)))))))
-  (ros-info (kvr) "spawning urdf kitchen...")
+;  (ros-info (kvr) "spawning urdf kitchen...")
  ;;; spawn kitchen as urdf
+;  (let ((kitchen-urdf 
+;         (cl-urdf:parse-urdf 
+;           (roslisp:get-param btr-belief:*kitchen-parameter*))))
+;    (prolog:prolog
+;     `(and (btr:bullet-world ?world)
+(ros-info (kvr) "spawning semantic-map kitchen...")                                        ;           (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
+
+(sem-map:get-semantic-map)
+(cram-occasions-events:clear-belief)
+
   (let ((kitchen-urdf 
           (cl-urdf:parse-urdf 
            (roslisp:get-param btr-belief:*kitchen-parameter*))))
     (prolog:prolog
      `(and (btr:bullet-world ?world)
-           (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                         :urdf ,kitchen-urdf))))))
+           (assert (btr:object ?world :semantic-map no-urdf-kitchen ((0 0 0) (0 0 0 1)))))))                                        ;                                         :urdf ,kitchen-urdf)))))
+  )
 
 (defun init-items ()
   (ros-info (kvr) "spawning objects for experiments...")
@@ -94,4 +104,30 @@ objects for debugging."
   (init-bullet-world)
   (init-items))
 
+(defun prolog-testing()
+  (defvar ?pose
+    (cut:var-value (intern "?Pose")
+                   (cut:lazy-car 
+                    (json-prolog:prolog-simple
+"map_name(MapName),
+map_root_objects(MapName, Objects),
+member(Obj, Objects),
+rdf_has(Obj, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', TP),
+owl_subclass_of(TP, 'http://knowrob.org/kb/knowrob.owl#SpatialThing'),
+atom_remove_prefix(TP, 'http://knowrob.org/kb/knowrob.owl#', Type),
+atom_remove_prefix(Obj, 'http://knowrob.org/kb/unreal_log.owl#', Name),
+rdf_current_prefix(knowrob,Y),
+current_object_pose(Obj,Pose)."))))
+  (print ?pose)
+  (length ?pose)
+  (destructuring-bind (a b c d) ?pose
+    (destructuring-bind (x y z) c
+      (destructuring-bind (w q1 q2 q3) d
+    (print c)
+    (print x)
+    (print y)
+    (print z)))))
 
+(defun prolog-testing2()
+  (json-prolog:prolog-simple-1
+"current_object_pose(X,Pose)."))
