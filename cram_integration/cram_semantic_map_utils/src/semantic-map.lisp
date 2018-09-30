@@ -203,12 +203,14 @@
                   :name name
                   :owl-name owlname
                   :urdf-link-name (urdf-name owlname)
-                  :pose (if (= (length ?pose) 7)
-                            (destructuring-bind (x y z w q1 q2 q3)
-                                ?pose
+                  :pose (if (= (length ?pose) 4) ; pose comes in format: map name vector quaternion
+                            (destructuring-bind (map name pose quaternion)
+                                ?pose 
+                              (destructuring-bind (x y z) pose
+                                (destructuring-bind (w q1 q2 q3) quaternion ;w q1 q2 q3
                              (cl-transforms:make-pose
                               (cl-transforms:make-3d-vector x y z)
-                              (cl-transforms:make-quaternion q1 q2 q3 w)))
+                              (cl-transforms:make-quaternion q1 q2 q3 w)))))
                             (cl-transforms:transform->pose
                              (cl-transforms:matrix->transform
                               (make-array
@@ -283,8 +285,8 @@
                               "http://knowrob.org/kb/srdl2-comp.owl#subComponent"
                               ?sub))
                ("map_object_type" ?sub ?tp)
-               ("rdf_atom_no_ns" ?tp ?type)
-               ("rdf_atom_no_ns" ?sub ?name))
+               ("atom_remove_prefix" ?tp "http://knowrob.org/kb/knowrob.owl#" ?type) ;"rdf_atom_no_ns" ?tp ?type 
+               ("atom_remove_prefix" ?o "http://knowrob.org/kb/unreal_log.owl#" ?n)) ; "rdf_atom_no_ns" ?o ?n
              :package :sem-map-utils))))))
 
 (defmethod urdf-name ((owl-name string))
@@ -312,7 +314,7 @@
           ("rdf_has"
            ?owlname "http://knowrob.org/kb/srdl2-comp.owl#urdfName"
            ("literal" ,urdf-name))
-          ("rdf_atom_no_ns" ?owlname ?name))
+           ("atom_remove_prefix" ?owlname "http://knowrob.org/kb/knowrob.owl#" ?name))
         :package :sem-map-utils))
     (unless (is-var ?name)
       (remove #\' (symbol-name ?name)))))
@@ -373,11 +375,12 @@ Cannot update semantic map.")
                                       ("member" ?o ?objs)
 				      ("rdf_has" ?o "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" ?tp)
                                       ("owl_subclass_of" ?tp "http://knowrob.org/kb/knowrob.owl#SpatialThing")
-                                      ("rdf_atom_no_ns" ?tp ?type)
-                                      ("rdf_atom_no_ns" ?o ?n))
+                                      ("atom_remove_prefix" ?tp "http://knowrob.org/kb/knowrob.owl#" ?type) ;"rdf_atom_no_ns" ?tp ?type 
+                                      ("atom_remove_prefix" ?o "http://knowrob.org/kb/unreal_log.owl#" ?n)) ; "rdf_atom_no_ns" ?o ?n
                                 :package :sem-map-utils))))
                             :test 'equal))
                   *cached-semantic-map-name* uploaded-map-name)
+            (roslisp:ros-warn (sem-map-cache) "Done quering!" )
             (roslisp:ros-info (sem-map-cache) "Updated semantic map cache.")))
         (roslisp:ros-warn (sem-map-cache)
                           "No connection to json-prolog server. Cannot update semantic map."))))
