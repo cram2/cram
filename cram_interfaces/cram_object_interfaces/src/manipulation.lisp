@@ -337,6 +337,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                                     rotationally-symmetric-p arm)
   (:documentation "Returns a lazy list of all possible grasps for `object-type'")
   (:method (object-type facing-robot-face bottom-face rotationally-symmetric-p arm)
+    (declare (ignore facing-robot-face bottom-face rotationally-symmetric-p))
     #-solution-using-sbcl-API
     (remove-if
      #'null
