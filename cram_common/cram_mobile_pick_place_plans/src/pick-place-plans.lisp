@@ -67,6 +67,7 @@
     (exe:perform
      (desig:an action
                (type grasping)
+               (object ?object-designator)
                (left-poses ?left-grasping-poses)
                (right-poses ?right-grasping-poses))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
@@ -95,7 +96,7 @@
                (right-poses ?right-lift-poses)))))
 
 
-(cpl:def-cram-function place (?object-designator
+(cpl:def-cram-function place (?object-designator ?on-object-designator
                               ?arm
                               ?left-reach-poses ?right-reach-poses
                               ?left-put-poses ?right-put-poses
@@ -121,11 +122,15 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (exe:perform
-     (desig:an action
-               (type putting)
-               (left-poses ?left-put-poses)
-               (right-poses ?right-put-poses))))
+    (let ((?object-name (desig:desig-prop-value ?object-designator :name))
+          (?environment-object-name (desig:desig-prop-value ?on-object-designator :name)))
+      (exe:perform
+       (desig:an action
+                 (type putting)
+                 (object ?object-designator)
+                 (on-object ?on-object-designator)
+                 (left-poses ?left-put-poses)
+                 (right-poses ?right-put-poses)))))
   (roslisp:ros-info (pick-place place) "Opening gripper")
   (exe:perform
    (desig:an action
