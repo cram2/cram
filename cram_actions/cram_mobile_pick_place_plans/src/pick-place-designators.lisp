@@ -108,7 +108,9 @@
                                  ?left-grasp-poses ?right-grasp-poses
                                  ?left-lift-poses ?right-lift-poses)))
 
-  (<- (desig:action-grounding ?action-designator (place ?current-object-designator ?arm
+  (<- (desig:action-grounding ?action-designator (place ?current-object-designator
+                                                        ?on-object-designator
+                                                        ?arm
                                                         ?left-reach-poses ?right-reach-poses
                                                         ?left-put-poses ?right-put-poses
                                                         ?left-retract-poses ?right-retract-poses
@@ -155,6 +157,9 @@
         (and (lisp-fun obj-int:get-object-transform ?current-object-designator ?target-transform)
              (lisp-fun obj-int:get-object-pose ?current-object-designator ?target-pose)
              (desig:designator :location ((:pose ?target-pose)) ?location)))
+    ;; TODO: placing should happen on an object! specify the on object explicitly,
+    ;; hardcoding now...
+    (desig:designator :object ((:name :kitchen)) ?on-object-designator)
     (lisp-fun obj-int:get-object-grasping-poses
               ?object-name ?object-type :left ?grasp ?target-transform
               ?left-poses)
