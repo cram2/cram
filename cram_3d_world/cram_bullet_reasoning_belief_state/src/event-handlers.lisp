@@ -88,12 +88,8 @@
 
         ;;; giskard event
           ;; (call-giskard-environment-service
-          ;;  :kill
-          ;;  btr-object-name-string)
-          ;; (call-giskard-environment-service
           ;;  :attached
-          ;;  ;; btr-object-name-string
-          ;;  "attached"
+          ;;  btr-object-name-string
           ;;  ee-to-object-pose
           ;;  (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
           ;;      (btr:calculate-bb-dims btr-object)
@@ -135,7 +131,7 @@
         ;; giskard event
         ;; (call-giskard-environment-service
         ;;  :kill
-        ;;  "attached")
+        ;;  btr-object-name-string)
         ;; (call-giskard-environment-service
         ;;  :add
         ;;  btr-object-name-string
