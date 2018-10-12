@@ -56,7 +56,9 @@
                                                                  (?right-lift-pose)
                                                                  (?left-2nd-lift-pose)
                                                                  (?right-2nd-lift-pose)
-                                                                 ?joint-name ?environment-obj))
+                                                                 ?joint-name
+                                                                 ?handle-link
+                                                                 ?environment-obj))
     (spec:property ?action-designator (:type :opening))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
@@ -71,6 +73,10 @@
     ;; infer joint information
     ;; joint-name
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+    (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
+    (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
+    (lisp-fun roslisp-utilities:lispify-ros-underscore-name ?handle-link-string :keyword
+              ?handle-link)
     (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
     ;; environment
@@ -108,6 +114,7 @@
                                                                   (?left-2nd-lift-pose)
                                                                   (?right-2nd-lift-pose)
                                                                   ?joint-name
+                                                                  ?handle-link
                                                                   ?environment-obj))
     (spec:property ?action-designator (:type :closing))
     (spec:property ?action-designator (:object ?container-designator))
@@ -123,6 +130,10 @@
     ;; infer joint information
     ;; joint-name
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+    (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
+    (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
+    (lisp-fun roslisp-utilities:lispify-ros-underscore-name ?handle-link-string :keyword
+              ?handle-link)
     (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
     ;; environment

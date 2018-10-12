@@ -28,7 +28,7 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(defmethod cram-occasions-events:on-event btr-attach-object ((event cpoe:object-attached))
+(defmethod cram-occasions-events:on-event btr-attach-object ((event cpoe:object-attached-robot))
   (let* ((robot-object (btr:get-robot-object))
          (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
@@ -88,19 +88,15 @@
 
         ;;; giskard event
           ;; (call-giskard-environment-service
-          ;;  :kill
-          ;;  btr-object-name-string)
-          ;; (call-giskard-environment-service
           ;;  :attached
-          ;;  ;; btr-object-name-string
-          ;;  "attached"
+          ;;  btr-object-name-string
           ;;  ee-to-object-pose
           ;;  (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
           ;;      (btr:calculate-bb-dims btr-object)
           ;;    (list cl-transforms:x cl-transforms:y cl-transforms:z)))
           )))))
 
-(defmethod cram-occasions-events:on-event btr-detach-object ((event cpoe:object-detached))
+(defmethod cram-occasions-events:on-event btr-detach-object ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))
          (btr-object-name (cpoe:event-object-name event))
          (btr-object-name-string (symbol-name btr-object-name))
@@ -135,7 +131,7 @@
         ;; giskard event
         ;; (call-giskard-environment-service
         ;;  :kill
-        ;;  "attached")
+        ;;  btr-object-name-string)
         ;; (call-giskard-environment-service
         ;;  :add
         ;;  btr-object-name-string
@@ -178,7 +174,7 @@
 ;;       btr:*current-bullet-world*
 ;;       `(pick-up ,(cpoe:event-object event) ,(cpoe:event-side event))))))
 
-;; (defmethod cram-occasions-events:on-event detach-objects ((event cpoe:object-detached))
+;; (defmethod cram-occasions-events:on-event detach-objects ((event cpoe:object-detached-robot))
 ;;   (let ((robot (btr:get-robot-object))
 ;;         (object (get-designator-object (cpoe:event-object event))))
 ;;     (when object
@@ -198,6 +194,19 @@
 ;;       btr:*current-bullet-world*
 ;;       `(location-change ,(cpoe:event-object event))))))
 
+(defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
+  (let* ((btr-object-name (cpoe:event-object-name event))
+         (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
+         (btr-other-object-name (cpoe:event-other-object-name event))
+         (btr-other-object (btr:object btr:*current-bullet-world* btr-other-object-name)))
+    (when (and btr-object btr-other-object)
+      (format t "TODO: implement object to object attachment event handler!")
+      ;; (if (btr:object-attached robot-object btr-object)
+      ;;     (btr:attach-object robot-object btr-object link :loose t)
+      ;;     (btr:attach-object robot-object btr-object link :loose nil))
+      )))
+
+
 (defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
   (unless cram-projection:*projection-environment*
     (let ((robot (btr:get-robot-object)))
@@ -212,23 +221,23 @@
     btr:*current-bullet-world*
     `(location-change robot))))
 
-(defmethod cram-occasions-events:on-event open-or-close-object
-    ((event cpoe:object-articulation-event))
-  (with-slots (cpoe:object-designator cpoe:opening-distance) event
-    (let ((perceived-object (desig:reference
-                             (desig:newest-effective-designator cpoe:object-designator)))
-          (semantic-map-object
-            (cut:with-vars-strictly-bound (?semantic-map)
-                (cut:lazy-car
-                 (prolog `(and
-                           (btr:bullet-world ?world)
-                           (btr:semantic-map ?world ?semantic-map-name)
-                           (btr:%object ?world ?semantic-map-name ?semantic-map))))
-              ?semantic-map)))
-      (btr:set-articulated-object-joint-position
-       semantic-map-object
-       (desig:object-identifier perceived-object)
-       cpoe:opening-distance))))
+;; (defmethod cram-occasions-events:on-event open-or-close-object
+;;     ((event cpoe:object-articulation-event))
+;;   (with-slots (cpoe:object-designator cpoe:opening-distance) event
+;;     (let ((perceived-object (desig:reference
+;;                              (desig:newest-effective-designator cpoe:object-designator)))
+;;           (semantic-map-object
+;;             (cut:with-vars-strictly-bound (?semantic-map)
+;;                 (cut:lazy-car
+;;                  (prolog `(and
+;;                            (btr:bullet-world ?world)
+;;                            (btr:semantic-map ?world ?semantic-map-name)
+;;                            (btr:%object ?world ?semantic-map-name ?semantic-map))))
+;;               ?semantic-map)))
+;;       (btr:set-articulated-object-joint-position
+;;        semantic-map-object
+;;        (desig:object-identifier perceived-object)
+;;        cpoe:opening-distance))))
 
 
 

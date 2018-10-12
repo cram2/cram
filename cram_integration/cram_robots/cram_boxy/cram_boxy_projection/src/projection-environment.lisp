@@ -45,8 +45,6 @@
    (cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*
     (alexandria:copy-hash-table
      cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*))
-   (cram-semantic-map::*semantic-map*
-    (sem-map-utils:copy-semantic-map-object (cram-semantic-map:get-semantic-map)))
    (cet:*episode-knowledge*
     cet:*episode-knowledge*))
   :process-module-definitions
@@ -93,7 +91,7 @@
                ,@body))))
      (car (cram-projection::projection-environment-result-result results))))
 
-(defmacro with-projected-robot (&rest args)
+(defmacro with-projected-robot (&body args)
   "Alias for WITH-SIMULATED-ROBOT."
   `(with-simulated-robot ,@args))
 

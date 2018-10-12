@@ -60,7 +60,6 @@
                cram-bullet-reasoning-utilities
                cram-btr-visibility-costmap
 
-               cram-semantic-map-costmap
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap

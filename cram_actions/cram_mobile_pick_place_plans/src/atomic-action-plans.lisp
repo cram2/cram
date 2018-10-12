@@ -80,7 +80,12 @@
           resulting-designator)))))
 
 
-(cpl:def-cram-function move-arms-in-sequence (left-poses right-poses &optional ?collision-mode)
+(cpl:def-cram-function move-arms-in-sequence (left-poses right-poses
+                                                         &optional
+                                                         ?collision-mode
+                                                         ?collision-object-b
+                                                         ?collision-object-b-link
+                                                         ?collision-object-a)
   "Make `?left-poses' and `?right-poses' to lists if they are not already"
 
   (flet ((fill-in-with-nils (some-list desired-length)
@@ -112,7 +117,13 @@
                           (desig:when ?right-pose
                             (right-target (desig:a location (pose ?right-pose))))
                           (desig:when ?collision-mode
-                            (collision-mode ?collision-mode))))
+                            (collision-mode ?collision-mode))
+                          (desig:when ?collision-object-b
+                            (collision-object-b ?collision-object-b))
+                          (desig:when ?collision-object-b-link
+                            (collision-object-b-link ?collision-object-b-link))
+                          (desig:when ?collision-object-a
+                            (collision-object-a ?collision-object-a))))
 
                 (cram-occasions-events:on-event
                  (make-instance 'cram-plan-occasions-events:robot-state-changed))))
@@ -137,7 +148,13 @@
                   (desig:when ?right-pose
                     (right-target (desig:a location (pose ?right-pose))))
                   (desig:when ?collision-mode
-                    (collision-mode ?collision-mode))))
+                    (collision-mode ?collision-mode))
+                  (desig:when ?collision-object-b
+                    (collision-object-b ?collision-object-b))
+                  (desig:when ?collision-object-b-link
+                    (collision-object-b-link ?collision-object-b-link))
+                  (desig:when ?collision-object-a
+                    (collision-object-a ?collision-object-a))))
 
         (cram-occasions-events:on-event
          (make-instance 'cram-plan-occasions-events:robot-state-changed))))))

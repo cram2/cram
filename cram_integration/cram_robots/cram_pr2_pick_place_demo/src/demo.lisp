@@ -275,6 +275,8 @@
   cpl:*current-path*)
 
 
+(defparameter *robot-x-position* -0.15)
+(defparameter *robot-y-position* 1.0)
 
 (defun generate-training-data (&optional debug-mode)
   (pr2-proj:with-simulated-robot
@@ -283,33 +285,20 @@
 
     (let ((?pose (cl-transforms-stamped:make-pose-stamped
                   "map" 0.0
-                  (cl-transforms:make-3d-vector -0.15 1.0 0)
+                  (cl-transforms:make-3d-vector *robot-x-position* *robot-y-position* 0)
                   (cl-transforms:make-quaternion 0 0 1 0))))
       (exe:perform
        (desig:an action
                  (type going)
                  (target (desig:a location (pose ?pose))))))
 
-    (let ((?pose (cl-transforms-stamped:make-pose-stamped
+    (dotimes (i 4)
+      (pr2-proj::look-at-pose-stamped
+       (cl-transforms-stamped:make-pose-stamped
                   "base_footprint" 0.0
-                  (cl-transforms:make-3d-vector 0.5 0 0.9)
+                  (cl-transforms:make-3d-vector 0.5 0 0.7)
                   (cl-transforms:make-identity-rotation))))
-      (exe:perform
-       (desig:an action
-                 (type looking)
-                 (target (desig:a location (pose ?pose)))))
-      (exe:perform
-       (desig:an action
-                 (type looking)
-                 (target (desig:a location (pose ?pose)))))
-      (exe:perform
-       (desig:an action
-                 (type looking)
-                 (target (desig:a location (pose ?pose)))))
-      (exe:perform
-       (desig:an action
-                 (type looking)
-                 (target (desig:a location (pose ?pose))))))
+    (pr2-proj::move-torso 0.15)
 
     (btr:detach-all-objects (btr:get-robot-object))
     (btr-utils:kill-all-objects)
@@ -331,6 +320,7 @@
 
     (unwind-protect
          (dolist (?object-type '(:bowl :spoon :cup :milk :breakfast-cereal))
+           (sb-ext:gc :full t)
            (let ((btr-object (btr:add-object btr:*current-bullet-world*
                                              :mesh
                                              'object-to-grasp
@@ -339,51 +329,85 @@
                                              :mass 0.2
                                              :color '(1 0 0))))
              (dolist (?arm '(:left :right))
-               (dolist (rotation-axis (list (cl-transforms:make-3d-vector 1 0 0)
-                                            (cl-transforms:make-3d-vector 0 1 0)
-                                            (cl-transforms:make-3d-vector 0 0 1)))
-                 (dolist (rotation-angle (list (* pi 0.0)
-                                               (* pi 0.5)
-                                               (* pi 1.0)
-                                               (* pi 1.5)))
-                   (let* ((orientation (cl-transforms:axis-angle->quaternion
-                                        rotation-axis rotation-angle)))
-                     (let ((pose-for-bb-calculation (cl-transforms:make-pose
-                                                     (cl-transforms:make-3d-vector 0 0 -1)
-                                                     orientation)))
-                       (setf (btr:pose btr-object) pose-for-bb-calculation)
-                       (let* ((bb-dims (cl-bullet:bounding-box-dimensions
-                                        (cl-bullet:aabb btr-object)))
-                              (z/2 (/ (cl-transforms:z bb-dims) 2)))
-                         (dolist (position-y-offset ;; '(0 -0.3 0.3)
-                                  '(0.0))
-                           (let ((position (cl-transforms:make-3d-vector
-                                            -0.75
-                                            (+ 1.0 position-y-offset)
-                                            (+ 0.8573 z/2))))
-                             (setf (btr:pose btr-object) (cl-transforms:make-pose
-                                                          position
-                                                          orientation))
-                             (when debug-mode
-                               (cpl:sleep 0.5))
-                             (btr:simulate btr:*current-bullet-world* 10)
-                             (if (> (abs (cl-transforms:normalize-angle
-                                          (cl-transforms:angle-between-quaternions
-                                           (cl-transforms:orientation
-                                            (btr:pose btr-object))
-                                           orientation)))
-                                    1.0)
-                                 (when debug-mode
-                                   (format t "~a with orientation ~a unstable.~%Skipping...~%"
-                                           ?object-type orientation)
-                                   (btr-utils:move-object 'red-dot '((-1.0 2.0 1.0) (0 0 0 1)))
-                                   (btr-utils:move-object 'green-dot '((0.0 0.0 -1.0) (0 0 0 1)))
-                                   (cpl:sleep 0.5))
-                                 (progn
+               (dolist (?grasp (obj-int:get-object-type-grasps
+                                ?object-type nil nil nil ?arm))
+                 (dolist (rotation-axis (list (cl-transforms:make-3d-vector 1 0 0)
+                                              (cl-transforms:make-3d-vector 0 1 0)
+                                              (cl-transforms:make-3d-vector 0 0 1)))
+                   (dolist (rotation-angle (list (* pi 0.0)
+                                                 (* pi 0.5)
+                                                 (* pi 1.0)
+                                                 (* pi 1.5)))
+                     (let* ((orientation (cl-transforms:axis-angle->quaternion
+                                          rotation-axis rotation-angle)))
+                       (let ((pose-for-bb-calculation (cl-transforms:make-pose
+                                                       (cl-transforms:make-3d-vector 0 0 -1)
+                                                       orientation)))
+                         (setf (btr:pose btr-object) pose-for-bb-calculation)
+                         (let* ((bb-dims (cl-bullet:bounding-box-dimensions
+                                          (cl-bullet:aabb btr-object)))
+                                (z/2 (/ (cl-transforms:z bb-dims) 2)))
+                           (setf (btr:pose btr-object)
+                                     (cl-transforms:make-pose
+                                      (cl-transforms:make-3d-vector
+                                       -0.75
+                                       1.0
+                                       (+ 0.8573 z/2))
+                                      orientation))
+                           (when debug-mode
+                             (cpl:sleep 0.5))
+                           (btr:simulate btr:*current-bullet-world* 10)
+                           (if (> (abs (cl-transforms:normalize-angle
+                                        (cl-transforms:angle-between-quaternions
+                                         (cl-transforms:orientation
+                                          (btr:pose btr-object))
+                                         orientation)))
+                                  1.0)
+                               (when debug-mode
+                                 (format t "~a with orientation ~a unstable.~%Skipping...~%"
+                                         ?object-type orientation)
+                                 (btr-utils:move-object 'red-dot '((-1.0 2.0 1.0) (0 0 0 1)))
+                                 (btr-utils:move-object 'green-dot '((0.0 0.0 -1.0) (0 0 0 1)))
+                                 (cpl:sleep 0.5))
+
+                               (dolist (position-x-offset '(0 -0.15 0.15))
+                                 (dolist (position-y-offset '(0 -0.25 0.25))
+                                   (setf (btr:pose btr-object)
+                                     (cl-transforms:make-pose
+                                      (cl-transforms:make-3d-vector
+                                       -0.75
+                                       1.0
+                                       (+ 0.8573 z/2))
+                                      orientation))
+                                   (let ((?robot-pose
+                                           (cl-transforms-stamped:make-pose-stamped
+                                            "map" 0.0
+                                            (cl-transforms:make-3d-vector
+                                             (+ *robot-x-position* position-x-offset)
+                                             (+ *robot-y-position* position-y-offset)
+                                             0)
+                                            (cl-transforms:axis-angle->quaternion
+                                             (cl-transforms:make-3d-vector 0 0 1)
+                                             (costmap::angle-to-point-direction
+                                              (+ *robot-x-position* position-x-offset)
+                                              (+ *robot-y-position* position-y-offset)
+                                              (cl-transforms:make-3d-vector
+                                               -0.75 1.0 (+ 0.8573 z/2)))))))
+                                     (cram-mobile-pick-place-plans:park-arms)
+                                     (exe:perform
+                                      (desig:a motion
+                                               (type moving-torso)
+                                               (joint-angle 0.15)))
+                                     (exe:perform
+                                      (desig:an action
+                                                (type going)
+                                                (target (desig:a location (pose ?robot-pose))))))
+
                                    (when debug-mode
                                      (btr-utils:move-object 'green-dot '((-1.0 2.0 1.0) (0 0 0 1)))
                                      (btr-utils:move-object 'red-dot '((0.0 0.0 -1.0) (0 0 0 1)))
                                      (cpl:sleep 0.5))
+
                                    (cpl:with-failure-handling
                                        ((cram-language:simple-plan-failure (e)
                                           (when debug-mode
@@ -392,7 +416,9 @@
                                                                    '((-1.0 2.0 1.0) (0 0 0 1)))
                                             (btr-utils:move-object 'green-dot
                                                                    '((0.0 0.0 -1.0) (0 0 0 1)))
-                                            (cpl:sleep 0.5))
+                                            (cpl:sleep 0.5)
+                                            (btr:detach-object (btr:get-robot-object) btr-object)
+                                            (cram-mobile-pick-place-plans:park-arms))
                                           (return)))
                                      (cram-mobile-pick-place-plans:park-arms)
                                      (let* ((?object-designator
@@ -400,17 +426,12 @@
                                                (desig:an action
                                                          (type detecting)
                                                          (object (desig:an object
-                                                                           (type ?object-type))))))
-                                            (pick-up-action-designator
-                                              (desig:an action
-                                                        (type picking-up)
-                                                        (arm ?arm)
-                                                        (object ?object-designator))))
-                                       (pr2-proj-reasoning:check-picking-up-collisions
-                                        pick-up-action-designator)
-                                       (setf pick-up-action-designator
-                                             (desig:current-desig pick-up-action-designator))
-                                       (exe:perform pick-up-action-designator)
+                                                                           (type ?object-type)))))))
+                                       (exe:perform (desig:an action
+                                                              (type picking-up)
+                                                              (arm ?arm)
+                                                              (grasp ?grasp)
+                                                              (object ?object-designator)))
                                        (when debug-mode
                                          (cpl:sleep 0.5))
                                        (btr:detach-object (btr:get-robot-object) btr-object)
