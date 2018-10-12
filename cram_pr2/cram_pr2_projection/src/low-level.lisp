@@ -394,7 +394,8 @@
 (sb-ext:define-hash-table-test arm-poses-equal-accurate arm-pose-hash-code)
 (defvar *ik-solution-cache* (make-hash-table :test 'arm-poses-equal-accurate))
 
-(defun move-tcp (left-tcp-pose right-tcp-pose)
+(defun move-tcp (left-tcp-pose right-tcp-pose &optional collision-mode
+                 collision-object-b collision-object-b-link collision-object-a)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
   (flet ((tcp-pose->ee-pose (tcp-pose)
            (when tcp-pose
@@ -498,7 +499,33 @@
            (move-torso left-torso-angle))
           (left-torso-angle (move-torso left-torso-angle))
           (right-torso-angle (move-torso right-torso-angle)))
-        (move-joints left-ik right-ik)))))
+        (move-joints left-ik right-ik)
+        (case collision-mode
+          (:allow-all
+           nil)
+          (:allow-attached
+           nil
+           ;; TODO: when grasping a spoon from table, fingers can collide with kitchen
+           ;; (when (remove collision-object-b
+           ;;               (btr:robot-colliding-objects-without-attached))
+           ;;   (cpl:fail 'common-fail:manipulation-goal-in-collision
+           ;;             :description "Robot is in collision with environment."))
+           )
+          (:allow-hand
+           nil
+           ;; (when (remove collision-object-b
+           ;;               (btr:robot-colliding-objects-without-attached))
+           ;;   (cpl:fail 'common-fail:manipulation-goal-in-collision
+           ;;             :description "Robot is in collision with environment."))
+           )
+          (:avoid-all
+           (when (btr:robot-colliding-objects-without-attached)
+             (cpl:fail 'common-fail:manipulation-goal-in-collision
+                       :description "Robot is in collision with environment.")))
+          (t
+           (when (btr:robot-colliding-objects-without-attached)
+             (cpl:fail 'common-fail:manipulation-goal-in-collision
+                       :description "Robot is in collision with environment."))))))))
 
 (defun move-with-constraints (constraints-string)
   (declare (ignore constraints-string))

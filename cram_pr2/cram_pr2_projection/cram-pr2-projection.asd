@@ -35,6 +35,7 @@
                cram-designators
                cram-utilities
                cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state ; for event updating before ik requests
                cram-tf
                cram-robot-interfaces    ; for ROBOT predicate and COMPUTE-IKS
                cl-transforms
@@ -52,7 +53,7 @@
                moveit_msgs-srv
                pr2_arm_kinematics-msg
                pr2_arm_kinematics-srv
-               cram-semantic-map ; for special projection variable definition
+               ;; cram-semantic-map ; for special projection variable definition
                )
   :components
   ((:module "src"

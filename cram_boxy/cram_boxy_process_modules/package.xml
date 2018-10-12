@@ -13,6 +13,7 @@
   <depend>cram_process_modules</depend>
   <depend>cram_designators</depend>
   <depend>cram_prolog</depend>
+  <depend>cram_common_designators</depend>
   <depend>cram_boxy_designators</depend>
   <depend>cram_boxy_low_level</depend>
   <depend>cram_tf</depend>

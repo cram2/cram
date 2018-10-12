@@ -55,14 +55,15 @@
          (return)))
     (exe:perform
      (desig:an action
-               (type pushing)
+               (type pushing ;; wiggling
+                     )
                (left-poses ?left-push-poses)
                (right-poses ?right-push-poses))))
   (roslisp:ros-info (boxy-plans connect) "Asserting assemblage connection in knowledge base")
   (cram-occasions-events:on-event
-   (make-instance 'kr-assembly::object-attached
-     :object ?object-designator
-     :with-object ?with-object-designator))
+   (make-instance 'cpoe:object-attached-object
+     :object-name (desig:desig-prop-value ?object-designator :name)
+     :other-object-name (desig:desig-prop-value ?with-object-designator :name)))
   (roslisp:ros-info (boxy-plans connect) "Opening gripper")
   (exe:perform
    (desig:an action
@@ -71,7 +72,7 @@
              (position ?gripper-opening)))
   (roslisp:ros-info (boxy-plans connect) "Retracting grasp in knowledge base")
   (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-detached
+   (make-instance 'cpoe:object-detached-robot
      :arm ?arm
      :object-name (desig:desig-prop-value ?object-designator :name)))
   (roslisp:ros-info (boxy-plans connect) "Retracting")
@@ -100,38 +101,13 @@
   (print "slept 2"))
 
 
-(defun move-arms-from-field-of-view ()
-  (cpl:with-failure-handling
-      ((common-fail:low-level-failure (e) ; ignore failures
-         (roslisp:ros-warn (boxy-plans arm-from-field-of-view) "~a" e)
-         (return)))
-    (let ((?left-configuration kr-assembly::*left-arm-out-of-field-of-view-state*))
-      (exe:perform
-       (desig:a motion
-                (type moving-arm-joints)
-                (left-configuration ?left-configuration))))))
-
 (defun move-arms-into-nicer-configuration ()
   (cpl:with-failure-handling
       ((common-fail:low-level-failure (e) ; ignore failures
          (roslisp:ros-warn (boxy-plans arm-nicer-config) "~a" e)
          (return)))
-    (let ((?left-configuration kr-assembly::*left-arm-nicer-configuration*))
+    (let ((?left-configuration boxy-descr::*left-arm-nicer-configuration*))
       (exe:perform
        (desig:a motion
                 (type moving-arm-joints)
                 (left-configuration ?left-configuration))))))
-
-(defun move-neck-closer-to-look ()
-  (let ((?configuration kr-assembly::*neck-good-looking-state*))
-    (exe:perform
-     (desig:a motion
-              (type looking)
-              (configuration ?configuration)))))
-
-(defun move-neck-out-of-arm-workspace ()
-  (let ((?configuration kr-assembly::*neck-out-of-arm-workspace-state*))
-    (exe:perform
-     (desig:a motion
-              (type looking)
-              (configuration ?configuration)))))

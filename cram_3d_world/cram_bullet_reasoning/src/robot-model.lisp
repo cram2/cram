@@ -534,24 +534,34 @@ current joint states"
     (let* ((joint-states (joint-states obj))
            (joint (gethash name (cl-urdf:joints urdf)))
            (parent (cl-urdf:parent joint))
-           (parent-pose (find-parent-pose obj name)))
-      (when joint
-        (let ((joint-transform
-                (cl-transforms:transform*
-                 (cl-transforms:reference-transform
-                  (cl-urdf:origin joint))
-                 (joint-transform joint new-value))))
-          (setf (gethash name joint-states) new-value)
-          (update-link-poses
-           obj (cl-urdf:child joint)
-           (cl-transforms:transform*
-            (cl-transforms:reference-transform parent-pose)
-            (if (cl-urdf:collision parent)
-                (cl-transforms:transform-inv
-                 (cl-transforms:reference-transform
-                  (cl-urdf:origin (cl-urdf:collision parent))))
-                (cl-transforms:make-identity-transform))
-            joint-transform)))))))
+           (parent-pose (find-parent-pose obj name))
+           (limits (cl-urdf:limits joint))
+           (joint-type (cl-urdf:joint-type joint)))
+      (when (and limits (not (eq joint-type :continuous)))
+        (when (eq joint-type :revolute)
+          (setf new-value (cl-transforms:normalize-angle new-value)))
+        (unless (and (<= new-value (cl-urdf:upper limits))
+                     (>= new-value (cl-urdf:lower limits)))
+          (setf new-value (min (max new-value (cl-urdf:lower limits))
+                               (cl-urdf:upper limits)))
+          (error "Trying to assert joint value for ~a to ~a but limits are (~a; ~a)"
+                 name new-value (cl-urdf:lower limits) (cl-urdf:upper limits))))
+      (let ((joint-transform
+              (cl-transforms:transform*
+               (cl-transforms:reference-transform
+                (cl-urdf:origin joint))
+               (joint-transform joint new-value))))
+        (setf (gethash name joint-states) new-value)
+        (update-link-poses
+         obj (cl-urdf:child joint)
+         (cl-transforms:transform*
+          (cl-transforms:reference-transform parent-pose)
+          (if (cl-urdf:collision parent)
+              (cl-transforms:transform-inv
+               (cl-transforms:reference-transform
+                (cl-urdf:origin (cl-urdf:collision parent))))
+              (cl-transforms:make-identity-transform))
+          joint-transform))))))
 
 (defun set-joint-state (robot name new-state)
   (setf (joint-state robot name) new-state))

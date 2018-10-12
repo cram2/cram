@@ -29,14 +29,6 @@
 
 (in-package :kr-assembly)
 
-(defparameter *left-arm-out-of-field-of-view-state*
-  '(-1.858d0 0.70571d0 0.9614d0 -0.602d0 -2.5922d0 -1.94065d0 -1.28735d0))
-(defparameter *right-arm-out-of-field-of-view-state*
-  '(0.0 0.0 0.0 0.0 0.0 0.0 0.0))
-
-(defparameter *left-arm-nicer-configuration*
-  '(-1.2274070978164673 0.8496202230453491 -0.10349386930465698 -1.0852965116500854 -0.4587952196598053 1.259474515914917 -0.06962397694587708))
-
 (defparameter *default-look-z-offset* 0.2 "in meters")
 (defparameter *default-look-x-offset* 0.15 "in meters")
 

@@ -29,35 +29,6 @@
 
 (in-package :boxy-plans)
 
-(defun extract-pick-up-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
-  "`?arm' can be :left, :right or (:left :right)."
-  (let ((arm-as-list (if (listp arm) arm (list arm)))
-        left-reach-poses left-lift-poses
-        right-reach-poses right-lift-poses)
-    (when (member :left arm-as-list)
-      (setf left-reach-poses (subseq left-manipulation-poses 0 3)
-            left-lift-poses (subseq left-manipulation-poses 3)))
-    (when (member :right arm-as-list)
-      (setf right-reach-poses (subseq right-manipulation-poses 0 3)
-            right-lift-poses (subseq right-manipulation-poses 3)))
-    (list left-reach-poses right-reach-poses left-lift-poses right-lift-poses)))
-
-(defun extract-place-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
-  "`?arm' can be :left, :right or (:left :right)."
-  (let ((arm-as-list (if (listp arm) arm (list arm)))
-        left-reach-poses left-put-poses left-retract-poses
-        right-reach-poses right-put-poses right-retract-poses)
-    (when (member :left arm-as-list)
-      (setf left-reach-poses (subseq left-manipulation-poses 0 2)
-            left-put-poses (subseq left-manipulation-poses 2 3)
-            left-retract-poses (subseq left-manipulation-poses 3)))
-    (when (member :right arm-as-list)
-      (setf right-reach-poses (subseq right-manipulation-poses 0 2)
-            right-put-poses (subseq right-manipulation-poses 2 3)
-            right-retract-poses (subseq right-manipulation-poses 3)))
-    (list left-reach-poses right-reach-poses left-put-poses right-put-poses
-          left-retract-poses right-retract-poses)))
-
 ;; (defun cram-object-interfaces:get-object-transform (object-designator)
 ;;   (let* ((object-type (desig:desig-prop-value object-designator :type))
 ;;          (object-frame (concatenate 'string
@@ -71,53 +42,56 @@
 ;;      :timeout cram-tf:*tf-default-timeout*)))
 
 (def-fact-group boxy-place-connect-look-designators (desig:action-grounding)
- 
 
-  (<- (desig:action-grounding ?action-designator (place ?arm ?current-object-designator 
-                                                        ?left-reach-poses ?right-reach-poses
-                                                        ?left-put-poses ?right-put-poses
-                                                        ?left-retract-poses ?right-retract-poses))
-    (spec:property ?action-designator (:type :placing))
-    (-> (spec:property ?action-designator (:arm ?arm))
-        (-> (spec:property ?action-designator (:object ?object-designator))
-            (or (cpoe:object-in-hand ?object-designator ?arm)
-                (and (format "WARNING: Wanted to place an object ~a with arm ~a, ~
-                              but it's not in the arm.~%" ?object-designator ?arm)
-                     ;; (fail)
-                     ))
-            (cpoe:object-in-hand ?object-designator ?arm))
-        (-> (spec:property ?action-designator (:object ?object-designator))
-            (cpoe:object-in-hand ?object-designator ?arm)
-            (and (cram-robot-interfaces:robot ?robot)
-                 (cram-robot-interfaces:arm ?robot ?arm)
-                 (cpoe:object-in-hand ?object-designator ?arm))))
-    (once (or (cpoe:object-in-hand ?object-designator ?arm)
-              (spec:property ?action-designator (:object ?object-designator))))
-    (desig:current-designator ?object-designator ?current-object-designator)
-    (spec:property ?current-object-designator (:type ?object-type))
-    (spec:property ?current-object-designator (:name ?object-name))
-    (spec:property ?action-designator (:on-object ?on-object-designator))
-    (desig:current-designator ?on-object-designator ?current-on-object-designator)
-    (spec:property ?current-on-object-designator (:type ?on-object-type))
-    (spec:property ?current-on-object-designator (:name ?on-object-name))
-    (lisp-fun cram-object-interfaces:get-object-transform ?current-on-object-designator
-              ?on-object-transform)
-    ;; infer missing information
-    (obj-int:object-type-grasp ?object-type ?grasp)
-    (lisp-fun kr-assembly::get-object-placing-poses ?on-object-name ?on-object-type
-              ?object-name ?object-type :left ?grasp
-              ?on-object-transform ?left-poses)
-    (lisp-fun kr-assembly::get-object-placing-poses ?on-object-name ?on-object-type
-              ?object-name ?object-type :right ?grasp
-              ?on-object-transform ?right-poses)
-    (lisp-fun pp-plans::extract-place-manipulation-poses ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses ?left-put-poses ?right-put-poses
-                                 ?left-retract-poses ?right-retract-poses)))
+  ;; (<- (desig:action-grounding ?action-designator (place ?arm ?current-object-designator
+  ;;                                                       ?left-reach-poses ?right-reach-poses
+  ;;                                                       ?left-put-poses ?right-put-poses
+  ;;                                                       ?left-retract-poses ?right-retract-poses))
+  ;;   (spec:property ?action-designator (:type :placing))
+  ;;   (-> (spec:property ?action-designator (:arm ?arm))
+  ;;       (-> (spec:property ?action-designator (:object ?object-designator))
+  ;;           (or (cpoe:object-in-hand ?object-designator ?arm)
+  ;;               (and (format "WARNING: Wanted to place an object ~a with arm ~a, ~
+  ;;                             but it's not in the arm.~%" ?object-designator ?arm)
+  ;;                    ;; (fail)
+  ;;                    ))
+  ;;           (cpoe:object-in-hand ?object-designator ?arm))
+  ;;       (-> (spec:property ?action-designator (:object ?object-designator))
+  ;;           (cpoe:object-in-hand ?object-designator ?arm)
+  ;;           (and (cram-robot-interfaces:robot ?robot)
+  ;;                (cram-robot-interfaces:arm ?robot ?arm)
+  ;;                (cpoe:object-in-hand ?object-designator ?arm))))
+  ;;   (once (or (cpoe:object-in-hand ?object-designator ?arm)
+  ;;             (spec:property ?action-designator (:object ?object-designator))))
+  ;;   (desig:current-designator ?object-designator ?current-object-designator)
+  ;;   (spec:property ?current-object-designator (:type ?object-type))
+  ;;   (spec:property ?current-object-designator (:name ?object-name))
+  ;;   (spec:property ?action-designator (:on-object ?on-object-designator))
+  ;;   (desig:current-designator ?on-object-designator ?current-on-object-designator)
+  ;;   (spec:property ?current-on-object-designator (:type ?on-object-type))
+  ;;   (spec:property ?current-on-object-designator (:name ?on-object-name))
+  ;;   (lisp-fun cram-object-interfaces:get-object-transform ?current-on-object-designator
+  ;;             ?on-object-transform)
+  ;;   ;; infer missing information
+  ;;   (-> (spec:property ?action-designator (:grasp ?grasp))
+  ;;       (true)
+  ;;       (and (lisp-fun obj-int:get-object-type-grasps
+  ;;                      ?object-type nil nil nil ?arm
+  ;;                      ?grasps)
+  ;;            (member ?grasp ?grasps)))
+  ;;   (lisp-fun kr-assembly::get-object-placing-poses ?on-object-name ?on-object-type
+  ;;             ?object-name ?object-type :left ?grasp
+  ;;             ?on-object-transform ?left-poses)
+  ;;   (lisp-fun kr-assembly::get-object-placing-poses ?on-object-name ?on-object-type
+  ;;             ?object-name ?object-type :right ?grasp
+  ;;             ?on-object-transform ?right-poses)
+  ;;   (lisp-fun pp-plans::extract-place-manipulation-poses ?arm ?left-poses ?right-poses
+  ;;             (?left-reach-poses ?right-reach-poses ?left-put-poses ?right-put-poses
+  ;;                                ?left-retract-poses ?right-retract-poses)))
 
-  (<- (desig:action-grounding ?action-designator (connect ?arm
-                                                          ?current-object-designator
+  (<- (desig:action-grounding ?action-designator (connect ?current-object-designator
                                                           ?with-object-designator
-                                                          ?gripper-opening
+                                                          ?arm ?gripper-opening
                                                           ?left-reach-poses ?right-reach-poses
                                                           ?left-push-poses ?right-push-poses
                                                           ?left-retract-poses ?right-retract-poses))
@@ -140,20 +114,34 @@
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
-    (spec:property ?action-designator (:with-object ?with-object-designator))
+    (lisp-fun obj-int:get-object-transform ?current-object-designator
+              ?object-transform)
+    (lisp-fun obj-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
+    (desig:desig-prop ?action-designator (:to-object ?with-object-designator))
     (desig:current-designator ?with-object-designator ?current-with-object-designator)
     (spec:property ?current-with-object-designator (:type ?with-object-type))
     (spec:property ?current-with-object-designator (:name ?with-object-name))
-    (lisp-fun obj-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
     (lisp-fun obj-int:get-object-transform ?current-with-object-designator
               ?with-object-transform)
+    (desig:desig-prop ?action-designator (:attachment ?attachment-type))
     ;; infer missing information
-    (obj-int:object-type-grasp ?object-type ?grasp)
-    (lisp-fun kr-assembly::get-object-placing-poses ?with-object-name ?with-object-type
-              ?object-name ?object-type :left ?grasp
-              ?with-object-transform ?left-poses)
-    ;; only use the left arm for now
-    (equal ?right-poses NIL)
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (and (lisp-fun obj-int:get-object-type-grasps
+                       ?object-type nil nil nil ?arm
+                       ?grasps)
+             (member ?grasp ?grasps)))
+    (lisp-fun kr-assembly::get-object-placement-transform
+              ?object-name ?object-type ?object-transform
+              ?with-object-name ?with-object-type ?with-object-transform
+              ?attachment-type
+              ?attachment-transform)
+    (lisp-fun obj-int:get-object-grasping-poses
+              ?object-name ?object-type :left ?grasp ?attachment-transform
+              ?left-poses)
+    (lisp-fun obj-int:get-object-grasping-poses
+              ?object-name ?object-type :right ?grasp ?attachment-transform
+              ?right-poses)
     (lisp-fun pp-plans::extract-place-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-push-poses ?right-push-poses
                ?left-retract-poses ?right-retract-poses)))

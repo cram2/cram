@@ -67,6 +67,7 @@
     (exe:perform
      (desig:an action
                (type grasping)
+               (object ?object-designator)
                (left-poses ?left-grasping-poses)
                (right-poses ?right-grasping-poses))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
@@ -78,7 +79,7 @@
              (object ?object-designator)))
   (roslisp:ros-info (pick-place pick-up) "Assert grasp into knowledge base")
   (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-attached
+   (make-instance 'cpoe:object-attached-robot
      :object-name (desig:desig-prop-value ?object-designator :name)
      :arm ?arm))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
@@ -95,7 +96,7 @@
                (right-poses ?right-lift-poses)))))
 
 
-(cpl:def-cram-function place (?object-designator
+(cpl:def-cram-function place (?object-designator ?on-object-designator
                               ?arm
                               ?left-reach-poses ?right-reach-poses
                               ?left-put-poses ?right-put-poses
@@ -121,11 +122,15 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (exe:perform
-     (desig:an action
-               (type putting)
-               (left-poses ?left-put-poses)
-               (right-poses ?right-put-poses))))
+    (let ((?object-name (desig:desig-prop-value ?object-designator :name))
+          (?environment-object-name (desig:desig-prop-value ?on-object-designator :name)))
+      (exe:perform
+       (desig:an action
+                 (type putting)
+                 (object ?object-designator)
+                 (on-object ?on-object-designator)
+                 (left-poses ?left-put-poses)
+                 (right-poses ?right-put-poses)))))
   (roslisp:ros-info (pick-place place) "Opening gripper")
   (exe:perform
    (desig:an action
@@ -133,7 +138,7 @@
              (gripper ?arm)))
   (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
   (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-detached
+   (make-instance 'cpoe:object-detached-robot
      :arm ?arm
      :object-name (desig:desig-prop-value ?object-designator :name)))
   (roslisp:ros-info (pick-place place) "Retracting")
@@ -162,11 +167,11 @@
 ;; (cpl:def-cram-function pick-up (action-designator object arm grasp)
 ;;   (perform-phases-in-sequence action-designator)
 ;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-gripped :object object :arm arm :grasp grasp)))
+;;    (make-instance 'cpoe:object-attached-robot :object object :arm arm :grasp grasp)))
 
 
 ;; (cpl:def-cram-function place (action-designator object arm)
 ;;   (perform-phases-in-sequence action-designator)
 ;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-released :arm arm :object object)))
+;;    (make-instance 'cpoe:object-detached-robot :arm arm :object object)))
 

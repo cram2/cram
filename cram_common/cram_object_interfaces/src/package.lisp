@@ -54,11 +54,16 @@
    #:get-object-type-grasps
    #:object-rotationally-symmetric
    #:orientation-matters
-   #:object-type-grasp
+   ;; #:object-type-grasp
    ;; standard-grasps
-   #:*back-grasp-rotation*
-   #:*front-grasp-rotation*
-   #:*left-side-grasp-rotation*
-   #:*right-side-grasp-rotation*
-   #:*top-across-x-grasp-rotation*
-   #:*top-across-y-grasp-rotation*))
+   #:*x-across-z-grasp-rotation*
+   #:*-x-across-z-grasp-rotation*
+   #:*x-across-y-grasp-rotation*
+   #:*-x-across-y-grasp-rotation*
+   #:*y-across-z-grasp-rotation*
+   #:*-y-across-z-grasp-rotation*
+   #:*y-across-x-grasp-rotation*
+   #:*-y-across-x-grasp-rotation*
+   #:*z-across-x-grasp-rotation*
+   #:*z-across-y-grasp-rotation*
+   #:*z-diagonal-grasp-rotation*))
