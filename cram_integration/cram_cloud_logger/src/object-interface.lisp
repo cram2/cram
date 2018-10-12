@@ -25,6 +25,9 @@
                  (write-to-string arm))))
         (query-result (call-next-method)))
     (log-end-of-query query-id)
+    (print "QUERY RESULT")
+    (print query-result)
+    (print "--------------")
       query-result))
 
 (defmethod obj-int:get-object-type-gripper-opening :around (object-type)
