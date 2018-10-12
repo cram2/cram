@@ -474,3 +474,12 @@ if it is on the sign side of the axis. "
     (when (< (cl-transforms:z (cl-transforms:orientation supp-obj-pose)) 0)
       (setf supp-angle (- (* 2 pi) supp-angle)))
     (+ supp-angle angle-in-supp)))
+
+(defun make-discrete-orientations-generator ()
+  (lambda (x y previous-orientations)
+    (declare (ignore x y previous-orientations))
+    (cut:lazy-mapcar (lambda (angle)
+                       (cl-transforms:axis-angle->quaternion
+                        (cl-transforms:make-3d-vector 0 0 1)
+                        angle))
+                     `(0.0 ,(/ pi 2) ,pi ,(- (/ pi 2))))))
