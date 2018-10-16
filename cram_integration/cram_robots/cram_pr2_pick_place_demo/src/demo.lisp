@@ -275,8 +275,8 @@
   cpl:*current-path*)
 
 
-(defparameter *robot-x-position* -0.15)
-(defparameter *robot-y-position* 1.0)
+(defparameter *robot-x-position* -0.10)
+(defparameter *robot-y-position* 0.75)
 (defparameter *object-x-position* -0.75)
 (defparameter *object-y-position* 1.0)
 (defparameter *object-z-position* 0.8573)
