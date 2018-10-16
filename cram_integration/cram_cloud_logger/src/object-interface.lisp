@@ -1,6 +1,18 @@
 (in-package :ccl)
 
 
+(defmethod obj-int:calculate-object-faces :around (robot-to-object-transform)
+  (let ((query-id
+          (ccl::create-prolog-log-query-str
+           "calculate-object-faces"
+           (list "parameters")))
+        (query-result (call-next-method)))
+    (log-end-of-query query-id)
+    (log-result-of-query
+     query-id
+     (concatenate 'string (write-to-string (car query-result)) " " (write-to-string (cadr query-result))))
+    query-result))
+
 (defmethod obj-int:get-object-type-gripping-effort :around (object-type)
   (let ((query-id
           (ccl::create-prolog-log-query-str
@@ -8,7 +20,8 @@
            (list (write-to-string object-type))))
         (query-result (call-next-method)))
     (log-end-of-query query-id)
-      query-result))
+    query-result))
+
 
 (defmethod obj-int:get-object-type-grasps :around (object-type
                                                    facing-robot-face
@@ -25,9 +38,6 @@
                  (write-to-string arm))))
         (query-result (call-next-method)))
     (log-end-of-query query-id)
-    (print "QUERY RESULT")
-    (print query-result)
-    (print "--------------")
       query-result))
 
 (defmethod obj-int:get-object-type-gripper-opening :around (object-type)
