@@ -67,6 +67,13 @@
 (defun export-belief-state-to-owl (&optional (filename (concatenate 'string "default_belief_state_" (write-to-string (truncate (cram-utilities:current-timestamp))) ".owl")))
   (json-prolog:prolog-simple-1 (concatenate 'string "rdf_save(" (concatenate 'string "'/home/ease/logs/" filename "'" "," "[graph('belief_state')])"))))
 
+
+(defun send-grasp-action-parameter (action-inst grasp)
+  (let ((a (convert-to-prolog-str action-inst))
+        (b "knowrob:grasp")
+        (c (create-owl-literal "xsd:string" (convert-to-prolog-str (write-to-string grasp)))))
+    (send-rdf-query a b c)))
+
 (defun send-task-success (action-inst is-sucessful)
   (let ((a (convert-to-prolog-str action-inst))
         (b "knowrob:taskSuccess")
@@ -109,7 +116,7 @@
       (progn
         (send-rdf-query
          (convert-to-prolog-str action-inst)
-         "knowrob:objectActedOn"
+         "knowrob:objectType"
          (convert-to-prolog-str object-type))))))
 
 

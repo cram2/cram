@@ -278,21 +278,24 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                                        max-sign)))))
     (cdr (assoc axis-index-list *axis-index->face* :test #'equal))))
 
-(defun calculate-object-faces (robot-to-object-transform)
-  (let* ((object-to-robot-transform
-           (cram-tf:transform-stamped-inv robot-to-object-transform))
-         (matrix
-           (cl-transforms:quaternion->matrix
-            (cl-transforms:rotation object-to-robot-transform)))
-         (robot-negative-x-vector
-           (list (- (aref matrix 0 0)) (- (aref matrix 1 0)) (- (aref matrix 2 0))))
-         (robot-negative-z-vector
-           (list (- (aref matrix 0 2)) (- (aref matrix 1 2)) (- (aref matrix 2 2))))
-         (facing-robot-face
-           (calculate-vector-face robot-negative-x-vector))
-         (bottom-face
-           (calculate-vector-face robot-negative-z-vector)))
-    (list facing-robot-face bottom-face)))
+(defgeneric calculate-object-faces (robot-to-object-transform)
+  (:documentation "Calculates the faces")
+  (:method (robot-to-object-transform)
+    (print "FACES CALCULATION")
+    (let* ((object-to-robot-transform
+             (cram-tf:transform-stamped-inv robot-to-object-transform))
+           (matrix
+             (cl-transforms:quaternion->matrix
+              (cl-transforms:rotation object-to-robot-transform)))
+           (robot-negative-x-vector
+             (list (- (aref matrix 0 0)) (- (aref matrix 1 0)) (- (aref matrix 2 0))))
+           (robot-negative-z-vector
+             (list (- (aref matrix 0 2)) (- (aref matrix 1 2)) (- (aref matrix 2 2))))
+           (facing-robot-face
+             (calculate-vector-face robot-negative-x-vector))
+           (bottom-face
+             (calculate-vector-face robot-negative-z-vector)))
+      (list facing-robot-face bottom-face))))
 
 (defun object-type-grasp->robot-grasp (robot-to-object-transform object-type-grasp)
   (destructuring-bind (grasp-axis grasp-axis-sign)

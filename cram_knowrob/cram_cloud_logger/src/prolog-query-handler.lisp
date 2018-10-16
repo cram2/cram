@@ -24,6 +24,19 @@
      "knowrob:parameters"
      (convert-to-prolog-str parameters-str))))
 
+(defun log-result-of-query (query-id result)
+  (let ((result-query
+              (create-rdf-assert-query
+               (car query-id)
+               "knowrob:result"
+               (convert-to-prolog-str result))))
+    (let ((query-list (car (cdr query-id))))
+      (push result-query (cdr (last query-list)))
+      (setf (cpl:value *prolog-queries*)
+            (append query-list
+                    (cpl:value *prolog-queries*))))))
+
+
 (defun log-end-of-query (query-id)
   (let ((end-query
                     (create-query
@@ -158,6 +171,8 @@
                     "get-object-type-gripping-effort")
       (string-equal (string-downcase predicate-name)
                     "get-object-type-grasps")
+      (string-equal (string-downcase predicate-name)
+                    "calculate-object-faces")
       (string-equal (string-downcase predicate-name)
                     "cram-semantic-map-costmap::semantic-map-desig-objects")
       (string-equal (string-downcase predicate-name)
