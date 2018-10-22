@@ -7,7 +7,7 @@
 
 (defmethod prolog::prove-one :around (query binds &optional rethrow-cut)
   (if *is-logging-enabled*
-      (let ((query-id (create-prolog-log-query (car query) '("no-parameters")))(result (call-next-method)))
+      (let ((query-id (create-prolog-log-query (car query) '("http://knowrob.org/kb/knowrob.owl#no-parameter")))(result (call-next-method)))
         ;; Come back here to implement parameter logging
         ;;(when query-id
         ;;  (log-result query binds result))
@@ -29,7 +29,7 @@
               (create-rdf-assert-query
                (car query-id)
                "knowrob:result"
-               (convert-to-prolog-str result))))
+               (create-string-owl-literal (convert-to-prolog-str result)))))
     (let ((query-list (car (cdr query-id))))
       (push result-query (cdr (last query-list)))
       (setf (cpl:value *prolog-queries*)
@@ -100,7 +100,7 @@
               (cons (create-rdf-assert-query
                      query-id
                      "knowrob:predicate"
-                     (convert-to-prolog-str (write-to-string predicate-name)))
+                     (create-string-owl-literal (convert-to-prolog-str (write-to-string predicate-name))))
                     queries))
         (setf queries
               (cons (create-query
@@ -137,7 +137,8 @@
                 (cons (create-rdf-assert-query
                        query-id
                        "knowrob:predicate"
-                       (convert-to-prolog-str predicate-name-str))
+                       (create-string-owl-literal
+                        (convert-to-prolog-str predicate-name-str)))
                       queries))
            (setf queries
                 (cons (create-log-parameters-query query-id parameters)

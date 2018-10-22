@@ -281,7 +281,6 @@ Gripper is defined by a convention where Z is pointing towards the object."))
 (defgeneric calculate-object-faces (robot-to-object-transform)
   (:documentation "Calculates the faces")
   (:method (robot-to-object-transform)
-    (print "FACES CALCULATION")
     (let* ((object-to-robot-transform
              (cram-tf:transform-stamped-inv robot-to-object-transform))
            (matrix
