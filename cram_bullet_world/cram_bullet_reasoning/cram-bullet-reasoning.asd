@@ -66,8 +66,6 @@
        (:file "utils" :depends-on ("package"))
        (:file "objects" :depends-on ("package" "reasoning-world" "textures" "utils"))
        (:file "items" :depends-on ("package" "objects" "utils"))
-       ;; (:file "ros-household-object-database"
-       ;;  :depends-on ("package" "objects" "items"))
        (:file "aabb" :depends-on ("package" "objects"))
        (:file "debug-window" :depends-on ("package"))
        (:file "world-utils" :depends-on ("package" "reasoning-world" "objects"))
@@ -92,15 +90,10 @@
        (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
        (:file "visibility-facts"
         :depends-on ("package" "world-facts" "visibility-reasoning" "robot-model-facts"))
-       ;; (:file "reachability" :depends-on ("package" "robot-model-utils"))
-       ;; (:file "reachability-facts"
-       ;;  :depends-on ("package" "world-facts" "prolog-handlers" "robot-model-utils" "reachability"))
        (:file "semantic-map" :depends-on ("package" "objects" "utils"))
        (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
        (:file "urdf-semantic-map"
         :depends-on ("package" "reasoning-world" "semantic-map" "robot-model"))
        (:file "semantic-map-facts"
         :depends-on ("package" "semantic-map" "urdf-semantic-map" "world-facts"))
-       (:file "articulated-objects" :depends-on ("package" "semantic-map"))
-       (:file "action-facts"
-        :depends-on ("package" "world-facts" "prolog-handlers" "articulated-objects"))))))
+       (:file "articulated-objects" :depends-on ("package" "semantic-map"))))))

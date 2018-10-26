@@ -88,8 +88,7 @@
 
   (<- (desig:desig-location-prop ?desig ?loc)
     (desig:loc-desig? ?desig)
-    (or (desig:desig-prop ?desig (:obj ?o))
-        (desig:desig-prop ?desig (:object ?o)))
+    (desig:desig-prop ?desig (:object ?o))
     (btr:object ?_ ?o)
     (btr:pose ?_ ?o ?loc))
 

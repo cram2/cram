@@ -110,8 +110,7 @@
                                          ?orientation-samples ?orientation-sample-step)
           (cut:lazy-car
            (prolog:prolog
-            `(and (or (and (or (desig:desig-prop ,designator (:obj ?some-object))
-                               (desig:desig-prop ,designator (:object ?some-object)))
+            `(and (or (and (desig:desig-prop ,designator (:object ?some-object))
                            (desig:current-designator ?some-object ?object)
                            (btr-belief:object-designator-name ?object ?object-name)
                            (btr:bullet-world ?world)
