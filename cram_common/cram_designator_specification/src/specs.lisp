@@ -104,7 +104,7 @@
 
   (<- (%property ?designator (?location-key ?location))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?location-key (:target :location))
+    (member ?location-key (:target :location :robot-location))
     (property-member (?location-key ?location) ?designator)
     (assert-type ?location desig:location-designator "ACTION SPEC:PROPERTY"))
 
