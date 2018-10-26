@@ -236,6 +236,10 @@
                     cram-tf:*robot-base-frame*
                     :use-zero-time t)
                    pose-stamped-in-camera))
+             (transform-stamped-in-base-frame
+               (cram-tf:pose-stamped->transform-stamped
+                pose-stamped-in-base-frame
+                name))
              (pose-stamped-in-map-frame
                (if cram-tf:*fixed-frame*
                    (cram-tf:ensure-pose-in-frame
@@ -243,9 +247,9 @@
                     cram-tf:*fixed-frame*
                     :use-zero-time t)
                    pose-stamped-in-camera))
-             (transform-stamped-in-base-frame
+             (transform-stamped-in-map-frame
                (cram-tf:pose-stamped->transform-stamped
-                pose-stamped-in-base-frame
+                pose-stamped-in-map-frame
                 name)))
 
         (cram-tf:visualize-marker pose-stamped-in-camera :r-g-b-list '(0 0 1) :id 1234)
