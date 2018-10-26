@@ -36,6 +36,8 @@
    ;; object-designator-interfaces
    #:get-object-transform
    #:get-object-pose
+   #:get-object-transform-in-map
+   #:get-object-pose-in-map
    #:object-type-subtype
    #:object-type-direct-subtype
    ;; manipulation
