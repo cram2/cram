@@ -31,7 +31,6 @@
 (in-package :location-costmap)
 
 (defparameter *costmap-valid-solution-threshold* 0.10)
-(defconstant +costmap-n-samples+ 1)
 
 (defvar *costmap-cache* (tg:make-weak-hash-table :test 'eq :weakness :key))
 (defvar *costmap-max-values (tg:make-weak-hash-table :test 'eq :weakness :key))
