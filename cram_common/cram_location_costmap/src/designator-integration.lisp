@@ -45,6 +45,11 @@
                 (unless (is-var ?cm)
                   ?cm))))))
 
+(defmethod desig:reset ((desig location-designator))
+  "Deleted cached costmap associated with this designator"
+  (let ((first-designator (desig:first-desig desig)))
+    (remhash first-designator *costmap-cache*)))
+
 (defun get-cached-costmap-maxvalue (costmap)
   (or (gethash costmap *costmap-max-values)
       (setf (gethash costmap *costmap-max-values)
