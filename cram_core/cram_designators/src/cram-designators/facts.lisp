@@ -74,8 +74,7 @@
   
   ;; (location ... (obj ?obj)...), e.g. location to see obj
   ;; (<- (desig-location-prop ?desig ?loc)
-  ;;   (or (desig-prop ?desig (:obj ?obj))
-  ;;       (desig-prop ?desig (:object ?obj)))
+  ;;   (desig-prop ?desig (:object ?obj))
   ;;   (obj-desig? ?obj)
   ;;   (lisp-fun obj-desig-location ?obj ?loc)
   ;;   (lisp-pred identity ?loc))
