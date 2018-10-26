@@ -25,7 +25,6 @@
      (:file "logging" :depends-on ("packages" "task-interface"))
      ;; WITH-POLICY, implementation
      (:file "with-policy" :depends-on ("packages"))
-     (:file "default-policies" :depends-on ("packages" "with-policy"))
      ;; TASKS, implementation
      (:module "tasks"
       :depends-on ("packages" "task-interface" "fluent-interface" "utils" "logging")
