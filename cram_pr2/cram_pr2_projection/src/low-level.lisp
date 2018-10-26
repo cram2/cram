@@ -200,13 +200,16 @@
 
 (defun extend-perceived-object-designator (input-designator name-pose-type-list)
   (destructuring-bind (name pose type) name-pose-type-list
-    (let* ((transform-stamped-in-fixed-frame
-             (cl-transforms-stamped:make-transform-stamped
+    (let* ((pose-stamped-in-fixed-frame
+             (cl-transforms-stamped:make-pose-stamped
               cram-tf:*fixed-frame*
-              (roslisp-utilities:rosify-underscores-lisp-name name)
               (cut:current-timestamp)
               (cl-transforms:origin pose)
               (cl-transforms:orientation pose)))
+           (transform-stamped-in-fixed-frame
+             (cram-tf:pose-stamped->transform-stamped
+              pose-stamped-in-fixed-frame
+              (roslisp-utilities:rosify-underscores-lisp-name name)))
            (pose-stamped-in-base-frame
              (cram-tf:multiply-transform-stampeds
               cram-tf:*robot-base-frame*
@@ -228,11 +231,13 @@
                `((:type ,type)
                  (:name ,name)
                  (:pose ((:pose ,pose-stamped-in-base-frame)
-                         (:transform ,transform-stamped-in-base-frame)))))))
+                         (:transform ,transform-stamped-in-base-frame)
+                         (:pose-in-map ,pose-stamped-in-fixed-frame)
+                         (:transform-in-map ,transform-stamped-in-fixed-frame)))))))
         (setf (slot-value output-designator 'desig:data)
               (make-instance 'desig:object-designator-data
                 :object-identifier name
-                :pose pose-stamped-in-base-frame))
+                :pose pose-stamped-in-fixed-frame))
         ;; (desig:equate input-designator output-designator)
 
         ;; before returning a freshly made output designator of perceived object
