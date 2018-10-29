@@ -67,8 +67,7 @@
     (spec:property ?container-designator (:part-of ?btr-environment))
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
-        (and (cram-robot-interfaces:robot ?robot)
-             (cram-robot-interfaces:arm ?robot ?arm)))
+        (man-int:robot-free-hand ?_ ?arm))
     (spec:property ?action-designator (:distance ?distance))
     ;; infer joint information
     ;; joint-name
@@ -124,8 +123,7 @@
     (spec:property ?container-designator (:part-of ?btr-environment))
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
-        (and (cram-robot-interfaces:robot ?robot)
-             (cram-robot-interfaces:arm ?robot ?arm)))
+        (man-int:robot-free-hand ?_ ?arm))
     (spec:property ?action-designator (:distance ?distance))
     ;; infer joint information
     ;; joint-name

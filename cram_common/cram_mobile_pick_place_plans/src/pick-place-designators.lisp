@@ -81,8 +81,7 @@
     (spec:property ?current-object-desig (:name ?object-name))
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
-        (and (cram-robot-interfaces:robot ?robot)
-             (cram-robot-interfaces:arm ?robot ?arm)))
+        (man-int:robot-free-hand ?_ ?arm))
     (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
     (lisp-fun man-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
@@ -116,33 +115,29 @@
                                                         ?left-retract-poses ?right-retract-poses
                                                         ?location))
     (spec:property ?action-designator (:type :placing))
+    ;; find in which hand the object is
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
             (or (cpoe:object-in-hand ?object-designator ?arm)
-                (and (format "WARNING: Wanted to place an object ~a with arm ~a, ~
-                              but it's not in the arm.~%" ?object-designator ?arm)
-                     ;; (fail)
-                     ))
+                (format "WARNING: Wanted to place an object ~a with arm ~a, ~
+                         but it's not in the arm.~%" ?object-designator ?arm))
             (cpoe:object-in-hand ?object-designator ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
-            (cpoe:object-in-hand ?object-designator ?arm)
-            (and (cram-robot-interfaces:robot ?robot)
-                 (cram-robot-interfaces:arm ?robot ?arm)
-                 (cpoe:object-in-hand ?object-designator ?arm))))
-    (once (or (cpoe:object-in-hand ?object-designator ?arm)
-              (spec:property ?action-designator (:object ?object-designator))))
+            (or (cpoe:object-in-hand ?object-designator ?arm)
+                (format "WARNING: Wanted to place an object ~a ~
+                         but it's not in any of the hands.~%" ?object-designator))
+            (cpoe:object-in-hand ?object-designator ?arm)))
+    ;; infer missing information
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
-    ;; infer missing information
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
+        ;; TODO: grasp should be stored in the knowledge base!!
         (and (lisp-fun man-int:get-object-type-grasps
                        ?object-type nil nil nil ?arm
                        ?grasps)
              (member ?grasp ?grasps)))
-    ;; TODO: grasp should be stored in the knowledge base!!
-    ;; (man-int:object-type-grasp ?object-type ?grasp)
     ;; take object-pose from action-designator target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location))
         (and (desig:current-designator ?location ?current-location-designator)
