@@ -44,5 +44,8 @@
     :components
     ((:file "package")
      (:file "object-designator-interfaces" :depends-on ("package"))
-     (:file "manipulation" :depends-on ("package"))
+     (:file "prolog" :depends-on ("package" "object-designator-interfaces"))
+     (:file "trajectories" :depends-on ("package" "prolog"))
+     (:file "gripper" :depends-on ("package"))
+     (:file "grasps" :depends-on ("package"))
      (:file "standard-grasps" :depends-on ("package"))))))

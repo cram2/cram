@@ -38,11 +38,11 @@
    #:get-object-pose
    #:get-object-transform-in-map
    #:get-object-pose-in-map
+   ;; prolog
    #:object-type-subtype
    #:object-type-direct-subtype
-   ;; manipulation
-   #:get-object-type-gripping-effort
-   #:get-object-type-gripper-opening
+   #:robot-free-arm
+   ;; trajectories
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform
    #:get-object-type-to-gripper-2nd-pregrasp-transform
@@ -50,13 +50,16 @@
    #:get-object-type-to-gripper-2nd-lift-transform
    #:def-object-type-to-gripper-transforms
    #:get-object-grasping-poses
+   ;; gripper
+   #:get-object-type-gripping-effort
+   #:get-object-type-gripper-opening
+   ;; grasps
    #:calculate-object-faces
    #:object-type-grasp->robot-grasp
    #:robot-grasp->object-type-grasp
    #:get-object-type-grasps
    #:object-rotationally-symmetric
    #:orientation-matters
-   ;; #:object-type-grasp
    ;; standard-grasps
    #:*x-across-z-grasp-rotation*
    #:*-x-across-z-grasp-rotation*
