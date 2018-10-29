@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,8 @@
 
 (in-package :cram-manipulation-interfaces)
 
-(defmacro getassoc (key alist)
-  `(cdr (assoc ,key ,alist :test #'equal)))
+(defgeneric get-object-type-gripping-effort (object-type)
+  (:documentation "Returns effort in Nm, e.g. 50."))
 
-(defun get-object-transform (object-designator)
-  (car (getassoc :transform (desig:desig-prop-value object-designator :pose))))
-
-(defun get-object-pose (object-designator)
-  (car (getassoc :pose (desig:desig-prop-value object-designator :pose))))
-
-(defun get-object-transform-in-map (object-designator)
-  (car (getassoc :transform-in-map (desig:desig-prop-value object-designator :pose))))
-
-(defun get-object-pose-in-map (object-designator)
-  (car (getassoc :pose-in-map (desig:desig-prop-value object-designator :pose))))
+(defgeneric get-object-type-gripper-opening (object-type)
+  (:documentation "How wide to open the gripper before grasping, in m."))
