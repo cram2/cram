@@ -68,9 +68,9 @@
     (fail)))
 
 
-(def-fact-group manipulation-knowledge (robot-free-arm)
+(def-fact-group manipulation-knowledge (robot-free-hand)
 
-  (<- (robot-free-arm ?robot ?arm)
+  (<- (robot-free-hand ?robot ?arm)
     (rob-int:robot ?robot)
     (rob-int:arm ?robot ?arm)
     (not (cpoe:object-in-hand ?_ ?arm))))

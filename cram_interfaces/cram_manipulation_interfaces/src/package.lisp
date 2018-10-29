@@ -41,7 +41,7 @@
    ;; prolog
    #:object-type-subtype
    #:object-type-direct-subtype
-   #:robot-free-arm
+   #:robot-free-hand
    ;; trajectories
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform
