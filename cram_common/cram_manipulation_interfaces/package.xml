@@ -1,5 +1,5 @@
 <package format="2">
-  <name>cram_object_interfaces</name>
+  <name>cram_manipulation_interfaces</name>
   <version>0.7.0</version>
   <description>
     Interfaces to abstract away from object at hand

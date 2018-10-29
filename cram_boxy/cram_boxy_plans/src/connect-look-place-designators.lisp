@@ -29,7 +29,7 @@
 
 (in-package :boxy-plans)
 
-;; (defun cram-object-interfaces:get-object-transform (object-designator)
+;; (defun cram-manipulation-interfaces:get-object-transform (object-designator)
 ;;   (let* ((object-type (desig:desig-prop-value object-designator :type))
 ;;          (object-frame (concatenate 'string
 ;;                                     (remove #\- (string-capitalize (symbol-name object-type)))
@@ -70,12 +70,12 @@
   ;;   (desig:current-designator ?on-object-designator ?current-on-object-designator)
   ;;   (spec:property ?current-on-object-designator (:type ?on-object-type))
   ;;   (spec:property ?current-on-object-designator (:name ?on-object-name))
-  ;;   (lisp-fun cram-object-interfaces:get-object-transform ?current-on-object-designator
+  ;;   (lisp-fun cram-manipulation-interfaces:get-object-transform ?current-on-object-designator
   ;;             ?on-object-transform)
   ;;   ;; infer missing information
   ;;   (-> (spec:property ?action-designator (:grasp ?grasp))
   ;;       (true)
-  ;;       (and (lisp-fun obj-int:get-object-type-grasps
+  ;;       (and (lisp-fun man-int:get-object-type-grasps
   ;;                      ?object-type nil nil nil ?arm
   ;;                      ?grasps)
   ;;            (member ?grasp ?grasps)))
@@ -114,20 +114,20 @@
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
-    (lisp-fun obj-int:get-object-transform ?current-object-designator
+    (lisp-fun man-int:get-object-transform ?current-object-designator
               ?object-transform)
-    (lisp-fun obj-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
+    (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
     (desig:desig-prop ?action-designator (:to-object ?with-object-designator))
     (desig:current-designator ?with-object-designator ?current-with-object-designator)
     (spec:property ?current-with-object-designator (:type ?with-object-type))
     (spec:property ?current-with-object-designator (:name ?with-object-name))
-    (lisp-fun obj-int:get-object-transform ?current-with-object-designator
+    (lisp-fun man-int:get-object-transform ?current-with-object-designator
               ?with-object-transform)
     (desig:desig-prop ?action-designator (:attachment ?attachment-type))
     ;; infer missing information
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (and (lisp-fun obj-int:get-object-type-grasps
+        (and (lisp-fun man-int:get-object-type-grasps
                        ?object-type nil nil nil ?arm
                        ?grasps)
              (member ?grasp ?grasps)))
@@ -136,10 +136,10 @@
               ?with-object-name ?with-object-type ?with-object-transform
               ?attachment-type
               ?attachment-transform)
-    (lisp-fun obj-int:get-object-grasping-poses
+    (lisp-fun man-int:get-object-grasping-poses
               ?object-name ?object-type :left ?grasp ?attachment-transform
               ?left-poses)
-    (lisp-fun obj-int:get-object-grasping-poses
+    (lisp-fun man-int:get-object-grasping-poses
               ?object-name ?object-type :right ?grasp ?attachment-transform
               ?right-poses)
     (lisp-fun pp-plans::extract-place-manipulation-poses ?arm ?left-poses ?right-poses
@@ -151,7 +151,7 @@
     (property ?action-designator (:camera :wrist))
     (property ?action-designator (:object ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
-    (lisp-fun cram-object-interfaces:get-object-transform
+    (lisp-fun cram-manipulation-interfaces:get-object-transform
               ?current-object-designator ?object-transform)
     ;; infer missing information
     (lisp-fun kr-assembly::get-object-look-pose :left ?object-transform ?left-goal-pose)

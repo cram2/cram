@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,61 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :cram-manipulation-interfaces)
 
-(defpackage cram-object-interfaces
-  (:use #:common-lisp #:cram-prolog)
-  (:nicknames #:obj-int)
-  (:export
-   ;; object-designator-interfaces
-   #:get-object-transform
-   #:get-object-pose
-   #:get-object-transform-in-map
-   #:get-object-pose-in-map
-   #:object-type-subtype
-   #:object-type-direct-subtype
-   ;; manipulation
-   #:get-object-type-gripping-effort
-   #:get-object-type-gripper-opening
-   #:get-object-type-to-gripper-transform
-   #:get-object-type-to-gripper-pregrasp-transform
-   #:get-object-type-to-gripper-2nd-pregrasp-transform
-   #:get-object-type-to-gripper-lift-transform
-   #:get-object-type-to-gripper-2nd-lift-transform
-   #:def-object-type-to-gripper-transforms
-   #:get-object-grasping-poses
-   #:calculate-object-faces
-   #:object-type-grasp->robot-grasp
-   #:robot-grasp->object-type-grasp
-   #:get-object-type-grasps
-   #:object-rotationally-symmetric
-   #:orientation-matters
-   ;; #:object-type-grasp
-   ;; standard-grasps
-   #:*x-across-z-grasp-rotation*
-   #:*-x-across-z-grasp-rotation*
-   #:*x-across-y-grasp-rotation*
-   #:*-x-across-y-grasp-rotation*
-   #:*y-across-z-grasp-rotation*
-   #:*-y-across-z-grasp-rotation*
-   #:*y-across-x-grasp-rotation*
-   #:*-y-across-x-grasp-rotation*
-   #:*z-across-x-grasp-rotation*
-   #:*z-across-y-grasp-rotation*
-   #:*z-diagonal-grasp-rotation*))
+(defparameter *sin-pi/4* (sin (/ pi 4)))
+(defparameter *-sin-pi/4* (- (sin (/ pi 4))))
+
+;; back / front
+(defparameter *x-across-z-grasp-rotation*
+  '(( 0  0 -1)
+    (-1  0  0)
+    ( 0  1  0)))
+(defparameter *-x-across-z-grasp-rotation*
+  '((0 0 1)
+    (1 0 0)
+    (0 1 0)))
+(defparameter *x-across-y-grasp-rotation*
+  '(( 0  0 -1)
+    ( 0 -1  0)
+    (-1  0  0)))
+(defparameter *-x-across-y-grasp-rotation*
+  '(( 0  0  1)
+    ( 0  1  0)
+    (-1  0  0)))
+(defparameter *-x-across-y-grasp-rotation*
+  '(( 0  0  1)
+    ( 0  1  0)
+    (-1  0  0)))
+
+;; side
+(defparameter *y-across-z-grasp-rotation*
+  '((1  0  0)
+    (0  0 -1)
+    (0  1  0)))
+(defparameter *-y-across-z-grasp-rotation*
+  '((-1 0 0)
+    ( 0 0 1)
+    ( 0 1 0)))
+(defparameter *y-across-x-grasp-rotation*
+  '((0   1  0)
+    (0   0  -1)
+    (-1  0  0)))
+(defparameter *-y-across-x-grasp-rotation*
+  '((0  -1  0)
+    (0   0  1)
+    (-1  0  0)))
+
+;; top
+(defparameter *z-across-x-grasp-rotation*
+  '((0  1  0)
+    (1  0  0)
+    (0  0 -1)))
+(defparameter *z-across-y-grasp-rotation*
+  '((1  0  0)
+    (0 -1  0)
+    (0  0 -1)))
+(defparameter *z-diagonal-grasp-rotation*
+  `((,*-sin-pi/4* ,*sin-pi/4*  0)
+    (,*sin-pi/4*  ,*sin-pi/4*  0)
+    (0            0           -1)))

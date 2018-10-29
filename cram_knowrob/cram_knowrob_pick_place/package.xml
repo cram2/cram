@@ -14,7 +14,7 @@
   <depend>cram_utilities</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cl_transforms</depend>
-  <depend>cram_object_interfaces</depend>
+  <depend>cram_manipulation_interfaces</depend>
   <depend>cram_occasions_events</depend>
   <depend>cram_plan_occasions_events</depend>
   <depend>cram_tf</depend>

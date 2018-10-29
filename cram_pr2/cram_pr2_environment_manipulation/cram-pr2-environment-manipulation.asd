@@ -47,7 +47,7 @@
                cram-common-failures
                cram-mobile-pick-place-plans
                cram-robot-interfaces ; for REACHABILITY-DESIGNATOR predicate
-               cram-object-interfaces
+               cram-manipulation-interfaces
                cram-designator-specification
 
                cl-bullet ; for handling BOUNDING-BOX datastructures

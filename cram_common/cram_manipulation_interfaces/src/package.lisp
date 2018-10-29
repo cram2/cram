@@ -27,22 +27,45 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-object-interfaces
-  :author "Gayane Kazhoyan"
-  :license "BSD"
-  :description "Object interfaces"
+(in-package :cl-user)
 
-  :depends-on (cram-prolog
-               cram-designators
-               cram-tf
-               cl-transforms-stamped
-               cram-robot-interfaces ; for gripper transform calculations
-               cram-utilities ; for lazy lists in manipulation.lisp
-               )
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "object-designator-interfaces" :depends-on ("package"))
-     (:file "manipulation" :depends-on ("package"))
-     (:file "standard-grasps" :depends-on ("package"))))))
+(defpackage cram-manipulation-interfaces
+  (:use #:common-lisp #:cram-prolog)
+  (:nicknames #:man-int)
+  (:export
+   ;; object-designator-interfaces
+   #:get-object-transform
+   #:get-object-pose
+   #:get-object-transform-in-map
+   #:get-object-pose-in-map
+   #:object-type-subtype
+   #:object-type-direct-subtype
+   ;; manipulation
+   #:get-object-type-gripping-effort
+   #:get-object-type-gripper-opening
+   #:get-object-type-to-gripper-transform
+   #:get-object-type-to-gripper-pregrasp-transform
+   #:get-object-type-to-gripper-2nd-pregrasp-transform
+   #:get-object-type-to-gripper-lift-transform
+   #:get-object-type-to-gripper-2nd-lift-transform
+   #:def-object-type-to-gripper-transforms
+   #:get-object-grasping-poses
+   #:calculate-object-faces
+   #:object-type-grasp->robot-grasp
+   #:robot-grasp->object-type-grasp
+   #:get-object-type-grasps
+   #:object-rotationally-symmetric
+   #:orientation-matters
+   ;; #:object-type-grasp
+   ;; standard-grasps
+   #:*x-across-z-grasp-rotation*
+   #:*-x-across-z-grasp-rotation*
+   #:*x-across-y-grasp-rotation*
+   #:*-x-across-y-grasp-rotation*
+   #:*y-across-z-grasp-rotation*
+   #:*-y-across-z-grasp-rotation*
+   #:*y-across-x-grasp-rotation*
+   #:*-y-across-x-grasp-rotation*
+   #:*z-across-x-grasp-rotation*
+   #:*z-across-y-grasp-rotation*
+   #:*z-diagonal-grasp-rotation*))

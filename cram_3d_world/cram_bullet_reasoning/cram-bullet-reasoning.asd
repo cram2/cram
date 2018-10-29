@@ -49,7 +49,7 @@
                  cram-designators
                  roslisp-utilities
                  cram-semantic-map-utils
-                 cram-object-interfaces
+                 cram-manipulation-interfaces
                  cram-robot-interfaces
                  cram-occasions-events
                  cram-utilities ; lazy in pose-generators

@@ -83,24 +83,24 @@
         (true)
         (and (cram-robot-interfaces:robot ?robot)
              (cram-robot-interfaces:arm ?robot ?arm)))
-    (lisp-fun obj-int:get-object-transform ?current-object-desig ?object-transform)
+    (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
-    (lisp-fun obj-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
-    (-> (obj-int:object-rotationally-symmetric ?object-type)
+    (lisp-fun man-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
+    (-> (man-int:object-rotationally-symmetric ?object-type)
         (equal ?rotationally-symmetric t)
         (equal ?rotationally-symmetric nil))
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (and (lisp-fun obj-int:get-object-type-grasps
+        (and (lisp-fun man-int:get-object-type-grasps
                        ?object-type ?facing-robot-face ?bottom-face ?rotationally-symmetric ?arm
                        ?grasps)
              (member ?grasp ?grasps)))
-    (lisp-fun obj-int:get-object-type-gripping-effort ?object-type ?effort)
-    (lisp-fun obj-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
-    (lisp-fun obj-int:get-object-grasping-poses
+    (lisp-fun man-int:get-object-type-gripping-effort ?object-type ?effort)
+    (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
+    (lisp-fun man-int:get-object-grasping-poses
               ?object-name ?object-type :left ?grasp ?object-transform
               ?left-poses)
-    (lisp-fun obj-int:get-object-grasping-poses
+    (lisp-fun man-int:get-object-grasping-poses
               ?object-name ?object-type :right ?grasp ?object-transform
               ?right-poses)
     (lisp-fun extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
@@ -137,12 +137,12 @@
     ;; infer missing information
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (and (lisp-fun obj-int:get-object-type-grasps
+        (and (lisp-fun man-int:get-object-type-grasps
                        ?object-type nil nil nil ?arm
                        ?grasps)
              (member ?grasp ?grasps)))
     ;; TODO: grasp should be stored in the knowledge base!!
-    ;; (obj-int:object-type-grasp ?object-type ?grasp)
+    ;; (man-int:object-type-grasp ?object-type ?grasp)
     ;; take object-pose from action-designator target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location))
         (and (desig:current-designator ?location ?current-location-designator)
@@ -154,16 +154,16 @@
              (lisp-fun roslisp-utilities:rosify-underscores-lisp-name ?object-name ?tf-name)
              (lisp-fun cram-tf:pose-stamped->transform-stamped ?target-pose-in-base ?tf-name
                        ?target-transform))
-        (and (lisp-fun obj-int:get-object-transform ?current-object-designator ?target-transform)
-             (lisp-fun obj-int:get-object-pose ?current-object-designator ?target-pose)
+        (and (lisp-fun man-int:get-object-transform ?current-object-designator ?target-transform)
+             (lisp-fun man-int:get-object-pose ?current-object-designator ?target-pose)
              (desig:designator :location ((:pose ?target-pose)) ?location)))
     ;; TODO: placing should happen on an object! specify the on object explicitly,
     ;; hardcoding now...
     (desig:designator :object ((:name :kitchen)) ?on-object-designator)
-    (lisp-fun obj-int:get-object-grasping-poses
+    (lisp-fun man-int:get-object-grasping-poses
               ?object-name ?object-type :left ?grasp ?target-transform
               ?left-poses)
-    (lisp-fun obj-int:get-object-grasping-poses
+    (lisp-fun man-int:get-object-grasping-poses
               ?object-name ?object-type :right ?grasp ?target-transform
               ?right-poses)
     (lisp-fun extract-place-manipulation-poses ?arm ?left-poses ?right-poses

@@ -31,5 +31,5 @@
 
 (defpackage cram-knowrob-pick-place
   (:nicknames #:kr-pp)
-  (:use #:common-lisp #:cram-object-interfaces #:cram-prolog)
+  (:use #:common-lisp #:cram-manipulation-interfaces #:cram-prolog)
   (:export ))

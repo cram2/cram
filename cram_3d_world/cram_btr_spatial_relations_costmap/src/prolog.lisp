@@ -391,7 +391,7 @@
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:in ?object))
     (spec:property ?object (:type ?object-type))
-    (obj-int:object-type-subtype :container ?object-type)
+    (man-int:object-type-subtype :container ?object-type)
     (spec:property ?object (:urdf-name ?urdf-name))
     (spec:property ?object (:part-of ?environment-name))
     (btr:bullet-world ?world)

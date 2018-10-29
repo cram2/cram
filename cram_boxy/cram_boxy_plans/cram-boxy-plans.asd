@@ -44,7 +44,7 @@
                cram-plan-occasions-events
                cram-mobile-pick-place-plans
 
-               cram-object-interfaces
+               cram-manipulation-interfaces
                cram-knowrob-assembly
 
                cl-transforms-stamped

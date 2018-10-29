@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-object-interfaces)
+(in-package :cram-manipulation-interfaces)
 
 (defvar *known-grasp-types* nil
   "A list of symbols representing all known grasp types")
@@ -342,7 +342,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
     (remove-if
      #'null
      (mapcar (lambda (grasp-type)
-               (when (find-method #'obj-int:get-object-type-to-gripper-transform
+               (when (find-method #'get-object-type-to-gripper-transform
                                   '()
                                   `((eql ,object-type) T (eql ,arm) (eql ,grasp-type))
                                   nil)
@@ -357,7 +357,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                     (when (typep grasp-specializer 'sb-mop:eql-specializer)
                       (sb-mop:eql-specializer-object grasp-specializer))))
                 (sb-pcl:generic-function-methods
-                 #'obj-int:get-object-type-to-gripper-transform))))
+                 #'get-object-type-to-gripper-transform))))
              #-sbcl
              (error "CRAM object manipulation code only works under SBCL...")
              #+solution-using-grasp-defining-macros-doesnt-work-for-custom-methods-like-env-manip
@@ -369,7 +369,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
     (cut:lazy-mapcar
      (lambda (bindings)
        (cut:var-value '?grasp bindings))
-     (prolog:prolog `(obj-int:object-type-grasp ,object-type ?grasp)))))
+     (prolog:prolog `(object-type-grasp ,object-type ?grasp)))))
 
 
 (def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters ;; object-type-grasp
