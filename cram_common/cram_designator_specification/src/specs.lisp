@@ -65,9 +65,9 @@
 
   (<- (%property ?designator (?location-key ?location))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?location-key (:target :left-target :right-target))
+    (member ?location-key (:pose :left-pose :right-pose))
     (property-member (?location-key ?location) ?designator)
-    (assert-type ?location desig:location-designator "MOTION SPEC:PROPERTY"))
+    (assert-type ?location cl-transforms-stamped:pose-stamped "MOTION SPEC:PROPERTY"))
 
   (<- (%property ?designator (?object-key ?object))
     (lisp-pred typep ?designator desig:motion-designator)

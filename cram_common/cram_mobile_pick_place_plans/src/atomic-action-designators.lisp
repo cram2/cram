@@ -31,9 +31,11 @@
 
 (def-fact-group pick-and-place-atomic-actions (desig:action-grounding)
 
-  (<- (desig:action-grounding ?action-designator (go-to-target ?location-designator))
+  (<- (desig:action-grounding ?action-designator (go-to-target ?pose-stamped))
     (spec:property ?action-designator (:type :going))
-    (spec:property ?action-designator (:target ?location-designator)))
+    (spec:property ?action-designator (:target ?location-designator))
+    (desig:designator-groundings ?location-designator ?poses)
+    (member ?pose-stamped ?poses))
 
   (<- (desig:action-grounding ?action-designator (perceive ?object-designator))
     (spec:property ?action-designator (:type :detecting))
@@ -114,9 +116,11 @@
     (spec:property ?action-designator (:gripper ?left-or-right-or-both))
     (spec:property ?action-designator (:position ?position)))
 
-  (<- (desig:action-grounding ?action-designator (look-at :target ?location-designator))
+  (<- (desig:action-grounding ?action-designator (look-at :pose ?pose-stamped))
     (spec:property ?action-designator (:type :looking))
     (spec:property ?action-designator (:target ?location-designator))
+    (desig:designator-groundings ?location-designator ?poses)
+    (member ?pose-stamped ?poses)
     (-> (spec:property ?action-designator (:camera ?camera))
         (equal ?camera :head)
         (true)))
@@ -137,6 +141,4 @@
     (spec:property ?action-designator (:object ?object-designator))
     (-> (spec:property ?action-designator (:camera ?camera))
         (equal ?camera :head)
-        (true)))
-
-)
+        (true))))

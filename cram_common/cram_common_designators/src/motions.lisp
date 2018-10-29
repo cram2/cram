@@ -31,11 +31,9 @@
 
 (def-fact-group navigation-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-base ?pose))
+  (<- (motion-grounding ?designator (move-base ?pose-stamped))
     (property ?designator (:type :going))
-    (property ?designator (:target ?location-designator))
-    (designator-groundings ?location-designator ?poses)
-    (member ?pose ?poses)))
+    (property ?designator (:pose ?pose-stamped))))
 
 
 (def-fact-group torso-motions (motion-grounding)
@@ -47,11 +45,9 @@
 
 (def-fact-group ptu-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-head :pose ?pose))
+  (<- (motion-grounding ?designator (move-head :pose ?pose-stamped))
     (property ?designator (:type :looking))
-    (property ?designator (:target ?location-designator))
-    (designator-groundings ?location-designator ?poses)
-    (member ?pose ?poses))
+    (property ?designator (:pose ?pose-stamped)))
 
   (<- (motion-grounding ?designator (move-head :frame ?frame))
     (property ?designator (:type :looking))
@@ -104,13 +100,11 @@
                                               ?collision-object-b ?collision-object-b-link
                                               ?collision-object-a))
     (property ?designator (:type :moving-tcp))
-    (-> (property ?designator (:left-target ?left-location))
-        (and (designator-groundings ?left-location ?left-poses)
-             (member ?left-pose ?left-poses))
+    (-> (property ?designator (:left-pose ?left-pose))
+        (true)
         (equal ?left-pose nil))
-    (-> (property ?designator (:right-target ?right-location))
-        (and (designator-groundings ?right-location ?right-poses)
-             (member ?right-pose ?right-poses))
+    (-> (property ?designator (:right-pose ?right-pose))
+        (true)
         (equal ?right-pose nil))
     (-> (desig:desig-prop ?designator (:collision-mode ?collision-mode))
         (true)

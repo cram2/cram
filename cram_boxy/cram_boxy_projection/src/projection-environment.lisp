@@ -120,11 +120,11 @@
                     cram-tf:*robot-base-frame* 0.0
                     (cl-transforms:make-3d-vector -4 -5 0)
                     (cl-transforms:make-identity-rotation))))
-        (desig:a motion (type going) (target (desig:a location (pose ?pose))))))
+        (desig:a motion (type going) (pose ?pose))))
      (exe:perform
       (let ((?pose (cl-tf:make-pose-stamped
                     cram-tf:*robot-base-frame* 0.0
                     (cl-transforms:make-3d-vector 0.5 0.3 1.0)
                     (cl-transforms:make-identity-rotation))))
-        (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
+        (desig:a motion (type moving-tcp) (left-pose ?pose))))))
 )

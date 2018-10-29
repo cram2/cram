@@ -48,7 +48,7 @@
                    "map" 0.0
                    (cl-transforms:make-3d-vector 0.5 -0.8 0)
                    (cl-transforms:make-identity-rotation))))
-       (desig:a motion (type going) (target (desig:a location (pose ?pose))))))))
+       (desig:a motion (type going) (pose ?pose))))))
 
 ;; (defun test-manipulation ()
 ;;   (with-real-robot
@@ -58,14 +58,14 @@
 ;;     (let ((?pose (strip-transform-stamped
 ;;                   (car (subseq (local-gripper-trajectory-in-base "MoveFridgeHandle") 23)))))
 ;;       (exe:perform
-;;        (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
+;;        (desig:a motion (type moving-tcp) (left-pose ?pose))))))
 
 (defun test-manipulation ()
   (with-real-robot
     (let ((?pose (strip-transform-stamped
                   (car (local-gripper-trajectory-in-base-from-radius)))))
       (exe:perform
-       (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
+       (desig:a motion (type moving-tcp) (left-pose ?pose))))))
 
 (defun park-arms ()
   (let ((?left-pose (cl-transforms-stamped:make-pose-stamped
@@ -87,8 +87,8 @@
     (exe:perform
      (desig:a motion
               (type moving-tcp)
-              (left-target (desig:a location (pose ?left-pose)))
-              (right-target (desig:a location (pose ?right-pose)))))     ))
+              (left-pose ?left-pose)
+              (right-pose ?right-pose)))))
 
 (defun move-projected-pr2-away ()
   (btr-utils:move-object 'cram-pr2-description:pr2
@@ -106,7 +106,7 @@
                                            (my-reachable-for ?robot)
                                            (location (desig:a location (pose ?handle-pose)))
                                            (context "OpenFridge"))))
-         (?target (ecase ?arm (:left :left-target) (:right :right-target))))
+         (?target (ecase ?arm (:left :left-pose) (:right :right-pose))))
 
     (btr-utils:kill-all-objects)
     (move-projected-pr2-away)
@@ -167,7 +167,7 @@
               (exe:perform
                (desig:a motion
                         (type moving-tcp)
-                        (?target (desig:a location (pose ?pose))))))))
+                        (?target ?pose))))))
         (exe:perform
          (desig:an action (type gripping) (gripper ?arm) (effort 100)))
 
@@ -182,7 +182,7 @@
                       (exe:perform
                        (desig:a motion
                                 (type moving-tcp)
-                                (?target (desig:a location (pose ?pose))))))))
+                                (?target ?pose))))))
                 (cdr ?trajectory))
 
         (exe:perform

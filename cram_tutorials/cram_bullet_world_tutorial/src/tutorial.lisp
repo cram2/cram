@@ -98,12 +98,12 @@
 (defun navigate-to (?navigation-goal)
   (exe:perform (desig:a motion
                         (type going)
-                        (target (desig:a location (pose ?navigation-goal))))))
+                        (pose ?navigation-goal))))
 
 (defun look-at (?point-of-interest)
   (exe:perform (desig:a motion
                         (type looking)
-                        (target (desig:a location (pose ?point-of-interest))))))
+                        (pose ?point-of-interest))))
 
 (defun get-perceived-bottle-desig ()
   (let* ((?bottle-desig (desig:an object (type bottle)))

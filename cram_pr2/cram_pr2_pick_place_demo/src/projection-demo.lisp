@@ -146,10 +146,10 @@
       (pp-plans::park-arms)
       (exe:perform (desig:a motion
                             (type going)
-                            (target (desig:a location (pose ?navigation-goal))))))
+                            (pose ?navigation-goal))))
     (exe:perform (desig:a motion
                           (type looking)
-                          (target (desig:a location (pose ?ptu-goal)))))))
+                          (pose ?ptu-goal)))))
 
 (defun pick-object (&optional (?object-type :breakfast-cereal) (?arm :right))
   (pp-plans:park-arms)
@@ -175,8 +175,7 @@
   (cpl:par
     (exe:perform (desig:a motion
                           (type looking)
-                          (target (desig:a location
-                                           (pose ?target-pose)))))
+                          (pose ?target-pose)))
     (exe:perform (desig:an action
                            (type placing)
                            (arm ?arm)
@@ -217,7 +216,7 @@
 ;;                      cram-tf:*robot-base-frame* 0.0
 ;;                      (cl-transforms:make-3d-vector -0.5 0 0)
 ;;                      (cl-transforms:make-identity-rotation))))
-;;          (desig:a motion (type going) (target (desig:a location (pose ?pose))))))
+;;          (desig:a motion (type going) (pose ?pose))))
 ;;       (exe:perform
 ;;        (desig:a motion (type moving-torso) (joint-angle 0.3)))
 ;;       (exe:perform
@@ -229,7 +228,7 @@
 ;;                      cram-tf:*robot-base-frame* 0.0
 ;;                      (cl-transforms:make-3d-vector 0.7 0.3 0.85)
 ;;                      (cl-transforms:make-identity-rotation))))
-;;          (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose)))))))))
+;;          (desig:a motion (type moving-tcp) (left-pose ?pose)))))))
 
 ;; (defun test-desigs ()
 ;;   (let ((?pose (desig:reference (desig:a location
@@ -320,10 +319,10 @@
 ;;             (pp-plans::park-arms)
 ;;             (exe:perform (desig:a motion
 ;;                                   (type going)
-;;                                   (target (desig:a location (pose ?navigation-goal))))))
+;;                                   (pose ?navigation-goal))))
 ;;           (exe:perform (desig:a motion
 ;;                                 (type looking)
-;;                                 (target (desig:a location (pose ?ptu-goal))))))))
+;;                                 (pose ?ptu-goal))))))
 ;; (defun test-pr2-plans ()
 ;;   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
 ;;     (cpl:top-level
