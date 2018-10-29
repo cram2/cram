@@ -30,6 +30,7 @@
 
 (defpackage cram-robot-interfaces
   (:use #:common-lisp #:cram-prolog #:cram-designators)
+  (:nicknames #:rob-int)
   (:export
    ;; arms
    #:arm #:required-arms #:available-arms
