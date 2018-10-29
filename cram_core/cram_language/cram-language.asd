@@ -51,7 +51,7 @@
        (:file "interface"))
       :serial t)
      ;; CRAM, The Language
-     (:file "language" :depends-on ("packages" "walker" "tasks" "fluents" "logging" "with-policy" "default-policies"))
+     (:file "language" :depends-on ("packages" "walker" "tasks" "fluents" "logging" "with-policy"))
      (:file "plans" :depends-on ("packages" "tasks"))
      (:file "goals" :depends-on ("packages" "tasks"))
      (:file "fluent-operators" :depends-on ("packages" "fluents"))
