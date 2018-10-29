@@ -48,7 +48,7 @@
 ;;        (desig:a motion
 ;;                 (type wiggling-tcp)
 ;;                 (arm ?arm)
-;;                 (target (desig:a location (pose ?target-pose))))))))
+;;                 (pose ?target-pose))))))
 
 
 (cpl:def-cram-function cram-inspect (?object-designator)

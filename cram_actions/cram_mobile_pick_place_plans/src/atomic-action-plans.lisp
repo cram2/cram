@@ -29,7 +29,7 @@
 
 (in-package :pp-plans)
 
-(cpl:def-cram-function go-to-target (?location-designator)
+(cpl:def-cram-function go-to-target (?pose-stamped)
   (unwind-protect
        (cpl:with-retry-counters ((nav-retries 0))
          (cpl:with-failure-handling
@@ -41,7 +41,7 @@
                   (roslisp:ros-warn (pick-and-place go) "Retrying...")
                   (cpl:retry))))
            (exe:perform
-            (desig:a motion (type going) (target ?location-designator)))))
+            (desig:a motion (type going) (pose ?pose-stamped)))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
@@ -113,9 +113,9 @@
                  (desig:a motion
                           (type moving-tcp)
                           (desig:when ?left-pose
-                            (left-target (desig:a location (pose ?left-pose))))
+                            (left-pose ?left-pose))
                           (desig:when ?right-pose
-                            (right-target (desig:a location (pose ?right-pose))))
+                            (right-pose ?right-pose))
                           (desig:when ?collision-mode
                             (collision-mode ?collision-mode))
                           (desig:when ?collision-object-b
@@ -144,9 +144,9 @@
          (desig:a motion
                   (type moving-tcp)
                   (desig:when ?left-pose
-                    (left-target (desig:a location (pose ?left-pose))))
+                    (left-pose ?left-pose))
                   (desig:when ?right-pose
-                    (right-target (desig:a location (pose ?right-pose))))
+                    (right-pose ?right-pose))
                   (desig:when ?collision-mode
                     (collision-mode ?collision-mode))
                   (desig:when ?collision-object-b
@@ -283,7 +283,7 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
-(cpl:def-cram-function look-at (&key target frame direction object)
+(cpl:def-cram-function look-at (&key pose frame direction object)
   (unwind-protect
        (cpl:with-retry-counters ((look-retries 1))
          (cpl:with-failure-handling
@@ -293,12 +293,12 @@
                   (roslisp:ros-warn (pp-plans look-at) "Retrying.")
                   (cpl:retry)))))
 
-         (cond (target
-                (let ((?target target))
+         (cond (pose
+                (let ((?pose pose))
                   (exe:perform
                    (desig:a motion
                             (type looking)
-                            (target ?target)))))
+                            (pose ?pose)))))
                (frame
                 (let ((?frame frame))
                   (exe:perform
