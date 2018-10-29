@@ -44,7 +44,7 @@
                cram-designators
                cram-process-modules
                cram-prolog
-               cram-object-interfaces
+               cram-manipulation-interfaces
                cram-common-designators)
   :components
   ((:module "src"

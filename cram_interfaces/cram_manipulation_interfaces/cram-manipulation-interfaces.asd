@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,61 +27,22 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-object-interfaces)
+(defsystem cram-manipulation-interfaces
+  :author "Gayane Kazhoyan"
+  :license "BSD"
+  :description "Object interfaces"
 
-(defparameter *sin-pi/4* (sin (/ pi 4)))
-(defparameter *-sin-pi/4* (- (sin (/ pi 4))))
-
-;; back / front
-(defparameter *x-across-z-grasp-rotation*
-  '(( 0  0 -1)
-    (-1  0  0)
-    ( 0  1  0)))
-(defparameter *-x-across-z-grasp-rotation*
-  '((0 0 1)
-    (1 0 0)
-    (0 1 0)))
-(defparameter *x-across-y-grasp-rotation*
-  '(( 0  0 -1)
-    ( 0 -1  0)
-    (-1  0  0)))
-(defparameter *-x-across-y-grasp-rotation*
-  '(( 0  0  1)
-    ( 0  1  0)
-    (-1  0  0)))
-(defparameter *-x-across-y-grasp-rotation*
-  '(( 0  0  1)
-    ( 0  1  0)
-    (-1  0  0)))
-
-;; side
-(defparameter *y-across-z-grasp-rotation*
-  '((1  0  0)
-    (0  0 -1)
-    (0  1  0)))
-(defparameter *-y-across-z-grasp-rotation*
-  '((-1 0 0)
-    ( 0 0 1)
-    ( 0 1 0)))
-(defparameter *y-across-x-grasp-rotation*
-  '((0   1  0)
-    (0   0  -1)
-    (-1  0  0)))
-(defparameter *-y-across-x-grasp-rotation*
-  '((0  -1  0)
-    (0   0  1)
-    (-1  0  0)))
-
-;; top
-(defparameter *z-across-x-grasp-rotation*
-  '((0  1  0)
-    (1  0  0)
-    (0  0 -1)))
-(defparameter *z-across-y-grasp-rotation*
-  '((1  0  0)
-    (0 -1  0)
-    (0  0 -1)))
-(defparameter *z-diagonal-grasp-rotation*
-  `((,*-sin-pi/4* ,*sin-pi/4*  0)
-    (,*sin-pi/4*  ,*sin-pi/4*  0)
-    (0            0           -1)))
+  :depends-on (cram-prolog
+               cram-designators
+               cram-tf
+               cl-transforms-stamped
+               cram-robot-interfaces ; for gripper transform calculations
+               cram-utilities ; for lazy lists in manipulation.lisp
+               )
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "object-designator-interfaces" :depends-on ("package"))
+     (:file "manipulation" :depends-on ("package"))
+     (:file "standard-grasps" :depends-on ("package"))))))

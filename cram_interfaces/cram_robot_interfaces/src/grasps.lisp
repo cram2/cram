@@ -28,12 +28,12 @@
 
 (in-package :cram-robot-interfaces)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;; DEPRECATION WARNING ;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; PRETTY MUCH EVERYTHING IN HERE IS DERPECATED.   ;;;
-;;; USE THE cram_object_interfaces PACKAGE INSTEAD. ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; DEPRECATION WARNING ;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; PRETTY MUCH EVERYTHING IN HERE IS DERPECATED.         ;;;
+;;; USE THE cram_manipulation_interfaces PACKAGE INSTEAD. ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar *grasps* nil
   "An alist that maps grasps to orientations in the robot's root

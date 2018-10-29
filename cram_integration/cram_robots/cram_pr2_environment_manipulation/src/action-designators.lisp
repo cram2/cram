@@ -62,7 +62,7 @@
     (spec:property ?action-designator (:type :opening))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
-    (obj-int:object-type-subtype :container ?container-type)
+    (man-int:object-type-subtype :container ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (-> (spec:property ?action-designator (:arm ?arm))
@@ -83,12 +83,12 @@
     (btr:bullet-world ?world)
     (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
     ;; infer missing information like ?gripper-opening, opening trajectory
-    (lisp-fun obj-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
+    (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
     (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
               (?container-pose ?container-transform))
-    (lisp-fun obj-int:get-object-grasping-poses ?container-name
+    (lisp-fun man-int:get-object-grasping-poses ?container-name
               :container-prismatic :left :open ?container-transform ?left-poses)
-    (lisp-fun obj-int:get-object-grasping-poses ?container-name
+    (lisp-fun man-int:get-object-grasping-poses ?container-name
               :container-prismatic :right :open ?container-transform ?right-poses)
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
               ?arm ?left-poses ?right-poses
@@ -119,7 +119,7 @@
     (spec:property ?action-designator (:type :closing))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
-    (obj-int:object-type-subtype :container ?container-type)
+    (man-int:object-type-subtype :container ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (-> (spec:property ?action-designator (:arm ?arm))
@@ -140,12 +140,12 @@
     (btr:bullet-world ?world)
     (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
     ;; infer missing information like ?gripper-opnening, closing trajectory
-    (lisp-fun obj-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
+    (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
     (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
               (?container-pose ?container-transform))
-    (lisp-fun obj-int:get-object-grasping-poses ?container-name
+    (lisp-fun man-int:get-object-grasping-poses ?container-name
               :container-prismatic :left :close ?container-transform ?left-poses)
-    (lisp-fun obj-int:get-object-grasping-poses ?container-name
+    (lisp-fun man-int:get-object-grasping-poses ?container-name
               :container-prismatic :right :close ?container-transform ?right-poses)
     (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
               ?arm ?left-poses ?right-poses

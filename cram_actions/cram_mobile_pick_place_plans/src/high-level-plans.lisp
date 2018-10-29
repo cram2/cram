@@ -66,7 +66,7 @@
                              (target (desig:a location (pose ?goal-for-base)))))))
 
 (defun drive-towards-object-plan (object-designator &key (?arm :right))
-  (let ((object-pose-in-base (cram-object-interfaces:get-object-pose object-designator)))
+  (let ((object-pose-in-base (cram-manipulation-interfaces:get-object-pose object-designator)))
     (drive-to-reach-pose object-pose-in-base :?arm ?arm)))
 
 (defun drive-and-pick-up-plan (?object-designator &key (?arm :right))
@@ -96,7 +96,7 @@
 (defun drive-and-place-plan (&key (?arm :right) ?target-location)
   (let* ((?object-designator (get-object-in-hand ?arm))
          (?driving-pose (or (when ?target-location (desig:reference ?target-location))
-                            (cram-object-interfaces:get-object-pose ?object-designator))))
+                            (cram-manipulation-interfaces:get-object-pose ?object-designator))))
     (drive-to-reach-pose ?driving-pose :?arm ?arm)
     (cpl:par
       (exe:perform (desig:an action
@@ -124,7 +124,7 @@
 ;;         (let* ((?obj 
 ;;                  (perceive 
 ;;                   (an object (type bottle))))
-;;                (obj-pose-in-base (cram-object-interfaces:get-object-pose ?obj))
+;;                (obj-pose-in-base (cram-manipulation-interfaces:get-object-pose ?obj))
 ;;                (?pose-in-map (cram-tf:ensure-pose-in-frame 
 ;;                               obj-pose-in-base
 ;;                               cram-tf:*fixed-frame*

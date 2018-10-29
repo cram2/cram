@@ -312,7 +312,7 @@
                             (type looking)
                             (direction ?direction)))))
                (object
-                (let ((?pose (cram-object-interfaces:get-object-pose object)))
+                (let ((?pose (cram-manipulation-interfaces:get-object-pose object)))
                   (exe:perform
                    (desig:a motion
                             (type looking)
