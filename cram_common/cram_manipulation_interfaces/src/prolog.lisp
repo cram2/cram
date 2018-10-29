@@ -66,3 +66,11 @@
   ;; the orientation doesn't matter at all.
   (<- (orientation-matters ?object-type-symbol)
     (fail)))
+
+
+(def-fact-group manipulation-knowledge (robot-free-arm)
+
+  (<- (robot-free-arm ?robot ?arm)
+    (rob-int:robot ?robot)
+    (rob-int:arm ?robot ?arm)
+    (not (cpoe:object-in-hand ?_ ?arm))))
