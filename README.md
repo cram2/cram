@@ -23,7 +23,7 @@ and lightweight simulation of PR2 robot.
 * **cram_knowrob** Libraries for using knowrob in Lisp
 * **cram_pr2** Hardware interface for using PR2 robot in CRAM
 * **cram_roboserlock** 
-* **cram_tutorials** Tutorials for : [cram-turtorials](http://cram-system.org/tutorials).
+* **cram_tutorials** Tutorials for: [cram-turtorials](http://cram-system.org/tutorials).
 
 
 ### Getting started
