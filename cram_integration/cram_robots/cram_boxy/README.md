@@ -1,4 +1,4 @@
 
-cram_boxy
-========
+### cram_boxy
 
+Hardware interface for using Boxy robot in CRAM.
