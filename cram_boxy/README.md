@@ -1,4 +1,4 @@
 
 ### cram_boxy
 
-Hardware interface for using Boxy robot in CRAM and projection module.
+Hardware interface for using Boxy robot in CRAM and lightweight simulation.
