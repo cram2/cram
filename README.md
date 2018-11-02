@@ -21,7 +21,7 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 * **cram_jason_prolog** ROS JSON Prolog client implementation in Lisp: sending Prolog queries in JSON format over ROS. 
 * **cram_knowrob** Libraries for using knowrob in Lisp
 * **cram_pr2** CRAM packages related to the PR2, e.g. process modules, costmaps and lightweight simulation of PR2 robot. Additionally Projection module for PR2. Also, fetch and deliver plans for PR2 robot.
-* **cram_roboserlock** 
+* **cram_roboserlock** Interface for communicating with RoboSherlock from CRAM.
 * **cram_tutorials** Tutorials for: [cram-turtorials](http://cram-system.org/tutorials).
 
 
