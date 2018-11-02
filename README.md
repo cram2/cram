@@ -15,7 +15,7 @@ The core packages of CRAM are implemented in Common Lisp (with a little bit of C
 ### Directory
 * **cram_3d_world** Bullet physics engine-based and OpenGl offscreen rendering-based reasoning mechanisms.
 * **cram_3rdparty** 3rd party Lisp liabraries wrapped into ROS packages.
-* **cram_boxy** Hardware interface for using Boxy robot in CRAM and projection module.
+* **cram_boxy** Hardware interface for using Boxy robot in CRAM and lightweight simulation.
 * **cram_common** Common libraries building on top of CRAM core. Including costmap and implementations.
 * **cram_core** Tools and Interfaces for writing Cognition-Enabled Reactive Concurrent Plans.
 * **cram_jason_prolog** ROS JSON Prolog client implementation in Lisp: sending Prolog queries in JSON format over ROS. 
