@@ -30,6 +30,11 @@
 
 (in-package :boxy-proj)
 
+(defparameter *debug-short-sleep-duration* 0.0
+  "in seconds, sleeps after each movement during reasoning")
+(defparameter *debug-long-sleep-duration* 0.0
+  "in seconds, sleeps to show colliding configurations")
+
 (defun robot-transform-in-map ()
   (let ((pose-in-map
           (cut:var-value
@@ -48,28 +53,49 @@
 
 (defun drive (target)
   (declare (type cl-transforms-stamped:pose-stamped target))
-  (assert
-   (prolog:prolog
-    `(and (cram-robot-interfaces:robot ?robot)
-          (btr:bullet-world ?w)
-          (btr:assert ?w (btr:object-pose ?robot ,target)))))
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-  )
+  (let* ((world btr:*current-bullet-world*)
+         (world-state (btr::get-state world)))
+    (unwind-protect
+         (assert
+          (prolog:prolog
+           `(and (cram-robot-interfaces:robot ?robot)
+                 (btr:bullet-world ?w)
+                 (btr:assert ?w (btr:object-pose ?robot ,target)))))
+      (when (btr:robot-colliding-objects-without-attached)
+        (unless (< (abs *debug-short-sleep-duration*) 0.0001)
+          (cpl:sleep *debug-short-sleep-duration*))
+        (btr::restore-world-state world-state world)
+        (cpl:fail 'common-fail:navigation-pose-unreachable :pose-stamped target)))))
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun move-torso (joint-angle)
   (declare (type number joint-angle))
-  (assert
-   (prolog:prolog
-    `(and (cram-robot-interfaces:robot ?robot)
-          (btr:bullet-world ?w)
-          (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?joint)
-          (btr:assert (btr:joint-state ?w ?robot ((?joint ,joint-angle)))))))
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-  )
+  (let* ((bindings
+           (car
+            (prolog:prolog
+             `(and (cram-robot-interfaces:robot ?robot)
+                   (btr:bullet-world ?w)
+                   (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?joint)
+                   (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?lower)
+                   (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?upper)))))
+         (lower-limit
+           (cut:var-value '?lower bindings))
+         (upper-limit
+           (cut:var-value '?upper bindings))
+         (cropped-joint-angle
+           (if (< joint-angle lower-limit)
+               lower-limit
+               (if (> joint-angle upper-limit)
+                   upper-limit
+                   joint-angle))))
+    (prolog:prolog
+     `(btr:assert (btr:joint-state ?w ?robot ((?joint ,cropped-joint-angle))))
+     bindings)
+    (unless (< (abs (- joint-angle cropped-joint-angle)) 0.0001)
+      (cpl:fail 'common-fail:torso-goal-not-reached
+                :description (format nil "Torso goal ~a was out of joint limits" joint-angle)
+                :torso joint-angle))))
 
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -117,16 +143,18 @@
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; todo: test btr:visible with boxy camera stuff
 (defun extend-perceived-object-designator (input-designator name-pose-type-list)
   (destructuring-bind (name pose type) name-pose-type-list
-    (let* ((transform-stamped-in-fixed-frame
-             (cl-transforms-stamped:make-transform-stamped
+    (let* ((pose-stamped-in-fixed-frame
+             (cl-transforms-stamped:make-pose-stamped
               cram-tf:*fixed-frame*
-              (roslisp-utilities:rosify-underscores-lisp-name name)
               (cut:current-timestamp)
               (cl-transforms:origin pose)
               (cl-transforms:orientation pose)))
+           (transform-stamped-in-fixed-frame
+             (cram-tf:pose-stamped->transform-stamped
+              pose-stamped-in-fixed-frame
+              (roslisp-utilities:rosify-underscores-lisp-name name)))
            (pose-stamped-in-base-frame
              (cram-tf:multiply-transform-stampeds
               cram-tf:*robot-base-frame*
@@ -148,20 +176,14 @@
                `((:type ,type)
                  (:name ,name)
                  (:pose ((:pose ,pose-stamped-in-base-frame)
-                         (:transform ,transform-stamped-in-base-frame)))))))
+                         (:transform ,transform-stamped-in-base-frame)
+                         (:pose-in-map ,pose-stamped-in-fixed-frame)
+                         (:transform-in-map ,transform-stamped-in-fixed-frame)))))))
         (setf (slot-value output-designator 'desig:data)
               (make-instance 'desig:object-designator-data
                 :object-identifier name
-                :pose pose-stamped-in-base-frame))
+                :pose pose-stamped-in-fixed-frame))
         ;; (desig:equate input-designator output-designator)
-
-        ;; before returning a freshly made output designator of perceived object
-        ;; emit an object perceived event to update the belief state
-          ;; (cram-occasions-events:on-event
-          ;;  (make-instance 'cram-plan-occasions-events:object-perceived-event
-          ;;    :object-designator output-designator
-          ;;    :perception-source :projection))
-
         output-designator))))
 
 (defun detect (input-designator)
@@ -235,10 +257,6 @@
            (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?min-limit)
            (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?max-limit)))))
 
-  ;; robot-state-changed event
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-
   ;; check if there is an object to grip
   (when (eql action-type :grip) ; if action was gripping check if gripper collided with an item
     (unless (prolog:prolog
@@ -282,10 +300,7 @@
                      (cram-robot-interfaces:robot ?robot)
                      (assert ?world (btr:joint-state ?robot ,joint-name-value-list))))))))))
     (set-configuration :left left-configuration)
-    (set-configuration :right right-configuration)
-    ;; (cram-occasions-events:on-event
-    ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-    ))
+    (set-configuration :right right-configuration)))
 
 (defparameter *tcp-pose-in-ee* (cl-transforms:make-pose
                                 (cl-transforms:make-3d-vector 0 0 0.3191d0)
