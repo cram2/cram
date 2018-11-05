@@ -36,10 +36,10 @@
 (defparameter *nav-p-timeout* 20.0 "in seconds")
 
 (defun init-nav-pcontroller-action-client-and-read-params ()
-  (make-simple-action-client
+  (actionlib-client:make-simple-action-client
    'nav-pcontroller-action
    "nav_pcontroller/move_base" "move_base_msgs/MoveBaseAction"
-   60.0)
+   *nav-p-timeout*)
 
   (setf *xy-goal-tolerance*
         (roslisp:get-param "nav_pcontroller/xy_tolerance" *xy-goal-tolerance*))
@@ -77,7 +77,7 @@
     (when visualize
       (cram-tf:visualize-marker goal-pose :topic "low-level-goals"))
     (multiple-value-bind (result status)
-        (call-simple-action-client
+        (actionlib-client:call-simple-action-client
          'nav-pcontroller-action
          :action-goal (make-nav-p-action-goal goal-pose)
          :action-timeout action-timeout)
