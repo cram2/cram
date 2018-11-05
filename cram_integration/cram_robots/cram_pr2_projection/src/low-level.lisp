@@ -65,10 +65,7 @@
         (unless (< (abs *debug-short-sleep-duration*) 0.0001)
           (cpl:sleep *debug-short-sleep-duration*))
         (btr::restore-world-state world-state world)
-        (cpl:fail 'common-fail:navigation-pose-unreachable :pose-stamped target))))
-    ;; (cram-occasions-events:on-event
-    ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-    )
+        (cpl:fail 'common-fail:navigation-pose-unreachable :pose-stamped target)))))
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -98,10 +95,7 @@
     (unless (< (abs (- joint-angle cropped-joint-angle)) 0.0001)
       (cpl:fail 'common-fail:torso-goal-not-reached
                 :description (format nil "Torso goal ~a was out of joint limits" joint-angle)
-                :torso joint-angle)))
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-  )
+                :torso joint-angle))))
 
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -168,10 +162,7 @@
     (unless (and (< (abs (- pan-angle cropped-pan-angle)) 0.00001)
                  (< (abs (- tilt-angle cropped-tilt-angle)) 0.00001))
       (cpl:fail 'common-fail:ptu-goal-not-reached
-                :description "Look action wanted to twist the neck"))
-    ;; (cram-occasions-events:on-event
-    ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-    ))
+                :description "Look action wanted to twist the neck"))))
 
 (defgeneric look-at (goal-type pose-or-frame-or-direction)
   (:method (goal-type (pose cl-transforms-stamped:pose-stamped))
@@ -239,14 +230,6 @@
                 :object-identifier name
                 :pose pose-stamped-in-fixed-frame))
         ;; (desig:equate input-designator output-designator)
-
-        ;; before returning a freshly made output designator of perceived object
-        ;; emit an object perceived event to update the belief state
-          ;; (cram-occasions-events:on-event
-          ;;  (make-instance 'cram-plan-occasions-events:object-perceived-event
-          ;;    :object-designator output-designator
-          ;;    :perception-source :projection))
-
         output-designator))))
 
 (defun detect (input-designator)
@@ -321,10 +304,6 @@
            (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?min-limit)
            (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?max-limit)))))
 
-  ;; robot-state-changed event
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-
   ;; check if there is an object to grip
   (when (eql action-type :grip) ; if action was gripping check if gripper collided with an item
     (unless (prolog:prolog
@@ -370,10 +349,7 @@
                      (cram-robot-interfaces:robot ?robot)
                      (assert ?world (btr:joint-state ?robot ,joint-name-value-list))))))))))
     (set-configuration :left left-configuration)
-    (set-configuration :right right-configuration)
-    ;; (cram-occasions-events:on-event
-    ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-    ))
+    (set-configuration :right right-configuration)))
 
 (defparameter *gripper-length* 0.2 "PR2's gripper length in meters, for calculating TCP -> EE")
 
