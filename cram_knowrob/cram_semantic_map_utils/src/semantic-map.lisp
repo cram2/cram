@@ -268,7 +268,7 @@
           (force-ll
            (lazy-mapcan
             (lambda (bdgs)
-              (with-vars-bound (?type ?name ?sub) bdgs
+              (with-vars-bound (?type ?name ?sub ?prefixName ?prefixType) bdgs
                 (unless (or (is-var ?type) (is-var ?sub))
                   (list
                    (make-semantic-map-part
@@ -283,10 +283,13 @@
                               ?sub)
                    ("rdf_has" ,(owl-name part)
                               "http://knowrob.org/kb/srdl2-comp.owl#subComponent"
+                              ?sub)
+                   ("rdf_has" ,(owl-name part)
+                              "http://knowrob.org/kb/knowrob_u.owl#attachedChild"
                               ?sub))
                ("map_object_type" ?sub ?tp)
-               ("atom_remove_prefix" ?tp "http://knowrob.org/kb/knowrob.owl#" ?type) ;"rdf_atom_no_ns" ?tp ?type 
-               ("atom_remove_prefix" ?o "http://knowrob.org/kb/unreal_log.owl#" ?n)) ; "rdf_atom_no_ns" ?o ?n
+               ("iri_xml_namespace" ?tp ?prefixType ?type) ;"rdf_atom_no_ns" ?tp ?type 
+               ("iri_xml_namespace" ?sub ?prefixName ?n)) ; "rdf_atom_no_ns" ?o ?n
              :package :sem-map-utils))))))
 
 (defmethod urdf-name ((owl-name string))
@@ -307,14 +310,14 @@
       (setf urdf-name (urdf-name owl-name)))))
 
 (defun urdf-name->obj-name (urdf-name)
-  (with-vars-bound (?name)
+  (with-vars-bound (?name ?prefix)
       (lazy-car
        (json-prolog:prolog
         `(and
           ("rdf_has"
            ?owlname "http://knowrob.org/kb/srdl2-comp.owl#urdfName"
            ("literal" ,urdf-name))
-           ("atom_remove_prefix" ?owlname "http://knowrob.org/kb/knowrob.owl#" ?name))
+           ("iri_xml_namespace" ?owlname ?prefix ?name))
         :package :sem-map-utils))
     (unless (is-var ?name)
       (remove #\' (symbol-name ?name)))))
@@ -363,7 +366,7 @@ Cannot update semantic map.")
                              (force-ll
                               (lazy-mapcan
                                (lambda (bdgs)
-                                 (with-vars-bound (?type ?n ?o) bdgs
+                                 (with-vars-bound (?type ?n ?o ?prefixtype ?prefixname) bdgs
                                    (unless (or (is-var ?type) (is-var ?o))
                                      (list (make-semantic-map-part
                                             (remove #\' (symbol-name ?type))
@@ -373,10 +376,10 @@ Cannot update semantic map.")
                                (json-prolog:prolog
                                 `(and ("map_root_objects" ,uploaded-map-name ?objs)
                                       ("member" ?o ?objs)
-				      ("rdf_has" ?o "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" ?tp)
-                                      ("owl_subclass_of" ?tp "http://knowrob.org/kb/knowrob.owl#SpatialThing")
-                                      ("atom_remove_prefix" ?tp "http://knowrob.org/kb/knowrob.owl#" ?type) ;"rdf_atom_no_ns" ?tp ?type 
-                                      ("atom_remove_prefix" ?o "http://knowrob.org/kb/unreal_log.owl#" ?n)) ; "rdf_atom_no_ns" ?o ?n
+                                      ("rdf_has" ?o "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" ?tp)
+                                     ; ("owl_subclass_of" ?tp "http://knowrob.org/kb/knowrob.owl#SpatialThing")
+                                      ("iri_xml_namespace" ?tp ?prefixtype ?type) ;"rdf_atom_no_ns" ?tp ?type 
+                                      ("iri_xml_namespace" ?o ?prefixname ?n)) ; "rdf_atom_no_ns" ?o ?n
                                 :package :sem-map-utils))))
                             :test 'equal))
                   *cached-semantic-map-name* uploaded-map-name)
@@ -468,7 +471,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
   (if (parent part)
       (get-top-level-object (parent part))
       part))
-
+;TODO
 (def-owl-type-initializer ("PrismaticJoint" name owl-name parent)
   (with-vars-bound (?min ?max ?connected ?labels ?directionx ?directiony ?directionz)
       (car
