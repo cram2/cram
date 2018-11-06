@@ -61,7 +61,7 @@
            `(and (cram-robot-interfaces:robot ?robot)
                  (btr:bullet-world ?w)
                  (btr:assert ?w (btr:object-pose ?robot ,target)))))
-      (when (btr:robot-colliding-objects-without-attached)
+      (when (btr:robot-colliding-objects-without-attached '(:floor))
         (unless (< (abs *debug-short-sleep-duration*) 0.0001)
           (cpl:sleep *debug-short-sleep-duration*))
         (btr::restore-world-state world-state world)
