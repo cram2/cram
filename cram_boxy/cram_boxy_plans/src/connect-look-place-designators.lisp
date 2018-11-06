@@ -91,7 +91,7 @@
 
   (<- (desig:action-grounding ?action-designator (connect ?current-object-designator
                                                           ?with-object-designator
-                                                          ?arm ?gripper-opening
+                                                          ?arm ?gripper-opening ?attachment-type
                                                           ?left-reach-poses ?right-reach-poses
                                                           ?left-push-poses ?right-push-poses
                                                           ?left-retract-poses ?right-retract-poses))
