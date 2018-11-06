@@ -30,7 +30,7 @@
 (in-package :boxy-plans)
 
 (cpl:def-cram-function connect (?object-designator ?with-object-designator
-                                ?arm ?gripper-opening
+                                ?arm ?gripper-opening attachment-type
                                 ?left-reach-poses ?right-reach-poses
                                 ?left-push-poses ?right-push-poses
                                 ?left-retract-poses ?right-retract-poses)
@@ -63,7 +63,8 @@
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-attached-object
      :object-name (desig:desig-prop-value ?object-designator :name)
-     :other-object-name (desig:desig-prop-value ?with-object-designator :name)))
+     :other-object-name (desig:desig-prop-value ?with-object-designator :name)
+     :attachment-type attachment-type))
   (roslisp:ros-info (boxy-plans connect) "Opening gripper")
   (exe:perform
    (desig:an action
