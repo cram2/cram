@@ -206,8 +206,9 @@
 (defparameter *base-left-side-left-hand-pose* `((,*base-x* 1.5 0) (0 0 0 1)))
 (defparameter *base-somewhat-left-side-left-hand-pose* `((,*base-x* 1.3 0) (0 0 0 1)))
 (defparameter *base-middle-side-left-hand-pose* `((,*base-x* 1.1 0) (0 0 0 1)))
-(defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.9 0) (0 0 0 1)))
-(defparameter *base-very-right-side-left-hand-pose* `((,*base-x* 0.7 0) (0 0 0 1)))
+;; (defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.9 0) (0 0 0 1)))
+(defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.7 0) (0 0 0 1)))
+(defparameter *base-very-right-side-left-hand-pose* `((,(- *base-x* 0.2) 0.65 0) (0 0 0 1)))
 
 ;;; ASSEMBLY STEPS:
 ;;; (1) put chassis on holder (bump inwards)
@@ -235,7 +236,7 @@
                 :holder-plane-horizontal *base-middle-side-left-hand-pose*
                 :chassis-attachment)
     ;; 2
-    (go-connect :bottom-wing *base-right-side-left-hand-pose*
+    (go-connect :bottom-wing *base-very-right-side-left-hand-pose*
                 :chassis *base-left-side-left-hand-pose*
                 :wing-attachment)
     ;; 3
@@ -243,19 +244,19 @@
                 :bottom-wing *base-middle-side-left-hand-pose*
                 :body-attachment)
     ;; 4
-    (go-connect :upper-body *base-very-right-side-left-hand-pose*
+    (go-connect :upper-body *base-right-side-left-hand-pose*
                 :underbody *base-left-side-left-hand-pose*
                 :body-on-body)
     ;; 5
-    (go-connect :bolt *base-very-right-side-left-hand-pose*
+    (go-connect :bolt *base-right-side-left-hand-pose*
                 :upper-body *base-left-side-left-hand-pose*
                 :rear-thread)
     ;; 6
-    (go-connect :top-wing *base-very-left-side-left-hand-pose*
+    (go-connect :top-wing *base-left-side-left-hand-pose*
                 :upper-body *base-left-side-left-hand-pose*
                 :wing-attachment)
     ;; 7
-    (go-connect :bolt *base-very-right-side-left-hand-pose*
+    (go-connect :bolt *base-right-side-left-hand-pose*
                 :top-wing *base-left-side-left-hand-pose*
                 :middle-thread)
     ;; 8
@@ -263,7 +264,7 @@
                 :top-wing *base-left-side-left-hand-pose*
                 :window-attachment)
     ;; 9
-    (go-connect :bolt *base-very-right-side-left-hand-pose*
+    (go-connect :bolt *base-right-side-left-hand-pose*
                 :window *base-left-side-left-hand-pose*
                 :window-thread)
     (pp-plans:park-arms :carry nil)))
