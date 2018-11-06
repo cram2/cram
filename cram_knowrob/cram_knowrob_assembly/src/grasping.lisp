@@ -29,7 +29,7 @@
 
 (in-package :kr-assembly)
 
-(defparameter *default-z-offset* 0.2 "in meters")
+(defparameter *default-z-offset* 0.1 "in meters")
 (defparameter *default-small-z-offset* 0.07 "in meters")
 (defparameter *default-lift-offsets* `(0.0 0.0 ,*default-z-offset*))
 
@@ -56,7 +56,7 @@
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :underbody))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :upper-body))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :top-wing))) 0.1)
-;; (defmethod get-object-type-gripper-opening ((object-type (eql :window))) 0.1)
+(defmethod get-object-type-gripper-opening ((object-type (eql :window))) 0.02)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :propeller))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :front-wheel))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :nut))) 0.1)
@@ -167,8 +167,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; WINDOW ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *window-grasp-x-offset* 0.025)
-(defparameter *window-grasp-y-offset* 0.012)
+(defparameter *window-grasp-x-offset* 0.017)
+(defparameter *window-grasp-y-offset* 0.005)
 (defparameter *window-grasp-z-offset* 0.015)
 
 (def-object-type-to-gripper-transforms :window '(:left :right) :top
@@ -184,7 +184,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOLT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-object-type-to-gripper-transforms :bolt '(:left :right) :top
-  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-translation `(0.0 0.0 0.003)
   :grasp-rot-matrix *z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*

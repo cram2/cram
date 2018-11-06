@@ -129,7 +129,8 @@
   :attachment-rot-matrix *rotation-around-z-90-matrix*)
 
 (def-object-type-in-other-object-transform :bottom-wing :chassis :wing-attachment
-  :attachment-translation `(0.0 -0.02 0.0)
+  :attachment-translation `(0.0 -0.02 0.04;; 0.0
+                                )
   :attachment-rot-matrix *identity-matrix*)
 
 (def-object-type-in-other-object-transform :underbody :bottom-wing :body-attachment
@@ -141,7 +142,8 @@
   :attachment-rot-matrix *identity-matrix*)
 
 (def-object-type-in-other-object-transform :bolt :upper-body :rear-thread
-  :attachment-translation `(-0.0525 0.0 -0.025)
+  :attachment-translation `(-0.0525 0.0 -0.01;; -0.025
+                                    )
   :attachment-rot-matrix *identity-matrix*)
 
 (def-object-type-in-other-object-transform :top-wing :upper-body :wing-attachment
@@ -149,7 +151,8 @@
   :attachment-rot-matrix *rotation-around-z-90-matrix*)
 
 (def-object-type-in-other-object-transform :bolt :top-wing :middle-thread
-  :attachment-translation `(0.0 0.025 -0.005)
+  :attachment-translation `(0.0 0.025 0.01;; -0.005
+                                )
   :attachment-rot-matrix *identity-matrix*)
 
 (def-object-type-in-other-object-transform :window :top-wing :window-attachment
@@ -157,7 +160,8 @@
   :attachment-rot-matrix *rotation-around-z+90-matrix*)
 
 (def-object-type-in-other-object-transform :bolt :window :window-thread
-  :attachment-translation `(-0.0125 0.0 -0.02)
+  :attachment-translation `(-0.0125 0.0 -0.005;; -0.02
+                                    )
   :attachment-rot-matrix *identity-matrix*)
 
 
