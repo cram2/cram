@@ -100,7 +100,13 @@
     :reader event-other-object-name
     :initform (error
                'simple-error
-               :format-control "OBJECT-ATTACHED-OBJECT event requires OTHER-OBJECT-NAME."))))
+               :format-control "OBJECT-ATTACHED-OBJECT event requires OTHER-OBJECT-NAME."))
+   (attachment-type
+    :initarg :attachment-type
+    :reader event-attachment-type
+    :initform (error
+               'simple-error
+               :format-control "OBJECT-ATTACHED-OBJECT event requires ATTACHMENT-TYPE."))))
 
 (defclass object-detached-object (object-connection-event) ())
 

@@ -46,6 +46,7 @@
            ;; #:object-updated-event
            #:event-object-name
            #:event-other-object-name
+           #:event-attachment-type
            #:event-arm
            #:event-grasp
            ;; #:object-designator #:opening-distance
