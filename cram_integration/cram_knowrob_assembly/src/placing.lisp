@@ -100,7 +100,10 @@
                                                          (attachment (eql evaled-attachment-type)))
          (let ((attachment-transform transform))
            (if attachment-transform
-               attachment-transform
+               (cram-tf:copy-transform-stamped
+                attachment-transform
+                :frame-id (roslisp-utilities:rosify-underscores-lisp-name other-object-name)
+                :child-frame-id (roslisp-utilities:rosify-underscores-lisp-name object-name))
                (error "Attachment transform not defined for ~a with ~a attached with ~a~%"
                       object other-object attachment))))
 
