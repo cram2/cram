@@ -164,28 +164,13 @@
       (cpl:fail 'common-fail:ptu-goal-not-reached
                 :description "Look action wanted to twist the neck"))))
 
-(defgeneric look-at (goal-type pose-or-frame-or-direction)
-  (:method (goal-type (pose cl-transforms-stamped:pose-stamped))
-    (look-at-pose-stamped pose))
-  (:method (goal-type (frame string))
-    (look-at-pose-stamped
-     (cl-transforms-stamped:make-pose-stamped
-      frame
-      0.0
-      (cl-transforms:make-identity-vector)
-      (cl-transforms:make-identity-rotation))))
-  (:method (goal-type (direction symbol))
-    (case direction
-      (:forward (prolog:prolog
-                 `(and
-                   (cram-robot-interfaces:robot ?robot)
-                   (cram-robot-interfaces:robot-pan-tilt-joints ?robot ?pan-joint ?tilt-joint)
-                   (btr:bullet-world ?w)
-                   (assert ?world
-                           (btr:joint-state ?robot ((?pan-joint 0.0) (?tilt-joint 0.0)))))))
-      (t (error 'simple-error
-                :format-control "~a direction is unknown for PR2 projection PTU"
-                :format-arguments direction)))))
+(defun look-at (?goal-pose ?goal-configuration)
+  (if ?goal-configuration
+      (prolog:prolog
+       `(and (rob-int:robot ?robot)
+             (btr:bullet-world ?world)
+             (assert ?world (btr:joint-state ?robot ,?goal-configuration))))
+      (look-at-pose-stamped ?goal-pose)))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
