@@ -30,11 +30,15 @@
 
 ;; (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
+(defparameter *forward-looking-position-in-base-frame*
+  (cl-transforms:make-3d-vector 10.0 0.0 1.5))
+
 (def-fact-group pr2-metadata (robot
                               robot-base-frame robot-torso-link-joint
                               robot-odom-frame
                               camera-frame camera-minimal-height camera-maximal-height
-                              robot-pan-tilt-links robot-pan-tilt-joints)
+                              robot-pan-tilt-links robot-pan-tilt-joints
+                              robot-joint-states robot-pose)
   (<- (robot pr2))
 
   (<- (robot-odom-frame pr2 "odom_combined"))
@@ -48,4 +52,15 @@
   (<- (camera-minimal-height pr2 1.27))
   (<- (camera-maximal-height pr2 1.60))
   (<- (robot-pan-tilt-links pr2 "head_pan_link" "head_tilt_link"))
-  (<- (robot-pan-tilt-joints pr2 "head_pan_joint" "head_tilt_joint")))
+  (<- (robot-pan-tilt-joints pr2 "head_pan_joint" "head_tilt_joint"))
+
+  (<- (robot-joint-states pr2 :neck ?_ :forward ((?pan_joint 0.0) (?tilt_joint 0.0)))
+    (robot-pan-tilt-joints pr2 ?pan_joint ?tilt_joint))
+
+  (<- (robot-pose pr2 :neck ?_ :forward ?pose-stamped)
+    (robot-base-frame pr2 ?base-frame)
+    (lisp-fun cl-transforms:make-identity-rotation ?identity-quaternion)
+    (symbol-value *forward-looking-position-in-base-frame* ?forward-point)
+    (lisp-fun cl-transforms-stamped:make-pose-stamped
+              ?base-frame 0.0 ?forward-point ?identity-quaternion
+              ?pose-stamped)))
