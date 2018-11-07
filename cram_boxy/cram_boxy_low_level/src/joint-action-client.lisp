@@ -46,37 +46,40 @@
 ;; (defun make-joint-action-client ())
 ;; (roslisp-utilities:register-ros-init-function make-joint-action-client)
 
-(defun make-joint-trajectory-action-goal (positions-list-of-lists)
+(defun make-joint-trajectory-action-goal (joint-states-list)
   (roslisp:make-message
    'iai_dlr_msgs-msg:JointGoal
    :points (map 'vector
-                (lambda (positions-list)
+                (lambda (joint-states)
                   (roslisp:make-msg
                    'iai_dlr_msgs-msg:positiontrajectorypoint
-                   :positions (apply #'vector positions-list)))
-                positions-list-of-lists)
+                   :positions (apply #'vector
+                                     (mapcar #'second joint-states))))
+                joint-states-list)
    :max_vel *joint-max-velocity*
    :joint_imp (apply #'vector *joint-impedance-list*)))
 
 (defun move-arm-joints (&key
-                          goal-positions-list-of-lists-left
-                          goal-positions-list-of-lists-right
+                          goal-joint-states-left
+                          goal-joint-states-right
                           (action-timeout *joint-action-timeout*))
-  (declare (ignore goal-positions-list-of-lists-right))
+  (declare (ignore goal-joint-states-right))
+  (unless (listp (caar goal-joint-states-left))
+    (setf goal-joint-states-left (list goal-joint-states-left)))
   (multiple-value-bind (result status)
       (actionlib-client:call-simple-action-client
        'dlr-joint-action
-       :action-goal (make-joint-trajectory-action-goal goal-positions-list-of-lists-left)
+       :action-goal (make-joint-trajectory-action-goal goal-joint-states-left)
        :action-timeout action-timeout)
     (roslisp:ros-info (joint-trajectory-action) "left arm action finished.")
     (values result status)))
 
 (defun move-arm-joints-example ()
   (move-arm-joints
-   :goal-positions-list-of-lists-left
-   '((0 0.35 0 -1.85 0 0 0)
-     (0 0.35 0 -1.85 0 0.1 0.1)
-     (0 0.35 0 -1.85 0 0.2 0.2)
-     (0 0.35 0 -1.85 0 -0.1 -0.1)
-     (0 0.35 0 -1.85 0 -0.1 -0.3)
-     (0 0.35 0 -1.85 0 0.2 0.4))))
+   :goal-joint-states-left
+   '((("1" 0) ("2" 0.35) ("3" 0) ("4" -1.85) ("5" 0) ("6" 0) ("7" 0))
+     (("1" 0) ("2" 0.35) ("3" 0) ("4" -1.85) ("5" 0) ("6" 0.1) ("7" 0.1))
+     (("1" 0) ("2" 0.35) ("3" 0) ("4" -1.85) ("5" 0) ("6" 0.2) ("7" 0.2))
+     (("1" 0) ("2" 0.35) ("3" 0) ("4" -1.85) ("5" 0) ("6" -0.1) ("7" -0.1))
+     (("1" 0) ("2" 0.35) ("3" 0) ("4" -1.85) ("5" 0) ("6" -0.1) ("7" -0.3))
+     (("1" 0) ("2" 0.35) ("3" 0) ("4" -1.85) ("5" 0) ("6" 0.2) ("7" 0.4)))))
