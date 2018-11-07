@@ -57,9 +57,10 @@
    ;; #:robot-neck-parking-joint-states
    ;; #:robot-neck-looking-joint-states
    ;; robot
-   #:robot #:robot-base-frame #:robot-torso-link-joint #:robot-odom-frame
+   #:robot #:robot-base-frame #:robot-odom-frame #:robot-torso-link-joint
    #:current-robot-symbol #:current-robot-package #:current-robot-name
    #:robot-joint-states
+   #:robot-pose
    ;; trajectories
    #:trajectory-point
    ;; utilities
