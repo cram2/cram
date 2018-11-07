@@ -53,18 +53,22 @@
    :ee_cog (apply #'vector *cart-impedance-list*)
    :cart_imp (apply #'vector *cart-impedance-list*)))
 
-(defun move-arm-cartesian (&key goal-pose-stamped (action-timeout *cart-action-timeout*))
+(defun move-arm-cartesian (&key
+                             goal-pose-stamped-left
+                             goal-pose-stamped-right
+                             (action-timeout *cart-action-timeout*))
+  (declare (ignore goal-pose-stamped-right))
   (multiple-value-bind (result status)
       (actionlib-client:call-simple-action-client
        'dlr-cart-action
-       :action-goal (make-cart-action-goal goal-pose-stamped)
+       :action-goal (make-cart-action-goal goal-pose-stamped-left)
        :action-timeout action-timeout)
     (roslisp:ros-info (cart-action) "left arm action finished.")
     (values result status)))
 
 (defun move-arm-cartesian-example ()
   (move-arm-cartesian
-   :goal-pose-stamped
+   :goal-pose-stamped-left
    (cl-transforms-stamped:pose->pose-stamped
     "left_arm_0_link"
     0.0
