@@ -179,7 +179,7 @@
               (unless joint-states
                 (error "ROBOT-JOINT-STATES for arms undefined! ~
                         Did you forget to load a robot description package?"))
-              (mapcar #'second joint-states))))
+              joint-states)))
 
      (unless (listp arm)
        (setf arm (list arm)))
