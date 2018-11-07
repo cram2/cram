@@ -52,3 +52,11 @@
   (<- (cpm:available-process-module ?pm)
     (member ?pm (base-pm neck-pm grippers-pm body-pm))
     (not (cpm:projection-running ?_))))
+
+
+(defmacro with-real-robot (&body body)
+  `(cram-process-modules:with-process-modules-running
+       (rs:robosherlock-perception-pm
+        boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
+     (cpl-impl::named-top-level (:name :top-level)
+       ,@body)))
