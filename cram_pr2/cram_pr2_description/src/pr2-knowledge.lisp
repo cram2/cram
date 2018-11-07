@@ -34,13 +34,7 @@
                               robot-base-frame robot-torso-link-joint
                               robot-odom-frame
                               camera-frame camera-minimal-height camera-maximal-height
-                              robot-pan-tilt-links robot-pan-tilt-joints
-                              end-effector-link gripper-link gripper-joint
-                              robot-tool-frame
-                              planning-group
-                              robot-arms-parking-joint-states
-                              end-effector-parking-pose
-                              robot-pre-grasp-joint-states)
+                              robot-pan-tilt-links robot-pan-tilt-joints)
   (<- (robot pr2))
 
   (<- (robot-odom-frame pr2 "odom_combined"))

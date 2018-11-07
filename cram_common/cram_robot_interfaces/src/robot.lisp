@@ -29,7 +29,7 @@
 (in-package :cram-robot-interfaces)
 
 (def-fact-group robot (robot robot-base-frame robot-torso-link-joint
-                             robot-odom-frame)
+                             robot-odom-frame robot-joint-states)
   (<- (robot ?robot-name)
     (fail))
 
@@ -40,6 +40,10 @@
     (fail))
 
   (<- (robot-torso-link-joint ?robot-name ?torso-link ?torso-joint)
+    (fail))
+
+  (<- (robot-joint-states ?robot-name ?joints-group ?left-or-right-or-which
+                          ?configuration-name ?joint-states)
     (fail)))
 
 

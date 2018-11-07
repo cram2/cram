@@ -30,8 +30,9 @@
 
 (def-fact-group ptu (camera-frame camera-minimal-height camera-maximal-height
                                   robot-pan-tilt-links robot-pan-tilt-joints
-                                  robot-neck-parking-joint-states
-                                  robot-neck-looking-joint-states)
+                                  ;; robot-neck-parking-joint-states
+                                  ;; robot-neck-looking-joint-states
+                                  )
   ;; Unifies ?frame with the name of the camera frame present on the ?robot
   (<- (camera-frame ?robot ?frame)
     (fail))
@@ -53,7 +54,8 @@
   (<- (robot-pan-tilt-joints ?robot ?pan-joint ?tilt-joint)
     (fail))
 
-  (<- (robot-neck-parking-joint-states ?robot ?max-height)
-    (fail))
-  (<- (robot-neck-looking-joint-states ?robot ?max-height)
-    (fail)))
+  ;; (<- (robot-neck-parking-joint-states ?robot ?max-height)
+  ;;   (fail))
+  ;; (<- (robot-neck-looking-joint-states ?robot ?max-height)
+  ;;   (fail))
+  )
