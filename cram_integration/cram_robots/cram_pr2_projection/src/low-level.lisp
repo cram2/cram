@@ -316,23 +316,27 @@
   (declare (type list left-configuration right-configuration))
   (flet ((set-configuration (arm joint-values)
            (when joint-values
-             (let ((joint-names
-                     (cut:var-value
-                      '?joints
-                      (car (prolog:prolog
-                            `(and (cram-robot-interfaces:robot ?robot)
-                                  (cram-robot-interfaces:arm-joints ?robot ,arm ?joints)))))))
-               (unless (= (length joint-values) (length joint-names))
-                 (error "[PROJECTION MOVE-JOINTS] length of joints list is incorrect."))
-               (let ((joint-name-value-list (mapcar (lambda (name value)
-                                                      (list name (* value 1.0d0)))
-                                                    joint-names joint-values)))
-                 (assert
-                  (prolog:prolog
-                   `(and
-                     (btr:bullet-world ?world)
-                     (cram-robot-interfaces:robot ?robot)
-                     (assert ?world (btr:joint-state ?robot ,joint-name-value-list))))))))))
+             (let ((joint-name-value-list
+                     (if (listp (car joint-values))
+                         joint-values
+                         (let ((joint-names
+                                 (cut:var-value
+                                  '?joints
+                                  (car (prolog:prolog
+                                        `(and (cram-robot-interfaces:robot ?robot)
+                                              (cram-robot-interfaces:arm-joints ?robot ,arm
+                                                                                ?joints)))))))
+                           (unless (= (length joint-values) (length joint-names))
+                             (error "[PROJECTION MOVE-JOINTS] length of joints list is incorrect"))
+                           (mapcar (lambda (name value)
+                                     (list name (* value 1.0d0)))
+                                   joint-names joint-values)))))
+               (assert
+                (prolog:prolog
+                 `(and
+                   (btr:bullet-world ?world)
+                   (cram-robot-interfaces:robot ?robot)
+                   (assert ?world (btr:joint-state ?robot ,joint-name-value-list)))))))))
     (set-configuration :left left-configuration)
     (set-configuration :right right-configuration)))
 
