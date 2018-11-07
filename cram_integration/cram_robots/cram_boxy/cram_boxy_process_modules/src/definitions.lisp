@@ -96,5 +96,5 @@
                      (fill-in-with-nils goal-left max-length)
                      (fill-in-with-nils goal-right max-length))))))
         (cram-common-designators:move-joints
-         (boxy-ll:move-arm-joints :goal-positions-list-of-lists-left argument-1
-                                  :goal-positions-list-of-lists-right (car rest-arguments)))))))
+         (boxy-ll:move-arm-joints :goal-joint-states-left argument-1
+                                  :goal-joint-states-right (car rest-arguments)))))))
