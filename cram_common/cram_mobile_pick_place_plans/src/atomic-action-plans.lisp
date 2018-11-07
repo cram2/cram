@@ -283,8 +283,9 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
-(cpl:def-cram-function look-at (&key pose frame direction object)
+(cpl:def-cram-function look-at (&key pose configuration)
   (unwind-protect
+
        (cpl:with-retry-counters ((look-retries 1))
          (cpl:with-failure-handling
              ((common-fail:ptu-low-level-failure (e)
@@ -293,29 +294,15 @@
                   (roslisp:ros-warn (pp-plans look-at) "Retrying.")
                   (cpl:retry)))))
 
-         (cond (pose
-                (let ((?pose pose))
-                  (exe:perform
-                   (desig:a motion
-                            (type looking)
-                            (pose ?pose)))))
-               (frame
-                (let ((?frame frame))
-                  (exe:perform
-                   (desig:a motion
-                            (type looking)
-                            (frame ?frame)))))
-               (direction
-                (let ((?direction direction))
-                  (exe:perform
-                   (desig:a motion
-                            (type looking)
-                            (direction ?direction)))))
-               (object
-                (let ((?pose (cram-manipulation-interfaces:get-object-pose object)))
-                  (exe:perform
-                   (desig:a motion
-                            (type looking)
-                            (target (desig:a location (pose ?pose)))))))))
+         (let ((?pose pose)
+               (?configuration configuration))
+           (exe:perform
+            (desig:a motion
+                     (type looking)
+                     (desig:when ?pose
+                       (pose ?pose))
+                     (desig:when ?configuration
+                       (configuration ?configuration))))))
+
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))

@@ -117,35 +117,13 @@
           (btr:bullet-world ?w)
           (btr:assert ?w (btr:joint-state ?robot ,joint-states))))))
 
-(defgeneric look-at (joint-angle-or-state-or-direction)
-  (:method ((joint-angles-or-states list))
-    (if (typep (car joint-angles-or-states) 'list)
-        (look-at-joint-states joint-angles-or-states)
-        (look-at-joint-angles joint-angles-or-states)))
-  (:method ((direction symbol))
-    (look-at-joint-states
-     (case direction
-       (:away
-        (cut:var-value
-         '?joints
-         (car (prolog:prolog
-               `(and (rob-int:robot ?robot)
-                     (rob-int:robot-joint-states ?robot :neck ?_ :park ?joints))))))
-       (:down
-        (cut:var-value
-         '?joints
-         (car (prolog:prolog
-               `(and (rob-int:robot ?robot)
-                     (rob-int:robot-joint-states ?robot :neck ?_ :down ?joints))))))
-       (:down-left
-        (cut:var-value
-         '?joints
-         (car (prolog:prolog
-               `(and (rob-int:robot ?robot)
-                     (rob-int:robot-joint-states ?robot :neck ?_ :down-left ?joints))))))
-       (t (error 'simple-error
-                 :format-control "~a direction is unknown for Boxy projection PTU"
-                 :format-arguments direction))))))
+(defun look-at (pose configuration)
+  (declare (ignore pose))
+  (if configuration
+      (if (typep (car configuration) 'list)
+          (look-at-joint-states configuration)
+          (look-at-joint-angles configuration))
+      (error "Boxy only supports looking with given joint configuration ATM.")))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

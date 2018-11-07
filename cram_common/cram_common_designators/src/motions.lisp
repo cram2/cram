@@ -45,17 +45,14 @@
 
 (def-fact-group ptu-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-head :pose ?pose-stamped))
+  (<- (motion-grounding ?designator (move-head ?pose-stamped ?configuration))
     (property ?designator (:type :looking))
-    (property ?designator (:pose ?pose-stamped)))
-
-  (<- (motion-grounding ?designator (move-head :frame ?frame))
-    (property ?designator (:type :looking))
-    (property ?designator (:frame ?frame)))
-
-  (<- (motion-grounding ?designator (move-head :direction ?direction))
-    (property ?designator (:type :looking))
-    (property ?designator (:direction ?direction))))
+    (-> (property ?designator (:pose ?pose-stamped))
+        (true)
+        (equal ?pose-stamped nil))
+    (-> (property ?designator (:configuration ?configuration))
+        (true)
+        (equal ?configuration nil))))
 
 
 (def-fact-group perception-motions (motion-grounding)

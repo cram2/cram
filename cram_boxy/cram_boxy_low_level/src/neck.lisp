@@ -44,18 +44,18 @@
 
 (defun move-neck-joint (&key goal-configuration)
   (declare (type list goal-configuration))
-  "Neck has 6 joints, so as `goal-configuration' use a list of length 6."
+  "Neck has 6 joints, so as `goal-configuration' use a list of length 6,
+where each element is ('joint_name' joint_value)."
   (format t "MOVING NECK~%")
   (roslisp::publish *neck-configuration-publisher*
                     (roslisp::make-message
                      'iai_control_msgs-msg:pose_w_joints
-                     :joint_values (map 'vector #'identity goal-configuration)))
+                     :joint_values (map 'vector #'identity
+                                        (mapcar #'second goal-configuration))))
   (cpl:sleep 3.0)
   (flet ((goal-reached (state-msg)
            (values-converged
-            (joint-velocities '("neck_shoulder_pan_joint" "neck_shoulder_lift_joint"
-                                "neck_elbow_joint" "neck_wrist_1_joint" "neck_wrist_2_joint"
-                                "neck_wrist_3_joint")
+            (joint-velocities (mapcar #'first goal-configuration)
                               state-msg)
             '(0.0 0.0 0.0 0.0 0.0 0.0)
             *neck-converngence-delta-joint-vel*)))

@@ -75,7 +75,7 @@
                              "neck_wrist_2_joint"
                              "neck_wrist_3_joint"))
 
-  (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :park ?joint-states)
+  (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :away ?joint-states)
     (symbol-value *neck-parking-joint-states* ?joint-states))
 
   (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :down ?joint-states)
