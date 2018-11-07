@@ -37,4 +37,6 @@
    #:base-pm
    #:neck-pm
    #:grippers-pm
-   #:body-pm))
+   #:body-pm
+   ;; interface
+   #:with-real-robot))
