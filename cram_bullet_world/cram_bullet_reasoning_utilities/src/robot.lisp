@@ -36,10 +36,12 @@
   (move-object (robot-name) new-pose))
 
 (defun park-robot ()
-  (prolog `(and (robot ?robot)
-                (robot-arms-parking-joint-states ?robot ?joint-states)
-                (robot-torso-link-joint ?robot ?_ ?joint)
-                (assert (joint-state ?w ?robot ?joint-states))
+  (prolog `(and (rob-int:robot ?robot)
+                (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
+                (assert (btr:joint-state ?world ?robot ?left-joint-states))
+                (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
+                (assert (btr:joint-state ?world ?robot ?right-joint-states))
+                (rob-int:robot-torso-link-joint ?robot ?_ ?joint)
                 (assert (joint-state ?w ?robot ((?joint 0.16825d0)))))))
 
 (defun move-robot-away ()

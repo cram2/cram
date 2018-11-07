@@ -219,10 +219,11 @@
                                           robot-tool-frame
                                           gripper-link gripper-joint
                                           planning-group
-                                          robot-arms-parking-joint-states
-                                          robot-arms-carrying-joint-states
-                                          end-effector-parking-pose
-                                          robot-pre-grasp-joint-states
+                                          robot-joint-states
+                                          ;; robot-arms-parking-joint-states
+                                          ;; robot-arms-carrying-joint-states
+                                          ;; end-effector-parking-pose
+                                          ;; robot-pre-grasp-joint-states
                                           arm-joints arm-base-joints arm-tool-joints
                                           arm-links arm-base-links
                                           hand-links
@@ -256,45 +257,57 @@
   (<- (planning-group pr2 (:left :right) "both_arms"))
   (<- (planning-group pr2 (:right :left) "both_arms"))
 
-  (<- (robot-arms-carrying-joint-states pr2 ?joint-states)
-    (symbol-value *right-carrying-joint-states* ?right-joint-states)
-    (symbol-value *left-carrying-joint-states* ?left-joint-states)
-    (append ?right-joint-states ?left-joint-states ?joint-states))
-
-  (<- (robot-arms-carrying-joint-states pr2 ?joint-states :left)
+  (<- (robot-joint-states pr2 :arm :left :carry ?joint-states)
     (symbol-value *left-carrying-joint-states* ?joint-states))
 
-  (<- (robot-arms-carrying-joint-states pr2 ?joint-states :right)
+  (<- (robot-joint-states pr2 :arm :right :carry ?joint-states)
     (symbol-value *right-carrying-joint-states* ?joint-states))
 
-  (<- (robot-arms-parking-joint-states pr2 ?joint-states)
-    (symbol-value *right-parking-joint-states* ?right-joint-states)
-    (symbol-value *left-parking-joint-states* ?left-joint-states)
-    (append ?right-joint-states ?left-joint-states ?joint-states))
-
-  (<- (robot-arms-parking-joint-states pr2 ?joint-states :left)
+  (<- (robot-joint-states pr2 :arm :left :park ?joint-states)
     (symbol-value *left-parking-joint-states* ?joint-states))
 
-  (<- (robot-arms-parking-joint-states pr2 ?joint-states :right)
+  (<- (robot-joint-states pr2 :arm :right :park ?joint-states)
     (symbol-value *right-parking-joint-states* ?joint-states))
 
-  (<- (end-effector-parking-pose pr2 ?pose :left)
-    (symbol-value *left-parking-end-effector-pose* ?pose))
+  ;; (<- (robot-arms-carrying-joint-states pr2 ?joint-states)
+  ;;   (symbol-value *right-carrying-joint-states* ?right-joint-states)
+  ;;   (symbol-value *left-carrying-joint-states* ?left-joint-states)
+  ;;   (append ?right-joint-states ?left-joint-states ?joint-states))
 
-  (<- (end-effector-parking-pose pr2 ?pose :right)
-    (symbol-value *right-parking-end-effector-pose* ?pose))
+  ;; (<- (robot-arms-carrying-joint-states pr2 ?joint-states :left)
+  ;;   (symbol-value *left-carrying-joint-states* ?joint-states))
 
-  (<- (robot-pre-grasp-joint-states
-       pr2 (("torso_lift_joint" 0.33) . ?parking-joint-states))
-    (robot-arms-parking-joint-states pr2 ?parking-joint-states))
+  ;; (<- (robot-arms-carrying-joint-states pr2 ?joint-states :right)
+  ;;   (symbol-value *right-carrying-joint-states* ?joint-states))
 
-  (<- (robot-pre-grasp-joint-states
-       pr2 (("torso_lift_joint" 0.165) . ?parking-joint-states))
-    (robot-arms-parking-joint-states pr2 ?parking-joint-states))
+  ;; (<- (robot-arms-parking-joint-states pr2 ?joint-states)
+  ;;   (symbol-value *right-parking-joint-states* ?right-joint-states)
+  ;;   (symbol-value *left-parking-joint-states* ?left-joint-states)
+  ;;   (append ?right-joint-states ?left-joint-states ?joint-states))
 
-  (<- (robot-pre-grasp-joint-states
-       pr2 (("torso_lift_joint" 0.00) . ?parking-joint-states))
-    (robot-arms-parking-joint-states pr2 ?parking-joint-states))
+  ;; (<- (robot-arms-parking-joint-states pr2 ?joint-states :left)
+  ;;   (symbol-value *left-parking-joint-states* ?joint-states))
+
+  ;; (<- (robot-arms-parking-joint-states pr2 ?joint-states :right)
+  ;;   (symbol-value *right-parking-joint-states* ?joint-states))
+
+  ;; (<- (end-effector-parking-pose pr2 ?pose :left)
+  ;;   (symbol-value *left-parking-end-effector-pose* ?pose))
+
+  ;; (<- (end-effector-parking-pose pr2 ?pose :right)
+  ;;   (symbol-value *right-parking-end-effector-pose* ?pose))
+
+  ;; (<- (robot-pre-grasp-joint-states
+  ;;      pr2 (("torso_lift_joint" 0.33) . ?parking-joint-states))
+  ;;   (robot-arms-parking-joint-states pr2 ?parking-joint-states))
+
+  ;; (<- (robot-pre-grasp-joint-states
+  ;;      pr2 (("torso_lift_joint" 0.165) . ?parking-joint-states))
+  ;;   (robot-arms-parking-joint-states pr2 ?parking-joint-states))
+
+  ;; (<- (robot-pre-grasp-joint-states
+  ;;      pr2 (("torso_lift_joint" 0.00) . ?parking-joint-states))
+  ;;   (robot-arms-parking-joint-states pr2 ?parking-joint-states))
 
   (<- (arm-joints pr2 ?arm ?joints)
     (lisp-fun get-arm-joint-names ?arm ?joints))

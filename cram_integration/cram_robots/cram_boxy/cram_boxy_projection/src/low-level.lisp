@@ -129,14 +129,20 @@
         (cut:var-value
          '?joints
          (car (prolog:prolog
-               `(and (cram-robot-interfaces:robot ?robot)
-                     (cram-robot-interfaces:robot-neck-parking-joint-states ?robot ?joints))))))
+               `(and (rob-int:robot ?robot)
+                     (rob-int:robot-joint-states ?robot :neck ?_ :park ?joints))))))
        (:down
         (cut:var-value
          '?joints
          (car (prolog:prolog
-               `(and (cram-robot-interfaces:robot ?robot)
-                     (cram-robot-interfaces:robot-neck-looking-joint-states ?robot ?joints))))))
+               `(and (rob-int:robot ?robot)
+                     (rob-int:robot-joint-states ?robot :neck ?_ :down ?joints))))))
+       (:down-left
+        (cut:var-value
+         '?joints
+         (car (prolog:prolog
+               `(and (rob-int:robot ?robot)
+                     (rob-int:robot-joint-states ?robot :neck ?_ :down-left ?joints))))))
        (t (error 'simple-error
                  :format-control "~a direction is unknown for Boxy projection PTU"
                  :format-arguments direction))))))

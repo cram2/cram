@@ -77,11 +77,14 @@ is replaced with replacement.
                                            ,@(when kitchen
                                                `(:urdf ,kitchen))
                                            :compound T))
-                (-> (cram-robot-interfaces:robot ?robot)
+                (-> (rob-int:robot ?robot)
                     (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))
-                         (cram-robot-interfaces:robot-arms-parking-joint-states ?robot ?joint-states)
-                         (assert (btr:joint-state ?world ?robot ?joint-states))
-                         (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15)))))
+                         (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
+                         (assert (btr:joint-state ?world ?robot ?left-joint-states))
+                         (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
+                         (assert (btr:joint-state ?world ?robot ?right-joint-states))
+                         (rob-int:robot-torso-link-joint ?robot ?_ ?joint)
+                         (assert (btr:joint-state ?world ?robot ((?joint 0.15)))))
                     (warn "ROBOT was not defined. Have you loaded a robot package?"))))))))
 
 

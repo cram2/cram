@@ -168,16 +168,16 @@
             (let* ((bindings
                      (if carry?
                          (prolog:prolog
-                          `(and (cram-robot-interfaces:robot ?robot)
-                                (cram-robot-interfaces:robot-arms-carrying-joint-states
-                                 ?robot ?joint-states ,arm)))
+                          `(and (rob-int:robot ?robot)
+                                (rob-int:robot-joint-states
+                                 ?robot :arm ,arm :carry ?joint-states)))
                          (prolog:prolog
                           `(and (cram-robot-interfaces:robot ?robot)
-                                (cram-robot-interfaces:robot-arms-parking-joint-states
-                                 ?robot ?joint-states ,arm)))))
+                                (cram-robot-interfaces:robot-joint-states
+                                 ?robot :arm ,arm :park ?joint-states)))))
                    (joint-states (cut:var-value '?joint-states (car bindings))))
               (unless joint-states
-                (error "ROBOT-ARMS-PARKING-JOINT-STATES undefined! ~
+                (error "ROBOT-JOINT-STATES for arms undefined! ~
                         Did you forget to load a robot description package?"))
               (mapcar #'second joint-states))))
 

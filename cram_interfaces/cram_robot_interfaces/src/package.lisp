@@ -36,9 +36,10 @@
    #:arm #:required-arms #:available-arms
    #:arm-joints #:arm-links #:arm-base-joints #:arm-base-links #:arm-tool-joints
    #:hand-links #:end-effector-link #:robot-tool-frame #:gripper-link #:gripper-joint
-   #:robot-arms-parking-joint-states #:robot-arms-carrying-joint-states
-   #:end-effector-parking-pose
-   #:robot-pre-grasp-joint-states #:planning-group
+   ;; #:robot-arms-parking-joint-states #:robot-arms-carrying-joint-states
+   ;; #:end-effector-parking-pose
+   ;; #:robot-pre-grasp-joint-states
+   #:planning-group
    #:standard-to-particular-gripper-transform
    ;; designator utils
    #:compute-iks
@@ -53,11 +54,12 @@
    ;; ptu
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
    #:robot-pan-tilt-links #:robot-pan-tilt-joints
-   #:robot-neck-parking-joint-states
-   #:robot-neck-looking-joint-states
+   ;; #:robot-neck-parking-joint-states
+   ;; #:robot-neck-looking-joint-states
    ;; robot
    #:robot #:robot-base-frame #:robot-torso-link-joint #:robot-odom-frame
    #:current-robot-symbol #:current-robot-package #:current-robot-name
+   #:robot-joint-states
    ;; trajectories
    #:trajectory-point
    ;; utilities
