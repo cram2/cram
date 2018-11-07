@@ -259,7 +259,9 @@
                (output-properties
                  (append properties-without-pose
                          `((:pose ((:pose ,pose-stamped-in-base-frame)
-                                   (:transform ,transform-stamped-in-base-frame)))))))
+                                   (:transform ,transform-stamped-in-base-frame)
+                                   (:pose-in-map ,pose-stamped-in-map-frame)
+                                   (:transform-in-map ,transform-stamped-in-map-frame)))))))
 
           (let ((output-designator
                   (desig:make-designator :object output-properties)))
