@@ -58,18 +58,22 @@
    :max_vel *joint-max-velocity*
    :joint_imp (apply #'vector *joint-impedance-list*)))
 
-(defun move-arm-joints (&key goal-positions-list-of-lists (action-timeout *joint-action-timeout*))
+(defun move-arm-joints (&key
+                          goal-positions-list-of-lists-left
+                          goal-positions-list-of-lists-right
+                          (action-timeout *joint-action-timeout*))
+  (declare (ignore goal-positions-list-of-lists-right))
   (multiple-value-bind (result status)
       (actionlib-client:call-simple-action-client
        'dlr-joint-action
-       :action-goal (make-joint-trajectory-action-goal goal-positions-list-of-lists)
+       :action-goal (make-joint-trajectory-action-goal goal-positions-list-of-lists-left)
        :action-timeout action-timeout)
     (roslisp:ros-info (joint-trajectory-action) "left arm action finished.")
     (values result status)))
 
 (defun move-arm-joints-example ()
   (move-arm-joints
-   :goal-positions-list-of-lists
+   :goal-positions-list-of-lists-left
    '((0 0.35 0 -1.85 0 0 0)
      (0 0.35 0 -1.85 0 0.1 0.1)
      (0 0.35 0 -1.85 0 0.2 0.2)
