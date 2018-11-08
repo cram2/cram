@@ -202,27 +202,27 @@
          (attachment-type (cpoe:event-attachment-type event)))
     (when (and btr-object btr-other-object)
       (format t "TODO: implement object to object attachment event handler!")
-      (let* ((btr-object-type (car (slot-value btr-object 'btr::types)))
-             (btr-other-object-type (car (slot-value btr-other-object 'btr::types)))
-             (other-object-to-object-transform ; ooTo
-               (print (kr-assembly::get-object-type-in-other-object-transform
-                   btr-object-type btr-object-name
-                   btr-other-object-type btr-other-object-name
-                   attachment-type)) )
-             (ros-other-object-name (roslisp-utilities:rosify-underscores-lisp-name
-                                     btr-other-object-name))
-             (map-to-other-object-transform (cram-tf:pose->transform-stamped
-                                             cram-tf:*fixed-frame*
-                                             ros-other-object-name
-                                             0.0
-                                             (btr:pose btr-other-object)))
-             (ros-object-name (roslisp-utilities:rosify-underscores-lisp-name btr-object-name))
-             (map-to-object-transform (cram-tf:multiply-transform-stampeds
-                                       cram-tf:*fixed-frame*
-                                       ros-object-name
-                                       map-to-other-object-transform
-                                       other-object-to-object-transform)))
-        (setf (btr:pose btr-object) map-to-object-transform))
+      ;; (let* ((btr-object-type (car (slot-value btr-object 'btr::types)))
+      ;;        (btr-other-object-type (car (slot-value btr-other-object 'btr::types)))
+      ;;        (other-object-to-object-transform ; ooTo
+      ;;          (print (kr-assembly::get-object-type-in-other-object-transform
+      ;;              btr-object-type btr-object-name
+      ;;              btr-other-object-type btr-other-object-name
+      ;;              attachment-type)) )
+      ;;        (ros-other-object-name (roslisp-utilities:rosify-underscores-lisp-name
+      ;;                                btr-other-object-name))
+      ;;        (map-to-other-object-transform (cram-tf:pose->transform-stamped
+      ;;                                        cram-tf:*fixed-frame*
+      ;;                                        ros-other-object-name
+      ;;                                        0.0
+      ;;                                        (btr:pose btr-other-object)))
+      ;;        (ros-object-name (roslisp-utilities:rosify-underscores-lisp-name btr-object-name))
+      ;;        (map-to-object-transform (cram-tf:multiply-transform-stampeds
+      ;;                                  cram-tf:*fixed-frame*
+      ;;                                  ros-object-name
+      ;;                                  map-to-other-object-transform
+      ;;                                  other-object-to-object-transform)))
+      ;;   (setf (btr:pose btr-object) map-to-object-transform))
       ;; (if (btr:object-attached robot-object btr-object)
       ;;     (btr:attach-object robot-object btr-object link :loose t)
       ;;     (btr:attach-object robot-object btr-object link :loose nil))
