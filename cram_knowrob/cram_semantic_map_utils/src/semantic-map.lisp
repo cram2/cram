@@ -175,7 +175,7 @@
                  (semantic-map-part part name :recursive recursive))
                (semantic-map-parts part)))))))
 
-(defgeneric make-semantic-map-part (type name owlname parent)
+(defgeneric make-semantic-map-part-old (type name owlname parent);TODO change back?
   (:method ((type t) name owlname parent)
     ;; TODO(moesenle): The default handling feels pretty wrong
     ;; here. We need to find a better way to encode default handling
@@ -227,6 +227,51 @@
                                      (remove #\' (symbol-name label)))
                                    aliases)
                   :parent parent)))))))
+
+(defgeneric make-semantic-map-part (type name owlname parent)
+  (:method ((type t) name owlname parent)
+    ;; TODO(moesenle): The default handling feels pretty wrong
+    ;; here. We need to find a better way to encode default handling
+    ;; somehow inside an owl type initializer.
+    (or (run-owl-type-initializer type name owlname parent)
+        (with-vars-bound (?pose ?dim ?labels ?meshPath)
+            ;(roslisp:ros-warn (semantic-map-utils) "make-semantic-map-part-mesh:")
+            (lazy-car
+             (json-prolog:prolog
+              `(and
+                ("current_object_pose" ,owlname ?pose)
+                ("object_dimensions" ,owlname ?d ?w ?h)
+                ;;  ("findall" ?l ("map_object_label" ,owlname ?l) ?labels)
+                (= '(?d ?w ?h) ?dim)
+                ("object_mesh_path" ,owlname ?meshPath)
+                ("findall" ?l ("map_object_label" ,owlname ?l) ?labels))
+              :package :sem-map-utils))
+          (let ((aliases (unless (is-var ?labels)
+                           ?labels)))
+            (roslisp:ros-warn (semantic-map-utils) "labels")
+            (if (or (is-var ?pose) (is-var ?dim))
+                (make-instance 'semantic-map-part
+                               :type type :name name :owl-name owlname
+                               :aliases (mapcar (lambda (label)
+                                                  (remove #\' (symbol-name label)))
+                                                aliases)
+                  :parent parent)
+                (btr:add-object ;TODO fix circular dependency
+                btr:*current-bullet-world*
+                 :mesh
+                 owlname
+;;                 ;;pose:
+                 (destructuring-bind (map name pose quaternion)
+                     ?pose 
+                   (destructuring-bind (x y z) pose
+                     (destructuring-bind (w q1 q2 q3) quaternion ;w q1 q2 q3
+                       (list (list x y z)(list w q1 q2 q3)))))
+                 :mass 0.2 ;TODO ask if this is important? Can I read this out from map?
+                 :mesh (cram-physics-utils::load-3d-model
+                        (cram-physics-utils::parse-uri
+                         (remove #\'  (symbol-name ?meshPath))))
+                 )
+               ))))))
 
 (defgeneric update-pose (obj new-pose &key relative recursive)
   (:documentation "Updates the pose of `obj' using `new-pose'. When
@@ -284,8 +329,11 @@
                    ("rdf_has" ,(owl-name part)
                               "http://knowrob.org/kb/srdl2-comp.owl#subComponent"
                               ?sub)
+                 ;  ("rdf_has" ,(owl-name part)
+                 ;             "http://knowrob.org/kb/knowrob_u.owl#attachedChild"
+                 ;             ?sub)
                    ("rdf_has" ,(owl-name part)
-                              "http://knowrob.org/kb/knowrob_u.owl#attachedChild"
+                              "http://knowrob.org/kb/knowrob_u.owl#attachedParent"
                               ?sub))
                ("map_object_type" ?sub ?tp)
                ("iri_xml_namespace" ?tp ?prefixType ?type) ;"rdf_atom_no_ns" ?tp ?type 

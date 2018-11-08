@@ -16,6 +16,7 @@
   (register-ros-package "knowrob_robcog")
   (u-load-episodes "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/rcg_eval2/Episodes/")
   (owl-parse "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/rcg_eval2/SemanticMap.owl")
+;  (owl-parse "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/rcg_eval2/iai-kitchen-knowledge.owl")
   (connect-to-db "Own-Episodes_set-clean-table")  
   (map-marker-init))
 
@@ -55,15 +56,16 @@
 
   ;;; load robot description
   (let ((robot-urdf
-                   (cl-urdf:parse-urdf
-                    (roslisp:get-param btr-belief:*robot-parameter*))))
-             (prolog:prolog
-              `(and (btr:bullet-world ?world)
-                    (cram-robot-interfaces:robot ?robot)
-                    (assert (btr:object ?world :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot-urdf))
-                    (cram-robot-interfaces:robot-arms-carrying-joint-states ?robot ?joint-states)
-                    (assert (btr:joint-state ?world ?robot ?joint-states))
-                    (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15d0)))))))
+          (cl-urdf:parse-urdf
+           (roslisp:get-param btr-belief:*robot-parameter*))))
+    
+    (prolog:prolog
+     `(and (btr:bullet-world ?world)
+           (cram-robot-interfaces:robot ?robot)
+           (assert (btr:object ?world :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot-urdf))
+           (cram-robot-interfaces:robot-arms-carrying-joint-states ?robot ?joint-states)
+           (assert (btr:joint-state ?world ?robot ?joint-states))
+           (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15d0)))))))
 ;  (ros-info (kvr) "spawning urdf kitchen...")
  ;;; spawn kitchen as urdf
 ;  (let ((kitchen-urdf 
@@ -71,17 +73,19 @@
 ;           (roslisp:get-param btr-belief:*kitchen-parameter*))))
 ;    (prolog:prolog
 ;     `(and (btr:bullet-world ?world)
-(ros-info (kvr) "spawning semantic-map kitchen...")                                        ;           (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
+  (ros-info (kvr) "spawning semantic-map kitchen...")
+;           (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
 
 (sem-map:get-semantic-map)
-(cram-occasions-events:clear-belief)
+;(cram-occasions-events:clear-belief)
 
   (let ((kitchen-urdf 
           (cl-urdf:parse-urdf 
            (roslisp:get-param btr-belief:*kitchen-parameter*))))
     (prolog:prolog
      `(and (btr:bullet-world ?world)
-           (assert (btr:object ?world :semantic-map no-urdf-kitchen ((0 0 0) (0 0 0 1)))))))                                        ;                                         :urdf ,kitchen-urdf)))))
+           (assert (btr:object ?world :semantic-map no-urdf-kitchen ((0 0 0) (0 0 0 1)))))))
+                 ; :urdf ,kitchen-urdf)))))
   )
 
 (defun init-items ()
@@ -105,29 +109,42 @@ objects for debugging."
   (init-items))
 
 (defun prolog-testing()
-  (defvar ?pose
-    (cut:var-value (intern "?Pose")
-                   (cut:lazy-car 
-                    (json-prolog:prolog-simple
+  (cut:lazy-car 
+   (json-prolog:prolog-simple
 "map_name(MapName),
 map_root_objects(MapName, Objects),
 member(Obj, Objects),
-rdf_has(Obj, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', TP),
-owl_subclass_of(TP, 'http://knowrob.org/kb/knowrob.owl#SpatialThing'),
-atom_remove_prefix(TP, 'http://knowrob.org/kb/knowrob.owl#', Type),
-atom_remove_prefix(Obj, 'http://knowrob.org/kb/unreal_log.owl#', Name),
-rdf_current_prefix(knowrob,Y),
-current_object_pose(Obj,Pose)."))))
-  (print ?pose)
-  (length ?pose)
-  (destructuring-bind (a b c d) ?pose
-    (destructuring-bind (x y z) c
-      (destructuring-bind (w q1 q2 q3) d
-    (print c)
-    (print x)
-    (print y)
-    (print z)))))
+owl_has(ObjInst, rdf:type, knowrob:'IslandArea'),
+rdf_has(ObjInst, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', TP),
+iri_xml_namespace(TP, PrefixType, Type),
+iri_xml_namespace(ObjInst, PrefixName, Name),
+owl_has(ObjInst, knowrob:pathToCadModel, Path),
+object_mesh_path(ObjInst, ObjPath),
+current_object_pose(ObjInst, Pose).")))
+  
+;  (print ?pose)
+;  (length ?pose)
+;  (destructuring-bind (a b c d) ?pose
+;    (destructuring-bind (x y z) c
+;      (destructuring-bind (w q1 q2 q3) d
+;        (print c)
+;        (print x)
+;        (print y)
+;        (print z))))
+  
 
 (defun prolog-testing2()
   (json-prolog:prolog-simple-1
-"current_object_pose(X,Pose)."))
+   "map_name(MapName),
+map_root_objects(MapName, Objects),
+member(Obj, Objects),
+rdf_has(Obj, 'http://knowrob.org/kb/knowrob_u.owl#attachedParent', Sub),
+map_object_type(Sub, TP),
+iri_xml_namespace(TP, PrefixType, Type),
+iri_xml_namespace(Sub, PrefixName, Name)."
+))
+
+(defun prolog-testing3()
+  (json-prolog:prolog-simple-1
+   "object_mesh_path('http://knowrob.org/kb/unreal_log.owl#BaerenMarkeFrischeAlpenmilch18_4OVo', Pose)."
+))
