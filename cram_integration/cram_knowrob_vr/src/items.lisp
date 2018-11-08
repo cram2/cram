@@ -64,4 +64,13 @@ OPTIONAL NAME: Name of the object. If not set, the default name will be 'axes.
 RETURNS: Lazy list containing the created axes-object."
   (prolog:prolog `(and (btr:bullet-world ?world)
                    (assert (btr:object ?world :mesh ,?name ((2 2 1) (0 0 0 1))
-                            :mass 0.2 :color (0 1 1) :mesh :axes)))))
+                                       :mass 0.2 :color (0 1 1) :mesh :axes)))))
+
+(defun add-generic (&key ?name)
+  "Adds an object of type axes to the bullet world.
+OPTIONAL NAME: Name of the object. If not set, the default name will be 'axes.
+RETURNS: Lazy list containing the created axes-object."
+  (prolog:prolog `(and (btr:bullet-world ?world)
+                   (assert (btr:object ?world :mesh ,?name ((2 2 1) (0 0 0 1))
+                            :mass 0.2 :color (0 1 1) :mesh ,?name)))))
+

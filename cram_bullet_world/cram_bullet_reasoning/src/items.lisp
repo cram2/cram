@@ -89,7 +89,7 @@ The name in the list is a keyword that is created by lispifying the filename."
         (let ((mesh-specification (assoc object-type *mesh-files*)))
           (assert
            mesh-specification ()
-           "Couldn't fine a mesh for object type ~a." object-type)
+           "Couldn't find a mesh for object type ~a." object-type)
           (destructuring-bind (type uri &optional flip-winding-order)
               mesh-specification
             (declare (ignore type))
@@ -271,3 +271,4 @@ The name in the list is a keyword that is created by lispifying the filename."
                 :collision-shape (make-instance 'colored-box-shape
                                    :half-extents (ensure-vector size)
                                    :color color)))))
+
