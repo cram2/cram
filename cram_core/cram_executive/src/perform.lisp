@@ -29,8 +29,6 @@
 
 (in-package :exe)
 
-(defvar *logged-action-list* nil)
-
 (define-condition designator-reference-failure (cpl:simple-plan-failure desig:designator-error)
   ((result :initarg :result :reader result :initform nil))
   (:default-initargs :format-control "designator-failure"))
