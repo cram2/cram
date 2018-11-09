@@ -112,11 +112,9 @@
                    (* grasp-robot-axis-sign (aref matrix 2 grasp-robot-axis-index)))))
       (calculate-vector-face robot-grasp-vector))))
 
-(defgeneric get-object-type-grasps (object-type facing-robot-face bottom-face
-                                    rotationally-symmetric-p arm)
-  (:documentation "Returns a lazy list of all possible grasps for `object-type'")
-  (:method (object-type facing-robot-face bottom-face rotationally-symmetric-p arm)
-    (declare (ignore facing-robot-face bottom-face rotationally-symmetric-p))
+(defgeneric get-object-type-grasps (object-type arm)
+  (:documentation "Returns a lazy list of all possible grasps for `object-type' with given `arm'")
+  (:method (object-type arm)
     #-solution-using-sbcl-API
     (remove-if
      #'null
