@@ -75,9 +75,7 @@
   ;;   ;; infer missing information
   ;;   (-> (spec:property ?action-designator (:grasp ?grasp))
   ;;       (true)
-  ;;       (and (lisp-fun man-int:get-object-type-grasps
-  ;;                      ?object-type nil nil nil ?arm
-  ;;                      ?grasps)
+  ;;       (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?grasps)
   ;;            (member ?grasp ?grasps)))
   ;;   (lisp-fun kr-assembly::get-object-placing-poses ?on-object-name ?on-object-type
   ;;             ?object-name ?object-type :left ?grasp
@@ -127,9 +125,7 @@
     ;; infer missing information
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (and (lisp-fun man-int:get-object-type-grasps
-                       ?object-type nil nil nil ?arm
-                       ?grasps)
+        (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?grasps)
              (member ?grasp ?grasps)))
     (lisp-fun kr-assembly::get-object-placement-transform
               ?object-name ?object-type ?object-transform
