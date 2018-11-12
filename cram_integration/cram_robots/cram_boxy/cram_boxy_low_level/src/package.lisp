@@ -45,7 +45,7 @@
    ;; nav-pcontroller
    #:move-base-nav-pcontroller
    ;; neck
-   #:move-neck-joint
+   #:move-neck-joints
    ;; grippers
    #:move-gripper-joint
    ;; force-torque-sensor

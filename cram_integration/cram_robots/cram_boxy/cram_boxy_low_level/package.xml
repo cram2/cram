@@ -30,6 +30,8 @@
   <depend>move_base_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>iai_wsg_50_msgs</depend>
-  <depend>iai_control_msgs</depend>
+  <depend>control_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <!-- <depend>iai_control_msgs</depend> -->
   <depend>iai_dlr_msgs</depend>
 </package>

@@ -33,8 +33,8 @@
   "How many seconds to wait before returning from cart action.")
 
 (defparameter *cart-max-translational-vel* 0.2)
-(defparameter *cart-ee-mass* 0.001)
-(defparameter *cart-ee-center-of-gravity* '(0.0 0.0 0.1))
+(defparameter *cart-ee-mass* 2.2)
+(defparameter *cart-ee-center-of-gravity* '(0.0 0.0 0.19))
 (defparameter *cart-impedance-list* '(400 400 400 400 400 400))
 
 (actionlib-client:make-simple-action-client
@@ -50,7 +50,7 @@
    :goal_pose (cl-transforms-stamped:to-msg pose-stamped)
    :max_trans_vel *cart-max-translational-vel*
    :ee_mass *cart-ee-mass*
-   :ee_cog (apply #'vector *cart-impedance-list*)
+   :ee_cog (apply #'vector *cart-ee-center-of-gravity*)
    :cart_imp (apply #'vector *cart-impedance-list*)))
 
 (defun move-arm-cartesian (&key

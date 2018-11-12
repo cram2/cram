@@ -55,7 +55,7 @@
     (declare (ignore goal-pose))
     (ecase command
       (cram-common-designators:move-head
-       (boxy-ll:move-neck-joint :goal-configuration goal-configuration)))))
+       (boxy-ll:move-neck-joints :goal-configuration goal-configuration)))))
 
 ;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
 

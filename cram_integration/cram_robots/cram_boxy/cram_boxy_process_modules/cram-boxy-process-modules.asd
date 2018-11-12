@@ -38,7 +38,10 @@
                cram-common-designators
                cram-boxy-designators
                cram-boxy-low-level
-               cram-tf)
+               cram-tf
+
+               cram-robosherlock ; for WITH-REAL-ROBOT
+               )
   :components
   ((:module "src"
     :components
