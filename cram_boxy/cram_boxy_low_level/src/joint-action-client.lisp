@@ -34,8 +34,8 @@
 (defparameter *joint-action-timeout* 5.0
   "How many seconds to wait before returning from joint action.")
 
-(defparameter *joint-max-velocity* (cram-math:degrees->radians 10))
-(defparameter *joint-impedance-list* '(100 100 100 100 100 100 100))
+(defparameter *joint-max-velocity* (cram-math:degrees->radians 30))
+(defparameter *joint-impedance-list* '(500 500 500 500 500 1500 1500))
 
 (actionlib-client:make-simple-action-client
    'dlr-joint-action

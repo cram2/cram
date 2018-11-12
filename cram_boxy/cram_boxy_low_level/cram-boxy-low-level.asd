@@ -54,7 +54,9 @@
                move_base_msgs-msg
                visualization_msgs-msg
                iai_wsg_50_msgs-msg
-               iai_control_msgs-msg ; neck message
+               control_msgs-msg ; neck message
+               trajectory_msgs-msg ; also for neck
+               ;; iai_control_msgs-msg ; neck message
                iai_dlr_msgs-msg)
   :components
   ((:module "src"
