@@ -232,7 +232,7 @@
               (return)))
          (exe:perform
           (desig:a motion
-                   (type opening)
+                   (type opening-gripper)
                    (gripper ?left-or-right))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))

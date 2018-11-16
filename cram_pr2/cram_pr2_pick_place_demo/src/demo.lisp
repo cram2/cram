@@ -63,7 +63,7 @@
                    (type going)
                    (target (desig:a location
                                     (pose ?pose))))))
-      (exe:perform (desig:an action (type opening) (gripper (left right))))
+      (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))))
 
 (cpl:def-cram-function demo-random (&optional

@@ -220,7 +220,7 @@
 ;;       (exe:perform
 ;;        (desig:a motion (type moving-torso) (joint-angle 0.3)))
 ;;       (exe:perform
-;;        (desig:a motion (type opening) (gripper left)))
+;;        (desig:a motion (type opening-gripper) (gripper left)))
 ;;       (exe:perform
 ;;        (desig:a motion (type looking) (direction forward)))
 ;;       (exe:perform

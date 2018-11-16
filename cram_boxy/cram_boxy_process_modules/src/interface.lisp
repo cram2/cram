@@ -38,11 +38,10 @@
     (desig:desig-prop ?motion-designator (:type :looking)))
 
   (<- (cpm:matching-process-module ?motion-designator grippers-pm)
-    (and (or (desig:desig-prop ?motion-designator (:type :gripping))
-             (desig:desig-prop ?motion-designator (:type :opening))
-             (desig:desig-prop ?motion-designator (:type :closing))
-             (desig:desig-prop ?motion-designator (:type :moving-gripper-joint)))
-         (desig:desig-prop ?motion-designator (:gripper ?_))))
+    (or (desig:desig-prop ?motion-designator (:type :gripping))
+        (desig:desig-prop ?motion-designator (:type :opening-gripper))
+        (desig:desig-prop ?motion-designator (:type :closing-gripper))
+        (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))))
 
   (<- (cpm:matching-process-module ?motion-designator body-pm)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))

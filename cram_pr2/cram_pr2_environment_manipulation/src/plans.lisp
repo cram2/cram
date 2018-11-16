@@ -136,7 +136,7 @@
   (roslisp:ros-info (environment-manipulation close-container) "Opening gripper")
   (exe:perform
    (desig:an action
-             (type opening)
+             (type opening-gripper)
              (gripper ?arm)))
   (roslisp:ros-info (environment-manipulation close-container) "Reaching")
   (cpl:with-failure-handling

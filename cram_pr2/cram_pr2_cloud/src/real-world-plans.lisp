@@ -39,7 +39,7 @@
 (defun test-gripper ()
   (with-real-robot
     (exe:perform
-     (desig:a motion (type opening) (gripper left)))))
+     (desig:a motion (type opening-gripper) (gripper left)))))
 
 (defun test-navigation ()
   (with-real-robot
@@ -121,7 +121,7 @@
            (btr-utils:spawn-object 'red-dot :pancake-maker :color '(1 0 0 0.5)
                                                            :pose '((1.5 -1.05 1.6) (0 0 0 1)))
            (cpl:sleep 0.5)
-           (exe:perform (desig:an action (type opening) (gripper right)))
+           (exe:perform (desig:an action (type opening-gripper) (gripper right)))
            (pp-plans::park-arms)
            (move-projected-pr2-away)
            (unless location-designator
@@ -134,7 +134,7 @@
         (exe:perform
          (desig:an action (type going) (target ?location-for-robot)))
         (exe:perform
-         (desig:an action (type opening) (gripper ?arm))))
+         (desig:an action (type opening-gripper) (gripper ?arm))))
 
       (let ((?right-arm-init-config '(-0.6177226607749531d0 0.8595855682477204d0
                                       -0.22685404643554485d0 -2.1215879821638572d0
@@ -186,7 +186,7 @@
                 (cdr ?trajectory))
 
         (exe:perform
-         (desig:an action (type opening) (gripper ?arm)))
+         (desig:an action (type opening-gripper) (gripper ?arm)))
 
         (btr-utils:spawn-object 'green-dot :pancake-maker :color '(0 1 0 0.5)
                                                           :pose '((1.5 -1.05 1.6) (0 0 0 1)))
