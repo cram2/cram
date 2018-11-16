@@ -30,7 +30,10 @@
 (in-package :pr2-fd-plans)
 
 (cpl:def-cram-function go-without-collisions (?navigation-location)
-  (pp-plans:park-arms)
+  (exe:perform (desig:an action
+                         (type positioning-arm)
+                         (left-configuration park)
+                         (right-configuration park)))
 
   (pr2-proj-reasoning:check-navigating-collisions ?navigation-location)
   (setf ?navigation-location (desig:current-desig ?navigation-location))
@@ -230,7 +233,10 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                  (roslisp:ros-warn (fd-plans fetch) "Misgrasp happened: ~a~%" e)
                  (cpl:do-retry regrasping-retries
                    (roslisp:ros-info (fd-plans fetch) "Reperceiving and repicking...")
-                   (pp-plans:park-arms)
+                   (exe:perform (desig:an action
+                                          (type positioning-arm)
+                                          (left-configuration park)
+                                          (right-configuration park)))
                    (cpl:retry))
                  (roslisp:ros-warn (fd-plans fetch) "No more regrasping retries left :'(")
                  (cpl:fail 'common-fail:object-unreachable
@@ -267,7 +273,10 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
                 (exe:perform pick-up-action)))))))
 
-    (pp-plans:park-arms)
+    (exe:perform (desig:an action
+                           (type positioning-arm)
+                           (left-configuration park)
+                           (right-configuration park)))
     (desig:current-desig ?object-designator)))
 
 

@@ -83,7 +83,10 @@
 
 (defun perceive-and-drive-and-pick-up-plan (?type &key (?arm '(:left :right))
                                                     ?color ?cad-model)
-  (park-arms)
+  (exe:perform (desig:an action
+                         (type positioning-arm)
+                         (left-configuration park)
+                         (right-configuration park)))
   (let ((object-description `((:type ,?type))))
     (when ?color
       (push `(:color ,?color) object-description))

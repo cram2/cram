@@ -160,68 +160,33 @@
          (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
 
 
-(cpl:def-cram-function park-arms (&key (arm '(:left :right)) (carry t))
-  (let ((carry?
-          (or (prolog:prolog `(cpoe:object-in-hand ?obj ?arm))
-              carry)))
-   (flet ((get-arm-parking-joint-states (arm)
-            (let* ((bindings
-                     (if carry?
-                         (prolog:prolog
-                          `(and (rob-int:robot ?robot)
-                                (rob-int:robot-joint-states
-                                 ?robot :arm ,arm :carry ?joint-states)))
-                         (prolog:prolog
-                          `(and (cram-robot-interfaces:robot ?robot)
-                                (cram-robot-interfaces:robot-joint-states
-                                 ?robot :arm ,arm :park ?joint-states)))))
-                   (joint-states (cut:var-value '?joint-states (car bindings))))
-              (unless joint-states
-                (error "ROBOT-JOINT-STATES for arms undefined! ~
-                        Did you forget to load a robot description package?"))
-              joint-states)))
+(cpl:def-cram-function move-arms-into-configuration (?left-joint-states ?right-joint-states)
+  (unwind-protect
+       (cpl:with-failure-handling
+           ((common-fail:manipulation-low-level-failure (e)
+              (roslisp:ros-warn (mobile-pp-plans move-arms-into-configuration)
+                                "A low-level manipulation failure happened: ~a~%Ignoring." e)
+              (return)))
 
-     (unless (listp arm)
-       (setf arm (list arm)))
-     (let (?left-configuration ?right-configuration)
-       (when (member :left arm)
-         (setf ?left-configuration (get-arm-parking-joint-states :left)))
-       (when (member :right arm)
-         (setf ?right-configuration (get-arm-parking-joint-states :right)))
-
-       (unwind-protect
-            (cpl:with-failure-handling
-                ((common-fail:manipulation-low-level-failure (e)
-                   (roslisp:ros-warn (pick-and-place park-arms)
-                                     "A low-level manipulation failure happened: ~a~%Ignoring." e)
-                   (return)))
-
-              (if carry?
-                  (exe:perform
-                     (desig:a motion
-                              (type moving-arm-joints)
-                              (left-joint-states ?left-configuration)
-                              (right-joint-states ?right-configuration)))
-                  ;; (cpl:seq
-                  ;;   (exe:perform
-                  ;;    (desig:a motion
-                  ;;             (type moving-arm-joints)
-                  ;;             (right-joint-states ?right-configuration)))
-                  ;;   (exe:perform
-                  ;;    (desig:a motion
-                  ;;             (type moving-arm-joints)
-                  ;;             (left-joint-states ?left-configuration))))
-                  (cpl:seq
-                    (exe:perform
-                     (desig:a motion
-                              (type moving-arm-joints)
-                              (left-joint-states ?left-configuration)))
-                    (exe:perform
-                     (desig:a motion
-                              (type moving-arm-joints)
-                              (right-joint-states ?right-configuration))))))
-         (cram-occasions-events:on-event
-          (make-instance 'cram-plan-occasions-events:robot-state-changed)))))))
+         (exe:perform
+          (desig:a motion
+                   (type moving-arm-joints)
+                   (desig:when ?left-joint-states
+                     (left-joint-states ?left-joint-states))
+                   (desig:when ?right-joint-states
+                     (right-joint-states ?right-joint-states))))
+         ;; (cpl:seq
+         ;;   (exe:perform
+         ;;    (desig:a motion
+         ;;             (type moving-arm-joints)
+         ;;             (right-joint-states ?right-configuration)))
+         ;;   (exe:perform
+         ;;    (desig:a motion
+         ;;             (type moving-arm-joints)
+         ;;             (left-joint-states ?left-configuration))))
+         )
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
 (cpl:def-cram-function release (?left-or-right)
