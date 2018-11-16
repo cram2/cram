@@ -71,11 +71,11 @@
 (def-fact-group gripper-motions (motion-grounding)
 
   (<- (motion-grounding ?designator (move-gripper-joint :open ?which-gripper))
-    (property ?designator (:type :opening))
+    (property ?designator (:type :opening-gripper))
     (property ?designator (:gripper ?which-gripper)))
 
   (<- (motion-grounding ?designator (move-gripper-joint :close ?which-gripper))
-    (property ?designator (:type :closing))
+    (property ?designator (:type :closing-gripper))
     (property ?designator (:gripper ?which-gripper)))
 
   (<- (motion-grounding ?designator (move-gripper-joint :grip ?which-gripper ?maximum-effort))

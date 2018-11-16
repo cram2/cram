@@ -111,9 +111,8 @@
   (<- (cpm:matching-process-module ?motion-designator boxy-proj-grippers)
     (or (desig:desig-prop ?motion-designator (:type :gripping))
         (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))
-        (and (desig:desig-prop ?motion-designator (:gripper ?_))
-             (or (desig:desig-prop ?motion-designator (:type :opening))
-                 (desig:desig-prop ?motion-designator (:type :closing))))))
+        (desig:desig-prop ?motion-designator (:type :opening-gripper))
+        (desig:desig-prop ?motion-designator (:type :closing-gripper))))
 
   (<- (cpm:matching-process-module ?motion-designator boxy-proj-arms)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))

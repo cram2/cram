@@ -37,9 +37,13 @@
     (desig:designator-groundings ?location-designator ?poses)
     (member ?pose-stamped ?poses))
 
+
+
   (<- (desig:action-grounding ?action-designator (perceive ?object-designator))
     (spec:property ?action-designator (:type :detecting))
       (spec:property ?action-designator (:object ?object-designator)))
+
+
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?left-poses ?right-poses
@@ -93,6 +97,8 @@
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil))))
 
+
+
   (<- (desig:action-grounding ?action-designator (release ?left-or-right-or-both))
     (spec:property ?action-designator (:type :releasing))
     (spec:property ?action-designator (:gripper ?left-or-right-or-both)))
@@ -105,8 +111,8 @@
 
   (<- (desig:action-grounding ?action-designator (open-or-close-gripper ?left-or-right-or-both
                                                                         ?action-type))
-    (or (spec:property ?action-designator (:type :closing))
-        (spec:property ?action-designator (:type :opening)))
+    (or (spec:property ?action-designator (:type :closing-gripper))
+        (spec:property ?action-designator (:type :opening-gripper)))
     (spec:property ?action-designator (:type ?action-type))
     (spec:property ?action-designator (:gripper ?left-or-right-or-both)))
 
@@ -116,6 +122,8 @@
     (spec:property ?action-designator (:gripper ?left-or-right-or-both))
     (spec:property ?action-designator (:position ?position)))
 
+
+
   (<- (desig:action-grounding ?action-designator (look-at :pose ?pose-stamped))
     (spec:property ?action-designator (:type :looking))
     (spec:property ?action-designator (:target ?location-designator))
@@ -124,6 +132,7 @@
     (-> (spec:property ?action-designator (:camera ?camera))
         (equal ?camera :head)
         (true)))
+
   (<- (desig:action-grounding ?action-designator (look-at :pose ?pose-stamped))
     (spec:property ?action-designator (:type :looking))
     (spec:property ?action-designator (:object ?object-designator))
@@ -132,6 +141,7 @@
     (-> (spec:property ?action-designator (:camera ?camera))
         (equal ?camera :head)
         (true)))
+
   (<- (desig:action-grounding ?action-designator (look-at :pose ?pose-stamped))
     (spec:property ?action-designator (:type :looking))
     (spec:property ?action-designator (:frame ?frame))
@@ -141,6 +151,7 @@
     (-> (spec:property ?action-designator (:camera ?camera))
         (equal ?camera :head)
         (true)))
+
   (<- (desig:action-grounding ?action-designator (look-at :pose ?pose-stamped
                                                           :configuration ?joint-states))
     (spec:property ?action-designator (:type :looking))
