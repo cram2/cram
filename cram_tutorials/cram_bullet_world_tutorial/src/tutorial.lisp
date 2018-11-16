@@ -142,13 +142,20 @@
           ;; Move torso up
           (exe:perform
            (desig:a motion (type moving-torso) (joint-angle 0.3)))
-          (pp-plans::park-arms)
+          (exe:perform
+           (desig:an action
+                     (type positioning-arm)
+                     (left-configuration park)
+                     (right-configuration park)))
           (navigate-to ?navigation-goal))
         (look-at ?ptu-goal))
       ;; Pick up bottle-1 with right arm.
       (let ((?perceived-bottle-1 (get-perceived-bottle-desig)))
         (pick-up ?perceived-bottle-1 :right)
-        (pp-plans::park-arms :arm :right)
+        (exe:perform
+         (desig:an action
+                   (type positioning-arm)
+                   (right-configuration park)))
         ;; Move to the meal table
         (let ((?pose *pose-meal-table*))
           (navigate-to ?pose))
@@ -156,16 +163,26 @@
         (let ((?perceived-bottle-2 (get-perceived-bottle-desig)))
           (pick-up ?perceived-bottle-2 :left)
           ;; Move left arm out of sight
-          (pp-plans::park-arms :arm :left)
+          (exe:perform
+           (desig:an action
+                     (type positioning-arm)
+                     (left-configuration park)))
           ;; Place bottle-1 on second table
           (let ((?drop-pose *pose-bottle-2*))
             (place-down ?drop-pose ?perceived-bottle-1 :right))
           ;; Move right arm out of sight
-          (pp-plans::park-arms :arm :right)
+          (exe:perform
+           (desig:an action
+                     (type positioning-arm)
+                     (right-configuration park)))
           ;; Move to the counter table 
           (let ((?navigation-goal *pose-counter*))
             (navigate-to ?navigation-goal))
           ;; Place bottle-2 on the counter
           (let ((?drop-pose *pose-bottle-1*))
             (place-down ?drop-pose ?perceived-bottle-2 :left))
-          (pp-plans::park-arms))))))
+          (exe:perform
+           (desig:an action
+                     (type positioning-arm)
+                     (left-configuration park)
+                     (right-configuration park))))))))

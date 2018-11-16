@@ -143,7 +143,10 @@
                             (:island *island-nav-goal*)))
         (?ptu-goal *look-goal*))
     (cpl:par
-      (pp-plans::park-arms)
+      (exe:perform (desig:an action
+                             (type positioning-arm)
+                             (left-configuration park)
+                             (right-configuration park)))
       (exe:perform (desig:a motion
                             (type going)
                             (pose ?navigation-goal))))
@@ -152,7 +155,6 @@
                           (pose ?ptu-goal)))))
 
 (defun pick-object (&optional (?object-type :breakfast-cereal) (?arm :right))
-  (pp-plans:park-arms)
   (go-to-sink-or-island :sink)
   (let* ((?object-desig
            (desig:an object (type ?object-type)))
@@ -170,7 +172,6 @@
                              (object ?perceived-object-desig))))))
 
 (defun place-object (?target-pose &optional (?arm :right))
-  (pp-plans:park-arms)
   (go-to-sink-or-island :island)
   (cpl:par
     (exe:perform (desig:a motion
@@ -316,7 +317,11 @@
 ;;         (let ((?navigation-goal *meal-table-right-base-pose*)
 ;;               (?ptu-goal *meal-table-right-base-look-pose*))
 ;;           (cpl:par
-;;             (pp-plans::park-arms)
+                ;; (exe:perform
+                ;;  (desig:an action
+                ;;            (type positioning-arm)
+                ;;            (left-configuration park)
+                ;;            (right-configuration park)))
 ;;             (exe:perform (desig:a motion
 ;;                                   (type going)
 ;;                                   (pose ?navigation-goal))))

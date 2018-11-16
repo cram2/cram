@@ -52,7 +52,11 @@
          (declare (ignore e))
          (return)))
     (cpl:par
-      (pp-plans::park-arms)
+      (exe:perform
+       (desig:an action
+                 (type positioning-arm)
+                 (left-configuration park)
+                 (right-configuration park)))
       (let ((?pose (cl-transforms-stamped:make-pose-stamped
                     cram-tf:*fixed-frame*
                     0.0
@@ -285,7 +289,11 @@
                                  (object-list '(:bowl :spoon :cup :milk :breakfast-cereal)))
   (pr2-proj:with-simulated-robot
 
-    (cram-mobile-pick-place-plans:park-arms)
+    (exe:perform
+     (desig:an action
+               (type positioning-arm)
+               (left-configuration park)
+               (right-configuration park)))
 
     (let ((?pose (cl-transforms-stamped:make-pose-stamped
                   "map" 0.0
@@ -416,7 +424,11 @@
                                             (+ *robot-y-position* position-y-offset)
                                             (cl-transforms:make-3d-vector
                                              -0.75 1.0 (+ 0.8573 z/2)))))))
-                                   (cram-mobile-pick-place-plans:park-arms)
+                                   (exe:perform
+                                    (desig:an action
+                                              (type positioning-arm)
+                                              (left-configuration park)
+                                              (right-configuration park)))
                                    (exe:perform
                                     (desig:a motion
                                              (type moving-torso)

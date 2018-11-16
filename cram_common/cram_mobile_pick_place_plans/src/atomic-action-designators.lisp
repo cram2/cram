@@ -97,6 +97,25 @@
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil))))
 
+  (<- (desig:action-grounding ?action-designator (move-arms-into-configuration
+                                                  ?left-joint-states ?right-joint-states))
+    (spec:property ?action-designator (:type :positioning-arm))
+    (rob-int:robot ?robot)
+    (-> (spec:property ?action-designator (:left-configuration ?left-config))
+        (-> (equal ?left-config :park)
+            (-> (cpoe:object-in-hand ?_ :left)
+                (rob-int:robot-joint-states ?robot :arm :left :carry ?left-joint-states)
+                (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states))
+            (rob-int:robot-joint-states ?robot :arm :left ?left-config ?left-joint-states))
+        (equal ?left-joint-states nil))
+    (-> (spec:property ?action-designator (:right-configuration ?right-config))
+        (-> (equal ?right-config :park)
+            (-> (cpoe:object-in-hand ?_ :right)
+                (rob-int:robot-joint-states ?robot :arm :right :carry ?right-joint-states)
+                (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states))
+            (rob-int:robot-joint-states ?robot :arm :right ?right-config ?right-joint-states))
+        (equal ?right-joint-states nil)))
+
 
 
   (<- (desig:action-grounding ?action-designator (release ?left-or-right-or-both))

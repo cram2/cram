@@ -67,29 +67,6 @@
       (exe:perform
        (desig:a motion (type moving-tcp) (left-pose ?pose))))))
 
-(defun park-arms ()
-  (let ((?left-pose (cl-transforms-stamped:make-pose-stamped
-                     cram-tf:*robot-base-frame*
-                     0.0
-                     (cl-transforms:make-3d-vector 0.09611d0 0.68d0 0.35466d0)
-                     (cl-transforms:make-quaternion -0.45742778331019085d0
-                                                    0.3060123951483878d0
-                                                    0.3788581151804847d0
-                                                    0.744031427853262d0)))
-        (?right-pose (cl-transforms-stamped:make-pose-stamped
-                      cram-tf:*robot-base-frame*
-                      0.0
-                      (cl-transforms:make-3d-vector 0.0848d0 -0.712d0 0.35541d0)
-                      (cl-transforms:make-quaternion -0.061062529688043946d0
-                                                     -0.6133522138254498d0
-                                                     0.197733462359113d0
-                                                     -0.7622151317882601d0))))
-    (exe:perform
-     (desig:a motion
-              (type moving-tcp)
-              (left-pose ?left-pose)
-              (right-pose ?right-pose)))))
-
 (defun move-projected-pr2-away ()
   (btr-utils:move-object 'cram-pr2-description:pr2
                          (cl-transforms:make-pose
@@ -111,7 +88,10 @@
     (btr-utils:kill-all-objects)
     (move-projected-pr2-away)
     (cram-bullet-reasoning::clear-costmap-vis-object)
-    (pp-plans::park-arms)
+    (exe:perform (desig:an action
+                           (type positioning-arm)
+                           (left-configuration park)
+                           (right-configuration park)))
     ;; (exe:perform (desig:a motion (type moving-torso) (joint-angle 0.15)))
 
     (cpl:with-failure-handling
@@ -122,7 +102,10 @@
                                                            :pose '((1.5 -1.05 1.6) (0 0 0 1)))
            (cpl:sleep 0.5)
            (exe:perform (desig:an action (type opening-gripper) (gripper right)))
-           (pp-plans::park-arms)
+           (exe:perform (desig:an action
+                                  (type positioning-arm)
+                                  (left-configuration park)
+                                  (right-configuration park)))
            (move-projected-pr2-away)
            (unless location-designator
              (setf ?location-for-robot (desig:next-solution ?location-for-robot)))
