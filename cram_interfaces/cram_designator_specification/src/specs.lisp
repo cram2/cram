@@ -89,7 +89,7 @@
 
   (<- (%property ?designator (?list-key ?value))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?list-key (:configuration :left-configuration :right-configuration))
+    (member ?list-key (:joint-states :left-joint-states :right-joint-states))
     (property-member (?list-key ?value) ?designator)
     (assert-type ?value list "MOTION SPEC:PROPERTY")))
 

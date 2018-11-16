@@ -200,26 +200,26 @@
                   (exe:perform
                      (desig:a motion
                               (type moving-arm-joints)
-                              (left-configuration ?left-configuration)
-                              (right-configuration ?right-configuration)))
+                              (left-joint-states ?left-configuration)
+                              (right-joint-states ?right-configuration)))
                   ;; (cpl:seq
                   ;;   (exe:perform
                   ;;    (desig:a motion
                   ;;             (type moving-arm-joints)
-                  ;;             (right-configuration ?right-configuration)))
+                  ;;             (right-joint-states ?right-configuration)))
                   ;;   (exe:perform
                   ;;    (desig:a motion
                   ;;             (type moving-arm-joints)
-                  ;;             (left-configuration ?left-configuration))))
+                  ;;             (left-joint-states ?left-configuration))))
                   (cpl:seq
                     (exe:perform
                      (desig:a motion
                               (type moving-arm-joints)
-                              (left-configuration ?left-configuration)))
+                              (left-joint-states ?left-configuration)))
                     (exe:perform
                      (desig:a motion
                               (type moving-arm-joints)
-                              (right-configuration ?right-configuration))))))
+                              (right-joint-states ?right-configuration))))))
          (cram-occasions-events:on-event
           (make-instance 'cram-plan-occasions-events:robot-state-changed)))))))
 
@@ -283,7 +283,7 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
-(cpl:def-cram-function look-at (&key pose configuration)
+(cpl:def-cram-function look-at (&key pose joint-states)
   (unwind-protect
 
        (cpl:with-retry-counters ((look-retries 1))
@@ -295,14 +295,14 @@
                   (cpl:retry)))))
 
          (let ((?pose pose)
-               (?configuration configuration))
+               (?joint-states joint-states))
            (exe:perform
             (desig:a motion
                      (type looking)
                      (desig:when ?pose
                        (pose ?pose))
-                     (desig:when ?configuration
-                       (configuration ?configuration))))))
+                     (desig:when ?joint-states
+                       (joint-states ?joint-states))))))
 
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))

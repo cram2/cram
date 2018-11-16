@@ -50,7 +50,7 @@
     (-> (property ?designator (:pose ?pose-stamped))
         (true)
         (equal ?pose-stamped nil))
-    (-> (property ?designator (:configuration ?configuration))
+    (-> (property ?designator (:joint-states ?configuration))
         (true)
         (equal ?configuration nil))))
 
@@ -118,9 +118,9 @@
 
   (<- (motion-grounding ?designator (move-joints ?left-config ?right-config))
     (property ?designator (:type :moving-arm-joints))
-    (once (or (property ?designator (:left-configuration ?left-config))
+    (once (or (property ?designator (:left-joint-states ?left-config))
               (equal ?left-config nil)))
-    (once (or (property ?designator (:right-configuration ?right-config))
+    (once (or (property ?designator (:right-joint-states ?right-config))
               (equal ?right-config nil))))
 
   (<- (motion-grounding ?designator (move-with-constraints ?constraints-string))

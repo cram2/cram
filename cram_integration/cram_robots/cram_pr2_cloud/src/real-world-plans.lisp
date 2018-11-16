@@ -143,7 +143,7 @@
         (exe:perform
          (desig:a motion
                   (type moving-arm-joints)
-                  (right-configuration ?right-arm-init-config))))
+                  (right-joint-states ?right-arm-init-config))))
 
       (let ((?trajectory
               (gripper-trajectory-in-map->in-base
@@ -198,7 +198,7 @@
         (exe:perform
          (desig:a motion
                   (type moving-arm-joints)
-                  (right-configuration ?right-arm-init-config))))
+                  (right-joint-states ?right-arm-init-config))))
 
         ?location-for-robot))))
 
