@@ -50,7 +50,7 @@
     ("right_arm_5_joint" 0.0)
     ("right_arm_6_joint" 0.0)))
 
-(defparameter *left-arm-nicer-configuration*
+(defparameter *left-nicer-configuration*
   '(-1.2274070978164673
     0.8496202230453491
     -0.10349386930465698
@@ -131,6 +131,9 @@
 
   (<- (robot-joint-states boxy :arm :right :park ?joint-states)
     (symbol-value *right-parking-joint-states* ?joint-states))
+
+  (<- (robot-joint-states boxy :arm :left :flip ?joint-states)
+    (symbol-value *left-nicer-configuration* ?joint-states))
 
   ;; (<- (robot-arms-parking-joint-states boxy ?joint-states)
   ;;   (symbol-value *right-parking-joint-states* ?right-joint-states)

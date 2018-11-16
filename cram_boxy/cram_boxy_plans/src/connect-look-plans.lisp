@@ -100,15 +100,3 @@
   (print "slept 1")
   (cpl:sleep 1.0)
   (print "slept 2"))
-
-
-(defun move-arms-into-nicer-configuration ()
-  (cpl:with-failure-handling
-      ((common-fail:low-level-failure (e) ; ignore failures
-         (roslisp:ros-warn (boxy-plans arm-nicer-config) "~a" e)
-         (return)))
-    (let ((?left-configuration boxy-descr::*left-arm-nicer-configuration*))
-      (exe:perform
-       (desig:a motion
-                (type moving-arm-joints)
-                (left-configuration ?left-configuration))))))
