@@ -153,7 +153,7 @@
         (true)))
 
   (<- (desig:action-grounding ?action-designator (look-at :pose ?pose-stamped
-                                                          :configuration ?joint-states))
+                                                          :joint-states ?joint-states))
     (spec:property ?action-designator (:type :looking))
     (spec:property ?action-designator (:direction ?direction))
     (rob-int:robot ?robot)
