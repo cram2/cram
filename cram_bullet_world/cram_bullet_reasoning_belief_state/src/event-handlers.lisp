@@ -202,6 +202,8 @@
          (attachment-type (cpoe:event-attachment-type event)))
     (when (and btr-object btr-other-object)
       (format t "TODO: implement object to object attachment event handler!")
+      ;; Below stuff is commented out as it depends on KR-ASSEMBLY.
+      ;; The moment it is not dependent anymore we can uncomment this.
       ;; (let* ((btr-object-type (car (slot-value btr-object 'btr::types)))
       ;;        (btr-other-object-type (car (slot-value btr-other-object 'btr::types)))
       ;;        (other-object-to-object-transform ; ooTo
