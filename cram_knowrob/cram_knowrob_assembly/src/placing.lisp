@@ -36,10 +36,9 @@
                                                        other-object-type other-object-name
                                                        attachment))
 
-(defun get-object-placement-transform (object-name object-type object-transform
+(defun get-object-placement-transform (object-name object-type
                                        other-object-name other-object-type other-object-transform
                                        attachment-type)
-  (declare (ignore object-transform))
   "Returns a transform in robot base frame where the object named `object-name' should go"
   (let* ((base-frame
            cram-tf:*robot-base-frame*)
