@@ -96,12 +96,14 @@
                (right-poses ?right-lift-poses)))))
 
 
-(cpl:def-cram-function place (?object-designator ?on-object-designator
+(cpl:def-cram-function place (?object-designator
+                              ?other-object-designator
+                              ?placing-location-name
                               ?arm
+                              ?gripper-opening
                               ?left-reach-poses ?right-reach-poses
                               ?left-put-poses ?right-put-poses
-                              ?left-retract-poses ?right-retract-poses
-                              ?placing-location)
+                              ?left-retract-poses ?right-retract-poses)
   (roslisp:ros-info (pick-place place) "Reaching")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -122,20 +124,26 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (let ((?object-name (desig:desig-prop-value ?object-designator :name))
-          (?environment-object-name (desig:desig-prop-value ?on-object-designator :name)))
-      (exe:perform
-       (desig:an action
-                 (type putting)
-                 (object ?object-designator)
-                 (on-object ?on-object-designator)
-                 (left-poses ?left-put-poses)
-                 (right-poses ?right-put-poses)))))
+    (exe:perform
+     (desig:an action
+               (type putting)
+               (object ?object-designator)
+               (supporting-object ?other-object-designator)
+               (left-poses ?left-put-poses)
+               (right-poses ?right-put-poses))))
+  (when ?placing-location-name
+    (roslisp:ros-info (boxy-plans connect) "Asserting assemblage connection in knowledge base")
+    (cram-occasions-events:on-event
+     (make-instance 'cpoe:object-attached-object
+       :object-name (desig:desig-prop-value ?object-designator :name)
+       :other-object-name (desig:desig-prop-value ?other-object-designator :name)
+       :attachment-type ?placing-location-name)))
   (roslisp:ros-info (pick-place place) "Opening gripper")
   (exe:perform
    (desig:an action
-             (type releasing)
-             (gripper ?arm)))
+             (type setting-gripper)
+             (gripper ?arm)
+             (position ?gripper-opening)))
   (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
@@ -147,8 +155,7 @@
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         (return)
-         ))
+         (return)))
     (exe:perform
      (desig:an action
                (type retracting)

@@ -29,33 +29,50 @@
 
 (in-package :boxy-plans)
 
-(def-fact-group boxy-atomic-actions (desig:action-grounding)
+;; (cpl:def-cram-function wiggle (left-poses right-poses)
+;;   (let (?arm ?target-pose)
+;;     (if (car left-poses)
+;;         (setf ?arm :left
+;;               ?target-pose (car left-poses))
+;;         (if (car right-poses)
+;;             (setf ?arm :right
+;;                   ?target-pose (car right-poses))
+;;             (error "pushing action needs a goal for at least one arm.")))
 
-  ;; (<- (desig:action-grounding ?action-designator (wiggle ?left-poses ?right-poses))
-  ;;   (property ?action-designator (:type :wiggling))
-  ;;   (once (or (property ?action-designator (:left-poses ?left-poses))
-  ;;             (equal ?left-poses nil)))
-  ;;   (once (or (property ?action-designator (:right-poses ?right-poses))
-  ;;             (equal ?right-poses nil))))
+;;     (cpl:with-failure-handling
+;;         ((common-fail:low-level-failure (e) ; ignore failures
+;;            (roslisp:ros-warn (boxy-plans wiggle) "~a" e)
+;;            (return)))
 
-  (<- (desig:action-grounding ?action-designator (cram-inspect ?augmented-designator))
-    (property ?action-designator (:type :inspecting))
-    (property ?action-designator (:object ?object-designator))
-    (property ?action-designator (:for ?for-value))
-    (-> (lisp-type ?for-value desig:object-designator)
-        (equal ?description-to-add (:for (:object)))
-        (equal ?description-to-add (:for (?for-value))))
-    (desig:desig-description ?object-designator ?properties)
-    (equal ?augmented-description (?description-to-add . ?properties))
-    (desig:designator :object ?augmented-description ?augmented-designator)
-    (-> (lisp-type ?for-value desig:object-designator)
-        (and (desig:current-designator ?for-value ?for-object-designator)
-             ;; (property ?for-object-designator (:type ?for-object-type))
-             (prolog:slot-value ?for-object-designator desig:quantifier ?for-quantifier)
-             (prolog:slot-value ?augmented-designator desig:quantifier ?for-quantifier))
-        (true)))
+;;       (exe:perform
+;;        (desig:a motion
+;;                 (type wiggling-tcp)
+;;                 (arm ?arm)
+;;                 (pose ?target-pose))))))
 
-  ;; (<- (desig:action-grounding ?action-designator (perceive :inspecting ?object-designator))
-  ;;   (property ?action-designator (:type :inspecting))
-  ;;   (property ?action-designator (:object ?object-designator)))
-    )
+
+(cpl:def-cram-function cram-inspect (?object-designator)
+  (cpl:with-retry-counters ((perceive-retries 4))
+    (cpl:with-failure-handling
+        ((common-fail:perception-object-not-found (e)
+           (cpl:do-retry perceive-retries
+             (roslisp:ros-warn (boxy-plans perceive) "~a" e)
+             (cpl:sleep 1.0)
+             (cpl:retry))))
+      (exe:perform
+       (desig:a motion
+                (type inspecting)
+                (object ?object-designator)))
+      ;; (cram-robosherlock:perceive detect-or-inspect object-designator)
+      )))
+
+(cpl:def-cram-function look (?left-goal-pose ?right-goal-pose)
+  (roslisp:ros-info (boxy-plans look) "Looking with wrist camera")
+  (exe:perform (desig:an action
+                         (type reaching)
+                         (left-poses (?left-goal-pose))
+                         (right-poses (?right-goal-pose))))
+  (cpl:sleep 1.0)
+  (print "slept 1")
+  (cpl:sleep 1.0)
+  (print "slept 2"))
