@@ -118,7 +118,7 @@
 
   (<- (%property ?designator (?object-key ?object))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?object-key (:object :on-object :with-object))
+    (member ?object-key (:object :on-object :with-object :supporting-object))
     (property-member (?object-key ?object) ?designator)
     (assert-type ?object desig:object-designator "ACTION SPEC:PROPERTY"))
 
