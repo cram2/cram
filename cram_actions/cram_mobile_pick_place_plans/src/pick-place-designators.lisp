@@ -66,6 +66,14 @@
           left-put-poses right-put-poses
           left-retract-poses right-retract-poses)))
 
+(defun pose->transform-stamped-in-base (pose child-frame-lispy)
+  (let ((target-pose-in-base
+          (cram-tf:ensure-pose-in-frame
+           pose cram-tf:*robot-base-frame* :use-zero-time t))
+        (child-frame-rosy
+          (roslisp-utilities:rosify-underscores-lisp-name child-frame-lispy)))
+    (cram-tf:pose-stamped->transform-stamped target-pose-in-base child-frame-rosy)))
+
 
 (def-fact-group pick-and-place-plans (desig:action-grounding)
   (<- (desig:action-grounding ?action-designator (pick-up ?current-object-desig ?arm
@@ -106,13 +114,15 @@
                                  ?left-lift-poses ?right-lift-poses)))
 
   (<- (desig:action-grounding ?action-designator (place ?current-object-designator
-                                                        ?on-object-designator
+                                                        ?other-object-designator
+                                                        ?placement-location-name
                                                         ?arm
+                                                        ?gripper-opening
                                                         ?left-reach-poses ?right-reach-poses
                                                         ?left-put-poses ?right-put-poses
-                                                        ?left-retract-poses ?right-retract-poses
-                                                        ?location))
+                                                        ?left-retract-poses ?right-retract-poses))
     (spec:property ?action-designator (:type :placing))
+
     ;; find in which hand the object is
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
@@ -125,7 +135,8 @@
                 (format "WARNING: Wanted to place an object ~a ~
                          but it's not in any of the hands.~%" ?object-designator))
             (cpoe:object-in-hand ?object-designator ?arm)))
-    ;; infer missing information
+
+    ;;; infer missing information
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
@@ -134,23 +145,27 @@
         ;; TODO: grasp should be stored in the knowledge base!!
         (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?grasps)
              (member ?grasp ?grasps)))
-    ;; take object-pose from action-designator target otherwise from object-designator pose
-    (-> (spec:property ?action-designator (:target ?location))
-        (and (desig:current-designator ?location ?current-location-designator)
+    (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
+
+    ;; take object-pose from action-designator :target otherwise from object-designator pose
+    (-> (spec:property ?action-designator (:target ?location-designator))
+        (and (desig:current-designator ?location-designator ?current-location-designator)
              (desig:designator-groundings ?current-location-designator ?poses)
              (member ?target-pose ?poses)
-             (symbol-value cram-tf:*robot-base-frame* ?base-frame)
-             (lisp-fun cram-tf:ensure-pose-in-frame ?target-pose ?base-frame :use-zero-time t
-                       ?target-pose-in-base)
-             (lisp-fun roslisp-utilities:rosify-underscores-lisp-name ?object-name ?tf-name)
-             (lisp-fun cram-tf:pose-stamped->transform-stamped ?target-pose-in-base ?tf-name
+             (lisp-fun pose->transform-stamped-in-base ?target-pose ?object-name
                        ?target-transform))
         (and (lisp-fun man-int:get-object-transform ?current-object-designator ?target-transform)
              (lisp-fun man-int:get-object-pose ?current-object-designator ?target-pose)
-             (desig:designator :location ((:pose ?target-pose)) ?location)))
-    ;; TODO: placing should happen on an object! specify the on object explicitly,
-    ;; hardcoding now...
-    (desig:designator :object ((:name :kitchen)) ?on-object-designator)
+             (desig:designator :location ((:pose ?target-pose)) ?current-location-designator)))
+
+    ;; placing happens on/in an object
+    (or (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
+        (desig:desig-prop ?current-location-designator (:in ?other-object-designator))
+        (equal ?other-object-designator NIL))
+    (-> (desig:desig-prop ?current-location-designator (:attachment ?placement-location-name))
+        (true)
+        (equal ?placement-location-name NIL))
+
     (lisp-fun man-int:get-object-grasping-poses
               ?object-name ?object-type :left ?grasp ?target-transform
               ?left-poses)

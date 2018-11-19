@@ -74,13 +74,13 @@
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?left-poses ?right-poses
                                                   :allow-attached
-                                                  ?on-object-name ?object-link
+                                                  ?other-object-name ?object-link
                                                   ?object-name))
     (or (spec:property ?action-designator (:type :putting)))
     (spec:property ?action-designator (:object ?object-designator))
     (spec:property ?object-designator (:name ?object-name))
-    (spec:property ?action-designator (:on-object ?on-object-designator))
-    (spec:property ?on-object-designator (:name ?on-object-name))
+    (spec:property ?action-designator (:supporting-object ?other-object-designator))
+    (spec:property ?other-object-designator (:name ?other-object-name))
     (or (spec:property ?action-designator (:link ?object-link))
         (equal ?object-link nil))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
