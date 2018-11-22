@@ -31,4 +31,4 @@
 (defpackage bullet-reasoning-tests
     (:documentation "")
   (:use #:common-lisp #:lisp-unit #:btr #:cl-bullet)
-  (:export))
+  (:export pile-of-plates))
