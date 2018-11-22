@@ -33,12 +33,14 @@
 (in-package :btr)
 
 (defparameter *mesh-files*
-  '((:mug "package://cram_bullet_reasoning/resource/mug.stl" t)
-    (:plate "package://cram_bullet_reasoning/resource/plate.stl" nil)
+  '((:mug "package://cram_bullet_reasoning/resource/mug.stl" t "package://cram_bullet_reasoning/resource/mug_dec.dae")
+    (:plate "package://cram_bullet_reasoning/resource/plate.stl" nil "package://cram_bullet_reasoning/resource/plate_dec.dae")
+    (:tray "package://cram_bullet_reasoning/resource/tray.stl" nil "package://cram_bullet_reasoning/resource/tray_dec.dae")
+    (:cup "package://cram_bullet_reasoning/resource/cup.stl" nil "package://cram_bullet_reasoning/resource/cup_dec.dae")
     (:mondamin "package://cram_bullet_reasoning/resource/mondamin.stl" nil)
     (:pot "package://cram_bullet_reasoning/resource/pot-ww.stl" nil)
     (:weisswurst "package://cram_bullet_reasoning/resource/ww.stl" nil)
-    (:bowl "package://cram_bullet_reasoning/resource/bowl.stl" nil)
+    (:bowl "package://cram_bullet_reasoning/resource/bowl.stl" nil "package://cram_bullet_reasoning/resource/bowl_dec.stl")
     (:fork "package://cram_bullet_reasoning/resource/fork.stl" nil)
     (:knife "package://cram_bullet_reasoning/resource/knife.stl" nil)
     (:spatula "package://cram_bullet_reasoning/resource/spatula.stl" nil)

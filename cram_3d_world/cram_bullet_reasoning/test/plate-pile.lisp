@@ -1,4 +1,4 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2018, Mihai Pomarlan <pomarlan@uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,9 +26,24 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :bullet-reasoning-tests) 
 
-(defpackage :cram-bullet-reasoning-tests
-  (:nicknames :btr-tests)
-  (:use #:common-lisp #:lisp-unit #:btr #:cl-bullet)
-  (:export pile-of-plates))
+(defun pile-of-plates (&optional (platenum 20) (simint 1000))
+  (let* ((ids (mapcar (lambda (num)
+                        (intern (format nil "PLATE-~a" num) :keyword))
+                      (alexandria:iota platenum))))
+    (prolog:prolog '(btr:clear-bullet-world))
+    (prolog:prolog '(and (btr:bullet-world ?world)
+                         (btr:debug-window ?world)))
+    (prolog:prolog '(and (btr:bullet-world ?world)
+                         (assert (btr:object ?world :static-plane :floor ((0 0 0) (0 0 0 1))
+                                             :normal (0 0 1) :constant 0))))
+    (read-char)
+    (mapcar (lambda (plate-id)
+              (prolog:prolog `(and (btr:bullet-world ?world)
+                                   (assert (btr:object ?world :mesh ,plate-id ((0 0 5) (0 0 0 1)) :mass 0.2 :color (1 0 0) :scale 5 :mesh :plate))))
+              (prolog:prolog `(and (btr:bullet-world ?world)
+                                   (btr:simulate ?world ,simint)))
+              (format t "Added ~a~%" plate-id))
+            ids)))
+
