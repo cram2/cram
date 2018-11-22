@@ -58,6 +58,8 @@
    (mass :reader mass :initarg :mass :initform 0.0d0)
    (motion-state :reader motion-state :initarg :motion-state
                  :initform (make-instance 'motion-state))
+   (visualization-shape :reader visualization-shape :initarg :visualization-shape
+                        :initform nil)
    (collision-shape :reader collision-shape :initarg :collision-shape
                     :initform (error
                                'simple-error

@@ -71,6 +71,7 @@
    mass name
    collision-group collision-mask
    collision-shape
+   visualization-shape
    aabb
    ;; motion states
    pose

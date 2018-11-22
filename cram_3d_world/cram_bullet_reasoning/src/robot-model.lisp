@@ -65,23 +65,11 @@
   a `compound-shape' if compound it T.
   The former combines all meshes and faces into one convex-hull-shape, while the latter
   contains every single mesh as a seperate convex-hull-shape as children in a compound-shape."
-  (let* ((model (load-mesh mesh compound)))
-    (flet ((make-ch-mesh-shape (model-part)
-             (make-instance 'convex-hull-mesh-shape
-                            :color (apply-alpha-value color)
-                            :faces (physics-utils:3d-model-faces model-part)
-                            :points (physics-utils:3d-model-vertices model-part))))
-      (if compound
-          (let ((compound-shape (make-instance 'compound-shape))
-                (id-pose (cl-transforms:make-pose
-                          (cl-transforms:make-3d-vector 0 0 0)
-                          (cl-tf:make-identity-rotation))))
-            (mapcar (alexandria:compose
-                     (alexandria:curry #'add-child-shape compound-shape id-pose)
-                     #'make-ch-mesh-shape)
-                    model)
-            compound-shape)
-          (make-ch-mesh-shape (car model))))))
+  (let* ((mesh-filename (cl-urdf:filename mesh))
+         (scale (cl-urdf:scale mesh))
+         (size (cl-urdf:size mesh))
+         (collision-shape (make-collision-shape-from-mesh mesh-filename :color color :scale scale :size size :compound compound)))
+    collision-shape))
 
 (defstruct collision-information
   rigid-body-name flags)
@@ -668,17 +656,3 @@ Only one joint state changes in this situation, so only one joint state is updat
             (list r g b (or *robot-model-alpha* 1.0)))
           (error "Color of an object has to be a list of 3 or 4 values"))))
 
-(defun load-mesh (mesh &optional (compound nil))
-  "Loads and resizes the 3d-model. If `compound' is T we have a list of meshes, instead of one."
-  (let ((model (multiple-value-list
-                (physics-utils:load-3d-model (physics-utils:parse-uri (cl-urdf:filename mesh))
-                                            :compound compound))))
-    (cond ((cl-urdf:scale mesh)
-           (mapcar (lambda (model-part)
-                     (physics-utils:scale-3d-model model-part (cl-urdf:scale mesh)))
-                   model))
-          ((cl-urdf:size mesh)
-           (mapcar (lambda (model-part)
-                     (physics-utils:resize-3d-model model-part (cl-urdf:size mesh)))
-                   model))
-          (t model))))

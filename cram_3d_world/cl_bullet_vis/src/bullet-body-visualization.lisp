@@ -35,7 +35,7 @@
 (defmethod draw ((context gl-context) (body rigid-body))
   (gl:with-pushed-matrix
     (gl:mult-matrix (pose->gl-matrix (pose body)))
-    (draw context (collision-shape body)))
+    (draw context (or (visualization-shape body) (collision-shape body))))
   (when *draw-bounding-boxes*
     (draw context (aabb body))))
 
