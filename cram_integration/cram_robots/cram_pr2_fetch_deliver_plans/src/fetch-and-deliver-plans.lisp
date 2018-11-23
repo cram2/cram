@@ -368,11 +368,12 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 (let ((place-action
                         (or (when place-action
                               (destructuring-bind (_action _object-designator _on-obj-desig
-                                                   ?projected-target-location
+                                                   _assemblage-name
                                                    ?arm _gripper-opening
                                                    _left-reach-poses _right-reach-poses
                                                    _left-put-poses _right-put-poses
-                                                   _left-lift-poses _right-lift-poses)
+                                                   _left-lift-poses _right-lift-poses
+                                                   ?projected-target-location)
                                   (desig:reference place-action)
                                 (desig:an action
                                           (type placing)

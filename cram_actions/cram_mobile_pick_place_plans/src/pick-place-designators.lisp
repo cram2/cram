@@ -120,7 +120,8 @@
                                                         ?gripper-opening
                                                         ?left-reach-poses ?right-reach-poses
                                                         ?left-put-poses ?right-put-poses
-                                                        ?left-retract-poses ?right-retract-poses))
+                                                        ?left-retract-poses ?right-retract-poses
+                                                        ?current-location-designator))
     (spec:property ?action-designator (:type :placing))
 
     ;; find in which hand the object is
@@ -151,12 +152,14 @@
     (-> (spec:property ?action-designator (:target ?location-designator))
         (and (desig:current-designator ?location-designator ?current-location-designator)
              (desig:designator-groundings ?current-location-designator ?poses)
-             (member ?target-pose ?poses)
-             (lisp-fun pose->transform-stamped-in-base ?target-pose ?object-name
-                       ?target-transform))
-        (and (lisp-fun man-int:get-object-transform ?current-object-designator ?target-transform)
-             (lisp-fun man-int:get-object-pose ?current-object-designator ?target-pose)
-             (desig:designator :location ((:pose ?target-pose)) ?current-location-designator)))
+             (member ?target-object-pose ?poses)
+             (lisp-fun pose->transform-stamped-in-base ?target-object-pose ?object-name
+                       ?target-object-transform))
+        (and (lisp-fun man-int:get-object-transform ?current-object-designator
+                       ?target-object-transform)
+             (lisp-fun man-int:get-object-pose ?current-object-designator ?target-object-pose)
+             (desig:designator :location ((:pose ?target-object-pose))
+                               ?current-location-designator)))
 
     ;; placing happens on/in an object
     (or (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
@@ -167,10 +170,10 @@
         (equal ?placement-location-name NIL))
 
     (lisp-fun man-int:get-object-grasping-poses
-              ?object-name ?object-type :left ?grasp ?target-transform
+              ?object-name ?object-type :left ?grasp ?target-object-transform
               ?left-poses)
     (lisp-fun man-int:get-object-grasping-poses
-              ?object-name ?object-type :right ?grasp ?target-transform
+              ?object-name ?object-type :right ?grasp ?target-object-transform
               ?right-poses)
     (lisp-fun extract-place-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-put-poses ?right-put-poses

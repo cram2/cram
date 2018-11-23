@@ -188,13 +188,16 @@ Store found pose into designator or throw error if good pose not found."
                 (cpl:fail 'common-fail:object-unreachable)))
 
            (let ((placing-action-referenced (desig:reference placing-action-desig)))
-             (destructuring-bind (_action object-designator on-object-designator arm
+             (destructuring-bind (_action object-designator on-object-designator
+                                  _assemblage-name
+                                  arm
+                                  _gripper-opening
                                   left-reach-poses right-reach-poses
                                   left-put-poses right-put-poses
                                   left-retract-poses right-retract-poses
                                   _placing-location)
                  placing-action-referenced
-               (declare (ignore _action _placing-location))
+               (declare (ignore _action _assemblage-name _gripper-opening _placing-location))
 
                (pr2-proj::gripper-action :open arm)
 
