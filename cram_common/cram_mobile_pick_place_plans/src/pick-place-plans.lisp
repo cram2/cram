@@ -128,7 +128,8 @@
      (desig:an action
                (type putting)
                (object ?object-designator)
-               (supporting-object ?other-object-designator)
+               (desig:when ?other-object-designator
+                 (supporting-object ?other-object-designator))
                (left-poses ?left-put-poses)
                (right-poses ?right-put-poses))))
   (when ?placing-location-name

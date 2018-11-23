@@ -367,11 +367,12 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 ;; place
                 (let ((place-action
                         (or (when place-action
-                              (destructuring-bind (_action _object-designator ?arm
+                              (destructuring-bind (_action _object-designator _on-obj-desig
+                                                   ?projected-target-location
+                                                   ?arm _gripper-opening
                                                    _left-reach-poses _right-reach-poses
                                                    _left-put-poses _right-put-poses
-                                                   _left-lift-poses _right-lift-poses
-                                                   ?projected-target-location)
+                                                   _left-lift-poses _right-lift-poses)
                                   (desig:reference place-action)
                                 (desig:an action
                                           (type placing)
@@ -397,12 +398,13 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
            0.0
            (cl-transforms:make-3d-vector 0.7 -0.2 0)
            (cl-transforms:make-identity-rotation)))
-        (?placing-pose
-          (cl-transforms-stamped:make-pose-stamped
-           cram-tf:*robot-base-frame*
-           0.0
-           (cl-transforms:make-3d-vector 0.7 0 1.2)
-           (cl-transforms:make-identity-rotation))))
+        ;; (?placing-pose
+        ;;   (cl-transforms-stamped:make-pose-stamped
+        ;;    cram-tf:*robot-base-frame*
+        ;;    0.0
+        ;;    (cl-transforms:make-3d-vector 0.7 0 1.2)
+        ;;    (cl-transforms:make-identity-rotation)))
+        )
     (cpl:with-failure-handling
         ((common-fail:navigation-low-level-failure (e)
            (declare (ignore e))
@@ -419,8 +421,9 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
       (exe:perform
        (desig:an action
                  (type placing)
-                 (target (desig:a location
-                                  (pose ?placing-pose))))))))
+                 ;; (target (desig:a location
+                 ;;                  (pose ?placing-pose)))
+                 )))))
 
 
 (cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm
