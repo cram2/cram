@@ -356,13 +356,38 @@ of the object should _not_ be updated."
     :collision-mask collision-mask
     :compound compound))
 
+(defun list-directly-supported-objects (world object)
+  (mapcar
+    (lambda (object-name)
+      (object world object-name))
+    (cut:force-ll
+     (cut:var-value
+       '?os
+       (car
+         (prolog:prolog `(and (findall ?t (supported-by ,world ?t ,(name object)) ?os))))))))
+
+(defun list-supported-objects-internal (world to-visit visited)
+  (if to-visit
+    (let* ((cr-object (car to-visit))
+           (supported-objects (list-directly-supported-objects world cr-object))
+           (supported-objects (set-difference (set-difference supported-objects to-visit) visited))
+           (to-visit (cdr to-visit)))
+      (list-supported-objects-internal world
+                                       (append to-visit supported-objects)
+                                       (cons cr-object visited)))
+    visited))
+
+(defun list-supported-objects (world object)
+  (list-supported-objects-internal world (list-directly-supported-objects world object) nil))
+
 (defun update-attached-object-poses (robot-object link pose)
   "Updates the poses of all objects that are attached to
 `link'. `pose' is the new pose of `link'"
   (with-slots (attached-objects links) robot-object
     (let ((body (gethash (cl-urdf:name link) links)))
       (when body
-        (let* ((attachments
+        (let* ((world (world robot-object))
+               (attachments
                  (mapcar
                   #'car
                   (remove-if-not
@@ -379,14 +404,26 @@ of the object should _not_ be updated."
                             (cl-transforms:transform*
                              pose-transform
                              (cl-urdf:origin (cl-urdf:collision link)))
-                            (cl-transforms:transform-inv body-transform))))
-          (dolist (attachment attachments)
-            (let ((attached-object (object (world robot-object) attachment)))
-              (if attached-object
-                  (setf (pose attached-object)
-                        (cl-transforms:transform-pose pose-delta (pose attached-object)))
-                  (setf attached-objects (remove attachment attached-objects
-                                                 :key #'car))))))))))
+                            (cl-transforms:transform-inv body-transform)))
+               (actually-attached-objects (mapcar (lambda (attachment)
+                                                    (let* ((attached-object (object world attachment)))
+                                                      (if attached-object
+                                                        attached-object
+                                                        (progn
+                                                          (setf attached-objects (remove attachment attached-objects :key #'car))
+                                                          nil))))
+                                                  attachments))
+               (actually-attached-objects (remove-if #'null actually-attached-objects))
+               (supported-objects (mapcar (lambda (attached-object)
+                                              (list-supported-objects world attached-object))
+                                          actually-attached-objects))
+               (supported-objects (apply #'append supported-objects))
+               (moved-objects (append actually-attached-objects supported-objects))
+               (moved-objects (remove-duplicates moved-objects)))
+          (dolist (moved-object moved-objects)
+            (if moved-object
+              (setf (pose moved-object)
+                    (cl-transforms:transform-pose pose-delta (pose moved-object))))))))))
 
 (defun update-link-poses (robot-object link pose)
   (declare (type cl-urdf:link link)

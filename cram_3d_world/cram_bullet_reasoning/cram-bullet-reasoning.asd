@@ -84,7 +84,7 @@
        (:file "pose-sampling-facts" :depends-on ("package" "world-facts" "pose-generators"))
        (:file "pose-facts"
         :depends-on ("package" "aabb" "world-utils" "pose-generators" "objects" "world-facts"))
-       (:file "robot-model" :depends-on ("package" "objects" "utils" "reasoning-world"))
+       (:file "robot-model" :depends-on ("package" "objects" "utils" "reasoning-world" "world-facts"))
        (:file "robot-model-utils" :depends-on ("package" "robot-model"))
        (:file "robot-model-facts"
         :depends-on ("package" "world-facts" "prolog-handlers" "robot-model" "robot-model-utils"))
