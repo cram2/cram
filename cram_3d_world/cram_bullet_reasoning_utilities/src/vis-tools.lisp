@@ -36,15 +36,15 @@
   (mapcar
    (lambda (costmap-pair)
      (let* ((costmap (cdar costmap-pair))
-            (functions (car (location-costmap:cost-functions costmap))))
+            (functions (car (costmap:cost-functions costmap))))
        (if functions
            (progn
              (format t "[BTR-UTILS CM] Costmap named ~a~%"
-                     (location-costmap:generator-name functions))
-             (location-costmap:get-cost-map costmap)
+                     (costmap:generator-name functions))
+             (costmap:get-cost-map costmap)
              (sleep 3))
            (format t "[BTR-UTILS CM] No cost functions registered~%"))))
-   (force-ll (prolog `(and (location-costmap:desig-costmap ,designator ?cm)))))
+   (cut:force-ll (prolog `(and (costmap:desig-costmap ,designator ?cm)))))
   (format t "[BTR-UTILS CM] Combined costmap~%")
   (desig:reference designator))
 
@@ -52,7 +52,7 @@
   (let ((tool-frame (ecase arm
                       (:left cram-tf:*robot-left-tool-frame*)
                       (:right cram-tf:*robot-right-tool-frame*))))
-    (btr-utils:spawn-object
+    (spawn-object
      (ecase arm
        (:left :left-gripper-grasp)
        (:right :right-gripper-grasp))

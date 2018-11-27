@@ -29,7 +29,6 @@
 
 (in-package :bullet-reasoning-utilities)
 
-;; defmethods for all defgenerics of objects
 (def-fact-group scenario-objects-database ()
   ;; Pose where objects are spawned.
   (<- (scenario-objects-init-pose ((2 0 0) (0 0 0 1))))
@@ -95,5 +94,5 @@
                    (make-instance 'btr:rigid-body
                      :name name :mass mass :pose (btr:ensure-pose pose)
                      :collision-shape (make-instance 'bt-vis:colored-box-shape
-                                        :half-extents (ensure-vector size)
+                                        :half-extents (btr:ensure-vector size)
                                         :color color)))))
