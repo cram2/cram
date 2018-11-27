@@ -15,9 +15,10 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>cram_prolog</depend>
+  <depend>cram_utilities</depend>
   <depend>cram_designators</depend>
   <depend>cram_tf</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cram_robot_interfaces</depend>
-  <depend>cram_utilities</depend>
+  <depend>cram_plan_occasions_events</depend>
 </package>
