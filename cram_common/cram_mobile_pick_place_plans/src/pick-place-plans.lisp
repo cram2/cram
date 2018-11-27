@@ -81,7 +81,8 @@
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-attached-robot
      :object-name (desig:desig-prop-value ?object-designator :name)
-     :arm ?arm))
+     :arm ?arm
+     :grasp ?grasp))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)

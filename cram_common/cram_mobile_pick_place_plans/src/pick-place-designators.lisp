@@ -141,11 +141,6 @@
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        ;; TODO: grasp should be stored in the knowledge base!!
-        (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?grasps)
-             (member ?grasp ?grasps)))
     (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
 
     ;; take object-pose from action-designator :target otherwise from object-designator pose
@@ -168,6 +163,10 @@
     (-> (desig:desig-prop ?current-location-designator (:attachment ?placement-location-name))
         (true)
         (equal ?placement-location-name NIL))
+
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (cpoe:object-in-hand ?object-designator ?arm ?grasp))
 
     (lisp-fun man-int:get-object-grasping-poses
               ?object-name ?object-type :left ?grasp ?target-object-transform

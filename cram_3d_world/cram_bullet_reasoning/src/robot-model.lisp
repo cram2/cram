@@ -90,10 +90,11 @@
   "Represents a link between an object and a link. `object' must be an
 instance of class OBJECT. `link' must be a string, the name of the
 link. If `loose' is non-NIL, it means that if the link moves, the pose
-of the object should _not_ be updated."
+of the object should _not_ be updated. `grasp' is the type of grasp orientation."
   (object nil :type (or symbol string))
   (link "" :type string)
-  (loose nil :type (or nil t)))
+  (loose nil :type (or nil t))
+  (grasp nil :type (or null keyword)))
 
 (defclass robot-object (object)
   ((links :initarg :links :initform (make-hash-table :test 'equal) :reader links)
@@ -160,14 +161,16 @@ of the object should _not_ be updated."
   attached to.")
   (:method ((robot-object robot-object) (object object))
     (with-slots (attached-objects) robot-object
-      (mapcar #'attachment-link (car (cdr (assoc (name object) attached-objects
-                                                 :test #'equal)))))))
+      (values (mapcar #'attachment-link (car (cdr (assoc (name object) attached-objects
+                                                         :test #'equal))))
+              (mapcar #'attachment-grasp (car (cdr (assoc (name object) attached-objects
+                                                          :test #'equal))))))))
 
-(defgeneric attach-object (robot-object obj link &key loose)
+(defgeneric attach-object (robot-object obj link &key loose grasp)
   (:documentation "Adds `obj' to the set of attached objects. If
   `loose' is set to NIL and the link the object is attached to is
   moved, the object moves accordingly.")
-  (:method ((robot-object robot-object) (obj object) link &key loose)
+  (:method ((robot-object robot-object) (obj object) link &key loose grasp)
     (unless (gethash link (links robot-object))
       (error 'simple-error :format-control "Link ~a unknown"
              :format-arguments (list link)))
@@ -176,7 +179,7 @@ of the object should _not_ be updated."
                                    :test #'equal))
             (new-attachment
               (make-attachment
-               :object (name obj) :link link :loose loose)))
+               :object (name obj) :link link :loose loose :grasp grasp)))
         (cond (obj-attachment
                (pushnew new-attachment (car (cdr obj-attachment))
                         :test #'equal :key #'attachment-link))
