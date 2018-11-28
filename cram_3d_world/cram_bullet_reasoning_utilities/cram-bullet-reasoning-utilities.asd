@@ -33,7 +33,6 @@
   :depends-on (cram-designators
                cram-prolog
                cram-utilities
-               cram-language
 
                cram-location-costmap
                cram-tf ; for visualize-gripper in vis-tools
