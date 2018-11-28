@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,33 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-manipulation-interfaces
-  :author "Gayane Kazhoyan"
-  :license "BSD"
-  :description "Object interfaces"
+(in-package :cram-manipulation-interfaces)
 
-  :depends-on (cram-prolog
-               cram-utilities ; for lazy lists in manipulation.lisp
-               cram-designators
-               cram-tf
-               cl-transforms-stamped
-               cram-robot-interfaces ; for gripper transform calculations
-               cram-plan-occasions-events ; for robot-free-arm
-               )
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "object-designator-interfaces" :depends-on ("package"))
-     (:file "prolog" :depends-on ("package" "object-designator-interfaces"))
-     (:file "trajectories" :depends-on ("package" "prolog"))
-     (:file "gripper" :depends-on ("package"))
-     (:file "grasps" :depends-on ("package"))
-     (:file "standard-grasps" :depends-on ("package"))
-     (:file "standard-rotations" :depends-on ("package"))))))
+(defparameter *rotation-around-z-90-matrix*
+  '(( 0  1  0)
+    (-1  0  0)
+    ( 0  0  1)))
+
+(defparameter *rotation-around-z+90-matrix*
+  '((0 -1  0)
+    (1  0  0)
+    (0  0  1)))
+
+(defparameter *identity-matrix*
+  '((1 0 0)
+    (0 1 0)
+    (0 0 1)))
+
+
+(defparameter *rotation-around-x+90-list*
+  '(0.7071067811865475d0 0.0d0 0.0d0 0.7071067811865476d0))
+(defparameter *rotation-around-x-90-list*
+  '(-0.7071067811865475d0 0.0d0 0.0d0 0.7071067811865476d0))
+(defparameter *rotation-around-y+90-list*
+  '(0.0d0 0.7071067811865475d0 0.0d0 0.7071067811865476d0))
+(defparameter *rotation-around-y-90-list*
+  '(0.0d0 -0.7071067811865475d0 0.0d0 0.7071067811865476d0))
+(defparameter *rotation-around-z+90-list*
+  '(0.0d0 0.0d0 0.7071067811865475d0 0.7071067811865476d0))
+(defparameter *rotation-around-z-90-list*
+  '(0.0d0 0.0d0 -0.7071067811865475d0 0.7071067811865476d0))

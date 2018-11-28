@@ -50,6 +50,9 @@
    #:get-object-type-to-gripper-2nd-lift-transform
    #:def-object-type-to-gripper-transforms
    #:get-object-grasping-poses
+   #:get-object-type-in-other-object-transform
+   #:get-object-placement-transform
+   #:def-object-type-in-other-object-transform
    ;; gripper
    #:get-object-type-gripping-effort
    #:get-object-type-gripper-opening
@@ -71,4 +74,14 @@
    #:*-y-across-x-grasp-rotation*
    #:*z-across-x-grasp-rotation*
    #:*z-across-y-grasp-rotation*
-   #:*z-diagonal-grasp-rotation*))
+   #:*z-diagonal-grasp-rotation*
+   ;; standard-rotations
+   #:*rotation-around-z-90-matrix*
+   #:*rotation-around-z+90-matrix*
+   #:*identity-matrix*
+   #:*rotation-around-x+90-list*
+   #:*rotation-around-x-90-list*
+   #:*rotation-around-y+90-list*
+   #:*rotation-around-y-90-list*
+   #:*rotation-around-z+90-list*
+   #:*rotation-around-z-90-list*))
