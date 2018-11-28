@@ -62,7 +62,7 @@
     (spec:property ?current-other-object-designator (:name ?other-object-name))
     (lisp-fun man-int:get-object-transform ?current-other-object-designator
               ?other-object-transform)
-    (lisp-fun kr-assembly::get-object-placement-transform
+    (lisp-fun man-int:get-object-placement-transform
               ?object-name ?object-type
               ?other-object-name ?other-object-type ?other-object-transform
               ?attachment-type

@@ -29,9 +29,10 @@
 
 (in-package :cram-manipulation-interfaces)
 
+;;;;;;;;;;;;;;;;;;; OBJECT TO GRIPPER TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defvar *known-grasp-types* nil
   "A list of symbols representing all known grasp types")
-
 
 (defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
   (:documentation "Returns a pose stamped.
@@ -243,3 +244,88 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                         object-to-standard-gripper-transform
                         object-to-standard-gripper-lift-transform
                         object-to-standard-gripper-2nd-lift-transform)))))))
+
+
+
+;;;;;;;;;;;;;;;;;;; OBJECT TO OTHER OBJECT TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar *known-attachment-types* nil
+  "A list of symbols representing all known attachment types")
+
+(defgeneric get-object-type-in-other-object-transform (object-type object-name
+                                                       other-object-type other-object-name
+                                                       attachment))
+
+(defun get-object-placement-transform (object-name object-type
+                                       other-object-name other-object-type other-object-transform
+                                       attachment-type)
+  "Returns a transform in robot base frame where the object named `object-name' should go"
+  (let* ((base-frame
+           cram-tf:*robot-base-frame*)
+         (object-frame
+           (roslisp-utilities:rosify-underscores-lisp-name object-name))
+         (base-to-object-transform  ; bTo = bToo * ooTo
+           (cram-tf:multiply-transform-stampeds
+            base-frame
+            object-frame
+            other-object-transform
+            (get-object-type-in-other-object-transform ; ooTo
+             object-type object-name other-object-type other-object-name attachment-type))))
+    base-to-object-transform))
+
+
+
+(defmacro def-object-type-in-other-object-transform (object-type other-object-type attachment-type
+                                                     &key
+                                                       (attachment-translation ''(0.0 0.0 0.0))
+                                                       (attachment-rot-matrix ''((1.0 0.0 0.0)
+                                                                                 (0.0 1.0 0.0)
+                                                                                 (0.0 0.0 1.0))))
+  `(let ((evaled-object-type ,object-type)
+         (evaled-other-object-type ,other-object-type)
+         (evaled-attachment-type ,attachment-type)
+         (evaled-attachment-translation ,attachment-translation)
+         (evaled-attachment-rot-matrix ,attachment-rot-matrix))
+     (let ((object-list
+             (if (listp evaled-object-type)
+                 evaled-object-type
+                 (list evaled-object-type)))
+           (other-object-list
+             (if (listp evaled-other-object-type)
+                 evaled-other-object-type
+                 (list evaled-other-object-type))))
+       (mapcar (lambda (object)
+                 (mapcar (lambda (other-object)
+                           (let ((transform
+                                   (cl-transforms-stamped:make-transform-stamped
+                                    (roslisp-utilities:rosify-underscores-lisp-name other-object)
+                                    (roslisp-utilities:rosify-underscores-lisp-name object)
+                                    0.0
+                                    (cl-transforms:make-3d-vector
+                                     (first evaled-attachment-translation)
+                                     (second evaled-attachment-translation)
+                                     (third evaled-attachment-translation))
+                                    (cl-transforms:matrix->quaternion
+                                     (make-array '(3 3)
+                                                 :initial-contents
+                                                 evaled-attachment-rot-matrix)))))
+
+                             (pushnew evaled-attachment-type *known-attachment-types*)
+
+   (defmethod get-object-type-in-other-object-transform ((object-type (eql object))
+                                                         object-name
+                                                         (other-object-type (eql other-object))
+                                                         other-object-name
+                                                         (attachment (eql evaled-attachment-type)))
+         (let ((attachment-transform transform))
+           (if attachment-transform
+               (cram-tf:copy-transform-stamped
+                attachment-transform
+                :frame-id (roslisp-utilities:rosify-underscores-lisp-name other-object-name)
+                :child-frame-id (roslisp-utilities:rosify-underscores-lisp-name object-name))
+               (error "Attachment transform not defined for ~a with ~a attached with ~a~%"
+                      object other-object attachment))))
+
+                             ))
+                         other-object-list))
+               object-list))))
