@@ -143,10 +143,10 @@ the `look-pose-stamped'."
                                                (:object ?object-designator))
                                     ?robot-location-designator))))
     ;; pick-up-action
-    (desig:desig-prop ;; spec:property
-     ?action-designator (:pick-up-action ?some-pick-up-action-designator))
-    (desig:current-designator ?some-pick-up-action-designator ?pick-up-action-designator)
-)
+    (once (or (desig:desig-prop ;; spec:property
+               ?action-designator (:pick-up-action ?some-pick-up-action-designator))
+              (equal ?some-pick-up-action-designator NIL)))
+    (desig:current-designator ?some-pick-up-action-designator ?pick-up-action-designator))
 
   (<- (desig:action-grounding ?action-designator (deliver ?object-designator ?location-designator
                                                           ?robot-location-designator
@@ -165,8 +165,9 @@ the `look-pose-stamped'."
                                            (:location ?location-designator))
                                 ?robot-location-designator)))
     ;; place-action
-    (desig:desig-prop ;; spec:property
-     ?action-designator (:place-action ?some-place-action-designator))
+    (once (or (desig:desig-prop ;; spec:property
+               ?action-designator (:place-action ?some-place-action-designator))
+              (equal ?some-place-action-designator NIL)))
     (desig:current-designator ?some-place-action-designator ?place-action-designator))
 
   (<- (desig:action-grounding ?action-designator (transport
