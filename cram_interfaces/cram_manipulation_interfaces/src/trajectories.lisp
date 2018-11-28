@@ -329,3 +329,43 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                              ))
                          other-object-list))
                object-list))))
+
+
+
+;;;;;;;;;;;;;;;;;;; CAMERA TO OBJECT TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *default-look-z-offset* 0.2 "in meters")
+(defparameter *default-look-x-offset* 0.15 "in meters")
+
+(defun get-object-look-from-pose (object-transform)
+  (declare (type cl-transforms-stamped:transform-stamped object-transform))
+  "Returns a pose stamped representing bTg -- transfrom from base to gripper.
+Used for generating a pose for a hand-mounted camera.
+Take object-transform, ensure it's from base frame  -- bTo.
+Take an initial pose of gripper in base bTg and set its X and Y to object X and Y.
+Set Z to offset object Z."
+
+  (unless (equal (cl-transforms-stamped:frame-id object-transform)
+                 cram-tf:*robot-base-frame*)
+    (error "In grasp calculations the OBJECT-TRANSFORM did not have ~
+correct parent frame: ~a and ~a"
+           (cl-transforms-stamped:frame-id object-transform)
+           cram-tf:*robot-base-frame*))
+
+  (let* ((gripper-initial-pose
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*robot-base-frame*
+            0.0
+            (cl-transforms:make-3d-vector 0 0 0)
+            (cl-transforms:matrix->quaternion
+             #2A((-1 0 0)
+                 (0 1 0)
+                 (0 0 -1)))))
+         (object-x-in-base (cl-transforms:x (cl-transforms:translation object-transform)))
+         (object-y-in-base (cl-transforms:y (cl-transforms:translation object-transform)))
+         (object-z-in-base (cl-transforms:z (cl-transforms:translation object-transform)))
+         (offset-object-x (- object-x-in-base *default-look-x-offset*))
+         (offset-object-z (+ object-z-in-base *default-look-z-offset*)))
+    (cl-transforms-stamped:copy-pose-stamped
+     gripper-initial-pose
+     :origin (cl-transforms:make-3d-vector offset-object-x object-y-in-base offset-object-z))))

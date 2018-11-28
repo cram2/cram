@@ -53,6 +53,7 @@
    #:get-object-type-in-other-object-transform
    #:get-object-placement-transform
    #:def-object-type-in-other-object-transform
+   #:get-object-look-from-pose
    ;; gripper
    #:get-object-type-gripping-effort
    #:get-object-type-gripper-opening
