@@ -62,10 +62,27 @@
       :pose (cl-transforms:transform-pose
              (cl-transforms:pose->transform pose)
              (sem-map-utils:pose part))
-      :collision-shape (make-instance 'box-shape
-                         :half-extents (cl-transforms:v*
-                                        (sem-map-utils:dimensions part)
-                                        0.5))))
+      :collision-shape (let* ((mesh-uri (semantic-map-utils::get-mesh-path (semantic-map-utils:owl-name part)))
+                             (mesh-path (physics-utils:parse-uri mesh-uri)))
+                             (let ((mesh-model
+                                     (physics-utils:scale-3d-model
+                                      (if mesh-path
+                                          (with-file-cache model mesh-path (physics-utils:load-3d-model mesh-path)
+                                            model)
+                                          (roslisp:ros-warn (btr) "No mesh-path was defined."))
+                                      1.0))) ;scale value
+      
+                         (if mesh-path
+                             (make-instance 'convex-hull-mesh-shape
+                               :points (physics-utils:3d-model-vertices mesh-model)
+                               :faces (physics-utils:3d-model-faces mesh-model)
+                               :color '(0.5 0.5 0.5 1.0))
+                             
+                             (make-instance 'box-shape
+                               :half-extents (cl-transforms:v*
+                                              (sem-map-utils:dimensions part)
+                                              0.5)))))))
+  
   (:method ((part t) &key pose collision-group collision-mask)
     (declare (ignore pose collision-group collision-mask))
     (warn 'simple-warning

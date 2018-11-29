@@ -175,7 +175,7 @@
                  (semantic-map-part part name :recursive recursive))
                (semantic-map-parts part)))))))
 
-(defgeneric make-semantic-map-part-old (type name owlname parent);TODO change back?
+(defgeneric make-semantic-map-part (type name owlname parent);TODO change back?
   (:method ((type t) name owlname parent)
     ;; TODO(moesenle): The default handling feels pretty wrong
     ;; here. We need to find a better way to encode default handling
@@ -228,7 +228,7 @@
                                    aliases)
                   :parent parent)))))))
 
-(defgeneric make-semantic-map-part (type name owlname parent)
+(defgeneric make-semantic-map-part-new (type name owlname parent)
   (:method ((type t) name owlname parent)
     ;; TODO(moesenle): The default handling feels pretty wrong
     ;; here. We need to find a better way to encode default handling
@@ -256,21 +256,21 @@
                                                   (remove #\' (symbol-name label)))
                                                 aliases)
                   :parent parent)
-                (btr:add-object ;TODO fix circular dependency
-                btr:*current-bullet-world*
-                 :mesh
-                 owlname
-;;                 ;;pose:
-                 (destructuring-bind (map name pose quaternion)
-                     ?pose 
-                   (destructuring-bind (x y z) pose
-                     (destructuring-bind (w q1 q2 q3) quaternion ;w q1 q2 q3
-                       (list (list x y z)(list w q1 q2 q3)))))
-                 :mass 0.2 ;TODO ask if this is important? Can I read this out from map?
-                 :mesh (cram-physics-utils::load-3d-model
-                        (cram-physics-utils::parse-uri
-                         (remove #\'  (symbol-name ?meshPath))))
-                 )
+;;                 (btr:add-object ;TODO fix circular dependency
+;;                 btr:*current-bullet-world*
+;;                  :mesh
+;;                  owlname
+;; ;;                 ;;pose:
+;;                  (destructuring-bind (map name pose quaternion)
+;;                      ?pose 
+;;                    (destructuring-bind (x y z) pose
+;;                      (destructuring-bind (w q1 q2 q3) quaternion ;w q1 q2 q3
+;;                        (list (list x y z)(list w q1 q2 q3)))))
+;;                  :mass 0.2 ;TODO ask if this is important? Can I read this out from map?
+;;                  :mesh (cram-physics-utils::load-3d-model
+;;                         (cram-physics-utils::parse-uri
+;;                          (remove #\'  (symbol-name ?meshPath))))
+;;                  )
                ))))))
 
 (defgeneric update-pose (obj new-pose &key relative recursive)
@@ -600,3 +600,17 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                          (remove #\' (symbol-name label)))
                        (unless (is-var ?labels) ?labels))
       :parent parent)))
+
+(defun get-mesh-path (owlname) 
+;  "Returns the path of the mesh given the owlname of the mesh"
+  (roslisp:ros-info (sem-map-utils) "get-mesh-path ~a" owlname)
+  (remove #\'
+          (symbol-name
+           (cut:var-value
+            (intern "?MeshPath")
+            (cut:lazy-car
+             (json-prolog:prolog-simple
+              (concatenate 'string
+                           "object_mesh_path('"
+                           owlname
+                           "', MeshPath).")))))))
