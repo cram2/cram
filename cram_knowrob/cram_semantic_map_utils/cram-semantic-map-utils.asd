@@ -44,4 +44,5 @@
     ((:file "package")
      (:file "owl-type-initializers" :depends-on ("package"))
      (:file "semantic-map" :depends-on ("package" "owl-type-initializers"))
-     (:file "articulation-utilities" :depends-on ("package" "semantic-map"))))))
+     (:file "articulation-utilities" :depends-on ("package" "semantic-map"))
+     (:file "mesh-list" :depends-on ("package"))))))
