@@ -602,15 +602,20 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
       :parent parent)))
 
 (defun get-mesh-path (owlname) 
-;  "Returns the path of the mesh given the owlname of the mesh"
-  (roslisp:ros-info (sem-map-utils) "get-mesh-path ~a" owlname)
-  (remove #\'
-          (symbol-name
-           (cut:var-value
-            (intern "?MeshPath")
-            (cut:lazy-car
-             (json-prolog:prolog-simple
-              (concatenate 'string
-                           "object_mesh_path('"
-                           owlname
-                           "', MeshPath).")))))))
+  "Returns the path of the mesh given the owlname of the mesh"
+  ;; (roslisp:ros-info (sem-map-utils) "get-mesh-path ~a" owlname)
+  (let ((mesh-path
+          (remove #\'
+                  (symbol-name
+                   (cut:var-value
+                    (intern "?MeshPath")
+                    (cut:lazy-car
+                     (json-prolog:prolog-simple
+                      (concatenate 'string
+                                   "object_mesh_path('"
+                                   owlname
+                                   "', MeshPath)."))))))))
+    ;check if mesh-path is in the whitelist
+    (if (find mesh-path *mesh-path-whitelist* :test #'equalp)
+        mesh-path
+        nil)))

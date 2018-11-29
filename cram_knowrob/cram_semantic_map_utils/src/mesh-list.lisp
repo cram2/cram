@@ -26,7 +26,7 @@
     "package://robcog/ButtonCooktopTopRight.dae"
     "package://robcog/ButtonOven.dae"
 ;;   "package://robcog/CeilingLight.dae"
-    "package://robcog/CharacterCamera.dae"
+;;    "package://robcog/CharacterCamera.dae"
     "package://robcog/CooktopHeatingElementBottomLeft.dae"
     "package://robcog/CooktopHeatingElementBottomRight.dae"
     "package://robcog/CooktopHeatingElementTopLeft.dae"
@@ -41,7 +41,7 @@
     "package://robcog/DishwasherLowerRack.dae"
     "package://robcog/DishwasherUpperRack.dae"
     "package://robcog/Dishwasher.dae"
-    "package://robcog/DoubleWindow.dae"
+;;    "package://robcog/DoubleWindow.dae"
     "package://robcog/FaucetBody.dae"
     "package://robcog/FaucetHandle.dae"
     "package://robcog/FaucetSpout.dae"
@@ -84,7 +84,7 @@
     "package://robcog/KnifeTable.dae"
     "package://robcog/KoellnMuesliCranberry.dae"
     "package://robcog/KoellnMuesliKnusperHonigNuss.dae"
-    "package://robcog/LabFloor.dae"
+;;    "package://robcog/LabFloor.dae"
 ;;    "package://robcog/LabWalls.dae"
 ;;    "package://robcog/LargeDoubleWindow.dae"
 ;;    "package://robcog/LargeSingleWindow.dae"
@@ -127,6 +127,4 @@
     "package://robcog/TrashDrawerHandle.dae"
     "package://robcog/TrashDrawer.dae"
     "package://robcog/Tray.dae"
-    "package://robcog/WasaDelicateCrisp.dae" "")
-    )
-  )
+    "package://robcog/WasaDelicateCrisp.dae"))
