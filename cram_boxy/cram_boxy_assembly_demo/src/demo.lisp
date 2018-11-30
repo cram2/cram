@@ -36,21 +36,17 @@
     ;; (:bowl . "edeka_red_bowl")
     ))
 
-;; (defmacro with-real-robot (&body body)
-;;   `(cram-process-modules:with-process-modules-running
-;;        (rs:robosherlock-perception-pm
-;;         pr2-pms::pr2-base-pm pr2-pms::pr2-arms-pm
-;;         pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
-;;      (cpl-impl::named-top-level (:name :top-level)
-;;        ,@body)))
-
 (cpl:def-cram-function initialize-or-finalize ()
   (cpl:with-failure-handling
       ((cpl:plan-failure (e)
          (declare (ignore e))
          (return)))
     (cpl:par
-      (pp-plans::park-arms)
+      (exe:perform
+       (desig:an action
+                 (type positioning-arm)
+                 (left-configuration park)
+                 (right-configuration park)))
       (let ((?pose (cl-transforms-stamped:make-pose-stamped
                     cram-tf:*fixed-frame*
                     0.0
@@ -61,7 +57,7 @@
                    (type going)
                    (target (desig:a location
                                     (pose ?pose))))))
-      (exe:perform (desig:an action (type opening) (gripper (left right))))
+      (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))))
 
 
