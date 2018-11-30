@@ -368,7 +368,10 @@
     (once (or (desig:desig-prop ?designator (:for ?_))
               (costmap:costmap-add-cached-height-generator
                (make-object-bounding-box-height-generator ?environment-link :on)
-               ?costmap))))
+               ?costmap)))
+    (costmap:costmap-add-orientation-generator
+     (make-discrete-orientations-generator)
+     ?costmap))
 
 ;; height generator for locations ((on something) (name something) (for some-obj))
   (<- (costmap:desig-costmap ?designator ?costmap)
@@ -426,9 +429,6 @@
      (make-slot-cost-function ?supp-object ?paddings-list ?preferred-side
                               ?object-count ?max-slot-size ?min-slot-size
                               ?pos-dev-threshold)
-     ?costmap)
-    (costmap:costmap-add-orientation-generator
-     (make-discrete-orientations-generator)
      ?costmap))
   ;;
   (<- (costmap:desig-costmap ?designator ?costmap)
