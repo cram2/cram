@@ -32,14 +32,6 @@
 (defvar *known-grasp-types* nil
   "A list of symbols representing all known grasp types")
 
-;; (defvar *known-collision-modes*
-;;   (list
-;;    :allow-all
-;;    :allow-hand
-;;    :allow-attached
-;;    :avoid-all)
-;;   "A list of keywords representing all known collision modes.")
-
 (defstruct traj-segment
   (label nil :type keyword)
   ;;(collision-mode :allow-all :type keyword)
@@ -57,14 +49,7 @@
 `action-type' describes for which type of action the trajectory will be.
 `arm' a single keyword eg. :left
 `grasp' describes which type of grasp should be used.
-`objects-acted-on' designators describing the objects used by the action."))
-
-;; (defmethod get-action-trajectory ((action-type (eql :opening))
-;;                                   arm
-;;                                   (grasp (eql :front))
-;;                                   objects-acted-on
-;;                                   &key opening-distance))                                  
-
+`objects-acted-on' designators describing the objects used by the action."))                             
 
 (defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
   (:documentation "Returns a pose stamped.
@@ -280,35 +265,6 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                       base-to-standard-gripper-transform      ; bTg'
                       standard-to-particular-gripper-transform ; g'Tg
                       :result-as-pose-or-transform :pose)))))
-
-          ;; (btr-utils:spawn-object "gras1" :mondamin
-          ;;                         :color '(0 1 0)
-          ;;                         :pose (cram-tf:ensure-pose-in-frame
-          ;;                                ;(object-to-standard-gripper->base-to-particular-gripper
-          ;;                                object-to-standard-gripper-pregrasp-transform
-          ;;                                ;)
-          ;;                                "map"))
-          ;; (btr-utils:spawn-object "gras2" :mondamin
-          ;;                         :color '(0 1 0)
-          ;;                         :pose (cram-tf:ensure-pose-in-frame
-          ;;                                ;(object-to-standard-gripper->base-to-particular-gripper
-          ;;                                object-to-standard-gripper-transform
-          ;;                                ;)
-          ;;                                "map"))
-          ;; (btr-utils:spawn-object "gras3" :mondamin
-          ;;                         :color '(0 1 0)
-          ;;                         :pose (cram-tf:ensure-pose-in-frame
-          ;;                                ;(object-to-standard-gripper->base-to-particular-gripper
-          ;;                                object-to-standard-gripper-lift-transform
-          ;;                                ;)
-          ;;                                "map"))
-          ;; (btr-utils:spawn-object "gras4" :mondamin
-          ;;                         :color '(0 1 0)
-          ;;                         :pose  (cram-tf:ensure-pose-in-frame
-          ;;                                 ;(object-to-standard-gripper->base-to-particular-gripper
-          ;;                                 object-to-standard-gripper-2nd-lift-transform
-          ;;                                 ;)
-          ;;                                 "map"))
           
           (mapcar #'object-to-standard-gripper->base-to-particular-gripper
                   (list object-to-standard-gripper-pregrasp-transform
