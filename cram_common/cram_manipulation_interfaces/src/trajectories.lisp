@@ -32,6 +32,39 @@
 (defvar *known-grasp-types* nil
   "A list of symbols representing all known grasp types")
 
+;; (defvar *known-collision-modes*
+;;   (list
+;;    :allow-all
+;;    :allow-hand
+;;    :allow-attached
+;;    :avoid-all)
+;;   "A list of keywords representing all known collision modes.")
+
+(defstruct traj-segment
+  (label nil :type keyword)
+  ;;(collision-mode :allow-all :type keyword)
+  (poses nil :type list))
+
+(defun make-empty-trajectory (labels)
+  (mapcar
+   (lambda (x)
+     (make-traj-segment :label x :poses nil))
+  labels))
+
+(defgeneric get-action-trajectory (action-type arm grasp objects-acted-on
+                                   &key &allow-other-keys)
+  (:documentation "Returns a list of traj-segments.
+`action-type' describes for which type of action the trajectory will be.
+`arm' a single keyword eg. :left
+`grasp' describes which type of grasp should be used.
+`objects-acted-on' designators describing the objects used by the action."))
+
+;; (defmethod get-action-trajectory ((action-type (eql :opening))
+;;                                   arm
+;;                                   (grasp (eql :front))
+;;                                   objects-acted-on
+;;                                   &key opening-distance))                                  
+
 
 (defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
   (:documentation "Returns a pose stamped.
@@ -138,7 +171,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
-          (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+          (error "Second pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
   (defmethod get-object-type-to-gripper-lift-transform ((object-type (eql object))
@@ -152,7 +185,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
-          (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+          (error "Lift transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
   (defmethod get-object-type-to-gripper-2nd-lift-transform ((object-type (eql object))
@@ -166,7 +199,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
-          (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+          (error "Second lift transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
                              ))
@@ -193,22 +226,33 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                (:left cram-tf:*robot-left-tool-frame*)
                (:right cram-tf:*robot-right-tool-frame*)))
            (object-to-standard-gripper-transform ; oTg'
-             (get-object-type-to-gripper-transform object-type object-name arm grasp))
+             (get-object-type-to-gripper-transform
+              (find-most-specific-object-type-for-generic
+               #'get-object-type-to-gripper-transform object-type)
+              object-name arm grasp))
            (object-to-standard-gripper-pregrasp-transform ; oTg'
              (get-object-type-to-gripper-pregrasp-transform
-              object-type object-name arm grasp
+              (find-most-specific-object-type-for-generic
+               #'get-object-type-to-gripper-transform object-type)
+              object-name arm grasp
               object-to-standard-gripper-transform))
            (object-to-standard-gripper-2nd-pregrasp-transform ; oTg'
              (get-object-type-to-gripper-2nd-pregrasp-transform
-              object-type object-name arm grasp
+              (find-most-specific-object-type-for-generic
+               #'get-object-type-to-gripper-transform object-type)
+              object-name arm grasp
               object-to-standard-gripper-transform))
            (object-to-standard-gripper-lift-transform ; oTg'
              (get-object-type-to-gripper-lift-transform
-              object-type object-name arm grasp
+              (find-most-specific-object-type-for-generic
+               #'get-object-type-to-gripper-transform object-type)
+              object-name arm grasp
               object-to-standard-gripper-transform))
            (object-to-standard-gripper-2nd-lift-transform ; oTg'
              (get-object-type-to-gripper-2nd-lift-transform
-              object-type object-name arm grasp
+              (find-most-specific-object-type-for-generic
+               #'get-object-type-to-gripper-transform object-type)
+              object-name arm grasp
               object-to-standard-gripper-transform))
            (standard-to-particular-gripper-transform ; g'Tg
              (cl-transforms-stamped:transform->transform-stamped
@@ -237,9 +281,215 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                       standard-to-particular-gripper-transform ; g'Tg
                       :result-as-pose-or-transform :pose)))))
 
+          ;; (btr-utils:spawn-object "gras1" :mondamin
+          ;;                         :color '(0 1 0)
+          ;;                         :pose (cram-tf:ensure-pose-in-frame
+          ;;                                ;(object-to-standard-gripper->base-to-particular-gripper
+          ;;                                object-to-standard-gripper-pregrasp-transform
+          ;;                                ;)
+          ;;                                "map"))
+          ;; (btr-utils:spawn-object "gras2" :mondamin
+          ;;                         :color '(0 1 0)
+          ;;                         :pose (cram-tf:ensure-pose-in-frame
+          ;;                                ;(object-to-standard-gripper->base-to-particular-gripper
+          ;;                                object-to-standard-gripper-transform
+          ;;                                ;)
+          ;;                                "map"))
+          ;; (btr-utils:spawn-object "gras3" :mondamin
+          ;;                         :color '(0 1 0)
+          ;;                         :pose (cram-tf:ensure-pose-in-frame
+          ;;                                ;(object-to-standard-gripper->base-to-particular-gripper
+          ;;                                object-to-standard-gripper-lift-transform
+          ;;                                ;)
+          ;;                                "map"))
+          ;; (btr-utils:spawn-object "gras4" :mondamin
+          ;;                         :color '(0 1 0)
+          ;;                         :pose  (cram-tf:ensure-pose-in-frame
+          ;;                                 ;(object-to-standard-gripper->base-to-particular-gripper
+          ;;                                 object-to-standard-gripper-2nd-lift-transform
+          ;;                                 ;)
+          ;;                                 "map"))
+          
           (mapcar #'object-to-standard-gripper->base-to-particular-gripper
                   (list object-to-standard-gripper-pregrasp-transform
                         object-to-standard-gripper-2nd-pregrasp-transform
                         object-to-standard-gripper-transform
                         object-to-standard-gripper-lift-transform
                         object-to-standard-gripper-2nd-lift-transform)))))))
+
+(defgeneric get-object-type-gripping-effort (object-type)
+  (:documentation "Returns effort in Nm, e.g. 50."))
+
+(defgeneric get-object-type-gripper-opening (object-type)
+  (:documentation "How wide to open the gripper before grasping, in m."))
+
+(defparameter *index->axis*
+  '((0 . :x)
+    (1 . :y)
+    (2 . :z)))
+
+(defparameter *axis-index->face*
+  '(((:x +1) . :front)
+    ((:x -1) . :back)
+    ((:y +1) . :left-side)
+    ((:y -1) . :right-side)
+    ((:z +1) . :top)
+    ((:z -1) . :bottom)))
+
+(defun calculate-vector-face (vector)
+  (let* ((axis-index-list
+           (loop for x in vector
+                 for i = 0 then (1+ i)
+                 with max-value = most-negative-single-float
+                 with max-index
+                 with max-sign
+                 do (when (> (abs x) max-value)
+                      (setf max-value (abs x))
+                      (setf max-index i)
+                      (setf max-sign (if (= x 0) +1 (truncate (/ x (abs x))))))
+                 finally (return (list (cdr (assoc max-index *index->axis*))
+                                       max-sign)))))
+    (cdr (assoc axis-index-list *axis-index->face* :test #'equal))))
+
+(defun calculate-object-faces (robot-to-object-transform)
+  (let* ((object-to-robot-transform
+           (cram-tf:transform-stamped-inv robot-to-object-transform))
+         (matrix
+           (cl-transforms:quaternion->matrix
+            (cl-transforms:rotation object-to-robot-transform)))
+         (robot-negative-x-vector
+           (list (- (aref matrix 0 0)) (- (aref matrix 1 0)) (- (aref matrix 2 0))))
+         (robot-negative-z-vector
+           (list (- (aref matrix 0 2)) (- (aref matrix 1 2)) (- (aref matrix 2 2))))
+         (facing-robot-face
+           (calculate-vector-face robot-negative-x-vector))
+         (bottom-face
+           (calculate-vector-face robot-negative-z-vector)))
+    (list facing-robot-face bottom-face)))
+
+(defun object-type-grasp->robot-grasp (robot-to-object-transform object-type-grasp)
+  (destructuring-bind (grasp-axis grasp-axis-sign)
+      (car (rassoc object-type-grasp *axis-index->face*))
+    (let* ((grasp-axis-index
+             (car (rassoc grasp-axis *index->axis*)))
+           (matrix
+             (cl-transforms:quaternion->matrix
+              (cl-transforms:rotation robot-to-object-transform)))
+           (object-grasp-vector
+             (list (* grasp-axis-sign (aref matrix 0 grasp-axis-index))
+                   (* grasp-axis-sign (aref matrix 1 grasp-axis-index))
+                   (* grasp-axis-sign (aref matrix 2 grasp-axis-index))))
+           (robot-grasp-face
+             (calculate-vector-face object-grasp-vector)))
+      ;; grasping object's front size would mean a back grasp for robot
+      ;; otherwise all other grasps correspond to object sides
+      (if (eq robot-grasp-face :front)
+          :back
+          (if (eq robot-grasp-face :back)
+              :front
+              robot-grasp-face)))))
+
+(defun robot-grasp->object-type-grasp (robot-to-object-transform robot-grasp)
+  (destructuring-bind (grasp-robot-axis grasp-robot-axis-sign)
+      (car (rassoc robot-grasp *axis-index->face*))
+    (when (eq grasp-robot-axis :x)
+        (setf grasp-robot-axis-sign (* grasp-robot-axis-sign -1.0)))
+    (let* ((grasp-robot-axis-index
+             (car (rassoc grasp-robot-axis *index->axis*)))
+           (matrix
+             (cl-transforms:quaternion->matrix
+              (cl-transforms:rotation
+               (cram-tf:transform-stamped-inv robot-to-object-transform))))
+           (robot-grasp-vector
+             (list (* grasp-robot-axis-sign (aref matrix 0 grasp-robot-axis-index))
+                   (* grasp-robot-axis-sign (aref matrix 1 grasp-robot-axis-index))
+                   (* grasp-robot-axis-sign (aref matrix 2 grasp-robot-axis-index)))))
+      (calculate-vector-face robot-grasp-vector))))
+
+(defgeneric get-object-type-grasps (object-type facing-robot-face bottom-face
+                                    rotationally-symmetric-p arm)
+  (:documentation "Returns a lazy list of all possible grasps for `object-type'")
+  (:method (object-type facing-robot-face bottom-face rotationally-symmetric-p arm)
+    (declare (ignore facing-robot-face bottom-face rotationally-symmetric-p))
+    #-solution-using-sbcl-API
+    (remove-if
+     #'null
+     (mapcar (lambda (grasp-type)
+               (when (find-method #'man-int:get-object-type-to-gripper-transform
+                                  '()
+                                  `((eql ,object-type) T (eql ,arm) (eql ,grasp-type))
+                                  nil)
+                 grasp-type))
+             #+sbcl
+             (remove-if
+              #'null
+              (remove-duplicates
+               (mapcar
+                (lambda (generic-method)
+                  (let ((grasp-specializer (fourth (sb-pcl:method-specializers generic-method))))
+                    (when (typep grasp-specializer 'sb-mop:eql-specializer)
+                      (sb-mop:eql-specializer-object grasp-specializer))))
+                (sb-pcl:generic-function-methods
+                 #'man-int:get-object-type-to-gripper-transform))))
+             #-sbcl
+             (error "CRAM object manipulation code only works under SBCL...")
+             #+solution-using-grasp-defining-macros-doesnt-work-for-custom-methods-like-env-manip
+             *known-grasp-types*))
+
+    #+solution-using-lazy-lists-and-Prolog
+    ;; (cut:lazy-list ((i 0))
+    ;;   (when (< i 10) (cut:cont i (1+ i))))
+    (cut:lazy-mapcar
+     (lambda (bindings)
+       (cut:var-value '?grasp bindings))
+     (prolog:prolog `(obj-int:object-type-grasp ,object-type ?grasp)))))
+
+
+(def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters ;; object-type-grasp
+                                                                )
+
+  (<- (object-rotationally-symmetric ?object-type)
+    (fail))
+
+  ;; The predicate ORIENTATION-MATTERS holds for all objects where the
+  ;; orientation really matters when putting down the object. E.g. for
+  ;; knives, forks, etc, the orientation is important while for plates
+  ;; the orientation doesn't matter at all.
+  (<- (orientation-matters ?object-type-symbol)
+    (fail))
+
+  ;; (<- (object-type-grasp ?object-type ?grasp)
+  ;;   (fail))
+  )
+
+#+sbcl
+;; TODO(cpo): I think this needs work. This only works when obejct-type
+;;            is the first specializer of the method.
+;; Which might be okay, because the interface dictates in what order the specializers are...
+(defun probe-sbcl (generic object-type)
+  (let ((gfms (sb-pcl:generic-function-methods generic)))
+    (find object-type gfms
+          :key (lambda (x)
+                 (car (sb-pcl:method-specializers x)))
+          :test (lambda (x y)
+                  (when (eql (type-of y) 'sb-mop:eql-specializer)
+                    (eql
+                     (sb-mop:eql-specializer-object y)
+                     x))))))
+#-sbcl
+(error "This version of cram requires the use of the SBCL compiler.")
+
+(defun get-direct-supertypes (object-type)
+  (mapcar
+   (lambda (x)
+     (cut:with-vars-bound (?super) x ?super))
+   (cut:force-ll
+    (prolog `(object-type-direct-subtype ?super ,object-type)))))
+
+(defun find-most-specific-object-type-for-generic (generic object-type)
+  "Find the most specific method of `generic' based on `object-type'."
+  (if (probe-sbcl generic object-type)
+      object-type
+      (car (mapcar
+            (alexandria:curry #'find-most-specific-object-type-for-generic generic)
+            (get-direct-supertypes object-type)))))

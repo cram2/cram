@@ -103,7 +103,6 @@
     ;; while ignoring failures: accuracy is not so important in intermediate poses.
     (let ((max-length (max (length left-poses) (length right-poses))))
       (mapc (lambda (?left-pose ?right-pose)
-
               (cpl:with-failure-handling
                   ((common-fail:manipulation-low-level-failure (e) ; ignore failures
                      (roslisp:ros-warn (pick-place move-arms-in-sequence) "~a~%Ignoring." e)

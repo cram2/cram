@@ -127,6 +127,106 @@
                (left-poses ?left-2nd-lift-pose)
                (right-poses ?right-2nd-lift-pose)))))
 
+(defun open-container2 (?arm ?gripper-opening distance
+                       ?left-reach-segment ?right-reach-segment
+                       ?left-grasp-segment ?right-grasp-segment
+                       ?left-open-segment ?right-open-segment
+                       ?left-retract-segment ?right-retract-segment
+                       &optional joint-name ?link-name environment)
+  (cpl:par
+    (roslisp:ros-info (environment-manipulation open-container) "Opening gripper")
+    (exe:perform
+     (desig:an action
+               (type setting-gripper)
+               (gripper ?arm)
+               (position ?gripper-opening)))
+    (roslisp:ros-info (environment-manipulation open-container) "Reaching")
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (env-plans open)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           ;; (return)
+           ))
+      (let ((?left-reach-poses (man-int::traj-segment-poses ?left-reach-segment))
+            (?right-reach-poses (man-int::traj-segment-poses ?right-reach-segment)))
+        (exe:perform
+         (desig:an action
+                   (type reaching)
+                   (left-poses ?left-reach-poses)
+                   (right-poses ?right-reach-poses)))))
+    )
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (env-plans open)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         ;; (return)
+         ))
+    ;; TODO: instead of passing btr object only pass the name!
+    (let ((?environment-name (btr:name environment)))
+      (let ((?left-grasp-poses (man-int::traj-segment-poses ?left-grasp-segment))
+            (?right-grasp-poses (man-int::traj-segment-poses ?right-grasp-segment)))
+        (exe:perform
+         (desig:an action
+                   (type grasping)
+                   (object (desig:an object
+                                     (name ?environment-name)))
+                   (link ?link-name)
+                   (left-poses ?left-grasp-poses)
+                   (right-poses ?right-grasp-poses))))))
+  (roslisp:ros-info (environment-manipulation open-container) "Gripping")
+  (exe:perform
+   (desig:an action
+             (type gripping)
+             (gripper ?arm)))
+  (roslisp:ros-info (environment-manipulation open-container) "Opening")
+
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (env-plans open)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)))
+    (let ((?environment-name (btr:name environment)))
+      (let ((?left-lift-pose (man-int::traj-segment-poses ?left-open-segment))
+            (?right-lift-pose (man-int::traj-segment-poses ?right-open-segment)))
+        (exe:perform
+         (desig:an action
+                   (type pulling)
+                   (object (desig:an object
+                                     (name ?environment-name)))
+                   (link ?link-name)
+                   (left-poses ?left-lift-pose)
+                   (right-poses ?right-lift-pose))))))
+
+  (when (and joint-name environment)
+    (cram-occasions-events:on-event
+     (make-instance 'cpoe:container-opening-event
+       :joint-name joint-name
+       :side ?arm
+       :environment environment
+       :distance distance)))
+
+  (exe:perform
+   (desig:an action
+             (type releasing)
+             (gripper ?arm)))
+
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (env-plans open)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)))
+    (let ((?left-2nd-lift-pose (man-int::traj-segment-poses ?left-retract-segment))
+          (?right-2nd-lift-pose (man-int::traj-segment-poses ?right-retract-segment)))
+      (exe:perform
+       (desig:an action
+                 (type retracting)
+                 (left-poses ?left-2nd-lift-pose)
+                 (right-poses ?right-2nd-lift-pose))))))
+
 (defun close-container (?arm ?gripper-opening distance
                         ?left-reach-poses ?right-reach-poses
                         ?left-grasp-poses ?right-grasp-poses
@@ -135,9 +235,10 @@
                         &optional joint-name ?link-name environment)
   (roslisp:ros-info (environment-manipulation close-container) "Opening gripper")
   (exe:perform
-   (desig:an action
-             (type opening-gripper)
-             (gripper ?arm)))
+     (desig:an action
+               (type setting-gripper)
+               (gripper ?arm)
+               (position ?gripper-opening)))
   (roslisp:ros-info (environment-manipulation close-container) "Reaching")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -216,3 +317,103 @@
                (type retracting)
                (left-poses ?left-2nd-lift-pose)
                (right-poses ?right-2nd-lift-pose)))))
+
+
+(defun close-container2 (?arm ?gripper-opening distance
+                        ?left-reach-segment ?right-reach-segment
+                        ?left-grasp-segment ?right-grasp-segment
+                        ?left-close-segment ?right-close-segment
+                        ?left-retract-segment ?right-retract-segment
+                        &optional joint-name ?link-name environment)
+  (roslisp:ros-info (environment-manipulation close-container) "Opening gripper")
+  (exe:perform
+     (desig:an action
+               (type setting-gripper)
+               (gripper ?arm)
+               (position ?gripper-opening)))
+  (roslisp:ros-info (environment-manipulation close-container) "Reaching")
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (env-plans open)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         ;; (return)
+         ))
+    (let ((?left-reach-poses (man-int::traj-segment-poses ?left-reach-segment))
+          (?right-reach-poses (man-int::traj-segment-poses ?right-reach-segment)))
+      (exe:perform
+       (desig:an action
+                 (type reaching)
+                 (left-poses ?left-reach-poses)
+                 (right-poses ?right-reach-poses)))))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (env-plans open)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         ;; (return)
+         ))
+    (let ((?environment-name (btr:name environment))
+          (?left-grasp-poses (man-int::traj-segment-poses ?left-grasp-segment))
+          (?right-grasp-poses (man-int::traj-segment-poses ?right-grasp-segment)))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (link ?link-name)
+                 (left-poses ?left-grasp-poses)
+                 (right-poses ?right-grasp-poses)))))
+  ;; (roslisp:ros-info (environment-manipulation close-container) "Gripping")
+  ;; (exe:perform
+  ;;  (desig:an action
+  ;;            (type setting-gripper)
+  ;;            (gripper ?arm)
+  ;;            (position 0)))
+  (roslisp:ros-info (environment-manipulation close-container) "Closing")
+  ;; (when (and joint-name environment)
+  ;;   (cram-occasions-events:on-event
+  ;;    (make-instance 'cpoe:container-handle-grasping-event
+  ;;                   :joint-name joint-name
+  ;;                   :side ?arm
+  ;;                   :environment environment)))
+
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (env-plans open)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)))
+    (let ((?left-lift-pose (man-int::traj-segment-poses ?left-close-segment))
+          (?right-lift-pose (man-int::traj-segment-poses ?right-close-segment)))
+      (exe:perform
+       (desig:an action
+                 (type pushing)
+                 (left-poses ?left-lift-pose)
+                 (right-poses ?right-lift-pose)))))
+
+  (when (and joint-name environment)
+    (cram-occasions-events:on-event
+     (make-instance 'cpoe:container-closing-event
+       :joint-name joint-name
+       :side ?arm
+       :environment environment
+       :distance distance)))
+  ;; (exe:perform
+  ;;  (desig:an action
+  ;;            (type setting-gripper)
+  ;;            (gripper ?arm)
+  ;;            (position 0.1)))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (env-plans open)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         (return)))
+    (let ((?left-2nd-lift-pose (man-int::traj-segment-poses ?left-retract-segment))
+          (?right-2nd-lift-pose (man-int::traj-segment-poses ?right-retract-segment)))
+      (exe:perform
+       (desig:an action
+                 (type retracting)
+                 (left-poses ?left-2nd-lift-pose)
+                 (right-poses ?right-2nd-lift-pose))))))
