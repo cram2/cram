@@ -54,35 +54,39 @@
 
 (defgeneric semantic-map-part-rigid-body (part &key pose collision-group collision-mask)
   (:documentation "Returns a rigid body for the semantic map part `part'.")
-  (:method ((part sem-map-utils:semantic-map-geom) &key pose collision-group collision-mask)
-    (make-instance 'rigid-body
-      :name (intern (sem-map-utils:name part))
-      :group collision-group
-      :mask collision-mask
-      :pose (cl-transforms:transform-pose
-             (cl-transforms:pose->transform pose)
-             (sem-map-utils:pose part))
-      :collision-shape (let* ((mesh-uri (semantic-map-utils::get-mesh-path (semantic-map-utils:owl-name part)))
-                              (mesh-path (if mesh-uri
-                                             (physics-utils:parse-uri mesh-uri)
-                                             nil)))
+  (:method ((part sem-map-utils:semantic-map-geom) &key pose collision-group collision-mask)    
+    (if (semantic-map-utils::get-mesh-path (semantic-map-utils:owl-name part))
+        (make-instance 'rigid-body
+          :name (intern (sem-map-utils:name part))
+          :group collision-group
+          :mask collision-mask
+          :pose (cl-transforms:transform-pose
+                 (cl-transforms:pose->transform pose)
+                 (sem-map-utils:pose part))
+          :collision-shape (let* ((mesh-uri (semantic-map-utils::get-mesh-path (semantic-map-utils:owl-name part)))
+                                  (mesh-path (if mesh-uri
+                                                 (physics-utils:parse-uri mesh-uri)
+                                                 nil)))
                              (let ((mesh-model                                   
                                      (if mesh-path
                                          (with-file-cache model mesh-path (physics-utils:load-3d-model mesh-path)
                                            model)
                                          (roslisp:ros-warn (btr) "No mesh-path was defined."))
                                      (physics-utils:scale-3d-model
-                                      model 1.0))) ;scale value
+                                      model 1.0))) ;scale new-value
                                (if mesh-path
                                    (make-instance 'convex-hull-mesh-shape
                                      :points (physics-utils:3d-model-vertices mesh-model)
                                      :faces (physics-utils:3d-model-faces mesh-model)
                                      :color '(0.5 0.5 0.5 1.0))
-                             
+                                   
                                    (make-instance 'box-shape
                                      :half-extents (cl-transforms:v*
                                                     (sem-map-utils:dimensions part)
-                                                    0.5)))))))
+                                                    0.5))))))
+        (progn
+          (roslisp:ros-info (btr) "No mesh path defined. Not spawning this object")
+          nil)))
   
   (:method ((part t) &key pose collision-group collision-mask)
     (declare (ignore pose collision-group collision-mask))
