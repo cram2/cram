@@ -199,8 +199,20 @@
     (desig:desig-location-prop ?ref-obj ?ref-obj-pose)
     ;;
     (-> (desig:loc-desig? ?ref-obj)
-        (and (equal ?ref-obj-size 0.1)
-             (equal ?ref-padding 0.1))
+        ;; if ?ref-obj is a location designator, check first whether it is a location intended
+        ;; :for an object
+        (-> (and (desig:desig-prop ?ref-obj (:for ?loc-ref-obj)) (desig:obj-desig? ?loc-ref-obj))
+          ;; if ?ref-obj is a location :for an object designator, use this object designator
+          ;; to get size and padding values
+          (and (btr-belief:object-designator-name ?loc-ref-obj ?ref-obj-name)
+               (btr:bullet-world ?world)
+               (btr:object ?world ?ref-obj-name)
+               (object-size-without-handles ?world ?ref-obj-name ?ref-obj-size)
+               (padding-size ?world ?ref-obj-name ?ref-padding))
+          ;; if ?ref-obj is not :for an object, just use default size and padding
+          (and (equal ?ref-obj-size 0.1)
+               (equal ?ref-padding 0.1)))
+        ;; if ?ref-obj is an object designator, get size and padding info from it
         (and (btr-belief:object-designator-name ?ref-obj ?ref-obj-name)
              (btr:bullet-world ?world)
              (btr:object ?world ?ref-obj-name)
