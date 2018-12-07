@@ -32,7 +32,7 @@
 ;;; OBJECT-INTERFACE METHODS
 
 (defparameter *drawer-handle-grasp-x-offset* 0.0 "in meters")
-
+(defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
 (defparameter *drawer-handle-retract-offset* 0.1 "in meters")
 
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :container-prismatic))) 0.10)
@@ -176,11 +176,10 @@
              object-name
              object-environment)))
          (grasp-pose
-           (man-int:get-object-type-to-gripper-transform
-            :container-prismatic
+           (get-container-to-gripper-transform
             object-name
             arm
-            :open))
+            object-environment))
          (standard-to-particular-gripper-transform ; g'Tg
            (cl-transforms-stamped:transform->transform-stamped
             gripper-tool-frame
