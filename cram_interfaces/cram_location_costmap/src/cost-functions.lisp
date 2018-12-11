@@ -185,41 +185,49 @@ corner."
            (type cma:double-matrix matrix))
   (flet ((generator (costmap-metadata output-matrix)
            (declare (type cma:double-matrix output-matrix))
-           (let ((start-x (max origin-x (origin-x costmap-metadata)))
-                 (start-y (max origin-y (origin-y costmap-metadata)))
-                 (end-x  (min (array-index->map-coordinate
-                               (1- (cma:width matrix)) resolution origin-x)
-                              (+ (width costmap-metadata) (origin-x costmap-metadata))))
-                 (end-y (min (array-index->map-coordinate
-                              (1- (cma:height matrix)) resolution origin-y)
-                             (+ (height costmap-metadata) (origin-y costmap-metadata)))))
-             (loop for y-source-index from (map-coordinate->array-index start-y resolution origin-y)
+           ;; If we look top down on the costmap visualization,
+           ;; `start' is on the right bottom corner, `end' in on the top left.
+           ;; `start' and `end' are the coordinates of the overlapping rectangle
+           ;; between input `matrix' and `output-matrix'.
+           ;; `start' and `end' are in meters.
+           (let ((start-x
+                   (max origin-x
+                        (origin-x costmap-metadata)))
+                 (start-y
+                   (max origin-y
+                        (origin-y costmap-metadata)))
+                 (end-x
+                   (min (array-index->map-coordinate (cma:width matrix) resolution origin-x)
+                        (+ (width costmap-metadata) (origin-x costmap-metadata))))
+                 (end-y
+                   (min (array-index->map-coordinate (cma:height matrix) resolution origin-y)
+                        (+ (height costmap-metadata) (origin-y costmap-metadata)))))
+             (loop for y-input-index
+                   from (map-coordinate->array-index start-y resolution origin-y)
                      below (map-coordinate->array-index end-y resolution origin-y)
-                       by (/ (resolution costmap-metadata) resolution)
-                   for y-destination-index from (map-coordinate->array-index
-                                                 start-y (resolution costmap-metadata)
-                                                 (origin-y costmap-metadata))
+                   by (/ (resolution costmap-metadata) resolution)
+                   for y-destination-index
+                   from (map-coordinate->array-index
+                         start-y (resolution costmap-metadata) (origin-y costmap-metadata))
                      below (map-coordinate->array-index
                             end-y (resolution costmap-metadata)
                             (origin-y costmap-metadata))
-                       by (/ resolution (resolution costmap-metadata))
-                   do (loop for x-source-index from (map-coordinate->array-index
-                                                     start-x resolution origin-x)
+                   do (loop for x-input-index
+                            from (map-coordinate->array-index start-x resolution origin-x)
                               below (map-coordinate->array-index end-x resolution origin-x)
-                                by (/ (resolution costmap-metadata) resolution)
-                            for x-destination-index from (map-coordinate->array-index
-                                                          start-x (resolution costmap-metadata)
-                                                          (origin-x costmap-metadata))
+                            by (/ (resolution costmap-metadata) resolution)
+                            for x-destination-index
+                            from (map-coordinate->array-index
+                                  start-x (resolution costmap-metadata)
+                                  (origin-x costmap-metadata))
                               below (map-coordinate->array-index
                                      end-x (resolution costmap-metadata)
                                      (origin-x costmap-metadata))
-                                by (/ resolution (resolution costmap-metadata))
-                            do (incf
-                                (aref output-matrix
-                                      (truncate y-destination-index)
-                                      (truncate x-destination-index))
-                                (aref matrix
-                                      (truncate y-source-index) (truncate x-source-index))))
+                            do (incf (aref output-matrix
+                                           (truncate y-destination-index)
+                                           (truncate x-destination-index))
+                                   (aref matrix
+                                         (truncate y-input-index) (truncate x-input-index))))
                    finally (return output-matrix)))))
     (make-instance 'map-costmap-generator
       :generator-function #'generator)))
