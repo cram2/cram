@@ -41,7 +41,13 @@
   (mapcar
    (lambda (x)
      (make-traj-segment :label x :poses nil))
-  labels))
+   labels))
+
+(defun get-traj-poses-by-label (trajectory label)
+  (traj-segment-poses
+   (find label
+         trajectory
+         :key #'traj-segment-label)))
 
 (defgeneric get-action-trajectory (action-type arm grasp objects-acted-on
                                    &key &allow-other-keys)

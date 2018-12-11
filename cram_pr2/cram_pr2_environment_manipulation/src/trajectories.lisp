@@ -153,10 +153,10 @@
                          (funcall object-to-standard-gripper->base-to-particular-gripper
                                   transform))))
                 (list
-                 :reach
-                 :grasp
-                 :close
-                 :retract)
+                 :reaching
+                 :grasping
+                 action-type
+                 :retracting)
                 (list
                  (cram-tf:translate-transform-stamped
                   grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*)

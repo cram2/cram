@@ -45,19 +45,13 @@
 (def-fact-group environment-manipulation (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (open-container ?arm
-                                                                  ?gripper-opening
-                                                                  ?distance
-                                                                  ?left-reach-segment
-                                                                  ?right-reach-segment
-                                                                  ?left-grasp-segment
-                                                                  ?right-grasp-segment
-                                                                  ?left-open-segment
-                                                                  ?right-open-segment
-                                                                  ?left-retract-segment
-                                                                  ?right-retract-segment
-                                                                  ?joint-name
-                                                                  ?handle-link
-                                                                  ?environment-obj))
+                                                                 ?gripper-opening
+                                                                 ?distance
+                                                                 ?left-trajectory
+                                                                 ?right-trajectory
+                                                                 ?joint-name
+                                                                 ?handle-link
+                                                                 ?environment-obj))
     (spec:property ?action-designator (:type :opening))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
@@ -84,47 +78,25 @@
     (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
     (equal ?objects (?container-designator))
     (-> (== ?arm :left)
-        (and
-         (lisp-fun man-int::make-empty-trajectory
-                   (:reaching :grasping :opening :retracting)
-                   (?right-reach-segment
-                    ?right-grasp-segment
-                    ?right-open-segment
-                    ?right-retract-segment))
-         (lisp-fun man-int::get-action-trajectory :opening :left :open
-                   ?objects :opening-distance ?distance
-                   (?left-reach-segment
-                    ?left-grasp-segment
-                    ?left-open-segment
-                    ?left-retract-segment)))
-        (and
-         (lisp-fun man-int::make-empty-trajectory
-                   (:reaching :grasping :opening :retracting)
-                   (?left-reach-segment
-                    ?left-grasp-segment
-                    ?left-open-segment
-                    ?left-retract-segment))
-         (lisp-fun man-int::get-action-trajectory :opening :right :open
-                   ?objects :opening-distance ?distance
-                   (?right-reach-segment
-                    ?right-grasp-segment
-                    ?right-open-segment
-                    ?right-retract-segment)))))
+        (and (lisp-fun man-int:get-action-trajectory :opening :left :open
+                       ?objects :opening-distance ?distance ?left-trajectory)
+             (lisp-fun man-int:make-empty-trajectory
+                       (:reaching :grasping :opening :retracting)
+                       ?right-trajectory))
+        (and (lisp-fun man-int:make-empty-trajectory
+                       (:reaching :grasping :opening :retracting)
+                       ?left-trajectory)
+             (lisp-fun man-int:get-action-trajectory :opening :right :open
+                       ?objects :opening-distance ?distance ?right-trajectory))))
 
   (<- (desig:action-grounding ?action-designator (close-container ?arm
-                                                                   ?gripper-opening
-                                                                   ?distance
-                                                                   ?left-reach-segment
-                                                                   ?right-reach-segment
-                                                                   ?left-grasp-segment
-                                                                   ?right-grasp-segment
-                                                                   ?left-close-segment
-                                                                   ?right-close-segment
-                                                                   ?left-retract-segment
-                                                                   ?right-retract-segment
-                                                                   ?joint-name
-                                                                   ?handle-link
-                                                                   ?environment-obj))
+                                                                  ?gripper-opening
+                                                                  ?distance
+                                                                  ?left-trajectory
+                                                                  ?right-trajectory
+                                                                  ?joint-name
+                                                                  ?handle-link
+                                                                  ?environment-obj))
     (spec:property ?action-designator (:type :closing))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
@@ -151,29 +123,13 @@
     (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
     (equal ?objects (?container-designator))
     (-> (== ?arm :left)
-        (and
-         (lisp-fun man-int::make-empty-trajectory
-                   (:reaching :grasping :closing :retracting)
-                   (?right-reach-segment
-                    ?right-grasp-segment
-                    ?right-close-segment
-                    ?right-retract-segment))
-         (lisp-fun man-int::get-action-trajectory :closing :left :close
-                   ?objects :opening-distance ?distance
-                   (?left-reach-segment
-                    ?left-grasp-segment
-                    ?left-close-segment
-                    ?left-retract-segment)))
-        (and
-         (lisp-fun man-int::make-empty-trajectory
-                   (:reaching :grasping :closing :retracting)
-                   (?left-reach-segment
-                    ?left-grasp-segment
-                    ?left-close-segment
-                    ?left-retract-segment))
-         (lisp-fun man-int::get-action-trajectory :closing :right :close
-                   ?objects :opening-distance ?distance
-                   (?right-reach-segment
-                    ?right-grasp-segment
-                    ?right-close-segment
-                    ?right-retract-segment))))))
+        (and (lisp-fun man-int:get-action-trajectory :closing :left :close
+                       ?objects :opening-distance ?distance ?left-trajectory)
+             (lisp-fun man-int:make-empty-trajectory
+                       (:reaching :grasping :closing :retracting)
+                       ?right-trajectory))
+        (and (lisp-fun man-int:make-empty-trajectory
+                       (:reaching :grasping :closing :retracting)
+                       ?left-trajectory)
+             (lisp-fun man-int:get-action-trajectory :closing :right :close
+                       ?objects :opening-distance ?distance ?right-trajectory)))))
