@@ -79,7 +79,7 @@
            (0 1 0)
            (1 0 0)))))))
 
-(defmethod man-int::get-action-trajectory :before ((action-type (eql :opening))
+(defmethod man-int:get-action-trajectory :before ((action-type (eql :opening))
                                                    arm
                                                    grasp
                                                    objects-acted-on
@@ -90,7 +90,7 @@
   (when (not (eql 1 (length objects-acted-on)))
     (error (format nil "Action-type ~a requires exactly one object.~%" action-type))))
 
-(defmethod man-int::get-action-trajectory :before ((action-type (eql :closing))
+(defmethod man-int:get-action-trajectory :before ((action-type (eql :closing))
                                                    arm
                                                    grasp
                                                    objects-acted-on
@@ -144,7 +144,7 @@
                           ?robot ?transform))))))))
     
     (let ((object-to-standard-gripper->base-to-particular-gripper
-            (make-object-to-standard-gripper->base-to-particular-gripper-transformer
+            (man-int:make-object-to-standard-gripper->base-to-particular-gripper-transformer
              object-transform gripper-tool-frame standard-to-particular-gripper-transform)))
       (mapcar (lambda (label transform)
                 (man-int::make-traj-segment
@@ -166,7 +166,7 @@
                  (cram-tf:translate-transform-stamped
                   grasp-pose :x-offset (+ opening-distance *drawer-handle-retract-offset*)))))))
 
-(defmethod man-int::get-action-trajectory ((action-type (eql :opening))
+(defmethod man-int:get-action-trajectory ((action-type (eql :opening))
                                            arm
                                            grasp
                                            objects-acted-on
@@ -174,29 +174,10 @@
                                              opening-distance)
   (make-trajectory action-type arm objects-acted-on opening-distance))
 
-
-(defmethod man-int::get-action-trajectory ((action-type (eql :closing))
+(defmethod man-int:get-action-trajectory ((action-type (eql :closing))
                                            arm
                                            grasp
                                            objects-acted-on
                                            &key
                                              opening-distance)
   (make-trajectory action-type arm objects-acted-on opening-distance))
-
-(defun make-object-to-standard-gripper->base-to-particular-gripper-transformer
-    (object-transform gripper-tool-frame
-     standard-to-particular-gripper-transform)
-  "Make a function that transforms oTg' -> bTg; Assuming g' is standard gripper."
-  (lambda (object-to-standard-gripper)
-    (when object-to-standard-gripper
-      (let ((base-to-standard-gripper-transform
-              (cram-tf:multiply-transform-stampeds
-               cram-tf:*robot-base-frame* gripper-tool-frame
-               object-transform          ; bTo
-               object-to-standard-gripper ; oTg'
-               :result-as-pose-or-transform :transform))) ; bTo * oTg' = bTg'
-        (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
-         cram-tf:*robot-base-frame* gripper-tool-frame
-         base-to-standard-gripper-transform      ; bTg'
-         standard-to-particular-gripper-transform ; g'Tg
-         :result-as-pose-or-transform :pose)))))
