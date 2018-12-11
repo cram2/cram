@@ -29,17 +29,16 @@
 
 (in-package :pr2-em)
 
-;;; OBJECT-INTERFACE METHODS
-
 (defparameter *drawer-handle-grasp-x-offset* 0.0 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
-(defparameter *drawer-handle-retract-offset* 0.1 "in meters")
+(defparameter *drawer-handle-retract-offset* 0.10 "in meters")
 
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :container-prismatic))) 0.10)
+(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :container))) 0.10)
 
 (defun get-container-to-gripper-transform (object-name
                                            arm
                                            btr-environment)
+  "Get the transform from the container handle to the robot's gripper."
   (let* ((object-name
            (roslisp-utilities:rosify-underscores-lisp-name object-name))
          (handle-name
@@ -80,101 +79,53 @@
            (0 1 0)
            (1 0 0)))))))
 
-(defmethod man-int::get-action-trajectory ((action-type (eql :opening))
-                                           arm
-                                           grasp
-                                           objects-acted-on
-                                           &key
-                                             opening-distance)
+(defmethod man-int::get-action-trajectory :before ((action-type (eql :opening))
+                                                   arm
+                                                   grasp
+                                                   objects-acted-on
+                                                   &key
+                                                     opening-distance)
+  "Raise an error if object count is not right."
+  (declare (ignore arm grasp opening-distance))
   (when (not (eql 1 (length objects-acted-on)))
-    (error "Too many objects"))
+    (error (format nil "Action-type ~a requires exactly one object.~%" action-type))))
 
+(defmethod man-int::get-action-trajectory :before ((action-type (eql :closing))
+                                                   arm
+                                                   grasp
+                                                   objects-acted-on
+                                                   &key
+                                                     opening-distance)
+  "Raise an error if object count is not right."
+  (declare (ignore arm grasp opening-distance))
+  (when (not (eql 1 (length objects-acted-on)))
+    (error (format nil "Action-type ~a requires exactly one object.~%" action-type))))
+
+(defun make-trajectory (action-type
+                        arm
+                        objects-acted-on
+                        opening-distance)
+  "Make a trajectory for opening or closing a container.
+   This should only be used by get-action-trajectory for action-types :opening and
+   :closing."
+  (when (equal action-type :closing)
+    (setf opening-distance (- opening-distance)))
   (let* ((object-designator (car objects-acted-on))
-         (object-type
-           (desig:desig-prop-value
-            object-designator :type))
          (object-name
            (desig:desig-prop-value
             object-designator :urdf-name))
          (object-environment
            (desig:desig-prop-value
             object-designator :part-of))
-         (gripper-tool-frame
-           (ecase arm
-             (:left cram-tf:*robot-left-tool-frame*)
-             (:right cram-tf:*robot-right-tool-frame*)))
          (object-transform
            (second
             (get-container-pose-and-transform
              object-name
              object-environment)))
-         (grasp-pose
-           (get-container-to-gripper-transform object-name
-                                               arm
-                                               object-environment))
-         (standard-to-particular-gripper-transform ; g'Tg
-           (cl-transforms-stamped:transform->transform-stamped
-            gripper-tool-frame
-            gripper-tool-frame
-            0.0
-            (cut:var-value
-             '?transform
-             (car (prolog:prolog
-                   `(and (cram-robot-interfaces:robot ?robot)
-                         (cram-robot-interfaces:standard-to-particular-gripper-transform
-                          ?robot ?transform))))))))
-
-    (mapcar (lambda (x y)
-                (man-int::make-traj-segment
-                 :label x
-                 :poses (list y)))
-              (list
-               :reach
-               :grasp
-               :close
-               :retract)
-              (mapcar
-               (make-object-to-standard-gripper->base-to-particular-gripper-transformer
-                object-transform gripper-tool-frame
-                standard-to-particular-gripper-transform)
-               (list
-                (cram-tf:translate-transform-stamped
-                 grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*)
-                grasp-pose
-                (cram-tf:translate-transform-stamped
-                 grasp-pose :x-offset opening-distance)
-                (cram-tf:translate-transform-stamped
-                 grasp-pose :x-offset (+ opening-distance 0.1)))))))
-
-
-(defmethod man-int::get-action-trajectory ((action-type (eql :closing))
-                                           arm
-                                           grasp
-                                           objects-acted-on
-                                           &key
-                                             opening-distance)
-  (when (not (eql 1 (length objects-acted-on)))
-    (error "Too many objects"))
-
-  (let* ((object-designator (car objects-acted-on))
-         (object-type
-           (desig:desig-prop-value
-            object-designator :type))
-         (object-name
-           (desig:desig-prop-value
-            object-designator :urdf-name))
-         (object-environment
-           (desig:desig-prop-value
-            object-designator :part-of))
          (gripper-tool-frame
            (ecase arm
              (:left cram-tf:*robot-left-tool-frame*)
              (:right cram-tf:*robot-right-tool-frame*)))
-         (object-transform
-           (second
-            (get-container-pose-and-transform
-             object-name
-             object-environment)))
          (grasp-pose
            (get-container-to-gripper-transform
             object-name
@@ -191,32 +142,51 @@
                    `(and (cram-robot-interfaces:robot ?robot)
                          (cram-robot-interfaces:standard-to-particular-gripper-transform
                           ?robot ?transform))))))))
-      
-      (mapcar (lambda (x y)
+    
+    (let ((object-to-standard-gripper->base-to-particular-gripper
+            (make-object-to-standard-gripper->base-to-particular-gripper-transformer
+             object-transform gripper-tool-frame standard-to-particular-gripper-transform)))
+      (mapcar (lambda (label transform)
                 (man-int::make-traj-segment
-                 :label x
-                 :poses (list y)))
-              (list
-               :reach
-               :grasp
-               :close
-               :retract)
-              (mapcar
-               (make-object-to-standard-gripper->base-to-particular-gripper-transformer
-                object-transform gripper-tool-frame
-                standard-to-particular-gripper-transform)
-               (list
-                (cram-tf:translate-transform-stamped
-                 grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*)
-                grasp-pose
-                (cram-tf:translate-transform-stamped
-                 grasp-pose :x-offset (- opening-distance))
-                (cram-tf:translate-transform-stamped
-                 grasp-pose :x-offset (+ (- opening-distance) *drawer-handle-retract-offset*)))))))
+                 :label label
+                 :poses (list
+                         (funcall object-to-standard-gripper->base-to-particular-gripper
+                                  transform))))
+                (list
+                 :reach
+                 :grasp
+                 :close
+                 :retract)
+                (list
+                 (cram-tf:translate-transform-stamped
+                  grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*)
+                 grasp-pose
+                 (cram-tf:translate-transform-stamped
+                  grasp-pose :x-offset opening-distance)
+                 (cram-tf:translate-transform-stamped
+                  grasp-pose :x-offset (+ opening-distance *drawer-handle-retract-offset*)))))))
+
+(defmethod man-int::get-action-trajectory ((action-type (eql :opening))
+                                           arm
+                                           grasp
+                                           objects-acted-on
+                                           &key
+                                             opening-distance)
+  (make-trajectory action-type arm objects-acted-on opening-distance))
+
+
+(defmethod man-int::get-action-trajectory ((action-type (eql :closing))
+                                           arm
+                                           grasp
+                                           objects-acted-on
+                                           &key
+                                             opening-distance)
+  (make-trajectory action-type arm objects-acted-on opening-distance))
 
 (defun make-object-to-standard-gripper->base-to-particular-gripper-transformer
     (object-transform gripper-tool-frame
      standard-to-particular-gripper-transform)
+  "Make a function that transforms oTg' -> bTg; Assuming g' is standard gripper."
   (lambda (object-to-standard-gripper)
     (when object-to-standard-gripper
       (let ((base-to-standard-gripper-transform
