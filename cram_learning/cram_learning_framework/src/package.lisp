@@ -32,4 +32,6 @@
 (defpackage cram-learning-framework
   (:nicknames #:learning)
   (:use #:common-lisp #:cram-prolog)
-  (:export))
+  (:export
+   ;; query-plugins
+   #:*learning-framework-on*))
