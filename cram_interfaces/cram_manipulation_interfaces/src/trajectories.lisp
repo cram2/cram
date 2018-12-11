@@ -49,7 +49,33 @@
 `action-type' describes for which type of action the trajectory will be.
 `arm' a single keyword eg. :left
 `grasp' describes which type of grasp should be used.
-`objects-acted-on' designators describing the objects used by the action."))                             
+`objects-acted-on' designators describing the objects used by the action."))
+
+(defgeneric get-object-type-gripping-effort (object-type)
+  (:documentation "Returns effort in Nm, e.g. 50."))
+
+(defgeneric get-object-type-gripper-opening (object-type)
+  (:documentation "How wide to open the gripper before grasping, in m."))
+
+(defun make-object-to-standard-gripper->base-to-particular-gripper-transformer
+    (object-transform gripper-tool-frame
+     standard-to-particular-gripper-transform)
+  "Make a function that transforms oTg' -> bTg; Assuming g' is standard gripper."
+  (lambda (object-to-standard-gripper)
+    (when object-to-standard-gripper
+      (let ((base-to-standard-gripper-transform
+              (cram-tf:multiply-transform-stampeds
+               cram-tf:*robot-base-frame* gripper-tool-frame
+               object-transform          ; bTo
+               object-to-standard-gripper ; oTg'
+               :result-as-pose-or-transform :transform))) ; bTo * oTg' = bTg'
+        (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
+         cram-tf:*robot-base-frame* gripper-tool-frame
+         base-to-standard-gripper-transform      ; bTg'
+         standard-to-particular-gripper-transform ; g'Tg
+         :result-as-pose-or-transform :pose)))))
+
+;;;;;;;;;;;;;;;; Everything below is for pick and place (only) ;;;;;;;;;;;;;;;;;;
 
 (defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
   (:documentation "Returns a pose stamped.
@@ -273,11 +299,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                         object-to-standard-gripper-lift-transform
                         object-to-standard-gripper-2nd-lift-transform)))))))
 
-(defgeneric get-object-type-gripping-effort (object-type)
-  (:documentation "Returns effort in Nm, e.g. 50."))
-
-(defgeneric get-object-type-gripper-opening (object-type)
-  (:documentation "How wide to open the gripper before grasping, in m."))
+;;;;;;;;;;;;;;;;;;;;;;; Pick and Place specific stuff ends here. ;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *index->axis*
   '((0 . :x)

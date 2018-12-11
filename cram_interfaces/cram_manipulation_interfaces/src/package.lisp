@@ -50,6 +50,8 @@
    #:get-object-type-to-gripper-2nd-lift-transform
    #:def-object-type-to-gripper-transforms
    #:get-object-grasping-poses
+   #:get-action-trajectory
+   #:make-object-to-standard-gripper->base-to-particular-gripper-transformer
    ;; gripper
    #:get-object-type-gripping-effort
    #:get-object-type-gripper-opening
