@@ -47,6 +47,7 @@
    #:traj-segment-label
    #:traj-segment-poses
    #:make-empty-trajectory
+   #:get-traj-poses-by-label
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform
    #:get-object-type-to-gripper-2nd-pregrasp-transform
