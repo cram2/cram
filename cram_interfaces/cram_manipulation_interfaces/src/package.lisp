@@ -43,6 +43,10 @@
    #:object-type-direct-subtype
    #:robot-free-hand
    ;; trajectories
+   #:make-traj-segment
+   #:traj-segment-label
+   #:traj-segment-poses
+   #:make-empty-trajectory
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform
    #:get-object-type-to-gripper-2nd-pregrasp-transform

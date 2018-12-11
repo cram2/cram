@@ -30,10 +30,7 @@
 (in-package :pr2-em)
 
 (defun open-container (?arm ?gripper-opening distance
-                       ?left-reach-segment ?right-reach-segment
-                       ?left-grasp-segment ?right-grasp-segment
-                       ?left-open-segment ?right-open-segment
-                       ?left-retract-segment ?right-retract-segment
+                       ?left-trajectory ?right-trajectory
                        &optional joint-name ?link-name environment)
   (cpl:par
     (roslisp:ros-info (environment-manipulation open-container) "Opening gripper")
@@ -50,8 +47,10 @@
                              e)
            ;; (return)
            ))
-      (let ((?left-reach-poses (man-int::traj-segment-poses ?left-reach-segment))
-            (?right-reach-poses (man-int::traj-segment-poses ?right-reach-segment)))
+      (let ((?left-reach-poses (man-int:get-traj-poses-by-label
+                                ?left-trajectory :reaching))
+            (?right-reach-poses (man-int:get-traj-poses-by-label
+                                 ?right-trajectory :reaching)))
         (exe:perform
          (desig:an action
                    (type reaching)
@@ -65,10 +64,11 @@
                            e)
          ;; (return)
          ))
-    ;; TODO: instead of passing btr object only pass the name!
     (let ((?environment-name (btr:name environment)))
-      (let ((?left-grasp-poses (man-int::traj-segment-poses ?left-grasp-segment))
-            (?right-grasp-poses (man-int::traj-segment-poses ?right-grasp-segment)))
+      (let ((?left-grasp-poses (man-int:get-traj-poses-by-label
+                                ?left-trajectory :grasping))
+            (?right-grasp-poses (man-int:get-traj-poses-by-label
+                                ?right-trajectory :grasping)))
         (exe:perform
          (desig:an action
                    (type grasping)
@@ -91,16 +91,18 @@
                            e)
          (return)))
     (let ((?environment-name (btr:name environment)))
-      (let ((?left-lift-pose (man-int::traj-segment-poses ?left-open-segment))
-            (?right-lift-pose (man-int::traj-segment-poses ?right-open-segment)))
+      (let ((?left-open-pose (man-int:get-traj-poses-by-label
+                                ?left-trajectory :opening))
+            (?right-open-pose (man-int:get-traj-poses-by-label
+                                ?right-trajectory :opening)))
         (exe:perform
          (desig:an action
                    (type pulling)
                    (object (desig:an object
                                      (name ?environment-name)))
                    (link ?link-name)
-                   (left-poses ?left-lift-pose)
-                   (right-poses ?right-lift-pose))))))
+                   (left-poses ?left-open-pose)
+                   (right-poses ?right-open-pose))))))
 
   (when (and joint-name environment)
     (cram-occasions-events:on-event
@@ -121,19 +123,18 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (let ((?left-2nd-lift-pose (man-int::traj-segment-poses ?left-retract-segment))
-          (?right-2nd-lift-pose (man-int::traj-segment-poses ?right-retract-segment)))
+    (let ((?left-retract-pose (man-int:get-traj-poses-by-label
+                                ?left-trajectory :retracting))
+          (?right-retract-pose (man-int:get-traj-poses-by-label
+                                ?right-trajectory :retracting)))
       (exe:perform
        (desig:an action
                  (type retracting)
-                 (left-poses ?left-2nd-lift-pose)
-                 (right-poses ?right-2nd-lift-pose))))))
+                 (left-poses ?left-retract-pose)
+                 (right-poses ?right-retract-pose))))))
 
 (defun close-container (?arm ?gripper-opening distance
-                        ?left-reach-segment ?right-reach-segment
-                        ?left-grasp-segment ?right-grasp-segment
-                        ?left-close-segment ?right-close-segment
-                        ?left-retract-segment ?right-retract-segment
+                        ?left-trajectory ?right-trajectory
                         &optional joint-name ?link-name environment)
   (roslisp:ros-info (environment-manipulation close-container) "Opening gripper")
   (exe:perform
@@ -149,8 +150,8 @@
                            e)
          ;; (return)
          ))
-    (let ((?left-reach-poses (man-int::traj-segment-poses ?left-reach-segment))
-          (?right-reach-poses (man-int::traj-segment-poses ?right-reach-segment)))
+    (let ((?left-reach-poses (man-int:get-traj-poses-by-label ?left-trajectory :reaching))
+          (?right-reach-poses (man-int:get-traj-poses-by-label ?right-trajectory :reaching)))
       (exe:perform
        (desig:an action
                  (type reaching)
@@ -164,8 +165,8 @@
          ;; (return)
          ))
     (let ((?environment-name (btr:name environment))
-          (?left-grasp-poses (man-int::traj-segment-poses ?left-grasp-segment))
-          (?right-grasp-poses (man-int::traj-segment-poses ?right-grasp-segment)))
+          (?left-grasp-poses (man-int:get-traj-poses-by-label ?left-trajectory :grasping))
+          (?right-grasp-poses (man-int:get-traj-poses-by-label ?right-trajectory :grasping)))
       (exe:perform
        (desig:an action
                  (type grasping)
@@ -194,13 +195,13 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (let ((?left-lift-pose (man-int::traj-segment-poses ?left-close-segment))
-          (?right-lift-pose (man-int::traj-segment-poses ?right-close-segment)))
+    (let ((?left-close-pose (man-int:get-traj-poses-by-label ?left-trajectory :closing))
+          (?right-close-pose (man-int:get-traj-poses-by-label ?right-trajectory :closing)))
       (exe:perform
        (desig:an action
                  (type pushing)
-                 (left-poses ?left-lift-pose)
-                 (right-poses ?right-lift-pose)))))
+                 (left-poses ?left-close-pose)
+                 (right-poses ?right-close-pose)))))
 
   (when (and joint-name environment)
     (cram-occasions-events:on-event
@@ -220,10 +221,10 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (let ((?left-2nd-lift-pose (man-int::traj-segment-poses ?left-retract-segment))
-          (?right-2nd-lift-pose (man-int::traj-segment-poses ?right-retract-segment)))
+    (let ((?left-retract-pose (man-int:get-traj-poses-by-label ?left-trajectory :retracting))
+          (?right-retract-pose (man-int:get-traj-poses-by-label ?right-trajectory :retracting)))
       (exe:perform
        (desig:an action
                  (type retracting)
-                 (left-poses ?left-2nd-lift-pose)
-                 (right-poses ?right-2nd-lift-pose))))))
+                 (left-poses ?left-retract-pose)
+                 (right-poses ?right-retract-pose))))))
