@@ -98,7 +98,7 @@
         (equal ?rotationally-symmetric nil))
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?grasps)
+        (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?object-transform ?grasps)
              (member ?grasp ?grasps)))
     (lisp-fun man-int:get-object-type-gripping-effort ?object-type ?effort)
     (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
