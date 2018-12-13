@@ -89,9 +89,9 @@ robot in the bullet world should place the object currently in hand."
     (setq table-pose-bullet
           (cl-tf:pose->transform
            (btr:pose
-            (gethash ':|KITCHEN.kitchen_island| ;or kitchen_island_surface?
+            (gethash '|IslandArea_nhwy| ;or kitchen_island_surface?
                      (slot-value
-                      (btr:object btr:*current-bullet-world* :kitchen)
+                      (btr:object btr:*current-bullet-world* 'no-urdf-kitchen)
                       'cram-bullet-reasoning:rigid-bodies)))))
     ; calculate place pose relative to bullet table
     (setq place-pose
