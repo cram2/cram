@@ -6,11 +6,11 @@
 quaternion for rotation.
 POSE: A list of position and rotation values all in one list, as returned by OpenEase.
 RETURNS: A cl-tf:transform consisting of a 3d-vector and a quaternion."
-  (apply-bullet-transform
+ ; (apply-bullet-transform
   ; (quaternion-w-flip ;NOTE Not needed when using Mongo, "might" be needed for OpenEase, depending on version
     (cl-tf:make-transform
      (apply #'cl-tf:make-3d-vector (subseq pose 0 3))
-     (apply #'cl-tf:make-quaternion (subseq pose 3 7)))));)
+     (apply #'cl-tf:make-quaternion (subseq pose 3 7))));))
 
 
 (defun apply-rotation (transform)

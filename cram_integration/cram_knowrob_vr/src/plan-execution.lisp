@@ -17,11 +17,12 @@ RETURNS: "
                     (get-camera-location-at-end-by-object-type
                      (object-type-filter-prolog type)))
                    (set-grasp-look-pose
-                    (place-pose-btr-island type)))
+                    (place-pose-btr-island
+                     (object-type-filter-prolog type)))
                    (set-grasp-look-pose
                     (place-pose-btr-island
                      (object-type-filter-prolog type)))
-  type)
+  type))
 
 (defun execute-pick-up-object (type)
   "Executes only the picking up action on an object given the type of the object.
