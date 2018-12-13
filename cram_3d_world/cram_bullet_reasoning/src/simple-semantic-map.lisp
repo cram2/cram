@@ -85,7 +85,7 @@
                                                     (sem-map-utils:dimensions part)
                                                     0.5))))))
         (progn
-          (roslisp:ros-info (btr) "No mesh path defined. Not spawning this object")
+          (roslisp:ros-info (btr) "No mesh path defined. Not spawning this object ~a" (semantic-map-utils:owl-name part))
           nil)))
   
   (:method ((part t) &key pose collision-group collision-mask)

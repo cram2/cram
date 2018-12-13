@@ -66,17 +66,10 @@
            (cram-robot-interfaces:robot-arms-carrying-joint-states ?robot ?joint-states)
            (assert (btr:joint-state ?world ?robot ?joint-states))
            (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15d0)))))))
-;  (ros-info (kvr) "spawning urdf kitchen...")
- ;;; spawn kitchen as urdf
-;  (let ((kitchen-urdf 
-;         (cl-urdf:parse-urdf 
-;           (roslisp:get-param btr-belief:*kitchen-parameter*))))
-;    (prolog:prolog
-;     `(and (btr:bullet-world ?world)
-  (ros-info (kvr) "spawning semantic-map kitchen...")
-;           (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
 
-(sem-map:get-semantic-map)
+  (ros-info (kvr) "spawning semantic-map kitchen...")
+
+  (sem-map:get-semantic-map)
 ;(cram-occasions-events:clear-belief)
 
   (let ((kitchen-urdf 
