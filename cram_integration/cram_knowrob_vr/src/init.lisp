@@ -81,6 +81,8 @@
                  ; :urdf ,kitchen-urdf)))))
   )
 
+;;; NOTE: Might not be needed anymore since the items are initialized with
+;;; the spawning of the semantic map automatically. 
 (defun init-items ()
   (ros-info (kvr) "spawning objects for experiments...")
   (add-bowl)
@@ -101,43 +103,3 @@ objects for debugging."
   (init-bullet-world)
   (init-items))
 
-(defun prolog-testing()
-  (cut:lazy-car 
-   (json-prolog:prolog-simple
-"map_name(MapName),
-map_root_objects(MapName, Objects),
-member(Obj, Objects),
-owl_has(ObjInst, rdf:type, knowrob:'IslandArea'),
-rdf_has(ObjInst, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', TP),
-iri_xml_namespace(TP, PrefixType, Type),
-iri_xml_namespace(ObjInst, PrefixName, Name),
-owl_has(ObjInst, knowrob:pathToCadModel, Path),
-object_mesh_path(ObjInst, ObjPath),
-current_object_pose(ObjInst, Pose).")))
-  
-;  (print ?pose)
-;  (length ?pose)
-;  (destructuring-bind (a b c d) ?pose
-;    (destructuring-bind (x y z) c
-;      (destructuring-bind (w q1 q2 q3) d
-;        (print c)
-;        (print x)
-;        (print y)
-;        (print z))))
-  
-
-(defun prolog-testing2()
-  (json-prolog:prolog-simple-1
-   "map_name(MapName),
-map_root_objects(MapName, Objects),
-member(Obj, Objects),
-rdf_has(Obj, 'http://knowrob.org/kb/knowrob_u.owl#attachedParent', Sub),
-map_object_type(Sub, TP),
-iri_xml_namespace(TP, PrefixType, Type),
-iri_xml_namespace(Sub, PrefixName, Name)."
-))
-
-(defun prolog-testing3()
-  (json-prolog:prolog-simple-1
-   "object_mesh_path('http://knowrob.org/kb/unreal_log.owl#BaerenMarkeFrischeAlpenmilch18_4OVo', Pose)."
-))
