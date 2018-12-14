@@ -42,7 +42,8 @@
                                                                      ?ee-link)))))))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
     ;; first detach from environment in case it is attached
-    (when (btr:object-attached environment-object btr-object)
+    (when (and (typep environment-object 'btr:robot-object)
+               (btr:object-attached environment-object btr-object))
       (btr:detach-object environment-object btr-object))
     ;; now attach to the robot-object
     (when btr-object
