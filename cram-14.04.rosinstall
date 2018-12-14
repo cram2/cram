@@ -5,11 +5,11 @@
     uri: https://github.com/cram2/cram.git
     version: master
 
-############## IAI semantic maps repository ##########
+############## IAI maps repository ##########
 - git:
     local-name: iai_maps
     uri: https://github.com/code-iai/iai_maps.git
-    version: a28676db193002f4c8c0b17becfb52fc9aacee68
+    version: e64b1dcd0ffb41ea7a07c0817e4fb298976489a8
 
 ############## IAI common msgs repository ############
 - git:
