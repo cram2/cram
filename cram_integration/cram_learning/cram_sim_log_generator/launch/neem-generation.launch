@@ -1,0 +1,7 @@
+<launch>
+  <arg name="objects" default="bowl spoon cup breakfast-cereal milk" />
+    <node pkg="cram_sim_log_generator" type="cram-sim-log-generator" name="neem_generator"
+            output="screen" >
+        <param name="objects" value="$(arg objects)" />
+      </node>
+</launch>
