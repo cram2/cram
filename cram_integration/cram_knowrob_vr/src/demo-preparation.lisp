@@ -7,4 +7,3 @@
   (move-object-to-starting-pose 'cup)
   (move-object-to-starting-pose 'bowl)
   (move-object-to-starting-pose 'fork))
-
