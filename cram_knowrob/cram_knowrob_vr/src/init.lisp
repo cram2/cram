@@ -77,7 +77,7 @@
            (roslisp:get-param btr-belief:*kitchen-parameter*))))
     (prolog:prolog
      `(and (btr:bullet-world ?world)
-           (assert (btr:object ?world :semantic-map no-urdf-kitchen ((0 0 0) (0 0 0 1)))))))
+           (assert (btr:object ?world :semantic-map :kitchen ((0 0 0) (0 0 0 1)))))))
                  ; :urdf ,kitchen-urdf)))))
   )
 

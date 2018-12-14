@@ -7,22 +7,36 @@ it down are the ones extracted from Virtual Reality.
 TYPE: the given type of an object on which the pick and place action should be
 executed.
 RETURNS: "
-  (pick-and-place  (set-grasp-base-pose
-                    (get-camera-location-at-start-by-object-type
-                     (object-type-filter-prolog type)))
-                   (set-grasp-look-pose
-                    (get-object-location-at-start-by-object-type
-                     (object-type-filter-prolog type)))
-                   (set-grasp-base-pose
-                    (get-camera-location-at-end-by-object-type
-                     (object-type-filter-prolog type)))
-                   (set-grasp-look-pose
-                    (place-pose-btr-island
-                     (object-type-filter-prolog type)))
-                   (set-grasp-look-pose
-                    (place-pose-btr-island
-                     (object-type-filter-prolog type)))
-  type))
+  (format t "start_base: ~% ~a" (set-grasp-base-pose
+    (get-camera-location-at-start-by-object-type
+     (object-type-filter-prolog type))))
+  
+   (format t "end pose: ~% ~a"
+            (set-grasp-base-pose
+    (get-camera-location-at-end-by-object-type
+     (object-type-filter-prolog type))))
+  
+  (pick-and-place
+   (set-grasp-base-pose
+    (get-camera-location-at-start-by-object-type
+     (object-type-filter-prolog type)))
+ 
+   (set-grasp-look-pose
+    (get-object-location-at-start-by-object-type
+     (object-type-filter-prolog type)))
+   
+   (set-grasp-base-pose
+    (get-camera-location-at-end-by-object-type
+     (object-type-filter-prolog type)))
+   
+   (set-grasp-look-pose
+    (place-pose-btr-island
+     (object-type-filter-prolog type)))
+   
+   (set-grasp-look-pose
+    (place-pose-btr-island
+     (object-type-filter-prolog type)))
+   type))
 
 (defun execute-pick-up-object (type)
   "Executes only the picking up action on an object given the type of the object.
@@ -47,16 +61,30 @@ object.
 and which should be placed down."
   (place-object (set-grasp-base-pose
                  (get-camera-location-at-end-by-object-type type))
-                (set-grasp-look-pose (place-pose-btr-island))
-                (set-grasp-look-pose (place-pose-btr-island))
+                (set-grasp-look-pose (place-pose-btr-island type))
+                (set-grasp-look-pose (place-pose-btr-island type))
                 (cram-projection::projection-environment-result-result ?obj-desig)))
 
-(defun execute-move-to-object (type)
+(defun execute-move-to-object (type &optional (event-time :start))
   "Moves the robot to the position where the human was standing in order to
-grasp the object."
-  (move-to-object (set-grasp-base-pose
-                   (get-camera-location-at-start-by-object-type
-                    (object-type-filter-prolog type)))
-                  (set-grasp-look-pose
-                   (get-object-location-at-start-by-object-type
-                    (object-type-filter-prolog type)))))
+grasp the object or in order to place it."
+  
+   (if (eq event-time :start)
+       (progn
+         (move-to-object
+          (set-grasp-base-pose
+           (get-camera-location-at-start-by-object-type
+            (object-type-filter-prolog type)))
+          (set-grasp-look-pose
+           (get-object-location-at-start-by-object-type
+            (object-type-filter-prolog type))))))
+  
+  (if (eq event-time :end)
+      (progn
+        (move-to-object
+         (set-grasp-base-pose
+          (get-camera-location-at-end-by-object-type
+           (object-type-filter-prolog type)))
+         (set-grasp-look-pose
+          (get-object-location-at-end-by-object-type
+           (object-type-filter-prolog type)))))))

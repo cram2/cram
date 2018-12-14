@@ -161,7 +161,7 @@ grasp the object.
 for the object to be picked up.
 ?PLACING-BASE-POSE: The pose where the robot should stand in order to be able
 to place down the picked up object.
-?PLACING-LOOK-POSE: THe pose the robot is looking at, at which he will place
+?PLACING-LOOK-POSE: The pose the robot is looking at, at which he will place
 the object.
 ?PLACE-POSE: The actual placing pose of the object.
 ?TYPE: The type of the object the robot should interact with."
@@ -170,6 +170,9 @@ the object.
          (?obj-name (object-type-filter-bullet ?type)))
     (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
       (cpl:top-level
+        (format t "start pose: ~% ~a ~% " ?grasping-base-pose)
+        (format t "end pose: ~% ~a ~% " ?placing-base-pose)
+        
         ;; make sure the arms are not in the way
         (pp-plans::park-arms)
         ;; move the robot to location
