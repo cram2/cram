@@ -188,13 +188,13 @@ Store found pose into designator or throw error if good pose not found."
                 (cpl:fail 'common-fail:object-unreachable)))
 
            (let ((placing-action-referenced (desig:reference placing-action-desig)))
-             (destructuring-bind (_action object-designator on-object-designator arm
+             (destructuring-bind (_action object-designator on-object-designator
+                                  _placement-location-name arm _opening
                                   left-reach-poses right-reach-poses
                                   left-put-poses right-put-poses
-                                  left-retract-poses right-retract-poses
-                                  _placing-location)
+                                  left-retract-poses right-retract-poses)
                  placing-action-referenced
-               (declare (ignore _action _placing-location))
+               (declare (ignore _action _placing-location _placement-loc-name _opening))
 
                (pr2-proj::gripper-action :open arm)
 
@@ -265,41 +265,29 @@ Store found pose into designator or throw error if good pose not found."
                           :description "Manipulation pose in collision or unreachable.")))
 
            (let ((action-referenced (desig:reference action-desig)))
-             (destructuring-bind (action arm _gripper-opening distance
-                                  left-reach-poses right-reach-poses
-                                  left-grasp-poses right-grasp-poses
-                                  left-pull-push-poses right-pull-push-poses
-                                  left-retract-poses right-retract-poses
-                                  joint-name link-name _environment-object)
+             (destructuring-bind (action arm _gripper-opening _distance
+                                  left-trajectory right-trajectory
+                                  joint-name _link-name _environment-object)
                  action-referenced
-               (declare (ignore _gripper-opening _environment-object))
+               (declare (ignore _gripper-opening _distance
+                                _link-name _environment-object))
 
                (pr2-proj::gripper-action :open arm)
 
                (roslisp:ros-info (coll-check environment)
                                  "Trying to ~a with joint ~a with arm ~a~%"
                                  action joint-name arm)
-               (let ((left-poses-list-of-lists
-                       (list left-reach-poses left-grasp-poses
-                             left-pull-push-poses left-retract-poses))
-                     (right-poses-list-of-lists
-                       (list right-reach-poses right-grasp-poses
-                             right-pull-push-poses right-retract-poses)))
-                 (multiple-value-bind (left-poses right-poses)
-                     (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
-                                                          right-poses-list-of-lists)
-                   (mapcar (lambda (left-pose right-pose)
-                             (pr2-proj::move-tcp left-pose right-pose :allow-all)
+               (mapcar (lambda (left-segment right-segment)
+                         (multiple-value-bind (left-poses right-poses)
+                             (cut:equalize-two-list-lengths
+                              (man-int:traj-segment-poses left-segment)
+                              (man-int:traj-segment-poses right-segment))
+                           (dotimes (i (length left-poses))
+                             (pr2-proj::move-tcp
+                              (nth i left-poses)
+                              (nth i right-poses))
                              (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
-                               (cpl:sleep pr2-proj:*debug-short-sleep-duration*)))
-                           left-poses
-                           right-poses)
-                   (when (eq (desig:desig-prop-value action-desig :type) :opening)
-                     (when (btr:robot-colliding-objects-without-attached)
-                       (roslisp:ros-warn (coll-check environment)
-                                         "Robot is in collision with environment.")
-                       (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
-                       (btr::restore-world-state world-state world)
-                       ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
-                       )))))))
+                               (cpl:sleep pr2-proj:*debug-short-sleep-duration*)))))
+                         left-trajectory
+                         right-trajectory))))
       (btr::restore-world-state world-state world))))
