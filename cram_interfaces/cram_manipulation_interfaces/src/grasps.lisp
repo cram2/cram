@@ -112,9 +112,10 @@
                    (* grasp-robot-axis-sign (aref matrix 2 grasp-robot-axis-index)))))
       (calculate-vector-face robot-grasp-vector))))
 
-(defgeneric get-object-type-grasps (object-type arm)
+(defgeneric get-object-type-grasps (object-type arm object-transform-in-base)
   (:documentation "Returns a lazy list of all possible grasps for `object-type' with given `arm'")
-  (:method (object-type arm)
+  (:method (object-type arm object-transform-in-base)
+    (declare (ignore object-pose-in-base))
     #-solution-using-sbcl-API
     (remove-if
      #'null

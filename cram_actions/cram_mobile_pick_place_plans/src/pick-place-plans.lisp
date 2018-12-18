@@ -81,7 +81,8 @@
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-attached-robot
      :object-name (desig:desig-prop-value ?object-designator :name)
-     :arm ?arm))
+     :arm ?arm
+     :grasp ?grasp))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -103,7 +104,8 @@
                               ?gripper-opening
                               ?left-reach-poses ?right-reach-poses
                               ?left-put-poses ?right-put-poses
-                              ?left-retract-poses ?right-retract-poses)
+                              ?left-retract-poses ?right-retract-poses
+                              ?placing-location-designator)
   (roslisp:ros-info (pick-place place) "Reaching")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -128,7 +130,8 @@
      (desig:an action
                (type putting)
                (object ?object-designator)
-               (supporting-object ?other-object-designator)
+               (desig:when ?other-object-designator
+                 (supporting-object ?other-object-designator))
                (left-poses ?left-put-poses)
                (right-poses ?right-put-poses))))
   (when ?placing-location-name

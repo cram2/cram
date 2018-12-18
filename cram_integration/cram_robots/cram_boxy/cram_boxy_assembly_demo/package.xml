@@ -42,6 +42,7 @@
   <depend>cram_robot_pose_gaussian_costmap</depend>
   <depend>cram_occupancy_grid_costmap</depend>
   <depend>cram_location_costmap</depend>
+  <depend>cram_manipulation_interfaces</depend>
 
   <depend>cram_boxy_projection</depend>
   <depend>cram_boxy_description</depend>
@@ -49,6 +50,8 @@
   <depend>cram_process_modules</depend>
   <!-- <depend>cram_boxy_process_modules</depend> -->
   <depend>cram_boxy_plans</depend>
+
+  <depend>cram_robosherlock</depend>
 
   <!-- launch file -->
   <exec_depend>iai_maps</exec_depend>

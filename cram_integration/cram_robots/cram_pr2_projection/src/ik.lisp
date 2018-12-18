@@ -200,6 +200,30 @@
         (declare (ignore e))
         nil))))
 
+
+
+(defun arm-pose-hash-code (arm-pose-list)
+  (let* ((pose (second arm-pose-list))
+         (pose-list (cram-tf:pose->flat-list pose))
+         (sum (abs (apply #'+ pose-list)))
+         (sum-big-precise-num (* sum 100000000))
+         (pose-hash-code (floor sum-big-precise-num))
+         (arm (first arm-pose-list))
+         (overall-hash-code (ecase arm
+                              (:left (+ pose-hash-code 10000))
+                              (:right (+ pose-hash-code 20000)))))
+    overall-hash-code))
+(defun arm-poses-equal-accurate (arm-pose-list-1 arm-pose-list-2)
+  (let* ((pose-1 (second arm-pose-list-1))
+         (pose-2 (second arm-pose-list-2))
+         (arm-1 (first arm-pose-list-1))
+         (arm-2 (first arm-pose-list-2)))
+    (if (eql arm-1 arm-2)
+        (cram-tf:poses-equal-p pose-1 pose-2 0.000001d0 0.000010d0)
+        nil)))
+(sb-ext:define-hash-table-test arm-poses-equal-accurate arm-pose-hash-code)
+(defvar *ik-solution-cache* (make-hash-table :test 'arm-poses-equal-accurate))
+
 (defparameter *torso-step* 0.01)
 
 (defun call-ik-service-with-torso-resampling (left-or-right cartesian-pose
@@ -209,8 +233,16 @@
                                                          &key seed-state test-angle
                                                            torso-angle
                                                            torso-lower-limit torso-upper-limit)
-             (let ((ik-solution (call-ik-service left-or-right cartesian-pose seed-state)))
-               (if (not ik-solution)
+             (let ((ik-solution-msg (call-ik-service left-or-right cartesian-pose seed-state)))
+               (if ik-solution-msg
+                   (let ((ik-solution-position
+                           (map 'list #'identity
+                                (roslisp:msg-slot-value
+                                 ik-solution-msg 'sensor_msgs-msg:position)))
+                         (resulting-torso-angle (or test-angle torso-angle)))
+                     (setf (gethash (list left-or-right cartesian-pose) *ik-solution-cache*)
+                           (list ik-solution-position resulting-torso-angle))
+                     (values ik-solution-position resulting-torso-angle))
                    (when (or (not test-angle) (> test-angle torso-lower-limit))
                      ;; When we have no ik solution and have a valid torso angle to try,
                      ;; use it to resample.
@@ -234,21 +266,24 @@
                         :test-angle next-test-angle
                         :torso-angle torso-angle
                         :torso-lower-limit torso-lower-limit
-                        :torso-upper-limit torso-upper-limit)))
-                   (values ik-solution (or test-angle torso-angle))))))
+                        :torso-upper-limit torso-upper-limit)))))))
 
-    (let ((old-debug-lvl (roslisp:debug-level NIL)))
-      (unwind-protect
-           (progn
-             (roslisp:set-debug-level NIL 9)
-             (call-ik-service-with-torso-resampling-inner
-              left-or-right cartesian-pose
-              :seed-state seed-state
-              :test-angle test-angle
-              :torso-angle torso-angle
-              :torso-lower-limit torso-lower-limit
-              :torso-upper-limit torso-upper-limit))
-        (roslisp:set-debug-level NIL old-debug-lvl)))))
+    (let ((hashed-result
+            (gethash (list left-or-right cartesian-pose) *ik-solution-cache*)))
+      (if hashed-result
+          (values (first hashed-result) (second hashed-result))
+          (let ((old-debug-lvl (roslisp:debug-level NIL)))
+            (unwind-protect
+                 (progn
+                   (roslisp:set-debug-level NIL 9)
+                   (call-ik-service-with-torso-resampling-inner
+                    left-or-right cartesian-pose
+                    :seed-state seed-state
+                    :test-angle test-angle
+                    :torso-angle torso-angle
+                    :torso-lower-limit torso-lower-limit
+                    :torso-upper-limit torso-upper-limit))
+              (roslisp:set-debug-level NIL old-debug-lvl)))))))
 
 
 (defun call-fk-service (left-or-right link-names-vector

@@ -482,4 +482,4 @@ if it is on the sign side of the axis. "
                        (cl-transforms:axis-angle->quaternion
                         (cl-transforms:make-3d-vector 0 0 1)
                         angle))
-                     `(0.0 ,(/ pi 2) ,pi ,(- (/ pi 2))))))
+                     `(0.0 ,pi ,(/ pi 2) ,(- (/ pi 2))))))

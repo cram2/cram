@@ -33,11 +33,12 @@
   :description "Object interfaces"
 
   :depends-on (cram-prolog
+               cram-utilities ; for lazy lists in manipulation.lisp
                cram-designators
                cram-tf
                cl-transforms-stamped
                cram-robot-interfaces ; for gripper transform calculations
-               cram-utilities ; for lazy lists in manipulation.lisp
+               cram-plan-occasions-events ; for robot-free-arm
                )
   :components
   ((:module "src"
@@ -48,4 +49,5 @@
      (:file "trajectories" :depends-on ("package" "prolog"))
      (:file "gripper" :depends-on ("package"))
      (:file "grasps" :depends-on ("package"))
-     (:file "standard-grasps" :depends-on ("package"))))))
+     (:file "standard-grasps" :depends-on ("package"))
+     (:file "standard-rotations" :depends-on ("package"))))))

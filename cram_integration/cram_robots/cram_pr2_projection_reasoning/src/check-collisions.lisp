@@ -189,12 +189,15 @@ Store found pose into designator or throw error if good pose not found."
 
            (let ((placing-action-referenced (desig:reference placing-action-desig)))
              (destructuring-bind (_action object-designator on-object-designator
-                                  _placement-location-name arm _opening
+                                  _assemblage-name
+                                  arm
+                                  _gripper-opening
                                   left-reach-poses right-reach-poses
                                   left-put-poses right-put-poses
-                                  left-retract-poses right-retract-poses)
+                                  left-retract-poses right-retract-poses
+                                  _placing_location)
                  placing-action-referenced
-               (declare (ignore _action _placing-location _placement-loc-name _opening))
+               (declare (ignore _action _assemblage-name _gripper-opening _placing_location))
 
                (pr2-proj::gripper-action :open arm)
 
@@ -285,7 +288,8 @@ Store found pose into designator or throw error if good pose not found."
                            (dotimes (i (length left-poses))
                              (pr2-proj::move-tcp
                               (nth i left-poses)
-                              (nth i right-poses))
+                              (nth i right-poses)
+                              :allow-all)
                              (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
                                (cpl:sleep pr2-proj:*debug-short-sleep-duration*)))))
                          left-trajectory

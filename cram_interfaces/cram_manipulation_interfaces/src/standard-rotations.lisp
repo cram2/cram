@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
-;;;       without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,27 +27,33 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-bullet-reasoning-utilities
-  :author "Gayane Kazhoyan"
-  :license "BSD"
-  :depends-on (cram-designators
-               cram-prolog
-               cram-utilities
+(in-package :cram-manipulation-interfaces)
 
-               cram-location-costmap
-               cram-tf ; for visualize-gripper in vis-tools
-               cram-robot-interfaces ; also for visualize-gripper and robot utils
-               cl-transforms
-               cl-transforms-stamped
+(defparameter *rotation-around-z-90-matrix*
+  '(( 0  1  0)
+    (-1  0  0)
+    ( 0  0  1)))
 
-               cram-bullet-reasoning
-               cl-bullet
-               cl-bullet-vis)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "objects-database" :depends-on ("package"))
-     (:file "objects" :depends-on ("package" "objects-database"))
-     (:file "vis-tools" :depends-on ("package" "objects"))
-     (:file "robot" :depends-on ("package"))))))
+(defparameter *rotation-around-z+90-matrix*
+  '((0 -1  0)
+    (1  0  0)
+    (0  0  1)))
+
+(defparameter *identity-matrix*
+  '((1 0 0)
+    (0 1 0)
+    (0 0 1)))
+
+
+(defparameter *rotation-around-x+90-list*
+  '(0.7071067811865475d0 0.0d0 0.0d0 0.7071067811865476d0))
+(defparameter *rotation-around-x-90-list*
+  '(-0.7071067811865475d0 0.0d0 0.0d0 0.7071067811865476d0))
+(defparameter *rotation-around-y+90-list*
+  '(0.0d0 0.7071067811865475d0 0.0d0 0.7071067811865476d0))
+(defparameter *rotation-around-y-90-list*
+  '(0.0d0 -0.7071067811865475d0 0.0d0 0.7071067811865476d0))
+(defparameter *rotation-around-z+90-list*
+  '(0.0d0 0.0d0 0.7071067811865475d0 0.7071067811865476d0))
+(defparameter *rotation-around-z-90-list*
+  '(0.0d0 0.0d0 -0.7071067811865475d0 0.7071067811865476d0))

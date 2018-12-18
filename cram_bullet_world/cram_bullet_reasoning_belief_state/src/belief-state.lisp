@@ -51,6 +51,7 @@ is replaced with replacement.
           when pos do (write-string replacement out)
             while pos)))
 
+(defun average (min max) (+ min (/ (- max min) 2)))
 (defun setup-world-database ()
   (let ((robot (or *robot-urdf*
                    (setf *robot-urdf*
@@ -83,8 +84,12 @@ is replaced with replacement.
                          (assert (btr:joint-state ?world ?robot ?left-joint-states))
                          (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
                          (assert (btr:joint-state ?world ?robot ?right-joint-states))
-                         (rob-int:robot-torso-link-joint ?robot ?_ ?joint)
-                         (assert (btr:joint-state ?world ?robot ((?joint 0.15)))))
+                         (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
+                         (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
+                         (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit)
+                         (lisp-fun average ?lower-limit ?upper-limit ?average-joint-value)
+                         (assert (btr:joint-state ?world ?robot
+                                                  ((?torso-joint ?average-joint-value)))))
                     (warn "ROBOT was not defined. Have you loaded a robot package?"))))))))
 
 

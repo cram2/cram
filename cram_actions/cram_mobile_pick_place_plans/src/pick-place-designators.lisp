@@ -98,7 +98,7 @@
         (equal ?rotationally-symmetric nil))
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?grasps)
+        (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?object-transform ?grasps)
              (member ?grasp ?grasps)))
     (lisp-fun man-int:get-object-type-gripping-effort ?object-type ?effort)
     (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
@@ -120,7 +120,8 @@
                                                         ?gripper-opening
                                                         ?left-reach-poses ?right-reach-poses
                                                         ?left-put-poses ?right-put-poses
-                                                        ?left-retract-poses ?right-retract-poses))
+                                                        ?left-retract-poses ?right-retract-poses
+                                                        ?current-location-designator))
     (spec:property ?action-designator (:type :placing))
 
     ;; find in which hand the object is
@@ -140,23 +141,20 @@
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        ;; TODO: grasp should be stored in the knowledge base!!
-        (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?grasps)
-             (member ?grasp ?grasps)))
     (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
 
     ;; take object-pose from action-designator :target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location-designator))
         (and (desig:current-designator ?location-designator ?current-location-designator)
              (desig:designator-groundings ?current-location-designator ?poses)
-             (member ?target-pose ?poses)
-             (lisp-fun pose->transform-stamped-in-base ?target-pose ?object-name
-                       ?target-transform))
-        (and (lisp-fun man-int:get-object-transform ?current-object-designator ?target-transform)
-             (lisp-fun man-int:get-object-pose ?current-object-designator ?target-pose)
-             (desig:designator :location ((:pose ?target-pose)) ?current-location-designator)))
+             (member ?target-object-pose ?poses)
+             (lisp-fun pose->transform-stamped-in-base ?target-object-pose ?object-name
+                       ?target-object-transform))
+        (and (lisp-fun man-int:get-object-transform ?current-object-designator
+                       ?target-object-transform)
+             (lisp-fun man-int:get-object-pose ?current-object-designator ?target-object-pose)
+             (desig:designator :location ((:pose ?target-object-pose))
+                               ?current-location-designator)))
 
     ;; placing happens on/in an object
     (or (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
@@ -166,11 +164,15 @@
         (true)
         (equal ?placement-location-name NIL))
 
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (cpoe:object-in-hand ?object-designator ?arm ?grasp))
+
     (lisp-fun man-int:get-object-grasping-poses
-              ?object-name ?object-type :left ?grasp ?target-transform
+              ?object-name ?object-type :left ?grasp ?target-object-transform
               ?left-poses)
     (lisp-fun man-int:get-object-grasping-poses
-              ?object-name ?object-type :right ?grasp ?target-transform
+              ?object-name ?object-type :right ?grasp ?target-object-transform
               ?right-poses)
     (lisp-fun extract-place-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses ?left-put-poses ?right-put-poses
