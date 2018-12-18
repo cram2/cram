@@ -44,7 +44,7 @@
                                     :collision-mask collision-mask)
                         when body collect body)))
       (initialize-rigid-bodies semantic-map-object bodies)
-      (setf pose-reference-body (car bodies)))))
+      (setf pose-reference-body (cl-bullet:name (car bodies))))))
 
 (defmethod copy-object ((obj simple-semantic-map-object) (world bt-reasoning-world))
   (with-slots (semantic-map) obj
