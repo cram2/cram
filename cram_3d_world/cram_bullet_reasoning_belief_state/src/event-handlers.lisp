@@ -39,7 +39,8 @@
                 (car (prolog:prolog
                       `(and (cram-robot-interfaces:robot ?robot)
                             (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
-                                                                     ?ee-link)))))))
+                                                                     ?ee-link))))))
+         (grasp (cpoe:event-grasp event)))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
     ;; first detach from environment in case it is attached
     (when (btr:object-attached environment-object btr-object)
@@ -47,8 +48,8 @@
     ;; now attach to the robot-object
     (when btr-object
       (if (btr:object-attached robot-object btr-object)
-          (btr:attach-object robot-object btr-object link :loose t)
-          (btr:attach-object robot-object btr-object link :loose nil))
+          (btr:attach-object robot-object btr-object link :loose t :grasp grasp)
+          (btr:attach-object robot-object btr-object link :loose nil :grasp grasp))
 
       ;;; giskard and knowrob event
       (unless cram-projection:*projection-environment*

@@ -62,7 +62,7 @@
     (spec:property ?current-other-object-designator (:name ?other-object-name))
     (lisp-fun man-int:get-object-transform ?current-other-object-designator
               ?other-object-transform)
-    (lisp-fun kr-assembly::get-object-placement-transform
+    (lisp-fun man-int:get-object-placement-transform
               ?object-name ?object-type
               ?other-object-name ?other-object-type ?other-object-transform
               ?attachment-type
@@ -109,6 +109,6 @@
     (lisp-fun cram-manipulation-interfaces:get-object-transform
               ?current-object-designator ?object-transform)
     ;; infer missing information
-    (lisp-fun kr-assembly::get-object-look-pose :left ?object-transform ?left-goal-pose)
+    (lisp-fun man-int:get-object-look-from-pose ?object-transform ?left-goal-pose)
     ;; the only wrist camera is on left arm
     (equal ?right-goal-pose NIL)))

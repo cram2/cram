@@ -31,6 +31,7 @@
 (in-package :physics-utils)
 
 (defun parse-uri (uri)
+  (unless uri (error "In PARSE-URI the given URI was NIL."))
   (let ((uri-package-prefix "package://"))
     (cond ((equal (subseq uri 0 (length uri-package-prefix))
                   uri-package-prefix)

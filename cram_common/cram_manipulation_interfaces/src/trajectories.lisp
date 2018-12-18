@@ -29,6 +29,8 @@
 
 (in-package :cram-manipulation-interfaces)
 
+;;;;;;;;;;;;;;;;;;; OBJECT TO GRIPPER TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defvar *known-grasp-types* nil
   "A list of symbols representing all known grasp types")
 
@@ -307,128 +309,6 @@ Gripper is defined by a convention where Z is pointing towards the object."))
 
 ;;;;;;;;;;;;;;;;;;;;;;; Pick and Place specific stuff ends here. ;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *index->axis*
-  '((0 . :x)
-    (1 . :y)
-    (2 . :z)))
-
-(defparameter *axis-index->face*
-  '(((:x +1) . :front)
-    ((:x -1) . :back)
-    ((:y +1) . :left-side)
-    ((:y -1) . :right-side)
-    ((:z +1) . :top)
-    ((:z -1) . :bottom)))
-
-(defun calculate-vector-face (vector)
-  (let* ((axis-index-list
-           (loop for x in vector
-                 for i = 0 then (1+ i)
-                 with max-value = most-negative-single-float
-                 with max-index
-                 with max-sign
-                 do (when (> (abs x) max-value)
-                      (setf max-value (abs x))
-                      (setf max-index i)
-                      (setf max-sign (if (= x 0) +1 (truncate (/ x (abs x))))))
-                 finally (return (list (cdr (assoc max-index *index->axis*))
-                                       max-sign)))))
-    (cdr (assoc axis-index-list *axis-index->face* :test #'equal))))
-
-(defun calculate-object-faces (robot-to-object-transform)
-  (let* ((object-to-robot-transform
-           (cram-tf:transform-stamped-inv robot-to-object-transform))
-         (matrix
-           (cl-transforms:quaternion->matrix
-            (cl-transforms:rotation object-to-robot-transform)))
-         (robot-negative-x-vector
-           (list (- (aref matrix 0 0)) (- (aref matrix 1 0)) (- (aref matrix 2 0))))
-         (robot-negative-z-vector
-           (list (- (aref matrix 0 2)) (- (aref matrix 1 2)) (- (aref matrix 2 2))))
-         (facing-robot-face
-           (calculate-vector-face robot-negative-x-vector))
-         (bottom-face
-           (calculate-vector-face robot-negative-z-vector)))
-    (list facing-robot-face bottom-face)))
-
-(defun object-type-grasp->robot-grasp (robot-to-object-transform object-type-grasp)
-  (destructuring-bind (grasp-axis grasp-axis-sign)
-      (car (rassoc object-type-grasp *axis-index->face*))
-    (let* ((grasp-axis-index
-             (car (rassoc grasp-axis *index->axis*)))
-           (matrix
-             (cl-transforms:quaternion->matrix
-              (cl-transforms:rotation robot-to-object-transform)))
-           (object-grasp-vector
-             (list (* grasp-axis-sign (aref matrix 0 grasp-axis-index))
-                   (* grasp-axis-sign (aref matrix 1 grasp-axis-index))
-                   (* grasp-axis-sign (aref matrix 2 grasp-axis-index))))
-           (robot-grasp-face
-             (calculate-vector-face object-grasp-vector)))
-      ;; grasping object's front size would mean a back grasp for robot
-      ;; otherwise all other grasps correspond to object sides
-      (if (eq robot-grasp-face :front)
-          :back
-          (if (eq robot-grasp-face :back)
-              :front
-              robot-grasp-face)))))
-
-(defun robot-grasp->object-type-grasp (robot-to-object-transform robot-grasp)
-  (destructuring-bind (grasp-robot-axis grasp-robot-axis-sign)
-      (car (rassoc robot-grasp *axis-index->face*))
-    (when (eq grasp-robot-axis :x)
-        (setf grasp-robot-axis-sign (* grasp-robot-axis-sign -1.0)))
-    (let* ((grasp-robot-axis-index
-             (car (rassoc grasp-robot-axis *index->axis*)))
-           (matrix
-             (cl-transforms:quaternion->matrix
-              (cl-transforms:rotation
-               (cram-tf:transform-stamped-inv robot-to-object-transform))))
-           (robot-grasp-vector
-             (list (* grasp-robot-axis-sign (aref matrix 0 grasp-robot-axis-index))
-                   (* grasp-robot-axis-sign (aref matrix 1 grasp-robot-axis-index))
-                   (* grasp-robot-axis-sign (aref matrix 2 grasp-robot-axis-index)))))
-      (calculate-vector-face robot-grasp-vector))))
-
-(defgeneric get-object-type-grasps (object-type facing-robot-face bottom-face
-                                    rotationally-symmetric-p arm)
-  (:documentation "Returns a lazy list of all possible grasps for `object-type'")
-  (:method (object-type facing-robot-face bottom-face rotationally-symmetric-p arm)
-    (declare (ignore facing-robot-face bottom-face rotationally-symmetric-p))
-    #-solution-using-sbcl-API
-    (remove-if
-     #'null
-     (mapcar (lambda (grasp-type)
-               (when (find-method #'man-int:get-object-type-to-gripper-transform
-                                  '()
-                                  `((eql ,object-type) T (eql ,arm) (eql ,grasp-type))
-                                  nil)
-                 grasp-type))
-             #+sbcl
-             (remove-if
-              #'null
-              (remove-duplicates
-               (mapcar
-                (lambda (generic-method)
-                  (let ((grasp-specializer (fourth (sb-pcl:method-specializers generic-method))))
-                    (when (typep grasp-specializer 'sb-mop:eql-specializer)
-                      (sb-mop:eql-specializer-object grasp-specializer))))
-                (sb-pcl:generic-function-methods
-                 #'man-int:get-object-type-to-gripper-transform))))
-             #-sbcl
-             (error "CRAM object manipulation code only works under SBCL...")
-             #+solution-using-grasp-defining-macros-doesnt-work-for-custom-methods-like-env-manip
-             *known-grasp-types*))
-
-    #+solution-using-lazy-lists-and-Prolog
-    ;; (cut:lazy-list ((i 0))
-    ;;   (when (< i 10) (cut:cont i (1+ i))))
-    (cut:lazy-mapcar
-     (lambda (bindings)
-       (cut:var-value '?grasp bindings))
-     (prolog:prolog `(obj-int:object-type-grasp ,object-type ?grasp)))))
-
-
 (def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters ;; object-type-grasp
                                                                 )
 
@@ -477,3 +357,127 @@ Gripper is defined by a convention where Z is pointing towards the object."))
       (car (mapcar
             (alexandria:curry #'find-most-specific-object-type-for-generic generic)
             (get-direct-supertypes object-type)))))
+
+
+;;;;;;;;;;;;;;;;;;; OBJECT TO OTHER OBJECT TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar *known-attachment-types* nil
+  "A list of symbols representing all known attachment types")
+
+(defgeneric get-object-type-in-other-object-transform (object-type object-name
+                                                       other-object-type other-object-name
+                                                       attachment))
+
+(defun get-object-placement-transform (object-name object-type
+                                       other-object-name other-object-type other-object-transform
+                                       attachment-type)
+  "Returns a transform in robot base frame where the object named `object-name' should go"
+  (let* ((base-frame
+           cram-tf:*robot-base-frame*)
+         (object-frame
+           (roslisp-utilities:rosify-underscores-lisp-name object-name))
+         (base-to-object-transform  ; bTo = bToo * ooTo
+           (cram-tf:multiply-transform-stampeds
+            base-frame
+            object-frame
+            other-object-transform
+            (get-object-type-in-other-object-transform ; ooTo
+             object-type object-name other-object-type other-object-name attachment-type))))
+    base-to-object-transform))
+
+
+
+(defmacro def-object-type-in-other-object-transform (object-type other-object-type attachment-type
+                                                     &key
+                                                       (attachment-translation ''(0.0 0.0 0.0))
+                                                       (attachment-rot-matrix ''((1.0 0.0 0.0)
+                                                                                 (0.0 1.0 0.0)
+                                                                                 (0.0 0.0 1.0))))
+  `(let ((evaled-object-type ,object-type)
+         (evaled-other-object-type ,other-object-type)
+         (evaled-attachment-type ,attachment-type)
+         (evaled-attachment-translation ,attachment-translation)
+         (evaled-attachment-rot-matrix ,attachment-rot-matrix))
+     (let ((object-list
+             (if (listp evaled-object-type)
+                 evaled-object-type
+                 (list evaled-object-type)))
+           (other-object-list
+             (if (listp evaled-other-object-type)
+                 evaled-other-object-type
+                 (list evaled-other-object-type))))
+       (mapcar (lambda (object)
+                 (mapcar (lambda (other-object)
+                           (let ((transform
+                                   (cl-transforms-stamped:make-transform-stamped
+                                    (roslisp-utilities:rosify-underscores-lisp-name other-object)
+                                    (roslisp-utilities:rosify-underscores-lisp-name object)
+                                    0.0
+                                    (cl-transforms:make-3d-vector
+                                     (first evaled-attachment-translation)
+                                     (second evaled-attachment-translation)
+                                     (third evaled-attachment-translation))
+                                    (cl-transforms:matrix->quaternion
+                                     (make-array '(3 3)
+                                                 :initial-contents
+                                                 evaled-attachment-rot-matrix)))))
+
+                             (pushnew evaled-attachment-type *known-attachment-types*)
+
+   (defmethod get-object-type-in-other-object-transform ((object-type (eql object))
+                                                         object-name
+                                                         (other-object-type (eql other-object))
+                                                         other-object-name
+                                                         (attachment (eql evaled-attachment-type)))
+         (let ((attachment-transform transform))
+           (if attachment-transform
+               (cram-tf:copy-transform-stamped
+                attachment-transform
+                :frame-id (roslisp-utilities:rosify-underscores-lisp-name other-object-name)
+                :child-frame-id (roslisp-utilities:rosify-underscores-lisp-name object-name))
+               (error "Attachment transform not defined for ~a with ~a attached with ~a~%"
+                      object other-object attachment))))
+
+                             ))
+                         other-object-list))
+               object-list))))
+
+
+
+;;;;;;;;;;;;;;;;;;; CAMERA TO OBJECT TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *default-look-z-offset* 0.2 "in meters")
+(defparameter *default-look-x-offset* 0.15 "in meters")
+
+(defun get-object-look-from-pose (object-transform)
+  (declare (type cl-transforms-stamped:transform-stamped object-transform))
+  "Returns a pose stamped representing bTg -- transfrom from base to gripper.
+Used for generating a pose for a hand-mounted camera.
+Take object-transform, ensure it's from base frame  -- bTo.
+Take an initial pose of gripper in base bTg and set its X and Y to object X and Y.
+Set Z to offset object Z."
+
+  (unless (equal (cl-transforms-stamped:frame-id object-transform)
+                 cram-tf:*robot-base-frame*)
+    (error "In grasp calculations the OBJECT-TRANSFORM did not have ~
+correct parent frame: ~a and ~a"
+           (cl-transforms-stamped:frame-id object-transform)
+           cram-tf:*robot-base-frame*))
+
+  (let* ((gripper-initial-pose
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*robot-base-frame*
+            0.0
+            (cl-transforms:make-3d-vector 0 0 0)
+            (cl-transforms:matrix->quaternion
+             #2A((-1 0 0)
+                 (0 1 0)
+                 (0 0 -1)))))
+         (object-x-in-base (cl-transforms:x (cl-transforms:translation object-transform)))
+         (object-y-in-base (cl-transforms:y (cl-transforms:translation object-transform)))
+         (object-z-in-base (cl-transforms:z (cl-transforms:translation object-transform)))
+         (offset-object-x (- object-x-in-base *default-look-x-offset*))
+         (offset-object-z (+ object-z-in-base *default-look-z-offset*)))
+    (cl-transforms-stamped:copy-pose-stamped
+     gripper-initial-pose
+     :origin (cl-transforms:make-3d-vector offset-object-x object-y-in-base offset-object-z))))

@@ -33,15 +33,6 @@
 (defparameter *plate-y* 1.6)
 (defparameter *plate-z* 0.8626)
 
-(defparameter *rotation-around-x+90* '(0.7071067811865475d0 0.0d0 0.0d0 0.7071067811865476d0))
-(defparameter *rotation-around-y-90* '(0.0d0 -0.7071067811865475d0 0.0d0 0.7071067811865476d0))
-(defparameter *rotation-around-z-90* '(0.0d0 0.0d0 -0.7071067811865475d0 0.7071067811865476d0))
-(defparameter *rotation-around-z+90* '(0.0d0 0.0d0 0.7071067811865475d0 0.7071067811865476d0))
-(defparameter *rotation-around-z-y* '(-0.7071067690849304d0 0.7071067690849304d0 0.0d0 0.0d0))
-(defparameter *rotation-around-z-x* '(0.7071067690849304d0 0.7071067690849304d0 0.0d0 0.0d0))
-(defparameter *rotation-around-x-y* '(0.0d0 0.7071067811865475d0 0.7071067811865475d0 0.0d0))
-(defparameter *rotation-around-x-y-2* '(0.5d0 0.5d0 0.5d0 0.5d0))
-
 (defparameter *plate-rad-x* 0.36)
 (defparameter *plate-rad-y* 0.60)
 (defparameter *plate-rad-z* 0.008)
@@ -97,7 +88,7 @@
                         ((,(+ 0.1 *holder-bottom-wing-rad-x*)
                           ,(- 0.3 *holder-bottom-wing-rad-y*)
                           ,*holder-bottom-wing-rad-z*)
-                         ,*rotation-around-z-90*))
+                         ,man-int:*rotation-around-z-90-list*))
     (holder-underbody :holder-underbody ,*yellow-plastic*
                       ((,(+ 0.05 *holder-underbody-rad-x*) 0.4 ,*holder-underbody-rad-z*)
                        (0 0 0 1)))
@@ -120,12 +111,12 @@
                      ((,(+ 0.15 *holder-top-wing-rad-x*)
                        ,(- 1.15 *holder-top-wing-rad-y*)
                        ,*holder-top-wing-rad-z*)
-                      ,*rotation-around-z-90*))
+                      ,man-int:*rotation-around-z-90-list*))
 
     ;; rear wing is already well positioned
     (rear-wing :rear-wing ,*yellow-plane*
                ((0.079 0.599 0.056)
-                ,*rotation-around-z+90*))
+                ,man-int:*rotation-around-z+90-list*))
 
     ;; bolts are used intermediately
     (bolt-1 :bolt ,*gray-plane*
@@ -141,7 +132,7 @@
 
     ;; first part of scenario on horizontal holder
     (chassis :chassis ,*yellow-plane*
-             ((0.2 0.9 ,*chassis-rad-z*) ,*rotation-around-z-90*))
+             ((0.2 0.9 ,*chassis-rad-z*) ,man-int:*rotation-around-z-90-list*))
     (bottom-wing :bottom-wing ,*cyan-plane*
                  ((0.134 0.25 0.093) (0 0 0 1)))
     (underbody :underbody ,*red-plane*
@@ -229,6 +220,7 @@
 ;;; * screw nut onto wheel
 ;;; * screw bottom body
 (defun demo ()
+  (setf cram-robosherlock::*no-robosherlock-mode* t)
   (spawn-objects-on-plate)
   (boxy-proj:with-projected-robot
     ;; 1
@@ -267,11 +259,19 @@
     (go-connect :bolt *base-right-side-left-hand-pose*
                 :window *base-left-side-left-hand-pose*
                 :window-thread)
-    (pp-plans:park-arms :carry nil)))
+    (exe:perform
+     (desig:an action
+               (type positioning-arm)
+               (left-configuration park)
+               (right-configuration park)))))
 
 (defun go-perceive (?object-type ?nav-goal)
   ;; park arms
-  (pp-plans:park-arms :carry nil)
+  (exe:perform
+   (desig:an action
+             (type positioning-arm)
+             (left-configuration park)
+             (right-configuration park)))
   ;; drive to right location
   (let ((?pose (cl-transforms-stamped:pose->pose-stamped
                 cram-tf:*fixed-frame*
@@ -286,7 +286,7 @@
   (exe:perform
    (desig:an action
              (type looking)
-             (direction down)))
+             (direction down-left)))
   ;; perceive object
   (let ((?object
           (exe:perform
@@ -331,11 +331,13 @@
             (go-perceive ?other-object-type ?other-nav-goal)))
       (exe:perform
        (desig:an action
-                 (type connecting)
+                 (type placing)
                  (arm left)
                  (object ?object)
-                 (to-object ?other-object)
-                 (attachment ?attachment-type))))))
+                 (target (desig:a location
+                                  (on ?other-object)
+                                  (for ?object)
+                                  (attachment ?attachment-type))))))))
 
 #+examples
 (
@@ -354,7 +356,7 @@
  (boxy-proj:with-simulated-robot
   (exe:perform
    (desig:an action
-            (type opening)
+            (type opening-gripper)
             (gripper left))))
 
  (boxy-proj:with-projected-robot
