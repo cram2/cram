@@ -4,7 +4,7 @@
 ;;; base, this offset can be added in order to prevent the robot from crashing
 ;;; into the bases of tables.
 ;;; in short: moves the robot away from the given pose to avoid collisions.
-(defparameter *human-feet-offset* 0.05 ) ;; was 0.3 for Andrei's Data
+(defparameter *human-feet-offset* 0.12 ) ;; was 0.3 for Andrei's Data
 
 
 ;; example: (make-poses "?PoseCameraStart")
@@ -38,7 +38,7 @@ the robot can be placed at this position."
            "map"
            0.0
            (cl-tf:make-3d-vector
-            (if (plusp (cl-tf:x (cl-tf:origin pose)))
+            (if (plusp (cl-tf:z quaternion))
                 (+ (cl-tf:x (cl-tf:origin pose)) *human-feet-offset*)
                 (- (cl-tf:x (cl-tf:origin pose)) *human-feet-offset*))
             (cl-tf:y (cl-tf:origin pose))
