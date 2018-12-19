@@ -77,7 +77,6 @@
              (effort ?grip-effort)
              (object ?object-designator)))
   (roslisp:ros-info (pick-place pick-up) "Assert grasp into knowledge base")
-  (format t "obj name ~a arm: ~a ~%" (desig:desig-prop-value ?object-designator :name) ?arm)
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-attached
      :object-name (desig:desig-prop-value ?object-designator :name)
