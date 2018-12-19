@@ -7,17 +7,10 @@ it down are the ones extracted from Virtual Reality.
 TYPE: the given type of an object on which the pick and place action should be
 executed.
 RETURNS: "
-  (format t "start_base: ~% ~a" (set-grasp-base-pose
-    (get-camera-location-at-start-by-object-type
-     (object-type-filter-prolog type))))
-  
-   (format t "end pose: ~% ~a"
-            (set-grasp-base-pose
-    (get-camera-location-at-end-by-object-type
-     (object-type-filter-prolog type))))
   
   (pick-and-place
-   (set-grasp-base-pose
+   
+   (set-grasp-base-pose 
     (get-camera-location-at-start-by-object-type
      (object-type-filter-prolog type)))
  
@@ -25,7 +18,7 @@ RETURNS: "
     (get-object-location-at-start-by-object-type
      (object-type-filter-prolog type)))
    
-   (set-grasp-base-pose
+   (set-grasp-base-pose 
     (get-camera-location-at-end-by-object-type
      (object-type-filter-prolog type)))
    
@@ -33,7 +26,7 @@ RETURNS: "
     (place-pose-btr-island
      (object-type-filter-prolog type)))
    
-   (set-grasp-look-pose
+   (set-grasp-look-pose 
     (place-pose-btr-island
      (object-type-filter-prolog type)))
    type))

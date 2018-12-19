@@ -209,6 +209,7 @@ the object.
            :arm ?arm))
       
         (print (desig:a location (pose ?place-pose)))
+        (print (desig:a location (pose ?placing-base-pose)))
 
         ;; move to obj
         (pp-plans::park-arms)
