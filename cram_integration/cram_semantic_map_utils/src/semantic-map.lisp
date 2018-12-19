@@ -203,19 +203,28 @@
                   :name name
                   :owl-name owlname
                   :urdf-link-name (urdf-name owlname)
-                  :pose (if (= (length ?pose) 4) ; pose comes in format: map name vector quaternion
-                            (destructuring-bind (map name pose quaternion)
-                                ?pose 
-                              (destructuring-bind (x y z) pose
-                                (destructuring-bind (w q1 q2 q3) quaternion ;w q1 q2 q3
-                             (cl-transforms:make-pose
-                              (cl-transforms:make-3d-vector x y z)
-                              (cl-transforms:make-quaternion q1 q2 q3 w)))))
-                            (cl-transforms:transform->pose
-                             (cl-transforms:matrix->transform
-                              (make-array
-                               '(4 4) :displaced-to (make-array
-                                                     16 :initial-contents ?pose)))))
+                  :pose (case (length ?pose) ; pose comes in format: map name vector quaternion
+                          (4 (destructuring-bind (map name pose quaternion)
+                                 ?pose 
+                               (destructuring-bind (x y z) pose
+                                 (destructuring-bind (w q1 q2 q3) quaternion ;w q1 q2 q3
+                                   (cl-transforms:make-pose
+                                    (cl-transforms:make-3d-vector x y z)
+                                    (cl-transforms:make-quaternion q1 q2 q3 w))))))
+                          
+                          (7 (destructuring-bind (x y z w q1 q2 q3)
+                                 ?pose
+                               (cl-transforms-stamped:make-pose
+                                (cl-transforms:make-3d-vector x y z)
+                                (cl-transforms:make-quaternion q1 q2 q3 w))))
+
+                          (16 (cl-transforms:transform->pose
+                               (cl-transforms:matrix->transform
+                                (make-array
+                                 '(4 4) :displaced-to (make-array
+                                                       16 :initial-contents ?pose)))))
+                          (t (error "Length of object pose has to be either 4, 7 or 16 elements long." )))
+                          
                   :dimensions (apply #'cl-transforms:make-3d-vector
                                      (mapcar (lambda (x)
                                                (typecase x
