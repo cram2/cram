@@ -683,18 +683,3 @@ Only one joint state changes in this situation, so only one joint state is updat
                    model))
           (t model))))
 
-(defun load-mesh-semantic (mesh &optional (compound nil))
-  "Loads and resizes the 3d-model. If `compound' is T we have a list of meshes, instead of one."
-  (let ((model (multiple-value-list
-                (physics-utils:load-3d-model (physics-utils:parse-uri mesh)
-                                             :compound compound))))
-    (cond ((cl-urdf:scale mesh)
-           (mapcar (lambda (model-part)
-                     (physics-utils:scale-3d-model model-part (cl-urdf:scale mesh)))
-                   model))
-          ((cl-urdf:size mesh)
-           (mapcar (lambda (model-part)
-                     (physics-utils:resize-3d-model model-part (cl-urdf:size mesh)))
-                   model))
-          (t model))
-    ))
