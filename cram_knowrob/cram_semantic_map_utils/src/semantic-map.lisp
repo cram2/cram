@@ -175,7 +175,7 @@
                  (semantic-map-part part name :recursive recursive))
                (semantic-map-parts part)))))))
 
-(defgeneric make-semantic-map-part (type name owlname parent);TODO change back?
+(defgeneric make-semantic-map-part (type name owlname parent)
   (:method ((type t) name owlname parent)
     ;; TODO(moesenle): The default handling feels pretty wrong
     ;; here. We need to find a better way to encode default handling
