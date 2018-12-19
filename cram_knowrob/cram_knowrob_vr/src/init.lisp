@@ -23,6 +23,9 @@
 
 ;; initializes the bullet world environment based on the bullet-world-tutorial
 (defun init-bullet-world ()
+  ;; reset bullet world
+  (setq btr:*current-bullet-world* nil)
+  
   ;; append own meshes to meshes list so that they can be loaded.
   (btr:add-objects-to-mesh-list "cram_knowrob_vr")
   
@@ -70,16 +73,10 @@
   (ros-info (kvr) "spawning semantic-map kitchen...")
 
   (sem-map:get-semantic-map)
-;(cram-occasions-events:clear-belief)
 
-  (let ((kitchen-urdf 
-          (cl-urdf:parse-urdf 
-           (roslisp:get-param btr-belief:*kitchen-parameter*))))
-    (prolog:prolog
-     `(and (btr:bullet-world ?world)
-           (assert (btr:object ?world :semantic-map :kitchen ((0 0 0) (0 0 0 1)))))))
-                 ; :urdf ,kitchen-urdf)))))
-  )
+  (prolog:prolog
+   `(and (btr:bullet-world ?world)
+         (assert (btr:object ?world :semantic-map :kitchen ((0 0 0) (0 0 0 1)))))))
 
 ;;; NOTE: Might not be needed anymore since the items are initialized with
 ;;; the spawning of the semantic map automatically. 
