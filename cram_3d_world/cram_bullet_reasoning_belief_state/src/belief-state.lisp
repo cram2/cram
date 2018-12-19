@@ -60,10 +60,10 @@ is replaced with replacement.
         (kitchen (or *kitchen-urdf*
                      (let ((kitchen-urdf-string
                              (roslisp:get-param *kitchen-parameter* nil)))
-                       ; TODO comented out by Alina for debugging purposes
-                       ;(when kitchen-urdf-string
-                       ;  (setf *kitchen-urdf* (cl-urdf:parse-urdf
-                       ;                        kitchen-urdf-string)))
+                       
+                       (when kitchen-urdf-string
+                         (setf *kitchen-urdf* (cl-urdf:parse-urdf
+                                               kitchen-urdf-string)))
                        ))))
     (assert
      (cut:force-ll
