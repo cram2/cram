@@ -83,10 +83,7 @@
                                    (make-instance 'box-shape
                                      :half-extents (cl-transforms:v*
                                                     (sem-map-utils:dimensions part)
-                                                    0.5))))))
-        (progn
-          (roslisp:ros-info (btr) "No mesh path defined. Not spawning this object ~a" (semantic-map-utils:owl-name part))
-          nil)))
+                                                    0.5))))))))
   
   (:method ((part t) &key pose collision-group collision-mask)
     (declare (ignore pose collision-group collision-mask))
