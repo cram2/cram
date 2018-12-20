@@ -31,9 +31,7 @@
 
 (cpl:def-cram-function pick-up (?object-designator
                                 ?arm ?gripper-opening ?grip-effort ?grasp
-                                ?left-reach-poses ?right-reach-poses
-                                ?left-grasping-poses ?right-grasping-poses
-                                ?left-lift-poses ?right-lift-poses)
+                                ?left-trajectory ?right-trajectory)
   (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
                             :r-g-b-list '(1 1 0) :id 300)
 
@@ -52,11 +50,17 @@
                              e)
            ;; (return)
            ))
-      (exe:perform
-       (desig:an action
-                 (type reaching)
-                 (left-poses ?left-reach-poses)
-                 (right-poses ?right-reach-poses)))))
+      (let ((?left-reach-poses (man-int:get-traj-poses-by-label
+                                ?left-trajectory
+                                :reaching))
+            (?right-reach-poses (man-int:get-traj-poses-by-label
+                                 ?right-trajectory
+                                 :reaching)))
+        (exe:perform
+         (desig:an action
+                   (type reaching)
+                   (left-poses ?left-reach-poses)
+                   (right-poses ?right-reach-poses))))))
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (pp-plans pick-up)
@@ -64,12 +68,18 @@
                            e)
          (return)
          ))
-    (exe:perform
-     (desig:an action
-               (type grasping)
-               (object ?object-designator)
-               (left-poses ?left-grasping-poses)
-               (right-poses ?right-grasping-poses))))
+    (let ((?left-grasping-poses (man-int:get-traj-poses-by-label
+                                 ?left-trajectory
+                                 :grasping))
+          (?right-grasping-poses (man-int:get-traj-poses-by-label
+                                  ?right-trajectory
+                                  :grasping)))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object ?object-designator)
+                 (left-poses ?left-grasping-poses)
+                 (right-poses ?right-grasping-poses)))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
   (exe:perform
    (desig:an action
@@ -90,21 +100,27 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (exe:perform
-     (desig:an action
-               (type lifting)
-               (left-poses ?left-lift-poses)
-               (right-poses ?right-lift-poses)))))
-
+    (let ((?left-lift-poses (man-int:get-traj-poses-by-label
+                             ?left-trajectory
+                             :lifting))
+          (?right-lift-poses (man-int:get-traj-poses-by-label
+                              ?right-trajectory
+                              :lifting)))
+      (exe:perform
+       (desig:an action
+                 (type lifting)
+                 (left-poses ?left-lift-poses)
+                 (right-poses ?right-lift-poses))))))
 
 (cpl:def-cram-function place (?object-designator
                               ?other-object-designator
                               ?placing-location-name
                               ?arm
                               ?gripper-opening
-                              ?left-reach-poses ?right-reach-poses
-                              ?left-put-poses ?right-put-poses
-                              ?left-retract-poses ?right-retract-poses
+                              ;; ?left-reach-poses ?right-reach-poses
+                              ;; ?left-put-poses ?right-put-poses
+                              ;; ?left-retract-poses ?right-retract-poses
+                              ?left-trajectory ?right-trajectory
                               ?placing-location-designator)
   (roslisp:ros-info (pick-place place) "Reaching")
   (cpl:with-failure-handling
@@ -114,11 +130,13 @@
                            e)
          ;; (return)
          ))
-    (exe:perform
-     (desig:an action
-               (type reaching)
-               (left-poses ?left-reach-poses)
-               (right-poses ?right-reach-poses))))
+    (let ((?left-reach-poses (man-int:get-traj-poses-by-label ?left-trajectory :reaching))
+          (?right-reach-poses (man-int:get-traj-poses-by-label ?right-trajectory :reaching)))
+      (exe:perform
+       (desig:an action
+                 (type reaching)
+                 (left-poses ?left-reach-poses)
+                 (right-poses ?right-reach-poses)))))
   (roslisp:ros-info (pick-place place) "Putting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -126,14 +144,16 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (exe:perform
-     (desig:an action
-               (type putting)
-               (object ?object-designator)
-               (desig:when ?other-object-designator
-                 (supporting-object ?other-object-designator))
-               (left-poses ?left-put-poses)
-               (right-poses ?right-put-poses))))
+    (let ((?left-put-poses (man-int:get-traj-poses-by-label ?left-trajectory :putting))
+          (?right-put-poses (man-int:get-traj-poses-by-label ?right-trajectory :putting)))
+      (exe:perform
+       (desig:an action
+                 (type putting)
+                 (object ?object-designator)
+                 (desig:when ?other-object-designator
+                   (supporting-object ?other-object-designator))
+                 (left-poses ?left-put-poses)
+                 (right-poses ?right-put-poses)))))
   (when ?placing-location-name
     (roslisp:ros-info (boxy-plans connect) "Asserting assemblage connection in knowledge base")
     (cram-occasions-events:on-event
@@ -159,12 +179,13 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (exe:perform
-     (desig:an action
-               (type retracting)
-               (left-poses ?left-retract-poses)
-               (right-poses ?right-retract-poses)))))
-
+    (let ((?left-retract-poses (man-int:get-traj-poses-by-label ?left-trajectory :retracting))
+          (?right-retract-poses (man-int:get-traj-poses-by-label ?right-trajectory :retracting)))
+      (exe:perform
+       (desig:an action
+                 (type retracting)
+                 (left-poses ?left-retract-poses)
+                 (right-poses ?right-retract-poses))))))
 
 ;; (defun perform-phases-in-sequence (action-designator)
 ;;   (declare (type desig:action-designator action-designator))

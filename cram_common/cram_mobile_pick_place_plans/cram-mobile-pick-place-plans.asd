@@ -61,8 +61,10 @@
      (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
 
      ;; PICKING-UP and PLACING actions
+     (:file "trajectories" :depends-on ("package"))
      (:file "pick-place-plans" :depends-on ("package" "atomic-action-designators"))
      (:file "pick-place-designators" :depends-on ("package"
+                                                  "trajectories"
                                                   "pick-place-plans"))
 
      ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
