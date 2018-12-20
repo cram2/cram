@@ -66,9 +66,23 @@
   (:documentation "How wide to open the gripper before grasping, in m."))
 
 (defun make-object-to-standard-gripper->base-to-particular-gripper-transformer
-    (object-transform gripper-tool-frame
-     standard-to-particular-gripper-transform)
+    (object-transform arm)
   "Make a function that transforms oTg' -> bTg; Assuming g' is standard gripper."
+  (let* ((gripper-tool-frame
+           (ecase arm
+             (:left cram-tf:*robot-left-tool-frame*)
+             (:right cram-tf:*robot-right-tool-frame*)))
+         (standard-to-particular-gripper-transform ; g'Tg
+           (cl-transforms-stamped:transform->transform-stamped
+            gripper-tool-frame
+            gripper-tool-frame
+            0.0
+            (cut:var-value
+             '?transform
+             (car (prolog:prolog
+                   `(and (cram-robot-interfaces:robot ?robot)
+                         (cram-robot-interfaces:standard-to-particular-gripper-transform
+                          ?robot ?transform))))))))
   (lambda (object-to-standard-gripper)
     (when object-to-standard-gripper
       (let ((base-to-standard-gripper-transform
@@ -81,7 +95,7 @@
          cram-tf:*robot-base-frame* gripper-tool-frame
          base-to-standard-gripper-transform      ; bTg'
          standard-to-particular-gripper-transform ; g'Tg
-         :result-as-pose-or-transform :pose)))))
+         :result-as-pose-or-transform :pose))))))
 
 ;;;;;;;;;;;;;;;; Everything below is for pick and place (only) ;;;;;;;;;;;;;;;;;;
 
@@ -226,86 +240,86 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                object-list))))
 
 
-(defgeneric get-object-grasping-poses (object-name object-type arm grasp object-transform)
-  (:documentation "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)")
-  (:method (object-name object-type arm grasp object-transform)
-    (declare (type symbol object-name object-type arm grasp)
-             (type cl-transforms-stamped:transform-stamped object-transform))
+;; (defgeneric get-object-grasping-poses (object-name object-type arm grasp object-transform)
+;;   (:documentation "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)")
+;;   (:method (object-name object-type arm grasp object-transform)
+;;     (declare (type symbol object-name object-type arm grasp)
+;;              (type cl-transforms-stamped:transform-stamped object-transform))
 
-    ;; First correct the object transform such that rotationally-symmetric objects
-    ;; would not be grasped in an awkward way with weird orientations
-    (when (prolog `(object-rotationally-symmetric ,object-type))
-      (setf object-transform
-            (cram-tf:copy-transform-stamped
-             object-transform
-             :rotation (cl-transforms:make-identity-rotation))))
+;;     ;; First correct the object transform such that rotationally-symmetric objects
+;;     ;; would not be grasped in an awkward way with weird orientations
+;;     (when (prolog `(object-rotationally-symmetric ,object-type))
+;;       (setf object-transform
+;;             (cram-tf:copy-transform-stamped
+;;              object-transform
+;;              :rotation (cl-transforms:make-identity-rotation))))
 
-    (let* ((gripper-tool-frame
-             (ecase arm
-               (:left cram-tf:*robot-left-tool-frame*)
-               (:right cram-tf:*robot-right-tool-frame*)))
-           (object-to-standard-gripper-transform ; oTg'
-             (get-object-type-to-gripper-transform
-              (find-most-specific-object-type-for-generic
-               #'get-object-type-to-gripper-transform object-type)
-              object-name arm grasp))
-           (object-to-standard-gripper-pregrasp-transform ; oTg'
-             (get-object-type-to-gripper-pregrasp-transform
-              (find-most-specific-object-type-for-generic
-               #'get-object-type-to-gripper-transform object-type)
-              object-name arm grasp
-              object-to-standard-gripper-transform))
-           (object-to-standard-gripper-2nd-pregrasp-transform ; oTg'
-             (get-object-type-to-gripper-2nd-pregrasp-transform
-              (find-most-specific-object-type-for-generic
-               #'get-object-type-to-gripper-transform object-type)
-              object-name arm grasp
-              object-to-standard-gripper-transform))
-           (object-to-standard-gripper-lift-transform ; oTg'
-             (get-object-type-to-gripper-lift-transform
-              (find-most-specific-object-type-for-generic
-               #'get-object-type-to-gripper-transform object-type)
-              object-name arm grasp
-              object-to-standard-gripper-transform))
-           (object-to-standard-gripper-2nd-lift-transform ; oTg'
-             (get-object-type-to-gripper-2nd-lift-transform
-              (find-most-specific-object-type-for-generic
-               #'get-object-type-to-gripper-transform object-type)
-              object-name arm grasp
-              object-to-standard-gripper-transform))
-           (standard-to-particular-gripper-transform ; g'Tg
-             (cl-transforms-stamped:transform->transform-stamped
-              gripper-tool-frame
-              gripper-tool-frame
-              0.0
-              (cut:var-value
-               '?transform
-               (car (prolog:prolog
-                     `(and (cram-robot-interfaces:robot ?robot)
-                           (cram-robot-interfaces:standard-to-particular-gripper-transform
-                            ?robot ?transform))))))))
-      (when (and object-to-standard-gripper-transform standard-to-particular-gripper-transform)
+;;     (let* ((gripper-tool-frame
+;;              (ecase arm
+;;                (:left cram-tf:*robot-left-tool-frame*)
+;;                (:right cram-tf:*robot-right-tool-frame*)))
+;;            (object-to-standard-gripper-transform ; oTg'
+;;              (get-object-type-to-gripper-transform
+;;               (find-most-specific-object-type-for-generic
+;;                #'get-object-type-to-gripper-transform object-type)
+;;               object-name arm grasp))
+;;            (object-to-standard-gripper-pregrasp-transform ; oTg'
+;;              (get-object-type-to-gripper-pregrasp-transform
+;;               (find-most-specific-object-type-for-generic
+;;                #'get-object-type-to-gripper-transform object-type)
+;;               object-name arm grasp
+;;               object-to-standard-gripper-transform))
+;;            (object-to-standard-gripper-2nd-pregrasp-transform ; oTg'
+;;              (get-object-type-to-gripper-2nd-pregrasp-transform
+;;               (find-most-specific-object-type-for-generic
+;;                #'get-object-type-to-gripper-transform object-type)
+;;               object-name arm grasp
+;;               object-to-standard-gripper-transform))
+;;            (object-to-standard-gripper-lift-transform ; oTg'
+;;              (get-object-type-to-gripper-lift-transform
+;;               (find-most-specific-object-type-for-generic
+;;                #'get-object-type-to-gripper-transform object-type)
+;;               object-name arm grasp
+;;               object-to-standard-gripper-transform))
+;;            (object-to-standard-gripper-2nd-lift-transform ; oTg'
+;;              (get-object-type-to-gripper-2nd-lift-transform
+;;               (find-most-specific-object-type-for-generic
+;;                #'get-object-type-to-gripper-transform object-type)
+;;               object-name arm grasp
+;;               object-to-standard-gripper-transform))
+;;            (standard-to-particular-gripper-transform ; g'Tg
+;;              (cl-transforms-stamped:transform->transform-stamped
+;;               gripper-tool-frame
+;;               gripper-tool-frame
+;;               0.0
+;;               (cut:var-value
+;;                '?transform
+;;                (car (prolog:prolog
+;;                      `(and (cram-robot-interfaces:robot ?robot)
+;;                            (cram-robot-interfaces:standard-to-particular-gripper-transform
+;;                             ?robot ?transform))))))))
+;;       (when (and object-to-standard-gripper-transform standard-to-particular-gripper-transform)
 
-        (flet ((object-to-standard-gripper->base-to-particular-gripper (object-to-standard-gripper)
-                 (when object-to-standard-gripper
-                   (let ((base-to-standard-gripper-transform
-                           (cram-tf:multiply-transform-stampeds
-                            cram-tf:*robot-base-frame* gripper-tool-frame
-                            object-transform          ; bTo
-                            object-to-standard-gripper ; oTg'
-                            :result-as-pose-or-transform :transform))) ; bTo * oTg' = bTg'
-                     (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
-                      cram-tf:*robot-base-frame* gripper-tool-frame
-                      base-to-standard-gripper-transform      ; bTg'
-                      standard-to-particular-gripper-transform ; g'Tg
-                      :result-as-pose-or-transform :pose)))))
+;;         (flet ((object-to-standard-gripper->base-to-particular-gripper (object-to-standard-gripper)
+;;                  (when object-to-standard-gripper
+;;                    (let ((base-to-standard-gripper-transform
+;;                            (cram-tf:multiply-transform-stampeds
+;;                             cram-tf:*robot-base-frame* gripper-tool-frame
+;;                             object-transform          ; bTo
+;;                             object-to-standard-gripper ; oTg'
+;;                             :result-as-pose-or-transform :transform))) ; bTo * oTg' = bTg'
+;;                      (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
+;;                       cram-tf:*robot-base-frame* gripper-tool-frame
+;;                       base-to-standard-gripper-transform      ; bTg'
+;;                       standard-to-particular-gripper-transform ; g'Tg
+;;                       :result-as-pose-or-transform :pose)))))
           
-          (mapcar #'object-to-standard-gripper->base-to-particular-gripper
-                  (list object-to-standard-gripper-pregrasp-transform
-                        object-to-standard-gripper-2nd-pregrasp-transform
-                        object-to-standard-gripper-transform
-                        object-to-standard-gripper-lift-transform
-                        object-to-standard-gripper-2nd-lift-transform)))))))
+;;           (mapcar #'object-to-standard-gripper->base-to-particular-gripper
+;;                   (list object-to-standard-gripper-pregrasp-transform
+;;                         object-to-standard-gripper-2nd-pregrasp-transform
+;;                         object-to-standard-gripper-transform
+;;                         object-to-standard-gripper-lift-transform
+;;                         object-to-standard-gripper-2nd-lift-transform)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;; Pick and Place specific stuff ends here. ;;;;;;;;;;;;;;;;;;;;;
 

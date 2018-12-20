@@ -29,42 +29,42 @@
 
 (in-package :pp-plans)
 
-(defun extract-pick-up-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
-  "`?arm' can be :left, :right or (:left :right)."
-  (let ((arm-as-list (if (listp arm) arm (list arm)))
-        left-reach-poses left-lift-poses
-        left-grasp-poses right-grasp-poses
-        right-reach-poses right-lift-poses)
-    (when (member :left arm-as-list)
-      (setf left-reach-poses (subseq left-manipulation-poses 0 2)
-            left-grasp-poses (subseq left-manipulation-poses 2 3)
-            left-lift-poses (subseq left-manipulation-poses 3)))
-    (when (member :right arm-as-list)
-      (setf right-reach-poses (subseq right-manipulation-poses 0 2)
-            right-grasp-poses (subseq right-manipulation-poses 2 3)
-            right-lift-poses (subseq right-manipulation-poses 3)))
-    (list left-reach-poses right-reach-poses
-          left-grasp-poses right-grasp-poses
-          left-lift-poses right-lift-poses)))
+;; (defun extract-pick-up-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
+;;   "`?arm' can be :left, :right or (:left :right)."
+;;   (let ((arm-as-list (if (listp arm) arm (list arm)))
+;;         left-reach-poses left-lift-poses
+;;         left-grasp-poses right-grasp-poses
+;;         right-reach-poses right-lift-poses)
+;;     (when (member :left arm-as-list)
+;;       (setf left-reach-poses (subseq left-manipulation-poses 0 2)
+;;             left-grasp-poses (subseq left-manipulation-poses 2 3)
+;;             left-lift-poses (subseq left-manipulation-poses 3)))
+;;     (when (member :right arm-as-list)
+;;       (setf right-reach-poses (subseq right-manipulation-poses 0 2)
+;;             right-grasp-poses (subseq right-manipulation-poses 2 3)
+;;             right-lift-poses (subseq right-manipulation-poses 3)))
+;;     (list left-reach-poses right-reach-poses
+;;           left-grasp-poses right-grasp-poses
+;;           left-lift-poses right-lift-poses)))
 
-(defun extract-place-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
-  "`?arm' can be :left, :right or (:left :right)."
-  (let ((arm-as-list (if (listp arm) arm (list arm)))
-        (left-manipulation-poses (reverse left-manipulation-poses))
-        (right-manipulation-poses (reverse right-manipulation-poses))
-        left-reach-poses left-put-poses left-retract-poses
-        right-reach-poses right-put-poses right-retract-poses)
-    (when (member :left arm-as-list)
-      (setf left-reach-poses (subseq left-manipulation-poses 0 2)
-            left-put-poses (subseq left-manipulation-poses 2 3)
-            left-retract-poses (subseq left-manipulation-poses 3)))
-    (when (member :right arm-as-list)
-      (setf right-reach-poses (subseq right-manipulation-poses 0 2)
-            right-put-poses (subseq right-manipulation-poses 2 3)
-            right-retract-poses (subseq right-manipulation-poses 3)))
-    (list left-reach-poses right-reach-poses
-          left-put-poses right-put-poses
-          left-retract-poses right-retract-poses)))
+;; (defun extract-place-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
+;;   "`?arm' can be :left, :right or (:left :right)."
+;;   (let ((arm-as-list (if (listp arm) arm (list arm)))
+;;         (left-manipulation-poses (reverse left-manipulation-poses))
+;;         (right-manipulation-poses (reverse right-manipulation-poses))
+;;         left-reach-poses left-put-poses left-retract-poses
+;;         right-reach-poses right-put-poses right-retract-poses)
+;;     (when (member :left arm-as-list)
+;;       (setf left-reach-poses (subseq left-manipulation-poses 0 2)
+;;             left-put-poses (subseq left-manipulation-poses 2 3)
+;;             left-retract-poses (subseq left-manipulation-poses 3)))
+;;     (when (member :right arm-as-list)
+;;       (setf right-reach-poses (subseq right-manipulation-poses 0 2)
+;;             right-put-poses (subseq right-manipulation-poses 2 3)
+;;             right-retract-poses (subseq right-manipulation-poses 3)))
+;;     (list left-reach-poses right-reach-poses
+;;           left-put-poses right-put-poses
+;;           left-retract-poses right-retract-poses)))
 
 (defun pose->transform-stamped-in-base (pose child-frame-lispy)
   (let ((target-pose-in-base
@@ -78,9 +78,10 @@
 (def-fact-group pick-and-place-plans (desig:action-grounding)
   (<- (desig:action-grounding ?action-designator (pick-up ?current-object-desig ?arm
                                                           ?gripper-opening ?effort ?grasp
-                                                          ?left-reach-poses ?right-reach-poses
-                                                          ?left-grasp-poses ?right-grasp-poses
-                                                          ?left-lift-poses ?right-lift-poses))
+                                                          ;; ?left-reach-poses ?right-reach-poses
+                                                          ;; ?left-grasp-poses ?right-grasp-poses
+                                                          ;; ?left-lift-poses ?right-lift-poses
+                                                          ?left-trajectory ?right-trajectory))
     ;; extract info from ?action-designator
     (spec:property ?action-designator (:type :picking-up))
     (spec:property ?action-designator (:object ?object-designator))
@@ -102,25 +103,42 @@
              (member ?grasp ?grasps)))
     (lisp-fun man-int:get-object-type-gripping-effort ?object-type ?effort)
     (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
-    (lisp-fun man-int:get-object-grasping-poses
-              ?object-name ?object-type :left ?grasp ?object-transform
-              ?left-poses)
-    (lisp-fun man-int:get-object-grasping-poses
-              ?object-name ?object-type :right ?grasp ?object-transform
-              ?right-poses)
-    (lisp-fun extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses
-                                 ?left-grasp-poses ?right-grasp-poses
-                                 ?left-lift-poses ?right-lift-poses)))
+    ;; (lisp-fun man-int:get-object-grasping-poses
+    ;;           ?object-name ?object-type :left ?grasp ?object-transform
+    ;;           ?left-poses)
+    ;; (lisp-fun man-int:get-object-grasping-poses
+    ;;           ?object-name ?object-type :right ?grasp ?object-transform
+    ;;           ?right-poses)
+    ;; (lisp-fun extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
+    ;;           (?left-reach-poses ?right-reach-poses
+    ;;                              ?left-grasp-poses ?right-grasp-poses
+    ;;                              ?left-lift-poses ?right-lift-poses))
+    
+    (equal ?objects (?current-object-desig))
+    (lisp-fun man-int:make-empty-trajectory
+                       (:reaching :grasping :lifting)
+                       ?empty-trajectory)
+
+    (-> (or (== ?arm :left))
+        (lisp-fun man-int:get-action-trajectory :picking-up :left
+                  ?grasp ?objects ?left-trajectory)
+        (equal ?left-trajectory ?empty-trajectory))
+    (-> (or (== ?arm :right))
+        (lisp-fun man-int:get-action-trajectory :picking-up :right
+                  ?grasp ?objects ?right-trajectory)
+        (equal ?right-trajectory ?empty-trajectory))
+
+    )
 
   (<- (desig:action-grounding ?action-designator (place ?current-object-designator
                                                         ?other-object-designator
                                                         ?placement-location-name
                                                         ?arm
                                                         ?gripper-opening
-                                                        ?left-reach-poses ?right-reach-poses
-                                                        ?left-put-poses ?right-put-poses
-                                                        ?left-retract-poses ?right-retract-poses
+                                                        ;; ?left-reach-poses ?right-reach-poses
+                                                        ;; ?left-put-poses ?right-put-poses
+                                                        ;; ?left-retract-poses ?right-retract-poses
+                                                        ?left-trajectory ?right-trajectory
                                                         ?current-location-designator))
     (spec:property ?action-designator (:type :placing))
 
@@ -168,12 +186,28 @@
         (true)
         (cpoe:object-in-hand ?object-designator ?arm ?grasp))
 
-    (lisp-fun man-int:get-object-grasping-poses
-              ?object-name ?object-type :left ?grasp ?target-object-transform
-              ?left-poses)
-    (lisp-fun man-int:get-object-grasping-poses
-              ?object-name ?object-type :right ?grasp ?target-object-transform
-              ?right-poses)
-    (lisp-fun extract-place-manipulation-poses ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses ?left-put-poses ?right-put-poses
-                                 ?left-retract-poses ?right-retract-poses))))
+    ;; (lisp-fun man-int:get-object-grasping-poses
+    ;;           ?object-name ?object-type :left ?grasp ?target-object-transform
+    ;;           ?left-poses)
+    ;; (lisp-fun man-int:get-object-grasping-poses
+    ;;           ?object-name ?object-type :right ?grasp ?target-object-transform
+    ;;           ?right-poses)
+    ;; (lisp-fun extract-place-manipulation-poses ?arm ?left-poses ?right-poses
+    ;;           (?left-reach-poses ?right-reach-poses ?left-put-poses ?right-put-poses
+    ;;                              ?left-retract-poses ?right-retract-poses))
+    
+    (equal ?objects (?current-object-designator))
+    (lisp-fun man-int:make-empty-trajectory
+              (:reaching :putting :retracting)
+              ?empty-trajectory)
+    
+    (-> (or (== ?arm :left) (member :left ?arm))
+        (lisp-fun man-int:get-action-trajectory :placing :left ?grasp ?objects
+                                                :target-object-transform ?target-object-transform
+                                                ?left-trajectory)
+        (equal ?left-trajectory ?empty-trajectory))
+    (-> (or (== ?arm :right) (member :right ?arm))
+        (lisp-fun man-int:get-action-trajectory :placing :right ?grasp ?objects
+                                                :target-object-transform ?target-object-transform
+                                                ?right-trajectory)
+        (equal ?right-trajectory ?empty-trajectory))))

@@ -122,32 +122,17 @@
             (get-container-pose-and-transform
              object-name
              object-environment)))
-         (gripper-tool-frame
-           (ecase arm
-             (:left cram-tf:*robot-left-tool-frame*)
-             (:right cram-tf:*robot-right-tool-frame*)))
          (grasp-pose
            (get-container-to-gripper-transform
             object-name
             arm
-            object-environment))
-         (standard-to-particular-gripper-transform ; g'Tg
-           (cl-transforms-stamped:transform->transform-stamped
-            gripper-tool-frame
-            gripper-tool-frame
-            0.0
-            (cut:var-value
-             '?transform
-             (car (prolog:prolog
-                   `(and (cram-robot-interfaces:robot ?robot)
-                         (cram-robot-interfaces:standard-to-particular-gripper-transform
-                          ?robot ?transform))))))))
+            object-environment)))
     
     (let ((object-to-standard-gripper->base-to-particular-gripper
             (man-int:make-object-to-standard-gripper->base-to-particular-gripper-transformer
-             object-transform gripper-tool-frame standard-to-particular-gripper-transform)))
+             object-transform arm)))
       (mapcar (lambda (label transform)
-                (man-int::make-traj-segment
+                (man-int:make-traj-segment
                  :label label
                  :poses (list
                          (funcall object-to-standard-gripper->base-to-particular-gripper
