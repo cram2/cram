@@ -29,7 +29,7 @@
 
 (in-package :learning)
 
-(defparameter *learning-framework-on* nil)
+(defvar *learning-framework-on* nil)
 
 ;; (defmethod knowrob->cram ((object-type (eql :transform)) transform-list &key)
 (defun serialize-transform (transform-stamped)
@@ -56,20 +56,19 @@
       (let* ((all-possible-grasps-unsorted
                (call-next-method))
              (learned-grasps-raw
-               (list
-                (cut:var-value
-                 '?grasp
-                 (car (print (json-prolog:prolog-simple
-                              (format nil
-                                      "object_type_grasps(~('~a', '~a'~), ~a, GRASP)."
-                                      object-type arm
-                                      (serialize-transform object-transform-in-base))
-                              :package :learning))))))
+               (cut:var-value
+                '?grasp
+                (car (print (json-prolog:prolog-simple
+                             (format nil
+                                     "object_type_grasps(~(~a, ~a~), ~a, GRASP)."
+                                     object-type arm
+                                     (serialize-transform object-transform-in-base))
+                             :package :learning)))))
              (learned-grasps
                (mapcar (lambda (grasp-symbol)
-                         (intern (string-upcase (symbol-name grasp-symbol)) :keyword))
+                         (intern (string-upcase (string-trim "'|" (symbol-name grasp-symbol)))
+                                 :keyword))
                        learned-grasps-raw)))
-        (format t "LEARNED: ~a~%~%~%" learned-grasps)
         (append learned-grasps
                 (reduce (lambda (list-to-remove-from learned-grasp)
                           (remove learned-grasp list-to-remove-from))
@@ -81,7 +80,7 @@
   (let* ((bindings
            (car (json-prolog:prolog-simple
                  (format nil
-                         "designator_costmap(~('~a', '~a', '~a', ~a, ~a~), ~
+                         "designator_costmap(~(~a, ~a, ~a, ~a, ~a~), ~
                                              MATRIX, ~
                                              BOTTOM_RIGHT_CORNER_X, BOTTOM_RIGHT_CORNER_Y, ~
                                              RESOLUTION)."
@@ -145,14 +144,15 @@
                  (object-transform-in-map (man-int:get-object-transform-in-map object))
                  (arm (desig:desig-prop-value designator :arm)))
             (json-prolog:prolog-simple
-             (format nil "performing_action(~('~a', '~a', '~a', ~a, ~a, '~a')~)."
+             (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~a)~)."
                      :fetching object-type object-name
                      (serialize-transform object-transform-in-base)
                      (serialize-transform object-transform-in-map) arm))
-            (call-next-method)
-            (json-prolog:prolog-simple
-             (format nil "finished_action(~('~a')~)."
-                     :fetching)))
+            (let ((result (call-next-method)))
+              (json-prolog:prolog-simple
+               (format nil "finished_action(~(~a)~)."
+                       :fetching))
+              result))
           (call-next-method))
       (call-next-method)))
 
