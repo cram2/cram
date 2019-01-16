@@ -86,17 +86,21 @@
             (gl:mult-matrix (pose->gl-matrix pose))
             (loop for x from (- (/ width 2)) to (- (/ width 2) step-size) by step-size do
               (loop for y from (- (/ height 2)) to (- (/ height 2) step-size) by step-size do
-                (let ((pt-1 (get-point x y))
-                      (pt-2 (get-point (+ x step-size) y))
-                      (pt-3 (get-point x (+ y step-size)))
-                      (pt-4 (get-point (+ x step-size) (+ y step-size))))
-                  (when (and pt-1 pt-2 pt-3 pt-4)
-                    (let ((n-1 (cl-transforms:cross-product
-                                (cl-transforms:v- pt-2 pt-1)
-                                (cl-transforms:v- pt-4 pt-1)))
-                          (n-2 (cl-transforms:cross-product
-                                (cl-transforms:v- pt-4 pt-1)
-                                (cl-transforms:v- pt-3 pt-1))))
+                (let ((pt-1 (get-point x y)))
+                  (when pt-1
+                    (let* ((value (cl-transforms:z pt-1))
+                           (pt-2 (cl-transforms:make-3d-vector
+                                  (+ x step-size) y value))
+                           (pt-3 (cl-transforms:make-3d-vector
+                                  x (+ y step-size) value))
+                           (pt-4 (cl-transforms:make-3d-vector
+                                  (+ x step-size) (+ y step-size) value))
+                           (n-1 (cl-transforms:cross-product
+                                 (cl-transforms:v- pt-2 pt-1)
+                                 (cl-transforms:v- pt-4 pt-1)))
+                           (n-2 (cl-transforms:cross-product
+                                 (cl-transforms:v- pt-4 pt-1)
+                                 (cl-transforms:v- pt-3 pt-1))))
                       (gl:with-primitive :triangles
                         (apply #'gl:color (get-color pt-1))
                         (vertex pt-1 n-1)
