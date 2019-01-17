@@ -124,6 +124,15 @@
   :lift-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :2nd-lift-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
 
+;; BOTTOM grasp
+(def-object-type-to-gripper-transforms '(:cutlery :spoon :fork :knife) '(:left :right) :bottom
+  :grasp-translation `(0.0 0.0 ,(- *cutlery-grasp-z-offset*))
+  :grasp-rot-matrix *-z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
+  :2nd-pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
+  :lift-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
+  :2nd-lift-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *plate-diameter* 0.26 "in meters")
