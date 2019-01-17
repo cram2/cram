@@ -85,3 +85,9 @@
   `((,*-sin-pi/4* ,*sin-pi/4*  0)
     (,*sin-pi/4*  ,*sin-pi/4*  0)
     (0            0           -1)))
+
+;; bottom
+(defparameter *-z-across-x-grasp-rotation*
+  '((0 -1  0)
+    (1  0  0)
+    (0  0  1)))
