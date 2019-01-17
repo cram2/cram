@@ -49,6 +49,7 @@
    #:def-object-type-to-gripper-transforms
    #:get-object-grasping-poses
    #:calculate-object-faces
+   #:calculate-face-vector
    #:object-type-grasp->robot-grasp
    #:robot-grasp->object-type-grasp
    #:get-object-type-grasps
@@ -66,4 +67,15 @@
    #:*-y-across-x-grasp-rotation*
    #:*z-across-x-grasp-rotation*
    #:*z-across-y-grasp-rotation*
-   #:*z-diagonal-grasp-rotation*))
+   #:*z-diagonal-grasp-rotation*
+   #:*-z-across-x-grasp-rotation*
+   ;; standard-rotations
+   #:*rotation-around-z-90-matrix*
+   #:*rotation-around-z+90-matrix*
+   #:*identity-matrix*
+   #:*rotation-around-x+90-list*
+   #:*rotation-around-x-90-list*
+   #:*rotation-around-y+90-list*
+   #:*rotation-around-y-90-list*
+   #:*rotation-around-z+90-list*
+   #:*rotation-around-z-90-list*))
