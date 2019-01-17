@@ -57,6 +57,17 @@
                                        max-sign)))))
     (cdr (assoc axis-index-list *axis-index->face* :test #'equal))))
 
+(defun calculate-face-vector (face &key invert as-list)
+  (destructuring-bind (axis sign)
+      (car (rassoc face *axis-index->face*))
+    (let ((vector-as-list '(0 0 0)))
+      (setf (nth (car (rassoc axis *index->axis*)) vector-as-list) sign)
+      (when invert
+        (setf vector-as-list (mapcar (lambda (x) (* x -1)) vector-as-list)))
+      (if as-list
+          vector-as-list
+          (apply #'cl-transforms:make-3d-vector vector-as-list)))))
+
 (defun calculate-object-faces (robot-to-object-transform)
   (let* ((object-to-robot-transform
            (cram-tf:transform-stamped-inv robot-to-object-transform))
