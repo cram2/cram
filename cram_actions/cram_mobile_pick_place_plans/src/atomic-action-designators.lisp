@@ -76,6 +76,7 @@
                                                   :allow-attached
                                                   ?other-object-name ?object-link
                                                   ?object-name))
+    ;; putting should actually allow hand and attached if grasping allows hand
     (spec:property ?action-designator (:type :putting))
     (spec:property ?action-designator (:object ?object-designator))
     (spec:property ?object-designator (:name ?object-name))
