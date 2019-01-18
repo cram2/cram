@@ -213,7 +213,7 @@ Store found pose into designator or throw error if good pose not found."
                       (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
                                                            right-poses-list-of-lists)
                     (mapcar (lambda (left-pose right-pose)
-                              (pr2-proj::move-tcp left-pose right-pose)
+                              (pr2-proj::move-tcp left-pose right-pose :allow-all)
                               (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
                                 (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
                               (when (or

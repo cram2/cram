@@ -34,6 +34,4 @@
         #:cram-robot-interfaces)
   (:export
    ;; pr2-knowledge
-   #:pr2
-   ;; arm-kinematics
-   #:get-hand-link-names))
+   #:pr2))

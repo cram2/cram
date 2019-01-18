@@ -35,6 +35,9 @@
 (defparameter *debug-long-sleep-duration* 0.0
   "in seconds, sleeps to show colliding configurations")
 
+(defparameter *be-strict-with-collisions* nil
+  "when grasping a spoon from table, fingers can collide with kitchen, so we might allow this")
+
 (defun robot-transform-in-map ()
   (let ((pose-in-map
           (cut:var-value
@@ -312,6 +315,8 @@
 
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;; joint movement
+
 (defun move-joints (left-configuration right-configuration)
   (declare (type list left-configuration right-configuration))
   (flet ((set-configuration (arm joint-values)
@@ -340,131 +345,178 @@
     (set-configuration :left left-configuration)
     (set-configuration :right right-configuration)))
 
+;;; cartesian movement
+
 (defparameter *gripper-length* 0.2 "PR2's gripper length in meters, for calculating TCP -> EE")
+
+(defun tcp-pose->ee-pose (tcp-pose)
+  (when tcp-pose
+    (cl-transforms-stamped:pose->pose-stamped
+     (cl-transforms-stamped:frame-id tcp-pose)
+     (cl-transforms-stamped:stamp tcp-pose)
+     (cl-transforms:transform-pose
+      (cl-transforms:pose->transform tcp-pose)
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector (- *gripper-length*) 0 0)
+       (cl-transforms:make-identity-rotation))))))
+
+(defun ee-pose-in-base->ee-pose-in-torso (ee-pose-in-base)
+  (when ee-pose-in-base
+    (if (string-equal
+         (cl-transforms-stamped:frame-id ee-pose-in-base)
+         cram-tf:*robot-base-frame*)
+        ;; tPe: tTe = tTb * bTe = tTm * mTb * bTe = (mTt)-1 * mTb * bTe
+        (let* ((map-torso-transform
+                 (cram-tf:pose->transform-stamped
+                  cram-tf:*fixed-frame*
+                  cram-tf:*robot-torso-frame*
+                  0.0
+                  (btr:link-pose
+                   (btr:get-robot-object)
+                   cram-tf:*robot-torso-frame*)))
+               (torso-map-transform
+                 (cram-tf:transform-stamped-inv map-torso-transform))
+               (map-base-transform
+                 (cram-tf:pose->transform-stamped
+                  cram-tf:*fixed-frame*
+                  cram-tf:*robot-base-frame*
+                  0.0
+                  (btr:pose (btr:get-robot-object))))
+               (torso-base-transform
+                 (cram-tf:multiply-transform-stampeds
+                  cram-tf:*robot-torso-frame*
+                  cram-tf:*robot-base-frame*
+                  torso-map-transform
+                  map-base-transform))
+               (base-ee-transform
+                 (cram-tf:pose-stamped->transform-stamped
+                  ee-pose-in-base
+                  ;; dummy link name for T x T to work
+                  "end_effector_link")))
+          (cram-tf:multiply-transform-stampeds
+           cram-tf:*robot-torso-frame*
+           "end_effector_link"
+           torso-base-transform
+           base-ee-transform
+           :result-as-pose-or-transform :pose))
+        (error "Arm movement goals should be given in robot base frame"))))
+
+(defun get-ik-joint-positions (arm ee-pose)
+  (when ee-pose
+    (multiple-value-bind (ik-solution torso-angle)
+        (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
+            (car (prolog:prolog
+                  `(and
+                    (cram-robot-interfaces:robot ?robot)
+                    (cram-robot-interfaces:robot-torso-link-joint ?robot
+                                                                  ?_ ?torso-joint)
+                    (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint
+                                                             ?lower-limit)
+                    (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint
+                                                             ?upper-limit)
+                    (btr:bullet-world ?world)
+                    (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
+          (call-ik-service-with-torso-resampling
+           arm ee-pose
+           :torso-angle ?torso-angle
+           :torso-lower-limit ?lower-limit
+           :torso-upper-limit ?upper-limit
+           ;; seed-state ; is todo
+           ))
+      (unless ik-solution
+        (cpl:fail 'common-fail:manipulation-pose-unreachable
+                  :description (format nil "~a is unreachable for EE." ee-pose)))
+      (values ik-solution torso-angle))))
+
+(defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose)
+  (unless collision-mode
+    (setf collision-mode :avoid-all))
+  (ecase collision-mode
+    (:allow-all
+     nil)
+    (:allow-attached
+     ;; allow-attached means the robot is not allowed to hit anything
+     ;; (except the object it is holding),
+     ;; but the object it is holding can create collisions with environment etc.
+     (when (and *be-strict-with-collisions*
+                (btr:robot-colliding-objects-without-attached))
+       (cpl:fail 'common-fail:manipulation-goal-in-collision
+                 :description "Robot is in collision with environment.")))
+    (:allow-hand
+     ;; allow hand allows collisions between the hand and anything
+     ;; but not the rest of the robot
+     ;; therefore, we take a list of all links of the robot that are colliding
+     ;; with something, remove attached object collisions from this list,
+     ;; and then remove the hand links from the list.
+     ;; if the list is still not empty, there is a collision between
+     ;; a robot non-hand link and something else
+     (when (and *be-strict-with-collisions*
+                (set-difference
+                 (mapcar #'cdr
+                         (reduce (lambda (link-contacts attachment)
+                                   (remove (btr:object
+                                            btr:*current-bullet-world*
+                                            (car attachment))
+                                           link-contacts
+                                           :key #'car))
+                                 (append
+                                  (list (btr:link-contacts (btr:get-robot-object)))
+                                  (btr:attached-objects (btr:get-robot-object)))))
+                 (append (when left-tcp-pose
+                           (cut:var-value
+                            '?hand-links
+                            (car (prolog:prolog
+                                  `(and (rob-int:robot ?robot)
+                                        (rob-int:hand-links ?robot :left ?hand-links))))))
+                         (when right-tcp-pose
+                           (cut:var-value
+                            '?hand-links
+                            (car (prolog:prolog
+                                  `(and (rob-int:robot ?robot)
+                                        (rob-int:hand-links ?robot :right ?hand-links)))))))
+                 :test #'string-equal))
+       (cpl:fail 'common-fail:manipulation-goal-in-collision
+                 :description "Robot is in collision with environment.")))
+    (:avoid-all
+     ;; avoid all means the robot is not colliding with anything except the
+     ;; objects it is holding, and the objects it is holding only collides with robot
+     (when (or (btr:robot-colliding-objects-without-attached)
+               (some #'identity
+                     (mapcar (lambda (attachment)
+                               (remove (btr:get-robot-object)
+                                       (btr:find-objects-in-contact
+                                        btr:*current-bullet-world*
+                                        (btr:object
+                                         btr:*current-bullet-world*
+                                         (car attachment)))))
+                             (btr:attached-objects (btr:get-robot-object)))))
+       (cpl:fail 'common-fail:manipulation-goal-in-collision
+                 :description "Robot is in collision with environment.")))))
 
 (defun move-tcp (left-tcp-pose right-tcp-pose &optional collision-mode
                  collision-object-b collision-object-b-link collision-object-a)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
-  (flet ((tcp-pose->ee-pose (tcp-pose)
-           (when tcp-pose
-             (cl-transforms-stamped:pose->pose-stamped
-              (cl-transforms-stamped:frame-id tcp-pose)
-              (cl-transforms-stamped:stamp tcp-pose)
-              (cl-transforms:transform-pose
-               (cl-transforms:pose->transform tcp-pose)
-               (cl-transforms:make-pose
-                (cl-transforms:make-3d-vector (- *gripper-length*) 0 0)
-                (cl-transforms:make-identity-rotation))))))
-         (ee-pose-in-base->ee-pose-in-torso (ee-pose-in-base)
-           (when ee-pose-in-base
-             (if (string-equal
-                  (cl-transforms-stamped:frame-id ee-pose-in-base)
-                  cram-tf:*robot-base-frame*)
-                 ;; tPe: tTe = tTb * bTe = tTm * mTb * bTe = (mTt)-1 * mTb * bTe
-                 (let* ((map-torso-transform
-                          (cram-tf:pose->transform-stamped
-                           cram-tf:*fixed-frame*
-                           cram-tf:*robot-torso-frame*
-                           0.0
-                           (btr:link-pose
-                            (btr:get-robot-object)
-                            cram-tf:*robot-torso-frame*)))
-                        (torso-map-transform
-                          (cram-tf:transform-stamped-inv map-torso-transform))
-                        (map-base-transform
-                          (cram-tf:pose->transform-stamped
-                           cram-tf:*fixed-frame*
-                           cram-tf:*robot-base-frame*
-                           0.0
-                           (btr:pose (btr:get-robot-object))))
-                        (torso-base-transform
-                          (cram-tf:multiply-transform-stampeds
-                           cram-tf:*robot-torso-frame*
-                           cram-tf:*robot-base-frame*
-                           torso-map-transform
-                           map-base-transform))
-                        (base-ee-transform
-                          (cram-tf:pose-stamped->transform-stamped
-                           ee-pose-in-base
-                           ;; dummy link name for T x T to work
-                           "end_effector_link")))
-                   (cram-tf:multiply-transform-stampeds
-                    cram-tf:*robot-torso-frame*
-                    "end_effector_link"
-                    torso-base-transform
-                    base-ee-transform
-                    :result-as-pose-or-transform :pose))
-                 (error "Arm movement goals should be given in robot base frame"))))
-         (get-ik-joint-positions (arm ee-pose)
-           (when ee-pose
-             (multiple-value-bind (ik-solution torso-angle)
-                 (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
-                     (car (prolog:prolog
-                           `(and
-                             (cram-robot-interfaces:robot ?robot)
-                             (cram-robot-interfaces:robot-torso-link-joint ?robot
-                                                                           ?_ ?torso-joint)
-                             (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint
-                                                                      ?lower-limit)
-                             (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint
-                                                                      ?upper-limit)
-                             (btr:bullet-world ?world)
-                             (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
-                   (call-ik-service-with-torso-resampling
-                    arm ee-pose
-                    :torso-angle ?torso-angle
-                    :torso-lower-limit ?lower-limit
-                    :torso-upper-limit ?upper-limit
-                    ;; seed-state ; is todo
-                    ))
-               (unless ik-solution
-                 (cpl:fail 'common-fail:manipulation-pose-unreachable
-                           :description (format nil "~a is unreachable for EE." ee-pose)))
-               (values ik-solution torso-angle)))))
-    (multiple-value-bind (left-ik left-torso-angle)
-        (get-ik-joint-positions :left
+  (multiple-value-bind (left-ik left-torso-angle)
+      (get-ik-joint-positions :left
+                              (ee-pose-in-base->ee-pose-in-torso
+                               (tcp-pose->ee-pose left-tcp-pose)))
+    (multiple-value-bind (right-ik right-torso-angle)
+        (get-ik-joint-positions :right
                                 (ee-pose-in-base->ee-pose-in-torso
-                                 (tcp-pose->ee-pose left-tcp-pose)))
-      (multiple-value-bind (right-ik right-torso-angle)
-          (get-ik-joint-positions :right
-                                  (ee-pose-in-base->ee-pose-in-torso
-                                   (tcp-pose->ee-pose right-tcp-pose)))
-        (cond
-          ((and left-torso-angle right-torso-angle)
-           (when (not (eq left-torso-angle right-torso-angle))
-             (cpl:fail 'common-fail:manipulation-pose-unreachable
-                       :description (format nil "In MOVE-TCP goals for the two arms ~
+                                 (tcp-pose->ee-pose right-tcp-pose)))
+      (cond
+        ((and left-torso-angle right-torso-angle)
+         (when (not (eq left-torso-angle right-torso-angle))
+           (cpl:fail 'common-fail:manipulation-pose-unreachable
+                     :description (format nil "In MOVE-TCP goals for the two arms ~
                                                  require different torso angles).")))
-           (move-torso left-torso-angle))
-          (left-torso-angle (move-torso left-torso-angle))
-          (right-torso-angle (move-torso right-torso-angle)))
-        (move-joints left-ik right-ik)
-        (case collision-mode
-          (:allow-all
-           nil)
-          (:allow-attached
-           nil
-           ;; TODO: when grasping a spoon from table, fingers can collide with kitchen
-           ;; (when (remove collision-object-b
-           ;;               (btr:robot-colliding-objects-without-attached))
-           ;;   (cpl:fail 'common-fail:manipulation-goal-in-collision
-           ;;             :description "Robot is in collision with environment."))
-           )
-          (:allow-hand
-           nil
-           ;; (when (remove collision-object-b
-           ;;               (btr:robot-colliding-objects-without-attached))
-           ;;   (cpl:fail 'common-fail:manipulation-goal-in-collision
-           ;;             :description "Robot is in collision with environment."))
-           )
-          (:avoid-all
-           (when (btr:robot-colliding-objects-without-attached)
-             (cpl:fail 'common-fail:manipulation-goal-in-collision
-                       :description "Robot is in collision with environment.")))
-          (t
-           (when (btr:robot-colliding-objects-without-attached)
-             (cpl:fail 'common-fail:manipulation-goal-in-collision
-                       :description "Robot is in collision with environment."))))))))
+         (move-torso left-torso-angle))
+        (left-torso-angle (move-torso left-torso-angle))
+        (right-torso-angle (move-torso right-torso-angle)))
+      (move-joints left-ik right-ik)
+      (perform-collision-check collision-mode left-tcp-pose right-tcp-pose))))
+
+;;; constraint-based movement
 
 (defun move-with-constraints (constraints-string)
   (declare (ignore constraints-string))
