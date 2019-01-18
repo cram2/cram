@@ -140,15 +140,19 @@
                                                "")))
                                 (append
                                  (when left-pose
-                                   (cram-pr2-description:get-hand-link-names :left)
-                                   ;; (append
-                                   ;;  (cram-pr2-description:get-hand-link-names :left)
-                                   ;;  '("l_forearm_link"
-                                   ;;    "l_wrist_flex_link"
-                                   ;;    "l_wrist_roll_link"))
-                                   )
+                                   (cut:var-value
+                                    '?hand-links
+                                    (car (prolog:prolog
+                                          `(and (rob-int:robot ?robot)
+                                                (rob-int:hand-links ?robot :left
+                                                                    ?hand-links))))))
                                  (when right-pose
-                                   (cram-pr2-description:get-hand-link-names :right))))))
+                                   (cut:var-value
+                                    '?hand-links
+                                    (car (prolog:prolog
+                                          `(and (rob-int:robot ?robot)
+                                                (rob-int:hand-links ?robot :right
+                                                                    ?hand-links))))))))))
                 (:allow-attached
                  (apply #'vector
                         (roslisp:make-message
