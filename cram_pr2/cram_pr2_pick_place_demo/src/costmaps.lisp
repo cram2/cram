@@ -31,11 +31,15 @@
 
 (defun make-restricted-area-cost-function ()
   (lambda (x y)
-    (if (> x 1.0) 0.0
-        (if (and (> x 0.0) (> y -1.0) (< y 0.7 ;1.0
-                                         )) 1.0
-            (if (and (< x 0.0) (> x -1.0) (> y -1.0) (< y 2.5)) 1.0
-                0.0)))))
+    1.0
+    ;; (if (> x 1.0)
+    ;;     0.0
+    ;;     (if (and (> x 0.0) (> y -1.0) (< y 0.7 ;1.0
+    ;;                                      ))
+    ;;         1.0
+    ;;         (if (and (< x 0.0) (> x -1.0) (> y -1.0) (< y 2.5)) 1.0
+    ;;             0.0)))
+    ))
 
 (defmethod location-costmap:costmap-generator-name->score ((name (eql 'restricted-area))) 5)
 
