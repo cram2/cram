@@ -56,11 +56,12 @@
     (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
 
 (defparameter *object-grasping-arms*
-  '((:breakfast-cereal . :right)
-    (:cup . :left)
-    (:bowl . :right)
-    (:spoon . :right)
-    (:milk . :right)))
+  '(;; (:breakfast-cereal . :right)
+    ;; (:cup . :left)
+    ;; (:bowl . :right)
+    ;; (:spoon . :right)
+    ;; (:milk . :right)
+    ))
 
 (defparameter *object-placing-poses*
   '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
@@ -198,8 +199,8 @@
             (arm-to-use
               (cdr (assoc object-type *object-grasping-arms*))))
 
-        (pick-object object-type arm-to-use)
-        (place-object placing-target arm-to-use)))))
+        (pick-object object-type (or arm-to-use :left))
+        (place-object placing-target (or arm-to-use :left))))))
 
 
 
