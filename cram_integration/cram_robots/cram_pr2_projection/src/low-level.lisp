@@ -440,7 +440,7 @@
      ;; but the object it is holding can create collisions with environment etc.
      (when (and *be-strict-with-collisions*
                 (btr:robot-colliding-objects-without-attached))
-       (cpl:fail 'common-fail:manipulation-goal-in-collision
+       (cpl:fail 'common-fail:manipulation-goal-not-reached
                  :description "Robot is in collision with environment.")))
     (:allow-hand
      ;; allow hand allows collisions between the hand and anything
@@ -475,7 +475,7 @@
                                   `(and (rob-int:robot ?robot)
                                         (rob-int:hand-links ?robot :right ?hand-links)))))))
                  :test #'string-equal))
-       (cpl:fail 'common-fail:manipulation-goal-in-collision
+       (cpl:fail 'common-fail:manipulation-goal-not-reached
                  :description "Robot is in collision with environment.")))
     (:avoid-all
      ;; avoid all means the robot is not colliding with anything except the
@@ -490,7 +490,7 @@
                                          btr:*current-bullet-world*
                                          (car attachment)))))
                              (btr:attached-objects (btr:get-robot-object)))))
-       (cpl:fail 'common-fail:manipulation-goal-in-collision
+       (cpl:fail 'common-fail:manipulation-goal-not-reached
                  :description "Robot is in collision with environment.")))))
 
 (defun move-tcp (left-tcp-pose right-tcp-pose &optional collision-mode
