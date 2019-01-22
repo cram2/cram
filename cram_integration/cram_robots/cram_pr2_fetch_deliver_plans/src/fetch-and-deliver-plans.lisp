@@ -280,7 +280,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
     (desig:current-desig ?object-designator)))
 
 
-(cpl:def-cram-function deliver (?object-designator ?target-location
+(cpl:def-cram-function deliver (?object-designator ?arm ?target-location
                                                    ?target-robot-location place-action)
   ;; Reference the `?target-location' to see if that works at all
   ;; If not, delivering is impossible so throw a OBJECT-UNDERLIVERABLE failure
@@ -311,7 +311,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
              (cpl:fail 'common-fail:object-undeliverable)))
 
         ;; take a new `?target-robot-location' sample if a failure happens
-        (cpl:with-retry-counters ((relocation-for-ik-retries 5))
+        (cpl:with-retry-counters ((relocation-for-ik-retries 4))
           (cpl:with-failure-handling
               (((or common-fail:navigation-goal-in-collision
                     common-fail:object-undeliverable
@@ -337,7 +337,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                    (location ?target-robot-location)))
 
             ;; take a new `?target-location' sample if a failure happens
-            (cpl:with-retry-counters ((target-location-retries 2))
+            (cpl:with-retry-counters ((target-location-retries 3))
               (cpl:with-failure-handling
                   (((or common-fail:looking-high-level-failure
                         common-fail:object-unreachable) (e)
@@ -377,10 +377,13 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                   (desig:reference place-action)
                                 (desig:an action
                                           (type placing)
+                                          (arm ?arm)
                                           (object ?object-designator)
                                           (target ?projected-target-location))))
                             (desig:an action
                                       (type placing)
+                                      (desig:when ?arm
+                                        (arm ?arm))
                                       (object ?object-designator)
                                       (target ?target-location)))))
 
@@ -393,12 +396,17 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
 
 (defun drop-at-sink ()
-  (let ((?map-in-front-of-sink-pose
+  (let ((?base-pose-in-map
+          ;; (cl-transforms-stamped:make-pose-stamped
+          ;;  cram-tf:*fixed-frame*
+          ;;  0.0
+          ;;  (cl-transforms:make-3d-vector 0.7 -0.2 0)
+          ;;  (cl-transforms:make-identity-rotation))
           (cl-transforms-stamped:make-pose-stamped
            cram-tf:*fixed-frame*
            0.0
-           (cl-transforms:make-3d-vector 0.7 -0.2 0)
-           (cl-transforms:make-identity-rotation)))
+           (cl-transforms:make-3d-vector 0 0 0)
+           (cl-transforms:make-quaternion 0 0 -1 1)))
         ;; (?placing-pose
         ;;   (cl-transforms-stamped:make-pose-stamped
         ;;    cram-tf:*robot-base-frame*
@@ -413,18 +421,17 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
       (exe:perform
        (desig:an action
                  (type going)
-                 (target (desig:a location
-                                  (pose ?map-in-front-of-sink-pose))))))
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           (declare (ignore e))
-           (return)))
-      (exe:perform
-       (desig:an action
-                 (type placing)
-                 ;; (target (desig:a location
-                 ;;                  (pose ?placing-pose)))
-                 )))))
+                 (target (desig:a location (pose ?base-pose-in-map)))))))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (declare (ignore e))
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type placing)
+               ;; (target (desig:a location
+               ;;                  (pose ?placing-pose)))
+               ))))
 
 
 (cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm
@@ -482,9 +489,12 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                    ((common-fail:object-undeliverable (e)
                       (declare (ignore e))
                       (drop-at-sink)
-                      (return)))
+                      ;; (return)
+                      ))
                  (exe:perform (desig:an action
                                         (type delivering)
+                                        (when ?arm
+                                          (arm ?arm))
                                         (object ?fetched-object)
                                         (target ?delivering-location)
                                         (robot-location ?deliver-robot-location)
