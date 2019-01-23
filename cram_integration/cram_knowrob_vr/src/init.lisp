@@ -72,14 +72,19 @@
   (sem-map:get-semantic-map)
 ;(cram-occasions-events:clear-belief)
 
-  (let ((kitchen-urdf 
-          (cl-urdf:parse-urdf 
-           (roslisp:get-param btr-belief:*kitchen-parameter*))))
-    (prolog:prolog
-     `(and (btr:bullet-world ?world)
-           (assert (btr:object ?world :semantic-map :kitchen ((0 0 0) (0 0 0 1)))))))
-                 ; :urdf ,kitchen-urdf)))))
-  )
+    ;; spawning semantic map kitchen
+  (prolog:prolog
+   `(and (btr:bullet-world ?world)
+         (assert (btr:object ?world :semantic-map :semantic-map-kitchen ((0 -3 0) (0 0 0 1))))))
+
+  ;; spawning urdf kitchen
+  (prolog:prolog
+   `(and (btr:bullet-world ?world)
+         (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
+                                          :collision-group :static-filter
+                                          :collision-mask (:default-filter :character-filter)
+                                          :compound t
+                                          :urdf ,(cl-urdf:parse-urdf (roslisp:get-param "kitchen_description")))))))
 
 ;;; NOTE: Might not be needed anymore since the items are initialized with
 ;;; the spawning of the semantic map automatically. 
