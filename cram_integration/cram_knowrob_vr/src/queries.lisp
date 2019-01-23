@@ -137,7 +137,7 @@
 
 (defun get-contact-surface (object-type)
   "returns the name of the object surface an object is picked up from."
-   (cut:var-value (intern "?Surface")
+   (cut:var-value (intern "?SurfaceShortName")
                   (cut:lazy-car
                    (prolog-simple 
                     (concatenate 'string
@@ -145,7 +145,8 @@
                       owl_has(Obj, rdf:type, knowrob:'" object-type "'),
                       event_type(EventInst, knowrob_u:'TouchingSituation'),
                       rdf_has(EventInst, knowrob_u:'inContact', Obj),
-                      rdf_has(EventInst, knowrob_u:'inContact', Surface).")))))
+                      rdf_has(EventInst, knowrob_u:'inContact', Surface),
+                      iri_xml_namespace(Surface, _, SurfaceShortName).")))))
 
 (defun get-contact-surface-pose (object-type)
   "returns the pose of the surface an object is picked up from."
