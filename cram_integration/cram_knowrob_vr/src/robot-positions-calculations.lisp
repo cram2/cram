@@ -106,9 +106,9 @@ robot in the bullet world should place the object currently in hand."
     place-pose))  
 
 
-(defun place-pose-btr-island-testing (type)
+(defun place-pose (type)
   ;FIXME A wrong pose is being calculated. I don't know why yet. 
-  (let* ((table-pose-oe (get-table-location))
+  (let* ((table-pose-oe (get-contact-surface-place-pose type))
          table-pose-bullet
          place-pose)
     ; get pose of Table in map frame
@@ -127,3 +127,26 @@ robot in the bullet world should place the object currently in hand."
            (cl-tf:transform-inv table-pose-oe)
            (get-object-location-at-end-by-object-type type)))
     place-pose))
+
+
+(defun pick-pose (type)
+  ;FIXME A wrong pose is being calculated. I don't know why yet. 
+  (let* ((surface-pose-oe (get-contact-surface-pick-pose type))
+         surface-pose-bullet
+         pick-pose)
+    ; get pose of Table in map frame
+    (setq surface-pose-bullet
+          (cl-tf:pose->transform
+           (btr:pose
+            (btr:rigid-body
+             (btr:object btr:*current-bullet-world* :kitchen)
+             (match-kitchens
+              (get-contact-surface-pick-name type))))))
+    
+    ; calculate place pose relative to bullet table
+    (setq pick-pose
+          (cl-tf:transform*
+           surface-pose-bullet
+           (cl-tf:transform-inv surface-pose-oe)
+           (get-object-location-at-start-by-object-type type)))
+    pick-pose))
