@@ -15,8 +15,11 @@
    (btr:object btr:*current-bullet-world* :semantic-map-kitchen)))
 
 ;;; semantic map . urdf
-(defparameter  *alist*
-  '((|IslandArea_nhwy| . :|KITCHEN.kitchen_island|)
-    (|SinkArea_pY2k| . :|KITCHEN.sink_area|)))
+(defparameter  *semantic-to-urdf*
+  '((|''IslandArea_nhwy''| . :|KITCHEN.kitchen_island|)
+    (|''SinkArea_pY2k''| . :|KITCHEN.sink_area|)))
+
+(defun match-kitchens(name)
+  (cdr (assoc name *semantic-to-urdf*)))
 
 

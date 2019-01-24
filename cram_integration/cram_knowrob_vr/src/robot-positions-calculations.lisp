@@ -89,10 +89,14 @@ robot in the bullet world should place the object currently in hand."
     (setq table-pose-bullet
           (cl-tf:pose->transform
            (btr:pose
-            (gethash '|IslandArea_nhwy| ;or kitchen_island_surface?
-                     (slot-value
-                      (btr:object btr:*current-bullet-world* :kitchen)
-                      'cram-bullet-reasoning:rigid-bodies)))))
+            (if (btr:rigid-body
+                 (btr:object btr:*current-bullet-world* :kitchen)
+                 '|IslandArea_nhwy|)
+                ()
+                (btr:rigid-body
+                  (btr:object btr:*current-bullet-world* :kitchen)
+                  ':|KITCHEN.kitchen_island|)))))
+    
     ; calculate place pose relative to bullet table
     (setq place-pose
           (cl-tf:transform*
@@ -100,3 +104,26 @@ robot in the bullet world should place the object currently in hand."
            (cl-tf:transform-inv table-pose-oe)
            (get-object-location-at-end-by-object-type type)))
     place-pose))  
+
+
+(defun place-pose-btr-island-testing (type)
+  ;FIXME A wrong pose is being calculated. I don't know why yet. 
+  (let* ((table-pose-oe (get-table-location))
+         table-pose-bullet
+         place-pose)
+    ; get pose of Table in map frame
+    (setq table-pose-bullet
+          (cl-tf:pose->transform
+           (btr:pose
+            (btr:rigid-body
+             (btr:object btr:*current-bullet-world* :kitchen)
+             (match-kitchens
+              (get-contact-surface-place-name type))))))
+    
+    ; calculate place pose relative to bullet table
+    (setq place-pose
+          (cl-tf:transform*
+           table-pose-bullet
+           (cl-tf:transform-inv table-pose-oe)
+           (get-object-location-at-end-by-object-type type)))
+    place-pose))
