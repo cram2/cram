@@ -135,7 +135,7 @@
 
 
 
-(defun get-contact-surface (object-type)
+(defun get-contact-surface-pick-name (object-type)
   "returns the name of the object surface an object is picked up from."
    (cut:var-value (intern "?SurfaceShortName")
                   (cut:lazy-car
@@ -148,7 +148,7 @@
                       rdf_has(EventInst, knowrob_u:'inContact', Surface),
                       iri_xml_namespace(Surface, _, SurfaceShortName).")))))
 
-(defun get-contact-surface-pose (object-type)
+(defun get-contact-surface-pick-pose (object-type)
   "returns the pose of the surface an object is picked up from."
   (make-pose
    (cut:var-value (intern "?PoseSurface")
@@ -164,3 +164,40 @@
                       u_occurs(EpInst, EventInst, Start, End),
                       actor_pose(EpInst, SurfaceShortName, Start, PoseSurface)."))))))
 
+(defun get-contact-surface-place-name (object-type)
+  "returns the name of the object surface an object is picked up from."
+   (cut:var-value (intern "?SurfaceShortName")
+                  (cut:lazy-car
+                   (prolog-simple 
+                    (concatenate 'string
+                     "ep_inst(EpInst),
+                      owl_has(Obj, rdf:type, knowrob:'" object-type "'),
+                      rdf_has(EventInst, knowrob:'objectActedOn', Obj),
+                      rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst),
+                      u_occurs(EpInst, EventInst, Start, End),
+                      iri_xml_namespace(ObjActedOnInst, _, ObjShortName),
+                      event_type(NewEvent, knowrob_u:'TouchingSituation'),
+                      u_occurs(EpInst, NewEvent, End, EndNew),
+                      rdf_has(NewEvent, knowrob_u:'inContact', PlaceSurface),
+                      iri_xml_namespace(PlaceSurface, _, SurfaceShortName).")))))
+
+
+
+(defun get-contact-surface-place-pose (object-type)
+  "returns the pose of the surface an object is picked up from."
+  (make-pose
+   (cut:var-value (intern "?PoseSurface")
+                  (cut:lazy-car
+                   (prolog-simple 
+                    (concatenate 'string
+                     "ep_inst(EpInst),
+                      owl_has(Obj, rdf:type, knowrob:'" object-type "'),
+                      rdf_has(EventInst, knowrob:'objectActedOn', Obj),
+                      rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst),
+                      u_occurs(EpInst, EventInst, Start, End),
+                      iri_xml_namespace(ObjActedOnInst, _, ObjShortName),
+                      event_type(NewEvent, knowrob_u:'TouchingSituation'),
+                      u_occurs(EpInst, NewEvent, End, EndNew),
+                      rdf_has(NewEvent, knowrob_u:'inContact', PlaceSurface),
+                      iri_xml_namespace(PlaceSurface, _, SurfaceShortName),
+                      actor_pose(EpInst, SurfaceShortName, EndNew, PoseSurface)."))))))
