@@ -33,4 +33,5 @@
 
      (:file "gaussian" :depends-on ("package"))
      (:file "debugging-utils" :depends-on ("package" "movement" "queries" "openease-to-bullet" "init"))
+     (:file "mapping-urdf-semantic" :depends-on ("package"))
      ))))
