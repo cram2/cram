@@ -125,55 +125,80 @@
                                 'giskard_msgs-msg:collisionentry
                                 :avoid_all_collisions)
                          :min_dist 0.05)
-                        (mapcar (lambda (robot-link)
-                                  (roslisp:make-message
-                                   'giskard_msgs-msg:collisionentry
-                                   :type (roslisp:symbol-code
-                                          'giskard_msgs-msg:collisionentry
-                                          :allow_collision)
-                                   :robot_link robot-link
-                                   :body_b (roslisp-utilities:rosify-underscores-lisp-name
-                                            collision-object-b)
-                                   :link_b (if collision-object-b-link
-                                               (roslisp-utilities:rosify-underscores-lisp-name
-                                                collision-object-b-link)
-                                               "")))
-                                (append
-                                 (when left-pose
-                                   (cut:var-value
-                                    '?hand-links
-                                    (car (prolog:prolog
-                                          `(and (rob-int:robot ?robot)
-                                                (rob-int:hand-links ?robot :left
-                                                                    ?hand-links))))))
-                                 (when right-pose
-                                   (cut:var-value
-                                    '?hand-links
-                                    (car (prolog:prolog
-                                          `(and (rob-int:robot ?robot)
-                                                (rob-int:hand-links ?robot :right
-                                                                    ?hand-links))))))))))
+                        (append
+                         (mapcar (lambda (robot-link)
+                                   (roslisp:make-message
+                                    'giskard_msgs-msg:collisionentry
+                                    :type (roslisp:symbol-code
+                                           'giskard_msgs-msg:collisionentry
+                                           :allow_collision)
+                                    :robot_link robot-link
+                                    :body_b (roslisp-utilities:rosify-underscores-lisp-name
+                                             collision-object-b)
+                                    :link_b (if collision-object-b-link
+                                                (roslisp-utilities:rosify-underscores-lisp-name
+                                                 collision-object-b-link)
+                                                "")))
+                                 (append
+                                  (when left-pose
+                                    (cut:var-value
+                                     '?hand-links
+                                     (car (prolog:prolog
+                                           `(and (rob-int:robot ?robot)
+                                                 (rob-int:hand-links ?robot :left
+                                                                     ?hand-links))))))
+                                  (when right-pose
+                                    (cut:var-value
+                                     '?hand-links
+                                     (car (prolog:prolog
+                                           `(and (rob-int:robot ?robot)
+                                                 (rob-int:hand-links ?robot :right
+                                                                     ?hand-links))))))))
+                         (mapcar (lambda (robot-link)
+                                   (roslisp:make-message
+                                    'giskard_msgs-msg:collisionentry
+                                    :type (roslisp:symbol-code
+                                           'giskard_msgs-msg:collisionentry
+                                           :allow_collision)
+                                    :robot_link robot-link
+                                    :body_b "kitchen"
+                                    :link_b ""))
+                                 (append
+                                  (when left-pose
+                                    (cut:var-value
+                                     '?hand-links
+                                     (car (prolog:prolog
+                                           `(and (rob-int:robot ?robot)
+                                                 (rob-int:hand-links ?robot :left
+                                                                     ?hand-links))))))
+                                  (when right-pose
+                                    (cut:var-value
+                                     '?hand-links
+                                     (car (prolog:prolog
+                                           `(and (rob-int:robot ?robot)
+                                                 (rob-int:hand-links ?robot :right
+                                                                     ?hand-links)))))))))))
                 (:allow-attached
-                 (apply #'vector
-                        (roslisp:make-message
-                         'giskard_msgs-msg:collisionentry
-                         :type (roslisp:symbol-code
-                                'giskard_msgs-msg:collisionentry
-                                :avoid_all_collisions)
-                         :min_dist 0.05)
-                        (roslisp:make-message
-                         'giskard_msgs-msg:collisionentry
-                         :type (roslisp:symbol-code
-                                'giskard_msgs-msg:collisionentry
-                                :allow_collision)
-                         :robot_link (roslisp-utilities:rosify-underscores-lisp-name
-                                      collision-object-a)
-                         :body_b (roslisp-utilities:rosify-underscores-lisp-name
-                                  collision-object-b-link)
-                         :link_b (if collision-object-b-link
-                                               (roslisp-utilities:rosify-underscores-lisp-name
-                                                collision-object-b-link)
-                                               ""))))
+                 (vector
+                  (roslisp:make-message
+                   'giskard_msgs-msg:collisionentry
+                   :type (roslisp:symbol-code
+                          'giskard_msgs-msg:collisionentry
+                          :avoid_all_collisions)
+                   :min_dist 0.05)
+                  (roslisp:make-message
+                   'giskard_msgs-msg:collisionentry
+                   :type (roslisp:symbol-code
+                          'giskard_msgs-msg:collisionentry
+                          :allow_collision)
+                   :robot_link (roslisp-utilities:rosify-underscores-lisp-name
+                                collision-object-a)
+                   :body_b "kitchen";; (roslisp-utilities:rosify-underscores-lisp-name
+                   ;;  collision-object-b-link)
+                   :link_b (if collision-object-b-link
+                               (roslisp-utilities:rosify-underscores-lisp-name
+                                collision-object-b-link)
+                               ""))))
                 (t
                  (vector (roslisp:make-message
                           'giskard_msgs-msg:collisionentry
