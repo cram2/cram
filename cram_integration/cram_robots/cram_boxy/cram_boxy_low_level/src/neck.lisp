@@ -28,37 +28,74 @@
 
 (in-package :boxy-ll)
 
-(defparameter *neck-converngence-delta-joint-vel* 0.00001 "in radiants/sec")
+(defparameter *neck-action-timeout* 4.0
+  "How many seconds to wait before returning from neck action.")
 
-(defvar *neck-configuration-publisher* nil "ROS publisher for MoveIT desired_joints message.")
+(defparameter *neck-trajectory-duration* 3.0 "in seconds")
 
-(defun init-neck-configuration-publisher ()
-  (setf *neck-configuration-publisher*
-        (roslisp:advertise "desired_joints" "iai_control_msgs/pose_w_joints")))
+(actionlib-client:make-simple-action-client
+ 'neck-action
+ "neck/follow_joint_trajectory"
+ "control_msgs/FollowJointTrajectoryAction"
+ 5.0)
 
-(defun destroy-neck-configuration-publisher ()
-  (setf *neck-configuration-publisher* nil))
+(defun make-neck-action-goal (joint-states)
+  (print "HELLOOOOO")
+  (let ((joint-num (length joint-states)))
+   (roslisp:make-message
+    'control_msgs-msg:FollowJointTrajectoryGoal
+    :trajectory (roslisp:make-msg
+                 'trajectory_msgs-msg:JointTrajectory
+                 :joint_names (apply #'vector
+                                     (mapcar #'first joint-states))
+                 :points (vector
+                          (roslisp:make-msg
+                           'trajectory_msgs-msg:JointTrajectoryPoint
+                           :positions (apply #'vector (mapcar #'second joint-states))
+                           :velocities (make-array joint-num :initial-element 0.0)
+                           :accelerations (make-array joint-num :initial-element 0.0)
+                           :effort (make-array joint-num :initial-element 0.0)
+                           :time_from_start *neck-trajectory-duration*))))))
 
-(roslisp-utilities:register-ros-init-function init-neck-configuration-publisher)
-(roslisp-utilities:register-ros-cleanup-function destroy-neck-configuration-publisher)
+(defun move-neck-joints (&key goal-configuration
+                          (action-timeout *neck-action-timeout*))
+  (multiple-value-bind (result status)
+      (actionlib-client:call-simple-action-client
+       'neck-action
+       :action-goal (make-neck-action-goal goal-configuration)
+       :action-timeout action-timeout)
+    (roslisp:ros-info (boxy-ll neck-action) "neck action finished.")
+    (values result status)))
 
-(defun move-neck-joint (&key goal-configuration)
-  (declare (type list goal-configuration))
-  "Neck has 6 joints, so as `goal-configuration' use a list of length 6."
-  (format t "MOVING NECK~%")
-  (roslisp::publish *neck-configuration-publisher*
-                    (roslisp::make-message
-                     'iai_control_msgs-msg:pose_w_joints
-                     :joint_values (map 'vector #'identity goal-configuration)))
-  (cpl:sleep 3.0)
-  (flet ((goal-reached (state-msg)
-           (values-converged
-            (joint-velocities '("neck_shoulder_pan_joint" "neck_shoulder_lift_joint"
-                                "neck_elbow_joint" "neck_wrist_1_joint" "neck_wrist_2_joint"
-                                "neck_wrist_3_joint")
-                              state-msg)
-            '(0.0 0.0 0.0 0.0 0.0 0.0)
-            *neck-converngence-delta-joint-vel*)))
-    (let ((reached-fluent (cpl:fl-funcall #'goal-reached *robot-joint-states-msg*)))
-      (cpl:wait-for reached-fluent)
-      (print "NECK REACHED"))))
+
+
+;; (defparameter *neck-converngence-delta-joint-vel* 0.00001 "in radiants/sec")
+;; (defvar *neck-configuration-publisher* nil "ROS publisher for MoveIT desired_joints message.")
+;; (defun init-neck-configuration-publisher ()
+;;   (setf *neck-configuration-publisher*
+;;         (roslisp:advertise "desired_joints" "iai_control_msgs/pose_w_joints")))
+;; (defun destroy-neck-configuration-publisher ()
+;;   (setf *neck-configuration-publisher* nil))
+;; (roslisp-utilities:register-ros-init-function init-neck-configuration-publisher)
+;; (roslisp-utilities:register-ros-cleanup-function destroy-neck-configuration-publisher)
+;; (defun move-neck-joint (&key goal-configuration)
+;;   (declare (type list goal-configuration))
+;;   "Neck has 6 joints, so as `goal-configuration' use a list of length 6,
+;; where each element is ('joint_name' joint_value)."
+;;   (format t "MOVING NECK~%")
+;;   (roslisp::publish *neck-configuration-publisher*
+;;                     (roslisp::make-message
+;;                      'iai_control_msgs-msg:pose_w_joints
+;;                      :joint_values (map 'vector #'identity
+;;                                         (mapcar #'second goal-configuration))))
+;;   (cpl:sleep 3.0)
+;;   (format t "moved~%")
+;;   (flet ((goal-reached (state-msg)
+;;            (values-converged
+;;             (joint-velocities (mapcar #'first goal-configuration)
+;;                               state-msg)
+;;             '(0.0 0.0 0.0 0.0 0.0 0.0)
+;;             *neck-converngence-delta-joint-vel*)))
+;;     (let ((reached-fluent (cpl:fl-funcall #'goal-reached *robot-joint-states-msg*)))
+;;       (cpl:wait-for reached-fluent)
+;;       (print "NECK REACHED"))))

@@ -36,6 +36,7 @@
     (lisp-type ?object-designator desig:object-designator)
     (desig:desig-prop ?object-designator (:name ?name))
     (btr:bullet-world ?world)
-    (btr:object-pose ?w ?name ?pose)
+    (btr:object ?world ?name)
+    (btr:object-pose ?world ?name ?pose)
     (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
     (lisp-fun cl-transforms-stamped:pose->pose-stamped ?fixed-frame 0.0 ?pose ?pose-stamped)))

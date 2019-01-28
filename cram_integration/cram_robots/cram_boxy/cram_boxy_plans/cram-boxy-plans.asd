@@ -44,7 +44,7 @@
                cram-plan-occasions-events
                cram-mobile-pick-place-plans
 
-               cram-object-interfaces
+               cram-manipulation-interfaces
                cram-knowrob-assembly
 
                cl-transforms-stamped
@@ -53,8 +53,6 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "atomic-action-plans" :depends-on ("package"))
-     (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
-     (:file "connect-look-plans" :depends-on ("package" "atomic-action-designators"))
-     (:file "connect-look-place-designators" :depends-on ("package" "connect-look-plans"))
-     (:file "high-level-plans" :depends-on ("package" "connect-look-place-designators"))))))
+     (:file "action-plans" :depends-on ("package"))
+     (:file "action-designators" :depends-on ("package" "action-plans"))
+     (:file "high-level-plans" :depends-on ("package" "action-designators"))))))

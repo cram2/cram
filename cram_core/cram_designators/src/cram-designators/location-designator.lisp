@@ -205,6 +205,10 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
                            (t (decf retries) nil))))
                  solutions)))
 
+(defmethod reset :after ((desig location-designator))
+  "Empties the current-solution slot"
+  (setf (slot-value desig 'current-solution) nil))
+
 (defun validate-location-designator-solution (designator solution)
   (declare (type location-designator designator))
   (labels ((validate (validation-functions designator solution

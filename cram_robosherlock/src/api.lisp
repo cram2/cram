@@ -65,15 +65,29 @@ look up stuff from TF.")
                                       cram-tf:*robot-base-frame*
                                       object-frame
                                       :time 0.0
-                                      :timeout 0.0)
+                                      :timeout 1.0)
                                    (cl-transforms-stamped:transform-stamped-error ()
                                      NIL))
+                 for pose = (cram-tf:strip-transform-stamped transform)
+                 for transform-from-map = (handler-case
+                                              (cl-transforms-stamped:lookup-transform
+                                               cram-tf:*transformer*
+                                               cram-tf:*fixed-frame*
+                                               object-frame
+                                               :time 0.0
+                                               :timeout 1.0)
+                                            (cl-transforms-stamped:transform-stamped-error ()
+                                              NIL))
+                 for pose-in-map = (cram-tf:strip-transform-stamped transform-from-map)
                  until (not transform)
                  collect (desig:make-designator
                           :object
                           `((:name ,object-name)
                             (:type ,find-object-type)
-                            (:pose ((:transform ,transform))))
+                            (:pose ((:pose ,pose)
+                                    (:transform ,transform)
+                                    (:pose-in-map ,pose-in-map)
+                                    (:transform-in-map ,transform-from-map))))
                           ;; (desig:update-designator-properties
                           ;;  `((:pose ((:transform ,transform)))
                           ;;    (:name ,object-name)

@@ -39,6 +39,15 @@
            command="$(find xacro)/xacro.py
                     '$(find pr2_description)/robots/pr2.urdf.xacro'"/>
   </group>
+  <!-- <node pkg="joint_state_publisher" type="joint_state_publisher" -->
+  <!--       name="robot_joint_state_publisher" output="screen"> -->
+  <!--   <param name="rate" value="25"/> -->
+  <!--   <param name="use_gui" value="False"/> -->
+  <!-- </node> -->
+  <!-- <node pkg="robot_state_publisher" type="robot_state_publisher" -->
+  <!--   name="robot_state_publisher" output="screen"> -->
+  <!--   <param name="publish_frequency" value="25"/> -->
+  <!-- </node> -->
 
   <!-- PR2 IK solver -->
   <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_larm_node.launch" />

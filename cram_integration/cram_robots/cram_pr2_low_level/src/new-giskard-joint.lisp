@@ -77,25 +77,27 @@
                                                  :avoid_all_collisions)
                                           :min_dist 0.05))))))
 
-(defun get-arm-joint-states-alist (arm &optional joint-positions)
-  (let ((joint-names
-          (cut:var-value '?joints
-                          (cut:lazy-car
-                           (prolog:prolog
-                            `(cram-robot-interfaces:arm-joints
-                              cram-pr2-description:pr2 ,arm ?joints))))))
-    (list joint-names
-          (or joint-positions
+(defun get-arm-joint-names-and-positions-list (arm &optional joint-states)
+  (if joint-states
+      (list (mapcar #'first joint-states)
+            (mapcar #'second joint-states))
+      (let ((joint-names
+              (cut:var-value '?joints
+                             (cut:lazy-car
+                              (prolog:prolog
+                               `(cram-robot-interfaces:arm-joints
+                                 cram-pr2-description:pr2 ,arm ?joints))))))
+        (list joint-names
               (joint-positions joint-names *robot-joint-states-msg*)))))
 
 (defun ensure-giskard-joint-input-parameters (left-goal right-goal)
   (flet ((ensure-giskard-joint-goal (goal arm)
            (if (and (listp goal) (= (length goal) 7))
-               (get-arm-joint-states-alist arm goal)
+               (get-arm-joint-names-and-positions-list arm goal)
                (and (roslisp:ros-warn (low-level giskard)
                                       "Joint goal ~a was not a list of 7. Ignoring."
                                       goal)
-                    (get-arm-joint-states-alist arm)))))
+                    (get-arm-joint-names-and-positions-list arm)))))
    (values (ensure-giskard-joint-goal left-goal :left)
            (ensure-giskard-joint-goal right-goal :right))))
 

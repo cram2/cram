@@ -110,12 +110,11 @@
   (when pose
     (cl-transforms-stamped:transform-pose-stamped
      *transformer*
-     :pose (cl-transforms-stamped:ensure-pose-stamped
-            (if use-zero-time
-                (cl-transforms-stamped:copy-pose-stamped pose :stamp 0.0)
-                pose)
-            frame
-            0.0)
+     :pose (let ((pose-stamped
+                   (cl-transforms-stamped:ensure-pose-stamped pose frame 0.0)))
+             (if use-zero-time
+                 (cl-transforms-stamped:copy-pose-stamped pose-stamped :stamp 0.0)
+                 pose-stamped))
      :target-frame frame
      :timeout *tf-default-timeout*
      :use-current-ros-time use-current-ros-time)))

@@ -29,108 +29,99 @@
 
 (in-package :kr-assembly)
 
-(defparameter *z-of-chassis-holder* 0.2 "In meters.")
-(defparameter *x-of-chassis-holder-hole* 0.042 "In meters.")
+(def-object-type-in-other-object-transform :chassis :holder-plane-horizontal :chassis-attachment
+  :attachment-translation `(0.084 0.0 0.022)
+  :attachment-rot-matrix *rotation-around-z-90-matrix*)
 
-;; (defun get-object-grasping-poses (on-object-name on-object-type
-;;                                   object-name object-type arm grasp on-object-transform)
-;;   "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
-;;   (mapcar (lambda (manipulation-type)
-;;             (get-gripper-in-base-pose
-;;              arm on-object-transform ; bToo
-;;              (get-object-manipulation-transform ; gToo aka oToo
-;;               manipulation-type "left_gripper" object-name grasp))) ; bToo * ooTg = bTg
-;;           '(:lift :connect :pregrasp :pregrasp)))
+(def-object-type-in-other-object-transform :bottom-wing :chassis :wing-attachment
+  :attachment-translation `(0.0 -0.02 0.04;; 0.0
+                                )
+  :attachment-rot-matrix *identity-matrix*)
 
-(defun get-object-placing-poses (on-object-name on-object-type object-name object-type
-                                 arm grasp on-object-transform)
-  "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
-  (flet ((get-connection-id (object-name connect-to-object-name)
-           (ecase object-name
-             (:axle1 (ecase connect-to-object-name
-                       (:chassis1 :axle-snap-in-front)))
-             (:axle2 (ecase connect-to-object-name
-                       (:chassis1 :axle-snap-in-back)))
-             (:chassis1 (ecase connect-to-object-name
-                          (:chassis-holder1 :chassis-on-holder)))
-             (:camaro-body1 (ecase connect-to-object-name
-                              (:chassis1 :chassis-snap-in-connection)))
-             (:seat1 (ecase connect-to-object-name
-                       (:chassis1 :seat-snap-in-front)))
-             (:seat2 (ecase connect-to-object-name
-                       (:chassis1 :seat-snap-in-back))))))
+(def-object-type-in-other-object-transform :underbody :bottom-wing :body-attachment
+  :attachment-translation `(0.0 -0.025 0.02)
+  :attachment-rot-matrix *rotation-around-z+90-matrix*)
 
-    (let* ((put-pose (cram-tf:multiply-transform-stampeds
-                      cram-tf:*robot-base-frame* cram-tf:*robot-left-tool-frame*
-                      (cram-tf:multiply-transform-stampeds
-                       cram-tf:*robot-base-frame* (cram->knowrob object-name)
-                       on-object-transform ; bToo
-                       ;; (get-object-placement-transform ; oToo aka gToo
-                       ;;  on-object-name object-name "left_gripper" grasp)))) ; bToo * ooTg = bTg
-                       (get-object-connection-transform ; ooTo
-                        (get-connection-id object-name on-object-name)
-                        on-object-name
-                        object-name)) ; bToo * ooTo = bTo
-                      (cram-tf:transform-stamped-inv
-                       (get-object-manipulation-transform ; gTo
-                        :grasp "left_gripper" object-name grasp))
-                      :result-as-pose-or-transform :pose))) ; bTo * oTg = bTg
-      (list (get-object-type-lift-pose object-type arm grasp put-pose)
-            (get-object-type-2nd-lift-pose object-type arm grasp put-pose)
-            put-pose
-            (get-object-type-2nd-pregrasp-pose object-type arm grasp put-pose)
-            (get-object-type-pregrasp-pose object-type arm grasp put-pose)))))
+(def-object-type-in-other-object-transform :upper-body :underbody :body-on-body
+  :attachment-translation `(-0.025 0.0 0.0425)
+  :attachment-rot-matrix *identity-matrix*)
 
-#+everything-below-is-commented-out
+(def-object-type-in-other-object-transform :bolt :upper-body :rear-thread
+  :attachment-translation `(-0.0525 0.0 -0.01;; -0.025
+                                    )
+  :attachment-rot-matrix *identity-matrix*)
+
+(def-object-type-in-other-object-transform :top-wing :upper-body :wing-attachment
+  :attachment-translation `(0.05 0.0 0.0025)
+  :attachment-rot-matrix *rotation-around-z-90-matrix*)
+
+(def-object-type-in-other-object-transform :bolt :top-wing :middle-thread
+  :attachment-translation `(0.0 0.025 0.01;; -0.005
+                                )
+  :attachment-rot-matrix *identity-matrix*)
+
+(def-object-type-in-other-object-transform :window :top-wing :window-attachment
+  :attachment-translation `(0.0 -0.0525 0.0075)
+  :attachment-rot-matrix *rotation-around-z+90-matrix*)
+
+(def-object-type-in-other-object-transform :bolt :window :window-thread
+  :attachment-translation `(-0.0125 0.0 -0.005;; -0.02
+                                    )
+  :attachment-rot-matrix *identity-matrix*)
+
+
+
+
+
+
+#+stuff-below-uses-knowrob
 (
-(defgeneric get-object-placement-transform (on-object-type on-object-name
-                                            object-type object-name arm grasp))
+ (defun get-object-grasping-poses (on-object-name on-object-type
+                                   object-name object-type arm grasp on-object-transform)
+   "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
+   (mapcar (lambda (manipulation-type)
+             (get-gripper-in-base-pose
+              arm on-object-transform           ; bToo
+              (get-object-manipulation-transform ; gToo aka oToo
+               manipulation-type "left_gripper" object-name grasp))) ; bToo * ooTg = bTg
+           '(:lift :connect :pregrasp :pregrasp)))
 
-(defmethod get-object-placement-transform ((on-object-type (eql :chassis-holder))
-                                           on-object-name
-                                           (object-type (eql :chassis))
-                                           object-name
-                                           (arm (eql :left))
-                                           (grasp (eql :side)))
-  (cl-transforms-stamped:make-transform-stamped
-   (cram->knowrob on-object-name)
-   (cram->knowrob object-name)
-   0.0
-   (cl-transforms:make-3d-vector 0.0d0 0.0d0 *z-of-chassis-holder*)
-   (cl-transforms:matrix->quaternion
-    #2A((-1 0 0)
-        (0 1 0)
-        (0 0 -1)))))
+ (defun get-object-placing-poses (on-object-name on-object-type object-name object-type
+                                  arm grasp on-object-transform)
+   "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
+   (flet ((get-connection-id (object-name connect-to-object-name)
+            (ecase object-name
+              (:axle1 (ecase connect-to-object-name
+                        (:chassis1 :axle-snap-in-front)))
+              (:axle2 (ecase connect-to-object-name
+                        (:chassis1 :axle-snap-in-back)))
+              (:chassis1 (ecase connect-to-object-name
+                           (:chassis-holder1 :chassis-on-holder)))
+              (:camaro-body1 (ecase connect-to-object-name
+                               (:chassis1 :chassis-snap-in-connection)))
+              (:seat1 (ecase connect-to-object-name
+                        (:chassis1 :seat-snap-in-front)))
+              (:seat2 (ecase connect-to-object-name
+                        (:chassis1 :seat-snap-in-back))))))
 
-(defmethod get-object-placement-transform ((on-object-type (eql :chassis))
-                                           on-object-name
-                                           (object-type (eql :axle))
-                                           object-name
-                                           (arm (eql :left))
-                                           (grasp (eql :top)))
-  (cl-transforms-stamped:make-transform-stamped
-   (cram->knowrob on-object-name)
-   (cram->knowrob object-name)
-   0.0
-   (cl-transforms:make-3d-vector *x-of-chassis-holder-hole* 0 0)
-   (cl-transforms:matrix->quaternion
-    #2A((-1 0 0)
-        (0 1 0)
-        (0 0 -1)))))
-
-(defmethod get-object-placement-transform ((on-object-type (eql :chassis))
-                                           on-object-name
-                                           (object-type (eql :camaro-body))
-                                           object-name
-                                           (arm (eql :left))
-                                           (grasp (eql :top)))
-  (cl-transforms-stamped:make-transform-stamped
-   (cram->knowrob on-object-name)
-   (cram->knowrob object-name)
-   0.0
-   (cl-transforms:make-3d-vector 0 0 0)
-   (cl-transforms:matrix->quaternion
-    #2A((0 1 0)
-        (-1 0 0)
-        (0 0 1)))))
-)
+     (let* ((put-pose (cram-tf:multiply-transform-stampeds
+                       cram-tf:*robot-base-frame* cram-tf:*robot-left-tool-frame*
+                       (cram-tf:multiply-transform-stampeds
+                        cram-tf:*robot-base-frame* (cram->knowrob object-name)
+                        on-object-transform ; bToo
+                        ;; (get-object-placement-transform ; oToo aka gToo
+                        ;;  on-object-name object-name "left_gripper" grasp)))) ; bToo * ooTg = bTg
+                        (get-object-connection-transform ; ooTo
+                         (get-connection-id object-name on-object-name)
+                         on-object-name
+                         object-name))  ; bToo * ooTo = bTo
+                       (cram-tf:transform-stamped-inv
+                        (get-object-manipulation-transform ; gTo
+                         :grasp "left_gripper" object-name grasp))
+                       :result-as-pose-or-transform :pose))) ; bTo * oTg = bTg
+       (list (get-object-type-lift-pose object-type arm grasp put-pose)
+             (get-object-type-2nd-lift-pose object-type arm grasp put-pose)
+             put-pose
+             (get-object-type-2nd-pregrasp-pose object-type arm grasp put-pose)
+             (get-object-type-pregrasp-pose object-type arm grasp put-pose)))))
+ )

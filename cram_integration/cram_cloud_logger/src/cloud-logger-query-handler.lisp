@@ -67,6 +67,13 @@
 (defun export-belief-state-to-owl (&optional (filename (concatenate 'string "default_belief_state_" (write-to-string (truncate (cram-utilities:current-timestamp))) ".owl")))
   (json-prolog:prolog-simple-1 (concatenate 'string "rdf_save(" (concatenate 'string "'/home/ease/logs/" filename "'" "," "[graph('belief_state')])"))))
 
+
+(defun send-grasp-action-parameter (action-inst grasp)
+  (let ((a (convert-to-prolog-str action-inst))
+        (b "knowrob:grasp")
+        (c (create-owl-literal "xsd:string" (convert-to-prolog-str (write-to-string grasp)))))
+    (send-rdf-query a b c)))
+
 (defun send-task-success (action-inst is-sucessful)
   (let ((a (convert-to-prolog-str action-inst))
         (b "knowrob:taskSuccess")
@@ -109,7 +116,7 @@
       (progn
         (send-rdf-query
          (convert-to-prolog-str action-inst)
-         "knowrob:objectActedOn"
+         "knowrob:objectType"
          (convert-to-prolog-str object-type))))))
 
 
@@ -154,6 +161,21 @@
         (z (cl-transforms:z quaternion))
         (w (cl-transforms:w quaternion)))
         (concatenate 'string (format nil "~F" x) " " (format nil "~F" y) " " (format nil "~F" z) " " (format nil "~F" w))))
+
+(defun send-create-transform-pose-stamped (transform-pose)
+  (let ((pose-stamped-instance-id (send-instance-from-class "Pose"))
+        (frame-id (cl-transforms-stamped:frame-id transform-pose))
+        (3d-vector (cl-transforms:translation transform-pose))
+        (orientation (cl-transforms:rotation transform-pose))
+        (child-frame (cl-transforms-stamped:child-frame-id transform-pose))
+        )
+    (let ((3d-vector-id (send-create-3d-vector 3d-vector))
+          (quaternion-id (send-create-quaternion orientation)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:relativeTo" (convert-to-prolog-str "http://knowrob.org/kb/PR2.owl#pr2_base_footprint"))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:translation" (create-string-owl-literal (convert-to-prolog-str 3d-vector-id)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:quaternion" (create-string-owl-literal (convert-to-prolog-str quaternion-id)))
+      (send-rdf-query (convert-to-prolog-str pose-stamped-instance-id) "knowrob:child-id" (create-string-owl-literal (convert-to-prolog-str child-frame)))
+      pose-stamped-instance-id)))
 
 (defun send-create-pose-stamped (pose-stamped)
   (let ((pose-stamped-instance-id (send-instance-from-class "Pose"))

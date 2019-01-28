@@ -28,6 +28,9 @@
 
 (in-package :btr)
 
+(defun multiple-value-list-fun (fun &rest args)
+  (multiple-value-list (apply fun args)))
+
 (def-fact-group robot-model (assert retract available-arms)
 
   (<- (link ?world ?robot-name ?link)
@@ -109,13 +112,18 @@
                            (member (?object-name ?robot-name) ?objects)))
                   (gripper-link ?robot-name ?_ ?link)))))
 
-  (<- (attached ?world ?robot ?link-name ?object)
+  (<- (attached ?world ?robot ?link-name ?object ?grasp)
     (bullet-world ?world)
     (object ?world ?object)
     (%object ?world ?robot ?robot-instance)
     (%object ?world ?object ?object-instance)
-    (lisp-fun object-attached ?robot-instance ?object-instance ?links)
-    (member ?link-name ?links))
+    (lisp-fun multiple-value-list-fun object-attached ?robot-instance ?object-instance
+              (?links ?grasps))
+    (lisp-fun mapcar list ?links ?grasps ?link-grasp-list)
+    (member (?link-name ?grasp) ?link-grasp-list))
+
+  (<- (attached ?world ?robot ?link-name ?object)
+    (attached ?world ?robot ?link-name ?object ?_))
 
   (<- (assert ?world (attached ?robot ?link-name ?object))
     (bullet-world ?world)

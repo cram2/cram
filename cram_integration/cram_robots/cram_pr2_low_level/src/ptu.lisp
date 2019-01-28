@@ -63,29 +63,21 @@
     (z pointing_axis) 0.0
     target (cl-transforms-stamped:to-msg point-stamped)))
 
-(defun ensure-ptu-input-parameters (frame point direction)
-  (declare (type (or null string) frame)
-           (type (or cl-transforms:3d-vector
+(defun ensure-ptu-input-parameters (pose)
+  (declare (type (or cl-transforms:3d-vector
                      cl-transforms:point cl-transforms-stamped:point-stamped
-                     cl-transforms:pose cl-transforms-stamped:pose-stamped))
-           (type (or null symbol) direction))
-  "Returns a point-stamped in `frame'"
-  (let ((frame (or (when (typep point 'cl-transforms-stamped:pose-stamped)
-                     (cl-transforms-stamped:frame-id point))
-                   frame
+                     cl-transforms:pose cl-transforms-stamped:pose-stamped) pose))
+  "Returns a point-stamped in base_footprint or given frame"
+  (let ((frame (or (when (typep pose 'cl-transforms-stamped:pose-stamped)
+                     (cl-transforms-stamped:frame-id pose))
                    cram-tf:*robot-base-frame*)))
-    (if direction
-        (cl-transforms-stamped:make-point-stamped
-         cram-tf:*robot-base-frame*
-         0.0
-         (cl-transforms:make-3d-vector 10.0 0.0 1.5))
-        (cram-tf:ensure-point-in-frame
-         (etypecase point
-           (cl-transforms:point ; also covers 3d-vector and point-stamped
-            point)
-           (cl-transforms:pose          ; also covers pose-stamped
-            (cl-transforms:origin point)))
-         frame))))
+    (cram-tf:ensure-point-in-frame
+     (etypecase pose
+       (cl-transforms:point ; also covers 3d-vector and point-stamped
+        pose)
+       (cl-transforms:pose          ; also covers pose-stamped
+        (cl-transforms:origin pose)))
+     frame)))
 
 (defun ensure-ptu-goal-reached (status)
   (when (eql status :timeout)
@@ -97,15 +89,12 @@
   ;; using looking-at or point-head-at from cram_3d_world
   )
 
-(defun call-ptu-action (&key (frame cram-tf:*robot-base-frame*)
-                          (pose (cl-transforms:make-identity-pose))
-                          direction
+(defun call-ptu-action (&key (pose (cl-transforms:make-identity-pose))
                           (action-timeout *ptu-action-timeout*))
-  (declare (type (or null string) frame)
-           (type (or cl-transforms:3d-vector
+  (declare (type (or cl-transforms:3d-vector
                      cl-transforms:point cl-transforms-stamped:point-stamped
-                     cl-transforms:pose cl-transforms-stamped:pose-stamped)))
-  (let ((goal-point-stamped (ensure-ptu-input-parameters frame pose direction)))
+                     cl-transforms:pose cl-transforms-stamped:pose-stamped) pose))
+  (let ((goal-point-stamped (ensure-ptu-input-parameters pose)))
     (multiple-value-bind (result status)
         (cpl:with-failure-handling
             ((simple-error (e)
@@ -126,6 +115,11 @@
     (call-ptu-action :pose (cl-transforms:make-3d-vector 5.0 -1.0 1.2))))
 
 (defun look-at-gripper (left-or-right)
-  (call-ptu-action :frame (ecase left-or-right
-                            (:left "l_gripper_tool_frame")
-                            (:right "r_gripper_tool_frame"))))
+  (call-ptu-action :pose
+                   (cl-tf:make-pose-stamped
+                    (ecase left-or-right
+                      (:left "l_gripper_tool_frame")
+                      (:right "r_gripper_tool_frame"))
+                    0.0
+                    (cl-transforms:make-identity-vector)
+                    (cl-transforms:make-identity-rotation))))

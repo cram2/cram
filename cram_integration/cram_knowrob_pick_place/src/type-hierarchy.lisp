@@ -29,7 +29,7 @@
 
 (in-package :kr-pp)
 
-(def-fact-group object-type-hierarchy (obj-int:object-type-direct-subtype)
-  (<- (obj-int:object-type-direct-subtype :container :drawer))
-  (<- (obj-int:object-type-direct-subtype :container :refrigerator))
-  (<- (obj-int:object-type-direct-subtype :refrigerator :fridge)))
+(def-fact-group object-type-hierarchy (man-int:object-type-direct-subtype)
+  (<- (man-int:object-type-direct-subtype :container :drawer))
+  (<- (man-int:object-type-direct-subtype :container :refrigerator))
+  (<- (man-int:object-type-direct-subtype :refrigerator :fridge)))
