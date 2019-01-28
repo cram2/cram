@@ -52,27 +52,32 @@
             parent-frame child-frame x y z q1 q2 q3 w)))
 
 (defmethod man-int:get-object-type-grasps :around (object-type arm object-transform-in-base)
-  (if *learning-framework-on*
-      (let* ((all-possible-grasps-unsorted
-               (call-next-method))
-             (learned-grasps-raw
-               (cut:var-value
-                '?grasp
-                (car (print (json-prolog:prolog-simple
-                             (format nil
-                                     "object_type_grasps(~(~a, ~a~), ~a, GRASP)."
-                                     object-type arm
-                                     (serialize-transform object-transform-in-base))
-                             :package :learning)))))
-             (learned-grasps
-               (mapcar (lambda (grasp-symbol)
-                         (intern (string-upcase (string-trim "'|" (symbol-name grasp-symbol)))
-                                 :keyword))
-                       learned-grasps-raw)))
-        (append learned-grasps
-                (reduce (lambda (list-to-remove-from learned-grasp)
-                          (remove learned-grasp list-to-remove-from))
-                        (append (list all-possible-grasps-unsorted) learned-grasps))))
+  (if (and *learning-framework-on* object-transform-in-base)
+      (unwind-protect
+           (progn
+             (setf json-prolog::*service-namespace* "/ralf")
+             (let* ((all-possible-grasps-unsorted
+                      (call-next-method))
+                    (learned-grasps-raw
+                      (cut:var-value
+                       '?grasp
+                       (car (print (json-prolog:prolog-simple
+                                    (format nil
+                                            "object_type_grasps(~(~a, ~a~), ~a, GRASP)."
+                                            object-type arm
+                                            (serialize-transform object-transform-in-base))
+                                    :package :learning)))))
+                    (learned-grasps
+                      (mapcar (lambda (grasp-symbol)
+                                (intern (string-upcase
+                                         (string-trim "'|" (symbol-name grasp-symbol)))
+                                        :keyword))
+                              learned-grasps-raw)))
+               (append learned-grasps
+                       (reduce (lambda (list-to-remove-from learned-grasp)
+                                 (remove learned-grasp list-to-remove-from))
+                               (append (list all-possible-grasps-unsorted) learned-grasps)))))
+        (setf json-prolog::*service-namespace* "/json_prolog"))
       (call-next-method)))
 
 (defun calculate-rotation-angle (map-to-object-transform)
@@ -120,38 +125,42 @@
 
 (defun make-learned-costmap-generator (location-type object-type object-name
                                        object-transform-in-base object-transform-in-map)
-  (let* ((bindings
-           (car (json-prolog:prolog-simple
-                 (format nil
-                         "designator_costmap(~(~a, ~:[_~;~a~], ~:[_~;~a~], ~a, ~a~), ~
+  (unwind-protect
+       (progn
+         (setf json-prolog::*service-namespace* "/ralf")
+         (let* ((bindings
+                  (car (json-prolog:prolog-simple
+                        (format nil
+                                "designator_costmap(~(~a, ~:[_~;~a~], ~:[_~;~a~], ~a, ~a~), ~
                                              MATRIX, ~
                                              BOTTOM_RIGHT_CORNER_X, BOTTOM_RIGHT_CORNER_Y, ~
                                              RESOLUTION)."
-                         location-type object-type object-name
-                         (serialize-transform object-transform-in-base)
-                         (serialize-transform object-transform-in-map))
-                 :package :learning)))
-         (matrix-list
-           (cut:var-value '?matrix bindings))
-         (?resolution
-           0.01)
-         (height
-           (length matrix-list))
-         (width
-           (length (first matrix-list)))
-         (array
-           (make-array (list width height)
-                       :element-type 'double-float
-                       :initial-contents matrix-list))
-         (bottom-right-corner-x
-           (- (cl-transforms:x (cl-transforms:translation object-transform-in-map))
-              (* height 1/2 ?resolution)))
-         (bottom-right-corner-y
-           (- (cl-transforms:y (cl-transforms:translation object-transform-in-map))
-              (* width 1/2 ?resolution))))
-    (costmap:make-matrix-cost-function
-     bottom-right-corner-x bottom-right-corner-y ?resolution array
-     (calculate-rotation-angle object-transform-in-map))))
+                                location-type object-type object-name
+                                (serialize-transform object-transform-in-base)
+                                (serialize-transform object-transform-in-map))
+                        :package :learning)))
+                (matrix-list
+                  (cut:var-value '?matrix bindings))
+                (?resolution
+                  0.01)
+                (height
+                  (length matrix-list))
+                (width
+                  (length (first matrix-list)))
+                (array
+                  (make-array (list width height)
+                              :element-type 'double-float
+                              :initial-contents matrix-list))
+                (bottom-right-corner-x
+                  (- (cl-transforms:x (cl-transforms:translation object-transform-in-map))
+                     (* height 1/2 ?resolution)))
+                (bottom-right-corner-y
+                  (- (cl-transforms:y (cl-transforms:translation object-transform-in-map))
+                     (* width 1/2 ?resolution))))
+           (costmap:make-matrix-cost-function
+            bottom-right-corner-x bottom-right-corner-y ?resolution array
+            (calculate-rotation-angle object-transform-in-map))))
+    (setf json-prolog::*service-namespace* "/json_prolog")))
 
 (defmethod costmap:costmap-generator-name->score ((name (eql 'learned-generator))) 9)
 
@@ -210,46 +219,51 @@
 
 (defmethod exe:generic-perform :around (designator)
   (if *learning-framework-on*
-      (if (typep designator 'desig:action-designator)
-          (cond ((eql (desig:desig-prop-value designator :type) :fetching)
-                 (let* ((some-object (desig:desig-prop-value designator :object))
-                        (object (desig:current-desig some-object))
-                        (object-type (desig:desig-prop-value object :type))
-                        (object-name (desig:desig-prop-value object :name))
-                        (object-transform-in-base (man-int:get-object-transform object))
-                        (object-transform-in-map (man-int:get-object-transform-in-map object))
-                        (arm (desig:desig-prop-value designator :arm)))
-                   (json-prolog:prolog-simple
-                    (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~a)~)."
-                            :fetching object-type object-name
-                            (serialize-transform object-transform-in-base)
-                            (serialize-transform object-transform-in-map) arm))
-                   (let ((result (call-next-method)))
-                     (json-prolog:prolog-simple
-                      (format nil "finished_action(~(~a)~)." :fetching))
-                     result)))
-                ((eql (desig:desig-prop-value designator :type) :delivering)
-                 (let* ((some-object (desig:desig-prop-value designator :object))
-                        (object (desig:current-desig some-object))
-                        (object-type (desig:desig-prop-value object :type))
-                        (object-name (desig:desig-prop-value object :name))
-                        (transforms (make-designator-transforms
-                                     (desig:desig-prop-value designator :target)))
-                        (transform-in-base (second transforms))
-                        (transform-in-map (first transforms))
-                        (arm (desig:desig-prop-value designator :arm)))
-                   (json-prolog:prolog-simple
-                    (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~:[_~;~a~])~)."
-                            :delivering object-type object-name
-                            (serialize-transform transform-in-base)
-                            (serialize-transform transform-in-map) arm))
-                   (let ((result (call-next-method)))
-                     (json-prolog:prolog-simple
-                      (format nil "finished_action(~(~a)~)." :delivering))
-                     result)))
-                (t
+      (unwind-protect
+           (progn
+             (setf json-prolog::*service-namespace* "/ralf")
+             (if (typep designator 'desig:action-designator)
+                 (cond
+                   ((eql (desig:desig-prop-value designator :type) :fetching)
+                    (let* ((some-object (desig:desig-prop-value designator :object))
+                           (object (desig:current-desig some-object))
+                           (object-type (desig:desig-prop-value object :type))
+                           (object-name (desig:desig-prop-value object :name))
+                           (object-transform-in-base (man-int:get-object-transform object))
+                           (object-transform-in-map (man-int:get-object-transform-in-map object))
+                           (arm (desig:desig-prop-value designator :arm)))
+                      (json-prolog:prolog-simple
+                       (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~a)~)."
+                               :fetching object-type object-name
+                               (serialize-transform object-transform-in-base)
+                               (serialize-transform object-transform-in-map) arm))
+                      (let ((result (call-next-method)))
+                        (json-prolog:prolog-simple
+                         (format nil "finished_action(~(~a)~)." :fetching))
+                        result)))
+                   ((eql (desig:desig-prop-value designator :type) :delivering)
+                    (let* ((some-object (desig:desig-prop-value designator :object))
+                           (object (desig:current-desig some-object))
+                           (object-type (desig:desig-prop-value object :type))
+                           (object-name (desig:desig-prop-value object :name))
+                           (transforms (make-designator-transforms
+                                        (desig:desig-prop-value designator :target)))
+                           (transform-in-base (second transforms))
+                           (transform-in-map (first transforms))
+                           (arm (desig:desig-prop-value designator :arm)))
+                      (json-prolog:prolog-simple
+                       (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~:[_~;~a~])~)."
+                               :delivering object-type object-name
+                               (serialize-transform transform-in-base)
+                               (serialize-transform transform-in-map) arm))
+                      (let ((result (call-next-method)))
+                        (json-prolog:prolog-simple
+                         (format nil "finished_action(~(~a)~)." :delivering))
+                        result)))
+                   (t
+                    (call-next-method)))
                  (call-next-method)))
-          (call-next-method))
+        (setf json-prolog::*service-namespace* "/json_prolog"))
       (call-next-method)))
 
 
