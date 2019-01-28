@@ -7,12 +7,38 @@
 
 (defmethod prolog::prove-one :around (query binds &optional rethrow-cut)
   (if *is-logging-enabled*
-      (let ((query-id (create-prolog-log-query (car query)))(result (call-next-method)))
+      (let ((query-id (create-prolog-log-query (car query) '("http://knowrob.org/kb/knowrob.owl#no-parameter")))(result (call-next-method)))
         ;; Come back here to implement parameter logging
         ;;(when query-id
-        ;;  (parameter-logging query binds result))
+        ;;  (log-result query binds result))
         (if query-id
-            (let ((end-query
+            (log-end-of-query query-id))
+        result)
+      (call-next-method)))
+
+
+(defun create-log-parameters-query (query-id parameters)
+  (let ((parameters-str (create-parameters parameters)))
+    (create-rdf-assert-query
+     query-id
+     "knowrob:parameters"
+     (convert-to-prolog-str parameters-str))))
+
+(defun log-result-of-query (query-id result)
+  (let ((result-query
+              (create-rdf-assert-query
+               (car query-id)
+               "knowrob:result"
+               (create-string-owl-literal (convert-to-prolog-str result)))))
+    (let ((query-list (car (cdr query-id))))
+      (push result-query (cdr (last query-list)))
+      (setf (cpl:value *prolog-queries*)
+            (append query-list
+                    (cpl:value *prolog-queries*))))))
+
+
+(defun log-end-of-query (query-id)
+  (let ((end-query
                     (create-query
                      "cram_finish_action"
                      (list (car query-id) (get-timestamp-for-logging)))))
@@ -21,11 +47,8 @@
                 (setf (cpl:value *prolog-queries*)
                       (append query-list
                               (cpl:value *prolog-queries*))))))
-        result)
-      (call-next-method)))
 
-
-(defun parameter-logging (query binds result)
+(defun log-result (query binds result)
   (let ((variable-list-list (print-prolog-predicate query binds))
         (predicate-name (car query)))
     (let ((bounded-variable-list (car variable-list-list))
@@ -77,7 +100,7 @@
               (cons (create-rdf-assert-query
                      query-id
                      "knowrob:predicate"
-                     (convert-to-prolog-str (write-to-string predicate-name)))
+                     (create-string-owl-literal (convert-to-prolog-str (write-to-string predicate-name))))
                     queries))
         (setf queries
               (cons (create-query
@@ -93,20 +116,15 @@
 (defun create-obj-log-query-class-name (predicate-name)
   (let ((class-name (write-to-string predicate-name)))
     (cond ((string-equal (string-downcase class-name)
-                         "cram-object-interfaces:object-type-grasp")
+                         "cram-manipulation-interfaces:object-type-grasp")
            (setf class-name "ObjectTypeGrasp"))
           ((string-equal (string-downcase class-name)
-                         "cram-object-interfaces:object-rotationally-symmetric")
+                         "cram-manipulation-interfaces:object-rotationally-symmetric")
            (setf class-name "ObjectRotatinallySymmetric")))
     (concatenate 'string class-name "_")))
 
-(defun create-prolog-log-query (predicate-name)
-  (let ((predicate-name-str
-          (concatenate 'string
-                       (package-name (symbol-package predicate-name))
-                       ":"
-                       (symbol-name predicate-name))))
-    (if (is-predicate-in-white-list predicate-name-str)
+(defun create-prolog-log-query-str (predicate-name-str parameters)
+  (if (is-predicate-in-white-list predicate-name-str)
         (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8)))))
               (queries '()))
           (setf queries
@@ -119,7 +137,11 @@
                 (cons (create-rdf-assert-query
                        query-id
                        "knowrob:predicate"
-                       (convert-to-prolog-str predicate-name-str))
+                       (create-string-owl-literal
+                        (convert-to-prolog-str predicate-name-str)))
+                      queries))
+           (setf queries
+                (cons (create-log-parameters-query query-id parameters)
                       queries))
           (setf queries
                 (cons (create-query
@@ -131,13 +153,27 @@
                               query-id))
                       queries))
           (list query-id queries))
-        nil)))
+        nil))
+
+(defun create-prolog-log-query (predicate-name parameters)
+  (let ((predicate-name-str
+          (concatenate 'string
+                       (package-name (symbol-package predicate-name))
+                       ":"
+                       (symbol-name predicate-name))))
+    (create-prolog-log-query-str predicate-name-str parameters)))
 
 (defun is-predicate-in-white-list (predicate-name)
   (or (string-equal (string-downcase predicate-name)
-                    "cram-object-interfaces:object-type-grasp")
+                    "cram-manipulation-interfaces:object-type-grasp")
       (string-equal (string-downcase predicate-name)
-                    "cram-object-interfaces:object-rotationally-symmetric")
+                    "cram-manipulation-interfaces:object-rotationally-symmetric")
+      (string-equal (string-downcase predicate-name)
+                    "get-object-type-gripping-effort")
+      (string-equal (string-downcase predicate-name)
+                    "get-object-type-grasps")
+      (string-equal (string-downcase predicate-name)
+                    "calculate-object-faces")
       (string-equal (string-downcase predicate-name)
                     "cram-semantic-map-costmap::semantic-map-desig-objects")
       (string-equal (string-downcase predicate-name)
@@ -149,11 +185,11 @@
       (string-equal (string-downcase predicate-name)
                     "cram-designators:location-grounding")))
 
-(defun is-predicate-an-obj-interface-predicate (predicate-name)
+(defun is-predicate-an-man-interface-predicate (predicate-name)
   (or (string-equal (string-downcase (write-to-string predicate-name))
-                    "cram-object-interfaces:object-type-grasp")
+                    "cram-manipulation-interfaces:object-type-grasp")
       (string-equal (string-downcase (write-to-string predicate-name))
-                    "cram-object-interfaces:object-rotationally-symmetric")))
+                    "cram-manipulation-interfaces:object-rotationally-symmetric")))
 
 (defun is-predicate-a-designator-grounding-predicate (predicate-name)
   (or (string-equal (string-downcase (write-to-string predicate-name))

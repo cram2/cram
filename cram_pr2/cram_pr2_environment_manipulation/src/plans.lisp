@@ -34,9 +34,7 @@
                        ?left-grasp-poses ?right-grasp-poses
                        ?left-lift-pose ?right-lift-pose
                        ?left-2nd-lift-pose ?right-2nd-lift-pose
-                       &optional
-                         (joint-name nil)
-                         (environment nil))
+                       &optional joint-name ?link-name environment)
   (cpl:par
     (roslisp:ros-info (environment-manipulation open-container) "Opening gripper")
     (exe:perform
@@ -64,11 +62,16 @@
                            e)
          ;; (return)
          ))
-    (exe:perform
-     (desig:an action
-               (type grasping)
-               (left-poses ?left-grasp-poses)
-               (right-poses ?right-grasp-poses))))
+    ;; TODO: instead of passing btr object only pass the name!
+    (let ((?environment-name (btr:name environment)))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (link ?link-name)
+                 (left-poses ?left-grasp-poses)
+                 (right-poses ?right-grasp-poses)))))
   (roslisp:ros-info (environment-manipulation open-container) "Gripping")
   (exe:perform
    (desig:an action
@@ -89,11 +92,15 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (exe:perform
-     (desig:an action
-               (type pulling)
-               (left-poses ?left-lift-pose)
-               (right-poses ?right-lift-pose))))
+    (let ((?environment-name (btr:name environment)))
+      (exe:perform
+       (desig:an action
+                 (type pulling)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (link ?link-name)
+                 (left-poses ?left-lift-pose)
+                 (right-poses ?right-lift-pose)))))
 
   (when (and joint-name environment)
     (cram-occasions-events:on-event
@@ -125,13 +132,11 @@
                         ?left-grasp-poses ?right-grasp-poses
                         ?left-lift-pose ?right-lift-pose
                         ?left-2nd-lift-pose ?right-2nd-lift-pose
-                        &optional
-                          (joint-name nil)
-                          (environment nil))
+                        &optional joint-name ?link-name environment)
   (roslisp:ros-info (environment-manipulation close-container) "Opening gripper")
   (exe:perform
    (desig:an action
-             (type opening)
+             (type opening-gripper)
              (gripper ?arm)))
   (roslisp:ros-info (environment-manipulation close-container) "Reaching")
   (cpl:with-failure-handling
@@ -153,11 +158,15 @@
                            e)
          ;; (return)
          ))
-    (exe:perform
-     (desig:an action
-               (type grasping)
-               (left-poses ?left-grasp-poses)
-               (right-poses ?right-grasp-poses))))
+    (let ((?environment-name (btr:name environment)))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (link ?link-name)
+                 (left-poses ?left-grasp-poses)
+                 (right-poses ?right-grasp-poses)))))
   ;; (roslisp:ros-info (environment-manipulation close-container) "Gripping")
   ;; (exe:perform
   ;;  (desig:an action

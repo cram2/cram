@@ -30,7 +30,10 @@
 (in-package :pr2-fd-plans)
 
 (cpl:def-cram-function go-without-collisions (?navigation-location)
-  (pp-plans:park-arms)
+  (exe:perform (desig:an action
+                         (type positioning-arm)
+                         (left-configuration park)
+                         (right-configuration park)))
 
   (pr2-proj-reasoning:check-navigating-collisions ?navigation-location)
   (setf ?navigation-location (desig:current-desig ?navigation-location))
@@ -45,139 +48,98 @@
                            (target ?navigation-location)))))
 
 
-(cpl:def-cram-function turn-towards (?look-target)
-  (flet ((calculate-navigation-goal-towards-target (look-pose-stamped robot-pose-stamped)
-           "Given a `look-pose-stamped' and a `robot-pose-stamped',
-calculate the new robot-pose-stamped, which is rotated with an angle to point towards
-the `look-pose-stamped'."
-           (let* ((world->robot-transform
-                    (cram-tf:pose-stamped->transform-stamped robot-pose-stamped "robot"))
-                  (robot->world-transform
-                    (cl-transforms:transform-inv world->robot-transform))
-                  (world->look-pose-origin
-                    (cl-transforms:origin look-pose-stamped))
-                  (look-pose-in-robot-frame
-                    (cl-transforms:transform-point
-                     robot->world-transform
-                     world->look-pose-origin))
-                  (rotation-angle
-                    (atan
-                     (cl-transforms:y look-pose-in-robot-frame)
-                     (cl-transforms:x look-pose-in-robot-frame))))
-             (cram-tf:rotate-pose robot-pose-stamped :z rotation-angle))))
+(cpl:def-cram-function turn-towards (?look-target ?robot-location)
+  (cpl:with-failure-handling
+      ((desig:designator-error (e)
+         (roslisp:ros-warn (fd-plans turn-towards)
+                           "Desig ~a could not be resolved: ~a~%Cannot look."
+                           ?look-target e)
+         (cpl:fail 'common-fail:looking-high-level-failure))
 
-    (cpl:with-failure-handling
-        ((desig:designator-error (e)
-           (roslisp:ros-warn (fd-plans turn-towards)
-                             "Desig ~a could not be resolved: ~a~%Cannot look."
-                             ?look-target e)
-           (cpl:fail 'common-fail:looking-high-level-failure))
-
-         (common-fail:navigation-high-level-failure (e)
-           (roslisp:ros-warn (fd-plans turn-towards)
-                             "When turning around navigation failure happened: ~a~%~
+       (common-fail:navigation-high-level-failure (e)
+         (roslisp:ros-warn (fd-plans turn-towards)
+                           "When turning around navigation failure happened: ~a~%~
                               Cannot look."
-                             e)
-           (cpl:fail 'common-fail:looking-high-level-failure)))
+                           e)
+         (cpl:fail 'common-fail:looking-high-level-failure)))
 
-      (cpl:with-retry-counters ((turn-around-retries 1))
-        (cpl:with-failure-handling
-            ((common-fail:ptu-low-level-failure (e)
-               (roslisp:ros-warn (pp-plans turn-towards) "~a~%Turning around." e)
-               (cpl:do-retry turn-around-retries
+    (cpl:with-retry-counters ((turn-around-retries 1))
+      (cpl:with-failure-handling
+          ((common-fail:ptu-low-level-failure (e)
+             (roslisp:ros-warn (pp-plans turn-towards) "~a~%Turning around." e)
+             (cpl:do-retry turn-around-retries
+               (cpl:par
+                 (exe:perform (desig:an action
+                                        (type navigating)
+                                        (location ?robot-location)))
+                 (exe:perform (desig:an action
+                                        (type looking)
+                                        (direction forward))))
+               (cpl:retry))
+             (roslisp:ros-warn (pp-plans turn-towards) "Turning around didn't work :'(~%")
+             (cpl:fail 'common-fail:looking-high-level-failure)))
 
-                 (let* ((look-target-pose (desig:reference ?look-target))
-                        (?navigation-goal
-                          (calculate-navigation-goal-towards-target
-                           look-target-pose
-                           (cram-tf:robot-current-pose))))
-                   (exe:perform (desig:an action
-                                          (type navigating)
-                                          (location (desig:a location
-                                                             (pose ?navigation-goal)))))
-                   (exe:perform (desig:an action
-                                          (type looking)
-                                          (direction forward))))
-                 (cpl:retry))
-               (roslisp:ros-warn (pp-plans turn-towards) "Turning around didn't work :'(~%")
-               (cpl:fail 'common-fail:looking-high-level-failure)))
-
-          (exe:perform (desig:an action
-                                 (type looking)
-                                 (target ?look-target))))))))
+        (exe:perform (desig:an action
+                               (type looking)
+                               (target ?look-target)))))))
 
 
-(cpl:def-cram-function manipulate-environment (action-type ?object-to-manipulate ?arm ?distance)
+(cpl:def-cram-function manipulate-environment (action-type ?object-to-manipulate
+                                                           ?arm ?distance
+                                                           ?manipulate-robot-location)
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans environment) "~a~%Propagating up." e)
          (cpl:fail 'common-fail:environment-manipulation-impossible
                    :description "Some designator could not be resolved.")))
 
-    (let ((?manipulate-robot-location
-            (desig:a location
-                     (reachable-for pr2)
-                     (arm ?arm)
-                     (object ?object-to-manipulate))))
+    (cpl:with-retry-counters ((relocation-retries 10))
+      (cpl:with-failure-handling
+          (((or common-fail:navigation-goal-in-collision
+                common-fail:environment-unreachable
+                common-fail:gripper-low-level-failure
+                common-fail:manipulation-low-level-failure) (e)
+             (roslisp:ros-warn (fd-plans environment) "~a" e)
+             (cpl:do-retry relocation-retries
+               (setf ?manipulate-robot-location (desig:next-solution ?manipulate-robot-location))
+               (if ?manipulate-robot-location
+                   (progn
+                     (roslisp:ros-info (fd-plans environment) "Relocating...")
+                     (cpl:retry))
+                   (progn
+                     (roslisp:ros-warn (fd-plans environment) "No more samples to try :'(")
+                     (cpl:fail 'common-fail:environment-manipulation-impossible
+                               :description "No more samples in navigation designator."))))
+             (roslisp:ros-warn (fd-plans environment) "No more retries left :'(")
+             (cpl:fail 'common-fail:environment-manipulation-impossible
+                       :description "No more retries left.")))
 
-      (cpl:with-retry-counters ((relocation-retries 10))
-        (cpl:with-failure-handling
-            (((or common-fail:navigation-goal-in-collision
-                  common-fail:environment-unreachable
-                  common-fail:gripper-low-level-failure
-                  common-fail:manipulation-low-level-failure) (e)
-               (roslisp:ros-warn (fd-plans environment) "~a" e)
-               (cpl:do-retry relocation-retries
-                 (setf ?manipulate-robot-location (desig:next-solution ?manipulate-robot-location))
-                 (if ?manipulate-robot-location
-                     (progn
-                       (roslisp:ros-info (fd-plans environment) "Relocating...")
-                       (cpl:retry))
-                     (progn
-                       (roslisp:ros-warn (fd-plans environment) "No more samples to try :'(")
-                       (cpl:fail 'common-fail:environment-manipulation-impossible
-                                 :description "No more samples in navigation designator."))))
-               (roslisp:ros-warn (fd-plans environment) "No more retries left :'(")
-               (cpl:fail 'common-fail:environment-manipulation-impossible
-                         :description "No more retries left.")))
+        ;; navigate, open / close
+        (exe:perform (desig:an action
+                               (type navigating)
+                               (location ?manipulate-robot-location)))
 
-          ;; navigate, open / close
-          (exe:perform (desig:an action
-                                 (type navigating)
-                                 (location ?manipulate-robot-location)))
-
-          (let (;; (offset cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset*)
-              )
-          ;; (setf cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset* 0.10)
-
-          (let ((manipulation-action
-                  (ecase action-type
-                    (:accessing (desig:an action
-                                          (type opening)
-                                          (arm ?arm)
-                                          (object ?object-to-manipulate)
-                                          (distance ?distance)))
-                    (:sealing (desig:an action
-                                        (type closing)
+        (let ((manipulation-action
+                (ecase action-type
+                  (:accessing (desig:an action
+                                        (type opening)
                                         (arm ?arm)
                                         (object ?object-to-manipulate)
-                                        (distance ?distance))))))
+                                        (distance ?distance)))
+                  (:sealing (desig:an action
+                                      (type closing)
+                                      (arm ?arm)
+                                      (object ?object-to-manipulate)
+                                      (distance ?distance))))))
 
-            (pr2-proj-reasoning:check-environment-manipulation-collisions manipulation-action)
-            (setf manipulation-action (desig:current-desig manipulation-action))
+          (pr2-proj-reasoning:check-environment-manipulation-collisions manipulation-action)
+          (setf manipulation-action (desig:current-desig manipulation-action))
 
-            (exe:perform manipulation-action))
-
-          ;; (exe:perform (desig:an action
-          ;;                        (type closing)
-          ;;                        (arm ?arm)
-          ;;                        (object ?object-to-access)))
-          ;; (setf cram-pr2-environment-manipulation::*drawer-handle-lift-x-offset* offset)
-          ))))))
+          (exe:perform manipulation-action))))))
 
 
-(cpl:def-cram-function search-for-object (?object-designator ?search-location
-                                                             &optional (retries 9))
+(cpl:def-cram-function search-for-object (?object-designator ?search-location ?robot-location
+                                                             &optional (retries 900))
   "Searches for `?object-designator' in its likely location `?search-location'."
 
   (cpl:with-failure-handling
@@ -187,6 +149,7 @@ the `look-pose-stamped'."
                            ?search-location e)
          (cpl:fail 'common-fail:object-nowhere-to-be-found
                    :description "Search location designator could not be resolved.")))
+    ;; TODO: IF ROBOT-LOCATION DESIGNATOR CANNOT BE RESOLVED, PICK ANOTHER SEARCH-LOCATION
 
     ;; take new `?search-location' sample if a failure happens and retry
     (cpl:with-retry-counters ((search-location-retries retries))
@@ -197,6 +160,8 @@ the `look-pose-stamped'."
              (roslisp:ros-warn (fd-plans search-for-object) "~a" e)
              (cpl:do-retry search-location-retries
                (setf ?search-location (desig:next-solution ?search-location))
+               (desig:reset ?robot-location)
+               (setf ?robot-location (desig:next-solution ?robot-location))
                (if ?search-location
                    (progn
                      (roslisp:ros-warn (fd-plans search-for-object) "Retrying...~%")
@@ -208,25 +173,20 @@ the `look-pose-stamped'."
              (cpl:fail 'common-fail:object-nowhere-to-be-found)))
 
         ;; navigate, look and detect
-        (let* ((?pose-at-search-location (desig:reference ?search-location))
-               (?nav-location (desig:a location
-                                       (visible-for pr2)
-                                       (location (desig:a location
-                                                          (pose ?pose-at-search-location))))))
-          (exe:perform (desig:an action
-                                 (type navigating)
-                                 (location ?nav-location)))
-          (exe:perform (desig:an action
-                                 (type turning-towards)
-                                 (target (desig:a location
-                                                  (pose ?pose-at-search-location)))))
-          (exe:perform (desig:an action
-                                 (type detecting)
-                                 (object ?object-designator))))))))
+        (exe:perform (desig:an action
+                               (type navigating)
+                               (location ?robot-location)))
+        (exe:perform (desig:an action
+                               (type turning-towards)
+                               (target ?search-location)))
+        (exe:perform (desig:an action
+                               (type detecting)
+                               (object ?object-designator)))))))
 
 
 
-(cpl:def-cram-function fetch (?object-designator ?arm ?pick-up-robot-location pick-up-action)
+(cpl:def-cram-function fetch (?object-designator ?arm ?grasp
+                                                 ?pick-up-robot-location pick-up-action)
   "Fetches a perceived object `?object-designator' with arm `?arm' (if not NIL)
 while standing at `?pick-up-robot-location' (if not NIL)
 and using the grasp and arm specified in `pick-up-action' (if not NIL)."
@@ -237,95 +197,93 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                    :object ?object-designator
                    :description "Some designator could not be resolved.")))
 
-    (let* ((?object-pose-in-map
-             (desig:reference (desig:a location (of-item-object ?object-designator))))
-           (?pick-up-robot-location
-             (or (desig:current-desig ?pick-up-robot-location)
-                 (desig:a location
-                          (reachable-for pr2)
-                          (location (desig:a location
-                                             (pose ?object-pose-in-map)))))))
-
-      ;; take a new `?pick-up-robot-location' sample if a failure happens
-      (cpl:with-retry-counters ((relocation-for-ik-retries 10))
-        (cpl:with-failure-handling
-            (((or common-fail:navigation-goal-in-collision
-                  common-fail:looking-high-level-failure
-                  common-fail:perception-low-level-failure
-                  common-fail:object-unreachable
-                  common-fail:manipulation-low-level-failure) (e)
-               (roslisp:ros-warn (fd-plans fetch)
-                                 "Object of type ~a is unreachable: ~a"
-                                 (desig:desig-prop-value ?object-designator :type) e)
-               (cpl:do-retry relocation-for-ik-retries
-                 (setf ?pick-up-robot-location (desig:next-solution ?pick-up-robot-location))
-                 (if ?pick-up-robot-location
-                     (progn
-                       (roslisp:ros-info (fd-plans fetch) "Relocating...")
-                       (cpl:retry))
-                     (progn
-                       (roslisp:ros-warn (fd-plans fetch) "No more samples to try :'(")
-                       (cpl:fail 'common-fail:object-unfetchable))))
-               (roslisp:ros-warn (fd-plans fetch) "No more retries left :'(")
-               (cpl:fail 'common-fail:object-unfetchable :object ?object-designator)))
-
-          ;; navigate, look, detect and pick-up
-          (exe:perform (desig:an action
-                                 (type navigating)
-                                 (location ?pick-up-robot-location)))
-          (exe:perform (desig:an action
-                                 (type turning-towards)
-                                 (target (desig:a location
-                                                  (pose ?object-pose-in-map)))))
-
-          (cpl:with-retry-counters ((regrasping-retries 1))
-            (cpl:with-failure-handling
-                ((common-fail:gripper-low-level-failure (e)
-                   (roslisp:ros-warn (fd-plans fetch) "Misgrasp happened: ~a~%" e)
-                   (cpl:do-retry regrasping-retries
-                     (roslisp:ros-info (fd-plans fetch) "Reperceiving and repicking...")
-                     (pp-plans:park-arms)
+    ;; take a new `?pick-up-robot-location' sample if a failure happens
+    (cpl:with-retry-counters ((relocation-for-ik-retries 10))
+      (cpl:with-failure-handling
+          (((or common-fail:navigation-goal-in-collision
+                common-fail:looking-high-level-failure
+                common-fail:perception-low-level-failure
+                common-fail:object-unreachable
+                common-fail:manipulation-low-level-failure) (e)
+             (roslisp:ros-warn (fd-plans fetch)
+                               "Object of type ~a is unreachable: ~a"
+                               (desig:desig-prop-value ?object-designator :type) e)
+             (cpl:do-retry relocation-for-ik-retries
+               (setf ?pick-up-robot-location (desig:next-solution ?pick-up-robot-location))
+               (if ?pick-up-robot-location
+                   (progn
+                     (roslisp:ros-info (fd-plans fetch) "Relocating...")
                      (cpl:retry))
-                   (roslisp:ros-warn (fd-plans fetch) "No more regrasping retries left :'(")
-                   (cpl:fail 'common-fail:object-unreachable
-                             :description "Misgrasp happened and retrying didn't help.")))
+                   (progn
+                     (roslisp:ros-warn (fd-plans fetch) "No more samples to try :'(")
+                     (cpl:fail 'common-fail:object-unfetchable))))
+             (roslisp:ros-warn (fd-plans fetch) "No more retries left :'(")
+             (cpl:fail 'common-fail:object-unfetchable :object ?object-designator)))
 
-              (let ((?more-precise-perceived-object-desig
-                      (exe:perform (desig:an action
-                                             (type detecting)
-                                             (object ?object-designator)))))
+        ;; navigate, look, detect and pick-up
+        (exe:perform (desig:an action
+                               (type navigating)
+                               (location ?pick-up-robot-location)))
+        (exe:perform (desig:an action
+                               (type turning-towards)
+                               (target (desig:a location (of ?object-designator)))))
 
-                (let ((pick-up-action
-                        ;; if pick-up-action already exists, use its params for picking up
-                        (or (when pick-up-action
-                              (destructuring-bind (_action _object-designator ?arm
-                                                   _gripper-opening _effort ?grasp
-                                                   _left-reach-poses _right-reach-poses
-                                                   _left-grasp-poses _right-grasp-poses
-                                                   _left-lift-poses _right-lift-poses)
-                                  (desig:reference pick-up-action)
-                                (desig:an action
-                                          (type picking-up)
-                                          (arm ?arm)
-                                          (grasp ?grasp)
-                                          (object ?more-precise-perceived-object-desig))))
-                            (desig:an action
-                                      (type picking-up)
-                                      (desig:when ?arm
-                                        (arm ?arm))
-                                      (object ?more-precise-perceived-object-desig)))))
+        (cpl:with-retry-counters ((regrasping-retries 1))
+          (cpl:with-failure-handling
+              ((common-fail:gripper-low-level-failure (e)
+                 (roslisp:ros-warn (fd-plans fetch) "Misgrasp happened: ~a~%" e)
+                 (cpl:do-retry regrasping-retries
+                   (roslisp:ros-info (fd-plans fetch) "Reperceiving and repicking...")
+                   (exe:perform (desig:an action
+                                          (type positioning-arm)
+                                          (left-configuration park)
+                                          (right-configuration park)))
+                   (cpl:retry))
+                 (roslisp:ros-warn (fd-plans fetch) "No more regrasping retries left :'(")
+                 (cpl:fail 'common-fail:object-unreachable
+                           :description "Misgrasp happened and retrying didn't help.")))
 
-                  (setf pick-up-action (desig:current-desig pick-up-action))
-                  (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
-                  (setf pick-up-action (desig:current-desig pick-up-action))
+            (let ((?more-precise-perceived-object-desig
+                    (exe:perform (desig:an action
+                                           (type detecting)
+                                           (object ?object-designator)))))
 
-                  (exe:perform pick-up-action)))))))
+              (let ((pick-up-action
+                      ;; if pick-up-action already exists, use its params for picking up
+                      (or (when pick-up-action
+                            (destructuring-bind (_action _object-designator ?arm
+                                                 _gripper-opening _effort ?grasp
+                                                 _left-reach-poses _right-reach-poses
+                                                 _left-grasp-poses _right-grasp-poses
+                                                 _left-lift-poses _right-lift-poses)
+                                (desig:reference pick-up-action)
+                              (desig:an action
+                                        (type picking-up)
+                                        (arm ?arm)
+                                        (grasp ?grasp)
+                                        (object ?more-precise-perceived-object-desig))))
+                          (desig:an action
+                                    (type picking-up)
+                                    (desig:when ?arm
+                                      (arm ?arm))
+                                    (desig:when ?grasp
+                                      (grasp ?grasp))
+                                    (object ?more-precise-perceived-object-desig)))))
 
-      (pp-plans:park-arms)
-      (desig:current-desig ?object-designator))))
+                (setf pick-up-action (desig:current-desig pick-up-action))
+                (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
+                (setf pick-up-action (desig:current-desig pick-up-action))
+
+                (exe:perform pick-up-action)))))))
+
+    (exe:perform (desig:an action
+                           (type positioning-arm)
+                           (left-configuration park)
+                           (right-configuration park)))
+    (desig:current-desig ?object-designator)))
 
 
-(cpl:def-cram-function deliver (?object-designator ?target-location
+(cpl:def-cram-function deliver (?object-designator ?arm ?target-location
                                                    ?target-robot-location place-action)
   ;; Reference the `?target-location' to see if that works at all
   ;; If not, delivering is impossible so throw a OBJECT-UNDERLIVERABLE failure
@@ -335,152 +293,130 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
          (cpl:fail 'common-fail:object-undeliverable
                    :description "Some designator could not be resolved.")))
 
-    (let ((?pose-at-target-location (desig:reference ?target-location)))
+    (cpl:with-retry-counters ((outer-target-location-retries 2))
+      (cpl:with-failure-handling
+          (((or desig:designator-error
+                common-fail:object-undeliverable) (e)
+             (roslisp:ros-warn (fd-plans deliver)
+                               "Undeliverable. Last chance -- another target location.~%~a" e)
+             (cpl:do-retry outer-target-location-retries
+               (let ((next-target-location (desig:next-solution ?target-location)))
+                 (if next-target-location
+                     (progn
+                       (roslisp:ros-info (fd-plans deliver) "Retrying with new placement...")
+                       (setf ?target-location next-target-location)
+                       (desig:reset ?target-robot-location)
+                       (cpl:retry))
+                     (progn
+                       (roslisp:ros-warn (fd-plans deliver) "No more placement samples :'(")
+                       (cpl:fail 'common-fail:object-undeliverable)))))
+             (roslisp:ros-warn (fd-plans deliver) "No more re-placement retries left :'(")
+             (cpl:fail 'common-fail:object-undeliverable)))
 
-      (cpl:with-retry-counters ((outer-target-location-retries 2))
-        (cpl:with-failure-handling
-            (((or desig:designator-error
-                  common-fail:object-undeliverable) (e)
-               (roslisp:ros-warn (fd-plans deliver)
-                                 "Undeliverable. Last chance -- another target location.~%~a" e)
-               (cpl:do-retry outer-target-location-retries
-                 (let ((next-target-location (desig:next-solution ?target-location)))
-                   (if next-target-location
+        ;; take a new `?target-robot-location' sample if a failure happens
+        (cpl:with-retry-counters ((relocation-for-ik-retries 4))
+          (cpl:with-failure-handling
+              (((or common-fail:navigation-goal-in-collision
+                    common-fail:object-undeliverable
+                    common-fail:manipulation-low-level-failure) (e)
+                 (roslisp:ros-warn (fd-plans deliver)
+                                   "Object is undeliverable from current base location.~%~a" e)
+                 (cpl:do-retry relocation-for-ik-retries
+                   (setf ?target-robot-location
+                         (desig:next-solution ?target-robot-location))
+                   (if ?target-robot-location
                        (progn
-                         (roslisp:ros-info (fd-plans deliver) "Retrying with new placement...")
-                         (setf ?pose-at-target-location (desig:reference ?target-location))
-                         (setf ?target-location next-target-location)
+                         (roslisp:ros-info (fd-plans deliver) "Relocating...")
                          (cpl:retry))
                        (progn
-                         (roslisp:ros-warn (fd-plans deliver) "No more placement samples :'(")
-                         (cpl:fail 'common-fail:object-undeliverable)))))
-               (roslisp:ros-warn (fd-plans deliver) "No more re-placement retries left :'(")
-               (cpl:fail 'common-fail:object-undeliverable)))
+                         (roslisp:ros-warn (fd-plans deliver) "No more relocation samples :'(")
+                         (cpl:fail 'common-fail:object-undeliverable))))
+                 (roslisp:ros-warn (fd-plans deliver) "No more relocation retries left :'(")
+                 (cpl:fail 'common-fail:object-undeliverable)))
 
-          (let ((?target-robot-location
-                  (or (desig:newest-effective-designator ?target-robot-location)
-                      (desig:a location
-                               (reachable-for pr2)
-                               (location (desig:a location
-                                                  (pose ?pose-at-target-location)))))))
+            ;; navigate
+            (exe:perform (desig:an action
+                                   (type navigating)
+                                   (location ?target-robot-location)))
 
-            ;; take a new `?target-robot-location' sample if a failure happens
-            (cpl:with-retry-counters ((relocation-for-ik-retries 5))
+            ;; take a new `?target-location' sample if a failure happens
+            (cpl:with-retry-counters ((target-location-retries 3))
               (cpl:with-failure-handling
-                  (((or common-fail:navigation-goal-in-collision
-                        common-fail:object-undeliverable
-                        common-fail:manipulation-low-level-failure) (e)
+                  (((or common-fail:looking-high-level-failure
+                        common-fail:object-unreachable) (e)
+                     (roslisp:ros-warn (fd-plans deliver) "Placing failed: ~a" e)
+                     (cpl:do-retry target-location-retries
+                       (let ((next-target-location (desig:next-solution ?target-location)))
+                         (if next-target-location
+                             (progn
+                               (roslisp:ros-warn (fd-plans deliver)
+                                                 "Retrying with new placing location...~%")
+                               (setf ?target-location next-target-location)
+                               (desig:reset ?target-robot-location)
+                               (cpl:retry))
+                             (progn
+                               (roslisp:ros-warn (fd-plans deliver)
+                                                 "No target location samples left :'(~%")
+                               (cpl:fail 'common-fail:object-undeliverable)))))
                      (roslisp:ros-warn (fd-plans deliver)
-                                       "Object is undeliverable from current base location.~%~a" e)
-                     (cpl:do-retry relocation-for-ik-retries
-                       (setf ?target-robot-location
-                             (desig:next-solution ?target-robot-location))
-                       (if ?target-robot-location
-                           (progn
-                             (roslisp:ros-info (fd-plans deliver) "Relocating...")
-                             (cpl:retry))
-                           (progn
-                             (roslisp:ros-warn (fd-plans deliver) "No more relocation samples :'(")
-                             (cpl:fail 'common-fail:object-undeliverable))))
-                     (roslisp:ros-warn (fd-plans deliver) "No more relocation retries left :'(")
+                                       "No target-location-retries left :'(~%")
                      (cpl:fail 'common-fail:object-undeliverable)))
 
-                ;; navigate
+                ;; look
                 (exe:perform (desig:an action
-                                       (type navigating)
-                                       (location ?target-robot-location)))
+                                       (type turning-towards)
+                                       (target ?target-location)))
 
-                ;; take a new `?target-location' sample if a failure happens
-                (cpl:with-retry-counters ((target-location-retries 2))
-                  (cpl:with-failure-handling
-                      (((or common-fail:looking-high-level-failure
-                            common-fail:object-unreachable) (e)
-                         (roslisp:ros-warn (fd-plans deliver) "Placing failed: ~a" e)
-                         (cpl:do-retry target-location-retries
-                           (let ((next-target-location (desig:next-solution ?target-location)))
-                            (if next-target-location
-                                (progn
-                                  (roslisp:ros-warn (fd-plans deliver)
-                                                    "Retrying with new placing location...~%")
-                                  (setf ?target-location next-target-location)
-                                  (cpl:retry))
-                                (progn
-                                  (roslisp:ros-warn (fd-plans deliver)
-                                                    "No target location samples left :'(~%")
-                                  (cpl:fail 'common-fail:object-undeliverable)))))
-                         (roslisp:ros-warn (fd-plans deliver)
-                                           "No target-location-retries left :'(~%")
-                         (cpl:fail 'common-fail:object-undeliverable)))
+                ;; place
+                (let ((place-action
+                        (or (when place-action
+                              (destructuring-bind (_action _object-designator _on-obj-desig
+                                                   _assemblage-name
+                                                   ?arm _gripper-opening
+                                                   _left-reach-poses _right-reach-poses
+                                                   _left-put-poses _right-put-poses
+                                                   _left-lift-poses _right-lift-poses
+                                                   ?projected-target-location)
+                                  (desig:reference place-action)
+                                (desig:an action
+                                          (type placing)
+                                          (arm ?arm)
+                                          (object ?object-designator)
+                                          (target ?projected-target-location))))
+                            (desig:an action
+                                      (type placing)
+                                      (desig:when ?arm
+                                        (arm ?arm))
+                                      (object ?object-designator)
+                                      (target ?target-location)))))
 
-                    ;; look
-                    (exe:perform (desig:an action
-                                           (type turning-towards)
-                                           (target ?target-location)))
+                  (setf place-action (desig:current-desig place-action))
+                  (pr2-proj-reasoning:check-placing-collisions place-action)
+                  (setf place-action (desig:current-desig place-action))
 
-                    ;; place
-                    (let* ((?pose-at-target-location
-                             (desig:reference ?target-location))
-                           (mTt
-                             (cram-tf:pose-stamped->transform-stamped
-                              ?pose-at-target-location
-                              "placing_target_location")) ; bTt = bTm * mTt = (mTb)-1 * mTt
-                           (mTb
-                             (cram-tf:pose->transform-stamped
-                              cram-tf:*fixed-frame*
-                              cram-tf:*robot-base-frame*
-                              0.0
-                              (btr:pose (btr:get-robot-object))))
-                           (mTb-1
-                             (cram-tf:transform-stamped-inv
-                              mTb))
-                           (bTt
-                             (cram-tf:multiply-transform-stampeds
-                              cram-tf:*robot-base-frame*
-                              "placing_target_location"
-                              mTb-1 mTt
-                              :result-as-pose-or-transform :pose))
-                           (?pose-at-target-loc-in-base
-                             bTt))
-
-                      (let ((place-action
-                              (or (when place-action
-                                    (destructuring-bind (_action _object-designator ?arm
-                                                         _left-reach-poses _right-reach-poses
-                                                         _left-put-poses _right-put-poses
-                                                         _left-lift-poses _right-lift-poses
-                                                         ?target-location)
-                                        (desig:reference place-action)
-                                      (desig:an action
-                                                (type placing)
-                                                (object ?object-designator)
-                                                (target ?target-location))))
-                                  (desig:an action
-                                            (type placing)
-                                            (object ?object-designator)
-                                            (target (desig:a location
-                                                             (pose ?pose-at-target-loc-in-base)))))))
-
-                        (setf place-action (desig:current-desig place-action))
-                        (pr2-proj-reasoning:check-placing-collisions place-action)
-                        (setf place-action (desig:current-desig place-action))
-
-                        (exe:perform place-action)))))))))))))
+                  (exe:perform place-action))))))))))
 
 
 
 (defun drop-at-sink ()
-  (let ((?map-in-front-of-sink-pose
+  (let ((?base-pose-in-map
+          ;; (cl-transforms-stamped:make-pose-stamped
+          ;;  cram-tf:*fixed-frame*
+          ;;  0.0
+          ;;  (cl-transforms:make-3d-vector 0.7 -0.2 0)
+          ;;  (cl-transforms:make-identity-rotation))
           (cl-transforms-stamped:make-pose-stamped
            cram-tf:*fixed-frame*
            0.0
-           (cl-transforms:make-3d-vector 0.7 -0.2 0)
-           (cl-transforms:make-identity-rotation)))
-        (?placing-pose
-          (cl-transforms-stamped:make-pose-stamped
-           cram-tf:*robot-base-frame*
-           0.0
-           (cl-transforms:make-3d-vector 0.7 0 1.2)
-           (cl-transforms:make-identity-rotation))))
+           (cl-transforms:make-3d-vector 0 0 0)
+           (cl-transforms:make-quaternion 0 0 -1 1)))
+        ;; (?placing-pose
+        ;;   (cl-transforms-stamped:make-pose-stamped
+        ;;    cram-tf:*robot-base-frame*
+        ;;    0.0
+        ;;    (cl-transforms:make-3d-vector 0.7 0 1.2)
+        ;;    (cl-transforms:make-identity-rotation)))
+        )
     (cpl:with-failure-handling
         ((common-fail:navigation-low-level-failure (e)
            (declare (ignore e))
@@ -488,20 +424,21 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
       (exe:perform
        (desig:an action
                  (type going)
-                 (target (desig:a location
-                                  (pose ?map-in-front-of-sink-pose))))))
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           (declare (ignore e))
-           (return)))
-      (exe:perform
-       (desig:an action
-                 (type placing)
-                 (target (desig:a location
-                                  (pose ?placing-pose))))))))
+                 (target (desig:a location (pose ?base-pose-in-map)))))))
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (declare (ignore e))
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type placing)
+               ;; (target (desig:a location
+               ;;                  (pose ?placing-pose)))
+               ))))
 
 
-(cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm
+(cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location
+                                                     ?arm ?grasp
                                                      search-location-accessible)
   (unless search-location-accessible
     (exe:perform (desig:an action
@@ -519,9 +456,17 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                            "Found object of type ~a."
                            (desig:desig-prop-value ?perceived-object-designator :type))
 
-         (let (?fetch-robot-location
+         (let ((?fetch-robot-location
+                 (desig:a location
+                          (reachable-for pr2)
+                          (when ?arm
+                            (arm ?arm))
+                          (object ?object-designator)))
                ?fetch-pick-up-action
-               ?deliver-robot-location
+               (?deliver-robot-location
+                 (desig:a location
+                          (reachable-for pr2)
+                          (location ?delivering-location)))
                ?deliver-place-action)
 
            ;; If running on the real robot, execute below task tree in projection
@@ -537,8 +482,10 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
              (let ((?fetched-object
                      (exe:perform (desig:an action
                                             (type fetching)
-                                            (when ?arm
+                                            (desig:when ?arm
                                               (arm ?arm))
+                                            (desig:when ?grasp
+                                              (grasp ?grasp))
                                             (object ?perceived-object-designator)
                                             (robot-location ?fetch-robot-location)
                                             (pick-up-action ?fetch-pick-up-action)))))
@@ -548,9 +495,12 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                    ((common-fail:object-undeliverable (e)
                       (declare (ignore e))
                       (drop-at-sink)
-                      (return)))
+                      ;; (return)
+                      ))
                  (exe:perform (desig:an action
                                         (type delivering)
+                                        (when ?arm
+                                          (arm ?arm))
                                         (object ?fetched-object)
                                         (target ?delivering-location)
                                         (robot-location ?deliver-robot-location)

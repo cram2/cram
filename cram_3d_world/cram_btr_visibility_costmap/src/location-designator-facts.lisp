@@ -44,8 +44,7 @@
     (costmap:visibility-costmap-size ?size))
 
   (<- (object-visibility-costmap ?designator ?costmap)
-    (or (desig:desig-prop ?designator (:obj ?object))
-        (desig:desig-prop ?designator (:object ?object)))
+    (desig:desig-prop ?designator (:object ?object))
     (btr:bullet-world ?world)
     (btr-belief:object-designator-name ?object ?object-name)
     (cram-robot-interfaces:robot ?robot)
@@ -61,8 +60,7 @@
   (<- (unknown-object-visibility-costmap ?designator ?costmap)
     ;; object hasn't been perceived yet and
     ;; (OBJECT-VISIBILITY-COSTMAP ?des ?cm) failed
-    (or (desig:desig-prop ?designator (:obj ?object))
-        (desig:desig-prop ?designator (:object ?object)))
+    (desig:desig-prop ?designator (:object ?object))
     (desig:desig-prop ?object (:at ?location))
     (btr:bullet-world ?world)
     (cram-robot-interfaces:robot ?robot)
@@ -95,8 +93,7 @@
               (location-visibility-costmap ?designator ?costmap))))
 
   (<- (desig-check-to-see ?desig ?robot-pose)
-    (or (desig:desig-prop ?desig (:obj ?obj))
-        (desig:desig-prop ?desig (:object ?obj)))
+    (desig:desig-prop ?desig (:object ?obj))
     (desig:desig-location-prop ?desig ?obj-pose)
     (btr:bullet-world ?w)
     (cram-robot-interfaces:robot ?robot)
@@ -110,8 +107,7 @@
 
   (<- (location-valid ?desig ?pose (desig-check-to-see ?desig ?pose))
     (cram-robot-interfaces:visibility-designator ?desig)
-    (or (desig:desig-prop ?desig (:obj ?obj))
-        (desig:desig-prop ?desig (:object ?obj))))
+    (desig:desig-prop ?desig (:object ?obj)))
 
   (<- (btr-desig-solution-valid ?desig ?solution)
     (btr-desig-solution-valid ?desig ?solution ?_))
@@ -132,52 +128,4 @@
     (bagof ?point (and
                    (member ?point ?n-solutions)
                    (btr-desig-solution-valid ?desig ?point))
-           ?points))
-
-
-  ;; EVERYTHING BELOW IS RELATED TO REACHABILITY COSTMAP AND IS DEPRECATED
-  ;; (<- (desig-check-to-reach ?desig ?robot-pose)
-  ;;   (bullet-world ?w)
-  ;;   (robot ?robot)
-  ;;   (assert (object-pose ?w ?robot ?robot-pose))
-  ;;   (object-not-in-collision ?w ?robot)
-  ;;   (forall (cram-robot-interfaces:designator-reach-pose ?desig ?robot-pose ?pose ?side)
-  ;;           (or
-  ;;            (and
-  ;;             (lisp-type ?pose cl-transforms:pose)
-  ;;             (pose-reachable ?w ?robot ?pose ?side))
-  ;;            (and
-  ;;             (lisp-type ?pose cl-transforms:3d-vector)
-  ;;             (point-reachable ?w ?robot ?pose ?side)))))
-
-  ;; (<- (desig-check-articulated-object-manipulation
-  ;;      ?action-designator ?robot-pose)
-  ;;   (bullet-world ?world)
-  ;;   (robot ?robot)
-  ;;   (desig-prop ?action-designator (:to :open))
-  ;;   (desig-prop ?action-designator (:handle ?handle))
-  ;;   (lisp-fun newest-effective-designator ?handle ?current-handle)
-  ;;   (-> (lisp-pred identity ?current-handle)
-  ;;       (desig-prop ?current-handle (:name ?handle-name))
-  ;;       ;; Note(moesenle): This is not clean, it helps with debugging
-  ;;       ;; though.
-  ;;       (desig-prop ?handle (:name ?handle-name)))
-  ;;   (semantic-map ?world ?semantic-map)
-  ;;   (assert (object-pose ?world ?robot ?robot-pose))
-  ;;   (with-copied-world ?world
-  ;;     (btr:execute ?world (btr:open ?semantic-map ?handle-name))
-  ;;     (not (contact ?world ?robot ?semantic-map))))
-
-  ;; (<- (location-valid
-  ;;      ?desig ?pose
-  ;;      (desig-check-articulated-object-manipulation ?action ?pose))
-  ;;   (desig-prop ?desig (:to :execute))
-  ;;   (desig-prop ?desig (:action ?action))
-  ;;   (desig-prop ?action (:to :open))
-  ;;   (desig-prop ?action (:handle ?_)))
-
-  ;; (<- (location-valid
-  ;;      ?desig ?pose
-  ;;      (desig-check-to-reach ?desig ?pose))
-  ;;   (cram-robot-interfaces:reachability-designator ?desig))
-)
+           ?points)))

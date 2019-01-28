@@ -172,7 +172,7 @@ Should it be taken out and made PR2-specific?"
   (object *current-bullet-world* :kitchen))
 
 
-(defun robot-colliding-objects-without-attached ()
+(defun robot-colliding-objects-without-attached (&optional other-objects-to-discard)
   (let* ((robot-object (get-robot-object))
          (colliding-object-names
            (mapcar #'name
@@ -183,4 +183,5 @@ Should it be taken out and made PR2-specific?"
          (robot-object-name-list
            (list (name robot-object))))
     (reduce #'set-difference
-            (list colliding-object-names attached-object-names robot-object-name-list))))
+            (list colliding-object-names attached-object-names
+                  robot-object-name-list other-objects-to-discard))))

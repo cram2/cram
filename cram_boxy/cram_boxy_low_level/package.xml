@@ -11,9 +11,11 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>roslisp</depend>
-  <depend>actionlib</depend>
   <depend>roslisp_utilities</depend>
+  <depend>actionlib</depend>
+  <depend>cram_simple_actionlib_client</depend>
   <depend>cram_language</depend>
+  <depend>cram_math</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cl_transforms</depend>
   <depend>cram_tf</depend>
@@ -25,10 +27,11 @@
   <depend>geometry_msgs</depend>
   <depend>std_srvs</depend>
   <depend>sensor_msgs</depend>
-  <depend>giskard_msgs</depend>
   <depend>move_base_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>iai_wsg_50_msgs</depend>
-  <depend>iai_control_msgs</depend>
-  <depend>wiggle_msgs</depend>
+  <depend>control_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <!-- <depend>iai_control_msgs</depend> -->
+  <depend>iai_dlr_msgs</depend>
 </package>

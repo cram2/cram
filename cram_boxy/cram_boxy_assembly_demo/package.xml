@@ -39,10 +39,10 @@
   <depend>cram_bullet_reasoning_belief_state</depend>
   <depend>cram_bullet_reasoning_utilities</depend>
 
-  <depend>cram_semantic_map_costmap</depend>
   <depend>cram_robot_pose_gaussian_costmap</depend>
   <depend>cram_occupancy_grid_costmap</depend>
   <depend>cram_location_costmap</depend>
+  <depend>cram_manipulation_interfaces</depend>
 
   <depend>cram_boxy_projection</depend>
   <depend>cram_boxy_description</depend>
@@ -51,10 +51,13 @@
   <!-- <depend>cram_boxy_process_modules</depend> -->
   <depend>cram_boxy_plans</depend>
 
+  <depend>cram_robosherlock</depend>
+
   <!-- launch file -->
   <exec_depend>iai_maps</exec_depend>
   <exec_depend>iai_kitchen</exec_depend>
-  <exec_depend>json_prolog</exec_depend>
   <exec_depend>map_server</exec_depend>
-  <exec_depend>giskardpy</exec_depend>
+  <exec_depend>boxy_arm_kinematics</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>iai_boxy_description</exec_depend>
 </package>

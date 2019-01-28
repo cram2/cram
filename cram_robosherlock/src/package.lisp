@@ -31,7 +31,7 @@
 
 (defpackage cram-robosherlock
   (:nicknames #:rs)
-  (:use #:common-lisp #:cram-object-interfaces)
+  (:use #:common-lisp #:cram-manipulation-interfaces)
   (:export
    ;; robosherlock-json
    #:call-robosherlock-service

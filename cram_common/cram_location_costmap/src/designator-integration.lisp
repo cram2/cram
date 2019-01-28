@@ -31,7 +31,6 @@
 (in-package :location-costmap)
 
 (defparameter *costmap-valid-solution-threshold* 0.10)
-(defconstant +costmap-n-samples+ 1)
 
 (defvar *costmap-cache* (tg:make-weak-hash-table :test 'eq :weakness :key))
 (defvar *costmap-max-values (tg:make-weak-hash-table :test 'eq :weakness :key))
@@ -45,6 +44,11 @@
                    (prolog `(merged-desig-costmap ,desig ?cm)))
                 (unless (is-var ?cm)
                   ?cm))))))
+
+(defmethod desig:reset ((desig location-designator))
+  "Deleted cached costmap associated with this designator"
+  (let ((first-designator (desig:first-desig desig)))
+    (remhash first-designator *costmap-cache*)))
 
 (defun get-cached-costmap-maxvalue (costmap)
   (or (gethash costmap *costmap-max-values)

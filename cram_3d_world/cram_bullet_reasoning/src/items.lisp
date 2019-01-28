@@ -170,19 +170,22 @@ The name in the list is a keyword that is created by lispifying the filename."
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
                        &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
                          disable-face-culling)
-  (let ((mesh-model (physics-utils:scale-3d-model
-                     (etypecase mesh
-                       (symbol (let ((uri (physics-utils:parse-uri
-                                           (cadr (assoc mesh *mesh-files*)))))
-                                 (with-file-cache model uri
-                                     (physics-utils:load-3d-model
-                                      uri :flip-winding-order (caddr (assoc mesh *mesh-files*)))
-                                   model)))
-                       (string (let ((uri  (physics-utils:parse-uri mesh)))
-                                 (with-file-cache model uri (physics-utils:load-3d-model uri)
-                                   model)))
-                       (physics-utils:3d-model mesh))
-                     scale)))
+  (let ((mesh-model
+          (physics-utils:scale-3d-model
+           (etypecase mesh
+             (symbol (let ((uri (cadr (assoc mesh *mesh-files*))))
+                       (unless uri (error "(btr add-object) Item of type ~a is unknown." mesh))
+                       (let ((uri-path (physics-utils:parse-uri uri)))
+                         (with-file-cache model uri-path
+                             (physics-utils:load-3d-model
+                              uri-path :flip-winding-order (caddr (assoc mesh *mesh-files*)))
+                           model))))
+             (string (let ((uri-path (physics-utils:parse-uri mesh)))
+                       (with-file-cache model uri-path
+                           (physics-utils:load-3d-model uri-path)
+                         model)))
+             (physics-utils:3d-model mesh))
+           scale)))
     (make-item world name (or types (list mesh))
                (list
                 (make-instance 'rigid-body

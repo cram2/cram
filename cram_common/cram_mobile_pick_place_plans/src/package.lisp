@@ -34,7 +34,7 @@
   (:use #:common-lisp #:cram-prolog)
   (:export
    ;; atomic-action-plans
-   #:move-arms-in-sequence #:park-arms
+   #:move-arms-in-sequence
    #:release #:grip #:close-gripper #:set-gripper-to-position
    #:look-at #:go-to-target
    ;; pick-place-plans

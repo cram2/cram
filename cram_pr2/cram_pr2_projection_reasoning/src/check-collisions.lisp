@@ -151,7 +151,7 @@ Store found pose into designator or throw error if good pose not found."
                            (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
                                                                 right-poses-list-of-lists)
                          (mapcar (lambda (left-pose right-pose)
-                                   (pr2-proj::move-tcp left-pose right-pose)
+                                   (pr2-proj::move-tcp left-pose right-pose :allow-all)
                                    (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
                                      (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
                                    (when (remove object-name
@@ -188,13 +188,16 @@ Store found pose into designator or throw error if good pose not found."
                 (cpl:fail 'common-fail:object-unreachable)))
 
            (let ((placing-action-referenced (desig:reference placing-action-desig)))
-             (destructuring-bind (_action object-designator arm
+             (destructuring-bind (_action object-designator on-object-designator
+                                  _assemblage-name
+                                  arm
+                                  _gripper-opening
                                   left-reach-poses right-reach-poses
                                   left-put-poses right-put-poses
                                   left-retract-poses right-retract-poses
                                   _placing-location)
                  placing-action-referenced
-               (declare (ignore _action _placing-location))
+               (declare (ignore _action _assemblage-name _gripper-opening _placing-location))
 
                (pr2-proj::gripper-action :open arm)
 
@@ -210,7 +213,7 @@ Store found pose into designator or throw error if good pose not found."
                       (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
                                                            right-poses-list-of-lists)
                     (mapcar (lambda (left-pose right-pose)
-                              (pr2-proj::move-tcp left-pose right-pose)
+                              (pr2-proj::move-tcp left-pose right-pose :allow-all)
                               (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
                                 (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
                               (when (or
@@ -258,7 +261,8 @@ Store found pose into designator or throw error if good pose not found."
                    common-fail:manipulation-low-level-failure) (e)
                 (declare (ignore e))
                 (roslisp:ros-warn (coll-check environment)
-                                  "Manipulation pose of ~a is unreachable.~%Propagating up."
+                                  "Manipulation pose of ~a is unreachable or colliding.~%~
+                                   Propagating up."
                                   action-desig)
                 (cpl:fail 'common-fail:environment-unreachable
                           :description "Manipulation pose in collision or unreachable.")))
@@ -269,15 +273,15 @@ Store found pose into designator or throw error if good pose not found."
                                   left-grasp-poses right-grasp-poses
                                   left-pull-push-poses right-pull-push-poses
                                   left-retract-poses right-retract-poses
-                                  joint-name _environment-object)
+                                  joint-name link-name _environment-object)
                  action-referenced
                (declare (ignore _gripper-opening _environment-object))
 
                (pr2-proj::gripper-action :open arm)
 
                (roslisp:ros-info (coll-check environment)
-                                 "Trying to open joint ~a with arm ~a~%"
-                                 joint-name arm)
+                                 "Trying to ~a with joint ~a with arm ~a~%"
+                                 action joint-name arm)
                (let ((left-poses-list-of-lists
                        (list left-reach-poses left-grasp-poses
                              left-pull-push-poses left-retract-poses))
@@ -288,7 +292,7 @@ Store found pose into designator or throw error if good pose not found."
                      (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
                                                           right-poses-list-of-lists)
                    (mapcar (lambda (left-pose right-pose)
-                             (pr2-proj::move-tcp left-pose right-pose)
+                             (pr2-proj::move-tcp left-pose right-pose :allow-all)
                              (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
                                (cpl:sleep pr2-proj:*debug-short-sleep-duration*)))
                            left-poses
@@ -299,5 +303,6 @@ Store found pose into designator or throw error if good pose not found."
                                          "Robot is in collision with environment.")
                        (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
                        (btr::restore-world-state world-state world)
-                       (cpl:fail 'common-fail:manipulation-goal-in-collision))))))))
+                       ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
+                       )))))))
       (btr::restore-world-state world-state world))))

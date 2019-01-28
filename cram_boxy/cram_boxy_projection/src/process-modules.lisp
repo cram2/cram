@@ -50,11 +50,11 @@
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module boxy-proj-ptu (motion-designator)
-  (destructuring-bind (command goal-type goal) (desig:reference motion-designator)
+  (destructuring-bind (command goal-pose goal-configuration) (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-head
        (handler-case
-           (look-at goal-type goal))))))
+           (look-at goal-pose goal-configuration))))))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -86,8 +86,10 @@
        (handler-case
            (move-joints arg-1 (car arg-2))))
       (cram-common-designators::move-with-constraints
-       (handler-case
-           (move-with-constraints arg-1))))))
+       (roslisp:ros-warn (boxy pms) "move-with-constraints is not supported")
+       ;; (handler-case
+       ;;     (move-with-constraints arg-1))
+       ))))
 
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -109,9 +111,8 @@
   (<- (cpm:matching-process-module ?motion-designator boxy-proj-grippers)
     (or (desig:desig-prop ?motion-designator (:type :gripping))
         (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))
-        (and (desig:desig-prop ?motion-designator (:gripper ?_))
-             (or (desig:desig-prop ?motion-designator (:type :opening))
-                 (desig:desig-prop ?motion-designator (:type :closing))))))
+        (desig:desig-prop ?motion-designator (:type :opening-gripper))
+        (desig:desig-prop ?motion-designator (:type :closing-gripper))))
 
   (<- (cpm:matching-process-module ?motion-designator boxy-proj-arms)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))

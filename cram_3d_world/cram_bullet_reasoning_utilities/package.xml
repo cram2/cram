@@ -11,12 +11,15 @@
   <url type="repository">https://github.com/cram2/cram_3d_world</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>cram_bullet_reasoning</depend>
-  <depend>cram_prolog</depend>
   <depend>cram_designators</depend>
-  <depend>cram_location_costmap</depend>
+  <depend>cram_prolog</depend>
   <depend>cram_utilities</depend>
+  <depend>cram_location_costmap</depend>
   <depend>cram_tf</depend>
-  <depend>cram_language</depend>
   <depend>cram_robot_interfaces</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cram_bullet_reasoning</depend>
+  <depend>cl_bullet</depend>
+  <depend>cl_bullet_vis</depend>
 </package>

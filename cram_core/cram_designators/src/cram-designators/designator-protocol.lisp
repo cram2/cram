@@ -126,6 +126,10 @@
   (:method ((solution-1 array) (solution-2 array))
     (equalp solution-1 solution-2)))
 
+(defgeneric reset (desig)
+  (:documentation "Resets the designator by deleting all associated solutions.
+Used for recalculating a designator when its dependent designator got updated."))
+
 (defvar *designator-pprint-description* t
   "If set to T, DESIGNATOR objects will be pretty printed with their description.")
 
@@ -227,6 +231,10 @@ class (derived from class DESIGNATOR), e.g. OBJECT-DESIGNATOR."
 (defmethod current-desig ((desig null))
   "Allow asking current-desig also on NULL objects."
   NIL)
+
+(defmethod reset ((desig designator))
+  "Empties the data slot"
+  (setf (slot-value desig 'data) nil))
 
 (defun newest-effective-designator (desig)
   (labels ((find-effective-desig (desig)

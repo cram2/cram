@@ -31,16 +31,16 @@
 
 ;;; object-in-hand assert and retract
 
-(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-attached))
-  (let* (;; (arm (cpoe:event-arm event))
+(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-attached-robot))
+  (let* (;; (arm (cpoe:event-arm event)) ; <- not needed for knowrob
          ;; (grasp (cpoe:event-grasp event))
          (object-name (cpoe:event-object-name event))
          (gripper-id "left_gripper")
          (kr-grasp-class (car (get-possible-object-grasps object-name gripper-id))))
     (assert-object-grasped gripper-id object-name "boxy" kr-grasp-class)))
 
-(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-detached))
-  (let* (;; (arm (cpoe:event-arm event))
+(defmethod cram-occasions-events:on-event object-in-hand ((event cpoe:object-detached-robot))
+  (let* (;; (arm (cpoe:event-arm event)) ; <- not needed for knowrob
          (object-designator (cpoe:event-object event))
          (object-name (desig:desig-prop-value object-designator :name))
          (kr-gripper-id "left_gripper"))
@@ -49,34 +49,34 @@
 
 ;;; assemblage connections assert and retract
 
-(defclass object-connection-event (cram-occasions-events:event)
-  ((object
-    :initarg :object :reader event-object
-    :type desig:object-designator
-    :initform (error
-               'simple-error
-               :format-control "OBJECT-CONNECTION-EVENT requires an object."))
-   (with-object
-    :initarg :with-object :reader event-with-object
-    :type desig:object-designator
-    :initform (error
-               'simple-error
-               :format-control "OBJECT-CONNECTION-EVENT requires a with-object."))
-   ;; (affordance
-   ;;  :initarg :arm :reader event-arm
-   ;;  :type keyword
-   ;;  :initform (error
-   ;;             'simple-error
-   ;;             :format-control "OBJECT-CONNECTION-EVENT requires an affordance."))
-   )
-  (:documentation "Base class for all events that indicate that a
-  physical connection between an object and the with-object changed."))
+;; (defclass object-connection-event (cram-occasions-events:event)
+;;   ((object
+;;     :initarg :object :reader event-object
+;;     :type desig:object-designator
+;;     :initform (error
+;;                'simple-error
+;;                :format-control "OBJECT-CONNECTION-EVENT requires an object."))
+;;    (with-object
+;;     :initarg :with-object :reader event-with-object
+;;     :type desig:object-designator
+;;     :initform (error
+;;                'simple-error
+;;                :format-control "OBJECT-CONNECTION-EVENT requires a with-object."))
+;;    ;; (affordance
+;;    ;;  :initarg :arm :reader event-arm
+;;    ;;  :type keyword
+;;    ;;  :initform (error
+;;    ;;             'simple-error
+;;    ;;             :format-control "OBJECT-CONNECTION-EVENT requires an affordance."))
+;;    )
+;;   (:documentation "Base class for all events that indicate that a
+;;   physical connection between an object and the with-object changed."))
 
-(defclass object-attached (object-connection-event) ())
+;; (defclass object-attached (object-connection-event) ())
 
-(defclass object-detached (object-connection-event) ())
+;; (defclass object-detached (object-connection-event) ())
 
-(defmethod cram-occasions-events:on-event objects-connected ((event object-attached))
+(defmethod cram-occasions-events:on-event objects-connected ((event cpoe:object-attached-object))
   (let* ((object-designator (event-object event))
          (with-object-designator (event-with-object event))
          (object-name (desig:desig-prop-value object-designator :name))
@@ -98,6 +98,6 @@
        (assert-assemblage :chassis-with-axles-and-seats :seat-snap-in-back
                           object-name with-object-name)))))
 
-(defmethod cram-occasions-events:on-event objects-connected ((event object-detached))
+(defmethod cram-occasions-events:on-event objects-connected ((event cpoe:object-detached-object))
   (format t "Detached was no implemented for this scenario yet. ~
              The prolog query has to change to accept assemblage description and not ID."))

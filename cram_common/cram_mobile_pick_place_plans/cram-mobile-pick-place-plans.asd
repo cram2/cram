@@ -48,7 +48,8 @@
                cram-tf
                cram-plan-occasions-events
                cram-common-failures
-               cram-object-interfaces)
+               cram-manipulation-interfaces
+               cram-robot-interfaces)
 
   :components
   ((:module "src"

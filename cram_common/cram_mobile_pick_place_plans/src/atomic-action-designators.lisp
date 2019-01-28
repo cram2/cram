@@ -31,40 +31,96 @@
 
 (def-fact-group pick-and-place-atomic-actions (desig:action-grounding)
 
-  (<- (desig:action-grounding ?action-designator (go-to-target ?location-designator))
+  (<- (desig:action-grounding ?action-designator (go-to-target ?pose-stamped))
     (spec:property ?action-designator (:type :going))
-    (spec:property ?action-designator (:target ?location-designator)))
+    (spec:property ?action-designator (:target ?location-designator))
+    (desig:designator-groundings ?location-designator ?poses)
+    (member ?pose-stamped ?poses))
+
+
 
   (<- (desig:action-grounding ?action-designator (perceive ?object-designator))
     (spec:property ?action-designator (:type :detecting))
       (spec:property ?action-designator (:object ?object-designator)))
 
-  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence ?left-poses ?right-poses))
+
+
+  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?left-poses ?right-poses
+                                                  :avoid-all))
     (or (spec:property ?action-designator (:type :reaching))
-        (spec:property ?action-designator (:type :retracting)))
+        (spec:property ?action-designator (:type :retracting))
+        (spec:property ?action-designator (:type :lifting)))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil))))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
-                                                  ?left-poses ?right-poses :allow-hand))
-    (or (spec:property ?action-designator (:type :lifting)))
+                                                  ?left-poses ?right-poses
+                                                  :allow-hand
+                                                  ?object-name ?object-link))
+    (or (spec:property ?action-designator (:type :grasping))
+        (spec:property ?action-designator (:type :pulling)))
+    (spec:property ?action-designator (:object ?object-designator))
+    (spec:property ?object-designator (:name ?object-name))
+    (or (spec:property ?action-designator (:link ?object-link))
+        (equal ?object-link nil))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil))))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
-                                                  ?left-poses ?right-poses :allow-all))
-    (or (spec:property ?action-designator (:type :pulling))
-        (spec:property ?action-designator (:type :pushing))
-        (spec:property ?action-designator (:type :putting))
-        (spec:property ?action-designator (:type :grasping)))
+                                                  ?left-poses ?right-poses
+                                                  :allow-attached
+                                                  ?other-object-name ?object-link
+                                                  ?object-name))
+    ;; putting should actually allow hand and attached if grasping allows hand
+    (spec:property ?action-designator (:type :putting))
+    (spec:property ?action-designator (:object ?object-designator))
+    (spec:property ?object-designator (:name ?object-name))
+    (-> (spec:property ?action-designator (:supporting-object ?other-object-designator))
+        (and (or (spec:property ?other-object-designator (:name ?other-object-name))
+                 (spec:property ?other-object-designator (:part-of ?other-object-name))
+                 (equal ?other-object-name nil))
+             (or (spec:property ?other-object-designator (:urdf-name ?object-link))
+                 (equal ?object-link nil)))
+        (equal ?other-object-name nil))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil))))
+
+  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?left-poses ?right-poses
+                                                  :allow-all))
+    (or (spec:property ?action-designator (:type :pushing)))
+    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil))))
+
+  (<- (desig:action-grounding ?action-designator (move-arms-into-configuration
+                                                  ?left-joint-states ?right-joint-states))
+    (spec:property ?action-designator (:type :positioning-arm))
+    (rob-int:robot ?robot)
+    (-> (spec:property ?action-designator (:left-configuration ?left-config))
+        (-> (equal ?left-config :park)
+            (-> (cpoe:object-in-hand ?_ :left)
+                (rob-int:robot-joint-states ?robot :arm :left :carry ?left-joint-states)
+                (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states))
+            (rob-int:robot-joint-states ?robot :arm :left ?left-config ?left-joint-states))
+        (equal ?left-joint-states nil))
+    (-> (spec:property ?action-designator (:right-configuration ?right-config))
+        (-> (equal ?right-config :park)
+            (-> (cpoe:object-in-hand ?_ :right)
+                (rob-int:robot-joint-states ?robot :arm :right :carry ?right-joint-states)
+                (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states))
+            (rob-int:robot-joint-states ?robot :arm :right ?right-config ?right-joint-states))
+        (equal ?right-joint-states nil)))
+
+
 
   (<- (desig:action-grounding ?action-designator (release ?left-or-right-or-both))
     (spec:property ?action-designator (:type :releasing))
@@ -78,8 +134,8 @@
 
   (<- (desig:action-grounding ?action-designator (open-or-close-gripper ?left-or-right-or-both
                                                                         ?action-type))
-    (or (spec:property ?action-designator (:type :closing))
-        (spec:property ?action-designator (:type :opening)))
+    (or (spec:property ?action-designator (:type :closing-gripper))
+        (spec:property ?action-designator (:type :opening-gripper)))
     (spec:property ?action-designator (:type ?action-type))
     (spec:property ?action-designator (:gripper ?left-or-right-or-both)))
 
@@ -89,29 +145,47 @@
     (spec:property ?action-designator (:gripper ?left-or-right-or-both))
     (spec:property ?action-designator (:position ?position)))
 
-  (<- (desig:action-grounding ?action-designator (look-at :target ?location-designator))
+
+
+  (<- (desig:action-grounding ?action-designator (look-at :pose ?pose-stamped))
     (spec:property ?action-designator (:type :looking))
     (spec:property ?action-designator (:target ?location-designator))
-    (-> (spec:property ?action-designator (:camera ?camera))
-        (equal ?camera :head)
-        (true)))
-  (<- (desig:action-grounding ?action-designator (look-at :frame ?frame))
-    (spec:property ?action-designator (:type :looking))
-    (spec:property ?action-designator (:frame ?frame))
-    (-> (spec:property ?action-designator (:camera ?camera))
-        (equal ?camera :head)
-        (true)))
-  (<- (desig:action-grounding ?action-designator (look-at :direction ?direction))
-    (spec:property ?action-designator (:type :looking))
-    (spec:property ?action-designator (:direction ?direction))
-    (-> (spec:property ?action-designator (:camera ?camera))
-        (equal ?camera :head)
-        (true)))
-  (<- (desig:action-grounding ?action-designator (look-at :object ?object-designator))
-    (spec:property ?action-designator (:type :looking))
-    (spec:property ?action-designator (:object ?object-designator))
+    (desig:designator-groundings ?location-designator ?poses)
+    (member ?pose-stamped ?poses)
     (-> (spec:property ?action-designator (:camera ?camera))
         (equal ?camera :head)
         (true)))
 
-)
+  (<- (desig:action-grounding ?action-designator (look-at :pose ?pose-stamped))
+    (spec:property ?action-designator (:type :looking))
+    (spec:property ?action-designator (:object ?object-designator))
+    (current-designator ?object-designator ?current-object-designator)
+    (lisp-fun man-int:get-object-pose ?current-object-designator ?pose-stamped)
+    (-> (spec:property ?action-designator (:camera ?camera))
+        (equal ?camera :head)
+        (true)))
+
+  (<- (desig:action-grounding ?action-designator (look-at :pose ?pose-stamped))
+    (spec:property ?action-designator (:type :looking))
+    (spec:property ?action-designator (:frame ?frame))
+    (lisp-fun cl-transforms:make-identity-pose ?identity-pose)
+    (lisp-fun cl-transforms-stamped:pose->pose-stamped ?frame 0.0 ?identity-pose
+              ?pose-stamped)
+    (-> (spec:property ?action-designator (:camera ?camera))
+        (equal ?camera :head)
+        (true)))
+
+  (<- (desig:action-grounding ?action-designator (look-at :pose ?pose-stamped
+                                                          :joint-states ?joint-states))
+    (spec:property ?action-designator (:type :looking))
+    (spec:property ?action-designator (:direction ?direction))
+    (rob-int:robot ?robot)
+    (-> (rob-int:robot-pose ?robot :neck ?_ ?direction ?pose-stamped)
+        (true)
+        (equal ?pose-stamped nil))
+    (-> (rob-int:robot-joint-states ?robot :neck ?_ ?direction ?joint-states)
+        (true)
+        (equal ?joint-states nil))
+    (-> (spec:property ?action-designator (:camera ?camera))
+        (equal ?camera :head)
+        (true))))

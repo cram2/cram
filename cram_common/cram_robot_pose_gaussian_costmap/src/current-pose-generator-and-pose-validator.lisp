@@ -110,12 +110,13 @@
                                          ?orientation-samples ?orientation-sample-step)
           (cut:lazy-car
            (prolog:prolog
-            `(and (or (and (or (desig:desig-prop ,designator (:obj ?object))
-                               (desig:desig-prop ,designator (:object ?object)))
+            `(and (or (and (desig:desig-prop ,designator (:object ?some-object))
+                           (desig:current-designator ?some-object ?object)
                            (btr-belief:object-designator-name ?object ?object-name)
                            (btr:bullet-world ?world)
                            (btr:object-pose ?world ?object-name ?to-see-pose))
-                      (and (desig:desig-prop ,designator (:location ?location))
+                      (and (desig:desig-prop ,designator (:location ?some-location))
+                           (desig:current-designator ?some-location ?location)
                            (desig:desig-prop ?location (:pose ?to-see-pose))))
                   (costmap:visibility-costmap-size ?max-distance)
                   (costmap:orientation-samples ?orientation-samples)

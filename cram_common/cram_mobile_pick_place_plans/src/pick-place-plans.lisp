@@ -34,7 +34,7 @@
                                 ?left-reach-poses ?right-reach-poses
                                 ?left-grasping-poses ?right-grasping-poses
                                 ?left-lift-poses ?right-lift-poses)
-  (cram-tf:visualize-marker (obj-int:get-object-pose ?object-designator)
+  (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
                             :r-g-b-list '(1 1 0) :id 300)
 
   (cpl:par
@@ -67,6 +67,7 @@
     (exe:perform
      (desig:an action
                (type grasping)
+               (object ?object-designator)
                (left-poses ?left-grasping-poses)
                (right-poses ?right-grasping-poses))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
@@ -78,9 +79,10 @@
              (object ?object-designator)))
   (roslisp:ros-info (pick-place pick-up) "Assert grasp into knowledge base")
   (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-attached
+   (make-instance 'cpoe:object-attached-robot
      :object-name (desig:desig-prop-value ?object-designator :name)
-     :arm ?arm))
+     :arm ?arm
+     :grasp ?grasp))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -96,11 +98,14 @@
 
 
 (cpl:def-cram-function place (?object-designator
+                              ?other-object-designator
+                              ?placing-location-name
                               ?arm
+                              ?gripper-opening
                               ?left-reach-poses ?right-reach-poses
                               ?left-put-poses ?right-put-poses
                               ?left-retract-poses ?right-retract-poses
-                              ?placing-location)
+                              ?placing-location-designator)
   (roslisp:ros-info (pick-place place) "Reaching")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -124,16 +129,27 @@
     (exe:perform
      (desig:an action
                (type putting)
+               (object ?object-designator)
+               (desig:when ?other-object-designator
+                 (supporting-object ?other-object-designator))
                (left-poses ?left-put-poses)
                (right-poses ?right-put-poses))))
+  (when ?placing-location-name
+    (roslisp:ros-info (boxy-plans connect) "Asserting assemblage connection in knowledge base")
+    (cram-occasions-events:on-event
+     (make-instance 'cpoe:object-attached-object
+       :object-name (desig:desig-prop-value ?object-designator :name)
+       :other-object-name (desig:desig-prop-value ?other-object-designator :name)
+       :attachment-type ?placing-location-name)))
   (roslisp:ros-info (pick-place place) "Opening gripper")
   (exe:perform
    (desig:an action
-             (type releasing)
-             (gripper ?arm)))
+             (type setting-gripper)
+             (gripper ?arm)
+             (position ?gripper-opening)))
   (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
   (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-detached
+   (make-instance 'cpoe:object-detached-robot
      :arm ?arm
      :object-name (desig:desig-prop-value ?object-designator :name)))
   (roslisp:ros-info (pick-place place) "Retracting")
@@ -142,8 +158,7 @@
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         (return)
-         ))
+         (return)))
     (exe:perform
      (desig:an action
                (type retracting)
@@ -162,11 +177,11 @@
 ;; (cpl:def-cram-function pick-up (action-designator object arm grasp)
 ;;   (perform-phases-in-sequence action-designator)
 ;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-gripped :object object :arm arm :grasp grasp)))
+;;    (make-instance 'cpoe:object-attached-robot :object object :arm arm :grasp grasp)))
 
 
 ;; (cpl:def-cram-function place (action-designator object arm)
 ;;   (perform-phases-in-sequence action-designator)
 ;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-released :arm arm :object object)))
+;;    (make-instance 'cpoe:object-detached-robot :arm arm :object object)))
 
