@@ -80,4 +80,5 @@
      (:file "projection-demo" :depends-on ("package" "costmaps"))
      (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))
      (:file "data-generation-script" :depends-on ("package" "projection-demo" "costmaps"))
-     (:file "data-generation-plan" :depends-on ("package" "demo"))))))
+     (:file "data-generation-plan" :depends-on ("package" "demo"))
+     (:file "evaluation-plan" :depends-on ("package" "demo"))))))
