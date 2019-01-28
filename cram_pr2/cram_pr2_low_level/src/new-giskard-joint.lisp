@@ -111,9 +111,10 @@
     (roslisp:ros-warn (pr2-ll giskard-joint) "Giskard action timed out."))
   (flet ((ensure-giskard-joint-arm-goal-reached (arm goal-configuration)
            (when goal-configuration
-             (let ((configuration (second (get-arm-joint-states-alist arm))))
+             (let ((configuration (second (get-arm-joint-names-and-positions-list arm))))
                (unless (values-converged (normalize-joint-angles configuration)
-                                         (normalize-joint-angles goal-configuration)
+                                         (normalize-joint-angles
+                                          (mapcar #'second goal-configuration))
                                          convergence-delta-joint)
                  (cpl:fail 'common-fail:manipulation-goal-not-reached
                            :description (format nil "Giskard did not converge to goal:~%~
@@ -121,7 +122,8 @@
                                                    with delta-joint of ~a."
                                                 arm
                                                 (normalize-joint-angles configuration)
-                                                (normalize-joint-angles goal-configuration)
+                                                (normalize-joint-angles
+                                                 (mapcar #'second goal-configuration))
                                                 convergence-delta-joint)))))))
     (when goal-configuration-left
       (ensure-giskard-joint-arm-goal-reached :left goal-configuration-left))
