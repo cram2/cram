@@ -29,12 +29,6 @@
 
 (in-package :demo)
 
-;; (defun pose-list->desig (pose-list)
-;;   (let ((?pose (cl-transforms-stamped:pose->pose-stamped
-;;                 "map" 0.0
-;;                 (btr:ensure-pose pose-list))))
-;;     (desig:a location (pose ?pose))))
-
 (defparameter *object-cad-models*
   '(;; (:cup . "cup_eco_orange")
     ;; (:bowl . "edeka_red_bowl")
