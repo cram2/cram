@@ -11,8 +11,8 @@
     :components
     ((:file "package")
      (:file "utils" :depends-on ("package"))
-     (:file "object-interface" :depends-on ("package" "utils"))
      (:file "cloud-logger-client" :depends-on ("package" "utils"))
+     (:file "object-interface" :depends-on ("package" "utils" "cloud-logger-client"))
      (:file "cloud-logger-query-handler" :depends-on ("package" "cloud-logger-client" "utils"))
      (:file "prolog-query-handler" :depends-on ("package" "utils" "cloud-logger-client"))
      (:file "knowrob-action-name-handler" :depends-on ("package" "utils"))
