@@ -84,7 +84,7 @@
               objects)
 
       ;; stabilize world
-      (btr:simulate btr:*current-bullet-world* 100)
+      (btr:simulate btr:*current-bullet-world* 500)
       (btr:simulate btr:*current-bullet-world* 100)
 
       (let (respawn)
