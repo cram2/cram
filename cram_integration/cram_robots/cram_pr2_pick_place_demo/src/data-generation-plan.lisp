@@ -41,26 +41,46 @@
                            object-types)))
       ;; move on top of counter tops
       (mapcar (lambda (btr-object)
-                (let* ((aabb-z (cl-transforms:z
-                                (cl-bullet:bounding-box-dimensions (btr:aabb btr-object))))
-                       (new-pose (cram-tf:rotate-pose
-                                  (cram-tf:translate-pose
-                                   (desig:reference
-                                    (desig:a location
-                                             (side left)
-                                             (side front)
-                                             (on (desig:an object
-                                                           (type
-                                                            counter-top)
-                                                           (urdf-name
-                                                            sink-area-surface)
-                                                           (owl-name
-                                                            "kitchen_sink_block_counter_top")
-                                                           (part-of
-                                                            kitchen)))))
-                                   :z-offset (/ aabb-z 2.0))
-                                  :z (/ pi (random 10.0)))))
-                  (btr-utils:move-object (btr:name btr-object) new-pose)))
+                (let* ((rotation-axis-list
+                         (list (cl-transforms:make-3d-vector 1 0 0)
+                               (cl-transforms:make-3d-vector 0 1 0)
+                               (cl-transforms:make-3d-vector 0 0 1)))
+                       (rotation-axis
+                         (nth (random 3) rotation-axis-list))
+                       (rotation-angle
+                         (/ pi (random 10.0)))
+                       (orientation
+                         (cl-transforms:axis-angle->quaternion
+                          rotation-axis rotation-angle))
+                       (pose-for-bb-calculation
+                         (cl-transforms:make-pose
+                          (cl-transforms:make-3d-vector 0 0 -1)
+                          orientation)))
+                  (setf (btr:pose btr-object) pose-for-bb-calculation)
+                  (let* ((bb-dims
+                           (cl-bullet:bounding-box-dimensions
+                            (cl-bullet:aabb btr-object)))
+                         (z/2
+                           (/ (cl-transforms:z bb-dims) 2))
+                         (pose-for-grasping
+                           (cl-transforms:copy-pose
+                            (cram-tf:translate-pose
+                             (desig:reference
+                              (desig:a location
+                                       (side left)
+                                       (side front)
+                                       (on (desig:an object
+                                                     (type
+                                                      counter-top)
+                                                     (urdf-name
+                                                      sink-area-surface)
+                                                     (owl-name
+                                                      "kitchen_sink_block_counter_top")
+                                                     (part-of
+                                                      kitchen)))))
+                             :z-offset z/2)
+                            :orientation orientation)))
+                    (setf (btr:pose btr-object) pose-for-grasping))))
               objects)
 
       ;; stabilize world
@@ -81,6 +101,8 @@
 
   (dolist (?object-type '(:bowl :cup :spoon))
     (let* ((?arm-to-use (nth (random 2) '(:left :right)))
+           (grasps-list (man-int:get-object-type-grasps ?object-type ?arm-to-use nil))
+           (?grasp-to-use (nth (random (length grasps-list)) grasps-list))
            (?color (cdr (assoc ?object-type *object-colors*))))
       (cpl:with-failure-handling
           ((common-fail:high-level-failure (e)
@@ -116,6 +138,7 @@
                      (object ?object)
                      (location ?first-location)
                      (target ?second-location)
+                     (grasp ?grasp-to-use)
                      (arm ?arm-to-use)))
           (exe:perform
            (desig:an action
@@ -132,6 +155,7 @@
                        (object ?new-object)
                        (location ?second-location)
                        (target ?first-location)
+                       (grasp ?grasp-to-use)
                        (arm ?arm-to-use))))))))
 
   (park-robot)
