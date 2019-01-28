@@ -185,7 +185,8 @@
 
 
 
-(cpl:def-cram-function fetch (?object-designator ?arm ?pick-up-robot-location pick-up-action)
+(cpl:def-cram-function fetch (?object-designator ?arm ?grasp
+                                                 ?pick-up-robot-location pick-up-action)
   "Fetches a perceived object `?object-designator' with arm `?arm' (if not NIL)
 while standing at `?pick-up-robot-location' (if not NIL)
 and using the grasp and arm specified in `pick-up-action' (if not NIL)."
@@ -265,6 +266,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                     (type picking-up)
                                     (desig:when ?arm
                                       (arm ?arm))
+                                    (desig:when ?grasp
+                                      (grasp ?grasp))
                                     (object ?more-precise-perceived-object-desig)))))
 
                 (setf pick-up-action (desig:current-desig pick-up-action))
@@ -434,7 +437,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                ))))
 
 
-(cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location ?arm
+(cpl:def-cram-function transport (?object-designator ?search-location ?delivering-location
+                                                     ?arm ?grasp
                                                      search-location-accessible)
   (unless search-location-accessible
     (exe:perform (desig:an action
@@ -478,8 +482,10 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
              (let ((?fetched-object
                      (exe:perform (desig:an action
                                             (type fetching)
-                                            (when ?arm
+                                            (desig:when ?arm
                                               (arm ?arm))
+                                            (desig:when ?grasp
+                                              (grasp ?grasp))
                                             (object ?perceived-object-designator)
                                             (robot-location ?fetch-robot-location)
                                             (pick-up-action ?fetch-pick-up-action)))))
