@@ -1,7 +1,7 @@
 (in-package :ccl)
 
 
-(defmethod obj-int:calculate-object-faces :around (robot-to-object-transform)
+(defmethod man-int:calculate-object-faces :around (robot-to-object-transform)
   (let ((pose-id (send-create-transform-pose-stamped robot-to-object-transform)))
     (let ((query-id
             (ccl::create-prolog-log-query-str
@@ -14,7 +14,7 @@
        (concatenate 'string (write-to-string (car query-result)) " " (write-to-string (cadr query-result))))
       query-result)))
 
-(defmethod obj-int:get-object-type-gripping-effort :around (object-type)
+(defmethod man-int:get-object-type-gripping-effort :around (object-type)
   (let ((query-id
           (ccl::create-prolog-log-query-str
            "get-object-type-gripping-effort"
@@ -24,30 +24,28 @@
     query-result))
 
 
-(defmethod obj-int:get-object-type-grasps :around (object-type
-                                                   facing-robot-face
-                                                   bottom-face
-                                                   rotatiationally-symmetric
-                                                   arm)
+(defmethod man-int:get-object-type-grasps :around (object-type
+                                                   arm
+                                                   object-transform-in-base)
   (let ((query-id
           (ccl::create-prolog-log-query-str
            "get-object-type-grasps"
            (list (write-to-string object-type)
-                 (write-to-string facing-robot-face)
-                 (write-to-string bottom-face)
-                 (write-to-string rotatiationally-symmetric)
+                 (write-to-string nil)
+                 (write-to-string nil)
+                 (write-to-string nil)
                  (write-to-string arm))))
         (query-result (call-next-method)))
     (log-end-of-query query-id)
       query-result))
 
-(defmethod obj-int:get-object-type-gripper-opening :around (object-type)
+(defmethod man-int:get-object-type-gripper-opening :around (object-type)
   ;;(format t "Asking for GRIPPER OPENING for the object: ~a~%" object-type)
   (let ((query-result (call-next-method)))
     ;;(format t "GRIPPER OPENING Result is ~a~% for the object: ~a~%" query-result object-type)
     query-result))
 
-(defmethod obj-int:get-object-type-to-gripper-lift-transform :around (object-type
+(defmethod man-int:get-object-type-to-gripper-lift-transform :around (object-type
                                                                       object-name
                                                                       arm
                                                                       grasp
@@ -57,7 +55,7 @@
     ;;(format t "GRIPPER LIFT TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
     query-result))
 
-(defmethod obj-int:get-object-type-to-gripper-transform :around (object-type
+(defmethod man-int:get-object-type-to-gripper-transform :around (object-type
                                                                  object-name
                                                                  arm
                                                                  grasp)
@@ -66,7 +64,7 @@
     ;;(format t "GRIPPER TRANSFORM Result is ~a~% for the object: ~a~%" query-result object-type)
     query-result))
 
-(defmethod obj-int:get-object-type-to-gripper-pregrasp-transform :around (object-type
+(defmethod man-int:get-object-type-to-gripper-pregrasp-transform :around (object-type
                                                                       object-name
                                                                       arm
                                                                       grasp
@@ -76,7 +74,7 @@
     ;;(format t "GRIPPER PREGRASP TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
     query-result))
 
-(defmethod obj-int:get-object-type-to-gripper-2nd-pregrasp-transform :around (object-type
+(defmethod man-int:get-object-type-to-gripper-2nd-pregrasp-transform :around (object-type
                                                                       object-name
                                                                       arm
                                                                       grasp
@@ -86,7 +84,7 @@
     ;;(format t "GRIPPER 2ND PREGRASP TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
     query-result))
 
-(defmethod obj-int:get-object-grasping-poses :around (object-name object-type arm grasp object-transform)
+(defmethod man-int:get-object-grasping-poses :around (object-name object-type arm grasp object-transform)
   ;;(format t "Asking for GRASPING POSES for the object: ~a~%" object-type)
   (let ((query-result (call-next-method)))
     ;;(format t "Asking for GRASPING POSES Result is ~a~% for the object: ~a~%" query-result object-type)
