@@ -121,7 +121,7 @@ the `look-pose-stamped'."
                                            (:location ?location-designator))
                                 ?location-to-stand))))
 
-  (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?arm
+  (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?arm ?grasp
                                                         ?robot-location-designator
                                                         ?pick-up-action-designator))
     (spec:property ?action-designator (:type :fetching))
@@ -131,6 +131,9 @@ the `look-pose-stamped'."
     ;; arm
     (or (spec:property ?action-designator (:arm ?arm))
         (equal ?arm NIL))
+    ;; grasp
+    (or (spec:property ?action-designator (:grasp ?grasp))
+        (equal ?grasp NIL))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-location-designator))
                    (desig:current-designator ?some-location-designator ?robot-location-designator))
@@ -178,7 +181,7 @@ the `look-pose-stamped'."
                                                   ?object-designator
                                                   ?fetching-location-designator
                                                   ?delivering-location-designator
-                                                  ?arm
+                                                  ?arm ?grasp
                                                   ?fetching-location-accessible))
     (spec:property ?action-designator (:type :transporting))
     (spec:property ?action-designator (:object ?some-object-designator))
@@ -189,6 +192,8 @@ the `look-pose-stamped'."
     (desig:current-designator ?some-delivering-location-designator ?delivering-location-designator)
     (or (spec:property ?action-designator (:arm ?arm))
         (equal ?arm NIL))
+    (or (spec:property ?action-designator (:grasp ?grasp))
+        (equal ?grasp NIL))
     (-> (desig:desig-prop ?fetching-location-designator (:in ?_))
         (equal ?fetching-location-accessible NIL)
         (equal ?fetching-location-accessible T))))
