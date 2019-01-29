@@ -8,6 +8,7 @@
                :cram-pr2-pick-place-demo
                :cram-cloud-logger
                cram-utilities
+                cram-learning-framework
                )
   :components
   ((:module "src"

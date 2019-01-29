@@ -55,18 +55,20 @@
   (if (and *learning-framework-on* object-transform-in-base)
       (unwind-protect
            (progn
-             (setf json-prolog::*service-namespace* "/ralf")
              (let* ((all-possible-grasps-unsorted
                       (call-next-method))
                     (learned-grasps-raw
                       (cut:var-value
                        '?grasp
-                       (car (print (json-prolog:prolog-simple
-                                    (format nil
-                                            "object_type_grasps(~(~a, ~a~), ~a, GRASP)."
-                                            object-type arm
-                                            (serialize-transform object-transform-in-base))
-                                    :package :learning)))))
+                       (car (print 
+                             (progn
+                               (setf json-prolog::*service-namespace* "/ralf")
+                               (json-prolog:prolog-simple
+                                (format nil
+                                        "object_type_grasps(~(~a, ~a~), ~a, GRASP)."
+                                        object-type arm
+                                        (serialize-transform object-transform-in-base))
+                                :package :learning))))))
                     (learned-grasps
                       (mapcar (lambda (grasp-symbol)
                                 (intern (string-upcase
@@ -131,11 +133,11 @@
          (let* ((bindings
                   (car (json-prolog:prolog-simple
                         (format nil
-                                "designator_costmap(~(~a, ~:[_~;~a~], ~:[_~;~a~], ~a, ~a~), ~
+                                "designator_costmap(~(~a, ~a, ~a, ~a, ~a~), ~
                                              MATRIX, ~
                                              BOTTOM_RIGHT_CORNER_X, BOTTOM_RIGHT_CORNER_Y, ~
                                              RESOLUTION)."
-                                location-type object-type object-name
+                                location-type (or object-type #\_) (or object-name #\_)
                                 (serialize-transform object-transform-in-base)
                                 (serialize-transform object-transform-in-map))
                         :package :learning)))
@@ -232,12 +234,16 @@
                            (object-transform-in-base (man-int:get-object-transform object))
                            (object-transform-in-map (man-int:get-object-transform-in-map object))
                            (arm (desig:desig-prop-value designator :arm)))
+                     
                       (json-prolog:prolog-simple
                        (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~a)~)."
                                :fetching object-type object-name
                                (serialize-transform object-transform-in-base)
                                (serialize-transform object-transform-in-map) arm))
+                      
+                      (setf json-prolog::*service-namespace* "/json_prolog")
                       (let ((result (call-next-method)))
+                        (setf json-prolog::*service-namespace* "/ralf")
                         (json-prolog:prolog-simple
                          (format nil "finished_action(~(~a)~)." :fetching))
                         result)))
@@ -252,17 +258,22 @@
                            (transform-in-map (first transforms))
                            (arm (desig:desig-prop-value designator :arm)))
                       (json-prolog:prolog-simple
-                       (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~:[_~;~a~])~)."
+                       (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~a)~)."
                                :delivering object-type object-name
                                (serialize-transform transform-in-base)
-                               (serialize-transform transform-in-map) arm))
+                               (serialize-transform transform-in-map) (or arm #\_)))
+                      (setf json-prolog::*service-namespace* "/json_prolog")
                       (let ((result (call-next-method)))
+                        (setf json-prolog::*service-namespace* "/ralf")
                         (json-prolog:prolog-simple
                          (format nil "finished_action(~(~a)~)." :delivering))
                         result)))
                    (t
+                    (setf json-prolog::*service-namespace* "/json_prolog")
                     (call-next-method)))
-                 (call-next-method)))
+                 (progn
+                   (setf json-prolog::*service-namespace* "/json_prolog")
+                   (call-next-method))))
         (setf json-prolog::*service-namespace* "/json_prolog"))
       (call-next-method)))
 

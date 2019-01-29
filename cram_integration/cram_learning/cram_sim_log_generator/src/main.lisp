@@ -23,7 +23,7 @@
 ;;                    (pr2-proj:with-simulated-robot (demo::demo-random nil '(:bowl :spoon)))
 ;;                    (pr2-proj:with-simulated-robot (demo::demo-random))
                     ;;(demo::generate-training-data nil '(:cup))
-                 (pr2-proj:with-simulated-robot (demo::random-there-and-back-again))
+                    (pr2-proj:with-simulated-robot (demo::evaluation-there-and-back-again))
                       
                  (ccl::export-log-to-owl (concatenate 'string experiment-id ".owl"))
                  (format t "Done with experiment ~a~%" experiment-id)
