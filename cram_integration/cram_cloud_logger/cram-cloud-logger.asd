@@ -18,4 +18,5 @@
      (:file "knowrob-action-name-handler" :depends-on ("package" "utils"))
      (:file "logging-functions" :depends-on ("package" "cloud-logger-query-handler"))
      (:file "action-parameter-handler" :depends-on ("package" "logging-functions"))
-     (:file "utils-for-perform" :depends-on ("package" "cloud-logger-query-handler" "prolog-query-handler" "object-interface" "knowrob-action-name-handler" "action-parameter-handler" "utils"))))))
+     (:file "utils-for-perform" :depends-on ("package" "cloud-logger-query-handler" "prolog-query-handler" "object-interface" "knowrob-action-name-handler" "action-parameter-handler" "utils"))
+     (:file "failure-handler" :depends-on ("package" "utils-for-perform"))))))
