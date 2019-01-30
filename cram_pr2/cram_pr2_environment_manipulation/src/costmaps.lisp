@@ -29,7 +29,7 @@
 
 (in-package :pr2-em)
 
-(defun get-drawer-min-max-pose (container-name btr-environment)
+(defun get-handle-min-max-pose (container-name btr-environment)
   (let* ((handle-link
            (get-handle-link
             container-name
@@ -156,6 +156,57 @@ in neutral and manipulated form."
                 1.0
                 0.0))))))
 
+(defun make-opened-door-cost-function (container-name btr-environment &optional (padding 0.2))
+  (let* ((handle-link
+           (get-handle-link container-name
+                            btr-environment))
+         (handle-pose
+           (get-manipulated-pose
+            (cl-urdf:name handle-link)
+            0
+            btr-environment
+            :relative T))
+         (manipulated-handle-pose
+           (get-manipulated-pose
+            (cl-urdf:name handle-link)
+            1
+            btr-environment
+            :relative T))
+         (joint-pose (get-urdf-link-pose (cl-urdf:name
+                                          (cl-urdf:parent (get-connecting-joint handle-link)))
+                                         btr-environment))
+         (joint-pos-2d (cl-transforms:make-3d-vector
+                            (cl-transforms:x
+                             (cl-transforms:origin joint-pose))
+                            (cl-transforms:y
+                             (cl-transforms:origin joint-pose))
+                            0))
+            (handle-pos-2d (cl-transforms:make-3d-vector
+                            (cl-transforms:x
+                             (cl-transforms:origin handle-pose))
+                            (cl-transforms:y
+                             (cl-transforms:origin handle-pose))
+                            0))
+            (man-handle-pos-2d (cl-transforms:make-3d-vector
+                            (cl-transforms:x
+                             (cl-transforms:origin manipulated-handle-pose))
+                            (cl-transforms:y
+                             (cl-transforms:origin manipulated-handle-pose))
+                            0)))
+    (lambda (x y)
+      (let* ((v1 (cl-transforms:v- handle-pos-2d
+                                   joint-pos-2d))
+             (v2 (cl-transforms:v-  man-handle-pos-2d
+                                    joint-pos-2d))
+             (vP (cl-transforms:v- (cl-transforms:make-3d-vector x y 0)
+                                   joint-pos-2d))
+             (v1-length (sqrt (cl-transforms:dot-product v1 v1)))
+             (vP-length (sqrt (cl-transforms:dot-product vP vP))))
+        (if (and (< vP-length (+ v1-length padding))
+                 ())
+            0
+            1)))))
+
 (defun point-to-point-direction (x y pos1 pos2)
   "Takes an X and Y coordinate, but ignores them, and returns a quaternion
 to face from `pos1' towards `pos2'."
@@ -192,18 +243,22 @@ quaternions to face from `pos1' to `pos2'."
 (defmethod costmap:costmap-generator-name->score
     ((name (eql 'opened-drawer-side-cost-function))) 10)
 
+(defmethod costmap:costmap-generator-name->score
+    ((name (eql 'opened-door-cost-function))) 10)
+
+
 (def-fact-group environment-manipulation-costmap (costmap:desig-costmap)
   (<- (costmap:desig-costmap ?designator ?costmap)
     (cram-robot-interfaces:reachability-designator ?designator)
     (spec:property ?designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
-    (man-int:object-type-subtype :container ?container-type)
+    (man-int:object-type-subtype :container-prismatic ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (spec:property ?designator (:arm ?arm))
     (costmap:costmap ?costmap)
     ;; reachability gaussian costmap
-    (lisp-fun get-drawer-min-max-pose ?container-name ?btr-environment ?poses)
+    (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
     (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
     (costmap:costmap-add-function
      container-handle-reachable-cost-function
@@ -231,5 +286,29 @@ quaternions to face from `pos1' to `pos2'."
       ?pose1
       :samples ?samples
       :sample-step ?sample-step)
+     ?costmap))
+  
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (cram-robot-interfaces:reachability-designator ?designator)
+    (spec:property ?designator (:object ?container-designator))
+    (spec:property ?container-designator (:type ?container-type))
+    (man-int:object-type-subtype :container-revolute ?container-type)
+    (spec:property ?container-designator (:urdf-name ?container-name))
+    (spec:property ?container-designator (:part-of ?btr-environment))
+    (spec:property ?designator (:arm ?arm))
+    (costmap:costmap ?costmap)
+    ;; reachability gaussian costmap
+    (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
+    (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
+    (costmap:costmap-add-function
+     container-handle-reachable-cost-function
+     (costmap:make-gauss-cost-function ?mean ?covariance)
      ?costmap)
-    ))
+    ;; cutting out door costmap
+    (costmap:costmap-manipulation-padding ?padding)
+    (costmap:costmap-add-function
+     opened-door-cost-function
+     (make-opened-door-cost-function ?container-name ?btr-environment ?padding)
+     ?costmap)
+    )
+  )
