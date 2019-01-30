@@ -37,6 +37,9 @@
   )
 
 (defun get-urdf-link-pose (name btr-environment)
+  (when (symbolp name)
+    (setf name
+          (roslisp-utilities:rosify-underscores-lisp-name name)))
   (btr:pose
    (btr:rigid-body
     (btr:object btr:*current-bullet-world*
@@ -97,11 +100,12 @@
         (when (typep part 'cl-urdf:link)
           (get-connecting-joint (cl-urdf:from-joint part))))))
 
+
 (defun get-manipulated-pose (link-name joint-position btr-environment &key relative)
   "Returns the pose of a link based on its connection joint position
   `joint-position'. If `relative' is T, the actual value is calculated
-  by `joint-position' * <joint maximal value>. this method returns two
-  values, the new pose of the object and the joint that was changed."
+  by `joint-position' * <joint maximal value>. This function returns two
+  values, the new pose of the link and the joint that was changed."
   (let ((link (get-container-link link-name btr-environment)))
     (when (typep link 'cl-urdf:link)
       (let ((joint (get-connecting-joint link)))
@@ -123,6 +127,29 @@
                    (get-joint-position joint btr-environment)))
                  (cl-transforms:make-identity-rotation)))))
              (:revolute
-              (error 'simple-error
-                     :format-control "Manipulation of revolute joints not implemented.")))
+              (let* ((rotation
+                       (cl-transforms:axis-angle->quaternion
+                        (cl-transforms:make-3d-vector 0 0 1) ;; might be some other axis
+                        (if relative
+                            (* joint-position
+                               (cl-urdf:upper (cl-urdf:limits joint)))
+                            joint-position)))
+                     (link-transform
+                       (cl-transforms:pose->transform
+                        (get-urdf-link-pose link-name btr-environment)))
+                     (joint-transform
+                       (cl-transforms:pose->transform
+                        (get-urdf-link-pose (cl-urdf:name (cl-urdf:parent joint)) btr-environment)))
+                     (joint-to-handle
+                       (cl-transforms:transform-diff
+                        link-transform
+                        joint-transform)))
+                (cl-transforms:transform-pose
+                 (cl-transforms:make-transform
+                  (cl-transforms:rotate
+                   rotation
+                   (cl-transforms:translation joint-to-handle))
+                  (cl-transforms:make-identity-rotation))
+                 (get-urdf-link-pose link-name btr-environment))
+              )))
            joint))))))

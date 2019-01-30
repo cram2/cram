@@ -55,8 +55,7 @@
          (desig:an action
                    (type reaching)
                    (left-poses ?left-reach-poses)
-                   (right-poses ?right-reach-poses)))))
-    )
+                   (right-poses ?right-reach-poses))))))
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans open)

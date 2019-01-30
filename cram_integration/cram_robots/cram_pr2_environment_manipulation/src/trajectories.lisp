@@ -32,8 +32,11 @@
 (defparameter *drawer-handle-grasp-x-offset* 0.0 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
 (defparameter *drawer-handle-retract-offset* 0.10 "in meters")
+(defparameter *door-handle-retract-offset* 0.05 "in meters")
 
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :container))) 0.10)
+(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :container-prismatic))) 0.10)
+(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :container-revolute))) 0.10)
 
 (defun get-container-to-gripper-transform (object-name
                                            arm
@@ -114,6 +117,9 @@
          (object-name
            (desig:desig-prop-value
             object-designator :urdf-name))
+         (object-type
+           (desig:desig-prop-value
+            object-designator :type))
          (object-environment
            (desig:desig-prop-value
             object-designator :part-of))
@@ -128,28 +134,127 @@
             arm
             object-environment)))
     
-    (let ((object-to-standard-gripper->base-to-particular-gripper
-            (man-int:make-object-to-standard-gripper->base-to-particular-gripper-transformer
-             object-transform arm)))
-      (mapcar (lambda (label transform)
+    (alexandria:switch
+        (object-type :test (lambda (?type ?super-type)
+                             (prolog:prolog
+                              `(man-int:object-type-subtype
+                                ,?super-type ,?type))))
+      (:container-prismatic
+       (make-prismatic-trajectory object-transform arm action-type grasp-pose opening-distance))
+      (:container-revolute
+       (make-revolute-trajectory object-transform arm action-type grasp-pose opening-distance
+                                 object-name object-environment))
+      (T (error "Unsupported container-type: ~a." object-type)))))
+
+(defun make-prismatic-trajectory (object-transform arm action-type
+                                  grasp-pose opening-distance)
+  (mapcar (lambda (label transforms)
                 (man-int:make-traj-segment
                  :label label
-                 :poses (list
-                         (funcall object-to-standard-gripper->base-to-particular-gripper
-                                  transform))))
-                (list
-                 :reaching
-                 :grasping
-                 action-type
-                 :retracting)
-                (list
-                 (cram-tf:translate-transform-stamped
-                  grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*)
-                 grasp-pose
-                 (cram-tf:translate-transform-stamped
-                  grasp-pose :x-offset opening-distance)
-                 (cram-tf:translate-transform-stamped
-                  grasp-pose :x-offset (+ opening-distance *drawer-handle-retract-offset*)))))))
+                 :poses (mapcar (man-int:make-object-to-standard-gripper->base-to-particular-gripper-transformer
+                                 object-transform arm)
+                                transforms)))
+              (list
+               :reaching
+               :grasping
+               action-type
+               :retracting)
+              (list
+               (list (cram-tf:translate-transform-stamped
+                      grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
+               (list grasp-pose)
+               
+               (list (cram-tf:translate-transform-stamped
+                      grasp-pose :x-offset opening-distance))
+               
+               (list (cram-tf:translate-transform-stamped
+                      grasp-pose :x-offset (+ opening-distance *drawer-handle-retract-offset*))))))
+
+(defun make-revolute-trajectory (object-transform arm action-type
+                                 grasp-pose opening-angle object-name object-environment)
+  (let* ((traj-poses (get-revolute-traj-poses object-name object-environment opening-angle)))
+    (mapcar (lambda (label transforms)
+              (man-int:make-traj-segment
+               :label label
+               :poses (mapcar (man-int:make-object-to-standard-gripper->base-to-particular-gripper-transformer
+                               object-transform arm)
+                              transforms)))
+            (list
+             :reaching
+             :grasping
+             action-type
+             :retracting)
+            (list
+             (list (cram-tf:translate-transform-stamped
+                    grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
+             (list grasp-pose)
+             
+             (if (equal action-type :opening)
+                 traj-poses
+                 traj-poses)
+
+             (let ((last-traj-pose (car (last traj-poses))))
+               (list (cram-tf:apply-transform
+                      last-traj-pose
+                      (cl-transforms-stamped:make-transform-stamped
+                       (cl-transforms-stamped:child-frame-id last-traj-pose)
+                       (cl-transforms-stamped:child-frame-id last-traj-pose)
+                       (cl-transforms-stamped:stamp last-traj-pose)
+                       (cl-transforms:make-3d-vector 0 0 -0.1)
+                       (cl-transforms:make-identity-rotation)))))))))
+
+(defun get-revolute-traj-poses (object-name btr-environment opening-angle)
+  (setf object-name (roslisp-utilities:rosify-underscores-lisp-name object-name))
+  (let* ((handle-name
+           (cl-urdf:name (get-handle-link object-name btr-environment)))
+         (handle-tf
+           (cl-transforms-stamped:transform->transform-stamped
+            cram-tf:*fixed-frame*
+            handle-name
+            0
+            (cl-transforms:pose->transform
+             (get-urdf-link-pose handle-name btr-environment))))
+         (container-tf
+           (cl-transforms-stamped:transform->transform-stamped
+            cram-tf:*fixed-frame*
+            object-name
+            0
+            (cl-transforms:pose->transform
+             (get-urdf-link-pose object-name btr-environment)))))
+    (calculate-handle-to-gripper-transforms handle-tf container-tf opening-angle)))
+
+(defun calculate-handle-to-gripper-transforms (map-to-handle map-to-joint
+                                               &optional (theta-max
+                                                          (cma:degrees->radians 70)))
+  (let* ((handle-to-joint
+           (cram-tf:apply-transform (cram-tf:transform-stamped-inv map-to-handle)
+                                    map-to-joint))
+         (joint-to-handle (cram-tf:transform-stamped-inv handle-to-joint)))
+    (mapcar (lambda (joint-to-circle-point)
+              (cram-tf:apply-transform
+               joint-to-handle
+               (cram-tf:pose-stamped->transform-stamped
+                (cram-tf:rotate-pose
+                 (cram-tf:strip-transform-stamped
+                  (cram-tf:apply-transform handle-to-joint joint-to-circle-point))
+                 :x
+                 (cram-math:degrees->radians 0))
+                (cl-transforms-stamped:child-frame-id joint-to-circle-point))))
+            (loop for theta = 0.0 then (+ 0.1 theta)
+                  while (< theta theta-max)
+                  collect
+                  (let ((rotation
+                          (cl-tf:axis-angle->quaternion
+                           (cl-transforms:make-3d-vector 0 0 1) theta)))
+                    (cl-transforms-stamped:make-transform-stamped
+                     (cl-transforms-stamped:frame-id joint-to-handle)
+                     cram-tf:*robot-right-tool-frame*
+                     (cl-transforms-stamped:stamp joint-to-handle)
+                     (cl-transforms:rotate rotation (cl-transforms:translation joint-to-handle))
+                     (cl-transforms:euler->quaternion
+                      :ax (/ pi 2) ;; bring it into position to grasp vertical handle
+                      :az (+ (/ pi -2) theta)) ;; turn it while opening
+                     ))))))
 
 (defmethod man-int:get-action-trajectory ((action-type (eql :opening))
                                            arm
