@@ -83,19 +83,19 @@
                    `(and (cram-robot-interfaces:robot ?robot)
                          (cram-robot-interfaces:standard-to-particular-gripper-transform
                           ?robot ?transform))))))))
-  (lambda (object-to-standard-gripper)
-    (when object-to-standard-gripper
-      (let ((base-to-standard-gripper-transform
-              (cram-tf:multiply-transform-stampeds
-               cram-tf:*robot-base-frame* gripper-tool-frame
-               object-transform          ; bTo
-               object-to-standard-gripper ; oTg'
-               :result-as-pose-or-transform :transform))) ; bTo * oTg' = bTg'
-        (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
-         cram-tf:*robot-base-frame* gripper-tool-frame
-         base-to-standard-gripper-transform      ; bTg'
-         standard-to-particular-gripper-transform ; g'Tg
-         :result-as-pose-or-transform :pose))))))
+    (lambda (object-to-standard-gripper)
+      (when object-to-standard-gripper
+        (let ((base-to-standard-gripper-transform
+                (cram-tf:multiply-transform-stampeds
+                 cram-tf:*robot-base-frame* gripper-tool-frame
+                 object-transform          ; bTo
+                 object-to-standard-gripper ; oTg'
+                 :result-as-pose-or-transform :transform))) ; bTo * oTg' = bTg'
+          (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
+           cram-tf:*robot-base-frame* gripper-tool-frame
+           base-to-standard-gripper-transform      ; bTg'
+           standard-to-particular-gripper-transform ; g'Tg
+           :result-as-pose-or-transform :pose))))))
 
 ;;;;;;;;;;;;;;;; Everything below is for pick and place (only) ;;;;;;;;;;;;;;;;;;
 
