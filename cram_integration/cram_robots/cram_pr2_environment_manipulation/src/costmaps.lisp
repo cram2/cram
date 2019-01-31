@@ -172,8 +172,10 @@ in neutral and manipulated form."
             1
             btr-environment
             :relative T))
-         (joint-pose (get-urdf-link-pose (cl-urdf:name
-                                          (cl-urdf:parent (get-connecting-joint handle-link)))
+         ;; TODO(cpo): Has to be the door joint, because above it theres the fridge main
+         (joint-name (cl-urdf:name
+                      (cl-urdf:child (get-connecting-joint handle-link))))
+         (joint-pose (get-urdf-link-pose joint-name
                                          btr-environment))
          (joint-pos-2d (cl-transforms:make-3d-vector
                             (cl-transforms:x
@@ -181,30 +183,38 @@ in neutral and manipulated form."
                             (cl-transforms:y
                              (cl-transforms:origin joint-pose))
                             0))
-            (handle-pos-2d (cl-transforms:make-3d-vector
-                            (cl-transforms:x
-                             (cl-transforms:origin handle-pose))
-                            (cl-transforms:y
-                             (cl-transforms:origin handle-pose))
-                            0))
-            (man-handle-pos-2d (cl-transforms:make-3d-vector
-                            (cl-transforms:x
-                             (cl-transforms:origin manipulated-handle-pose))
-                            (cl-transforms:y
-                             (cl-transforms:origin manipulated-handle-pose))
-                            0)))
+         (handle-pos-2d (cl-transforms:make-3d-vector
+                         (cl-transforms:x
+                          (cl-transforms:origin handle-pose))
+                         (cl-transforms:y
+                          (cl-transforms:origin handle-pose))
+                         0))
+         (man-handle-pos-2d (cl-transforms:make-3d-vector
+                             (cl-transforms:x
+                              (cl-transforms:origin manipulated-handle-pose))
+                             (cl-transforms:y
+                              (cl-transforms:origin manipulated-handle-pose))
+                             0))
+         (v1 (cl-transforms:v- handle-pos-2d
+                               joint-pos-2d))
+         (v2 (cl-transforms:v- man-handle-pos-2d
+                               joint-pos-2d))
+         (v1-length (sqrt (cl-transforms:dot-product v1 v1)))
+         (v2-length (sqrt (cl-transforms:dot-product v2 v2))))
+    
+    (print joint-name)
     (lambda (x y)
-      (let* ((v1 (cl-transforms:v- handle-pos-2d
+      (let* ((vP (cl-transforms:v- (cl-transforms:make-3d-vector x y 0)
                                    joint-pos-2d))
-             (v2 (cl-transforms:v-  man-handle-pos-2d
-                                    joint-pos-2d))
-             (vP (cl-transforms:v- (cl-transforms:make-3d-vector x y 0)
-                                   joint-pos-2d))
-             (v1-length (sqrt (cl-transforms:dot-product v1 v1)))
              (vP-length (sqrt (cl-transforms:dot-product vP vP))))
-        (if (and (< vP-length (+ v1-length padding))
-                 ())
-            0
+        (if (and (< vP-length (+ v2-length 0))
+                 T)
+            (progn
+              (print "---")
+              (print v1-length)
+              (print v2-length)
+              (print vP-length)
+              0)
             1)))))
 
 (defun point-to-point-direction (x y pos1 pos2)
@@ -298,12 +308,14 @@ quaternions to face from `pos1' to `pos2'."
     (spec:property ?designator (:arm ?arm))
     (costmap:costmap ?costmap)
     ;; reachability gaussian costmap
+    
     (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
     (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
     (costmap:costmap-add-function
      container-handle-reachable-cost-function
      (costmap:make-gauss-cost-function ?mean ?covariance)
      ?costmap)
+    
     ;; cutting out door costmap
     (costmap:costmap-manipulation-padding ?padding)
     (costmap:costmap-add-function
