@@ -139,7 +139,7 @@
                         (get-urdf-link-pose link-name btr-environment)))
                      (joint-transform
                        (cl-transforms:pose->transform
-                        (get-urdf-link-pose (cl-urdf:name (cl-urdf:parent joint)) btr-environment)))
+                        (get-urdf-link-pose (cl-urdf:name (cl-urdf:child joint)) btr-environment)))
                      (joint-to-handle
                        (cl-transforms:transform-diff
                         link-transform
