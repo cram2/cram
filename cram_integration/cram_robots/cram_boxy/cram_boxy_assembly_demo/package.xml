@@ -29,6 +29,7 @@
 
   <depend>cram_common_failures</depend>
   <depend>cram_mobile_pick_place_plans</depend>
+  <depend>cram_robot_interfaces</depend>
 
   <depend>cram_knowrob_assembly</depend>
   <!-- <depend>cram_robosherlock</depend> -->
