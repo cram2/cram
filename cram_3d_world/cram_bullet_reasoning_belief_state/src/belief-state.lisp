@@ -28,7 +28,6 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(defvar *robot-urdf* nil)
 (defvar *kitchen-urdf* nil)
 (defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
@@ -53,8 +52,8 @@ is replaced with replacement.
 
 (defun average (min max) (+ min (/ (- max min) 2)))
 (defun setup-world-database ()
-  (let ((robot (or *robot-urdf*
-                   (setf *robot-urdf*
+  (let ((robot (or rob-int:*robot-urdf*
+                   (setf rob-int:*robot-urdf*
                          (cl-urdf:parse-urdf
                           (replace-all (roslisp:get-param *robot-parameter*) "\\" "  ")))))
         ;; TODO get rid of replace-all and instead fix the URDF of our real PR2

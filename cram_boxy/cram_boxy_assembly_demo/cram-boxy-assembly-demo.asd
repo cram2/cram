@@ -49,6 +49,7 @@
 
                cram-common-failures
                cram-mobile-pick-place-plans
+               cram-robot-interfaces ; for *robot-urdf*
 
                cram-knowrob-assembly
                ;; cram-robosherlock
