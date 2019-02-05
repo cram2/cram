@@ -1,4 +1,4 @@
-![Screenshot](https://raw.githubusercontent.com/cram2/cram/master/CramLogoSmall.png)
+![Screenshot](https://raw.githubusercontent.com/cram2/cram/master/graphics/CramLogoSmall.png)
 =============
 
 ### What is CRAM
