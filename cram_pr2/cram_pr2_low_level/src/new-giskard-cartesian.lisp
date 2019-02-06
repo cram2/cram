@@ -132,13 +132,14 @@
                                     :type (roslisp:symbol-code
                                            'giskard_msgs-msg:collisionentry
                                            :allow_collision)
-                                    :robot_link robot-link
+                                    :robot_links (vector robot-link)
                                     :body_b (roslisp-utilities:rosify-underscores-lisp-name
                                              collision-object-b)
-                                    :link_b (if collision-object-b-link
-                                                (roslisp-utilities:rosify-underscores-lisp-name
-                                                 collision-object-b-link)
-                                                "")))
+                                    :link_bs (if collision-object-b-link
+                                                 (vector
+                                                  (roslisp-utilities:rosify-underscores-lisp-name
+                                                   collision-object-b-link))
+                                                 (vector))))
                                  (append
                                   (when left-pose
                                     (cut:var-value
@@ -160,9 +161,8 @@
                                     :type (roslisp:symbol-code
                                            'giskard_msgs-msg:collisionentry
                                            :allow_collision)
-                                    :robot_link robot-link
-                                    :body_b "kitchen"
-                                    :link_b ""))
+                                    :robot_links (vector robot-link)
+                                    :body_b "kitchen"))
                                  (append
                                   (when left-pose
                                     (cut:var-value
@@ -191,14 +191,15 @@
                    :type (roslisp:symbol-code
                           'giskard_msgs-msg:collisionentry
                           :allow_collision)
-                   :robot_link (roslisp-utilities:rosify-underscores-lisp-name
-                                collision-object-a)
+                   :robot_links (vector (roslisp-utilities:rosify-underscores-lisp-name
+                                         collision-object-a))
                    :body_b "kitchen";; (roslisp-utilities:rosify-underscores-lisp-name
                    ;;  collision-object-b-link)
-                   :link_b (if collision-object-b-link
-                               (roslisp-utilities:rosify-underscores-lisp-name
-                                collision-object-b-link)
-                               ""))))
+                   :link_bs (if collision-object-b-link
+                                (vector
+                                 (roslisp-utilities:rosify-underscores-lisp-name
+                                  collision-object-b-link))
+                                (vector)))))
                 (t
                  (vector (roslisp:make-message
                           'giskard_msgs-msg:collisionentry
@@ -217,7 +218,7 @@
                                               goal-frame-left goal-frame-right
                                               convergence-delta-xy convergence-delta-theta)
   (when (eql status :preempted)
-    (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
+    (roslisp:ros-warn (low-level giskard) "Giskard action preempted with result ~a" result)
     (return-from ensure-giskard-cartesian-goal-reached))
   (when (eql status :timeout)
     (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
