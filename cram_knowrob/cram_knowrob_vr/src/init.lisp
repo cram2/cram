@@ -70,7 +70,7 @@
   (ros-info (kvr) "spawning semantic-map kitchen...")
 
   (sem-map:get-semantic-map)
-;(cram-occasions-events:clear-belief)
+;  (cram-occasions-events:clear-belief)
 
     ;; spawning semantic map kitchen
   (prolog:prolog

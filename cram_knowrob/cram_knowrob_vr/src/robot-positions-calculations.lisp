@@ -143,10 +143,95 @@ robot in the bullet world should place the object currently in hand."
              (match-kitchens
               (get-contact-surface-pick-name type))))))
     
-    ; calculate place pose relative to bullet table
+    ; calculate pick pose relative to bullet table
     (setq pick-pose
           (cl-tf:transform*
            surface-pose-bullet
            (cl-tf:transform-inv surface-pose-oe)
            (get-object-location-at-start-by-object-type type)))
     pick-pose))
+
+
+
+(defun umap-T-shuman (type)
+  (let* ((umap-T-obj (pick-pose type))
+         (smap-T-obj (get-object-location-at-start-by-object-type type))
+         (smap-T-human (remove-z (get-camera-location-at-start-by-object-type type)))
+         umap-T-human)
+
+    (setq umap-T-human
+          (cl-tf:transform*
+           umap-T-obj
+           (cl-tf:transform-inv smap-T-obj)
+           smap-T-human))
+    umap-T-human))
+  
+(defun urobot-T-uobj (type)
+  (let* ((umap-T-robot (cl-tf:pose->transform
+                        (btr:pose (btr:get-robot-object))))
+         
+         (umap-T-obj
+           (cl-tf:pose->transform
+            (btr:pose
+             (btr:object btr:*current-bullet-world*
+                         (object-type-filter-bullet type)))))
+
+         robot-T-obj)
+    
+    (setq robot-T-obj
+          (cl-tf:transform*
+           (cl-tf:transform-inv umap-T-robot)
+           umap-T-obj))
+    robot-T-obj))
+
+(defun ucamera-T-usurface (type)
+  (let* ((smap-T-scamera (get-camera-location-at-start-by-object-type type))
+         (smap-T-ssurface (get-contact-surface-pick-pose type))
+         (umap-T-usurface (cl-tf:pose->transform
+           (btr:pose
+            (btr:rigid-body
+             (btr:object btr:*current-bullet-world* :kitchen)
+             (match-kitchens
+              (get-contact-surface-pick-name type))))))
+         ucamera-T-usurface)
+
+    (setq ucamera-T-usurface
+          (cl-tf:transform-inv
+           (cl-tf:transform*
+            (cl-tf:transform-inv smap-T-scamera)
+            smap-T-ssurface
+            (cl-tf:transform-inv umap-T-usurface)
+           ;;umap-T-usurface
+            )))
+    ucamera-T-usurface))
+
+;; is this the magic?
+(defun umap-T-human (type)
+  (let* ((umap-T-uobj
+           (cl-tf:pose->transform
+            (btr:pose
+             (btr:object btr:*current-bullet-world*
+                         (object-type-filter-bullet type)))))
+         (smap-T-sobj
+           (get-object-location-at-start-by-object-type
+            (object-type-filter-prolog type)))
+         
+         (smap-T-scamera
+           (get-camera-location-at-start-by-object-type
+            (object-type-filter-prolog type)))
+
+         umap-T-human)
+    
+    (setq umap-T-human
+          (cl-tf:transform*
+           umap-T-uobj
+           (cl-tf:transform-inv smap-T-sobj)
+           smap-T-scamera))
+    umap-T-human))
+                       
+         
+(defun umap-T-robot (type)
+  (cl-tf:transform*
+   (cl-tf:pose->transform
+    (btr:pose (btr:get-robot-object)))
+   (urobot-T-uobj type)))
