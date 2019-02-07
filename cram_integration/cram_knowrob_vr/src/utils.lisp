@@ -74,5 +74,22 @@ the episode. . "
    (cl-tf:rotation transform)))
 
 
+(defun move-away-axes()
+  (let* ((transform (cl-tf:make-transform
+                     (cl-tf:make-3d-vector 3 3 3)
+                     (cl-tf:make-identity-rotation))))
+    (move-object transform :axes2)
+    (move-object transform :axes3)))
 
 
+(defun test-placement()
+  (move-object 
+      (cl-tf:make-transform
+       (cl-tf:make-3d-vector 1.35 0.6 0.915)
+       
+       (cl-tf:make-quaternion
+        -3.180422326961139d-17
+        7.275958169294938d-10
+        1.0d0
+        -4.371138828673793d-8))
+      :cup-eco-orange))
