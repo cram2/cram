@@ -40,11 +40,16 @@ VR data and the object within the bullet world, are different."
 (defun move-object-to-starting-pose (object)
   "Moves the object and robot to their respective locations at the beginning of
 the episode. . "
-  (move-object (get-object-location-at-start-by-object-type
+  (move-object (pick-pose
                 (object-type-filter-prolog object))
                (object-type-filter-bullet object)))
 
-
+(defun move-object-to-placing-pose (object)
+  "Moves the object and robot to their respective locations at the beginning of
+the episode. . "
+  (move-object (place-pose
+                (object-type-filter-prolog object))
+               (object-type-filter-bullet object)))
  
 (defun place-offset-transform ()
  "Creates a transform which describes and offset for placing an object. "
