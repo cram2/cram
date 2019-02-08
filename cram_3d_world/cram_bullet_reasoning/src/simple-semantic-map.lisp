@@ -70,8 +70,7 @@
                              (let ((mesh-model                                   
                                      (if mesh-path
                                          (with-file-cache model mesh-path (physics-utils:load-3d-model mesh-path)
-                                           model)
-                                         (roslisp:ros-warn (btr) "No mesh-path was defined."))
+                                           model))
                                      (physics-utils:scale-3d-model
                                       model 1.0))) ;scale new-value
                                (if mesh-path
