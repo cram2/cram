@@ -4,7 +4,7 @@
 ;;; base, this offset can be added in order to prevent the robot from crashing
 ;;; into the bases of tables.
 ;;; in short: moves the robot away from the given pose to avoid collisions.
-(defparameter *human-feet-offset* -0.05 ) ;; was 0.3 for Andrei's Data
+(defparameter *human-feet-offset* 0.0 ) ;; was 0.3 for Andrei's Data -0.05 last
 
 
 ;; example: (make-poses "?PoseCameraStart")
