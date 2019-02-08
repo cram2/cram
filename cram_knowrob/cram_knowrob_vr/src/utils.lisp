@@ -40,15 +40,13 @@ VR data and the object within the bullet world, are different."
 (defun move-object-to-starting-pose (object)
   "Moves the object and robot to their respective locations at the beginning of
 the episode. . "
-  (move-object (pick-pose
-                (object-type-filter-prolog object))
+  (move-object (pick-pose object)
                (object-type-filter-bullet object)))
 
 (defun move-object-to-placing-pose (object)
   "Moves the object and robot to their respective locations at the beginning of
 the episode. . "
-  (move-object (place-pose
-                (object-type-filter-prolog object))
+  (move-object (place-pose object)
                (object-type-filter-bullet object)))
  
 (defun place-offset-transform ()
@@ -78,6 +76,7 @@ the episode. . "
   (let* ((transform (cl-tf:make-transform
                      (cl-tf:make-3d-vector 3 3 3)
                      (cl-tf:make-identity-rotation))))
+    (move-object transform :axes)
     (move-object transform :axes2)
     (move-object transform :axes3)))
 

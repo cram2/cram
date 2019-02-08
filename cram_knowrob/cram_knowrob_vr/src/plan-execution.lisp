@@ -9,34 +9,29 @@ executed.
 RETURNS: "
   (pick-and-place
    (set-grasp-base-pose
-    (robot-pick-transform
-     (object-type-filter-prolog type)))
+    (umap-T-human type))
  
    (set-grasp-look-pose
-    (get-object-location-at-start-by-object-type
-     (object-type-filter-prolog type)))
+     (umap-T-robot type))
    
    (set-grasp-base-pose 
-    (get-camera-location-at-end-by-object-type
-     (object-type-filter-prolog type)))
+    (ucamera-T-usurface type :end))
    
    (set-grasp-look-pose
-    (place-pose-btr-island
-     (object-type-filter-prolog type)))
+    (place-pose type))
    
    (set-grasp-look-pose 
-    (place-pose-btr-island
-     (object-type-filter-prolog type)))
+    (place-pose type))
    type))
 
 (defun execute-pick-up-object (type)
   "Executes only the picking up action on an object given the type of the object.
-TYPE: The type of the object. Could be :koelln-muesli-knusper-honig-nuss for
-the cereal box.
+TYPE: The type of the object. Could be 'muesli or 'cup etc. The name is internally
+set to CupEcoOrange in a string.
 RETURNS:"
   (pick-up-object (set-grasp-base-pose
-                    (umap-T-human type))                 
-
+                   (umap-T-human type))                 
+                  
                   (set-grasp-look-pose
                    (umap-T-robot type))
                   
@@ -62,18 +57,14 @@ grasp the object or in order to place it."
        (progn
          (move-to-object
           (set-grasp-base-pose
-           (get-camera-location-at-start-by-object-type
-            (object-type-filter-prolog type)))
-          (set-grasp-look-pose
-           (get-object-location-at-start-by-object-type
-            (object-type-filter-prolog type))))))
+           (umap-T-human type))
+         (set-grasp-look-pose
+           (umap-T-robot type)))))
   
   (if (eq event-time :end)
       (progn
         (move-to-object
          (set-grasp-base-pose
-          (get-camera-location-at-end-by-object-type
-           (object-type-filter-prolog type)))
+          (ucamera-T-usurface type :end))
          (set-grasp-look-pose
-          (get-object-location-at-end-by-object-type
-           (object-type-filter-prolog type)))))))
+          (place-pose type))))))
