@@ -111,7 +111,7 @@ robot in the bullet world should place the object currently in hand."
 (defun place-pose (type)
 "Clauclates the placing transform of the object relative to the surface it was placed
 on. Transform is returned in the urdf map frame.
-umap-T-uobj = umap-T-usurface * inv(ssurface-T-ssmap * ssmap-T-sobj" 
+umap-T-uobj = umap-T-usurface * inv(ssurface-T-ssmap) * ssmap-T-sobj" 
   (let* ((prolog-type (object-type-filter-prolog type))
          (table-pose-oe (get-contact-surface-place-pose prolog-type))
          table-pose-bullet
@@ -137,7 +137,7 @@ umap-T-uobj = umap-T-usurface * inv(ssurface-T-ssmap * ssmap-T-sobj"
 (defun pick-pose (type)
  "Calculates the picking up transform of the object relative to the surface it was
 picked up from. Transform is returned in the urdf map frame.
-umap-T-uobj = umap-T-usurface * inv(ssurface-T-ssmap * ssmap-T-sobj."
+umap-T-uobj = umap-T-usurface * inv(ssurface-T-ssmap) * ssmap-T-sobj."
   (let* ((prolog-type (object-type-filter-prolog type))
          (surface-pose-oe (get-contact-surface-pick-pose prolog-type))
          surface-pose-bullet
@@ -246,6 +246,8 @@ umap-T-human = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera"
                        
          
 (defun umap-T-robot (type)
+  "urdf map T to the robot.
+umap-T-robot = umap-T-robot * urobot-T-uobj"
   (cl-tf:transform*
    (cl-tf:pose->transform
     (btr:pose (btr:get-robot-object)))

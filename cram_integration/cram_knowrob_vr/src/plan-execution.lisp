@@ -58,7 +58,7 @@ grasp the object or in order to place it."
          (move-to-object
           (set-grasp-base-pose
            (umap-T-human type))
-         (set-grasp-look-pose
+          (set-grasp-look-pose
            (umap-T-robot type)))))
   
   (if (eq event-time :end)
