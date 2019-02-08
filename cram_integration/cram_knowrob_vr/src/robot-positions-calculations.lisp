@@ -4,7 +4,8 @@
 ;;; base, this offset can be added in order to prevent the robot from crashing
 ;;; into the bases of tables.
 ;;; in short: moves the robot away from the given pose to avoid collisions.
-(defparameter *human-feet-offset* 0.12 ) ;; was 0.3 for Andrei's Data
+(defparameter *human-feet-offset* 0.0 ) ;; was 0.3 for Andrei's Data -0.05 last
+
 
 
 ;; example: (make-poses "?PoseCameraStart")
@@ -89,9 +90,15 @@ robot in the bullet world should place the object currently in hand."
     (setq table-pose-bullet
           (cl-tf:pose->transform
            (btr:pose
-            (btr:rigid-body
-             (btr:object btr:*current-bullet-world* :kitchen)
-             '|IslandArea_nhwy|))))
+
+            (if (btr:rigid-body
+                 (btr:object btr:*current-bullet-world* :kitchen)
+                 '|IslandArea_nhwy|)
+                ()
+                (btr:rigid-body
+                  (btr:object btr:*current-bullet-world* :kitchen)
+                  ':|KITCHEN.kitchen_island|)))))
+    
     ; calculate place pose relative to bullet table
     (setq place-pose
           (cl-tf:transform*
@@ -99,3 +106,134 @@ robot in the bullet world should place the object currently in hand."
            (cl-tf:transform-inv table-pose-oe)
            (get-object-location-at-end-by-object-type type)))
     place-pose))  
+
+
+(defun place-pose (type)
+  ;FIXME A wrong pose is being calculated. I don't know why yet. 
+  (let* ((table-pose-oe (get-contact-surface-place-pose type))
+         table-pose-bullet
+         place-pose)
+    ; get pose of Table in map frame
+    (setq table-pose-bullet
+          (cl-tf:pose->transform
+           (btr:pose
+            (btr:rigid-body
+             (btr:object btr:*current-bullet-world* :kitchen)
+             (match-kitchens
+              (get-contact-surface-place-name type))))))
+    
+    ; calculate place pose relative to bullet table
+    (setq place-pose
+          (cl-tf:transform*
+           table-pose-bullet
+           (cl-tf:transform-inv table-pose-oe)
+           (get-object-location-at-end-by-object-type type)))
+    place-pose))
+
+
+(defun pick-pose (type)
+  ;FIXME A wrong pose is being calculated. I don't know why yet. 
+  (let* ((surface-pose-oe (get-contact-surface-pick-pose type))
+         surface-pose-bullet
+         pick-pose)
+    ; get pose of Table in map frame
+    (setq surface-pose-bullet
+          (cl-tf:pose->transform
+           (btr:pose
+            (btr:rigid-body
+             (btr:object btr:*current-bullet-world* :kitchen)
+             (match-kitchens
+              (get-contact-surface-pick-name type))))))
+    
+    ; calculate pick pose relative to bullet table
+    (setq pick-pose
+          (cl-tf:transform*
+           surface-pose-bullet
+           (cl-tf:transform-inv surface-pose-oe)
+           (get-object-location-at-start-by-object-type type)))
+    pick-pose))
+
+
+
+(defun umap-T-shuman (type)
+  (let* ((umap-T-obj (pick-pose type))
+         (smap-T-obj (get-object-location-at-start-by-object-type type))
+         (smap-T-human (remove-z (get-camera-location-at-start-by-object-type type)))
+         umap-T-human)
+
+    (setq umap-T-human
+          (cl-tf:transform*
+           umap-T-obj
+           (cl-tf:transform-inv smap-T-obj)
+           smap-T-human))
+    umap-T-human))
+  
+(defun urobot-T-uobj (type)
+  (let* ((umap-T-robot (cl-tf:pose->transform
+                        (btr:pose (btr:get-robot-object))))
+         
+         (umap-T-obj
+           (cl-tf:pose->transform
+            (btr:pose
+             (btr:object btr:*current-bullet-world*
+                         (object-type-filter-bullet type)))))
+
+         robot-T-obj)
+    
+    (setq robot-T-obj
+          (cl-tf:transform*
+           (cl-tf:transform-inv umap-T-robot)
+           umap-T-obj))
+    robot-T-obj))
+
+(defun ucamera-T-usurface (type)
+  (let* ((smap-T-scamera (get-camera-location-at-start-by-object-type type))
+         (smap-T-ssurface (get-contact-surface-pick-pose type))
+         (umap-T-usurface (cl-tf:pose->transform
+           (btr:pose
+            (btr:rigid-body
+             (btr:object btr:*current-bullet-world* :kitchen)
+             (match-kitchens
+              (get-contact-surface-pick-name type))))))
+         ucamera-T-usurface)
+
+    (setq ucamera-T-usurface
+          (cl-tf:transform-inv
+           (cl-tf:transform*
+            (cl-tf:transform-inv smap-T-scamera)
+            smap-T-ssurface
+            (cl-tf:transform-inv umap-T-usurface)
+           ;;umap-T-usurface
+            )))
+    ucamera-T-usurface))
+
+;; is this the magic?
+(defun umap-T-human (type)
+  (let* ((umap-T-uobj
+           (cl-tf:pose->transform
+            (btr:pose
+             (btr:object btr:*current-bullet-world*
+                         (object-type-filter-bullet type)))))
+         (smap-T-sobj
+           (get-object-location-at-start-by-object-type
+            (object-type-filter-prolog type)))
+         
+         (smap-T-scamera
+           (get-camera-location-at-start-by-object-type
+            (object-type-filter-prolog type)))
+
+         umap-T-human)
+    
+    (setq umap-T-human
+          (cl-tf:transform*
+           umap-T-uobj
+           (cl-tf:transform-inv smap-T-sobj)
+           smap-T-scamera))
+    umap-T-human))
+                       
+         
+(defun umap-T-robot (type)
+  (cl-tf:transform*
+   (cl-tf:pose->transform
+    (btr:pose (btr:get-robot-object)))
+   (urobot-T-uobj type)))
