@@ -7,11 +7,9 @@ it down are the ones extracted from Virtual Reality.
 TYPE: the given type of an object on which the pick and place action should be
 executed.
 RETURNS: "
-  
   (pick-and-place
-   
-   (set-grasp-base-pose 
-    (get-camera-location-at-start-by-object-type
+   (set-grasp-base-pose
+    (robot-pick-transform
      (object-type-filter-prolog type)))
  
    (set-grasp-look-pose
@@ -37,12 +35,10 @@ TYPE: The type of the object. Could be :koelln-muesli-knusper-honig-nuss for
 the cereal box.
 RETURNS:"
   (pick-up-object (set-grasp-base-pose
-                   (get-camera-location-at-start-by-object-type
-                    (object-type-filter-prolog type)))                 
+                    (umap-T-human type))                 
 
                   (set-grasp-look-pose
-                   (get-object-location-at-start-by-object-type
-                    (object-type-filter-prolog type)))
+                   (umap-T-robot type))
                   
                   type))
 
