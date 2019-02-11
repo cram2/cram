@@ -9,13 +9,13 @@ executed.
 RETURNS: "
   (pick-and-place
    (set-grasp-base-pose
-    (umap-T-human type))
+    (umap-T-laser-T-human type))
  
    (set-grasp-look-pose
      (umap-T-robot type))
    
    (set-grasp-base-pose 
-    (ucamera-T-usurface type :end))
+    (umap-T-laser-T-place type :end))
    
    (set-grasp-look-pose
     (place-pose type))
@@ -30,7 +30,7 @@ TYPE: The type of the object. Could be 'muesli or 'cup etc. The name is internal
 set to CupEcoOrange in a string.
 RETURNS:"
   (pick-up-object (set-grasp-base-pose
-                   (umap-T-human type))                 
+                   (umap-T-laser-T-human type))                 
                   
                   (set-grasp-look-pose
                    (umap-T-robot type))
@@ -43,11 +43,17 @@ held in hand object. The placing pose is the one used in VR for that kind of
 object.
 ?OBJ-DESIG: The object designator of the object the robot is currently holding
 and which should be placed down."
-  (place-object (set-grasp-base-pose
-                 (get-camera-location-at-end-by-object-type type))
-                (set-grasp-look-pose (place-pose-btr-island type))
-                (set-grasp-look-pose (place-pose-btr-island type))
-                (cram-projection::projection-environment-result-result ?obj-desig)))
+  (place-object
+   (set-grasp-base-pose 
+    (umap-T-laser-T-place type :end))
+
+   (set-grasp-look-pose
+    (place-pose type))
+   
+   (set-grasp-look-pose
+    (place-pose type))
+
+   (cram-projection::projection-environment-result-result ?obj-desig)))
 
 (defun execute-move-to-object (type &optional (event-time :start))
   "Moves the robot to the position where the human was standing in order to

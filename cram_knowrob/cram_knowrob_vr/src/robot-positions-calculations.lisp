@@ -213,7 +213,6 @@ ucamera-T-usurface = inv(smap-T-scamera) * smap-T-ssurface * inv(umap-T-ssurface
             (cl-tf:transform-inv umap-T-usurface))))
     ucamera-T-usurface))
 
-;; is this the magic?
 (defun umap-T-human (type &optional (time :start))
   "Calculates the transform urdfmap T human actor from semantic map
 umap-T-human = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera"
@@ -252,3 +251,35 @@ umap-T-robot = umap-T-robot * urobot-T-uobj"
    (cl-tf:pose->transform
     (btr:pose (btr:get-robot-object)))
    (urobot-T-uobj type)))
+
+;; experiments
+;; use the laser scanner instead of base footprint directly to avoid colliding with table
+(defun umap-T-laser-T-human (type &optional (time :start))
+  "Calculates the transform urdfmap T human actor from semantic map
+umap-T-human = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera"
+  (let* ((umap-T-laser (cl-tf:pose->transform
+                        (btr:link-pose (btr:get-robot-object) "base_laser_link")))
+         (umap-T-base (cl-tf:pose->transform
+                       (btr:link-pose (btr:get-robot-object) "base_footprint")))
+         umap-T-laser-human)
+
+    (setq umap-T-laser-human
+          (cl-tf:transform*
+           umap-T-base
+           (cl-tf:transform-inv umap-T-laser)
+           (umap-T-human type time)))
+    umap-T-laser-human))
+         
+(defun umap-T-laser-T-place (type &optional (time :start))
+  (let* ((umap-T-laser (cl-tf:pose->transform
+                        (btr:link-pose (btr:get-robot-object) "base_laser_link")))
+         (umap-T-base (cl-tf:pose->transform
+                       (btr:link-pose (btr:get-robot-object) "base_footprint")))
+         umap-T-laser-surface)
+
+    (setq umap-T-laser-surface
+          (cl-tf:transform*
+           umap-T-base
+           (cl-tf:transform-inv umap-T-laser)
+           (ucamera-T-usurface type :end)))
+    umap-T-laser-surface))
