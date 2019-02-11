@@ -9,12 +9,11 @@
 ;;; rcg_d different grasps
 (in-package :kvr)
 
-;; epdir: name of the directory of the episode which is to be loaded. The path is
-;; individual and therefore hardcoded ocne
-
-;; Sets the local path of where the episode data is located
+;;; Sets the local path of where the episode data is located
 (defvar *episode-path* "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/")
-    
+
+;;; epdir: name of the directory of the episode which is to be loaded. The path is
+;;; individual and therefore hardcoded one
 (defun init-episode (&optional (namedir "p4_island_rotated"))
   "Initializes the node and loads the episode data from knowrob via json_prolog.
 The path of the episode files is set in the *episode-path* variable.
@@ -33,7 +32,7 @@ namedir: (parameter) is the name of the episode file directory which is to be lo
   (map-marker-init))
 
 
-;; initializes the bullet world environment based on the bullet-world-tutorial
+;;; initializes the bullet world environment based on the bullet-world-tutorial
 (defun init-bullet-world ()
   "Initializes the bullet world. The robot spawns in the white urdf kitchen,
 while the semantic map kitchen is spawned right next to the urdf kitchen,
