@@ -1,6 +1,6 @@
 (in-package :kvr)
 
-(defun move-obj-with-offset (x-offset y-offset object)
+(defun move-obj-with-offset (x-offset y-offset object-knowrob object-bullet)
   "Moves an object to a given x y offset from it's starting position. "
   (move-object 
    (cl-tf:make-transform 
@@ -9,22 +9,19 @@
       x-offset
       (cl-tf:x
        (cl-tf:translation
-        (get-object-location-at-start-by-object-type
-         (object-type-filter-prolog object)))))
+        (get-object-location-at-start-by-object-type object-knowrob))))
      (+
       y-offset
       (cl-tf:y
        (cl-tf:translation
-        (get-object-location-at-start-by-object-type
-         (object-type-filter-prolog object)))))
+        (get-object-location-at-start-by-object-type object-knowrob))))
+     
      (cl-tf:z
       (cl-tf:translation 
-       (get-object-location-at-start-by-object-type
-        (object-type-filter-prolog object)))))
+       (get-object-location-at-start-by-object-type object-knowrob))))
     (cl-tf:rotation
-     (get-object-location-at-start-by-object-type
-      (object-type-filter-prolog object))))
-   (object-type-filter-bullet object)))
+     (get-object-location-at-start-by-object-type object-knowrob)))
+   object-bullet))
 
 
 (defun move-head (pose)
