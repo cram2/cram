@@ -14,9 +14,8 @@
   (ros-info (kvr) "initializing the episode data and connecting to database...")
   (start-ros-node "cram_knowrob_vr")
   (register-ros-package "knowrob_robcog")
-  (u-load-episodes "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/rcg_eval2/Episodes/")
-  (owl-parse "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/rcg_eval2/SemanticMap.owl")
-;  (owl-parse "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/rcg_eval2/iai-kitchen-knowledge.owl")
+  (u-load-episodes "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/p4_island_rotated/Episodes/")
+  (owl-parse "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/p4_island_rotated/SemanticMap.owl")
   (connect-to-db "Own-Episodes_set-clean-table")  
   (map-marker-init))
 
@@ -108,7 +107,7 @@
   "Spawns all the objects which are necessary for the current
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
-  (init-episode)
+  (init-episode)2
   (init-bullet-world)
   (init-items))
 
