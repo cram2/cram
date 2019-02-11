@@ -9,19 +9,35 @@
 ;;; rcg_d different grasps
 (in-package :kvr)
 
-;; TODO set a variable or something for the location of the episode data
-(defun init-episode ()
+;; epdir: name of the directory of the episode which is to be loaded. The path is
+;; individual and therefore hardcoded ocne
+
+;; Sets the local path of where the episode data is located
+(defvar *episode-path* "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/")
+    
+(defun init-episode (&optional (namedir "p4_island_rotated"))
+  "Initializes the node and loads the episode data from knowrob via json_prolog.
+The path of the episode files is set in the *episode-path* variable.
+namedir: (parameter) is the name of the episode file directory which is to be loaded. "
+  
   (ros-info (kvr) "initializing the episode data and connecting to database...")
   (start-ros-node "cram_knowrob_vr")
   (register-ros-package "knowrob_robcog")
-  (u-load-episodes "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/p4_island_rotated/Episodes/")
-  (owl-parse "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/p4_island_rotated/SemanticMap.owl")
+  (u-load-episodes
+   (concatenate 'string
+                 *episode-path* namedir "/Episodes/"))
+  (owl-parse
+   (concatenate 'string
+                *episode-path*  namedir "/SemanticMap.owl"))
   (connect-to-db "Own-Episodes_set-clean-table")  
   (map-marker-init))
 
 
 ;; initializes the bullet world environment based on the bullet-world-tutorial
 (defun init-bullet-world ()
+  "Initializes the bullet world. The robot spawns in the white urdf kitchen,
+while the semantic map kitchen is spawned right next to the urdf kitchen,
+representing the Virtual Reality world, and how the kitchen was set up there."
   ;; reset bullet world
   (setq btr:*current-bullet-world* nil)
   
@@ -89,9 +105,9 @@
                                           :compound t
                                           :urdf ,(cl-urdf:parse-urdf (roslisp:get-param "kitchen_description")))))))
 
-;;; NOTE: Might not be needed anymore since the items are initialized with
-;;; the spawning of the semantic map automatically. 
+
 (defun init-items ()
+  "Spawns all the objects the robot interacts with."
   (ros-info (kvr) "spawning objects for experiments...")
   (add-bowl)
   (add-muesli)
@@ -109,5 +125,21 @@ scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
   (init-episode)2
   (init-bullet-world)
-  (init-items))
+  (init-items)
+  (init-spawn-objects-in-semantic))
 
+(defun init-spawn-objects-in-semantic ()
+  "Spawns all objects of the current Episode on their original position in the
+semantic map kitchen."
+  (add-bowl :edeka-red-bowl2)
+  (add-muesli :koelln-muesli-knusper-honig-nuss2)
+  (add-fork :fork-blue-plastic2)
+  (add-cup :cup-eco-orange2)
+  (add-milk :weide-milch-small2)
+
+  ;; the offset is the same offset as in the semantic map kitchen
+  (move-obj-with-offset 0.0 -3.0 "IkeaBowl" :edeka-red-bowl2)
+  (move-obj-with-offset 0.0 -3.0 "KoellnMuesliKnusperHonigNuss" :koelln-muesli-knusper-honig-nuss2)
+  (move-obj-with-offset 0.0 -3.0 "PlasticBlueFork" :fork-blue-plastic2)
+  (move-obj-with-offset 0.0 -3.0 "CupEcoOrange" :cup-eco-orange2)
+  (move-obj-with-offset 0.0 -3.0 "MilramButtermilchErdbeere" :weide-milch-small2))
