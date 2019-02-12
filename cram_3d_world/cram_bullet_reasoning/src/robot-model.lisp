@@ -68,9 +68,9 @@
   (let* ((model (load-mesh mesh compound)))
     (flet ((make-ch-mesh-shape (model-part)
              (make-instance 'convex-hull-mesh-shape
-                            :color (apply-alpha-value color)
-                            :faces (physics-utils:3d-model-faces model-part)
-                            :points (physics-utils:3d-model-vertices model-part))))
+               :color (apply-alpha-value color)
+               :faces (physics-utils:3d-model-faces model-part)
+               :points (physics-utils:3d-model-vertices model-part))))
       (if compound
           (let ((compound-shape (make-instance 'compound-shape))
                 (id-pose (cl-transforms:make-pose
@@ -103,8 +103,8 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
    (urdf :initarg :urdf :reader urdf)
    (attached-objects
     :initarg :attached-objects :initform nil
-                     :reader attached-objects
-                     :documentation "An alist that maps object
+    :reader attached-objects
+    :documentation "An alist that maps object
                      instances to a list of instances of the struct
                      `attachment' and an instance of
                      `collision-information'.")
@@ -119,9 +119,9 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
                     Defaults to :character-filter for PR2, should be set to
                     :static-filter when used on the kitchen URDF.")
    (collision-mask :initarg :collision-mask
-                    :initform '(:default-filter :static-filter)
-                    :reader collision-mask
-                    :documentation "List of filters, with whom the robot detects
+                   :initform '(:default-filter :static-filter)
+                   :reader collision-mask
+                   :documentation "List of filters, with whom the robot detects
                     collisions with. Contains the :default-filter for regular objects
                     and :static-filter for the kitchen. Swap to :character-filter if
                     this objects is a kitchen.")
@@ -173,7 +173,7 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
   (:method ((robot-object robot-object) (obj object) link &key loose grasp)
     (unless (gethash link (links robot-object))
       (error 'simple-error :format-control "Link ~a unknown"
-             :format-arguments (list link)))
+                           :format-arguments (list link)))
     (with-slots (attached-objects) robot-object
       (let ((obj-attachment (assoc (name obj) attached-objects
                                    :test #'equal))
@@ -226,10 +226,10 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
   (:method ((robot-object robot-object))
     (with-slots (attached-objects) robot-object
       (dolist (attached-object attached-objects)
-       (let ((object-name (car attached-object)))
-         (if (object *current-bullet-world* object-name)
-             (detach-object robot-object (object *current-bullet-world* object-name))
-             (setf attached-objects (remove object-name attached-objects :key #'car))))))))
+        (let ((object-name (car attached-object)))
+          (if (object *current-bullet-world* object-name)
+              (detach-object robot-object (object *current-bullet-world* object-name))
+              (setf attached-objects (remove object-name attached-objects :key #'car))))))))
 
 (defgeneric gc-attached-objects (robot-object)
   (:documentation "Removes all attached objects with an invalid world
@@ -323,9 +323,9 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
   (:method ((robot-object robot-object))
     (flet ((find-link-name (body)
              (loop for name being the hash-keys in (links robot-object)
-                   using (hash-value rb) do
-                     (when (eq body rb)
-                       (return name)))))
+                     using (hash-value rb) do
+                       (when (eq body rb)
+                         (return name)))))
       (with-slots (world) robot-object
         (let ((objects (objects world))
               (contacts nil))
@@ -432,15 +432,15 @@ current joint states"
 (defun joint-transform (joint value)
   (case (cl-urdf:joint-type joint)
     ((:revolute :continuous)
-       (cl-transforms:make-transform
-        (cl-transforms:make-3d-vector 0 0 0)
-        (cl-transforms:axis-angle->quaternion
-         (cl-urdf:axis joint)
-         (* value 1.0d0))))
+     (cl-transforms:make-transform
+      (cl-transforms:make-3d-vector 0 0 0)
+      (cl-transforms:axis-angle->quaternion
+       (cl-urdf:axis joint)
+       (* value 1.0d0))))
     (:prismatic
-       (cl-transforms:make-transform
-        (cl-transforms:v* (cl-urdf:axis joint) value)
-        (cl-transforms:make-quaternion 0 0 0 1)))
+     (cl-transforms:make-transform
+      (cl-transforms:v* (cl-urdf:axis joint) value)
+      (cl-transforms:make-quaternion 0 0 0 1)))
     (t (cl-transforms:make-transform
         (cl-transforms:make-3d-vector 0 0 0)
         (cl-transforms:make-quaternion 0 0 0 1)))))
@@ -479,8 +479,8 @@ current joint states"
                       (pose child-body)))
                    (child-body-to-its-link-transform
                      (cl-transforms:transform-inv
-                       (cl-transforms:reference-transform
-                        (cl-urdf:origin (cl-urdf:collision child-link)))))
+                      (cl-transforms:reference-transform
+                       (cl-urdf:origin (cl-urdf:collision child-link)))))
                    (map-to-child-link-transform
                      (cl-transforms:transform*
                       map-to-child-body-transform
@@ -521,9 +521,9 @@ current joint states"
 (defmethod invalidate-object :after ((obj robot-object))
   (with-slots (world links joint-states) obj
     (loop for name being the hash-keys in links
-          using (hash-value body) do
-            (setf (gethash name links)
-                  (rigid-body obj (name body))))
+            using (hash-value body) do
+              (setf (gethash name links)
+                    (rigid-body obj (name body))))
     (loop for name being the hash-keys in joint-states do
       (setf (gethash name joint-states) (or (calculate-joint-state obj name) 0.0d0)))))
 
@@ -601,7 +601,7 @@ inverse joint transform of parent's from-joint and try again."
                        0.0))
                   (cl-transforms:reference-transform current-pose))))))
             (t ;; We are at the root. Return the object's inverse pose
-               ;; multiplied with current-pose
+             ;; multiplied with current-pose
              (cl-transforms:transform*
               (cl-transforms:reference-transform (pose obj))
               (cl-transforms:reference-transform current-pose)))))))
@@ -685,7 +685,7 @@ Only one joint state changes in this situation, so only one joint state is updat
   "Loads and resizes the 3d-model. If `compound' is T we have a list of meshes, instead of one."
   (let ((model (multiple-value-list
                 (physics-utils:load-3d-model (physics-utils:parse-uri (cl-urdf:filename mesh))
-                                            :compound compound))))
+                                             :compound compound))))
     (cond ((cl-urdf:scale mesh)
            (mapcar (lambda (model-part)
                      (physics-utils:scale-3d-model model-part (cl-urdf:scale mesh)))
