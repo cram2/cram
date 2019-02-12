@@ -101,4 +101,6 @@
            ;; temporal-reasoning
            event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup
-           holds-in-world with-timeline))
+           holds-in-world with-timeline
+           ;; simple-sem-map
+           #:*mesh-path-whitelist*))
