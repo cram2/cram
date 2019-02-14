@@ -77,7 +77,15 @@ semantic map kitchen."
                            object-types)))
       objects)))
 
-
+(defun init-full-simulation (&optional (namedir "p4_island_rotated"))
+   "Spawns all the objects which are necessary for the current
+scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
+objects for debugging."
+  (roslisp-utilities:startup-ros)
+  (spawn-semantic-map)
+  (spawn-urdf-items)
+  (spawn-semantic-items)
+  (init-episode))
 
 
 #+currently-using-pr2-pick-place-demo-to-initialize-world
@@ -163,14 +171,4 @@ representing the Virtual Reality world, and how the kitchen was set up there."
                                            :urdf ,(cl-urdf:parse-urdf
                                                    (roslisp:get-param
                                                     "kitchen_description")))))))
-
- (defun init-full-simulation (&optional (namedir "p4_island_rotated"))
-   "Spawns all the objects which are necessary for the current
-scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
-objects for debugging."
-   (init-episode namedir)
-   (init-bullet-world)
-   (spawn-urdf-items)
-   (spawn-semantic-items))
-
  )
