@@ -52,8 +52,7 @@
      ;; name mappings between CRAM and KnowRob
      (:file "mapping-urdf-semantic" :depends-on ("package"))
      ;; initialisation
-     (:file "init" :depends-on ("package" "mesh-list" "utils"
-                                          "mapping-urdf-semantic"))
+     (:file "init" :depends-on ("package" "mesh-list" "mapping-urdf-semantic"))
      ;; specifies how to grasp obj
      (:file "grasping" :depends-on ("package" "queries" "mapping-urdf-semantic"))
      ;; the logic of transferring VR data onto robot, all transformations etc
@@ -64,9 +63,10 @@
      (:file "move-utils" :depends-on ("package" "mapping-urdf-semantic"
                                                 "robot-positions-calculations"))
      ;; move-to-object, pick, place and pick-and-place plans
-     (:file "plans" :depends-on ("package" "utils" "queries" "mapping-urdf-semantic"))
+     (:file "plans" :depends-on ("package" "move-utils" "queries"
+                                           "mapping-urdf-semantic"))
      ;; calling plans with correct arguments
-     (:file "plan-execution" :depends-on ("package" "plans" "utils" "queries"))
+     (:file "plan-execution" :depends-on ("package" "plans" "move-utils" "queries"))
      ;; plans for demonstrations
      (:file "demo-plans" :depends-on ("package" "queries" "plans" "plan-execution"))
      ;; only used for debugging

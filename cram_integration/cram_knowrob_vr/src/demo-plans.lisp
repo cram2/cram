@@ -3,6 +3,7 @@
 (defun demo-all-pick-place ()
   "Picks and places all objects of an episode one by one. Meaning the robot will always hold on to just one object and finish placing it before going back to picking up another one. "
   (move-urdf-objects-to-start-pose)
+  (move-semantic-objects-to-start-pose)
 
   (execute-pick-and-place 'muesli)
   (execute-pick-and-place 'milk)
