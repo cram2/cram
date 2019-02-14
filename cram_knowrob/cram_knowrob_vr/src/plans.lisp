@@ -11,7 +11,7 @@ where the robot should be looking at. This position is calculated by the
 grasp-look-pose function.
 RETURNS: Errors or a successfull movement action of the robot."
   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
-  (cpl:top-level 
+  (cpl:top-level
     (cpl:seq
       (exe:perform
        (desig:an action
@@ -30,8 +30,8 @@ RETURNS: Errors or a successfull movement action of the robot."
                  (target (desig:a location (pose ?grasping-look-pose)))))))))
 
 
-;; ---------------------------------------------------------------------------------------
-;; pick up an object function       ------------------------------------------------------
+;; ---------------------------------------------------------------------------
+;; pick up an object function       -----------------------------------------
 (defun pick-up-obj (?type)
   "Picks up an object of the given type.
 ?TYPE: The type of the object that is to be picked up.
@@ -95,15 +95,14 @@ RETURNS: The object designator of the object that has been picked up in this pla
                (desig:an action
                          (type detecting)
                          (object (desig:an object (type ?obj-name))))))
-        
+
         (print  (desig:reference
                  (desig:an action
                            (type picking-up)
                            (arm ?arm)
                            (object ?obj-desig))))
-
         ;; pick up obj
-        (exe:perform 
+        (exe:perform
          (desig:an action
                    (type picking-up)
                    (arm ?arm)
@@ -112,14 +111,8 @@ RETURNS: The object designator of the object that has been picked up in this pla
          (make-instance 'cpoe:object-attached-robot
            :object-name (desig:desig-prop-value ?obj-desig :name)
            :arm ?arm
-           :grasp :human-grasp))
-        
-        ; move to obj
-        ; (pp-plans::park-arms)
-        ))))
+           :grasp :human-grasp))))))
 
-
-;; TODO
 (defun place-object (?placing-base-pose ?placing-look-pose ?place-pose ?obj-desig)
   "A plan to place an object which is currently in one of the robots hands.
 ?PLACING-BASE-POSE: The pose the robot should stand at in order to place the
@@ -188,7 +181,6 @@ the object.
       (cpl:top-level
         (format t "start pose: ~% ~a ~% " ?grasping-base-pose)
         (format t "end pose: ~% ~a ~% " ?placing-base-pose)
-        
         ;; make sure the arms are not in the way
         (exe:perform
          (desig:an action
@@ -218,7 +210,7 @@ the object.
                            (object ?obj-desig))))
 
         ;; pick up obj
-        (exe:perform 
+        (exe:perform
          (desig:an action
                    (type picking-up)
                    (arm ?arm)
@@ -228,7 +220,6 @@ the object.
            :object-name (desig:desig-prop-value ?obj-desig :name)
            :arm ?arm
            :grasp :human-grasp))
-      
         (print (desig:a location (pose ?place-pose)))
         (print (desig:a location (pose ?placing-base-pose)))
 
@@ -243,18 +234,14 @@ the object.
                                (type going)
                                (target (desig:a location (pose ?placing-base-pose)))))
         ;; move the head to look at location
-          
-          
         (exe:perform (desig:an action
                                (type looking)
                                (target (desig:a location (pose ?placing-look-pose)))))
         ;; place obj
-        (cpl:sleep 1.0)  
+        (cpl:sleep 1.0)
         (exe:perform
          (desig:an action
                    (type placing)
                    (arm ?arm)
                    (object ?obj-desig)
                    (target (desig:a location (pose ?place-pose)))))))))
-
-
