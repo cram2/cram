@@ -28,44 +28,48 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (asdf:defsystem cram-knowrob-vr
-	:depends-on (roslisp
+	:depends-on (cram-tf
+               roslisp
                cram-language
                cram-json-prolog
                std_msgs-msg
                cl-transforms
                cl-transforms-stamped
                cl-tf
-               cram-bullet-world-tutorial
+               cram-pr2-pick-place-demo
                cram-knowrob-pick-place
-               cram-manipulation-interfaces)
+               cram-manipulation-interfaces
+               cram-semantic-map)
 	:components
 
 	((:module "src"
 	  :components
 	  ((:file "package")
-     (:file "utility-queries" :depends-on ("package"))
-     (:file "items" :depends-on ("package"))
-     (:file "openease-to-bullet" :depends-on ("package"))
-     (:file "data-manipulation" :depends-on ("package"))
      ;; whitelist of mesh files that should be used from the unreal kitchen
      (:file "mesh-list" :depends-on ("package"))
-
-     (:file "designators" :depends-on ("package" "items"))
+     ;; communication with KnowRob is implemented here
+     (:file "queries" :depends-on ("package"))
+     ;; name mappings between CRAM and KnowRob
+     (:file "mapping-urdf-semantic" :depends-on ("package"))
      ;; initialisation
-     (:file "init" :depends-on ("package" "utility-queries" "items"))
-     (:file "queries" :depends-on ("package" "data-manipulation"))
-     (:file "movement" :depends-on ("package" "designators" "queries"))
-     (:file "utils" :depends-on ("package" "items" "movement"))
-     (:file "robot-positions-calculations" :depends-on ("package" "queries"))
+     (:file "init" :depends-on ("package" "mesh-list" "utils"
+                                          "mapping-urdf-semantic"))
      ;; specifies how to grasp obj
-     (:file "grasping" :depends-on ("package" "queries" "openease-to-bullet"))
-     (:file "plans" :depends-on ("package" "designators" "utils" "queries"))
-     (:file "demo-preparation" :depends-on ("package" "utils"))
-     (:file "plan-execution" :depends-on ("package" "plans" "utils" "queries" "movement"))
+     (:file "grasping" :depends-on ("package" "queries" "mapping-urdf-semantic"))
+     ;; the logic of transferring VR data onto robot, all transformations etc
+     (:file "robot-positions-calculations" :depends-on ("package"
+                                                        "queries"
+                                                        "mapping-urdf-semantic"))
+     ;; utilities for moving objects to poses
+     (:file "move-utils" :depends-on ("package" "mapping-urdf-semantic"
+                                                "robot-positions-calculations"))
+     ;; move-to-object, pick, place and pick-and-place plans
+     (:file "plans" :depends-on ("package" "utils" "queries" "mapping-urdf-semantic"))
+     ;; calling plans with correct arguments
+     (:file "plan-execution" :depends-on ("package" "plans" "utils" "queries"))
      ;; plans for demonstrations
      (:file "demo-plans" :depends-on ("package" "queries" "plans" "plan-execution"))
-
-     (:file "gaussian" :depends-on ("package"))
-     (:file "debugging-utils" :depends-on ("package" "movement" "queries"
-                                                     "openease-to-bullet" "init"))
-     (:file "mapping-urdf-semantic" :depends-on ("package"))))))
+     ;; only used for debugging
+     (:file "debugging-utils" :depends-on ("package" "queries"
+                                                     "robot-positions-calculations"
+                                                     "init"))))))
