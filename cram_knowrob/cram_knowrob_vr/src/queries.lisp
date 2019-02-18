@@ -23,7 +23,6 @@
    "sem_map_inst(MapInst),!,marker_update(object(MapInst))."))
 
 ;;;;;;;;;;;;;;;;;;; DATA EXTRACTING QUERIES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (defun base-query (object-type)
   (concatenate 'string
                "owl_has(Obj, rdf:type, knowrob:'" object-type "'),
@@ -33,33 +32,38 @@
 
 (defun get-event-by-object-type (object-type)
   "returns the event which was performed on the given object."
-  (cut:var-value
-   '|?EventInst|
-   (cut:lazy-car
-    (json-prolog:prolog-simple
-     (concatenate 'string
-                  (base-query object-type) ".")
-     :package :kvr))))
+ (car 
+  (cut:lazy-mapcar
+   (lambda (binding-set)
+     (cut:var-value
+      '|?EventInst| binding-set))
+   (json-prolog:prolog-simple
+    (concatenate 'string (base-query object-type) ".")
+    :package :kvr))))
 
 (defun get-object-location-at-start-by-object-type (object-type)
   "returns the pose of an object at the start of the event performed on it."
-  (cram-tf:flat-list->transform
-   (cut:var-value
-    '|?PoseObjStart|
-    (cut:lazy-car
-     (json-prolog:prolog-simple
-      (concatenate 'string
-                   (base-query object-type)",
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cram-tf:flat-list->transform
+       (cut:var-value
+        '|?PoseObjStart| binding-set)))
+    (json-prolog:prolog-simple
+     (concatenate 'string
+                  (base-query object-type)",
                     iri_xml_namespace(ObjActedOnInst, _, ObjShortName),
                     actor_pose(EpInst, ObjShortName, Start, PoseObjStart).")
-      :package :kvr)))))
+     :package :kvr))))
 
 (defun get-object-location-at-end-by-object-type (object-type)
   "returns the pose of an object at the end of the event performed on it."
-  (cram-tf:flat-list->transform
-   (cut:var-value
-    '?pose
-    (cut:lazy-car
+   (car
+    (cut:lazy-mapcar
+     (lambda (binding-set)     
+       (cram-tf:flat-list->transform
+        (cut:var-value
+         '?pose binding-set)))
      (json-prolog:prolog-simple
       (concatenate 'string
                    "owl_has(Obj, rdf:type, knowrob:'" object-type "'),
@@ -68,15 +72,17 @@
                       u_occurs(EpInst, EventInst, Start, End),
                       iri_xml_namespace(ObjActedOnInst, _, ObjShortName),
                       actor_pose(EpInst, ObjShortName, End, POSE).")
-      :package :kvr)))))
+      :package :kvr))))
 
 (defun get-hand (object-type)
   "Returns which hand was used to interact with the object
 in the currently loaded episode."
   (let* ((hand
-           (cut:var-value
-            '|?HandTypeName|
-            (cut:lazy-car
+           (car
+            (cut:lazy-mapcar
+             (lambda (binding-set)
+               (cut:var-value
+                '|?HandTypeName| binding-set))
              (json-prolog:prolog-simple
               (concatenate 'string
                            (base-query object-type) ",
@@ -93,82 +99,94 @@ in the currently loaded episode."
 
 (defun get-hand-location-at-start-by-object-type (object-type)
   "returns the pose of the hand at the start of the event performed by it."
-  (cram-tf:flat-list->transform
-   (cut:var-value
-    '|?PoseHandStart|
-    (cut:lazy-car
-     (json-prolog:prolog-simple
-      (concatenate 'string
-                   (base-query object-type) ",
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cram-tf:flat-list->transform
+       (cut:var-value
+        '|?PoseHandStart| binding-set)))
+    (json-prolog:prolog-simple
+     (concatenate 'string
+                  (base-query object-type) ",
                       performed_by(EventInst, HandInst),
                       iri_xml_namespace(HandInst,_, HandInstShortName),
                       obj_type(HandInst, HandType),
                       iri_xml_namespace(HandType, _, HandTypeName),
                       actor_pose(EpInst, HandInstShortName, Start, PoseHandStart).")
-      :package :kvr)))))
+     :package :kvr))))
 
 (defun get-hand-location-at-end-by-object-type (object-type)
   "returns the pose of the hand at the end of the event performed by it."
-  (cram-tf:flat-list->transform
-   (cut:var-value
-    '|?PoseHandEnd|
-    (cut:lazy-car
-     (json-prolog:prolog-simple
-      (concatenate 'string
-                   (base-query object-type) ",
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cram-tf:flat-list->transform
+       (cut:var-value
+        '|?PoseHandEnd| binding-set)))
+    (json-prolog:prolog-simple
+     (concatenate 'string
+                  (base-query object-type) ",
                     performed_by(EventInst, HandInst),
                     iri_xml_namespace(HandInst,_, HandInstShortName),
                     obj_type(HandInst, HandType),
                     iri_xml_namespace(HandType, _, HandTypeName),
                     actor_pose(EpInst, HandInstShortName, End, PoseHandEnd).")
-      :package :kvr)))))
+     :package :kvr))))
 
 (defun get-camera-location-at-start-by-object-type (object-type)
   "returns the pose of the camera(head) at the start of the event."
-  (cram-tf:flat-list->transform
-   (cut:var-value
-    '|?PoseCameraStart|
-    (cut:lazy-car
-     (json-prolog:prolog-simple
-      (concatenate 'string
-                   (base-query object-type) ",
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cram-tf:flat-list->transform
+       (cut:var-value
+        '|?PoseCameraStart| binding-set)))
+    (json-prolog:prolog-simple
+     (concatenate 'string
+                  (base-query object-type) ",
                     obj_type(CameraInst, knowrob:'CharacterCamera'),
                     iri_xml_namespace(CameraInst, _, CameraShortName),
                     actor_pose(EpInst, CameraShortName, Start, PoseCameraStart).")
-      :package :kvr)))))
+     :package :kvr))))
 
 (defun get-camera-location-at-end-by-object-type (object-type)
   "returns the pose of the camera(head) at the end of the event."
-  (cram-tf:flat-list->transform
-   (cut:var-value
-    '|?PoseCameraEnd|
-    (cut:lazy-car
-     (json-prolog:prolog-simple
-      (concatenate 'string
-                   (base-query object-type) ",
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cram-tf:flat-list->transform
+       (cut:var-value
+        '|?PoseCameraEnd| binding-set)))
+    (json-prolog:prolog-simple
+     (concatenate 'string
+                  (base-query object-type) ",
                     obj_type(CameraInst, knowrob:'CharacterCamera'),
                     iri_xml_namespace(CameraInst, _, CameraShortName),
                     actor_pose(EpInst, CameraShortName, End, PoseCameraEnd).")
-      :package :kvr)))))
+     :package :kvr))))
 
 (defun get-table-location ()
-  (cram-tf:flat-list->transform
-   (cut:var-value
-    '|?PoseTable|
-    (cut:lazy-car
-     (json-prolog:prolog-simple
-      "ep_inst(EpInst),
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cram-tf:flat-list->transform
+       (cut:var-value
+        '|?PoseTable| binding-set)))
+    (json-prolog:prolog-simple
+     "ep_inst(EpInst),
                      u_occurs(EpInst, EventInst, Start, End),
                      obj_type(TableInst, knowrob:'IslandArea'),
                      iri_xml_namespace(TableInst, _, TableShortName),
                      actor_pose(EpInst, TableShortName, Start, PoseTable)."
-      :package :kvr)))))
+     :package :kvr))))
 
 (defun get-contact-surface-pick-name (object-type)
   "Returns the name of the object surface an object is picked up from."
-  (cut:var-value
-   '|?SurfaceShortName|
-   (cut:lazy-car
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cut:var-value
+       '|?SurfaceShortName| binding-set))
     (json-prolog:prolog-simple
      (concatenate 'string
                   "ep_inst(EpInst),
@@ -181,13 +199,15 @@ in the currently loaded episode."
 
 (defun get-contact-surface-pick-pose (object-type)
   "returns the pose of the surface an object is picked up from."
-  (cram-tf:flat-list->transform
-   (cut:var-value
-    '|?PoseSurface|
-    (cut:lazy-car
-     (json-prolog:prolog-simple
-      (concatenate 'string
-                   "ep_inst(EpInst),
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cram-tf:flat-list->transform
+       (cut:var-value
+        '|?PoseSurface| binding-set)))
+    (json-prolog:prolog-simple
+     (concatenate 'string
+                  "ep_inst(EpInst),
                       owl_has(Obj, rdf:type, knowrob:'" object-type "'),
                       event_type(EventInst, knowrob_u:'TouchingSituation'),
                       rdf_has(EventInst, knowrob_u:'inContact', Obj),
@@ -195,13 +215,15 @@ in the currently loaded episode."
                       iri_xml_namespace(Surface, _, SurfaceShortName),
                       u_occurs(EpInst, EventInst, Start, End),
                       actor_pose(EpInst, SurfaceShortName, Start, PoseSurface).")
-      :package :kvr)))))
+     :package :kvr))))
 
 (defun get-contact-surface-place-name (object-type)
   "returns the name of the object surface an object is picked up from."
-  (cut:var-value
-   '|?SurfaceShortName|
-   (cut:lazy-car
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cut:var-value
+       '|?SurfaceShortName| binding-set))
     (json-prolog:prolog-simple
      (concatenate 'string
                   "ep_inst(EpInst),
@@ -220,12 +242,14 @@ in the currently loaded episode."
 
 (defun get-contact-surface-place-pose (object-type)
   "returns the pose of the surface an object is picked up from."
-  (cram-tf:flat-list->transform
-   (cut:var-value (intern "?PoseSurface")
-                  (cut:lazy-car
-                   (json-prolog:prolog-simple
-                    (concatenate 'string
-                                 "ep_inst(EpInst),
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cram-tf:flat-list->transform
+       (cut:var-value (intern "?PoseSurface") binding-set)))
+    (json-prolog:prolog-simple
+     (concatenate 'string
+                  "ep_inst(EpInst),
                       owl_has(Obj, rdf:type, knowrob:'" object-type "'),
                       rdf_has(EventInst, knowrob:'objectActedOn', Obj),
                       rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst),
@@ -235,4 +259,4 @@ in the currently loaded episode."
                       u_occurs(EpInst, NewEvent, End, EndNew),
                       rdf_has(NewEvent, knowrob_u:'inContact', PlaceSurface),
                       iri_xml_namespace(PlaceSurface, _, SurfaceShortName),
-                      actor_pose(EpInst, SurfaceShortName, EndNew, PoseSurface)."))))))
+                      actor_pose(EpInst, SurfaceShortName, EndNew, PoseSurface).")))))
