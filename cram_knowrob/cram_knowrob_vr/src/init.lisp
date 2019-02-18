@@ -25,14 +25,21 @@ The path is individual and therefore hardcoded one"
   (load-multiple-episodes namedir-list)
   (map-marker-init))
 
-(defun load-multiple-episodes (&optional (namedir-list '("p4_island_rotated")))
+(defun load-multiple-episodes (&optional namedir-list)
+  ;;make a list of all directories of episodes and load them
+  (if (equal namedir-list nil)
+      (progn
+        (setq namedir-list
+               (mapcar #'directory-namestring
+                       (uiop:subdirectories *episode-path*)))))
+  
   (mapcar #'(lambda (namedir)
                 (u-load-episodes
                  (concatenate 'string
-                  *episode-path* namedir "/Episodes/"))
+                              namedir "Episodes/"))
               (owl-parse
                (concatenate 'string
-                            *episode-path*  namedir "/SemanticMap.owl"))
+                            namedir "SemanticMap.owl"))
               (connect-to-db "Own-Episodes_set-clean-table"))
           namedir-list))
 
