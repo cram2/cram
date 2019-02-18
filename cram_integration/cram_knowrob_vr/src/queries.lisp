@@ -1,3 +1,33 @@
+;;;
+;;; Copyright (c) 2018, Alina Hawkin <hawkin@cs.uni-bremen.de>
+;;;                      Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; All rights reserved.
+;;;
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions are met:
+;;;
+;;;     * Redistributions of source code must retain the above copyright
+;;;       notice, this list of conditions and the following disclaimer.
+;;;     * Redistributions in binary form must reproduce the above copyright
+;;;       notice, this list of conditions and the following disclaimer in the
+;;;       documentation and/or other materials provided with the distribution.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
+;;;
+;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+;;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;;; POSSIBILITY OF SUCH DAMAGE.
+
 (in-package :kvr)
 
 ;;;;;;;;;;;;;;;;;;; UTIL QUERIES USED IN INIT-EPISODE ;;;;;;;;;;;;;;;;;;;;;;;
@@ -23,58 +53,48 @@
    "sem_map_inst(MapInst),!,marker_update(object(MapInst))."))
 
 ;;;;;;;;;;;;;;;;;;; DATA EXTRACTING QUERIES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun base-query (object-type)
-  (concatenate 'string
-               "owl_has(Obj, rdf:type, knowrob:'" object-type "'),
-                rdf_has(EventInst, knowrob:'objectActedOn', Obj),
-                rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst),
-                u_occurs(EpInst, EventInst, Start, End)"))
+(defun base-query-string (object-type)
+  (concatenate
+   'string
+   "obj_type(ObjInst, knowrob:'" object-type "'),
+    ep_inst(EpInst),
+    u_occurs(EpInst, EventInst, Start, End),
+    obj_type(EventInst, knowrob:'GraspingSomething'),
+    rdf_has(EventInst, knowrob:'objectActedOn', ObjInst)"))
 
-(defun get-event-by-object-type (object-type)
+(defun query-grasping-event-by-object-type (object-type)
+  (declare (type string object-type))
   "returns the event which was performed on the given object."
- (car 
-  (cut:lazy-mapcar
-   (lambda (binding-set)
-     (cut:var-value
-      '|?EventInst| binding-set))
-   (json-prolog:prolog-simple
-    (concatenate 'string (base-query object-type) ".")
-    :package :kvr))))
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cut:var-value
+       '|?EventInst| binding-set))
+    (json-prolog:prolog-simple
+     (concatenate
+      'string
+      (base-query-string object-type) ".")
+     :package :kvr))))
 
-(defun get-object-location-at-start-by-object-type (object-type)
-  "returns the pose of an object at the start of the event performed on it."
+(defun query-object-location-by-object-type (object-type start-or-end)
+  (declare (type string object-type start-or-end))
+  "returns the pose of an object at the start of the event performed on it.
+`start-or-end' has to be either Start or End."
+  (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
   (car
    (cut:lazy-mapcar
     (lambda (binding-set)
       (cram-tf:flat-list->transform
-       (cut:var-value
-        '|?PoseObjStart| binding-set)))
+       (cut:var-value '?pose binding-set)))
     (json-prolog:prolog-simple
-     (concatenate 'string
-                  (base-query object-type)",
-                    iri_xml_namespace(ObjActedOnInst, _, ObjShortName),
-                    actor_pose(EpInst, ObjShortName, Start, PoseObjStart).")
+     (concatenate
+      'string
+      (base-query-string object-type)",
+      iri_xml_namespace(ObjInst, _, ObjShortName),
+      actor_pose(EpInst, ObjShortName, " start-or-end ", POSE).")
      :package :kvr))))
 
-(defun get-object-location-at-end-by-object-type (object-type)
-  "returns the pose of an object at the end of the event performed on it."
-   (car
-    (cut:lazy-mapcar
-     (lambda (binding-set)     
-       (cram-tf:flat-list->transform
-        (cut:var-value
-         '?pose binding-set)))
-     (json-prolog:prolog-simple
-      (concatenate 'string
-                   "owl_has(Obj, rdf:type, knowrob:'" object-type "'),
-                      rdf_has(EventInst, knowrob:'objectActedOn', Obj),
-                      rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst),
-                      u_occurs(EpInst, EventInst, Start, End),
-                      iri_xml_namespace(ObjActedOnInst, _, ObjShortName),
-                      actor_pose(EpInst, ObjShortName, End, POSE).")
-      :package :kvr))))
-
-(defun get-hand (object-type)
+(defun query-hand (object-type)
   "Returns which hand was used to interact with the object
 in the currently loaded episode."
   (let* ((hand
@@ -85,9 +105,8 @@ in the currently loaded episode."
                 '|?HandTypeName| binding-set))
              (json-prolog:prolog-simple
               (concatenate 'string
-                           (base-query object-type) ",
+                           (base-query-string object-type) ",
                             performed_by(EventInst, HandInst),
-                            iri_xml_namespace(HandInst,_, HandInstShortName),
                             obj_type(HandInst, HandType),
                             iri_xml_namespace(HandType, _, HandTypeName).")
               :package :kvr)))))
@@ -97,8 +116,10 @@ in the currently loaded episode."
             :right
             NIL))))
 
-(defun get-hand-location-at-start-by-object-type (object-type)
+(defun query-hand-location-by-object-type (object-type start-or-end)
+  (declare (type string object-type start-or-end))
   "returns the pose of the hand at the start of the event performed by it."
+  (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
   (car
    (cut:lazy-mapcar
     (lambda (binding-set)
@@ -106,35 +127,18 @@ in the currently loaded episode."
        (cut:var-value
         '|?PoseHandStart| binding-set)))
     (json-prolog:prolog-simple
-     (concatenate 'string
-                  (base-query object-type) ",
-                      performed_by(EventInst, HandInst),
-                      iri_xml_namespace(HandInst,_, HandInstShortName),
-                      obj_type(HandInst, HandType),
-                      iri_xml_namespace(HandType, _, HandTypeName),
-                      actor_pose(EpInst, HandInstShortName, Start, PoseHandStart).")
+     (concatenate
+      'string
+      (base-query-string object-type) ",
+      performed_by(EventInst, HandInst),
+      iri_xml_namespace(HandInst,_, HandInstShortName),
+      actor_pose(EpInst, HandInstShortName, " start-or-end ", PoseHandStart).")
      :package :kvr))))
 
-(defun get-hand-location-at-end-by-object-type (object-type)
-  "returns the pose of the hand at the end of the event performed by it."
-  (car
-   (cut:lazy-mapcar
-    (lambda (binding-set)
-      (cram-tf:flat-list->transform
-       (cut:var-value
-        '|?PoseHandEnd| binding-set)))
-    (json-prolog:prolog-simple
-     (concatenate 'string
-                  (base-query object-type) ",
-                    performed_by(EventInst, HandInst),
-                    iri_xml_namespace(HandInst,_, HandInstShortName),
-                    obj_type(HandInst, HandType),
-                    iri_xml_namespace(HandType, _, HandTypeName),
-                    actor_pose(EpInst, HandInstShortName, End, PoseHandEnd).")
-     :package :kvr))))
-
-(defun get-camera-location-at-start-by-object-type (object-type)
-  "returns the pose of the camera(head) at the start of the event."
+(defun query-camera-location-by-object-type (object-type start-or-end)
+  (declare (type string object-type start-or-end))
+  "returns the pose of the camera (head) at the start of the event."
+  (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
   (car
    (cut:lazy-mapcar
     (lambda (binding-set)
@@ -142,45 +146,15 @@ in the currently loaded episode."
        (cut:var-value
         '|?PoseCameraStart| binding-set)))
     (json-prolog:prolog-simple
-     (concatenate 'string
-                  (base-query object-type) ",
-                    obj_type(CameraInst, knowrob:'CharacterCamera'),
-                    iri_xml_namespace(CameraInst, _, CameraShortName),
-                    actor_pose(EpInst, CameraShortName, Start, PoseCameraStart).")
+     (concatenate
+      'string
+      (base-query-string object-type) ",
+      obj_type(CameraInst, knowrob:'CharacterCamera'),
+      iri_xml_namespace(CameraInst, _, CameraShortName),
+      actor_pose(EpInst, CameraShortName, " start-or-end ", PoseCameraStart).")
      :package :kvr))))
 
-(defun get-camera-location-at-end-by-object-type (object-type)
-  "returns the pose of the camera(head) at the end of the event."
-  (car
-   (cut:lazy-mapcar
-    (lambda (binding-set)
-      (cram-tf:flat-list->transform
-       (cut:var-value
-        '|?PoseCameraEnd| binding-set)))
-    (json-prolog:prolog-simple
-     (concatenate 'string
-                  (base-query object-type) ",
-                    obj_type(CameraInst, knowrob:'CharacterCamera'),
-                    iri_xml_namespace(CameraInst, _, CameraShortName),
-                    actor_pose(EpInst, CameraShortName, End, PoseCameraEnd).")
-     :package :kvr))))
-
-(defun get-table-location ()
-  (car
-   (cut:lazy-mapcar
-    (lambda (binding-set)
-      (cram-tf:flat-list->transform
-       (cut:var-value
-        '|?PoseTable| binding-set)))
-    (json-prolog:prolog-simple
-     "ep_inst(EpInst),
-                     u_occurs(EpInst, EventInst, Start, End),
-                     obj_type(TableInst, knowrob:'IslandArea'),
-                     iri_xml_namespace(TableInst, _, TableShortName),
-                     actor_pose(EpInst, TableShortName, Start, PoseTable)."
-     :package :kvr))))
-
-(defun get-contact-surface-pick-name (object-type)
+(defun query-contact-surface-pick-name (object-type)
   "Returns the name of the object surface an object is picked up from."
   (car
    (cut:lazy-mapcar
@@ -188,16 +162,16 @@ in the currently loaded episode."
       (cut:var-value
        '|?SurfaceShortName| binding-set))
     (json-prolog:prolog-simple
-     (concatenate 'string
-                  "ep_inst(EpInst),
-                      owl_has(Obj, rdf:type, knowrob:'" object-type "'),
-                      event_type(EventInst, knowrob_u:'TouchingSituation'),
-                      rdf_has(EventInst, knowrob_u:'inContact', Obj),
-                      rdf_has(EventInst, knowrob_u:'inContact', Surface),
-                      iri_xml_namespace(Surface, _, SurfaceShortName).")
+     (concatenate
+      'string
+      (base-query-string object-type) ",
+      event_type(TouchingEventInst, knowrob_u:'TouchingSituation'),
+      rdf_has(TouchingEventInst, knowrob_u:'inContact', ObjInst),
+      rdf_has(TouchingEventInst, knowrob_u:'inContact', Surface),
+      iri_xml_namespace(Surface, _, SurfaceShortName).")
      :package :kvr))))
 
-(defun get-contact-surface-pick-pose (object-type)
+(defun query-contact-surface-pick-transform (object-type)
   "returns the pose of the surface an object is picked up from."
   (car
    (cut:lazy-mapcar
@@ -206,18 +180,18 @@ in the currently loaded episode."
        (cut:var-value
         '|?PoseSurface| binding-set)))
     (json-prolog:prolog-simple
-     (concatenate 'string
-                  "ep_inst(EpInst),
-                      owl_has(Obj, rdf:type, knowrob:'" object-type "'),
-                      event_type(EventInst, knowrob_u:'TouchingSituation'),
-                      rdf_has(EventInst, knowrob_u:'inContact', Obj),
-                      rdf_has(EventInst, knowrob_u:'inContact', Surface),
-                      iri_xml_namespace(Surface, _, SurfaceShortName),
-                      u_occurs(EpInst, EventInst, Start, End),
-                      actor_pose(EpInst, SurfaceShortName, Start, PoseSurface).")
+     (concatenate
+      'string
+      (base-query-string object-type) ",
+      event_type(TouchingEventInst, knowrob_u:'TouchingSituation'),
+      rdf_has(TouchingEventInst, knowrob_u:'inContact', ObjInst),
+      rdf_has(TouchingEventInst, knowrob_u:'inContact', Surface),
+      iri_xml_namespace(Surface, _, SurfaceShortName),
+      u_occurs(EpInst, TouchingEventInst, Start, End),
+      actor_pose(EpInst, SurfaceShortName, Start, PoseSurface).")
      :package :kvr))))
 
-(defun get-contact-surface-place-name (object-type)
+(defun query-contact-surface-place-name (object-type)
   "returns the name of the object surface an object is picked up from."
   (car
    (cut:lazy-mapcar
@@ -225,22 +199,17 @@ in the currently loaded episode."
       (cut:var-value
        '|?SurfaceShortName| binding-set))
     (json-prolog:prolog-simple
-     (concatenate 'string
-                  "ep_inst(EpInst),
-                      owl_has(Obj, rdf:type, knowrob:'" object-type "'),
-                      rdf_has(EventInst, knowrob:'objectActedOn', Obj),
-                      rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst),
-                      u_occurs(EpInst, EventInst, Start, End),
-                      iri_xml_namespace(ObjActedOnInst, _, ObjShortName),
-                      event_type(NewEvent, knowrob_u:'TouchingSituation'),
-                      u_occurs(EpInst, NewEvent, End, EndNew),
-                      rdf_has(NewEvent, knowrob_u:'inContact', PlaceSurface),
-                      iri_xml_namespace(PlaceSurface, _, SurfaceShortName).")
+     (concatenate
+      'string
+      (base-query-string object-type) ",
+      iri_xml_namespace(ObjInst, _, ObjShortName),
+      event_type(TouchingEventInst, knowrob_u:'TouchingSituation'),
+      u_occurs(EpInst, TouchingEventInst, End, EndNew),
+      rdf_has(TouchingEventInst, knowrob_u:'inContact', PlaceSurface),
+      iri_xml_namespace(PlaceSurface, _, SurfaceShortName).")
      :package :kvr))))
 
-
-
-(defun get-contact-surface-place-pose (object-type)
+(defun query-contact-surface-place-transform (object-type)
   "returns the pose of the surface an object is picked up from."
   (car
    (cut:lazy-mapcar
@@ -248,15 +217,30 @@ in the currently loaded episode."
       (cram-tf:flat-list->transform
        (cut:var-value (intern "?PoseSurface") binding-set)))
     (json-prolog:prolog-simple
-     (concatenate 'string
-                  "ep_inst(EpInst),
-                      owl_has(Obj, rdf:type, knowrob:'" object-type "'),
-                      rdf_has(EventInst, knowrob:'objectActedOn', Obj),
-                      rdf_has(EventInst, knowrob:'objectActedOn', ObjActedOnInst),
-                      u_occurs(EpInst, EventInst, Start, End),
-                      iri_xml_namespace(ObjActedOnInst, _, ObjShortName),
-                      event_type(NewEvent, knowrob_u:'TouchingSituation'),
-                      u_occurs(EpInst, NewEvent, End, EndNew),
-                      rdf_has(NewEvent, knowrob_u:'inContact', PlaceSurface),
-                      iri_xml_namespace(PlaceSurface, _, SurfaceShortName),
-                      actor_pose(EpInst, SurfaceShortName, EndNew, PoseSurface).")))))
+     (concatenate
+      'string
+      (base-query-string object-type) ",
+      iri_xml_namespace(ObjInst, _, ObjShortName),
+      event_type(TouchingEventInst, knowrob_u:'TouchingSituation'),
+      u_occurs(EpInst, TouchingEventInst, End, EndNew),
+      rdf_has(TouchingEventInst, knowrob_u:'inContact', PlaceSurface),
+      iri_xml_namespace(PlaceSurface, _, SurfaceShortName),
+      actor_pose(EpInst, SurfaceShortName, EndNew, PoseSurface).")))))
+
+
+#+this-is-not-used
+(defun query-table-location (object-type)
+  (car
+   (cut:lazy-mapcar
+    (lambda (binding-set)
+      (cram-tf:flat-list->transform
+       (cut:var-value
+        '|?PoseTable| binding-set)))
+    (json-prolog:prolog-simple
+     (concatenate
+      'string
+      (base-query-string object-type) ",
+      obj_type(TableInst, knowrob:'IslandArea'),
+      iri_xml_namespace(TableInst, _, TableShortName),
+      actor_pose(EpInst, TableShortName, Start, PoseTable).")
+     :package :kvr))))
