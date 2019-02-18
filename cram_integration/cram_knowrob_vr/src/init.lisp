@@ -13,7 +13,7 @@
   "/home/cram/ros/episode_data/episodes/Own-Episodes/set-clean-table/"
   "path of where the episode data is located")
 
-(defun init-episode (&optional (namedir "p4_island_rotated"))
+(defun init-episode (&optional (namedir-list '("p4_island_rotated")))
   "Initializes the node and loads the episode data from knowrob via json_prolog.
 The path of the episode files is set in the *episode-path* variable.
 `namedir' is name of the episode file directory which is to be loaded.
@@ -22,14 +22,19 @@ The path is individual and therefore hardcoded one"
   (start-ros-node "cram_knowrob_vr")
   (register-ros-package "knowrob_robcog")
   (register-ros-package "knowrob_maps")
-  (u-load-episodes
-   (concatenate 'string
-                 *episode-path* namedir "/Episodes/"))
-  (owl-parse
-   (concatenate 'string
-                *episode-path*  namedir "/SemanticMap.owl"))
-  (connect-to-db "Own-Episodes_set-clean-table")
+  (load-multiple-episodes namedir-list)
   (map-marker-init))
+
+(defun load-multiple-episodes (namedir-list)
+  (mapcar #'(lambda (namedir)
+                (u-load-episodes
+                 (concatenate 'string
+                  *episode-path* namedir "/Episodes/"))
+              (owl-parse
+               (concatenate 'string
+                            *episode-path*  namedir "/SemanticMap.owl"))
+              (connect-to-db "Own-Episodes_set-clean-table"))
+          namedir-list))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; BULLET WORLD INITIALIZATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
