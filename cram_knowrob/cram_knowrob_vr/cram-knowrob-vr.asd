@@ -47,29 +47,33 @@
 	  ((:file "package")
      ;; whitelist of mesh files that should be used from the unreal kitchen
      (:file "mesh-list" :depends-on ("package"))
+     ;; initialisation
+     (:file "init" :depends-on ("package" "mesh-list"))
      ;; communication with KnowRob is implemented here
      (:file "queries" :depends-on ("package"))
      ;; name mappings between CRAM and KnowRob
      (:file "mapping-urdf-semantic" :depends-on ("package"))
-     ;; initialisation
-     (:file "init" :depends-on ("package" "mesh-list" "mapping-urdf-semantic"))
-     ;; specifies how to grasp obj
-     (:file "grasping" :depends-on ("package" "queries" "mapping-urdf-semantic"))
      ;; the logic of transferring VR data onto robot, all transformations etc
-     (:file "robot-positions-calculations" :depends-on ("package"
-                                                        "queries"
-                                                        "mapping-urdf-semantic"))
-     ;; utilities for moving objects to poses
-     (:file "move-utils" :depends-on ("package" "mapping-urdf-semantic"
-                                                "robot-positions-calculations"))
-     ;; move-to-object, pick, place and pick-and-place plans
-     (:file "plans" :depends-on ("package" "move-utils" "queries"
-                                           "mapping-urdf-semantic"))
+     (:file "query-based-calculations" :depends-on ("package"
+                                                    "queries"
+                                                    "mapping-urdf-semantic"))
+     ;; integration with grasping interface from cram_manipulation_interfaces
+     (:file "grasping" :depends-on ("package" "query-based-calculations"))
+     ;; move-to-object, pick, place and pick-and-place plans, queries for get-hand
+     (:file "plans" :depends-on ("package" "queries" "mapping-urdf-semantic"))
      ;; calling plans with correct arguments
-     (:file "plan-execution" :depends-on ("package" "plans" "move-utils" "queries"))
+     (:file "plan-execution" :depends-on ("package"
+                                          "plans" "query-based-calculations"))
+     ;; utilities for moving objects to poses for the demo-plans file
+     (:file "move-utils" :depends-on ("package"
+                                      "mapping-urdf-semantic"
+                                      "query-based-calculations"))
      ;; plans for demonstrations
-     (:file "demo-plans" :depends-on ("package" "queries" "plans" "plan-execution"))
+     (:file "demo-plans" :depends-on ("package" "plan-execution" "move-utils"))
      ;; only used for debugging
-     (:file "debugging-utils" :depends-on ("package" "queries"
-                                                     "robot-positions-calculations"
-                                                     "init"))))))
+     (:file "debugging-utils" :depends-on ("package"
+                                           "queries"
+                                           "query-based-calculations"
+                                           "init"
+                                           "move-utils"
+                                           "mapping-urdf-semantic"))))))

@@ -1,3 +1,33 @@
+;;;
+;;; Copyright (c) 2018, Alina Hawkin <hawkin@cs.uni-bremen.de>
+;;;                      Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; All rights reserved.
+;;;
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions are met:
+;;;
+;;;     * Redistributions of source code must retain the above copyright
+;;;       notice, this list of conditions and the following disclaimer.
+;;;     * Redistributions in binary form must reproduce the above copyright
+;;;       notice, this list of conditions and the following disclaimer in the
+;;;       documentation and/or other materials provided with the distribution.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
+;;;
+;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+;;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;;; POSSIBILITY OF SUCH DAMAGE.
+
 ;;; initializes the episode data by connecting to OpenEase and loads the Episode data within OpenEase
 ;;; contains paths to the Episode data and SemanticMap
 ;;; which might need to be adjusted, if other episode data is to be loaded. 
@@ -13,6 +43,18 @@
   "/home/cram/ros/episode_data/episodes/Own-Episodes/set-clean-table/"
   "path of where the episode data is located")
 
+(defun load-multiple-episodes (&optional namedir-list)
+  ;;make a list of all directories of episodes and load them
+  (unless namedir-list
+    (setf namedir-list
+          (mapcar #'directory-namestring
+                  (uiop:subdirectories *episode-path*))))
+  (mapcar #'(lambda (namedir)
+              (u-load-episodes (concatenate 'string namedir "Episodes/"))
+              (owl-parse (concatenate 'string namedir "SemanticMap.owl"))
+              (connect-to-db "Own-Episodes_set-clean-table"))
+          namedir-list))
+
 (defun init-episode (&optional (namedir-list '("p4_island_rotated")))
   "Initializes the node and loads the episode data from knowrob via json_prolog.
 The path of the episode files is set in the *episode-path* variable.
@@ -24,24 +66,6 @@ The path is individual and therefore hardcoded one"
   (register-ros-package "knowrob_maps")
   (load-multiple-episodes namedir-list)
   (map-marker-init))
-
-(defun load-multiple-episodes (&optional namedir-list)
-  ;;make a list of all directories of episodes and load them
-  (if (equal namedir-list nil)
-      (progn
-        (setq namedir-list
-               (mapcar #'directory-namestring
-                       (uiop:subdirectories *episode-path*)))))
-  
-  (mapcar #'(lambda (namedir)
-                (u-load-episodes
-                 (concatenate 'string
-                              namedir "Episodes/"))
-              (owl-parse
-               (concatenate 'string
-                            namedir "SemanticMap.owl"))
-              (connect-to-db "Own-Episodes_set-clean-table"))
-          namedir-list))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; BULLET WORLD INITIALIZATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
