@@ -25,7 +25,7 @@ The path is individual and therefore hardcoded one"
   (load-multiple-episodes namedir-list)
   (map-marker-init))
 
-(defun load-multiple-episodes (namedir-list)
+(defun load-multiple-episodes (&optional (namedir-list '("p4_island_rotated")))
   (mapcar #'(lambda (namedir)
                 (u-load-episodes
                  (concatenate 'string
