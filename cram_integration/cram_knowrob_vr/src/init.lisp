@@ -82,10 +82,10 @@ semantic map kitchen."
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
   (roslisp-utilities:startup-ros)
+  (init-episode)
   (spawn-semantic-map)
   (spawn-urdf-items)
-  (spawn-semantic-items)
-  (init-episode))
+  (spawn-semantic-items))
 
 
 #+currently-using-pr2-pick-place-demo-to-initialize-world
