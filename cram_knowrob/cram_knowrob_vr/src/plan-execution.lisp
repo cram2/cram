@@ -37,21 +37,11 @@ TYPE: the given type of an object on which the pick and place action should be
 executed.
 RETURNS: "
   (transport
-   (cl-transforms-stamped:pose->pose-stamped
-    cram-tf:*fixed-frame* 0.0
-    (map-T-camera->map-P-base (umap-T-ucamera-through-object type "Start")))
-   (cl-transforms-stamped:pose->pose-stamped
-    cram-tf:*fixed-frame* 0.0
-    (umap-P-uobj-through-surface type "Start"))
-   (cl-transforms-stamped:pose->pose-stamped
-    cram-tf:*fixed-frame* 0.0
-    (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "End")))
-   (cl-transforms-stamped:pose->pose-stamped
-    cram-tf:*fixed-frame* 0.0
-    (umap-P-uobj-through-surface type "End"))
-   (cl-transforms-stamped:pose->pose-stamped
-    cram-tf:*fixed-frame* 0.0
-    (umap-P-uobj-through-surface type "End"))
+   (map-T-camera->map-P-base (umap-T-ucamera-through-object type "Start"))
+   (umap-P-uobj-through-surface type "Start")
+   (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "End"))
+   (umap-P-uobj-through-surface type "End")
+   (umap-P-uobj-through-surface type "End")
    type))
 
 (defun execute-pick-up-object (type)
@@ -60,12 +50,8 @@ TYPE: The type of the object. Could be 'muesli or 'cup etc. The name is internal
 set to CupEcoOrange in a string.
 RETURNS:"
   (fetch-object
-   (cl-transforms-stamped:pose->pose-stamped
-    cram-tf:*fixed-frame* 0.0
-    (map-T-camera->map-P-base (umap-T-ucamera-through-object type "Start")))
-   (cl-transforms-stamped:pose->pose-stamped
-    cram-tf:*fixed-frame* 0.0
-    (umap-P-uobj-through-surface type "Start"))
+   (map-T-camera->map-P-base (umap-T-ucamera-through-object type "Start"))
+   (umap-P-uobj-through-surface type "Start")
    type))
 
 (defun execute-place-object (?obj-desig type)
@@ -75,15 +61,9 @@ object.
 ?OBJ-DESIG: The object designator of the object the robot is currently holding
 and which should be placed down."
   (place-object
-   (cl-transforms-stamped:pose->pose-stamped
-    cram-tf:*fixed-frame* 0.0
-    (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "End")))
-   (cl-transforms-stamped:pose->pose-stamped
-    cram-tf:*fixed-frame* 0.0
-    (umap-P-uobj-through-surface type "End"))
-   (cl-transforms-stamped:pose->pose-stamped
-    cram-tf:*fixed-frame* 0.0
-    (umap-P-uobj-through-surface type "End"))
+   (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "End"))
+   (umap-P-uobj-through-surface type "End")
+   (umap-P-uobj-through-surface type "End")
    ;; (cram-projection::projection-environment-result-result ?obj-desig)
    ?obj-desig))
 
@@ -93,17 +73,9 @@ grasp the object or in order to place it."
   (ecase event-time
     (:start
      (move-to-object
-      (cl-transforms-stamped:pose->pose-stamped
-       cram-tf:*fixed-frame* 0.0
-       (map-T-camera->map-P-base (umap-T-ucamera-through-object type "Start")))
-      (cl-transforms-stamped:pose->pose-stamped
-       cram-tf:*fixed-frame* 0.0
-       (umap-P-uobj-through-surface type "Start"))))
+      (map-T-camera->map-P-base (umap-T-ucamera-through-object type "Start"))
+      (umap-P-uobj-through-surface type "Start")))
     (:end
      (move-to-object
-      (cl-transforms-stamped:pose->pose-stamped
-       cram-tf:*fixed-frame* 0.0
-       (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "End")))
-      (cl-transforms-stamped:pose->pose-stamped
-       cram-tf:*fixed-frame* 0.0
-       (umap-P-uobj-through-surface type "End"))))))
+      (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "End"))
+      (umap-P-uobj-through-surface type "End")))))

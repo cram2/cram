@@ -65,24 +65,31 @@ RETURNS: A pose stamped for the robot base."
 
 (defun umap-P-uobj-through-surface (type start-or-end)
   "Clauclates the placing pose of the object relative to its supporting surface.
-Formula: umap-P-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
+Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 `type' is a simple symbol such as 'milk."
   (let* ((prolog-type
            (object-type-filter-prolog type))
-         (smap-T-ssurface
-           (query-contact-surface-place-transform prolog-type))
          (umap-T-usurface
            (cl-transforms:pose->transform
             (btr:pose
              (btr:rigid-body
               (btr:get-environment-object)
-              (match-kitchens (query-contact-surface-place-name prolog-type))))))
+              (match-kitchens
+               (query-contact-surface-name prolog-type start-or-end))))))
+         (smap-T-ssurface
+           (query-contact-surface-transform prolog-type start-or-end))
+         (smap-T-sobj
+           (query-object-location-by-object-type prolog-type start-or-end))
          (place-transform ; calculate place pose relative to bullet table
            (cl-transforms:transform*
             umap-T-usurface
             (cl-transforms:transform-inv smap-T-ssurface)
-            (query-object-location-by-object-type prolog-type start-or-end))))
-    (cl-transforms:transform->pose place-transform)))
+            smap-T-sobj)))
+    (cl-transforms-stamped:make-pose-stamped
+     cram-tf:*fixed-frame*
+     0.0
+     (cl-transforms:translation place-transform)
+     (cl-transforms:rotation place-transform))))
 
 
 (defun umap-T-ucamera-through-surface (type time)
@@ -96,13 +103,9 @@ Formula: umap-T-ucamera = umap-T-usurface * inv(smap-T-ssurface) * smap-T-scamer
              (btr:rigid-body
               (btr:get-environment-object)
               (match-kitchens
-               (if (equal time "Start")
-                   (query-contact-surface-pick-name prolog-type)
-                   (query-contact-surface-place-name prolog-type)))))))
+               (query-contact-surface-name prolog-type time))))))
          (smap-T-ssurface
-           (if (equal time "Start")
-               (query-contact-surface-pick-transform prolog-type)
-               (query-contact-surface-place-transform prolog-type)))
+           (query-contact-surface-transform prolog-type time))
          (smap-T-scamera (query-camera-location-by-object-type prolog-type time))
          (umap-T-ucamera
            (cl-transforms:transform*

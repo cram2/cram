@@ -154,13 +154,19 @@ in the currently loaded episode."
       actor_pose(EpInst, CameraShortName, " start-or-end ", PoseCameraStart).")
      :package :kvr))))
 
-(defun query-contact-surface-pick-name (object-type)
+(defun query-contact-surface-name (object-type start-or-end)
+  (declare (type string object-type start-or-end))
   "Returns the name of the object surface an object is picked up from."
+  (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
   (car
    (cut:lazy-mapcar
     (lambda (binding-set)
-      (cut:var-value
-       '|?SurfaceShortName| binding-set))
+      (cut:var-value '|?SurfaceShortName| binding-set))
+    ;; one could drop the object into the air,
+    ;; such that the contact would only happen at (End + 1 second) or so
+    ;; therefore, we calculate EndWithOffset to compare with that one
+    ;; for readability we also create StartWithOffset
+    ;; although it's the same as Start   (json-prolog:prolog-simple
     (json-prolog:prolog-simple
      (concatenate
       'string
@@ -168,17 +174,28 @@ in the currently loaded episode."
       event_type(TouchingEventInst, knowrob_u:'TouchingSituation'),
       rdf_has(TouchingEventInst, knowrob_u:'inContact', ObjInst),
       rdf_has(TouchingEventInst, knowrob_u:'inContact', Surface),
+      u_occurs(EpInst, TouchingEventInst, TouchStart, TouchEnd),
+      StartWithOffset = Start,
+      time_term(End, EndSeconds),
+      EndWithOffset is EndSeconds + 1,
+      time_between(" start-or-end "WithOffset, TouchStart, TouchEnd),
       iri_xml_namespace(Surface, _, SurfaceShortName).")
      :package :kvr))))
 
-(defun query-contact-surface-pick-transform (object-type)
-  "returns the pose of the surface an object is picked up from."
+(defun query-contact-surface-transform (object-type start-or-end)
+  (declare (type string object-type start-or-end))
+  "Returns the name of the object surface an object is picked up from."
+  (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
   (car
    (cut:lazy-mapcar
     (lambda (binding-set)
       (cram-tf:flat-list->transform
-       (cut:var-value
-        '|?PoseSurface| binding-set)))
+       (cut:var-value '|?PoseSurface| binding-set)))
+    ;; one could drop the object into the air,
+    ;; such that the contact would only happen at (End + 1 second) or so
+    ;; therefore, we calculate EndWithOffset to compare with that one
+    ;; for readability we also create StartWithOffset
+    ;; although it's the same as Start
     (json-prolog:prolog-simple
      (concatenate
       'string
@@ -186,46 +203,14 @@ in the currently loaded episode."
       event_type(TouchingEventInst, knowrob_u:'TouchingSituation'),
       rdf_has(TouchingEventInst, knowrob_u:'inContact', ObjInst),
       rdf_has(TouchingEventInst, knowrob_u:'inContact', Surface),
+      u_occurs(EpInst, TouchingEventInst, TouchStart, TouchEnd),
+      StartWithOffset = Start,
+      time_term(End, EndSeconds),
+      EndWithOffset is EndSeconds + 1,
+      time_between(" start-or-end "WithOffset, TouchStart, TouchEnd),
       iri_xml_namespace(Surface, _, SurfaceShortName),
-      u_occurs(EpInst, TouchingEventInst, Start, End),
-      actor_pose(EpInst, SurfaceShortName, Start, PoseSurface).")
+      actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", PoseSurface)." )
      :package :kvr))))
-
-(defun query-contact-surface-place-name (object-type)
-  "returns the name of the object surface an object is picked up from."
-  (car
-   (cut:lazy-mapcar
-    (lambda (binding-set)
-      (cut:var-value
-       '|?SurfaceShortName| binding-set))
-    (json-prolog:prolog-simple
-     (concatenate
-      'string
-      (base-query-string object-type) ",
-      iri_xml_namespace(ObjInst, _, ObjShortName),
-      event_type(TouchingEventInst, knowrob_u:'TouchingSituation'),
-      u_occurs(EpInst, TouchingEventInst, End, EndNew),
-      rdf_has(TouchingEventInst, knowrob_u:'inContact', PlaceSurface),
-      iri_xml_namespace(PlaceSurface, _, SurfaceShortName).")
-     :package :kvr))))
-
-(defun query-contact-surface-place-transform (object-type)
-  "returns the pose of the surface an object is picked up from."
-  (car
-   (cut:lazy-mapcar
-    (lambda (binding-set)
-      (cram-tf:flat-list->transform
-       (cut:var-value (intern "?PoseSurface") binding-set)))
-    (json-prolog:prolog-simple
-     (concatenate
-      'string
-      (base-query-string object-type) ",
-      iri_xml_namespace(ObjInst, _, ObjShortName),
-      event_type(TouchingEventInst, knowrob_u:'TouchingSituation'),
-      u_occurs(EpInst, TouchingEventInst, End, EndNew),
-      rdf_has(TouchingEventInst, knowrob_u:'inContact', PlaceSurface),
-      iri_xml_namespace(PlaceSurface, _, SurfaceShortName),
-      actor_pose(EpInst, SurfaceShortName, EndNew, PoseSurface).")))))
 
 
 #+this-is-not-used
