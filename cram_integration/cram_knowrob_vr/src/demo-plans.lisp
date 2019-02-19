@@ -35,9 +35,9 @@
     (move-urdf-objects-to-start-pose)
     (move-semantic-objects-to-start-pose)
 
+    (execute-pick-and-place 'cup)
     (execute-pick-and-place 'muesli)
     (execute-pick-and-place 'milk)
-    (execute-pick-and-place 'cup)
     (execute-pick-and-place 'bowl)
     (execute-pick-and-place 'fork)))
 

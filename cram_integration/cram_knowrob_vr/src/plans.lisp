@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Alina Hawkin <hawkin@cs.uni-bremen.de>
+;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,82 +30,103 @@
 
 (in-package :kvr)
 
-(defun move-to-object (?grasping-base-pose ?grasping-look-pose)
+(defun navigate-and-look (?base-poses ?look-poses)
   "Moves the robot into the position which the human had when interacting
 with an object. The robot is placed at the spot where the human was standing and
 is looking at the spot where the object was in Virtual Reality.
-?GRASPING-BASE-POSE: The position for the robot base. Aka, where the human feet
-were.
-This transform is calculated by map-T-camera->map-P-base function
-?GRASPING-LOOK-POSE: The position which the object had in Virtual Reality, and
-where the robot should be looking at. This position is calculated by the
-grasp-look-pose function.
+`?base-pose': The position for the robot base. Aka, where the human feet were.
+`?look-pose': The position which the object had in Virtual Reality, and
+where the robot should be looking at.
 RETURNS: Errors or a successfull movement action of the robot."
+
   ;; park arms
   (exe:perform
    (desig:an action
              (type positioning-arm)
              (left-configuration park)
              (right-configuration park)))
+
   ;; move the robot to specified base location
-  (exe:perform
-   (desig:an action
-             (type going)
-             (target (desig:a location (pose ?grasping-base-pose)))))
-  ;; move the head to look at specified location (most probably that of an obj)
-  (exe:perform
-   (desig:an action
-             (type looking)
-             (target (desig:a location (pose ?grasping-look-pose))))))
+  ;; pick one of the base-poses from the lazy list
+  (let ((?base-pose (cut:lazy-car ?base-poses)))
+
+    ;; if the going action fails, pick another base-pose from the lazy list
+    (cpl:with-failure-handling
+        ((common-fail:navigation-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans navigate) "Navigation failed. Next solution.")
+           (setf ?base-poses (cut:lazy-cdr ?base-poses))
+           (setf ?base-pose (cut:lazy-car ?base-poses))
+           (cpl:retry)))
+
+      ;; do the going
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location (pose ?base-pose))))))
+
+    ;; move the head to look at specified location (most probably that of an obj)
+    ;; pick one looking target
+    (let ((?look-pose (cut:lazy-car ?look-poses)))
+
+      ;; do the looking
+      (exe:perform
+       (desig:an action
+                 (type looking)
+                 (target (desig:a location (pose ?look-pose))))))))
 
 
-(defun pick-up-object (?type)
+(defun detect-navigate-and-pick-up (?pick-base-pose ?type)
   "Picks up an object of the given type.
 `?type' is the type of the object that is to be picked up as a simple symbol.
 RETURNS: Errors or an object designator of picked up object"
   (let* ((?obj-type (object-type-filter-prolog ?type))
          (?arm (query-hand ?obj-type)))
     ;; perceive
+    (exe:perform
+     (desig:an action
+               (type detecting)
+               (object (desig:an object (type ?obj-type)))))
+    ;; drive closer
+    (exe:perform
+     (desig:an action
+               (type going)
+               (target (desig:a location (pose ?pick-base-pose)))))
+    ;; reperceive from pick-up position
     (let ((?obj-desig
             (exe:perform
              (desig:an action
                        (type detecting)
                        (object (desig:an object (type ?obj-type)))))))
-      ;; print picking up resolved
-      (roslisp:ros-info (kvr pick-up-object)
-                        "picking-up action got referenced to ~a"
-                        (desig:reference
-                         (desig:an action
-                                   (type picking-up)
-                                   (arm ?arm)
-                                   (object ?obj-desig))))
-      ;; pick up
-      (exe:perform
-       (desig:an action
-                 (type picking-up)
-                 (arm ?arm)
-                 (object ?obj-desig)))
-      ;; assert attachment
-      (cram-occasions-events:on-event
-       (make-instance 'cpoe:object-attached-robot
-         :object-name (desig:desig-prop-value ?obj-desig :name)
-         :arm ?arm
-         :grasp :human-grasp))
+     ;; print picking up resolved
+     (roslisp:ros-info (kvr plans)
+                       "picking-up action got referenced to ~a"
+                       (desig:reference
+                        (desig:an action
+                                  (type picking-up)
+                                  (arm ?arm)
+                                  (grasp human-grasp)
+                                  (object ?obj-desig))))
+     ;; pick up
+     (exe:perform
+      (desig:an action
+                (type picking-up)
+                (arm ?arm)
+                (grasp human-grasp)
+                (object ?obj-desig)))
 
-      ?obj-desig)))
+     ?obj-desig)))
 
 
-(defun fetch-object (?grasping-base-pose ?grasping-look-pose ?type)
+(defun fetch-object (?searching-base-poses ?searching-look-poses
+                     ?grasping-base-poses ?type)
   "A plan to fetch an object.
 ?GRASPING-BASE-POSE: The pose at which the human stood to pick up the object.
 ?GRASPING-LOOK-POSE: The pose at which the object was standing when picked up,
 and at which the robot will look for it.
 ?TYPE: the type of the object the robot should look for and which to pick up.
 RETURNS: The object designator of the object that has been picked up in this plan."
-  ;; navigate
-  (move-to-object ?grasping-base-pose ?grasping-look-pose)
-  ;; pick up
-  (pick-up-object ?type))
+  (navigate-and-look ?searching-base-poses ?searching-look-poses)
+  (detect-navigate-and-pick-up ?grasping-base-poses ?type))
 
 (defun deliver-object (?placing-base-pose ?placing-look-pose ?place-pose ?obj-desig)
   "A plan to place an object which is currently in one of the robots hands.
@@ -121,7 +143,7 @@ holds in his hand and which is to be placed."
                 (object-type-filter-prolog
                  (desig:desig-prop-value ?obj-desig :type)))))
     ;; navigate
-    (move-to-object ?placing-base-pose ?placing-look-pose)
+    (navigate-and-look ?placing-base-pose ?placing-look-pose)
     ;; place obj
     (exe:perform
      (desig:an action
@@ -136,8 +158,8 @@ holds in his hand and which is to be placed."
                (left-configuration park)
                (right-configuration park)))))
 
-(defun transport (?grasping-base-pose ?grasping-look-pose
-                  ?placing-base-pose ?placing-look-pose ?place-pose ?type)
+(defun transport (?searching-base-poses ?searching-look-poses ?grasping-base-poses
+                  ?placing-base-poses ?placing-look-poses ?place-poses ?type)
   "Picks up and object and places it down based on Virtual Reality data.
 ?GRASPING-BASE-POSE: The pose the robot should stand at, in order to be able to
 grasp the object.
@@ -151,7 +173,8 @@ the object.
 ?TYPE: The type of the object the robot should interact with."
   ;; fetch the object
   (let ((?obj-desig (fetch-object
-                     ?grasping-base-pose ?grasping-look-pose ?type)))
+                     ?searching-base-poses ?searching-look-poses ?grasping-base-poses
+                     ?type)))
     ;; deliver the object
     (deliver-object
-     ?placing-base-pose ?placing-look-pose ?place-pose ?obj-desig)))
+     ?placing-base-poses ?placing-look-poses ?place-poses ?obj-desig)))

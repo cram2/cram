@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Alina Hawkin <hawkin@cs.uni-bremen.de>
+;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -35,11 +36,12 @@ The positions of where the robot looks for the object and where he is placing
 it down are the ones extracted from Virtual Reality.
 `type' is a simple symbol for the type of the object to transport, e.g., 'milk."
   (transport
-   (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "Start"))
-   (umap-P-uobj-through-surface type "Start")
-   (map-T-camera->map-P-base (umap-T-ucamera-through-object type "End"))
-   (umap-P-uobj-through-surface type "End")
-   (umap-P-uobj-through-surface type "End")
+   (base-poses-ll-for-searching type)
+   (look-poses-ll-for-searching type)
+   (car (base-poses-ll-for-picking-up type))
+   (car (base-poses-ll-for-placing type))
+   (car (look-poses-ll-for-placing type))
+   (car (object-poses-ll-for-placing type))
    type))
 
 (defun execute-pick-up-object (type)
@@ -47,8 +49,9 @@ it down are the ones extracted from Virtual Reality.
 TYPE: The type of the object. Could be 'muesli or 'cup etc. The name is internally
 set to CupEcoOrange in a string."
   (fetch-object
-   (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "Start"))
-   (umap-P-uobj-through-surface type "Start")
+   (base-poses-ll-for-searching type)
+   (look-poses-ll-for-searching type)
+   (base-poses-ll-for-picking-up type)
    type))
 
 (defun execute-place-object (?obj-desig type)
@@ -57,9 +60,9 @@ held in hand object. The placing pose is the one used in VR for that kind of obj
 ?OBJ-DESIG: The object designator of the object the robot is currently holding
 and which should be placed down."
   (place-object
-   (map-T-camera->map-P-base (umap-T-ucamera-through-object type "End"))
-   (umap-P-uobj-through-surface type "End")
-   (umap-P-uobj-through-surface type "End")
+   (base-poses-ll-for-placing type)
+   (look-poses-ll-for-placing type)
+   (object-poses-ll-for-placing type)
    ;; (cram-projection::projection-environment-result-result ?obj-desig)
    ?obj-desig))
 
@@ -68,10 +71,10 @@ and which should be placed down."
 grasp the object or in order to place it."
   (ecase event-time
     (:start
-     (move-to-object
-      (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "Start"))
-      (umap-P-uobj-through-surface type "Start")))
+     (navigate-and-look
+      (base-poses-ll-for-searching type)
+      (look-poses-ll-for-searching type)))
     (:end
-     (move-to-object
-      (map-T-camera->map-P-base (umap-T-ucamera-through-object type "End"))
-      (umap-P-uobj-through-surface type "End")))))
+     (navigate-and-look
+      (base-poses-ll-for-placing type)
+      (look-poses-ll-for-placing type)))))
