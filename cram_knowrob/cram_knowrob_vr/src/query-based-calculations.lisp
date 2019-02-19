@@ -1,6 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Alina Hawkin <hawkin@cs.uni-bremen.de>
-;;;                      Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -63,82 +63,120 @@ RETURNS: A pose stamped for the robot base."
      base-origin
      base-orientation)))
 
-(defun umap-P-uobj-through-surface (type start-or-end)
-  "Clauclates the placing pose of the object relative to its supporting surface.
+(defun umap-P-uobj-through-surface-ll (type start-or-end)
+  "This pose is mostly used for PLACING,
+i.e. the placing pose of the object relative to its supporting surface.
 Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 `type' is a simple symbol such as 'milk."
-  (let* ((prolog-type
-           (object-type-filter-prolog type))
-         (umap-T-usurface
-           (cl-transforms:pose->transform
-            (btr:pose
-             (btr:rigid-body
-              (btr:get-environment-object)
-              (match-kitchens
-               (query-contact-surface-name prolog-type start-or-end))))))
-         (smap-T-ssurface
-           (query-contact-surface-transform prolog-type start-or-end))
-         (smap-T-sobj
-           (query-object-location-by-object-type prolog-type start-or-end))
-         (place-transform ; calculate place pose relative to bullet table
-           (cl-transforms:transform*
-            umap-T-usurface
-            (cl-transforms:transform-inv smap-T-ssurface)
-            smap-T-sobj)))
-    (cl-transforms-stamped:make-pose-stamped
-     cram-tf:*fixed-frame*
-     0.0
-     (cl-transforms:translation place-transform)
-     (cl-transforms:rotation place-transform))))
+  (let ((name-and-surface-T-object-ll
+           (query-name-and-surface-T-object-by-object-type
+            (object-type-filter-prolog type)
+            start-or-end)))
+    (cut:lazy-mapcar
+     (lambda (name-and-surface-T-object)
+       (let* ((surface-name
+                (car name-and-surface-T-object))
+              (ssurface-T-sobject
+                (cdr name-and-surface-T-object))
+              (umap-T-usurface
+                (cl-transforms:pose->transform
+                 (btr:pose
+                  (btr:rigid-body
+                   (btr:get-environment-object)
+                   (match-kitchens surface-name)))))
+              (umap-T-uobj
+                (cl-transforms:transform*
+                 umap-T-usurface ssurface-T-sobject)))
+         (cl-transforms-stamped:make-pose-stamped
+          cram-tf:*fixed-frame*
+          0.0
+          (cl-transforms:translation umap-T-uobj)
+          (cl-transforms:rotation umap-T-uobj))))
+     name-and-surface-T-object-ll)))
 
 
-(defun umap-T-ucamera-through-surface (type time)
-  "Calculates the transform of robot 'camera' in map based on supporting surface.
-Formula: umap-T-ucamera = umap-T-usurface * inv(smap-T-ssurface) * smap-T-scamera."
+(defun umap-T-ucamera-through-surface-ll (type time)
+  "This pose is mostly used for SEARCHING, i.e.
+pose of the robot's 'camera' in map relative to object supporting surface.
+Formula: umap-T-ucamera = umap-T-usurface * inv(smap-T-ssurface) * smap-T-scamera
+                        = umap-T-usurface * ssurface-T-scamera."
   (assert (or (equal time "Start") (equal time "End")))
-  (let* ((prolog-type (object-type-filter-prolog type))
-         (umap-T-usurface
-           (cl-transforms:pose->transform
-            (btr:pose
-             (btr:rigid-body
-              (btr:get-environment-object)
-              (match-kitchens
-               (query-contact-surface-name prolog-type time))))))
-         (smap-T-ssurface
-           (query-contact-surface-transform prolog-type time))
-         (smap-T-scamera
-           (query-camera-location-by-object-type prolog-type time))
-         (umap-T-ucamera
-           (cl-transforms:transform*
-            umap-T-usurface
-            (cl-transforms:transform-inv smap-T-ssurface)
-            smap-T-scamera)))
-    umap-T-ucamera))
+  (let ((name-and-surface-T-camera-ll
+          (query-name-and-surface-T-camera-by-object-type
+           (object-type-filter-prolog type)
+           time)))
+    (cut:lazy-mapcar
+     (lambda (name-and-surface-T-camera)
+       (let* ((surface-name
+                (car name-and-surface-T-camera))
+              (ssurface-T-scamera
+                (cdr name-and-surface-T-camera))
+              (umap-T-usurface
+                (cl-transforms:pose->transform
+                 (btr:pose
+                  (btr:rigid-body
+                   (btr:get-environment-object)
+                   (match-kitchens surface-name)))))
+              (umap-T-ucamera
+                (cl-transforms:transform*
+                 umap-T-usurface ssurface-T-scamera)))
+         umap-T-ucamera))
+     name-and-surface-T-camera-ll)))
 
-(defun umap-T-ucamera-through-object (type time)
-  "Calculates the transform urdfmap T camera going through object location.
-umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera"
+
+(defun umap-T-ucamera-through-object-ll (type time)
+  "This pose is mostly used for REACHING, i.e.
+pose of the robot's 'camera' in map relative to object location.
+Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
+                        = umap-T-uobj * sobj-T-scamera."
   (assert (or (equal time "Start") (equal time "End")))
-  (let* ((umap-T-uobj
+  (let* ((sobj-T-scamera-lazy-list
+           (query-object-T-camera-by-object-type
+            (object-type-filter-prolog type)
+            time))
+         (umap-T-uobj
            (cl-transforms:pose->transform
             (btr:pose
              (btr:object btr:*current-bullet-world*
-                         (object-type-filter-bullet type)))))
-         (prolog-type (object-type-filter-prolog type))
-         (smap-T-sobj
-           (if (eql time :start)
-               (query-object-location-by-object-type prolog-type "Start")
-               (query-object-location-by-object-type prolog-type "End")))
-         (smap-T-scamera
-           (if (eql time :start)
-               (query-camera-location-by-object-type prolog-type "Start")
-               (query-camera-location-by-object-type prolog-type "End")))
-         (umap-T-ucamera
-           (cl-transforms:transform*
-            umap-T-uobj
-            (cl-transforms:transform-inv smap-T-sobj)
-            smap-T-scamera)))
-    umap-T-ucamera))
+                         (object-type-filter-bullet type))))))
+    (cut:lazy-mapcar (lambda (sobj-T-scamera)
+                       (cl-transforms:transform*
+                        umap-T-uobj sobj-T-scamera))
+                     sobj-T-scamera-lazy-list)))
+
+
+(defun base-poses-ll-for-searching (type)
+  (let ((umap-T-ucamera-ll
+          (umap-T-ucamera-through-surface-ll type "Start")))
+    (cut:lazy-mapcar
+     (lambda (umap-T-ucamera)
+       (map-T-camera->map-P-base umap-T-ucamera))
+     umap-T-ucamera-ll)))
+
+(defun base-poses-ll-for-picking-up (type)
+  (let ((umap-T-ucamera-ll
+          (umap-T-ucamera-through-object-ll type "Start")))
+    (cut:lazy-mapcar
+     (lambda (umap-T-ucamera)
+       (map-T-camera->map-P-base umap-T-ucamera))
+     umap-T-ucamera-ll)))
+
+(defun base-poses-ll-for-placing (type)
+  (let ((umap-T-ucamera-ll
+          (umap-T-ucamera-through-object-ll type "End")))
+    (cut:lazy-mapcar
+     (lambda (umap-T-ucamera)
+       (map-T-camera->map-P-base umap-T-ucamera))
+     umap-T-ucamera-ll)))
+
+(defun look-poses-ll-for-searching (type)
+  (umap-P-uobj-through-surface-ll type "Start"))
+
+(defun look-poses-ll-for-placing (type)
+  (umap-P-uobj-through-surface-ll type "End"))
+
+(defun object-poses-ll-for-placing (type)
+  (umap-P-uobj-through-surface-ll type "End"))
 
 
 

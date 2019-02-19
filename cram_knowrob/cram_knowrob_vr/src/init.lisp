@@ -55,7 +55,7 @@
               (connect-to-db "Own-Episodes_set-clean-table"))
           namedir-list))
 
-(defun init-episode (&optional (namedir-list '("p4_island_rotated")))
+(defun init-episode (&optional namedir-list)
   "Initializes the node and loads the episode data from knowrob via json_prolog.
 The path of the episode files is set in the *episode-path* variable.
 `namedir' is name of the episode file directory which is to be loaded.
