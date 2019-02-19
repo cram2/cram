@@ -106,12 +106,13 @@ Formula: umap-T-ucamera = umap-T-usurface * inv(smap-T-ssurface) * smap-T-scamer
                (query-contact-surface-name prolog-type time))))))
          (smap-T-ssurface
            (query-contact-surface-transform prolog-type time))
-         (smap-T-scamera (query-camera-location-by-object-type prolog-type time))
+         (smap-T-scamera
+           (query-camera-location-by-object-type prolog-type time))
          (umap-T-ucamera
            (cl-transforms:transform*
-            smap-T-scamera
+            umap-T-usurface
             (cl-transforms:transform-inv smap-T-ssurface)
-            umap-T-usurface)))
+            smap-T-scamera)))
     umap-T-ucamera))
 
 (defun umap-T-ucamera-through-object (type time)

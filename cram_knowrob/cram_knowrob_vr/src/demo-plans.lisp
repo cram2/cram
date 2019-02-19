@@ -42,8 +42,8 @@
     (execute-pick-and-place 'fork)))
 
 
+#+not-used
 (defun demo-all-obj ()
-  ;; TODO This needs to be adapted to the newest changes!!!
   "For the entire episode, first place the object at the location where it was
 for the robot to pick up, and then pick it up and place it. "
   (pr2-proj:with-simulated-robot
