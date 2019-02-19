@@ -33,13 +33,11 @@
   "Executes the pick and place plan on an object of the given type.
 The positions of where the robot looks for the object and where he is placing
 it down are the ones extracted from Virtual Reality.
-TYPE: the given type of an object on which the pick and place action should be
-executed.
-RETURNS: "
+`type' is a simple symbol for the type of the object to transport, e.g., 'milk."
   (transport
-   (map-T-camera->map-P-base (umap-T-ucamera-through-object type "Start"))
+   (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "Start"))
    (umap-P-uobj-through-surface type "Start")
-   (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "End"))
+   (map-T-camera->map-P-base (umap-T-ucamera-through-object type "End"))
    (umap-P-uobj-through-surface type "End")
    (umap-P-uobj-through-surface type "End")
    type))
@@ -47,21 +45,19 @@ RETURNS: "
 (defun execute-pick-up-object (type)
   "Executes only the picking up action on an object given the type of the object.
 TYPE: The type of the object. Could be 'muesli or 'cup etc. The name is internally
-set to CupEcoOrange in a string.
-RETURNS:"
+set to CupEcoOrange in a string."
   (fetch-object
-   (map-T-camera->map-P-base (umap-T-ucamera-through-object type "Start"))
+   (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "Start"))
    (umap-P-uobj-through-surface type "Start")
    type))
 
 (defun execute-place-object (?obj-desig type)
   "Executes the placing action given the object designator of the picked up and
-held in hand object. The placing pose is the one used in VR for that kind of 
-object.
+held in hand object. The placing pose is the one used in VR for that kind of object.
 ?OBJ-DESIG: The object designator of the object the robot is currently holding
 and which should be placed down."
   (place-object
-   (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "End"))
+   (map-T-camera->map-P-base (umap-T-ucamera-through-object type "End"))
    (umap-P-uobj-through-surface type "End")
    (umap-P-uobj-through-surface type "End")
    ;; (cram-projection::projection-environment-result-result ?obj-desig)
@@ -73,9 +69,9 @@ grasp the object or in order to place it."
   (ecase event-time
     (:start
      (move-to-object
-      (map-T-camera->map-P-base (umap-T-ucamera-through-object type "Start"))
+      (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "Start"))
       (umap-P-uobj-through-surface type "Start")))
     (:end
      (move-to-object
-      (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "End"))
+      (map-T-camera->map-P-base (umap-T-ucamera-through-object type "End"))
       (umap-P-uobj-through-surface type "End")))))
