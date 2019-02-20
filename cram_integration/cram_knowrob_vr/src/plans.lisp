@@ -55,6 +55,7 @@ RETURNS: Errors or a successfull movement action of the robot."
       ;; if the going action fails, pick another base-pose from the lazy list
       (cpl:with-failure-handling
           ((common-fail:navigation-low-level-failure (e)
+             (declare (ignore e))
              (roslisp:ros-warn (kvr plans) "Navigation failed. Next solution.")
              (setf ?base-poses (cut:lazy-cdr ?base-poses))
              (setf ?base-pose (cut:lazy-car ?base-poses))
@@ -75,6 +76,7 @@ RETURNS: Errors or a successfull movement action of the robot."
         ;; if detection fails, try another looking target
         (cpl:with-failure-handling
             ((common-fail:perception-low-level-failure (e)
+               (declare (ignore e))
                (roslisp:ros-warn (kvr plans)
                                  "Perception failed. Next solution.")
                (setf ?look-poses (cut:lazy-cdr ?look-poses))
@@ -96,6 +98,7 @@ RETURNS: Errors or a successfull movement action of the robot."
 
 
 (defun detect-navigate-and-pick-up (?base-poses ?type)
+  (declare (ignore ?base-poses))
   "Picks up an object of the given type.
 `?type' is the type of the object that is to be picked up as a simple symbol.
 RETURNS: Errors or an object designator of picked up object"
