@@ -64,14 +64,14 @@ RETURNS: A pose stamped for the robot base."
      base-orientation)))
 
 (defun umap-P-uobj-through-surface-ll (type start-or-end)
-  "This pose is mostly used for PLACING,
-i.e. the placing pose of the object relative to its supporting surface.
+  "Calculates the pose of the object in map relative to its supporting surface.
 Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 `type' is a simple symbol such as 'milk."
   (let ((name-and-surface-T-object-ll
            (query-name-and-surface-T-object-by-object-type
             (object-type-filter-prolog type)
-            start-or-end)))
+            start-or-end
+            :table-setting)))
     (cut:lazy-mapcar
      (lambda (name-and-surface-T-object)
        (let* ((surface-name
@@ -96,15 +96,16 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 
 
 (defun umap-T-ucamera-through-surface-ll (type time)
-  "This pose is mostly used for SEARCHING, i.e.
-pose of the robot's 'camera' in map relative to object supporting surface.
+  "Calculates the pose of the robot's 'camera' in map
+relative to object supporting surface.
 Formula: umap-T-ucamera = umap-T-usurface * inv(smap-T-ssurface) * smap-T-scamera
                         = umap-T-usurface * ssurface-T-scamera."
   (assert (or (equal time "Start") (equal time "End")))
   (let ((name-and-surface-T-camera-ll
           (query-name-and-surface-T-camera-by-object-type
            (object-type-filter-prolog type)
-           time)))
+           time
+           :table-setting)))
     (cut:lazy-mapcar
      (lambda (name-and-surface-T-camera)
        (let* ((surface-name
@@ -124,30 +125,48 @@ Formula: umap-T-ucamera = umap-T-usurface * inv(smap-T-ssurface) * smap-T-scamer
      name-and-surface-T-camera-ll)))
 
 
-(defun umap-T-ucamera-through-object-ll (type time)
-  "This pose is mostly used for REACHING, i.e.
-pose of the robot's 'camera' in map relative to object location.
-Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
-                        = umap-T-uobj * sobj-T-scamera."
+(defun umap-T-ucamera-through-object-ll-based-on-object-pose (type time
+                                                              umap-P-uobj)
   (assert (or (equal time "Start") (equal time "End")))
-  (let* ((sobj-T-scamera-lazy-list
-           (query-object-T-camera-by-object-type
-            (object-type-filter-prolog type)
-            time))
-         (umap-T-uobj
-           (cl-transforms:pose->transform
-            (btr:pose
-             (btr:object btr:*current-bullet-world*
-                         (object-type-filter-bullet type))))))
+  (let ((umap-T-uobj
+          (cl-transforms:pose->transform umap-P-uobj))
+        (sobj-T-scamera-lazy-list
+          (query-object-T-camera-by-object-type
+           (object-type-filter-prolog type)
+           time)))
     (cut:lazy-mapcar (lambda (sobj-T-scamera)
                        (cl-transforms:transform*
                         umap-T-uobj sobj-T-scamera))
                      sobj-T-scamera-lazy-list)))
 
+(defun umap-T-ucamera-through-object-ll (type time)
+  "Calculates the pose of the robot's 'camera' in map relative to object location.
+Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
+                        = umap-T-uobj * sobj-T-scamera."
+  (assert (or (equal time "Start") (equal time "End")))
+  (let ((umap-P-uobj
+          (btr:pose
+           (btr:object btr:*current-bullet-world*
+                       (object-type-filter-bullet type)))))
+    (umap-T-ucamera-through-object-ll-based-on-object-pose
+     type time umap-P-uobj)))
+
 
 (defun base-poses-ll-for-searching (type)
   (let ((umap-T-ucamera-ll
           (umap-T-ucamera-through-surface-ll type "Start")))
+    (cut:lazy-mapcar
+     (lambda (umap-T-ucamera)
+       (map-T-camera->map-P-base umap-T-ucamera))
+     umap-T-ucamera-ll)))
+
+(defun base-poses-ll-for-searching-based-on-object-pose (bullet-type umap-P-uobj)
+  (let* ((prolog-type
+           (roslisp-utilities:rosify-lisp-name
+            (object-type-fixer bullet-type)))
+         (umap-T-ucamera-ll
+           (umap-T-ucamera-through-object-ll-based-on-object-pose
+            prolog-type "Start" umap-P-uobj)))
     (cut:lazy-mapcar
      (lambda (umap-T-ucamera)
        (map-T-camera->map-P-base umap-T-ucamera))
@@ -199,6 +218,6 @@ RETURNS: a cl-transform."
           (roslisp-utilities:rosify-lisp-name (object-type-fixer object-type))))
     (cl-transforms:transform*
      (cl-transforms:transform-inv
-      (query-object-location-by-object-type prolog-object-type "Start"))
-     (query-hand-location-by-object-type prolog-object-type "Start")
+      (car (query-object-location-by-object-type prolog-object-type "Start")))
+     (car (query-hand-location-by-object-type prolog-object-type "Start"))
      (human-to-robot-hand-transform))))

@@ -36,9 +36,10 @@ The positions of where the robot looks for the object and where he is placing
 it down are the ones extracted from Virtual Reality.
 `type' is a simple symbol for the type of the object to transport, e.g., 'milk."
   (transport
-   (base-poses-ll-for-searching type)
+   ;; (base-poses-ll-for-searching type)
+   (base-poses-ll-for-picking-up type)
    (look-poses-ll-for-searching type)
-   (car (base-poses-ll-for-picking-up type))
+   (base-poses-ll-for-picking-up type)
    (car (base-poses-ll-for-placing type))
    (car (look-poses-ll-for-placing type))
    (car (object-poses-ll-for-placing type))
@@ -59,22 +60,25 @@ set to CupEcoOrange in a string."
 held in hand object. The placing pose is the one used in VR for that kind of object.
 ?OBJ-DESIG: The object designator of the object the robot is currently holding
 and which should be placed down."
-  (place-object
+  (deliver-object
    (base-poses-ll-for-placing type)
    (look-poses-ll-for-placing type)
    (object-poses-ll-for-placing type)
    ;; (cram-projection::projection-environment-result-result ?obj-desig)
-   ?obj-desig))
+   ?obj-desig
+   type))
 
 (defun execute-move-to-object (type &optional (event-time :start))
   "Moves the robot to the position where the human was standing in order to
 grasp the object or in order to place it."
   (ecase event-time
     (:start
-     (navigate-and-look
+     (navigate-and-look-and-detect
       (base-poses-ll-for-searching type)
-      (look-poses-ll-for-searching type)))
+      (look-poses-ll-for-searching type)
+      type))
     (:end
-     (navigate-and-look
+     (navigate-and-look-and-detect
       (base-poses-ll-for-placing type)
-      (look-poses-ll-for-placing type)))))
+      (look-poses-ll-for-placing type)
+      type))))

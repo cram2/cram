@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Alina Hawkin <hawkin@cs.uni-bremen.de>
-;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,6 +27,19 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defpackage :cram-knowrob-vr-pkg
-	(:nicknames :kvr :knowrob-vr)
-  (:use #:roslisp #:cl #:cram-manipulation-interfaces #:cram-prolog))
+(in-package :kvr)
+
+(def-fact-group location-designators (desig:location-grounding)
+
+  (<- (desig:location-grounding ?designator ?pose-stamped)
+    (desig:loc-desig? ?designator)
+    (rob-int:reachability-designator ?designator)
+    (desig:desig-prop ?designator (:object ?object-designator))
+    (lisp-type ?object-designator desig:object-designator)
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (desig:desig-location-prop ?current-object-designator ?object-pose-stamped)
+    (desig:desig-prop ?object-designator (:type ?object-type))
+    (lisp-fun base-poses-ll-for-searching-based-on-object-pose
+              ?object-type ?object-pose-stamped ?base-poses-ll)
+    (member ?pose-stamped ?base-poses-ll)
+    (format "VR POSE!~%")))
