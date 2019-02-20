@@ -60,14 +60,16 @@
 (defun object-type-filter-prolog (object-type)
   "Maps the simple name of an object, e.g. cup to the one known in the database
 for that object, e.g. CupEcoOrange."
-  (case object-type
-    (muesli "KoellnMuesliKnusperHonigNuss")
-    (cup "CupEcoOrange")
-    (bowl "IkeaBowl")
-    (milk "MilramButtermilchErdbeere")
-    (fork "PlasticBlueFork")
-    (spoon "PlasticBlueSpoon")
-    (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon"))))
+  (if (stringp object-type)
+      object-type
+      (case object-type
+        (muesli "KoellnMuesliKnusperHonigNuss")
+        (cup "CupEcoOrange")
+        (bowl "IkeaBowl")
+        (milk "MilramButtermilchErdbeere")
+        (fork "PlasticBlueFork")
+        (spoon "PlasticBlueSpoon")
+        (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon")))))
 
 (defun object-type-filter-bullet (object-type)
   "Maps the simple name of an object, e.g. cup to the one known in the database

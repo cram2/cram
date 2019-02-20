@@ -78,7 +78,9 @@ usage example: (move-object (pose-lists-parser '|?PoseObjEnd|))"
   "Moves the object and robot to their respective locations at the beginning of
 the episode. . "
   (move-object (cl-transforms:pose->transform
-                (car (umap-P-uobj-through-surface-ll object "Start")))
+                (cram-tf:translate-pose
+                 (car (umap-P-uobj-through-surface-ll object "Start"))
+                 :x-offset -0.1))
                (object-type-filter-bullet object)))
 
 (defun move-urdf-objects-to-start-pose ()

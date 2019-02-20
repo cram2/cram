@@ -233,8 +233,11 @@ in the currently loaded episode."
     :package :kvr)))
 
 
-(defun query-name-and-surface-T-object-by-object-type (object-type start-or-end)
-  (declare (type string object-type start-or-end))
+(defun query-name-and-surface-T-object-by-object-type (object-type
+                                                       start-or-end
+                                                       &optional context)
+  (declare (type string object-type start-or-end)
+           (type (or null keyword) context))
   "Returns the name of the supporting surface an object is picked up from
 and the transform surface-T-object as a lazy list of pairs:
  '((name-1 . surface-T-object-1) . rest-of-lazy-list)."
@@ -272,12 +275,31 @@ and the transform surface-T-object as a lazy list of pairs:
       iri_xml_namespace(Surface, _, SurfaceShortName),
       actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", SurfacePose),
       iri_xml_namespace(ObjInst, _, ObjShortName),
-      actor_pose(EpInst, ObjShortName, " start-or-end ", ObjectPose).")
+      actor_pose(EpInst, ObjShortName, " start-or-end ", ObjectPose),
+      obj_type(Surface, SurfaceType)"
+      (case context
+        ;; if we're setting a table, the source ("Start") should not be island,
+        ;; and destination ("End") should be island
+        (:table-setting
+         (if (equal start-or-end "Start")
+             ", not(owl_subclass_of(SurfaceType, knowrob:'IslandArea'))."
+             ", owl_subclass_of(SurfaceType, knowrob:'IslandArea')."))
+        ;; in case of table cleaning it's the other way around:
+        ;; source "Start" should be island, destination "End" should not be island
+        (:table-cleaning
+         (if (equal start-or-end "Start")
+             ", owl_subclass_of(SurfaceType, knowrob:'IslandArea')."
+             ", not(owl_subclass_of(SurfaceType, knowrob:'IslandArea'))."))
+        (t
+         ".")))
     :package :kvr)))
 
 
-(defun query-name-and-surface-T-camera-by-object-type (object-type start-or-end)
-  (declare (type string object-type start-or-end))
+(defun query-name-and-surface-T-camera-by-object-type (object-type
+                                                       start-or-end
+                                                       &optional context)
+  (declare (type string object-type start-or-end)
+           (type (or null keyword) context))
   "Returns the name of the supporting surface an object is picked up from
 and the transform surface-T-camera as a lazy list of pairs:
  '((name-1 . surface-T-camera-1) . rest-of-lazy-list)."
@@ -316,7 +338,23 @@ and the transform surface-T-camera as a lazy list of pairs:
       actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", SurfacePose),
       obj_type(CameraInst, knowrob:'CharacterCamera'),
       iri_xml_namespace(CameraInst, _, CameraShortName),
-      actor_pose(EpInst, CameraShortName, " start-or-end ", CameraPose).")
+      actor_pose(EpInst, CameraShortName, " start-or-end ", CameraPose),
+      obj_type(Surface, SurfaceType)"
+      (case context
+        ;; if we're setting a table, the source ("Start") should not be island,
+        ;; and destination ("End") should be island
+        (:table-setting
+         (if (equal start-or-end "Start")
+             ", not(owl_subclass_of(SurfaceType, knowrob:'IslandArea'))."
+             ", owl_subclass_of(SurfaceType, knowrob:'IslandArea')."))
+        ;; in case of table cleaning it's the other way around:
+        ;; source "Start" should be island, destination "End" should not be island
+        (:table-cleaning
+         (if (equal start-or-end "Start")
+             ", owl_subclass_of(SurfaceType, knowrob:'IslandArea')."
+             ", not(owl_subclass_of(SurfaceType, knowrob:'IslandArea'))."))
+        (t
+         ".")))
     :package :kvr)))
 
 
