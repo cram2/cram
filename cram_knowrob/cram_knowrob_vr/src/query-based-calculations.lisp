@@ -30,6 +30,8 @@
 
 (in-package :kvr)
 
+(defparameter *human-feet-offset* 0.1"in meters")
+
 (defun map-T-camera->map-P-base (map-T-camera)
   "Calculates the transform of where the robot should stand to grasp the object.
 Based on data from Virtual Reality.
@@ -56,12 +58,23 @@ RETURNS: A pose stamped for the robot base."
            (cl-transforms:make-3d-vector
             (cl-transforms:x (cl-transforms:translation map-T-camera))
             (cl-transforms:y (cl-transforms:translation map-T-camera))
-            0)))
+            0))
+         (map-T-base
+           (cl-transforms:make-transform
+            base-origin
+            base-orientation))
+         (base-T-offset-base
+           (cl-transforms:make-transform
+            (cl-transforms:make-3d-vector (- *human-feet-offset*) 0 0)
+            (cl-transforms:make-identity-rotation)))
+         (map-T-base-offset
+           (cl-transforms:transform*
+            map-T-base base-T-offset-base)))
     (cl-transforms-stamped:make-pose-stamped
      cram-tf:*fixed-frame*
      0.0
-     base-origin
-     base-orientation)))
+     (cl-transforms:translation map-T-base-offset)
+     (cl-transforms:rotation map-T-base-offset))))
 
 (defun umap-P-uobj-through-surface-ll (type start-or-end)
   "Calculates the pose of the object in map relative to its supporting surface.
@@ -160,21 +173,21 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
        (map-T-camera->map-P-base umap-T-ucamera))
      umap-T-ucamera-ll)))
 
-(defun base-poses-ll-for-searching-based-on-object-pose (bullet-type umap-P-uobj)
+(defun base-poses-ll-for-picking-up (type)
+  (let ((umap-T-ucamera-ll
+          (umap-T-ucamera-through-object-ll type "Start")))
+    (cut:lazy-mapcar
+     (lambda (umap-T-ucamera)
+       (map-T-camera->map-P-base umap-T-ucamera))
+     umap-T-ucamera-ll)))
+
+(defun base-poses-ll-for-fetching-based-on-object-pose (bullet-type umap-P-uobj)
   (let* ((prolog-type
            (roslisp-utilities:rosify-lisp-name
             (object-type-fixer bullet-type)))
          (umap-T-ucamera-ll
            (umap-T-ucamera-through-object-ll-based-on-object-pose
             prolog-type "Start" umap-P-uobj)))
-    (cut:lazy-mapcar
-     (lambda (umap-T-ucamera)
-       (map-T-camera->map-P-base umap-T-ucamera))
-     umap-T-ucamera-ll)))
-
-(defun base-poses-ll-for-picking-up (type)
-  (let ((umap-T-ucamera-ll
-          (umap-T-ucamera-through-object-ll type "Start")))
     (cut:lazy-mapcar
      (lambda (umap-T-ucamera)
        (map-T-camera->map-P-base umap-T-ucamera))

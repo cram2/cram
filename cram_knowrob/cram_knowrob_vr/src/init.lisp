@@ -61,7 +61,7 @@ The path of the episode files is set in the *episode-path* variable.
 `namedir' is name of the episode file directory which is to be loaded.
 The path is individual and therefore hardcoded one"
   (ros-info (kvr) "initializing the episode data and connecting to database...")
-  (start-ros-node "cram_knowrob_vr")
+  ;; (start-ros-node "cram_knowrob_vr")
   (register-ros-package "knowrob_robcog")
   (register-ros-package "knowrob_maps")
   (load-multiple-episodes namedir-list)
@@ -113,15 +113,31 @@ semantic map kitchen."
                            object-types)))
       objects)))
 
-(defun init-full-simulation (&optional (namedir "p4_island_rotated"))
+(defun init-location-costmap-parameters ()
+  (def-fact-group costmap-metadata ()
+    (<- (location-costmap:costmap-size 12 12))
+    (<- (location-costmap:costmap-origin -6 -6))
+    (<- (location-costmap:costmap-resolution 0.04))
+
+    (<- (location-costmap:costmap-padding 0.3))
+    (<- (location-costmap:costmap-manipulation-padding 0.4))
+    (<- (location-costmap:costmap-in-reach-distance 0.9))
+    (<- (location-costmap:costmap-reach-minimal-distance 0.2))
+    (<- (location-costmap:visibility-costmap-size 2))
+    (<- (location-costmap:orientation-samples 2))
+    (<- (location-costmap:orientation-sample-step 0.1))))
+
+(defun init-full-simulation (&optional namedir)
    "Spawns all the objects which are necessary for the current
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
   (roslisp-utilities:startup-ros)
-  (init-episode)
+  (coe:clear-belief)
+  (init-episode namedir)
   (spawn-semantic-map)
   (spawn-urdf-items)
-  (spawn-semantic-items))
+  (spawn-semantic-items)
+  (init-location-costmap-parameters))
 
 
 #+currently-using-pr2-pick-place-demo-to-initialize-world

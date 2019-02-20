@@ -39,7 +39,20 @@
     (desig:current-designator ?object-designator ?current-object-designator)
     (desig:desig-location-prop ?current-object-designator ?object-pose-stamped)
     (desig:desig-prop ?object-designator (:type ?object-type))
-    (lisp-fun base-poses-ll-for-searching-based-on-object-pose
+    (format "OBJECT POSE: ~a~%~%" ?object-pose-stamped)
+    (lisp-fun base-poses-ll-for-fetching-based-on-object-pose
               ?object-type ?object-pose-stamped ?base-poses-ll)
     (member ?pose-stamped ?base-poses-ll)
-    (format "VR POSE!~%")))
+    (format "Reachability VR POSE!~%"))
+
+  (<- (desig:location-grounding ?designator ?pose-stamped)
+    (desig:loc-desig? ?designator)
+    (rob-int:visibility-designator ?designator)
+    ;; (desig:desig-prop ?designator (:object ?object-designator))
+    ;; (lisp-type ?object-designator desig:object-designator)
+    ;; (desig:current-designator ?object-designator ?current-object-designator)
+    ;; (desig:desig-prop ?object-designator (:type ?object-type))
+    (equal ?object-type "CupEcoOrange")
+    (lisp-fun base-poses-ll-for-searching ?object-type ?base-poses-ll)
+    (member ?pose-stamped ?base-poses-ll)
+    (format "Visibility VR POSE!~%")))
