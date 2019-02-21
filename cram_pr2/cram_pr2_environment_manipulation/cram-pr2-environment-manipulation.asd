@@ -55,8 +55,8 @@
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
 
-               cram-robot-pose-gaussian-costmap
-               cram-occupancy-grid-costmap
+               ;; cram-robot-pose-gaussian-costmap
+               ;; cram-occupancy-grid-costmap
                cram-location-costmap)
   :components
   ((:module "src"
