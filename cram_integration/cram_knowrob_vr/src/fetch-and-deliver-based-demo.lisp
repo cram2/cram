@@ -31,7 +31,7 @@
 
 (defparameter *object-spawning-poses*
   '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
-    (:cup-eco-orange . ((1.3 0.6 0.9) (0 0 0 1)))
+    (:cup . ((1.3 0.6 0.9) (0 0 1 0)))
     (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
     (:spoon . ((1.43 0.9 0.74132) (0 0 0 1)))
     (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
@@ -46,7 +46,7 @@
 
 (defparameter *object-placing-poses*
   '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
-    (:cup-eco-orange . ((-0.79 1.35 0.9) (0 0 0.7071 0.7071)))
+    (:cup . ((-0.79 1.35 0.9) (0 0 0.7071 0.7071)))
     (:bowl . ((-0.76 1.19 0.88) (0 0 0.7071 0.7071)))
     (:spoon . ((-0.78 1.5 0.86) (0 0 0 1)))
     (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
@@ -63,30 +63,26 @@
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
-  (let ((object-types '(:breakfast-cereal :cup-eco-orange :bowl :spoon :milk)))
+  (let ((object-types '(:breakfast-cereal :cup :bowl :spoon :milk)))
     ;; spawn objects at default poses
     (let ((objects (mapcar (lambda (object-type)
                              (btr-utils:spawn-object
-                              (intern (format nil "~a-1" object-type) :keyword)
+                              (intern (format nil "~a" object-type) :keyword)
                               object-type
                               :pose (cdr (assoc object-type spawning-poses))))
                            object-types)))
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
-      objects))
-
-  (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
-                     (btr:object btr:*current-bullet-world* :spoon-1)
-                     "sink_area_left_upper_drawer_main"))
+      objects)))
 
 (defun spawn-objects-on-sink-counter-randomly ()
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  (let ((object-types '(:cereal :cup-eco-orange :bowl :spoon :milk)))
+  (let ((object-types '(:cereal :cup :bowl :spoon :milk)))
     ;; spawn at default location
     (let ((objects (mapcar (lambda (object-type)
                              (btr-utils:spawn-object
-                              (intern (format nil "~a-1" object-type) :keyword)
+                              (intern (format nil "~a" object-type) :keyword)
                               object-type))
                            object-types)))
       ;; move on top of counter tops
@@ -120,11 +116,7 @@
                   (btr-utils:move-object (btr:name btr-object) new-pose)))
               objects)))
   ;; stabilize world
-  (btr:simulate btr:*current-bullet-world* 100)
-  ;; attach spoon to drawer
-  (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
-                     (btr:object btr:*current-bullet-world* :spoon-1)
-                     "sink_area_left_upper_drawer_main"))
+  (btr:simulate btr:*current-bullet-world* 100))
 
 (defmethod exe:generic-perform :before (designator)
   (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
@@ -199,11 +191,11 @@
 (cpl:def-cram-function demo-random (&optional
                                     (random t)
                                     (list-of-objects
-                                     '(:edeka-red-bowl
-                                       :spoon-blue-plastic
-                                       :cup-eco-orange
-                                       :weide-milch-small
-                                       :koelln-muesli-knusper-honig-nuss)))
+                                     '(:bowl
+                                       :spoon
+                                       :cup
+                                       :milk
+                                       :breakfast-cereal)))
 
   (initialize)
   (when cram-projection:*projection-environment*
@@ -223,13 +215,13 @@
                                            (side left)
                                            (side front)
                                            (range 0.5)))
-            (:cup-eco-orange . ,(desig:a location
-                                         (side left)
-                                         (on (desig:an object
-                                                       (type counter-top)
-                                                       (urdf-name sink-area-surface)
-                                                       (owl-name "kitchen_sink_block_counter_top")
-                                                       (part-of kitchen)))))
+            (:cup . ,(desig:a location
+                              (side left)
+                              (on (desig:an object
+                                            (type counter-top)
+                                            (urdf-name sink-area-surface)
+                                            (owl-name "kitchen_sink_block_counter_top")
+                                            (part-of kitchen)))))
             (:bowl . ,(desig:a location
                                (on (desig:an object
                                              (type counter-top)
@@ -278,11 +270,11 @@
                                              ;;               (part-of kitchen)))
                                              ;; (side back)
                                              ))
-              (:cup-eco-orange . ,(desig:a location
-                                           (right-of (desig:an object (type bowl)))
-                                           ;; (behind (an object (type bowl)))
-                                           (near (desig:an object (type bowl)))
-                                           (for (desig:an object (type cup-eco-orange)))))
+              (:cup . ,(desig:a location
+                                (right-of (desig:an object (type bowl)))
+                                ;; (behind (an object (type bowl)))
+                                (near (desig:an object (type bowl)))
+                                (for (desig:an object (type cup-eco-orange)))))
               (:bowl . ,(desig:a location
                                  (on (desig:an object
                                                (type counter-top)
@@ -327,46 +319,14 @@
                          (desig:when ?color
                            (color ?color)))))
 
-        (when (eq ?object-type :bowl)
-          (cpl:with-failure-handling
-              ((common-fail:high-level-failure (e)
-                 (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping the search" e)
-                 (return)))
-            (let ((?loc (cdr (assoc :breakfast-cereal object-fetching-locations))))
-              (exe:perform
-               (desig:an action
-                         (type searching)
-                         (object (desig:an object (type breakfast-cereal)))
-                         (location ?loc))))))
-
-        (cpl:with-failure-handling
-            ((common-fail:high-level-failure (e)
-               (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
-               (return)))
-          (if (eq ?object-type :bowl)
-              (exe:perform
-               (desig:an action
-                         (type transporting)
-                         (object ?object-to-fetch)
-                         ;; (arm right)
-                         (location ?fetching-location)
-                         (target ?delivering-location)))
-              (if (eq ?object-type :breakfast-cereal)
-                  (exe:perform
-                   (desig:an action
-                             (type transporting)
-                             (object ?object-to-fetch)
-                             ;; (arm right)
-                             (location ?fetching-location)
-                             (target ?delivering-location)))
-                  (exe:perform
-                   (desig:an action
-                             (type transporting)
-                             (object ?object-to-fetch)
-                             (desig:when ?arm-to-use
-                               (arm ?arm-to-use))
-                             (location ?fetching-location)
-                             (target ?delivering-location))))))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object ?object-to-fetch)
+                   (desig:when ?arm-to-use
+                     (arm ?arm-to-use))
+                   (location ?fetching-location)
+                   (target ?delivering-location)))
 
         ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
         )))

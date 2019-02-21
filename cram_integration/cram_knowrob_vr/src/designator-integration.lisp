@@ -56,3 +56,8 @@
     (lisp-fun base-poses-ll-for-searching ?object-type ?base-poses-ll)
     (member ?pose-stamped ?base-poses-ll)
     (format "Visibility VR POSE!~%")))
+
+
+(defmethod man-int:get-object-type-grasps :around (object-type arm
+                                                   object-transform-in-base)
+  (remove-duplicates (cut:force-ll (object-grasped-faces-ll object-type))))
