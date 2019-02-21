@@ -43,6 +43,8 @@
     ((:z -1) . :bottom)))
 
 (defun calculate-vector-face (vector)
+  (declare (type list vector))
+  "Returns the wall of the object that the `vector' hits if it were a ray."
   (let* ((axis-index-list
            (loop for x in vector
                  for i = 0 then (1+ i)
