@@ -211,26 +211,24 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
   (umap-P-uobj-through-surface-ll type "End"))
 
 
-
-(defun human-to-robot-hand-transform ()
-  "Defines the offset between the human hand from the virtual reality to the
-robot standart gripper, which has been calculated manually.
-RETURNS: a cl-transform."
-  (let ((alpha 0)) ; (/ pi 4)
-    (cl-transforms:make-transform
-     (cl-transforms:make-3d-vector 0.0 -0.07 0.2)
-     (cl-transforms:matrix->quaternion
-      (make-array '(3 3)
-                  :initial-contents
-                  `((0                1 0)
-                    (,(- (cos alpha)) 0 ,(- (sin alpha)))
-                    (,(- (sin alpha)) 0 ,(cos alpha))))))))
-
-(defun calculate-transform-object-type-T-gripper (object-type)
-  (let ((prolog-object-type
-          (roslisp-utilities:rosify-lisp-name (object-type-fixer object-type))))
-    (cl-transforms:transform*
-     (cl-transforms:transform-inv
-      (car (query-object-location-by-object-type prolog-object-type "Start")))
-     (car (query-hand-location-by-object-type prolog-object-type "Start"))
-     (human-to-robot-hand-transform))))
+(defun object-grasped-faces-ll (bullet-type)
+  (let* ((prolog-type
+           (roslisp-utilities:rosify-lisp-name
+            (object-type-fixer bullet-type)))
+         (object-T-hand-ll
+           (query-object-T-hand-by-object-type prolog-type "Start")))
+    (cut:lazy-mapcar
+     (lambda (object-T-hand)
+       (let* ((object-translation-hand
+                (cl-transforms:translation object-T-hand))
+              (x
+                (cl-transforms:x object-translation-hand))
+              (y
+                (cl-transforms:y object-translation-hand))
+              (z
+                (cl-transforms:z object-translation-hand))
+              (object-grasped-face
+                (man-int::calculate-vector-face
+                 (list x y z))))
+         object-grasped-face))
+     object-T-hand-ll)))

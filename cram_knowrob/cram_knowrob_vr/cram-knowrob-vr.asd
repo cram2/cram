@@ -49,7 +49,8 @@
                cram-common-failures
                cram-pr2-projection
                cram-robot-interfaces
-               cram-pr2-fetch-deliver-plans)
+               cram-pr2-fetch-deliver-plans
+               cram-knowrob-pick-place)
 	:components
 
 	((:module "src"
@@ -68,7 +69,7 @@
                                                     "queries"
                                                     "mapping-urdf-semantic"))
      ;; integration with grasping interface from cram_manipulation_interfaces
-     (:file "grasping" :depends-on ("package" "query-based-calculations"))
+     ;; (:file "grasping" :depends-on ("package" "query-based-calculations"))
 
      ;; visibility and reachability location resolution through VR
      (:file "designator-integration" :depends-on ("package"

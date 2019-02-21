@@ -179,6 +179,37 @@ in the currently loaded episode."
       actor_pose(EpInst, HandInstShortName, " start-or-end ", PoseHandStart).")
     :package :kvr)))
 
+(defun query-object-T-hand-by-object-type (object-type start-or-end)
+  (declare (type string object-type start-or-end))
+  "returns the transform object-T-hand at the start or end of grasping event.
+`start-or-end' has to be either Start or End."
+  (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
+  (cut:lazy-mapcar
+   (lambda (binding-set)
+     (let* ((map-T-obj
+              (cram-tf:flat-list->transform
+               (cut:var-value '|?ObjPose| binding-set)))
+            (map-T-hand
+              (cram-tf:flat-list->transform
+               (cut:var-value '|?HandPose| binding-set)))
+            (obj-T-map
+              (cl-transforms:transform-inv
+               map-T-obj))
+            (obj-T-hand
+              (cl-transforms:transform*
+               obj-T-map map-T-hand)))
+       obj-T-hand))
+   (json-prolog:prolog-simple
+    (concatenate
+     'string
+     (base-query-string object-type)",
+      iri_xml_namespace(ObjInst, _, ObjShortName),
+      actor_pose(EpInst, ObjShortName, " start-or-end ", ObjPose),
+      performed_by(EventInst, HandInst),
+      iri_xml_namespace(HandInst, _, HandInstShortName),
+      actor_pose(EpInst, HandInstShortName, " start-or-end ", HandPose).")
+    :package :kvr)))
+
 (defun query-contact-surface-name (object-type start-or-end)
   (declare (type string object-type start-or-end))
   "Returns the name of the object surface an object is picked up from."
