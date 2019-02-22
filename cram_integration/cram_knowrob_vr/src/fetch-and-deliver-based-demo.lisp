@@ -31,9 +31,9 @@
 
 (defparameter *object-spawning-poses*
   '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
-    (:cup . ((1.3 0.6 0.9) (0 0 0 1)))
-    (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
-    (:spoon . ((1.43 0.9 0.74132) (0 0 0 1)))
+    (:cup . ((1.3 0.1 0.9) (0 0 0.7 0.7)))
+    (:bowl . ((1.4 0.6 0.87) (0 0 0 1)))
+    (:spoon . ((1.43 0.9 0.85) (0 0 0 1)))
     (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
 
 (defparameter *object-grasping-arms*
@@ -43,13 +43,6 @@
     ;; (:spoon . :right)
     ;; (:milk . :right)
     ))
-
-(defparameter *object-placing-poses*
-  '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
-    (:cup . ((-0.79 1.35 0.9) (0 0 0.7071 0.7071)))
-    (:bowl . ((-0.76 1.19 0.88) (0 0 0.7071 0.7071)))
-    (:spoon . ((-0.78 1.5 0.86) (0 0 0 1)))
-    (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
 
 (defparameter *object-cad-models*
   '(;; (:cup . "cup_eco_orange")
@@ -65,7 +58,8 @@
   (btr:detach-all-objects (btr:get-robot-object))
   (let ((object-types '(;; :breakfast-cereal
                         :cup
-                        ;; :bowl :spoon :milk
+                        :bowl ;; :milk
+                        :spoon
                         )))
     ;; spawn objects at default poses
     (let ((objects (mapcar (lambda (object-type)

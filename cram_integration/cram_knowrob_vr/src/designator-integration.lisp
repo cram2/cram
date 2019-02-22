@@ -37,11 +37,9 @@
     (desig:desig-prop ?designator (:object ?object-designator))
     (lisp-type ?object-designator desig:object-designator)
     (desig:current-designator ?object-designator ?current-object-designator)
-    (desig:desig-location-prop ?current-object-designator ?object-pose-stamped)
-    (desig:desig-prop ?object-designator (:type ?object-type))
-    (format "OBJECT POSE: ~a~%~%" ?object-pose-stamped)
-    (lisp-fun base-poses-ll-for-fetching-based-on-object-pose
-              ?object-type ?object-pose-stamped ?base-poses-ll)
+    (lisp-fun base-poses-ll-for-fetching-based-on-object-desig
+              ?current-object-designator
+              ?base-poses-ll)
     (member ?pose-stamped ?base-poses-ll)
     (format "Reachability VR POSE!~%"))
 

@@ -68,7 +68,8 @@ for that object, e.g. CupEcoOrange."
         (bowl "IkeaBowl")
         (milk "MilramButtermilchErdbeere")
         (fork "PlasticBlueFork")
-        (spoon "PlasticBlueSpoon")
+        (spoon "PlasticBlueFork";; "PlasticBlueSpoon"
+         )
         (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon")))))
 
 (defun object-type-filter-bullet (object-type)
@@ -100,7 +101,8 @@ VR data and the object within the bullet world, are different."
     (:milk :milram-buttermilch-erdbeere)
     (:bowl :ikea-bowl)
     (:fork :plastic-blue-fork)
-    (:spoon :plastic-blue-spoon)
+    (:spoon :plastic-blue-fork;; :plastic-blue-spoon
+     )
     (:breakfast-cereal :koelln-muesli-knusper-honig-nuss)
     (:cup :cup-eco-orange)
     (t object-type)))
