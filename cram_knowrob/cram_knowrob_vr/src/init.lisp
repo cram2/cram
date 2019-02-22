@@ -62,8 +62,18 @@ The path of the episode files is set in the *episode-path* variable.
 The path is individual and therefore hardcoded one"
   (ros-info (kvr) "initializing the episode data and connecting to database...")
   ;; (start-ros-node "cram_knowrob_vr")
-  (register-ros-package "knowrob_robcog")
   (register-ros-package "knowrob_maps")
+  (register-ros-package "knowrob_common")
+  (register-ros-package "knowrob_robcog")
+  ;; below is stuff for running KVR on real robot with RS and KnowRob object stuff
+  (register-ros-package "knowrob_srdl")
+  (register-ros-package "knowrob_vis")
+  (register-ros-package "knowrob_mongo")
+  (register-ros-package "knowrob_objects")
+  (register-ros-package "robosherlock_knowrob")
+  (owl-parse "package://iai_semantic_maps/owl/kitchen.owl")
+  (owl-parse "package://knowrob_srdl/owl/PR2.owl")
+  ;; end of "below stuff"
   (load-multiple-episodes namedir-list)
   (map-marker-init))
 
@@ -133,7 +143,9 @@ scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
   (roslisp-utilities:startup-ros)
   (coe:clear-belief)
-  (init-episode namedir)
+  (init-episode (or namedir
+                    (loop for i from 1 to 20
+                           collecting (format nil "~aep~a/" *episode-path* i))))
   (spawn-semantic-map)
   (spawn-urdf-items)
   (spawn-semantic-items)

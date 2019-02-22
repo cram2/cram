@@ -30,30 +30,32 @@
 
 (in-package :kvr)
 
-(defun execute-pick-and-place (type)
-  "Executes the pick and place plan on an object of the given type.
-The positions of where the robot looks for the object and where he is placing
-it down are the ones extracted from Virtual Reality.
-`type' is a simple symbol for the type of the object to transport, e.g., 'milk."
-  (transport
-   ;; (base-poses-ll-for-searching type)
-   (base-poses-ll-for-picking-up type)
-   (look-poses-ll-for-searching type)
-   (base-poses-ll-for-picking-up type)
-   (car (base-poses-ll-for-placing type))
-   (car (look-poses-ll-for-placing type))
-   (car (object-poses-ll-for-placing type))
-   type))
+(defun execute-search-for-object (type &optional (event-time :start))
+  "Moves the robot to the position where the human was standing in order to
+grasp the object or in order to place it."
+  (ecase event-time
+    (:start
+     (search-for-object
+      (base-poses-ll-for-searching type)
+      (look-poses-ll-for-searching type)
+      type))
+    (:end
+     (search-for-object
+      (base-poses-ll-for-placing type)
+      (look-poses-ll-for-placing type)
+      type))))
 
 (defun execute-pick-up-object (type)
   "Executes only the picking up action on an object given the type of the object.
 TYPE: The type of the object. Could be 'muesli or 'cup etc. The name is internally
 set to CupEcoOrange in a string."
-  (fetch-object
-   (base-poses-ll-for-searching type)
-   (look-poses-ll-for-searching type)
-   (base-poses-ll-for-picking-up type)
-   type))
+  (let ((object-designator
+          (execute-search-for-object type)))
+    (fetch-object
+     (base-poses-ll-for-fetching-based-on-object-desig object-designator)
+     (object-grasped-faces-ll-from-kvr-type type)
+     (arms-for-fetching-ll type)
+     type)))
 
 (defun execute-place-object (?obj-desig type)
   "Executes the placing action given the object designator of the picked up and
@@ -61,24 +63,15 @@ held in hand object. The placing pose is the one used in VR for that kind of obj
 ?OBJ-DESIG: The object designator of the object the robot is currently holding
 and which should be placed down."
   (deliver-object
-   (base-poses-ll-for-placing type)
-   (look-poses-ll-for-placing type)
    (object-poses-ll-for-placing type)
-   ;; (cram-projection::projection-environment-result-result ?obj-desig)
-   ?obj-desig
-   type))
+   (base-poses-ll-for-placing type)
+   ?obj-desig))
 
-(defun execute-move-to-object (type &optional (event-time :start))
-  "Moves the robot to the position where the human was standing in order to
-grasp the object or in order to place it."
-  (ecase event-time
-    (:start
-     (navigate-and-look-and-detect
-      (base-poses-ll-for-searching type)
-      (look-poses-ll-for-searching type)
-      type))
-    (:end
-     (navigate-and-look-and-detect
-      (base-poses-ll-for-placing type)
-      (look-poses-ll-for-placing type)
-      type))))
+(defun execute-pick-and-place (type)
+  "Executes the pick and place plan on an object of the given type.
+The positions of where the robot looks for the object and where he is placing
+it down are the ones extracted from Virtual Reality.
+`type' is a simple symbol for the type of the object to transport, e.g., 'milk."
+  (let ((object
+          (execute-pick-up-object type)))
+    (execute-place-object object type)))

@@ -42,7 +42,6 @@
                cram-bullet-reasoning
                cram-bullet-reasoning-utilities
                cram-bullet-reasoning-belief-state
-               cram-btr-spatial-relations-costmap
                cram-executive
                cram-designators
                cram-prolog

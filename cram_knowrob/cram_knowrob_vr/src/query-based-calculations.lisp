@@ -30,7 +30,7 @@
 
 (in-package :kvr)
 
-(defparameter *human-feet-offset* 0.2 "in meters")
+(defparameter *human-feet-offset* 0.0 "in meters")
 
 (defun map-T-camera->map-P-base (map-T-camera)
   "Calculates the transform of where the robot should stand to grasp the object.
@@ -193,9 +193,14 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
        (map-T-camera->map-P-base umap-T-ucamera))
      umap-T-ucamera-ll)))
 
+(defun base-poses-ll-for-fetching-based-on-object-desig (object-designator)
+  (let ((bullet-type (desig:desig-prop-value object-designator :type))
+        (umap-P-uobj (man-int:get-object-pose-in-map object-designator)))
+    (base-poses-ll-for-fetching-based-on-object-pose bullet-type umap-P-uobj)))
+
 (defun base-poses-ll-for-placing (type)
   (let ((umap-T-ucamera-ll
-          (umap-T-ucamera-through-object-ll type "End")))
+          (umap-T-ucamera-through-surface-ll type "End")))
     (cut:lazy-mapcar
      (lambda (umap-T-ucamera)
        (map-T-camera->map-P-base umap-T-ucamera))
@@ -211,12 +216,13 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
   (umap-P-uobj-through-surface-ll type "End"))
 
 
-(defun object-grasped-faces-ll (bullet-type)
-  (let* ((prolog-type
-           (roslisp-utilities:rosify-lisp-name
-            (object-type-fixer bullet-type)))
-         (object-T-hand-ll
-           (query-object-T-hand-by-object-type prolog-type "Start")))
+(defun arms-for-fetching-ll (type)
+  (query-hand (object-type-filter-prolog type)))
+
+
+(defun object-grasped-faces-ll-from-prolog-type (prolog-type)
+  (let ((object-T-hand-ll
+          (query-object-T-hand-by-object-type prolog-type "Start")))
     (cut:lazy-mapcar
      (lambda (object-T-hand)
        (let* ((object-translation-hand
@@ -232,3 +238,14 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
                  (list x y z))))
          object-grasped-face))
      object-T-hand-ll)))
+
+(defun object-grasped-faces-ll-from-kvr-type (kvr-type)
+  (let ((prolog-type
+          (object-type-filter-prolog kvr-type)))
+    (object-grasped-faces-ll-from-prolog-type prolog-type)))
+
+(defun object-grasped-faces-ll (bullet-type)
+  (let ((prolog-type
+          (roslisp-utilities:rosify-lisp-name
+           (object-type-fixer bullet-type))))
+    (object-grasped-faces-ll-from-prolog-type prolog-type)))

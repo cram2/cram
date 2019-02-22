@@ -30,140 +30,190 @@
 
 (in-package :kvr)
 
-(defun navigate-and-look-and-detect (?base-poses ?look-poses ?type)
-  "Moves the robot into the position which the human had when interacting
-with an object. The robot is placed at the spot where the human was standing and
-is looking at the spot where the object was in Virtual Reality.
-`?base-pose': The position for the robot base. Aka, where the human feet were.
-`?look-pose': The position which the object had in Virtual Reality, and
-where the robot should be looking at.
-RETURNS: Errors or a successfull movement action of the robot."
-
+(defun search-for-object (?base-poses ?look-poses ?type)
   (let ((?obj-type (object-type-filter-bullet ?type)))
-
-    ;; park arms
-    (exe:perform
-     (desig:an action
-               (type positioning-arm)
-               (left-configuration park)
-               (right-configuration park)))
 
     ;; move the robot to specified base location
     ;; pick one of the base-poses from the lazy list
     (let ((?base-pose (cut:lazy-car ?base-poses)))
 
       ;; if the going action fails, pick another base-pose from the lazy list
-      (cpl:with-failure-handling
-          ((common-fail:navigation-low-level-failure (e)
-             (declare (ignore e))
-             (roslisp:ros-warn (kvr plans) "Navigation failed. Next solution.")
-             (setf ?base-poses (cut:lazy-cdr ?base-poses))
-             (setf ?base-pose (cut:lazy-car ?base-poses))
-             (when ?base-pose
-               (cpl:retry))))
-
-        ;; do the going
-        (exe:perform
-         (desig:an action
-                   (type going)
-                   (target (desig:a location (pose ?base-pose))))))
-
-      ;; move the head to look at specified location (most probably that of an obj)
-      ;; pick one looking target
-      ;; and detect
-      (let ((?look-pose (cut:lazy-car ?look-poses)))
-
-        ;; if detection fails, try another looking target
+      (cpl:with-retry-counters ((nav-pose-retries 20))
         (cpl:with-failure-handling
-            ((common-fail:perception-low-level-failure (e)
+            (((or common-fail:navigation-low-level-failure
+                  common-fail:perception-low-level-failure) (e)
                (declare (ignore e))
-               (roslisp:ros-warn (kvr plans)
-                                 "Perception failed. Next solution.")
-               (setf ?look-poses (cut:lazy-cdr ?look-poses))
-               (setf ?look-pose (cut:lazy-car ?look-poses))
-               (when ?look-pose
-                 (cpl:retry))))
+               (roslisp:ros-warn (kvr plans) "Navigation failed. Next solution.")
+               (cpl:do-retry nav-pose-retries
+                 (setf ?base-poses (cut:lazy-cdr ?base-poses))
+                 (setf ?base-pose (cut:lazy-car ?base-poses))
+                 (if ?base-pose
+                     (cpl:retry)
+                     (roslisp:ros-warn (kvr plans) "No more solutions.")))
+               (roslisp:ros-warn (kvr plans) "nav retry counter empty.")))
 
-          ;; do the looking
+          ;; park arms
           (exe:perform
            (desig:an action
-                     (type turning-towards)
-                     (target (desig:a location (pose ?look-pose)))))
+                     (type positioning-arm)
+                     (left-configuration park)
+                     (right-configuration park)))
 
-          ;; perceive
+          ;; do the going
           (exe:perform
            (desig:an action
-                     (type detecting)
-                     (object (desig:an object (type ?obj-type))))))))))
+                     (type going)
+                     (target (desig:a location (pose ?base-pose)))))
 
+          ;; move the head to look at specified location
+          ;; (most probably that of an obj)
+          ;; pick one looking target
+          ;; and detect
+          (let ((?look-pose (cut:lazy-car ?look-poses)))
 
-(defun detect-navigate-and-pick-up (?base-poses ?type)
-  (declare (ignore ?base-poses))
-  "Picks up an object of the given type.
-`?type' is the type of the object that is to be picked up as a simple symbol.
-RETURNS: Errors or an object designator of picked up object"
-  (let* ((?arm (car (query-hand (object-type-filter-prolog ?type))))
-         (?obj-type (object-type-filter-bullet ?type)))
+            ;; if detection fails, try another looking target
+            (cpl:with-retry-counters ((look-pose-retries 5))
+              (cpl:with-failure-handling
+                  ((common-fail:perception-low-level-failure (e)
+                     (declare (ignore e))
+                     (roslisp:ros-warn (kvr plans) "Perception failed. Next solution.")
+                     (cpl:do-retry look-pose-retries
+                       (setf ?look-poses (cut:lazy-cdr ?look-poses))
+                       (setf ?look-pose (cut:lazy-car ?look-poses))
+                       (if ?look-pose
+                           (cpl:retry)
+                           (roslisp:ros-warn (kvr plans) "No more solutions.")))
+                     (roslisp:ros-warn (kvr plans) "look retry counter empty.")))
 
-    ;; move the robot to specified base location
-    ;; pick one of the base-poses from the lazy list
-    ;; (let ((?base-pose (cut:lazy-car ?base-poses)))
+                ;; do the looking
+                (exe:perform
+                 (desig:an action
+                           (type turning-towards)
+                           (target (desig:a location (pose ?look-pose)))))
 
-    ;;   ;; if the going action fails, pick another base-pose from the lazy list
-    ;;   (cpl:with-failure-handling
-    ;;       ((common-fail:navigation-low-level-failure (e)
-    ;;          (roslisp:ros-warn (kvr plans) "Navigation failed. Next solution.")
-    ;;          (setf ?base-poses (cut:lazy-cdr ?base-poses))
-    ;;          (setf ?base-pose (cut:lazy-car ?base-poses))
-    ;;          (when ?base-pose
-    ;;            (cpl:retry))))
+                ;; perceive
+                (exe:perform
+                 (desig:an action
+                           (type detecting)
+                           (object (desig:an object (type ?obj-type)))))))))))))
 
-    ;;     ;; drive closer
-    ;;     (exe:perform
-    ;;      (desig:an action
-    ;;                (type going)
-    ;;                (target (desig:a location (pose ?base-pose)))))))
-
-    ;; reperceive from pick-up position
-    (let ((?obj-desig
-            (exe:perform
-             (desig:an action
-                       (type detecting)
-                       (object (desig:an object (type ?obj-type)))))))
-
-      ;; print picking up resolved
-      (roslisp:ros-info (kvr plans)
-                        "picking-up action got referenced to ~a"
-                        (desig:reference
-                         (desig:an action
-                                   (type picking-up)
-                                   (arm ?arm)
-                                   (grasp human-grasp)
-                                   (object ?obj-desig))))
-      ;; pick up
-      (exe:perform
-       (desig:an action
-                 (type picking-up)
-                 (arm ?arm)
-                 (grasp human-grasp)
-                 (object ?obj-desig)))
-
-      ?obj-desig)))
-
-
-(defun fetch-object (?searching-base-poses ?searching-look-poses
-                     ?grasping-base-poses ?type)
+(defun fetch-object (?base-poses ?grasp-types ?arms ?type)
   "A plan to fetch an object.
 ?GRASPING-BASE-POSE: The pose at which the human stood to pick up the object.
 ?GRASPING-LOOK-POSE: The pose at which the object was standing when picked up,
 and at which the robot will look for it.
 ?TYPE: the type of the object the robot should look for and which to pick up.
 RETURNS: The object designator of the object that has been picked up in this plan."
-  (navigate-and-look-and-detect ?searching-base-poses ?searching-look-poses ?type)
-  (detect-navigate-and-pick-up ?grasping-base-poses ?type))
+  (let* ((?obj-type (object-type-filter-bullet ?type)))
 
-(defun deliver-object (?placing-base-pose ?placing-look-pose ?place-pose
-                       ?obj-desig ?type)
+    ;; move the robot to specified base location
+    ;; pick one of the base-poses from the lazy list
+    (let ((?base-pose (cut:lazy-car ?base-poses)))
+
+      ;; if the going action fails, pick another base-pose from the lazy list
+      (cpl:with-retry-counters ((nav-pose-retries 30))
+        (cpl:with-failure-handling
+            (((or common-fail:navigation-low-level-failure
+                  common-fail:perception-low-level-failure
+                  common-fail:manipulation-low-level-failure) (e)
+               (declare (ignore e))
+               (roslisp:ros-warn (kvr plans) "Navigation failed. Next solution.")
+               (cpl:do-retry nav-pose-retries
+                 (setf ?base-poses (cut:lazy-cdr ?base-poses))
+                 (setf ?base-pose (cut:lazy-car ?base-poses))
+                 (if ?base-pose
+                     (cpl:retry)
+                     (roslisp:ros-warn (kvr plans) "no more solutions")))
+               (roslisp:ros-warn (kvr plans) "nav retry counter empty")))
+
+          ;; park arms
+          (exe:perform
+           (desig:an action
+                     (type positioning-arm)
+                     (left-configuration park)
+                     (right-configuration park)))
+
+          ;; drive closer
+          (exe:perform
+           (desig:an action
+                     (type going)
+                     (target (desig:a location (pose ?base-pose)))))
+
+          ;; reperceive from pick-up position
+          (let ((?obj-desig
+                  (exe:perform
+                   (desig:an action
+                             (type detecting)
+                             (object (desig:an object (type ?obj-type)))))))
+
+            (let ((?arm (cut:lazy-car ?arms)))
+              ;; if picking up fails, try another arm
+              (cpl:with-retry-counters ((arm-retries 1))
+                (cpl:with-failure-handling
+                    ((common-fail:manipulation-low-level-failure (e)
+                       (declare (ignore e))
+                       (roslisp:ros-warn (kvr plans) "manipulation failed. Next.")
+                       (cpl:do-retry arm-retries
+                         (setf ?arms (cut:lazy-cdr ?arms))
+                         (setf ?arm (cut:lazy-car ?arms))
+                         (if ?base-pose
+                             (cpl:retry)
+                             (roslisp:ros-warn (kvr plans) "no more solutions")))
+                       (roslisp:ros-warn (kvr plans) "arm retry counter empty")))
+
+                  (let ((?grasp-type (cut:lazy-car ?grasp-types)))
+                    ;; if picking up fails, try another grasp orientation
+                    (cpl:with-retry-counters ((grasp-retries 4))
+                      (cpl:with-failure-handling
+                          ((common-fail:manipulation-low-level-failure (e)
+                             (declare (ignore e))
+                             (roslisp:ros-warn (kvr plans) "Picking up failed. Next.")
+                             (cpl:do-retry grasp-retries
+                               (setf ?grasp-types (cut:lazy-cdr ?grasp-types))
+                               (setf ?grasp-type (cut:lazy-car ?grasp-types))
+                               (if ?grasp-type
+                                   (cpl:retry)
+                                   (roslisp:ros-warn (kvr plans) "No more sols.")))
+                             (roslisp:ros-warn (kvr plans) "grasp retry cntr empty")))
+
+                        ;; pick up
+                        (exe:perform
+                         (desig:an action
+                                   (type picking-up)
+                                   (arm ?arm)
+                                   (grasp ?grasp-type)
+                                   (object ?obj-desig)))))))))
+
+            ?obj-desig))))))
+
+(defun test-placing-pose-stability (object-desig placing-pose)
+  (let* ((world
+           btr:*current-bullet-world*)
+         (world-state
+           (btr::get-state world))
+         (bullet-object-type
+           (desig:desig-prop-value object-desig :type))
+         (new-btr-object
+           (btr-utils:spawn-object
+            (gensym "obj") bullet-object-type :pose placing-pose)))
+    (unwind-protect
+         (progn
+           (setf (btr:pose new-btr-object) placing-pose)
+           (btr:simulate btr:*current-bullet-world* 500)
+           (btr:simulate btr:*current-bullet-world* 100)
+           (cpl:sleep pr2-proj::*debug-short-sleep-duration*)
+           (let* ((new-pose
+                    (btr:pose new-btr-object))
+                  (distance-new-pose-and-place-pose
+                    (cl-tf:v-dist
+                     (cl-transforms:origin new-pose)
+                     (cl-transforms:origin placing-pose))))
+             (when (> distance-new-pose-and-place-pose 0.2)
+               (cpl:fail 'common-fail:manipulation-low-level-failure
+                         :description "Pose unstable."))))
+      (btr::restore-world-state world-state world))))
+
+(defun deliver-object (?place-poses ?base-poses ?obj-desig)
   "A plan to place an object which is currently in one of the robots hands.
 ?PLACING-BASE-POSE: The pose the robot should stand at in order to place the
 object. Usually the pose where the human was standing while placing the object
@@ -174,43 +224,92 @@ The same pose at which the human placed the object.
 Relative to the Kitchen Island table.
 ?OBJ-DESIG: The object deignator of the the object which the robot currently
 holds in his hand and which is to be placed."
-  (let* ((?arm (car
-                (query-hand
-                 (object-type-filter-prolog
-                  (desig:desig-prop-value ?obj-desig :type))))))
-    ;; navigate
-    (navigate-and-look-and-detect ?placing-base-pose ?placing-look-pose ?type)
-    ;; place obj
-    (exe:perform
-     (desig:an action
-               (type placing)
-               (arm ?arm)
-               (object ?obj-desig)
-               (target (desig:a location (pose ?place-pose)))))
-    ;; park arms
-    (exe:perform
-     (desig:an action
-               (type positioning-arm)
-               (left-configuration park)
-               (right-configuration park)))))
 
-(defun transport (?searching-base-poses ?searching-look-poses ?grasping-base-poses
-                  ?placing-base-poses ?placing-look-poses ?place-poses ?type)
-  "Picks up and object and places it down based on Virtual Reality data.
-?GRASPING-BASE-POSE: The pose the robot should stand at, in order to be able to
-grasp the object.
-?GRASPING-LOOK-POSE: The pose the robot is going to look at, in order to look
-for the object to be picked up.
-?PLACING-BASE-POSE: The pose where the robot should stand in order to be able
-to place down the picked up object.
-?PLACING-LOOK-POSE: The pose the robot is looking at, at which he will place
-the object.
-?PLACE-POSE: The actual placing pose of the object.
-?TYPE: The type of the object the robot should interact with."
-  ;; fetch the object
-  (let ((?obj-desig (fetch-object
-                     ?searching-base-poses ?searching-look-poses ?grasping-base-poses
-                     ?type)))
-    ;; deliver the object
-    (deliver-object
-     ?placing-base-poses ?placing-look-poses ?place-poses ?obj-desig ?type)))
+  ;; pick one of the place poses from the lazy list
+  (let ((?place-pose (cut:lazy-car ?place-poses)))
+
+    ;; if the placing fails, pick another place pose from the lazy list
+    (cpl:with-retry-counters ((place-pose-retries 10))
+      (cpl:with-failure-handling
+          (((or common-fail:navigation-low-level-failure
+                common-fail:manipulation-low-level-failure) (e)
+             (declare (ignore e))
+             (roslisp:ros-warn (kvr plans) "Placing failed. Next solution.")
+             (cpl:do-retry place-pose-retries
+               (setf ?place-poses (cut:lazy-cdr ?place-poses))
+               (setf ?place-pose (cut:lazy-car ?place-poses))
+               (if ?place-pose
+                   (cpl:retry)
+                   (roslisp:ros-warn (kvr plans) "No more solutions.")))
+             (roslisp:ros-warn (kvr plans) "place retry counter empty.")))
+
+        ;; test if the placing pose is a good one -- not falling on the floor
+        ;; test function throws a manipulation-low-level-failure if not good pose
+        (test-placing-pose-stability ?obj-desig ?place-pose)
+
+        ;; move the robot to specified base location
+        ;; pick one of the base-poses from the lazy list
+        (let ((?base-pose (cut:lazy-car ?base-poses)))
+
+          ;; if the going action fails, pick another base-pose from the lazy list
+          (cpl:with-retry-counters ((nav-pose-retries 20))
+            (cpl:with-failure-handling
+                (((or common-fail:navigation-low-level-failure
+                      common-fail:manipulation-low-level-failure) (e)
+                   (declare (ignore e))
+                   (roslisp:ros-warn (kvr plans) "Nav failed. Next solution.")
+                   (cpl:do-retry nav-pose-retries
+                     (setf ?base-poses (cut:lazy-cdr ?base-poses))
+                     (setf ?base-pose (cut:lazy-car ?base-poses))
+                     (if ?base-pose
+                         (cpl:retry)
+                         (roslisp:ros-warn (kvr plans) "No more solutions.")))
+                   (roslisp:ros-warn (kvr plans) "nav retry counter empty.")))
+
+              ;; park arms
+              (exe:perform
+               (desig:an action
+                         (type positioning-arm)
+                         (left-configuration park)
+                         (right-configuration park)))
+
+              ;; do the going
+              (exe:perform
+               (desig:an action
+                         (type going)
+                         (target (desig:a location (pose ?base-pose)))))
+
+              (exe:perform
+               (desig:an action
+                         (type looking)
+                         (target (desig:a location (pose ?place-pose)))))
+
+              ;; place obj
+              (exe:perform
+               (desig:an action
+                         (type placing)
+                         (object ?obj-desig)
+                         (target (desig:a location (pose ?place-pose))))))))))))
+
+;; (defun transport (?searching-base-poses ?searching-look-poses ?grasping-base-poses
+;;                   ?grasp-types
+;;                   ?placing-base-poses ?placing-look-poses ?place-poses ?type)
+;;   "Picks up and object and places it down based on Virtual Reality data.
+;; ?GRASPING-BASE-POSE: The pose the robot should stand at, in order to be able to
+;; grasp the object.
+;; ?GRASPING-LOOK-POSE: The pose the robot is going to look at, in order to look
+;; for the object to be picked up.
+;; ?PLACING-BASE-POSE: The pose where the robot should stand in order to be able
+;; to place down the picked up object.
+;; ?PLACING-LOOK-POSE: The pose the robot is looking at, at which he will place
+;; the object.
+;; ?PLACE-POSE: The actual placing pose of the object.
+;; ?TYPE: The type of the object the robot should interact with."
+;;   ;; fetch the object
+;;   (let* ((?found-obj-desig (search-for-object
+;;                             ?searching-base-poses ?searching-look-poses ?type))
+;;          (?fetched-obj-desig (fetch-object
+;;                               ?grasping-base-poses ?grasp-types ?type)))
+;;     ;; deliver the object
+;;     (deliver-object
+;;      ?placing-base-poses ?placing-look-poses ?place-poses ?fetched-obj-desig ?type)))
