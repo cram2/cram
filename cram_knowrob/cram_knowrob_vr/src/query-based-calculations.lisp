@@ -108,6 +108,173 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
      name-and-surface-T-object-ll)))
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;;;;;;; COPY PASTED FROM SPATIAL RELATIONS CM
+(defun get-closest-edge-and-distance (obj-transform supp-obj-transform supp-obj-dims)
+  "The supp-obj is supposed to be rectangular (and have 4 edges obviously)
+with y axis (in table coordinate system) pointing towards its left edge
+and x - to the back. `obj-transform' should be in the world frame.
+The function returns one of the following keys: :front, :back, :left, :right."
+  (declare (type cl-transforms:transform obj-transform supp-obj-transform)
+           (type cl-transforms:3d-vector supp-obj-dims))
+  (flet ((check-relation-p (dimensions/2 coords pred-1 pred-2 ratio-x ratio-y)
+           (let ((edge-x-dist
+                   (funcall pred-1
+                            (cl-transforms:x dimensions/2)
+                            (cl-transforms:x coords)))
+                 (edge-y-dist
+                   (funcall pred-2
+                            (cl-transforms:y dimensions/2)
+                            (cl-transforms:y coords))))
+             (if (< (* edge-x-dist ratio-x)
+                    (* edge-y-dist ratio-y))
+                 (values T edge-x-dist)
+                 (values NIL edge-y-dist))))
+         (get-quarter-in-supp-obj (coords)
+           (if (> (cl-transforms:x coords) 0)
+               (if (> (cl-transforms:y coords) 0)
+                   :back-left :back-right)
+               (if (> (cl-transforms:y coords) 0)
+                   :front-left :front-right))))
+    (let* ((world->supp-transform
+             supp-obj-transform)
+           (supp->world-transform
+             (cl-transforms:transform-inv world->supp-transform))
+           (obj-coords-in-supp
+             (cl-transforms:transform-point
+              supp->world-transform
+              (cl-transforms:translation obj-transform)))
+           (dimensions/2
+             (cl-transforms:v* supp-obj-dims 0.5))
+           (ratio-x
+             1.0d0)
+           (ratio-y
+             1.0d0)
+           (quarter
+             (get-quarter-in-supp-obj obj-coords-in-supp)))
+      ;; find which edges of supp-obj are longer
+      ;; longer edges are more preferred, ratio decides how much more preferred
+      (if (> (cl-transforms:x dimensions/2) (cl-transforms:y dimensions/2))
+          (setf ratio-x (/ (cl-transforms:x dimensions/2)
+                           (cl-transforms:y dimensions/2)))
+          (setf ratio-y (/ (cl-transforms:y dimensions/2)
+                           (cl-transforms:x dimensions/2))))
+      ;; find the edge of supp-obj to which obj is the closest
+      ;; first find in which quarter of supp obj it is and then compare the 2 edges
+      (let (pred-x pred-y)
+        (ecase quarter
+          (:back-left ; obj.x > 0, obj.y > 0
+           (setf pred-x #'-
+                 pred-y #'-))
+          (:back-right ; obj.y < 0
+           (setf pred-x #'-
+                 pred-y #'+))
+          (:front-left ; obj.x < 0
+           (setf pred-x #'+
+                 pred-y #'-))
+          (:front-right ; obj.x < 0 and obj.y < 0
+           (setf pred-x #'+
+                 pred-y #'+)))
+        (multiple-value-bind (condition distance)
+            (check-relation-p dimensions/2 obj-coords-in-supp
+                              pred-x pred-y ratio-x ratio-y)
+          (list (ecase quarter
+                  (:back-left (if condition :back :left))
+                  (:back-right (if condition :back :right))
+                  (:front-left (if condition :front :left))
+                  (:front-right (if condition :front :right)))
+                distance))))))
+
+
+
+
+
+(defun umap-P-uobj-through-surface-edge-ll (type start-or-end)
+  "Calculates the pose of the object in map
+relative to its supporting surface's closest edge.
+Formula: umap-T-uobj = umap-T-usurface * ssurface-T-obj
+                     = umap-T-usurface * ssurface-T-smap * smap-T-sobj
+                     = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
+`type' is a simple symbol such as 'milk."
+  (let ((surface-name-dim-transform-and-object-transform-ll
+          (query-surface-name-dim-transform-and-object-transform-by-object-type
+           (object-type-filter-prolog type)
+           start-or-end
+           :table-setting)))
+    (cut:lazy-mapcar
+     (lambda (surface-name-dim-transform-and-object-transform)
+       (let* ((surface-name
+                (first surface-name-dim-transform-and-object-transform))
+              (surface-dimensions
+                (second surface-name-dim-transform-and-object-transform))
+              (smap-T-ssurface
+                (third surface-name-dim-transform-and-object-transform))
+              (smap-T-sobject
+                (fourth surface-name-dim-transform-and-object-transform))
+
+              (closest-edge-and-distance
+                (get-closest-edge-and-distance
+                 smap-T-sobject smap-T-ssurface surface-dimensions))
+              (closest-edge
+                (first closest-edge-and-distance))
+              (closest-edge-distance
+                (second closest-edge-and-distance))
+
+              (ssurface-T-sobject
+                (cl-transforms:transform*
+                 (cl-transforms:transform-inv smap-T-ssurface)
+                 smap-T-sobject))
+
+              (usurface-obj
+                (btr:rigid-body
+                 (btr:get-environment-object)
+                 (match-kitchens surface-name)))
+
+              (umap-T-usurface
+                (cl-transforms:pose->transform
+                 (btr:pose usurface-obj)))
+              (umap-T-uobj
+                (cl-transforms:transform*
+                 umap-T-usurface ssurface-T-sobject))
+
+              (usurface-dimensions
+                (btr:calculate-bb-dims usurface-obj))
+
+              (uclosest-edge-and-distance
+                (get-closest-edge-and-distance
+                 umap-T-uobj umap-T-usurface usurface-dimensions)))
+
+         (print closest-edge-and-distance)
+         (print uclosest-edge-and-distance)
+         (cl-transforms-stamped:make-pose-stamped
+          cram-tf:*fixed-frame*
+          0.0
+          (cl-transforms:translation umap-T-uobj)
+          (cl-transforms:rotation umap-T-uobj))))
+     surface-name-dim-transform-and-object-transform-ll)))
+
+
+
+
+
+
+
+
+
 (defun umap-T-ucamera-through-surface-ll (type time)
   "Calculates the pose of the robot's 'camera' in map
 relative to object supporting surface.
@@ -209,11 +376,11 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
 (defun look-poses-ll-for-searching (type)
   (umap-P-uobj-through-surface-ll type "Start"))
 
-(defun look-poses-ll-for-placing (type)
-  (umap-P-uobj-through-surface-ll type "End"))
+
+
 
 (defun object-poses-ll-for-placing (type)
-  (umap-P-uobj-through-surface-ll type "End"))
+  (umap-P-uobj-through-surface-edge-ll type "End"))
 
 
 (defun arms-for-fetching-ll (type)
