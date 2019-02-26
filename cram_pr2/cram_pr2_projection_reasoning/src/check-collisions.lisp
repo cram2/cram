@@ -245,6 +245,37 @@ Store found pose into designator or throw error if good pose not found."
 
 
 
+(defun check-placing-pose-stability (object-desig placing-location)
+  (let* ((placing-pose
+           (desig:reference placing-location))
+         (world
+           btr:*current-bullet-world*)
+         (world-state
+           (btr::get-state world))
+         (bullet-object-type
+           (desig:desig-prop-value object-desig :type))
+         (new-btr-object
+           (btr-utils:spawn-object
+            (gensym "obj") bullet-object-type :pose placing-pose)))
+    (unwind-protect
+         (progn
+           (setf (btr:pose new-btr-object) placing-pose)
+           (cpl:sleep pr2-proj::*debug-short-sleep-duration*)
+           (btr:simulate btr:*current-bullet-world* 500)
+           (btr:simulate btr:*current-bullet-world* 100)
+           (let* ((new-pose
+                    (btr:pose new-btr-object))
+                  (distance-new-pose-and-place-pose
+                    (cl-tf:v-dist
+                     (cl-transforms:origin new-pose)
+                     (cl-transforms:origin placing-pose))))
+             (when (> distance-new-pose-and-place-pose 0.2)
+               (cpl:fail 'common-fail:manipulation-low-level-failure
+                         :description "Pose unstable."))))
+      (btr::restore-world-state world-state world))))
+
+
+
 (defun check-environment-manipulation-collisions (action-desig)
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
