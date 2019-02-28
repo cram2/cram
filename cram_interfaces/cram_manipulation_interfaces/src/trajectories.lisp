@@ -194,7 +194,11 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                (:left cram-tf:*robot-left-tool-frame*)
                (:right cram-tf:*robot-right-tool-frame*)))
            (object-to-standard-gripper-transform ; oTg'
-             (get-object-type-to-gripper-transform object-type object-name arm grasp))
+             (handler-case
+                 (get-object-type-to-gripper-transform object-type object-name arm grasp)
+               (error ()
+                 (format t "GET-OBJECT-GRASPING-POSES: robot does not not know to grasp~%")
+                 (return-from get-object-grasping-poses nil))))
            (object-to-standard-gripper-pregrasp-transform ; oTg'
              (get-object-type-to-gripper-pregrasp-transform
               object-type object-name arm grasp
