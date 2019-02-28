@@ -108,6 +108,8 @@
     (lisp-fun man-int:get-object-grasping-poses
               ?object-name ?object-type :right ?grasp ?object-transform
               ?right-poses)
+    (or (lisp-pred identity ?left-poses)
+        (lisp-pred identity ?left-poses))
     (lisp-fun extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
               (?left-reach-poses ?right-reach-poses
                                  ?left-grasp-poses ?right-grasp-poses
