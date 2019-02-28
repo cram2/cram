@@ -32,7 +32,7 @@
 (defparameter *object-spawning-poses*
   '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
     (:cup . ((1.3 0.1 0.9) (0 0 -0.7 0.7)))
-    (:bowl . ((1.3 0.4 0.87) (0 0 0.4 0.6)))
+    (:bowl . ((1.6 0.5 0.87) (0 0 0.4 0.6)))
     (:spoon . ((1.43 0.4 0.85) (0 0 0.3 0.7)))
     (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
 
@@ -66,7 +66,12 @@
                              (btr-utils:spawn-object
                               (intern (format nil "~a" object-type) :keyword)
                               object-type
-                              :pose (cdr (assoc object-type spawning-poses))))
+                              :pose (let* ((x (+ 1.5 (- (random 0.4) 0.2)))
+                                           (y (+ 0.5 (- (random 1.0) 0.5)))
+                                           (pi-number (- (random 2.0) 1.0))
+                                           (pi-other (- 1.0 (abs pi-number)))
+                                           (pose `((,x ,y 0.87) (0 0 ,pi-number ,pi-other))))
+                                      pose)))
                            object-types)))
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
@@ -161,37 +166,41 @@
   (park-robot)
 
   (dolist (type list-of-objects)
-    (let ((?bullet-type
-            (object-type-filter-bullet type))
-          (?search-poses
-            (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
-          (?search-base-poses
-            (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
-          (?fetch-base-poses
-            (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type)))
-                             ;; (base-poses-ll-for-fetching-based-on-object-desig
-                             ;;  object-designator)
-                             )
-          (?grasps
-            (alexandria:shuffle (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
-          (?arms
-            (alexandria:shuffle '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
-                                ))
-          (?delivering-poses
-            (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type))))
-          (?delivering-base-poses
-            (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))
-      (exe:perform
-       (desig:an action
-                 (type transporting)
-                 (object (desig:an object (type ?bullet-type)))
-                 (location (desig:a location (poses ?search-poses)))
-                 (search-robot-location (desig:a location (poses ?search-base-poses)))
-                 (fetch-robot-location (desig:a location (poses ?fetch-base-poses)))
-                 (arms ?arms)
-                 (grasps ?grasps)
-                 (target (desig:a location (poses ?delivering-poses)))
-                 (deliver-robot-location (desig:a location (poses ?delivering-base-poses)))))))
+    (cpl:with-failure-handling
+        ((common-fail:high-level-failure (e)
+           (declare (ignore e))
+           (return)))
+      (let ((?bullet-type
+              (object-type-filter-bullet type))
+            (?search-poses
+              (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
+            (?search-base-poses
+              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
+            (?fetch-base-poses
+              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type)))
+              ;; (base-poses-ll-for-fetching-based-on-object-desig
+              ;;  object-designator)
+              )
+            (?grasps
+              (alexandria:shuffle (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
+            (?arms
+              (alexandria:shuffle '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
+                                  ))
+            (?delivering-poses
+              (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type))))
+            (?delivering-base-poses
+              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object (desig:an object (type ?bullet-type)))
+                   (location (desig:a location (poses ?search-poses)))
+                   (search-robot-location (desig:a location (poses ?search-base-poses)))
+                   (fetch-robot-location (desig:a location (poses ?fetch-base-poses)))
+                   (arms ?arms)
+                   (grasps ?grasps)
+                   (target (desig:a location (poses ?delivering-poses)))
+                   (deliver-robot-location (desig:a location (poses ?delivering-base-poses))))))))
 
   (park-robot)
 
