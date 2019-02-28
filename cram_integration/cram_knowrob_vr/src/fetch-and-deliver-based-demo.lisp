@@ -32,8 +32,8 @@
 (defparameter *object-spawning-poses*
   '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
     (:cup . ((1.3 0.1 0.9) (0 0 -0.7 0.7)))
-    (:bowl . ((1.4 0.6 0.87) (0 0 0 1)))
-    (:spoon . ((1.43 0.9 0.85) (0 0 0 1)))
+    (:bowl . ((1.3 0.4 0.87) (0 0 0.4 0.6)))
+    (:spoon . ((1.43 0.4 0.85) (0 0 0.3 0.7)))
     (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
 
 (defparameter *object-grasping-arms*
@@ -71,49 +71,6 @@
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
       objects)))
-
-(defun spawn-objects-on-sink-counter-randomly ()
-  (btr-utils:kill-all-objects)
-  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  (let ((object-types '(:cereal :cup :bowl :spoon :milk)))
-    ;; spawn at default location
-    (let ((objects (mapcar (lambda (object-type)
-                             (btr-utils:spawn-object
-                              (intern (format nil "~a" object-type) :keyword)
-                              object-type))
-                           object-types)))
-      ;; move on top of counter tops
-      (mapcar (lambda (btr-object)
-                (let* ((aabb-z (cl-transforms:z
-                                (cl-bullet:bounding-box-dimensions (btr:aabb btr-object))))
-                       (new-pose (cram-tf:rotate-pose
-                                  (cram-tf:translate-pose
-                                   (desig:reference
-                                    (if (eq (car (btr::item-types btr-object)) :spoon)
-                                        (desig:a location
-                                                 (side front)
-                                                 (in (desig:an object
-                                                               (type drawer)
-                                                               (urdf-name
-                                                                sink-area-left-upper-drawer-main)
-                                                               (part-of kitchen)))
-                                                 (range 0.2)
-                                                 (range-invert 0.12))
-                                        (desig:a location
-                                                 (side left)
-                                                 (side front)
-                                                 (on (desig:an object
-                                                               (type counter-top)
-                                                               (urdf-name sink-area-surface)
-                                                               (part-of kitchen)))
-                                                 ;; (centered-with-padding 0.1)
-                                                 )))
-                                   :z-offset (/ aabb-z 2.0))
-                                  :z (/ pi (random 10.0)))))
-                  (btr-utils:move-object (btr:name btr-object) new-pose)))
-              objects)))
-  ;; stabilize world
-  (btr:simulate btr:*current-bullet-world* 100))
 
 (defmethod exe:generic-perform :before (designator)
   (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
@@ -192,32 +149,38 @@
   (ccl::reset-logged-owl))
 
 (cpl:def-cram-function demo (&optional
-                             (random nil)
                              (list-of-objects
                               '(bowl
-                                ;; spoon
+                                spoon
                                 cup)))
 
   (initialize)
   (when cram-projection:*projection-environment*
-    (if random
-        (spawn-objects-on-sink-counter-randomly)
-        (spawn-objects-on-sink-counter)))
+    (spawn-objects-on-sink-counter))
 
   (park-robot)
 
   (dolist (type list-of-objects)
-    (let ((?bullet-type (object-type-filter-bullet type))
-          (?search-poses (look-poses-ll-for-searching type))
-          (?search-base-poses (base-poses-ll-for-searching type))
-          (?fetch-base-poses (base-poses-ll-for-searching type)
+    (let ((?bullet-type
+            (object-type-filter-bullet type))
+          (?search-poses
+            (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
+          (?search-base-poses
+            (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
+          (?fetch-base-poses
+            (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type)))
                              ;; (base-poses-ll-for-fetching-based-on-object-desig
                              ;;  object-designator)
                              )
-          (?grasps (object-grasped-faces-ll-from-kvr-type type))
-          (?arms (arms-for-fetching-ll type))
-          (?delivering-poses (object-poses-ll-for-placing type))
-          (?delivering-base-poses (base-poses-ll-for-placing type)))
+          (?grasps
+            (alexandria:shuffle (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
+          (?arms
+            (alexandria:shuffle '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
+                                ))
+          (?delivering-poses
+            (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type))))
+          (?delivering-base-poses
+            (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))
       (exe:perform
        (desig:an action
                  (type transporting)
