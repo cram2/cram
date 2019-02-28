@@ -96,7 +96,9 @@
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?left-poses ?right-poses
                                                   :allow-all))
-    (or (spec:property ?action-designator (:type :pushing)))
+    (or (spec:property ?action-designator (:type :pushing))
+        ;; (spec:property ?action-designator (:type :lifting))
+        )
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
