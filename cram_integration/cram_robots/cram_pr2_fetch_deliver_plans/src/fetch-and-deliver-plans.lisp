@@ -589,6 +589,10 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                               (arm ?arm))
                                             (desig:when ?grasp
                                               (grasp ?grasp))
+                                            (desig:when ?arms
+                                              (arms ?arms))
+                                            (desig:when ?grasps
+                                              (grasps ?grasps))
                                             (object ?perceived-object-designator)
                                             (robot-location ?fetch-robot-location)
                                             (pick-up-action ?fetch-pick-up-action)))))
