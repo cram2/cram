@@ -111,12 +111,20 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *cutlery-grasp-z-offset* -0.0 "in meters") ; because TCP is not at the edge
+(defparameter *cutlery-grasp-z-offset* 0.005 "in meters") ; because TCP is not at the edge
 (defparameter *cutlery-pregrasp-z-offset* 0.20 "in meters")
 (defparameter *cutlery-pregrasp-xy-offset* 0.10 "in meters")
 
 ;; TOP grasp
 (def-object-type-to-gripper-transforms '(:cutlery :spoon :fork :knife) '(:left :right) :top
+  :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
+  :grasp-rot-matrix *z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :lift-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+  :2nd-lift-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
+
+(def-object-type-to-gripper-transforms '(:cutlery :spoon :fork :knife) '(:left :right) :bottom
   :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
   :grasp-rot-matrix *z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
@@ -208,7 +216,7 @@
 
 (defparameter *cup-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *cup-grasp-xy-offset* 0.02 "in meters")
-(defparameter *cup-grasp-z-offset* 0.03 "in meters")
+(defparameter *cup-grasp-z-offset* 0.01 "in meters")
 (defparameter *cup-top-grasp-x-offset* 0.03 "in meters")
 (defparameter *cup-top-grasp-z-offset* 0.02 "in meters")
 
