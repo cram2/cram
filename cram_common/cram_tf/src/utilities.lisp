@@ -91,6 +91,13 @@
      (cl-transforms:make-3d-vector x y z)
      (cl-transforms:make-quaternion q1 q2 q3 w))))
 
+(defun flat-list->transform (pose-list)
+  (destructuring-bind (x y z q1 q2 q3 w)
+      pose-list
+    (cl-transforms:make-transform
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
+
 (defun flat-list-w-first->pose (pose-list)
   (destructuring-bind (x y z w q1 q2 q3)
       pose-list

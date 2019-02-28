@@ -88,7 +88,7 @@
                         copied-part))
                     (sub-parts part)))
       copy))
-  
+
   (:method ((geom semantic-map-geom))
     (with-slots (pose dimensions) geom
       (let ((copy (call-next-method)))
@@ -117,7 +117,7 @@
 (defgeneric semantic-map-parts (map &key recursive)
   (:method ((null null) &key recursive)
     (declare (ignore recursive))
-    nil)  
+    nil)
   (:method ((map semantic-map) &key recursive)
     (let ((direct-children (loop for part being the hash-values of (slot-value map 'parts)
                                  collecting part)))
@@ -137,7 +137,7 @@
 
 (defgeneric semantic-map-part-names (map)
   (:method ((null null))
-    nil)  
+    nil)
   (:method ((map semantic-map))
     (loop for name being the hash-keys of (slot-value map 'parts)
           collecting name))
@@ -147,11 +147,11 @@
 (defgeneric semantic-map-part (map name &key recursive)
   (:method ((null null) name &key recursive)
     (declare (ignore name recursive))
-    nil)  
+    nil)
   (:method ((map semantic-map) name &key recursive)
     (or (gethash name (slot-value map 'parts))
         (loop for p-name being the hash-keys in (slot-value map 'parts)
-              using (hash-value part)
+                using (hash-value part)
               when (equal (typecase name
                             (string name)
                             (symbol (roslisp-utilities:rosify-lisp-name name)))
@@ -193,27 +193,39 @@
                            ?labels)))
             (if (or (is-var ?pose) (is-var ?dim))
                 (make-instance 'semantic-map-part
-                               :type type :name name :owl-name owlname
-                               :aliases (mapcar (lambda (label)
-                                                  (remove #\' (symbol-name label)))
-                                                aliases)
-                               :parent parent)
+                  :type type :name name :owl-name owlname
+                  :aliases (mapcar (lambda (label)
+                                     (remove #\' (symbol-name label)))
+                                   aliases)
+                  :parent parent)
                 (make-instance 'semantic-map-geom
                   :type type
                   :name name
                   :owl-name owlname
                   :urdf-link-name (urdf-name owlname)
-                  :pose (if (= (length ?pose) 7)
-                            (destructuring-bind (x y z w q1 q2 q3)
-                                ?pose
-                             (cl-transforms:make-pose
-                              (cl-transforms:make-3d-vector x y z)
-                              (cl-transforms:make-quaternion q1 q2 q3 w)))
-                            (cl-transforms:transform->pose
-                             (cl-transforms:matrix->transform
-                              (make-array
-                               '(4 4) :displaced-to (make-array
-                                                     16 :initial-contents ?pose)))))
+                  :pose (case (length ?pose) ; pose comes in format: map name vector quaternion
+                          (4 (destructuring-bind (map name pose quaternion)
+                                 ?pose
+                               (destructuring-bind (x y z) pose
+                                 (destructuring-bind (w q1 q2 q3) quaternion ;w q1 q2 q3
+                                   (cl-transforms:make-pose
+                                    (cl-transforms:make-3d-vector x y z)
+                                    (cl-transforms:make-quaternion q1 q2 q3 w))))))
+
+                          (7 (destructuring-bind (x y z w q1 q2 q3)
+                                 ?pose
+                               (cl-transforms-stamped:make-pose
+                                (cl-transforms:make-3d-vector x y z)
+                                (cl-transforms:make-quaternion q1 q2 q3 w))))
+
+                          (16 (cl-transforms:transform->pose
+                               (cl-transforms:matrix->transform
+                                (make-array
+                                 '(4 4) :displaced-to (make-array
+                                                       16 :initial-contents ?pose)))))
+                          (t (error "Length of object pose has to be ~
+                                     either 4, 7 or 16 elements long." )))
+
                   :dimensions (apply #'cl-transforms:make-3d-vector
                                      (mapcar (lambda (x)
                                                (typecase x
@@ -225,6 +237,7 @@
                                      (remove #\' (symbol-name label)))
                                    aliases)
                   :parent parent)))))))
+
 
 (defgeneric update-pose (obj new-pose &key relative recursive)
   (:documentation "Updates the pose of `obj' using `new-pose'. When
@@ -266,7 +279,7 @@
           (force-ll
            (lazy-mapcan
             (lambda (bdgs)
-              (with-vars-bound (?type ?name ?sub) bdgs
+              (with-vars-bound (?type ?name ?sub ?prefixName ?prefixType) bdgs
                 (unless (or (is-var ?type) (is-var ?sub))
                   (list
                    (make-semantic-map-part
@@ -281,23 +294,29 @@
                               ?sub)
                    ("rdf_has" ,(owl-name part)
                               "http://knowrob.org/kb/srdl2-comp.owl#subComponent"
+                              ?sub)
+                   ;;  ("rdf_has" ,(owl-name part)
+                   ;;             "http://knowrob.org/kb/knowrob_u.owl#attachedChild"
+                   ;;            ?sub)
+                   ("rdf_has" ,(owl-name part)
+                              "http://knowrob.org/kb/knowrob_u.owl#attachedParent"
                               ?sub))
                ("map_object_type" ?sub ?tp)
-               ("rdf_atom_no_ns" ?tp ?type)
-               ("rdf_atom_no_ns" ?sub ?name))
+               ("iri_xml_namespace" ?tp ?prefixType ?type) ;"rdf_atom_no_ns" ?tp ?type
+               ("iri_xml_namespace" ?sub ?prefixName ?n)) ; "rdf_atom_no_ns" ?o ?n
              :package :sem-map-utils))))))
 
 (defmethod urdf-name ((owl-name string))
   (let ((label (var-value
-                    '?link
-                    (lazy-car (json-prolog:prolog
-                               `("rdf_has"
-                                 ,owl-name "http://knowrob.org/kb/srdl2-comp.owl#urdfName"
-                                 ("literal" ?link))
-                               :package :sem-map-utils)))))
-        (if (is-var label)
-            nil
-            (remove #\' (symbol-name label)))))
+                '?link
+                (lazy-car (json-prolog:prolog
+                           `("rdf_has"
+                             ,owl-name "http://knowrob.org/kb/srdl2-comp.owl#urdfName"
+                             ("literal" ?link))
+                           :package :sem-map-utils)))))
+    (if (is-var label)
+        nil
+        (remove #\' (symbol-name label)))))
 
 (defmethod urdf-name :before ((part semantic-map-part))
   (unless (slot-boundp part 'urdf-name)
@@ -305,14 +324,14 @@
       (setf urdf-name (urdf-name owl-name)))))
 
 (defun urdf-name->obj-name (urdf-name)
-  (with-vars-bound (?name)
+  (with-vars-bound (?name ?prefix)
       (lazy-car
        (json-prolog:prolog
         `(and
           ("rdf_has"
            ?owlname "http://knowrob.org/kb/srdl2-comp.owl#urdfName"
            ("literal" ,urdf-name))
-          ("rdf_atom_no_ns" ?owlname ?name))
+          ("iri_xml_namespace" ?owlname ?prefix ?name))
         :package :sem-map-utils))
     (unless (is-var ?name)
       (remove #\' (symbol-name ?name)))))
@@ -341,8 +360,8 @@
                    :package :sem-map-utils)))))
           (when (is-var uploaded-map-name)
             (roslisp:ros-warn (sem-map-cache)
-                              "MAP-NAME predicate is undefined for uploaded map.
-Cannot update semantic map.")
+                              "MAP-NAME predicate is undefined for uploaded map. ~
+                               Cannot update semantic map.")
             (return-from init-semantic-map-cache))
           (setf uploaded-map-name (remove #\' (symbol-name uploaded-map-name)))
           (when (and map-name
@@ -361,7 +380,7 @@ Cannot update semantic map.")
                              (force-ll
                               (lazy-mapcan
                                (lambda (bdgs)
-                                 (with-vars-bound (?type ?n ?o) bdgs
+                                 (with-vars-bound (?type ?n ?o ?prefixtype ?prefixname) bdgs
                                    (unless (or (is-var ?type) (is-var ?o))
                                      (list (make-semantic-map-part
                                             (remove #\' (symbol-name ?type))
@@ -369,15 +388,21 @@ Cannot update semantic map.")
                                             (remove #\' (symbol-name ?o))
                                             nil)))))
                                (json-prolog:prolog
-                                `(and ("map_root_objects" ,uploaded-map-name ?objs)
-                                      ("member" ?o ?objs)
-				      ("rdf_has" ?o "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" ?tp)
-                                      ("owl_subclass_of" ?tp "http://knowrob.org/kb/knowrob.owl#SpatialThing")
-                                      ("rdf_atom_no_ns" ?tp ?type)
-                                      ("rdf_atom_no_ns" ?o ?n))
+                                `(and
+                                  ("map_root_objects" ,uploaded-map-name ?objs)
+                                  ("member" ?o ?objs)
+                                  ("rdf_has" ?o "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                                             ?tp)
+                                  ;; ("owl_subclass_of"
+                                  ;; ?tp "http://knowrob.org/kb/knowrob.owl#SpatialThing")
+                                  ;; ("rdf_atom_no_ns" ?tp ?type)
+                                  ("iri_xml_namespace" ?tp ?prefixtype ?type)
+                                  ;; ("rdf_atom_no_ns" ?o ?n)
+                                  ("iri_xml_namespace" ?o ?prefixname ?n))
                                 :package :sem-map-utils))))
                             :test 'equal))
                   *cached-semantic-map-name* uploaded-map-name)
+            (roslisp:ros-info (sem-map-cache) "Done quering!" )
             (roslisp:ros-info (sem-map-cache) "Updated semantic map cache.")))
         (roslisp:ros-warn (sem-map-cache)
                           "No connection to json-prolog server. Cannot update semantic map."))))
@@ -445,7 +470,8 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
 
 (defun sub-parts-with-name (map name &key (recursive t))
   "Returns a lazy list of all objects of type `type' that are children
-of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns not only direct children."
+of map. When `recursive' is T, recursively traverses all sub-parts,
+i.e. returns not only direct children."
   ;; Update the cache if not updated yet
   (let ((name (typecase name
                 (symbol (roslisp-utilities:rosify-lisp-name name))
@@ -470,7 +496,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
   (with-vars-bound (?min ?max ?connected ?labels ?directionx ?directiony ?directionz)
       (car
        (json-prolog:prolog-1
-        `(and 
+        `(and
           ("rdf_has" ,owl-name "http://knowrob.org/kb/knowrob.owl#minJointValue"
                      ("literal" ("type" ?_ ?min_)))
           ("rdf_has" ,owl-name "http://knowrob.org/kb/knowrob.owl#maxJointValue"
@@ -518,7 +544,7 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
   (with-vars-bound (?min ?max ?connected ?labels)
       (car
        (json-prolog:prolog-1
-        `(and 
+        `(and
           ("rdf_has" ,owl-name "http://knowrob.org/kb/knowrob.owl#minJointValue"
                      ("literal" ("type" ?_ ?min_)))
           ("rdf_has" ,owl-name "http://knowrob.org/kb/knowrob.owl#maxJointValue"
@@ -546,3 +572,14 @@ of map. When `recursive' is T, recursively traverses all sub-parts, i.e. returns
                          (remove #\' (symbol-name label)))
                        (unless (is-var ?labels) ?labels))
       :parent parent)))
+
+(defun get-mesh-path (owlname)
+  "Returns the path of the mesh given the owlname of the mesh"
+  (remove #\'
+          (symbol-name
+           (cut:var-value
+            '?path
+            (cut:lazy-car
+             (json-prolog:prolog-simple
+              (concatenate 'string "object_mesh_path('" owlname "', PATH).")
+              :package :sem-map-utils))))))

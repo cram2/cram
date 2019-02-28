@@ -25,6 +25,12 @@
 (defparameter *host* "'https://192.168.100.172'")
 (defparameter *cert-path* "'/home/ease/openease-certificates/sebastian.pem'")
 
+;; Gaya's token on Sebastian's PC + cram pc setup
+(defparameter *host* "'https://192.168.100.172'")
+(defparameter *cert-path* "'/home/cram/Desktop/sebastian.pem'")
+(defparameter *api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
+
+
 (defclass cloud-logger-client()
   ((address :accessor get-address)
    (certificate :accessor get-certificate)

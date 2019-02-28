@@ -58,7 +58,7 @@ The name in the list is a keyword that is created by lispifying the filename."
                       (or (string-equal object-extension "stl")
                           (string-equal object-extension "dae")))
                   (let* ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
-                                    object-filename :keyword))
+                                     object-filename :keyword))
                          (new-entry (list lisp-name
                                           (format nil "package://~a/~a/~a.~a"
                                                   ros-package directory
@@ -89,7 +89,7 @@ The name in the list is a keyword that is created by lispifying the filename."
         (let ((mesh-specification (assoc object-type *mesh-files*)))
           (assert
            mesh-specification ()
-           "Couldn't fine a mesh for object type ~a." object-type)
+           "Couldn't find a mesh for object type ~a." object-type)
           (destructuring-bind (type uri &optional flip-winding-order)
               mesh-specification
             (declare (ignore type))
@@ -131,10 +131,10 @@ The name in the list is a keyword that is created by lispifying the filename."
                          (/ (* i pi)
                             4)))
                        (make-instance
-                        'box-shape
-                        :half-extents (cl-transforms:make-3d-vector
-                                       radius (* radius (sin (/ pi 8)))
-                                       (/ height 2)))))
+                           'box-shape
+                         :half-extents (cl-transforms:make-3d-vector
+                                        radius (* radius (sin (/ pi 8)))
+                                        (/ height 2)))))
     compound-shape))
 
 (defun make-cup-shape (radius height handle-size)
@@ -148,14 +148,15 @@ The name in the list is a keyword that is created by lispifying the filename."
                        0 0)
                       (cl-transforms:make-quaternion 0 0 0 1))
                      (make-instance
-                      'box-shape
-                      :half-extents (cl-transforms:v* handle-size 0.5)))
+                         'box-shape
+                       :half-extents (cl-transforms:v* handle-size 0.5)))
     collision-shape))
 
-(defmethod add-object ((world bt-world) (type (eql :generic-cup)) name pose &key
-                       mass radius height
-                       (handle-size (cl-transforms:make-3d-vector
-                                     0.03 0.01 (* height 0.8))))
+(defmethod add-object ((world bt-world) (type (eql :generic-cup)) name pose
+                       &key
+                         mass radius height
+                         (handle-size (cl-transforms:make-3d-vector
+                                       0.03 0.01 (* height 0.8))))
   (make-item world name '(generic-cup)
              (list
               (make-instance
@@ -164,7 +165,7 @@ The name in the list is a keyword that is created by lispifying the filename."
                 :collision-shape (make-cup-shape radius height handle-size)))))
 
 (defmethod add-object ((world bt-world) (type (eql :mug)) name pose &key
-                       mass)
+                                                                      mass)
   (add-object world :mesh name pose :mass mass :mesh :mug))
 
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose

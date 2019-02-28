@@ -32,7 +32,8 @@
   (:use #:common-lisp #:cram-prolog)
   (:export
    ;; check-collisions
-   #:check-navigating-collisions #:check-picking-up-collisions #:check-placing-collisions
+   #:check-navigating-collisions #:check-picking-up-collisions
+   #:check-placing-collisions #:check-placing-pose-stability
    #:check-environment-manipulation-collisions
    ;; projection-prediction
    #:pick-best-parameters-by-distance #:with-projected-task-tree))

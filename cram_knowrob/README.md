@@ -1,1 +1,4 @@
-# cram_semantic_maps
+### cram_knowrob
+
+Libraries for using knowrob in Lisp.
+

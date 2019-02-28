@@ -43,7 +43,7 @@
    ;; event handlers
    #:object-pose-in-frame
    ;; belief-state
-   #:*robot-urdf* #:*kitchen-urdf*
+   #:*kitchen-urdf*
    #:*robot-parameter* #:*kitchen-parameter*
    #:*spawn-debug-window*
    #:setup-world-database))

@@ -34,38 +34,13 @@
 ;; Will need an SRDF parser to extract that information. Until then, a lot
 ;; of the predicates will be manually filled with data.
 
-(defparameter *robot-description* nil)
-
-;; WARNING: the only reason this function exists here is because some urdfs
-;; on the real robot contain a bad \\ string. They (or their xacro sources)
-;; should be cleaned up.
-(defun replace-all (string part replacement &key (test #'char=))
-  "Returns a new string in which all the occurences of the part
-is replaced with replacement."
-  (with-output-to-string (out)
-    (loop with part-length = (length part)
-          for old-pos = 0 then (+ pos part-length)
-          for pos = (search part string
-                            :start2 old-pos
-                            :test test)
-          do (write-string string out
-                           :start old-pos
-                           :end (or pos (length string)))
-          when pos do (write-string replacement out)
-          while pos)))
-
-(defun init-robot-description (&optional (robot-description-param "robot_description"))
-  ;; TODO: see above: clean the urdfs/xacros, then remove the replace-all call and just
-  ;; get the ros parameter value.
-  (let ((urdf-string (roslisp:get-param robot-description-param nil)))
-    (when urdf-string
-      (setf *robot-description* (cl-urdf:parse-urdf (replace-all urdf-string "\\" "  "))))))
+(defvar *robot-urdf* nil
+  "A cl-urdf object corresponding to parsed robot urdf.")
 
 (defun get-joint-description (joint-name)
-  (unless *robot-description*
-    (init-robot-description))
-  (when *robot-description*
-    (gethash joint-name (cl-urdf:joints *robot-description*))))
+  (unless *robot-urdf*
+    (error "[rob-int] ROBOT-URDF variable is not set!"))
+  (gethash joint-name (cl-urdf:joints *robot-urdf*)))
 
 (defun get-joint-type (joint-name)
   (let* ((joint-description (get-joint-description joint-name)))
