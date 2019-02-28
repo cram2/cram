@@ -31,6 +31,8 @@
   (concatenate 'string "literal(type(" literal-type "," literal-value "))"))
 
 (defun convert-to-prolog-str(lisp-str)
+  (when (symbolp lisp-str)
+    (setf lisp-str (symbol-name lisp-str)))
   (if (eq 0 (search "'" lisp-str))
       (concatenate 'string "\\'" (subseq lisp-str 1 (- (length lisp-str) 1)) "\\'")
       (concatenate 'string "\\'" lisp-str "\\'")))

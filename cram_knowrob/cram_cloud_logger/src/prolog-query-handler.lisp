@@ -7,7 +7,10 @@
 
 (defmethod prolog::prove-one :around (query binds &optional rethrow-cut)
   (if *is-logging-enabled*
-      (let ((query-id (create-prolog-log-query (car query) '("http://knowrob.org/kb/knowrob.owl#no-parameter")))(result (call-next-method)))
+      (let ((query-id (create-prolog-log-query
+                       (car query)
+                       '("http://knowrob.org/kb/knowrob.owl#no-parameter")))
+            (result (call-next-method)))
         ;; Come back here to implement parameter logging
         ;;(when query-id
         ;;  (log-result query binds result))
@@ -26,10 +29,10 @@
 
 (defun log-result-of-query (query-id result)
   (let ((result-query
-              (create-rdf-assert-query
-               (car query-id)
-               "knowrob:result"
-               (create-string-owl-literal (convert-to-prolog-str result)))))
+          (create-rdf-assert-query
+           (car query-id)
+           "knowrob:result"
+           (create-string-owl-literal (convert-to-prolog-str result)))))
     (let ((query-list (car (cdr query-id))))
       (push result-query (cdr (last query-list)))
       (setf (cpl:value *prolog-queries*)
@@ -39,14 +42,14 @@
 
 (defun log-end-of-query (query-id)
   (let ((end-query
-                    (create-query
-                     "cram_finish_action"
-                     (list (car query-id) (get-timestamp-for-logging)))))
-              (let ((query-list (car (cdr query-id))))
-                (push end-query (cdr (last query-list)))
-                (setf (cpl:value *prolog-queries*)
-                      (append query-list
-                              (cpl:value *prolog-queries*))))))
+          (create-query
+           "cram_finish_action"
+           (list (car query-id) (get-timestamp-for-logging)))))
+    (let ((query-list (car (cdr query-id))))
+      (push end-query (cdr (last query-list)))
+      (setf (cpl:value *prolog-queries*)
+            (append query-list
+                    (cpl:value *prolog-queries*))))))
 
 (defun log-result (query binds result)
   (let ((variable-list-list (print-prolog-predicate query binds))
@@ -90,27 +93,27 @@
                    (create-obj-log-query-class-name predicate-name)
                    (format nil "~x" (random (expt 16 8)))))
         (queries '()))
-        (setf queries
-              (cons (create-rdf-assert-query
-                     (convert-to-prolog-str (car ccl::*action-parents*))
-                     "knowrob:reasoningTask"
-                     query-id)
-                    queries))
-        (setf queries
-              (cons (create-rdf-assert-query
-                     query-id
-                     "knowrob:predicate"
-                     (create-string-owl-literal (convert-to-prolog-str (write-to-string predicate-name))))
-                    queries))
-        (setf queries
-              (cons (create-query
-                     "cram_start_action"
-                     (list  (concatenate 'string "knowrob:" (convert-to-prolog-str "PrologQuery"))
-                           "\\'TableSetting\\'"
-                           (get-timestamp-for-logging)
-                           "PV"
-                           query-id))
-                    queries))
+    (setf queries
+          (cons (create-rdf-assert-query
+                 (convert-to-prolog-str (car ccl::*action-parents*))
+                 "knowrob:reasoningTask"
+                 query-id)
+                queries))
+    (setf queries
+          (cons (create-rdf-assert-query
+                 query-id
+                 "knowrob:predicate"
+                 (create-string-owl-literal (convert-to-prolog-str (write-to-string predicate-name))))
+                queries))
+    (setf queries
+          (cons (create-query
+                 "cram_start_action"
+                 (list  (concatenate 'string "knowrob:" (convert-to-prolog-str "PrologQuery"))
+                        "\\'TableSetting\\'"
+                        (get-timestamp-for-logging)
+                        "PV"
+                        query-id))
+                queries))
     (list query-id queries)))
 
 (defun create-obj-log-query-class-name (predicate-name)
@@ -125,35 +128,35 @@
 
 (defun create-prolog-log-query-str (predicate-name-str parameters)
   (if (is-predicate-in-white-list predicate-name-str)
-        (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8)))))
-              (queries '()))
-          (setf queries
-                (cons (create-rdf-assert-query
-                       (convert-to-prolog-str (car ccl::*action-parents*))
-                       "knowrob:reasoningTask"
-                       query-id)
-                      queries))
-          (setf queries
-                (cons (create-rdf-assert-query
-                       query-id
-                       "knowrob:predicate"
-                       (create-string-owl-literal
-                        (convert-to-prolog-str predicate-name-str)))
-                      queries))
-           (setf queries
-                (cons (create-log-parameters-query query-id parameters)
-                      queries))
-          (setf queries
-                (cons (create-query
-                       "cram_start_action"
-                       (list  (concatenate 'string "knowrob:" (convert-to-prolog-str "PrologQuery"))
-                              "\\'TableSetting\\'"
-                              (get-timestamp-for-logging)
-                              "PV"
-                              query-id))
-                      queries))
-          (list query-id queries))
-        nil))
+      (let ((query-id (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8)))))
+            (queries '()))
+        (setf queries
+              (cons (create-rdf-assert-query
+                     (convert-to-prolog-str (car ccl::*action-parents*))
+                     "knowrob:reasoningTask"
+                     query-id)
+                    queries))
+        (setf queries
+              (cons (create-rdf-assert-query
+                     query-id
+                     "knowrob:predicate"
+                     (create-string-owl-literal
+                      (convert-to-prolog-str predicate-name-str)))
+                    queries))
+        (setf queries
+              (cons (create-log-parameters-query query-id parameters)
+                    queries))
+        (setf queries
+              (cons (create-query
+                     "cram_start_action"
+                     (list  (concatenate 'string "knowrob:" (convert-to-prolog-str "PrologQuery"))
+                            "\\'TableSetting\\'"
+                            (get-timestamp-for-logging)
+                            "PV"
+                            query-id))
+                    queries))
+        (list query-id queries))
+      nil))
 
 (defun create-prolog-log-query (predicate-name parameters)
   (let ((predicate-name-str
