@@ -28,44 +28,70 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (asdf:defsystem cram-knowrob-vr
-	:depends-on (roslisp
+	:depends-on (cram-tf
+               roslisp
                cram-language
                cram-json-prolog
                std_msgs-msg
                cl-transforms
                cl-transforms-stamped
                cl-tf
-               cram-bullet-world-tutorial
                cram-knowrob-pick-place
-               cram-manipulation-interfaces)
+               cram-manipulation-interfaces
+               cram-semantic-map
+               cram-bullet-reasoning
+               cram-bullet-reasoning-utilities
+               cram-bullet-reasoning-belief-state
+               cram-executive
+               cram-designators
+               cram-prolog
+               cram-common-failures
+               cram-pr2-projection
+               cram-robot-interfaces
+               cram-pr2-fetch-deliver-plans
+               cram-knowrob-pick-place)
 	:components
 
 	((:module "src"
 	  :components
 	  ((:file "package")
-     (:file "utility-queries" :depends-on ("package"))
-     (:file "items" :depends-on ("package"))
-     (:file "openease-to-bullet" :depends-on ("package"))
-     (:file "data-manipulation" :depends-on ("package"))
      ;; whitelist of mesh files that should be used from the unreal kitchen
      (:file "mesh-list" :depends-on ("package"))
-
-     (:file "designators" :depends-on ("package" "items"))
+     ;; name mappings between CRAM and KnowRob
+     (:file "mapping-urdf-semantic" :depends-on ("package"))
      ;; initialisation
-     (:file "init" :depends-on ("package" "utility-queries" "items"))
-     (:file "queries" :depends-on ("package" "data-manipulation"))
-     (:file "movement" :depends-on ("package" "designators" "queries"))
-     (:file "utils" :depends-on ("package" "items" "movement"))
-     (:file "robot-positions-calculations" :depends-on ("package" "queries"))
-     ;; specifies how to grasp obj
-     (:file "grasping" :depends-on ("package" "queries" "openease-to-bullet"))
-     (:file "plans" :depends-on ("package" "designators" "utils" "queries"))
-     (:file "demo-preparation" :depends-on ("package" "utils"))
-     (:file "plan-execution" :depends-on ("package" "plans" "utils" "queries" "movement"))
-     ;; plans for demonstrations
-     (:file "demo-plans" :depends-on ("package" "queries" "plans" "plan-execution"))
+     (:file "init" :depends-on ("package" "mesh-list" "mapping-urdf-semantic"))
+     ;; communication with KnowRob is implemented here
+     (:file "queries" :depends-on ("package"))
+     ;; the logic of transferring VR data onto robot, all transformations etc
+     (:file "query-based-calculations" :depends-on ("package"
+                                                    "queries"
+                                                    "mapping-urdf-semantic"))
 
-     (:file "gaussian" :depends-on ("package"))
-     (:file "debugging-utils" :depends-on ("package" "movement" "queries"
-                                                     "openease-to-bullet" "init"))
-     (:file "mapping-urdf-semantic" :depends-on ("package"))))))
+     ;; visibility and reachability location resolution through VR
+     ;; (:file "designator-integration" :depends-on ("package"
+     ;;                                              "query-based-calculations"))
+     ;; plans that call fetch and deliver actions
+     (:file "fetch-and-deliver-based-demo" :depends-on ("package"
+                                                        "designator-integration"))
+
+     ;; integration with grasping interface from cram_manipulation_interfaces
+     ;; (:file "grasping" :depends-on ("package" "query-based-calculations"))
+     ;; move-to-object, pick, place and pick-and-place plans, queries for get-hand
+     ;; (:file "plans" :depends-on ("package" "queries" "mapping-urdf-semantic"))
+     ;; calling plans with correct arguments
+     ;; (:file "plan-execution" :depends-on ("package" "query-based-calculations"))
+     ;; utilities for moving objects to poses for the demo-plans file
+     ;; (:file "move-utils" :depends-on ("package"
+     ;;                                  "mapping-urdf-semantic"
+     ;;                                  "query-based-calculations"))
+     ;; plans for demonstrations
+     ;; (:file "demo-plans" :depends-on ("package" "plan-execution" "move-utils"))
+     ;; only used for debugging
+     ;; (:file "debugging-utils" :depends-on ("package"
+     ;;                                       "queries"
+     ;;                                       "query-based-calculations"
+     ;;                                       "init"
+     ;;                                       "move-utils"
+     ;;                                       "mapping-urdf-semantic"))
+     ))))
