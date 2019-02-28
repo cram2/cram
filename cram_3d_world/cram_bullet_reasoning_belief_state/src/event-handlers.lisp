@@ -89,6 +89,9 @@
 
         ;;; giskard event
           (call-giskard-environment-service
+           :kill
+           btr-object-name-string)
+          (call-giskard-environment-service
            :attached
            btr-object-name-string
            ee-to-object-pose
