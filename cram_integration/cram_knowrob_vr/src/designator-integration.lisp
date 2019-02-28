@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Alina Hawkin <hawkin@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,40 +29,33 @@
 
 (in-package :kvr)
 
-(defun demo-all-pick-place ()
-  "Picks and places all objects of an episode one by one. Meaning the robot will always hold on to just one object and finish placing it before going back to picking up another one. "
-  (pr2-proj:with-simulated-robot
-    (move-urdf-objects-to-start-pose)
-    (move-semantic-objects-to-start-pose)
+(def-fact-group location-designators (desig:location-grounding)
 
-    (execute-pick-and-place 'cup)
-    (execute-pick-and-place 'muesli)
-    (execute-pick-and-place 'milk)
-    (execute-pick-and-place 'bowl)
-    (execute-pick-and-place 'fork)))
+  (<- (desig:location-grounding ?designator ?pose-stamped)
+    (desig:loc-desig? ?designator)
+    (rob-int:reachability-designator ?designator)
+    (desig:desig-prop ?designator (:object ?object-designator))
+    (lisp-type ?object-designator desig:object-designator)
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (lisp-fun base-poses-ll-for-fetching-based-on-object-desig
+              ?current-object-designator
+              ?base-poses-ll)
+    (member ?pose-stamped ?base-poses-ll)
+    (format "Reachability VR POSE!~%"))
+
+  (<- (desig:location-grounding ?designator ?pose-stamped)
+    (desig:loc-desig? ?designator)
+    (rob-int:visibility-designator ?designator)
+    ;; (desig:desig-prop ?designator (:object ?object-designator))
+    ;; (lisp-type ?object-designator desig:object-designator)
+    ;; (desig:current-designator ?object-designator ?current-object-designator)
+    ;; (desig:desig-prop ?object-designator (:type ?object-type))
+    (equal ?object-type "CupEcoOrange")
+    (lisp-fun base-poses-ll-for-searching ?object-type ?base-poses-ll)
+    (member ?pose-stamped ?base-poses-ll)
+    (format "Visibility VR POSE!~%")))
 
 
-#+not-used
-(defun demo-all-obj ()
-  "For the entire episode, first place the object at the location where it was
-for the robot to pick up, and then pick it up and place it. "
-  (pr2-proj:with-simulated-robot
-    ;; muesli
-    (move-object-to-starting-pose 'koelln-muesli-knusper-honig-nuss)
-    (execute-pick-and-place 'muesli)
-
-    ;; milk
-    (move-object-to-starting-pose 'weide-milch-small)
-    (execute-pick-and-place 'milk)
-
-    ;; cup
-    (move-object-to-starting-pose 'cup-eco-orange)
-    (execute-pick-and-place 'cup)
-
-    ;; bowl
-    (move-object-to-starting-pose 'edeka-red-bowl)
-    (execute-pick-and-place 'bowl)
-
-    ;; fork
-    (move-object-to-starting-pose 'fork-blue-plastic)
-    (execute-pick-and-place 'fork)))
+(defmethod man-int:get-object-type-grasps :around (object-type arm
+                                                   object-transform-in-base)
+  (remove-duplicates (cut:force-ll (object-grasped-faces-ll object-type))))
