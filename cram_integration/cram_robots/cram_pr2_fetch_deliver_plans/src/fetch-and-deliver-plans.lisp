@@ -297,7 +297,9 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 ;; if picking up fails, try another arm
                 (cpl:with-retry-counters ((arm-retries 1))
                   (cpl:with-failure-handling
-                      ((common-fail:manipulation-low-level-failure (e)
+                      (((or common-fail:manipulation-low-level-failure
+                            common-fail:object-unreachable
+                            desig:designator-error) (e)
                          (declare (ignore e))
                          (roslisp:ros-warn (kvr plans) "manipulation failed. Next.")
                          (cpl:do-retry arm-retries
@@ -306,13 +308,16 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                            (if ?arm
                                (cpl:retry)
                                (roslisp:ros-warn (kvr plans) "no more solutions")))
-                         (roslisp:ros-warn (kvr plans) "arm retry counter empty")))
+                         (roslisp:ros-warn (kvr plans) "arm retry counter empty")
+                         (cpl:fail 'common-fail:object-unreachable)))
 
                     (let ((?grasp (cut:lazy-car ?grasps)))
                       ;; if picking up fails, try another grasp orientation
                       (cpl:with-retry-counters ((grasp-retries 4))
                         (cpl:with-failure-handling
-                            ((common-fail:manipulation-low-level-failure (e)
+                            (((or common-fail:manipulation-low-level-failure
+                                  common-fail:object-unreachable
+                                  desig:designator-error) (e)
                                (declare (ignore e))
                                (roslisp:ros-warn (kvr plans) "Picking up failed. Next.")
                                (cpl:do-retry grasp-retries
@@ -356,9 +361,9 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                                 (object
                                                  ?more-precise-perceived-object-desig)))))
 
-                            (setf pick-up-action (desig:current-desig pick-up-action))
-                            (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
-                            (setf pick-up-action (desig:current-desig pick-up-action))
+                            ;; (setf pick-up-action (desig:current-desig pick-up-action))
+                            ;; (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
+                            ;; (setf pick-up-action (desig:current-desig pick-up-action))
 
                             (exe:perform pick-up-action)
 
@@ -438,7 +443,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                    (location ?target-robot-location)))
 
             ;; take a new `?target-location' sample if a failure happens
-            (cpl:with-retry-counters ((target-location-retries 3))
+            (cpl:with-retry-counters ((target-location-retries 10))
               (cpl:with-failure-handling
                   (((or common-fail:looking-high-level-failure
                         common-fail:object-unreachable) (e)
