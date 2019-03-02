@@ -30,7 +30,7 @@
 
 (in-package :kvr)
 
-(defparameter *human-feet-offset* 0.0 "in meters")
+(defparameter *human-feet-offset* 0.2 "in meters")
 
 (defun map-T-camera->map-P-base (map-T-camera)
   "Calculates the transform of where the robot should stand to grasp the object.
