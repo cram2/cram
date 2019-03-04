@@ -150,6 +150,6 @@
                    rotation
                    (cl-transforms:translation joint-to-handle))
                   (cl-transforms:make-identity-rotation))
-                 (get-urdf-link-pose link-name btr-environment))
+                 (get-urdf-link-pose (cl-urdf:name (cl-urdf:child joint)) btr-environment))
               )))
            joint))))))
