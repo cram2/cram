@@ -206,7 +206,7 @@ in neutral and manipulated form."
       (let* ((vP (cl-transforms:v- (cl-transforms:make-3d-vector x y 0)
                                    joint-pos-2d))
              (vP-length (sqrt (cl-transforms:dot-product vP vP))))
-        (if (and (< vP-length (+ v2-length 0))
+        (if (and (< vP-length (+ v2-length padding))
                  T)
             0
             1)))))
@@ -234,6 +234,20 @@ quaternions to face from `pos1' to `pos2'."
     pos2)
    :samples samples
    :sample-step sample-step))
+
+(defun middle-pose (pose1 pose2)
+  "Take two poses and return a pose in the middle of them."
+  (let ((translation-to-middle (cl-transforms:v*
+                                (cl-transforms:translation
+                                 (cl-transforms:transform-diff
+                                  (cl-transforms:pose->transform pose1)
+                                  (cl-transforms:pose->transform pose2)))
+                                0.5)))
+    (cram-tf:translate-pose
+     pose2
+     :x-offset (cl-transforms:x translation-to-middle)
+     :y-offset (cl-transforms:y translation-to-middle)
+     :z-offset (cl-transforms:z translation-to-middle))))
 
 (defmethod costmap:costmap-generator-name->score
     ((name (eql 'poses-reachable-cost-function))) 10)
@@ -304,7 +318,7 @@ quaternions to face from `pos1' to `pos2'."
 
     ;; reachability gaussian costmap
     (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
-    (lisp-fun costmap:2d-pose-covariance ?poses 0.12 (?mean ?covariance))
+    (lisp-fun costmap:2d-pose-covariance ?poses 0.15 (?mean ?covariance))
     (costmap:costmap-add-function
      container-handle-reachable-cost-function
      (costmap:make-gauss-cost-function ?mean ?covariance)
@@ -315,6 +329,23 @@ quaternions to face from `pos1' to `pos2'."
     (costmap:costmap-add-function
      opened-door-cost-function
      (make-opened-door-cost-function ?container-name ?btr-environment ?padding)
+     ?costmap)
+
+    ;; cutting out for specific arm
+
+    ;; orientate towards the center of the door
+    (lisp-fun get-container-link ?container-name ?btr-environment ?link)
+    (lisp-fun get-connecting-joint ?link ?joint)
+    (lisp-fun cl-urdf:child ?joint ?joint-link)
+    (lisp-fun cl-urdf:name ?joint-link ?joint-name)
+    (lisp-fun get-urdf-link-pose ?joint-name ?btr-environment ?joint-pose)
+    (costmap:orientation-samples ?samples)
+    (costmap:orientation-sample-step ?sample-step)
+    (costmap:costmap-add-orientation-generator
+     (costmap:make-angle-to-point-generator
+      ?joint-pose
+      :samples ?samples
+      :sample-step ?sample-step)
      ?costmap)
     )
   )
