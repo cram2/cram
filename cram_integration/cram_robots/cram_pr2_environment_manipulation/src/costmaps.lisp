@@ -281,13 +281,13 @@ quaternions to face from `pos1' to `pos2'."
      ?costmap)
     ;; orientation generator
     ;; generate an orientation opposite to the axis of the drawer
-    (equal ?poses (?pose1 ?pose2))
+    (equal ?poses (?neutral-pose ?manipulated-pose))
     (costmap:orientation-samples ?samples)
     (costmap:orientation-sample-step ?sample-step)
     (costmap:costmap-add-orientation-generator
      (make-point-to-point-generator
-      ?pose2
-      ?pose1
+      ?manipulated-pose
+      ?neutral-pose
       :samples ?samples
       :sample-step ?sample-step)
      ?costmap))
@@ -301,8 +301,8 @@ quaternions to face from `pos1' to `pos2'."
     (spec:property ?container-designator (:part-of ?btr-environment))
     (spec:property ?designator (:arm ?arm))
     (costmap:costmap ?costmap)
+
     ;; reachability gaussian costmap
-    
     (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
     (lisp-fun costmap:2d-pose-covariance ?poses 0.12 (?mean ?covariance))
     (costmap:costmap-add-function
