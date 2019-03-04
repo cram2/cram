@@ -202,19 +202,13 @@ in neutral and manipulated form."
          (v1-length (sqrt (cl-transforms:dot-product v1 v1)))
          (v2-length (sqrt (cl-transforms:dot-product v2 v2))))
     
-    (print joint-name)
     (lambda (x y)
       (let* ((vP (cl-transforms:v- (cl-transforms:make-3d-vector x y 0)
                                    joint-pos-2d))
              (vP-length (sqrt (cl-transforms:dot-product vP vP))))
         (if (and (< vP-length (+ v2-length 0))
                  T)
-            (progn
-              (print "---")
-              (print v1-length)
-              (print v2-length)
-              (print vP-length)
-              0)
+            0
             1)))))
 
 (defun point-to-point-direction (x y pos1 pos2)
@@ -310,7 +304,7 @@ quaternions to face from `pos1' to `pos2'."
     ;; reachability gaussian costmap
     
     (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
-    (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
+    (lisp-fun costmap:2d-pose-covariance ?poses 0.12 (?mean ?covariance))
     (costmap:costmap-add-function
      container-handle-reachable-cost-function
      (costmap:make-gauss-cost-function ?mean ?covariance)
