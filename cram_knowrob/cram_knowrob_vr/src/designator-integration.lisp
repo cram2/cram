@@ -35,7 +35,6 @@
     (desig:loc-desig? ?designator)
     (rob-int:reachability-designator ?designator)
     (desig:desig-prop ?designator (:object ?object-designator))
-    (lisp-type ?object-designator desig:object-designator)
     (desig:current-designator ?object-designator ?current-object-designator)
     (lisp-fun base-poses-ll-for-fetching-based-on-object-desig
               ?current-object-designator
@@ -46,16 +45,17 @@
   (<- (desig:location-grounding ?designator ?pose-stamped)
     (desig:loc-desig? ?designator)
     (rob-int:visibility-designator ?designator)
-    ;; (desig:desig-prop ?designator (:object ?object-designator))
-    ;; (lisp-type ?object-designator desig:object-designator)
-    ;; (desig:current-designator ?object-designator ?current-object-designator)
-    ;; (desig:desig-prop ?object-designator (:type ?object-type))
-    (equal ?object-type "CupEcoOrange")
-    (lisp-fun base-poses-ll-for-searching ?object-type ?base-poses-ll)
+    (desig:desig-prop ?designator (:object ?object-designator))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (desig:desig-prop ?object-designator (:type ?object-type))
+    (desig:desig-prop ?designator (:location ?location-designator))
+    (desig:current-designator ?location-designator ?location-object-designator)
+    (desig:location-grounding ?location-designator ?pose)
+    (lisp-fun base-poses-ll-for-fetching-based-on-object-pose ?object-type ?pose ?base-poses-ll)
     (member ?pose-stamped ?base-poses-ll)
     (format "Visibility VR POSE!~%")))
 
 
-(defmethod man-int:get-object-type-grasps :around (object-type arm
-                                                   object-transform-in-base)
-  (remove-duplicates (cut:force-ll (object-grasped-faces-ll object-type))))
+;; (defmethod man-int:get-object-type-grasps :around (object-type arm
+;;                                                    object-transform-in-base)
+;;   (remove-duplicates (cut:force-ll (object-grasped-faces-ll object-type))))
