@@ -36,6 +36,20 @@
     (:spoon . ((1.43 0.4 0.85) (0 0 0.3 0.7)))
     (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
 
+(defparameter *object-delivering-poses*
+  '((breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
+    (cup . ((-0.888 1.207885 0.9) (0 0 0.99 0.07213)))
+    (bowl . ((-0.7846 1.38127 0.89953) (0.09 0.038 0.995 -0.02)))
+    (spoon . ((-0.7573 1.587 0.86835) (0.0 -0.0 0.999 0.036)))
+    (milk . ((1.4 0.62 0.95) (0 0 1 0)))))
+
+;; (defparameter *object-delivering-poses*
+;;   '((breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
+;;     (cup . ((-0.888 1.207885 0.9) (0 0 0.99 0.07213)))
+;;     (bowl . ((-0.78 1.07885 0.893) (0 0 0.99 0.07213)))
+;;     (spoon . ((-0.7473 1.287 0.86835) (0.0 -0.0 0.995 -0.066)))
+;;     (milk . ((1.4 0.62 0.95) (0 0 1 0)))))
+
 (defparameter *object-grasping-arms*
   '(;; (:breakfast-cereal . :right)
     ;; (:cup . :left)
@@ -68,7 +82,8 @@
                               object-type
                               :pose (let* ((x (+ 1.5 (- (random 0.4) 0.2)))
                                            (y (+ 0.5 (- (random 1.0) 0.5)))
-                                           (pi-number (- (random 2.0) 1.0))
+                                           (pi-number (- (random 0.5) 0.2))
+                                           ;; (pi-number (- (random 2.0) 1.0))
                                            (pi-other (- 1.0 (abs pi-number)))
                                            (pose `((,x ,y 0.87) (0 0 ,pi-number ,pi-other))))
                                       pose)))
@@ -191,9 +206,18 @@
               (alexandria:shuffle '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
                                   ))
             (?delivering-poses
-              (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type))))
+              (list (cl-transforms-stamped:pose->pose-stamped
+                     cram-tf:*fixed-frame* 0.0
+                     (cram-tf:list->pose (cdr (assoc type *object-delivering-poses*)))))
+              ;; (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type)))
+              )
             (?delivering-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))
+              (remove
+               NIL
+               (mapcar (lambda (pose)
+                         (when (> (cl-transforms:x (cl-transforms:origin pose)) -1)
+                           pose))
+                       (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))))
         (exe:perform
          (desig:an action
                    (type transporting)

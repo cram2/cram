@@ -354,11 +354,15 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
             (object-type-fixer bullet-type)))
          (umap-T-ucamera-ll
            (umap-T-ucamera-through-object-ll-based-on-object-pose
-            prolog-type "Start" umap-P-uobj)))
+            prolog-type "Start" umap-P-uobj))
+         (umap-T-ucamera-end-ll
+           (umap-T-ucamera-through-object-ll-based-on-object-pose
+            prolog-type "End" umap-P-uobj)))
     (cut:lazy-mapcar
      (lambda (umap-T-ucamera)
        (map-T-camera->map-P-base umap-T-ucamera))
-     umap-T-ucamera-ll)))
+     (append (cut:force-ll umap-T-ucamera-ll)
+             (cut:force-ll umap-T-ucamera-end-ll)))))
 
 (defun base-poses-ll-for-fetching-based-on-object-desig (object-designator)
   (let ((bullet-type (desig:desig-prop-value object-designator :type))
