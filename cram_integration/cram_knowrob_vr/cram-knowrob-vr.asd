@@ -69,10 +69,12 @@
                                                     "mapping-urdf-semantic"))
 
      ;; visibility and reachability location resolution through VR
-     ;; (:file "designator-integration" :depends-on ("package"
-     ;;                                              "query-based-calculations"))
+     (:file "designator-integration" :depends-on ("package"
+                                                  "query-based-calculations"))
      ;; plans that call fetch and deliver actions
-     (:file "fetch-and-deliver-based-demo" :depends-on ("package"))
+     (:file "fetch-and-deliver-based-demo" :depends-on ("package"
+                                                        "query-based-calculations"
+                                                        "designator-integration"))
 
      ;; integration with grasping interface from cram_manipulation_interfaces
      ;; (:file "grasping" :depends-on ("package" "query-based-calculations"))
