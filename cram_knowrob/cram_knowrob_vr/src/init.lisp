@@ -71,7 +71,7 @@ The path is individual and therefore hardcoded one"
   (register-ros-package "knowrob_robcog")
   (cpl:sleep 0.5)
   ;; below is stuff for running KVR on real robot with RS and KnowRob object stuff
-  (when nil
+  (when t
     (register-ros-package "knowrob_srdl")
     (register-ros-package "knowrob_vis")
     (register-ros-package "knowrob_mongo")
