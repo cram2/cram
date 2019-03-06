@@ -236,7 +236,7 @@ quaternions to face from `pos1' to `pos2'."
    :sample-step sample-step))
 
 (defun middle-pose (pose1 pose2)
-  "Take two poses and return a pose in the middle of them."
+  "Take two poses and return a pose in the middle of them. Disregarding the orientation (using the pose2's)."
   (let ((translation-to-middle (cl-transforms:v*
                                 (cl-transforms:translation
                                  (cl-transforms:transform-diff
@@ -317,8 +317,11 @@ quaternions to face from `pos1' to `pos2'."
     (costmap:costmap ?costmap)
 
     ;; reachability gaussian costmap
-    (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
-    (lisp-fun costmap:2d-pose-covariance ?poses 0.15 (?mean ?covariance))
+    (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment (?min-pose ?max-pose))
+    (lisp-fun middle-pose ?min-pose ?max-pose ?middle-pose)
+    ;; TODO(cpo): If you can, please beautifiy this.
+    (equal (?middle-pose) ?poses)
+    (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
     (costmap:costmap-add-function
      container-handle-reachable-cost-function
      (costmap:make-gauss-cost-function ?mean ?covariance)
@@ -333,7 +336,7 @@ quaternions to face from `pos1' to `pos2'."
 
     ;; cutting out for specific arm
 
-    ;; orientate towards the center of the door
+    ;; orientate towards the door
     (lisp-fun get-container-link ?container-name ?btr-environment ?link)
     (lisp-fun get-connecting-joint ?link ?joint)
     (lisp-fun cl-urdf:child ?joint ?joint-link)
