@@ -43,6 +43,7 @@
            with-stored-world *debug-window*
            add-debug-window add-costmap-function-object
            add-costmap-sample-object clear-costmap-vis-object
+           add-vis-axis-object add-vis-axis-pose
            camera width
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
