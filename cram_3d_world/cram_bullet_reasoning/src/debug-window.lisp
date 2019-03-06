@@ -147,9 +147,13 @@
         (push *current-costmap-sample* (gl-objects *debug-window*))))))
 
 
-
-
 (defun add-vis-axis-object (object &optional (length 0.30))
+  "spawn axis on the object that is given with 3 rigid bodies type box"
+  (add-vis-axis-pose
+   (btr:pose (btr:object btr:*current-bullet-world* object))length))
+
+
+(defun add-vis-axis-pose (pose &optional (length 0.30))
   "spawn axis on the object that is given with 3 rigid bodies type box"
   (sb-thread:with-mutex (*debug-window-lock*)
     (when (and *vis-axis-x* *debug-window*)
@@ -161,8 +165,7 @@
             (remove *vis-axis-z* (gl-objects *debug-window*))))
     (setf length (/ length 2))
     (let* ((object-transform
-             (cl-tf:pose->transform
-              (btr:pose (btr:object btr:*current-bullet-world* object))))
+             (cl-tf:pose->transform pose))
            (object-vector nil)
            (object-rotation (roslisp:with-fields (translation rotation)
                                 object-transform (setf object-vector translation) rotation))
