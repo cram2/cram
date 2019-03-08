@@ -171,7 +171,7 @@
 
 (defparameter *cup-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *cup-grasp-xy-offset* 0.02 "in meters")
-(defparameter *cup-grasp-z-offset* 0.03 "in meters")
+(defparameter *cup-grasp-z-offset* 0.01 "in meters")
 (defparameter *cup-top-grasp-x-offset* 0.03 "in meters")
 (defparameter *cup-top-grasp-z-offset* 0.02 "in meters")
 
