@@ -127,6 +127,10 @@
   ;;    (ccl::connect-to-cloud-logger)
   ;;    (ccl::reset-logged-owl))
 
+  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
+  (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+  (setf pr2-proj-reasoning::*projection-checks-enabled* t)
+
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
   (btr-utils:kill-all-objects)
