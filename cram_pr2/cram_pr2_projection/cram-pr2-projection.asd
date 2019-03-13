@@ -51,8 +51,8 @@
                roslisp-utilities ; for rosify-lisp-name
                moveit_msgs-msg
                moveit_msgs-srv
-               cram-semantic-map ; for special projection variable definition
-               )
+               pr2_arm_kinematics-msg
+               pr2_arm_kinematics-srv)
   :components
   ((:module "src"
     :components
