@@ -189,9 +189,7 @@
                     grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
              (list grasp-pose)
              
-             (if (equal action-type :opening)
-                 traj-poses
-                 traj-poses)
+             traj-poses
 
              (let ((last-traj-pose (car (last traj-poses))))
                (list (cram-tf:apply-transform
@@ -226,7 +224,10 @@
 (defun calculate-handle-to-gripper-transforms (map-to-handle map-to-joint
                                                &optional (theta-max
                                                           (cma:degrees->radians 70)))
-  (let* ((handle-to-joint
+  (let* ((theta-step (if (>= theta-max 0)
+                         0.1
+                         -0.1))
+         (handle-to-joint
            (cram-tf:apply-transform (cram-tf:transform-stamped-inv map-to-handle)
                                     map-to-joint))
          (joint-to-handle (cram-tf:transform-stamped-inv handle-to-joint)))
@@ -240,8 +241,8 @@
                  :x
                  (cram-math:degrees->radians 0))
                 (cl-transforms-stamped:child-frame-id joint-to-circle-point))))
-            (loop for theta = 0.0 then (+ 0.1 theta)
-                  while (< theta theta-max)
+            (loop for theta = 0.0 then (+ theta-step theta)
+                  while (< (abs theta) (abs theta-max))
                   collect
                   (let ((rotation
                           (cl-tf:axis-angle->quaternion
