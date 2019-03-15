@@ -1,5 +1,6 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Christopher Pollok <cpollok@cs.uni-bremen.de>
+;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,29 +28,34 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-manipulation-interfaces
-  :author "Gayane Kazhoyan"
-  :license "BSD"
-  :description "Object interfaces"
+(in-package :cram-manipulation-interfaces)
 
-  :depends-on (cram-prolog
-               cram-utilities ; for lazy lists in manipulation.lisp
-               cram-designators
-               cram-tf
-               cl-transforms-stamped
-               cram-robot-interfaces ; for gripper transform calculations
-               cram-plan-occasions-events ; for robot-free-arm
-               cram-utilities ; for working with prolog lazy lists
-               )
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "object-designator-interfaces" :depends-on ("package"))
-     (:file "prolog" :depends-on ("package" "object-designator-interfaces"))
-     (:file "trajectories" :depends-on ("package" "prolog"))
-     (:file "gripper" :depends-on ("package"))
-     (:file "grasps" :depends-on ("package"))
-     (:file "object-hierarchy" :depends-on ("package" "prolog"))
-     (:file "standard-grasps" :depends-on ("package"))
-     (:file "standard-rotations" :depends-on ("package"))))))
+(defun probe-sbcl (generic object-type)
+  #+sbcl
+  (let ((methods (sb-pcl:generic-function-methods generic)))
+    (find object-type
+          methods
+          :key (lambda (x)
+                 (car (sb-pcl:method-specializers x)))
+          :test (lambda (x y)
+                  (when (eql (type-of y) 'sb-mop:eql-specializer)
+                    (eql
+                     (sb-mop:eql-specializer-object y)
+                     x)))))
+  #-sbcl
+  (error "Function PROBE-SBCL requires the SBCL compiler."))
+
+(defun get-direct-supertypes (object-type)
+  (mapcar (lambda (bindings)
+            (cut:var-value '?super bindings))
+          (cut:force-ll
+           (prolog
+            `(object-type-direct-subtype ?super ,object-type)))))
+
+(defun find-most-specific-object-type-for-generic (generic object-type)
+  "Find the most specific method of `generic' based on `object-type'."
+  (if (probe-sbcl generic object-type)
+      object-type
+      (car (mapcar
+            (alexandria:curry #'find-most-specific-object-type-for-generic generic)
+            (get-direct-supertypes object-type)))))
