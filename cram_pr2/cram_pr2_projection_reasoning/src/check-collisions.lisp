@@ -129,9 +129,7 @@ Store found pose into designator or throw error if good pose not found."
 
                  (let ((pick-up-action-referenced (desig:reference pick-up-action-desig)))
                    (destructuring-bind (_action object-designator arm gripper-opening _effort _grasp
-                                        left-reach-poses right-reach-poses
-                                        left-grasp-poses right-grasp-poses
-                                        left-lift-poses right-lift-poses)
+                                        left-trajectory right-trajectory)
                        pick-up-action-referenced
                      (declare (ignore _action _effort))
 
@@ -145,28 +143,27 @@ Store found pose into designator or throw error if good pose not found."
                        (roslisp:ros-info (coll-check pick)
                                          "Trying grasp ~a on object ~a with arm ~a~%"
                                          _grasp object-name arm)
-                       (let ((left-poses-list-of-lists (list left-reach-poses
-                                                             left-grasp-poses
-                                                             left-lift-poses))
-                             (right-poses-list-of-lists (list right-reach-poses
-                                                              right-grasp-poses
-                                                              right-lift-poses)))
-                         (multiple-value-bind (left-poses right-poses)
-                             (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
-                                                                  right-poses-list-of-lists)
-                           (mapcar (lambda (left-pose right-pose)
-                                     (pr2-proj::move-tcp left-pose right-pose :allow-all)
-                                     (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
-                                       (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
-                                     (when (remove object-name
-                                                   (btr:robot-colliding-objects-without-attached))
-                                       (roslisp:ros-warn (coll-check pick)
-                                                         "Robot is in collision with environment.")
-                                       (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
-                                       (btr::restore-world-state world-state world)
-                                       (cpl:fail 'common-fail:manipulation-goal-in-collision)))
-                                   left-poses
-                                   right-poses)))))))))
+
+                       (mapcar
+                        (lambda (left-segment right-segment)
+                          (multiple-value-bind (left-poses right-poses)
+                              (cut:equalize-two-list-lengths
+                               (man-int:traj-segment-poses left-segment)
+                               (man-int:traj-segment-poses right-segment))
+                            (dotimes (i (length left-poses))
+                              (pr2-proj::move-tcp (nth i left-poses) (nth i right-poses)
+                                                  :allow-all)
+                              (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
+                                (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
+                              (when (remove object-name
+                                            (btr:robot-colliding-objects-without-attached))
+                                (roslisp:ros-warn (coll-check pick)
+                                                  "Robot is in collision with environment.")
+                                (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
+                                (btr::restore-world-state world-state world)
+                                (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
+                        left-trajectory
+                        right-trajectory)))))))
         (btr::restore-world-state world-state world)))))
 
 
@@ -197,9 +194,7 @@ Store found pose into designator or throw error if good pose not found."
                                     _assemblage-name
                                     arm
                                     _gripper-opening
-                                    left-reach-poses right-reach-poses
-                                    left-put-poses right-put-poses
-                                    left-retract-poses right-retract-poses
+                                    left-trajectory right-trajectory
                                     _placing-location)
                    placing-action-referenced
                  (declare (ignore _action _assemblage-name _gripper-opening _placing-location))
@@ -210,42 +205,44 @@ Store found pose into designator or throw error if good pose not found."
                    (roslisp:ros-info (coll-check place)
                                      "Trying to place object ~a with arm ~a~%"
                                      object-name arm)
-                   (let ((left-poses-list-of-lists
-                           (list left-reach-poses left-put-poses left-retract-poses))
-                         (right-poses-list-of-lists
-                           (list right-reach-poses right-put-poses right-retract-poses)))
-                     (multiple-value-bind (left-poses right-poses)
-                         (cut:equalize-lists-of-lists-lengths left-poses-list-of-lists
-                                                              right-poses-list-of-lists)
-                       (mapcar (lambda (left-pose right-pose)
-                                 (pr2-proj::move-tcp left-pose right-pose :allow-all)
-                                 (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
-                                   (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
-                                 (when (or
-                                        ;; either robot collides with environment
-                                        (btr:robot-colliding-objects-without-attached)
-                                        ;; or object in the hand collides with environment
-                                        ;; (remove (btr:name
-                                        ;;          (find-if (lambda (x)
-                                        ;;                     (typep x 'btr:semantic-map-object))
-                                        ;;                   (btr:objects btr:*current-bullet-world*)))
-                                        ;;         (remove (btr:get-robot-name)
-                                        ;;                 (btr:find-objects-in-contact
-                                        ;;                  btr:*current-bullet-world*
-                                        ;;                  (btr:object
-                                        ;;                   btr:*current-bullet-world*
-                                        ;;                   object-name))
-                                        ;;                 :key #'btr:name)
-                                        ;;         :key #'btr:name)
-                                        )
-                                   (roslisp:ros-warn (coll-check place)
-                                                     "Robot is in collision with environment.")
-                                   (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
-                                   (btr::restore-world-state world-state world)
-                                   ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
-                                   ))
-                               left-poses
-                               right-poses)))))))
+
+                   (mapcar
+                    (lambda (left-segment right-segment)
+                      (multiple-value-bind (left-poses right-poses)
+                          (cut:equalize-two-list-lengths
+                           (man-int:traj-segment-poses left-segment)
+                           (man-int:traj-segment-poses right-segment))
+                        (dotimes (i (length left-poses))
+                          (pr2-proj::move-tcp (nth i left-poses) (nth i right-poses)
+                                              :allow-all)
+                          (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
+                            (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
+                          (when (or
+                                 ;; either robot collied with environment
+                                 (btr:robot-colliding-objects-without-attached)
+                                 ;; or object in hand collides with environment
+                                 ;; (remove
+                                 ;;  (btr:name
+                                 ;;   (find-if (lambda (x)
+                                 ;;              (typep x 'btr:semantic-map-object))
+                                 ;;            (btr:objects btr:*current-bullet-world*)))
+                                 ;;  (remove (btr:get-robot-name)
+                                 ;;          (btr:find-objects-in-contact
+                                 ;;           btr:*current-bullet-world*
+                                 ;;           (btr:object
+                                 ;;            btr:*current-bullet-world*
+                                 ;;            object-name))
+                                 ;;          :key #'btr:name)
+                                 ;;  :key #'btr:name)
+                                 )
+                            (roslisp:ros-warn (coll-check place)
+                                              "Robot is in collision with environment.")
+                            (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
+                            (btr::restore-world-state world-state world)
+                            ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
+                            ))))
+                    left-trajectory
+                    right-trajectory)))))
         (btr::restore-world-state world-state world)))))
 
 
