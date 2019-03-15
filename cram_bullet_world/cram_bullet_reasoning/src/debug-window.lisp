@@ -34,6 +34,9 @@
 (defvar *debug-window-lock* (sb-thread:make-mutex))
 (defvar *current-costmap-function* nil)
 (defvar *current-costmap-sample* nil)
+(defvar *vis-axis-x* nil)
+(defvar *vis-axis-y* nil)
+(defvar *vis-axis-z* nil)
 (defparameter *costmap-z* 0.0)
 (defparameter *costmap-tilt* (cl-transforms:make-quaternion 0 0 0 1))
 
@@ -79,7 +82,19 @@
     (when (and *current-costmap-sample* *debug-window*)
       (setf (gl-objects *debug-window*)
             (remove *current-costmap-sample* (gl-objects *debug-window*)))
-      (setf *current-costmap-sample* nil))))
+      (setf *current-costmap-sample* nil))
+    (when (and *vis-axis-x* *debug-window*)
+      (setf (gl-objects *debug-window*)
+            (remove *vis-axis-x* (gl-objects *debug-window*)))
+      (setf *vis-axis-x* nil)
+      (setf (gl-objects *debug-window*)
+            (remove *vis-axis-y* (gl-objects *debug-window*)))
+      (setf *vis-axis-y* nil)
+      (setf (gl-objects *debug-window*)
+            (remove *vis-axis-z* (gl-objects *debug-window*)))
+      (setf *vis-axis-z* nil))))
+
+
 
 (defun add-costmap-function-object (costmap)
   (sb-thread:with-mutex (*debug-window-lock*)
@@ -130,6 +145,90 @@
                                  :color '(1.0 0.0 0.0 0.5))))
       (when *debug-window*
         (push *current-costmap-sample* (gl-objects *debug-window*))))))
+
+
+(defun add-vis-axis-object (object &optional (length 0.30))
+  "spawn axis on the object that is given with 3 rigid bodies type box"
+  (add-vis-axis-pose
+   (btr:pose (btr:object btr:*current-bullet-world* object))length))
+
+
+(defun add-vis-axis-pose (pose &optional (length 0.30))
+  "spawn axis on the object that is given with 3 rigid bodies type box"
+  (sb-thread:with-mutex (*debug-window-lock*)
+    (when (and *vis-axis-x* *debug-window*)
+      (setf (gl-objects *debug-window*)
+            (remove *vis-axis-x* (gl-objects *debug-window*)))
+      (setf (gl-objects *debug-window*)
+            (remove *vis-axis-y* (gl-objects *debug-window*)))
+      (setf (gl-objects *debug-window*)
+            (remove *vis-axis-z* (gl-objects *debug-window*))))
+    (setf length (/ length 2))
+    (let* ((object-transform
+             (cl-tf:pose->transform pose))
+           (object-vector nil)
+           (object-rotation (roslisp:with-fields (translation rotation)
+                                object-transform (setf object-vector translation) rotation))
+           (offset-x (cl-tf:make-transform (cl-tf:make-3d-vector length 0 0)
+                                           (cl-tf:make-identity-rotation)))
+           (offset-y (cl-tf:make-transform (cl-tf:make-3d-vector 0 length 0)
+                                           (cl-tf:make-identity-rotation)))
+           (offset-z (cl-tf:make-transform (cl-tf:make-3d-vector 0 0 length)
+                                           (cl-tf:make-identity-rotation)))
+           (actual-pose-x (cl-tf:transform* object-transform offset-x
+                                            (cl-tf:transform-inv object-transform)))
+           (actual-pose-y (cl-tf:transform* object-transform offset-y
+                                            (cl-tf:transform-inv object-transform)))
+           (actual-pose-z (cl-tf:transform* object-transform offset-z
+                                            (cl-tf:transform-inv object-transform))))
+
+      ;;calculates the offset + the pose 
+      (let ((new-point-x
+              (roslisp:with-fields (translation) actual-pose-x
+                (cl-tf:v+ object-vector translation)))
+            (new-point-y
+              (roslisp:with-fields (translation) actual-pose-y
+                (cl-tf:v+ object-vector translation)))
+            (new-point-z
+              (roslisp:with-fields (translation) actual-pose-z
+                (cl-tf:v+ object-vector translation))))
+        
+        ;;x-axis body
+        (setf *vis-axis-x*
+              (make-instance 'rigid-body
+                             :pose (cl-transforms:make-pose
+                                    new-point-x
+                                    object-rotation)
+                             :collision-shape
+                             (make-instance 'colored-box-shape
+                                            :half-extents (cl-tf:make-3d-vector length 0.01 0.01)
+                                            :color '(0.5 0.0 0 0.5))))
+
+        ;;y-axis body
+        (setf *vis-axis-y*
+              (make-instance 'rigid-body
+                             :pose (cl-transforms:make-pose
+                                    new-point-y
+                                    object-rotation)
+                             :collision-shape
+                             (make-instance 'colored-box-shape
+                                            :half-extents (cl-tf:make-3d-vector 0.01 length 0.01)
+                                            :color '(0.298 0.5 0 0.5))))
+        
+        ;;z-axis body
+        (setf *vis-axis-z*
+              (make-instance 'rigid-body
+                             :pose (cl-transforms:make-pose
+                                    new-point-z
+                                    object-rotation)
+                             :collision-shape
+                             (make-instance 'colored-box-shape
+                                            :half-extents (cl-tf:make-3d-vector 0.01 0.01 length)
+                                            :color '(0 0 0.5 0.5))))
+        (when *debug-window*
+          (push *vis-axis-x* (gl-objects *debug-window*))
+          (push *vis-axis-y* (gl-objects *debug-window*))
+          (push *vis-axis-z* (gl-objects *debug-window*)))))))
 
 
 (defmethod costmap:on-visualize-costmap opengl ((map costmap:location-costmap))
