@@ -108,6 +108,7 @@
                  (right-poses ?right-lift-poses))))))
 
 
+
 (cpl:def-cram-function place (?object-designator
                               ?other-object-designator
                               ?placing-location-name

@@ -29,8 +29,6 @@
 
 (in-package :pr2-em)
 
-;;; OBJECT-INTERFACE METHODS
-
 (defparameter *drawer-handle-grasp-x-offset* 0.0 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
 (defparameter *drawer-handle-retract-offset* 0.10 "in meters")
@@ -82,22 +80,22 @@
            (1 0 0)))))))
 
 (defmethod man-int:get-action-trajectory :before ((action-type (eql :opening))
-                                                   arm
-                                                   grasp
-                                                   objects-acted-on
-                                                   &key
-                                                     opening-distance)
+                                                  arm
+                                                  grasp
+                                                  objects-acted-on
+                                                  &key
+                                                    opening-distance)
   "Raise an error if object count is not right."
   (declare (ignore arm grasp opening-distance))
   (when (not (eql 1 (length objects-acted-on)))
     (error (format nil "Action-type ~a requires exactly one object.~%" action-type))))
 
 (defmethod man-int:get-action-trajectory :before ((action-type (eql :closing))
-                                                   arm
-                                                   grasp
-                                                   objects-acted-on
-                                                   &key
-                                                     opening-distance)
+                                                  arm
+                                                  grasp
+                                                  objects-acted-on
+                                                  &key
+                                                    opening-distance)
   "Raise an error if object count is not right."
   (declare (ignore arm grasp opening-distance))
   (when (not (eql 1 (length objects-acted-on)))
@@ -141,18 +139,19 @@ This should only be used by get-action-trajectory for action-types :opening and 
       (cram-tf:translate-transform-stamped
        grasp-pose :x-offset (+ opening-distance *drawer-handle-retract-offset*))))))
 
+
 (defmethod man-int:get-action-trajectory ((action-type (eql :opening))
-                                           arm
-                                           grasp
-                                           objects-acted-on
-                                           &key
-                                             opening-distance)
+                                          arm
+                                          grasp
+                                          objects-acted-on
+                                          &key
+                                            opening-distance)
   (make-trajectory action-type arm objects-acted-on opening-distance))
 
 (defmethod man-int:get-action-trajectory ((action-type (eql :closing))
-                                           arm
-                                           grasp
-                                           objects-acted-on
-                                           &key
-                                             opening-distance)
+                                          arm
+                                          grasp
+                                          objects-acted-on
+                                          &key
+                                            opening-distance)
   (make-trajectory action-type arm objects-acted-on opening-distance))

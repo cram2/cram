@@ -72,74 +72,78 @@
                    (type reaching)
                    (left-poses ?left-reach-poses)
                    (right-poses ?right-reach-poses)))))
-   (cpl:with-failure-handling
-       ((common-fail:manipulation-low-level-failure (e)
-          (roslisp:ros-warn (env-plans open)
-                            "Manipulation messed up: ~a~%Ignoring."
-                            e)
-          ;; (return)
-          ))
-     (exe:perform
-      (desig:an action
-                (type grasping)
-                (object (desig:an object
-                                  (name ?environment-name)))
-                (link ?link-name)
-                (left-poses ?left-grasp-poses)
-                (right-poses ?right-grasp-poses))))
-   (roslisp:ros-info (environment-manipulation open-container) "Gripping")
-   (exe:perform
-    (desig:an action
-              (type gripping)
-              (gripper ?arm)))
-   (roslisp:ros-info (environment-manipulation open-container) "Opening")
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (env-plans open)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           ;; (return)
+           ))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (link ?link-name)
+                 (left-poses ?left-grasp-poses)
+                 (right-poses ?right-grasp-poses))))
+    (roslisp:ros-info (environment-manipulation open-container) "Gripping")
+    (exe:perform
+     (desig:an action
+               (type gripping)
+               (gripper ?arm)))
 
-   ;; (when (and joint-name environment)
-   ;;   (cram-occasions-events:on-event
-   ;;    (make-instance 'cpoe:container-handle-grasping-event
-   ;;      :joint-name joint-name
-   ;;      :side ?arm
-   ;;      :environment environment)))
+    (roslisp:ros-info (environment-manipulation open-container) "Opening")
 
-   (cpl:with-failure-handling
-       ((common-fail:manipulation-low-level-failure (e)
-          (roslisp:ros-warn (env-plans open)
-                            "Manipulation messed up: ~a~%Ignoring."
-                            e)
-          (return)))
-     (exe:perform
-      (desig:an action
-                (type pulling)
-                (object (desig:an object
-                                  (name ?environment-name)))
-                (link ?link-name)
-                (left-poses ?left-open-pose)
-                (right-poses ?right-open-pose))))
+    ;; (when (and joint-name environment)
+    ;;   (cram-occasions-events:on-event
+    ;;    (make-instance 'cpoe:container-handle-grasping-event
+    ;;      :joint-name joint-name
+    ;;      :side ?arm
+    ;;      :environment environment)))
 
-   (when (and joint-name environment)
-     (cram-occasions-events:on-event
-      (make-instance 'cpoe:container-opening-event
-        :joint-name joint-name
-        :side ?arm
-        :environment environment
-        :distance distance)))
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (env-plans open)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type pulling)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (link ?link-name)
+                 (left-poses ?left-open-pose)
+                 (right-poses ?right-open-pose))))
 
-   (exe:perform
-    (desig:an action
-              (type releasing)
-              (gripper ?arm)))
+    (when (and joint-name environment)
+      (cram-occasions-events:on-event
+       (make-instance 'cpoe:container-opening-event
+         :joint-name joint-name
+         :side ?arm
+         :environment environment
+         :distance distance)))
 
-   (cpl:with-failure-handling
-       ((common-fail:manipulation-low-level-failure (e)
-          (roslisp:ros-warn (env-plans open)
-                            "Manipulation messed up: ~a~%Ignoring."
-                            e)
-          (return)))
-     (exe:perform
-      (desig:an action
-                (type retracting)
-                (left-poses ?left-retract-pose)
-                (right-poses ?right-retract-pose))))))
+    (roslisp:ros-info (environment-manipulation open-container) "Retracting")
+    (exe:perform
+     (desig:an action
+               (type releasing)
+               (gripper ?arm)))
+
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (env-plans open)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type retracting)
+                 (left-poses ?left-retract-pose)
+                 (right-poses ?right-retract-pose))))))
+
+
 
 (defun close-container (?arm ?gripper-opening distance
                         ?left-trajectory ?right-trajectory
@@ -189,21 +193,21 @@
                              e)
            ;; (return)
            ))
-        (exe:perform
-         (desig:an action
-                   (type grasping)
-                   (object (desig:an object
-                                     (name ?environment-name)))
-                   (link ?link-name)
-                   (left-poses ?left-grasp-poses)
-                   (right-poses ?right-grasp-poses))))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (link ?link-name)
+                 (left-poses ?left-grasp-poses)
+                 (right-poses ?right-grasp-poses))))
+
     ;; (roslisp:ros-info (environment-manipulation close-container) "Gripping")
     ;; (exe:perform
     ;;  (desig:an action
     ;;            (type setting-gripper)
     ;;            (gripper ?arm)
     ;;            (position 0)))
-    (roslisp:ros-info (environment-manipulation close-container) "Closing")
     ;; (when (and joint-name environment)
     ;;   (cram-occasions-events:on-event
     ;;    (make-instance 'cpoe:container-handle-grasping-event
@@ -211,6 +215,7 @@
     ;;                   :side ?arm
     ;;                   :environment environment)))
 
+    (roslisp:ros-info (environment-manipulation close-container) "Closing")
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (env-plans open)
@@ -230,11 +235,14 @@
          :side ?arm
          :environment environment
          :distance distance)))
+
     ;; (exe:perform
     ;;  (desig:an action
     ;;            (type setting-gripper)
     ;;            (gripper ?arm)
     ;;            (position 0.1)))
+
+    (roslisp:ros-info (environment-manipulation close-container) "Retracting")
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (env-plans open)

@@ -296,7 +296,7 @@ Store found pose into designator or throw error if good pose not found."
                   (declare (ignore e))
                   (roslisp:ros-warn (coll-check environment)
                                     "Manipulation pose of ~a is unreachable or colliding.~%~
-                                   Propagating up."
+                                     Propagating up."
                                     action-desig)
                   (cpl:fail 'common-fail:environment-unreachable
                             :description "Manipulation pose in collision or unreachable.")))
@@ -334,4 +334,4 @@ Store found pose into designator or throw error if good pose not found."
                      (btr::restore-world-state world-state world)
                      ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
                      )))))
-    (btr::restore-world-state world-state world)))))
+        (btr::restore-world-state world-state world)))))
