@@ -42,20 +42,13 @@
          (transform (cram-tf:pose-stamped->transform-stamped pose name-rosified)))
     (list pose transform)))
 
-;; TODO: incorporate DISTANCE property of designator in GET-OBJECT-GRASPING-POSES
 (def-fact-group environment-manipulation (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (open-container ?arm
                                                                  ?gripper-opening
                                                                  ?distance
-                                                                 ?left-reach-poses
-                                                                 ?right-reach-poses
-                                                                 ?left-grasp-poses
-                                                                 ?right-grasp-poses
-                                                                 (?left-lift-pose)
-                                                                 (?right-lift-pose)
-                                                                 (?left-2nd-lift-pose)
-                                                                 (?right-2nd-lift-pose)
+                                                                 ?left-trajectory
+                                                                 ?right-trajectory
                                                                  ?joint-name
                                                                  ?handle-link
                                                                  ?environment-obj))
@@ -83,35 +76,30 @@
     (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
-    (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
-              (?container-pose ?container-transform))
-    (lisp-fun man-int:get-object-grasping-poses ?container-name
-              :container-prismatic :left :open ?container-transform ?left-poses)
-    (lisp-fun man-int:get-object-grasping-poses ?container-name
-              :container-prismatic :right :open ?container-transform ?right-poses)
-    (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
-              ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses
-                                 ?left-grasp-poses ?right-grasp-poses
-                                 ?left-lift-poses ?right-lift-poses))
-     (-> (lisp-pred identity ?left-lift-poses)
-        (equal ?left-lift-poses (?left-lift-pose ?left-2nd-lift-pose))
-        (equal (NIL NIL) (?left-lift-pose ?left-2nd-lift-pose)))
-    (-> (lisp-pred identity ?right-lift-poses)
-        (equal ?right-lift-poses (?right-lift-pose ?right-2nd-lift-pose))
-        (equal (NIL NIL) (?right-lift-pose ?right-2nd-lift-pose))))
+    ;; calculate trajectory
+    (equal ?objects (?container-designator))
+    (lisp-fun man-int:make-empty-trajectory (:reaching :grasping :opening :retracting)
+              ?empty-trajectory)
+    (-> (equal ?arm :left)
+        (lisp-fun man-int:get-action-trajectory
+                  :opening :left :open ?objects
+                  :opening-distance ?distance
+                  ?left-trajectory)
+        (equal ?left-trajectory ?empty-trajectory))
+    (-> (equal ?arm :right)
+        (lisp-fun man-int:get-action-trajectory
+                  :opening :right :open ?objects
+                  :opening-distance ?distance
+                  ?right-trajectory)
+        (equal ?right-trajectory ?empty-trajectory))
+    (or (lisp-pred identity ?left-trajectory)
+        (lisp-pred identity ?right-trajectory)))
 
   (<- (desig:action-grounding ?action-designator (close-container ?arm
                                                                   ?gripper-opening
                                                                   ?distance
-                                                                  ?left-reach-poses
-                                                                  ?right-reach-poses
-                                                                  ?left-grasp-poses
-                                                                  ?right-grasp-poses
-                                                                  (?left-lift-pose)
-                                                                  (?right-lift-pose)
-                                                                  (?left-2nd-lift-pose)
-                                                                  (?right-2nd-lift-pose)
+                                                                  ?left-trajectory
+                                                                  ?right-trajectory
                                                                   ?joint-name
                                                                   ?handle-link
                                                                   ?environment-obj))
@@ -137,22 +125,23 @@
     ;; environment
     (btr:bullet-world ?world)
     (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
-    ;; infer missing information like ?gripper-opnening, closing trajectory
+    ;; infer missing information like ?gripper-opening, closing trajectory
     (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
-    (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
-              (?container-pose ?container-transform))
-    (lisp-fun man-int:get-object-grasping-poses ?container-name
-              :container-prismatic :left :close ?container-transform ?left-poses)
-    (lisp-fun man-int:get-object-grasping-poses ?container-name
-              :container-prismatic :right :close ?container-transform ?right-poses)
-    (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
-              ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses
-                                 ?left-grasp-poses ?right-grasp-poses
-                                 ?left-lift-poses ?right-lift-poses))
-    (-> (lisp-pred identity ?left-lift-poses)
-        (equal ?left-lift-poses (?left-lift-pose ?left-2nd-lift-pose))
-        (equal (NIL NIL) (?left-lift-pose ?left-2nd-lift-pose)))
-    (-> (lisp-pred identity ?right-lift-poses)
-        (equal ?right-lift-poses (?right-lift-pose ?right-2nd-lift-pose))
-        (equal (NIL NIL) (?right-lift-pose ?right-2nd-lift-pose)))))
+    ;; calculate trajectory
+    (equal ?objects (?container-designator))
+    (lisp-fun man-int:make-empty-trajectory (:reaching :grasping :closing :retracting)
+              ?empty-trajectory)
+    (-> (equal ?arm :left)
+        (lisp-fun man-int:get-action-trajectory
+                  :closing :left :close ?objects
+                  :opening-distance ?distance
+                  ?left-trajectory)
+        (equal ?left-trajectory ?empty-trajectory))
+    (-> (equal ?arm :right)
+        (lisp-fun man-int:get-action-trajectory
+                  :closing :right :close ?objects
+                  :opening-distance ?distance
+                  ?right-trajectory)
+        (equal ?right-trajectory ?empty-trajectory))
+    (or (lisp-pred identity ?left-trajectory)
+        (lisp-pred identity ?right-trajectory))))
