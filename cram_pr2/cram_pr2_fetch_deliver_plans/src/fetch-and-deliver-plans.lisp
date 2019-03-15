@@ -140,7 +140,7 @@
 
 (cpl:def-cram-function search-for-object (?object-designator
                                           ?search-location ?robot-location
-                                          &optional (retries 10))
+                                          &optional (retries 3))
   "Searches for `?object-designator' in its likely location `?search-location'."
 
   (cpl:with-failure-handling
@@ -361,9 +361,9 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                                 (object
                                                  ?more-precise-perceived-object-desig)))))
 
-                            ;; (setf pick-up-action (desig:current-desig pick-up-action))
-                            ;; (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
-                            ;; (setf pick-up-action (desig:current-desig pick-up-action))
+                            (setf pick-up-action (desig:current-desig pick-up-action))
+                            (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
+                            (setf pick-up-action (desig:current-desig pick-up-action))
 
                             (exe:perform pick-up-action)
 
