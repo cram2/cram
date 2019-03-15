@@ -43,6 +43,14 @@
    #:object-type-direct-subtype
    #:robot-free-hand
    ;; trajectories
+   #:make-traj-segment
+   #:traj-segment-label
+   #:traj-segment-poses
+   #:make-empty-trajectory
+   #:get-traj-poses-by-label
+   #:get-action-trajectory
+   #:calculate-gripper-pose-in-base
+   ;;
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform
    #:get-object-type-to-gripper-2nd-pregrasp-transform
@@ -50,6 +58,7 @@
    #:get-object-type-to-gripper-2nd-lift-transform
    #:def-object-type-to-gripper-transforms
    #:get-object-grasping-poses
+   ;;
    #:get-object-type-in-other-object-transform
    #:get-object-placement-transform
    #:def-object-type-in-other-object-transform
