@@ -77,6 +77,7 @@
     (or (lisp-pred identity ?left-trajectory)
         (lisp-pred identity ?right-trajectory)))
 
+
   (<- (desig:action-grounding ?action-designator (place ?current-object-designator
                                                         ?other-object-designator
                                                         ?placement-location-name
