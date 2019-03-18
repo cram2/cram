@@ -1,0 +1,17 @@
+<package format="2">
+  <name>cram_hsrb_description</name>
+  <version>0.7.0</version>
+  <description>
+    Prolog predicates describing hsrb robot
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <author>Vanessa Hassouna</author>
+  <maintainer email="hassouna@uni-bremen.de">Vanessa Hassouna</maintainer>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cram_prolog</depend>
+  <depend>cram_robot_interfaces</depend>
+</package>
