@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2019, Gayane Kazhoyan <amar@uni-breme.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,12 @@
                                               name
                                               (rethrow-failure NIL))
                                            &body body)
-  "Macro that iterates through different solutions of the specified designator `iterator-desig' and
- initiates a `retry' clause. This works along with `cpl:with-retry-counters' to try different
- solutions, for the number of times specified by `retries'. When there are no solutions left, it can
-rethrow the same failure it received or a new failure can be specified using the `rethrow-failure' key."
+  "Macro that iterates through different solutions of the specified designator
+`iterator-desig' and initiates a `retry' clause. This works along with
+`cpl:with-retry-counters' to try different solutions, for the number of
+times specified by `retries'. When there are no solutions left, it can
+rethrow the same failure it received or a new failure can be specified
+using the `rethrow-failure' key."
   `(progn
      (roslisp:ros-warn ,name "~a" ,error)
      (cpl:do-retry ,retries
