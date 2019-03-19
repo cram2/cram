@@ -27,56 +27,30 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :common-fail)
 
-(defpackage cram-common-failures
-  (:nicknames #:common-fail)
-  (:use #:cpl)
-  (:export
-   ;; common
-   #:low-level-failure
-   #:actionlib-action-timed-out
-   #:high-level-failure
-   ;; high-level
-   #:navigation-high-level-failure
-   #:navigation-goal-in-collision
-   #:navigation-failure-pose-stamped
-   #:looking-high-level-failure
-   #:object-unreachable
-   #:object-unreachable-object
-   #:manipulation-goal-in-collision
-   #:object-unfetchable
-   #:object-unfetchable-object
-   #:object-undeliverable
-   #:object-undeliverable-object
-   #:object-nowhere-to-be-found
-   #:object-nowhere-to-be-found-object
-   #:environment-manipulation-impossible
-   #:environment-unreachable
-   ;; manipulation
-   #:manipulation-low-level-failure
-   #:gripper-low-level-failure
-   #:gripper-failure-action
-   #:gripper-closed-completely
-   #:gripper-goal-not-reached
-   #:manipulation-goal-not-reached
-   #:manipulation-pose-unreachable
-   ;; navigation
-   #:navigation-low-level-failure
-   #:navigation-failure-location
-   #:navigation-pose-unreachable
-   #:navigation-goal-not-reached
-   ;; perception
-   #:perception-low-level-failure
-   #:perception-object-not-found
-   #:object-not-found-object
-   ;; ptu
-   #:ptu-low-level-failure
-   #:ptu-goal-unreachable
-   #:ptu-goal-not-reached
-   ;; torso
-   #:torso-low-level-failure
-   #:torso-goal-unreachable
-   #:torso-goal-not-reached
-   ;; failure-handling-strategies
-   #:retry-with-designator-solutions))
+(defmacro retry-with-designator-solutions (iterator-desig
+                                           retries
+                                           (&key
+                                              error
+                                              reset-designators
+                                              name
+                                              (rethrow-failure NIL))
+                                           &body body)
+  "Macro that iterates through different solutions of the specified designator `iterator-desig' and initiates a `retry' clause. This works along with `cpl:with-retry-counters' to try different solutions, for the number of times specified by `retries'. When there are no solutions left, it can rethrow the same failure it received or a new failure can be specified using the `rethrow-failure' key."
+  `(progn
+     (roslisp:ros-warn ,name "~a" ,error)
+     (cpl:do-retry ,retries
+       (let ((next-solution-element (desig:next-solution ,iterator-desig)))
+         (if next-solution-element
+             (progn
+               (roslisp:ros-warn ,name "Retrying.~%")
+               (setf ,iterator-desig next-solution-element)
+               (loop for designator in ,reset-designators
+                     do (desig:reset designator))
+               ,@body
+               (cpl:retry)
+             (roslisp:ros-warn ,name "No samples left ~%")))))
+       (roslisp:ros-warn ,name "No retries left.~%")
+       (if ,rethrow-failure
+           (cpl:fail ,rethrow-failure))))
