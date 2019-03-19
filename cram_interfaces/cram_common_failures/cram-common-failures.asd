@@ -38,6 +38,7 @@
             :components
             ((:file "package")
              (:file "common" :depends-on ("package"))
+             (:file "failure-handling-strategies.lisp" :depends-on ("package"))
              (:file "manipulation" :depends-on ("package" "common"))
              (:file "torso" :depends-on ("package" "common" "manipulation"))
              (:file "navigation" :depends-on ("package" "common"))
