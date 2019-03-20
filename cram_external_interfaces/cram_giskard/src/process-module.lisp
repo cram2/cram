@@ -27,59 +27,53 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-pms)
+(in-package :giskard)
 
-;; (defun fill-in-with-nils (some-list desired-length)
-;;   (let ((current-length (length some-list)))
-;;     (if (> desired-length current-length)
-;;         (append some-list (make-list (- desired-length current-length)))
-;;         some-list)))
-
-(def-process-module pr2-arms-pm (action-designator)
+(cpm:def-process-module giskard-pm (motion-designator)
   (destructuring-bind (command argument-1 &rest rest-arguments)
-      (reference action-designator)
+      (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-tcp
-       (pr2-ll:call-giskard-cartesian-action :goal-pose-left argument-1
-                                             :goal-pose-right (first rest-arguments)
-                                             :collision-mode (second rest-arguments)
-                                             :collision-object-b (third rest-arguments)
-                                             :collision-object-b-link (fourth rest-arguments)
-                                             :collision-object-a (fifth rest-arguments))
-       ;; (unless (listp goal-left)
-       ;;   (setf goal-left (list goal-left)))
-       ;; (unless (listp goal-right)
-       ;;   (setf goal-right (list goal-right)))
-       ;; (let ((max-length (max (length goal-left) (length goal-right))))
-       ;;   (mapc (lambda (single-pose-left single-pose-right)
-       ;;           (pr2-ll:call-giskard-cartesian-action :goal-pose-left single-pose-left
-       ;;                                                 :goal-pose-right single-pose-right))
-       ;;         (fill-in-with-nils goal-left max-length)
-       ;;         (fill-in-with-nils goal-right max-length)))
-       )
+       (call-giskard-cartesian-action :goal-pose-left argument-1
+                                      :goal-pose-right (first rest-arguments)
+                                      :collision-mode (second rest-arguments)
+                                      :collision-object-b (third rest-arguments)
+                                      :collision-object-b-link (fourth rest-arguments)
+                                      :collision-object-a (fifth rest-arguments)))
       (cram-common-designators:move-joints
-       (pr2-ll:call-giskard-joint-action :goal-configuration-left argument-1
-                                         :goal-configuration-right (first rest-arguments))))))
+       (call-giskard-joint-action :goal-configuration-left argument-1
+                                  :goal-configuration-right (first rest-arguments))))))
 
+(prolog:def-fact-group giskard-pm (cpm:matching-process-module
+                                   cpm:available-process-module)
+
+  (prolog:<- (cpm:matching-process-module ?motion-designator giskard-pm)
+    (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
+        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))))
+
+  (prolog:<- (cpm:available-process-module giskard-pm)
+    (prolog:not (cpm:projection-running ?_))))
+
+;;; The examples below are deprecated, so the designator changed, but the idea is the same
 ;;; Examples:
 ;;
 ;; (cram-process-modules:with-process-modules-running
-;;     (pr2-pms::pr2-arms-pm)
+;;     (giskard::giskard-pm)
 ;;   (cpl:top-level
 ;;     (cpm:pm-execute-matching
-;;      (desig:an action (to move-arm) (right ((0.5 0.5 1.5) (0 0 0 1)))))))
+;;      (desig:a motion (type moving-tcp) (right-pose ((0.5 0.5 1.5) (0 0 0 1)))))))
 ;;
 ;; (cram-process-modules:with-process-modules-running
-;;     (pr2-pms::pr2-arms-pm)
+;;     (giskard::giskard-pm)
 ;;   (cpl:top-level
 ;;     (cpm:pm-execute-matching
-;;      (desig:an action
+;;      (desig:a motion
 ;;                (to move-arm)
 ;;                (right ((0.5 -0.5 1.5) (0 0 0 1)))
 ;;                (left ((0.5 0.5 1.5) (0 0 0 1)))))))
 ;;
 ;; (cram-process-modules:with-process-modules-running
-;;     (pr2-pms::pr2-arms-pm)
+;;     (giskard::giskard-pm)
 ;;   (cpl:top-level
 ;;     (cpm:pm-execute-matching
-;;      (desig:an action (to move-arm) (right (((1 1 1) (0 0 0 1)) nil ((1 1 1) (0 0 0 1))))))))
+;;      (desig:a motion (to move-arm) (right (((1 1 1) (0 0 0 1)) nil ((1 1 1) (0 0 0 1))))))))

@@ -1,4 +1,4 @@
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-low-level
+(defsystem cram-giskard
   :author "Gayane Kazhoyan"
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
@@ -35,31 +35,25 @@
                roslisp-utilities
                cl-transforms
                cl-transforms-stamped
-               cl-tf
-               actionlib
-               alexandria
-               yason
-               cram-language
                cram-tf
-               cram-utilities
-               cram-prolog
-               cram-robot-interfaces
-               cram-pr2-description ; for tool frames
                cram-common-failures
-               cram-simple-actionlib-client
-               cram-joint-states
-               sensor_msgs-msg ; for kinematics-trajectory
-               geometry_msgs-msg
-               moveit_msgs-msg ; also for kinematics-trajectory
-               pr2_controllers_msgs-msg
-               trajectory_msgs-msg)
+               cram-designators
+               cram-process-modules
+               cram-prolog
+               cram-common-designators
+               cram-occasions-events ; for updating giskard collision scene on events
+               cram-plan-occasions-events
+               cram-bullet-reasoning ; also for updating giskard collision scene
+               cram-bullet-reasoning-belief-state ; for *kitchen-parameter*
+               cram-joint-states ; for joint-interface to send current joint state
+               giskard_msgs-msg
+               giskard_msgs-srv)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "base-controller" :depends-on ("package"))
-     (:file "torso" :depends-on ("package"))
-     (:file "gripper" :depends-on ("package"))
-     (:file "ptu" :depends-on ("package"))
-     (:file "joint-trajectory" :depends-on ("package"))
-     (:file "kinematics-trajectory" :depends-on ("package" "joint-trajectory"))))))
+     (:file "action-client" :depends-on ("package"))
+     (:file "cartesian-interface" :depends-on ("package" "action-client"))
+     (:file "joint-interface" :depends-on ("package" "action-client"))
+     (:file "collision-scene" :depends-on ("package"))
+     (:file "process-module" :depends-on ("package" "cartesian-interface" "joint-interface"))))))

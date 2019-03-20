@@ -29,15 +29,6 @@
 
 (in-package :boxy-pm)
 
-;;;;;;;;;;;;;;;;;;;; BASE ;;;;;;;;;;;;;;;;;;;;;;;;
-
-(cpm:def-process-module base-pm (motion-designator)
-  (destructuring-bind (command argument)
-      (desig:reference motion-designator)
-    (ecase command
-      (cram-common-designators:move-base
-       (boxy-ll:move-base-nav-pcontroller :goal-pose argument)))))
-
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; (cpm:def-process-module torso-pm (motion-designator)

@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-ll)
+(in-package :giskard)
 
 (defparameter *giskard-convergence-delta-xy* 0.1 ;; 0.005
   "in meters")

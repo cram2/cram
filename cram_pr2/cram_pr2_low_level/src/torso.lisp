@@ -83,10 +83,10 @@
 (defun ensure-torso-goal-reached (status goal-position convergence-delta)
   (when (eql status :timeout)
     (roslisp:ros-warn (pr2-ll torso) "Torso action timed out."))
-  (let ((current-position (car (joint-positions (list cram-tf:*robot-torso-joint*)))))
-   (unless (values-converged current-position goal-position convergence-delta)
-     (cpl:fail 'common-fail:torso-goal-not-reached
-               :description (format nil "Torso action did not converge to the goal:
+  (let ((current-position (car (joints:joint-positions (list cram-tf:*robot-torso-joint*)))))
+    (unless (cram-tf:values-converged current-position goal-position convergence-delta)
+      (cpl:fail 'common-fail:torso-goal-not-reached
+                :description (format nil "Torso action did not converge to the goal:
 goal: ~a, current: ~a, delta: ~a." goal-position current-position convergence-delta)))))
 
 (defun call-torso-action (position &key

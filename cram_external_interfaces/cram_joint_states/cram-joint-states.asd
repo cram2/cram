@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,10 +9,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Institute for Artificial Intelligence/
-;;;       Universitaet Bremen nor the names of its contributors may be used to
-;;;       endorse or promote products derived from this software without
-;;;       specific prior written permission.
+;;;     * Neither the name of the Intelligent Autonomous Systems Group/
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
+;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,15 +26,18 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(defsystem cram-joint-states
+  :author "Gayane Kazhoyan"
+  :maintainer "Gayane Kazhoyan"
+  :license "BSD"
 
-(defpackage cram-pr2-low-level
-  (:nicknames #:pr2-ll)
-  (:use #:common-lisp #:cram-tf)
-  (:export
-   ;; actionlib actions
-   #:call-gripper-action
-   #:call-joint-trajectory-action
-   #:call-joint-angle-action
-   #:call-ptu-action
-   #:call-torso-action))
+  :depends-on (roslisp
+               roslisp-utilities
+               cl-transforms
+               cram-language ; for fluents
+               sensor_msgs-msg)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "joint-states" :depends-on ("package"))))))

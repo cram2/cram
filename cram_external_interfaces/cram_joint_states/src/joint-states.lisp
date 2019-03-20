@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :boxy-ll)
+(in-package :joints)
 
 (defvar *joint-state-sub* nil
   "Subscriber for robot's joint state topic.")
@@ -97,28 +97,27 @@ as multiple values."
       (roslisp:msg-slot-value last-joint-state-msg :header)
       :stamp))))
 
-(defun joint-positions (names fluent)
+(defun joint-positions (names &optional state-fluent)
   "Returns the joint positions as a list + timestamp"
-  (let ((last-joint-state-msg (cpl:value fluent ;; *robot-joint-states-msg*
-                                         )))
-    (values
-     (mapcar (lambda (name)
-               (let ((index (position
-                             name
-                             (roslisp:msg-slot-value last-joint-state-msg :name)
-                             :test #'string-equal)))
-                 (when index
-                   (aref (roslisp:msg-slot-value last-joint-state-msg :position)
-                         index))))
-             names)
-     (roslisp:msg-slot-value
-      (roslisp:msg-slot-value last-joint-state-msg :header)
-      :stamp))))
+  (let ((last-joint-state-msg (cpl:value (or state-fluent *robot-joint-states-msg*))))
+    (when last-joint-state-msg
+      (values
+       (mapcar (lambda (name)
+                 (let ((index (position
+                               name
+                               (roslisp:msg-slot-value last-joint-state-msg :name)
+                               :test #'string-equal)))
+                   (when index
+                     (aref (roslisp:msg-slot-value last-joint-state-msg :position)
+                           index))))
+               names)
+       (roslisp:msg-slot-value
+        (roslisp:msg-slot-value last-joint-state-msg :header)
+        :stamp)))))
 
-(defun joint-velocities (names fluent)
+(defun joint-velocities (names &optional state-fluent)
   "Returns the joint velocities as a list + timestamp"
-  (let ((last-joint-state-msg (cpl:value fluent ;; *robot-joint-states-msg*
-                                         )))
+  (let ((last-joint-state-msg (cpl:value (or state-fluent *robot-joint-states-msg*))))
     (values
      (mapcar (lambda (name)
                (let ((index (position

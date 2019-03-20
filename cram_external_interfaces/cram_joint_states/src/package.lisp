@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,17 @@
 
 (in-package :cl-user)
 
-(defpackage cram-pr2-low-level
-  (:nicknames #:pr2-ll)
-  (:use #:common-lisp #:cram-tf)
+(defpackage cram-joint-states
+  (:nicknames #:joints)
+  (:use #:common-lisp)
   (:export
-   ;; actionlib actions
-   #:call-gripper-action
-   #:call-joint-trajectory-action
-   #:call-joint-angle-action
-   #:call-ptu-action
-   #:call-torso-action))
+   ;; joint-states
+   #:joint-state
+   #:joint-state-name
+   #:joint-state-position
+   #:joint-state-velocity
+   #:joint-state-effort
+   #:joint-states
+   #:joint-positions
+   #:joint-velocities
+   #:normalize-joint-angles))
