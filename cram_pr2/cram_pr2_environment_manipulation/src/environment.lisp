@@ -106,6 +106,8 @@
   `joint-position'. If `relative' is T, the actual value is calculated
   by `joint-position' * <joint maximal value>. This function returns two
   values, the new pose of the link and the joint that was changed."
+  (when (not (floatp joint-position))
+    (setf joint-position (float joint-position)))
   (let ((link (get-container-link link-name btr-environment)))
     (when (typep link 'cl-urdf:link)
       (let ((joint (get-connecting-joint link)))
