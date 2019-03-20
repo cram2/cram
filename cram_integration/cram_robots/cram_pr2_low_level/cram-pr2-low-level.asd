@@ -47,6 +47,8 @@
                cram-pr2-description ; for tool frames
                cram-common-failures
                cram-simple-actionlib-client
+               cram-occasions-events ; for updating giskard collision scene on events
+               cram-plan-occasions-events
                sensor_msgs-msg
                geometry_msgs-msg
                moveit_msgs-msg
@@ -75,6 +77,7 @@
                                                            "new-giskard-common"))
      (:file "new-giskard-joint" :depends-on ("package" "low-level-common" "joint-states"
                                                        "new-giskard-common"))
+     (:file "giskard-environment-client" :depends-on ("package"))
      ;; (:file "yaml-builder" :depends-on ("package"))
      ;; (:file "giskard-yaml" :depends-on ("package" "giskard-common" "yaml-builder"))
      ))))

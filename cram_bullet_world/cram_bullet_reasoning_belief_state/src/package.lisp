@@ -40,8 +40,6 @@
    #:update-bullet-transforms
    ;; occasions
    #:object-designator-name
-   ;; event handlers
-   #:object-pose-in-frame
    ;; belief-state
    #:*kitchen-urdf*
    #:*robot-parameter* #:*kitchen-parameter*
