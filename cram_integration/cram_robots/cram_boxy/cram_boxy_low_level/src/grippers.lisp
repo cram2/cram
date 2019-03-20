@@ -127,21 +127,20 @@
 
     (flet ((goal-reached (state-msg)
              (if (eql action-type-or-position :grip)
-                 (< (abs (car (joint-velocities '("left_gripper_joint") state-msg)))
+                 (< (abs (car (joints:joint-velocities '("left_gripper_joint") state-msg)))
                     *gripper-velocity-convergence-delta*)
-                 (< (abs (- (car (joint-positions '("left_gripper_joint") state-msg))
+                 (< (abs (- (car (joints:joint-positions '("left_gripper_joint") state-msg))
                             goal-position))
                     *gripper-convergence-delta*))))
 
-      (let ((reached-fluent (cpl:fl-funcall #'goal-reached *robot-joint-states-msg*)))
+      (let ((reached-fluent (cpl:fl-funcall #'goal-reached joints::*robot-joint-states-msg*)))
         (cpl:pursue
           (cpl:wait-for reached-fluent)
           (cpl:seq
             (cpl:sleep *gripper-action-timeout*)
             (cpl:fail 'common-fail:gripper-goal-not-reached
                       :description (format nil "gripper did not reach goal: is ~a, should be ~a."
-                                           (car (joint-positions '("left_gripper_joint")
-                                                                 *robot-joint-states-msg*))
+                                           (car (joints:joint-positions '("left_gripper_joint")))
                                            goal-position))))))))
 
 ;; speed can be up to 60

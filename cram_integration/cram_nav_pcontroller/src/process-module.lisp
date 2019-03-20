@@ -27,19 +27,26 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-pms)
+(in-package :navp)
 
-(def-process-module pr2-base-pm (action-designator)
+(cpm:def-process-module navp-pm (motion-designator)
   (destructuring-bind (command destination-pose)
-      (reference action-designator)
+      (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-base
-       (handler-case
-           (pr2-ll:call-nav-pcontroller-action destination-pose :visualize t)
-         ;; (cram-plan-failures:location-not-reached-failure ()
-         ;;   (cpl:fail 'cram-plan-failures:gripping-failed :action action-designator))
-         )))))
+       (call-nav-pcontroller-action destination-pose :visualize t)))))
 
+(prolog:def-fact-group navp-pm (cpm:matching-process-module
+                                cpm:available-process-module)
+
+  (prolog:<- (cpm:matching-process-module ?motion-designator navp-pm)
+    (desig:desig-prop ?motion-designator (:type :going)))
+
+  (prolog:<- (cpm:available-process-module navp-pm)
+    (prolog:not (cpm:projection-running ?_))))
+
+
+;; The example is outdated but the idea is the same
 ;; Example:
 ;;
 ;; (cl-tf::with-tf-broadcasting
@@ -50,7 +57,7 @@
 ;;       0.0
 ;;       (cl-transforms:make-identity-vector)
 ;;       (cl-transforms:make-identity-rotation)))
-
+;;
 ;;   (cram-process-modules:with-process-modules-running
 ;;       (pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm pr2-pms::pr2-base-pm)
 ;;     (cpl:top-level

@@ -26,13 +26,10 @@
   <depend>cram_pr2_description</depend>
   <depend>cram_common_failures</depend>
   <depend>cram_simple_actionlib_client</depend>
-  <depend>cram_occasions_events</depend>
-  <depend>cram_plan_occasions_events</depend>
+  <depend>cram_joint_states</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>moveit_msgs</depend>
   <depend>pr2_controllers_msgs</depend>
   <depend>trajectory_msgs</depend>
-  <depend>move_base_msgs</depend>
-  <depend>giskard_msgs</depend>
 </package>

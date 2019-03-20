@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-ll)
+(in-package :giskard)
 
 (defparameter *giskard-convergence-delta-joint* 0.17 "in radiants, about 10 degrees")
 
@@ -88,7 +88,7 @@
                                `(cram-robot-interfaces:arm-joints
                                  cram-pr2-description:pr2 ,arm ?joints))))))
         (list joint-names
-              (joint-positions joint-names *robot-joint-states-msg*)))))
+              (joints:joint-positions joint-names)))))
 
 (defun ensure-giskard-joint-input-parameters (left-goal right-goal)
   (flet ((ensure-giskard-joint-goal (goal arm)
@@ -112,17 +112,19 @@
   (flet ((ensure-giskard-joint-arm-goal-reached (arm goal-configuration)
            (when goal-configuration
              (let ((configuration (second (get-arm-joint-names-and-positions-list arm))))
-               (unless (values-converged (normalize-joint-angles configuration)
-                                         (normalize-joint-angles
-                                          (mapcar #'second goal-configuration))
-                                         convergence-delta-joint)
+               (unless (cram-tf:values-converged (joints:normalize-joint-angles
+                                                  configuration)
+                                                 (joints:normalize-joint-angles
+                                                  (mapcar #'second goal-configuration))
+                                                 convergence-delta-joint)
                  (cpl:fail 'common-fail:manipulation-goal-not-reached
                            :description (format nil "Giskard did not converge to goal:~%~
                                                    ~a (~a)~%should have been at~%~a~%~
                                                    with delta-joint of ~a."
                                                 arm
-                                                (normalize-joint-angles configuration)
-                                                (normalize-joint-angles
+                                                (joints:normalize-joint-angles
+                                                 configuration)
+                                                (joints:normalize-joint-angles
                                                  (mapcar #'second goal-configuration))
                                                 convergence-delta-joint)))))))
     (when goal-configuration-left

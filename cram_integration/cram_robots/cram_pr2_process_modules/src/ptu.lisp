@@ -29,8 +29,10 @@
 
 (in-package :pr2-pms)
 
-(def-process-module pr2-ptu-pm (action-designator)
-  (destructuring-bind (command goal-pose goal-configuration) (reference action-designator)
+(def-process-module pr2-ptu-pm (motion-designator)
+  (destructuring-bind (command goal-pose goal-configuration)
+      (reference motion-designator)
+    (declare (ignore goal-configuration))
     (ecase command
       (cram-common-designators:move-head
        (handler-case

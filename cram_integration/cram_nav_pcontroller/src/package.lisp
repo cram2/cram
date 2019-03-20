@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,13 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-ll)
+(in-package :cl-user)
 
-(defun values-converged (values goal-values deltas)
-  (flet ((value-converged (value goal-value delta)
-           (<= (abs (- value goal-value)) delta)))
-    ;; correct arguments
-    (if (listp values)
-        (if (or (atom goal-values)
-                (not (= (length values) (length goal-values))))
-            (error "GOAL-VALUES (~a) and VALUES (~a) should be of same length."
-                   goal-values values)
-            (if (atom deltas)
-                (setf deltas (make-list (length values) :initial-element deltas))
-                (unless (= (length values) (length deltas))
-                  (error "DELTAS (~a) and VALUES (~a) should be of same length."
-                         deltas values))))
-        (if (or (listp goal-values) (listp deltas))
-            (error "All arguments should be of same length")
-            (setf values (list values)
-                  goal-values (list goal-values)
-                  deltas (list deltas))))
-    ;; actually compare
-    (every #'value-converged values goal-values deltas)))
+(defpackage cram-nav-pcontroller
+  (:nicknames #:navp)
+  (:use #:common-lisp)
+  (:export
+   ;; nav-pcontroller
+   #:call-nav-pcontroller-action
+   ;; process-module
+   #:navp-pm))
