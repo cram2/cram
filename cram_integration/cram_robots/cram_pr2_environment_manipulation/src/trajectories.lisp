@@ -45,7 +45,7 @@
 ;; handle more than horizontal and vertical
 (defun get-container-to-gripper-transform (object-name
                                            arm
-                                           handle-angle
+                                           handle-axis
                                            btr-environment)
   "Get the transform from the container handle to the robot's gripper."
   (let* ((object-name
@@ -69,7 +69,12 @@
          (tool-frame
            (ecase arm
              (:left cram-tf:*robot-left-tool-frame*)
-             (:right cram-tf:*robot-right-tool-frame*))))
+             (:right cram-tf:*robot-right-tool-frame*)))
+         (handle-angle-cos
+           (angle-between-vectors
+            (cl-transforms:make-3d-vector 1 0 0)
+            handle-axis))
+         (handle-angle-sin (- 1 handle-angle-cos)))
     (cram-tf:multiply-transform-stampeds
      object-name
      tool-frame
@@ -83,14 +88,32 @@
       tool-frame
       0.0
       (cl-transforms:make-3d-vector *drawer-handle-grasp-x-offset* 0.0d0 0.0d0)
-      (cl-transforms:matrix->quaternion
-       (if (eq handle-angle :horizontal)
-           #2A((0 0 -1)
-               (0 1 0)
-               (1 0 0))
-           #2A((0 0 -1)
-               (-1 0 0)
-               (0 1 0))))))))
+      (cl-transforms:column-vectors->quaternion
+       (cl-transforms:make-3d-vector
+        0
+        (- handle-angle-sin)
+        handle-angle-cos)
+       (cl-transforms:make-3d-vector
+        0
+        handle-angle-cos
+        handle-angle-sin)
+       (cl-transforms:make-3d-vector
+        -1
+        0
+        0))
+      ;;(cl-transforms:matrix->quaternion
+       ;; (if (eq handle-axis :horizontal)
+       ;;     #2A((0 0 -1)
+       ;;         (0 1 0)
+       ;;         (1 0 0))
+       ;;     #2A((0 0 -1)
+       ;;         (-1 0 0)
+       ;;         (0 1 0)))
+       ;; #2A((0 0 -1)
+       ;;     ((- (- 1 handle-angle-cos)) handle-angle-cos 0)
+       ;;     (handle-angle-cos (- 1 handle-angle-cos) 0))
+      ;; )
+      ))))
 
 (defmethod man-int:get-action-trajectory :before ((action-type (eql :opening))
                                                    arm
@@ -130,6 +153,9 @@
          (object-type
            (desig:desig-prop-value
             object-designator :type))
+         (handle-axis
+           (desig:desig-prop-value
+            object-designator :handle-axis))
          (object-environment
            (desig:desig-prop-value
             object-designator :part-of))
@@ -142,7 +168,7 @@
            (get-container-to-gripper-transform
             object-name
             arm
-            :vertical
+            handle-axis
             object-environment)))
     
     (alexandria:switch
@@ -153,8 +179,7 @@
       (:container-prismatic
        (make-prismatic-trajectory object-transform arm action-type grasp-pose opening-distance))
       (:container-revolute
-       (make-revolute-trajectory object-transform arm action-type grasp-pose opening-distance
-                                 object-name object-environment))
+       (make-revolute-trajectory object-transform arm action-type grasp-pose opening-distance))
       (T (error "Unsupported container-type: ~a." object-type)))))
 
 (defun make-prismatic-trajectory (object-transform arm action-type
