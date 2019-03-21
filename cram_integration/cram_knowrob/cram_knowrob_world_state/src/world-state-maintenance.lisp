@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :kr-pp)
+(in-package :kr-world)
 
 (defmethod coe:on-event knowrob-attach-object ((event cpoe:object-attached-robot))
   (unless cram-projection:*projection-environment*

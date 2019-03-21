@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,59 +26,24 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-boxy-assembly-demo
-  :author "gaya"
+(defsystem cram-knowrob-world-state
+  :author "Gayane Kazhoyan"
+  :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (roslisp-utilities ; for ros-init-function
-
+  :depends-on (cram-json-prolog
+               cram-utilities ; for querying rob-int
+               cram-prolog
+               cram-robot-interfaces
+               cram-occasions-events
+               cram-plan-occasions-events
+               cram-projection ; for unless cram-proj:*proj-env*
+               cram-bullet-reasoning ; for simulating world to fix object pose Z
                cl-transforms
                cl-transforms-stamped
-               cl-tf
-               cl-tf2
-               cram-tf
-
-               cram-language
-               cram-executive
-               cram-designators
-               cram-prolog
-               cram-projection
-               cram-occasions-events
-               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
-
-               cram-common-failures
-               cram-mobile-pick-place-plans
-               cram-robot-interfaces ; for *robot-urdf*
-               cram-object-knowledge
-               ;; cram-robosherlock
-
-               cram-physics-utils ; for reading "package://" paths
-               cl-bullet ; for handling BOUNDING-BOX datastructures
-               cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
-               cram-bullet-reasoning-utilities
-               cram-btr-visibility-costmap
-
-               cram-robot-pose-gaussian-costmap
-               cram-occupancy-grid-costmap
-               cram-location-costmap
-               cram-manipulation-interfaces ; for standard rotations
-
-               cram-boxy-projection      ; for with-simulated-robot
-               cram-boxy-description
-               ;; cram-boxy-low-level
-               cram-process-modules
-               ;; cram-boxy-process-modules
-               cram-boxy-plans
-
-               ;; real robot
-               cram-robosherlock
-               )
-
+               cram-tf)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "setup" :depends-on ("package"))
-     (:file "projection-demo" :depends-on ("package"))
-     (:file "demo" :depends-on ("package" "projection-demo"))))))
+     (:file "world-state-maintenance" :depends-on ("package"))))))

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(cram_knowrob_pick_place)
+project(cram_knowrob_manipulation_interfaces)
 find_package(catkin REQUIRED)
 catkin_package()
 

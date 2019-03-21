@@ -91,7 +91,7 @@
 (defun retract-assemblage (assemblage-id)
   (json-prolog:prolog `("assert_assemblage_destroyed" ,assemblage-id)))
 
-#+as;lfdkjsa;fdkljas
+#+this-is-an-example
 (
  (kr-assembly::assert-object-grasped "right_gripper" "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1" "boxy" "http://knowrob.org/kb/thorin_parameters.owl#TopGraspCarBody")
  (kr-assembly::retract-object-grasped *)

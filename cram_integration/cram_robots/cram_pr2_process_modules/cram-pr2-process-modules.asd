@@ -39,6 +39,7 @@
                cram-common-failures
                cram-common-designators
                cram-language ; for with-real-robot
+               cram-knowrob-world-state
                cram-robosherlock
                cram-giskard
                cram-nav-pcontroller)
