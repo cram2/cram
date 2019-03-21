@@ -233,7 +233,57 @@
                                  :mode 1
                                  :package :kr-assembly))))))
 
-#+as;dflkajs;dflksaj
+
+(defun get-object-grasping-poses (on-object-name on-object-type
+                                  object-name object-type arm grasp on-object-transform)
+  "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
+  (mapcar (lambda (manipulation-type)
+            (get-gripper-in-base-pose
+             arm on-object-transform           ; bToo
+             (get-object-manipulation-transform ; gToo aka oToo
+              manipulation-type "left_gripper" object-name grasp))) ; bToo * ooTg = bTg
+          '(:lift :connect :pregrasp :pregrasp)))
+
+(defun get-object-placing-poses (on-object-name on-object-type object-name object-type
+                                 arm grasp on-object-transform)
+  "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)"
+  (flet ((get-connection-id (object-name connect-to-object-name)
+           (ecase object-name
+             (:axle1 (ecase connect-to-object-name
+                       (:chassis1 :axle-snap-in-front)))
+             (:axle2 (ecase connect-to-object-name
+                       (:chassis1 :axle-snap-in-back)))
+             (:chassis1 (ecase connect-to-object-name
+                          (:chassis-holder1 :chassis-on-holder)))
+             (:camaro-body1 (ecase connect-to-object-name
+                              (:chassis1 :chassis-snap-in-connection)))
+             (:seat1 (ecase connect-to-object-name
+                       (:chassis1 :seat-snap-in-front)))
+             (:seat2 (ecase connect-to-object-name
+                       (:chassis1 :seat-snap-in-back))))))
+
+    (let* ((put-pose (cram-tf:multiply-transform-stampeds
+                      cram-tf:*robot-base-frame* cram-tf:*robot-left-tool-frame*
+                      (cram-tf:multiply-transform-stampeds
+                       cram-tf:*robot-base-frame* (cram->knowrob object-name)
+                       on-object-transform ; bToo
+                       ;; (get-object-placement-transform ; oToo aka gToo
+                       ;;  on-object-name object-name "left_gripper" grasp)))) ; bToo * ooTg = bTg
+                       (get-object-connection-transform ; ooTo
+                        (get-connection-id object-name on-object-name)
+                        on-object-name
+                        object-name))  ; bToo * ooTo = bTo
+                      (cram-tf:transform-stamped-inv
+                       (get-object-manipulation-transform ; gTo
+                        :grasp "left_gripper" object-name grasp))
+                      :result-as-pose-or-transform :pose))) ; bTo * oTg = bTg
+      (list (get-object-type-lift-pose object-type arm grasp put-pose)
+            (get-object-type-2nd-lift-pose object-type arm grasp put-pose)
+            put-pose
+            (get-object-type-2nd-pregrasp-pose object-type arm grasp put-pose)
+            (get-object-type-pregrasp-pose object-type arm grasp put-pose)))))
+
+#+this-is-an-example
 (
  (kr-assembly::get-class-instance :camaro-body)
  (kr-assembly::get-possible-object-grasps "http://knowrob.org/kb/thorin_simulation.owl#CamaroBody1")

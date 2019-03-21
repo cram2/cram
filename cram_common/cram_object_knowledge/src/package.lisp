@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(defpackage cram-knowrob-pick-place
-  (:nicknames #:kr-pp)
-  (:use #:common-lisp #:cram-manipulation-interfaces #:cram-prolog)
-  (:export ))
+(defpackage cram-object-knowledge
+  (:nicknames #:objects)
+  (:use #:common-lisp #:cram-prolog)
+  (:export))

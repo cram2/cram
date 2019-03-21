@@ -1,8 +1,8 @@
 <package format="2">
-  <name>cram_knowrob_pick_place</name>
+  <name>cram_knowrob_manipulation_interfaces</name>
   <version>0.7.0</version>
   <description>
-    CRAM interfaces to talk to KnowRob when asserting and querying facts in pick and place domain
+    CRAM interfaces to talk to KnowRob when asserting and querying facts about objects
   </description>
   <author>Gayane Kazhoyan</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
@@ -18,6 +18,4 @@
   <depend>cram_occasions_events</depend>
   <depend>cram_plan_occasions_events</depend>
   <depend>cram_tf</depend>
-  <depend>roslisp_utilities</depend>
-  <depend>cram_prolog</depend>
 </package>

@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :kr-assembly)
+(in-package :objects)
 
 (defparameter *default-z-offset* 0.1 "in meters")
 (defparameter *default-small-z-offset* 0.07 "in meters")
@@ -35,7 +35,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod get-object-type-gripping-effort (object-type) 35)
 ;; (defmethod get-object-type-gripping-effort ((object-type (eql :bolt))) 35)
 ;; (defmethod get-object-type-gripping-effort ((object-type (eql :chassis))) 35)
 ;; (defmethod get-object-type-gripping-effort ((object-type (eql :bottom-wing))) 35)
@@ -49,14 +48,13 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod get-object-type-gripper-opening (object-type) 0.10)
-(defmethod get-object-type-gripper-opening ((object-type (eql :bolt))) 0.02)
+(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :bolt))) 0.02)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :chassis))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :bottom-wing))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :underbody))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :upper-body))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :top-wing))) 0.1)
-(defmethod get-object-type-gripper-opening ((object-type (eql :window))) 0.02)
+(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :window))) 0.02)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :propeller))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :front-wheel))) 0.1)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :nut))) 0.1)
@@ -66,9 +64,9 @@
 (defparameter *chassis-grasp-z-offset* -0.02)
 
 ;; TOP grasp
-(def-object-type-to-gripper-transforms :chassis '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms :chassis '(:left :right) :top
   :grasp-translation `(0.0 0.0 ,*chassis-grasp-z-offset*)
-  :grasp-rot-matrix *z-across-x-grasp-rotation*
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
   :lift-offsets *default-lift-offsets*
@@ -81,32 +79,32 @@
 (defparameter *bottom-wing-grasp-z-offset* 0.02)
 
 ;; SIDE grasp
-(def-object-type-to-gripper-transforms :bottom-wing :left :right-side
+(man-int:def-object-type-to-gripper-transforms :bottom-wing :left :right-side
   :grasp-translation `(,(- *bottom-wing-grasp-x-offset*)
                        ,*bottom-wing-grasp-y-offset*
                        ,*bottom-wing-grasp-z-offset*)
-  :grasp-rot-matrix *y-across-x-grasp-rotation*
+  :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
   :pregrasp-offsets `(0 ,*default-z-offset* ,*default-z-offset*)
   :2nd-pregrasp-offsets `(0 ,*default-z-offset* 0.0)
   :lift-offsets *default-lift-offsets*
   :2nd-lift-offsets *default-lift-offsets*)
 
-(def-object-type-to-gripper-transforms :bottom-wing :right :right-side
+(man-int:def-object-type-to-gripper-transforms :bottom-wing :right :right-side
   :grasp-translation `(,*bottom-wing-grasp-x-offset*
                        ,(- *bottom-wing-grasp-y-offset*)
                        ,*bottom-wing-grasp-z-offset*)
-  :grasp-rot-matrix *-y-across-x-grasp-rotation*
+  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
   :pregrasp-offsets `(0 ,(- *default-z-offset*) ,*default-z-offset*)
   :2nd-pregrasp-offsets `(0 ,(- *default-z-offset*) 0.0)
   :lift-offsets *default-lift-offsets*
   :2nd-lift-offsets *default-lift-offsets*)
 
 ;; BACK grasp
-(def-object-type-to-gripper-transforms :bottom-wing '(:left :right) :back
+(man-int:def-object-type-to-gripper-transforms :bottom-wing '(:left :right) :back
   :grasp-translation `(,(- *bottom-wing-grasp-x-offset*)
                        0.0
                        ,*bottom-wing-grasp-z-offset*)
-  :grasp-rot-matrix *-x-across-y-grasp-rotation*
+  :grasp-rot-matrix man-int:*-x-across-y-grasp-rotation*
   :pregrasp-offsets `(,(- *default-z-offset*) 0.0 ,*default-z-offset*)
   :2nd-pregrasp-offsets `(,(- *default-z-offset*) 0.0 0.0)
   :lift-offsets *default-lift-offsets*
@@ -118,17 +116,17 @@
 (defparameter *underbody-grasp-z-offset* 0.0)
 
 ;; TOP grasp
-(def-object-type-to-gripper-transforms :underbody :left :top
+(man-int:def-object-type-to-gripper-transforms :underbody :left :top
   :grasp-translation `(0.0 ,*underbody-grasp-y-offset* ,*underbody-grasp-z-offset*)
-  :grasp-rot-matrix *z-across-x-grasp-rotation*
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
   :lift-offsets *default-lift-offsets*
   :2nd-lift-offsets *default-lift-offsets*)
 
-(def-object-type-to-gripper-transforms :underbody :right :top
+(man-int:def-object-type-to-gripper-transforms :underbody :right :top
   :grasp-translation `(0.0 ,(- *underbody-grasp-y-offset*) ,*underbody-grasp-z-offset*)
-  :grasp-rot-matrix *z-across-x-grasp-rotation*
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
   :lift-offsets *default-lift-offsets*
@@ -140,9 +138,9 @@
 (defparameter *upper-body-grasp-z-offset* 0.0)
 
 ;; TOP grasp
-(def-object-type-to-gripper-transforms :upper-body '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms :upper-body '(:left :right) :top
   :grasp-translation `(,(- *upper-body-grasp-x-offset*) 0.0 ,*upper-body-grasp-z-offset*)
-  :grasp-rot-matrix *z-across-x-grasp-rotation*
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
   :lift-offsets *default-lift-offsets*
@@ -155,11 +153,11 @@
 (defparameter *top-wing-grasp-z-offset* 0.03)
 
 ;; BACK grasp
-(def-object-type-to-gripper-transforms :top-wing '(:left :right) :back
+(man-int:def-object-type-to-gripper-transforms :top-wing '(:left :right) :back
   :grasp-translation `(,(- *top-wing-grasp-x-offset*)
                        0.0
                        ,*top-wing-grasp-z-offset*)
-  :grasp-rot-matrix *-x-across-y-grasp-rotation*
+  :grasp-rot-matrix man-int:*-x-across-y-grasp-rotation*
   :pregrasp-offsets `(,(- *default-z-offset*) 0.0 ,*default-z-offset*)
   :2nd-pregrasp-offsets `(,(- *default-z-offset*) 0.0 0.0)
   :lift-offsets *default-lift-offsets*
@@ -171,11 +169,11 @@
 (defparameter *window-grasp-y-offset* 0.005)
 (defparameter *window-grasp-z-offset* 0.015)
 
-(def-object-type-to-gripper-transforms :window '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms :window '(:left :right) :top
   :grasp-translation `(,(- *window-grasp-x-offset*)
                         ,*window-grasp-y-offset*
                         ,(- *window-grasp-z-offset*))
-  :grasp-rot-matrix *z-diagonal-grasp-rotation*
+  :grasp-rot-matrix man-int:*z-diagonal-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
   :lift-offsets *default-lift-offsets*
@@ -183,134 +181,55 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOLT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def-object-type-to-gripper-transforms :bolt '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms :bolt '(:left :right) :top
   :grasp-translation `(0.0 0.0 0.003)
-  :grasp-rot-matrix *z-across-x-grasp-rotation*
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
   :lift-offsets *default-lift-offsets*
   :2nd-lift-offsets *default-lift-offsets*)
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#+everything-below-is-commented-out
-(
-(defmethod get-object-type-gripping-effort ((object-type (eql :porsche-body))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :camaro-body))) 35)
-(defmethod get-object-type-gripping-effort ((object-type (eql :chassis))) 50)
-(defmethod get-object-type-gripping-effort ((object-type (eql :axle))) 50)
-(defmethod get-object-type-gripping-effort ((object-type (eql :wheel))) 40)
-(defmethod get-object-type-gripping-effort ((object-type (eql :rear-wing))) 35)
+(man-int:def-object-type-in-other-object-transform
+    :chassis :holder-plane-horizontal :chassis-attachment
+  :attachment-translation `(0.084 0.0 0.022)
+  :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
 
-(defmethod get-object-type-gripper-opening ((object-type (eql :axle))) 0.02)
+(man-int:def-object-type-in-other-object-transform :bottom-wing :chassis :wing-attachment
+  :attachment-translation `(0.0 -0.02 0.04;; 0.0
+                                )
+  :attachment-rot-matrix man-int:*identity-matrix*)
 
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :axle))
-                                                 object-name
-                                                 (arm (eql :left))
-                                                 (grasp (eql :top)))
-  (cl-transforms-stamped:make-transform-stamped
-   object-name
-   cram-tf:*robot-left-tool-frame*
-   0.0
-   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
-   (cl-transforms:matrix->quaternion
-    #2A((-1 0 0)
-        (0 1 0)
-        (0 0 -1)))))
+(man-int:def-object-type-in-other-object-transform :underbody :bottom-wing :body-attachment
+  :attachment-translation `(0.0 -0.025 0.02)
+  :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
 
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :chassis))
-                                                 object-name
-                                                 (arm (eql :left))
-                                                 (grasp (eql :side)))
-  (cl-transforms-stamped:make-transform-stamped
-   object-name
-   cram-tf:*robot-left-tool-frame*
-   0.0
-   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
-   (cl-transforms:matrix->quaternion
-    #2A((0 0 1)
-        (-1 0 0)
-        (0 -1 0)))))
+(man-int:def-object-type-in-other-object-transform :upper-body :underbody :body-on-body
+  :attachment-translation `(-0.025 0.0 0.0425)
+  :attachment-rot-matrix man-int:*identity-matrix*)
 
-(defmethod get-object-type-to-gripper-transform ((object-type (eql :camaro-body))
-                                                 object-name
-                                                 (arm (eql :left))
-                                                 (grasp (eql :top)))
-  (cl-transforms-stamped:make-transform-stamped
-   object-name
-   cram-tf:*robot-left-tool-frame*
-   0.0
-   (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.0d0)
-   (cl-transforms:matrix->quaternion
-    #2A((0 1 0)
-        (1 0 0)
-        (0 0 -1)))))
+(man-int:def-object-type-in-other-object-transform :bolt :upper-body :rear-thread
+  :attachment-translation `(-0.0525 0.0 -0.01;; -0.025
+                                    )
+  :attachment-rot-matrix man-int:*identity-matrix*)
 
+(man-int:def-object-type-in-other-object-transform :top-wing :upper-body :wing-attachment
+  :attachment-translation `(0.05 0.0 0.0025)
+  :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
 
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :axle))
-                                          (arm (eql :left))
-                                          (grasp (eql :top))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-(defmethod get-object-type-lift-pose ((object-type (eql :axle))
-                                      (arm (eql :left))
-                                      (grasp (eql :top))
-                                      grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-(defmethod get-object-type-2nd-lift-pose ((object-type (eql :axle))
-                                          (arm (eql :left))
-                                          (grasp (eql :top))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *default-small-z-offset*))
+(man-int:def-object-type-in-other-object-transform :bolt :top-wing :middle-thread
+  :attachment-translation `(0.0 0.025 0.01;; -0.005
+                                )
+  :attachment-rot-matrix man-int:*identity-matrix*)
 
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :chassis))
-                                          (arm (eql :left))
-                                          (grasp (eql :side))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :y-offset *default-z-offset*))
-(defmethod get-object-type-lift-pose ((object-type (eql :chassis))
-                                      (arm (eql :left))
-                                      (grasp (eql :side))
-                                      grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*)
-  ;; (cl-transforms-stamped:copy-pose-stamped
-  ;;  (cram-tf:translate-pose grasp-pose :z-offset 0.30)
-  ;;  :orientation
-  ;;  (cl-transforms:matrix->quaternion
-  ;;   #2A((-1 0 0)
-  ;;       (0 0 -1)
-  ;;       (0 -1 0))))
-  )
-(defmethod get-object-type-2nd-lift-pose ((object-type (eql :chassis))
-                                          (arm (eql :left))
-                                          (grasp (eql :side))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *default-small-z-offset*))
+(man-int:def-object-type-in-other-object-transform :window :top-wing :window-attachment
+  :attachment-translation `(0.0 -0.0525 0.0075)
+  :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
 
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :camaro-body))
-                                          (arm (eql :left))
-                                          (grasp (eql :top))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-(defmethod get-object-type-lift-pose ((object-type (eql :camaro-body))
-                                      (arm (eql :left))
-                                      (grasp (eql :top))
-                                      grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-(defmethod get-object-type-2nd-lift-pose ((object-type (eql :camaro-body))
-                                          (arm (eql :left))
-                                          (grasp (eql :top))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *default-small-z-offset*))
-
-(defmethod get-object-type-pregrasp-pose ((object-type (eql :short-seat))
-                                          (arm (eql :left))
-                                          (grasp (eql :top))
-                                          grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-(defmethod get-object-type-lift-pose ((object-type (eql :short-seat))
-                                      (arm (eql :left))
-                                      (grasp (eql :top))
-                                      grasp-pose)
-  (cram-tf:translate-pose grasp-pose :z-offset *default-z-offset*))
-)
+(man-int:def-object-type-in-other-object-transform :bolt :window :window-thread
+  :attachment-translation `(-0.0125 0.0 -0.005;; -0.02
+                                    )
+  :attachment-rot-matrix man-int:*identity-matrix*)
