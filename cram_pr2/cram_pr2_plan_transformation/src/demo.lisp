@@ -40,8 +40,12 @@
 
 (defun demo-transform (&optional (reset T))
   "Executes a demo, transforms the task tree and executes again"
+  (cet:enable-fluent-tracing)
+  (when reset
+    (cpl-impl::remove-top-level-task-tree *top-level-name*))
   (cram-pr2-projection:with-simulated-robot
-    (demo-random '(:bowl))))
+    (demo-random '(:bowl)))
+  (cet:disable-fluent-tracing))
 
 (cpl:def-cram-function demo-random (&optional
                                     (list-of-objects '(:bowl :spoon :cup :milk :breakfast-cereal)))

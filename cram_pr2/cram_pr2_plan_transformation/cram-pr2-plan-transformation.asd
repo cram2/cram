@@ -69,10 +69,7 @@
                cram-pr2-environment-manipulation ;
 
                cram-semantic-map-costmap
-               
-;;============= maybe used later 
 
-               ;; cram-execution-trace
                ;; cram-robosherlock
                ;; cram-bullet-reasoning-designators
                ;; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
@@ -84,14 +81,15 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
+     (:file "plan-transformation" :depends-on ("package"))
+     (:file "predicates" :depends-on ("package"))
      (:file "projection-demo" :depends-on ("package"))
      (:file "demo" :depends-on ("package" "setup" "projection-demo"))
+     
 
-     ;; (:file "plan-transformation" :depends-on ("package"))
      ;; (:file "costmaps" :depends-on ("package"))
      ;; (:file "designators" :depends-on ("package"))
      ;; (:file "evaluation" :depends-on ("package"))
-     ;; (:file "predicates" :depends-on ("package" "projection-poses" "costmaps"))
      ;; (:file "plans" :depends-on ("package" "utils" "designators"))
      ;; (:file "top-level-plans" :depends-on ("package" "projection-poses" "utils" "plans" "plan-transformation"))
      ;; (:file "utils" :depends-on ("package" "projection-poses" "plan-transformation"))
