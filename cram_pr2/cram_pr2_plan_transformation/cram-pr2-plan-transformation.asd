@@ -39,57 +39,62 @@
                cl-tf
                cram-tf
 
-               cram-language
                cram-executive
-               cram-designators
                cram-prolog
                cram-projection
                cram-occasions-events
-               cram-utilities
-               
+
                cram-common-failures
                cram-mobile-pick-place-plans
-               
 
                cram-knowrob-pick-place
-               ;; cram-robosherlock
+               cram-cloud-logger
 
-               cram-physics-utils ; for reading "package://" paths
+               cram-physics-utils     ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
-               
-               cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
+
+               cram-bullet-reasoning-belief-state ;; using cram-bullet-reasoning
                cram-bullet-reasoning-utilities
-               ;; cram-bullet-reasoning-designators
+               cram-btr-visibility-costmap ;
+               cram-btr-spatial-relations-costmap ;
+
+               cram-robot-pose-gaussian-costmap ;; contains cram-location-costmap
+               cram-occupancy-grid-costmap ;; contains cram-location-costmap
+               cram-location-costmap
+
+               cram-pr2-projection      ; for with-simulated-robot, depends on bullet-resoning
+               cram-pr2-projection-reasoning ; for projection-based reasoning
+               cram-pr2-description ;
+               cram-pr2-fetch-deliver-plans
+               cram-pr2-environment-manipulation ;
 
                cram-semantic-map-costmap
-               ; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
-               ; cram-bullet-reasoning-designators ; not using visibility cm or collision checks
-               cram-robot-pose-gaussian-costmap
-               cram-occupancy-grid-costmap
-               cram-location-costmap
                
-               cram-pr2-projection ; for projection process modules
-               cram-pr2-projection-reasoning
-               cram-pr2-description
-               cram-process-modules
+;;============= maybe used later 
+
+               ;; cram-execution-trace
+               ;; cram-robosherlock
+               ;; cram-bullet-reasoning-designators
+               ;; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
+               ;; cram-bullet-reasoning-designators ; not using visibility cm or collision checks
                
-               cram-pr2-fetch-deliver-plans
-               cram-execution-trace
                )
   :components
-  ((:module "lisp"
+  ((:module "src"
     :components
     ((:file "package")
-     (:file "plan-transformation" :depends-on ("package"))
      (:file "setup" :depends-on ("package"))
-     (:file "costmaps" :depends-on ("package"))
-     (:file "designators" :depends-on ("package"))
-     (:file "projection-poses" :depends-on ("package"))
-     (:file "evaluation" :depends-on ("package"))
-     (:file "predicates" :depends-on ("package" "projection-poses" "costmaps"))
-     (:file "plans" :depends-on ("package" "utils" "designators"))
-     (:file "top-level-plans" :depends-on ("package" "projection-poses" "utils" "plans" "plan-transformation"))
-     (:file "utils" :depends-on ("package" "projection-poses" "plan-transformation"))
-     (:file "transformation-rules" :depends-on ("package" "utils" "plans"
-                                                          "projection-poses" "top-level-plans"))))))
+     (:file "projection-demo" :depends-on ("package"))
+     (:file "demo" :depends-on ("package" "setup" "projection-demo"))
+
+     ;; (:file "plan-transformation" :depends-on ("package"))
+     ;; (:file "costmaps" :depends-on ("package"))
+     ;; (:file "designators" :depends-on ("package"))
+     ;; (:file "evaluation" :depends-on ("package"))
+     ;; (:file "predicates" :depends-on ("package" "projection-poses" "costmaps"))
+     ;; (:file "plans" :depends-on ("package" "utils" "designators"))
+     ;; (:file "top-level-plans" :depends-on ("package" "projection-poses" "utils" "plans" "plan-transformation"))
+     ;; (:file "utils" :depends-on ("package" "projection-poses" "plan-transformation"))
+     ;; (:file "transformation-rules" :depends-on ("package" "utils" "plans"
+     ;;                                                      "projection-poses" "top-level-plans"))
+     ))))

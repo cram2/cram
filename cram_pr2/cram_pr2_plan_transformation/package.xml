@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>plan_transformation</name>
+  <name>cram_pr2_plan_transformation</name>
   <version>0.0.1</version>
   <description>
     The plan_transformation package takes cram-task-trees and modifies them by applying specific rules on them.
