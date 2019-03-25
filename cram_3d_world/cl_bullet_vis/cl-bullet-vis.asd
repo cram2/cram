@@ -39,6 +39,7 @@
                  cl-glut
                  cl-transforms
                  cl-glx
+                 cl-opengl
                  trivial-garbage
                  alexandria
                  cram-physics-utils)
