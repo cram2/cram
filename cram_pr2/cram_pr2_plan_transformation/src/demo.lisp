@@ -38,13 +38,13 @@
 (defmethod exe:generic-perform :before (designator)
   (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
 
-(defun demo-transform (&optional (reset T))
+(defun demo-transform (&optional (reset T) (objects '(:bowl :breakfast-cereal)))
   "Executes a demo, transforms the task tree and executes again"
   (cet:enable-fluent-tracing)
   (when reset
     (cpl-impl::remove-top-level-task-tree *top-level-name*))
   (cram-pr2-projection:with-simulated-robot
-    (demo-random '(:bowl)))
+    (demo-random objects))
   (cet:disable-fluent-tracing))
 
 (cpl:def-cram-function demo-random (&optional
@@ -101,11 +101,19 @@
                                              (part-of kitchen)))))))
         (object-placing-locations
           (let ((?pose
-                  (cl-transforms-stamped:make-pose-stamped
-                   "map"
-                   0.0
-                   (cl-transforms:make-3d-vector -0.78 0.8 0.95)
-                   (cl-transforms:make-quaternion 0 0 0.6 0.4))))
+                 (or (when (assoc :breakfast-cereal *object-placing-poses*)
+                       (destructuring-bind ((x y z) (qx qy qz w))
+                           (cdr (assoc :breakfast-cereal *object-placing-poses*))
+                         (cl-transforms-stamped:make-pose-stamped
+                          "map"
+                          0.0
+                          (cl-transforms:make-3d-vector x y z)
+                          (cl-transforms:make-quaternion qx qy qz w))))
+                     (cl-transforms-stamped:make-pose-stamped
+                      "map"
+                      0.0
+                      (cl-transforms:make-3d-vector -0.78 0.8 0.95)
+                      (cl-transforms:make-quaternion 0 0 0.6 0.4)))))
             `((:breakfast-cereal . ,(desig:a location
                                              (pose ?pose)
                                              ;; (left-of (an object (type bowl)))
@@ -188,22 +196,31 @@
                          ;; (arm right)
                          (location ?fetching-location)
                          (target ?delivering-location)))
-              (if (eq ?object-type :breakfast-cereal)
-                  (exe:perform
-                   (desig:an action
-                             (type transporting)
-                             (object ?object-to-fetch)
-                             ;; (arm right)
-                             (location ?fetching-location)
-                             (target ?delivering-location)))
-                  (exe:perform
-                   (desig:an action
-                             (type transporting)
-                             (object ?object-to-fetch)
-                             (desig:when ?arm-to-use
-                               (arm ?arm-to-use))
-                             (location ?fetching-location)
-                             (target ?delivering-location))))))
+              (exe:perform
+               (desig:an action
+                         (type transporting)
+                         (object ?object-to-fetch)
+                         (desig:when ?arm-to-use
+                           (arm ?arm-to-use))
+                         (location ?fetching-location)
+                         (target ?delivering-location)))
+              ;; (if (eq ?object-type :breakfast-cereal)
+              ;;     (exe:perform
+              ;;      (desig:an action
+              ;;                (type transporting)
+              ;;                (object ?object-to-fetch)
+              ;;                ;; (arm right)
+              ;;                (location ?fetching-location)
+              ;;                (target ?delivering-location)))
+              ;;     (exe:perform
+              ;;      (desig:an action
+              ;;                (type transporting)
+              ;;                (object ?object-to-fetch)
+              ;;                (desig:when ?arm-to-use
+              ;;                  (arm ?arm-to-use))
+              ;;                (location ?fetching-location)
+              ;;                (target ?delivering-location))))
+              ))
 
         ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
         )))

@@ -85,7 +85,7 @@
      (:file "predicates" :depends-on ("package"))
      (:file "projection-demo" :depends-on ("package"))
      (:file "demo" :depends-on ("package" "setup" "projection-demo"))
-     
+     (:file "demo-transformation-rules" :depends-on ("package" "plan-transformation" "predicates"))
 
      ;; (:file "costmaps" :depends-on ("package"))
      ;; (:file "designators" :depends-on ("package"))
