@@ -32,9 +32,9 @@
 (defmacro retry-with-designator-solutions (iterator-desig
                                            retries
                                            (&key
-                                              error
+                                              error-object
+                                              warning-namespace
                                               reset-designators
-                                              name
                                               (rethrow-failure NIL))
                                            &body body)
   "Macro that iterates through different solutions of the specified designator
@@ -44,7 +44,7 @@ times specified by `retries'. When there are no solutions left, it can
 rethrow the same failure it received or a new failure can be specified
 using the `rethrow-failure' key."
   `(progn
-     (roslisp:ros-warn ,name "~a" ,error)
+     (roslisp:ros-warn ,warning-namespace "~a" ,error-object)
      (cpl:do-retry ,retries
        (let ((next-solution-element (desig:next-solution ,iterator-desig)))
          (if next-solution-element
@@ -55,16 +55,16 @@ using the `rethrow-failure' key."
                      do (desig:reset designator))
                ,@body
                (cpl:retry)
-             (roslisp:ros-warn ,name "No samples left ~%")))))
-       (roslisp:ros-warn ,name "No retries left.~%")
+             (roslisp:ros-warn ,warning-namespace "No samples left ~%")))))
+       (roslisp:ros-warn ,warning-namespace "No retries left.~%")
        (if ,rethrow-failure
            (cpl:fail ,rethrow-failure))))
 
 (defmacro retry-with-list-solutions (iterator-list
                                      retries
                                      (&key
-                                        error
-                                        name
+                                        error-object
+                                        warning-namespace
                                         (rethrow-failure NIL))
                                      &body body)
   "Macro that iterates through different elements specified by the
@@ -76,7 +76,7 @@ it can rethrow the same failure it received or a new failure can be
 specified using the `rethrow-failure' key. iterator list is reduced
 after each iteration of the retry."
   `(progn
-     (roslisp:ros-warn ,name "~a" ,error)
+     (roslisp:ros-warn ,warning-namespace "~a" ,error-object)
      (cpl:do-retry ,retries
        (let ((next-solution-element (cut:lazy-car (cut:lazy-cdr ,iterator-list))))
          (if next-solution-element
@@ -85,7 +85,7 @@ after each iteration of the retry."
                (setf ,iterator-list (cut:lazy-cdr ,iterator-list))
                ,@body
                (cpl:retry)
-             (roslisp:ros-warn ,name "No samples left ~%")))))
-       (roslisp:ros-warn ,name "No retries left.~%")
+             (roslisp:ros-warn ,warning-namespace "No samples left ~%")))))
+       (roslisp:ros-warn ,warning-namespace "No retries left.~%")
        (if ,rethrow-failure
            (cpl:fail ,rethrow-failure))))
