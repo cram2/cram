@@ -64,7 +64,6 @@ using the `rethrow-failure' key."
                                      retries
                                      (&key
                                         error
-                                        reset-designators
                                         name
                                         (rethrow-failure NIL))
                                      &body body)
@@ -84,8 +83,6 @@ after each iteration of the retry."
              (progn
                (roslisp:ros-warn ,name "Retrying.~%")
                (setf ,iterator-list (cut:lazy-cdr ,iterator-list))
-               (loop for designator in ,reset-designators
-                     do (desig:reset designator))
                ,@body
                (cpl:retry)
              (roslisp:ros-warn ,name "No samples left ~%")))))
