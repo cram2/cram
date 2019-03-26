@@ -79,4 +79,5 @@
    #:torso-goal-unreachable
    #:torso-goal-not-reached
    ;; failure-handling-strategies
-   #:retry-with-designator-solutions))
+   #:retry-with-designator-solutions
+   #:retry-with-list-solutions))
