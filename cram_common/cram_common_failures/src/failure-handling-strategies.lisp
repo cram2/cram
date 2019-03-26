@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2019, Gayane Kazhoyan <amar@uni-bremen.de>
+;;; Copyright (c) 2019, Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,39 @@ using the `rethrow-failure' key."
              (progn
                (roslisp:ros-warn ,name "Retrying.~%")
                (setf ,iterator-desig next-solution-element)
+               (loop for designator in ,reset-designators
+                     do (desig:reset designator))
+               ,@body
+               (cpl:retry)
+             (roslisp:ros-warn ,name "No samples left ~%")))))
+       (roslisp:ros-warn ,name "No retries left.~%")
+       (if ,rethrow-failure
+           (cpl:fail ,rethrow-failure))))
+
+(defmacro retry-with-list-solutions (iterator-list
+                                     retries
+                                     (&key
+                                        error
+                                        reset-designators
+                                        name
+                                        (rethrow-failure NIL))
+                                     &body body)
+  "Macro that iterates through different elements specified by the
+`iterator-list' and initiates a `retry' clause. The `iterator-list'
+supports both lazy and non-lazy lists. This macro works along with
+`cpl:with-retry-counters' to try different solutions, for the number
+of times specified by `retries'. When there are no solutions left,
+it can rethrow the same failure it received or a new failure can be
+specified using the `rethrow-failure' key. iterator list is reduced
+after each iteration of the retry."
+  `(progn
+     (roslisp:ros-warn ,name "~a" ,error)
+     (cpl:do-retry ,retries
+       (let ((next-solution-element (cut:lazy-car (cut:lazy-cdr ,iterator-list))))
+         (if next-solution-element
+             (progn
+               (roslisp:ros-warn ,name "Retrying.~%")
+               (setf ,iterator-list (cut:lazy-cdr ,iterator-list))
                (loop for designator in ,reset-designators
                      do (desig:reset designator))
                ,@body
