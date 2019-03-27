@@ -127,10 +127,12 @@ the previous solution (the default is 0.05m)."
        (if ,rethrow-failure
            (cpl:fail ,rethrow-failure))))
 
-(defun next-different-location-solution (designator &optional (threshold 0.05))
+(defun next-different-location-solution (designator
+                                         &optional (distance-threshold 0.05))
   "Returns a new designator solution that is at a different place than
   the current solution of `designator'."
   (declare (type desig:location-designator designator))
   (desig:next-filtered-designator-solution
    designator (cram-tf:make-euclidean-distance-filter
-               (desig:reference designator) threshold)))
+               (desig:reference designator) 
+               distance-threshold)))
