@@ -80,4 +80,6 @@
    #:torso-goal-not-reached
    ;; failure-handling-strategies
    #:retry-with-designator-solutions
-   #:retry-with-list-solutions))
+   #:retry-with-loc-designator-solutions
+   #:retry-with-list-solutions
+   #:next-different-location-solution))
