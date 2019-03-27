@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="hsrb_arm_kinematics" type="start_ros_server.py" name="hsrb_arm_kinematics" output="screen" />
+</launch>
