@@ -49,7 +49,7 @@ using the `rethrow-failure' key."
        (let ((next-solution-element (desig:next-solution ,iterator-desig)))
          (if next-solution-element
              (progn
-               (roslisp:ros-warn ,name "Retrying.~%")
+               (roslisp:ros-warn ,warning-namespace "Retrying.~%")
                (setf ,iterator-desig next-solution-element)
                (loop for designator in ,reset-designators
                      do (desig:reset designator))
@@ -81,7 +81,7 @@ after each iteration of the retry."
        (let ((next-solution-element (cut:lazy-car (cut:lazy-cdr ,iterator-list))))
          (if next-solution-element
              (progn
-               (roslisp:ros-warn ,name "Retrying.~%")
+               (roslisp:ros-warn ,warning-namespace "Retrying.~%")
                (setf ,iterator-list (cut:lazy-cdr ,iterator-list))
                ,@body
                (cpl:retry)
@@ -89,3 +89,48 @@ after each iteration of the retry."
        (roslisp:ros-warn ,warning-namespace "No retries left.~%")
        (if ,rethrow-failure
            (cpl:fail ,rethrow-failure))))
+
+(defmacro retry-with-loc-designator-solutions (location-desig
+                                               retries
+                                               (&key
+                                                  error-object
+                                                  warning-namespace
+                                                  reset-designators
+                                                  (distance-threshold 0.05)
+                                                  (rethrow-failure NIL))
+                                               &body body)
+  "Macro that iterates through different solutions of the specified
+location designator `iterator-desig' and initiates a `retry' clause.
+This works along with `cpl:with-retry-counters' to try different
+solutions, for the number of times specified by `retries'. When there
+are no solutions left, it can rethrow the same failure it received or
+a new failure can be specified using the `rethrow-failure' key. Each
+iteration of the retry will use a new solution of the designator,
+which is at least a distance specified by `distance-threshold' from
+the previous solution (the default is 0.05m)."
+  `(progn
+     (roslisp:ros-warn ,warning-namespace "~a" ,error-object)
+     (cpl:do-retry ,retries
+       (let ((next-solution-element (next-different-location-solution
+                                     ,location-desig
+                                     ,distance-threshold)))
+         (if next-solution-element
+             (progn
+               (roslisp:ros-warn ,warning-namespace "Retrying.~%")
+               (setf ,location-desig next-solution-element)
+               (loop for designator in ,reset-designators
+                     do (desig:reset designator))
+               ,@body
+               (cpl:retry)
+             (roslisp:ros-warn ,warning-namespace "No samples left ~%")))))
+       (roslisp:ros-warn ,warning-namespace "No retries left.~%")
+       (if ,rethrow-failure
+           (cpl:fail ,rethrow-failure))))
+
+(defun next-different-location-solution (designator &optional (threshold 0.05))
+  "Returns a new designator solution that is at a different place than
+  the current solution of `designator'."
+  (declare (type desig:location-designator designator))
+  (desig:next-filtered-designator-solution
+   designator (cram-tf:make-euclidean-distance-filter
+               (desig:reference designator) threshold)))
