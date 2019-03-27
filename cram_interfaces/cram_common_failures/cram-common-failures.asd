@@ -32,7 +32,10 @@
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (cram-language)
+  :depends-on (cram-language
+               cram-designators
+               cram-tf
+               roslisp)
   :components
   ((:module "src"
             :components
