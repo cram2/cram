@@ -30,11 +30,11 @@
 (in-package :bullet-reasoning-utilities)
 
 (defun object-instance (object-name)
-  (var-value '?instance
-             (car (prolog-?w `(%object ?w ,object-name ?instance)))))
+  (cut:var-value '?instance
+                 (car (btr:prolog-?w `(btr:%object ?w ,object-name ?instance)))))
 
 (defun object-pose (object-name)
-  (pose (object-instance object-name)))
+  (btr:pose (object-instance object-name)))
 
 (defun object-exists (object-name)
   (typep (object-instance object-name) 'btr:object))
@@ -42,10 +42,10 @@
 
 (defgeneric spawn-object (name type &key pose color mass world)
   (:method (name type &key pose color mass world)
-    (if (btr:object (or world *current-bullet-world*) name)
+    (if (btr:object (or world btr:*current-bullet-world*) name)
         (when pose
           (move-object name pose))
-        (var-value
+        (cut:var-value
          '?object-instance
          (car (prolog
                `(and
@@ -57,22 +57,25 @@
                       `(scenario-object-color ?_ ,type ?color))
                  ,(if world
                       `(equal ?world ,world)
-                      `(bullet-world ?world))
+                      `(btr:bullet-world ?world))
                  (scenario-object-shape ,type ?shape)
                  (scenario-object-extra-attributes ?_ ,type ?attributes)
-                 (append (object ?world ?shape ,name ?pose :mass ,(or mass 0.2) :color ?color)
+                 (append (btr:object ?world ?shape ,name ?pose :mass ,(or mass 0.2) :color ?color)
                          ?attributes
                          ?object-description)
                  (assert ?object-description)
-                 (%object ?world ,name ?object-instance))))))))
+                 (btr:%object ?world ,name ?object-instance))))))))
 
 (defgeneric kill-object (name)
   (:method (name)
-    (prolog-?w `(retract (object ?w ,name)))))
+    (btr:prolog-?w `(btr:retract (btr:object ?w ,name)))))
 
 (defgeneric kill-all-objects ()
   (:method ()
-    (prolog-?w `(item-type ?w ?obj ?type) `(retract (object ?w ?obj)) '(fail))))
+    (btr:prolog-?w
+      `(btr:item-type ?w ?obj ?type)
+      `(btr:retract (btr:object ?w ?obj))
+      '(fail))))
 
 (defun respawn-object (object)
   (typecase object
@@ -91,11 +94,11 @@
 
 (defun move-object (object-name &optional new-pose)
   (if new-pose
-      (prolog-?w
-        `(assert (object-pose ?w ,object-name ,new-pose)))
-      (prolog-?w
+      (btr:prolog-?w
+        `(assert (btr:object-pose ?w ,object-name ,new-pose)))
+      (btr:prolog-?w
         '(scenario-objects-init-pose ?pose)
-        `(assert (object-pose ?w ,object-name ?pose)))))
+        `(assert (btr:object-pose ?w ,object-name ?pose)))))
 
 (defun translate-object (object-name &optional (x-delta 0.0) (y-delta 0.0) (z-delta 0.0))
   (let* ((object-pose (object-pose object-name))
@@ -131,15 +134,15 @@
                                                    'string
                                                    (symbol-name object-name)
                                                    "-BOX")))
-                                (world *current-bullet-world*))
-  (let* ((aabb (aabb (object-instance object-name)))
+                                (world btr:*current-bullet-world*))
+  (let* ((aabb (btr:aabb (object-instance object-name)))
          (aabb-pose (cl-transforms:make-pose
                      (cl-bullet:bounding-box-center aabb)
                      (cl-transforms:make-identity-rotation)))
          (aabb-size (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
                         (cl-bullet:bounding-box-dimensions aabb)
                       (list cl-transforms:x cl-transforms:y cl-transforms:z))))
-    (add-object world :box box-name aabb-pose :mass 0.0 :size aabb-size)
+    (btr:add-object world :box box-name aabb-pose :mass 0.0 :size aabb-size)
     box-name))
 
 
@@ -153,20 +156,20 @@
     (once
      (bound ?obj-name)
      (bound ?desig)
-     (bullet-world ?w)
-     (designator-groundings ?desig ?solutions)
+     (btr:bullet-world ?w)
+     (desig:designator-groundings ?desig ?solutions)
      (take 1 ?solutions ?8-solutions)
-     (generate-values ?poses-on (obj-poses-on ?obj-name ?8-solutions ?w))
+     (generate-values ?poses-on (btr:obj-poses-on ?obj-name ?8-solutions ?w))
      (member ?solution ?poses-on)
-     (assert (object-pose ?w ?obj-name ?solution))))
+     (assert (btr:object-pose ?w ?obj-name ?solution))))
 
   (<- (assert-object-pose-on ?obj-name ?desig)
     (once
      (bound ?obj-name)
      (bound ?desig)
-     (bullet-world ?w)
-     (designator-groundings ?desig ?solutions)
+     (btr:bullet-world ?w)
+     (desig:designator-groundings ?desig ?solutions)
      (take 8 ?solutions ?8-solutions)
      (member ?solution ?8-solutions)
-     (assert (object-pose-on ?w ?obj-name ?solution)))))
+     (assert (btr:object-pose-on ?w ?obj-name ?solution)))))
 

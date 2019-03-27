@@ -42,7 +42,7 @@
            #:frame-to-pose-in-fixed-frame
            #:pose->flat-list #:pose->flat-list-w-first
            #:pose->list
-           #:flat-list->pose #:flat-list-w-first->pose
+           #:flat-list->pose #:flat-list->transform #:flat-list-w-first->pose
            #:list->pose
            #:ensure-pose-in-frame #:ensure-point-in-frame
            #:translate-pose #:rotate-pose
@@ -55,6 +55,7 @@
            #:translate-transform-stamped
            #:pose-stamped->transform-stamped
            #:apply-transform
+           #:values-converged
            ;; prolog facts
            #:pose #:pose-stamped #:position #:orientation #:poses-equal
            #:location-pose

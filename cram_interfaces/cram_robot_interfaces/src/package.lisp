@@ -30,14 +30,16 @@
 
 (defpackage cram-robot-interfaces
   (:use #:common-lisp #:cram-prolog #:cram-designators)
+  (:nicknames #:rob-int)
   (:export
    ;; arms
    #:arm #:required-arms #:available-arms
    #:arm-joints #:arm-links #:arm-base-joints #:arm-base-links #:arm-tool-joints
    #:hand-links #:end-effector-link #:robot-tool-frame #:gripper-link #:gripper-joint
-   #:robot-arms-parking-joint-states #:robot-arms-carrying-joint-states
-   #:end-effector-parking-pose
-   #:robot-pre-grasp-joint-states #:planning-group
+   ;; #:robot-arms-parking-joint-states #:robot-arms-carrying-joint-states
+   ;; #:end-effector-parking-pose
+   ;; #:robot-pre-grasp-joint-states
+   #:planning-group
    #:standard-to-particular-gripper-transform
    ;; designator utils
    #:compute-iks
@@ -52,16 +54,19 @@
    ;; ptu
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
    #:robot-pan-tilt-links #:robot-pan-tilt-joints
-   #:robot-neck-parking-joint-states
-   #:robot-neck-looking-joint-states
+   ;; #:robot-neck-parking-joint-states
+   ;; #:robot-neck-looking-joint-states
    ;; robot
-   #:robot #:robot-base-frame #:robot-torso-link-joint #:robot-odom-frame
+   #:robot #:robot-base-frame #:robot-odom-frame #:robot-torso-link-joint
    #:current-robot-symbol #:current-robot-package #:current-robot-name
+   #:robot-joint-states
+   #:robot-pose
    ;; trajectories
    #:trajectory-point
    ;; utilities
    #:symbol-to-prolog-rule
    ;; urdf
+   #:*robot-urdf*
    #:get-joint-type #:get-joint-lower-limit #:get-joint-upper-limit
    #:get-joint-axis #:get-joint-origin #:get-joint-parent #:get-joint-child
    #:joint-lower-limit #:joint-upper-limit #:joint-type #:joint-axis #:joint-origin

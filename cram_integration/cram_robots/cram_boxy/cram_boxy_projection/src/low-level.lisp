@@ -30,6 +30,11 @@
 
 (in-package :boxy-proj)
 
+(defparameter *debug-short-sleep-duration* 0.0
+  "in seconds, sleeps after each movement during reasoning")
+(defparameter *debug-long-sleep-duration* 0.0
+  "in seconds, sleeps to show colliding configurations")
+
 (defun robot-transform-in-map ()
   (let ((pose-in-map
           (cut:var-value
@@ -48,28 +53,49 @@
 
 (defun drive (target)
   (declare (type cl-transforms-stamped:pose-stamped target))
-  (assert
-   (prolog:prolog
-    `(and (cram-robot-interfaces:robot ?robot)
-          (btr:bullet-world ?w)
-          (btr:assert ?w (btr:object-pose ?robot ,target)))))
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-  )
+  (let* ((world btr:*current-bullet-world*)
+         (world-state (btr::get-state world)))
+    (unwind-protect
+         (assert
+          (prolog:prolog
+           `(and (cram-robot-interfaces:robot ?robot)
+                 (btr:bullet-world ?w)
+                 (btr:assert ?w (btr:object-pose ?robot ,target)))))
+      (when (btr:robot-colliding-objects-without-attached '(:floor))
+        (unless (< (abs *debug-short-sleep-duration*) 0.0001)
+          (cpl:sleep *debug-short-sleep-duration*))
+        (btr::restore-world-state world-state world)
+        (cpl:fail 'common-fail:navigation-pose-unreachable :pose-stamped target)))))
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun move-torso (joint-angle)
   (declare (type number joint-angle))
-  (assert
-   (prolog:prolog
-    `(and (cram-robot-interfaces:robot ?robot)
-          (btr:bullet-world ?w)
-          (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?joint)
-          (btr:assert (btr:joint-state ?w ?robot ((?joint ,joint-angle)))))))
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-  )
+  (let* ((bindings
+           (car
+            (prolog:prolog
+             `(and (cram-robot-interfaces:robot ?robot)
+                   (btr:bullet-world ?w)
+                   (cram-robot-interfaces:robot-torso-link-joint ?robot ?_ ?joint)
+                   (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?lower)
+                   (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?upper)))))
+         (lower-limit
+           (cut:var-value '?lower bindings))
+         (upper-limit
+           (cut:var-value '?upper bindings))
+         (cropped-joint-angle
+           (if (< joint-angle lower-limit)
+               lower-limit
+               (if (> joint-angle upper-limit)
+                   upper-limit
+                   joint-angle))))
+    (prolog:prolog
+     `(btr:assert (btr:joint-state ?w ?robot ((?joint ,cropped-joint-angle))))
+     bindings)
+    (unless (< (abs (- joint-angle cropped-joint-angle)) 0.0001)
+      (cpl:fail 'common-fail:torso-goal-not-reached
+                :description (format nil "Torso goal ~a was out of joint limits" joint-angle)
+                :torso joint-angle))))
 
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -91,42 +117,28 @@
           (btr:bullet-world ?w)
           (btr:assert ?w (btr:joint-state ?robot ,joint-states))))))
 
-(defgeneric look-at (joint-angle-or-state-or-direction)
-  (:method ((joint-angles-or-states list))
-    (if (typep (car joint-angles-or-states) 'list)
-        (look-at-joint-states joint-angles-or-states)
-        (look-at-joint-angles joint-angles-or-states)))
-  (:method ((direction symbol))
-    (look-at-joint-states
-     (case direction
-       (:away
-        (cut:var-value
-         '?joints
-         (car (prolog:prolog
-               `(and (cram-robot-interfaces:robot ?robot)
-                     (cram-robot-interfaces:robot-neck-parking-joint-states ?robot ?joints))))))
-       (:down
-        (cut:var-value
-         '?joints
-         (car (prolog:prolog
-               `(and (cram-robot-interfaces:robot ?robot)
-                     (cram-robot-interfaces:robot-neck-looking-joint-states ?robot ?joints))))))
-       (t (error 'simple-error
-                 :format-control "~a direction is unknown for Boxy projection PTU"
-                 :format-arguments direction))))))
+(defun look-at (pose configuration)
+  (declare (ignore pose))
+  (if configuration
+      (if (typep (car configuration) 'list)
+          (look-at-joint-states configuration)
+          (look-at-joint-angles configuration))
+      (error "Boxy only supports looking with given joint configuration ATM.")))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; todo: test btr:visible with boxy camera stuff
 (defun extend-perceived-object-designator (input-designator name-pose-type-list)
   (destructuring-bind (name pose type) name-pose-type-list
-    (let* ((transform-stamped-in-fixed-frame
-             (cl-transforms-stamped:make-transform-stamped
+    (let* ((pose-stamped-in-fixed-frame
+             (cl-transforms-stamped:make-pose-stamped
               cram-tf:*fixed-frame*
-              (roslisp-utilities:rosify-underscores-lisp-name name)
               (cut:current-timestamp)
               (cl-transforms:origin pose)
               (cl-transforms:orientation pose)))
+           (transform-stamped-in-fixed-frame
+             (cram-tf:pose-stamped->transform-stamped
+              pose-stamped-in-fixed-frame
+              (roslisp-utilities:rosify-underscores-lisp-name name)))
            (pose-stamped-in-base-frame
              (cram-tf:multiply-transform-stampeds
               cram-tf:*robot-base-frame*
@@ -148,20 +160,14 @@
                `((:type ,type)
                  (:name ,name)
                  (:pose ((:pose ,pose-stamped-in-base-frame)
-                         (:transform ,transform-stamped-in-base-frame)))))))
+                         (:transform ,transform-stamped-in-base-frame)
+                         (:pose-in-map ,pose-stamped-in-fixed-frame)
+                         (:transform-in-map ,transform-stamped-in-fixed-frame)))))))
         (setf (slot-value output-designator 'desig:data)
               (make-instance 'desig:object-designator-data
                 :object-identifier name
-                :pose pose-stamped-in-base-frame))
+                :pose pose-stamped-in-fixed-frame))
         ;; (desig:equate input-designator output-designator)
-
-        ;; before returning a freshly made output designator of perceived object
-        ;; emit an object perceived event to update the belief state
-          ;; (cram-occasions-events:on-event
-          ;;  (make-instance 'cram-plan-occasions-events:object-perceived-event
-          ;;    :object-designator output-designator
-          ;;    :perception-source :projection))
-
         output-designator))))
 
 (defun detect (input-designator)
@@ -224,9 +230,7 @@
                                                     (:open '?max-limit)
                                                     ((:close :grip) '?min-limit)
                                                     (t (if (numberp action-type)
-                                                           (* action-type 5.0)
-                                                           ;; commanded with meters
-                                                           ;; but asserted with rads
+                                                           action-type
                                                            (error "[PROJ GRIP] failed")))))))))
       solution-bindings))
 
@@ -236,10 +240,6 @@
            (cram-robot-interfaces:gripper-joint ?robot ,arm ?joint)
            (cram-robot-interfaces:joint-lower-limit ?robot ?joint ?min-limit)
            (cram-robot-interfaces:joint-upper-limit ?robot ?joint ?max-limit)))))
-
-  ;; robot-state-changed event
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
 
   ;; check if there is an object to grip
   (when (eql action-type :grip) ; if action was gripping check if gripper collided with an item
@@ -266,72 +266,156 @@
   (declare (type list left-configuration right-configuration))
   (flet ((set-configuration (arm joint-values)
            (when joint-values
-             (let ((joint-names
-                     (cut:var-value
-                      '?joints
-                      (car (prolog:prolog
-                            `(and (cram-robot-interfaces:robot ?robot)
-                                  (cram-robot-interfaces:arm-joints ?robot ,arm ?joints)))))))
-               (unless (= (length joint-values) (length joint-names))
-                 (error "[PROJECTION MOVE-JOINTS] length of joints list is incorrect."))
-               (let ((joint-name-value-list (mapcar (lambda (name value)
-                                                      (list name (* value 1.0d0)))
-                                                    joint-names joint-values)))
-                 (assert
-                  (prolog:prolog
-                   `(and
-                     (btr:bullet-world ?world)
-                     (cram-robot-interfaces:robot ?robot)
-                     (assert ?world (btr:joint-state ?robot ,joint-name-value-list))))))))))
-    (move-arms-giskard-joint :goal-configuration-left left-configuration
-                             :goal-configuration-right right-configuration)
+             (let ((joint-name-value-list
+                     (if (listp (car joint-values))
+                         joint-values
+                         (let ((joint-names
+                                 (cut:var-value
+                                  '?joints
+                                  (car (prolog:prolog
+                                        `(and (cram-robot-interfaces:robot ?robot)
+                                              (cram-robot-interfaces:arm-joints ?robot ,arm
+                                                                                ?joints)))))))
+                           (unless (= (length joint-values) (length joint-names))
+                             (error "[PROJECTION MOVE-JOINTS] length of joints list is incorrect"))
+                           (mapcar (lambda (name value)
+                                     (list name (* value 1.0d0)))
+                                   joint-names joint-values)))))
+               (assert
+                (prolog:prolog
+                 `(and
+                   (btr:bullet-world ?world)
+                   (cram-robot-interfaces:robot ?robot)
+                   (assert ?world (btr:joint-state ?robot ,joint-name-value-list)))))))))
     (set-configuration :left left-configuration)
-    (set-configuration :right right-configuration)
-    ;; (cram-occasions-events:on-event
-    ;;  (make-instance 'cram-plan-occasions-events:robot-state-changed))
-    ))
+    (set-configuration :right right-configuration)))
 
-;; (defparameter *gripper-length* 0.3191d0
-;;   "Boxy's gripper length in meters, for calculating TCP -> EE")
-
-(defvar *real-world-tf-listener* nil)
-(defun init-projection-real-world-tf-listener ()
-  (setf *real-world-tf-listener* (make-instance 'cl-tf2:buffer-client)))
-(defun destroy-projection-real-world-tf-listener ()
-  (setf *real-world-tf-listener* nil))
-(roslisp-utilities:register-ros-init-function init-projection-real-world-tf-listener)
-(roslisp-utilities:register-ros-cleanup-function destroy-projection-real-world-tf-listener)
+(defparameter *tcp-pose-in-ee* (cl-transforms:make-pose
+                                (cl-transforms:make-3d-vector 0 0 0.3191d0)
+                                (cl-transforms:make-identity-rotation))
+  "In meters, Teetcp, EE -> TCP but a Pose")
 
 (defun move-tcp (left-tcp-pose right-tcp-pose)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
-  (cpl:with-failure-handling
-      (((or common-fail:actionlib-action-timed-out
-            common-fail:manipulation-goal-not-reached) (e)
-         (declare (ignore e))
-         ;; (roslisp:ros-warn (pp-plans pick-up) "Manipulation messed up. Ignoring.")
-         (return)))
-    (move-arms-giskard-cartesian
-     :goal-pose-left left-tcp-pose
-     :goal-pose-right right-tcp-pose))
-  (btr:set-robot-state-from-tf
-   *real-world-tf-listener*
-   (btr:get-robot-object)
-   :only-these-links
-   '("torso_base_link"
-     "triangle_base_link"
-     "triangle_left_arm_link"
-     "calib_left_arm_base_link"
-     "left_arm_1_link"
-     "left_arm_2_link"
-     "left_arm_3_link"
-     "left_arm_4_link"
-     "left_arm_5_link"
-     "left_arm_6_link"
-     "triangle_right_arm_link"
-     "calib_right_arm_base_link"
-     "right_arm_1_link"
-     "right_arm_2_link"
-     "right_arm_3_link"
-     "right_arm_4_link"
-     "right_arm_5_link"
-     "right_arm_6_link")))
+  (flet ((tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame)
+           (when tcp-pose
+             (cram-tf:strip-transform-stamped
+              (cram-tf:multiply-transform-stampeds
+               cram-tf:*robot-base-frame*
+               end-effector-frame
+               (cram-tf:pose->transform-stamped
+                cram-tf:*robot-base-frame*
+                tool-frame
+                0.0
+                tcp-pose)
+               (cram-tf:transform-stamped-inv
+                (cram-tf:pose->transform-stamped
+                 end-effector-frame
+                 tool-frame
+                 0.0
+                 *tcp-pose-in-ee*))))))
+         (ee-pose-in-base->ee-pose-in-torso (ee-pose-in-base)
+           (when ee-pose-in-base
+             (if (string-equal
+                  (cl-transforms-stamped:frame-id ee-pose-in-base)
+                  cram-tf:*robot-base-frame*)
+                 ;; tPe: tTe = tTb * bTe = tTm * mTb * bTe = (mTt)-1 * mTb * bTe
+                 (let* ((map-torso-transform
+                          (cram-tf:pose->transform-stamped
+                           cram-tf:*fixed-frame*
+                           cram-tf:*robot-torso-frame*
+                           0.0
+                           (btr:link-pose
+                            (btr:get-robot-object)
+                            cram-tf:*robot-torso-frame*)))
+                        (torso-map-transform
+                          (cram-tf:transform-stamped-inv map-torso-transform))
+                        (map-base-transform
+                          (cram-tf:pose->transform-stamped
+                           cram-tf:*fixed-frame*
+                           cram-tf:*robot-base-frame*
+                           0.0
+                           (btr:pose (btr:get-robot-object))))
+                        (torso-base-transform
+                          (cram-tf:multiply-transform-stampeds
+                           cram-tf:*robot-torso-frame*
+                           cram-tf:*robot-base-frame*
+                           torso-map-transform
+                           map-base-transform))
+                        (base-ee-transform
+                          (cram-tf:pose-stamped->transform-stamped
+                           ee-pose-in-base
+                           ;; dummy link name for T x T to work
+                           "end_effector_link")))
+                   (cram-tf:multiply-transform-stampeds
+                    cram-tf:*robot-torso-frame*
+                    "end_effector_link"
+                    torso-base-transform
+                    base-ee-transform
+                    :result-as-pose-or-transform :pose))
+                 (error "Arm movement goals should be given in robot base frame"))))
+         (get-ik-joint-positions (arm ee-pose)
+           (when ee-pose
+             (multiple-value-bind (ik-solution-msg torso-angle)
+                 (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
+                     (car (prolog:prolog
+                           `(and
+                             (cram-robot-interfaces:robot ?robot)
+                             (cram-robot-interfaces:robot-torso-link-joint ?robot
+                                                                           ?_ ?torso-joint)
+                             (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint
+                                                                      ?lower-limit)
+                             (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint
+                                                                      ?upper-limit)
+                             (btr:bullet-world ?world)
+                             (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
+                   (call-ik-service-with-torso-resampling
+                    arm ee-pose
+                    :torso-angle ?torso-angle
+                    :torso-lower-limit ?lower-limit
+                    :torso-upper-limit ?upper-limit))
+               (unless ik-solution-msg
+                 (cpl:fail 'common-fail:manipulation-pose-unreachable
+                           :description (format nil "~a is unreachable for EE." ee-pose)))
+               (values
+                (map 'list #'identity
+                     (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))
+                torso-angle)))))
+
+    (let* ((frame-bindings
+             (cut:lazy-car
+              (prolog:prolog
+               `(and (cram-robot-interfaces:robot ?robot)
+                     (cram-robot-interfaces:robot-tool-frame ?robot :left ?left-tool-frame)
+                     (cram-robot-interfaces:robot-tool-frame ?robot :right ?right-tool-frame)
+                     (cram-robot-interfaces:end-effector-link ?robot :left ?left-ee-frame)
+                     (cram-robot-interfaces:end-effector-link ?robot :right ?right-ee-frame)))))
+           (left-tcp-frame
+             (cut:var-value '?left-tool-frame frame-bindings))
+           (right-tcp-frame
+             (cut:var-value '?right-tool-frame frame-bindings))
+           (left-ee-frame
+             (cut:var-value '?left-ee-frame frame-bindings))
+           (right-ee-frame
+             (cut:var-value '?right-ee-frame frame-bindings)))
+
+      (multiple-value-bind (left-ik left-torso-angle)
+          (get-ik-joint-positions :left
+                                  (ee-pose-in-base->ee-pose-in-torso
+                                   (tcp-pose->ee-pose left-tcp-pose
+                                                      left-tcp-frame left-ee-frame)))
+        (multiple-value-bind (right-ik right-torso-angle)
+            (get-ik-joint-positions :right
+                                    (ee-pose-in-base->ee-pose-in-torso
+                                     (tcp-pose->ee-pose right-tcp-pose
+                                                        right-tcp-frame right-ee-frame)))
+          (cond
+            ((and left-torso-angle right-torso-angle)
+             (when (not (eq left-torso-angle right-torso-angle))
+               (cpl:fail 'common-fail:manipulation-pose-unreachable
+                         :description (format nil "In MOVE-TCP goals for the two arms ~
+                                                 require different torso angles).")))
+             (move-torso left-torso-angle))
+            (left-torso-angle (move-torso left-torso-angle))
+            (right-torso-angle (move-torso right-torso-angle)))
+          (move-joints left-ik right-ik))))))

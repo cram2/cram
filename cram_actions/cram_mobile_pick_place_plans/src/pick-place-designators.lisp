@@ -29,50 +29,19 @@
 
 (in-package :pp-plans)
 
-(defun extract-pick-up-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
-  "`?arm' can be :left, :right or (:left :right)."
-  (let ((arm-as-list (if (listp arm) arm (list arm)))
-        left-reach-poses left-lift-poses
-        left-grasp-poses right-grasp-poses
-        right-reach-poses right-lift-poses)
-    (when (member :left arm-as-list)
-      (setf left-reach-poses (subseq left-manipulation-poses 0 2)
-            left-grasp-poses (subseq left-manipulation-poses 2 3)
-            left-lift-poses (subseq left-manipulation-poses 3)))
-    (when (member :right arm-as-list)
-      (setf right-reach-poses (subseq right-manipulation-poses 0 2)
-            right-grasp-poses (subseq right-manipulation-poses 2 3)
-            right-lift-poses (subseq right-manipulation-poses 3)))
-    (list left-reach-poses right-reach-poses
-          left-grasp-poses right-grasp-poses
-          left-lift-poses right-lift-poses)))
-
-(defun extract-place-manipulation-poses (arm left-manipulation-poses right-manipulation-poses)
-  "`?arm' can be :left, :right or (:left :right)."
-  (let ((arm-as-list (if (listp arm) arm (list arm)))
-        (left-manipulation-poses (reverse left-manipulation-poses))
-        (right-manipulation-poses (reverse right-manipulation-poses))
-        left-reach-poses left-put-poses left-retract-poses
-        right-reach-poses right-put-poses right-retract-poses)
-    (when (member :left arm-as-list)
-      (setf left-reach-poses (subseq left-manipulation-poses 0 2)
-            left-put-poses (subseq left-manipulation-poses 2 3)
-            left-retract-poses (subseq left-manipulation-poses 3)))
-    (when (member :right arm-as-list)
-      (setf right-reach-poses (subseq right-manipulation-poses 0 2)
-            right-put-poses (subseq right-manipulation-poses 2 3)
-            right-retract-poses (subseq right-manipulation-poses 3)))
-    (list left-reach-poses right-reach-poses
-          left-put-poses right-put-poses
-          left-retract-poses right-retract-poses)))
+(defun pose->transform-stamped-in-base (pose child-frame-lispy)
+  (let ((target-pose-in-base
+          (cram-tf:ensure-pose-in-frame
+           pose cram-tf:*robot-base-frame* :use-zero-time t))
+        (child-frame-rosy
+          (roslisp-utilities:rosify-underscores-lisp-name child-frame-lispy)))
+    (cram-tf:pose-stamped->transform-stamped target-pose-in-base child-frame-rosy)))
 
 
 (def-fact-group pick-and-place-plans (desig:action-grounding)
   (<- (desig:action-grounding ?action-designator (pick-up ?current-object-desig ?arm
                                                           ?gripper-opening ?effort ?grasp
-                                                          ?left-reach-poses ?right-reach-poses
-                                                          ?left-grasp-poses ?right-grasp-poses
-                                                          ?left-lift-poses ?right-lift-poses))
+                                                          ?left-trajectory ?right-trajectory))
     ;; extract info from ?action-designator
     (spec:property ?action-designator (:type :picking-up))
     (spec:property ?action-designator (:object ?object-designator))
@@ -81,79 +50,101 @@
     (spec:property ?current-object-desig (:name ?object-name))
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
-        (and (cram-robot-interfaces:robot ?robot)
-             (cram-robot-interfaces:arm ?robot ?arm)))
-    (lisp-fun obj-int:get-object-transform ?current-object-desig ?object-transform)
+        (man-int:robot-free-hand ?_ ?arm))
+    (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
-    (lisp-fun obj-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
-    (-> (obj-int:object-rotationally-symmetric ?object-type)
+    (lisp-fun man-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
+    (-> (man-int:object-rotationally-symmetric ?object-type)
         (equal ?rotationally-symmetric t)
         (equal ?rotationally-symmetric nil))
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (and (lisp-fun obj-int:get-object-type-grasps
-                       ?object-type ?facing-robot-face ?bottom-face ?rotatiationally-symmetric ?arm
-                       ?grasps)
+        (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?object-transform ?grasps)
              (member ?grasp ?grasps)))
-    (lisp-fun obj-int:get-object-type-gripping-effort ?object-type ?effort)
-    (lisp-fun obj-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
-    (lisp-fun obj-int:get-object-grasping-poses
-              ?object-name ?object-type :left ?grasp ?object-transform
-              ?left-poses)
-    (lisp-fun obj-int:get-object-grasping-poses
-              ?object-name ?object-type :right ?grasp ?object-transform
-              ?right-poses)
-    (lisp-fun extract-pick-up-manipulation-poses ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses
-                                 ?left-grasp-poses ?right-grasp-poses
-                                 ?left-lift-poses ?right-lift-poses)))
+    (lisp-fun man-int:get-object-type-gripping-effort ?object-type ?effort)
+    (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
+    ;; calculate trajectory
+    (equal ?objects (?current-object-desig))
+    (lisp-fun man-int:make-empty-trajectory (:reaching :grasping :lifting) ?empty-trajectory)
+    (-> (equal ?arm :left)
+        (lisp-fun man-int:get-action-trajectory :picking-up :left ?grasp ?objects
+                  ?left-trajectory)
+        (equal ?left-trajectory ?empty-trajectory))
+    (-> (equal ?arm :right)
+        (lisp-fun man-int:get-action-trajectory :picking-up :right ?grasp ?objects
+                  ?right-trajectory)
+        (equal ?right-trajectory ?empty-trajectory))
+    (or (lisp-pred identity ?left-trajectory)
+        (lisp-pred identity ?right-trajectory)))
 
-  (<- (desig:action-grounding ?action-designator (place ?current-object-designator ?arm
-                                                        ?left-reach-poses ?right-reach-poses
-                                                        ?left-put-poses ?right-put-poses
-                                                        ?left-retract-poses ?right-retract-poses
-                                                        ?location))
+
+  (<- (desig:action-grounding ?action-designator (place ?current-object-designator
+                                                        ?other-object-designator
+                                                        ?placement-location-name
+                                                        ?arm
+                                                        ?gripper-opening
+                                                        ?left-trajectory ?right-trajectory
+                                                        ?current-location-designator))
     (spec:property ?action-designator (:type :placing))
+
+    ;; find in which hand the object is
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
             (or (cpoe:object-in-hand ?object-designator ?arm)
-                (and (format "WARNING: Wanted to place an object ~a with arm ~a, ~
-                              but it's not in the arm.~%" ?object-designator ?arm)
-                     ;; (fail)
-                     ))
+                (format "WARNING: Wanted to place an object ~a with arm ~a, ~
+                         but it's not in the arm.~%" ?object-designator ?arm))
             (cpoe:object-in-hand ?object-designator ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
-            (cpoe:object-in-hand ?object-designator ?arm)
-            (and (cram-robot-interfaces:robot ?robot)
-                 (cram-robot-interfaces:arm ?robot ?arm)
-                 (cpoe:object-in-hand ?object-designator ?arm))))
-    (once (or (cpoe:object-in-hand ?object-designator ?arm)
-              (spec:property ?action-designator (:object ?object-designator))))
+            (or (cpoe:object-in-hand ?object-designator ?arm)
+                (format "WARNING: Wanted to place an object ~a ~
+                         but it's not in any of the hands.~%" ?object-designator))
+            (cpoe:object-in-hand ?object-designator ?arm)))
+
+    ;;; infer missing information
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
-    ;; infer missing information
-    (obj-int:object-type-grasp ?object-type ?grasp)
-    ;; take object-pose from action-designator target otherwise from object-designator pose
-    (-> (spec:property ?action-designator (:target ?location))
-        (and (desig:current-designator ?location ?current-location-designator)
+    (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
+
+    ;; take object-pose from action-designator :target otherwise from object-designator pose
+    (-> (spec:property ?action-designator (:target ?location-designator))
+        (and (desig:current-designator ?location-designator ?current-location-designator)
              (desig:designator-groundings ?current-location-designator ?poses)
-             (member ?target-pose ?poses)
-             (symbol-value cram-tf:*robot-base-frame* ?base-frame)
-             (lisp-fun cram-tf:ensure-pose-in-frame ?target-pose ?base-frame :use-zero-time t
-                       ?target-pose-in-base)
-             (lisp-fun roslisp-utilities:rosify-underscores-lisp-name ?object-name ?tf-name)
-             (lisp-fun cram-tf:pose-stamped->transform-stamped ?target-pose-in-base ?tf-name
-                       ?target-transform))
-        (and (lisp-fun obj-int:get-object-transform ?current-object-designator ?target-transform)
-             (lisp-fun obj-int:get-object-pose ?current-object-designator ?target-pose)
-             (desig:designator :location ((:pose ?target-pose)) ?location)))
-    (lisp-fun obj-int:get-object-grasping-poses
-              ?object-name ?object-type :left ?grasp ?target-transform
-              ?left-poses)
-    (lisp-fun obj-int:get-object-grasping-poses
-              ?object-name ?object-type :right ?grasp ?target-transform
-              ?right-poses)
-    (lisp-fun extract-place-manipulation-poses ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses ?left-put-poses ?right-put-poses
-                                 ?left-retract-poses ?right-retract-poses))))
+             (member ?target-object-pose ?poses)
+             (lisp-fun pose->transform-stamped-in-base ?target-object-pose ?object-name
+                       ?target-object-transform))
+        (and (lisp-fun man-int:get-object-transform ?current-object-designator
+                       ?target-object-transform)
+             (lisp-fun man-int:get-object-pose ?current-object-designator ?target-object-pose)
+             (desig:designator :location ((:pose ?target-object-pose))
+                               ?current-location-designator)))
+
+    ;; placing happens on/in an object
+    (or (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
+        (desig:desig-prop ?current-location-designator (:in ?other-object-designator))
+        (equal ?other-object-designator NIL))
+    (-> (desig:desig-prop ?current-location-designator (:attachment ?placement-location-name))
+        (true)
+        (equal ?placement-location-name NIL))
+
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (cpoe:object-in-hand ?object-designator ?arm ?grasp))
+
+    ;; calculate trajectory
+    (equal ?objects (?current-object-designator))
+    (lisp-fun man-int:make-empty-trajectory (:reaching :putting :retracting) ?empty-trajectory)
+    (-> (equal ?arm :left)
+        (lisp-fun man-int:get-action-trajectory
+                  :placing :left ?grasp ?objects
+                  :target-object-transform-in-base ?target-object-transform
+                  ?left-trajectory)
+        (equal ?left-trajectory ?empty-trajectory))
+    (-> (equal ?arm :right)
+        (lisp-fun man-int:get-action-trajectory
+                  :placing :right ?grasp ?objects
+                  :target-object-transform-in-base ?target-object-transform
+                  ?right-trajectory)
+        (equal ?right-trajectory ?empty-trajectory))
+    (or (lisp-pred identity ?left-trajectory)
+        (lisp-pred identity ?right-trajectory))))

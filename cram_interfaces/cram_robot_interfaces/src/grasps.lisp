@@ -28,12 +28,12 @@
 
 (in-package :cram-robot-interfaces)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;; DEPRECATION WARNING ;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; PRETTY MUCH EVERYTHING IN HERE IS DERPECATED.   ;;;
-;;; USE THE cram_object_interfaces PACKAGE INSTEAD. ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; DEPRECATION WARNING ;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; PRETTY MUCH EVERYTHING IN HERE IS DERPECATED.         ;;;
+;;; USE THE cram_manipulation_interfaces PACKAGE INSTEAD. ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar *grasps* nil
   "An alist that maps grasps to orientations in the robot's root
@@ -115,8 +115,9 @@ CL-TRANSFORMS:3D-VECTOR."
 
 (def-fact-group grasps (grasp
                         side
-                        object-type-grasp
-                        object-designator-grasp)
+                        ;; object-type-grasp
+                        ;; object-designator-grasp
+                        )
   ;; Defines types of grasps for a particular ?robot
   (<- (grasp ?robot ?grasp-type)
     (fail))
@@ -127,10 +128,11 @@ CL-TRANSFORMS:3D-VECTOR."
 
   ;; Unifies grasps with object types and required arms to manipulate
   ;; that object.
-  (<- (object-type-grasp ?object-type ?grasp ?arms)
-    (fail))
+  ;; (<- (object-type-grasp ?object-type ?grasp ?arms)
+  ;;   (fail))
 
   ;; Given an object-designator, binds grasps and arms to manipulate
   ;; that object.
-  (<- (object-designator-grasp ?object-designator ?grasp ?arms)
-    (fail)))
+  ;; (<- (object-designator-grasp ?object-designator ?grasp ?arms)
+  ;;   (fail))
+  )

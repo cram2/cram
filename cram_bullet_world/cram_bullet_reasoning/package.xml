@@ -28,7 +28,7 @@
   <depend>cram_designators</depend>
   <depend>roslisp_utilities</depend>
   <depend>cram_semantic_map_utils</depend>
-  <depend>cram_object_interfaces</depend>
+  <depend>cram_manipulation_interfaces</depend>
   <depend>cram_robot_interfaces</depend>
   <depend>cram_occasions_events</depend>
   <depend>cram_utilities</depend>

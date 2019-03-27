@@ -52,15 +52,16 @@
   '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
     (:cup . ((1.3 0.6 0.9) (0 0 0 1)))
     (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
-    (:spoon . ((1.4 1.0 0.74132) (0 0 1 0)))
+    (:spoon . ((1.43 0.9 0.74132) (0 0 0 1)))
     (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
 
 (defparameter *object-grasping-arms*
-  '((:breakfast-cereal . :right)
-    (:cup . :left)
-    (:bowl . :right)
-    (:spoon . :right)
-    (:milk . :right)))
+  '(;; (:breakfast-cereal . :right)
+    ;; (:cup . :left)
+    ;; (:bowl . :right)
+    ;; (:spoon . :right)
+    ;; (:milk . :right)
+    ))
 
 (defparameter *object-placing-poses*
   '((:breakfast-cereal . ((-0.78 0.9 0.95) (0 0 1 0)))
@@ -143,16 +144,18 @@
                             (:island *island-nav-goal*)))
         (?ptu-goal *look-goal*))
     (cpl:par
-      (pp-plans::park-arms)
+      (exe:perform (desig:an action
+                             (type positioning-arm)
+                             (left-configuration park)
+                             (right-configuration park)))
       (exe:perform (desig:a motion
                             (type going)
-                            (target (desig:a location (pose ?navigation-goal))))))
+                            (pose ?navigation-goal))))
     (exe:perform (desig:a motion
                           (type looking)
-                          (target (desig:a location (pose ?ptu-goal)))))))
+                          (pose ?ptu-goal)))))
 
 (defun pick-object (&optional (?object-type :breakfast-cereal) (?arm :right))
-  (pp-plans:park-arms)
   (go-to-sink-or-island :sink)
   (let* ((?object-desig
            (desig:an object (type ?object-type)))
@@ -170,13 +173,11 @@
                              (object ?perceived-object-desig))))))
 
 (defun place-object (?target-pose &optional (?arm :right))
-  (pp-plans:park-arms)
   (go-to-sink-or-island :island)
   (cpl:par
     (exe:perform (desig:a motion
                           (type looking)
-                          (target (desig:a location
-                                           (pose ?target-pose)))))
+                          (pose ?target-pose)))
     (exe:perform (desig:an action
                            (type placing)
                            (arm ?arm)
@@ -198,8 +199,8 @@
             (arm-to-use
               (cdr (assoc object-type *object-grasping-arms*))))
 
-        (pick-object object-type arm-to-use)
-        (place-object placing-target arm-to-use)))))
+        (pick-object object-type (or arm-to-use :left))
+        (place-object placing-target (or arm-to-use :left))))))
 
 
 
@@ -217,11 +218,11 @@
 ;;                      cram-tf:*robot-base-frame* 0.0
 ;;                      (cl-transforms:make-3d-vector -0.5 0 0)
 ;;                      (cl-transforms:make-identity-rotation))))
-;;          (desig:a motion (type going) (target (desig:a location (pose ?pose))))))
+;;          (desig:a motion (type going) (pose ?pose))))
 ;;       (exe:perform
 ;;        (desig:a motion (type moving-torso) (joint-angle 0.3)))
 ;;       (exe:perform
-;;        (desig:a motion (type opening) (gripper left)))
+;;        (desig:a motion (type opening-gripper) (gripper left)))
 ;;       (exe:perform
 ;;        (desig:a motion (type looking) (direction forward)))
 ;;       (exe:perform
@@ -229,7 +230,7 @@
 ;;                      cram-tf:*robot-base-frame* 0.0
 ;;                      (cl-transforms:make-3d-vector 0.7 0.3 0.85)
 ;;                      (cl-transforms:make-identity-rotation))))
-;;          (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose)))))))))
+;;          (desig:a motion (type moving-tcp) (left-pose ?pose)))))))
 
 ;; (defun test-desigs ()
 ;;   (let ((?pose (desig:reference (desig:a location
@@ -317,13 +318,17 @@
 ;;         (let ((?navigation-goal *meal-table-right-base-pose*)
 ;;               (?ptu-goal *meal-table-right-base-look-pose*))
 ;;           (cpl:par
-;;             (pp-plans::park-arms)
+                ;; (exe:perform
+                ;;  (desig:an action
+                ;;            (type positioning-arm)
+                ;;            (left-configuration park)
+                ;;            (right-configuration park)))
 ;;             (exe:perform (desig:a motion
 ;;                                   (type going)
-;;                                   (target (desig:a location (pose ?navigation-goal))))))
+;;                                   (pose ?navigation-goal))))
 ;;           (exe:perform (desig:a motion
 ;;                                 (type looking)
-;;                                 (target (desig:a location (pose ?ptu-goal))))))))
+;;                                 (pose ?ptu-goal))))))
 ;; (defun test-pr2-plans ()
 ;;   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
 ;;     (cpl:top-level

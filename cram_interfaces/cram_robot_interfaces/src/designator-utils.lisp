@@ -65,8 +65,7 @@ Returns a ROS JointState message with solution states of the joints in the `arm'
 
   (<- (designator-reach-pose ?designator ?point ?side)
     (reachability-designator ?designator)
-    (or (desig-prop ?designator (:object ?object))
-        (desig-prop ?designator (:obj ?object)))
+    (desig-prop ?designator (:object ?object))
     (desig-location-prop ?object ?pose)
     (once
      (-> (desig-prop ?designator (:arm ?side))

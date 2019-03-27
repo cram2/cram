@@ -33,28 +33,23 @@
   (:nicknames #:boxy-ll)
   (:use #:common-lisp)
   (:export
-   ;; low-level-common
    ;; simple-actionlib-client
    #:make-simple-action-client
    #:call-simple-action-client
-   ;; giskard-common
-   ;; giskard-cartesian
-   #:move-arms-giskard-cartesian
    ;; joint-states
    #:joint-state
    #:joint-states
    #:joint-positions
    #:normalize-joint-angles
-   ;; giskard-joint
-   #:move-arms-giskard-joint
    ;; nav-pcontroller
    #:move-base-nav-pcontroller
    ;; neck
-   #:move-neck-joint
+   #:move-neck-joints
    ;; grippers
    #:move-gripper-joint
-   ;; wiggle
-   #:move-arm-wiggle
-   #:move-arm-wiggle-until-wrench-too-high
    ;; force-torque-sensor
-   #:*wrench-state-fluent*))
+   #:*wrench-state-fluent*
+   ;; joint-action-client
+   #:move-arm-joints
+   ;; cart-action-client
+   #:move-arm-cartesian))

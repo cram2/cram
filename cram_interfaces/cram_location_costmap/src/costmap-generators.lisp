@@ -89,8 +89,8 @@ array."
   (truncate (- coordinate origin) resolution))
 
 (defun array-index->map-coordinate (index resolution origin)
-  "Given an array index a map resolution and the origin of the axis
-index is in, returns the corresponding coordinate value."
+  "Given an array index, a map resolution and the origin of the axis
+index is in, returns the corresponding coordinate value in meters."
   (declare (type fixnum index)
            (type number resolution origin))
   (+ (* index resolution) origin))

@@ -29,7 +29,7 @@
 
 (in-package :pr2-proj-reasoning)
 
-(defparameter *projection-reasoning-enabled* t)
+(defparameter *projection-reasoning-enabled* nil)
 
 (defun extract-successful-transporting-designators (top-level-name path)
   (let* ((bindings

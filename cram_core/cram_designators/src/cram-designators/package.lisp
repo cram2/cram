@@ -49,6 +49,7 @@
            #:first-desig
            #:current-desig
            #:current-designator
+           #:reset
            #:make-effective-designator
            #:newest-effective-designator #:with-desig-props
            #:designator-solutions #:desig-prop-value

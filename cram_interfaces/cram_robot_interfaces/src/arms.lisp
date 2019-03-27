@@ -34,9 +34,10 @@
                       arm-joints arm-links arm-base-joints arm-base-links arm-tool-joints
                       hand-links end-effector-link robot-tool-frame gripper-joint gripper-link
                       ;; specific configurations
-                      robot-arms-parking-joint-states robot-arms-carrying-joint-states
-                      end-effector-parking-pose
-                      robot-pre-grasp-joint-states planning-group
+                      ;; robot-arms-parking-joint-states robot-arms-carrying-joint-states
+                      ;; end-effector-parking-pose
+                      ;; robot-pre-grasp-joint-states
+                      planning-group
                       standard-to-particular-gripper-transform)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;; rules describing the robot arms
@@ -97,21 +98,21 @@
 
   ;;;;;;;;;;;;;;;;;;;;;;;;; specific configurations
 
-  (<- (robot-arms-parking-joint-states ?robot ?joint-states)
-    (fail))
-  (<- (robot-arms-parking-joint-states ?robot ?joint-states ?arm)
-    (fail))
+  ;; (<- (robot-arms-parking-joint-states ?robot ?joint-states)
+  ;;   (fail))
+  ;; (<- (robot-arms-parking-joint-states ?robot ?joint-states ?arm)
+  ;;   (fail))
 
-  (<- (robot-arms-carrying-joint-states ?robot ?joint-states)
-    (fail))
-  (<- (robot-arms-carrying-joint-states ?robot ?joint-states ?arm)
-    (fail))
+  ;; (<- (robot-arms-carrying-joint-states ?robot ?joint-states)
+  ;;   (fail))
+  ;; (<- (robot-arms-carrying-joint-states ?robot ?joint-states ?arm)
+  ;;   (fail))
 
-  (<- (end-effector-parking-pose ?robot ?pose ?arm)
-    (fail))
+  ;; (<- (end-effector-parking-pose ?robot ?pose ?arm)
+  ;;   (fail))
 
-  (<- (robot-pre-grasp-joint-states ?robot ?joint-states)
-    (fail))
+  ;; (<- (robot-pre-grasp-joint-states ?robot ?joint-states)
+  ;;   (fail))
 
   (<- (planning-group ?robot ?arms ?group-name)
     (fail))

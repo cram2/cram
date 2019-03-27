@@ -99,10 +99,11 @@
        (assert-no-returning
          (signal condition))))))
 
-(defun fail (&rest args)
-  (if (null args)
-      (%fail "Plan failure." nil)
-      (%fail (car args) (cdr args))))
+(defgeneric fail (&rest args)
+  (:method (&rest args)
+    (if (null args)
+        (%fail "Plan failure." nil)
+        (%fail (car args) (cdr args)))))
 
 (cut:define-hook cram-language::on-with-failure-handling-begin (clauses))
 (cut:define-hook cram-language::on-with-failure-handling-end (id))

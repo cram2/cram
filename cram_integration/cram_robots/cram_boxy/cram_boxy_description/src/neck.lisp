@@ -29,8 +29,16 @@
 
 (in-package :boxy-descr)
 
-(defparameter *neck-good-looking-state*
+(defparameter *neck-good-looking-down-state*
   '(("neck_shoulder_pan_joint" -1.176d0)
+    ("neck_shoulder_lift_joint" -3.1252d0)
+    ("neck_elbow_joint" -0.8397d0)
+    ("neck_wrist_1_joint" 0.83967d0)
+    ("neck_wrist_2_joint" 1.1347d0)
+    ("neck_wrist_3_joint" -0.0266d0)))
+
+(defparameter *neck-good-looking-left-state*
+  '(("neck_shoulder_pan_joint" -0.776d0)
     ("neck_shoulder_lift_joint" -3.1252d0)
     ("neck_elbow_joint" -0.8397d0)
     ("neck_wrist_1_joint" 0.83967d0)
@@ -47,8 +55,9 @@
 
 (def-fact-group boxy-neck-facts (robot-pan-tilt-links
                                  robot-pan-tilt-joints
-                                 robot-neck-parking-joint-states
-                                 robot-neck-looking-joint-states)
+                                 ;; robot-neck-parking-joint-states
+                                 ;; robot-neck-looking-joint-states
+                                 robot-joint-states)
 
   (<- (robot-pan-tilt-links boxy
                             "neck_shoulder_link"
@@ -66,8 +75,18 @@
                              "neck_wrist_2_joint"
                              "neck_wrist_3_joint"))
 
-  (<- (robot-neck-parking-joint-states boxy ?joint-states)
+  (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :away ?joint-states)
     (symbol-value *neck-parking-joint-states* ?joint-states))
 
-  (<- (robot-neck-looking-joint-states boxy ?joint-states)
-    (symbol-value *neck-good-looking-state* ?joint-states)))
+  (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :down ?joint-states)
+    (symbol-value *neck-good-looking-down-state* ?joint-states))
+
+  (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :down-left ?joint-states)
+    (symbol-value *neck-good-looking-left-state* ?joint-states))
+
+  ;; (<- (robot-neck-parking-joint-states boxy ?joint-states)
+  ;;   (symbol-value *neck-parking-joint-states* ?joint-states))
+
+  ;; (<- (robot-neck-looking-joint-states boxy ?joint-states)
+  ;;   (symbol-value *neck-good-looking-left-state* ?joint-states))
+  )

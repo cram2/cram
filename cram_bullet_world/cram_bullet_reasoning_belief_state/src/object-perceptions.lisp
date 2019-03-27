@@ -121,7 +121,9 @@ just updated. Otherwise a new instance is created."))
                                               :mass 0.2 ;; ,(object-mass data)
                                               ;; :types ,(list type)
                                               ;; :disable-face-culling t
-                                              :color ,(desig:object-color data))))
+                                              :color ,(if (slot-boundp data 'desig::color)
+                                                          (desig:object-color data)
+                                                          '(0.5 0.5 0.5)))))
                   (btr:simulate ?world 10)))))
 
 (defmethod register-object-designator-data

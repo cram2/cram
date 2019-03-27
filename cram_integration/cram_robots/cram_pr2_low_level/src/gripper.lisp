@@ -119,9 +119,9 @@
   (let* ((current-position
            (pr2_controllers_msgs-msg:position result))
          ;; TODO: use current-position from joint state message, not result
-         ;; (current-position (car (joint-positions (list cram-tf:*left-gripper-joint*))))
+         ;; (current-position (car (joints:joint-positions (list cram-tf:*left-gripper-joint*))))
          (converged-p
-           (values-converged current-position goal-position convergence-delta)))
+           (cram-tf:values-converged current-position goal-position convergence-delta)))
     (if (eql original-goal-position :grip) ; gripper should not completely close
         (when converged-p
           (cpl:fail 'common-fail:gripper-closed-completely

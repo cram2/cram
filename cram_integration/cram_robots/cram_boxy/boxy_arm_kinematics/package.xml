@@ -1,0 +1,18 @@
+<package format="2">
+  <name>boxy_arm_kinematics</name>
+  <version>0.0.0</version>
+  <description>IK solver for Boxy</description>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <author>Gayane Kazhoyan</author>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>python_orocos_kdl</exec_depend>
+  <exec_depend>urdfdom_py</exec_depend>
+  <exec_depend>kdl_parser_py</exec_depend>
+  <exec_depend>moveit_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+</package>

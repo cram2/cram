@@ -1,0 +1,18 @@
+<package format="2">
+  <name>cram_joint_states</name>
+  <version>0.7.0</version>
+  <description>
+    CRAM interfaces to listen to joint states
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp</depend>
+  <depend>roslisp_utilities</depend>
+  <depend>cl_transforms</depend>
+  <depend>cram_language</depend>
+  <depend>sensor_msgs</depend>
+</package>
