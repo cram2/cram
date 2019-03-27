@@ -35,32 +35,30 @@
         #:cram-occasions-events
         #:cram-prolog)
   (:export #:object-perceived-event
+           #:event-object-designator
+           #:perception-source
            #:robot-state-changed
            #:object-connection-event
-           #:object-articulation-event
-           #:object-attached #:object-detached
-           #:object-removed-event
-           #:object-updated-event #:event-object-name
-           #:event-object-designator #:object-designator
-           #:perception-source #:object #:event-object
-           #:link #:event-link #:side #:event-side
-           #:opening-distance
+           ;; #:object-articulation-event
+           #:object-attached-robot #:object-detached-robot
+           #:object-attached-object #:object-detached-object
+           ;; #:object-removed-event
+           ;; #:object-updated-event
+           #:event-object-name
+           #:event-other-object-name
+           #:event-attachment-type
+           #:event-arm
+           #:event-grasp
+           ;; #:object-designator #:opening-distance
 
            #:environment-manipulation-event
            #:environment-event-joint-name
            #:environment-event-arm
            #:environment-event-object
            #:environment-event-distance
-           #:container-handle-grasping-event
+           ;; #:container-handle-grasping-event
            #:container-opening-event
            #:container-closing-event
-
-           ;; #:object-gripped
-           ;; #:event-arm #:event-object #:event-grasp
-           ;; #:object-released
-
-           ;; object connection event
-           #:event-arm #:event-object-name
 
            ;; occasion-declarations
            ;; Symbols used in plans and thus the execution trace.

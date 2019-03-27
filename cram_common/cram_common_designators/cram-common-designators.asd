@@ -38,7 +38,4 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "motions" :depends-on ("package"))
-     ;; (:file "semantic-map" :depends-on ("package"))
-     ;; (:file "pick-and-place" :depends-on ("package"))
-     ))))
+     (:file "motions" :depends-on ("package"))))))

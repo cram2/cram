@@ -45,8 +45,6 @@
    (cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*
     (alexandria:copy-hash-table
      cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*))
-   (cram-semantic-map::*semantic-map*
-    (sem-map-utils:copy-semantic-map-object (cram-semantic-map:get-semantic-map)))
    (cet:*episode-knowledge*
     cet:*episode-knowledge*))
   :process-module-definitions
@@ -93,7 +91,7 @@
                ,@body))))
      (car (cram-projection::projection-environment-result-result results))))
 
-(defmacro with-projected-robot (&rest args)
+(defmacro with-projected-robot (&body args)
   "Alias for WITH-SIMULATED-ROBOT."
   `(with-simulated-robot ,@args))
 
@@ -122,11 +120,11 @@
                     cram-tf:*robot-base-frame* 0.0
                     (cl-transforms:make-3d-vector -4 -5 0)
                     (cl-transforms:make-identity-rotation))))
-        (desig:a motion (type going) (target (desig:a location (pose ?pose))))))
+        (desig:a motion (type going) (pose ?pose))))
      (exe:perform
       (let ((?pose (cl-tf:make-pose-stamped
                     cram-tf:*robot-base-frame* 0.0
                     (cl-transforms:make-3d-vector 0.5 0.3 1.0)
                     (cl-transforms:make-identity-rotation))))
-        (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
+        (desig:a motion (type moving-tcp) (left-pose ?pose))))))
 )

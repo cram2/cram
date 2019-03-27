@@ -16,7 +16,6 @@
 
   <build_depend>cram_prolog</build_depend>
   <build_depend>cram_robot_interfaces</build_depend>
-  <build_depend>cram_object_interfaces</build_depend>
   <build_depend>cram_designators</build_depend>
   <build_depend>cl_transforms_stamped</build_depend>
   <build_depend>cl_urdf</build_depend>
@@ -25,7 +24,6 @@
 
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
-  <run_depend>cram_object_interfaces</run_depend>
   <run_depend>cram_designators</run_depend>
   <run_depend>cl_transforms_stamped</run_depend>
   <run_depend>cl_urdf</run_depend>

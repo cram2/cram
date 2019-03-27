@@ -197,7 +197,7 @@ quaternions to face from `pos1' to `pos2'."
     (cram-robot-interfaces:reachability-designator ?designator)
     (spec:property ?designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
-    (obj-int:object-type-subtype :container ?container-type)
+    (man-int:object-type-subtype :container ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (spec:property ?designator (:arm ?arm))

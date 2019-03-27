@@ -25,7 +25,7 @@
   <depend>cram_common_failures</depend>
   <depend>cram_mobile_pick_place_plans</depend>
   <depend>cram_robot_interfaces</depend>
-  <depend>cram_object_interfaces</depend>
+  <depend>cram_manipulation_interfaces</depend>
   <depend>cram_designator_specification</depend>
   <depend>cl_bullet</depend>
   <depend>cram_bullet_reasoning</depend>

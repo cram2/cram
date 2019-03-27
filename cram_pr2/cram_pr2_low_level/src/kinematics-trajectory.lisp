@@ -110,7 +110,8 @@
 (defun make-current-seed-state (left-or-right)
   (let* ((joint-names-vector (get-ik-solver-joints left-or-right))
          (joint-names (map 'list #'identity joint-names-vector))
-         (joint-states (map 'vector #'joint-state-position (joint-states joint-names)))
+         (joint-states (map 'vector #'joints:joint-state-position
+                            (joints:joint-states joint-names)))
          (zero-vector (apply #'vector (make-list
                                        (length joint-names)
                                        :initial-element 0.0))))

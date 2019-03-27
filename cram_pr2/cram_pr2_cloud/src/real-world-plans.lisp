@@ -39,7 +39,7 @@
 (defun test-gripper ()
   (with-real-robot
     (exe:perform
-     (desig:a motion (type opening) (gripper left)))))
+     (desig:a motion (type opening-gripper) (gripper left)))))
 
 (defun test-navigation ()
   (with-real-robot
@@ -48,7 +48,7 @@
                    "map" 0.0
                    (cl-transforms:make-3d-vector 0.5 -0.8 0)
                    (cl-transforms:make-identity-rotation))))
-       (desig:a motion (type going) (target (desig:a location (pose ?pose))))))))
+       (desig:a motion (type going) (pose ?pose))))))
 
 ;; (defun test-manipulation ()
 ;;   (with-real-robot
@@ -58,37 +58,14 @@
 ;;     (let ((?pose (strip-transform-stamped
 ;;                   (car (subseq (local-gripper-trajectory-in-base "MoveFridgeHandle") 23)))))
 ;;       (exe:perform
-;;        (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
+;;        (desig:a motion (type moving-tcp) (left-pose ?pose))))))
 
 (defun test-manipulation ()
   (with-real-robot
     (let ((?pose (strip-transform-stamped
                   (car (local-gripper-trajectory-in-base-from-radius)))))
       (exe:perform
-       (desig:a motion (type moving-tcp) (left-target (desig:a location (pose ?pose))))))))
-
-(defun park-arms ()
-  (let ((?left-pose (cl-transforms-stamped:make-pose-stamped
-                     cram-tf:*robot-base-frame*
-                     0.0
-                     (cl-transforms:make-3d-vector 0.09611d0 0.68d0 0.35466d0)
-                     (cl-transforms:make-quaternion -0.45742778331019085d0
-                                                    0.3060123951483878d0
-                                                    0.3788581151804847d0
-                                                    0.744031427853262d0)))
-        (?right-pose (cl-transforms-stamped:make-pose-stamped
-                      cram-tf:*robot-base-frame*
-                      0.0
-                      (cl-transforms:make-3d-vector 0.0848d0 -0.712d0 0.35541d0)
-                      (cl-transforms:make-quaternion -0.061062529688043946d0
-                                                     -0.6133522138254498d0
-                                                     0.197733462359113d0
-                                                     -0.7622151317882601d0))))
-    (exe:perform
-     (desig:a motion
-              (type moving-tcp)
-              (left-target (desig:a location (pose ?left-pose)))
-              (right-target (desig:a location (pose ?right-pose)))))     ))
+       (desig:a motion (type moving-tcp) (left-pose ?pose))))))
 
 (defun move-projected-pr2-away ()
   (btr-utils:move-object 'cram-pr2-description:pr2
@@ -106,12 +83,15 @@
                                            (my-reachable-for ?robot)
                                            (location (desig:a location (pose ?handle-pose)))
                                            (context "OpenFridge"))))
-         (?target (ecase ?arm (:left :left-target) (:right :right-target))))
+         (?target (ecase ?arm (:left :left-pose) (:right :right-pose))))
 
     (btr-utils:kill-all-objects)
     (move-projected-pr2-away)
     (cram-bullet-reasoning::clear-costmap-vis-object)
-    (pp-plans::park-arms)
+    (exe:perform (desig:an action
+                           (type positioning-arm)
+                           (left-configuration park)
+                           (right-configuration park)))
     ;; (exe:perform (desig:a motion (type moving-torso) (joint-angle 0.15)))
 
     (cpl:with-failure-handling
@@ -121,8 +101,11 @@
            (btr-utils:spawn-object 'red-dot :pancake-maker :color '(1 0 0 0.5)
                                                            :pose '((1.5 -1.05 1.6) (0 0 0 1)))
            (cpl:sleep 0.5)
-           (exe:perform (desig:an action (type opening) (gripper right)))
-           (pp-plans::park-arms)
+           (exe:perform (desig:an action (type opening-gripper) (gripper right)))
+           (exe:perform (desig:an action
+                                  (type positioning-arm)
+                                  (left-configuration park)
+                                  (right-configuration park)))
            (move-projected-pr2-away)
            (unless location-designator
              (setf ?location-for-robot (desig:next-solution ?location-for-robot)))
@@ -134,7 +117,7 @@
         (exe:perform
          (desig:an action (type going) (target ?location-for-robot)))
         (exe:perform
-         (desig:an action (type opening) (gripper ?arm))))
+         (desig:an action (type opening-gripper) (gripper ?arm))))
 
       (let ((?right-arm-init-config '(-0.6177226607749531d0 0.8595855682477204d0
                                       -0.22685404643554485d0 -2.1215879821638572d0
@@ -143,7 +126,7 @@
         (exe:perform
          (desig:a motion
                   (type moving-arm-joints)
-                  (right-configuration ?right-arm-init-config))))
+                  (right-joint-states ?right-arm-init-config))))
 
       (let ((?trajectory
               (gripper-trajectory-in-map->in-base
@@ -167,7 +150,7 @@
               (exe:perform
                (desig:a motion
                         (type moving-tcp)
-                        (?target (desig:a location (pose ?pose))))))))
+                        (?target ?pose))))))
         (exe:perform
          (desig:an action (type gripping) (gripper ?arm) (effort 100)))
 
@@ -182,11 +165,11 @@
                       (exe:perform
                        (desig:a motion
                                 (type moving-tcp)
-                                (?target (desig:a location (pose ?pose))))))))
+                                (?target ?pose))))))
                 (cdr ?trajectory))
 
         (exe:perform
-         (desig:an action (type opening) (gripper ?arm)))
+         (desig:an action (type opening-gripper) (gripper ?arm)))
 
         (btr-utils:spawn-object 'green-dot :pancake-maker :color '(0 1 0 0.5)
                                                           :pose '((1.5 -1.05 1.6) (0 0 0 1)))
@@ -198,7 +181,7 @@
         (exe:perform
          (desig:a motion
                   (type moving-arm-joints)
-                  (right-configuration ?right-arm-init-config))))
+                  (right-joint-states ?right-arm-init-config))))
 
         ?location-for-robot))))
 

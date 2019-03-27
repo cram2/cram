@@ -31,7 +31,6 @@
 
 ;; roslaunch cram_boxy_assembly_demo sandbox.launch
 
-(defvar *robot-urdf* nil)
 (defvar *kitchen-urdf* nil)
 (defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
@@ -39,8 +38,8 @@
 (defun setup-bullet-world ()
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
 
-  (let ((robot (or *robot-urdf*
-                   (setf *robot-urdf*
+  (let ((robot (or rob-int:*robot-urdf*
+                   (setf rob-int:*robot-urdf*
                          (cl-urdf:parse-urdf
                           (roslisp:get-param *robot-parameter*)))))
         (kitchen (or *kitchen-urdf*
@@ -51,20 +50,20 @@
                                                kitchen-urdf-string)))))))
     ;; set Boxy URDF root link to be base_footprint not odom,
     ;; as with odom lots of problems concerning object-pose in bullet happen
-    (setf (slot-value *robot-urdf* 'cl-urdf:root-link)
+    (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
           (or (gethash cram-tf:*robot-base-frame*
-                       (cl-urdf:links cram-boxy-assembly-demo::*robot-urdf*))
+                       (cl-urdf:links rob-int:*robot-urdf*))
               (error "[setup-bullet-world] cram-tf:*robot-base-frame* was undefined or smt.")))
     ;; get rid of Boxy's camera obstacle thing, it's bad for visibility reasoning
     ;; it's an annoying hack anyway...
     ;; (setf (slot-value
     ;;        (gethash "neck_obstacle"
-    ;;                 (cl-urdf:links cram-boxy-assembly-demo::*robot-urdf*))
+    ;;                 (cl-urdf:links rob-int:*robot-urdf*))
     ;;        'cl-urdf:collision)
     ;;       NIL)
     ;; (setf (slot-value
     ;;        (gethash "neck_look_target"
-    ;;                 (cl-urdf:links cram-boxy-assembly-demo::*robot-urdf*))
+    ;;                 (cl-urdf:links rob-int:*robot-urdf*))
     ;;        'cl-urdf:collision)
     ;;       NIL)
 
@@ -76,11 +75,11 @@
                 (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
                                                          :normal (0 0 1) :constant 0))
                 (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                           :collision-group :static-filter
-                                           :collision-mask (:default-filter :character-filter)
-                                           ,@(when kitchen
-                                               `(:urdf ,kitchen))
-                                           :compound T))
+                                                 :collision-group :static-filter
+                                                 :collision-mask (:default-filter
+                                                                  :character-filter)
+                                                 :urdf ,kitchen
+                                                 :compound T))
                 (-> (cram-robot-interfaces:robot ?robot)
                     (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))
                     (warn "ROBOT was not defined. Have you loaded a robot package?")))))))
@@ -88,9 +87,7 @@
   (let ((robot-object (btr:get-robot-object)))
     (if robot-object
         (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
-        (warn "ROBOT was not defined. Have you loaded a robot package?")))
-
-  (btr-utils:move-robot '((-2.3 1.5 0) (0 0 0 1))))
+        (warn "ROBOT was not defined. Have you loaded a robot package?"))))
 
 (defun init-projection ()
   (def-fact-group costmap-metadata ()

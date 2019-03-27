@@ -19,8 +19,8 @@
   <depend>cram_designator_specification</depend>
   <depend>cram_common_failures</depend>
   <depend>cram_plan_occasions_events</depend>
-  <depend>cram_object_interfaces</depend>
-  <depend>cram_knowrob_assembly</depend>
+  <depend>cram_manipulation_interfaces</depend>
+  <depend>cram_object_knowledge</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cl_transforms</depend>
 </package>

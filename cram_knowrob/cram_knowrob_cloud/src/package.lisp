@@ -31,7 +31,7 @@
 
 (defpackage cram-knowrob-cloud
   (:nicknames #:kr-cloud)
-  (:use #:common-lisp ;; #:cram-object-interfaces
+  (:use #:common-lisp ;; #:cram-manipulation-interfaces
         )
   (:export
    ;; cloud-connection

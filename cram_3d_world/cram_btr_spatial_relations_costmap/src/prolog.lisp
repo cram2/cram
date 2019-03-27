@@ -368,7 +368,10 @@
     (once (or (desig:desig-prop ?designator (:for ?_))
               (costmap:costmap-add-cached-height-generator
                (make-object-bounding-box-height-generator ?environment-link :on)
-               ?costmap))))
+               ?costmap)))
+    (costmap:costmap-add-orientation-generator
+     (make-discrete-orientations-generator)
+     ?costmap))
 
 ;; height generator for locations ((on something) (name something) (for some-obj))
   (<- (costmap:desig-costmap ?designator ?costmap)
@@ -391,7 +394,7 @@
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:in ?object))
     (spec:property ?object (:type ?object-type))
-    (obj-int:object-type-subtype :container ?object-type)
+    (man-int:object-type-subtype :container ?object-type)
     (spec:property ?object (:urdf-name ?urdf-name))
     (spec:property ?object (:part-of ?environment-name))
     (btr:bullet-world ?world)

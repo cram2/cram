@@ -29,34 +29,34 @@
 
 (in-package :boxy-pm)
 
-;;;;;;;;;;;;;;;;;;;; BASE ;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cpm:def-process-module base-pm (motion-designator)
-  (destructuring-bind (command argument)
-      (desig:reference motion-designator)
-    (ecase command
-      (boxy-desig:move-base
-       (boxy-ll:move-base-nav-pcontroller :goal-pose argument)))))
+;; (cpm:def-process-module torso-pm (motion-designator)
+;;   (destructuring-bind (command argument) (desig:reference motion-designator)
+;;     (ecase command
+;;       (cram-common-designators:move-torso
+;;        (handler-case
+;;            (boxy-ll:move-torso :goal-position argument))))))
 
 ;;;;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module neck-pm (motion-designator)
-  (destructuring-bind (command argument)
+  (destructuring-bind (command goal-pose goal-configuration)
       (desig:reference motion-designator)
+    (declare (ignore goal-pose))
     (ecase command
-      (boxy-desig:move-neck
-       (boxy-ll:move-neck-joint :goal-configuration argument)))))
+      (cram-common-designators:move-head
+       (boxy-ll:move-neck-joints :goal-configuration goal-configuration)))))
 
 ;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module grippers-pm (motion-designator)
-  (destructuring-bind (command action-type which-gripper &optional position effort)
+  (destructuring-bind (command action-type-or-position which-gripper &optional effort)
       (desig:reference motion-designator)
     (ecase command
-      (boxy-desig:move-gripper-joint
-       (boxy-ll:move-gripper-joint :action-type action-type
+      (cram-common-designators:move-gripper-joint
+       (boxy-ll:move-gripper-joint :action-type-or-position action-type-or-position
                                    :left-or-right which-gripper
-                                   :goal-position position
                                    :effort effort)))))
 
 ;;;;;;;;;;;;;;;;;;;; BODY ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -67,12 +67,12 @@
              (if (> desired-length current-length)
                  (append some-list (make-list (- desired-length current-length)))
                  some-list))))
-    (destructuring-bind (command argument-1 argument-2 &optional argument-3)
+    (destructuring-bind (command argument-1 &rest rest-arguments)
         (desig:reference motion-designator)
       (ecase command
-        (boxy-desig:move-tcp
+        (cram-common-designators:move-tcp
          (let ((goal-left argument-1)
-               (goal-right argument-2))
+               (goal-right (car rest-arguments)))
            (progn
              (unless (listp goal-left)
                (setf goal-left (list goal-left)))
@@ -82,12 +82,10 @@
                (mapc (lambda (single-pose-left single-pose-right)
                        (cram-tf:visualize-marker (list single-pose-left single-pose-right)
                                                   :r-g-b-list '(1 0 1))
-                       (boxy-ll:move-arms-giskard-cartesian :goal-pose-left single-pose-left
-                                                            :goal-pose-right single-pose-right))
+                       (boxy-ll:move-arm-cartesian :goal-pose-stamped-left single-pose-left
+                                                   :goal-pose-stamped-right single-pose-right))
                      (fill-in-with-nils goal-left max-length)
                      (fill-in-with-nils goal-right max-length))))))
-        (boxy-desig:move-arm-joints
-         (boxy-ll:move-arms-giskard-joint :goal-configuration-left argument-1
-                                          :goal-configuration-right argument-2))
-        (boxy-desig:move-tcp-wiggle
-         (boxy-ll:move-arm-wiggle-until-wrench-too-high :arm argument-1 :goal-pose argument-2))))))
+        (cram-common-designators:move-joints
+         (boxy-ll:move-arm-joints :goal-joint-states-left argument-1
+                                  :goal-joint-states-right (car rest-arguments)))))))

@@ -75,45 +75,46 @@
 
 ;;;;;;;;;;;; end of goal convergence fluent ;;;;;;;;;;;;;;
 
-(defun ensure-gripper-input-parameters (action-type position effort)
+(defun ensure-gripper-input-parameters (action-type-or-position effort)
   (let ((position
-          (cond
-            (position
+          (etypecase action-type-or-position
+            (number
              (cond
-               ((< position *gripper-minimal-position*)
+               ((< action-type-or-position *gripper-minimal-position*)
                 (roslisp:ros-warn (gripper-action)
                                   "POSITION (~a) cannot be < ~a. Clipping."
-                                  position *gripper-minimal-position*)
+                                  action-type-or-position *gripper-minimal-position*)
                 *gripper-minimal-position*)
-               ((> position *gripper-maximal-position*)
+               ((> action-type-or-position *gripper-maximal-position*)
                 (roslisp:ros-warn (gripper-action)
                                   "POSITION (~a) shouldn't be > ~a. Clipping."
-                                  position *gripper-maximal-position*)
+                                  action-type-or-position *gripper-maximal-position*)
                 *gripper-maximal-position*)
                (t
-                position)))
-            (action-type
-             (ecase action-type
+                action-type-or-position)))
+            (keyword
+             (ecase action-type-or-position
                (:open *gripper-maximal-position*)
                (:close *gripper-minimal-position*)
                (:grip *gripper-minimal-position*)))))
         (effort
           (or effort
-              (cond
-                (position 30.0)
-                (action-type (ecase action-type
-                               (:open 30.0)
-                               (:close 30.0)
-                               (:grip 15.0)))))))
+              (etypecase action-type-or-position
+                (number 30.0)
+                (keyword (ecase action-type-or-position
+                           (:open 30.0)
+                           (:close 30.0)
+                           (:grip 15.0)))))))
     (values position effort)))
 
-(defun move-gripper-joint (&key action-type left-or-right goal-position effort)
+(defun move-gripper-joint (&key action-type-or-position left-or-right effort)
   (declare (type (or keyword list) left-or-right)
-           (type (or null number) goal-position effort))
+           (type (or null number) effort)
+           (type (or null number keyword) action-type-or-position))
   "`goal-position' is in meters."
 
   (multiple-value-bind (goal-position effort)
-      (ensure-gripper-input-parameters action-type goal-position effort)
+      (ensure-gripper-input-parameters action-type-or-position effort)
     (roslisp:publish
      (getf *gripper-publishers* left-or-right)
      (roslisp::make-message
@@ -125,22 +126,21 @@
     (cpl:sleep 1.0)
 
     (flet ((goal-reached (state-msg)
-             (if (eql action-type :grip)
-                 (< (abs (car (joint-velocities '("left_gripper_joint") state-msg)))
+             (if (eql action-type-or-position :grip)
+                 (< (abs (car (joints:joint-velocities '("left_gripper_joint") state-msg)))
                     *gripper-velocity-convergence-delta*)
-                 (< (abs (- (car (joint-positions '("left_gripper_joint") state-msg))
+                 (< (abs (- (car (joints:joint-positions '("left_gripper_joint") state-msg))
                             goal-position))
                     *gripper-convergence-delta*))))
 
-      (let ((reached-fluent (cpl:fl-funcall #'goal-reached *robot-joint-states-msg*)))
+      (let ((reached-fluent (cpl:fl-funcall #'goal-reached joints::*robot-joint-states-msg*)))
         (cpl:pursue
           (cpl:wait-for reached-fluent)
           (cpl:seq
             (cpl:sleep *gripper-action-timeout*)
             (cpl:fail 'common-fail:gripper-goal-not-reached
                       :description (format nil "gripper did not reach goal: is ~a, should be ~a."
-                                           (car (joint-positions '("left_gripper_joint")
-                                                                 *robot-joint-states-msg*))
+                                           (car (joints:joint-positions '("left_gripper_joint")))
                                            goal-position))))))))
 
 ;; speed can be up to 60

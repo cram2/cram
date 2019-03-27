@@ -91,6 +91,13 @@
      (cl-transforms:make-3d-vector x y z)
      (cl-transforms:make-quaternion q1 q2 q3 w))))
 
+(defun flat-list->transform (pose-list)
+  (destructuring-bind (x y z q1 q2 q3 w)
+      pose-list
+    (cl-transforms:make-transform
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
+
 (defun flat-list-w-first->pose (pose-list)
   (destructuring-bind (x y z w q1 q2 q3)
       pose-list
@@ -110,12 +117,11 @@
   (when pose
     (cl-transforms-stamped:transform-pose-stamped
      *transformer*
-     :pose (cl-transforms-stamped:ensure-pose-stamped
-            (if use-zero-time
-                (cl-transforms-stamped:copy-pose-stamped pose :stamp 0.0)
-                pose)
-            frame
-            0.0)
+     :pose (let ((pose-stamped
+                   (cl-transforms-stamped:ensure-pose-stamped pose frame 0.0)))
+             (if use-zero-time
+                 (cl-transforms-stamped:copy-pose-stamped pose-stamped :stamp 0.0)
+                 pose-stamped))
      :target-frame frame
      :timeout *tf-default-timeout*
      :use-current-ros-time use-current-ros-time)))
@@ -286,3 +292,26 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
    (cl-transforms-stamped:child-frame-id right-hand-side-transform)
    left-hand-side-transform
    right-hand-side-transform))
+
+
+(defun values-converged (values goal-values deltas)
+  (flet ((value-converged (value goal-value delta)
+           (<= (abs (- value goal-value)) delta)))
+    ;; correct arguments
+    (if (listp values)
+        (if (or (atom goal-values)
+                (not (= (length values) (length goal-values))))
+            (error "GOAL-VALUES (~a) and VALUES (~a) should be of same length."
+                   goal-values values)
+            (if (atom deltas)
+                (setf deltas (make-list (length values) :initial-element deltas))
+                (unless (= (length values) (length deltas))
+                  (error "DELTAS (~a) and VALUES (~a) should be of same length."
+                         deltas values))))
+        (if (or (listp goal-values) (listp deltas))
+            (error "All arguments should be of same length")
+            (setf values (list values)
+                  goal-values (list goal-values)
+                  deltas (list deltas))))
+    ;; actually compare
+    (every #'value-converged values goal-values deltas)))

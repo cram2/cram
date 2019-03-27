@@ -48,8 +48,8 @@
 
                cram-common-failures
                cram-mobile-pick-place-plans
+               cram-object-knowledge
 
-               cram-knowrob-pick-place
                cram-cloud-logger
 
                cram-physics-utils     ; for reading "package://" paths
@@ -78,4 +78,7 @@
      (:file "setup" :depends-on ("package"))
      (:file "costmaps" :depends-on ("package"))
      (:file "projection-demo" :depends-on ("package" "costmaps"))
-     (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))))))
+     (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))
+     (:file "data-generation-script" :depends-on ("package" "projection-demo" "costmaps"))
+     (:file "data-generation-plan" :depends-on ("package" "demo"))
+     (:file "evaluation-plan" :depends-on ("package" "demo"))))))

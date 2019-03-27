@@ -91,10 +91,6 @@
        ?exclude-generator-id
        (make-range-cost-function ?pose ?minimal-distance :invert t)
        ?cm)))
-    (costmap-add-function
-     pose-distribution
-     (make-gauss-cost-function ?mean ?covariance)
-     ?cm)
     (costmap:orientation-samples ?samples)
     (costmap:orientation-sample-step ?sample-step)
     (costmap-add-orientation-generator

@@ -34,19 +34,8 @@
   (:use #:common-lisp #:cram-tf)
   (:export
    ;; actionlib actions
-   #:call-giskard-cartesian-action
-   #:call-giskard-joint-action
    #:call-gripper-action
    #:call-joint-trajectory-action
    #:call-joint-angle-action
-   #:call-nav-pcontroller-action
    #:call-ptu-action
-   #:call-torso-action
-   ;; #:call-robosherlock-service
-   ;; joint-states
-   #:joint-states
-   #:joint-positions
-   #:get-arm-joint-states
-   #:normalize-joint-angles
-   ;; low-level-common
-   #:values-converged))
+   #:call-torso-action))

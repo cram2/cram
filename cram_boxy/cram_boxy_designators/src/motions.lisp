@@ -39,61 +39,6 @@
 
 (def-fact-group boxy-motion-designators (desig:motion-grounding)
 
-  ;;;;;;;;;;;;;;;;;;;; BASE ;;;;;;;;;;;;;;;;;;;;;;;;
-
-  (<- (desig:motion-grounding ?designator (move-base goal-pose))
-    (property ?designator (:type :going))
-    (property ?designator (:target ?location-designator))
-    (desig:designator-groundings ?location-designator ?poses)
-    (member ?pose ?poses))
-
-  ;;;;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;
-
-  (<- (desig:motion-grounding ?designator (move-neck ?joint-angles-list))
-    (property ?designator (:type :looking))
-    (property ?designator (:configuration ?joint-angles-list)))
-
-  ;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
-
-  (<- (desig:motion-grounding ?designator (move-gripper-joint :open ?which-gripper))
-    (property ?designator (:type :opening))
-    (property ?designator (:gripper ?which-gripper)))
-
-  (<- (desig:motion-grounding ?designator (move-gripper-joint :close ?which-gripper))
-    (property ?designator (:type :closing))
-    (property ?designator (:gripper ?which-gripper)))
-
-  (<- (desig:motion-grounding ?designator (move-gripper-joint :grip ?which-gripper NIL ?effort))
-    (property ?designator (:type :gripping))
-    (property ?designator (:gripper ?which-gripper))
-    (once (or (property ?designator (:effort ?effort))
-              (equal ?effort nil))))
-
-  (<- (desig:motion-grounding ?designator (move-gripper-joint nil ?which-gripper ?position NIL))
-    (property ?designator (:type :moving-gripper-joint))
-    (property ?designator (:gripper ?which-gripper))
-    (property ?designator (:joint-angle ?position)))
-
-  ;;;;;;;;;;;;;;;;;;;; ARM WITH TORSO ;;;;;;;;;;;;;;;;;;;;;;;;
-
-  (<- (desig:motion-grounding ?designator (move-tcp ?left-pose ?right-pose))
-    (property ?designator (:type :moving-tcp))
-    (-> (property ?designator (:left-target ?left-location))
-        (and (desig:designator-groundings ?left-location ?left-poses)
-             (member ?left-pose ?left-poses))
-        (equal ?left-pose nil))
-    (-> (property ?designator (:right-target ?right-location))
-        (and (desig:designator-groundings ?right-location ?right-poses)
-             (member ?right-pose ?right-poses))
-        (equal ?right-pose nil)))
-
-  (<- (desig:motion-grounding ?designator (move-arm-joints ?left-config ?right-config))
-    (property ?designator (:type :moving-arm-joints))
-    (once (or (property ?designator (:left-configuration ?left-config))
-              (equal ?left-config nil)))
-    (once (or (property ?designator (:right-configuration ?right-config))
-              (equal ?right-config nil))))
-
   (<- (desig:motion-grounding ?designator (move-tcp-wiggle ?arm ?pose))
     (property ?designator (:type :wiggling-tcp))
     (property ?designator (:arm ?arm))

@@ -51,6 +51,14 @@
 ;;;     (loop do (format t "Main loop cycle.~%")
 ;;;              (sleep 2))))
 
+;;; Working example of a timeout policy:
+;; (define-policy timeout-policy (time)
+;;   "Policy that executes the given `body' code until either that code
+;; finishes or a given time `time' in seconds has passed. If the timeout
+;; is reached before the end of `body', the `policy-check-condition-met'
+;; condition is signalled."
+;;   (:check (sleep* time) t))
+
 (defclass policy ()
   ((name :reader name :initarg :name)
    (parameters :reader parameters :initarg :parameters)

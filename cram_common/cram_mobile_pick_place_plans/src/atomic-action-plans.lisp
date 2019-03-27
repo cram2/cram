@@ -29,7 +29,7 @@
 
 (in-package :pp-plans)
 
-(cpl:def-cram-function go-to-target (?location-designator)
+(cpl:def-cram-function go-to-target (?pose-stamped)
   (unwind-protect
        (cpl:with-retry-counters ((nav-retries 0))
          (cpl:with-failure-handling
@@ -41,7 +41,7 @@
                   (roslisp:ros-warn (pick-and-place go) "Retrying...")
                   (cpl:retry))))
            (exe:perform
-            (desig:a motion (type going) (target ?location-designator)))))
+            (desig:a motion (type going) (pose ?pose-stamped)))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
@@ -80,7 +80,12 @@
           resulting-designator)))))
 
 
-(cpl:def-cram-function move-arms-in-sequence (left-poses right-poses &optional ?collision-mode)
+(cpl:def-cram-function move-arms-in-sequence (left-poses right-poses
+                                                         &optional
+                                                         ?collision-mode
+                                                         ?collision-object-b
+                                                         ?collision-object-b-link
+                                                         ?collision-object-a)
   "Make `?left-poses' and `?right-poses' to lists if they are not already"
 
   (flet ((fill-in-with-nils (some-list desired-length)
@@ -108,11 +113,17 @@
                  (desig:a motion
                           (type moving-tcp)
                           (desig:when ?left-pose
-                            (left-target (desig:a location (pose ?left-pose))))
+                            (left-pose ?left-pose))
                           (desig:when ?right-pose
-                            (right-target (desig:a location (pose ?right-pose))))
+                            (right-pose ?right-pose))
                           (desig:when ?collision-mode
-                            (collision-mode ?collision-mode))))
+                            (collision-mode ?collision-mode))
+                          (desig:when ?collision-object-b
+                            (collision-object-b ?collision-object-b))
+                          (desig:when ?collision-object-b-link
+                            (collision-object-b-link ?collision-object-b-link))
+                          (desig:when ?collision-object-a
+                            (collision-object-a ?collision-object-a))))
 
                 (cram-occasions-events:on-event
                  (make-instance 'cram-plan-occasions-events:robot-state-changed))))
@@ -133,78 +144,49 @@
          (desig:a motion
                   (type moving-tcp)
                   (desig:when ?left-pose
-                    (left-target (desig:a location (pose ?left-pose))))
+                    (left-pose ?left-pose))
                   (desig:when ?right-pose
-                    (right-target (desig:a location (pose ?right-pose))))
+                    (right-pose ?right-pose))
                   (desig:when ?collision-mode
-                    (collision-mode ?collision-mode))))
+                    (collision-mode ?collision-mode))
+                  (desig:when ?collision-object-b
+                    (collision-object-b ?collision-object-b))
+                  (desig:when ?collision-object-b-link
+                    (collision-object-b-link ?collision-object-b-link))
+                  (desig:when ?collision-object-a
+                    (collision-object-a ?collision-object-a))))
 
         (cram-occasions-events:on-event
          (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
 
 
-(cpl:def-cram-function park-arms (&key (arm '(:left :right)) (carry t))
-  (let ((carry?
-          (or (prolog:prolog `(cpoe:object-in-hand ?obj ?arm))
-              carry)))
-   (flet ((get-arm-parking-joint-states (arm)
-            (let* ((bindings
-                     (if carry?
-                         (prolog:prolog
-                          `(and (cram-robot-interfaces:robot ?robot)
-                                (cram-robot-interfaces:robot-arms-carrying-joint-states
-                                 ?robot ?joint-states ,arm)))
-                         (prolog:prolog
-                          `(and (cram-robot-interfaces:robot ?robot)
-                                (cram-robot-interfaces:robot-arms-parking-joint-states
-                                 ?robot ?joint-states ,arm)))))
-                   (joint-states (cut:var-value '?joint-states (car bindings))))
-              (unless joint-states
-                (error "ROBOT-ARMS-PARKING-JOINT-STATES undefined! ~
-                        Did you forget to load a robot description package?"))
-              (mapcar #'second joint-states))))
+(cpl:def-cram-function move-arms-into-configuration (?left-joint-states ?right-joint-states)
+  (unwind-protect
+       (cpl:with-failure-handling
+           ((common-fail:manipulation-low-level-failure (e)
+              (roslisp:ros-warn (mobile-pp-plans move-arms-into-configuration)
+                                "A low-level manipulation failure happened: ~a~%Ignoring." e)
+              (return)))
 
-     (unless (listp arm)
-       (setf arm (list arm)))
-     (let (?left-configuration ?right-configuration)
-       (when (member :left arm)
-         (setf ?left-configuration (get-arm-parking-joint-states :left)))
-       (when (member :right arm)
-         (setf ?right-configuration (get-arm-parking-joint-states :right)))
-
-       (unwind-protect
-            (cpl:with-failure-handling
-                ((common-fail:manipulation-low-level-failure (e)
-                   (roslisp:ros-warn (pick-and-place park-arms)
-                                     "A low-level manipulation failure happened: ~a~%Ignoring." e)
-                   (return)))
-
-              (if carry?
-                  (exe:perform
-                     (desig:a motion
-                              (type moving-arm-joints)
-                              (left-configuration ?left-configuration)
-                              (right-configuration ?right-configuration)))
-                  ;; (cpl:seq
-                  ;;   (exe:perform
-                  ;;    (desig:a motion
-                  ;;             (type moving-arm-joints)
-                  ;;             (right-configuration ?right-configuration)))
-                  ;;   (exe:perform
-                  ;;    (desig:a motion
-                  ;;             (type moving-arm-joints)
-                  ;;             (left-configuration ?left-configuration))))
-                  (cpl:seq
-                    (exe:perform
-                     (desig:a motion
-                              (type moving-arm-joints)
-                              (left-configuration ?left-configuration)))
-                    (exe:perform
-                     (desig:a motion
-                              (type moving-arm-joints)
-                              (right-configuration ?right-configuration))))))
-         (cram-occasions-events:on-event
-          (make-instance 'cram-plan-occasions-events:robot-state-changed)))))))
+         (exe:perform
+          (desig:a motion
+                   (type moving-arm-joints)
+                   (desig:when ?left-joint-states
+                     (left-joint-states ?left-joint-states))
+                   (desig:when ?right-joint-states
+                     (right-joint-states ?right-joint-states))))
+         ;; (cpl:seq
+         ;;   (exe:perform
+         ;;    (desig:a motion
+         ;;             (type moving-arm-joints)
+         ;;             (right-joint-states ?right-configuration)))
+         ;;   (exe:perform
+         ;;    (desig:a motion
+         ;;             (type moving-arm-joints)
+         ;;             (left-joint-states ?left-configuration))))
+         )
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
 (cpl:def-cram-function release (?left-or-right)
@@ -215,7 +197,7 @@
               (return)))
          (exe:perform
           (desig:a motion
-                   (type opening)
+                   (type opening-gripper)
                    (gripper ?left-or-right))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
@@ -266,8 +248,9 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
-(cpl:def-cram-function look-at (&key target frame direction object)
+(cpl:def-cram-function look-at (&key pose joint-states)
   (unwind-protect
+
        (cpl:with-retry-counters ((look-retries 1))
          (cpl:with-failure-handling
              ((common-fail:ptu-low-level-failure (e)
@@ -276,29 +259,15 @@
                   (roslisp:ros-warn (pp-plans look-at) "Retrying.")
                   (cpl:retry)))))
 
-         (cond (target
-                (let ((?target target))
-                  (exe:perform
-                   (desig:a motion
-                            (type looking)
-                            (target ?target)))))
-               (frame
-                (let ((?frame frame))
-                  (exe:perform
-                   (desig:a motion
-                            (type looking)
-                            (frame ?frame)))))
-               (direction
-                (let ((?direction direction))
-                  (exe:perform
-                   (desig:a motion
-                            (type looking)
-                            (direction ?direction)))))
-               (object
-                (let ((?pose (cram-object-interfaces:get-object-pose object)))
-                  (exe:perform
-                   (desig:a motion
-                            (type looking)
-                            (target (desig:a location (pose ?pose)))))))))
+         (let ((?pose pose)
+               (?joint-states joint-states))
+           (exe:perform
+            (desig:a motion
+                     (type looking)
+                     (desig:when ?pose
+                       (pose ?pose))
+                     (desig:when ?joint-states
+                       (joint-states ?joint-states))))))
+
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))

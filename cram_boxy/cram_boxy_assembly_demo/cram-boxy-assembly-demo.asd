@@ -49,8 +49,8 @@
 
                cram-common-failures
                cram-mobile-pick-place-plans
-
-               cram-knowrob-assembly
+               cram-robot-interfaces ; for *robot-urdf*
+               cram-object-knowledge
                ;; cram-robosherlock
 
                cram-physics-utils ; for reading "package://" paths
@@ -60,17 +60,21 @@
                cram-bullet-reasoning-utilities
                cram-btr-visibility-costmap
 
-               cram-semantic-map-costmap
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap
+               cram-manipulation-interfaces ; for standard rotations
 
                cram-boxy-projection      ; for with-simulated-robot
                cram-boxy-description
                ;; cram-boxy-low-level
                cram-process-modules
                ;; cram-boxy-process-modules
-               cram-boxy-plans)
+               cram-boxy-plans
+
+               ;; real robot
+               cram-robosherlock
+               )
 
   :components
   ((:module "src"
