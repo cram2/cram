@@ -58,6 +58,9 @@
     (man-int:object-type-subtype :container ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
+    (-> (spec:property ?container-designator (:handle-axis ?handle-axis))
+        (true)
+        (lisp-fun get-handle-axis ?container-designator ?handle-axis))
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
@@ -67,8 +70,8 @@
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
     (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
-    (lisp-fun roslisp-utilities:lispify-ros-underscore-name ?handle-link-string :keyword
-              ?handle-link)
+    (lisp-fun roslisp-utilities:lispify-ros-underscore-name
+              ?handle-link-string :keyword ?handle-link)
     (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
     ;; environment
@@ -79,7 +82,9 @@
     (equal ?objects (?container-designator))
     (-> (== ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory :opening :left :open
-                       ?objects :opening-distance ?distance ?left-trajectory)
+                       ?objects :opening-distance ?distance
+                       :handle-axis ?handle-axis
+                       ?left-trajectory)
              (lisp-fun man-int:make-empty-trajectory
                        (:reaching :grasping :opening :retracting)
                        ?right-trajectory))
@@ -87,7 +92,9 @@
                        (:reaching :grasping :opening :retracting)
                        ?left-trajectory)
              (lisp-fun man-int:get-action-trajectory :opening :right :open
-                       ?objects :opening-distance ?distance ?right-trajectory))))
+                       ?objects :opening-distance ?distance
+                       :handle-axis ?handle-axis
+                       ?right-trajectory))))
 
   (<- (desig:action-grounding ?action-designator (close-container ?arm
                                                                   ?gripper-opening
@@ -103,6 +110,9 @@
     (man-int:object-type-subtype :container ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
+    (-> (spec:property ?container-designator (:handle-axis ?handle-axis))
+        (true)
+        (lisp-fun get-handle-axis ?container-designator ?handle-axis))
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
@@ -112,8 +122,8 @@
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
     (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
-    (lisp-fun roslisp-utilities:lispify-ros-underscore-name ?handle-link-string :keyword
-              ?handle-link)
+    (lisp-fun roslisp-utilities:lispify-ros-underscore-name
+              ?handle-link-string :keyword ?handle-link)
     (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
     ;; environment
@@ -124,7 +134,10 @@
     (equal ?objects (?container-designator))
     (-> (== ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory :closing :left :close
-                       ?objects :opening-distance ?distance ?left-trajectory)
+                       ?objects
+                       :opening-distance ?distance
+                       :handle-axis ?handle-axis
+                       ?left-trajectory)
              (lisp-fun man-int:make-empty-trajectory
                        (:reaching :grasping :closing :retracting)
                        ?right-trajectory))
@@ -132,4 +145,6 @@
                        (:reaching :grasping :closing :retracting)
                        ?left-trajectory)
              (lisp-fun man-int:get-action-trajectory :closing :right :close
-                       ?objects :opening-distance ?distance ?right-trajectory)))))
+                       ?objects :opening-distance ?distance
+                       :handle-axis ?handle-axis
+                       ?right-trajectory)))))

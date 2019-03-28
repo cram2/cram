@@ -155,3 +155,30 @@
                  (get-urdf-link-pose (cl-urdf:name (cl-urdf:child joint)) btr-environment))
               )))
            joint))))))
+
+(defun get-handle-axis (container-designator)
+  ;; Check for exceptions based on name.
+  (let ((name-exception
+          (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
+                               (desig:desig-prop-value
+                                container-designator :urdf-name))
+                              :test 'equal)
+            ("oven_area_area_left_drawer_main"
+             (cl-transforms:make-3d-vector 0 0 1))
+            ("oven_area_area_right_drawer_main"
+             (cl-transforms:make-3d-vector 0 0 1)))))
+    (if name-exception
+        name-exception
+        ;; Use prolog to find out which supertype fits.
+        (alexandria:switch
+            ((desig:desig-prop-value container-designator :type)
+             :test (lambda (type super)
+                     (prolog:prolog `(man-int:object-type-subtype ,super ,type))))
+          (:container-prismatic (cl-transforms:make-3d-vector 1 0 0))
+          (:container-revolute (cl-transforms:make-3d-vector 0 0 1))
+          (T (progn
+               (roslisp:ros-warn (environment-manipulation get-handle-axis)
+                                 "Could not get a handle-axis for ~a
+Using a default (1 0 0)."
+                                         container-designator)
+               (cl-transforms:make-3d-vector 1 0 0)))))))

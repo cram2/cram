@@ -120,9 +120,10 @@
                                                    grasp
                                                    objects-acted-on
                                                    &key
-                                                     opening-distance)
+                                                     opening-distance
+                                                     handle-axis)
   "Raise an error if object count is not right."
-  (declare (ignore arm grasp opening-distance))
+  (declare (ignore arm grasp opening-distance handle-axis))
   (when (not (eql 1 (length objects-acted-on)))
     (error (format nil "Action-type ~a requires exactly one object.~%" action-type))))
 
@@ -131,16 +132,36 @@
                                                    grasp
                                                    objects-acted-on
                                                    &key
-                                                     opening-distance)
+                                                     opening-distance
+                                                     handle-axis)
   "Raise an error if object count is not right."
-  (declare (ignore arm grasp opening-distance))
+  (declare (ignore arm grasp opening-distance handle-axis))
   (when (not (eql 1 (length objects-acted-on)))
     (error (format nil "Action-type ~a requires exactly one object.~%" action-type))))
+
+(defmethod man-int:get-action-trajectory ((action-type (eql :opening))
+                                           arm
+                                           grasp
+                                           objects-acted-on
+                                           &key
+                                             opening-distance
+                                             handle-axis)
+  (make-trajectory action-type arm objects-acted-on opening-distance handle-axis))
+
+(defmethod man-int:get-action-trajectory ((action-type (eql :closing))
+                                           arm
+                                           grasp
+                                           objects-acted-on
+                                           &key
+                                             opening-distance
+                                             handle-axis)
+  (make-trajectory action-type arm objects-acted-on opening-distance handle-axis))
 
 (defun make-trajectory (action-type
                         arm
                         objects-acted-on
-                        opening-distance)
+                        opening-distance
+                        handle-axis)
   "Make a trajectory for opening or closing a container.
    This should only be used by get-action-trajectory for action-types :opening and
    :closing."
@@ -153,9 +174,6 @@
          (object-type
            (desig:desig-prop-value
             object-designator :type))
-         (handle-axis
-           (desig:desig-prop-value
-            object-designator :handle-axis))
          (object-environment
            (desig:desig-prop-value
             object-designator :part-of))
@@ -170,7 +188,7 @@
             arm
             handle-axis
             object-environment)))
-    
+
     (alexandria:switch
         (object-type :test (lambda (?type ?super-type)
                              (prolog:prolog
@@ -199,10 +217,8 @@
                (list (cram-tf:translate-transform-stamped
                       grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
                (list grasp-pose)
-               
                (list (cram-tf:translate-transform-stamped
                       grasp-pose :x-offset opening-distance))
-               
                (list (cram-tf:translate-transform-stamped
                       grasp-pose :x-offset (+ opening-distance *drawer-handle-retract-offset*))))))
 
@@ -226,9 +242,7 @@
              (list (cram-tf:translate-transform-stamped
                     grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
              (list grasp-pose)
-             
              traj-poses
-
              (let ((last-traj-pose (car (last traj-poses))))
                (list (cram-tf:apply-transform
                       last-traj-pose
@@ -256,8 +270,7 @@
        (angle-max (cram-math:degrees->radians 80)))
   (let ((angle-step (if (>= angle-max 0)
                         0.1
-                        -0.1))
-        (gripper-to-joint (cram-tf:transform-stamped-inv joint-to-gripper)))
+                        -0.1)))
     (loop for angle = 0.0 then (+ angle angle-step)
           while (< (abs angle) (abs angle-max))
           collect
@@ -278,80 +291,3 @@
                       (cl-transforms:v*
                        axis
                        angle)))))))))
-
-;; (defun get-revolute-traj-poses (object-name btr-environment opening-angle grasp-pose)
-;;   (setf object-name (roslisp-utilities:rosify-underscores-lisp-name object-name))
-;;   (let* ((handle-name
-;;            (cl-urdf:name (get-handle-link object-name btr-environment)))
-;;          (handle-tf
-;;            (cl-transforms-stamped:transform->transform-stamped
-;;             cram-tf:*fixed-frame*
-;;             handle-name
-;;             0
-;;             (cl-transforms:pose->transform
-;;              (get-urdf-link-pose handle-name btr-environment))))
-;;          (container-tf
-;;            (cl-transforms-stamped:transform->transform-stamped
-;;             cram-tf:*fixed-frame*
-;;             object-name
-;;             0
-;;             (cl-transforms:pose->transform
-;;              (get-urdf-link-pose object-name btr-environment)))))
-;;     (calculate-handle-to-gripper-transforms handle-tf container-tf opening-angle)))
-
-;; (defun calculate-handle-to-gripper-transforms (map-to-handle map-to-joint
-;;                                                &optional (theta-max
-;;                                                           (cma:degrees->radians 70)))
-;;   (let* ((theta-step (if (>= theta-max 0)
-;;                          0.1
-;;                          -0.1))
-;;          (handle-to-joint
-;;            (cram-tf:apply-transform (cram-tf:transform-stamped-inv map-to-handle)
-;;                                     map-to-joint))
-;;          (joint-to-handle (cram-tf:transform-stamped-inv handle-to-joint)))
-;;     (mapcar (lambda (joint-to-circle-point)
-;;               (cram-tf:apply-transform
-;;                joint-to-handle
-;;                (cram-tf:pose-stamped->transform-stamped
-;;                 (cram-tf:rotate-pose
-;;                  (cram-tf:strip-transform-stamped
-;;                   (cram-tf:apply-transform handle-to-joint joint-to-circle-point))
-;;                  :x
-;;                  (cram-math:degrees->radians 0))
-;;                 (cl-transforms-stamped:child-frame-id joint-to-circle-point))))
-;;             (loop for theta = 0.0 then (+ theta-step theta)
-;;                   while (< (abs theta) (abs theta-max))
-;;                   collect
-;;                   (let ((rotation
-;;                           (cl-tf:axis-angle->quaternion
-;;                            (cl-transforms:make-3d-vector 0 0 1) theta)))
-;;                     (cl-transforms-stamped:make-transform-stamped
-;;                      (cl-transforms-stamped:frame-id joint-to-handle)
-;;                      cram-tf:*robot-right-tool-frame*
-;;                      (cl-transforms-stamped:stamp joint-to-handle)
-;;                      (cl-transforms:rotate rotation (cl-transforms:translation joint-to-handle))
-;;                      ;;(cl-transforms:make-identity-rotation)
-;;                      (cl-transforms:euler->quaternion
-;;                       :ax (/ pi 2) ;; bring it into position to grasp vertical handle
-;;                       :az (+ (/ pi -2) theta) ;; turn it while opening
-;;                       )
-;;                      ))))))
-
-
-  
-
-(defmethod man-int:get-action-trajectory ((action-type (eql :opening))
-                                           arm
-                                           grasp
-                                           objects-acted-on
-                                           &key
-                                             opening-distance)
-  (make-trajectory action-type arm objects-acted-on opening-distance))
-
-(defmethod man-int:get-action-trajectory ((action-type (eql :closing))
-                                           arm
-                                           grasp
-                                           objects-acted-on
-                                           &key
-                                             opening-distance)
-  (make-trajectory action-type arm objects-acted-on opening-distance))
