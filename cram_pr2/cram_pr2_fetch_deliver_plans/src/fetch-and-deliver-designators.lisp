@@ -54,21 +54,23 @@ the `look-pose-stamped'."
    (desig:reference target-designator)
    (cram-tf:robot-current-pose)))
 
+
+
+
 (def-fact-group fetch-and-deliver-designators (desig:action-grounding)
 
-
-
-
-  (<- (desig:action-grounding ?action-designator (go-without-collisions ?location-designator))
+  (<- (desig:action-grounding ?action-designator (go-without-collisions
+                                                  ?resolved-action-designator))
     (spec:property ?action-designator (:type :navigating))
     (spec:property ?action-designator (:location ?some-location-designator))
-    (desig:current-designator ?some-location-designator ?location-designator))
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (desig:designator :action ((:type :navigating)
+                               (:location ?location-designator))
+                      ?resolved-action-designator))
 
 
-
-
-  (<- (desig:action-grounding ?action-designator (turn-towards ?location-designator
-                                                               ?robot-location))
+  (<- (desig:action-grounding ?action-designator (turn-towards
+                                                  ?resolved-action-designator))
     (spec:property ?action-designator (:type :turning-towards))
     ;; target
     (spec:property ?action-designator (:target ?some-location-designator))
@@ -76,16 +78,15 @@ the `look-pose-stamped'."
     ;; robot-location
     (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
               ?robot-rotated-pose)
-    (desig:designator :location ((:pose ?robot-rotated-pose)) ?robot-location))
+    (desig:designator :location ((:pose ?robot-rotated-pose)) ?robot-location)
+    (desig:designator :action ((:type :turning-towards)
+                               (:target ?location-designator)
+                               (:robot-location ?robot-location))
+                      ?resolved-action-designator))
 
 
-
-
-  (<- (desig:action-grounding ?action-designator (manipulate-environment ?action-type
-                                                                         ?object-designator
-                                                                         ?arm
-                                                                         ?distance
-                                                                         ?robot-location))
+  (<- (desig:action-grounding ?action-designator (manipulate-environment
+                                                  ?resolved-action-designator))
     (or (spec:property ?action-designator (:type :accessing))
         (spec:property ?action-designator (:type :sealing)))
     (spec:property ?action-designator (:type ?action-type))
@@ -102,22 +103,25 @@ the `look-pose-stamped'."
              (cram-robot-interfaces:arm ?robot ?arm)
              (equal ?arm :left)))
     ;; distance
-    (or (spec:property ?action-designator (:distance ?distance))
-        (equal ?distance NIL))
+    (once (or (spec:property ?action-designator (:distance ?distance))
+              (equal ?distance NIL)))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-robot-location))
                    (desig:current-designator ?robot-location ?robot-location))
               (desig:designator :location ((:reachable-for cram-pr2-description:pr2)
                                            (:arm ?arm)
                                            (:object ?object-designator))
-                                ?robot-location))))
-
+                                ?robot-location)))
+    (desig:designator :action ((:type ?action-type)
+                               (:object ?object-designator)
+                               (:arm ?arm)
+                               (:distance ?distance)
+                               (:robot-location ?robot-location))
+                      ?resolved-action-designator))
 
 
   (<- (desig:action-grounding ?action-designator (search-for-object
-                                                  ?object-designator
-                                                  ?location-designator
-                                                  ?location-to-stand))
+                                                  ?resolved-action-designator))
     (spec:property ?action-designator (:type :searching))
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
@@ -130,15 +134,15 @@ the `look-pose-stamped'."
                    (desig:current-designator ?some-location-to-stand ?location-to-stand))
               (desig:designator :location ((:visible-for cram-pr2-description:pr2)
                                            (:location ?location-designator))
-                                ?location-to-stand))))
+                                ?location-to-stand)))
+    (desig:designator :action ((:type :searching)
+                               (:object ?object-designator)
+                               (:location ?location-designator)
+                               (:robot-location ?location-to-stand))
+                      ?resolved-action-designator))
 
 
-
-
-
-  (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?arms ?grasps
-                                                        ?robot-location-designator
-                                                        ?pick-up-action-designator))
+  (<- (desig:action-grounding ?action-designator (fetch ?resolved-action-designator))
     (spec:property ?action-designator (:type :fetching))
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
@@ -170,17 +174,17 @@ the `look-pose-stamped'."
     (once (or (desig:desig-prop ;; spec:property
                ?action-designator (:pick-up-action ?some-pick-up-action-designator))
               (equal ?some-pick-up-action-designator NIL)))
-    (desig:current-designator ?some-pick-up-action-designator ?pick-up-action-designator))
+    (desig:current-designator ?some-pick-up-action-designator ?pick-up-action-designator)
+    (desig:designator :action ((:type :fetching)
+                               (:object ?object-designator)
+                               (:arms ?arms)
+                               (:grasps ?grasps)
+                               (:robot-location ?robot-location-designator)
+                               (:pick-up-action ?pick-up-action-designator))
+                      ?resolved-action-designator))
 
 
-
-
-
-
-  (<- (desig:action-grounding ?action-designator (deliver ?object-designator ?arm
-                                                          ?location-designator
-                                                          ?robot-location-designator
-                                                          ?place-action-designator))
+  (<- (desig:action-grounding ?action-designator (deliver ?resolved-action-designator))
     (spec:property ?action-designator (:type :delivering))
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
@@ -201,22 +205,17 @@ the `look-pose-stamped'."
     (once (or (desig:desig-prop ;; spec:property
                ?action-designator (:place-action ?some-place-action-designator))
               (equal ?some-place-action-designator NIL)))
-    (desig:current-designator ?some-place-action-designator ?place-action-designator))
+    (desig:current-designator ?some-place-action-designator ?place-action-designator)
+    (desig:designator :action ((:type :delivering)
+                               (:object ?object-designator)
+                               (:arm ?arm)
+                               (:target ?location-designator)
+                               (:robot-location ?robot-location-designator)
+                               (:place-action ?place-action-designator))
+                      ?resolved-action-designator))
 
 
-
-
-
-  (<- (desig:action-grounding ?action-designator (transport
-                                                  ?object-designator
-                                                  ?search-location-designator
-                                                  ?search-robot-location-designator
-                                                  ?fetch-robot-location-designator
-                                                  ?arm ?grasp
-                                                  ?arms ?grasps
-                                                  ?delivering-location-designator
-                                                  ?deliver-robot-location-designator
-                                                  ?fetching-location-accessible))
+  (<- (desig:action-grounding ?action-designator (transport ?resolved-action-designator))
     (spec:property ?action-designator (:type :transporting))
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
@@ -263,4 +262,18 @@ the `look-pose-stamped'."
                           (:deliver-robot-location ?some-d-robot-loc-desig))
         (desig:current-designator ?some-d-robot-loc-desig
                                   ?deliver-robot-location-designator)
-        (equal ?deliver-robot-location-designator NIL))))
+        (equal ?deliver-robot-location-designator NIL))
+    ;; resulting action desig
+    (desig:designator :action ((:type :transporting)
+                               (:object ?object-designator)
+                               (:search-location ?search-location-designator)
+                               (:search-robot-location ?search-robot-location-designator)
+                               (:fetch-robot-location ?fetch-robot-location-designator)
+                               (:arm ?arm)
+                               (:grasp ?grasp)
+                               (:arms ?arms)
+                               (:grasps ?grasps)
+                               (:deliver-location ?delivering-location-designator)
+                               (:deliver-robot-location ?deliver-robot-location-designator)
+                               (:search-location-accessible ?fetching-location-accessible))
+                      ?resolved-action-designator)))
