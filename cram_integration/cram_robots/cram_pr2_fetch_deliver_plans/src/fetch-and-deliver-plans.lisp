@@ -29,7 +29,13 @@
 
 (in-package :pr2-fd-plans)
 
-(cpl:def-cram-function go-without-collisions (?navigation-location)
+(defun go-without-collisions (&key
+                                ((:location ?navigation-location))
+                              &allow-other-keys)
+  (declare (type desig:location-designator ?navigation-location))
+  "Check if navigation goal is in reach, if not propagate failure up,
+if yes, perform GOING action while ignoring failures."
+
   (exe:perform (desig:an action
                          (type positioning-arm)
                          (left-configuration park)
@@ -48,7 +54,14 @@
                            (target ?navigation-location)))))
 
 
-(cpl:def-cram-function turn-towards (?look-target ?robot-location)
+(defun turn-towards (&key
+                       ((:target ?look-target))
+                       ((:robot-location ?robot-location))
+                     &allow-other-keys)
+  (declare (type desig:location-designator ?look-target ?robot-location))
+  "Perform a LOOKING action, if looking target twists the neck,
+turn the robot base such that it looks in the direction of target and look again."
+
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans turn-towards)
@@ -84,9 +97,23 @@
                                (target ?look-target)))))))
 
 
-(cpl:def-cram-function manipulate-environment (action-type ?object-to-manipulate
-                                                           ?arm ?distance
-                                                           ?manipulate-robot-location)
+(defun manipulate-environment (&key
+                                 ((:type action-type))
+                                 ((:object ?object-to-manipulate))
+                                 ((:arm ?arm))
+                                 ((:distance ?distance))
+                                 ((:robot-location ?manipulate-robot-location))
+                               &allow-other-keys)
+  (declare (type keyword action-type ?arm)
+           (type desig:object-designator ?object-to-manipulate)
+           (type number ?distance)
+           ;; here, ?manipulate-robot-location can only be null within the function
+           ;; but one should not pass a NULL location as argument,
+           ;; otherwise it will just cpl:fail straight away.
+           (type (or null desig:location-designator) ?manipulate-robot-location))
+  "Navigate to reachable location, check if opening/closing trajectory causes collisions,
+if yes, relocate and retry, if no collisions, open or close container."
+
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans environment) "~a~%Propagating up." e)
@@ -138,10 +165,19 @@
           (exe:perform manipulation-action))))))
 
 
-(cpl:def-cram-function search-for-object (?object-designator
-                                          ?search-location ?robot-location
-                                          &optional (retries 3))
-  "Searches for `?object-designator' in its likely location `?search-location'."
+(defun search-for-object (&key
+                            ((:object ?object-designator))
+                            ((:location ?search-location))
+                            ((:robot-location ?robot-location))
+                            (retries 3)
+                          &allow-other-keys)
+  (declare (type desig:object-designator ?object-designator)
+           ;; location desigs can turn NILL in the course of execution
+           ;; but should not be passed as NILL to start with.
+           (type (or desig:location-designator null) ?search-location ?robot-location))
+  "Searches for `?object-designator' in its likely location `?search-location'.
+If the object is not there or navigation location is unreachable,
+retries with different search location or robot base location."
 
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -229,12 +265,24 @@
 
 
 
-(cpl:def-cram-function fetch (?object-designator
-                              ?arms ?grasps
-                              ?pick-up-robot-location pick-up-action)
-  "Fetches a perceived object `?object-designator' with arm `?arm' (if not NIL)
-while standing at `?pick-up-robot-location' (if not NIL)
+(defun fetch (&key
+                ((:object ?object-designator))
+                ((:arms ?arms))
+                ((:grasps ?grasps))
+                ((:robot-location ?pick-up-robot-location))
+                pick-up-action
+              &allow-other-keys)
+  (declare (type desig:object-designator ?object-designator)
+           (type list ?arms ?grasps)
+           ;; ?pick-up-robot-location should not be NULL at the beginning
+           ;; but can become NULL during execution of the plan
+           (type (or desig:location-designator null) ?pick-up-robot-location)
+           (type (or desig:action-designator null) pick-up-action))
+  "Fetches a perceived object `?object-designator' with
+one of arms in the `?arms' lazy list (if not NIL) and one of grasps in `?grasps' if not NIL,
+while standing at `?pick-up-robot-location'
 and using the grasp and arm specified in `pick-up-action' (if not NIL)."
+
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans fetch) "~a~%Propagating up." e)
@@ -333,19 +381,16 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                   ;; if pick-up-action already exists,
                                   ;; use its params for picking up
                                   (or (when pick-up-action
-                                        (destructuring-bind
-                                            (_action _object-designator ?arm
-                                             _gripper-opening _effort ?grasp
-                                             _left-reach-poses _right-reach-poses
-                                             _left-grasp-poses _right-grasp-poses
-                                             _left-lift-poses _right-lift-poses)
-                                            (desig:reference pick-up-action)
-                                          (declare (ignore
-                                                    _action _object-designator
-                                                    _gripper-opening _effort
-                                                    _left-reach-poses _right-reach-poses
-                                                    _left-grasp-poses _right-grasp-poses
-                                                    _left-lift-poses _right-lift-poses))
+                                        (let* ((referenced-action-desig
+                                                 (desig:reference pick-up-action))
+                                               (?arm
+                                                 (desig:desig-prop-value
+                                                  referenced-action-desig
+                                                  :arm))
+                                               (?grasp
+                                                 (desig:desig-prop-value
+                                                  referenced-action-desig
+                                                  :grasp)))
                                           (desig:an action
                                                     (type picking-up)
                                                     (arm ?arm)
@@ -377,9 +422,23 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
 
 
-(cpl:def-cram-function deliver (?object-designator
-                                ?arm ?target-location
-                                ?target-robot-location place-action)
+(defun deliver (&key
+                  ((:object ?object-designator))
+                  ((:arm ?arm))
+                  ((:target ?target-location))
+                  ((:robot-location ?target-robot-location))
+                  place-action
+                &allow-other-keys)
+  (declare (type desig:object-designator ?object-designator)
+           (type (or keyword null) ?arm)
+           ;; don't pass NULL as ?target-location or ?target-robot-location!
+           ;; they can turn NULL during execution but not at the beginning
+           (type (or desig:location-designator null) ?target-location ?target-robot-location)
+           (type (or desig:action-designator null) place-action))
+  "Delivers `?object-designator' to `?target-location', where object is held in `?arm'
+and the robot should stand at `?target-robot-location' when placing the object.
+If a failure happens, try a different `?target-location' or `?target-robot-location'."
+
   ;; Reference the `?target-location' to see if that works at all
   ;; If not, delivering is impossible so throw a OBJECT-UNDERLIVERABLE failure
   (cpl:with-failure-handling
@@ -388,7 +447,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
          (cpl:fail 'common-fail:object-undeliverable
                    :description "Some designator could not be resolved.")))
 
-    (cpl:with-retry-counters ((outer-target-location-retries 10))
+    (cpl:with-retry-counters ((outer-target-location-retries 2))
       (cpl:with-failure-handling
           (((or desig:designator-error
                 common-fail:object-undeliverable
@@ -443,7 +502,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                    (location ?target-robot-location)))
 
             ;; take a new `?target-location' sample if a failure happens
-            (cpl:with-retry-counters ((target-location-retries 10))
+            (cpl:with-retry-counters ((target-location-retries 5))
               (cpl:with-failure-handling
                   (((or common-fail:looking-high-level-failure
                         common-fail:object-unreachable) (e)
@@ -473,14 +532,12 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 ;; place
                 (let ((place-action
                         (or (when place-action
-                              (destructuring-bind (_action _object-designator _on-obj-desig
-                                                   _assemblage-name
-                                                   ?arm _gripper-opening
-                                                   _left-reach-poses _right-reach-poses
-                                                   _left-put-poses _right-put-poses
-                                                   _left-lift-poses _right-lift-poses
-                                                   ?projected-target-location)
-                                  (desig:reference place-action)
+                              (let* ((referenced-action-desig
+                                       (desig:reference place-action))
+                                     (?arm
+                                       (desig:desig-prop-value referenced-action-desig :arm))
+                                     (?projected-target-location
+                                       (desig:desig-prop-value referenced-action-desig :target)))
                                 (desig:an action
                                           (type placing)
                                           (arm ?arm)
@@ -540,11 +597,19 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                ))))
 
 
-(cpl:def-cram-function transport (?object-designator
-                                  ?search-location ?search-base-location
-                                  ?fetch-robot-location ?arm ?grasp ?arms ?grasps
-                                  ?delivering-location ?deliver-robot-location
-                                  search-location-accessible)
+(defun transport (&key
+                    ((:object ?object-designator))
+                    ((:search-location ?search-location))
+                    ((:search-robot-location ?search-base-location))
+                    ((:fetch-robot-location ?fetch-robot-location))
+                    ((:arm ?arm))
+                    ((:grasp ?grasp))
+                    ((:arms ?arms))
+                    ((:grasps ?grasps))
+                    ((:deliver-location ?delivering-location))
+                    ((:deliver-robot-location ?deliver-robot-location))
+                    search-location-accessible
+                  &allow-other-keys)
   (unless search-location-accessible
     (exe:perform (desig:an action
                            (type accessing)
