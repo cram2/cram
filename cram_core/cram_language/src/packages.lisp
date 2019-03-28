@@ -179,6 +179,7 @@
            #:stale-task-tree-node-p
            #:filter-task-tree
            #:flatten-task-tree
+           #:flatten-task-tree-broad
            #:task-tree-node-parameters
            #:task-tree-node-status-fluent
            #:task-tree-node-result

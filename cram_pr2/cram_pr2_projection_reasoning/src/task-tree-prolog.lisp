@@ -35,7 +35,89 @@
   (:method ((err cpl:common-lisp-error-envelope))
     (cpl:envelop-error err)))
 
+;; pr2 projection specific predicates 
 (def-fact-group tasks (coe:holds)
+
+  (<- (perform-task-of-top-level ?top-level-name ?task-node)
+    (bound ?top-level-name)
+    (task-of-top-level ?top-level-name ?task-node)
+    (lisp-fun cpl:task-tree-node-path ?task-node (?path . ?_))
+    (equal ?path (cpl:goal (exe:perform ?_) . ?_)))
+
+  (<- (perform-task ?top-level-name ?subtree-path ?task-node)
+    (bound ?top-level-name)
+    (bound ?subtree-path)
+    (coe:task ?top-level-name ?subtree-path ?task-node)
+    (lisp-fun cpl:task-tree-node-path ?task-node (?path . ?_))
+    (equal ?path (cpl:goal (exe:perform ?_) . ?_)))
+
+  (<- (task-specific-action ?top-level-name ?subtree-path ?action-type ?task ?designator)
+    (bound ?top-level-name)
+    (bound ?subtree-path)
+    (perform-task ?top-level-name ?subtree-path ?task)
+    (coe:task-parameter ?task ?designator)
+    (lisp-type ?designator desig:action-designator)
+    (desig:desig-prop ?designator (:type ?action-type)))
+
+  (<- (task-navigating-action ?top-level-name ?subtree-path ?task ?designator)
+    (task-specific-action ?top-level-name ?subtree-path :navigating ?task ?designator))
+
+  (<- (task-fetching-action ?top-level-name ?subtree-path ?task ?designator)
+    (task-specific-action ?top-level-name ?subtree-path :fetching ?task ?designator))
+
+  (<- (task-picking-up-action ?top-level-name ?subtree-path ?task ?designator)
+    (task-specific-action ?top-level-name ?subtree-path :picking-up ?task ?designator))
+
+  (<- (task-delivering-action ?top-level-name ?subtree-path ?task ?designator)
+    (task-specific-action ?top-level-name ?subtree-path :delivering ?task ?designator))
+
+  (<- (task-transporting-action ?top-level-name ?subtree-path ?task ?designator)
+    (task-specific-action ?top-level-name ?subtree-path :transporting ?task ?designator))
+  
+  (<- (task-next-action-sibling ?top-level-name ?subtree-path ?task ?action-type ?next-task)
+    (bound ?top-level-name)
+    (bound ?subtree-path)
+    (bound ?task)
+    ;; (bound ?action-type)
+    (bagof ?sibling (task-sibling ?task ?sibling) ?siblings)
+    (member ?next-task ?siblings)
+    (task-specific-action ?top-level-name ?subtree-path ?action-type ?next-task ?_)
+    ;; (task-created-at ?top-level-name ?task ?created-time-task)
+    ;; (task-created-at ?top-level-name ?next-task ?created-time-next-task)
+    ;; (<= ?created-time-task ?created-time-next-task)
+    ;; (forall (and
+    ;;          (member ?other-next-task ?siblings)
+    ;;          (task-specific-action ?top-level-name ?subtree-path ?action-type ?other-next-task ?_)
+    ;;          (not (== ?next-task ?other-next-task))
+    ;;          (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
+    ;;          (<= ?created-time-task ?created-time-other-next-task))
+    ;;         (<= ?created-time-next-task ?created-time-other-next-task))
+    )
+
+  (<- (task-previous-action-sibling ?top-level-name ?subtree-path ?task ?action-type ?next-task)
+    (bound ?top-level-name)
+    (bound ?subtree-path)
+    (bound ?task)
+    ;; (bound ?action-type)
+    (bagof ?sibling (task-sibling ?task ?sibling) ?siblings)
+    (lisp-fun cut:force-ll ?siblings ?siblings-list)
+    (lisp-fun reverse ?siblings-list ?siblings-list-reversed)
+    (member ?previous-task ?siblings-list-reversed)
+    (task-specific-action ?top-level-name ?subtree-path ?action-type ?previous-task ?_)
+    ;; (task-created-at ?top-level-name ?task ?created-time-task)
+    ;; (task-created-at ?top-level-name ?next-task ?created-time-next-task)
+    ;; (>= ?created-time-task ?created-time-next-task)
+    ;; (forall (and
+    ;;          (member ?other-next-task ?siblings)
+    ;;          (not (== ?next-task ?other-next-task))
+    ;;          (task-specific-action ?top-level-name ?subtree-path ?action-type ?other-next-task ?_)
+    ;;          (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
+    ;;          (>= ?created-time-task ?created-time-other-next-task))
+    ;;         (>= ?created-time-next-task ?created-time-other-next-task))
+    ))
+
+#+now-ported-to-cram-occason-events
+((def-fact-group tasks (coe:holds)
 
   ;; top-level
   (<- (top-level-task ?top-level-name ?top-level-task-node)
@@ -289,7 +371,7 @@
     ;;          (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
     ;;          (>= ?created-time-task ?created-time-other-next-task))
     ;;         (>= ?created-time-next-task ?created-time-other-next-task))
-    ))
+    )))
 
 
 #+the-rest-is-all-test-stuff-so-commented-it-out-to-avoid-dependency-problems

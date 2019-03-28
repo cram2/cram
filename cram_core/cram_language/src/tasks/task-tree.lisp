@@ -334,6 +334,16 @@
         (mapcan (compose #'flatten-task-tree #'cdr)
                 (task-tree-node-children task-tree))))
 
+(defun flatten-task-tree-broad (task &optional (tree '()) (children '()))
+  "Arthur: Recursively calculates the task tree as list of all tasks like `cpl:flatten-task-tree'
+but sorted in breadth first instead of depth. Makes search for nearby tasks much faster."
+  (if (and task (not tree) (not children))
+      (flatten-task-tree-broad nil (list task) (list task))
+      (let ((childs (mapcar #'cdr (reduce #'append (mapcar #'cpl:task-tree-node-children children)))))
+        (if childs
+            (flatten-task-tree-broad nil (append tree childs) childs)
+            tree))))
+
 (defun task-tree-node-parameters (task-tree-node)
   "Return the parameters with which the task was called. Assume node is not stale."
   (let ((code (task-tree-node-code task-tree-node)))
