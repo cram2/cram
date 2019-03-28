@@ -86,13 +86,10 @@
      (:file "projection-demo" :depends-on ("package"))
      (:file "demo" :depends-on ("package" "setup" "projection-demo"))
      (:file "demo-transformation-rules" :depends-on ("package" "plan-transformation" "predicates"))
-
+     (:file "task-tree-functions" :depends-on ("package" "plan-transformation" "predicates"))
+     
      ;; (:file "costmaps" :depends-on ("package"))
      ;; (:file "designators" :depends-on ("package"))
      ;; (:file "evaluation" :depends-on ("package"))
      ;; (:file "plans" :depends-on ("package" "utils" "designators"))
-     ;; (:file "top-level-plans" :depends-on ("package" "projection-poses" "utils" "plans" "plan-transformation"))
-     ;; (:file "utils" :depends-on ("package" "projection-poses" "plan-transformation"))
-     ;; (:file "transformation-rules" :depends-on ("package" "utils" "plans"
-     ;;                                                      "projection-poses" "top-level-plans"))
-     ))))
+    ))))

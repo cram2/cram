@@ -44,7 +44,7 @@
   (when reset
     (cpl-impl::remove-top-level-task-tree *top-level-name*))
   (cram-pr2-projection:with-simulated-robot
-    (demo-random objects))
+      (demo-random objects))
   (cet:disable-fluent-tracing))
 
 (cpl:def-cram-function demo-random (&optional
