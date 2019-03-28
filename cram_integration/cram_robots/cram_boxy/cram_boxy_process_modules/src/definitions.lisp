@@ -62,30 +62,24 @@
 ;;;;;;;;;;;;;;;;;;;; BODY ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module body-pm (motion-designator)
-  (flet ((fill-in-with-nils (some-list desired-length)
-           (let ((current-length (length some-list)))
-             (if (> desired-length current-length)
-                 (append some-list (make-list (- desired-length current-length)))
-                 some-list))))
-    (destructuring-bind (command argument-1 &rest rest-arguments)
-        (desig:reference motion-designator)
-      (ecase command
-        (cram-common-designators:move-tcp
-         (let ((goal-left argument-1)
-               (goal-right (car rest-arguments)))
-           (progn
-             (unless (listp goal-left)
-               (setf goal-left (list goal-left)))
-             (unless (listp goal-right)
-               (setf goal-right (list goal-right)))
-             (let ((max-length (max (length goal-left) (length goal-right))))
-               (mapc (lambda (single-pose-left single-pose-right)
-                       (cram-tf:visualize-marker (list single-pose-left single-pose-right)
-                                                  :r-g-b-list '(1 0 1))
-                       (boxy-ll:move-arm-cartesian :goal-pose-stamped-left single-pose-left
-                                                   :goal-pose-stamped-right single-pose-right))
-                     (fill-in-with-nils goal-left max-length)
-                     (fill-in-with-nils goal-right max-length))))))
-        (cram-common-designators:move-joints
-         (boxy-ll:move-arm-joints :goal-joint-states-left argument-1
-                                  :goal-joint-states-right (car rest-arguments)))))))
+  (destructuring-bind (command argument-1 &rest rest-arguments)
+      (desig:reference motion-designator)
+    (ecase command
+      (cram-common-designators:move-tcp
+       (let ((goal-left argument-1)
+             (goal-right (car rest-arguments)))
+         (unless (listp goal-left)
+           (setf goal-left (list goal-left)))
+         (unless (listp goal-right)
+           (setf goal-right (list goal-right)))
+         (multiple-value-bind (goal-left goal-right)
+             (cut:equalize-two-list-lengths goal-left goal-right)
+           (mapc (lambda (single-pose-left single-pose-right)
+                   (cram-tf:visualize-marker (list single-pose-left single-pose-right)
+                                             :r-g-b-list '(1 0 1))
+                   (boxy-ll:move-arm-cartesian :goal-pose-stamped-left single-pose-left
+                                               :goal-pose-stamped-right single-pose-right))
+                 goal-left goal-right))))
+      (cram-common-designators:move-joints
+       (boxy-ll:move-arm-joints :goal-joint-states-left argument-1
+                                :goal-joint-states-right (car rest-arguments))))))

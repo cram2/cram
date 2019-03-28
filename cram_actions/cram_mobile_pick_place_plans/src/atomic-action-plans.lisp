@@ -105,77 +105,71 @@ equate resulting designator to the original one."
   "Move arms through all but last poses of `left-poses' and `right-poses',
 while ignoring failures; and execute the last pose with propagating the failures."
 
-  (flet ((fill-in-with-nils (some-list desired-length)
-           (let ((current-length (length some-list)))
-             (if (> desired-length current-length)
-                 (append some-list (make-list (- desired-length current-length)))
-                 some-list))))
-
-    ;; Make `left-poses' and `right-poses' to lists if they are not already
-    (unless (listp left-poses)
-      (setf left-poses (list left-poses)))
-    (unless (listp right-poses)
-      (setf right-poses (list right-poses)))
+  ;; Make `left-poses' and `right-poses' to lists if they are not already
+  (unless (listp left-poses)
+    (setf left-poses (list left-poses)))
+  (unless (listp right-poses)
+    (setf right-poses (list right-poses)))
+  (multiple-value-bind (left-poses right-poses)
+      (cut:equalize-two-list-lengths left-poses right-poses)
 
     ;; Move arms through all but last poses of `?left-poses' and `?right-poses'
     ;; while ignoring failures: accuracy is not so important in intermediate poses.
-    (let ((max-length (max (length left-poses) (length right-poses))))
-      (mapc (lambda (?left-pose ?right-pose)
+    (mapc (lambda (?left-pose ?right-pose)
 
-              (cpl:with-failure-handling
-                  ((common-fail:manipulation-low-level-failure (e) ; ignore failures
-                     (roslisp:ros-warn (pick-place move-arms-in-sequence) "~a~%Ignoring." e)
-                     (return)))
+            (cpl:with-failure-handling
+                ((common-fail:manipulation-low-level-failure (e) ; ignore failures
+                   (roslisp:ros-warn (pick-place move-arms-in-sequence) "~a~%Ignoring." e)
+                   (return)))
 
-                (exe:perform
-                 (desig:a motion
-                          (type moving-tcp)
-                          (desig:when ?left-pose
-                            (left-pose ?left-pose))
-                          (desig:when ?right-pose
-                            (right-pose ?right-pose))
-                          (desig:when ?collision-mode
-                            (collision-mode ?collision-mode))
-                          (desig:when ?collision-object-b
-                            (collision-object-b ?collision-object-b))
-                          (desig:when ?collision-object-b-link
-                            (collision-object-b-link ?collision-object-b-link))
-                          (desig:when ?collision-object-a
-                            (collision-object-a ?collision-object-a))))
+              (exe:perform
+               (desig:a motion
+                        (type moving-tcp)
+                        (desig:when ?left-pose
+                          (left-pose ?left-pose))
+                        (desig:when ?right-pose
+                          (right-pose ?right-pose))
+                        (desig:when ?collision-mode
+                          (collision-mode ?collision-mode))
+                        (desig:when ?collision-object-b
+                          (collision-object-b ?collision-object-b))
+                        (desig:when ?collision-object-b-link
+                          (collision-object-b-link ?collision-object-b-link))
+                        (desig:when ?collision-object-a
+                          (collision-object-a ?collision-object-a))))
 
-                (cram-occasions-events:on-event
-                 (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+              (cram-occasions-events:on-event
+               (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
-            (fill-in-with-nils (butlast left-poses) max-length)
-            (fill-in-with-nils (butlast right-poses) max-length)))
+          left-poses right-poses))
 
-    ;; Move arm to the last pose of `?left-poses' and `?right-poses'.
-    (let ((?left-pose (car (last left-poses)))
-          (?right-pose (car (last right-poses))))
+  ;; Move arm to the last pose of `?left-poses' and `?right-poses'.
+  (let ((?left-pose (car (last left-poses)))
+        (?right-pose (car (last right-poses))))
 
-      (cpl:with-failure-handling
-          ((common-fail:manipulation-low-level-failure (e)
-             ;; propagate failures up
-             (roslisp:ros-error (pick-place move-arms-in-sequence) "~a~%Failing." e)))
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           ;; propagate failures up
+           (roslisp:ros-error (pick-place move-arms-in-sequence) "~a~%Failing." e)))
 
-        (exe:perform
-         (desig:a motion
-                  (type moving-tcp)
-                  (desig:when ?left-pose
-                    (left-pose ?left-pose))
-                  (desig:when ?right-pose
-                    (right-pose ?right-pose))
-                  (desig:when ?collision-mode
-                    (collision-mode ?collision-mode))
-                  (desig:when ?collision-object-b
-                    (collision-object-b ?collision-object-b))
-                  (desig:when ?collision-object-b-link
-                    (collision-object-b-link ?collision-object-b-link))
-                  (desig:when ?collision-object-a
-                    (collision-object-a ?collision-object-a))))
+      (exe:perform
+       (desig:a motion
+                (type moving-tcp)
+                (desig:when ?left-pose
+                  (left-pose ?left-pose))
+                (desig:when ?right-pose
+                  (right-pose ?right-pose))
+                (desig:when ?collision-mode
+                  (collision-mode ?collision-mode))
+                (desig:when ?collision-object-b
+                  (collision-object-b ?collision-object-b))
+                (desig:when ?collision-object-b-link
+                  (collision-object-b-link ?collision-object-b-link))
+                (desig:when ?collision-object-a
+                  (collision-object-a ?collision-object-a))))
 
-        (cram-occasions-events:on-event
-         (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
+      (cram-occasions-events:on-event
+       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
 
 
 (defun move-arms-into-configuration (&key
