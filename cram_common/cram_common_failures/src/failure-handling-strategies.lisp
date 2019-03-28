@@ -90,6 +90,16 @@ after each iteration of the retry."
        (if ,rethrow-failure
            (cpl:fail ,rethrow-failure))))
 
+(defun next-different-location-solution (designator
+                                         &optional (distance-threshold 0.05))
+  "Returns a new designator solution that is at a different place than
+  the current solution of `designator'."
+  (declare (type desig:location-designator designator))
+  (desig:next-filtered-designator-solution
+   designator (cram-tf:make-euclidean-distance-filter
+               (desig:reference designator)
+               distance-threshold)))
+
 (defmacro retry-with-loc-designator-solutions (location-desig
                                                retries
                                                (&key
@@ -126,13 +136,3 @@ the previous solution (the default is 0.05m)."
        (roslisp:ros-warn ,warning-namespace "No retries left.~%")
        (if ,rethrow-failure
            (cpl:fail ,rethrow-failure))))
-
-(defun next-different-location-solution (designator
-                                         &optional (distance-threshold 0.05))
-  "Returns a new designator solution that is at a different place than
-  the current solution of `designator'."
-  (declare (type desig:location-designator designator))
-  (desig:next-filtered-designator-solution
-   designator (cram-tf:make-euclidean-distance-filter
-               (desig:reference designator) 
-               distance-threshold)))
