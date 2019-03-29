@@ -54,11 +54,11 @@ using the `rethrow-failure' key."
                (loop for designator in ,reset-designators
                      do (desig:reset designator))
                ,@body
-               (cpl:retry)
-             (roslisp:ros-warn ,warning-namespace "No samples left ~%")))))
-       (roslisp:ros-warn ,warning-namespace "No retries left.~%")
-       (if ,rethrow-failure
-           (cpl:fail ,rethrow-failure))))
+               (cpl:retry))
+             (roslisp:ros-warn ,warning-namespace "No samples left.~%"))))
+     (roslisp:ros-warn ,warning-namespace "No retries left.~%")
+     (when ,rethrow-failure
+       (cpl:fail ,rethrow-failure))))
 
 (defmacro retry-with-list-solutions (iterator-list
                                      retries
@@ -84,11 +84,11 @@ after each iteration of the retry."
                (roslisp:ros-warn ,warning-namespace "Retrying.~%")
                (setf ,iterator-list (cut:lazy-cdr ,iterator-list))
                ,@body
-               (cpl:retry)
-             (roslisp:ros-warn ,warning-namespace "No samples left ~%")))))
-       (roslisp:ros-warn ,warning-namespace "No retries left.~%")
-       (if ,rethrow-failure
-           (cpl:fail ,rethrow-failure))))
+               (cpl:retry))
+             (roslisp:ros-warn ,warning-namespace "No samples left.~%"))))
+     (roslisp:ros-warn ,warning-namespace "No retries left.~%")
+     (when ,rethrow-failure
+       (cpl:fail ,rethrow-failure))))
 
 (defun next-different-location-solution (designator
                                          &optional (distance-threshold 0.05))
@@ -131,8 +131,8 @@ the previous solution (the default is 0.05m)."
                (loop for designator in ,reset-designators
                      do (desig:reset designator))
                ,@body
-               (cpl:retry)
-               (roslisp:ros-warn ,warning-namespace "No samples left ~%")))))
+               (cpl:retry))
+             (roslisp:ros-warn ,warning-namespace "No samples left.~%"))))
      (roslisp:ros-warn ,warning-namespace "No retries left.~%")
      (when ,rethrow-failure
        (cpl:fail ,rethrow-failure))))
