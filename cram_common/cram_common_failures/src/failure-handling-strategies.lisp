@@ -32,7 +32,7 @@
 (defmacro retry-with-designator-solutions (iterator-desig
                                            retries
                                            (&key
-                                              error-object
+                                              error-object-or-string
                                               warning-namespace
                                               reset-designators
                                               (rethrow-failure NIL))
@@ -44,7 +44,7 @@ times specified by `retries'. When there are no solutions left, it can
 rethrow the same failure it received or a new failure can be specified
 using the `rethrow-failure' key."
   `(progn
-     (roslisp:ros-warn ,warning-namespace "~a" ,error-object)
+     (roslisp:ros-warn ,warning-namespace "~a" ,error-object-or-string)
      (cpl:do-retry ,retries
        (let ((next-solution-element (desig:next-solution ,iterator-desig)))
          (if next-solution-element
@@ -63,7 +63,7 @@ using the `rethrow-failure' key."
 (defmacro retry-with-list-solutions (iterator-list
                                      retries
                                      (&key
-                                        error-object
+                                        error-object-or-string
                                         warning-namespace
                                         (rethrow-failure NIL))
                                      &body body)
@@ -76,7 +76,7 @@ it can rethrow the same failure it received or a new failure can be
 specified using the `rethrow-failure' key. iterator list is reduced
 after each iteration of the retry."
   `(progn
-     (roslisp:ros-warn ,warning-namespace "~a" ,error-object)
+     (roslisp:ros-warn ,warning-namespace "~a" ,error-object-or-string)
      (cpl:do-retry ,retries
        (let ((next-solution-element (cut:lazy-car (cut:lazy-cdr ,iterator-list))))
          (if next-solution-element
@@ -103,7 +103,7 @@ after each iteration of the retry."
 (defmacro retry-with-loc-designator-solutions (location-desig
                                                retries
                                                (&key
-                                                  error-object
+                                                  error-object-or-string
                                                   warning-namespace
                                                   reset-designators
                                                   (distance-threshold 0.05)
@@ -119,7 +119,7 @@ iteration of the retry will use a new solution of the designator,
 which is at least a distance specified by `distance-threshold' from
 the previous solution (the default is 0.05m)."
   `(progn
-     (roslisp:ros-warn ,warning-namespace "~a" ,error-object)
+     (roslisp:ros-warn ,warning-namespace "~a" ,error-object-or-string)
      (cpl:do-retry ,retries
        (let ((next-solution-element (next-different-location-solution
                                      ,location-desig
@@ -132,7 +132,7 @@ the previous solution (the default is 0.05m)."
                      do (desig:reset designator))
                ,@body
                (cpl:retry)
-             (roslisp:ros-warn ,warning-namespace "No samples left ~%")))))
-       (roslisp:ros-warn ,warning-namespace "No retries left.~%")
-       (if ,rethrow-failure
-           (cpl:fail ,rethrow-failure))))
+               (roslisp:ros-warn ,warning-namespace "No samples left ~%")))))
+     (roslisp:ros-warn ,warning-namespace "No retries left.~%")
+     (when ,rethrow-failure
+       (cpl:fail ,rethrow-failure))))
