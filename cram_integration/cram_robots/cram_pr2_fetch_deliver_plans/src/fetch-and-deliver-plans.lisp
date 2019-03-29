@@ -129,7 +129,7 @@ if yes, relocate and retry, if no collisions, open or close container."
              (common-fail:retry-with-loc-designator-solutions
                  ?manipulate-robot-location
                  relocation-retries
-                 (:error-object e
+                 (:error-object-or-string e
                   :warning-namespace (fd-plans environment)
                   :rethrow-failure 'common-fail:environment-manipulation-impossible)
                (roslisp:ros-info (fd-plans environment) "Relocating..."))))
@@ -187,7 +187,7 @@ retries with different search location or robot base location."
              (common-fail:retry-with-loc-designator-solutions
                  ?search-location
                  outer-search-location-retries
-                 (:error-object e
+                 (:error-object-or-string e
                   :warning-namespace (fd-plans search-for-object)
                   :reset-designators (list ?robot-location)
                   :rethrow-failure 'common-fail:object-nowhere-to-be-found)
@@ -203,7 +203,7 @@ retries with different search location or robot base location."
                  (common-fail:retry-with-loc-designator-solutions
                      ?robot-location
                      robot-location-retries
-                     (:error-object e
+                     (:error-object-or-string e
                       :warning-namespace (fd-plans search-for-object)
                       :reset-designators (list ?search-location)
                       :rethrow-failure 'common-fail:object-nowhere-to-be-found))))
@@ -221,7 +221,7 @@ retries with different search location or robot base location."
                      (common-fail:retry-with-loc-designator-solutions
                          ?search-location
                          search-location-retries
-                         (:error-object e
+                         (:error-object-or-string e
                           :warning-namespace (fd-plans search-for-object)
                           :reset-designators (list ?robot-location)))))
 
@@ -270,10 +270,9 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
              (common-fail:retry-with-loc-designator-solutions
                  ?pick-up-robot-location
                  relocation-for-ik-retries
-                 (:error-object (format
-                                 NIL
-                                 "Object of type ~a is unreachable: ~a"
-                                 (desig:desig-prop-value ?object-designator :type) e)
+                 (:error-object-or-string
+                  (format NIL "Object of type ~a is unreachable: ~a"
+                          (desig:desig-prop-value ?object-designator :type) e)
                   :warning-namespace (fd-plans fetch)
                   :rethrow-failure 'common-fail:object-unfetchable))))
 
@@ -316,9 +315,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                          (common-fail:retry-with-list-solutions
                              ?arms
                              arm-retries
-                             (:error-object (format
-                                             NIL
-                                             "Manipulation failed: ~a.~%Next." e)
+                             (:error-object-or-string
+                              (format NIL "Manipulation failed: ~a.~%Next." e)
                               :warning-namespace (kvr plans)
                               :rethrow-failure 'common-fail:object-unreachable)
                            (setf ?arm (cut:lazy-car ?arms)))))
@@ -333,11 +331,9 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                (common-fail:retry-with-list-solutions
                                    ?grasps
                                    grasp-retries
-                                   (:error-object (format
-                                                   NIL
-                                                   "Picking up failed: ~a.~%Next" e)
+                                   (:error-object-or-string
+                                    (format NIL "Picking up failed: ~a.~%Next" e)
                                     :warning-namespace (kvr plans))
-                                 (roslisp:ros-warn (kvr plans) "Picking up failed. Next.")
                                  (setf ?grasp (cut:lazy-car ?grasps)))))
 
                           (let ((pick-up-action
@@ -418,9 +414,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
              (common-fail:retry-with-loc-designator-solutions
                  ?target-location
                  outer-target-location-retries
-                 (:error-object (format
-                                 NIL
-                                 "Undeliverable. Trying another target location.~%~a" e)
+                 (:error-object-or-string
+                  (format NIL "Undeliverable. Trying another target location.~%~a" e)
                   :warning-namespace (fd-plans deliver)
                   :reset-designators (list ?target-robot-location)
                   :rethrow-failure 'common-fail:object-undeliverable))))
@@ -439,9 +434,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                  (common-fail:retry-with-loc-designator-solutions
                      ?target-robot-location
                      relocation-for-ik-retries
-                     (:error-object (format
-                                     NIL
-                                     "Object is undeliverable from base location.~%~a" e)
+                     (:error-object-or-string
+                      (format NIL "Object is undeliverable from base location.~%~a" e)
                       :warning-namespace (fd-plans deliver)
                       :rethrow-failure 'common-fail:object-undeliverable))))
 
@@ -458,7 +452,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                      (common-fail:retry-with-loc-designator-solutions
                          ?target-location
                          target-location-retries
-                         (:error-object (format NIL "Placing failed: ~a" e)
+                         (:error-object-or-string (format NIL "Placing failed: ~a" e)
                           :warning-namespace (fd-plans deliver)
                           :reset-designators (list ?target-robot-location)
                           :rethrow-failure 'common-fail:object-undeliverable)
