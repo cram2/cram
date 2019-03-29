@@ -4,6 +4,7 @@
 (defparameter *cloud-logger-client* nil)
 (defparameter *is-client-connected* nil)
 (defparameter *is-logging-enabled* nil)
+(defvar *my-mutex* (sb-thread:make-mutex))
 
 (defparameter *host* "'https://localhost'")
 ;;(defparameter *host* "'https://192.168.101.42'")
@@ -59,15 +60,19 @@
   (json-prolog:prolog-simple-1 (create-query "cloud_interface" (list host cert-path api-key))))
 
 (defun send-prolog-query-1 (prolog-query)
-  ;;(print prolog-query)
+  (print prolog-query)
   (if *is-logging-enabled*
-   (let ((query-id (get-id-from-query-result
-                    (json-prolog:prolog-simple-1
-                     (concatenate 'string "send_prolog_query('"
-                                  (string prolog-query) "', @(false), Id)")))))
-     (let ((query-result (send-next-solution query-id)))
-       (send-finish-query query-id)
-       query-result))))
+      (sb-thread:with-mutex (*my-mutex*)
+        (let ((query-id (get-id-from-query-result
+                         (json-prolog:prolog-simple-1
+                          (concatenate 'string "send_prolog_query('"
+                                       (string prolog-query) "', @(false), Id)")))))
+          (print "Ask for next solution ...")
+          (let ((query-result (send-next-solution query-id)))
+            (print "Sending finish query...")
+            (send-finish-query query-id)
+            (print "DONE sending finish query")
+       query-result)))))
 
 (defun send-prolog-query (prolog-query)
   (json-prolog:prolog-simple
