@@ -33,4 +33,5 @@
   <depend>roslisp_utilities</depend>
   <depend>alexandria</depend>
   <depend>moveit_msgs</depend>
+  <depend>pr2_arm_kinematics</depend>
 </package>
