@@ -126,20 +126,13 @@ if yes, relocate and retry, if no collisions, open or close container."
                 common-fail:environment-unreachable
                 common-fail:gripper-low-level-failure
                 common-fail:manipulation-low-level-failure) (e)
-             (roslisp:ros-warn (fd-plans environment) "~a" e)
-             (cpl:do-retry relocation-retries
-               (setf ?manipulate-robot-location (desig:next-solution ?manipulate-robot-location))
-               (if ?manipulate-robot-location
-                   (progn
-                     (roslisp:ros-info (fd-plans environment) "Relocating...")
-                     (cpl:retry))
-                   (progn
-                     (roslisp:ros-warn (fd-plans environment) "No more samples to try :'(")
-                     (cpl:fail 'common-fail:environment-manipulation-impossible
-                               :description "No more samples in navigation designator."))))
-             (roslisp:ros-warn (fd-plans environment) "No more retries left :'(")
-             (cpl:fail 'common-fail:environment-manipulation-impossible
-                       :description "No more retries left.")))
+             (common-fail:retry-with-loc-designator-solutions
+                 ?manipulate-robot-location
+                 relocation-retries
+                 (:error-object e
+                  :warning-namespace (fd-plans environment)
+                  :rethrow-failure 'common-fail:environment-manipulation-impossible)
+               (roslisp:ros-info (fd-plans environment) "Relocating..."))))
 
         ;; navigate, open / close
         (exe:perform (desig:an action
@@ -191,23 +184,15 @@ retries with different search location or robot base location."
     (cpl:with-retry-counters ((outer-search-location-retries 2))
       (cpl:with-failure-handling
           ((common-fail:object-nowhere-to-be-found (e)
-             (roslisp:ros-warn (fd-plans search-for-object) "~a" e)
-             (cpl:do-retry outer-search-location-retries
-               (let ((next-search-location (desig:next-solution ?search-location)))
-                 (if next-search-location
-                     (progn
-                       (roslisp:ros-warn (fd-plans search-for-object)
-                                         "Search is about to give up. Retrying...~%")
-                       (setf ?search-location next-search-location)
-                       ;; reset ?robot-location as it depends on search-location
-                       ;; this will be automated in the future with designator dependence nets
-                       (desig:reset ?robot-location)
-                       (cpl:retry))
-                     (roslisp:ros-warn (fd-plans search-for-object)
-                                       "No samples left in search location :'(~%"))))
-             (roslisp:ros-warn (fd-plans search-for-object)
-                               "No outer search retries left :'(~%")
-             (cpl:fail 'common-fail:object-nowhere-to-be-found)))
+             (common-fail:retry-with-loc-designator-solutions
+                 ?search-location
+                 outer-search-location-retries
+                 (:error-object e
+                  :warning-namespace (fd-plans search-for-object)
+                  :reset-designators (list ?robot-location)
+                  :rethrow-failure 'common-fail:object-nowhere-to-be-found)
+               (roslisp:ros-warn (fd-plans search-for-object)
+                                 "Search is about to give up. Retrying~%"))))
 
         ;; if the going action fails, pick another `?robot-location' sample and retry
         (cpl:with-retry-counters ((robot-location-retries 10))
@@ -215,21 +200,13 @@ retries with different search location or robot base location."
               (((or common-fail:navigation-goal-in-collision
                     common-fail:looking-high-level-failure
                     common-fail:perception-low-level-failure) (e)
-                 (roslisp:ros-warn (fd-plans search-for-object) "~a" e)
-                 (cpl:do-retry robot-location-retries
-                   (let ((next-robot-location (desig:next-solution ?robot-location)))
-                     (if next-robot-location
-                         (progn
-                           (roslisp:ros-warn (fd-plans search-for-object) "Retrying...~%")
-                           (setf ?robot-location next-robot-location)
-                           ;; not sure if resetting search location is needed
-                           (desig:reset ?search-location)
-                           (cpl:retry))
-                         (roslisp:ros-warn (fd-plans search-for-object)
-                                           "No samples left in robot location :'(~%"))))
-                 (roslisp:ros-warn (fd-plans search-for-object)
-                                   "No robot location retries left :'(~%")
-                 (cpl:fail 'common-fail:object-nowhere-to-be-found)))
+                 (common-fail:retry-with-loc-designator-solutions
+                     ?robot-location
+                     robot-location-retries
+                     (:error-object e
+                      :warning-namespace (fd-plans search-for-object)
+                      :reset-designators (list ?search-location)
+                      :rethrow-failure 'common-fail:object-nowhere-to-be-found))))
 
             ;; navigate
             (exe:perform (desig:an action
@@ -241,20 +218,12 @@ retries with different search location or robot base location."
               (cpl:with-failure-handling
                   (((or common-fail:perception-low-level-failure
                         common-fail:looking-high-level-failure) (e)
-                     (roslisp:ros-warn (fd-plans search-for-object) "~a" e)
-                     (cpl:do-retry search-location-retries
-                       (let ((next-search-location (desig:next-solution ?search-location)))
-                         (if next-search-location
-                             (progn
-                               (roslisp:ros-warn (fd-plans search-for-object)
-                                                 "Retrying...~%")
-                               (setf ?search-location next-search-location)
-                               (desig:reset ?robot-location)
-                               (cpl:retry))
-                             (roslisp:ros-warn (fd-plans search-for-object)
-                                               "No samples in search location :'(~%"))))
-                     (roslisp:ros-warn (fd-plans search-for-object)
-                                       "No search location retries left :'(~%")))
+                     (common-fail:retry-with-loc-designator-solutions
+                         ?search-location
+                         search-location-retries
+                         (:error-object e
+                          :warning-namespace (fd-plans search-for-object)
+                          :reset-designators (list ?robot-location)))))
 
                 (exe:perform (desig:an action
                                        (type turning-towards)
@@ -298,19 +267,15 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 common-fail:perception-low-level-failure
                 common-fail:object-unreachable
                 common-fail:manipulation-low-level-failure) (e)
-             (roslisp:ros-warn (fd-plans fetch)
-                               "Object of type ~a is unreachable: ~a"
-                               (desig:desig-prop-value ?object-designator :type) e)
-             (cpl:do-retry relocation-for-ik-retries
-               (let ((next-robot-location (desig:next-solution ?pick-up-robot-location)))
-                 (if next-robot-location
-                     (progn
-                       (roslisp:ros-info (fd-plans fetch) "Relocating...")
-                       (setf ?pick-up-robot-location next-robot-location)
-                       (cpl:retry))
-                     (roslisp:ros-warn (fd-plans fetch) "No more samples to try :'("))))
-             (roslisp:ros-warn (fd-plans fetch) "No more retries left :'(")
-             (cpl:fail 'common-fail:object-unfetchable :object ?object-designator)))
+             (common-fail:retry-with-loc-designator-solutions
+                 ?pick-up-robot-location
+                 relocation-for-ik-retries
+                 (:error-object (format
+                                 NIL
+                                 "Object of type ~a is unreachable: ~a"
+                                 (desig:desig-prop-value ?object-designator :type) e)
+                  :warning-namespace (fd-plans fetch)
+                  :rethrow-failure 'common-fail:object-unfetchable))))
 
         ;; navigate, look, detect and pick-up
         (exe:perform (desig:an action
@@ -348,16 +313,15 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                       (((or common-fail:manipulation-low-level-failure
                             common-fail:object-unreachable
                             desig:designator-error) (e)
-                         (declare (ignore e))
-                         (roslisp:ros-warn (kvr plans) "manipulation failed. Next.")
-                         (cpl:do-retry arm-retries
-                           (setf ?arms (cut:lazy-cdr ?arms))
-                           (setf ?arm (cut:lazy-car ?arms))
-                           (if ?arm
-                               (cpl:retry)
-                               (roslisp:ros-warn (kvr plans) "no more solutions")))
-                         (roslisp:ros-warn (kvr plans) "arm retry counter empty")
-                         (cpl:fail 'common-fail:object-unreachable)))
+                         (common-fail:retry-with-list-solutions
+                             ?arms
+                             arm-retries
+                             (:error-object (format
+                                             NIL
+                                             "Manipulation failed: ~a.~%Next." e)
+                              :warning-namespace (kvr plans)
+                              :rethrow-failure 'common-fail:object-unreachable)
+                           (setf ?arm (cut:lazy-car ?arms)))))
 
                     (let ((?grasp (cut:lazy-car ?grasps)))
                       ;; if picking up fails, try another grasp orientation
@@ -366,16 +330,15 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                             (((or common-fail:manipulation-low-level-failure
                                   common-fail:object-unreachable
                                   desig:designator-error) (e)
-                               (declare (ignore e))
-                               (roslisp:ros-warn (kvr plans) "Picking up failed. Next.")
-                               (cpl:do-retry grasp-retries
-                                 (setf ?grasps (cut:lazy-cdr ?grasps))
-                                 (setf ?grasp (cut:lazy-car ?grasps))
-                                 (if ?grasp
-                                     (cpl:retry)
-                                     (roslisp:ros-warn (kvr plans) "No more sols.")))
-                               (roslisp:ros-warn (kvr plans) "grasp retry cntr empty")))
-
+                               (common-fail:retry-with-list-solutions
+                                   ?grasps
+                                   grasp-retries
+                                   (:error-object (format
+                                                   NIL
+                                                   "Picking up failed: ~a.~%Next" e)
+                                    :warning-namespace (kvr plans))
+                                 (roslisp:ros-warn (kvr plans) "Picking up failed. Next.")
+                                 (setf ?grasp (cut:lazy-car ?grasps)))))
 
                           (let ((pick-up-action
                                   ;; if pick-up-action already exists,
@@ -452,22 +415,15 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
           (((or desig:designator-error
                 common-fail:object-undeliverable
                 common-fail:high-level-failure) (e)
-             (roslisp:ros-warn (fd-plans deliver)
-                               "Undeliverable. Trying another target location.~%~a" e)
-             (cpl:do-retry outer-target-location-retries
-               (let ((next-target-location (desig:next-solution ?target-location)))
-                 (if next-target-location
-                     (progn
-                       (roslisp:ros-info (fd-plans deliver)
-                                         "Retrying with new placement...")
-                       (setf ?target-location next-target-location)
-                       (desig:reset ?target-robot-location)
-                       (cpl:retry))
-                     (progn
-                       (roslisp:ros-warn (fd-plans deliver) "No more placement samples :'(")
-                       (cpl:fail 'common-fail:object-undeliverable)))))
-             (roslisp:ros-warn (fd-plans deliver) "No more re-placement retries left :'(")
-             (cpl:fail 'common-fail:object-undeliverable)))
+             (common-fail:retry-with-loc-designator-solutions
+                 ?target-location
+                 outer-target-location-retries
+                 (:error-object (format
+                                 NIL
+                                 "Undeliverable. Trying another target location.~%~a" e)
+                  :warning-namespace (fd-plans deliver)
+                  :reset-designators (list ?target-robot-location)
+                  :rethrow-failure 'common-fail:object-undeliverable))))
 
         ;; test if the placing pose is a good one -- not falling on the floor
         ;; test function throws a high-level-failure if not good pose
@@ -480,21 +436,14 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
               (((or common-fail:navigation-goal-in-collision
                     common-fail:object-undeliverable
                     common-fail:manipulation-low-level-failure) (e)
-                 (roslisp:ros-warn (fd-plans deliver)
-                                   "Object is undeliverable from base location.~%~a" e)
-                 (cpl:do-retry relocation-for-ik-retries
-                   (let ((next-robot-location (desig:next-solution ?target-robot-location)))
-                     (if next-robot-location
-                         (progn
-                           (roslisp:ros-info (fd-plans deliver) "Relocating...")
-                           (setf ?target-robot-location next-robot-location)
-                           (cpl:retry))
-                         (progn
-                           (roslisp:ros-warn (fd-plans deliver)
-                                             "No more relocation samples :'(")
-                           (cpl:fail 'common-fail:object-undeliverable)))))
-                 (roslisp:ros-warn (fd-plans deliver) "No more relocation retries left :'(")
-                 (cpl:fail 'common-fail:object-undeliverable)))
+                 (common-fail:retry-with-loc-designator-solutions
+                     ?target-robot-location
+                     relocation-for-ik-retries
+                     (:error-object (format
+                                     NIL
+                                     "Object is undeliverable from base location.~%~a" e)
+                      :warning-namespace (fd-plans deliver)
+                      :rethrow-failure 'common-fail:object-undeliverable))))
 
             ;; navigate
             (exe:perform (desig:an action
@@ -506,23 +455,15 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
               (cpl:with-failure-handling
                   (((or common-fail:looking-high-level-failure
                         common-fail:object-unreachable) (e)
-                     (roslisp:ros-warn (fd-plans deliver) "Placing failed: ~a" e)
-                     (cpl:do-retry target-location-retries
-                       (let ((next-target-location (desig:next-solution ?target-location)))
-                         (if next-target-location
-                             (progn
-                               (roslisp:ros-warn (fd-plans deliver)
-                                                 "Retrying with new placing location...~%")
-                               (setf ?target-location next-target-location)
-                               (desig:reset ?target-robot-location)
-                               (cpl:retry))
-                             (progn
-                               (roslisp:ros-warn (fd-plans deliver)
-                                                 "No target location samples left :'(~%")
-                               (cpl:fail 'common-fail:object-undeliverable)))))
-                     (roslisp:ros-warn (fd-plans deliver)
-                                       "No target-location-retries left :'(~%")
-                     (cpl:fail 'common-fail:object-undeliverable)))
+                     (common-fail:retry-with-loc-designator-solutions
+                         ?target-location
+                         target-location-retries
+                         (:error-object (format NIL "Placing failed: ~a" e)
+                          :warning-namespace (fd-plans deliver)
+                          :reset-designators (list ?target-robot-location)
+                          :rethrow-failure 'common-fail:object-undeliverable)
+                       (roslisp:ros-warn (fd-plans deliver)
+                                         "Retrying with new placing location ...~%"))))
 
                 ;; look
                 (exe:perform (desig:an action

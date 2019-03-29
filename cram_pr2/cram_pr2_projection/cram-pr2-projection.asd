@@ -50,9 +50,7 @@
                alexandria ; for CURRY in low-level perception
                roslisp-utilities ; for rosify-lisp-name
                moveit_msgs-msg
-               moveit_msgs-srv
-               pr2_arm_kinematics-msg
-               pr2_arm_kinematics-srv)
+               moveit_msgs-srv)
   :components
   ((:module "src"
     :components
