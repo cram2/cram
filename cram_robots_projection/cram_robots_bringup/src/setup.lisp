@@ -37,15 +37,17 @@
 
 (defun setup-bullet-world ()
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-  (let* ((robot (hsrb-proj::get-urdf))
+  (let* ((robot (roslisp:get-param "robot_description"))
          (kitchen (or *kitchen-urdf*
                       (let ((kitchen-urdf-string
                               (roslisp:get-param *kitchen-parameter* nil)))
                         (when kitchen-urdf-string
                           (setf *kitchen-urdf* (cl-urdf:parse-urdf
                                                 kitchen-urdf-string)))))))
-    
-
+    (when (search "hsrb" (setf robot (robots-proj::get-urdf-hsrb))))
+    (when (search "boxy" (robots-proj::get-setup-boxy)))
+    (setf rob-int:*robot-urdf*
+          (cl-urdf:parse-urdf robot))
     (assert
      (cut:force-ll
       (prolog `(and
@@ -56,13 +58,13 @@
                 (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
                                                  :collision-group :static-filter
                                                  :collision-mask (:default-filter
-                                                                  :character-filter)
+                                                                 :character-filter)
                                                  :urdf ,kitchen
                                                  :compound T))
                 (-> (cram-robot-interfaces:robot ?robot)
                     (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))
-                    (warn "ROBOT was not defined. Have you loaded a robot package?")))))))
-)
+                    (warn "ROBOT was not defined. Have you loaded a robot package?"))))))))
+
 
 (defun init-projection ()
   (def-fact-group costmap-metadata ()
