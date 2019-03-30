@@ -65,8 +65,10 @@
                cram-occupancy-grid-costmap
                cram-location-costmap
 
-               cram-hsrb-projection      ; for with-simulated-robot
-               cram-hsrb-description)
+               cram-boxy-description
+               cram-pr2-description
+	       cram-robots-projection
+               )
 
   :components
   ((:module "src"
