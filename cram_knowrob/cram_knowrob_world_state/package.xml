@@ -1,0 +1,24 @@
+<package format="2">
+  <name>cram_knowrob_world_state</name>
+  <version>0.7.0</version>
+  <description>
+    CRAM interfaces to talk to KnowRob when updating KnowRob's world state representation
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cram_json_prolog</depend>
+  <depend>cram_utilities</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_robot_interfaces</depend>
+  <depend>cram_occasions_events</depend>
+  <depend>cram_plan_occasions_events</depend>
+  <depend>cram_projection</depend>
+  <depend>cram_bullet_reasoning</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cram_tf</depend>
+</package>

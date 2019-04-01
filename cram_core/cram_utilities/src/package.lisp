@@ -87,6 +87,7 @@
   #.`(:export
       ;; clos
       #:hooks
+      #:ordered-hooks
       #:define-hook
       #:copy-object
       ;; conditions
