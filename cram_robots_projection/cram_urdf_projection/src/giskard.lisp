@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :robots-proj)
+(in-package :urdf-proj)
 
 (defun make-giskard-action-client ()
   (actionlib-client:make-simple-action-client

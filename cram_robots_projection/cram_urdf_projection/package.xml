@@ -1,5 +1,5 @@
 <package format="2">
-  <name>cram_robots_projection</name>
+  <name>cram_urdf_projection</name>
   <version>0.7.0</version>
   <description>
     Projection process modules for Boxy
