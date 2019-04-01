@@ -45,7 +45,7 @@
                cram-mobile-pick-place-plans
 
                cram-manipulation-interfaces
-               cram-knowrob-assembly
+               cram-object-knowledge
 
                cl-transforms-stamped
                cl-transforms)

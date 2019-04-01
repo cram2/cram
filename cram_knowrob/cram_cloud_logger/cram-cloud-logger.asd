@@ -1,11 +1,14 @@
 (defsystem cram-cloud-logger
-  :depends-on (cram-language
+  :depends-on (:cram-language
                :cram-designators
                :cl-transforms
                :cl-transforms-stamped
                :cram-json-prolog
                :roslisp
-               cram-utilities)
+               :cram-utilities
+               :cram-manipulation-interfaces
+               :cram-executive
+               :cram-projection)
   :components
   ((:module "src"
     :components

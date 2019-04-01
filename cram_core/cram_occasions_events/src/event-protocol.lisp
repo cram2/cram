@@ -33,6 +33,7 @@
               :reader event-timestamp)))
 
 (cut:define-hook on-event (event)
+  (:method-combination cut:ordered-hooks)
   (:documentation "Method that is called whenever an event is
   detected."))
 

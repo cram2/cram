@@ -47,11 +47,11 @@
                cram-utilities
                cram-prolog
                cram-boxy-description
+               cram-joint-states
                ;; msgs for low-level communication
                geometry_msgs-msg ; for force-torque sensor wrench
                std_srvs-srv ; for zeroing force-torque sensor
                sensor_msgs-msg
-               move_base_msgs-msg
                visualization_msgs-msg
                iai_wsg_50_msgs-msg
                control_msgs-msg ; neck message
@@ -62,11 +62,8 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "low-level-common" :depends-on ("package"))
-     (:file "joint-states" :depends-on ("package"))
-     (:file "nav-pcontroller" :depends-on ("package" "low-level-common"))
      (:file "neck" :depends-on ("package"))
-     (:file "grippers" :depends-on ("package" "joint-states"))
+     (:file "grippers" :depends-on ("package"))
      (:file "force-torque-sensor" :depends-on ("package"))
      (:file "joint-action-client" :depends-on ("package"))
      (:file "cart-action-client" :depends-on ("package"))))))

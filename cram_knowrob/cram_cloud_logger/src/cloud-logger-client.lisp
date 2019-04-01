@@ -39,6 +39,9 @@
    (current-query-id :accessor get-current-query-id)))
 
 
+(define-condition ccl-failure (cpl:simple-plan-failure) ()
+  (:documentation "CCL had a failure."))
+
 (defun connect-to-cloud-logger ()
   (when *is-logging-enabled*
    (if (not *is-client-connected*)
@@ -69,14 +72,18 @@
 
 (defun send-prolog-query-1 (prolog-query)
   ;;(print prolog-query)
-  (if *is-logging-enabled*
-   (let ((query-id (get-id-from-query-result
-                    (json-prolog:prolog-simple-1
-                     (concatenate 'string "send_prolog_query('"
-                                  (string prolog-query) "', @(false), Id)")))))
-     (let ((query-result (send-next-solution query-id)))
-       (send-finish-query query-id)
-       query-result))))
+  (when *is-logging-enabled*
+    (handler-case
+        (let ((query-id (get-id-from-query-result
+                         (json-prolog:prolog-simple-1
+                          (concatenate 'string "send_prolog_query('"
+                                       (string prolog-query) "', @(false), Id)")))))
+          (let ((query-result (send-next-solution query-id)))
+            (send-finish-query query-id)
+            query-result))
+      (simple-error (e)
+        (roslisp:ros-error (ccl) "error in json prolog: ~a~%" e)
+        (cpl:fail 'ccl-failure :format-control "Error in json prolog.")))))
 
 (defun send-prolog-query (prolog-query)
   (json-prolog:prolog-simple
