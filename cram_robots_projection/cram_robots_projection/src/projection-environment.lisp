@@ -48,12 +48,12 @@
    (cet:*episode-knowledge*
     cet:*episode-knowledge*))
   :process-module-definitions
-  (boxy-proj-navigation
-   boxy-proj-torso
-   boxy-proj-ptu
-   boxy-proj-perception
-   boxy-proj-grippers
-   boxy-proj-arms)
+  (robots-proj-navigation
+   robots-proj-torso
+   robots-proj-ptu
+   robots-proj-perception
+   robots-proj-grippers
+   robots-proj-arms)
   :startup (progn
              (cram-bullet-reasoning-belief-state:set-tf-from-bullet)
              (cram-bullet-reasoning-belief-state:update-bullet-transforms))
@@ -65,22 +65,22 @@
 
   (<- (cpm:available-process-module ?pm)
     (bound ?pm)
-    (once (member ?pm (boxy-proj-navigation
-                       boxy-proj-torso
-                       boxy-proj-ptu
-                       boxy-proj-perception
-                       boxy-proj-grippers
-                       boxy-proj-arms)))
+    (once (member ?pm (robots-proj-navigation
+                       robots-proj-torso
+                       robots-proj-ptu
+                       robots-proj-perception
+                       robots-proj-grippers
+                       robots-proj-arms)))
     (symbol-value cram-projection:*projection-environment* boxy-bullet-projection-environment))
 
   (<- (cpm::projection-running ?pm)
     ;; (bound ?pm)
-    (once (member ?pm (boxy-proj-navigation
-                       boxy-proj-torso
-                       boxy-proj-ptu
-                       boxy-proj-perception
-                       boxy-proj-grippers
-                       boxy-proj-arms)))
+    (once (member ?pm (robots-proj-navigation
+                       robots-proj-torso
+                       robots-proj-ptu
+                       robots-proj-perception
+                       robots-proj-grippers
+                       robots-proj-arms)))
     (symbol-value cram-projection:*projection-environment* boxy-bullet-projection-environment)))
 
 

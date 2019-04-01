@@ -44,10 +44,12 @@
                         (when kitchen-urdf-string
                           (setf *kitchen-urdf* (cl-urdf:parse-urdf
                                                 kitchen-urdf-string)))))))
-    (when (search "hsrb" (setf robot (robots-proj::get-urdf-hsrb))))
-    (when (search "boxy" (robots-proj::get-setup-boxy)))
+    (when (search "hsrb" robot)
+      (setf robot (robots-proj::get-urdf-hsrb)))
     (setf rob-int:*robot-urdf*
           (cl-urdf:parse-urdf robot))
+    (when (search "boxy" robot )
+      (robots-proj::get-setup-boxy))
     (assert
      (cut:force-ll
       (prolog `(and

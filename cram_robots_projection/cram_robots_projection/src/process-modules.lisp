@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -34,87 +34,70 @@
 (cpm:def-process-module robots-proj-navigation (motion-designator)
   (destructuring-bind (command argument) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-base
-       (handler-case
-           (drive argument))))))
+      (cram-common-designators:move-base (drive argument)))))
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module robots-proj-torso (motion-designator)
   (destructuring-bind (command argument) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-torso
-       (handler-case
-           (move-torso argument))))))
+      (cram-common-designators:move-torso (move-torso argument)))))
 
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module robots-proj-ptu (motion-designator)
   (destructuring-bind (command goal-pose goal-configuration) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-head
-       (handler-case
-           (look-at goal-pose goal-configuration))))))
+      (cram-common-designators:move-head (look-at goal-pose goal-configuration)))))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module robots-proj-perception (motion-designator)
   (destructuring-bind (command argument-1) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:detect
-       (handler-case
-           (detect argument-1))))))
+      (cram-common-designators:detect (detect argument-1)))))
 
 ;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module robots-proj-grippers (motion-designator)
   (destructuring-bind (command arg-1 arg-2 &rest arg-3) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-gripper-joint
-       (handler-case
-           (gripper-action arg-1 arg-2 (car arg-3)))))))
+      (cram-common-designators:move-gripper-joint (gripper-action arg-1 arg-2 (car arg-3))))))
 
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module robots-proj-arms (motion-designator)
   (destructuring-bind (command arg-1 &rest arg-2) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-tcp
-       (handler-case
-           (move-tcp arg-1 (car arg-2))))
-      (cram-common-designators::move-joints
-       (handler-case
-           (move-joints arg-1 (car arg-2))))
-      (cram-common-designators::move-with-constraints
-       (roslisp:ros-warn (boxy pms) "move-with-constraints is not supported")
-       ;; (handler-case
-       ;;     (move-with-constraints arg-1))
-       ))))
+      (cram-common-designators:move-tcp (move-tcp arg-1 (first arg-2) (second arg-2)
+                                                  (third arg-2) (fourth arg-2) (fifth arg-2)))
+      (cram-common-designators::move-joints (move-joints arg-1 (car arg-2)))
+      (cram-common-designators::move-with-constraints (move-with-constraints arg-1)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group robots-matching-pms (cpm:matching-process-module)
 
-  (<- (cpm:matching-process-module ?motion-designator boxy-proj-navigation)
+  (<- (cpm:matching-process-module ?motion-designator robots-proj-navigation)
     (desig:desig-prop ?motion-designator (:type :going)))
 
-  (<- (cpm:matching-process-module ?motion-designator boxy-proj-torso)
+  (<- (cpm:matching-process-module ?motion-designator robots-proj-torso)
     (desig:desig-prop ?motion-designator (:type :moving-torso)))
 
-  (<- (cpm:matching-process-module ?motion-designator boxy-proj-ptu)
+  (<- (cpm:matching-process-module ?motion-designator robots-proj-ptu)
     (desig:desig-prop ?motion-designator (:type :looking)))
 
-  (<- (cpm:matching-process-module ?motion-designator boxy-proj-perception)
+  (<- (cpm:matching-process-module ?motion-designator robots-proj-perception)
     (desig:desig-prop ?motion-designator (:type :detecting)))
 
-  (<- (cpm:matching-process-module ?motion-designator boxy-proj-grippers)
+  (<- (cpm:matching-process-module ?motion-designator robots-proj-grippers)
     (or (desig:desig-prop ?motion-designator (:type :gripping))
         (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))
         (desig:desig-prop ?motion-designator (:type :opening-gripper))
         (desig:desig-prop ?motion-designator (:type :closing-gripper))))
 
-  (<- (cpm:matching-process-module ?motion-designator boxy-proj-arms)
+  (<- (cpm:matching-process-module ?motion-designator pr2-proj-arms)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
         (desig:desig-prop ?motion-designator (:type :moving-with-constraints)))))
