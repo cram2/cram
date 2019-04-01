@@ -1,0 +1,96 @@
+;;;
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; All rights reserved.
+;;;
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions are met:
+;;;
+;;;     * Redistributions of source code must retain the above copyright
+;;;       notice, this list of conditions and the following disclaimer.
+;;;     * Redistributions in binary form must reproduce the above copyright
+;;;       notice, this list of conditions and the following disclaimer in the
+;;;       documentation and/or other materials provided with the distribution.
+;;;     * Neither the name of the Intelligent Autonomous Systems Group/
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
+;;;       without specific prior written permission.
+;;;
+;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+;;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;;; POSSIBILITY OF SUCH DAMAGE.
+
+(in-package :demo)
+
+
+(defvar *kitchen-urdf* nil)
+
+(defparameter *kitchen-parameter* "kitchen_description")
+
+
+(defun setup-bullet-world ()
+  (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+  (let* ((robot (roslisp:get-param "robot_description"))
+         (kitchen (or *kitchen-urdf*
+                      (let ((kitchen-urdf-string
+                              (roslisp:get-param *kitchen-parameter* nil)))
+                        (when kitchen-urdf-string
+                          (setf *kitchen-urdf* (cl-urdf:parse-urdf
+                                                kitchen-urdf-string)))))))
+    (when (search "hsrb" robot)
+      (setf robot (urdf-proj::get-urdf-hsrb)))
+    (setf rob-int:*robot-urdf*
+          (cl-urdf:parse-urdf robot))
+    (when (search "boxy" robot )
+      (urdf-proj::get-setup-boxy))
+    (assert
+     (cut:force-ll
+      (prolog `(and
+                (btr:bullet-world ?w)
+                (btr:debug-window ?w)
+                (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
+                                                         :normal (0 0 1) :constant 0))
+                (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
+                                                 :collision-group :static-filter
+                                                 :collision-mask (:default-filter
+                                                                 :character-filter)
+                                                 :urdf ,kitchen
+                                                 :compound T))
+                (-> (cram-robot-interfaces:robot ?robot)
+                    (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))
+                    (warn "ROBOT was not defined. Have you loaded a robot package?"))))))))
+
+
+(defun init-projection ()
+  (def-fact-group costmap-metadata ()
+    (<- (location-costmap:costmap-size 12 12))
+    (<- (location-costmap:costmap-origin -6 -6))
+    (<- (location-costmap:costmap-resolution 0.05))
+
+    (<- (location-costmap:costmap-padding 0.5))
+    (<- (location-costmap:costmap-manipulation-padding 0.2))
+    (<- (location-costmap:costmap-in-reach-distance 0.7))
+    (<- (location-costmap:costmap-reach-minimal-distance 0.2))
+    (<- (location-costmap:visibility-costmap-size 2.5)))
+  
+  (setf cram-tf:*tf-broadcasting-enabled* t)	
+
+
+
+  (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
+
+  (setup-bullet-world)
+
+  (setf cram-tf:*tf-default-timeout* 2.0)
+
+  (setf prolog:*break-on-lisp-errors* t)
+
+  (cram-bullet-reasoning:clear-costmap-vis-object))
+(roslisp-utilities:register-ros-init-function init-projection)

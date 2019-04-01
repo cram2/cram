@@ -28,7 +28,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :robots-proj)
+(in-package :urdf-proj)
 
 (defparameter *debug-short-sleep-duration* 0.0
   "in seconds, sleeps after each movement during reasoning")

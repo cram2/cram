@@ -27,53 +27,12 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-robots-bringup
-  :author "gaya"
-  :license "BSD"
+(in-package :cl-user)
 
-  :depends-on (roslisp-utilities ; for ros-init-function
-
-               cl-transforms
-               cl-transforms-stamped
-               cl-tf
-               cl-tf2
-               cram-tf
-
-               cram-language
-               cram-executive
-               cram-designators
-               cram-prolog
-               cram-projection
-               cram-occasions-events
-               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
-
-               cram-common-failures
-               cram-mobile-pick-place-plans
-
-               cram-knowrob-assembly
-               ;; cram-robosherlock
-
-               cram-physics-utils ; for reading "package://" paths
-               cl-bullet ; for handling BOUNDING-BOX datastructures
-               cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
-               cram-bullet-reasoning-utilities
-               cram-btr-visibility-costmap
-
-               cram-semantic-map-costmap
-               cram-robot-pose-gaussian-costmap
-               cram-occupancy-grid-costmap
-               cram-location-costmap
-
-               cram-boxy-description
-               cram-pr2-description
-	       cram-robots-projection
-               )
-
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "setup" :depends-on ("package"))
-     (:file "projection-demo" :depends-on ("package"))
-     (:file "demo" :depends-on ("package" "projection-demo"))))))
+(defpackage cram-robots-bringup
+  (:nicknames #:demo)
+  (:use #:common-lisp #:cram-prolog
+        #:desig #:exe)
+  (:export
+   ;; setup
+   ))

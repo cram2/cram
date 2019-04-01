@@ -1,4 +1,6 @@
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,8 +12,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -26,41 +28,51 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-robots-projection
-  :author "Gayane Kazhoyan"
+(defsystem cram-urdf-bringup
+  :author "gaya"
   :license "BSD"
 
-  :depends-on (cram-projection
-               cram-prolog
-               cram-designators
-               cram-utilities
-               cram-bullet-reasoning
-               cram-tf
-               cram-robot-interfaces    ; for ROBOT predicate and COMPUTE-IKS
+  :depends-on (roslisp-utilities ; for ros-init-function
+
                cl-transforms
                cl-transforms-stamped
                cl-tf
+               cl-tf2
+               cram-tf
+
+               cram-language
+               cram-executive
+               cram-designators
+               cram-prolog
+               cram-projection
                cram-occasions-events
-               cram-plan-occasions-events
-               cram-boxy-description ; to get kinematic structure names
-               cram-common-designators
-               cram-boxy-designators ; for wiggling
+               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
+
                cram-common-failures
-               cram-process-modules
-               alexandria ; for CURRY in low-level perception
-               roslisp-utilities ; for rosify-lisp-name
-               cram-semantic-map ; for special projection variable definition
-               cram-bullet-reasoning-belief-state ; for special projection variable definition
-               cram-simple-actionlib-client ; for communicating with giskard
-               moveit_msgs-msg ; for IK queries
-               moveit_msgs-srv)
+               cram-mobile-pick-place-plans
+
+               cram-knowrob-assembly
+               ;; cram-robosherlock
+
+               cram-physics-utils ; for reading "package://" paths
+               cl-bullet ; for handling BOUNDING-BOX datastructures
+               cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-utilities
+               cram-btr-visibility-costmap
+
+               cram-semantic-map-costmap
+               cram-robot-pose-gaussian-costmap
+               cram-occupancy-grid-costmap
+               cram-location-costmap
+
+               cram-boxy-description
+               cram-pr2-description
+	       cram-urdf-projection
+               )
+
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "tf" :depends-on ("package"))
-     ;; (:file "giskard" :depends-on ("package"))
-     (:file "ik" :depends-on ("package"))
-     (:file "low-level" :depends-on ("package" "tf" "ik"))
-     (:file "process-modules" :depends-on ("package" "low-level"))
-     (:file "projection-environment" :depends-on ("package" "tf" "process-modules"))))))
+     (:file "setup" :depends-on ("package"))))))
