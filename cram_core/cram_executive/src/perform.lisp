@@ -54,6 +54,17 @@
                 :format-control "Designator goal ~a could not be parsed.~%~a"
                 :format-arguments (list keyword-expression error-message)))))
 
+(defun call-plan-with-designator-properties (plan-function action-designator)
+  (declare (type desig:action-designator action-designator))
+  (let ((designator-props-as-key-lambda-list
+          (let (plist)
+            (dolist (pair (desig:properties action-designator))
+              (push (first pair) plist)
+              (push (second pair) plist))
+            (nreverse plist))))
+    (apply plan-function designator-props-as-key-lambda-list)))
+
+
 (cpl:declare-goal perform (designator)
   (declare (ignore designator))
   "Performs the action or motion defined by `designator'. This goal
@@ -78,9 +89,9 @@ similar to what we have for locations.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
-    (destructuring-bind (command &rest arguments)
+    (destructuring-bind (plan referenced-action-designator)
         (try-reference-designator designator)
-      (if (fboundp command)
+      (if (fboundp plan)
           (let ((desig-goal (desig-prop-value designator :goal)))
             (if desig-goal
                 (let ((occasion (convert-desig-goal-to-occasion desig-goal)))
@@ -88,10 +99,10 @@ similar to what we have for locations.")
                       (warn 'simple-warning
                             :format-control "Action goal `~a' already achieved."
                             :format-arguments (list occasion))
-                      (apply command arguments))
+                      (call-plan-with-designator-properties plan referenced-action-designator))
                   (unless (cram-occasions-events:holds occasion)
                     (cpl:fail "Goal `~a' of action `~a' was not achieved."
                               designator occasion)))
-                (apply command arguments)))
+                (call-plan-with-designator-properties plan referenced-action-designator)))
           (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
-                       but it isn't defined. Cannot perform action." designator command)))))
+                     but it isn't defined. Cannot perform action." designator plan)))))

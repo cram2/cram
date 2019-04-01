@@ -1,1 +1,0 @@
-# cram_knowrob_assembly

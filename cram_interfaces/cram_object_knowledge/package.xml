@@ -1,0 +1,20 @@
+<package format="2">
+  <name>cram_object_knowledge</name>
+  <version>0.7.0</version>
+  <description>
+    CRAM internal implementation of manipulation interfaces, storing grasps etc.
+    for specific object types, as well as their type hierarchy and other related
+    object knowledge.
+    This knowledge can also be stored in KnowRob and queried using the same
+    manipulation interfaces. This package enables CRAM to function independently
+    of KnowRob for people who want a lightweight system.
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cram_prolog</depend>
+  <depend>cram_manipulation_interfaces</depend>
+</package>

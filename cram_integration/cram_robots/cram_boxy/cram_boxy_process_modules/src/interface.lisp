@@ -31,9 +31,6 @@
 (def-fact-group boxy-matching-pms (cpm:matching-process-module
                                    cpm:available-process-module)
 
-  (<- (cpm:matching-process-module ?motion-designator base-pm)
-    (desig:desig-prop ?motion-designator (:type :going)))
-
   (<- (cpm:matching-process-module ?motion-designator neck-pm)
     (desig:desig-prop ?motion-designator (:type :looking)))
 
@@ -49,13 +46,13 @@
         (desig:desig-prop ?motion-designator (:type :wiggling-tcp))))
 
   (<- (cpm:available-process-module ?pm)
-    (member ?pm (base-pm neck-pm grippers-pm body-pm))
+    (member ?pm (neck-pm grippers-pm body-pm))
     (not (cpm:projection-running ?_))))
 
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
-       (rs:robosherlock-perception-pm
-        boxy-pm:base-pm boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
+       (rs:robosherlock-perception-pm navp:navp-pm
+        boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
      (cpl-impl::named-top-level (:name :top-level)
        ,@body)))
