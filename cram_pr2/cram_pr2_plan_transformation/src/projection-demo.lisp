@@ -53,14 +53,17 @@
     (:cup . ((1.3 0.6 0.9) (0 0 0 1)))
     (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
     (:spoon . ((1.43 0.9 0.74132) (0 0 0 1)))
+    (:fork . ((1.45 1.05 0.74132) (0 0 0 1)))
     (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
 
 (defparameter *object-grasping-arms*
-  '((:breakfast-cereal . :left)
-    (:bowl . :right)
-    (:cup . :left)
-    (:spoon . :right)
-    (:milk . :right)))
+  '(;; (:breakfast-cereal . :left)
+    ;; (:bowl . :right)
+    ;; (:cup . :left)
+    ;; (:spoon . :right)
+    ;; (:fork . :left)
+    ;; (:milk . :right)
+    ))
 
 (defparameter *object-placing-poses*
   `((:breakfast-cereal . ((-0.78 0.8 0.95)
@@ -79,6 +82,7 @@
     (:cup . ((-0.79 1.35 0.9) (0 0 0.7071 0.7071)))
     (:bowl . ((-0.76 1.19 0.88) (0 0 0.7071 0.7071)))
     (:spoon . ((-0.78 1.5 0.86) (0 0 0 1)))
+    (:fork . ((-0.78 1.6 0.86) (0 0 0 1)))
     (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
 
 (defun spawn-objects-on-sink-counter (&optional (spawning-poses *object-spawning-poses*))
@@ -88,7 +92,9 @@
   (let ((object-types '(:breakfast-cereal
                         ;; :cup
                         :bowl
-                        ;; :spoon :milk
+                        :spoon
+                        :fork
+                        ;; :milk
                         )))
     ;; spawn objects at default poses
     (let ((objects (mapcar (lambda (object-type)
@@ -100,8 +106,13 @@
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
       objects))
-  (let ((spoon (btr:object btr:*current-bullet-world* :spoon-1)))    
+  (let ((spoon (btr:object btr:*current-bullet-world* :spoon-1))
+        (fork (btr:object btr:*current-bullet-world* :fork-1)))    
     (when spoon
       (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
                          spoon
+                         "sink_area_left_upper_drawer_main"))
+    (when fork
+      (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+                         fork
                          "sink_area_left_upper_drawer_main"))))

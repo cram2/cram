@@ -38,7 +38,7 @@
 (defmethod exe:generic-perform :before (designator)
   (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
 
-(defun demo-transform (&optional (reset T) (objects '(:bowl :breakfast-cereal)))
+(defun demo-transform (&optional (reset T) (objects '(:bowl :breakfast-cereal :spoon)))
   "Executes a demo, transforms the task tree and executes again"
   (cet:enable-fluent-tracing)
   (when reset
@@ -86,6 +86,13 @@
                                               (owl-name "drawer_sinkblock_upper_open")
                                               (part-of kitchen)))
                                 (side front)))
+            (:fork . ,(desig:a location
+                                (in (desig:an object
+                                              (type drawer)
+                                              (urdf-name sink-area-left-upper-drawer-main)
+                                              (owl-name "drawer_sinkblock_upper_open")
+                                              (part-of kitchen)))
+                                (side front)))
             (:milk . ,(desig:a location
                                (side left)
                                (side front)
@@ -100,7 +107,7 @@
                                                        )
                                              (part-of kitchen)))))))
         (object-placing-locations
-          (let ((?pose
+          (let ((?breakfast-pose
                  (or (when (assoc :breakfast-cereal *object-placing-poses*)
                        (destructuring-bind ((x y z) (qx qy qz w))
                            (cdr (assoc :breakfast-cereal *object-placing-poses*))
@@ -113,9 +120,23 @@
                       "map"
                       0.0
                       (cl-transforms:make-3d-vector -0.78 0.8 0.95)
-                      (cl-transforms:make-quaternion 0 0 0.6 0.4)))))
+                      (cl-transforms:make-quaternion 0 0 0.6 0.4))))
+                (?spoon-pose (destructuring-bind ((x y z) (qx qy qz w))
+                                 (cdr (assoc :spoon *object-placing-poses*))
+                               (cl-transforms-stamped:make-pose-stamped
+                                "map"
+                                0.0
+                                (cl-transforms:make-3d-vector x y z)
+                                (cl-transforms:make-quaternion qx qy qz w))))
+                (?fork-pose (destructuring-bind ((x y z) (qx qy qz w))
+                                (cdr (assoc :fork *object-placing-poses*))
+                              (cl-transforms-stamped:make-pose-stamped
+                               "map"
+                               0.0
+                               (cl-transforms:make-3d-vector x y z)
+                               (cl-transforms:make-quaternion qx qy qz w)))))
             `((:breakfast-cereal . ,(desig:a location
-                                             (pose ?pose)
+                                             (pose ?breakfast-pose)
                                              ;; (left-of (an object (type bowl)))
                                              ;; (far-from (an object (type bowl)))
                                              ;; (for (an object (type breakfast-cereal)))
@@ -143,10 +164,25 @@
                                  (side back)
                                  (side right)
                                  (range-invert 0.5)))
+              (:fork . ,(desig:a location
+                                 (pose ?fork-pose)))
               (:spoon . ,(desig:a location
-                                  (right-of (an object (type bowl)))
-                                  (near (an object (type bowl)))
-                                  (for (an object (type spoon)))))
+                                             (pose ?spoon-pose)
+                                             ;; (left-of (an object (type bowl)))
+                                             ;; (far-from (an object (type bowl)))
+                                             ;; (for (an object (type breakfast-cereal)))
+                                             ;; (on (desig:an object
+                                             ;;               (type counter-top)
+                                             ;;               (urdf-name kitchen-island-surface)
+                                             ;;               (owl-name "kitchen_island_counter_top")
+                                             ;;               (part-of kitchen)))
+                                             ;; (side back)
+                                             )
+                      ;; ,(desig:a location
+                        ;;           (right-of (an object (type bowl)))
+                        ;;           (near (an object (type bowl)))
+                        ;;           (for (an object (type spoon))))
+                      )
               (:milk . ,(desig:a location
                                  (left-of (an object (type bowl)))
                                  (far-from (an object (type bowl)))
@@ -233,6 +269,7 @@
 
 (defun initialize ()
   (sb-ext:gc :full t)
+  (setf pr2-proj-reasoning::*projection-checks-enabled* t)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
   (btr-utils:kill-all-objects)

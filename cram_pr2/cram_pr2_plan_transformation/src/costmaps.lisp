@@ -1,6 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Arthur Niedzwiecki <niedzwiecki@uni-bremen.de>
-;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -30,37 +29,26 @@
 
 (in-package :plt)
 
-(defun init-projection ()
-  (def-fact-group costmap-metadata ()
-    (<- (location-costmap:costmap-size 12 12))
-    (<- (location-costmap:costmap-origin -6 -6))
-    (<- (location-costmap:costmap-resolution 0.04))
+(defun make-restricted-area-cost-function ()
+  (lambda (x y)
+    1.0
+    ;; (if (> x 1.0)
+    ;;     0.0
+    ;;     (if (and (> x 0.0) (> y -1.0) (< y 0.7 ;1.0
+    ;;                                      ))
+    ;;         1.0
+    ;;         (if (and (< x 0.0) (> x -1.0) (> y -1.0) (< y 2.5)) 1.0
+    ;;             0.0)))
+    ))
 
-    (<- (location-costmap:costmap-padding 0.3))
-    (<- (location-costmap:costmap-manipulation-padding 0.4))
-    (<- (location-costmap:costmap-in-reach-distance 0.9))
-    (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-    (<- (location-costmap:visibility-costmap-size 2))
-    (<- (location-costmap:orientation-samples 2))
-    (<- (location-costmap:orientation-sample-step 0.1)))
-  
-  (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
-  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
+(defmethod location-costmap:costmap-generator-name->score ((name (eql 'restricted-area))) 5)
 
-  ;; (sem-map:get-semantic-map)
-
-  (cram-occasions-events:clear-belief)
-
-  (setf cram-tf:*tf-default-timeout* 2.0)
-
-  (setf prolog:*break-on-lisp-errors* t)
-
-  (cram-bullet-reasoning:clear-costmap-vis-object)
-
-  (setf cram-tf:*tf-broadcasting-enabled* t)
-
-  (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
-  
-  (btr:add-objects-to-mesh-list "cram_pr2_plan_transformation"))
-
-(roslisp-utilities:register-ros-init-function init-projection)
+(def-fact-group demo-costmap (location-costmap:desig-costmap)
+    (<- (location-costmap:desig-costmap ?designator ?costmap)
+      (or (cram-robot-interfaces:visibility-designator ?designator)
+          (cram-robot-interfaces:reachability-designator ?designator))
+      (location-costmap:costmap ?costmap)
+      (location-costmap:costmap-add-function
+       restricted-area
+       (make-restricted-area-cost-function)
+       ?costmap)))

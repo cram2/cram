@@ -39,25 +39,29 @@
                cl-tf
                cram-tf
 
+               cram-language ; obsolete
                cram-executive
+               cram-designators ; obsolete
                cram-prolog
                cram-projection
                cram-occasions-events
+               cram-utilities ; obsolete
 
                cram-common-failures
                cram-mobile-pick-place-plans
+               cram-object-knowledge
 
-               cram-knowrob-pick-place
                cram-cloud-logger
 
                cram-physics-utils     ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
-
+               cram-bullet-reasoning ; obsolete
                cram-bullet-reasoning-belief-state ;; using cram-bullet-reasoning
                cram-bullet-reasoning-utilities
                cram-btr-visibility-costmap ;
                cram-btr-spatial-relations-costmap ;
 
+               ;; cram-semantic-map-costmap
                cram-robot-pose-gaussian-costmap ;; contains cram-location-costmap
                cram-occupancy-grid-costmap ;; contains cram-location-costmap
                cram-location-costmap
@@ -68,7 +72,7 @@
                cram-pr2-fetch-deliver-plans
                cram-pr2-environment-manipulation ;
 
-               cram-semantic-map-costmap
+               
 
                ;; cram-robosherlock
                ;; cram-bullet-reasoning-designators
@@ -87,8 +91,8 @@
      (:file "demo" :depends-on ("package" "setup" "projection-demo"))
      (:file "demo-transformation-rules" :depends-on ("package" "plan-transformation" "predicates"))
      (:file "task-tree-functions" :depends-on ("package" "plan-transformation" "predicates"))
-     
-     ;; (:file "costmaps" :depends-on ("package"))
+     (:file "costmaps" :depends-on ("package"))
+
      ;; (:file "designators" :depends-on ("package"))
      ;; (:file "evaluation" :depends-on ("package"))
      ;; (:file "plans" :depends-on ("package" "utils" "designators"))

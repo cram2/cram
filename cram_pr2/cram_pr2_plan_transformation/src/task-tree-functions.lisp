@@ -35,6 +35,10 @@
   "For prolog predicates."
   *location-distance-threshold*)
 
+(defun location-desig-dist (desig-1 desig-2)
+  (cl-tf:v-dist (cl-tf:origin (desig-prop-value desig-1 :pose))
+                (cl-tf:origin (desig-prop-value desig-2 :pose))))
+
 (defun get-top-level-path (&optional (top-level-name *top-level-name*))
   (cpl:task-tree-node-path
    (cdr (car (direct-child
