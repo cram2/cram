@@ -80,6 +80,7 @@ from which the distance to the point (x,y) is minimal."
       (cl-transforms:make-3d-vector x y 0))))
 
 (defun angle-between-vectors (v1 v2)
+  "Return the cos of the angle between vectors V1 and V2."
   (/ (cl-transforms:dot-product v1 v2)
      (* (cl-transforms:v-norm v1)
         (cl-transforms:v-norm v2))))

@@ -41,8 +41,6 @@
 (defmethod man-int:get-object-type-gripper-opening
     ((object-type (eql :container-revolute))) 0.10)
 
-;; TODO(cpo): Make handle-angle be an actual angle of some kind, so we can
-;; handle more than horizontal and vertical
 (defun get-container-to-gripper-transform (object-name
                                            arm
                                            handle-axis
@@ -88,6 +86,8 @@
       tool-frame
       0.0
       (cl-transforms:make-3d-vector *drawer-handle-grasp-x-offset* 0.0d0 0.0d0)
+      ;; Calculate the grippers orientation, so it's properly aligned with the
+      ;; handle.
       (cl-transforms:column-vectors->quaternion
        (cl-transforms:make-3d-vector
         0
@@ -100,20 +100,7 @@
        (cl-transforms:make-3d-vector
         -1
         0
-        0))
-      ;;(cl-transforms:matrix->quaternion
-       ;; (if (eq handle-axis :horizontal)
-       ;;     #2A((0 0 -1)
-       ;;         (0 1 0)
-       ;;         (1 0 0))
-       ;;     #2A((0 0 -1)
-       ;;         (-1 0 0)
-       ;;         (0 1 0)))
-       ;; #2A((0 0 -1)
-       ;;     ((- (- 1 handle-angle-cos)) handle-angle-cos 0)
-       ;;     (handle-angle-cos (- 1 handle-angle-cos) 0))
-      ;; )
-      ))))
+        0))))))
 
 (defmethod man-int:get-action-trajectory :before ((action-type (eql :opening))
                                                    arm
@@ -125,7 +112,8 @@
   "Raise an error if object count is not right."
   (declare (ignore arm grasp opening-distance handle-axis))
   (when (not (eql 1 (length objects-acted-on)))
-    (error (format nil "Action-type ~a requires exactly one object.~%" action-type))))
+    (error
+     (format nil "Action-type ~a requires exactly one object.~%" action-type))))
 
 (defmethod man-int:get-action-trajectory :before ((action-type (eql :closing))
                                                    arm
@@ -137,7 +125,8 @@
   "Raise an error if object count is not right."
   (declare (ignore arm grasp opening-distance handle-axis))
   (when (not (eql 1 (length objects-acted-on)))
-    (error (format nil "Action-type ~a requires exactly one object.~%" action-type))))
+    (error
+     (format nil "Action-type ~a requires exactly one object.~%" action-type))))
 
 (defmethod man-int:get-action-trajectory ((action-type (eql :opening))
                                            arm
@@ -146,6 +135,10 @@
                                            &key
                                              opening-distance
                                              handle-axis)
+  "Return a trajectory for opening the object in OBJECTS-ACTED-ON.
+OPENING-DISTANCE is a float in m, describing how far the object should opened.
+HANDLE-AXIS is a `cl-transforms:3d-vector' describing the handle's orientation
+in the robot's XZ-plane. It's Z-element should be 0."
   (make-trajectory action-type arm objects-acted-on opening-distance handle-axis))
 
 (defmethod man-int:get-action-trajectory ((action-type (eql :closing))
@@ -155,6 +148,10 @@
                                            &key
                                              opening-distance
                                              handle-axis)
+  "Return a trajectory for closing the object in OBJECTS-ACTED-ON.
+OPENING-DISTANCE is a float in m, describing how far the object should closed.
+HANDLE-AXIS is a `cl-transforms:3d-vector' describing the handle's orientation
+in the robot's XZ-plane. It's Z-element should be 0."
   (make-trajectory action-type arm objects-acted-on opening-distance handle-axis))
 
 (defun make-trajectory (action-type
@@ -163,8 +160,8 @@
                         opening-distance
                         handle-axis)
   "Make a trajectory for opening or closing a container.
-   This should only be used by get-action-trajectory for action-types :opening and
-   :closing."
+   This should only be used by get-action-trajectory for action-types :opening
+and :closing."
   (when (equal action-type :closing)
     (setf opening-distance (- opening-distance)))
   (let* ((object-designator (car objects-acted-on))
@@ -202,6 +199,8 @@
 
 (defun make-prismatic-trajectory (object-transform arm action-type
                                   grasp-pose opening-distance)
+  "Return a list of `man-int::traj-segment' representing a trajectory to open a
+container with prismatic joints."
   (mapcar (lambda (label transforms)
                 (man-int:make-traj-segment
                  :label label
@@ -224,6 +223,8 @@
 
 (defun make-revolute-trajectory (object-transform arm action-type
                                  grasp-pose opening-angle)
+  "Return a list of `man-int::traj-segment' representing a trajectory to open a
+container with revolute joints."
   (let* ((traj-poses (get-revolute-traj-poses grasp-pose :angle-max opening-angle)))
     (mapcar (lambda (label transforms)
               (man-int:make-traj-segment
@@ -255,7 +256,7 @@
 
 ;;TODO(cpo): Move to cram-tf or -math?
 (defun 3d-vector->keyparam-list (v)
-  "Convert a cl-transform:3d-vector into a list with content
+  "Convert a `cl-transform:3d-vector' into a list with content
    (:AX <x-value> :AY <y-value> :AZ <z-value>)."
   (declare (type cl-transforms:3d-vector v))
   (list
@@ -268,6 +269,8 @@
      &key
        (axis (cl-transforms:make-3d-vector 0 0 1))
        (angle-max (cram-math:degrees->radians 80)))
+  "Return a list of transforms from joint to gripper rotated around AXIS
+by ANGLE-MAX."
   (let ((angle-step (if (>= angle-max 0)
                         0.1
                         -0.1)))

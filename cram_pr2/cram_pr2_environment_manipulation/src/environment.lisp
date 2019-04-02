@@ -103,8 +103,8 @@
 
 (defun get-manipulated-pose (link-name joint-position btr-environment &key relative)
   "Returns the pose of a link based on its connection joint position
-  `joint-position'. If `relative' is T, the actual value is calculated
-  by `joint-position' * <joint maximal value>. This function returns two
+  JOINT-POSITION. If RELATIVE is T, the actual value is calculated
+  by JOINT-POSITION * <joint maximal value>. This function returns two
   values, the new pose of the link and the joint that was changed."
   (when (not (floatp joint-position))
     (setf joint-position (float joint-position)))
@@ -157,6 +157,8 @@
            joint))))))
 
 (defun get-handle-axis (container-designator)
+  "Return either a vector with (1 0 0) for horizontal handles or (0 0 1) for
+vertical handles on the container described by CONTAINER-DESIGNATOR."
   ;; Check for exceptions based on name.
   (let ((name-exception
           (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
