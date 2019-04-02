@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cram_pr2_shopping_demo</name>
+  <version>0.0.0</version>
+  <description>The cram_pr2_shopping_demo package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="jonas@todo.todo">jonas</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>TODO</license>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cl_bullet</build_depend>
+  <build_depend>cl_tf</build_depend>
+  <build_depend>cl_transforms</build_depend>
+  <build_depend>cram_btr_visibility_costmap</build_depend>
+  <build_depend>cram_bullet_reasoning</build_depend>
+  <build_depend>cram_bullet_reasoning_belief_state</build_depend>
+  <build_depend>cram_bullet_reasoning_utilities</build_depend>
+  <build_depend>cram_common_failures</build_depend>
+  <build_depend>cram_designators</build_depend>
+  <build_depend>cram_executive</build_depend>
+  <build_depend>cram_language</build_depend>
+  <build_depend>cram_location_costmap</build_depend>
+  <build_depend>cram_mobile_pick_place_plans</build_depend>
+  <build_depend>cram_occupancy_grid_costmap</build_depend>
+  <build_depend>cram_physics_utils</build_depend>
+  <build_depend>cram_pr2_description</build_depend>
+  <build_depend>cram_pr2_projection</build_depend>
+  <build_depend>cram_projection</build_depend>
+  <build_depend>cram_prolog</build_depend>
+  <build_depend>cram_tf</build_depend>
+  <build_depend>roslisp_utilities</build_depend>
+  <build_export_depend>cl_bullet</build_export_depend>
+  <build_export_depend>cl_tf</build_export_depend>
+  <build_export_depend>cl_transforms</build_export_depend>
+  <build_export_depend>cram_btr_visibility_costmap</build_export_depend>
+  <build_export_depend>cram_bullet_reasoning</build_export_depend>
+  <build_export_depend>cram_bullet_reasoning_belief_state</build_export_depend>
+  <build_export_depend>cram_bullet_reasoning_utilities</build_export_depend>
+  <build_export_depend>cram_common_failures</build_export_depend>
+  <build_export_depend>cram_designators</build_export_depend>
+  <build_export_depend>cram_executive</build_export_depend>
+  <build_export_depend>cram_language</build_export_depend>
+  <build_export_depend>cram_location_costmap</build_export_depend>
+  <build_export_depend>cram_mobile_pick_place_plans</build_export_depend>
+  <build_export_depend>cram_occupancy_grid_costmap</build_export_depend>
+  <build_export_depend>cram_physics_utils</build_export_depend>
+  <build_export_depend>cram_pr2_description</build_export_depend>
+  <build_export_depend>cram_pr2_projection</build_export_depend>
+  <build_export_depend>cram_projection</build_export_depend>
+  <build_export_depend>cram_prolog</build_export_depend>
+  <build_export_depend>cram_tf</build_export_depend>
+  <build_export_depend>roslisp_utilities</build_export_depend>
+  <exec_depend>cl_bullet</exec_depend>
+  <exec_depend>cl_tf</exec_depend>
+  <exec_depend>cl_transforms</exec_depend>
+  <exec_depend>cram_btr_visibility_costmap</exec_depend>
+  <exec_depend>cram_bullet_reasoning</exec_depend>
+  <exec_depend>cram_bullet_reasoning_belief_state</exec_depend>
+  <exec_depend>cram_bullet_reasoning_utilities</exec_depend>
+  <exec_depend>cram_common_failures</exec_depend>
+  <exec_depend>cram_designators</exec_depend>
+  <exec_depend>cram_executive</exec_depend>
+  <exec_depend>cram_language</exec_depend>
+  <exec_depend>cram_location_costmap</exec_depend>
+  <exec_depend>cram_mobile_pick_place_plans</exec_depend>
+  <exec_depend>cram_occupancy_grid_costmap</exec_depend>
+  <exec_depend>cram_physics_utils</exec_depend>
+  <exec_depend>cram_pr2_description</exec_depend>
+  <exec_depend>cram_pr2_projection</exec_depend>
+  <exec_depend>cram_projection</exec_depend>
+  <exec_depend>cram_prolog</exec_depend>
+  <exec_depend>cram_tf</exec_depend>
+  <exec_depend>roslisp_utilities</exec_depend>
+
+  <depend>cram_knowrob_pick_place</depend>
+
+
+
+  <exec_depend>pr2_description</exec_depend>
+  <exec_depend>pr2_arm_kinematics</exec_depend>
+  <exec_depend>map_server</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>
