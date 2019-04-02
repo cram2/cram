@@ -40,7 +40,7 @@
 
   (<- (perform-task-of-top-level ?top-level-name ?task-node)
     (bound ?top-level-name)
-    (task-of-top-level ?top-level-name ?task-node)
+    (coe:top-level-task ?top-level-name ?task-node)
     (lisp-fun cpl:task-tree-node-path ?task-node (?path . ?_))
     (equal ?path (cpl:goal (exe:perform ?_) . ?_)))
 
@@ -50,6 +50,12 @@
     (coe:task ?top-level-name ?subtree-path ?task-node)
     (lisp-fun cpl:task-tree-node-path ?task-node (?path . ?_))
     (equal ?path (cpl:goal (exe:perform ?_) . ?_)))
+
+  ;; task-parameter
+  (<- (task-parameter ?task ?parameter)
+    (bound ?task)
+    (lisp-fun cpl:task-tree-node-parameters ?task ?parameters)
+    (member ?parameter ?parameters))
 
   (<- (task-specific-action ?top-level-name ?subtree-path ?action-type ?task ?designator)
     (bound ?top-level-name)
