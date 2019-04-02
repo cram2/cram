@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Christopher Pollok <cpollok@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,7 +30,67 @@
 
 (in-package :cram-manipulation-interfaces)
 
-;;;;;;;;;;;;;;;;;;; OBJECT TO GRIPPER TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defstruct traj-segment
+  (label nil :type keyword)
+  ;; (collision-mode :allow-all :type keyword)
+  (poses nil :type list))
+
+(defun make-empty-trajectory (labels)
+  (mapcar (lambda (x)
+            (make-traj-segment :label x :poses nil))
+          labels))
+
+(defun get-traj-poses-by-label (trajectory label)
+  (traj-segment-poses
+   (find label
+         trajectory
+         :key #'traj-segment-label)))
+
+(defgeneric get-action-trajectory (action-type arm grasp objects-acted-on
+                                   &key &allow-other-keys)
+  (:documentation "Returns a list of TRAJ-SEGMENTs.
+`action-type' describes for which type of action the trajectory will be,
+`arm' a single keyword eg. :left,
+`grasp' describes grasp orientation to use, e.g., :top, :left-side,
+`objects-acted-on' are designators describing the objects used by the action."))
+
+
+(defun calculate-gripper-pose-in-base (base-to-object-transform arm
+                                       object-to-standard-gripper-transform)
+  "Returns bPg, given bTo, the arm and oTg': bPg = bTo * oTg' * g'Tg.
+`arm' is :left or :right."
+  (let* ((gripper-tool-frame
+           (ecase arm
+             (:left cram-tf:*robot-left-tool-frame*)
+             (:right cram-tf:*robot-right-tool-frame*)))
+         (standard-to-particular-gripper-transform ; g'Tg
+           (cl-transforms-stamped:transform->transform-stamped
+            gripper-tool-frame
+            gripper-tool-frame
+            0.0
+            (cut:var-value
+             '?transform
+             (car (prolog:prolog
+                   `(and (cram-robot-interfaces:robot ?robot)
+                         (cram-robot-interfaces:standard-to-particular-gripper-transform
+                          ?robot ?transform)))))))
+         (base-to-standard-gripper-transform      ; bTg'
+           (cram-tf:multiply-transform-stampeds
+            cram-tf:*robot-base-frame* gripper-tool-frame
+            base-to-object-transform              ; bTo
+            object-to-standard-gripper-transform  ; oTg'
+            :result-as-pose-or-transform :transform)))
+    (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
+     cram-tf:*robot-base-frame* gripper-tool-frame
+     base-to-standard-gripper-transform      ; bTg'
+     standard-to-particular-gripper-transform ; g'Tg
+     :result-as-pose-or-transform :pose)))
+
+
+
+
+
+;;;;;;;;;;;;;;;; Everything below is for pick and place only ;;;;;;;;;;;;;;;;;;
 
 (defvar *known-grasp-types* nil
   "A list of symbols representing all known grasp types")
@@ -139,7 +200,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
-          (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+          (error "2nd pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
   (defmethod get-object-type-to-gripper-lift-transform ((object-type (eql object))
@@ -153,7 +214,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
-          (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+          (error "Lift transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
   (defmethod get-object-type-to-gripper-2nd-lift-transform ((object-type (eql object))
@@ -167,7 +228,7 @@ Gripper is defined by a convention where Z is pointing towards the object."))
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
-          (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+          (error "2nd lift transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
                              ))
@@ -175,79 +236,76 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                object-list))))
 
 
-(defgeneric get-object-grasping-poses (object-name object-type arm grasp object-transform)
-  (:documentation "Returns a list of (pregrasp-pose 2nd-pregrasp-pose grasp-pose lift-pose)")
-  (:method (object-name object-type arm grasp object-transform)
-    (declare (type symbol object-name object-type arm grasp)
-             (type cl-transforms-stamped:transform-stamped object-transform))
 
-    ;; First correct the object transform such that rotationally-symmetric objects
-    ;; would not be grasped in an awkward way with weird orientations
-    (when (prolog `(object-rotationally-symmetric ,object-type))
-      (setf object-transform
-            (cram-tf:copy-transform-stamped
-             object-transform
-             :rotation (cl-transforms:make-identity-rotation))))
 
-    (let* ((gripper-tool-frame
-             (ecase arm
-               (:left cram-tf:*robot-left-tool-frame*)
-               (:right cram-tf:*robot-right-tool-frame*)))
-           (object-to-standard-gripper-transform ; oTg'
-             (handler-case
-                 (get-object-type-to-gripper-transform object-type object-name arm grasp)
-               (error ()
-                 (format t "GET-OBJECT-GRASPING-POSES: robot does not not know to grasp~%")
-                 (return-from get-object-grasping-poses nil))))
-           (object-to-standard-gripper-pregrasp-transform ; oTg'
-             (get-object-type-to-gripper-pregrasp-transform
-              object-type object-name arm grasp
-              object-to-standard-gripper-transform))
-           (object-to-standard-gripper-2nd-pregrasp-transform ; oTg'
-             (get-object-type-to-gripper-2nd-pregrasp-transform
-              object-type object-name arm grasp
-              object-to-standard-gripper-transform))
-           (object-to-standard-gripper-lift-transform ; oTg'
-             (get-object-type-to-gripper-lift-transform
-              object-type object-name arm grasp
-              object-to-standard-gripper-transform))
-           (object-to-standard-gripper-2nd-lift-transform ; oTg'
-             (get-object-type-to-gripper-2nd-lift-transform
-              object-type object-name arm grasp
-              object-to-standard-gripper-transform))
-           (standard-to-particular-gripper-transform ; g'Tg
-             (cl-transforms-stamped:transform->transform-stamped
-              gripper-tool-frame
-              gripper-tool-frame
-              0.0
-              (cut:var-value
-               '?transform
-               (car (prolog:prolog
-                     `(and (cram-robot-interfaces:robot ?robot)
-                           (cram-robot-interfaces:standard-to-particular-gripper-transform
-                            ?robot ?transform))))))))
-      (when (and object-to-standard-gripper-transform standard-to-particular-gripper-transform)
+(defmethod get-action-trajectory ((action-type (eql :picking-up))
+                                  arm
+                                  grasp
+                                  objects-acted-on
+                                  &key)
+  (let* ((object
+           (car objects-acted-on))
+         (object-name
+           (desig:desig-prop-value object :name))
+         (object-type
+           (desig:desig-prop-value object :type))
+         (bTo
+           (man-int:get-object-transform object))
+         (oTg-std
+           (man-int:get-object-type-to-gripper-transform
+            object-type object-name arm grasp)))
 
-        (flet ((object-to-standard-gripper->base-to-particular-gripper (object-to-standard-gripper)
-                 (when object-to-standard-gripper
-                   (let ((base-to-standard-gripper-transform
-                           (cram-tf:multiply-transform-stampeds
-                            cram-tf:*robot-base-frame* gripper-tool-frame
-                            object-transform          ; bTo
-                            object-to-standard-gripper ; oTg'
-                            :result-as-pose-or-transform :transform))) ; bTo * oTg' = bTg'
-                     (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
-                      cram-tf:*robot-base-frame* gripper-tool-frame
-                      base-to-standard-gripper-transform      ; bTg'
-                      standard-to-particular-gripper-transform ; g'Tg
-                      :result-as-pose-or-transform :pose)))))
+    (mapcar (lambda (label transforms)
+              (make-traj-segment
+               :label label
+               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-base bTo arm)
+                              transforms)))
+            '(:reaching
+              :grasping
+              :lifting)
+            `((,(man-int:get-object-type-to-gripper-pregrasp-transform
+                 object-type object-name arm grasp oTg-std)
+               ,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
+                 object-type object-name arm grasp oTg-std))
+              (,oTg-std)
+              (,(man-int:get-object-type-to-gripper-lift-transform
+                 object-type object-name arm grasp oTg-std)
+               ,(man-int:get-object-type-to-gripper-2nd-lift-transform
+                 object-type object-name arm grasp oTg-std))))))
 
-          (mapcar #'object-to-standard-gripper->base-to-particular-gripper
-                  (list object-to-standard-gripper-pregrasp-transform
-                        object-to-standard-gripper-2nd-pregrasp-transform
-                        object-to-standard-gripper-transform
-                        object-to-standard-gripper-lift-transform
-                        object-to-standard-gripper-2nd-lift-transform)))))))
+(defmethod get-action-trajectory ((action-type (eql :placing))
+                                  arm
+                                  grasp
+                                  objects-acted-on
+                                  &key target-object-transform-in-base)
+  (let* ((object
+           (car objects-acted-on))
+         (object-name
+           (desig:desig-prop-value object :name))
+         (object-type
+           (desig:desig-prop-value object :type))
+         (oTg-std
+           (get-object-type-to-gripper-transform
+            object-type object-name arm grasp)))
+
+    (mapcar (lambda (label transforms)
+              (make-traj-segment
+               :label label
+               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-base
+                                                target-object-transform-in-base arm)
+                              transforms)))
+            '(:reaching
+              :putting
+              :retracting)
+            `((,(man-int:get-object-type-to-gripper-2nd-lift-transform
+                 object-type object-name arm grasp oTg-std)
+               ,(man-int:get-object-type-to-gripper-lift-transform
+                 object-type object-name arm grasp oTg-std))
+              (,oTg-std)
+              (,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
+                 object-type object-name arm grasp oTg-std)
+               ,(man-int:get-object-type-to-gripper-pregrasp-transform
+                 object-type object-name arm grasp oTg-std))))))
 
 
 

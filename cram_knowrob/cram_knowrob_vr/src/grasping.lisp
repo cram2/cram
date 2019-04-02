@@ -78,8 +78,8 @@ RETURNS: a cl-transform."
                                                           grasp-transform)
   (cram-tf:translate-transform-stamped
    grasp-transform
-   :x-offset (- cram-knowrob-pick-place::*cereal-pregrasp-xy-offset*)
-   :z-offset cram-knowrob-pick-place::*lift-z-offset*))
+   :x-offset (- objects::*cereal-pregrasp-xy-offset*)
+   :z-offset objects::*lift-z-offset*))
 
 (defmethod get-object-type-to-gripper-2nd-pregrasp-transform (object-type
                                                               object-name
@@ -88,7 +88,7 @@ RETURNS: a cl-transform."
                                                               grasp-transform)
   (cram-tf:translate-transform-stamped
    grasp-transform
-   :x-offset (- cram-knowrob-pick-place::*cereal-pregrasp-xy-offset*)))
+   :x-offset (- objects::*cereal-pregrasp-xy-offset*)))
 
 (defmethod get-object-type-to-gripper-lift-transform (object-type
                                                       object-name
@@ -97,7 +97,7 @@ RETURNS: a cl-transform."
                                                       grasp-transform)
   (cram-tf:translate-transform-stamped
    grasp-transform
-   :z-offset cram-knowrob-pick-place::*lift-z-offset*))
+   :z-offset objects::*lift-z-offset*))
 
 (defmethod get-object-type-to-gripper-2nd-lift-transform (object-type
                                                           object-name

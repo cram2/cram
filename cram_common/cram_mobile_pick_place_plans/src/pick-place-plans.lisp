@@ -29,11 +29,34 @@
 
 (in-package :pp-plans)
 
-(cpl:def-cram-function pick-up (?object-designator
-                                ?arm ?gripper-opening ?grip-effort ?grasp
-                                ?left-reach-poses ?right-reach-poses
-                                ?left-grasping-poses ?right-grasping-poses
-                                ?left-lift-poses ?right-lift-poses)
+;; NOTE: unfortunately, cpl:def-cram-function doesn't use the specified lambda list.
+;; Because of that declare type statements do not work on variables from the lambda list,
+;; and the auto completion of arguments is useless as well.
+;; As we would really like to have declare statements, our plans are simple defuns.
+;; If in the future one would want to use def-cram-function for plan transformations,
+;; one can always def-cram-function that calls a normal function.
+(defun pick-up (&key
+                  ((:object ?object-designator))
+                  ((:arm ?arm))
+                  ((:gripper-opening ?gripper-opening))
+                  ((:effort ?grip-effort))
+                  ((:grasp ?grasp))
+                  ((:left-reach-poses ?left-reach-poses))
+                  ((:right-reach-posees ?right-reach-poses))
+                  ((:left-grasp-poses ?left-grasp-poses))
+                  ((:right-grasp-poses ?right-grasp-poses))
+                  ((:left-lift-poses ?left-lift-poses))
+                  ((:right-lift-poses ?right-lift-poses))
+                &allow-other-keys)
+  (declare (type desig:object-designator ?object-designator)
+           (type keyword ?arm ?grasp)
+           (type number ?gripper-opening ?grip-effort)
+           (type (or null list) ; yes, null is also list, but this is better reachability
+                 ?left-reach-poses ?right-reach-poses
+                 ?left-grasp-poses ?right-grasp-poses
+                 ?left-lift-poses ?right-lift-poses))
+  "Open gripper, reach traj, grasp traj, close gripper, issue grasping event, lift."
+
   (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
                             :r-g-b-list '(1 1 0) :id 300)
 
@@ -57,6 +80,7 @@
                  (type reaching)
                  (left-poses ?left-reach-poses)
                  (right-poses ?right-reach-poses)))))
+  (roslisp:ros-info (pick-place pick-up) "Grasping")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (pp-plans pick-up)
@@ -68,8 +92,8 @@
      (desig:an action
                (type grasping)
                (object ?object-designator)
-               (left-poses ?left-grasping-poses)
-               (right-poses ?right-grasping-poses))))
+               (left-poses ?left-grasp-poses)
+               (right-poses ?right-grasp-poses))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
   (exe:perform
    (desig:an action
@@ -97,15 +121,31 @@
                (right-poses ?right-lift-poses)))))
 
 
-(cpl:def-cram-function place (?object-designator
-                              ?other-object-designator
-                              ?placing-location-name
-                              ?arm
-                              ?gripper-opening
-                              ?left-reach-poses ?right-reach-poses
-                              ?left-put-poses ?right-put-poses
-                              ?left-retract-poses ?right-retract-poses
-                              ?placing-location-designator)
+
+(defun place (&key
+                ((:object ?object-designator))
+                ((:other-object ?other-object-designator))
+                ((:arm ?arm))
+                ((:gripper-opening ?gripper-opening))
+                ((:placing-location-name ?placing-location-name))
+                ((:left-reach-poses ?left-reach-poses))
+                ((:right-reach-poses ?right-reach-poses))
+                ((:left-put-poses ?left-put-poses))
+                ((:right-put-poses ?right-put-poses))
+                ((:left-retract-poses ?left-retract-poses))
+                ((:right-retract-poses ?right-retract-poses))
+              &allow-other-keys)
+  (declare (type desig:object-designator ?object-designator)
+           (type (or desig:object-designator null) ?other-object-designator)
+           (type keyword ?arm)
+           (type (or null keyword) ?placing-location-name)
+           (type number ?gripper-opening)
+           (type (or null list) ; yes, null is also list, but this is better reachability
+                 ?left-reach-poses ?right-reach-poses
+                 ?left-put-poses ?right-put-poses
+                 ?left-retract-poses ?right-retract-poses))
+  "Reach, put, assert assemblage if given, open gripper, retract grasp event, retract arm."
+
   (roslisp:ros-info (pick-place place) "Reaching")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)

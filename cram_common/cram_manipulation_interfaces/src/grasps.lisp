@@ -130,7 +130,6 @@
   (:documentation "Returns a lazy list of all possible grasps for `object-type' with given `arm'")
   (:method (object-type arm object-transform-in-base)
     (declare (ignore object-transform-in-base))
-    #-solution-using-sbcl-API
     (remove-if
      #'null
      (mapcar (lambda (grasp-type)

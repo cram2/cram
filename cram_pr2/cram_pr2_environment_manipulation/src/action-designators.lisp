@@ -42,23 +42,9 @@
          (transform (cram-tf:pose-stamped->transform-stamped pose name-rosified)))
     (list pose transform)))
 
-;; TODO: incorporate DISTANCE property of designator in GET-OBJECT-GRASPING-POSES
 (def-fact-group environment-manipulation (desig:action-grounding)
 
-  (<- (desig:action-grounding ?action-designator (open-container ?arm
-                                                                 ?gripper-opening
-                                                                 ?distance
-                                                                 ?left-reach-poses
-                                                                 ?right-reach-poses
-                                                                 ?left-grasp-poses
-                                                                 ?right-grasp-poses
-                                                                 (?left-lift-pose)
-                                                                 (?right-lift-pose)
-                                                                 (?left-2nd-lift-pose)
-                                                                 (?right-2nd-lift-pose)
-                                                                 ?joint-name
-                                                                 ?handle-link
-                                                                 ?environment-obj))
+  (<- (desig:action-grounding ?action-designator (open-container ?referenced-action-designator))
     (spec:property ?action-designator (:type :opening))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
@@ -81,40 +67,68 @@
     ;; environment
     (btr:bullet-world ?world)
     (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
+    (lisp-fun btr:name ?environment-obj ?environment-name)
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
-    (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
-              (?container-pose ?container-transform))
-    (lisp-fun man-int:get-object-grasping-poses ?container-name
-              :container-prismatic :left :open ?container-transform ?left-poses)
-    (lisp-fun man-int:get-object-grasping-poses ?container-name
-              :container-prismatic :right :open ?container-transform ?right-poses)
-    (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
-              ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses
-                                 ?left-grasp-poses ?right-grasp-poses
-                                 ?left-lift-poses ?right-lift-poses))
-     (-> (lisp-pred identity ?left-lift-poses)
-        (equal ?left-lift-poses (?left-lift-pose ?left-2nd-lift-pose))
-        (equal (NIL NIL) (?left-lift-pose ?left-2nd-lift-pose)))
-    (-> (lisp-pred identity ?right-lift-poses)
-        (equal ?right-lift-poses (?right-lift-pose ?right-2nd-lift-pose))
-        (equal (NIL NIL) (?right-lift-pose ?right-2nd-lift-pose))))
+    ;; calculate trajectory
+    (equal ?objects (?container-designator))
+    (-> (equal ?arm :left)
+        (and (lisp-fun man-int:get-action-trajectory
+                       :opening ?arm :open ?objects
+                       :opening-distance ?distance
+                       ?left-trajectory)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
+                       ?left-reach-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :grasping
+                       ?left-grasp-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :opening
+                       ?left-open-pose)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :retracting
+                       ?left-retract-pose))
+        (and (equal ?left-reach-poses NIL)
+             (equal ?left-grasp-poses NIL)
+             (equal ?left-open-pose NIL)
+             (equal ?left-retract-pose NIL)))
+    (-> (equal ?arm :right)
+        (and (lisp-fun man-int:get-action-trajectory
+                       :opening ?arm :open ?objects
+                       :opening-distance ?distance
+                       ?right-trajectory)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
+                       ?right-reach-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :grasping
+                       ?right-grasp-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :opening
+                       ?right-open-pose)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :retracting
+                       ?right-retract-pose))
+        (and (equal ?right-reach-poses NIL)
+             (equal ?right-grasp-poses NIL)
+             (equal ?right-open-pose NIL)
+             (equal ?right-retract-pose NIL)))
+    (or (lisp-pred identity ?left-trajectory)
+        (lisp-pred identity ?right-trajectory))
+    ;; make new action designator
+    (desig:designator :action ((:type :opening)
+                               (:arm ?arm)
+                               (:gripper-opening ?gripper-opening)
+                               (:distance ?distance)
+                               (:left-reach-poses ?left-reach-poses)
+                               (:right-reach-poses ?right-reach-poses)
+                               (:left-grasp-poses ?left-grasp-poses)
+                               (:right-grasp-poses ?right-grasp-poses)
+                               (:left-open-poses ?left-open-pose)
+                               (:right-open-poses ?right-open-pose)
+                               (:left-retract-poses ?left-retract-pose)
+                               (:right-retract-poses ?right-retract-pose)
+                               (:joint-name ?joint-name)
+                               (:link-name ?handle-link)
+                               (:environment ?environment-obj)
+                               (:environment-name ?environment-name))
+                      ?referenced-action-designator))
 
-  (<- (desig:action-grounding ?action-designator (close-container ?arm
-                                                                  ?gripper-opening
-                                                                  ?distance
-                                                                  ?left-reach-poses
-                                                                  ?right-reach-poses
-                                                                  ?left-grasp-poses
-                                                                  ?right-grasp-poses
-                                                                  (?left-lift-pose)
-                                                                  (?right-lift-pose)
-                                                                  (?left-2nd-lift-pose)
-                                                                  (?right-2nd-lift-pose)
-                                                                  ?joint-name
-                                                                  ?handle-link
-                                                                  ?environment-obj))
+
+  (<- (desig:action-grounding ?action-designator (close-container ?referenced-action-designator))
     (spec:property ?action-designator (:type :closing))
     (spec:property ?action-designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
@@ -137,22 +151,62 @@
     ;; environment
     (btr:bullet-world ?world)
     (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
-    ;; infer missing information like ?gripper-opnening, closing trajectory
+    (lisp-fun btr:name ?environment-obj ?environment-name)
+    ;; infer missing information like ?gripper-opening, closing trajectory
     (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
-    (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
-              (?container-pose ?container-transform))
-    (lisp-fun man-int:get-object-grasping-poses ?container-name
-              :container-prismatic :left :close ?container-transform ?left-poses)
-    (lisp-fun man-int:get-object-grasping-poses ?container-name
-              :container-prismatic :right :close ?container-transform ?right-poses)
-    (lisp-fun cram-mobile-pick-place-plans::extract-pick-up-manipulation-poses
-              ?arm ?left-poses ?right-poses
-              (?left-reach-poses ?right-reach-poses
-                                 ?left-grasp-poses ?right-grasp-poses
-                                 ?left-lift-poses ?right-lift-poses))
-    (-> (lisp-pred identity ?left-lift-poses)
-        (equal ?left-lift-poses (?left-lift-pose ?left-2nd-lift-pose))
-        (equal (NIL NIL) (?left-lift-pose ?left-2nd-lift-pose)))
-    (-> (lisp-pred identity ?right-lift-poses)
-        (equal ?right-lift-poses (?right-lift-pose ?right-2nd-lift-pose))
-        (equal (NIL NIL) (?right-lift-pose ?right-2nd-lift-pose)))))
+    ;; calculate trajectory
+    (equal ?objects (?container-designator))
+    (-> (equal ?arm :left)
+        (and (lisp-fun man-int:get-action-trajectory
+                       :closing ?arm :close ?objects
+                       :opening-distance ?distance
+                       ?left-trajectory)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
+                       ?left-reach-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :grasping
+                       ?left-grasp-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :closing
+                       ?left-close-pose)
+             (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :retracting
+                       ?left-retract-pose))
+        (and (equal ?left-reach-poses NIL)
+             (equal ?left-grasp-poses NIL)
+             (equal ?left-close-pose NIL)
+             (equal ?left-retract-pose NIL)))
+    (-> (equal ?arm :right)
+        (and (lisp-fun man-int:get-action-trajectory
+                       :closing ?arm :close ?objects
+                       :opening-distance ?distance
+                       ?right-trajectory)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
+                       ?right-reach-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :grasping
+                       ?right-grasp-poses)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :closing
+                       ?right-close-pose)
+             (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :retracting
+                       ?right-retract-pose))
+        (and (equal ?right-reach-poses NIL)
+             (equal ?right-grasp-poses NIL)
+             (equal ?right-close-pose NIL)
+             (equal ?right-retract-pose NIL)))
+    (or (lisp-pred identity ?left-trajectory)
+        (lisp-pred identity ?right-trajectory))
+    ;; make new action designator
+    (desig:designator :action ((:type :closing)
+                               (:arm ?arm)
+                               (:gripper-opening ?gripper-opening)
+                               (:distance ?distance)
+                               (:left-reach-poses ?left-reach-poses)
+                               (:right-reach-poses ?right-reach-poses)
+                               (:left-grasp-poses ?left-grasp-poses)
+                               (:right-grasp-poses ?right-grasp-poses)
+                               (:left-close-poses ?left-close-pose)
+                               (:right-close-poses ?right-close-pose)
+                               (:left-retract-poses ?left-retract-pose)
+                               (:right-retract-poses ?right-retract-pose)
+                               (:joint-name ?joint-name)
+                               (:link-name ?handle-link)
+                               (:environment ?environment-obj)
+                               (:environment-name ?environment-name))
+                      ?referenced-action-designator)))

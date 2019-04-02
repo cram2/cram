@@ -39,6 +39,7 @@
                cl-transforms-stamped
                cram-robot-interfaces ; for gripper transform calculations
                cram-plan-occasions-events ; for robot-free-arm
+               cram-utilities ; for working with prolog lazy lists
                )
   :components
   ((:module "src"
@@ -49,5 +50,6 @@
      (:file "trajectories" :depends-on ("package" "prolog"))
      (:file "gripper" :depends-on ("package"))
      (:file "grasps" :depends-on ("package"))
+     (:file "object-hierarchy" :depends-on ("package" "prolog"))
      (:file "standard-grasps" :depends-on ("package"))
      (:file "standard-rotations" :depends-on ("package"))))))
