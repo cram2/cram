@@ -69,7 +69,7 @@ environment, in which it can be found, respectively."
 CONTAINER-NAME and BTR-ENVIRONMENT are the names of the container and the
 environment, in which it can be found, respectively."
   (let ((dimensions (cl-bullet:bounding-box-dimensions
-                     (get-aabb container-namebtr-environment)))
+                     (get-aabb container-name btr-environment)))
         (norm-direction (cl-transforms:normalize-vector direction)))
     (if (> (abs (cl-transforms:x norm-direction))
            (abs (cl-transforms:y norm-direction)))
