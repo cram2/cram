@@ -71,6 +71,7 @@
            #:task-parameter
            #:task-full-path
            #:task-from-path
+           #:task-sibling
            #:error-type
            #:holds
            #:occurs
