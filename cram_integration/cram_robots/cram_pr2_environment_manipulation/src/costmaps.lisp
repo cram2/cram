@@ -30,6 +30,10 @@
 (in-package :pr2-em)
 
 (defun get-handle-min-max-pose (container-name btr-environment)
+  "Return a list of two poses representing the container's handle position when
+at its min and max joint-limits.
+CONTAINER-NAME and BTR-ENVIRONMENT are the names of the container and the
+environment, in which it can be found, respectively."
   (let* ((handle-link
            (get-handle-link
             container-name
@@ -49,6 +53,9 @@
     (list neutral-handle-pose manipulated-handle-pose)))
 
 (defun get-aabb (container-name btr-environment)
+  "Return the aabb of the container.
+CONTAINER-NAME and BTR-ENVIRONMENT are the names of the container and the
+environment, in which it can be found, respectively."
   (btr:aabb
    (btr:rigid-body
     (btr:object btr:*current-bullet-world* btr-environment)
@@ -57,9 +64,12 @@
      (roslisp-utilities:rosify-underscores-lisp-name container-name)))))
 
 (defun get-width (container-name direction btr-environment)
-  "Return the width of the container with name `container-name',
-appropriate for the joint `direction' given."
-  (let ((dimensions (cl-bullet:bounding-box-dimensions (get-aabb container-name btr-environment)))
+  "Return the width of the container appropriate for the joint DIRECTION
+3d-vector given.
+CONTAINER-NAME and BTR-ENVIRONMENT are the names of the container and the
+environment, in which it can be found, respectively."
+  (let ((dimensions (cl-bullet:bounding-box-dimensions
+                     (get-aabb container-namebtr-environment)))
         (norm-direction (cl-transforms:normalize-vector direction)))
     (if (> (abs (cl-transforms:x norm-direction))
            (abs (cl-transforms:y norm-direction)))
@@ -68,9 +78,12 @@ appropriate for the joint `direction' given."
 
 ;; NOTE(cpo): It might be useful to pass this the desired position
 ;; and calculate the current one to make the costmap more precise.
-(defun make-opened-drawer-cost-function (container-name btr-environment &optional (padding 0.2))
-  "Resolve the relation according to the poses of the handle of `container-name'
-in neutral and manipulated form."
+(defun make-opened-drawer-cost-function (container-name btr-environment
+                                         &optional (padding 0.2))
+  "Resolve the relation according to the poses of the handle of a container
+in neutral and manipulated form.
+CONTAINER-NAME and BTR-ENVIRONMENT are the names of the container and the
+environment, in which it can be found, respectively."
   (let* ((handle-link
            (get-handle-link container-name
                             btr-environment))
@@ -116,7 +129,14 @@ in neutral and manipulated form."
               0
               1))))))
 
-(defun make-opened-drawer-side-cost-function (container-name arm btr-environment)
+(defun make-opened-drawer-side-cost-function (container-name arm
+                                              btr-environment)
+  "Resolve the side relation according to the poses of the handle of a container
+in neutral and manipulated form. Disregard any samples where the robot would
+stand on the same side as the arm it wants to use.
+CONTAINER-NAME and BTR-ENVIRONMENT are the names of the container and the
+environment, in which it can be found, respectively.
+ARM has to be either :left or :right."
   (let* ((handle-link
            (get-handle-link container-name
                             btr-environment))
@@ -156,7 +176,13 @@ in neutral and manipulated form."
                 1.0
                 0.0))))))
 
-(defun make-opened-door-cost-function (container-name btr-environment &optional (padding 0.2))
+(defun make-opened-door-cost-function (container-name btr-environment
+                                       &optional (padding 0.2))
+  "Resolve the relation according to the pose of the door hinge joint and the
+handles neutral and manipulated poses. Diregard any samples inside the door's
+opening arc.
+CONTAINER-NAME and BTR-ENVIRONMENT are the names of the container and the
+environment, in which it can be found, respectively."
   (let* ((handle-link
            (get-handle-link container-name
                             btr-environment))
@@ -172,7 +198,6 @@ in neutral and manipulated form."
             1
             btr-environment
             :relative T))
-         ;; TODO(cpo): Has to be the door joint, because above it theres the fridge main
          (joint-name (cl-urdf:name
                       (cl-urdf:child (get-connecting-joint handle-link))))
          (joint-pose (get-urdf-link-pose joint-name
@@ -201,7 +226,7 @@ in neutral and manipulated form."
                                joint-pos-2d))
          (v1-length (sqrt (cl-transforms:dot-product v1 v1)))
          (v2-length (sqrt (cl-transforms:dot-product v2 v2))))
-    
+
     (lambda (x y)
       (let* ((vP (cl-transforms:v- (cl-transforms:make-3d-vector x y 0)
                                    joint-pos-2d))
@@ -236,7 +261,8 @@ quaternions to face from `pos1' to `pos2'."
    :sample-step sample-step))
 
 (defun middle-pose (pose1 pose2)
-  "Take two poses and return a pose in the middle of them. Disregarding the orientation (using the pose2's)."
+  "Take two poses and return a pose in the middle of them.
+Disregarding the orientation (using the pose2's)."
   (let ((translation-to-middle (cl-transforms:v*
                                 (cl-transforms:translation
                                  (cl-transforms:transform-diff
@@ -305,7 +331,7 @@ quaternions to face from `pos1' to `pos2'."
       :samples ?samples
       :sample-step ?sample-step)
      ?costmap))
-  
+
   (<- (costmap:desig-costmap ?designator ?costmap)
     (cram-robot-interfaces:reachability-designator ?designator)
     (spec:property ?designator (:object ?container-designator))
@@ -326,7 +352,7 @@ quaternions to face from `pos1' to `pos2'."
      container-handle-reachable-cost-function
      (costmap:make-gauss-cost-function ?mean ?covariance)
      ?costmap)
-    
+
     ;; cutting out door costmap
     (costmap:costmap-manipulation-padding ?padding)
     (costmap:costmap-add-function
