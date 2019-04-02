@@ -32,6 +32,8 @@
 
 (register-transformation-rule both-hands-transporting-rule
                               '(task-transporting-siblings ?first-transport ?second-transport))
+(register-transformation-rule environment-rule
+                              '(task-transporting-from-container ?first-transport ?second-transport))
 
 (defun both-hands-transporting-rule (lazy-bindings &optional (top-level-name (get-top-level-name)))
   (roslisp:ros-info (plt) "Applying BOTH-HANDS-TRANSPORTING-RULE to top-level-plan ~a." top-level-name)
@@ -51,3 +53,39 @@
                                      (exe:perform deliver-action))
                                  path-2
                                  (cpl-impl::get-top-level-task-tree top-level-name))))
+
+(defun environment-rule (lazy-bindings &optional (top-level-name (get-top-level-name)))
+  (roslisp:ros-info (plt) "Applying ENVIRONMENT-RULE to top-level-plan ~a." top-level-name)
+  (let* ((bindings (remove-duplicates (cut:force-ll lazy-bindings)
+                                      :test #'string= :key #'write-to-string))
+         (last-action (pop bindings))
+         (bindings (reverse bindings))
+         (first-action (pop bindings)))
+    (flet ((ignore-desig (&rest desig) 
+             (declare (ignore desig))))
+      ;; remove closing action from first transport
+    (destructuring-bind (_x closing-path) first-action
+      (declare (ignore _x))
+      (cpl-impl::replace-task-code '(CONTAINER-FIRST-CLOSING-TRANSFORM)
+                                   #'ignore-desig
+                                   (cdr closing-path)
+                                   (cpl-impl::get-top-level-task-tree top-level-name)))
+      ;; remove opening action from last transport
+    (destructuring-bind (opening-path _x) last-action
+      (declare (ignore _x))
+      (cpl-impl::replace-task-code '(CONTAINER-LAST-OPENING-TRANSFORM)
+                                   #'ignore-desig
+                                   (cdr opening-path)
+                                   (cpl-impl::get-top-level-task-tree top-level-name)))
+
+      ;; remove opening and closing actions from all intermediate transports
+      (loop for (navigation-action opening-path closing-path) in bindings
+            counting t into index
+            do (cpl-impl::replace-task-code `(,(intern (format nil "CONTAINER-ACCESS-TRANSFORM-~a" index)))
+                                            #'ignore-desig
+                                            (cdr closing-path)
+                                            (cpl-impl::get-top-level-task-tree top-level-name))
+               (cpl-impl::replace-task-code `(,(intern (format nil "CONTAINER-CLOSE-TRANSFORM-~a" index)))
+                                            #'ignore-desig
+                                            (cdr opening-path)
+                                            (cpl-impl::get-top-level-task-tree top-level-name))))))
