@@ -51,7 +51,6 @@
                cram-common-failures
                cram-mobile-pick-place-plans
 
-               cram-knowrob-assembly
                ;; cram-robosherlock
 
                cram-physics-utils ; for reading "package://" paths

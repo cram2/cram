@@ -30,7 +30,6 @@
   <depend>cram_common_failures</depend>
   <depend>cram_mobile_pick_place_plans</depend>
 
-  <depend>cram_knowrob_assembly</depend>
   <!-- <depend>cram_robosherlock</depend> -->
 
   <depend>cram_physics_utils</depend>
@@ -44,7 +43,6 @@
   <depend>cram_occupancy_grid_costmap</depend>
   <depend>cram_location_costmap</depend>
 
-  <depend>cram_knowrob_pick_place</depend>
   <depend>cram_boxy_description</depend>
   <depend>cram_pr2_description</depend>
   <depend>cram_urdf_projection</depend>
