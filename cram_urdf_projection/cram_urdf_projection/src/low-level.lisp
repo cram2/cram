@@ -102,6 +102,53 @@
 
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+
+
+(defun look-at-joint-angles (joint-angles)
+  (declare (type list joint-angles))
+  (assert
+   (prolog:prolog
+    `(and (cram-robot-interfaces:robot ?robot)
+          (btr:bullet-world ?w)
+          (cram-robot-interfaces:robot-pan-tilt-joints ?robot . ?joint-names)
+          (prolog:lisp-fun mapcar list ?joint-names ,joint-angles ?joint-states)
+          (btr:assert ?w (btr:joint-state ?robot ?joint-states))))))
+
+(defun look-at-joint-states (joint-states)
+  (declare (type list joint-states))
+  (assert
+   (prolog:prolog
+    `(and (cram-robot-interfaces:robot ?robot)
+          (btr:bullet-world ?w)
+          (btr:assert ?w (btr:joint-state ?robot ,joint-states))))))
+
+(defun look-at (pose configuration)
+  (let* ((neck-joints-amount (- (length (third (car (prolog:prolog
+                                                     `(and (cram-robot-interfaces:robot ?robot)
+                                                           (btr:bullet-world ?w)
+                                                           (cram-robot-interfaces:robot-pan-tilt-joints
+                                                            ?robot . ?joint-names))))))1))) 
+                             (if (and configuration (> neck-joints-amount 2))
+                                 (if (typep (car configuration) 'list)
+                                     (look-at-joint-states configuration)
+                                     (look-at-joint-angles configuration))
+                                 (if pose
+                                     (look-at-pose-stamped pose)
+                                     (error "Your configuration/pose is not supported yet")))))
+
+
+;;pr2 look-at
+;; (defun look-at (?goal-pose ?goal-configuration)
+;;   (if ?goal-configuration
+;;       (prolog:prolog
+;;        `(and (rob-int:robot ?robot)
+;;              (btr:bullet-world ?world)
+;;              (assert ?world (btr:joint-state ?robot ,?goal-configuration))))
+;;       (look-at-pose-stamped ?goal-pose)))
+
+
+;;;else this -->
 (defun look-at-pose-stamped (pose-stamped)
   (declare (type cl-transforms-stamped:pose-stamped pose-stamped))
   (let* ((bindings
@@ -167,13 +214,7 @@
       (cpl:fail 'common-fail:ptu-goal-not-reached
                 :description "Look action wanted to twist the neck"))))
 
-(defun look-at (?goal-pose ?goal-configuration)
-  (if ?goal-configuration
-      (prolog:prolog
-       `(and (rob-int:robot ?robot)
-             (btr:bullet-world ?world)
-             (assert ?world (btr:joint-state ?robot ,?goal-configuration))))
-      (look-at-pose-stamped ?goal-pose)))
+
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

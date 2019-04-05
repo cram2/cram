@@ -48,40 +48,40 @@
    (cet:*episode-knowledge*
     cet:*episode-knowledge*))
   :process-module-definitions
-  (robots-proj-navigation
-   robots-proj-torso
-   robots-proj-ptu
-   robots-proj-perception
-   robots-proj-grippers
-   robots-proj-arms)
+  (urdf-proj-navigation
+   urdf-proj-torso
+   urdf-proj-ptu
+   urdf-proj-perception
+   urdf-proj-grippers
+   urdf-proj-arms)
   :startup (progn
              (cram-bullet-reasoning-belief-state:set-tf-from-bullet)
              (cram-bullet-reasoning-belief-state:update-bullet-transforms))
   :shutdown (setf *last-timeline* cram-bullet-reasoning:*current-timeline*))
 
 
-(def-fact-group boxy-available-pms (cpm:available-process-module
+(def-fact-group projection-available-pms (cpm:available-process-module
                                     cpm:projection-running)
 
   (<- (cpm:available-process-module ?pm)
     (bound ?pm)
-    (once (member ?pm (robots-proj-navigation
-                       robots-proj-torso
-                       robots-proj-ptu
-                       robots-proj-perception
-                       robots-proj-grippers
-                       robots-proj-arms)))
+    (once (member ?pm (urdf-proj-navigation
+                       urdf-proj-torso
+                       urdf-proj-ptu
+                       urdf-proj-perception
+                       urdf-proj-grippers
+                       urdf-proj-arms)))
     (symbol-value cram-projection:*projection-environment* boxy-bullet-projection-environment))
 
   (<- (cpm::projection-running ?pm)
     ;; (bound ?pm)
-    (once (member ?pm (robots-proj-navigation
-                       robots-proj-torso
-                       robots-proj-ptu
-                       robots-proj-perception
-                       robots-proj-grippers
-                       robots-proj-arms)))
-    (symbol-value cram-projection:*projection-environment* boxy-bullet-projection-environment)))
+    (once (member ?pm (urdf-proj-navigation
+                       urdf-proj-torso
+                       urdf-proj-ptu
+                       urdf-proj-perception
+                       urdf-proj-grippers
+                       urdf-proj-arms)))
+    (symbol-value cram-projection:*projection-environment* urdf-bullet-projection-environment)))
 
 
 (defmacro with-simulated-robot (&body body)

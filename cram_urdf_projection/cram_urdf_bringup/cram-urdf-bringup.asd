@@ -65,8 +65,6 @@
                cram-occupancy-grid-costmap
                cram-location-costmap
 
-               cram-boxy-description
-               cram-pr2-description
 	       cram-urdf-projection
                )
 
