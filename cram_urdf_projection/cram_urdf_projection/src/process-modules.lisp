@@ -79,25 +79,25 @@
 
 (def-fact-group projection-matching-pms (cpm:matching-process-module)
 
-  (<- (cpm:matching-process-module ?motion-designator robots-proj-navigation)
+  (<- (cpm:matching-process-module ?motion-designator urdf-proj-navigation)
     (desig:desig-prop ?motion-designator (:type :going)))
 
-  (<- (cpm:matching-process-module ?motion-designator robots-proj-torso)
+  (<- (cpm:matching-process-module ?motion-designator urdf-proj-torso)
     (desig:desig-prop ?motion-designator (:type :moving-torso)))
 
-  (<- (cpm:matching-process-module ?motion-designator robots-proj-ptu)
+  (<- (cpm:matching-process-module ?motion-designator urdf-proj-ptu)
     (desig:desig-prop ?motion-designator (:type :looking)))
 
-  (<- (cpm:matching-process-module ?motion-designator robots-proj-perception)
+  (<- (cpm:matching-process-module ?motion-designator urdf-proj-perception)
     (desig:desig-prop ?motion-designator (:type :detecting)))
 
-  (<- (cpm:matching-process-module ?motion-designator robots-proj-grippers)
+  (<- (cpm:matching-process-module ?motion-designator urdf-proj-grippers)
     (or (desig:desig-prop ?motion-designator (:type :gripping))
         (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))
         (desig:desig-prop ?motion-designator (:type :opening-gripper))
         (desig:desig-prop ?motion-designator (:type :closing-gripper))))
 
-  (<- (cpm:matching-process-module ?motion-designator pr2-proj-arms)
+  (<- (cpm:matching-process-module ?motion-designator urdf-proj-arms)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
         (desig:desig-prop ?motion-designator (:type :moving-with-constraints)))))
