@@ -41,92 +41,6 @@
 (defmethod man-int:get-object-type-gripper-opening
     ((object-type (eql :container-revolute))) 0.10)
 
-(defun get-container-to-gripper-transform (object-name
-                                           arm
-                                           handle-axis
-                                           btr-environment)
-  "Get the transform from the container handle to the robot's gripper."
-  (let* ((object-name
-           (roslisp-utilities:rosify-underscores-lisp-name object-name))
-         (handle-name
-           (cl-urdf:name (get-handle-link object-name btr-environment)))
-         (handle-tf
-           (cl-transforms-stamped:transform->transform-stamped
-            cram-tf:*fixed-frame*
-            handle-name
-            0
-            (cl-transforms:pose->transform
-             (get-urdf-link-pose handle-name btr-environment))))
-         (container-tf
-           (cl-transforms-stamped:transform->transform-stamped
-            cram-tf:*fixed-frame*
-            object-name
-            0
-            (cl-transforms:pose->transform
-             (get-urdf-link-pose object-name btr-environment))))
-         (tool-frame
-           (ecase arm
-             (:left cram-tf:*robot-left-tool-frame*)
-             (:right cram-tf:*robot-right-tool-frame*)))
-         (handle-angle-cos
-           (angle-between-vectors
-            (cl-transforms:make-3d-vector 1 0 0)
-            handle-axis))
-         (handle-angle-sin (- 1 handle-angle-cos)))
-    (cram-tf:multiply-transform-stampeds
-     object-name
-     tool-frame
-     (cram-tf:multiply-transform-stampeds
-      object-name
-      handle-name
-      (cram-tf:transform-stamped-inv container-tf)
-      handle-tf)
-     (cl-transforms-stamped:make-transform-stamped
-      handle-name
-      tool-frame
-      0.0
-      (cl-transforms:make-3d-vector *drawer-handle-grasp-x-offset* 0.0d0 0.0d0)
-      ;; Calculate the grippers orientation, so it's properly aligned with the
-      ;; handle.
-      (cl-transforms:column-vectors->quaternion
-       (cl-transforms:make-3d-vector
-        0
-        (- handle-angle-sin)
-        handle-angle-cos)
-       (cl-transforms:make-3d-vector
-        0
-        handle-angle-cos
-        handle-angle-sin)
-       (cl-transforms:make-3d-vector
-        -1
-        0
-        0))))))
-
-(defmethod man-int:get-action-trajectory :before ((action-type (eql :opening))
-                                                   arm
-                                                   grasp
-                                                   objects-acted-on
-                                                   &key
-                                                     opening-distance
-                                                     handle-axis)
-  "Raise an error if object count is not right."
-  (declare (ignore arm grasp opening-distance handle-axis))
-  (when (not (eql 1 (length objects-acted-on)))
-    (error "Action-type ~a requires exactly one object.~%" action-type)))
-
-(defmethod man-int:get-action-trajectory :before ((action-type (eql :closing))
-                                                   arm
-                                                   grasp
-                                                   objects-acted-on
-                                                   &key
-                                                     opening-distance
-                                                     handle-axis)
-  "Raise an error if object count is not right."
-  (declare (ignore arm grasp opening-distance handle-axis))
-  (when (not (eql 1 (length objects-acted-on)))
-    (error "Action-type ~a requires exactly one object.~%" action-type)))
-
-
 (defmethod man-int:get-action-trajectory ((action-type (eql :opening))
                                            arm
                                            grasp
@@ -138,6 +52,8 @@
 OPENING-DISTANCE is a float in m, describing how far the object should opened.
 HANDLE-AXIS is a `cl-transforms:3d-vector' describing the handle's orientation
 in the robot's XZ-plane. It's Z-element should be 0."
+  (when (not (eql 1 (length objects-acted-on)))
+    (error "Action-type ~a requires exactly one object.~%" action-type))
   (make-trajectory action-type arm objects-acted-on opening-distance handle-axis))
 
 (defmethod man-int:get-action-trajectory ((action-type (eql :closing))
@@ -151,6 +67,8 @@ in the robot's XZ-plane. It's Z-element should be 0."
 OPENING-DISTANCE is a float in m, describing how far the object should closed.
 HANDLE-AXIS is a `cl-transforms:3d-vector' describing the handle's orientation
 in the robot's XZ-plane. It's Z-element should be 0."
+  (when (not (eql 1 (length objects-acted-on)))
+    (error "Action-type ~a requires exactly one object.~%" action-type))
   (make-trajectory action-type arm objects-acted-on opening-distance handle-axis))
 
 (defun make-trajectory (action-type
@@ -167,8 +85,7 @@ This should only be used by get-action-trajectory for action-types :opening and 
          (object-name
            (desig:desig-prop-value object-designator :urdf-name))
          (object-type
-           (desig:desig-prop-value
-            object-designator :type))
+           (desig:desig-prop-value object-designator :type))
          (object-environment
            (desig:desig-prop-value object-designator :part-of))
          (object-transform
@@ -177,6 +94,8 @@ This should only be used by get-action-trajectory for action-types :opening and 
          (grasp-pose
            (get-container-to-gripper-transform object-name arm handle-axis object-environment)))
 
+    ;; checks if `object-type' is a subtype of :container-prismatic or :container-revolute
+    ;; and executes the corresponding MAKE-PRISMATIC-TRAJECTORY or MAKE-REVOLUTE-TRAJECTORY.
     (alexandria:switch
      (object-type :test (lambda (?type ?super-type)
                           (prolog:prolog
@@ -279,3 +198,65 @@ container with revolute joints."
                       (cl-transforms:v*
                        axis
                        angle)))))))))
+
+
+(defun get-container-to-gripper-transform (object-name
+                                           arm
+                                           handle-axis
+                                           btr-environment)
+  "Get the transform from the container handle to the robot's gripper."
+  (let* ((object-name
+           (roslisp-utilities:rosify-underscores-lisp-name object-name))
+         (handle-name
+           (cl-urdf:name (get-handle-link object-name btr-environment)))
+         (handle-tf
+           (cl-transforms-stamped:transform->transform-stamped
+            cram-tf:*fixed-frame*
+            handle-name
+            0
+            (cl-transforms:pose->transform
+             (get-urdf-link-pose handle-name btr-environment))))
+         (container-tf
+           (cl-transforms-stamped:transform->transform-stamped
+            cram-tf:*fixed-frame*
+            object-name
+            0
+            (cl-transforms:pose->transform
+             (get-urdf-link-pose object-name btr-environment))))
+         (tool-frame
+           (ecase arm
+             (:left cram-tf:*robot-left-tool-frame*)
+             (:right cram-tf:*robot-right-tool-frame*)))
+         (handle-angle-cos
+           (angle-between-vectors
+            (cl-transforms:make-3d-vector 1 0 0)
+            handle-axis))
+         (handle-angle-sin (- 1 handle-angle-cos)))
+    (cram-tf:multiply-transform-stampeds
+     object-name
+     tool-frame
+     (cram-tf:multiply-transform-stampeds
+      object-name
+      handle-name
+      (cram-tf:transform-stamped-inv container-tf)
+      handle-tf)
+     (cl-transforms-stamped:make-transform-stamped
+      handle-name
+      tool-frame
+      0.0
+      (cl-transforms:make-3d-vector *drawer-handle-grasp-x-offset* 0.0d0 0.0d0)
+      ;; Calculate the grippers orientation, so it's properly aligned with the
+      ;; handle.
+      (cl-transforms:column-vectors->quaternion
+       (cl-transforms:make-3d-vector
+        0
+        (- handle-angle-sin)
+        handle-angle-cos)
+       (cl-transforms:make-3d-vector
+        0
+        handle-angle-cos
+        handle-angle-sin)
+       (cl-transforms:make-3d-vector
+        -1
+        0
+        0))))))
