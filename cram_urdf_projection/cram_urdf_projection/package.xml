@@ -25,7 +25,6 @@
   <depend>cl_tf</depend>
   <depend>cram_occasions_events</depend>
   <depend>cram_plan_occasions_events</depend>
-  <depend>cram_boxy_description</depend>
   <depend>cram_common_designators</depend>
   <depend>cram_boxy_designators</depend>
   <depend>cram_common_failures</depend>
