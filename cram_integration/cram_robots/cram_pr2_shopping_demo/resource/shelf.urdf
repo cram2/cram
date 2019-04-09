@@ -5,7 +5,7 @@
         <color rgba="0.8 0.8 0.8 1"/>
     </material>
 
-    <link name="shelve_origin"/>
+    <link name="shelf_origin"/>
 
     <link name="left_leg">
         <visual>
@@ -225,8 +225,8 @@
         <origin xyz="-3 0 0"/>
     </joint>
 
-    <joint name="left_leg_to_shelve_origin" type="fixed">
-        <parent link="shelve_origin"/>
+    <joint name="left_leg_to_shelf_origin" type="fixed">
+        <parent link="shelf_origin"/>
         <child link="left_leg"/>
         <origin xyz="0 -1.5 0"/>
     </joint>
@@ -312,7 +312,7 @@
     
 
     <joint name="origin_to_left_front_leg" type="fixed">
-        <parent link="shelve_origin"/>
+        <parent link="shelf_origin"/>
         <child link="left_front_leg"/>
         <origin xyz="-4 0 0"/>
     </joint>
