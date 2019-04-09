@@ -13,87 +13,39 @@
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-  <license>TODO</license>
+  <license>BSD</license>
 
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>cl_bullet</build_depend>
-  <build_depend>cl_tf</build_depend>
-  <build_depend>cl_transforms</build_depend>
-  <build_depend>cram_btr_visibility_costmap</build_depend>
-  <build_depend>cram_bullet_reasoning</build_depend>
-  <build_depend>cram_bullet_reasoning_belief_state</build_depend>
-  <build_depend>cram_bullet_reasoning_utilities</build_depend>
-  <build_depend>cram_common_failures</build_depend>
-  <build_depend>cram_designators</build_depend>
-  <build_depend>cram_executive</build_depend>
-  <build_depend>cram_language</build_depend>
-  <build_depend>cram_location_costmap</build_depend>
-  <build_depend>cram_mobile_pick_place_plans</build_depend>
-  <build_depend>cram_occupancy_grid_costmap</build_depend>
-  <build_depend>cram_physics_utils</build_depend>
-  <build_depend>cram_pr2_description</build_depend>
-  <build_depend>cram_pr2_projection</build_depend>
-  <build_depend>cram_projection</build_depend>
-  <build_depend>cram_prolog</build_depend>
-  <build_depend>cram_tf</build_depend>
-  <build_depend>roslisp_utilities</build_depend>
-  <build_export_depend>cl_bullet</build_export_depend>
-  <build_export_depend>cl_tf</build_export_depend>
-  <build_export_depend>cl_transforms</build_export_depend>
-  <build_export_depend>cram_btr_visibility_costmap</build_export_depend>
-  <build_export_depend>cram_bullet_reasoning</build_export_depend>
-  <build_export_depend>cram_bullet_reasoning_belief_state</build_export_depend>
-  <build_export_depend>cram_bullet_reasoning_utilities</build_export_depend>
-  <build_export_depend>cram_common_failures</build_export_depend>
-  <build_export_depend>cram_designators</build_export_depend>
-  <build_export_depend>cram_executive</build_export_depend>
-  <build_export_depend>cram_language</build_export_depend>
-  <build_export_depend>cram_location_costmap</build_export_depend>
-  <build_export_depend>cram_mobile_pick_place_plans</build_export_depend>
-  <build_export_depend>cram_occupancy_grid_costmap</build_export_depend>
-  <build_export_depend>cram_physics_utils</build_export_depend>
-  <build_export_depend>cram_pr2_description</build_export_depend>
-  <build_export_depend>cram_pr2_projection</build_export_depend>
-  <build_export_depend>cram_projection</build_export_depend>
-  <build_export_depend>cram_prolog</build_export_depend>
-  <build_export_depend>cram_tf</build_export_depend>
-  <build_export_depend>roslisp_utilities</build_export_depend>
-  <exec_depend>cl_bullet</exec_depend>
-  <exec_depend>cl_tf</exec_depend>
-  <exec_depend>cl_transforms</exec_depend>
-  <exec_depend>cram_btr_visibility_costmap</exec_depend>
-  <exec_depend>cram_bullet_reasoning</exec_depend>
-  <exec_depend>cram_bullet_reasoning_belief_state</exec_depend>
-  <exec_depend>cram_bullet_reasoning_utilities</exec_depend>
-  <exec_depend>cram_common_failures</exec_depend>
-  <exec_depend>cram_designators</exec_depend>
-  <exec_depend>cram_executive</exec_depend>
-  <exec_depend>cram_language</exec_depend>
-  <exec_depend>cram_location_costmap</exec_depend>
-  <exec_depend>cram_mobile_pick_place_plans</exec_depend>
-  <exec_depend>cram_occupancy_grid_costmap</exec_depend>
-  <exec_depend>cram_physics_utils</exec_depend>
-  <exec_depend>cram_pr2_description</exec_depend>
-  <exec_depend>cram_pr2_projection</exec_depend>
-  <exec_depend>cram_projection</exec_depend>
-  <exec_depend>cram_prolog</exec_depend>
-  <exec_depend>cram_tf</exec_depend>
-  <exec_depend>roslisp_utilities</exec_depend>
+    <depend>cl_transforms</depend>
+    <depend>cl_transforms_stamped</depend>
+    <depend>cl_tf</depend>
+    <depend>cram_tf</depend>
+    <depend>cram_language</depend>
+    <depend>cram_executive</depend>
+    <depend>cram_designators</depend>
+    <depend>cram_prolog</depend>
+    <depend>cram_projection</depend>
+    <depend>cram_occasions_events</depend>
+    <depend>cram_common_failures</depend>
+    <depend>cram_physics_utils</depend>
+    <depend>cl_bullet</depend>
+    <depend>cram_bullet_reasoning</depend>
+    <depend>cram_bullet_reasoning_belief_state</depend>
+    <depend>cram_bullet_reasoning_utilities</depend>
+    <depend>cram_btr_visibility_costmap</depend>
+    <depend>cram_semantic_map_costmap</depend>
+    <depend>cram_robot_pose_gaussian_costmap</depend>
+    <depend>cram_occupancy_grid_costmap</depend>
+    <depend>cram_location_costmap</depend>
+    <depend>cram_pr2_projection</depend>
+    <depend>cram_mobile_pick_place_plans</depend>
+    <depend>cram_pr2_description</depend>
+    <depend>cram_object_knowledge</depend>
+    <depend>cram_knowrob_manipulation_interfaces</depend>
 
-  <depend>cram_knowrob_pick_place</depend>
-
-
-
-  <exec_depend>pr2_description</exec_depend>
+    <exec_depend>pr2_description</exec_depend>
   <exec_depend>pr2_arm_kinematics</exec_depend>
   <exec_depend>map_server</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
-
-
-  <!-- The export tag contains other, unspecified, tags -->
-  <export>
-    <!-- Other tools can request additional information be placed here -->
-
-  </export>
 </package>
