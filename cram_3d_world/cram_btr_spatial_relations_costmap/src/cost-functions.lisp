@@ -422,14 +422,25 @@ if it is on the sign side of the axis. "
                                2.0))
                          *board-thickness*))))))
 
-(defun make-object-on-object-bb-height-generator (environment-objects for-object)
+(defun make-object-on-object-bb-height-generator (environment-objects for-object
+                                                  &optional (tag :on))
   (let* ((environment-object-top
            (apply #'max
                   (mapcar (lambda (environment-object)
-                            (+ (cl-transforms:z
-                                (cl-transforms:origin (btr:pose environment-object)))
-                               (/ (cl-transforms:z (btr:calculate-bb-dims environment-object))
-                                  2.0)))
+                            (ecase tag
+                              (:on (+ (cl-transforms:z
+                                       (cl-transforms:origin
+                                        (btr:pose environment-object)))
+                                      (/ (cl-transforms:z
+                                          (btr:calculate-bb-dims environment-object))
+                                         2.0)))
+                              (:in (+ (cl-transforms:z
+                                       (cl-transforms:origin
+                                        (btr:pose environment-object)))
+                                      (- (/ (cl-transforms:z
+                                             (btr:calculate-bb-dims environment-object))
+                                            2.0))
+                                      *board-thickness*))))
                           (if (listp environment-objects)
                               environment-objects
                               (list environment-objects)))))
