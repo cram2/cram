@@ -34,25 +34,37 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :cutlery))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :spoon))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :fork))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :knife))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :plate))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :tray))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :bottle))) 60)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :cup))) 50)
+(def-fact-group household-object-type-hierarchy (man-int:object-type-direct-subtype)
+  (<- (man-int:object-type-direct-subtype :household-item :cutlery))
+  (<- (man-int:object-type-direct-subtype :household-item :plate))
+  (<- (man-int:object-type-direct-subtype :household-item :tray))
+  (<- (man-int:object-type-direct-subtype :household-item :bottle))
+  (<- (man-int:object-type-direct-subtype :household-item :cup))
+  (<- (man-int:object-type-direct-subtype :household-item :milk))
+  (<- (man-int:object-type-direct-subtype :household-item :cereal))
+  (<- (man-int:object-type-direct-subtype :household-item :bowl))
+
+  (<- (man-int:object-type-direct-subtype :cutlery :knife))
+  (<- (man-int:object-type-direct-subtype :cutlery :fork))
+  (<- (man-int:object-type-direct-subtype :cutlery :spoon))
+
+  (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-gripping-effort
+    ((object-type (eql :household-item))) 50)
+
 (defmethod man-int:get-object-type-gripping-effort ((object-type (eql :milk))) 15)
 (defmethod man-int:get-object-type-gripping-effort ((object-type (eql :cereal))) 15)
 (defmethod man-int:get-object-type-gripping-effort ((object-type (eql :breakfast-cereal))) 20)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :bowl))) 100)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmethod man-int:get-object-type-gripper-opening
+    ((object-type (eql :household-item))) 0.10)
+
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :cutlery))) 0.04)
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :spoon))) 0.04)
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :fork))) 0.04)
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :knife))) 0.04)
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :plate))) 0.02)
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :tray))) 0.02)
 

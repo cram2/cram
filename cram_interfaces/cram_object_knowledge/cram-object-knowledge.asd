@@ -37,7 +37,6 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "type-hierarchy" :depends-on ("package"))
-     (:file "common" :depends-on ("package"))
+     (:file "environment" :depends-on ("package"))
      (:file "household" :depends-on ("package"))
      (:file "assembly" :depends-on ("package"))))))
