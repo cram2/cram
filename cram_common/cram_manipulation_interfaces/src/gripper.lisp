@@ -30,7 +30,15 @@
 (in-package :cram-manipulation-interfaces)
 
 (defgeneric get-object-type-gripping-effort (object-type)
-  (:documentation "Returns effort in Nm, e.g. 50."))
+  (:documentation "Returns effort in Nm, e.g. 50.")
+  (:method (object-type)
+    (get-object-type-gripping-effort
+     (find-most-specific-object-type-for-generic
+      #'get-object-type-gripping-effort object-type))))
 
 (defgeneric get-object-type-gripper-opening (object-type)
-  (:documentation "How wide to open the gripper before grasping, in m."))
+  (:documentation "How wide to open the gripper before grasping, in m.")
+  (:method (object-type)
+    (get-object-type-gripper-opening
+     (find-most-specific-object-type-for-generic
+      #'get-object-type-gripper-opening object-type))))
