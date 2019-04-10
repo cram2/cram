@@ -35,4 +35,9 @@
 
   (<- (man-int:object-type-direct-subtype :container :container-revolute))
   (<- (man-int:object-type-direct-subtype :container-revolute :fridge))
-  (<- (man-int:object-type-direct-subtype :container-revolute :oven)))
+  (<- (man-int:object-type-direct-subtype :container-revolute :oven))
+
+  (<- (man-int:object-type-direct-subtype :cutlery :knife))
+  (<- (man-int:object-type-direct-subtype :cutlery :fork))
+  (<- (man-int:object-type-direct-subtype :cutlery :spoon))
+  (<- (man-int:object-type-direct-subtype :cutlery :spork)))
