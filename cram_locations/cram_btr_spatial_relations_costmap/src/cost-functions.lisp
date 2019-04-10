@@ -405,7 +405,7 @@ if it is on the sign side of the axis. "
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HEIGHT GENERATORS ;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *board-thickness* 0.035)
+(defparameter *board-thickness* 0.040)
 
 (defun make-object-bounding-box-height-generator (object &optional (tag :on))
   (constantly (list
