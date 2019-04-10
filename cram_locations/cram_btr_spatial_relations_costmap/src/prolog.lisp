@@ -410,7 +410,7 @@
      (make-object-bounding-box-height-generator ?environment-link :in)
      ?costmap))
 
-    (<- (costmap:desig-costmap ?designator ?costmap)
+  (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:in ?object))
     (spec:property ?object (:type ?object-type))
     (man-int:object-type-subtype :container ?object-type)
