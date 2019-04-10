@@ -35,6 +35,23 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def-fact-group assembly-object-type-hierarchy (man-int:object-type-direct-subtype)
+  (<- (man-int:object-type-direct-subtype :assembly-item :bolt))
+  (<- (man-int:object-type-direct-subtype :assembly-item :chassis))
+  (<- (man-int:object-type-direct-subtype :assembly-item :bottom-wing))
+  (<- (man-int:object-type-direct-subtype :assembly-item :underbody))
+  (<- (man-int:object-type-direct-subtype :assembly-item :upper-body))
+  (<- (man-int:object-type-direct-subtype :assembly-item :top-wing))
+  (<- (man-int:object-type-direct-subtype :assembly-item :window))
+  (<- (man-int:object-type-direct-subtype :assembly-item :propeller))
+  (<- (man-int:object-type-direct-subtype :assembly-item :front-wheel))
+  (<- (man-int:object-type-direct-subtype :assembly-item :nut)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-gripping-effort
+    ((object-type (eql :assembly-item))) 35)
+
 ;; (defmethod get-object-type-gripping-effort ((object-type (eql :bolt))) 35)
 ;; (defmethod get-object-type-gripping-effort ((object-type (eql :chassis))) 35)
 ;; (defmethod get-object-type-gripping-effort ((object-type (eql :bottom-wing))) 35)
@@ -47,6 +64,9 @@
 ;; (defmethod get-object-type-gripping-effort ((object-type (eql :nut))) 35)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-gripper-opening
+    ((object-type (eql :assembly-item))) 0.02)
 
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :bolt))) 0.02)
 ;; (defmethod get-object-type-gripper-opening ((object-type (eql :chassis))) 0.1)
