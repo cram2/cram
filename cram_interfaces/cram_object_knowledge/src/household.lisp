@@ -52,18 +52,13 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-type-gripping-effort
-    ((object-type (eql :household-item))) 50)
-
+(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :household-item))) 50)
 (defmethod man-int:get-object-type-gripping-effort ((object-type (eql :milk))) 15)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :cereal))) 15)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :breakfast-cereal))) 20)
+(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :cereal))) 20)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-type-gripper-opening
-    ((object-type (eql :household-item))) 0.10)
-
+(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :household-item))) 0.10)
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :cutlery))) 0.04)
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :plate))) 0.02)
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :tray))) 0.02)
