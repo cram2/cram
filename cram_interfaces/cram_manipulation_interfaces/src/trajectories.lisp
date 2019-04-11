@@ -103,15 +103,11 @@ Gripper is defined by a convention where Z is pointing towards the object.")
             (find-most-specific-object-type-for-generic
              #'get-object-type-to-gripper-transform object-type)))
       (if specific-type
-          (get-object-type-to-gripper-transform
-           specific-type
-           object-name
-           arm
-           grasp)
-          (error "There is no applicable method for the generic function ~%~a
-with object-type ~a.~%To fix this either:
-- Add a method with (object-type (eql ~a)) as the first specializer or
-- Add ~a into the type hierarchy in the cram_object_knowledge package."
+          (get-object-type-to-gripper-transform specific-type object-name arm grasp)
+          (error "There is no applicable method for the generic function ~%~a~%~
+                  with object-type ~a.~%To fix this either: ~
+                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
+                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
                  #'get-object-type-to-gripper-transform
                  object-type object-type object-type)))))
 
@@ -124,15 +120,11 @@ with object-type ~a.~%To fix this either:
              #'get-object-type-to-gripper-pregrasp-transform object-type)))
       (if specific-type
           (get-object-type-to-gripper-pregrasp-transform
-           specific-type
-           object-name
-           arm
-           grasp
-           grasp-transform)
-          (error "There is no applicable method for the generic function ~%~a
-with object-type ~a.~%To fix this either:
-- Add a method with (object-type (eql ~a)) as the first specializer or
-- Add ~a into the type hierarchy in the cram_object_knowledge package."
+           specific-type object-name arm grasp grasp-transform)
+          (error "There is no applicable method for the generic function ~%~a~%~
+                  with object-type ~a.~%To fix this either: ~
+                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
+                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
                  #'get-object-type-to-gripper-pregrasp-transform
                  object-type object-type object-type)))))
 
@@ -145,15 +137,11 @@ with object-type ~a.~%To fix this either:
              #'get-object-type-to-gripper-2nd-pregrasp-transform object-type)))
       (if specific-type
           (get-object-type-to-gripper-2nd-pregrasp-transform
-           specific-type
-           object-name
-           arm
-           grasp
-           grasp-transform)
-          (error "There is no applicable method for the generic function ~%~a
-with object-type ~a.~%To fix this either:
-- Add a method with (object-type (eql ~a)) as the first specializer or
-- Add ~a into the type hierarchy in the cram_object_knowledge package."
+           specific-type object-name arm grasp grasp-transform)
+          (error "There is no applicable method for the generic function ~%~a~%~
+                  with object-type ~a.~%To fix this either: ~
+                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
+                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
                  #'get-object-type-to-gripper-2nd-pregrasp-transform
                  object-type object-type object-type)))))
 
@@ -166,15 +154,11 @@ with object-type ~a.~%To fix this either:
              #'get-object-type-to-gripper-lift-transform object-type)))
       (if specific-type
           (get-object-type-to-gripper-lift-transform
-           specific-type
-           object-name
-           arm
-           grasp
-           grasp-transform)
-          (error "There is no applicable method for the generic function ~%~a
-with object-type ~a.~%To fix this either:
-- Add a method with (object-type (eql ~a)) as the first specializer or
-- Add ~a into the type hierarchy in the cram_object_knowledge package."
+           specific-type object-name arm grasp grasp-transform)
+          (error "There is no applicable method for the generic function ~%~a~%~
+                  with object-type ~a.~%To fix this either: ~
+                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
+                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
                  #'get-object-type-to-gripper-lift-transform
                  object-type object-type object-type)))))
 
@@ -187,15 +171,11 @@ with object-type ~a.~%To fix this either:
              #'get-object-type-to-gripper-2nd-lift-transform object-type)))
       (if specific-type
           (get-object-type-to-gripper-2nd-lift-transform
-           specific-type
-           object-name
-           arm
-           grasp
-           grasp-transform)
-          (error "There is no applicable method for the generic function ~%~a
-with object-type ~a.~%To fix this either:
-- Add a method with (object-type (eql ~a)) as the first specializer or
-- Add ~a into the type hierarchy in the cram_object_knowledge package."
+           specific-type object-name arm grasp grasp-transform)
+          (error "There is no applicable method for the generic function ~%~a~%~
+                  with object-type ~a.~%To fix this either: ~
+                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
+                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
                  #'get-object-type-to-gripper-2nd-lift-transform
                  object-type object-type object-type)))))
 

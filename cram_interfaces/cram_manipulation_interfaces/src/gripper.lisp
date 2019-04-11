@@ -36,12 +36,11 @@
             (find-most-specific-object-type-for-generic
              #'get-object-type-gripping-effort object-type)))
       (if specific-type
-          (get-object-type-gripping-effort
-           specific-type)
-          (error "There is no applicable method for the generic function ~%~a
-with object-type ~a.~%To fix this either:
-- Add a method with (object-type (eql ~a)) as the first specializer or
-- Add ~a into the type hierarchy in the cram_object_knowledge package."
+          (get-object-type-gripping-effort specific-type)
+          (error "There is no applicable method for the generic function ~%~a~%~
+                  with object-type ~a.~%To fix this either: ~
+                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
+                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
                  #'get-object-type-gripper-opening
                  object-type object-type object-type)))))
 
@@ -52,11 +51,10 @@ with object-type ~a.~%To fix this either:
             (find-most-specific-object-type-for-generic
              #'get-object-type-gripper-opening object-type)))
       (if specific-type
-          (get-object-type-gripper-opening
-           specific-type)
-          (error "There is no applicable method for the generic function ~%~a
-with object-type ~a.~%To fix this either:
-- Add a method with (object-type (eql ~a)) as the first specializer or
-- Add ~a into the type hierarchy in the cram_object_knowledge package."
+          (get-object-type-gripper-opening specific-type)
+          (error "There is no applicable method for the generic function ~%~a~%~
+                  with object-type ~a.~%To fix this either: ~
+                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
+                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
                  #'get-object-type-gripper-opening
                  object-type object-type object-type)))))
