@@ -30,7 +30,33 @@
 (in-package :cram-manipulation-interfaces)
 
 (defgeneric get-object-type-gripping-effort (object-type)
-  (:documentation "Returns effort in Nm, e.g. 50."))
+  (:documentation "Returns effort in Nm, e.g. 50.")
+  (:method (object-type)
+    (let ((specific-type
+            (find-most-specific-object-type-for-generic
+             #'get-object-type-gripping-effort object-type)))
+      (if specific-type
+          (get-object-type-gripping-effort
+           specific-type)
+          (error "There is no applicable method for the generic function ~%~a
+with object-type ~a.~%To fix this either:
+- Add a method with (object-type (eql ~a)) as the first specializer or
+- Add ~a into the type hierarchy in the cram_object_knowledge package."
+                 #'get-object-type-gripper-opening
+                 object-type object-type object-type)))))
 
 (defgeneric get-object-type-gripper-opening (object-type)
-  (:documentation "How wide to open the gripper before grasping, in m."))
+  (:documentation "How wide to open the gripper before grasping, in m.")
+  (:method (object-type)
+    (let ((specific-type
+            (find-most-specific-object-type-for-generic
+             #'get-object-type-gripper-opening object-type)))
+      (if specific-type
+          (get-object-type-gripper-opening
+           specific-type)
+          (error "There is no applicable method for the generic function ~%~a
+with object-type ~a.~%To fix this either:
+- Add a method with (object-type (eql ~a)) as the first specializer or
+- Add ~a into the type hierarchy in the cram_object_knowledge package."
+                 #'get-object-type-gripper-opening
+                 object-type object-type object-type)))))
