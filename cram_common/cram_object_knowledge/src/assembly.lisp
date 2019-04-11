@@ -49,35 +49,13 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-type-gripping-effort
-    ((object-type (eql :assembly-item))) 35)
-
-;; (defmethod get-object-type-gripping-effort ((object-type (eql :bolt))) 35)
-;; (defmethod get-object-type-gripping-effort ((object-type (eql :chassis))) 35)
-;; (defmethod get-object-type-gripping-effort ((object-type (eql :bottom-wing))) 35)
-;; (defmethod get-object-type-gripping-effort ((object-type (eql :underbody))) 35)
-;; (defmethod get-object-type-gripping-effort ((object-type (eql :upper-body))) 35)
-;; (defmethod get-object-type-gripping-effort ((object-type (eql :top-wing))) 35)
-;; (defmethod get-object-type-gripping-effort ((object-type (eql :window))) 35)
-;; (defmethod get-object-type-gripping-effort ((object-type (eql :propeller))) 35)
-;; (defmethod get-object-type-gripping-effort ((object-type (eql :front-wheel))) 35)
-;; (defmethod get-object-type-gripping-effort ((object-type (eql :nut))) 35)
+(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :assembly-item))) 35)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-type-gripper-opening
-    ((object-type (eql :assembly-item))) 0.02)
-
+(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :assembly-item))) 0.1)
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :bolt))) 0.02)
-;; (defmethod get-object-type-gripper-opening ((object-type (eql :chassis))) 0.1)
-;; (defmethod get-object-type-gripper-opening ((object-type (eql :bottom-wing))) 0.1)
-;; (defmethod get-object-type-gripper-opening ((object-type (eql :underbody))) 0.1)
-;; (defmethod get-object-type-gripper-opening ((object-type (eql :upper-body))) 0.1)
-;; (defmethod get-object-type-gripper-opening ((object-type (eql :top-wing))) 0.1)
 (defmethod man-int:get-object-type-gripper-opening ((object-type (eql :window))) 0.02)
-;; (defmethod get-object-type-gripper-opening ((object-type (eql :propeller))) 0.1)
-;; (defmethod get-object-type-gripper-opening ((object-type (eql :front-wheel))) 0.1)
-;; (defmethod get-object-type-gripper-opening ((object-type (eql :nut))) 0.1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CHASSIS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
