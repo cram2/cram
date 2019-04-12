@@ -406,25 +406,6 @@
      on-bounding-box
      (make-object-bounding-box-costmap-generator ?environment-link)
      ?costmap)
-    (costmap:costmap-add-cached-height-generator
-     (make-object-bounding-box-height-generator ?environment-link :in)
-     ?costmap))
-
-  (<- (costmap:desig-costmap ?designator ?costmap)
-    (desig:desig-prop ?designator (:in ?object))
-    (spec:property ?object (:type ?object-type))
-    (man-int:object-type-subtype :container ?object-type)
-    (spec:property ?object (:urdf-name ?urdf-name))
-    (spec:property ?object (:part-of ?environment-name))
-    (btr:bullet-world ?world)
-    (btr:%object ?world ?environment-name ?environment)
-    (lisp-fun get-link-rigid-body ?environment ?urdf-name ?environment-link)
-    (lisp-pred identity ?environment-link)
-    (costmap:costmap ?costmap)
-    (costmap:costmap-add-function
-     on-bounding-box
-     (make-object-bounding-box-costmap-generator ?environment-link)
-     ?costmap)
     (once (or (desig:desig-prop ?designator (:for ?_))
               (costmap:costmap-add-cached-height-generator
                (make-object-bounding-box-height-generator ?environment-link :in)
@@ -446,6 +427,11 @@
     (lisp-pred identity ?environment-link)
     (btr-belief:object-designator-name ?for-object ?for-object-name)
     (btr:%object ?world ?for-object-name ?for-object-instance)
+    (costmap:costmap-add-function
+     on-bounding-box
+     (make-object-in-object-bounding-box-costmap-generator
+      ?environment-link ?for-object-instance)
+     ?costmap)
     (costmap:costmap-add-height-generator
      (make-object-on-object-bb-height-generator ?environment-link ?for-object-instance :in)
      ?costmap))
