@@ -403,6 +403,26 @@ if it is on the sign side of the axis. "
             1.0
             0.0)))))
 
+(defun make-object-in-object-bounding-box-costmap-generator (container-object inner-object)
+  (let* ((bounding-box-dims (btr:calculate-bb-dims container-object))
+         (container-dimensions-x/2 (/ (cl-transforms:x bounding-box-dims) 2))
+         (container-dimensions-y/2 (/ (cl-transforms:y bounding-box-dims) 2))
+         (center-x (cl-transforms:x (cl-transforms:origin (btr:pose container-object))))
+         (center-y (cl-transforms:y (cl-transforms:origin (btr:pose container-object))))
+         (inner-obj-bb (btr:calculate-bb-dims inner-object))
+         (inner-obj-x/2 (/ (cl-transforms:x inner-obj-bb) 2))
+         (inner-obj-y/2 (/ (cl-transforms:y inner-obj-bb) 2))
+         (inner-obj-padding (max inner-obj-x/2 inner-obj-y/2))
+         (dimensions-x/2 (- container-dimensions-x/2 inner-obj-padding))
+         (dimensions-y/2 (- container-dimensions-y/2 inner-obj-padding)))
+    (lambda (x y)
+      (if (and
+           (< x (+ center-x dimensions-x/2))
+           (> x (- center-x dimensions-x/2))
+           (< y (+ center-y dimensions-y/2))
+           (> y (- center-y dimensions-y/2)))
+          1.0 0.0))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HEIGHT GENERATORS ;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *board-thickness* 0.040)
