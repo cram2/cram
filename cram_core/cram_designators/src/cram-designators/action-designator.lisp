@@ -54,8 +54,8 @@
   (lazy-mapcan (lambda (bdg)
                  (let ((plan-action-desig-tuple (var-value '?plan-action-tuple bdg)))
                    (unless (is-var plan-action-desig-tuple)
-                     (unless (desig-equal desig (second plan-action-desig-tuple))
-                       (equate desig (second plan-action-desig-tuple)))
+                     ;; (unless (desig-equal desig (second plan-action-desig-tuple))
+                     ;;   (equate desig (second plan-action-desig-tuple)))
                      (list plan-action-desig-tuple))))
                (prolog `(action-grounding ,desig ?plan-action-tuple))))
 
