@@ -89,8 +89,7 @@
 (defparameter *cutlery-pregrasp-xy-offset* 0.10 "in meters")
 
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:cutlery :spoon :fork :knife)
-    '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms :cutlery '(:left :right) :top
   :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
@@ -99,8 +98,7 @@
   :2nd-lift-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
 
 ;; BOTTOM grasp
-(man-int:def-object-type-to-gripper-transforms '(:cutlery :spoon :fork :knife)
-    '(:left :right) :bottom
+(man-int:def-object-type-to-gripper-transforms :cutlery '(:left :right) :bottom
   :grasp-translation `(0.0 0.0 ,(- *cutlery-grasp-z-offset*))
   :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
@@ -277,7 +275,7 @@
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms :cereal '(:left :right) :top
   :grasp-translation `(0.0d0 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *lift-offset*
@@ -286,7 +284,7 @@
   :2nd-lift-offsets *lift-offset*)
 
 ;; BACK grasp
-(man-int:def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :back
+(man-int:def-object-type-to-gripper-transforms :cereal '(:left :right) :back
   :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
@@ -295,7 +293,7 @@
   :2nd-lift-offsets *lift-offset*)
 
 ;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :front
+(man-int:def-object-type-to-gripper-transforms :cereal '(:left :right) :front
   :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
