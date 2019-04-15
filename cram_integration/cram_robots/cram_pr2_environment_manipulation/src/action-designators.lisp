@@ -74,7 +74,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
     (lisp-fun btr:name ?environment-obj ?environment-name)
     ;; infer missing information like ?gripper-opening, opening trajectory
-    (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
+    (lisp-fun man-int:get-action-gripper-opening ?container-type ?gripper-opening)
     ;; calculate trajectory
     (equal ?objects (?container-designator))
     (-> (equal ?arm :left)
@@ -163,7 +163,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
     (lisp-fun btr:name ?environment-obj ?environment-name)
     ;; infer missing information like ?gripper-opening, closing trajectory
-    (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
+    (lisp-fun man-int:get-action-gripper-opening ?container-type ?gripper-opening)
     ;; calculate trajectory
     (equal ?objects (?container-designator))
     (-> (equal ?arm :left)

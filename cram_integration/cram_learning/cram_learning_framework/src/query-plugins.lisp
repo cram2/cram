@@ -56,7 +56,9 @@
     (format nil "[~s, ~s, [~12$, ~12$, ~12$], [~12$, ~12$, ~12$, ~12$]]"
             parent-frame child-frame x y z q1 q2 q3 w)))
 
-(defmethod man-int:get-object-type-grasps :around (object-type arm object-transform-in-base)
+(defmethod man-int:get-action-grasps learning 30 (object-type
+                                                  arm
+                                                  object-transform-in-base)
   (if (and *learning-framework-on* object-transform-in-base)
       (let* ((all-possible-grasps-unsorted
                (call-next-method))

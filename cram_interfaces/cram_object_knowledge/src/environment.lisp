@@ -39,8 +39,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :container))) 50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :container)))
+  50)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :container))) 0.10)
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :container)))
+  0.10)

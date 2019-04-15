@@ -46,14 +46,6 @@
          trajectory
          :key #'traj-segment-label)))
 
-(defgeneric get-action-trajectory (action-type arm grasp objects-acted-on
-                                   &key &allow-other-keys)
-  (:documentation "Returns a list of TRAJ-SEGMENTs.
-`action-type' describes for which type of action the trajectory will be,
-`arm' a single keyword eg. :left,
-`grasp' describes grasp orientation to use, e.g., :top, :left-side,
-`objects-acted-on' are designators describing the objects used by the action."))
-
 
 (defun calculate-gripper-pose-in-base (base-to-object-transform arm
                                        object-to-standard-gripper-transform)
@@ -301,12 +293,11 @@ Gripper is defined by a convention where Z is pointing towards the object.")
 
 
 
-
-(defmethod get-action-trajectory ((action-type (eql :picking-up))
-                                  arm
-                                  grasp
-                                  objects-acted-on
-                                  &key)
+(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :picking-up))
+                                                 arm
+                                                 grasp
+                                                 objects-acted-on
+                                                 &key)
   (let* ((object
            (car objects-acted-on))
          (object-name
@@ -337,11 +328,11 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                ,(man-int:get-object-type-to-gripper-2nd-lift-transform
                  object-type object-name arm grasp oTg-std))))))
 
-(defmethod get-action-trajectory ((action-type (eql :placing))
-                                  arm
-                                  grasp
-                                  objects-acted-on
-                                  &key target-object-transform-in-base)
+(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :placing))
+                                                 arm
+                                                 grasp
+                                                 objects-acted-on
+                                                 &key target-object-transform-in-base)
   (let* ((object
            (car objects-acted-on))
          (object-name
