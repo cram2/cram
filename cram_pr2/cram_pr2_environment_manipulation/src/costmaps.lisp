@@ -184,48 +184,54 @@ opening arc.
 CONTAINER-NAME and BTR-ENVIRONMENT are the names of the container and the
 environment, in which it can be found, respectively."
   (let* ((handle-link
-           (get-handle-link container-name
-                            btr-environment))
-         (handle-pose
-           (get-manipulated-pose
-            (cl-urdf:name handle-link)
-            0
-            btr-environment
-            :relative T))
+           (get-handle-link container-name btr-environment))
          (manipulated-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
             1
             btr-environment
             :relative T))
-         (joint-name (cl-urdf:name
-                      (cl-urdf:child (get-connecting-joint handle-link))))
-         (joint-pose (get-urdf-link-pose joint-name
-                                         btr-environment))
-         (joint-pos-2d (cl-transforms:make-3d-vector
-                            (cl-transforms:x
-                             (cl-transforms:origin joint-pose))
-                            (cl-transforms:y
-                             (cl-transforms:origin joint-pose))
-                            0))
-         (handle-pos-2d (cl-transforms:make-3d-vector
-                         (cl-transforms:x
-                          (cl-transforms:origin handle-pose))
-                         (cl-transforms:y
-                          (cl-transforms:origin handle-pose))
-                         0))
-         (man-handle-pos-2d (cl-transforms:make-3d-vector
-                             (cl-transforms:x
-                              (cl-transforms:origin manipulated-handle-pose))
-                             (cl-transforms:y
-                              (cl-transforms:origin manipulated-handle-pose))
-                             0))
-         (v1 (cl-transforms:v- handle-pos-2d
-                               joint-pos-2d))
-         (v2 (cl-transforms:v- man-handle-pos-2d
-                               joint-pos-2d))
-         (v1-length (sqrt (cl-transforms:dot-product v1 v1)))
-         (v2-length (sqrt (cl-transforms:dot-product v2 v2))))
+         (man-handle-pos-2d
+           (cl-transforms:make-3d-vector
+            (cl-transforms:x
+             (cl-transforms:origin manipulated-handle-pose))
+            (cl-transforms:y
+             (cl-transforms:origin manipulated-handle-pose))
+            0))
+         (joint-name
+           (cl-urdf:name
+            (cl-urdf:child (get-connecting-joint handle-link))))
+         (joint-pose
+           (get-urdf-link-pose joint-name btr-environment))
+         (joint-pos-2d
+           (cl-transforms:make-3d-vector
+            (cl-transforms:x
+             (cl-transforms:origin joint-pose))
+            (cl-transforms:y
+             (cl-transforms:origin joint-pose))
+            0))
+         (v2
+           (cl-transforms:v- man-handle-pos-2d joint-pos-2d))
+         (v2-length
+           (sqrt (cl-transforms:dot-product v2 v2)))
+         ;; (handle-pose
+         ;;   (get-manipulated-pose
+         ;;    (cl-urdf:name handle-link)
+         ;;    0
+         ;;    btr-environment
+         ;;    :relative T))
+         ;; (handle-pos-2d
+         ;;   (cl-transforms:make-3d-vector
+         ;;    (cl-transforms:x
+         ;;     (cl-transforms:origin handle-pose))
+         ;;    (cl-transforms:y
+         ;;     (cl-transforms:origin handle-pose))
+         ;;    0))
+         ;; (v1
+         ;;   (cl-transforms:v- handle-pos-2d joint-pos-2d))
+         ;; (v1-length
+         ;;   (sqrt (cl-transforms:dot-product v1 v1)))
+         )
 
     (lambda (x y)
       (let* ((vP (cl-transforms:v- (cl-transforms:make-3d-vector x y 0)
