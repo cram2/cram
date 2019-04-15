@@ -34,20 +34,13 @@
 (defparameter *drawer-handle-retract-offset* 0.10 "in meters")
 (defparameter *door-handle-retract-offset* 0.05 "in meters")
 
-(defmethod man-int:get-object-type-gripper-opening
-    ((object-type (eql :container))) 0.10)
-(defmethod man-int:get-object-type-gripper-opening
-    ((object-type (eql :container-prismatic))) 0.10)
-(defmethod man-int:get-object-type-gripper-opening
-    ((object-type (eql :container-revolute))) 0.10)
-
-(defmethod man-int:get-action-trajectory ((action-type (eql :opening))
-                                           arm
-                                           grasp
-                                           objects-acted-on
-                                           &key
-                                             opening-distance
-                                             handle-axis)
+(defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :opening))
+                                                         arm
+                                                         grasp
+                                                         objects-acted-on
+                                                         &key
+                                                           opening-distance
+                                                           handle-axis)
   "Return a trajectory for opening the object in OBJECTS-ACTED-ON.
 OPENING-DISTANCE is a float in m, describing how far the object should opened.
 HANDLE-AXIS is a `cl-transforms:3d-vector' describing the handle's orientation
@@ -56,13 +49,13 @@ in the robot's XZ-plane. It's Z-element should be 0."
     (error "Action-type ~a requires exactly one object.~%" action-type))
   (make-trajectory action-type arm objects-acted-on opening-distance handle-axis))
 
-(defmethod man-int:get-action-trajectory ((action-type (eql :closing))
-                                           arm
-                                           grasp
-                                           objects-acted-on
-                                           &key
-                                             opening-distance
-                                             handle-axis)
+(defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :closing))
+                                                         arm
+                                                         grasp
+                                                         objects-acted-on
+                                                         &key
+                                                           opening-distance
+                                                           handle-axis)
   "Return a trajectory for closing the object in OBJECTS-ACTED-ON.
 OPENING-DISTANCE is a float in m, describing how far the object should closed.
 HANDLE-AXIS is a `cl-transforms:3d-vector' describing the handle's orientation

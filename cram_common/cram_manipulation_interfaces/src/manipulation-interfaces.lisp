@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,28 +29,25 @@
 
 (in-package :cram-manipulation-interfaces)
 
-(defmethod get-action-gripping-effort :heuristics 20 (object-type)
-  (let ((specific-type
-          (find-most-specific-object-type-for-generic
-           #'get-action-gripping-effort object-type)))
-    (if specific-type
-        (get-action-gripping-effort specific-type)
-        (error "There is no applicable method for the generic function ~%~a~%~
-                with object-type ~a.~%To fix this either: ~
-                ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
-                ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
-               #'get-action-gripping-effort
-               object-type object-type object-type))))
+(defgeneric get-action-gripping-effort (object-type)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns effort in Nm, e.g. 50."))
 
-(defmethod get-action-gripper-opening :heuristics 20 (object-type)
-  (let ((specific-type
-          (find-most-specific-object-type-for-generic
-           #'get-action-gripper-opening object-type)))
-    (if specific-type
-        (get-action-gripper-opening specific-type)
-        (error "There is no applicable method for the generic function ~%~a~%~
-                with object-type ~a.~%To fix this either: ~
-                ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
-                ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
-               #'get-action-gripper-opening
-               object-type object-type object-type))))
+(defgeneric get-action-gripper-opening (object-type)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "How wide to open the gripper before grasping, in m or radiants."))
+
+(defgeneric get-action-grasps (object-type arm object-transform-in-base)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns a (lazy) list of keywords that represent the possible
+grasp orientations for `object-type' given `arm' and `object-transform-in-base'."))
+
+(defgeneric get-action-trajectory (action-type arm grasp objects-acted-on
+                                   &key &allow-other-keys)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns a list of TRAJ-SEGMENTs.
+`engine' is the keyword describing the reasoning engine that calculates trajectories,
+`action-type' describes for which type of action the trajectory will be,
+`arm' a single keyword eg. :left,
+`grasp' describes grasp orientation to use, e.g., :top, :left-side,
+`objects-acted-on' are designators describing the objects used by the action."))
