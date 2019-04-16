@@ -393,12 +393,12 @@
 ;;;;;;;;;;;;;; LEVEL relationship for container type locations ;;;;;;;;;;;;;;;;;;;;;;;
 
   (<- (get-level-rigid-body ?environment-object ?urdf-name ?level-relation
-                            ?level-rigid-body)
+                            ?level-rigid-body ?invert)
     (or (member ?level-relation (:topmost :bottommost))
         (lisp-pred typep ?level-relation integer))
     (lisp-fun get-level-links-in-container ?environment-object ?urdf-name ?child-levels)
     (lisp-fun choose-level ?environment-object ?child-levels ?level-relation
-              ?level-rigid-body))
+              :invert ?invert ?level-rigid-body))
 
   (<- (get-rigid-body ?designator ?link-rigid-body ?bounding-box-calculation-tag)
     (or (desig:desig-prop ?designator (:on ?on-object))
@@ -407,12 +407,21 @@
     (desig:desig-prop ?on-object (:part-of ?environment-name))
     (btr:bullet-world ?world)
     (btr:%object ?world ?environment-name ?environment-object)
+    ;; if level keyword is found find sublevels in bottom up order
     (-> (desig:desig-prop ?on-object (:level ?relation))
-        (and (get-level-rigid-body ?environment-object ?urdf-name ?relation ?link-rigid-body)
+        (and (get-level-rigid-body ?environment-object ?urdf-name
+                                   ?relation ?link-rigid-body nil)
              (equal ?bounding-box-calculation-tag :on))
-        (and (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?link-rigid-body)
-             (lisp-pred identity ?link-rigid-body)
-             (equal ?bounding-box-calculation-tag :in))))
+        ;; if level-invert keyword is found find sublevels in top down order
+        (-> (desig:desig-prop ?on-object (:level-invert ?invert-relation))
+            (and (get-level-rigid-body ?environment-object ?urdf-name
+                                       ?invert-relation ?link-rigid-body t)
+                 (equal ?bounding-box-calculation-tag :on))
+            ;; else send the rigid body of the original object itself
+            (and (lisp-fun get-link-rigid-body ?environment-object
+                           ?urdf-name ?link-rigid-body)
+                 (lisp-pred identity ?link-rigid-body)
+                 (equal ?bounding-box-calculation-tag :in)))))
 
 ;;;;;;;;;;;;;;; spatial relation IN for environment objects ;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
