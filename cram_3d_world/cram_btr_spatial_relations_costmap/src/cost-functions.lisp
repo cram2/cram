@@ -125,7 +125,42 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
                 (setf highest-body body))
         finally (return highest-body)))
 
+;;;;;;;;;;;;;;;;;;;; Level Calculations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun get-level-links-in-container (btr-environment container-name)
+  (when (symbolp container-name)
+    (setf container-name
+          (roslisp-utilities:rosify-underscores-lisp-name container-name)))
+
+  (find-levels-under-link
+   (gethash container-name (cl-urdf:links (btr:urdf btr-environment)))))
+
+(defun find-levels-under-link (parent-link)
+  (let ((levels-found))
+    (labels ((find-levels (link)
+               (let* ((child-joints (cl-urdf:to-joints link))
+                      (child-links (mapcar #'cl-urdf:child child-joints)))
+                 (mapcar (lambda (child-link)
+                           (let ((child-name (cl-urdf:name child-link)))
+                             (if (or (search "board" child-name)
+                                     (search "level" child-name))
+                                 (push child-link levels-found)
+                                 (find-levels child-link))))
+                           child-links))))
+      (find-levels parent-link))
+    levels-found))
+
+(defun choose-level (btr-environment level-links tag)
+  (let* ((level-rigid-body-function (alexandria:compose
+                                     (alexandria:curry
+                                      #'get-link-rigid-body btr-environment)
+                                     #'cl-urdf:name))
+         (level-rigid-bodies (mapcar level-rigid-body-function level-links))
+         (search-tag (ecase tag
+                       (:topmost #'>)
+                       (:bottommost #'<))))
+    (first (sort level-rigid-bodies search-tag
+                 :key #'get-rigid-body-aabb-top-z))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
