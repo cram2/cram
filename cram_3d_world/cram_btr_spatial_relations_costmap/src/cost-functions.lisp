@@ -150,19 +150,24 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
       (find-levels parent-link))
     levels-found))
 
-(defun choose-level (btr-environment level-links tag)
+(defun choose-level (btr-environment level-links tag &key (invert nil))
   (let* ((level-rigid-body-function (alexandria:compose
                                      (alexandria:curry
                                       #'get-link-rigid-body btr-environment)
                                      #'cl-urdf:name))
          (level-rigid-bodies (mapcar level-rigid-body-function level-links))
-         (search-index (case tag
+         (level-index (case tag
                          (:topmost (- (length level-rigid-bodies) 1))
                          (:bottommost 0)
-                         (otherwise (- tag 1)))))
+                         (otherwise (- tag 1))))
+         ;; Only need to reverse sort if the level specified is an integer
+         ;; since topmost and bottommost always means the same thing
+         (sort-order (if (and (typep tag 'integer)
+                              invert)
+                         #'> #'<)))
 
-    (nth search-index
-         (sort level-rigid-bodies #'> :key #'get-rigid-body-aabb-top-z))))
+    (nth level-index
+         (sort level-rigid-bodies sort-order :key #'get-rigid-body-aabb-top-z))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
