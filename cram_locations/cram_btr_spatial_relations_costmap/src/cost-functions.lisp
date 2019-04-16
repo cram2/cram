@@ -156,11 +156,13 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
                                       #'get-link-rigid-body btr-environment)
                                      #'cl-urdf:name))
          (level-rigid-bodies (mapcar level-rigid-body-function level-links))
-         (search-tag (ecase tag
-                       (:topmost #'>)
-                       (:bottommost #'<))))
-    (first (sort level-rigid-bodies search-tag
-                 :key #'get-rigid-body-aabb-top-z))))
+         (search-index (case tag
+                         (:topmost (- (length level-rigid-bodies) 1))
+                         (:bottommost 0)
+                         (otherwise (- tag 1)))))
+
+    (nth search-index
+         (sort level-rigid-bodies #'> :key #'get-rigid-body-aabb-top-z))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

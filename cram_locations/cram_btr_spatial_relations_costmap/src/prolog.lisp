@@ -394,7 +394,8 @@
 
   (<- (get-level-rigid-body ?environment-object ?urdf-name ?level-relation
                             ?level-rigid-body)
-    (member ?relation (:topmost :bottommost))
+    (or (member ?level-relation (:topmost :bottommost))
+        (lisp-pred typep ?level-relation integer))
     (lisp-fun get-level-links-in-container ?environment-object ?urdf-name ?child-levels)
     (lisp-fun choose-level ?environment-object ?child-levels ?level-relation
               ?level-rigid-body))
