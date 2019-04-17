@@ -165,6 +165,7 @@ reverse sort it"
          (level-index (case tag
                          (:topmost (- (length level-rigid-bodies) 1))
                          (:bottommost 0)
+                         (:middle (floor (/ (length level-rigid-bodies) 2)))
                          (otherwise (- tag 1))))
          ;; Only need to reverse sort if the level specified is an integer
          ;; since topmost and bottommost always means the same thing
