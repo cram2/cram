@@ -104,9 +104,9 @@
 
       ;; creating the new Transform from the base_footprint infront of the shelf and the object
       (setf map->base (cl-transforms:make-transform
-                       (cl-transforms:make-3d-vector -1.5 -0.3 0)
-                       (cl-transforms:axis-angle->quaternion
-                        (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
+                       (cl-transforms:translation (cl-transforms:reference-transform *pose-grasping*))
+                       (cl-transforms:orientation *pose-grasping*)))
+                       
       
       (setf map->obj (second (fourth (desig:desig-prop-value ?object :pose))))
       (setf trans (cl-transforms:transform* (cl-transforms:transform-inv map->base) map->obj))

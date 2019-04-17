@@ -38,6 +38,14 @@
                     (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1)) :urdf ,shelve-urdf))))))
 
 
+(defun spawn-kitchen()
+  (let ((kitchen-urdf
+                   (cl-urdf:parse-urdf
+                    (roslisp:get-param "kitchen_description"))))
+             (prolog:prolog
+              `(and (btr:bullet-world ?world)
+                    (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1)) :urdf ,kitchen-urdf))))))
+
 (defun spawn-robot ()
   (setf cram-robot-interfaces:*robot-urdf*
                    (cl-urdf:parse-urdf
@@ -111,8 +119,5 @@
                               (assert (btr:object ?world :static-plane :floor ((0 0 0) (0 0 0 1))
                                                                        :normal (0 0 1) :constant 0))))
   (btr:add-objects-to-mesh-list "cram_pr2_shopping_demo")
-  
-  (spawn-robot)
-  (spawn-shelve)
-  (spawn-and-place-objects))
+)
 
