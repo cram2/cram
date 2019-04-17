@@ -136,6 +136,8 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
    (gethash container-name (cl-urdf:links (btr:urdf btr-environment)))))
 
 (defun find-levels-under-link (parent-link)
+  "Finds all the child links under the parent link with the name
+board or level in them"
   (let ((levels-found))
     (labels ((find-levels (link)
                (let* ((child-joints (cl-urdf:to-joints link))
@@ -151,6 +153,10 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
     levels-found))
 
 (defun choose-level (btr-environment level-links tag &key (invert nil))
+  "Chooses the level based on the given tag which can be a number or a
+`:topmost' or `:bottommost' keyword. The sorting to find the level number
+usually sorted from the lowest level to the highest. The `invert' key will
+reverse sort it"
   (let* ((level-rigid-body-function (alexandria:compose
                                      (alexandria:curry
                                       #'get-link-rigid-body btr-environment)

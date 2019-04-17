@@ -393,35 +393,34 @@
 ;;;;;;;;;;;;;; LEVEL relationship for container type locations ;;;;;;;;;;;;;;;;;;;;;;;
 
   (<- (get-level-rigid-body ?environment-object ?urdf-name ?level-relation
-                            ?level-rigid-body ?invert)
+                            ?invert ?level-rigid-body)
     (or (member ?level-relation (:topmost :bottommost))
         (lisp-pred typep ?level-relation integer))
-    (lisp-fun get-level-links-in-container ?environment-object ?urdf-name ?child-levels)
-    (lisp-fun choose-level ?environment-object ?child-levels ?level-relation
-              :invert ?invert ?level-rigid-body))
+    (lisp-fun get-level-links-in-container
+              ?environment-object ?urdf-name ?child-levels)
+    (lisp-fun choose-level ?environment-object ?child-levels
+              ?level-relation :invert ?invert ?level-rigid-body))
 
-  (<- (get-rigid-body ?designator ?link-rigid-body ?bounding-box-calculation-tag)
-    (or (desig:desig-prop ?designator (:on ?on-object))
-        (desig:desig-prop ?designator (:in ?on-object)))
-    (desig:desig-prop ?on-object (:urdf-name ?urdf-name))
-    (desig:desig-prop ?on-object (:part-of ?environment-name))
-    (btr:bullet-world ?world)
-    (btr:%object ?world ?environment-name ?environment-object)
+  (<- (get-rigid-body ?environment-object ?in-object
+                      ?link-rigid-body ?height-calculation-tag)
+    (desig:desig-prop ?in-object (:urdf-name ?urdf-name))
     ;; if level keyword is found find sublevels in bottom up order
-    (-> (desig:desig-prop ?on-object (:level ?relation))
-        (and (get-level-rigid-body ?environment-object ?urdf-name
-                                   ?relation ?link-rigid-body nil)
-             (equal ?bounding-box-calculation-tag :on))
+    (-> (desig:desig-prop ?in-object (:level ?relation))
+        (and (get-level-rigid-body
+              ?environment-object ?urdf-name ?relation nil ?link-rigid-body)
+             (lisp-pred identity ?link-rigid-body)
+             (equal ?height-calculation-tag :on))
         ;; if level-invert keyword is found find sublevels in top down order
-        (-> (desig:desig-prop ?on-object (:level-invert ?invert-relation))
-            (and (get-level-rigid-body ?environment-object ?urdf-name
-                                       ?invert-relation ?link-rigid-body t)
-                 (equal ?bounding-box-calculation-tag :on))
-            ;; else send the rigid body of the original object itself
-            (and (lisp-fun get-link-rigid-body ?environment-object
-                           ?urdf-name ?link-rigid-body)
+        (-> (desig:desig-prop ?in-object (:level-invert ?invert-relation))
+            (and (get-level-rigid-body
+                  ?environment-object ?urdf-name ?invert-relation t ?link-rigid-body)
                  (lisp-pred identity ?link-rigid-body)
-                 (equal ?bounding-box-calculation-tag :in)))))
+                 (equal ?height-calculation-tag :on))
+            ;; else send the rigid body of the original object itself
+            (and (lisp-fun get-link-rigid-body
+                           ?environment-object ?urdf-name ?link-rigid-body)
+                 (lisp-pred identity ?link-rigid-body)
+                 (equal ?height-calculation-tag :in)))))
 
 ;;;;;;;;;;;;;;; spatial relation IN for environment objects ;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
@@ -432,7 +431,8 @@
     (spec:property ?object (:part-of ?environment-name))
     (btr:bullet-world ?world)
     (btr:%object ?world ?environment-name ?environment)
-    (get-rigid-body ?designator ?environment-link ?bounding-box-calculation-tag)
+    (get-rigid-body ?environment ?object
+                    ?environment-link ?height-calculation-tag)
     (costmap:costmap ?costmap)
     (costmap:costmap-add-function
      on-bounding-box
@@ -441,7 +441,7 @@
     (once (or (desig:desig-prop ?designator (:for ?_))
               (costmap:costmap-add-cached-height-generator
                (make-object-bounding-box-height-generator
-                ?environment-link ?bounding-box-calculation-tag)
+                ?environment-link ?height-calculation-tag)
                ?costmap)))
     (costmap:costmap-add-orientation-generator
      (make-discrete-orientations-generator)
@@ -456,7 +456,8 @@
     (costmap:costmap ?costmap)
     (btr:bullet-world ?world)
     (btr:%object ?world ?environment-name ?environment-object)
-    (get-rigid-body ?designator ?environment-link ?bounding-box-calculation-tag)
+    (get-rigid-body ?environment-object ?in-object
+                    ?environment-link ?height-calculation-tag)
     (btr-belief:object-designator-name ?for-object ?for-object-name)
     (btr:%object ?world ?for-object-name ?for-object-instance)
     (costmap:costmap-add-function
@@ -466,7 +467,7 @@
      ?costmap)
     (costmap:costmap-add-height-generator
      (make-object-on-object-bb-height-generator
-      ?environment-link ?for-object-instance ?bounding-box-calculation-tag)
+      ?environment-link ?for-object-instance ?height-calculation-tag)
      ?costmap))
 
 ;;;;;;;;;;;;;; for TABLE-SETTING context ON (SLOTS) ;;;;;;;;;;;;;;;;;;;;;;;;;
