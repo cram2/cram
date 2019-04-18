@@ -88,6 +88,7 @@
       ;; clos
       #:hooks
       #:ordered-hooks
+      #:first-in-order-and-around
       #:define-hook
       #:copy-object
       ;; conditions

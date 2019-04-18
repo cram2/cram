@@ -56,13 +56,16 @@
 
 (defun call-plan-with-designator-properties (plan-function action-designator)
   (declare (type desig:action-designator action-designator))
+  "Returns the result of executing the plan function and the action-designator
+that was used as the parameter of the plan as multiple values."
   (let ((designator-props-as-key-lambda-list
           (let (plist)
             (dolist (pair (desig:properties action-designator))
               (push (first pair) plist)
               (push (second pair) plist))
             (nreverse plist))))
-    (apply plan-function designator-props-as-key-lambda-list)))
+    (values (apply plan-function designator-props-as-key-lambda-list)
+            action-designator)))
 
 
 (cpl:declare-goal perform (designator)

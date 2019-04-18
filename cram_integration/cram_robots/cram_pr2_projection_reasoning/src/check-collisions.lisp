@@ -354,7 +354,7 @@ Store found pose into designator or throw error if good pose not found."
                (pr2-proj::gripper-action :open arm)
 
                (roslisp:ros-info (coll-check environment)
-                                 "Trying to ~a with joint ~a with arm ~a~%"
+                                 "Trying ~a with joint ~a with arm ~a~%"
                                  action joint-name arm)
 
                (mapcar (lambda (left-poses right-poses)
