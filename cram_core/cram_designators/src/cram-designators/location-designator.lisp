@@ -183,7 +183,8 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
             (setf (slot-value new-desig 'current-solution) (lazy-car (lazy-cdr data)))
             (equate desig new-desig))))))
 
-(defmethod resolve-designator ((desig location-designator) (role t))
+(defun resolve-location-designator-through-generators-and-validators (desig)
+  (declare (type desig:location-designator desig))
   (let* ((generators (location-resolution-function-list
                       (remove-if (lambda (generator)
                                    (member generator *disabled-location-generators*))
@@ -204,6 +205,9 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
                             (invoke-restart :finish))
                            (t (decf retries) nil))))
                  solutions)))
+
+(defmethod resolve-designator ((desig location-designator) (role t))
+  (resolve-location-designator-through-generators-and-validators desig))
 
 (defmethod reset :after ((desig location-designator))
   "Empties the current-solution slot"
