@@ -35,4 +35,4 @@
    ;; #:*torso-step*
    ;; projection-environment
    #:with-simulated-robot #:with-projected-robot
-   #:robots-bullet-projection-environment))
+   #:urdf-bullet-projection-environment))
