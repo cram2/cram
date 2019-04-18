@@ -34,7 +34,6 @@
   "in seconds, sleeps after each movement during reasoning")
 (defparameter *debug-long-sleep-duration* 0.0
   "in seconds, sleeps to show colliding configurations")
-
 (defparameter *be-strict-with-collisions* nil
   "when grasping a spoon from table, fingers can collide with kitchen, so we might allow this")
 
@@ -64,7 +63,7 @@
            `(and (cram-robot-interfaces:robot ?robot)
                  (btr:bullet-world ?w)
                  (btr:assert ?w (btr:object-pose ?robot ,target)))))
-      (when (btr:robot-colliding-objects-without-attached)
+      (when (btr:robot-colliding-objects-without-attached '(:floor))
         (unless (< (abs *debug-short-sleep-duration*) 0.0001)
           (cpl:sleep *debug-short-sleep-duration*))
         (btr::restore-world-state world-state world)
@@ -103,8 +102,6 @@
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-
-
 (defun look-at-joint-angles (joint-angles)
   (declare (type list joint-angles))
   (assert
@@ -129,7 +126,7 @@
                                                            (btr:bullet-world ?w)
                                                            (cram-robot-interfaces:robot-pan-tilt-joints
                                                             ?robot . ?joint-names))))))1))) 
-                             (if (and configuration (> neck-joints-amount 2))
+                             (if  (and configuration (> neck-joints-amount 2))
                                  (if (typep (car configuration) 'list)
                                      (look-at-joint-states configuration)
                                      (look-at-joint-angles configuration))
@@ -137,18 +134,6 @@
                                      (look-at-pose-stamped pose)
                                      (error "Your configuration/pose is not supported yet")))))
 
-
-;;pr2 look-at
-;; (defun look-at (?goal-pose ?goal-configuration)
-;;   (if ?goal-configuration
-;;       (prolog:prolog
-;;        `(and (rob-int:robot ?robot)
-;;              (btr:bullet-world ?world)
-;;              (assert ?world (btr:joint-state ?robot ,?goal-configuration))))
-;;       (look-at-pose-stamped ?goal-pose)))
-
-
-;;;else this -->
 (defun look-at-pose-stamped (pose-stamped)
   (declare (type cl-transforms-stamped:pose-stamped pose-stamped))
   (let* ((bindings
@@ -453,38 +438,31 @@
 
 (defun get-ik-joint-positions (arm ee-pose)
   (when ee-pose
-    (multiple-value-bind (ik-solution torso-angle)
-        (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
-            (car (prolog:prolog
-                  `(and
-                    (cram-robot-interfaces:robot ?robot)
-                    (cram-robot-interfaces:robot-torso-link-joint ?robot
-                                                                  ?_ ?torso-joint)
-                    (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint
-                                                             ?lower-limit)
-                    (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint
-                                                             ?upper-limit)
-                    (btr:bullet-world ?world)
-                    (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
-          (call-ik-service-with-torso-resampling
-           arm ee-pose
-           :torso-angle ?torso-angle
-           :torso-lower-limit ?lower-limit
-           :torso-upper-limit ?upper-limit
-           ;; seed-state ; is todo
-           ))
-      (unless ik-solution
-        (cpl:fail 'common-fail:manipulation-pose-unreachable
-                  :description (format nil "~a is unreachable for EE." ee-pose)))
-      (values ik-solution torso-angle))))
-    ;;Maybe this is neccesary for the other ik-solver
-    ;; (unless ik-solution-msg
-    ;;              (cpl:fail 'common-fail:manipulation-pose-unreachable
-    ;;                        :description (format nil "~a is unreachable for EE." ee-pose)))
-    ;;            (values
-    ;;             (map 'list #'identity
-    ;;                  (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))
-    ;;             torso-angle)))))
+             (multiple-value-bind (ik-solution-msg torso-angle)
+                 (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
+                     (car (prolog:prolog
+                           `(and
+                             (cram-robot-interfaces:robot ?robot)
+                             (cram-robot-interfaces:robot-torso-link-joint ?robot
+                                                                           ?_ ?torso-joint)
+                             (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint
+                                                                      ?lower-limit)
+                             (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint
+                                                                      ?upper-limit)
+                             (btr:bullet-world ?world)
+                             (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
+                   (call-ik-service-with-torso-resampling
+                    arm ee-pose
+                    :torso-angle ?torso-angle
+                    :torso-lower-limit ?lower-limit
+                    :torso-upper-limit ?upper-limit))
+               (unless ik-solution-msg
+                 (cpl:fail 'common-fail:manipulation-pose-unreachable
+                           :description (format nil "~a is unreachable for EE." ee-pose)))
+               (values
+                (map 'list #'identity
+                     (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))
+                torso-angle))))
 
 (defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose)
   (unless collision-mode

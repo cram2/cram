@@ -31,5 +31,5 @@
 (defmethod cram-occasions-events:on-event
     update-tf ((event cram-plan-occasions-events:robot-state-changed))
   (when (eql cram-projection:*projection-environment*
-             'cram-urdf-projection::robots-bullet-projection-environment)
+             'cram-urdf-projection::urdf-bullet-projection-environment)
     (cram-bullet-reasoning-belief-state:set-tf-from-bullet)))

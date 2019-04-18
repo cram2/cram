@@ -43,7 +43,7 @@
                cram-occasions-events
                cram-plan-occasions-events
                cram-common-designators
-               cram-boxy-designators ; for wiggling
+               ;;cram-boxy-designators ; for wiggling
                cram-common-failures
                cram-process-modules
                alexandria ; for CURRY in low-level perception

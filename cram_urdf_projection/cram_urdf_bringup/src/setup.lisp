@@ -29,27 +29,29 @@
 
 (in-package :demo)
 
-
 (defvar *kitchen-urdf* nil)
-
+(defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
-
 
 (defun setup-bullet-world ()
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-  (let* ((robot (roslisp:get-param "robot_description"))
-         (kitchen (or *kitchen-urdf*
-                      (let ((kitchen-urdf-string
-                              (roslisp:get-param *kitchen-parameter* nil)))
-                        (when kitchen-urdf-string
-                          (setf *kitchen-urdf* (cl-urdf:parse-urdf
-                                                kitchen-urdf-string)))))))
-    (when (search "hsrb" robot)
-      (setf robot (urdf-proj::get-urdf-hsrb)))
-    (setf rob-int:*robot-urdf*
-          (cl-urdf:parse-urdf robot))
-    (when (search "boxy" robot )
-      (urdf-proj::get-setup-boxy))
+
+  (let* ((robot-urdf (substitute #\SPACE #\` (roslisp:get-param *robot-parameter*)))
+         (robot (or rob-int:*robot-urdf*
+                    (setf rob-int:*robot-urdf*
+                          (cl-urdf:parse-urdf robot-urdf))))
+        (kitchen (or *kitchen-urdf*
+                     (let ((kitchen-urdf-string
+                             (roslisp:get-param *kitchen-parameter* nil)))
+                       (when kitchen-urdf-string
+                         (setf *kitchen-urdf* (cl-urdf:parse-urdf
+                                               kitchen-urdf-string)))))))
+
+    (if (search "hsrb" robot-urdf)
+        (setf robot (urdf-proj::get-urdf-hsrb))
+        (when (search "boxy" robot-urdf )
+          (urdf-proj::get-setup-boxy)))
+        
     (assert
      (cut:force-ll
       (prolog `(and
@@ -65,8 +67,13 @@
                                                  :compound T))
                 (-> (cram-robot-interfaces:robot ?robot)
                     (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))
-                    (warn "ROBOT was not defined. Have you loaded a robot package?"))))))))
+                    (warn "ROBOT was not defined. Have you loaded a robot package?")))))))
 
+
+ (let ((robot-object (btr:get-robot-object)))
+    (if robot-object
+        (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
+        (warn "ROBOT was not defined. Have you loaded a robot package?"))))
 
 (defun init-projection ()
   (def-fact-group costmap-metadata ()
@@ -81,8 +88,6 @@
     (<- (location-costmap:visibility-costmap-size 2.5)))
   
   (setf cram-tf:*tf-broadcasting-enabled* t)	
-
-
 
   (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 

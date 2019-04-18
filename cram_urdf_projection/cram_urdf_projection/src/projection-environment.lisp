@@ -30,7 +30,7 @@
 
 (defvar *last-timeline* nil)
 
-(cram-projection:define-projection-environment boxy-bullet-projection-environment
+(cram-projection:define-projection-environment urdf-bullet-projection-environment
   :special-variable-initializers
   ((cram-tf:*transformer*
     (make-instance 'cl-tf:transformer))
@@ -71,7 +71,7 @@
                        urdf-proj-perception
                        urdf-proj-grippers
                        urdf-proj-arms)))
-    (symbol-value cram-projection:*projection-environment* boxy-bullet-projection-environment))
+    (symbol-value cram-projection:*projection-environment* urdf-bullet-projection-environment))
 
   (<- (cpm::projection-running ?pm)
     ;; (bound ?pm)
@@ -86,7 +86,7 @@
 
 (defmacro with-simulated-robot (&body body)
   `(let ((results
-           (proj:with-projection-environment boxy-bullet-projection-environment
+           (proj:with-projection-environment urdf-bullet-projection-environment
              (cpl-impl::named-top-level (:name :top-level)
                ,@body))))
      (car (cram-projection::projection-environment-result-result results))))
@@ -113,7 +113,7 @@
 
  (ros-load-manifest:load-system "cram_executive" :cram-executive)
 
- (proj:with-projection-environment boxy-proj::boxy-bullet-projection-environment
+ (proj:with-projection-environment urdf-proj::urdf-bullet-projection-environment
    (cpl:top-level
      (exe:perform
       (let ((?pose (cl-tf:make-pose-stamped
@@ -124,7 +124,7 @@
      (exe:perform
       (let ((?pose (cl-tf:make-pose-stamped
                     cram-tf:*robot-base-frame* 0.0
-                    (cl-transforms:make-3d-vector 0.5 0.3 1.0)
+                    (cl-transforms:make-3d-vector 0.8 0.4 1.0)
                     (cl-transforms:make-identity-rotation))))
         (desig:a motion (type moving-tcp) (left-pose ?pose))))))
 )
