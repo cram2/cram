@@ -31,6 +31,8 @@
 
 (defvar *learning-framework-on* nil)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun json-prolog-simple-ralf (query-str &key (mode 0) (lispify nil) (package *package*))
   (setf json-prolog::*service-namespace* "/ralf")
   (unwind-protect
@@ -56,29 +58,26 @@
     (format nil "[~s, ~s, [~12$, ~12$, ~12$], [~12$, ~12$, ~12$, ~12$]]"
             parent-frame child-frame x y z q1 q2 q3 w)))
 
-(defmethod man-int:get-action-grasps :learning 30 (object-type
-                                                   arm
-                                                   object-transform-in-base)
-  (when (and *learning-framework-on* object-transform-in-base)
-    (let* ((learned-grasps-raw
-             (cut:var-value
-              '?grasp
-              (car (print
-                    (json-prolog-simple-ralf
-                     (format nil
-                             "object_type_grasps(~(~a, ~a~), ~a, GRASP)."
-                             object-type arm
-                             (serialize-transform object-transform-in-base))
-                     :package :learning)))))
-           (learned-grasps
-             (mapcar (lambda (grasp-symbol)
-                       (intern (string-upcase
-                                (string-trim "'|" (symbol-name grasp-symbol)))
-                               :keyword))
-                     learned-grasps-raw)))
-      learned-grasps)))
+(defun make-designator-transforms (location-designator &optional (object-frame "unknown"))
+  "From a location designator extracts the pose and returns
+a list (transform-in-map transform-in-base) by using CRAM-TF:ROBOT-CURRENT-POSE function."
+  (let* ((pose
+           (desig:reference location-designator))
+         (transform-in-map
+           (cram-tf:pose->transform-stamped cram-tf:*fixed-frame* object-frame 0.0 pose))
+         (transform-in-base
+           (cram-tf:multiply-transform-stampeds
+            cram-tf:*robot-base-frame* object-frame
+            (cram-tf:transform-stamped-inv  ; bTm
+             (cram-tf:pose-stamped->transform-stamped ; mTb
+              (cram-tf:robot-current-pose)
+              cram-tf:*robot-base-frame*))
+            transform-in-map)))
+    (list transform-in-map transform-in-base)))
 
 (defun calculate-rotation-angle (map-to-object-transform)
+  "Returns an angle at which to rotate, e.g., a costmap, such that it aligns
+with the rotation of the object specified by `map-to-object-transform' around the Z axis."
   (flet ((list-cross-product (v-1 v-2)
            (list
             (- (* (second v-1) (third v-2))
@@ -121,8 +120,36 @@
              (cl-transforms:normalize-angle angle-not-normalized)))
       angle)))
 
-(defun make-learned-costmap-generator (location-type object-type object-name
-                                       object-transform-in-base object-transform-in-map)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GET-ACTION-GRASPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-action-grasps :learning 30 (object-type
+                                                   arm
+                                                   object-transform-in-base)
+  (when (and *learning-framework-on* object-transform-in-base)
+    (let* ((learned-grasps-raw
+             (cut:var-value
+              '?grasp
+              (car (print
+                    (json-prolog-simple-ralf
+                     (format nil
+                             "object_type_grasps(~(~a, ~a~), ~a, GRASP)."
+                             object-type arm
+                             (serialize-transform object-transform-in-base))
+                     :package :learning)))))
+           (learned-grasps
+             (mapcar (lambda (grasp-symbol)
+                       (intern (string-upcase
+                                (string-trim "'|" (symbol-name grasp-symbol)))
+                               :keyword))
+                     learned-grasps-raw)))
+      learned-grasps)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GET-LOCATION-POSES ;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun get-learned-costmap-samples (location-type object-type object-name
+                                    object-transform-in-base object-transform-in-map)
+  "Returns a lazy list of costmap samples, where the costmap is generated from a grid
+that is returned from the learning framework based on the location properties."
   (let* ((bindings
            (car (json-prolog-simple-ralf
                  (format nil
@@ -151,65 +178,61 @@
               (* height 1/2 ?resolution)))
          (bottom-right-corner-y
            (- (cl-transforms:y (cl-transforms:translation object-transform-in-map))
-              (* width 1/2 ?resolution))))
-    (costmap:make-matrix-cost-function
-     bottom-right-corner-x bottom-right-corner-y ?resolution array
-     (calculate-rotation-angle object-transform-in-map))))
+              (* width 1/2 ?resolution)))
+         (costmap
+           (make-instance 'costmap:location-costmap
+             :resolution ?resolution
+             :origin-x bottom-right-corner-x
+             :origin-y bottom-right-corner-y
+             :height height
+             :width width)))
+    (costmap:register-cost-function
+     costmap
+     (costmap:make-matrix-cost-function
+      bottom-right-corner-x bottom-right-corner-y ?resolution array
+      (calculate-rotation-angle object-transform-in-map))
+     :learned-grid)
+    (costmap:costmap-samples costmap)))
 
-(defmethod costmap:costmap-generator-name->score ((name (eql 'learned-generator))) 9)
+(defmethod man-int:get-location-poses :learning 30 (location-designator)
+  (when (and *learning-framework-on* (rob-int:reachability-designator-p location-designator))
+    (let (object-type object-name transform-in-base transform-in-map)
 
-(defun make-designator-transforms (location-designator &optional (object-frame "unknown"))
-  (let* ((pose
-           (desig:reference location-designator))
-         (transform-in-map
-           (cram-tf:pose->transform-stamped cram-tf:*fixed-frame* object-frame 0.0 pose))
-         (transform-in-base
-           (cram-tf:multiply-transform-stampeds
-            cram-tf:*robot-base-frame* object-frame
-            (cram-tf:transform-stamped-inv  ; bTm
-             (cram-tf:pose-stamped->transform-stamped ; mTb
-              (cram-tf:robot-current-pose)
-              cram-tf:*robot-base-frame*))
-            transform-in-map)))
-    (list transform-in-map transform-in-base)))
+      (if (desig:desig-prop-value location-designator :object)
+          ;; (a location (reachable-for robot-name) (object (an object ...)))
+          (let* ((object-designator
+                   (desig:current-desig
+                    (desig:desig-prop-value location-designator :object))))
+            (setf object-type
+                  (desig:desig-prop-value object-designator :type)
+                  object-name
+                  (desig:desig-prop-value object-designator :name)
+                  transform-in-base
+                  (man-int:get-object-transform object-designator)
+                  transform-in-map
+                  (man-int:get-object-transform-in-map object-designator)))
 
-(def-fact-group location-costmap-integration (costmap:desig-costmap)
-  ;; (a location (reachable-for robot-name) (object (an object ...)))
-  (<- (costmap:desig-costmap ?designator ?costmap)
-    (symbol-value *learning-framework-on* ?learning-framework-on)
-    (lisp-pred identity ?learning-framework-on)
-    (rob-int:reachability-designator ?designator)
-    (desig:desig-prop ?designator (:object ?object-designator))
-    (desig:current-designator ?object-designator ?current-object-designator)
-    (spec:property ?current-object-designator (:type ?object-type))
-    (spec:property ?current-object-designator (:name ?object-name))
-    (lisp-fun man-int:get-object-transform ?current-object-designator
-              ?object-transform-in-base)
-    (lisp-fun man-int:get-object-transform-in-map ?current-object-designator
-              ?object-transform-in-map)
-    (costmap:costmap ?costmap)
-    (costmap:costmap-add-function
-     learned-generator
-     (make-learned-costmap-generator
-      :reachable ?object-type ?object-name ?object-transform-in-base ?object-transform-in-map)
-     ?costmap))
+          (if (desig:desig-prop-value location-designator :location)
+              ;; (a location (reachable-for robot-name) (location (a location ...)))
+              (let* ((reach-location-designator
+                       (desig:current-desig
+                        (desig:desig-prop-value location-designator :location)))
+                     (transforms
+                       (make-designator-transforms reach-location-designator)))
+                (setf transform-in-base
+                      (first transforms)
+                      transform-in-map
+                      (second transforms)))
 
-  ;; (a location (reachable-for robot-name) (location (a location ...)))
-  (<- (costmap:desig-costmap ?designator ?costmap)
-    (symbol-value *learning-framework-on* ?learning-framework-on)
-    (lisp-pred identity ?learning-framework-on)
-    (rob-int:reachability-designator ?designator)
-    (desig:desig-prop ?designator (:location ?location-designator))
-    (desig:current-designator ?location-designator ?current-location-designator)
-    (lisp-fun make-designator-transforms ?current-location-designator
-              (?transform-in-map ?transform-in-base))
-    (costmap:costmap ?costmap)
-    (costmap:costmap-add-function
-     learned-generator
-     (make-learned-costmap-generator
-      :reachable nil nil ?transform-in-base ?transform-in-map)
-     ?costmap)))
+              ;; any other location designator
+              (return-from man-int:get-location-poses
+                (desig:resolve-location-designator-through-generators-and-validators
+                 location-designator))))
 
+      (get-learned-costmap-samples
+       :reachable object-type object-name transform-in-base transform-in-map))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; POPULATE RALF WORLD STATE ;;;;;;;;;;;;;;;;;;
 
 (defmethod exe:generic-perform :around (designator)
   (if *learning-framework-on*

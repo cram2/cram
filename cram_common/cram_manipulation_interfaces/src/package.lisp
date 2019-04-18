@@ -48,6 +48,7 @@
    #:get-action-gripper-opening
    #:get-action-trajectory
    #:get-action-grasps
+   #:get-location-poses
    ;; grasps
    #:calculate-object-faces
    #:calculate-face-vector
