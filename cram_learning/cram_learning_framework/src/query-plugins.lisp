@@ -56,31 +56,27 @@
     (format nil "[~s, ~s, [~12$, ~12$, ~12$], [~12$, ~12$, ~12$, ~12$]]"
             parent-frame child-frame x y z q1 q2 q3 w)))
 
-(defmethod man-int:get-object-type-grasps :around (object-type arm object-transform-in-base)
-  (if (and *learning-framework-on* object-transform-in-base)
-      (let* ((all-possible-grasps-unsorted
-               (call-next-method))
-             (learned-grasps-raw
-               (cut:var-value
-                '?grasp
-                (car (print
-                      (json-prolog-simple-ralf
-                       (format nil
-                               "object_type_grasps(~(~a, ~a~), ~a, GRASP)."
-                               object-type arm
-                               (serialize-transform object-transform-in-base))
-                       :package :learning)))))
-             (learned-grasps
-               (mapcar (lambda (grasp-symbol)
-                         (intern (string-upcase
-                                  (string-trim "'|" (symbol-name grasp-symbol)))
-                                 :keyword))
-                       learned-grasps-raw)))
-        (append learned-grasps
-                (reduce (lambda (list-to-remove-from learned-grasp)
-                          (remove learned-grasp list-to-remove-from))
-                        (append (list all-possible-grasps-unsorted) learned-grasps))))
-      (call-next-method)))
+(defmethod man-int:get-action-grasps :learning 30 (object-type
+                                                   arm
+                                                   object-transform-in-base)
+  (when (and *learning-framework-on* object-transform-in-base)
+    (let* ((learned-grasps-raw
+             (cut:var-value
+              '?grasp
+              (car (print
+                    (json-prolog-simple-ralf
+                     (format nil
+                             "object_type_grasps(~(~a, ~a~), ~a, GRASP)."
+                             object-type arm
+                             (serialize-transform object-transform-in-base))
+                     :package :learning)))))
+           (learned-grasps
+             (mapcar (lambda (grasp-symbol)
+                       (intern (string-upcase
+                                (string-trim "'|" (symbol-name grasp-symbol)))
+                               :keyword))
+                     learned-grasps-raw)))
+      learned-grasps)))
 
 (defun calculate-rotation-angle (map-to-object-transform)
   (flet ((list-cross-product (v-1 v-2)

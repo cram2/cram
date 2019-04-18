@@ -101,7 +101,7 @@
 
   (dolist (?object-type '(:bowl :cup :breakfast-cereal :spoon))
     (let* ((?arm-to-use (nth (random 2) '(:left :right)))
-           (grasps-list (man-int:get-object-type-grasps ?object-type ?arm-to-use nil))
+           (grasps-list (man-int:get-action-grasps ?object-type ?arm-to-use nil))
            (?grasp-to-use (nth (random (length grasps-list)) grasps-list))
            (?color (cdr (assoc ?object-type *object-colors*))))
       (cpl:with-failure-handling

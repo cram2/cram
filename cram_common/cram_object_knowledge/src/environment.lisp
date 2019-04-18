@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,5 +29,20 @@
 
 (in-package :objects)
 
-(defmethod man-int:get-object-type-gripping-effort (object-type) 35) ; default in Nm
-(defmethod man-int:get-object-type-gripper-opening (object-type) 0.10) ; default in meters
+(def-fact-group environment-object-type-hierarchy (man-int:object-type-direct-subtype)
+  (<- (man-int:object-type-direct-subtype :container :container-prismatic))
+  (<- (man-int:object-type-direct-subtype :container-prismatic :drawer))
+
+  (<- (man-int:object-type-direct-subtype :container :container-revolute))
+  (<- (man-int:object-type-direct-subtype :container-revolute :fridge))
+  (<- (man-int:object-type-direct-subtype :container-revolute :oven)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :container)))
+  50)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :container)))
+  0.10)
