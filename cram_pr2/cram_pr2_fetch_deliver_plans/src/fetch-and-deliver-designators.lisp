@@ -257,6 +257,9 @@ the `look-pose-stamped'."
                    (:target ?some-delivering-location-designator))
     (desig:current-designator ?some-delivering-location-designator
                               ?delivering-location-designator)
+    (-> (desig:desig-prop ?delivering-location-designator (:in ?_))
+        (equal ?delivering-location-accessible NIL)
+        (equal ?delivering-location-accessible T))
     ;; deliver location robot base
     (-> (desig:desig-prop ?action-designator
                           (:deliver-robot-location ?some-d-robot-loc-desig))
@@ -275,5 +278,6 @@ the `look-pose-stamped'."
                                (:grasps ?grasps)
                                (:deliver-location ?delivering-location-designator)
                                (:deliver-robot-location ?deliver-robot-location-designator)
-                               (:search-location-accessible ?fetching-location-accessible))
+                               (:search-location-accessible ?fetching-location-accessible)
+                               (:delivery-location-accessible ?delivering-location-accessible))
                       ?resolved-action-designator)))

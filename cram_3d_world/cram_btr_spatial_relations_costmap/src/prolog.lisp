@@ -373,7 +373,7 @@
      (make-discrete-orientations-generator)
      ?costmap))
 
-;; height generator for locations ((on something) (name something) (for some-obj))
+;; height generator for locations ((on something) (for some-obj))
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:for ?for-object))
     (desig:desig-prop ?designator (:on ?on-object))
@@ -387,7 +387,7 @@
     (btr-belief:object-designator-name ?for-object ?for-object-name)
     (btr:%object ?world ?for-object-name ?for-object-instance)
     (costmap:costmap-add-height-generator
-     (make-object-on-object-bb-height-generator ?environment-link ?for-object-instance)
+     (make-object-on-object-bb-height-generator ?environment-link ?for-object-instance :on)
      ?costmap))
 
 ;;;;;;;;;;;;;;; spatial relation IN for environment objects ;;;;;;;;;;;;;;;;;;;
@@ -406,8 +406,34 @@
      on-bounding-box
      (make-object-bounding-box-costmap-generator ?environment-link)
      ?costmap)
-    (costmap:costmap-add-cached-height-generator
-     (make-object-bounding-box-height-generator ?environment-link :in)
+    (once (or (desig:desig-prop ?designator (:for ?_))
+              (costmap:costmap-add-cached-height-generator
+               (make-object-bounding-box-height-generator ?environment-link :in)
+               ?costmap)))
+    (costmap:costmap-add-orientation-generator
+     (make-discrete-orientations-generator)
+     ?costmap))
+
+;; height generator for locations ((in something) (for some-obj))
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (desig:desig-prop ?designator (:for ?for-object))
+    (desig:desig-prop ?designator (:in ?in-object))
+    (desig:desig-prop ?in-object (:urdf-name ?urdf-name))
+    (desig:desig-prop ?in-object (:part-of ?environment-name))
+    (costmap:costmap ?costmap)
+    (btr:bullet-world ?world)
+    (btr:%object ?world ?environment-name ?environment-object)
+    (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?environment-link)
+    (lisp-pred identity ?environment-link)
+    (btr-belief:object-designator-name ?for-object ?for-object-name)
+    (btr:%object ?world ?for-object-name ?for-object-instance)
+    (costmap:costmap-add-function
+     on-bounding-box
+     (make-object-in-object-bounding-box-costmap-generator
+      ?environment-link ?for-object-instance)
+     ?costmap)
+    (costmap:costmap-add-height-generator
+     (make-object-on-object-bb-height-generator ?environment-link ?for-object-instance :in)
      ?costmap))
 
 ;;;;;;;;;;;;;; for TABLE-SETTING context ON (SLOTS) ;;;;;;;;;;;;;;;;;;;;;;;;;

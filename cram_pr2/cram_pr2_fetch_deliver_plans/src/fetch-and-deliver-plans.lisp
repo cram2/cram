@@ -544,6 +544,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     ((:deliver-location ?delivering-location))
                     ((:deliver-robot-location ?deliver-robot-location))
                     search-location-accessible
+                    delivery-location-accessible
                   &allow-other-keys)
   (unless search-location-accessible
     (exe:perform (desig:an action
@@ -609,14 +610,26 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                       (drop-at-sink)
                       ;; (return)
                       ))
-                 (exe:perform (desig:an action
-                                        (type delivering)
-                                        (desig:when ?arm
-                                          (arm ?arm))
-                                        (object ?fetched-object)
-                                        (target ?delivering-location)
-                                        (robot-location ?deliver-robot-location)
-                                        (place-action ?deliver-place-action))))))))
+                 (unless delivery-location-accessible
+                   (exe:perform (desig:an action
+                                          (type accessing)
+                                          (location ?delivering-location)
+                                          (distance 0.3))))
+                 (unwind-protect
+                      (exe:perform (desig:an action
+                                             (type delivering)
+                                             (desig:when ?arm
+                                               (arm ?arm))
+                                             (object ?fetched-object)
+                                             (target ?delivering-location)
+                                             (robot-location ?deliver-robot-location)
+                                             (place-action ?deliver-place-action)))
+                   (unless delivery-location-accessible
+                     (exe:perform (desig:an action
+                                            (type sealing)
+                                            (location ?delivering-location)
+                                            (distance 0.3))))))))))
+         
 
     (unless search-location-accessible
       (exe:perform (desig:an action
