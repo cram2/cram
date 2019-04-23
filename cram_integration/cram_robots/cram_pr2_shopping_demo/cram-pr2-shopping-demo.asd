@@ -53,7 +53,8 @@
                cram-location-costmap
                cram-pr2-projection
                cram-mobile-pick-place-plans
-               cram-pr2-description)
+               cram-pr2-description
+               cram-object-knowledge)
 
   :components
   ((:module "src"

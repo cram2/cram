@@ -77,11 +77,11 @@
           (?grasp-pose-right *pose-grasping-right*)
           (?pose-near-table *pose-near-table*)
           (?table *table*)
-          (map->obj)
-          (map->base)
-          (trans)
-          (?newpose)
-          (?newtransform))
+          map->obj
+          map->base
+          trans
+          ?newpose
+          ?newtransform)
 
       (exe:perform 
        (desig:a motion
@@ -108,7 +108,8 @@
                        (cl-transforms:orientation *pose-grasping*)))
                        
       
-      (setf map->obj (second (fourth (desig:desig-prop-value ?object :pose))))
+      (setf map->obj (second
+                      (find :transform-in-map (desig:desig-prop-value ?object :pose) :test #'equal :key #'first)))
       (setf trans (cl-transforms:transform* (cl-transforms:transform-inv map->base) map->obj))
 
       (setf ?newpose (cl-transforms-stamped:make-pose-stamped
@@ -139,7 +140,7 @@
                                                       ,(second (fourth (desig:desig-prop-value ?object :pose)))))))))
 
      
-    ;; (print ?object)
+    (print ?object)
       
 
       ;; selecting the grasping arm
@@ -158,7 +159,8 @@
 
       (print ?grasping-arm)
       
-      (exe:perform (desig:an action
+      
+     (exe:perform (desig:an action
                              (type picking-up)
                              (arm ?grasping-arm)
                              (grasp left-side)
@@ -184,31 +186,44 @@
 (defun collect-article ()
   (pr2-proj:with-simulated-robot
     (let ((objects '(:heitmann :somat :dove :denkmit))
-          (object-desigs NIL))
+          object-desigs)
       
       (setf object-desigs (try-detecting objects))
       
-      (loop for obj in object-desigs
+      (loop for ?object in object-desigs
             do
-               (move-object obj)))))
+               (move-object ?object)))))
 
 (defun try-detecting(articles)
   (let ((?pose-detecting *pose-detecting*)
         (?percived-objects '())
         (?pose-grasping *pose-grasping*))
 
-    (exe:perform (desig:an action (type going) (target (desig:a location (pose ?pose-detecting)))))
+    (exe:perform (desig:an action
+                           (type going)
+                           (target (desig:a location
+                                            (pose ?pose-detecting)))))
 
-    (exe:perform (desig:a motion (type moving-torso) (joint-angle 0)))
+    (exe:perform (desig:a motion
+                          (type moving-torso)
+                          (joint-angle 0)))
 
     ;; Tries to detect every object in articles
     (loop for ?article in articles
           do
              (push
-              (exe:perform (desig:a motion (type detecting) (object (desig:an object (type ?article)))))
+              (exe:perform (desig:a motion
+                                    (type detecting)
+                                    (object (desig:an object
+                                                      (type ?article)))))
               ?percived-objects))
     
-    (exe:perform (desig:an action (type going) (target (desig:a location (pose ?pose-grasping)))))
+    (exe:perform (desig:an action
+                           (type going)
+                           (target (desig:a location
+                                            (pose ?pose-grasping)))))
 
     ?percived-objects))
-                                                                                       
+
+
+    
