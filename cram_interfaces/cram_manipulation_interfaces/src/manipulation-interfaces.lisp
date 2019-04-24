@@ -74,7 +74,9 @@ grasp orientations for `object-type' given `arm' and `object-transform-in-base'.
 (defgeneric get-location-poses (location-designator)
   (:method-combination cut:first-in-order-and-around)
   (:documentation "Returns a (lazy) list of cl-transforms-pose-stamped that,
-according to the reasoning engine, correspond to the given `location-designator'."))
+according to the reasoning engine, correspond to the given `location-designator'.")
+  (:method :heuristics 20 (location-designator)
+    (desig:resolve-location-designator-through-generators-and-validators location-designator)))
 
 (defmethod desig:resolve-designator :around ((desig desig:location-designator) role)
   "We have to hijack DESIG:RESOLVE-DESIGNATOR because otherwise we would have to
@@ -82,6 +84,3 @@ make CRAM_DESIGNATORS package depend on CRAM_MANIPULATION_INTERFACES,
 and man-int is way too high level to make it a dependency of CRAM_CORE.
 This hijacking is kind of an ugly hack that Gaya feels bad about :(."
   (get-location-poses desig))
-
-(defmethod get-location-poses :heuristics 20 (location-designator)
-  (desig:resolve-location-designator-through-generators-and-validators location-designator))
