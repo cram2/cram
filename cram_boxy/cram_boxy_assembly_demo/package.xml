@@ -52,8 +52,6 @@
   <!-- <depend>cram_boxy_process_modules</depend> -->
   <depend>cram_boxy_plans</depend>
 
-  <depend>cram_robosherlock</depend>
-
   <!-- launch file -->
   <exec_depend>iai_maps</exec_depend>
   <exec_depend>iai_kitchen</exec_depend>
