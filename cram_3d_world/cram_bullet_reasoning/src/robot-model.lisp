@@ -94,7 +94,8 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
   (object nil :type (or symbol string))
   (link "" :type string)
   (loose nil :type (or nil t))
-  (grasp nil :type (or null keyword)))
+  (grasp nil :type (or null keyword))
+  (attachment nil :type (or null keyword)))
 
 (defclass robot-object (object)
   ((links :initarg :links :initform (make-hash-table :test 'equal) :reader links)
@@ -166,15 +167,13 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
               (mapcar #'attachment-grasp (car (cdr (assoc (name object) attached-objects
                                                           :test #'equal))))))))
 
-(defgeneric attach-object (robot-object obj link &key loose grasp)
-  (:documentation "Adds `obj' to the set of attached objects. If
-  `loose' is set to NIL and the link the object is attached to is
-  moved, the object moves accordingly.")
-  (:method ((robot-object robot-object) (obj object) link &key loose grasp)
-    (unless (gethash link (links robot-object))
+(defmethod attach-object ((attach-to-obj robot-object) (obj object) &key link loose grasp)
+  "Adds `obj' to the set of attached objects. If `loose' is set to NIL and the link the object is attached to is
+  moved, the object moves accordingly."
+    (unless (gethash link (links attach-to-obj))
       (error 'simple-error :format-control "Link ~a unknown"
                            :format-arguments (list link)))
-    (with-slots (attached-objects) robot-object
+    (with-slots (attached-objects) attach-to-obj
       (let ((obj-attachment (assoc (name obj) attached-objects
                                    :test #'equal))
             (new-attachment
@@ -192,13 +191,11 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
                                               :rigid-body-name (name body)
                                               :flags (collision-flags body))
                                   do (setf (collision-flags body) :cf-static-object))))
-                     attached-objects)))))))
+                     attached-objects))))))
 
-(defgeneric detach-object (robot-object obj &optional link)
-  (:documentation "Detaches `obj' from the set of attached objects. If
-  `link' is specified, detaches the object only from
-  `link'. Otherwise, detaches `obj' from all links.")
-  (:method ((robot-object robot-object) (obj object) &optional link)
+(defmethod detach-object ((obj robot-object) (detach-obj object) &key link)
+  "Detaches `detach-obj' from the set of attached objects. If `link' is specified, detaches `obj' only from
+  `link'. Otherwise, detaches `detach-obj' from all links."
     (flet ((reset-collision-information (object collision-information)
              (loop for collision-data in collision-information
                    for body = (rigid-body
@@ -206,30 +203,28 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
                                        collision-data))
                    do (setf (collision-flags body)
                             (collision-information-flags collision-data)))))
-      (with-slots (attached-objects) robot-object
-        (let ((attachment (assoc (name obj) attached-objects)))
+      (with-slots (attached-objects) obj
+        (let ((attachment (assoc (name detach-obj) attached-objects)))
           (cond (link
                  (setf (second attachment)
                        (remove link (second attachment)
                                :test #'equal :key #'attachment-link))
                  (unless (second attachment)
-                   (setf attached-objects (remove (name obj) attached-objects
+                   (setf attached-objects (remove (name detach-obj) attached-objects
                                                   :key #'car))
-                   (reset-collision-information obj (cdr (cdr attachment)))))
-                (t (setf attached-objects (remove (name obj) attached-objects
+                   (reset-collision-information detach-obj (cdr (cdr attachment)))))
+                (t (setf attached-objects (remove (name detach-obj) attached-objects
                                                   :key #'car))
-                   (reset-collision-information obj (cdr (cdr attachment))))))))))
+                   (reset-collision-information detach-obj (cdr (cdr attachment)))))))))
 
-(defgeneric detach-all-objects (robot-object)
-  (:documentation "Removes all objects form the list of attached
-  objects.")
-  (:method ((robot-object robot-object))
-    (with-slots (attached-objects) robot-object
+(defmethod detach-all-objects ((obj object))
+  "Removes all objects form the list of attached objects."
+    (with-slots (attached-objects) obj
       (dolist (attached-object attached-objects)
         (let ((object-name (car attached-object)))
           (if (object *current-bullet-world* object-name)
-              (detach-object robot-object (object *current-bullet-world* object-name))
-              (setf attached-objects (remove object-name attached-objects :key #'car))))))))
+              (detach-object obj (object *current-bullet-world* object-name))
+              (setf attached-objects (remove object-name attached-objects :key #'car)))))))
 
 (defgeneric gc-attached-objects (robot-object)
   (:documentation "Removes all attached objects with an invalid world
@@ -261,7 +256,7 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
               (when (and detach-invalid (not (gethash obj detached-cache)))
                 (setf (gethash obj detached-cache) t)
                 (detach-object robot-object obj))
-              (attach-object robot-object obj link-name)))))
+              (attach-object robot-object obj :link link-name)))))
 
 (defmethod initialize-instance :after ((robot-object robot-object)
                                        &key color name pose
