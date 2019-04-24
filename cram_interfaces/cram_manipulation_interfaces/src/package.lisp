@@ -90,6 +90,8 @@
    ;; standard-rotations
    #:*rotation-around-z-90-matrix*
    #:*rotation-around-z+90-matrix*
+   #:*rotation-around-x-90-matrix*
+   #:*rotation-around-x-90-and-z-90-matrix*
    #:*identity-matrix*
    #:*rotation-around-x+90-list*
    #:*rotation-around-x-90-list*

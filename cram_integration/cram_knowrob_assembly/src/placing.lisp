@@ -46,6 +46,22 @@
   :attachment-translation `(-0.025 0.0 0.0425)
   :attachment-rot-matrix *identity-matrix*)
 
+(def-object-type-in-other-object-transform :propeller :motor-grill :propeller-attachment
+  :attachment-translation `(0.0 0.0 0.002)
+  :attachment-rot-matrix *identity-matrix*)
+
+(def-object-type-in-other-object-transform :front-wheel :chassis :left-wheel-attachment
+  :attachment-translation `(-0.0 -0.15 0.00)
+  :attachment-rot-matrix *rotation-around-x-90-matrix*)
+
+(def-object-type-in-other-object-transform :front-wheel :chassis :right-wheel-attachment
+  :attachment-translation `(-0.0 -0.15 0.00)
+  :attachment-rot-matrix  *rotation-around-x-90-matrix*)
+
+(def-object-type-in-other-object-transform :top-wing :holder-plane-vertical :vertical-attachment
+  :attachment-translation `(0.025 0 0.183)
+  :attachment-rot-matrix *rotation-around-x-90-and-z-90-matrix*)
+
 (def-object-type-in-other-object-transform :bolt :upper-body :rear-thread
   :attachment-translation `(-0.0525 0.0 -0.01;; -0.025
                                     )
@@ -66,6 +82,11 @@
 
 (def-object-type-in-other-object-transform :bolt :window :window-thread
   :attachment-translation `(-0.0125 0.0 -0.005;; -0.02
+                                    )
+  :attachment-rot-matrix *identity-matrix*)
+
+(def-object-type-in-other-object-transform :bolt :propeller :propeller-thread
+  :attachment-translation `(0.0 0.0 0.01;; -0.02
                                     )
   :attachment-rot-matrix *identity-matrix*)
 

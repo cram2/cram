@@ -39,6 +39,16 @@
     (1  0  0)
     (0  0  1)))
 
+(defparameter *rotation-around-x-90-and-z-90-matrix*
+  '((0  0  1)
+    (1  0  0)
+    (0  1  0)))
+
+(defparameter *rotation-around-x-90-matrix*
+  '((1  0  0)
+    (0  0 -1)
+    (0  1  0)))
+
 (defparameter *identity-matrix*
   '((1 0 0)
     (0 1 0)
