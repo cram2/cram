@@ -74,7 +74,6 @@
                cram-boxy-plans
 
                ;; real robot
-               cram-robosherlock
                )
 
   :components

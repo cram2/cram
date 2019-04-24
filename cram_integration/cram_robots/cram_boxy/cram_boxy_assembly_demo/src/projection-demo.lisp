@@ -137,6 +137,8 @@
                  ((0.134 0.25 0.093) (0 0 0 1)))
     (underbody :underbody ,*red-plane*
                ((0.145 0.399 0.024) (0 0 0 1)))
+    (motor-grill :motor-grill ,*black-plane*
+                 ((0.238 0.399 0.039) (0.49126937115759295d0 0.49126937115759295d0 0.49126937115759295d0 0.5253219604492188d0))) ; (cl-tf:axis-angle->quaternion (cl-tf:make-3d-vector 1 1 1) 90.0)
     (upper-body :upper-body ,*red-plane*
                 ((0.119 0.1003 0.0482) (0 0 0 1)))
     (top-wing :top-wing ,*cyan-plane*
@@ -196,74 +198,111 @@
 (defparameter *base-very-left-side-left-hand-pose* `((,*base-x* 1.7 0) (0 0 0 1)))
 (defparameter *base-left-side-left-hand-pose* `((,*base-x* 1.5 0) (0 0 0 1)))
 (defparameter *base-somewhat-left-side-left-hand-pose* `((,*base-x* 1.3 0) (0 0 0 1)))
+;; mit  (cl-tf:axis-angle->quaternion (cl-tf:make-3d-vector 0 1 0) 90.0) ...
 (defparameter *base-middle-side-left-hand-pose* `((,*base-x* 1.1 0) (0 0 0 1)))
 ;; (defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.9 0) (0 0 0 1)))
 (defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.7 0) (0 0 0 1)))
 (defparameter *base-very-right-side-left-hand-pose* `((,(- *base-x* 0.2) 0.65 0) (0 0 0 1)))
 
 ;;; ASSEMBLY STEPS:
-;;; (1) put chassis on holder (bump inwards)
-;;; (2) put bottom wing on chassis
-;;; (3) put underbody on bottom wing
-;;; (4) put upperbody on underbody
-;;; (5) screw rear hole
-;;; (6) put top wing on body
-;;; (7) screw top wing
-;;; (8) put window on body
-;;; (9) screw window
-;;; * put plane on vertical holder
-;;; * put propeller on grill
-;;; * screw propeller
-;;; * put wheel on
+;;; (1)  put chassis on holder (bump inwards)
+;;; (2)  put bottom wing on chassis
+;;; *    maybe: dont hit the top wing with the arm
+;;; *    correctly pick the wings up: fix in knowrob (same for top wing)
+;;; (3)  put underbody on bottom wing
+;;; (4)  put upperbody on underbody
+;;; (5)  screw rear hole
+;;; (6)  put top wing on body
+;;; (7)  screw top wing
+;;; (8)  put window on body
+;;; (9)  screw window
+;;; (10) put plane on vertical holder
+;;; (11) put propeller on grill
+;;; (12) screw propeller
+;;; (13) put wheel on
 ;;; * screw nut onto wheel
 ;;; * put other wheel on
 ;;; * screw nut onto wheel
 ;;; * screw bottom body
 (defun demo ()
-  (setf cram-robosherlock::*no-robosherlock-mode* t)
+  ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
   (spawn-objects-on-plate)
+  (initialize-attachments)
   (boxy-proj:with-projected-robot
-    ;; 1
+    
     (go-connect :chassis *base-very-left-side-left-hand-pose*
                 :holder-plane-horizontal *base-middle-side-left-hand-pose*
                 :chassis-attachment)
+    
     ;; 2
-    (go-connect :bottom-wing *base-very-right-side-left-hand-pose*
-                :chassis *base-left-side-left-hand-pose*
-                :wing-attachment)
+    (go-connect-and-attach :bottom-wing *base-very-right-side-left-hand-pose*
+                           :chassis *base-left-side-left-hand-pose*
+                           :wing-attachment)
+    
     ;; 3
-    (go-connect :underbody *base-middle-side-left-hand-pose*
+    (go-connect-and-attach :underbody *base-middle-side-left-hand-pose*
                 :bottom-wing *base-middle-side-left-hand-pose*
-                :body-attachment)
+                           :body-attachment)
+
+    (btr:attach-object 'underbody 'rear-wing)
+    
     ;; 4
-    (go-connect :upper-body *base-right-side-left-hand-pose*
+    (go-connect-and-attach :upper-body *base-right-side-left-hand-pose*
                 :underbody *base-left-side-left-hand-pose*
                 :body-on-body)
     ;; 5
-    (go-connect :bolt *base-right-side-left-hand-pose*
+    (go-connect-and-attach :bolt *base-right-side-left-hand-pose*
                 :upper-body *base-left-side-left-hand-pose*
                 :rear-thread)
     ;; 6
-    (go-connect :top-wing *base-left-side-left-hand-pose*
+    (go-connect-and-attach :top-wing *base-left-side-left-hand-pose*
                 :upper-body *base-left-side-left-hand-pose*
                 :wing-attachment)
     ;; 7
-    (go-connect :bolt *base-right-side-left-hand-pose*
+    (go-connect-and-attach :bolt *base-right-side-left-hand-pose*
                 :top-wing *base-left-side-left-hand-pose*
                 :middle-thread)
     ;; 8
-    (go-connect :window *base-somewhat-left-side-left-hand-pose*
+    (go-connect-and-attach :window *base-somewhat-left-side-left-hand-pose*
                 :top-wing *base-left-side-left-hand-pose*
                 :window-attachment)
     ;; 9
-    (go-connect :bolt *base-right-side-left-hand-pose*
+    (go-connect-and-attach :bolt *base-right-side-left-hand-pose*
                 :window *base-left-side-left-hand-pose*
                 :window-thread)
+
+    ;; 10
+    (go-connect :top-wing  *base-somewhat-left-side-left-hand-pose*
+                :holder-plane-vertical `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
+                :vertical-attachment)
+
+    ;; 11
+    (go-connect :propeller  `((,(- *base-x* 0.15) 2 0) (0 0 0 1))
+                :motor-grill `((,(- *base-x* 0.15) 1.8 0) (0 0 0 1))
+                :propeller-attachment)
+    
+    ;; 12
+    (go-connect :bolt *base-right-side-left-hand-pose*
+                :propeller `((,*base-x* 1.85 0) (0 0 0 1))
+                :propeller-thread)
+
+    ;; 13
+    ;;(go-connect :front-wheel *base-somewhat-left-side-left-hand-pose*
+    ;;            :chassis `((,(- *base-x* 0.35) 1.85 0) (0 0 0 1))
+    ;;            :right-wheel-attachment)
+
+    ;;(go-connect :front-wheel *base-somewhat-left-side-left-hand-pose*
+    ;;            :chassis `((,(- *base-x* 0.25) 1.7 0) (0 0 0 1))
+    ;;            :left-wheel-attachment)
+
     (exe:perform
      (desig:an action
                (type positioning-arm)
                (left-configuration park)
                (right-configuration park)))))
+
+(defun initialize-attachments ()
+  (btr:attach-object 'motor-grill 'underbody))
 
 (defun go-perceive (?object-type ?nav-goal)
   ;; park arms
@@ -337,7 +376,15 @@
                  (target (desig:a location
                                   (on ?other-object)
                                   (for ?object)
-                                  (attachment ?attachment-type))))))))
+                                  (attachment ?attachment-type)))))
+    (values ?object ?other-object))))
+
+(defun go-connect-and-attach (?object-type ?nav-goal ?other-object-type ?other-nav-goal ?attachment-type)
+  (multiple-value-bind (object other-object)
+      (go-connect ?object-type ?nav-goal ?other-object-type ?other-nav-goal ?attachment-type)
+    (let ((objects `(,object ,other-object)))
+      (setf objects (mapcar (lambda (o) (second (second (description o)))) objects))
+      (btr:attach-object (nth 0 objects) (nth 1 objects)))))
 
 #+examples
 (
