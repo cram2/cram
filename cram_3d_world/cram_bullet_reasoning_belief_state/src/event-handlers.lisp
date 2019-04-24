@@ -49,8 +49,8 @@
     ;; now attach to the robot-object
     (when btr-object
       (if (btr:object-attached robot-object btr-object)
-          (btr:attach-object robot-object btr-object link :loose t :grasp grasp)
-          (btr:attach-object robot-object btr-object link :loose nil :grasp grasp))
+          (btr:attach-object robot-object btr-object :link link :loose t :grasp grasp)
+          (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp))
 
       ;;; giskard and knowrob event
       (unless cram-projection:*projection-environment*
@@ -113,7 +113,7 @@
 
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (when btr-object
-      (btr:detach-object robot-object btr-object link)
+      (btr:detach-object robot-object btr-object :link link)
       (btr:simulate btr:*current-bullet-world* 10)
 
       (unless cram-projection:*projection-environment*
@@ -157,7 +157,7 @@
 ;;              ;; the gripper. In that case, we update the designator
 ;;              ;; location designator by extending the current location
 ;;              ;; by a second pose in the gripper.
-;;              (btr:attach-object robot object (cpoe:event-link event) :loose t)
+;;              (btr:attach-object robot object :link (cpoe:event-link event) :loose t)
 ;;              (desig:with-desig-props (at) current-event-object
 ;;                (assert (eql (desig:desig-prop-value at :in) :gripper))
 ;;                (update-object-designator-location
@@ -165,7 +165,7 @@
 ;;                 (desig:extend-designator-properties
 ;;                  at `((:pose ,(object-pose-in-frame object (cpoe:event-link event))))))))
 ;;             (t
-;;              (btr:attach-object robot object (cpoe:event-link event) :loose nil)
+;;              (btr:attach-object robot object :link (cpoe:event-link event) :loose nil)
 ;;              (update-object-designator-location
 ;;               current-event-object
 ;;               (desig:extend-designator-properties
@@ -181,7 +181,7 @@
 ;;   (let ((robot (btr:get-robot-object))
 ;;         (object (get-designator-object (cpoe:event-object event))))
 ;;     (when object
-;;       (btr:detach-object robot object (cpoe:event-link event))
+;;       (btr:detach-object robot object :link (cpoe:event-link event))
 ;;       (btr:simulate btr:*current-bullet-world* 10)
 ;;       (update-object-designator-location
 ;;        (desig:current-desig (cpoe:event-object event))
@@ -229,8 +229,8 @@
       ;;                                  other-object-to-object-transform)))
       ;;   (setf (btr:pose btr-object) map-to-object-transform))
       ;; (if (btr:object-attached robot-object btr-object)
-      ;;     (btr:attach-object robot-object btr-object link :loose t)
-      ;;     (btr:attach-object robot-object btr-object link :loose nil))
+      ;;     (btr:attach-object robot-object btr-object :link link :loose t)
+      ;;     (btr:attach-object robot-object btr-object :link link :loose nil))
       )))
 
 

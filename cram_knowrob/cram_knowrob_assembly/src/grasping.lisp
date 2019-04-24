@@ -181,6 +181,38 @@
   :lift-offsets *default-lift-offsets*
   :2nd-lift-offsets *default-lift-offsets*)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;; FRONT-WHEEL ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *front-wheel-grasp-x-offset* 0.01)
+(defparameter *front-wheel-grasp-y-offset* 0.01)
+(defparameter *front-wheel-grasp-z-offset* 0.004)
+
+(def-object-type-to-gripper-transforms :front-wheel '(:left :right) :top
+  :grasp-translation `(,(- *front-wheel-grasp-x-offset*)
+                       ,*front-wheel-grasp-y-offset*
+                       ,(- *front-wheel-grasp-z-offset*))
+  :grasp-rot-matrix *z-diagonal-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;; PROPELLER ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *propeller-grasp-x-offset* 0.013)
+(defparameter *propeller-grasp-y-offset* 0.0)
+(defparameter *propeller-grasp-z-offset* 0.003)
+
+(def-object-type-to-gripper-transforms :propeller '(:left :right) :top
+  :grasp-translation `(,*propeller-grasp-x-offset*
+                       ,*propeller-grasp-y-offset*
+                       ,(- *propeller-grasp-z-offset*))
+  :grasp-rot-matrix  *z-across-y-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOLT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-object-type-to-gripper-transforms :bolt '(:left :right) :top
