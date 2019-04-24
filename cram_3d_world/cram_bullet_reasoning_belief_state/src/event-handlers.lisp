@@ -71,7 +71,18 @@ If there is no other method with 1 as qualifier, this method will be executed al
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (when btr-object
       (btr:detach-object robot-object btr-object link)
-      (btr:simulate btr:*current-bullet-world* 10))))
+      (btr:simulate btr:*current-bullet-world* 10)
+      ;; finding the link that supports the object now
+      (let ((environment-object (btr:get-environment-object))
+            (environment-link (cut:var-value
+                               '?env-link
+                               (car (prolog:prolog
+                                     `(and (btr:bullet-world ?world)
+                                           (btr:supported-by
+                                            ?world ,btr-object-name ?env-name ?env-link)))))))
+        ;; attaching the link to the object if it finds one.
+        (unless (cut:is-var environment-link)
+          (btr:attach-object environment-object btr-object environment-link))))))
 
 #+implement-this-when-object-to-object-is-implemented
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
