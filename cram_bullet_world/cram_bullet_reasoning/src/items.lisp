@@ -75,7 +75,10 @@ The name in the list is a keyword that is created by lispifying the filename."
                               (format nil "package://~a/~a/*.*" ros-package directory))))))
 
 (defclass item (object)
-  ((types :reader item-types :initarg :types)))
+  ((types :reader item-types :initarg :types)
+   (attached-items :type 'list
+                   :initform (list)
+                   :accessor attached-items)))
 
 (defmethod copy-object ((object item) (world bt-reasoning-world))
   (change-class (call-next-method) 'item
@@ -275,3 +278,57 @@ The name in the list is a keyword that is created by lispifying the filename."
                 :collision-shape (make-instance 'colored-box-shape
                                    :half-extents (ensure-vector size)
                                    :color color)))))
+
+(defmethod attach-object ((attach-to-obj item) (obj item) &key)
+  "Adds an attachment to the a-list of `attached-items'. The new
+  entry has the `obj's name as car and the pose of the item `attach-to-obj' as
+  cadr. Since we save the original `attach-to-obj' pose at the time attaching, you are
+  able to calculate the transformation of the `attach-to-obj' item, when its pose changes,
+  to change the pose of its attachments as well. The attachments are bidirectional."
+    (unless (and (member (name obj) (attached-items attach-to-obj))
+                 (equal (name obj) (name attach-to-obj)))
+      (push (name obj) (attached-items attach-to-obj))
+      (push (name attach-to-obj) (attached-items obj))
+      (setf (mass (car (rigid-bodies obj))) 0.0)
+      (setf (mass (car (rigid-bodies attach-to-obj))) 0.0)))
+
+(defmethod attach-object ((object symbol) (attach-to symbol) &key)
+  "Just needs the names of the objects and passes these to btr:object."
+  (multiple-value-bind (obj obj-found) (btr:object *current-bullet-world* object)
+    (multiple-value-bind (other-obj other-obj-found) (btr:object *current-bullet-world* attach-to)
+      (if (and obj-found other-obj-found)
+          (attach-object obj other-obj)))))
+  
+(defmethod detach-object ((obj item) (detach-obj item) &key)
+  "Removes item names from the given arguments in the corresponding `attached-items' lists
+   of the given items."
+  (setf (attached-items detach-obj) (remove (name obj) (attached-items detach-obj)))
+  (setf (attached-items obj) (remove (name detach-obj) (attached-items obj)))
+  (setf (mass (car (rigid-bodies obj))) 0.2)
+  (setf (mass (car (rigid-bodies detach-obj))) 0.2))
+
+(let ((already-moved '()))
+  (defmethod (setf pose) :around (new-value (object item))
+    (if (and (slot-boundp object 'attached-items)
+             (< 0 (length (attached-items object))))
+        (let ((carrier-transform
+                (cl-transforms:transform-diff (cl-tf:pose->transform (cl-tf:copy-pose new-value))
+                                              (cl-tf:pose->transform (cl-tf:copy-pose (pose object))))))
+          ;; If none item already moved or item wasn't already moved
+          (unless
+              (and
+               already-moved
+               (member (name object) already-moved :test #'equal))
+            (push (name object) already-moved)
+            (call-next-method)
+            (dolist (attachment (attached-items object))
+              (let ((current-attachment-pose (object-pose attachment)))
+                (when (and carrier-transform current-attachment-pose) 
+                  (setf (pose (btr:object btr:*current-bullet-world* attachment))
+                        (cl-transforms:transform-pose
+                         carrier-transform
+                         current-attachment-pose)))))
+            ;; If all attachments from root head passed, remove all.
+            (if (equal (name object) (car (last already-moved)))
+                (setf already-moved '()))))
+        (call-next-method))))
