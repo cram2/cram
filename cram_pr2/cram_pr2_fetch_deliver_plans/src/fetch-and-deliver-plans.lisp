@@ -106,7 +106,7 @@ turn the robot base such that it looks in the direction of target and look again
                                &allow-other-keys)
   (declare (type keyword action-type ?arm)
            (type desig:object-designator ?object-to-manipulate)
-           (type number ?distance)
+           (type (or number null) ?distance)
            ;; here, ?manipulate-robot-location can only be null within the function
            ;; but one should not pass a NULL location as argument,
            ;; otherwise it will just cpl:fail straight away.
@@ -145,12 +145,14 @@ if yes, relocate and retry, if no collisions, open or close container."
                                         (type opening)
                                         (arm ?arm)
                                         (object ?object-to-manipulate)
-                                        (distance ?distance)))
+                                        (desig:when ?distance
+                                          (distance ?distance))))
                   (:sealing (desig:an action
                                       (type closing)
                                       (arm ?arm)
                                       (object ?object-to-manipulate)
-                                      (distance ?distance))))))
+                                      (desig:when ?distance
+                                        (distance ?distance)))))))
 
           (pr2-proj-reasoning:check-environment-manipulation-collisions manipulation-action)
           (setf manipulation-action (desig:current-desig manipulation-action))
@@ -629,7 +631,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                             (type sealing)
                                             (location ?delivering-location)
                                             (distance 0.3))))))))))
-         
 
     (unless search-location-accessible
       (exe:perform (desig:an action

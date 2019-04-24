@@ -75,11 +75,11 @@ If there is no other method with 1 as qualifier, this method will be executed al
       ;; finding the link that supports the object now
       (let ((environment-object (btr:get-environment-object))
             (environment-link (cut:var-value
-                            '?env-link
-                            (car (prolog:prolog
-                                  `(and (btr:bullet-world ?world)
-                                        (btr:supported-by
-                                         ?world ,btr-object-name ?env-name ?env-link)))))))
+                               '?env-link
+                               (car (prolog:prolog
+                                     `(and (btr:bullet-world ?world)
+                                           (btr:supported-by
+                                            ?world ,btr-object-name ?env-name ?env-link)))))))
         ;; attaching the link to the object if it finds one.
         (unless (cut:is-var environment-link)
           (btr:attach-object environment-object btr-object environment-link))))))

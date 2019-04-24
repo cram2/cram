@@ -1,5 +1,7 @@
+;;;
 ;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
 ;;;                     Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;                     Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -141,6 +143,35 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
            (> x (- center-x dimensions-x/2))
            (< y (+ center-y dimensions-y/2))
            (> y (- center-y dimensions-y/2)))
+          1.0 0.0))))
+
+(defun make-object-in-object-bounding-box-costmap-generator (container-object inner-object)
+  "Returns a costmap generator, which for any point within
+`container-object' axis-aligned bounding box gives 1.0, with the exception that
+the edges of the bounding box have a padding, such that it would be possible
+to fit an `inner-object' inside the bounding box, i.e. the padding is of the size
+of the longest extent of the `inner-object'.
+Please note, that if the object is a box, it might not fit into the bounding box
+when rotated with, e.g., 45 degrees.
+It will also not be quite correct if the object is placed on its side and
+not upright."
+  (let* ((container-obj-bb-dims (btr:calculate-bb-dims container-object))
+         (container-dimensions-x/2 (/ (cl-transforms:x container-obj-bb-dims) 2))
+         (container-dimensions-y/2 (/ (cl-transforms:y container-obj-bb-dims) 2))
+         (container-center-x (cl-transforms:x (cl-transforms:origin (btr:pose container-object))))
+         (container-center-y (cl-transforms:y (cl-transforms:origin (btr:pose container-object))))
+         (inner-obj-bb-dims (btr:calculate-bb-dims inner-object))
+         (inner-obj-x/2 (/ (cl-transforms:x inner-obj-bb-dims) 2))
+         (inner-obj-y/2 (/ (cl-transforms:y inner-obj-bb-dims) 2))
+         (inner-obj-padding (max inner-obj-x/2 inner-obj-y/2))
+         (dimensions-x/2 (- container-dimensions-x/2 inner-obj-padding))
+         (dimensions-y/2 (- container-dimensions-y/2 inner-obj-padding)))
+    (lambda (x y)
+      (if (and
+           (< x (+ container-center-x dimensions-x/2))
+           (> x (- container-center-x dimensions-x/2))
+           (< y (+ container-center-y dimensions-y/2))
+           (> y (- container-center-y dimensions-y/2)))
           1.0 0.0))))
 
 ;;; TODO: maybe include bb into deciding not just the pose and ratio
@@ -403,26 +434,6 @@ if it is on the sign side of the axis. "
             1.0
             0.0)))))
 
-(defun make-object-in-object-bounding-box-costmap-generator (container-object inner-object)
-  (let* ((bounding-box-dims (btr:calculate-bb-dims container-object))
-         (container-dimensions-x/2 (/ (cl-transforms:x bounding-box-dims) 2))
-         (container-dimensions-y/2 (/ (cl-transforms:y bounding-box-dims) 2))
-         (center-x (cl-transforms:x (cl-transforms:origin (btr:pose container-object))))
-         (center-y (cl-transforms:y (cl-transforms:origin (btr:pose container-object))))
-         (inner-obj-bb (btr:calculate-bb-dims inner-object))
-         (inner-obj-x/2 (/ (cl-transforms:x inner-obj-bb) 2))
-         (inner-obj-y/2 (/ (cl-transforms:y inner-obj-bb) 2))
-         (inner-obj-padding (max inner-obj-x/2 inner-obj-y/2))
-         (dimensions-x/2 (- container-dimensions-x/2 inner-obj-padding))
-         (dimensions-y/2 (- container-dimensions-y/2 inner-obj-padding)))
-    (lambda (x y)
-      (if (and
-           (< x (+ center-x dimensions-x/2))
-           (> x (- center-x dimensions-x/2))
-           (< y (+ center-y dimensions-y/2))
-           (> y (- center-y dimensions-y/2)))
-          1.0 0.0))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HEIGHT GENERATORS ;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *board-thickness* 0.040)
@@ -442,8 +453,8 @@ if it is on the sign side of the axis. "
                                2.0))
                          *board-thickness*))))))
 
-(defun make-object-on-object-bb-height-generator (environment-objects for-object
-                                                  &optional (tag :on))
+(defun make-object-on/in-object-bb-height-generator (environment-objects for-object
+                                                     &optional (tag :on))
   (let* ((environment-object-top
            (apply #'max
                   (mapcar (lambda (environment-object)

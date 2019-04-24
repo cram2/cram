@@ -222,7 +222,7 @@
                           ?for-obj-size ?for-padding ?costmap)))
 
 
-;;;;;;;;;;;;; LEFT-OF etc. for bullet objects or locations ;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;; LEFT-OF etc. for bullet objects or locations ;;;;;;;;;;;;;;;;;;
   ;; uses make-potential-field-cost-function to resolve the designator
   (<- (potential-field-costmap ?edge ?relation ?reference-pose ?supp-obj-pose ?costmap)
     (relation-axis-and-pred ?edge ?relation ?axis ?pred)
@@ -300,8 +300,8 @@
          (lisp-fun + ?obj-size/2 ?padding ?overall-padding)
          (collision-invert-costmap ?desig ?overall-padding ?cm))
         (collision-invert-costmap ?desig ?padding ?cm)))
-
-;;;;;;;;;;;;;;;;;;;;;; height generator for  spatial relations ;;;;;;;;;;;;;;;
+  ;;
+  ;;;;;;;;;;;;;;;;;;;;;; height generator for spatial relations ;;;;;;;;;;;;;;;
   ;; TODO height generator is based only on environment object (no stacking up allowed)
   (<- (costmap:desig-costmap ?designator ?costmap)
     (or
@@ -335,7 +335,7 @@
      (costmap:make-constant-height-function ?resulting-z)
      ?costmap))
 
-;;;;;;;;;;;;;;; spatial relation ON for item objects ;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;; spatial relation ON for item objects ;;;;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?object))
     (btr-belief:object-designator-name ?object ?object-instance-name)
@@ -350,47 +350,39 @@
     (costmap:costmap-add-cached-height-generator
      (make-object-bounding-box-height-generator ?object-instance :on)
      ?costmap))
-
-;;;;;;;;;;;;;;; spatial relation ON for environment objects ;;;;;;;;;;;;;;;;;;;;;;
+  ;;
+  ;;;;;;;;;;;;;;; spatial relation ON for environment objects ;;;;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?object))
     (spec:property ?object (:urdf-name ?urdf-name))
     (spec:property ?object (:part-of ?environment-name))
     (btr:bullet-world ?world)
-    (btr:%object ?world ?environment-name ?environment)
-    (lisp-fun get-link-rigid-body ?environment ?urdf-name ?environment-link)
+    (btr:%object ?world ?environment-name ?environment-object)
+    (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?environment-link)
     (lisp-pred identity ?environment-link)
     (costmap:costmap ?costmap)
+    ;; costmap
     (costmap:costmap-add-function
      on-bounding-box
      (make-object-bounding-box-costmap-generator ?environment-link)
      ?costmap)
-    (once (or (desig:desig-prop ?designator (:for ?_))
+    ;; height generator
+    (once (or (and (desig:desig-prop ?designator (:for ?for-object))
+                   (btr-belief:object-designator-name ?for-object ?for-object-name)
+                   (btr:%object ?world ?for-object-name ?for-object-instance)
+                   (costmap:costmap-add-height-generator
+                    (make-object-on/in-object-bb-height-generator
+                     ?environment-link ?for-object-instance :on)
+                    ?costmap))
               (costmap:costmap-add-cached-height-generator
                (make-object-bounding-box-height-generator ?environment-link :on)
                ?costmap)))
+    ;; orientation generator
     (costmap:costmap-add-orientation-generator
      (make-discrete-orientations-generator)
      ?costmap))
-
-;; height generator for locations ((on something) (for some-obj))
-  (<- (costmap:desig-costmap ?designator ?costmap)
-    (desig:desig-prop ?designator (:for ?for-object))
-    (desig:desig-prop ?designator (:on ?on-object))
-    (desig:desig-prop ?on-object (:urdf-name ?urdf-name))
-    (desig:desig-prop ?on-object (:part-of ?environment-name))
-    (costmap:costmap ?costmap)
-    (btr:bullet-world ?world)
-    (btr:%object ?world ?environment-name ?environment-object)
-    (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?environment-link)
-    (lisp-pred identity ?environment-link)
-    (btr-belief:object-designator-name ?for-object ?for-object-name)
-    (btr:%object ?world ?for-object-name ?for-object-instance)
-    (costmap:costmap-add-height-generator
-     (make-object-on-object-bb-height-generator ?environment-link ?for-object-instance :on)
-     ?costmap))
-
-;;;;;;;;;;;;;;; spatial relation IN for environment objects ;;;;;;;;;;;;;;;;;;;
+  ;;
+  ;;;;;;;;;;;;;;; spatial relation IN for environment objects ;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:in ?object))
     (spec:property ?object (:type ?object-type))
@@ -398,45 +390,36 @@
     (spec:property ?object (:urdf-name ?urdf-name))
     (spec:property ?object (:part-of ?environment-name))
     (btr:bullet-world ?world)
-    (btr:%object ?world ?environment-name ?environment)
-    (lisp-fun get-link-rigid-body ?environment ?urdf-name ?environment-link)
-    (lisp-pred identity ?environment-link)
-    (costmap:costmap ?costmap)
-    (costmap:costmap-add-function
-     on-bounding-box
-     (make-object-bounding-box-costmap-generator ?environment-link)
-     ?costmap)
-    (once (or (desig:desig-prop ?designator (:for ?_))
-              (costmap:costmap-add-cached-height-generator
-               (make-object-bounding-box-height-generator ?environment-link :in)
-               ?costmap)))
-    (costmap:costmap-add-orientation-generator
-     (make-discrete-orientations-generator)
-     ?costmap))
-
-;; height generator for locations ((in something) (for some-obj))
-  (<- (costmap:desig-costmap ?designator ?costmap)
-    (desig:desig-prop ?designator (:for ?for-object))
-    (desig:desig-prop ?designator (:in ?in-object))
-    (desig:desig-prop ?in-object (:urdf-name ?urdf-name))
-    (desig:desig-prop ?in-object (:part-of ?environment-name))
-    (costmap:costmap ?costmap)
-    (btr:bullet-world ?world)
     (btr:%object ?world ?environment-name ?environment-object)
     (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?environment-link)
     (lisp-pred identity ?environment-link)
-    (btr-belief:object-designator-name ?for-object ?for-object-name)
-    (btr:%object ?world ?for-object-name ?for-object-instance)
-    (costmap:costmap-add-function
-     on-bounding-box
-     (make-object-in-object-bounding-box-costmap-generator
-      ?environment-link ?for-object-instance)
-     ?costmap)
-    (costmap:costmap-add-height-generator
-     (make-object-on-object-bb-height-generator ?environment-link ?for-object-instance :in)
+    (costmap:costmap ?costmap)
+    (once (or (and (desig:desig-prop ?designator (:for ?for-object))
+                   (btr-belief:object-designator-name ?for-object ?for-object-name)
+                   (btr:%object ?world ?for-object-name ?for-object-instance)
+                   (costmap:costmap-add-function
+                    on-bounding-box
+                    (make-object-in-object-bounding-box-costmap-generator
+                     ?environment-link ?for-object-instance)
+                    ?costmap)
+                   (costmap:costmap-add-height-generator
+                    (make-object-on/in-object-bb-height-generator
+                     ?environment-link ?for-object-instance :in)
+                    ?costmap))
+              (and (costmap:costmap-add-function
+                    on-bounding-box
+                    (make-object-bounding-box-costmap-generator
+                     ?environment-link)
+                    ?costmap)
+                   (costmap:costmap-add-cached-height-generator
+                    (make-object-bounding-box-height-generator
+                     ?environment-link :in)
+                    ?costmap))))
+    (costmap:costmap-add-orientation-generator
+     (make-discrete-orientations-generator)
      ?costmap))
-
-;;;;;;;;;;;;;; for TABLE-SETTING context ON (SLOTS) ;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;
+  ;;;;;;;;;;;;;; for TABLE-SETTING context ON (SLOTS) ;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; '((on counter-top) (name kitchen-island)
   ;;   (context :table-setting) (for plate-1) (object-count 4))
   ;; uses make-slot-cost-function
@@ -474,6 +457,7 @@
                   ?object-count
                   ?costmap))
   ;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;; SIDE relation for ON and IN ;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:side ?relation))
     (member ?relation (:left :right :front :back))
