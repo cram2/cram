@@ -18,6 +18,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>sbcl</depend> <!-- for sb-thread for broadcaster mutex -->
   <depend>cram_designators</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cl_transforms</depend>

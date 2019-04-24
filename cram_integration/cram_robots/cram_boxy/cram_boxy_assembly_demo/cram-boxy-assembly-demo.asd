@@ -50,8 +50,7 @@
                cram-common-failures
                cram-mobile-pick-place-plans
                cram-robot-interfaces ; for *robot-urdf*
-
-               cram-knowrob-assembly
+               cram-object-knowledge
                ;; cram-robosherlock
 
                cram-physics-utils ; for reading "package://" paths

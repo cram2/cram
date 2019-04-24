@@ -149,8 +149,7 @@
                              ;; with each of the arms
                              (dolist (?arm '(:left :right))
                                ;; and each of available grasps
-                               (dolist (?grasp (man-int:get-object-type-grasps
-                                                ?object-type ?arm nil))
+                               (dolist (?grasp (man-int:get-action-grasps ?object-type ?arm nil))
 
                                  ;; detach object, move object, move robot, park arms
                                  (btr:detach-all-objects (btr:get-robot-object))

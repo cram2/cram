@@ -4,7 +4,7 @@
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-2;;;
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -77,4 +77,9 @@
    ;; torso
    #:torso-low-level-failure
    #:torso-goal-unreachable
-   #:torso-goal-not-reached))
+   #:torso-goal-not-reached
+   ;; failure-handling-strategies
+   #:retry-with-designator-solutions
+   #:retry-with-loc-designator-solutions
+   #:retry-with-list-solutions
+   #:next-different-location-solution))

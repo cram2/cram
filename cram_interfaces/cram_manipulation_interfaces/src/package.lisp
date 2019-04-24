@@ -42,13 +42,26 @@
    #:object-type-subtype
    #:object-type-direct-subtype
    #:robot-free-hand
+   ;; manipulation-interfaces
+   #:reasoning-engine-for-method
+   #:get-action-gripping-effort
+   #:get-action-gripper-opening
+   #:get-action-trajectory
+   #:get-action-grasps
+   #:get-location-poses
+   ;; grasps
+   #:calculate-object-faces
+   #:calculate-face-vector
+   #:object-type-grasp->robot-grasp
+   #:robot-grasp->object-type-grasp
+   #:object-rotationally-symmetric
+   #:orientation-matters
    ;; trajectories
    #:make-traj-segment
    #:traj-segment-label
    #:traj-segment-poses
    #:make-empty-trajectory
    #:get-traj-poses-by-label
-   #:get-action-trajectory
    #:calculate-gripper-pose-in-base
    ;;
    #:get-object-type-to-gripper-transform
@@ -63,17 +76,6 @@
    #:get-object-placement-transform
    #:def-object-type-in-other-object-transform
    #:get-object-look-from-pose
-   ;; gripper
-   #:get-object-type-gripping-effort
-   #:get-object-type-gripper-opening
-   ;; grasps
-   #:calculate-object-faces
-   #:calculate-face-vector
-   #:object-type-grasp->robot-grasp
-   #:robot-grasp->object-type-grasp
-   #:get-object-type-grasps
-   #:object-rotationally-symmetric
-   #:orientation-matters
    ;; standard-grasps
    #:*x-across-z-grasp-rotation*
    #:*-x-across-z-grasp-rotation*
