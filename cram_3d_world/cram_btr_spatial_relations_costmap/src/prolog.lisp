@@ -1,4 +1,6 @@
+;;;
 ;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
+;;;                     Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -383,6 +385,37 @@
      ?costmap))
   ;;
   ;;;;;;;;;;;;;;; spatial relation IN for environment objects ;;;;;;;;;;;;;;;;;;;
+  ;; LEVEL relationship for container type locations
+  (<- (level-rigid-body ?environment-object ?urdf-name ?level-relation ?invert
+                        ?level-rigid-body)
+    (or (member ?level-relation (:topmost :bottommost :middle))
+        (lisp-pred typep ?level-relation integer))
+    (lisp-fun get-level-links-in-container ?environment-object ?urdf-name
+              ?child-levels)
+    (lisp-fun choose-level ?environment-object ?child-levels
+              ?level-relation :invert ?invert ?level-rigid-body))
+  ;;
+  (<- (height-calculation-body-or-tag ?environment-object ?in-object ?link-rigid-body
+                                      ?height-calculation-tag)
+    (desig:desig-prop ?in-object (:urdf-name ?urdf-name))
+    ;; if level keyword is found find sublevels in bottom up order
+    (-> (desig:desig-prop ?in-object (:level ?relation))
+        (and (level-rigid-body
+              ?environment-object ?urdf-name ?relation nil ?link-rigid-body)
+             (lisp-pred identity ?link-rigid-body)
+             (equal ?height-calculation-tag :on))
+        ;; if level-invert keyword is found find sublevels in top down order
+        (-> (desig:desig-prop ?in-object (:level-invert ?invert-relation))
+            (and (level-rigid-body
+                  ?environment-object ?urdf-name ?invert-relation t ?link-rigid-body)
+                 (lisp-pred identity ?link-rigid-body)
+                 (equal ?height-calculation-tag :on))
+            ;; else send the rigid body of the original object itself
+            (and (lisp-fun get-link-rigid-body ?environment-object ?urdf-name
+                           ?link-rigid-body)
+                 (lisp-pred identity ?link-rigid-body)
+                 (equal ?height-calculation-tag :in)))))
+  ;; the costmap
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:in ?object))
     (spec:property ?object (:type ?object-type))
@@ -402,9 +435,11 @@
                     (make-object-in-object-bounding-box-costmap-generator
                      ?environment-link ?for-object-instance)
                     ?costmap)
+                   (height-calculation-body-or-tag ?environment-object ?object ?environment-link
+                                                   ?height-calculation-tag)
                    (costmap:costmap-add-height-generator
                     (make-object-on/in-object-bb-height-generator
-                     ?environment-link ?for-object-instance :in)
+                     ?environment-link ?for-object-instance ?height-calculation-tag)
                     ?costmap))
               (and (costmap:costmap-add-function
                     on-bounding-box
