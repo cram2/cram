@@ -4,19 +4,13 @@
   <version>0.0.0</version>
   <description>The cram_pr2_shopping_demo package</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
-  <!-- Example:  -->
-  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="jdech@uni-bremen.de">jonas</maintainer>
+  <author>Jonas Dech</author>
+  <maintainer email="jdech@uni-bremen.de">Jonas Dech</maintainer>
 
-
-  <!-- One license tag required, multiple allowed, one license per tag -->
-  <!-- Commonly used license strings: -->
-  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
   <license>BSD</license>
 
-
   <buildtool_depend>catkin</buildtool_depend>
+  <depend>roslisp_utilities</depend>
   <depend>cl_transforms</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cl_tf</depend>
@@ -28,24 +22,21 @@
   <depend>cram_projection</depend>
   <depend>cram_occasions_events</depend>
   <depend>cram_common_failures</depend>
+  <depend>cram_manipulation_interfaces</depend>
   <depend>cram_physics_utils</depend>
   <depend>cl_bullet</depend>
   <depend>cram_bullet_reasoning</depend>
   <depend>cram_bullet_reasoning_belief_state</depend>
   <depend>cram_bullet_reasoning_utilities</depend>
   <depend>cram_btr_visibility_costmap</depend>
-  <depend>cram_semantic_map_costmap</depend>
   <depend>cram_robot_pose_gaussian_costmap</depend>
-  <depend>cram_occupancy_grid_costmap</depend>
   <depend>cram_location_costmap</depend>
   <depend>cram_pr2_projection</depend>
   <depend>cram_mobile_pick_place_plans</depend>
   <depend>cram_pr2_description</depend>
   <depend>cram_object_knowledge</depend>
-  <depend>cram_knowrob_manipulation_interfaces</depend>
-  
+
+  <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>pr2_description</exec_depend>
   <exec_depend>pr2_arm_kinematics</exec_depend>
-  <exec_depend>map_server</exec_depend>
-  <exec_depend>robot_state_publisher</exec_depend>
 </package>

@@ -10,9 +10,9 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;     * Neither the name of the Institute for Artificial Intelligence /
+;;;       University of Bremen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,20 +27,25 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-object-knowledge)
-
+(in-package :cram-pr2-shopping-demo)
 
 (defparameter *lift-z-offset* 0.05 "in meters")
+(defparameter *default-lift-offsets* `(0 0 ,*lift-z-offset*))
 
-(defmethod get-object-type-grasping-effort ((object-type (eql :denkmit ))) 50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :denkmit))) 50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :dove))) 50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :heitmann))) 50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :somat))) 50)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;; Denkmit ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :denkmit))) 0.1)
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :dove))) 0.1)
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :heitmann))) 0.1)
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :somat))) 0.1)
 
 (defparameter *denkmit-pregrasp-xy-offste* 0.00 "in meters")
 (defparameter *denkmit-grasp-xy-offset* 0.00 "in meters")
 (defparameter *denkmit-grasp-z-offset* 0.00 "in meters")
 
-;;SIDE grasp
 (man-int:def-object-type-to-gripper-transforms :denkmit '(:left :right) :left-side
   :grasp-translation `(0.0d0 ,*denkmit-grasp-xy-offset* ,*denkmit-grasp-z-offset*)
   :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*

@@ -10,9 +10,9 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;     * Neither the name of the Institute for Artificial Intelligence /
+;;;       University of Bremen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,9 +32,9 @@
 (defsystem cram-pr2-shopping-demo
   :author "Jonas"
   :license "BSD"
-  
+
   :depends-on (roslisp-utilities
-               cl-transforms 
+               cl-transforms
                cl-transforms-stamped
                cl-tf
                cram-tf
@@ -43,13 +43,16 @@
                cram-designators
                cram-prolog
                cram-projection
+               cram-occasions-events
                cram-common-failures
+               cram-manipulation-interfaces
                cram-physics-utils
                cl-bullet
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
                cram-btr-visibility-costmap
+               cram-robot-pose-gaussian-costmap
                cram-location-costmap
                cram-pr2-projection
                cram-mobile-pick-place-plans
@@ -60,7 +63,6 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "utils" :depends-on ("package"))
-     (:file "plans" :depends-on ("package"))
      (:file "grasping" :depends-on ("package"))
-     ))))
+     (:file "utils" :depends-on ("package"))
+     (:file "plans" :depends-on ("package" "utils" "grasping"))))))
