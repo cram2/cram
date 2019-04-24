@@ -129,14 +129,6 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
 
 ;;;;;;;;;;;;;;;;;;;; Level Calculations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun get-level-links-in-container (btr-environment container-name)
-  (when (symbolp container-name)
-    (setf container-name
-          (roslisp-utilities:rosify-underscores-lisp-name container-name)))
-
-  (find-levels-under-link
-   (gethash container-name (cl-urdf:links (btr:urdf btr-environment)))))
-
 (defun find-levels-under-link (parent-link)
   "Finds all the child links under the parent link with the name
 board or level in them"
@@ -153,6 +145,13 @@ board or level in them"
                            child-links))))
       (find-levels parent-link))
     levels-found))
+
+(defun get-level-links-in-container (btr-environment container-name)
+  (when (symbolp container-name)
+    (setf container-name
+          (roslisp-utilities:rosify-underscores-lisp-name container-name)))
+  (find-levels-under-link
+   (gethash container-name (cl-urdf:links (btr:urdf btr-environment)))))
 
 (defun choose-level (btr-environment level-links tag &key (invert nil))
   "Chooses the level based on the given tag which can be a number or a
@@ -174,7 +173,6 @@ reverse sort it"
          (sort-order (if (and (typep tag 'integer)
                               invert)
                          #'> #'<)))
-
     (nth level-index
          (sort level-rigid-bodies sort-order :key #'get-rigid-body-aabb-top-z))))
 

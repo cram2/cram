@@ -392,8 +392,9 @@
         (lisp-pred typep ?level-relation integer))
     (lisp-fun get-level-links-in-container ?environment-object ?urdf-name
               ?child-levels)
-    (lisp-fun choose-level ?environment-object ?child-levels
-              ?level-relation :invert ?invert ?level-rigid-body))
+    (lisp-fun choose-level ?environment-object ?child-levels ?level-relation
+              :invert ?invert
+              ?level-rigid-body))
   ;;
   (<- (height-calculation-body-or-tag ?environment-object ?in-object ?link-rigid-body
                                       ?height-calculation-tag)
