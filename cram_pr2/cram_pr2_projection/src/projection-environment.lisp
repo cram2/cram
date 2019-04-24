@@ -30,9 +30,9 @@
 
 (defvar *last-timeline* nil)
 
-(defmethod desig:resolve-designator :around (designator (role (eql 'projection-role)))
-  (cram-projection:with-partially-ordered-clock-disabled *projection-clock*
-    (call-next-method)))
+;; (defmethod desig:resolve-designator :around (designator (role (eql 'projection-role)))
+;;   (cram-projection:with-partially-ordered-clock-disabled *projection-clock*
+;;     (call-next-method)))
 
 (cram-projection:define-projection-environment pr2-bullet-projection-environment
   :special-variable-initializers
