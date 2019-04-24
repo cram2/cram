@@ -140,6 +140,15 @@
     (loop for key being the hash-keys in rigid-bodies do
       (setf (gethash key rigid-bodies) nil))))
 
+(defgeneric attach-object (attach-to-obj obj &key &allow-other-keys) 
+  (:documentation "Adds `obj' to the set of attached objects."))
+
+(defgeneric detach-object (obj detach-obj &key &allow-other-keys)
+  (:documentation "Detaches `obj' from the set of attached objects."))
+
+(defgeneric detach-all-objects (obj)
+  (:documentation "Removes all objects form the list of attached objects."))
+
 (defmethod pose ((object object))
   "Returns the pose of the object, i.e. the pose of the body named by
   the slot `pose-reference-body'"
