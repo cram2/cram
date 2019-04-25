@@ -140,15 +140,6 @@
     (loop for key being the hash-keys in rigid-bodies do
       (setf (gethash key rigid-bodies) nil))))
 
-(defgeneric attach-object (attach-to-obj obj &key &allow-other-keys) 
-  (:documentation "Adds `obj' to the set of attached objects."))
-
-(defgeneric detach-object (obj detach-obj &key &allow-other-keys)
-  (:documentation "Detaches `obj' from the set of attached objects."))
-
-(defgeneric detach-all-objects (obj)
-  (:documentation "Removes all objects form the list of attached objects."))
-
 (defmethod pose ((object object))
   "Returns the pose of the object, i.e. the pose of the body named by
   the slot `pose-reference-body'"
@@ -277,3 +268,47 @@
                     'rigid-body
                   :name name :mass 0.0 :pose (ensure-pose pose)
                   :collision-shape (make-instance 'convex-hull-shape :points points)))))
+
+
+(defstruct collision-information
+  rigid-body-name flags)
+
+(defstruct attachment
+  "Represents a link between an object and another object or its link.
+`object' must be an instance of class OBJECT.
+`link' must be a string, the name of the link.
+If `loose' is non-NIL, it means that if the link moves, the pose
+of the object should _not_ be updated. `grasp' is the type of grasp orientation.
+`attachment' is the type of the attachment."
+  (object nil :type (or symbol string))
+  (link "" :type string)
+  (loose nil :type (or nil t))
+  (grasp nil :type (or null keyword))
+  (attachment nil :type (or null keyword)))
+
+(defgeneric attach-object (object-to-attach-to object &key &allow-other-keys)
+  (:documentation "Adds `object' to the set of attached objects of `object-to-attach-to'."))
+
+(defgeneric detach-object (object-to-detach-from object &key &allow-other-keys)
+  (:documentation "Removes `object' from the attached objects of `object-to-detach-from'."))
+
+(defgeneric detach-all-objects (object)
+  (:documentation "Removes all attachments form the list of attached objects of `object'."))
+
+(defmethod attach-object ((object-to-attach-to-name symbol) (object-name symbol) &key)
+  "Attaches object named `object-name' to another object named `object-to-attach-to-name'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-name)
+    (multiple-value-bind (other-obj other-obj-found)
+        (btr:object *current-bullet-world* object-to-attach-to-name)
+      (when (and obj-found other-obj-found)
+        (attach-object obj other-obj)))))
+
+(defmethod detach-object ((object-to-detach-from-name symbol) (object-name symbol) &key)
+  "Detaches object named `object-name' from another object named `object-to-detach-from-name'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-name)
+    (multiple-value-bind (other-obj other-obj-found)
+        (btr:object *current-bullet-world* object-to-detach-from-name)
+      (when (and obj-found other-obj-found)
+        (detach-object obj other-obj)))))
