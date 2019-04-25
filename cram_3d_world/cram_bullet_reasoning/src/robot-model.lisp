@@ -280,13 +280,13 @@ If `link' is specified, detaches `object' only from
                               :collision-shape (urdf-make-collision-shape
                                                 (cl-urdf:geometry collision-elem)
                                                 (apply-alpha-value
-                                                 (or (when (and (cl-urdf:visual link)
+                                                 (or color
+                                                     (when (and (cl-urdf:visual link)
                                                                 (cl-urdf:material
                                                                  (cl-urdf:visual link)))
                                                        (cl-urdf:color
                                                         (cl-urdf:material
                                                          (cl-urdf:visual link))))
-                                                     color
                                                      (let ((some-gray (/ (+ (random 5) 3) 10.0)))
                                                        (list some-gray some-gray some-gray
                                                              (or *robot-model-alpha* 1.0)))))
@@ -339,7 +339,7 @@ If `link' is specified, detaches `object' only from
      :attached-objects (copy-list (attached-objects obj)))))
 
 (defmethod add-object ((world bt-world) (type (eql :urdf)) name pose
-                       &key urdf (color '(0.8 0.8 0.8 1.0))
+                       &key urdf color
                          (collision-group :character-filter)
                          (collision-mask  '(:default-filter :static-filter))
                          compound)
