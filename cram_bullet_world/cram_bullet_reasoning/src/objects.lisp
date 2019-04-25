@@ -222,10 +222,16 @@
                                        :normal (cl-transforms:make-3d-vector
                                                 normal-x normal-y normal-z)
                                        :constant constant
-                                       :width 16 :height 16
+                                       ;; :width 16 :height 16
+                                       ;; :texture (texture-str->bitmap
+                                       ;;           *static-plane-texture* #\Space)
+                                       :width 32 :height 32
                                        :texture (texture-str->bitmap
-                                                 *static-plane-texture*
-                                                 #\Space)))))))
+                                                 *static-plane-gray-texture*
+                                                 #\Space
+                                                 nil
+                                                 #\g
+                                                 '(0.6 0.6 0.6 1.0))))))))
 
 (defmethod add-object ((world bt-world) (type (eql :sphere)) name pose
                        &key mass radius color)

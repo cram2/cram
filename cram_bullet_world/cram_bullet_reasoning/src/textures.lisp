@@ -49,3 +49,40 @@
    "x              x"
    "x              x"
    "xxxxxxxxxxxxxxxx"))
+
+
+(defparameter *static-plane-gray-texture*
+  (concatenate
+   'string
+   "gggggggggggggggggggggggggggggggg"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "g                              g"
+   "gggggggggggggggggggggggggggggggg"))
