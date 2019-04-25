@@ -54,8 +54,8 @@ If there is no other method with 1 as qualifier, this method will be executed al
     ;; now attach to the robot-object
     (when btr-object
       (if (btr:object-attached robot-object btr-object)
-          (btr:attach-object robot-object btr-object link :loose t :grasp grasp)
-          (btr:attach-object robot-object btr-object link :loose nil :grasp grasp)))))
+          (btr:attach-object robot-object btr-object :link link :loose t :grasp grasp)
+          (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)))))
 
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))
@@ -70,7 +70,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (when btr-object
-      (btr:detach-object robot-object btr-object link)
+      (btr:detach-object robot-object btr-object :link link)
       (btr:simulate btr:*current-bullet-world* 10)
       ;; finding the link that supports the object now
       (let ((environment-object (btr:get-environment-object))
@@ -82,7 +82,8 @@ If there is no other method with 1 as qualifier, this method will be executed al
                                             ?world ,btr-object-name ?env-name ?env-link)))))))
         ;; attaching the link to the object if it finds one.
         (unless (cut:is-var environment-link)
-          (btr:attach-object environment-object btr-object environment-link))))))
+          (btr:attach-object environment-object btr-object
+                             :link environment-link))))))
 
 #+implement-this-when-object-to-object-is-implemented
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
