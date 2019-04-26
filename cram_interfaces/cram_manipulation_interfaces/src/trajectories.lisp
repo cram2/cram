@@ -87,89 +87,56 @@
 (defvar *known-grasp-types* nil
   "A list of symbols representing all known grasp types")
 
-(defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
-  (:documentation "Returns a pose stamped.
-Gripper is defined by a convention where Z is pointing towards the object.")
-  (:method (object-type object-name arm grasp)
-    (let ((specific-type
+(defun call-with-specific-type (fun object-type &rest args)
+  "Call generic function FUN with the most specific type for OBJECT-TYPE. Have
+to provide all arguments for fun after object-type in the correct order."
+  (let ((specific-type
             (find-most-specific-object-type-for-generic
-             #'get-object-type-to-gripper-transform object-type)))
+             fun object-type)))
       (if specific-type
-          (get-object-type-to-gripper-transform specific-type object-name arm grasp)
+          ;; (get-object-type-to-gripper-transform specific-type object-name arm grasp)
+          (apply (alexandria:curry fun specific-type) args)
           (error "There is no applicable method for the generic function ~%~a~%~
                   with object-type ~a.~%To fix this either: ~
                   ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
                   ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
-                 #'get-object-type-to-gripper-transform
-                 object-type object-type object-type)))))
+                 fun
+                 object-type object-type object-type))))
+
+(defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
+  (:documentation "Returns a pose stamped.
+Gripper is defined by a convention where Z is pointing towards the object.")
+  (:method (object-type object-name arm grasp)
+    (call-with-specific-type #'get-object-type-to-gripper-transform
+                             object-type object-name arm grasp)))
 
 (defgeneric get-object-type-to-gripper-pregrasp-transform (object-type object-name
                                                            arm grasp grasp-transform)
   (:documentation "Returns a transform stamped")
   (:method (object-type object-name arm grasp grasp-transform)
-    (let ((specific-type
-            (find-most-specific-object-type-for-generic
-             #'get-object-type-to-gripper-pregrasp-transform object-type)))
-      (if specific-type
-          (get-object-type-to-gripper-pregrasp-transform
-           specific-type object-name arm grasp grasp-transform)
-          (error "There is no applicable method for the generic function ~%~a~%~
-                  with object-type ~a.~%To fix this either: ~
-                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
-                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
-                 #'get-object-type-to-gripper-pregrasp-transform
-                 object-type object-type object-type)))))
+    (call-with-specific-type #'get-object-type-to-gripper-pregrasp-transform
+                             object-type object-name arm grasp grasp-transform)))
 
 (defgeneric get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name
                                                                arm grasp grasp-transform)
   (:documentation "Returns a transform stamped. Default value is NIL.")
   (:method (object-type object-name arm grasp grasp-transform)
-    (let ((specific-type
-            (find-most-specific-object-type-for-generic
-             #'get-object-type-to-gripper-2nd-pregrasp-transform object-type)))
-      (if specific-type
-          (get-object-type-to-gripper-2nd-pregrasp-transform
-           specific-type object-name arm grasp grasp-transform)
-          (error "There is no applicable method for the generic function ~%~a~%~
-                  with object-type ~a.~%To fix this either: ~
-                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
-                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
-                 #'get-object-type-to-gripper-2nd-pregrasp-transform
-                 object-type object-type object-type)))))
+    (call-with-specific-type #'get-object-type-to-gripper-2nd-pregrasp-transform
+                             object-type object-name arm grasp grasp-transform)))
 
 (defgeneric get-object-type-to-gripper-lift-transform (object-type object-name
                                                        arm grasp grasp-transform)
   (:documentation "Returns a transform stamped")
   (:method (object-type object-name arm grasp grasp-transform)
-    (let ((specific-type
-            (find-most-specific-object-type-for-generic
-             #'get-object-type-to-gripper-lift-transform object-type)))
-      (if specific-type
-          (get-object-type-to-gripper-lift-transform
-           specific-type object-name arm grasp grasp-transform)
-          (error "There is no applicable method for the generic function ~%~a~%~
-                  with object-type ~a.~%To fix this either: ~
-                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
-                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
-                 #'get-object-type-to-gripper-lift-transform
-                 object-type object-type object-type)))))
+    (call-with-specific-type #'get-object-type-to-gripper-lift-transform
+                             object-type object-name arm grasp grasp-transform)))
 
 (defgeneric get-object-type-to-gripper-2nd-lift-transform (object-type object-name
                                                            arm grasp grasp-transform)
   (:documentation "Returns a transform stamped")
   (:method (object-type object-name arm grasp grasp-transform)
-    (let ((specific-type
-            (find-most-specific-object-type-for-generic
-             #'get-object-type-to-gripper-2nd-lift-transform object-type)))
-      (if specific-type
-          (get-object-type-to-gripper-2nd-lift-transform
-           specific-type object-name arm grasp grasp-transform)
-          (error "There is no applicable method for the generic function ~%~a~%~
-                  with object-type ~a.~%To fix this either: ~
-                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
-                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
-                 #'get-object-type-to-gripper-2nd-lift-transform
-                 object-type object-type object-type)))))
+    (call-with-specific-type #'get-object-type-to-gripper-2nd-lift-transform
+                             object-type object-name arm grasp grasp-transform)))
 
 
 (defmacro def-object-type-to-gripper-transforms (object-type arm grasp-type
