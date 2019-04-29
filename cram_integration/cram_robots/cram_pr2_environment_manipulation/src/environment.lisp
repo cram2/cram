@@ -90,16 +90,37 @@
 
 (defun get-connecting-joint (part)
   "Returns the connecting (moveable) joint of `part', which can be either
-  a link or a joint of an URDF."
+   a link or a joint of an URDF."
+  (or
+   (get-connecting-joint-below part)
+   (get-connecting-joint-above part)))
+
+(defun get-connecting-joint-below (part)
+  "Traverse the URDF downwards to find a connecting joint."
   (when part
     (if (typep part 'cl-urdf:joint)
         (or
          (when (not (eql (cl-urdf:joint-type part) :FIXED))
            part)
-         (get-connecting-joint (cl-urdf:parent part)))
-        (when (typep part 'cl-urdf:link)
-          (get-connecting-joint (cl-urdf:from-joint part))))))
+         (get-connecting-joint-below (cl-urdf:child part)))
 
+        (when (typep part 'cl-urdf:link)
+          (find-if
+           (lambda (joint)
+             (get-connecting-joint-below joint))
+           (cl-urdf:to-joints part))))))
+
+(defun get-connecting-joint-above (part)
+  "Traverse the URDF upwards to find a connecting joint."
+  (when part
+    (if (typep part 'cl-urdf:joint)
+        (or
+         (when (not (eql (cl-urdf:joint-type part) :FIXED))
+           part)
+         (get-connecting-joint-above (cl-urdf:parent part)))
+
+        (when (typep part 'cl-urdf:link)
+          (get-connecting-joint-above (cl-urdf:from-joint part))))))
 
 (defun get-manipulated-pose (link-name joint-position btr-environment &key relative)
   "Returns the pose of a link based on its connection joint position
