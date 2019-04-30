@@ -80,7 +80,7 @@
         map->obj
         map->base
         trans
-        ?newpose
+        ?newobject
         ?newtransform)
 
     (exe:perform
@@ -100,48 +100,16 @@
                (left-configuration park)
                (right-configuration park)))
 
-    ;; creating the new Transform from the base_footprint infront of the shelf and the object
-    (setf map->base (cl-transforms:make-transform
-                     (cl-transforms:translation
-                      (cl-transforms:reference-transform *pose-grasping*))
-                     (cl-transforms:orientation *pose-grasping*)))
 
-    (setf map->obj (second
-                    (find :transform-in-map (desig:desig-prop-value ?object :pose)
-                          :test #'equal :key #'first)))
-    (setf trans (cl-transforms:transform* (cl-transforms:transform-inv map->base) map->obj))
-
-    (setf ?newpose (cl-transforms-stamped:make-pose-stamped
-                    "base_footprint"
-                    0.0
-                    (cl-transforms:translation trans)
-                    (cl-transforms:orientation
-                     (second (first (desig:desig-prop-value ?object :pose))))))
-
-    (setf ?newTransform (cl-transforms-stamped:make-transform-stamped
-                         "base_footprint"
-                         (desig:desig-prop-value ?object :name)
-                         0.0
-                         (cl-transforms:translation trans)
-                         (cl-transforms:rotation
-                          (second (second (desig:desig-prop-value ?object :pose))))))
-
-    ;; constructing the new Object designator with the new pose and transformation
-    (setf ?object
-          (desig:copy-designator
-           ?object
-           :new-description
-           `((:type ,(desig:desig-prop-value ?object :type))
-             (:name ,(desig:desig-prop-value ?object :name))
-             (:pose ((:pose ,?newpose)
-                     (:transform ,?newTransform)
-                     (:pose-in-map
-                      ,(second (third (desig:desig-prop-value ?object :pose))))
-                     (:transform-in-map
-                      ,(second (fourth (desig:desig-prop-value ?object :pose)))))))))
-
-    (print ?object)
-
+    (setf ?newobject (exe:perform
+                      (desig:a motion
+                               (type world-state-sensing)
+                               (object ?object))))
+    (print ?newobject)
+    
+    (setf ?newtransform (second
+          (find :transform (desig:desig-prop-value ?newobject :pose) :test #'equal :key #'first)))
+    
     ;; selecting the grasping arm
     (if (< (cl-transforms:y (cl-transforms:translation ?newtransform)) 0)
         (setf ?grasping-arm :right)
@@ -168,7 +136,7 @@
                            (type picking-up)
                            (arm ?grasping-arm)
                            (grasp left-side)
-                           (object ?object)))
+                           (object ?newobject)))
 
     (exe:perform (desig:an action
                            (type going)
