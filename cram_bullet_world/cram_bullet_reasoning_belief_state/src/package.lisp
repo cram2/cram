@@ -44,4 +44,5 @@
    #:*kitchen-urdf*
    #:*robot-parameter* #:*kitchen-parameter*
    #:*spawn-debug-window*
-   #:setup-world-database))
+   #:setup-world-database
+   #:world-state-sensing))

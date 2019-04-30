@@ -126,3 +126,10 @@
   (<- (motion-grounding ?designator (move-with-constraints ?constraints-string))
     (property ?designator (:type :moving-with-constraints))
     (property ?designator (:constraints ?constraints-string))))
+
+;; temporary name until I come up with somthing better
+(def-fact-group world-state-sensing (motion-grounding)
+  
+  (<- (motion-grounding ?designator (sense-pose ?object))
+    (property ?designator (:type :world-state-sensing))
+    (property ?designator (:object ?object))))
