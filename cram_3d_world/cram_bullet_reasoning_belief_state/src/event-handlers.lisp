@@ -70,7 +70,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (when btr-object
-      (btr:detach-object robot-object btr-object link)
+      (btr:detach-object robot-object btr-object :link link)
       (btr:simulate btr:*current-bullet-world* 10)
       ;; finding the link that supports the object now
       (let ((environment-object (btr:get-environment-object))
@@ -82,7 +82,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
                                             ?world ,btr-object-name ?env-name ?env-link)))))))
         ;; attaching the link to the object if it finds one.
         (unless (cut:is-var environment-link)
-          (btr:attach-object environment-object btr-object environment-link))))))
+          (btr:attach-object environment-object btr-object :link environment-link))))))
 
 #+implement-this-when-object-to-object-is-implemented
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
@@ -278,7 +278,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
               ;; the gripper. In that case, we update the designator
               ;; location designator by extending the current location
               ;; by a second pose in the gripper.
-              (btr:attach-object robot object (cpoe:event-link event) :loose t)
+              (btr:attach-object robot object :link (cpoe:event-link event) :loose t)
               (desig:with-desig-props (at) current-event-object
                 (assert (eql (desig:desig-prop-value at :in) :gripper))
                 (update-object-designator-location
@@ -286,7 +286,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
                  (desig:extend-designator-properties
                   at `((:pose ,(object-pose-in-frame object (cpoe:event-link event))))))))
              (t
-              (btr:attach-object robot object (cpoe:event-link event) :loose nil)
+              (btr:attach-object robot object :link (cpoe:event-link event) :loose nil)
               (update-object-designator-location
                current-event-object
                (desig:extend-designator-properties
@@ -301,7 +301,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
    (let ((robot (btr:get-robot-object))
          (object (get-designator-object (cpoe:event-object event))))
      (when object
-       (btr:detach-object robot object (cpoe:event-link event))
+       (btr:detach-object robot object :link (cpoe:event-link event))
        (btr:simulate btr:*current-bullet-world* 10)
        (update-object-designator-location
         (desig:current-desig (cpoe:event-object event))
