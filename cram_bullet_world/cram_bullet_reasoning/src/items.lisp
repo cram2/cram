@@ -76,9 +76,8 @@ The name in the list is a keyword that is created by lispifying the filename."
 
 (defclass item (object)
   ((types :reader item-types :initarg :types)
-   (attached-items :type 'list
-                   :initform (list)
-                   :accessor attached-items)))
+   (attached-objects :reader attached-objects :initarg :attached-objects
+                     :type 'list :initform nil)))
 
 (defmethod copy-object ((object item) (world bt-reasoning-world))
   (change-class (call-next-method) 'item
@@ -279,52 +278,56 @@ The name in the list is a keyword that is created by lispifying the filename."
                                    :half-extents (ensure-vector size)
                                    :color color)))))
 
-(defmethod attach-object ((attach-to-obj item) (obj item) &key)
-  "Adds an attachment to the a-list of `attached-items'. The new
-  entry has the `obj's name as car and the pose of the item `attach-to-obj' as
-  cadr. Since we save the original `attach-to-obj' pose at the time attaching, you are
-  able to calculate the transformation of the `attach-to-obj' item, when its pose changes,
-  to change the pose of its attachments as well. The attachments are bidirectional."
-    (unless (and (member (name obj) (attached-items attach-to-obj))
-                 (equal (name obj) (name attach-to-obj)))
-      (push (name obj) (attached-items attach-to-obj))
-      (push (name attach-to-obj) (attached-items obj))
-      (setf (mass (car (rigid-bodies obj))) 0.0)
-      (setf (mass (car (rigid-bodies attach-to-obj))) 0.0)))
+(defmethod attach-object ((other-object item) (object item) &key attachment-type)
+  "Attaches `object' to `other-object': adds an attachment to the
+attached-objects lists of each other. The attachments are bidirectional.
+`attachment-type' is a keyword that specifies the type of attachment."
+  (when (equal (name object) (name other-object))
+    (warn "Cannot attach an object to itself: ~a" (name object))
+    (return-from attach-object))
+  (when (member (name object) (attached-objects other-object))
+    (warn "Item ~a already attached to ~a. Ignoring new attachment."
+          (name object) (name other-object))
+    (return-from attach-object))
+  (push (make-attachment :object (name object) :attachment attachment-type)
+        (slot-value other-object 'attached-objects))
+  (push (make-attachment :object (name other-object) :attachment attachment-type)
+        (slot-value object 'attached-objects))
+  (setf (mass (car (rigid-bodies object))) 0.0)
+  (setf (mass (car (rigid-bodies other-object))) 0.0))
 
-(defmethod attach-object ((object symbol) (attach-to symbol) &key)
-  "Just needs the names of the objects and passes these to btr:object."
-  (multiple-value-bind (obj obj-found) (btr:object *current-bullet-world* object)
-    (multiple-value-bind (other-obj other-obj-found) (btr:object *current-bullet-world* attach-to)
-      (if (and obj-found other-obj-found)
-          (attach-object obj other-obj)))))
-  
-(defmethod detach-object ((obj item) (detach-obj item) &key)
-  "Removes item names from the given arguments in the corresponding `attached-items' lists
+(defmethod detach-object ((other-object item) (object item) &key)
+  "Removes item names from the given arguments in the corresponding `attached-objects' lists
    of the given items."
-  (setf (attached-items detach-obj) (remove (name obj) (attached-items detach-obj)))
-  (setf (attached-items obj) (remove (name detach-obj) (attached-items obj)))
-  (setf (mass (car (rigid-bodies obj))) 0.2)
-  (setf (mass (car (rigid-bodies detach-obj))) 0.2))
+  (setf (slot-value other-object 'attached-objects)
+        (remove (name object) (attached-objects other-object)
+                :key #'attachment-object :test #'equal))
+  (setf (slot-value object 'attached-objects)
+        (remove (name other-object) (attached-objects object)
+                :key #'attachment-object :test #'equal))
+  (setf (mass (car (rigid-bodies object))) 0.2)
+  (setf (mass (car (rigid-bodies other-object))) 0.2))
 
 (let ((already-moved '()))
   (defmethod (setf pose) :around (new-value (object item))
-    (if (and (slot-boundp object 'attached-items)
-             (< 0 (length (attached-items object))))
+    "Since we save the original pose of the object at the time of attaching,
+it is possible to change the pose of its attachments when its pose changes."
+    (if (and (slot-boundp object 'attached-objects)
+             (> (length (attached-objects object)) 0))
         (let ((carrier-transform
-                (cl-transforms:transform-diff (cl-tf:pose->transform (cl-tf:copy-pose new-value))
-                                              (cl-tf:pose->transform (cl-tf:copy-pose (pose object))))))
+                (cl-transforms:transform-diff
+                 (cl-transforms:pose->transform new-value)
+                 (cl-transforms:pose->transform (pose object)))))
           ;; If none item already moved or item wasn't already moved
-          (unless
-              (and
-               already-moved
-               (member (name object) already-moved :test #'equal))
+          (unless (and already-moved
+                       (member (name object) already-moved :test #'equal))
             (push (name object) already-moved)
             (call-next-method)
-            (dolist (attachment (attached-items object))
-              (let ((current-attachment-pose (object-pose attachment)))
-                (when (and carrier-transform current-attachment-pose) 
-                  (setf (pose (btr:object btr:*current-bullet-world* attachment))
+            (dolist (attachment (attached-objects object))
+              (let ((current-attachment-pose (object-pose (attachment-object attachment))))
+                (when (and carrier-transform current-attachment-pose)
+                  (setf (pose (btr:object btr:*current-bullet-world*
+                                          (attachment-object attachment)))
                         (cl-transforms:transform-pose
                          carrier-transform
                          current-attachment-pose)))))
