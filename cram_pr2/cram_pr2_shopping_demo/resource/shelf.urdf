@@ -1,0 +1,348 @@
+<?xml version="1.0"?>
+<robot name="shelve">
+    
+    <material name="grey">
+        <color rgba="0.8 0.8 0.8 1"/>
+    </material>
+
+    <link name="shelf_origin"/>
+
+    <link name="left_leg">
+        <visual>
+            <material name="grey"/>
+            <origin xyz="0 0 0.75"/>
+            <geometry>
+                <box size="0.1 0.1 1.5"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0.75"/>
+            <geometry>
+                <box size="0.1 0.1 1.5"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="right_leg">
+        <visual>
+            <geometry>
+                <box size="0.1 0.1 1.5"/>
+            </geometry>
+            <origin xyz="0 0 0.75"/>
+            <material name="grey"/>
+
+        </visual>
+        <collision>
+            <origin xyz="0 0 0.75"/>
+            <geometry>
+                <box size="0.1 0.1 1.5"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="bar0">
+        <visual>
+            <material name="grey"/>
+            <origin xyz="-1.5 0 0"/>
+            <geometry>
+                <box size="3 0.1 0.1"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="-1.5 0 0"/>
+            <geometry>
+                <box size="3 0.1 0.1"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="board0">
+        <visual>
+            <material name="grey"/>
+            <origin xyz="0 0.25 0"/>
+            <geometry>
+                <box size="3 0.5 0.05"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0.25 0"/>
+            <geometry>
+                <box size="3 0.5 0.05"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="bar1">
+        <visual>
+            <material name="grey"/>
+            <origin xyz="-1.5 0 0"/>
+            <geometry>
+                <box size="3 0.1 0.1"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="-1.5 0 0"/>
+            <geometry>
+                <box size="3 0.1 0.1"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="board1">
+        <visual>
+            <material name="grey"/>
+            <origin xyz="0 0.25 0"/>
+            <geometry>
+                <box size="3 0.5 0.05"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0.25 0"/>
+            <geometry>
+                <box size="3 0.5 0.05"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="bar2">
+        <visual>
+            <material name="grey"/>
+            <origin xyz="-1.5 0 0"/>
+            <geometry>
+                <box size="3 0.1 0.1"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="-1.5 0 0"/>
+            <geometry>
+                <box size="3 0.1 0.1"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="board2">
+        <visual>
+            <material name="grey"/>
+            <origin xyz="0 0.25 0"/>
+            <geometry>
+                <box size="3 0.5 0.05"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0.25 0"/>
+            <geometry>
+                <box size="3 0.5 0.05"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="bar3">
+        <visual>
+            <material name="grey"/>
+            <origin xyz="-1.5 0 0"/>
+            <geometry>
+                <box size="3 0.1 0.1"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="-1.5 0 0"/>
+            <geometry>
+                <box size="3 0.1 0.1"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="board3">
+        <visual>
+            <material name="grey"/>
+            <origin xyz="0 0.25 0"/>
+            <geometry>
+                <box size="3 0.5 0.05"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0.25 0"/>
+            <geometry>
+                <box size="3 0.5 0.05"/>
+            </geometry>
+        </collision>
+    </link>
+    
+    
+    <joint name="board0_to_bar0" type="fixed">
+        <parent link="bar0"/>
+        <child link="board0"/>
+        <origin xyz="-1.5 0 0"/>
+    </joint>
+
+    <joint name="board1_to_bar1" type="fixed">
+        <parent link="bar1"/>
+        <child link="board1"/>
+        <origin xyz="-1.5 0 0"/>
+    </joint>
+
+    <joint name="board2_to_bar2" type="fixed">
+        <parent link="bar2"/>
+        <child link="board2"/>
+        <origin xyz="-1.5 0 0"/>
+    </joint>
+
+    <joint name="board3_to_bar3" type="fixed">
+        <parent link="bar3"/>
+        <child link="board3"/>
+        <origin xyz="-1.5 0 0"/>
+    </joint>
+
+
+
+    <joint name="bar3_to_left_leg" type="fixed">
+        <parent link="left_leg"/>
+        <child link="bar3"/>
+        <origin xyz="0 0 1.2"/>
+    </joint>
+
+    <joint name="bar2_to_left_leg" type="fixed">
+        <parent link="left_leg"/>
+        <child link="bar2"/>
+        <origin xyz="0 0 0.9"/>
+    </joint>
+
+    <joint name="bar1_to_left_leg" type="fixed">
+        <parent link="left_leg"/>
+        <child link="bar1"/>
+        <origin xyz="0 0 0.6"/>
+    </joint>
+
+    <joint name="bar0_to_left_leg" type="fixed">
+        <parent link="left_leg"/>
+        <child link="bar0"/>
+        <origin xyz="0 0 0.3"/>
+    </joint>
+    
+    <joint name="left_to_right_leg" type="fixed">
+        <parent link="left_leg"/>
+        <child link="right_leg"/>
+        <origin xyz="-3 0 0"/>
+    </joint>
+
+    <joint name="left_leg_to_shelf_origin" type="fixed">
+        <parent link="shelf_origin"/>
+        <child link="left_leg"/>
+        <origin xyz="0 -1.5 0"/>
+    </joint>
+
+
+
+    <link name="left_front_leg">
+        <collision>
+            <origin xyz="0 0 0.3"/>
+            <geometry>
+                <box size="0.1 0.1 0.6"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0.3"/>
+            <geometry>
+                <box size="0.1 0.1 0.6"/>
+            </geometry>
+        </visual>
+    </link>
+    
+
+    <link name="right_front_leg">
+        <collision>
+            <origin xyz="0 0 0.3"/>
+            <geometry>
+                <box size="0.1 0.1 0.6"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0.3"/>
+            <geometry>
+                <box size="0.1 0.1 0.6"/>
+            </geometry>
+        </visual>
+    </link>
+
+
+    <link name="left_back_leg">
+        <collision>
+            <origin xyz="0 0 0.3"/>
+            <geometry>
+                <box size="0.1 0.1 0.6"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0.3"/>
+            <geometry>
+                <box size="0.1 0.1 0.6"/>
+            </geometry>
+        </visual>
+    </link>
+
+
+    <link name="right_back_leg">
+        <collision>
+            <origin xyz="0 0 0.3"/>
+            <geometry>
+                <box size="0.1 0.1 0.6"/>
+            </geometry>
+        </collision>
+        <visual>
+            <origin xyz="0 0 0.3"/>
+            <geometry>
+                <box size="0.1 0.1 0.6"/>
+            </geometry>
+        </visual>
+    </link>
+
+
+    <link name="top">
+        <collision>
+            <geometry>
+                <box size="1 1 0.05"/>
+            </geometry>
+        </collision>
+        <visual>
+            <geometry>
+                <box size="1 1 0.05"/>
+            </geometry>
+        </visual>
+    </link>
+    
+
+    <joint name="origin_to_left_front_leg" type="fixed">
+        <parent link="shelf_origin"/>
+        <child link="left_front_leg"/>
+        <origin xyz="-4 0 0"/>
+    </joint>
+
+    <joint name="left_front_to_back" type="fixed">
+        <parent link="left_front_leg"/>
+        <child link="left_back_leg"/>
+        <origin xyz="1 0 0"/>
+    </joint>
+
+    <joint name="left_front_to_right_front" type="fixed">
+        <parent link="left_front_leg"/>
+        <child link="right_front_leg"/>
+        <origin xyz="0 1 0"/>
+    </joint>
+
+    <joint name="left_front_to_right_back" type="fixed">
+        <parent link="left_front_leg"/>
+        <child link="right_back_leg"/>
+        <origin xyz="1 1 0"/>
+    </joint>
+
+    <joint name="left_front_leg_to_top" type="fixed">
+        <parent link="left_front_leg"/>
+        <child link="top"/>
+        <origin xyz="0.5 0.5 0.6"/>
+    </joint>
+
+
+</robot>
+
+
+
