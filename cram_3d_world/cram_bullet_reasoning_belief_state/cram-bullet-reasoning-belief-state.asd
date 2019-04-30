@@ -50,7 +50,10 @@
                cl-bullet
                tf2_msgs-msg
                geometry_msgs-msg
-               shape_msgs-msg)
+               shape_msgs-msg
+               cram-process-modules
+               cram-language-designator-support
+               cram-common-designators)
   :components
   ((:module "src"
     :components
@@ -62,4 +65,5 @@
      (:file "environment-joint-publisher" :depends-on ("package"))
      (:file "object-perceptions" :depends-on ("package"))
      (:file "occasions" :depends-on ("package" "object-perceptions"))
-     (:file "event-handlers" :depends-on ("package" "object-perceptions"))))))
+     (:file "event-handlers" :depends-on ("package" "object-perceptions"))
+     (:file "process-modules" :depends-on ("package"))))))
