@@ -29,12 +29,34 @@
 
 (in-package :pr2-em)
 
-(defun open-container (?arm ?gripper-opening distance
-                       ?left-reach-poses ?right-reach-poses
-                       ?left-grasp-poses ?right-grasp-poses
-                       ?left-lift-pose ?right-lift-pose
-                       ?left-2nd-lift-pose ?right-2nd-lift-pose
-                       &optional joint-name ?link-name environment)
+(defun open-container (&key
+                         ((:arm ?arm))
+                         ((:gripper-opening ?gripper-opening))
+                         distance
+                         ((:left-reach-poses ?left-reach-poses))
+                         ((:right-reach-poses ?right-reach-poses))
+                         ((:left-grasp-poses ?left-grasp-poses))
+                         ((:right-grasp-poses ?right-grasp-poses))
+                         ((:left-open-poses ?left-open-pose))
+                         ((:right-open-poses ?right-open-pose))
+                         ((:left-retract-poses ?left-retract-pose))
+                         ((:right-retract-poses ?right-retract-pose))
+                         joint-name
+                         ((:link-name ?link-name))
+                         environment
+                         ((:environment-name ?environment-name))
+                       &allow-other-keys)
+  (declare (type keyword ?arm)
+           (type number ?gripper-opening distance)
+           (type list
+                 ?left-reach-poses ?right-reach-poses
+                 ?left-grasp-poses ?right-grasp-poses
+                 ?left-open-pose ?right-open-pose
+                 ?left-retract-pose ?right-retract-pose)
+           (type (or string symbol null) joint-name ?link-name)
+           (type (or btr:object null) environment)
+           (type (or symbol null) ?environment-name))
+
   (cpl:par
     (roslisp:ros-info (environment-manipulation open-container) "Opening gripper")
     (exe:perform
@@ -62,21 +84,20 @@
                            e)
          ;; (return)
          ))
-    ;; TODO: instead of passing btr object only pass the name!
-    (let ((?environment-name (btr:name environment)))
-      (exe:perform
-       (desig:an action
-                 (type grasping)
-                 (object (desig:an object
-                                   (name ?environment-name)))
-                 (link ?link-name)
-                 (left-poses ?left-grasp-poses)
-                 (right-poses ?right-grasp-poses)))))
+    (exe:perform
+     (desig:an action
+               (type grasping)
+               (object (desig:an object
+                                 (name ?environment-name)))
+               (link ?link-name)
+               (left-poses ?left-grasp-poses)
+               (right-poses ?right-grasp-poses))))
   (roslisp:ros-info (environment-manipulation open-container) "Gripping")
   (exe:perform
    (desig:an action
              (type gripping)
              (gripper ?arm)))
+
   (roslisp:ros-info (environment-manipulation open-container) "Opening")
 
   ;; (when (and joint-name environment)
@@ -92,15 +113,14 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (let ((?environment-name (btr:name environment)))
-      (exe:perform
-       (desig:an action
-                 (type pulling)
-                 (object (desig:an object
-                                   (name ?environment-name)))
-                 (link ?link-name)
-                 (left-poses ?left-lift-pose)
-                 (right-poses ?right-lift-pose)))))
+    (exe:perform
+     (desig:an action
+               (type pulling)
+               (object (desig:an object
+                                 (name ?environment-name)))
+               (link ?link-name)
+               (left-poses ?left-open-pose)
+               (right-poses ?right-open-pose))))
 
   (when (and joint-name environment)
     (cram-occasions-events:on-event
@@ -110,6 +130,7 @@
        :environment environment
        :distance distance)))
 
+  (roslisp:ros-info (environment-manipulation open-container) "Retracting")
   (exe:perform
    (desig:an action
              (type releasing)
@@ -124,20 +145,45 @@
     (exe:perform
      (desig:an action
                (type retracting)
-               (left-poses ?left-2nd-lift-pose)
-               (right-poses ?right-2nd-lift-pose)))))
+               (left-poses ?left-retract-pose)
+               (right-poses ?right-retract-pose)))))
 
-(defun close-container (?arm ?gripper-opening distance
-                        ?left-reach-poses ?right-reach-poses
-                        ?left-grasp-poses ?right-grasp-poses
-                        ?left-lift-pose ?right-lift-pose
-                        ?left-2nd-lift-pose ?right-2nd-lift-pose
-                        &optional joint-name ?link-name environment)
+
+
+(defun close-container (&key
+                          ((:arm ?arm))
+                          ((:gripper-opening ?gripper-opening))
+                          distance
+                          ((:left-reach-poses ?left-reach-poses))
+                          ((:right-reach-poses ?right-reach-poses))
+                          ((:left-grasp-poses ?left-grasp-poses))
+                          ((:right-grasp-poses ?right-grasp-poses))
+                          ((:left-close-poses ?left-close-pose))
+                          ((:right-close-poses ?right-close-pose))
+                          ((:left-retract-poses ?left-retract-pose))
+                          ((:right-retract-poses ?right-retract-pose))
+                          joint-name
+                          ((:link-name ?link-name))
+                          environment
+                          ((:environment-name ?environment-name))
+                        &allow-other-keys)
+  (declare (type keyword ?arm)
+           (type number ?gripper-opening distance)
+           (type list
+                 ?left-reach-poses ?right-reach-poses
+                 ?left-grasp-poses ?right-grasp-poses
+                 ?left-close-pose ?right-close-pose
+                 ?left-retract-pose ?right-retract-pose)
+           (type (or string symbol null) joint-name ?link-name)
+           (type (or btr:object null) environment)
+           (type (or symbol null) ?environment-name))
+
   (roslisp:ros-info (environment-manipulation close-container) "Opening gripper")
   (exe:perform
    (desig:an action
-             (type opening-gripper)
-             (gripper ?arm)))
+             (type setting-gripper)
+             (gripper ?arm)
+             (position ?gripper-opening)))
   (roslisp:ros-info (environment-manipulation close-container) "Reaching")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -158,22 +204,21 @@
                            e)
          ;; (return)
          ))
-    (let ((?environment-name (btr:name environment)))
-      (exe:perform
-       (desig:an action
-                 (type grasping)
-                 (object (desig:an object
-                                   (name ?environment-name)))
-                 (link ?link-name)
-                 (left-poses ?left-grasp-poses)
-                 (right-poses ?right-grasp-poses)))))
+    (exe:perform
+     (desig:an action
+               (type grasping)
+               (object (desig:an object
+                                 (name ?environment-name)))
+               (link ?link-name)
+               (left-poses ?left-grasp-poses)
+               (right-poses ?right-grasp-poses))))
+
   ;; (roslisp:ros-info (environment-manipulation close-container) "Gripping")
   ;; (exe:perform
   ;;  (desig:an action
   ;;            (type setting-gripper)
   ;;            (gripper ?arm)
   ;;            (position 0)))
-  (roslisp:ros-info (environment-manipulation close-container) "Closing")
   ;; (when (and joint-name environment)
   ;;   (cram-occasions-events:on-event
   ;;    (make-instance 'cpoe:container-handle-grasping-event
@@ -181,6 +226,7 @@
   ;;                   :side ?arm
   ;;                   :environment environment)))
 
+  (roslisp:ros-info (environment-manipulation close-container) "Closing")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans open)
@@ -190,8 +236,8 @@
     (exe:perform
      (desig:an action
                (type pushing)
-               (left-poses ?left-lift-pose)
-               (right-poses ?right-lift-pose))))
+               (left-poses ?left-close-pose)
+               (right-poses ?right-close-pose))))
 
   (when (and joint-name environment)
     (cram-occasions-events:on-event
@@ -200,11 +246,14 @@
        :side ?arm
        :environment environment
        :distance distance)))
+
   ;; (exe:perform
   ;;  (desig:an action
   ;;            (type setting-gripper)
   ;;            (gripper ?arm)
   ;;            (position 0.1)))
+
+  (roslisp:ros-info (environment-manipulation close-container) "Retracting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans open)
@@ -214,5 +263,5 @@
     (exe:perform
      (desig:an action
                (type retracting)
-               (left-poses ?left-2nd-lift-pose)
-               (right-poses ?right-2nd-lift-pose)))))
+               (left-poses ?left-retract-pose)
+               (right-poses ?right-retract-pose)))))

@@ -55,8 +55,8 @@
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
 
-               cram-robot-pose-gaussian-costmap
-               cram-occupancy-grid-costmap
+               ;; cram-robot-pose-gaussian-costmap
+               ;; cram-occupancy-grid-costmap
                cram-location-costmap)
   :components
   ((:module "src"
@@ -65,6 +65,6 @@
      (:file "math" :depends-on ("package"))
      (:file "environment" :depends-on ("package"))
      (:file "costmaps" :depends-on ("package" "math" "environment"))
-     (:file "grasping" :depends-on ("package"))
-     (:file "action-designators" :depends-on ("package" "grasping"))
+     (:file "trajectories" :depends-on ("package"))
+     (:file "action-designators" :depends-on ("package" "trajectories"))
      (:file "plans" :depends-on ("package" "environment"))))))

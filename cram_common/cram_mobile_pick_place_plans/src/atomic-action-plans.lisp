@@ -29,7 +29,12 @@
 
 (in-package :pp-plans)
 
-(cpl:def-cram-function go-to-target (?pose-stamped)
+(defun go-to-target (&key
+                       ((:pose ?pose-stamped))
+                     &allow-other-keys)
+  (declare (type cl-transforms-stamped:pose-stamped ?pose-stamped))
+  "Go to `?pose-stamped', if a failure happens propagate it up, robot-state-changed event."
+
   (unwind-protect
        (cpl:with-retry-counters ((nav-retries 0))
          (cpl:with-failure-handling
@@ -46,9 +51,14 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
-(cpl:def-cram-function perceive (?object-designator
-                                 &key
-                                 (object-chosing-function #'identity))
+(defun perceive (&key
+                   ((:object ?object-designator))
+                   (object-chosing-function #'identity)
+                 &allow-other-keys)
+  (declare (type desig:object-designator ?object-designator))
+  "Call detecting motion on `?object-designator', retry on failure, issue perceived event,
+equate resulting designator to the original one."
+
   (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
                      1
                      4)))
@@ -80,87 +90,95 @@
           resulting-designator)))))
 
 
-(cpl:def-cram-function move-arms-in-sequence (left-poses right-poses
-                                                         &optional
-                                                         ?collision-mode
-                                                         ?collision-object-b
-                                                         ?collision-object-b-link
-                                                         ?collision-object-a)
-  "Make `?left-poses' and `?right-poses' to lists if they are not already"
+(defun move-arms-in-sequence (&key
+                                left-poses
+                                right-poses
+                                ((:collision-mode ?collision-mode))
+                                ((:collision-object-b ?collision-object-b))
+                                ((:collision-object-b-link ?collision-object-b-link))
+                                ((:collision-object-a ?collision-object-a))
+                              &allow-other-keys)
+  (declare (type (or list cl-transforms-stamped:pose-stamped) left-poses right-poses)
+           (type (or null keyword) ?collision-mode)
+           (type (or null symbol) ?collision-object-b ?collision-object-a)
+           (type (or null string symbol) ?collision-object-b-link))
+  "Move arms through all but last poses of `left-poses' and `right-poses',
+while ignoring failures; and execute the last pose with propagating the failures."
 
-  (flet ((fill-in-with-nils (some-list desired-length)
-           (let ((current-length (length some-list)))
-             (if (> desired-length current-length)
-                 (append some-list (make-list (- desired-length current-length)))
-                 some-list))))
-
-    (unless (listp left-poses)
-      (setf left-poses (list left-poses)))
-    (unless (listp right-poses)
-      (setf right-poses (list right-poses)))
+  ;; Make `left-poses' and `right-poses' to lists if they are not already
+  (unless (listp left-poses)
+    (setf left-poses (list left-poses)))
+  (unless (listp right-poses)
+    (setf right-poses (list right-poses)))
+  (multiple-value-bind (left-poses right-poses)
+      (cut:equalize-two-list-lengths left-poses right-poses)
 
     ;; Move arms through all but last poses of `?left-poses' and `?right-poses'
     ;; while ignoring failures: accuracy is not so important in intermediate poses.
-    (let ((max-length (max (length left-poses) (length right-poses))))
-      (mapc (lambda (?left-pose ?right-pose)
+    (mapc (lambda (?left-pose ?right-pose)
 
-              (cpl:with-failure-handling
-                  ((common-fail:manipulation-low-level-failure (e) ; ignore failures
-                     (roslisp:ros-warn (pick-place move-arms-in-sequence) "~a~%Ignoring." e)
-                     (return)))
+            (cpl:with-failure-handling
+                ((common-fail:manipulation-low-level-failure (e) ; ignore failures
+                   (roslisp:ros-warn (pick-place move-arms-in-sequence) "~a~%Ignoring." e)
+                   (return)))
 
-                (exe:perform
-                 (desig:a motion
-                          (type moving-tcp)
-                          (desig:when ?left-pose
-                            (left-pose ?left-pose))
-                          (desig:when ?right-pose
-                            (right-pose ?right-pose))
-                          (desig:when ?collision-mode
-                            (collision-mode ?collision-mode))
-                          (desig:when ?collision-object-b
-                            (collision-object-b ?collision-object-b))
-                          (desig:when ?collision-object-b-link
-                            (collision-object-b-link ?collision-object-b-link))
-                          (desig:when ?collision-object-a
-                            (collision-object-a ?collision-object-a))))
+              (exe:perform
+               (desig:a motion
+                        (type moving-tcp)
+                        (desig:when ?left-pose
+                          (left-pose ?left-pose))
+                        (desig:when ?right-pose
+                          (right-pose ?right-pose))
+                        (desig:when ?collision-mode
+                          (collision-mode ?collision-mode))
+                        (desig:when ?collision-object-b
+                          (collision-object-b ?collision-object-b))
+                        (desig:when ?collision-object-b-link
+                          (collision-object-b-link ?collision-object-b-link))
+                        (desig:when ?collision-object-a
+                          (collision-object-a ?collision-object-a))))
 
-                (cram-occasions-events:on-event
-                 (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+              (cram-occasions-events:on-event
+               (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
-            (fill-in-with-nils (butlast left-poses) max-length)
-            (fill-in-with-nils (butlast right-poses) max-length)))
+          left-poses right-poses))
 
-    ;; Move arm to the last pose of `?left-poses' and `?right-poses'.
-    (let ((?left-pose (car (last left-poses)))
-          (?right-pose (car (last right-poses))))
+  ;; Move arm to the last pose of `?left-poses' and `?right-poses'.
+  (let ((?left-pose (car (last left-poses)))
+        (?right-pose (car (last right-poses))))
 
-      (cpl:with-failure-handling
-          ((common-fail:manipulation-low-level-failure (e)
-             ;; propagate failures up
-             (roslisp:ros-error (pick-place move-arms-in-sequence) "~a~%Failing." e)))
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           ;; propagate failures up
+           (roslisp:ros-error (pick-place move-arms-in-sequence) "~a~%Failing." e)))
 
-        (exe:perform
-         (desig:a motion
-                  (type moving-tcp)
-                  (desig:when ?left-pose
-                    (left-pose ?left-pose))
-                  (desig:when ?right-pose
-                    (right-pose ?right-pose))
-                  (desig:when ?collision-mode
-                    (collision-mode ?collision-mode))
-                  (desig:when ?collision-object-b
-                    (collision-object-b ?collision-object-b))
-                  (desig:when ?collision-object-b-link
-                    (collision-object-b-link ?collision-object-b-link))
-                  (desig:when ?collision-object-a
-                    (collision-object-a ?collision-object-a))))
+      (exe:perform
+       (desig:a motion
+                (type moving-tcp)
+                (desig:when ?left-pose
+                  (left-pose ?left-pose))
+                (desig:when ?right-pose
+                  (right-pose ?right-pose))
+                (desig:when ?collision-mode
+                  (collision-mode ?collision-mode))
+                (desig:when ?collision-object-b
+                  (collision-object-b ?collision-object-b))
+                (desig:when ?collision-object-b-link
+                  (collision-object-b-link ?collision-object-b-link))
+                (desig:when ?collision-object-a
+                  (collision-object-a ?collision-object-a))))
 
-        (cram-occasions-events:on-event
-         (make-instance 'cram-plan-occasions-events:robot-state-changed))))))
+      (cram-occasions-events:on-event
+       (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
 
 
-(cpl:def-cram-function move-arms-into-configuration (?left-joint-states ?right-joint-states)
+(defun move-arms-into-configuration (&key
+                                       ((:left-joint-states ?left-joint-states))
+                                       ((:right-joint-states ?right-joint-states))
+                                     &allow-other-keys)
+  (declare (type list ?left-joint-states ?right-joint-states))
+  "Calls moving-arm-joints motion, while ignoring failures, and robot-state-changed event."
+
   (unwind-protect
        (cpl:with-failure-handling
            ((common-fail:manipulation-low-level-failure (e)
@@ -189,7 +207,12 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
-(cpl:def-cram-function release (?left-or-right)
+(defun release (&key
+                  ((:gripper ?left-or-right))
+                &allow-other-keys)
+  (declare (type (or keyword list) ?left-or-right))
+  "Call OPENING-GRIPPER motion while ignoring failures and issue robot-state-changed event"
+
   (unwind-protect
        (cpl:with-failure-handling
            ((common-fail:gripper-low-level-failure (e) ; ignore failures
@@ -202,34 +225,15 @@
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
-(cpl:def-cram-function open-or-close-gripper (?left-or-right ?action-type)
-  (unwind-protect
-       (cpl:with-failure-handling
-           ((common-fail:gripper-low-level-failure (e) ; ignore failures
-              (roslisp:ros-warn (pick-and-place close-gripper) "~a" e)
-              (return)))
-         (exe:perform
-          (desig:a motion
-                   (type ?action-type)
-                   (gripper ?left-or-right))))
-    (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+(defun grip (&key
+               ((:gripper ?left-or-right))
+               ((:effort ?effort))
+             &allow-other-keys)
+  (declare (type (or keyword list) ?left-or-right)
+           (type (or number null) ?effort))
+  "Perform GRIPPING motion and retries once, otherwise propagate failure up.
+In any case, issue ROBOT-STATE-CHANGED event."
 
-(cpl:def-cram-function set-gripper-to-position (?left-or-right ?position)
-  (unwind-protect
-       (cpl:with-failure-handling
-           ((common-fail:gripper-low-level-failure (e) ; ignore failures
-              (roslisp:ros-warn (pick-and-place set-gripper-to-pos) "~a" e)
-              (return)))
-         (exe:perform
-          (desig:a motion
-                   (type moving-gripper-joint)
-                   (gripper ?left-or-right)
-                   (joint-angle ?position))))
-    (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
-
-(cpl:def-cram-function grip (?left-or-right ?effort)
   (unwind-protect
        (cpl:with-retry-counters ((grasping-retries 1))
          (cpl:with-failure-handling
@@ -247,8 +251,57 @@
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
+(defun open-or-close-gripper (&key
+                                ((:type ?action-type))
+                                ((:gripper ?left-or-right))
+                              &allow-other-keys)
+  (declare (type keyword ?action-type)
+           (type (or keyword list) ?left-or-right))
+  "Call ACTION-TYPE motion while ignoring failures and issue robot-state-changed."
 
-(cpl:def-cram-function look-at (&key pose joint-states)
+  (unwind-protect
+       (cpl:with-failure-handling
+           ((common-fail:gripper-low-level-failure (e) ; ignore failures
+              (roslisp:ros-warn (pick-and-place close-gripper) "~a" e)
+              (return)))
+         (exe:perform
+          (desig:a motion
+                   (type ?action-type)
+                   (gripper ?left-or-right))))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
+(defun set-gripper-to-position (&key
+                                  ((:gripper ?left-or-right))
+                                  ((:position ?position))
+                                &allow-other-keys)
+  (declare (type (or keyword list) ?left-or-right)
+           (type number ?position))
+  "Call MOVING-GRIPPER-JOINT motion while ignoring failures and issue robot-state-changed."
+
+  (unwind-protect
+       (cpl:with-failure-handling
+           ((common-fail:gripper-low-level-failure (e) ; ignore failures
+              (roslisp:ros-warn (pick-and-place set-gripper-to-pos) "~a" e)
+              (return)))
+         (exe:perform
+          (desig:a motion
+                   (type moving-gripper-joint)
+                   (gripper ?left-or-right)
+                   (joint-angle ?position))))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
+
+(defun look-at (&key
+                  ((:pose ?pose))
+                  ((:joint-states ?joint-states))
+                &allow-other-keys)
+  (declare (type (or cl-transforms-stamped:pose-stamped null) ?pose)
+           (type list ?joint-states))
+  "Perform LOOKING motion and retry once on failures, otherwise propagate failure up.
+In any case, issue ROBOT-STATE-CHANGED event."
+
   (unwind-protect
 
        (cpl:with-retry-counters ((look-retries 1))
@@ -259,15 +312,13 @@
                   (roslisp:ros-warn (pp-plans look-at) "Retrying.")
                   (cpl:retry)))))
 
-         (let ((?pose pose)
-               (?joint-states joint-states))
-           (exe:perform
-            (desig:a motion
-                     (type looking)
-                     (desig:when ?pose
-                       (pose ?pose))
-                     (desig:when ?joint-states
-                       (joint-states ?joint-states))))))
+         (exe:perform
+          (desig:a motion
+                   (type looking)
+                   (desig:when ?pose
+                     (pose ?pose))
+                   (desig:when ?joint-states
+                     (joint-states ?joint-states)))))
 
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))

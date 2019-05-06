@@ -61,7 +61,7 @@
   (:documentation "Return the list of rigid bodies that belong to the object `obj'")
   (:method ((obj object))
     (loop for name being the hash-keys in (slot-value obj 'rigid-bodies)
-          using (hash-value body)
+            using (hash-value body)
           collecting (or body (rigid-body obj name)))))
 
 (defgeneric rigid-body-names (obj)
@@ -92,10 +92,10 @@
   (:method ((obj object) (world bt-reasoning-world))
     (with-slots (name rigid-bodies pose-reference-body) obj
       (let ((new-instance
-             (make-instance
-              'object :name name
-              :pose-reference-body pose-reference-body
-              :world world)))
+              (make-instance
+                  'object :name name
+                :pose-reference-body pose-reference-body
+                :world world)))
         (prog1 new-instance
           (setf (slot-value new-instance 'rigid-bodies)
                 (copy-hash-table rigid-bodies)))))))
@@ -116,12 +116,12 @@
               body)))))
 
 (defun make-object (world name &optional
-                    bodies (add-to-world t))
+                                 bodies (add-to-world t))
   (make-instance 'object
-                 :name name
-                 :world world
-                 :rigid-bodies bodies
-                 :add add-to-world))
+    :name name
+    :world world
+    :rigid-bodies bodies
+    :add add-to-world))
 
 (defmethod initialize-instance :after ((object object)
                                        &key rigid-bodies pose-reference-body
@@ -133,6 +133,10 @@
 
 (defmethod invalidate-object :after ((obj object))
   (with-slots (rigid-bodies) obj
+    ;; Sets each value of the rigid-bodies slot to nil.
+    ;; Don't access rigid bodies directly through this hash table, instead
+    ;; use btr:rigid-body function.
+    ;; When you use the function, the hash table entry will be reset.
     (loop for key being the hash-keys in rigid-bodies do
       (setf (gethash key rigid-bodies) nil))))
 
@@ -179,14 +183,14 @@
     (make-object world name
                  (list
                   (make-instance
-                   'rigid-body
-                   :name name :mass mass :pose (ensure-pose pose)
-                   :collision-shape (make-instance
-                                     'box-shape
-                                     :half-extents (cl-transforms:make-3d-vector
-                                                    (/ size-x 2)
-                                                    (/ size-y 2)
-                                                    (/ size-z 2))))))))
+                      'rigid-body
+                    :name name :mass mass :pose (ensure-pose pose)
+                    :collision-shape (make-instance
+                                         'box-shape
+                                       :half-extents (cl-transforms:make-3d-vector
+                                                      (/ size-x 2)
+                                                      (/ size-y 2)
+                                                      (/ size-z 2))))))))
 
 (defmethod add-object ((world bt-world) (type (eql :colored-box)) name pose
                        &key mass size color)
@@ -210,26 +214,32 @@
     (make-object world name
                  (list
                   (make-instance
-                   'rigid-body
-                   :name name :pose (ensure-pose pose)
-                   :group :static-filter
-                   :collision-shape (make-instance
-                                     'textured-static-plane-shape
-                                     :normal (cl-transforms:make-3d-vector
-                                              normal-x normal-y normal-z)
-                                     :constant constant
-                                     :width 16 :height 16
-                                     :texture (texture-str->bitmap
-                                               *static-plane-texture*
-                                               #\Space)))))))
+                      'rigid-body
+                    :name name :pose (ensure-pose pose)
+                    :group :static-filter
+                    :collision-shape (make-instance
+                                         'textured-static-plane-shape
+                                       :normal (cl-transforms:make-3d-vector
+                                                normal-x normal-y normal-z)
+                                       :constant constant
+                                       ;; :width 16 :height 16
+                                       ;; :texture (texture-str->bitmap
+                                       ;;           *static-plane-texture* #\Space)
+                                       :width 32 :height 32
+                                       :texture (texture-str->bitmap
+                                                 *static-plane-gray-texture*
+                                                 #\Space
+                                                 nil
+                                                 #\g
+                                                 '(0.6 0.6 0.6 1.0))))))))
 
 (defmethod add-object ((world bt-world) (type (eql :sphere)) name pose
                        &key mass radius color)
   (make-object world name
                (list
                 (make-instance
-                 'rigid-body
-                 :name name :mass mass :pose (ensure-pose pose)
+                    'rigid-body
+                  :name name :mass mass :pose (ensure-pose pose)
                   :collision-shape (make-instance 'colored-sphere-shape
                                      :radius radius :color color)))))
 
@@ -238,29 +248,73 @@
     (make-object world name
                  (list
                   (make-instance
-                   'rigid-body
-                   :name name :mass mass :pose (ensure-pose pose)
-                   :collision-shape (make-instance 'cylinder-shape
-                                                   :half-extents (cl-transforms:make-3d-vector
-                                                                  (/ size-x 2)
-                                                                  (/ size-y 2)
-                                                                  (/ size-z 2))))))))
+                      'rigid-body
+                    :name name :mass mass :pose (ensure-pose pose)
+                    :collision-shape (make-instance 'cylinder-shape
+                                       :half-extents (cl-transforms:make-3d-vector
+                                                      (/ size-x 2)
+                                                      (/ size-y 2)
+                                                      (/ size-z 2))))))))
 
 (defmethod add-object ((world bt-world) (type (eql :cone)) name pose &key
-                       mass radius height)
+                                                                       mass radius height)
   (make-object world name
                (list
                 (make-instance
-                 'rigid-body
-                 :name name :mass mass :pose (ensure-pose pose)
-                 :collision-shape (make-instance 'cone-shape
-                                                 :radius radius
-                                                 :height height)))))
+                    'rigid-body
+                  :name name :mass mass :pose (ensure-pose pose)
+                  :collision-shape (make-instance 'cone-shape
+                                     :radius radius
+                                     :height height)))))
 
 (defmethod add-object ((world bt-world) (type (eql :point-cloud)) name pose &key points)
   (make-object world name
                (list
                 (make-instance
-                 'rigid-body
-                 :name name :mass 0.0 :pose (ensure-pose pose)
-                 :collision-shape (make-instance 'convex-hull-shape :points points)))))
+                    'rigid-body
+                  :name name :mass 0.0 :pose (ensure-pose pose)
+                  :collision-shape (make-instance 'convex-hull-shape :points points)))))
+
+
+(defstruct collision-information
+  rigid-body-name flags)
+
+(defstruct attachment
+  "Represents a link between an object and another object or its link.
+`object' must be an instance of class OBJECT.
+`link' must be a string, the name of the link.
+If `loose' is non-NIL, it means that if the link moves, the pose
+of the object should _not_ be updated. `grasp' is the type of grasp orientation.
+`attachment' is the type of the attachment."
+  (object nil :type (or symbol string))
+  (link "" :type string)
+  (loose nil :type (or nil t))
+  (grasp nil :type (or null keyword))
+  (attachment nil :type (or null keyword)))
+
+(defgeneric attach-object (object-to-attach-to object &key &allow-other-keys)
+  (:documentation "Adds `object' to the set of attached objects of `object-to-attach-to'."))
+
+(defgeneric detach-object (object-to-detach-from object &key &allow-other-keys)
+  (:documentation "Removes `object' from the attached objects of `object-to-detach-from'."))
+
+(defgeneric detach-all-objects (object)
+  (:documentation "Removes all attachments form the list of attached objects of `object'."))
+
+(defmethod attach-object ((object-to-attach-to-name symbol) (object-name symbol) &key)
+  "Attaches object named `object-name' to another object named `object-to-attach-to-name'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-name)
+    (multiple-value-bind (other-obj other-obj-found)
+        (btr:object *current-bullet-world* object-to-attach-to-name)
+      (when (and obj-found other-obj-found)
+        (attach-object obj other-obj)))))
+
+(defmethod detach-object ((object-to-detach-from-name symbol) (object-name symbol) &key)
+  "Detaches object named `object-name' from another object named `object-to-detach-from-name'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-name)
+    (multiple-value-bind (other-obj other-obj-found)
+        (btr:object *current-bullet-world* object-to-detach-from-name)
+      (when (and obj-found other-obj-found)
+        (detach-object obj other-obj)))))

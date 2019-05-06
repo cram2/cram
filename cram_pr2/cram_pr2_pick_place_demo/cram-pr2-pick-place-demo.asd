@@ -48,8 +48,8 @@
 
                cram-common-failures
                cram-mobile-pick-place-plans
+               cram-object-knowledge
 
-               cram-knowrob-pick-place
                cram-cloud-logger
 
                cram-physics-utils     ; for reading "package://" paths

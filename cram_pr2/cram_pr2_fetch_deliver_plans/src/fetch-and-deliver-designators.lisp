@@ -54,15 +54,23 @@ the `look-pose-stamped'."
    (desig:reference target-designator)
    (cram-tf:robot-current-pose)))
 
+
+
+
 (def-fact-group fetch-and-deliver-designators (desig:action-grounding)
 
-  (<- (desig:action-grounding ?action-designator (go-without-collisions ?location-designator))
+  (<- (desig:action-grounding ?action-designator (go-without-collisions
+                                                  ?resolved-action-designator))
     (spec:property ?action-designator (:type :navigating))
     (spec:property ?action-designator (:location ?some-location-designator))
-    (desig:current-designator ?some-location-designator ?location-designator))
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (desig:designator :action ((:type :navigating)
+                               (:location ?location-designator))
+                      ?resolved-action-designator))
 
-  (<- (desig:action-grounding ?action-designator (turn-towards ?location-designator
-                                                               ?robot-location))
+
+  (<- (desig:action-grounding ?action-designator (turn-towards
+                                                  ?resolved-action-designator))
     (spec:property ?action-designator (:type :turning-towards))
     ;; target
     (spec:property ?action-designator (:target ?some-location-designator))
@@ -70,13 +78,15 @@ the `look-pose-stamped'."
     ;; robot-location
     (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
               ?robot-rotated-pose)
-    (desig:designator :location ((:pose ?robot-rotated-pose)) ?robot-location))
+    (desig:designator :location ((:pose ?robot-rotated-pose)) ?robot-location)
+    (desig:designator :action ((:type :turning-towards)
+                               (:target ?location-designator)
+                               (:robot-location ?robot-location))
+                      ?resolved-action-designator))
 
-  (<- (desig:action-grounding ?action-designator (manipulate-environment ?action-type
-                                                                         ?object-designator
-                                                                         ?arm
-                                                                         ?distance
-                                                                         ?robot-location))
+
+  (<- (desig:action-grounding ?action-designator (manipulate-environment
+                                                  ?resolved-action-designator))
     (or (spec:property ?action-designator (:type :accessing))
         (spec:property ?action-designator (:type :sealing)))
     (spec:property ?action-designator (:type ?action-type))
@@ -93,20 +103,25 @@ the `look-pose-stamped'."
              (cram-robot-interfaces:arm ?robot ?arm)
              (equal ?arm :left)))
     ;; distance
-    (or (spec:property ?action-designator (:distance ?distance))
-        (equal ?distance NIL))
+    (once (or (spec:property ?action-designator (:distance ?distance))
+              (equal ?distance NIL)))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-robot-location))
                    (desig:current-designator ?robot-location ?robot-location))
               (desig:designator :location ((:reachable-for cram-pr2-description:pr2)
                                            (:arm ?arm)
                                            (:object ?object-designator))
-                                ?robot-location))))
+                                ?robot-location)))
+    (desig:designator :action ((:type ?action-type)
+                               (:object ?object-designator)
+                               (:arm ?arm)
+                               (:distance ?distance)
+                               (:robot-location ?robot-location))
+                      ?resolved-action-designator))
+
 
   (<- (desig:action-grounding ?action-designator (search-for-object
-                                                  ?object-designator
-                                                  ?location-designator
-                                                  ?location-to-stand))
+                                                  ?resolved-action-designator))
     (spec:property ?action-designator (:type :searching))
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
@@ -119,21 +134,31 @@ the `look-pose-stamped'."
                    (desig:current-designator ?some-location-to-stand ?location-to-stand))
               (desig:designator :location ((:visible-for cram-pr2-description:pr2)
                                            (:location ?location-designator))
-                                ?location-to-stand))))
+                                ?location-to-stand)))
+    (desig:designator :action ((:type :searching)
+                               (:object ?object-designator)
+                               (:location ?location-designator)
+                               (:robot-location ?location-to-stand))
+                      ?resolved-action-designator))
 
-  (<- (desig:action-grounding ?action-designator (fetch ?object-designator ?arm ?grasp
-                                                        ?robot-location-designator
-                                                        ?pick-up-action-designator))
+
+  (<- (desig:action-grounding ?action-designator (fetch ?resolved-action-designator))
     (spec:property ?action-designator (:type :fetching))
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
     ;; arm
-    (or (spec:property ?action-designator (:arm ?arm))
-        (equal ?arm NIL))
+    (-> (spec:property ?action-designator (:arm ?arm))
+        (equal ?arms (?arm))
+        (-> (desig:desig-prop ?action-designator (:arms ?arms))
+            (true)
+            (equal ?arms NIL)))
     ;; grasp
-    (or (spec:property ?action-designator (:grasp ?grasp))
-        (equal ?grasp NIL))
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (equal ?grasps (?grasp))
+        (-> (desig:desig-prop ?action-designator (:grasps ?grasps))
+            (true)
+            (equal ?grasps NIL)))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-location-designator))
                    (desig:current-designator ?some-location-designator ?robot-location-designator))
@@ -149,25 +174,30 @@ the `look-pose-stamped'."
     (once (or (desig:desig-prop ;; spec:property
                ?action-designator (:pick-up-action ?some-pick-up-action-designator))
               (equal ?some-pick-up-action-designator NIL)))
-    (desig:current-designator ?some-pick-up-action-designator ?pick-up-action-designator))
+    (desig:current-designator ?some-pick-up-action-designator ?pick-up-action-designator)
+    (desig:designator :action ((:type :fetching)
+                               (:object ?object-designator)
+                               (:arms ?arms)
+                               (:grasps ?grasps)
+                               (:robot-location ?robot-location-designator)
+                               (:pick-up-action ?pick-up-action-designator))
+                      ?resolved-action-designator))
 
-  (<- (desig:action-grounding ?action-designator (deliver ?object-designator ?arm
-                                                          ?location-designator
-                                                          ?robot-location-designator
-                                                          ?place-action-designator))
+
+  (<- (desig:action-grounding ?action-designator (deliver ?resolved-action-designator))
     (spec:property ?action-designator (:type :delivering))
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
     ;; arm
-    (or (spec:property ?action-designator (:arm ?arm))
-        (equal ?arm NIL))
+    (once (or (spec:property ?action-designator (:arm ?arm))
+              (equal ?arm NIL)))
     ;; target
     (spec:property ?action-designator (:target ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; robot-location
-    (once (or (and (spec:property ?action-designator (:robot-location ?some-location-designator))
-                   (desig:current-designator ?some-location-designator ?robot-location-designator))
+    (once (or (and (spec:property ?action-designator (:robot-location ?some-robot-loc-desig))
+                   (desig:current-designator ?some-robot-loc-desig ?robot-location-designator))
               (desig:designator :location ((:reachable-for cram-pr2-description:pr2)
                                            (:location ?location-designator))
                                 ?robot-location-designator)))
@@ -175,25 +205,79 @@ the `look-pose-stamped'."
     (once (or (desig:desig-prop ;; spec:property
                ?action-designator (:place-action ?some-place-action-designator))
               (equal ?some-place-action-designator NIL)))
-    (desig:current-designator ?some-place-action-designator ?place-action-designator))
+    (desig:current-designator ?some-place-action-designator ?place-action-designator)
+    (desig:designator :action ((:type :delivering)
+                               (:object ?object-designator)
+                               (:arm ?arm)
+                               (:target ?location-designator)
+                               (:robot-location ?robot-location-designator)
+                               (:place-action ?place-action-designator))
+                      ?resolved-action-designator))
 
-  (<- (desig:action-grounding ?action-designator (transport
-                                                  ?object-designator
-                                                  ?fetching-location-designator
-                                                  ?delivering-location-designator
-                                                  ?arm ?grasp
-                                                  ?fetching-location-accessible))
+
+  (<- (desig:action-grounding ?action-designator (transport ?resolved-action-designator))
     (spec:property ?action-designator (:type :transporting))
+    ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
-    (spec:property ?action-designator (:location ?some-fetching-location-designator))
-    (desig:current-designator ?some-fetching-location-designator ?fetching-location-designator)
-    (spec:property ?action-designator (:target ?some-delivering-location-designator))
-    (desig:current-designator ?some-delivering-location-designator ?delivering-location-designator)
-    (or (spec:property ?action-designator (:arm ?arm))
-        (equal ?arm NIL))
-    (or (spec:property ?action-designator (:grasp ?grasp))
-        (equal ?grasp NIL))
-    (-> (desig:desig-prop ?fetching-location-designator (:in ?_))
+    ;; search location
+    (spec:property ?action-designator (:location ?some-search-loc-desig))
+    (desig:current-designator ?some-search-loc-desig ?search-location-designator)
+    (-> (desig:desig-prop ?search-location-designator (:in ?_))
         (equal ?fetching-location-accessible NIL)
-        (equal ?fetching-location-accessible T))))
+        (equal ?fetching-location-accessible T))
+    ;; search location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:search-robot-location ?some-s-robot-loc-desig))
+        (desig:current-designator ?some-s-robot-loc-desig
+                                  ?search-robot-location-designator)
+        (equal ?search-robot-location-designator NIL))
+    ;; fetch location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:fetch-robot-location ?some-f-robot-loc-desig))
+        (desig:current-designator ?some-f-robot-loc-desig
+                                  ?fetch-robot-location-designator)
+        (equal ?fetch-robot-location-designator NIL))
+    ;; arm
+    (-> (spec:property ?action-designator (:arm ?arm))
+        (equal ?arms (?arm))
+        (and (equal ?arm NIL)
+             (-> (desig:desig-prop ?action-designator (:arms ?arms))
+                 (true)
+                 (equal ?arms NIL))))
+    ;; grasp
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (equal ?grasps (?grasp))
+        (and (equal ?grasp NIL)
+             (-> (desig:desig-prop ?action-designator (:grasps ?grasps))
+                 (true)
+                 (equal ?grasps NIL))))
+    ;; target location
+    (spec:property ?action-designator
+                   (:target ?some-delivering-location-designator))
+    (desig:current-designator ?some-delivering-location-designator
+                              ?delivering-location-designator)
+    (-> (desig:desig-prop ?delivering-location-designator (:in ?_))
+        (equal ?delivering-location-accessible NIL)
+        (equal ?delivering-location-accessible T))
+    ;; deliver location robot base
+    (-> (desig:desig-prop ?action-designator
+                          (:deliver-robot-location ?some-d-robot-loc-desig))
+        (desig:current-designator ?some-d-robot-loc-desig
+                                  ?deliver-robot-location-designator)
+        (equal ?deliver-robot-location-designator NIL))
+    ;; resulting action desig
+    (desig:designator :action ((:type :transporting)
+                               (:object ?object-designator)
+                               (:search-location ?search-location-designator)
+                               (:search-robot-location ?search-robot-location-designator)
+                               (:fetch-robot-location ?fetch-robot-location-designator)
+                               (:arm ?arm)
+                               (:grasp ?grasp)
+                               (:arms ?arms)
+                               (:grasps ?grasps)
+                               (:deliver-location ?delivering-location-designator)
+                               (:deliver-robot-location ?deliver-robot-location-designator)
+                               (:search-location-accessible ?fetching-location-accessible)
+                               (:delivery-location-accessible ?delivering-location-accessible))
+                      ?resolved-action-designator)))

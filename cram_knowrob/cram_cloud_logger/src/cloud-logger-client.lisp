@@ -6,6 +6,7 @@
 (defparameter *is-logging-enabled* nil)
 (defvar *my-mutex* (sb-thread:make-mutex))
 
+;; Sebastian's setup on his PC
 (defparameter *host* "'https://localhost'")
 ;;(defparameter *host* "'https://192.168.101.42'")
 (defparameter *cert-path* "'/home/koralewski/Desktop/localhost.pem'")
@@ -22,6 +23,17 @@
 ;;(defparameter *host* "'https://192.168.101.42'")
 ;; Asil's certificate on ease@pr2a
 ;;(defparameter *cert-path* "'/home/ease/asil.pem'")
+;;(defparameter *api-key* "'MxtU9V2cdstw3ocKXbicBGp7fAeLNxjIvcmY4CJV96DeZd7obfgvw0mR3X5j8Yrz'")
+
+;; Gaya's token on Sebastian's PC
+(defparameter *host* "'https://192.168.100.172'")
+(defparameter *cert-path* "'/home/cram/Desktop/sebastian.pem'")
+(defparameter *api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
+
+;; EASE PR2 setup with Sebastian as OpenEASE and token
+(defparameter *host* "'https://192.168.100.172'")
+(defparameter *cert-path* "'/home/ease/openease-certificates/sebastian.pem'")
+(defparameter *api-key* "'K103jdr40Rp8UX4egmRf42VbdB1b5PW7qYOOVvTDAoiNG6lcQoaDHONf5KaFcefs'")
 
 
 (defclass cloud-logger-client()
@@ -63,7 +75,7 @@
   (json-prolog:prolog-simple-1 (create-query "cloud_interface" (list host cert-path api-key))))
 
 (defun send-prolog-query-1 (prolog-query)
-  (print prolog-query)
+  ;;(print prolog-query)
   (when *is-logging-enabled*
     (sb-thread:with-mutex (*my-mutex*)
      (handler-case

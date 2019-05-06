@@ -28,7 +28,6 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(defvar *robot-urdf* nil)
 (defvar *kitchen-urdf* nil)
 (defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
@@ -53,8 +52,8 @@ is replaced with replacement.
 
 (defun average (min max) (+ min (/ (- max min) 2)))
 (defun setup-world-database ()
-  (let ((robot (or *robot-urdf*
-                   (setf *robot-urdf*
+  (let ((robot (or rob-int:*robot-urdf*
+                   (setf rob-int:*robot-urdf*
                          (cl-urdf:parse-urdf
                           (replace-all (roslisp:get-param *robot-parameter*) "\\" "  ")))))
         ;; TODO get rid of replace-all and instead fix the URDF of our real PR2
@@ -71,15 +70,18 @@ is replaced with replacement.
                 ,@(when *spawn-debug-window*
                     '((btr:debug-window ?w)))
                 (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
-                                           :normal (0 0 1) :constant 0))
+                                                         :normal (0 0 1) :constant 0))
                 (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                           :collision-group :static-filter
-                                           :collision-mask (:default-filter :character-filter)
+                                                 :collision-group :static-filter
+                                                 :collision-mask (:default-filter
+                                                                  :character-filter)
                                            ,@(when kitchen
                                                `(:urdf ,kitchen))
                                            :compound T))
                 (-> (rob-int:robot ?robot)
-                    (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))
+                    (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1))
+                                                    ;; :color (0.9 0.9 0.9 1.0)
+                                                    :urdf ,robot))
                          (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
                          (assert (btr:joint-state ?world ?robot ?left-joint-states))
                          (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
@@ -99,4 +101,4 @@ is replaced with replacement.
   (let ((robot-object (btr:get-robot-object)))
     (if robot-object
         (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
-        (warn "ROBOT was not defined. Have you loaded a robot package?"))) )
+        (warn "ROBOT was not defined. Have you loaded a robot package?"))))

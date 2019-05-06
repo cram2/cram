@@ -72,6 +72,8 @@
   ;;    (ccl::connect-to-cloud-logger)
   ;;    (ccl::reset-logged-owl))
 
+  (setf pr2-proj-reasoning::*projection-checks-enabled* t)
+
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
   (btr-utils:kill-all-objects)
@@ -83,17 +85,7 @@
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
-  (unless cram-projection:*projection-environment*
-    (json-prolog:prolog-simple "rdf_retractall(A,B,C,belief_state).")
-    (btr-belief::call-giskard-environment-service :kill-all "attached")
-    (cram-bullet-reasoning-belief-state::call-giskard-environment-service
-     :add-kitchen
-     "kitchen"
-     (cl-transforms-stamped:make-pose-stamped
-      "map"
-      0.0
-      (cl-transforms:make-identity-vector)
-      (cl-transforms:make-identity-rotation))))
+  (coe:clear-belief)
 
   ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
   )

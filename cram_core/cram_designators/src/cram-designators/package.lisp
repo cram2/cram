@@ -86,6 +86,7 @@
            #:designator-pose
            #:designator-distance
            #:resolve-designator
+           #:resolve-location-designator-through-generators-and-validators
            #:delete-location-generator-function
            #:delete-location-validation-function
            #:enable-location-generator-function

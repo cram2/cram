@@ -37,6 +37,9 @@
   )
 
 (defun get-urdf-link-pose (name btr-environment)
+  (when (symbolp name)
+    (setf name
+          (roslisp-utilities:rosify-underscores-lisp-name name)))
   (btr:pose
    (btr:rigid-body
     (btr:object btr:*current-bullet-world*
@@ -97,11 +100,14 @@
         (when (typep part 'cl-urdf:link)
           (get-connecting-joint (cl-urdf:from-joint part))))))
 
+
 (defun get-manipulated-pose (link-name joint-position btr-environment &key relative)
   "Returns the pose of a link based on its connection joint position
-  `joint-position'. If `relative' is T, the actual value is calculated
-  by `joint-position' * <joint maximal value>. this method returns two
-  values, the new pose of the object and the joint that was changed."
+  JOINT-POSITION. If RELATIVE is T, the actual value is calculated
+  by JOINT-POSITION * <joint maximal value>. This function returns two
+  values, the new pose of the link and the joint that was changed."
+  (when (not (floatp joint-position))
+    (setf joint-position (float joint-position)))
   (let ((link (get-container-link link-name btr-environment)))
     (when (typep link 'cl-urdf:link)
       (let ((joint (get-connecting-joint link)))
@@ -123,6 +129,58 @@
                    (get-joint-position joint btr-environment)))
                  (cl-transforms:make-identity-rotation)))))
              (:revolute
-              (error 'simple-error
-                     :format-control "Manipulation of revolute joints not implemented.")))
+              (let* ((rotation
+                       (cl-transforms:axis-angle->quaternion
+                        (cl-transforms:make-3d-vector 0 0 1) ;; might be some other axis
+                        (if relative
+                            (* joint-position
+                               (cl-urdf:upper (cl-urdf:limits joint)))
+                            joint-position)))
+                     (link-transform
+                       (cl-transforms:pose->transform
+                        (get-urdf-link-pose link-name btr-environment)))
+                     (joint-transform
+                       (cl-transforms:pose->transform
+                        (get-urdf-link-pose (cl-urdf:name (cl-urdf:child joint)) btr-environment)))
+                     (joint-to-handle
+                       (cl-transforms:transform-diff
+                        link-transform
+                        joint-transform)))
+                (cl-transforms:transform-pose
+                 (cl-transforms:make-transform
+                  (cl-transforms:rotate
+                   rotation
+                   (cl-transforms:translation joint-to-handle))
+                  (cl-transforms:make-identity-rotation))
+                 (get-urdf-link-pose (cl-urdf:name (cl-urdf:child joint)) btr-environment))
+              )))
            joint))))))
+
+(defun get-handle-axis (container-designator)
+  "Return either a vector with (1 0 0) for horizontal handles or (0 0 1) for
+vertical handles on the container described by CONTAINER-DESIGNATOR."
+  ;; Check for exceptions based on name.
+  (let ((name-exception
+          (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
+                               (desig:desig-prop-value
+                                container-designator :urdf-name))
+                              :test 'equal)
+            ("oven_area_area_left_drawer_main"
+             (cl-transforms:make-3d-vector 0 0 1))
+            ("oven_area_area_right_drawer_main"
+             (cl-transforms:make-3d-vector 0 0 1)))))
+    (if name-exception
+        name-exception
+        ;; Use prolog to find out which supertype fits.
+        (alexandria:switch
+            ((desig:desig-prop-value container-designator :type)
+             :test (lambda (type super)
+                     (prolog:prolog `(man-int:object-type-subtype ,super ,type))))
+          (:container-prismatic (cl-transforms:make-3d-vector 1 0 0))
+          (:container-revolute (cl-transforms:make-3d-vector 0 0 1))
+          (T (progn
+               (roslisp:ros-warn (environment-manipulation get-handle-axis)
+                                 "Could not get a handle-axis for ~a
+Using a default (1 0 0)."
+                                         container-designator)
+               (cl-transforms:make-3d-vector 1 0 0)))))))

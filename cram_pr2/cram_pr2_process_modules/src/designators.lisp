@@ -32,14 +32,8 @@
 (def-fact-group pr2-pms (matching-process-module
                          available-process-module)
 
-  (<- (matching-process-module ?motion-designator pr2-base-pm)
-    (desig-prop ?motion-designator (:type :going)))
-
   (<- (matching-process-module ?motion-designator pr2-ptu-pm)
     (desig-prop ?motion-designator (:type :looking)))
-
-  (<- (matching-process-module ?motion-designator pr2-perception-pm)
-    (desig-prop ?motion-designator (:type :detecting)))
 
   (<- (matching-process-module ?motion-designator pr2-grippers-pm)
     (or (desig:desig-prop ?motion-designator (:type :gripping))
@@ -47,12 +41,7 @@
         (desig:desig-prop ?motion-designator (:type :opening-gripper))
         (desig:desig-prop ?motion-designator (:type :closing-gripper))))
 
-  (<- (matching-process-module ?motion-designator pr2-arms-pm)
-    (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
-        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
-        (desig:desig-prop ?motion-designator (:type :moving-with-constraints))))
-
   (<- (available-process-module ?pm)
     (bound ?pm)
-    (once (member ?pm (pr2-base-pm pr2-ptu-pm pr2-perception-pm pr2-grippers-pm pr2-arms-pm)))
+    (once (member ?pm (pr2-ptu-pm pr2-grippers-pm)))
     (not (projection-running ?_))))

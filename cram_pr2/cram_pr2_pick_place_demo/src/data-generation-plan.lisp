@@ -32,7 +32,7 @@
 (defun spawn-random-there-and-back-again-objects ()
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  (let ((object-types '(:cup :bowl :spoon)))
+  (let ((object-types '(:cup :bowl :spoon :breakfast-cereal)))
     ;; spawn at default location
     (let ((objects (mapcar (lambda (object-type)
                              (btr-utils:spawn-object
@@ -99,9 +99,9 @@
   (spawn-random-there-and-back-again-objects)
   (park-robot)
 
-  (dolist (?object-type '(:bowl :cup :spoon))
+  (dolist (?object-type '(:bowl :cup :breakfast-cereal :spoon))
     (let* ((?arm-to-use (nth (random 2) '(:left :right)))
-           (grasps-list (man-int:get-object-type-grasps ?object-type ?arm-to-use nil))
+           (grasps-list (man-int:get-action-grasps ?object-type ?arm-to-use nil))
            (?grasp-to-use (nth (random (length grasps-list)) grasps-list))
            (?color (cdr (assoc ?object-type *object-colors*))))
       (cpl:with-failure-handling
@@ -128,7 +128,7 @@
                           (side right)
                           (on (desig:an object
                                         (type counter-top)
-                                        (urdf-name kitchen-island-surface)
+                                        (urdf-name kitchen-island)
                                         (owl-name "kitchen_island_counter_top")
                                         (part-of kitchen)))
                           (for ?object))))
@@ -145,6 +145,7 @@
                      (type positioning-arm)
                      (left-configuration park)
                      (right-configuration park)))
+          (btr:simulate btr:*current-bullet-world* 100)
           (let ((?new-object (exe:perform
                               (desig:an action
                                         (type detecting)

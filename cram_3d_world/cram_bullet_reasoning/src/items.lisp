@@ -58,7 +58,7 @@ The name in the list is a keyword that is created by lispifying the filename."
                       (or (string-equal object-extension "stl")
                           (string-equal object-extension "dae")))
                   (let* ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
-                                    object-filename :keyword))
+                                     object-filename :keyword))
                          (new-entry (list lisp-name
                                           (format nil "package://~a/~a/~a.~a"
                                                   ros-package directory
@@ -75,7 +75,9 @@ The name in the list is a keyword that is created by lispifying the filename."
                               (format nil "package://~a/~a/*.*" ros-package directory))))))
 
 (defclass item (object)
-  ((types :reader item-types :initarg :types)))
+  ((types :reader item-types :initarg :types)
+   (attached-objects :reader attached-objects :initarg :attached-objects
+                     :type 'list :initform nil)))
 
 (defmethod copy-object ((object item) (world bt-reasoning-world))
   (change-class (call-next-method) 'item
@@ -89,7 +91,7 @@ The name in the list is a keyword that is created by lispifying the filename."
         (let ((mesh-specification (assoc object-type *mesh-files*)))
           (assert
            mesh-specification ()
-           "Couldn't fine a mesh for object type ~a." object-type)
+           "Couldn't find a mesh for object type ~a." object-type)
           (destructuring-bind (type uri &optional flip-winding-order)
               mesh-specification
             (declare (ignore type))
@@ -131,10 +133,10 @@ The name in the list is a keyword that is created by lispifying the filename."
                          (/ (* i pi)
                             4)))
                        (make-instance
-                        'box-shape
-                        :half-extents (cl-transforms:make-3d-vector
-                                       radius (* radius (sin (/ pi 8)))
-                                       (/ height 2)))))
+                           'box-shape
+                         :half-extents (cl-transforms:make-3d-vector
+                                        radius (* radius (sin (/ pi 8)))
+                                        (/ height 2)))))
     compound-shape))
 
 (defun make-cup-shape (radius height handle-size)
@@ -148,14 +150,15 @@ The name in the list is a keyword that is created by lispifying the filename."
                        0 0)
                       (cl-transforms:make-quaternion 0 0 0 1))
                      (make-instance
-                      'box-shape
-                      :half-extents (cl-transforms:v* handle-size 0.5)))
+                         'box-shape
+                       :half-extents (cl-transforms:v* handle-size 0.5)))
     collision-shape))
 
-(defmethod add-object ((world bt-world) (type (eql :generic-cup)) name pose &key
-                       mass radius height
-                       (handle-size (cl-transforms:make-3d-vector
-                                     0.03 0.01 (* height 0.8))))
+(defmethod add-object ((world bt-world) (type (eql :generic-cup)) name pose
+                       &key
+                         mass radius height
+                         (handle-size (cl-transforms:make-3d-vector
+                                       0.03 0.01 (* height 0.8))))
   (make-item world name '(generic-cup)
              (list
               (make-instance
@@ -164,7 +167,7 @@ The name in the list is a keyword that is created by lispifying the filename."
                 :collision-shape (make-cup-shape radius height handle-size)))))
 
 (defmethod add-object ((world bt-world) (type (eql :mug)) name pose &key
-                       mass)
+                                                                      mass)
   (add-object world :mesh name pose :mass mass :mesh :mug))
 
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
@@ -274,3 +277,62 @@ The name in the list is a keyword that is created by lispifying the filename."
                 :collision-shape (make-instance 'colored-box-shape
                                    :half-extents (ensure-vector size)
                                    :color color)))))
+
+
+(defmethod attach-object ((other-object item) (object item) &key attachment-type)
+  "Attaches `object' to `other-object': adds an attachment to the
+attached-objects lists of each other. The attachments are bidirectional.
+`attachment-type' is a keyword that specifies the type of attachment."
+  (when (equal (name object) (name other-object))
+    (warn "Cannot attach an object to itself: ~a" (name object))
+    (return-from attach-object))
+  (when (member (name object) (attached-objects other-object))
+    (warn "Item ~a already attached to ~a. Ignoring new attachment."
+          (name object) (name other-object))
+    (return-from attach-object))
+  (push (make-attachment :object (name object) :attachment attachment-type)
+        (slot-value other-object 'attached-objects))
+  (push (make-attachment :object (name other-object) :attachment attachment-type)
+        (slot-value object 'attached-objects))
+  (setf (mass (car (rigid-bodies object))) 0.0)
+  (setf (mass (car (rigid-bodies other-object))) 0.0))
+
+(defmethod detach-object ((other-object item) (object item) &key)
+  "Removes item names from the given arguments in the corresponding `attached-objects' lists
+   of the given items."
+  (setf (slot-value other-object 'attached-objects)
+        (remove (name object) (attached-objects other-object)
+                :key #'attachment-object :test #'equal))
+  (setf (slot-value object 'attached-objects)
+        (remove (name other-object) (attached-objects object)
+                :key #'attachment-object :test #'equal))
+  (setf (mass (car (rigid-bodies object))) 0.2)
+  (setf (mass (car (rigid-bodies other-object))) 0.2))
+
+(let ((already-moved '()))
+  (defmethod (setf pose) :around (new-value (object item))
+    "Since we save the original pose of the object at the time of attaching,
+it is possible to change the pose of its attachments when its pose changes."
+    (if (and (slot-boundp object 'attached-objects)
+             (> (length (attached-objects object)) 0))
+        (let ((carrier-transform
+                (cl-transforms:transform-diff
+                 (cl-transforms:pose->transform new-value)
+                 (cl-transforms:pose->transform (pose object)))))
+          ;; If none item already moved or item wasn't already moved
+          (unless (and already-moved
+                       (member (name object) already-moved :test #'equal))
+            (push (name object) already-moved)
+            (call-next-method)
+            (dolist (attachment (attached-objects object))
+              (let ((current-attachment-pose (object-pose (attachment-object attachment))))
+                (when (and carrier-transform current-attachment-pose)
+                  (setf (pose (btr:object btr:*current-bullet-world*
+                                          (attachment-object attachment)))
+                        (cl-transforms:transform-pose
+                         carrier-transform
+                         current-attachment-pose)))))
+            ;; If all attachments from root head passed, remove all.
+            (if (equal (name object) (car (last already-moved)))
+                (setf already-moved '()))))
+        (call-next-method))))

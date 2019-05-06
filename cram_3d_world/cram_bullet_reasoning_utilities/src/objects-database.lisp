@@ -52,11 +52,13 @@
   (<- (%scenario-object-color :fork     (0.2 0.1 0.3)))
   (<- (%scenario-object-color :knife    (0.5 0 0)))
   (<- (%scenario-object-color :mug      (0.8 0.3 0)))
+  (<- (%scenario-object-color :cup      (1.0 0.64 0.293)))
   (<- (%scenario-object-color :pot      (0.1 0.2 0.3)))
-  (<- (%scenario-object-color :bowl     (0 0.3 0)))
+  (<- (%scenario-object-color :bowl     (0.61 0.17 0.06)))
   (<- (%scenario-object-color :mondamin (0.5 0.1 0)))
   (<- (%scenario-object-color :spatula  (0.1 0.1 0.1)))
   (<- (%scenario-object-color :pancake-maker (0.15 0.15 0.15)))
+  (<- (%scenario-object-color :breakfast-cereal (0.5 0.5 0.21)))
   (<- (%scenario-object-color :visualization-box (1.0 0.0 0.0 0.5)))
 
   ;; Object type shapes
