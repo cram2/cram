@@ -197,4 +197,4 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_lisp_executable(cram-sim-log-generator cram-sim-log-generator cram-sim-log-generator::generate-neem)
+add_lisp_executable(cram-sim-log-generator cram-sim-log-generator cram-sim-log-generator::main)

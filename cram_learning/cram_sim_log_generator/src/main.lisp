@@ -1,40 +1,86 @@
 (in-package :cslg)
+(defparameter *mongo-logger* nil)
+(defparameter num-experiments 1000)
+(defparameter connection-retries 0)
 
-(defun main (num-experiments)
-  (setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
-  (setf cram-tf:*tf-broadcasting-enabled* t)
-  (roslisp-utilities:startup-ros :name "cram" :anonymous nil)
+(defun prepare-logging ()
+  (setf connection-retries 0)
+  (print "Cleaning old ros nodes ...")
+  (asdf-utils:run-program (concatenate 'string "echo 'y' | rosnode cleanup"))
+  (print "Cleaning old ros nodes done")
+  (print "Waiting for JSON Prolog to start ...")
+  ;;(setf *json-prolog-process* (sb-ext:run-program "roslaunch" '("json_prolog" "json_prolog.launch") :search t :output :stream :wait nil))
+  ;;(asdf-utils:run-program (concatenate 'string "roslaunch json_prolog json_prolog.launch &"))
+  (asdf-utils:run-program (concatenate 'string " python ~/Desktop/lol_launcher.py"))
+  ;;(json-prolog:wait-for-prolog-service)
+  (print "JSON Prolog started")
+  (setf ccl::*is-client-connected* nil)
   (setf ccl::*is-logging-enabled* t)
   (setf ccl::*host* "'https://localhost'")
   (setf ccl::*cert-path* "'/home/koralewski/Desktop/localhost.pem'")
   (setf ccl::*api-key* "'K103jdr40Rp8UX4egmRf42VbdB1b5PW7qYOOVvTDAoiNG6lcQoaDHONf5KaFcefs'")
-  (ccl::connect-to-cloud-logger)
-  (setf ccl::*is-client-connected* t)
+  (loop while (and (not ccl::*is-client-connected*) (< connection-retries 10)) do
+    (progn
+      (ccl::connect-to-cloud-logger)
+      (setf connection-retries (+ connection-retries 1))))
+  (when (not ccl::*is-client-connected*)
+    (/ 1 0)))
+
+(defun main ()
+  (setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
+  (setf cram-tf:*tf-broadcasting-enabled* t)
+  (roslisp-utilities:startup-ros :name "cram" :anonymous nil)
   ;;(setq roslisp::*debug-stream* nil)
-  (loop for x from 1 to num-experiments
+  (print "Init bullet world")
+  (loop for x from 0 to (- num-experiments 1)
         do (let ((experiment-id (format nil "~d" (truncate (* 1000000 (cram-utilities:current-timestamp))))))
              (let ((experiment-save-path
                      (concatenate 'string
                                   "~/projection-experiments/" experiment-id "/")))
                (ensure-directories-exist experiment-save-path)
                (setq ccl::*prolog-query-save-path* experiment-save-path)
+               (handler-case 
+                   (when (eq (mod x 50) 0) (prepare-logging))
+                 (simple-error ()
+                   (print "Logger cannot connect")))
                (format t "Starting experiment ~a~%" experiment-id)
-               (asdf-utils:run-program (concatenate 'string "rosrun mongodb_log mongodb_log -c " experiment-id " &"))
+               (setf cslg::*mongo-logger* (sb-ext:run-program "rosrun" (list "mongodb_log" "mongodb_log" "-c" experiment-id)
+                      :search t :output :stream :wait nil))
+               ;;(asdf-utils:run-program (concatenate 'string "rosrun mongodb_log mongodb_log -c " experiment-id " &"))
                (print "Starting demo")
-               (pr2-proj:with-simulated-robot
-                 (handler-case
-                     (demo::demo-random nil '(:bowl))
-                   (simple-error () (print "Logging failed due to exception"))))
+               (handler-case
+                   (progn
+                     (pr2-proj:with-simulated-robot (demo::demo-random nil '(:bowl)))
+                     (ccl::export-log-to-owl (concatenate 'string experiment-id ".owl"))
+                     (format t "Done with experiment ~a~%" experiment-id)
+                     (asdf-utils:run-program (concatenate 'string "docker cp seba:/home/ros/user_data/" experiment-id ".owl " experiment-save-path)))
+                 (CRAM-CLOUD-LOGGER::CCL-FAILURE ()
+                   (print "Logging failed due to exception")
+                   (prepare-logging))
+                 (simple-error (e)
+                   (print "SIMPLE ERROR OCCURRED DURING LOGGING")
+                   (print e)))
                (print "END DEMO")
 ;;                    (pr2-proj:with-simulated-robot (demo::demo-random))
 ;;                      (demo::generate-training-data nil '(:bowl :spoon))
                     ;;(pr2-proj:with-simulated-robot (demo::evaluation-there-and-back-again 3))
-                      
-               (ccl::export-log-to-owl (concatenate 'string experiment-id ".owl"))
-               (format t "Done with experiment ~a~%" experiment-id)
-               (asdf-utils:run-program (concatenate 'string "docker cp seba:/home/ros/user_data/" experiment-id ".owl " experiment-save-path))
-                 ))
+             (handler-case 
+                 (ccl::reset-logged-owl)
+               (CRAM-CLOUD-LOGGER::CCL-FAILURE ()
+                 (print "Logging failed due to exception")
+                 (prepare-logging))
+               (simple-error (e)
+                   (print "SIMPLE ERROR OCCURRED DURING LOGGING")
+                   (print e)))
+               (handler-case
+                   (progn
+                       (asdf-utils:run-program
+                        (concatenate 'string
+                         "pkill  -SIGKILL -f '/usr/bin/python /home/koralewski/catkin_ws/ros_cram/src/ros-mongodb_log/bin/mongodb_log'"))
+                      (sb-ext:process-kill *mongo-logger* 15))
+                 
+                 (UIOP/RUN-PROGRAM:SUBPROCESS-ERROR () (print "killed")))
+               
                    ;;(asdf-utils:run-program "killall -r 'mongod'")))
-           (asdf-utils:run-program "killall -r 'mongodb_log'")
-             ;;(ccl::reset-logged-owl)
-             ))
+  ;;(asdf-utils:run-program "killall -r 'mongodb_log'")
+           ))))
