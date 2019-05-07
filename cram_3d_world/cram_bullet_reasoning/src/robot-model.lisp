@@ -83,6 +83,20 @@
             compound-shape)
           (make-ch-mesh-shape (car model))))))
 
+(defstruct collision-information
+  rigid-body-name flags)
+
+(defstruct attachment
+  "Represents a link between an object and a link. `object' must be an
+instance of class OBJECT. `link' must be a string, the name of the
+link. If `loose' is non-NIL, it means that if the link moves, the pose
+of the object should _not_ be updated. `grasp' is the type of grasp orientation."
+  (object nil :type (or symbol string))
+  (link "" :type string)
+  (loose nil :type (or nil t))
+  (grasp nil :type (or null keyword))
+  (attachment nil :type (or null keyword)))
+
 (defclass robot-object (object)
   ((links :initarg :links :initform (make-hash-table :test 'equal) :reader links)
    (joint-states :initarg :joint-states :initform (make-hash-table :test 'equal)
@@ -175,26 +189,37 @@ Otherwise, the attachment is only used as information but does not affect the wo
              (push (cons (name obj)
                          (cons
                           (list new-attachment)
-                          (create-static-collision-information obj)))
+                          (loop for body in (rigid-bodies obj)
+                                collecting (make-collision-information
+                                            :rigid-body-name (name body)
+                                            :flags (collision-flags body))
+                                do (setf (collision-flags body) :cf-static-object))))
                    attached-objects))))))
 
 (defmethod detach-object ((robot-object robot-object) (object object) &key link)
-  "Detaches `object' from the set of attached objects.
- If `link' is specified, detaches `object' only from
- `link'. Otherwise, detaches `object' from all links."
-  (with-slots (attached-objects) robot-object
-    (let ((attachment (assoc (name object) attached-objects)))
-      (cond (link
-             (setf (second attachment)
-                   (remove link (second attachment)
-                           :test #'equal :key #'attachment-link))
-             (unless (second attachment)
-               (setf attached-objects (remove (name object) attached-objects
-                                              :key #'car))
-               (reset-collision-information object (cdr (cdr attachment)))))
-            (t (setf attached-objects (remove (name object) attached-objects
-                                              :key #'car))
-               (reset-collision-information object (cdr (cdr attachment))))))))
+  "Detaches `detach-obj' from the set of attached objects.
+If `link' is specified, detaches `object' only from
+  `link'. Otherwise, detaches `object' from all links."
+  (flet ((reset-collision-information (object collision-information)
+           (loop for collision-data in collision-information
+                 for body = (rigid-body
+                             object (collision-information-rigid-body-name
+                                     collision-data))
+                 do (setf (collision-flags body)
+                          (collision-information-flags collision-data)))))
+    (with-slots (attached-objects) robot-object
+      (let ((attachment (assoc (name object) attached-objects)))
+        (cond (link
+               (setf (second attachment)
+                     (remove link (second attachment)
+                             :test #'equal :key #'attachment-link))
+               (unless (second attachment)
+                 (setf attached-objects (remove (name object) attached-objects
+                                                :key #'car))
+                 (reset-collision-information object (cdr (cdr attachment)))))
+              (t (setf attached-objects (remove (name object) attached-objects
+                                                :key #'car))
+                 (reset-collision-information object (cdr (cdr attachment)))))))))
 
 (defmethod detach-all-objects ((robot-object robot-object))
   "Removes all objects form the list of attached objects."
