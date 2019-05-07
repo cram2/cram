@@ -288,6 +288,25 @@
 (defstruct collision-information
   rigid-body-name flags)
 
+(defmethod create-static-collision-information ((object object))
+  (unless (object *current-bullet-world* (name object))
+    (warn "Cannot find object named ~a" (name object))
+    (loop for body in (rigid-bodies object)
+          collecting (make-collision-information
+                      :rigid-body-name (name body)
+                      :flags (collision-flags body))
+          do (setf (collision-flags body) :cf-static-object))))
+
+(defmethod reset-collision-information ((object object) collision-information)
+  (unless (typep collision-information 'collision-information)
+    (warn "Given collision-information is not of the wanted type.")
+    (loop for collision-data in collision-information
+          for body = (rigid-body
+                      object (collision-information-rigid-body-name
+                              collision-data))
+          do (setf (collision-flags body)
+                   (collision-information-flags collision-data)))))
+
 (defstruct attachment
   "Represents a link between an object and another object or its link.
 `object' must be an instance of class OBJECT.
@@ -327,3 +346,10 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
         (btr:object *current-bullet-world* object-to-detach-from-name)
       (when (and obj-found other-obj-found)
         (detach-object obj other-obj)))))
+
+(defmethod detach-all-objects ((object-to-detach-from-name symbol))
+  "Detaches objects from object named `object-to-detach-from-name'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-to-detach-from-name)
+    (when obj-found
+      (detach-all-objects obj))))
