@@ -289,24 +289,39 @@ attached-objects lists of each other. The attachments are bidirectional.
     (warn "Item ~a already attached to ~a. Ignoring new attachment."
           (name object) (name other-object))
     (return-from attach-object))
-  (push (make-attachment :object (name object) :attachment attachment-type)
+  (push (cons (name object)
+              (cons
+               (list (make-attachment :object (name object) :attachment attachment-type))
+               (create-static-collision-information object)))
         (slot-value other-object 'attached-objects))
-  (push (make-attachment :object (name other-object) :attachment attachment-type)
-        (slot-value object 'attached-objects))
-  (setf (mass (car (rigid-bodies object))) 0.0)
-  (setf (mass (car (rigid-bodies other-object))) 0.0))
+  (push (cons (name other-object)
+              (cons
+               (list (make-attachment :object (name other-object) :attachment attachment-type))
+               (create-static-collision-information other-object)))
+        (slot-value object 'attached-objects)))
 
 (defmethod detach-object ((other-object item) (object item) &key)
   "Removes item names from the given arguments in the corresponding `attached-objects' lists
    of the given items."
-  (setf (slot-value other-object 'attached-objects)
-        (remove (name object) (attached-objects other-object)
-                :key #'attachment-object :test #'equal))
-  (setf (slot-value object 'attached-objects)
-        (remove (name other-object) (attached-objects object)
-                :key #'attachment-object :test #'equal))
-  (setf (mass (car (rigid-bodies object))) 0.2)
-  (setf (mass (car (rigid-bodies other-object))) 0.2))
+  (flet ((get-attachment-object (elem)
+           (attachment-object (car (second elem))))
+         (get-collision-info (obj)
+           (cdr (cdr (assoc (name obj) (attached-objects obj))))))
+    (setf (slot-value other-object 'attached-objects)
+          (remove (name object) (attached-objects other-object)
+                  :key #'get-attachment-object :test #'equal))
+    (setf (slot-value object 'attached-objects)
+          (remove (name other-object) (attached-objects object)
+                  :key #'get-attachment-object :test #'equal))
+    (reset-collision-information object (get-collision-info object))
+    (reset-collision-information other-object (get-collision-info other-object))))
+
+(defmethod detach-all-objects ((object item))
+  (with-slots (attached-objects) object
+    (dolist (attached-object attached-objects)
+      (let ((object-name (car attached-object)))
+        (if (object *current-bullet-world* object-name)
+            (detach-object (name object) object-name))))))
 
 (let ((already-moved '()))
   (defmethod (setf pose) :around (new-value (object item))
@@ -318,12 +333,12 @@ it is possible to change the pose of its attachments when its pose changes."
                 (cl-transforms:transform-diff
                  (cl-transforms:pose->transform new-value)
                  (cl-transforms:pose->transform (pose object)))))
-          ;; If none item already moved or item wasn't already moved
+          ;; If no attached item already moved or wasn't already moved
           (unless (and already-moved
                        (member (name object) already-moved :test #'equal))
             (push (name object) already-moved)
             (call-next-method)
-            (dolist (attachment (attached-objects object))
+            (dolist (attachment (mapcar #'car (mapcar #'second (attached-objects object))))
               (let ((current-attachment-pose (object-pose (attachment-object attachment))))
                 (when (and carrier-transform current-attachment-pose)
                   (setf (pose (btr:object btr:*current-bullet-world*
