@@ -289,23 +289,21 @@
   rigid-body-name flags)
 
 (defmethod create-static-collision-information ((object object))
-  (unless (object *current-bullet-world* (name object))
-    (warn "Cannot find object named ~a" (name object))
-    (loop for body in (rigid-bodies object)
-          collecting (make-collision-information
-                      :rigid-body-name (name body)
-                      :flags (collision-flags body))
-          do (setf (collision-flags body) :cf-static-object))))
+  (if (not (object *current-bullet-world* (name object)))
+      (warn "Cannot find object named ~a" (name object))
+      (loop for body in (rigid-bodies object)
+            collecting (make-collision-information
+                        :rigid-body-name (name body)
+                        :flags (collision-flags body))
+            do (setf (collision-flags body) :cf-static-object))))
 
-(defmethod reset-collision-information ((object object) collision-information)
-  (unless (typep collision-information 'collision-information)
-    (warn "Given collision-information is not of the wanted type.")
-    (loop for collision-data in collision-information
-          for body = (rigid-body
-                      object (collision-information-rigid-body-name
-                              collision-data))
-          do (setf (collision-flags body)
-                   (collision-information-flags collision-data)))))
+(defmethod reset-collision-information ((object object) collision-information) ;; TODO does not reset
+  (loop for collision-data in collision-information
+        for body = (rigid-body
+                    object (collision-information-rigid-body-name
+                            collision-data))
+        do (setf (collision-flags body)
+                 (collision-information-flags collision-data))))
 
 (defstruct attachment
   "Represents a link between an object and another object or its link.
