@@ -297,7 +297,7 @@
                         :flags (collision-flags body))
             do (setf (collision-flags body) :cf-static-object))))
 
-(defmethod reset-collision-information ((object object) collision-information) ;; TODO does not reset
+(defmethod reset-collision-information ((object object) collision-information)
   (loop for collision-data in collision-information
         for body = (rigid-body
                     object (collision-information-rigid-body-name

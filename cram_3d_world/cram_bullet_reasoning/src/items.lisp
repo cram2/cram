@@ -305,16 +305,16 @@ attached-objects lists of each other. The attachments are bidirectional.
    of the given items."
   (flet ((get-attachment-object (elem)
            (attachment-object (car (second elem))))
-         (get-collision-info (obj)
-           (cdr (cdr (assoc (name obj) (attached-objects obj))))))
+         (get-collision-info (attached obj)
+           (cdr (cdr (assoc (name attached) (attached-objects obj))))))
+    (reset-collision-information object (get-collision-info object other-object))
+    (reset-collision-information other-object (get-collision-info other-object object))
     (setf (slot-value other-object 'attached-objects)
           (remove (name object) (attached-objects other-object)
                   :key #'get-attachment-object :test #'equal))
     (setf (slot-value object 'attached-objects)
           (remove (name other-object) (attached-objects object)
-                  :key #'get-attachment-object :test #'equal))
-    (reset-collision-information object (get-collision-info object))
-    (reset-collision-information other-object (get-collision-info other-object))))
+                  :key #'get-attachment-object :test #'equal))))
 
 (defmethod detach-all-objects ((object item))
   (with-slots (attached-objects) object
