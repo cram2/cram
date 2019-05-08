@@ -36,12 +36,14 @@
   ((result :initarg :result :reader result :initform nil))
   (:default-initargs :format-control "designator-goal-parsing-failure"))
 
-(defun try-reference-designator (designator &optional (error-message ""))
-  (handler-case (reference designator)
-    (desig:designator-error ()
-      (cpl:fail 'designator-reference-failure
-                :format-control "Designator ~a could not be resolved.~%~a"
-                :format-arguments (list designator error-message)))))
+(defgeneric try-reference-designator (designator error-message)
+  (:documentation "Try to reference designator")
+  (:method (designator error-message)
+      (handler-case (reference designator)
+        (desig:designator-error ()
+          (cpl:fail 'designator-reference-failure
+                    :format-control "Designator ~a could not be resolved.~%~a"
+                    :format-arguments (list designator error-message))))))
 
 (defun convert-desig-goal-to-occasion (keyword-expression)
   (handler-case (destructuring-bind (occasion &rest params)
@@ -93,7 +95,7 @@ similar to what we have for locations.")
 
   (:method ((designator action-designator))
     (destructuring-bind (plan referenced-action-designator)
-        (try-reference-designator designator)
+        (try-reference-designator designator "")
       (if (fboundp plan)
           (let ((desig-goal (desig-prop-value designator :goal)))
             (if desig-goal

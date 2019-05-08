@@ -32,6 +32,14 @@
 
 (cpl:define-task-variable *action-parents* '())
 (defparameter *action-siblings* (make-hash-table))
+(defparameter *referenced-designator* nil)
+
+(defmethod exe:try-reference-designator :around (designator error-message)
+  (if (string= "" error-message)
+      (let ((referenced-designator (call-next-method)))
+        (setf *referenced-designator* (cadr referenced-designator))
+        referenced-designator))
+  (call-next-method))
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
@@ -61,8 +69,10 @@
           (if (not *action-parents*)
               (setq is-parent-action t))
           (push action-id *action-parents*)
-          (let ((perform-result (call-next-method)))
+          (let ((perform-result (call-next-method))
+                (referenced-action-id (log-perform-call *referenced-designator*)))
             (log-cram-finish-action action-id)
+            (equate action-id referenced-action-id)
             (when (and perform-result (typep perform-result 'desig:object-designator))
               (let ((name (desig:desig-prop-value perform-result :name)))
                 (when name
@@ -72,6 +82,11 @@
                    (send-batch-query))
             perform-result)))
       (call-next-method)))
+
+(defun equate (designator-id referenced-designator-id)
+  (send-rdf-query (convert-to-prolog-str designator-id)
+                    "knowrob:equate"
+                    (convert-to-prolog-str referenced-designator-id)))
 
 (defun log-perform-call (designator)
   (connect-to-cloud-logger)

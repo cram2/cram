@@ -1,6 +1,6 @@
 (in-package :cslg)
 (defparameter *mongo-logger* nil)
-(defparameter num-experiments 1000)
+(defparameter num-experiments 1)
 (defparameter connection-retries 0)
 
 (defun prepare-logging ()
