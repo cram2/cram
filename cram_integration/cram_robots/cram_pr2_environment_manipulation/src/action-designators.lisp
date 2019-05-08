@@ -59,7 +59,12 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
-    (spec:property ?action-designator (:distance ?distance))
+    (-> (spec:property ?action-designator (:distance ?distance))
+        (true)
+        (lisp-fun man-int:get-container-opening-distance
+                  ?container-designator ?distance))
+    (lisp-fun clip-distance ?container-name ?btr-environment ?distance :opening
+              ?clipped-distance)
     ;; infer joint information
     ;; joint-name
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
@@ -80,7 +85,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory
                        :opening ?arm :open ?objects
-                       :opening-distance ?distance
+                       :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
@@ -98,7 +103,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (equal ?arm :right)
         (and (lisp-fun man-int:get-action-trajectory
                        :opening ?arm :open ?objects
-                       :opening-distance ?distance
+                       :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
@@ -119,7 +124,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (desig:designator :action ((:type :opening)
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
-                               (:distance ?distance)
+                               (:distance ?clipped-distance)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)
@@ -148,7 +153,12 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
-    (spec:property ?action-designator (:distance ?distance))
+    (-> (spec:property ?action-designator (:distance ?distance))
+        (true)
+        (lisp-fun man-int:get-container-opening-distance
+                  ?container-designator ?distance))
+    (lisp-fun clip-distance ?container-name ?btr-environment ?distance :closing
+              ?clipped-distance)
     ;; infer joint information
     ;; joint-name
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
@@ -169,7 +179,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory
                        :closing ?arm :close ?objects
-                       :opening-distance ?distance
+                       :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
@@ -187,7 +197,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (equal ?arm :right)
         (and (lisp-fun man-int:get-action-trajectory
                        :closing ?arm :close ?objects
-                       :opening-distance ?distance
+                       :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
@@ -208,7 +218,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (desig:designator :action ((:type :closing)
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
-                               (:distance ?distance)
+                               (:distance ?clipped-distance)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)
