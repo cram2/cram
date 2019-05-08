@@ -42,7 +42,17 @@
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :container)))
   50)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :container)))
   0.10)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-container-opening-distance :heuristics 20 (container-designator)
+  (let ((container-type
+          (desig:desig-prop-value container-designator
+                                  :type)))
+    (if (prolog:prolog `(man-int:object-type-subtype :container-prismatic ,container-type))
+        0.4
+        (/ pi 4))))
