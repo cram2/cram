@@ -28,7 +28,7 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(cpm:def-process-module world-state-sensing (motion-designator)
+(cpm:def-process-module world-state-detecting (motion-designator)
   ;;(roslisp:ros-info (world-state-sensing) "Tries to sense the new position of the object")
   (destructuring-bind (command object) (desig:reference motion-designator)
     (ecase command
@@ -36,8 +36,8 @@
        (sense-new-object-pose object)))))
 
 (def-fact-group pr2-matching-pms (cpm:matching-process-module)
-  (<- (cpm:matching-process-module ?motion-designator world-state-sensing)
-    (desig:desig-prop ?motion-designator (:type :world-state-sensing))))
+  (<- (cpm:matching-process-module ?motion-designator world-state-detecting)
+    (desig:desig-prop ?motion-designator (:type :world-state-detecting))))
 
 (defun sense-new-object-pose (?old-object)
   (let (map->base
@@ -47,12 +47,11 @@
         ?newTransform
         new-object)
 
-    (print (desig:desig-prop-value ?old-object :pose))
-
-    (setf map->base (cram-tf:robot-current-pose))
+    (setf map->base (cl-tf:pose->transform (cram-tf:robot-current-pose)))
     
     (setf map->obj (second
-                    (find :transform-in-map (desig:desig-prop-value ?old-object :pose)  :test #'equal :key #'first)))
+                    (find :transform-in-map (desig:desig-prop-value ?old-object :pose)
+                          :test #'equal :key #'first)))
   
     (setf trans (cl-transforms:transform* (cl-transforms:transform-inv map->base) map->obj))
     

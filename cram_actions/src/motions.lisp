@@ -128,8 +128,8 @@
     (property ?designator (:constraints ?constraints-string))))
 
 ;; temporary name until I come up with somthing better
-(def-fact-group world-state-sensing (motion-grounding)
+(def-fact-group world-state-detecting (motion-grounding)
   
   (<- (motion-grounding ?designator (sense-pose ?object))
-    (property ?designator (:type :world-state-sensing))
+    (property ?designator (:type :world-state-detecting))
     (property ?designator (:object ?object))))
