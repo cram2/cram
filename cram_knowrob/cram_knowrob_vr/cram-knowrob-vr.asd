@@ -75,24 +75,4 @@
      (:file "fetch-and-deliver-based-demo" :depends-on ("package"
                                                         "query-based-calculations"
                                                         "designator-integration"))
-
-     ;; integration with grasping interface from cram_manipulation_interfaces
-     ;; (:file "grasping" :depends-on ("package" "query-based-calculations"))
-     ;; move-to-object, pick, place and pick-and-place plans, queries for get-hand
-     ;; (:file "plans" :depends-on ("package" "queries" "mapping-urdf-semantic"))
-     ;; calling plans with correct arguments
-     ;; (:file "plan-execution" :depends-on ("package" "query-based-calculations"))
-     ;; utilities for moving objects to poses for the demo-plans file
-     ;; (:file "move-utils" :depends-on ("package"
-     ;;                                  "mapping-urdf-semantic"
-     ;;                                  "query-based-calculations"))
-     ;; plans for demonstrations
-     ;; (:file "demo-plans" :depends-on ("package" "plan-execution" "move-utils"))
-     ;; only used for debugging
-     ;; (:file "debugging-utils" :depends-on ("package"
-     ;;                                       "queries"
-     ;;                                       "query-based-calculations"
-     ;;                                       "init"
-     ;;                                       "move-utils"
-     ;;                                       "mapping-urdf-semantic"))
      ))))
