@@ -51,9 +51,9 @@
                   (uiop:subdirectories *episode-path*))))
   (mapcar #'(lambda (namedir)
               (u-load-episodes (concatenate 'string
-                                            *episode-path* namedir "Episodes/"))
+                                            *episode-path* namedir "/Episodes/"))
               (owl-parse (concatenate 'string
-                                      *episode-path* namedir "SemanticMap.owl"))
+                                      *episode-path* namedir "/SemanticMap.owl"))
               (connect-to-db "Own-Episodes_set-clean-table"))
           namedir-list))
 
