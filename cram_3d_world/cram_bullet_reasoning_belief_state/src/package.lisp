@@ -45,4 +45,4 @@
    #:*robot-parameter* #:*kitchen-parameter*
    #:*spawn-debug-window*
    #:setup-world-database
-   #:world-state-sensing))
+   #:world-state-detecting))

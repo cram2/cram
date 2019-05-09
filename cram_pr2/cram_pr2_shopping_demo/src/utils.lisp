@@ -72,10 +72,11 @@
   (btr-utils:spawn-object 'denkmit :denkmit))
 
 (defun place-objects ()
-  (btr-utils:move-object 'dove '((-1 -1.1 0.7) (0 0 0 1)))
+  (btr-utils:move-object 'dove '((-1 -1.06 0.7) (0 0 0 1)))
   (btr-utils:move-object 'somat '((-0.5 -1.1 0.4) (0 0 0 1)))
   (btr-utils:move-object 'heitmann '((-1.3 -1.1 1) (0 0 0 1)))
-  (btr-utils:move-object 'denkmit '((-2 -1.1 1.3) (0 0 0 1))))
+  (btr-utils:move-object 'denkmit '((-2 -1.1 1.3) (0 0 0 1)))
+  (btr:simulate btr:*current-bullet-world* 10))
 
 (defun replace-denkmit ()
   (cram-occasions-events:on-event

@@ -31,7 +31,7 @@
 
 (defparameter *table* (cl-transforms-stamped:make-pose-stamped
                        "map" 0.0
-                       (cl-transforms:make-3d-vector -3.1 0.7 0.75)
+                       (cl-transforms:make-3d-vector -3.1 0.5 0.75)
                        (cl-transforms:make-identity-rotation)))
 
 (defparameter *pose-grasping* (cl-transforms-stamped:make-pose-stamped
@@ -55,7 +55,7 @@
 
 (defparameter *pose-near-table* (cl-transforms-stamped:make-pose-stamped
                                  "map" 0.0
-                                 (cl-transforms:make-3d-vector -2.5 0.5 0)
+                                 (cl-transforms:make-3d-vector -2.45 0.5 0)
                                  (cl-transforms:axis-angle->quaternion
                                   (cl-transforms:make-3d-vector 0 0 1) (/ pi 1))))
 
@@ -70,16 +70,13 @@
                                 (cl-transforms:axis-angle->quaternion
                                  (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
 
-(defun move-object (?object)
+(defun move-object (?object destination)
   (let ((?grasping-arm :right)
         (?grasp-pose *pose-grasping*)
         (?grasp-pose-left *pose-grasping-left*)
         (?grasp-pose-right *pose-grasping-right*)
         (?pose-near-table *pose-near-table*)
         (?table *table*)
-        map->obj
-        map->base
-        trans
         ?newobject
         ?newtransform)
 
@@ -105,7 +102,6 @@
                       (desig:a motion
                                (type world-state-sensing)
                                (object ?object))))
-    (print ?newobject)
     
     (setf ?newtransform (second
           (find :transform (desig:desig-prop-value ?newobject :pose) :test #'equal :key #'first)))
@@ -153,15 +149,23 @@
                            (arm ?grasping-arm)
                            (object ?object)
                            (target (desig:a location
-                                            (pose ?table)))))))
-
+                                            (pose destination)))))))
 (defun collect-article ()
   (pr2-proj:with-simulated-robot
     (let ((objects '(:heitmann :somat :dove :denkmit))
-          object-desigs)
+          (y -0.2)
+          object-desigs
+          destination)
       (setf object-desigs (try-detecting objects))
       (loop for ?object in object-desigs
-            do (move-object ?object)))))
+            do (setf destination (cl-tf:make-pose-stamped
+                                  "map" 0
+                                  (cl-tf:make-3d-vector -3.1 y 0.75)
+                                  (cl-tf:make-identity-rotation)))
+               (move-object ?object destination)
+               (btr:simulate btr:*current-bullet-world* 100)
+               (setf y (+ y 0.1)))
+      )))
 
 (defun try-detecting (articles)
   (let ((?pose-detecting *pose-detecting*)
