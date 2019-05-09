@@ -59,17 +59,18 @@
                     "base_footprint"
                     0.0
                     (cl-transforms:translation trans)
-                    (cl-transforms:orientation
-                     (second (first (desig:desig-prop-value ?old-object :pose))))))
+                    (cl-transforms:rotation trans)))
         
     (setf ?newTransform (cl-transforms-stamped:make-transform-stamped
                          "base_footprint"
                          (desig:desig-prop-value ?old-object :name)
                          0.0
                          (cl-transforms:translation trans)
+                         (cl-transforms:rotation trans)))
+    (print ?newTransform)
                          ;; TODO calculate new Rotation to the object
-                         (cl-transforms:rotation
-                          (second (second (desig:desig-prop-value ?old-object :pose))))))
+                         ;; (cl-transforms:rotation
+                         ;;  (second (second (desig:desig-prop-value ?old-object :pose))))))
 
     ;; constructing the new Object designator with the new pose and transformation
     (setf new-object (desig:copy-designator ?old-object
