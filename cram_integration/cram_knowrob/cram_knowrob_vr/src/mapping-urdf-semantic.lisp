@@ -75,12 +75,6 @@ for that object, e.g. CupEcoOrange."
   "Maps the simple name of an object, e.g. cup to the one known in the database
 for that object, e.g. CupEcoOrange."
   (case object-type
-    ;; (muesli :koelln-muesli-knusper-honig-nuss)
-    ;; (cup :cup-eco-orange)
-    ;; (bowl :edeka-red-bowl)
-    ;; (milk :weide-milch-small)
-    ;; (fork :fork-blue-plastic)
-    ;; (spoon :spoon-blue-plastic)
     (muesli :breakfast-cereal)
     (cup :cup)
     (bowl :bowl)
@@ -93,10 +87,6 @@ for that object, e.g. CupEcoOrange."
   "Takes care of the few cases where the name of the object within the recorded
 VR data and the object within the bullet world, are different."
   (case object-type
-    ;; (:weide-milch-small :milram-buttermilch-erdbeere)
-    ;; (:edeka-red-bowl :ikea-bowl)
-    ;; (:fork-blue-plastic :plastic-blue-fork)
-    ;; (:spoon-blue-plastic :plastic-blue-spoon)
     (:milk :milram-buttermilch-erdbeere)
     (:bowl :ikea-bowl)
     (:fork :plastic-blue-fork)

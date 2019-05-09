@@ -117,25 +117,3 @@ the episode. . "
      -3.180422326961139d-17 7.275958169294938d-10 1.0d0 -4.371138828673793d-8))
    :cup-eco-orange))
 
-#+these-are-not-used-anymore
-(
- (defun parse-str (str)
-   "parses the output from knowrob to a proper string which prolog can use."
-   (concatenate 'string "'"  (remove #\' (string str)) "'"))
-
- (defun transform-to-pose-stamped (transform)
-   "Takes a transform and returnes a pose stamped without any changes."
-   (cl-transforms-stamped:make-pose-stamped
-    "map"
-    0.0
-    (cl-transforms:translation transform)
-    (cl-transforms:rotation transform)))
-
- (defun place-offset-transform ()
- "Creates a transform which describes and offset for placing an object. "
-  (let ()
-      (cl-tf:make-transform
-       (cl-tf:make-3d-vector 0.0 0.2 0.0)
-       (cl-tf:make-identity-rotation))))
-
- )
