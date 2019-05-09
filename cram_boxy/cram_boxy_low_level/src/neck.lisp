@@ -91,8 +91,8 @@
 ;;   (cpl:sleep 3.0)
 ;;   (format t "moved~%")
 ;;   (flet ((goal-reached (state-msg)
-;;            (values-converged
-;;             (joint-velocities (mapcar #'first goal-configuration)
+;;            (cram-tf:values-converged
+;;             (joints:joint-velocities (mapcar #'first goal-configuration)
 ;;                               state-msg)
 ;;             '(0.0 0.0 0.0 0.0 0.0 0.0)
 ;;             *neck-converngence-delta-joint-vel*)))

@@ -36,10 +36,19 @@
                cl-transforms
                cl-transforms-stamped
                cl-tf
-               cram-pr2-pick-place-demo
-               cram-knowrob-pick-place
+               cram-object-knowledge
                cram-manipulation-interfaces
-               cram-semantic-map)
+               cram-semantic-map
+               cram-bullet-reasoning
+               cram-bullet-reasoning-utilities
+               cram-bullet-reasoning-belief-state
+               cram-executive
+               cram-designators
+               cram-prolog
+               cram-common-failures
+               cram-pr2-projection
+               cram-robot-interfaces
+               cram-pr2-fetch-deliver-plans)
 	:components
 
 	((:module "src"
@@ -47,33 +56,42 @@
 	  ((:file "package")
      ;; whitelist of mesh files that should be used from the unreal kitchen
      (:file "mesh-list" :depends-on ("package"))
-     ;; initialisation
-     (:file "init" :depends-on ("package" "mesh-list"))
-     ;; communication with KnowRob is implemented here
-     (:file "queries" :depends-on ("package"))
      ;; name mappings between CRAM and KnowRob
      (:file "mapping-urdf-semantic" :depends-on ("package"))
+     ;; initialisation
+     (:file "init" :depends-on ("package" "mesh-list" "mapping-urdf-semantic"))
+     ;; communication with KnowRob is implemented here
+     (:file "queries" :depends-on ("package"))
      ;; the logic of transferring VR data onto robot, all transformations etc
      (:file "query-based-calculations" :depends-on ("package"
                                                     "queries"
                                                     "mapping-urdf-semantic"))
+
+     ;; visibility and reachability location resolution through VR
+     (:file "designator-integration" :depends-on ("package"
+                                                  "query-based-calculations"))
+     ;; plans that call fetch and deliver actions
+     (:file "fetch-and-deliver-based-demo" :depends-on ("package"
+                                                        "query-based-calculations"
+                                                        "designator-integration"))
+
      ;; integration with grasping interface from cram_manipulation_interfaces
-     (:file "grasping" :depends-on ("package" "query-based-calculations"))
+     ;; (:file "grasping" :depends-on ("package" "query-based-calculations"))
      ;; move-to-object, pick, place and pick-and-place plans, queries for get-hand
-     (:file "plans" :depends-on ("package" "queries" "mapping-urdf-semantic"))
+     ;; (:file "plans" :depends-on ("package" "queries" "mapping-urdf-semantic"))
      ;; calling plans with correct arguments
-     (:file "plan-execution" :depends-on ("package"
-                                          "plans" "query-based-calculations"))
+     ;; (:file "plan-execution" :depends-on ("package" "query-based-calculations"))
      ;; utilities for moving objects to poses for the demo-plans file
-     (:file "move-utils" :depends-on ("package"
-                                      "mapping-urdf-semantic"
-                                      "query-based-calculations"))
+     ;; (:file "move-utils" :depends-on ("package"
+     ;;                                  "mapping-urdf-semantic"
+     ;;                                  "query-based-calculations"))
      ;; plans for demonstrations
-     (:file "demo-plans" :depends-on ("package" "plan-execution" "move-utils"))
+     ;; (:file "demo-plans" :depends-on ("package" "plan-execution" "move-utils"))
      ;; only used for debugging
-     (:file "debugging-utils" :depends-on ("package"
-                                           "queries"
-                                           "query-based-calculations"
-                                           "init"
-                                           "move-utils"
-                                           "mapping-urdf-semantic"))))))
+     ;; (:file "debugging-utils" :depends-on ("package"
+     ;;                                       "queries"
+     ;;                                       "query-based-calculations"
+     ;;                                       "init"
+     ;;                                       "move-utils"
+     ;;                                       "mapping-urdf-semantic"))
+     ))))

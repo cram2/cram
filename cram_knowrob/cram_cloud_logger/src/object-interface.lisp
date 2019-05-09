@@ -16,7 +16,7 @@
           query-result))
       (call-next-method)))
 
-(defmethod man-int:get-object-type-gripping-effort :around (object-type)
+(defmethod man-int:get-action-gripping-effort :around (object-type)
   (if *is-logging-enabled*
       (let ((query-id
               (ccl::create-prolog-log-query-str
@@ -28,9 +28,9 @@
       (call-next-method)))
 
 
-(defmethod man-int:get-object-type-grasps :around (object-type
-                                                   arm
-                                                   object-transform-in-base)
+(defmethod man-int:get-action-grasps :around (object-type
+                                              arm
+                                              object-transform-in-base)
   (if *is-logging-enabled*
       (let ((query-id
               (ccl::create-prolog-log-query-str
@@ -45,7 +45,7 @@
         query-result)
       (call-next-method)))
 
-(defmethod man-int:get-object-type-gripper-opening :around (object-type)
+(defmethod man-int:get-action-gripper-opening :around (object-type)
   ;;(format t "Asking for GRIPPER OPENING for the object: ~a~%" object-type)
   (let ((query-result (call-next-method)))
     ;;(format t "GRIPPER OPENING Result is ~a~% for the object: ~a~%" query-result object-type)

@@ -71,6 +71,7 @@
                ((-1.0 0.65 0.87) (0 0 0.5 0.5))
                ((-0.79 0.6 0.87) (0 0 0.5 0.5))))))
 
+
 (defun pose-list->desig (pose-list)
   (let ((?pose (cl-transforms-stamped:pose->pose-stamped
                 "map" 0.0
@@ -89,9 +90,15 @@
                        object-type
                        :pose (nth run (cdr (assoc object-type *object-spawning-poses-lists*)))))
                     object-types)))
-      (cpl:sleep 1.0)
       ;; stabilize world
-      (btr:simulate btr:*current-bullet-world* 100))))
+      (btr:simulate btr:*current-bullet-world* 100)
+      ;; respawn if something fell on the floor
+      (let (respawn)
+        (dolist (object objects)
+          (when (< (cl-transforms:z (cl-transforms:origin (btr:pose object))) 0.5)
+            (setf respawn t)))
+        (when respawn
+          (spawn-random-there-and-back-again-objects))))))
 
 (defun evaluation-there-and-back-again (&optional (run 0))
   (initialize)

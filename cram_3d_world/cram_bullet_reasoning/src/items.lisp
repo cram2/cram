@@ -75,7 +75,9 @@ The name in the list is a keyword that is created by lispifying the filename."
                               (format nil "package://~a/~a/*.*" ros-package directory))))))
 
 (defclass item (object)
-  ((types :reader item-types :initarg :types)))
+  ((types :reader item-types :initarg :types)
+   (attached-objects :reader attached-objects :initarg :attached-objects
+                     :type 'list :initform nil)))
 
 (defmethod copy-object ((object item) (world bt-reasoning-world))
   (change-class (call-next-method) 'item
@@ -275,3 +277,62 @@ The name in the list is a keyword that is created by lispifying the filename."
                 :collision-shape (make-instance 'colored-box-shape
                                    :half-extents (ensure-vector size)
                                    :color color)))))
+
+
+(defmethod attach-object ((other-object item) (object item) &key attachment-type)
+  "Attaches `object' to `other-object': adds an attachment to the
+attached-objects lists of each other. The attachments are bidirectional.
+`attachment-type' is a keyword that specifies the type of attachment."
+  (when (equal (name object) (name other-object))
+    (warn "Cannot attach an object to itself: ~a" (name object))
+    (return-from attach-object))
+  (when (member (name object) (attached-objects other-object))
+    (warn "Item ~a already attached to ~a. Ignoring new attachment."
+          (name object) (name other-object))
+    (return-from attach-object))
+  (push (make-attachment :object (name object) :attachment attachment-type)
+        (slot-value other-object 'attached-objects))
+  (push (make-attachment :object (name other-object) :attachment attachment-type)
+        (slot-value object 'attached-objects))
+  (setf (mass (car (rigid-bodies object))) 0.0)
+  (setf (mass (car (rigid-bodies other-object))) 0.0))
+
+(defmethod detach-object ((other-object item) (object item) &key)
+  "Removes item names from the given arguments in the corresponding `attached-objects' lists
+   of the given items."
+  (setf (slot-value other-object 'attached-objects)
+        (remove (name object) (attached-objects other-object)
+                :key #'attachment-object :test #'equal))
+  (setf (slot-value object 'attached-objects)
+        (remove (name other-object) (attached-objects object)
+                :key #'attachment-object :test #'equal))
+  (setf (mass (car (rigid-bodies object))) 0.2)
+  (setf (mass (car (rigid-bodies other-object))) 0.2))
+
+(let ((already-moved '()))
+  (defmethod (setf pose) :around (new-value (object item))
+    "Since we save the original pose of the object at the time of attaching,
+it is possible to change the pose of its attachments when its pose changes."
+    (if (and (slot-boundp object 'attached-objects)
+             (> (length (attached-objects object)) 0))
+        (let ((carrier-transform
+                (cl-transforms:transform-diff
+                 (cl-transforms:pose->transform new-value)
+                 (cl-transforms:pose->transform (pose object)))))
+          ;; If none item already moved or item wasn't already moved
+          (unless (and already-moved
+                       (member (name object) already-moved :test #'equal))
+            (push (name object) already-moved)
+            (call-next-method)
+            (dolist (attachment (attached-objects object))
+              (let ((current-attachment-pose (object-pose (attachment-object attachment))))
+                (when (and carrier-transform current-attachment-pose)
+                  (setf (pose (btr:object btr:*current-bullet-world*
+                                          (attachment-object attachment)))
+                        (cl-transforms:transform-pose
+                         carrier-transform
+                         current-attachment-pose)))))
+            ;; If all attachments from root head passed, remove all.
+            (if (equal (name object) (car (last already-moved)))
+                (setf already-moved '()))))
+        (call-next-method))))

@@ -43,6 +43,8 @@
     ((:z -1) . :bottom)))
 
 (defun calculate-vector-face (vector)
+  (declare (type list vector))
+  "Returns the wall of the object that the `vector' hits if it were a ray."
   (let* ((axis-index-list
            (loop for x in vector
                  for i = 0 then (1+ i)
@@ -124,54 +126,43 @@
                    (* grasp-robot-axis-sign (aref matrix 2 grasp-robot-axis-index)))))
       (calculate-vector-face robot-grasp-vector))))
 
-(defgeneric get-object-type-grasps (object-type arm object-transform-in-base)
-  (:documentation "Returns a lazy list of all possible grasps for `object-type' with given `arm'")
-  (:method (object-type arm object-transform-in-base)
-    (declare (ignore object-transform-in-base))
-    #-solution-using-sbcl-API
-    (remove-if
-     #'null
-     (mapcar (lambda (grasp-type)
-               (when (or (find-method #'get-object-type-to-gripper-transform
-                                      '()
-                                      `((eql ,object-type)
-                                        T
-                                        (eql ,arm)
-                                        (eql ,grasp-type))
-                                      nil)
-                         (find-method #'get-object-type-to-gripper-transform
-                                      '()
-                                      `((eql ,object-type)
-                                        T
-                                        T
-                                        (eql ,grasp-type))
-                                      nil)
-                         (find-method #'get-object-type-to-gripper-transform
-                                      '()
-                                      `(T
-                                        T
-                                        T
-                                        (eql ,grasp-type))
-                                      nil))
-                 grasp-type))
-             #+sbcl
-             (remove-if
-              #'null
-              (remove-duplicates
-               (mapcar
-                (lambda (generic-method)
-                  (let ((grasp-specializer (fourth (sb-pcl:method-specializers generic-method))))
-                    (when (typep grasp-specializer 'sb-mop:eql-specializer)
-                      (sb-mop:eql-specializer-object grasp-specializer))))
-                (sb-pcl:generic-function-methods
-                 #'get-object-type-to-gripper-transform))))
-             #-sbcl
-             (error "CRAM object manipulation code only works under SBCL...")))
-
-    #+solution-using-lazy-lists-and-Prolog
-    ;; (cut:lazy-list ((i 0))
-    ;;   (when (< i 10) (cut:cont i (1+ i))))
-    (cut:lazy-mapcar
-     (lambda (bindings)
-       (cut:var-value '?grasp bindings))
-     (prolog:prolog `(object-type-grasp ,object-type ?grasp)))))
+(defmethod get-action-grasps :heuristics 20 (object-type arm object-transform-in-base)
+  (declare (ignore object-transform-in-base))
+  (remove-if
+   #'null
+   (mapcar (lambda (grasp-type)
+             (when (or (find-method #'get-object-type-to-gripper-transform
+                                    '()
+                                    `((eql ,object-type)
+                                      T
+                                      (eql ,arm)
+                                      (eql ,grasp-type))
+                                    nil)
+                       (find-method #'get-object-type-to-gripper-transform
+                                    '()
+                                    `((eql ,object-type)
+                                      T
+                                      T
+                                      (eql ,grasp-type))
+                                    nil)
+                       (find-method #'get-object-type-to-gripper-transform
+                                    '()
+                                    `(T
+                                      T
+                                      T
+                                      (eql ,grasp-type))
+                                    nil))
+               grasp-type))
+           #+sbcl
+           (remove-if
+            #'null
+            (remove-duplicates
+             (mapcar
+              (lambda (generic-method)
+                (let ((grasp-specializer (fourth (sb-pcl:method-specializers generic-method))))
+                  (when (typep grasp-specializer 'sb-mop:eql-specializer)
+                    (sb-mop:eql-specializer-object grasp-specializer))))
+              (sb-pcl:generic-function-methods
+               #'get-object-type-to-gripper-transform))))
+           #-sbcl
+           (error "CRAM object manipulation code only works under SBCL..."))))

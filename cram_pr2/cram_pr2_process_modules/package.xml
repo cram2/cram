@@ -18,5 +18,8 @@
   <depend>cram_common_failures</depend>
   <depend>cram_common_designators</depend>
   <depend>cram_language</depend>
+  <depend>cram_knowrob_world_state</depend>
   <depend>cram_robosherlock</depend>
+  <depend>cram_giskard</depend>
+  <depend>cram_nav_pcontroller</depend>
 </package>

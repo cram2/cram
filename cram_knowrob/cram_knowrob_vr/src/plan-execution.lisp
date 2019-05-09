@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Alina Hawkin <hawkin@cs.uni-bremen.de>
+;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,49 +30,75 @@
 
 (in-package :kvr)
 
-(defun execute-pick-and-place (type)
-  "Executes the pick and place plan on an object of the given type.
-The positions of where the robot looks for the object and where he is placing
-it down are the ones extracted from Virtual Reality.
-`type' is a simple symbol for the type of the object to transport, e.g., 'milk."
-  (transport
-   (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "Start"))
-   (umap-P-uobj-through-surface type "Start")
-   (map-T-camera->map-P-base (umap-T-ucamera-through-object type "End"))
-   (umap-P-uobj-through-surface type "End")
-   (umap-P-uobj-through-surface type "End")
-   type))
+(defun execute-search-for-object (type)
+  "Moves the robot to the position where the human was standing to grasp the object."
+  (let ((?look-poses (look-poses-ll-for-searching type))
+        (?base-poses (base-poses-ll-for-searching type))
+        (?bullet-type (object-type-filter-bullet type)))
+   (exe:perform
+    (desig:an action
+              (type searching)
+              (object (desig:an object (type ?bullet-type)))
+              (location (desig:a location (poses ?look-poses)))
+              (robot-location (desig:a location (poses ?base-poses)))))))
 
 (defun execute-pick-up-object (type)
   "Executes only the picking up action on an object given the type of the object.
 TYPE: The type of the object. Could be 'muesli or 'cup etc. The name is internally
 set to CupEcoOrange in a string."
-  (fetch-object
-   (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "Start"))
-   (umap-P-uobj-through-surface type "Start")
-   type))
+  (let ((object-designator
+          (execute-search-for-object type)))
+    (let ((?bullet-type (object-type-filter-bullet type))
+          (?base-poses (base-poses-ll-for-fetching-based-on-object-desig
+                        object-designator))
+          (?grasps (object-grasped-faces-ll-from-kvr-type type))
+          (?arms (arms-for-fetching-ll type)))
+      (exe:perform
+       (desig:an action
+                 (type fetching)
+                 (object (desig:an object (type ?bullet-type)))
+                 (arms ?arms)
+                 (grasps ?grasps)
+                 (robot-location (desig:a location (poses ?base-poses))))))))
 
 (defun execute-place-object (?obj-desig type)
   "Executes the placing action given the object designator of the picked up and
 held in hand object. The placing pose is the one used in VR for that kind of object.
 ?OBJ-DESIG: The object designator of the object the robot is currently holding
 and which should be placed down."
-  (place-object
-   (map-T-camera->map-P-base (umap-T-ucamera-through-object type "End"))
-   (umap-P-uobj-through-surface type "End")
-   (umap-P-uobj-through-surface type "End")
-   ;; (cram-projection::projection-environment-result-result ?obj-desig)
-   ?obj-desig))
+  (let ((?placing-poses (object-poses-ll-for-placing type))
+        (?base-poses (base-poses-ll-for-placing type)))
+    (exe:perform
+     (desig:an action
+               (type delivering)
+               (object ?obj-desig)
+               (target (desig:a location (poses ?placing-poses)))
+               (robot-location (desig:a location (poses ?base-poses)))))))
 
-(defun execute-move-to-object (type &optional (event-time :start))
-  "Moves the robot to the position where the human was standing in order to
-grasp the object or in order to place it."
-  (ecase event-time
-    (:start
-     (move-to-object
-      (map-T-camera->map-P-base (umap-T-ucamera-through-surface type "Start"))
-      (umap-P-uobj-through-surface type "Start")))
-    (:end
-     (move-to-object
-      (map-T-camera->map-P-base (umap-T-ucamera-through-object type "End"))
-      (umap-P-uobj-through-surface type "End")))))
+(defun execute-pick-and-place (type)
+  "Executes the pick and place plan on an object of the given type.
+The positions of where the robot looks for the object and where he is placing
+it down are the ones extracted from Virtual Reality.
+`type' is a simple symbol for the type of the object to transport, e.g., 'milk."
+  (let ((?bullet-type (object-type-filter-bullet type))
+        (?search-poses (look-poses-ll-for-searching type))
+        (?search-base-poses (base-poses-ll-for-searching type))
+        (?fetch-base-poses (base-poses-ll-for-searching type)
+                           ;; (base-poses-ll-for-fetching-based-on-object-desig
+                           ;;  object-designator)
+                           )
+        (?grasps (object-grasped-faces-ll-from-kvr-type type))
+        (?arms (arms-for-fetching-ll type))
+        (?delivering-poses (object-poses-ll-for-placing type))
+        (?delivering-base-poses (base-poses-ll-for-placing type)))
+    (exe:perform
+     (desig:an action
+               (type transporting)
+               (object (desig:an object (type ?bullet-type)))
+               (location (desig:a location (poses ?search-poses)))
+               (search-robot-location (desig:a location (poses ?search-base-poses)))
+               (fetch-robot-location (desig:a location (poses ?fetch-base-poses)))
+               (arms ?arms)
+               (grasps ?grasps)
+               (target (desig:a location (poses ?delivering-poses)))
+               (deliver-robot-location (desig:a location (poses ?delivering-base-poses)))))))

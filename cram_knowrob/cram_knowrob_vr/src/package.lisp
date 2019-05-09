@@ -1,6 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Alina Hawkin <hawkin@cs.uni-bremen.de>
-;;;                      Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -30,4 +30,4 @@
 
 (defpackage :cram-knowrob-vr-pkg
 	(:nicknames :kvr :knowrob-vr)
-  (:use #:roslisp #:cl #:json-prolog #:cram-manipulation-interfaces))
+  (:use #:roslisp #:cl #:cram-manipulation-interfaces #:cram-prolog))

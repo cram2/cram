@@ -29,6 +29,8 @@
 
 (in-package :kvr)
 
+;;;;;;;;;;;;;;;;; utils ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun move-object (transform obj)
   "Moves an object to the desired transform.
 TRANSFORM: The transform describing the position to which an object should be moved.
@@ -38,10 +40,12 @@ usage example: (move-object (pose-lists-parser '|?PoseObjEnd|))"
     (prolog:prolog `(and (btr:bullet-world ?world)
                          (assert (btr:object-pose ?world ,obj ,pose))))))
 
+;;;;;;;;;;;;;;;;;;;; semantic initial spawning ;;;;;;;;;;;;;;
+
 (defun move-obj-with-offset (x-offset y-offset object-knowrob object-bullet)
   "Moves an object to a given x y offset from it's starting position. "
   (let ((object-pose
-          (query-object-location-by-object-type object-knowrob "Start")))
+          (car (query-object-location-by-object-type object-knowrob "Start"))))
     (move-object
      (cl-transforms:make-transform
       (cl-transforms:make-3d-vector
@@ -68,11 +72,15 @@ usage example: (move-object (pose-lists-parser '|?PoseObjEnd|))"
    *semantic-map-offset-x* *semantic-map-offset-y*
    "MilramButtermilchErdbeere" :weide-milch-small2))
 
+;;;;;;;;;;;;;;;;;;; urdf initial spawning ;;;;;;;;;;;;;;;;;
+
 (defun move-object-to-starting-pose (object)
   "Moves the object and robot to their respective locations at the beginning of
 the episode. . "
   (move-object (cl-transforms:pose->transform
-                (umap-P-uobj-through-surface object "Start"))
+                (cram-tf:translate-pose
+                 (car (umap-P-uobj-through-surface-ll object "Start"))
+                 :x-offset -0.1))
                (object-type-filter-bullet object)))
 
 (defun move-urdf-objects-to-start-pose ()
@@ -87,8 +95,10 @@ the episode. . "
   "Moves the object and robot to their respective locations at the beginning of
 the episode. . "
   (move-object (cl-transforms:pose->transform
-                (umap-P-uobj-through-surface object "End"))
+                (car (umap-P-uobj-through-surface-ll object "End")))
                (object-type-filter-bullet object)))
+
+;;;;;;;;;;;;; other utils ;;;;;;;;;;;;;;;;;;;;
 
 (defun move-away-axes ()
   (let* ((transform (cl-transforms:make-transform

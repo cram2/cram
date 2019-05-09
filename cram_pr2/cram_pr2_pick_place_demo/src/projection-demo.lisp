@@ -89,7 +89,7 @@
 
   (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
                      (btr:object btr:*current-bullet-world* :spoon-1)
-                     "sink_area_left_upper_drawer_main"))
+                     :link "sink_area_left_upper_drawer_main"))
 
 (defun spawn-objects-on-sink-counter-randomly ()
   (btr-utils:kill-all-objects)
@@ -136,7 +136,7 @@
   ;; attach spoon to drawer
   (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
                      (btr:object btr:*current-bullet-world* :spoon-1)
-                     "sink_area_left_upper_drawer_main"))
+                     :link "sink_area_left_upper_drawer_main"))
 
 (defun go-to-sink-or-island (&optional (sink-or-island :sink))
   (let ((?navigation-goal (ecase sink-or-island

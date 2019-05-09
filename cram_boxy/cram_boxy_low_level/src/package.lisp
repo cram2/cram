@@ -33,7 +33,6 @@
   (:nicknames #:boxy-ll)
   (:use #:common-lisp)
   (:export
-   ;; low-level-common
    ;; simple-actionlib-client
    #:make-simple-action-client
    #:call-simple-action-client
