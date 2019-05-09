@@ -88,7 +88,9 @@
      'string
      (base-query-string object-type)",
       iri_xml_namespace(ObjInst, _, ObjShortName),
-      actor_pose(EpInst, ObjShortName, " start-or-end ", POSE).")
+      actor_pose(EpInst, ObjShortName, " start-or-end ", POSE),
+      length(POSE, Length),
+      Length > 0.")
     :package :kvr)))
 
 (defun query-camera-location-by-object-type (object-type start-or-end)
@@ -105,7 +107,9 @@
      (base-query-string object-type) ",
       obj_type(CameraInst, knowrob:'CharacterCamera'),
       iri_xml_namespace(CameraInst, _, CameraShortName),
-      actor_pose(EpInst, CameraShortName, " start-or-end ", PoseCameraStart).")
+      actor_pose(EpInst, CameraShortName, " start-or-end ", PoseCameraStart),
+      length(PoseCameraStart, Length),
+      Length > 0.")
     :package :kvr)))
 
 (defun query-object-T-camera-by-object-type (object-type start-or-end)
@@ -136,7 +140,9 @@
       actor_pose(EpInst, ObjShortName, " start-or-end ", ObjPose),
       obj_type(CameraInst, knowrob:'CharacterCamera'),
       iri_xml_namespace(CameraInst, _, CameraShortName),
-      actor_pose(EpInst, CameraShortName, " start-or-end ", CameraPose).")
+      actor_pose(EpInst, CameraShortName, " start-or-end ", CameraPose),
+      length(CameraPose, Length),
+      Length > 0.")
     :package :kvr)))
 
 (defun query-hand (object-type)
@@ -176,7 +182,9 @@ in the currently loaded episode."
      (base-query-string object-type) ",
       performed_by(EventInst, HandInst),
       iri_xml_namespace(HandInst,_, HandInstShortName),
-      actor_pose(EpInst, HandInstShortName, " start-or-end ", PoseHandStart).")
+      actor_pose(EpInst, HandInstShortName, " start-or-end ", PoseHandStart),
+      length(PoseHandStart, Length),
+      Length > 0.")
     :package :kvr)))
 
 (defun query-object-T-hand-by-object-type (object-type start-or-end)
@@ -205,9 +213,13 @@ in the currently loaded episode."
      (base-query-string object-type)",
       iri_xml_namespace(ObjInst, _, ObjShortName),
       actor_pose(EpInst, ObjShortName, " start-or-end ", ObjPose),
+      length(ObjPose, Length),
+      Length > 0,
       performed_by(EventInst, HandInst),
       iri_xml_namespace(HandInst, _, HandInstShortName),
-      actor_pose(EpInst, HandInstShortName, " start-or-end ", HandPose).")
+      actor_pose(EpInst, HandInstShortName, " start-or-end ", HandPose),
+      length(HandPose, HandLength),
+      HandLength > 0.")
     :package :kvr)))
 
 (defun query-contact-surface-name (object-type start-or-end)
@@ -260,7 +272,9 @@ in the currently loaded episode."
       EndWithOffset is EndSeconds + 1,
       time_between(" start-or-end "WithOffset, TouchStart, TouchEnd),
       iri_xml_namespace(Surface, _, SurfaceShortName),
-      actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", PoseSurface).")
+      actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", PoseSurface),
+      length(PoseSurface, Length),
+      Length > 0.")
     :package :kvr)))
 
 
@@ -305,8 +319,12 @@ and the transform surface-T-object as a lazy list of pairs:
       time_between(" start-or-end "WithOffset, TouchStart, TouchEnd),
       iri_xml_namespace(Surface, _, SurfaceShortName),
       actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", SurfacePose),
+      length(SurfacePose, Length),
+      Length > 0,
       iri_xml_namespace(ObjInst, _, ObjShortName),
       actor_pose(EpInst, ObjShortName, " start-or-end ", ObjectPose),
+      length(ObjectPose, ObjLength),
+      ObjLength > 0,
       obj_type(Surface, SurfaceType),
       iri_xml_namespace(SurfaceType, _, SurfaceTypeShortName)"
       (case context
@@ -367,9 +385,13 @@ and the transform surface-T-object as a lazy list of pairs:
       time_between(" start-or-end "WithOffset, TouchStart, TouchEnd),
       iri_xml_namespace(Surface, _, SurfaceShortName),
       actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", SurfacePose),
+      length(SurfacePose, Length),
+      Length > 0,
       object_dimensions(Surface, SurfaceDimX, SurfaceDimY, SurfaceDimZ),
       iri_xml_namespace(ObjInst, _, ObjShortName),
       actor_pose(EpInst, ObjShortName, " start-or-end ", ObjectPose),
+      length(ObjectPose, ObjLength),
+      ObjLength > 0,
       obj_type(Surface, SurfaceType),
       iri_xml_namespace(SurfaceType, _, SurfaceTypeShortName)"
       (case context
@@ -431,9 +453,13 @@ and the transform surface-T-camera as a lazy list of pairs:
       time_between(" start-or-end "WithOffset, TouchStart, TouchEnd),
       iri_xml_namespace(Surface, _, SurfaceShortName),
       actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", SurfacePose),
+      length(SurfacePose, Length),
+      Length > 0,
       obj_type(CameraInst, knowrob:'CharacterCamera'),
       iri_xml_namespace(CameraInst, _, CameraShortName),
       actor_pose(EpInst, CameraShortName, " start-or-end ", CameraPose),
+      length(CameraPose, CamLength),
+      CamLength > 0,
       obj_type(Surface, SurfaceType),
       iri_xml_namespace(SurfaceType, _, SurfaceTypeShortName)"
       (case context
