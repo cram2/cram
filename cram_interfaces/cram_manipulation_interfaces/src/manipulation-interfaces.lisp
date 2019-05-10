@@ -29,25 +29,6 @@
 
 (in-package :cram-manipulation-interfaces)
 
-(defun reasoning-engine-for-method (manipulation-interface-method)
-  (declare (type function manipulation-interface-method))
-  "Returns the reasoning engine keyword (or symbol) that is calculated to be
-the one used for answering the `manipulation-interface-method' query.
-The calculation is done by ordering the method implementations
-similar to how the corresponding method combination does it.
-Example usage: (man-int:reasoning-engine-for-method #'man-int:get-action-grasps)."
-  #+sbcl
-  (caar
-   (stable-sort
-    (remove '(:around)
-            (mapcar #'method-qualifiers
-                    (sb-pcl:generic-function-methods manipulation-interface-method))
-            :test #'equalp)
-    #'<
-    :key #'second))
-  #-sbcl
-  (error "Sorry, MAN-INT:REASONING-ENGINE-FOR-METHOD is only supported under SBCL..."))
-
 (defgeneric get-action-gripping-effort (object-type)
   (:method-combination cut:first-in-order-and-around)
   (:documentation "Returns effort in Nm, e.g. 50."))
@@ -84,19 +65,3 @@ make CRAM_DESIGNATORS package depend on CRAM_MANIPULATION_INTERFACES,
 and man-int is way too high level to make it a dependency of CRAM_CORE.
 This hijacking is kind of an ugly hack that Gaya feels bad about :(."
   (get-location-poses desig))
-
-(defun call-with-specific-type (fun object-type &rest args)
-  "Call generic function FUN with the most specific type for OBJECT-TYPE. Have
-to provide all arguments for fun after object-type in the correct order."
-  (let ((specific-type
-            (find-most-specific-object-type-for-generic
-             fun object-type)))
-      (if specific-type
-          ;; (get-object-type-to-gripper-transform specific-type object-name arm grasp)
-          (apply (alexandria:curry fun specific-type) args)
-          (error "There is no applicable method for the generic function ~%~a~%~
-                  with object-type ~a.~%To fix this either: ~
-                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
-                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
-                 fun
-                 object-type object-type object-type))))
