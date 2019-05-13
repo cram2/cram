@@ -551,28 +551,26 @@ current joint states"
                 (cl-urdf:origin (cl-urdf:collision parent))))
               (cl-transforms:make-identity-transform))
           joint-transform)))
-      ;;Vanessa
-       (let ((mimic-joint-names '()))
+      ;;here mimic joints caculating starts
+      (let ((mimic-joint-names '()))
+        ;;search for mimic joints that are bounded
         (roslisp:with-fields (joints) urdf
           (maphash (lambda (key val)
                      (declare (ignore key))
                      (when (slot-boundp val 'cl-urdf:mimics)
                        (push val mimic-joint-names)))
                    joints))
-         ;; iterate over the mimic joints and filter the name multiplier and offset
-         (mapcar (lambda (key) 
-                   (with-slots ((mimic-slots cl-urdf:mimics)
+        ;; iterate over the mimic joints and filter the name multiplier and offset out
+        (mapcar (lambda (key) 
+                  (with-slots ((mimic-slots cl-urdf:mimics)
                                (key-name cl-urdf:name)) key
                     (with-slots ((mimic-name cl-urdf::joint) 
                                  (multi cl-urdf::multiplier) 
                                  (ofs cl-urdf::offset)) mimic-slots
-                        ;;when joint has a mimic on the current joint and hasnt
-                        ;;moved yet move it
-                         (when (equalp name mimic-name)
-                               (print key-name)
-                               ;;recursion
-                               (setf (joint-state obj key-name) (* multi new-value))
-                             )))) mimic-joint-names)))))
+                      ;;when the mimic joint mimics the current joint that has been moved, also move the mirror joint
+                      (when (equalp name mimic-name)
+                        (setf (joint-state obj key-name) (* multi new-value))))))
+                mimic-joint-names)))))
 
 (defun set-joint-state (robot name new-state)
   (setf (joint-state robot name) new-state))
