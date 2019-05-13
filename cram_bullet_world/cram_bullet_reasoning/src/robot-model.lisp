@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2019, Vanessa Hassouna  <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -530,6 +531,10 @@ current joint states"
 (defmethod joint-state ((obj robot-object) name)
   (nth-value 0 (gethash name (joint-states obj))))
 
+
+
+(defvar *viewed-joints* nil)
+
 (defmethod (setf joint-state) (new-value (obj robot-object) name)
   (with-slots (urdf) obj
     (assert (gethash name (cl-urdf:joints urdf)) ()
@@ -564,7 +569,30 @@ current joint states"
                (cl-transforms:reference-transform
                 (cl-urdf:origin (cl-urdf:collision parent))))
               (cl-transforms:make-identity-transform))
-          joint-transform))))))
+          joint-transform)))
+      ;;Vanessa mimic joints implementation
+      ;;iterate over the joints in the urdf and tmp-save the bounded mimic slots
+      (let ((tmp '()))
+        (roslisp:with-fields (joints) urdf
+          (maphash (lambda (key val)
+                     (when (slot-boundp val 'cl-urdf:mimics)
+                       (push val tmp)))joints))
+        ;;iterate over the mimic joints and filter the name multiplier and offset
+        (mapcar (lambda (key) 
+                  (with-slots ((mims cl-urdf:mimics)
+                               (key-name cl-urdf:name)) key
+                    (with-slots ((mimname cl-urdf::joint) 
+                                 (multi cl-urdf::multiplier) 
+                                 (ofs cl-urdf::offset))
+                        ;;when joint has a mimic on the current joint and hasnt
+                        ;;moved yet move it
+                        mims (when (and (equalp name mimname)
+                                        (not (member key-name *viewed-joints*)))
+                               (print key-name)
+                               ;;recursion
+                               (setf (joint-state obj key-name) (* multi new-value))
+                               (push key-name *viewed-joints*))))) tmp))))
+  (setf *viewed-joints* nil))
 
 (defun set-joint-state (robot name new-state)
   (setf (joint-state robot name) new-state))
