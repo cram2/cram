@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -549,7 +550,29 @@ current joint states"
                (cl-transforms:reference-transform
                 (cl-urdf:origin (cl-urdf:collision parent))))
               (cl-transforms:make-identity-transform))
-          joint-transform))))))
+          joint-transform)))
+      ;;Vanessa
+       (let ((mimic-joint-names '()))
+        (roslisp:with-fields (joints) urdf
+          (maphash (lambda (key val)
+                     (declare (ignore key))
+                     (when (slot-boundp val 'cl-urdf:mimics)
+                       (push val mimic-joint-names)))
+                   joints))
+         ;; iterate over the mimic joints and filter the name multiplier and offset
+         (mapcar (lambda (key) 
+                   (with-slots ((mimic-slots cl-urdf:mimics)
+                               (key-name cl-urdf:name)) key
+                    (with-slots ((mimic-name cl-urdf::joint) 
+                                 (multi cl-urdf::multiplier) 
+                                 (ofs cl-urdf::offset)) mimic-slots
+                        ;;when joint has a mimic on the current joint and hasnt
+                        ;;moved yet move it
+                         (when (equalp name mimic-name)
+                               (print key-name)
+                               ;;recursion
+                               (setf (joint-state obj key-name) (* multi new-value))
+                             )))) mimic-joint-names)))))
 
 (defun set-joint-state (robot name new-state)
   (setf (joint-state robot name) new-state))
