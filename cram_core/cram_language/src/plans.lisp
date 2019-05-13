@@ -79,8 +79,8 @@
            (setf (get ',name 'plan-lambda-list) ',lambda-list)
            (setf (get ',name 'plan-sexp) ',body))
          (defun ,name (&rest ,call-args)
-           ,doc-string
            ,@declarations
+           ,doc-string
            (replaceable-function ,name ,lambda-list ,call-args (list ',name)
              (with-tags
                ,@body-forms)))))))

@@ -36,7 +36,7 @@
                cl-transforms
                cl-transforms-stamped
                cl-tf
-               cram-knowrob-pick-place
+               cram-object-knowledge
                cram-manipulation-interfaces
                cram-semantic-map
                cram-bullet-reasoning
@@ -48,8 +48,7 @@
                cram-common-failures
                cram-pr2-projection
                cram-robot-interfaces
-               cram-pr2-fetch-deliver-plans
-               cram-knowrob-pick-place)
+               cram-pr2-fetch-deliver-plans)
 	:components
 
 	((:module "src"

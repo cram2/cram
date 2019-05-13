@@ -128,7 +128,7 @@
   (<- (assert ?world (attached ?robot ?link-name ?object))
     (bullet-world ?world)
     (%object ?world ?robot ?robot-instance)
-    (lisp-fun attach-object ?robot-instance ?object ?link-name ?_))
+    (lisp-fun attach-object ?robot-instance ?object :link ?link-name ?_))
 
   (<- (assert (attached ?world ?robot ?link-name ?object))
     (assert ?world (attached ?robot ?link-name ?object)))
@@ -141,7 +141,7 @@
   (<- (retract ?world (attached ?robot ?link-name ?object))
     (bullet-world ?world)
     (%object ?world ?robot ?robot-instance)
-    (lisp-fun detach-object ?robot-instance ?object ?link-name ?_))
+    (lisp-fun detach-object ?robot-instance ?object :link ?link-name ?_))
 
   (<- (retract (attached ?world . ?rest))
     (retract ?world (attached . ?rest)))
