@@ -46,11 +46,6 @@
    #:reachability-designator #:designator-reach-pose #:visibility-designator
    #:reachability-designator-p #:visibility-designator-p
    #:trajectory-desig? #:constraints-desig?
-   ;; grasps
-   ;; #:def-grasp #:def-tool #:get-grasp #:get-grasps #:get-grasp-names
-   ;; #:calculate-bounding-box-tool-length #:get-tool-direction-vector
-   ;; #:get-tool-length #:get-tool-vector #:calculate-tool
-   ;; #:grasp #:side #:object-type-grasp #:object-designator-grasp
    ;; ptu
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
    #:robot-pan-tilt-links #:robot-pan-tilt-joints

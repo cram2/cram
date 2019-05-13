@@ -1,4 +1,4 @@
-### Welcome to cram2!
+![Screenshot](https://raw.githubusercontent.com/cram2/cram/master/graphics/CramLogoSmall.png)
 =============
 
 ### What is CRAM

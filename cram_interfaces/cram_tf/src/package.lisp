@@ -55,6 +55,7 @@
            #:translate-transform-stamped
            #:pose-stamped->transform-stamped
            #:apply-transform
+           #:values-converged
            ;; prolog facts
            #:pose #:pose-stamped #:position #:orientation #:poses-equal
            #:location-pose

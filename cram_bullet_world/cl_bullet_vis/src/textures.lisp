@@ -30,7 +30,9 @@
 
 (in-package :bt-vis)
 
-(defun texture-str->bitmap (str white-char &optional (transparent-char nil))
+(defun texture-str->bitmap (str white-char
+                            &optional (transparent-char nil) (gray-char nil)
+                              (gray-char-color '(0.0 0.0 0.0 0.0)))
   "Converts a simple 1-d string to an array with all chars that match
   white-char being replaced by '(1.0 1.0 1.0 1.0) and everything else set
   to '(0.0 0.0 0.0 0.0). The resulting list can be used as a bitmap for
@@ -42,6 +44,8 @@
                  (list 1.0 1.0 1.0 1.0))
                 ((eql x transparent-char)
                  (list 0.0 0.0 0.0 0.0))
+                ((eql x gray-char)
+                 (copy-list gray-char-color))
                 (t (list 0.0 0.0 0.0 1.0))))
         (map 'list #'identity str))))
 

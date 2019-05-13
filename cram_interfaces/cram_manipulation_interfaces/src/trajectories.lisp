@@ -46,14 +46,6 @@
          trajectory
          :key #'traj-segment-label)))
 
-(defgeneric get-action-trajectory (action-type arm grasp objects-acted-on
-                                   &key &allow-other-keys)
-  (:documentation "Returns a list of TRAJ-SEGMENTs.
-`action-type' describes for which type of action the trajectory will be,
-`arm' a single keyword eg. :left,
-`grasp' describes grasp orientation to use, e.g., :top, :left-side,
-`objects-acted-on' are designators describing the objects used by the action."))
-
 
 (defun calculate-gripper-pose-in-base (base-to-object-transform arm
                                        object-to-standard-gripper-transform)
@@ -97,23 +89,38 @@
 
 (defgeneric get-object-type-to-gripper-transform (object-type object-name arm grasp)
   (:documentation "Returns a pose stamped.
-Gripper is defined by a convention where Z is pointing towards the object."))
+Gripper is defined by a convention where Z is pointing towards the object.")
+  (:method (object-type object-name arm grasp)
+    (call-with-specific-type #'get-object-type-to-gripper-transform
+                             object-type object-name arm grasp)))
 
 (defgeneric get-object-type-to-gripper-pregrasp-transform (object-type object-name
                                                            arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped"))
+  (:documentation "Returns a transform stamped")
+  (:method (object-type object-name arm grasp grasp-transform)
+    (call-with-specific-type #'get-object-type-to-gripper-pregrasp-transform
+                             object-type object-name arm grasp grasp-transform)))
 
 (defgeneric get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name
                                                                arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped. Default value is NIL."))
+  (:documentation "Returns a transform stamped. Default value is NIL.")
+  (:method (object-type object-name arm grasp grasp-transform)
+    (call-with-specific-type #'get-object-type-to-gripper-2nd-pregrasp-transform
+                             object-type object-name arm grasp grasp-transform)))
 
 (defgeneric get-object-type-to-gripper-lift-transform (object-type object-name
                                                        arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped"))
+  (:documentation "Returns a transform stamped")
+  (:method (object-type object-name arm grasp grasp-transform)
+    (call-with-specific-type #'get-object-type-to-gripper-lift-transform
+                             object-type object-name arm grasp grasp-transform)))
 
 (defgeneric get-object-type-to-gripper-2nd-lift-transform (object-type object-name
                                                            arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped"))
+  (:documentation "Returns a transform stamped")
+  (:method (object-type object-name arm grasp grasp-transform)
+    (call-with-specific-type #'get-object-type-to-gripper-2nd-lift-transform
+                             object-type object-name arm grasp grasp-transform)))
 
 
 (defmacro def-object-type-to-gripper-transforms (object-type arm grasp-type
@@ -237,12 +244,11 @@ Gripper is defined by a convention where Z is pointing towards the object."))
 
 
 
-
-(defmethod get-action-trajectory ((action-type (eql :picking-up))
-                                  arm
-                                  grasp
-                                  objects-acted-on
-                                  &key)
+(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :picking-up))
+                                                 arm
+                                                 grasp
+                                                 objects-acted-on
+                                                 &key)
   (let* ((object
            (car objects-acted-on))
          (object-name
@@ -273,11 +279,11 @@ Gripper is defined by a convention where Z is pointing towards the object."))
                ,(man-int:get-object-type-to-gripper-2nd-lift-transform
                  object-type object-name arm grasp oTg-std))))))
 
-(defmethod get-action-trajectory ((action-type (eql :placing))
-                                  arm
-                                  grasp
-                                  objects-acted-on
-                                  &key target-object-transform-in-base)
+(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :placing))
+                                                 arm
+                                                 grasp
+                                                 objects-acted-on
+                                                 &key target-object-transform-in-base)
   (let* ((object
            (car objects-acted-on))
          (object-name
