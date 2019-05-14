@@ -60,7 +60,6 @@
      (:file "tf" :depends-on ("package"))
      ;; (:file "giskard" :depends-on ("package"))
      (:file "ik" :depends-on ("package"))
-     (:file "setup-urdf" :depends-on ("package"))
      (:file "low-level" :depends-on ("package" "tf" "ik"))
      (:file "process-modules" :depends-on ("package" "low-level"))
      (:file "projection-environment" :depends-on ("package" "tf" "process-modules"))))))

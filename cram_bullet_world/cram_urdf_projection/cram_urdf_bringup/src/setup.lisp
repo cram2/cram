@@ -48,9 +48,9 @@
                                                kitchen-urdf-string)))))))
 
     (if (search "hsrb" robot-urdf)
-        (setf robot (urdf-proj::get-urdf-hsrb))
+        (setf robot (get-urdf-hsrb))
         (when (search "boxy" robot-urdf )
-          (urdf-proj::get-setup-boxy)))
+          (get-setup-boxy)))
         
     (assert
      (cut:force-ll

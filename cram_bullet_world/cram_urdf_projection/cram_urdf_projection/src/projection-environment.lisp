@@ -51,7 +51,7 @@
   :process-module-definitions
   (urdf-proj-navigation
    urdf-proj-torso
-   urdf-proj-ptu
+   urdf-proj-neck
    urdf-proj-perception
    urdf-proj-grippers
    urdf-proj-arms)
@@ -68,7 +68,7 @@
     (bound ?pm)
     (once (member ?pm (urdf-proj-navigation
                        urdf-proj-torso
-                       urdf-proj-ptu
+                       urdf-proj-neck
                        urdf-proj-perception
                        urdf-proj-grippers
                        urdf-proj-arms)))
@@ -78,7 +78,7 @@
     ;; (bound ?pm)
     (once (member ?pm (urdf-proj-navigation
                        urdf-proj-torso
-                       urdf-proj-ptu
+                       urdf-proj-neck
                        urdf-proj-perception
                        urdf-proj-grippers
                        urdf-proj-arms)))
