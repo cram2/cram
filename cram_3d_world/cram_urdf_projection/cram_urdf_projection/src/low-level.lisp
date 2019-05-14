@@ -339,22 +339,6 @@
         (one-gripper-action action-type (second arm) maximum-effort))
       (one-gripper-action action-type arm maximum-effort)))
 
-(defun get-gripper-length ()
-  (let* ((frame-bindings
-             (cut:lazy-car
-              (prolog:prolog
-               `(and (cram-robot-interfaces:robot ?robot)
-                     (cram-robot-interfaces:robot-tool-frame ?robot :left ?left-tool-frame)
-                     (cram-robot-interfaces:end-effector-link ?robot :left ?left-ee-frame)))))
-           (left-tcp-frame
-             (cut:var-value '?left-tool-frame frame-bindings))
-           (left-ee-frame
-             (cut:var-value '?left-ee-frame frame-bindings)))
-    (roslisp:with-fields (translation)
-        (cl-tf:lookup-transform cram-tf:*transformer* left-tcp-frame left-ee-frame)
-      (cl-tf:v-dist (cl-tf:make-3d-vector 0 0 0) translation))))
-  
-
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; joint movement
@@ -388,9 +372,9 @@
     (set-configuration :right right-configuration)))
 
 ;;; cartesian movement
-
+(defparameter *gripper-length* 0.2 "PR2's gripper length in meters, for calculating TCP -> EE")
 (defparameter *tcp-pose-in-ee* (cl-transforms:make-pose
-                                (cl-transforms:make-3d-vector (- (get-gripper-length)) 0 0)
+                                (cl-transforms:make-3d-vector (- *gripper-length*) 0 0)
                                 (cl-transforms:make-identity-rotation)))
   
 (defun tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame)
