@@ -28,6 +28,15 @@
 
 (in-package :cram-pr2-description)
 
+;;change the value for the specific robots gripper length
+(defparameter *ee-to-tcp-transform*
+  (cl-transforms-stamped:make-transform
+   (cl-transforms:make-3d-vector 0.18 0 0)
+   (cl-transforms:matrix->quaternion
+    #2A((0 1 0)
+        (0 0 1)
+        (1 0 0)))))
+
 (defparameter *standard-to-pr2-gripper-transform*
   (cl-transforms-stamped:make-transform
    (cl-transforms:make-identity-vector)
@@ -227,7 +236,8 @@
                                           arm-joints arm-base-joints arm-tool-joints
                                           arm-links arm-base-links
                                           hand-links
-                                          standard-to-particular-gripper-transform)
+                                          standard-to-particular-gripper-transform
+                                          ee-to-tcp-transform)
 
   (<- (arm pr2 :right))
   (<- (arm pr2 :left))
@@ -332,4 +342,8 @@
     (lisp-fun get-hand-link-names ?arm ?links))
 
   (<- (standard-to-particular-gripper-transform pr2 ?transform)
-    (symbol-value *standard-to-pr2-gripper-transform* ?transform)))
+    (symbol-value *standard-to-pr2-gripper-transform* ?transform))
+
+  (<- (ee-to-tcp-transform pr2 ?transform)
+    (symbol-value *ee-to-tcp-transform* ?transform)))
+

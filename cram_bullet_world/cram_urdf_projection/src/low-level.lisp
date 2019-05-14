@@ -376,10 +376,14 @@
     (set-configuration :right right-configuration)))
 
 ;;; cartesian movement
-(defparameter *gripper-length* 0.2 "PR2's gripper length in meters, for calculating TCP -> EE")
-(defparameter *tcp-pose-in-ee* (cl-transforms:make-pose
-                                (cl-transforms:make-3d-vector (- *gripper-length*) 0 0)
-                                (cl-transforms:make-identity-rotation)))
+(defparameter *tcp-pose-in-ee*
+  (let* ((frame-bindings
+           (cut:lazy-car
+            (prolog:prolog
+             `(and (cram-robot-interfaces:robot ?robot)
+                   (cram-robot-interfaces:ee-to-tcp-transform ?robot ?ee-to-tcp-transform)))))
+         (ee-to-tcp-pose
+           (cut:var-value '?ee-to-tcp-transform frame-bindings))) ee-to-tcp-pose))
 
 (defun tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame)
   (when tcp-pose
