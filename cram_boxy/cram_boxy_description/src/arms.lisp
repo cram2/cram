@@ -29,6 +29,12 @@
 
 (in-package :boxy-descr)
 
+;;change the value for the specific robots gripper length
+(defparameter *ee-to-tcp-transform*
+  (cl-transforms-stamped:make-transform
+   (cl-transforms:make-3d-vector 0 0 0.3191d0)
+   (cl-transforms:make-identity-rotation)))
+
 (defparameter *standard-to-boxy-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
 
@@ -67,7 +73,8 @@
                                 standard-to-particular-gripper-transform
                                 ;; robot-arms-parking-joint-states
                                 ;; robot-arms-carrying-joint-states
-                                robot-joint-states)
+                                robot-joint-states
+                                ee-to-tcp-transform)
 
   (<- (end-effector-link boxy :left "left_arm_7_link"))
   (<- (end-effector-link boxy :right "right_arm_7_link"))
@@ -134,6 +141,9 @@
 
   (<- (robot-joint-states boxy :arm :left :flip ?joint-states)
     (symbol-value *left-nicer-configuration* ?joint-states))
+  
+  (<- (ee-to-tcp-transform boxy ?transform)
+    (symbol-value *ee-to-tcp-transform* ?transform))
 
   ;; (<- (robot-arms-parking-joint-states boxy ?joint-states)
   ;;   (symbol-value *right-parking-joint-states* ?right-joint-states)
