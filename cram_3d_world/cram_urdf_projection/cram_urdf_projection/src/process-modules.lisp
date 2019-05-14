@@ -1,6 +1,5 @@
 ;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
-;;;               2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -44,9 +43,9 @@
     (ecase command
       (cram-common-designators:move-torso (move-torso argument)))))
 
-;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cpm:def-process-module urdf-proj-ptu (motion-designator)
+(cpm:def-process-module urdf-proj-neck (motion-designator)
   (destructuring-bind (command goal-pose goal-configuration) (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-head (look-at goal-pose goal-configuration)))))
@@ -86,7 +85,7 @@
   (<- (cpm:matching-process-module ?motion-designator urdf-proj-torso)
     (desig:desig-prop ?motion-designator (:type :moving-torso)))
 
-  (<- (cpm:matching-process-module ?motion-designator urdf-proj-ptu)
+  (<- (cpm:matching-process-module ?motion-designator urdf-proj-neck)
     (desig:desig-prop ?motion-designator (:type :looking)))
 
   (<- (cpm:matching-process-module ?motion-designator urdf-proj-perception)

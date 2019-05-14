@@ -72,4 +72,5 @@
   ((:module "src"
     :components
     ((:file "package")
+     (:file "setup-urdf" :depends-on ("package"))
      (:file "setup" :depends-on ("package"))))))
