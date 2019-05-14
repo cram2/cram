@@ -100,11 +100,11 @@
 
     (setf ?newobject (exe:perform
                       (desig:a motion
-                               (type world-state-sensing)
+                               (type world-state-detecting)
                                (object ?object))))
     
     (setf ?newtransform (second
-          (find :transform (desig:desig-prop-value ?newobject :pose) :test #'equal :key #'first)))
+                         (man-int:get-object-pose ?newobject)))
     
     ;; selecting the grasping arm
     (if (< (cl-transforms:y (cl-transforms:translation ?newtransform)) 0)

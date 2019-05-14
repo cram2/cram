@@ -1,4 +1,5 @@
-<package>
+<?xml version="1.0"?>
+<package format="2">
   <name>cram_bullet_reasoning_belief_state</name>
   <version>0.7.0</version>
   <description>
@@ -14,51 +15,26 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>cram_prolog</build_depend>
-  <build_depend>cram_utilities</build_depend>
-  <build_depend>cram_designators</build_depend>
-  <build_depend>cram_projection</build_depend>
-  <build_depend>cram_bullet_reasoning</build_depend>
-  <build_depend>cram_plan_occasions_events</build_depend>
-  <build_depend>cram_occasions_events</build_depend>
-  <build_depend>cram_language</build_depend>
-  <build_depend>cram_physics_utils</build_depend>
-  <build_depend>roslisp_utilities</build_depend>
-  <build_depend>roslisp</build_depend>
-  <build_depend>cram_utilities</build_depend>
-  <build_depend>cram_robot_interfaces</build_depend>
-  <build_depend>cram_tf</build_depend>
-  <build_depend>cl_tf</build_depend>
-  <build_depend>cl_transforms_stamped</build_depend>
-  <build_depend>cl_transforms</build_depend>
-  <build_depend>cl_bullet</build_depend>
-  <build_depend>tf2_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>shape_msgs</build_depend>
-  <build_depend>cram_process_modules</build_depend>
-
-  <run_depend>cram_prolog</run_depend>
-  <run_depend>cram_utilities</run_depend>
-  <run_depend>cram_designators</run_depend>
-  <run_depend>cram_projection</run_depend>
-  <run_depend>cram_bullet_reasoning</run_depend>
-  <run_depend>cram_plan_occasions_events</run_depend>
-  <run_depend>cram_occasions_events</run_depend>
-  <run_depend>cram_language</run_depend>
-  <run_depend>cram_physics_utils</run_depend>
-  <run_depend>roslisp_utilities</run_depend>
-  <run_depend>roslisp</run_depend>
-  <run_depend>cram_utilities</run_depend>
-  <run_depend>cram_robot_interfaces</run_depend>
-  <run_depend>cram_tf</run_depend>
-  <run_depend>cl_tf</run_depend>
-  <run_depend>cl_transforms_stamped</run_depend>
-  <run_depend>cl_transforms</run_depend>
-  <run_depend>cl_bullet</run_depend>
-  <run_depend>tf2_msgs</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>shape_msgs</run_depend>
-  <run_depend>cram_process_modules</run_depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_utilities</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_projection</depend>
+  <depend>cram_bullet_reasoning</depend>
+  <depend>cram_plan_occasions_events</depend>
+  <depend>cran_ocassions_events</depend>
+  <depend>cram_language</depend>
+  <depend>cram_phisics_utils</depend>
+  <depend>roslisp_utilities</depend>
+  <depend>roslisp</depend>
+  <depend>cram_robot_interfaces</depend>
+  <depend>cram_tf</depend>
+  <depend>cl_tf</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cl_bullet</depend>
+  <depend>tf2_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>shape_msga</depend>
 
 </package>
 

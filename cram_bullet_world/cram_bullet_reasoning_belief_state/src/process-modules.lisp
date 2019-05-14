@@ -49,9 +49,7 @@
 
     (setf map->base (cl-tf:pose->transform (cram-tf:robot-current-pose)))
     
-    (setf map->obj (second
-                    (find :transform-in-map (desig:desig-prop-value ?old-object :pose)
-                          :test #'equal :key #'first)))
+    (setf map->obj (man-int:get-object-transform-in-map ?old-object))
   
     (setf trans (cl-transforms:transform* (cl-transforms:transform-inv map->base) map->obj))
     
@@ -80,9 +78,11 @@
                                               (:pose ((:pose ,?newPose)
                                                       (:transform ,?newTransform)
                                                       (:pose-in-map
-                                                       ,(second (third (desig:desig-prop-value ?old-object :pose))))
+                                                       ,(man-int:get-object-pose-in-map ?old-object))
+                                                       
                                                       (:transform-in-map
-                                                       ,(second (fourth (desig:desig-prop-value ?old-object :pose)))))))))
+                                                       ,(man-int:get-object-transform-in-map ?old-object)))))))
+                                                       
   
   
     ;;(print ?object)))

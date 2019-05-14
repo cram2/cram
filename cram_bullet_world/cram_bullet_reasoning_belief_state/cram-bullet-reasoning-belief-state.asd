@@ -50,10 +50,7 @@
                cl-bullet
                tf2_msgs-msg
                geometry_msgs-msg
-               shape_msgs-msg
-               cram-process-modules
-               cram-language-designator-support
-               cram-common-designators)
+               shape_msgs-msg)
   :components
   ((:module "src"
     :components
