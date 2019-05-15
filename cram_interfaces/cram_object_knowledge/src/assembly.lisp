@@ -47,6 +47,11 @@
   (<- (man-int:object-type-direct-subtype :assembly-item :front-wheel))
   (<- (man-int:object-type-direct-subtype :assembly-item :nut)))
 
+(def-fact-group assembly-attachment-type-attachment (man-int:unidirectional-attachment)
+  
+  (<- (man-int:unidirectional-attachment ?attachment-type)
+    (member ?attachment-type (:horizontal-attachment :vertical-attachment))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :assembly-item)))
@@ -227,7 +232,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(man-int:def-object-type-in-other-object-transform :chassis :holder-plane-horizontal :chassis-attachment
+(man-int:def-object-type-in-other-object-transform :chassis :holder-plane-horizontal :horizontal-attachment
   :attachment-translation `(0.084 0.0 0.022)
   :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
 
@@ -258,7 +263,7 @@
 
 (man-int:def-object-type-in-other-object-transform :top-wing :holder-plane-vertical :vertical-attachment
   :attachment-translation `(0.025 0 0.183)
-  :attachment-rot-matrix man-int:*rotation-around-x-90-and-z-90-matrix*)
+  :attachment-rot-matrix man-int:*rotation-around-x+90-and-z-180-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :bolt :upper-body :rear-thread
   :attachment-translation `(-0.0525 0.0 -0.01;; -0.025
@@ -267,6 +272,10 @@
 
 (man-int:def-object-type-in-other-object-transform :top-wing :upper-body :wing-attachment
   :attachment-translation `(0.05 0.0 0.0025)
+  :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :top-wing :holder-plane-horizontal :horizontal-attachment
+  :attachment-translation `(0.035 0.0 0.128)
   :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :bolt :top-wing :middle-thread

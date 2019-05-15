@@ -278,27 +278,77 @@ The name in the list is a keyword that is created by lispifying the filename."
                                    :half-extents (ensure-vector size)
                                    :color color)))))
 
-(defmethod attach-object ((other-object item) (object item) &key attachment-type)
-  "Attaches `object' to `other-object': adds an attachment to the
+(let ((unidirectional-attached-names '()))
+  (defun get-unidirectional-attached-names ()
+    "`unidirectional-attached-names' is used to save objects with unidirectional
+attachments for removing this attachments if the attached object was attached to
+another object."
+    unidirectional-attached-names)
+  
+  (let ((already-visited '()))
+    (defun get-already-visited ()
+      "`remove-unidirectional-attachment-for' is used to save which object
+attachments it has already visited."
+      already-visited)
+    
+    (defmethod remove-unidirectional-attachment-for ((object item))
+      "Searches if the `object' was connected unidirectional to another object and removes the attachment if so.
+Currently a `object' can only have ONE unidirectional attachment, since the other unidirectional attachment
+will be removed. Objects which have unidirectional attachments will be saved in `unidirectional-attached-names'.
+If `object' has attachments it'll checked if any of these attached objects have unidirectional
+attachments to another object. To search trough the attached objects `already-visited' will help to check, if
+we already checked this object."
+      (mapcar (lambda (uni-attach-name)
+                ;; searching object which is maybe unidirectional attached to uni-attach-name
+                (let ((attached-objects (attached-objects (object *current-bullet-world* uni-attach-name))))
+                  (let ((maybe-attachment (assoc (name object) attached-objects)))
+                    (if (and
+                         maybe-attachment
+                         (not (assoc uni-attach-name (attached-objects object))))
+                        (detach-object uni-attach-name (car maybe-attachment))))
+                  ;; remove uni-attach-name if it has no attachments anymore
+                  (unless attached-objects 
+                    (setf unidirectional-attached-names
+                          (delete uni-attach-name unidirectional-attached-names :test #'equal)))
+                  ;; searching recrusivly, if a object with attachments was attached to something
+                  ;; to remove unidirectional objects attachments if they were attached too
+                  (when (and (slot-boundp object 'attached-objects)
+                             (> (length (attached-objects object)) 0))
+                    (push (name object) already-visited)
+                    (loop for attached-object in (mapcar (lambda (attach)
+                                                           (object *current-bullet-world* (car attach)))
+                                                         (attached-objects object))
+                          do
+                             (unless (member (name attached-object) already-visited)
+                               (remove-unidirectional-attachment-for attached-object)
+                               (if (equal (car (last already-visited)) (name object))
+                                   (setf already-visited '()))))))) 
+              unidirectional-attached-names)))
+  
+  (defmethod attach-object ((other-object item) (object item) &key attachment-type unidirectional)
+    "Attaches `object' to `other-object': adds an attachment to the
 attached-objects lists of each other. The attachments are bidirectional.
 `attachment-type' is a keyword that specifies the type of attachment."
-  (when (equal (name object) (name other-object))
-    (warn "Cannot attach an object to itself: ~a" (name object))
-    (return-from attach-object))
-  (when (member (name object) (attached-objects other-object))
-    (warn "Item ~a already attached to ~a. Ignoring new attachment."
-          (name object) (name other-object))
-    (return-from attach-object))
-  (push (cons (name object)
-              (cons
-               (list (make-attachment :object (name object) :attachment attachment-type))
-               (create-static-collision-information object)))
-        (slot-value other-object 'attached-objects))
-  (push (cons (name other-object)
-              (cons
-               (list (make-attachment :object (name other-object) :attachment attachment-type))
-               (create-static-collision-information other-object)))
-        (slot-value object 'attached-objects)))
+    (when (equal (name object) (name other-object))
+      (warn "Cannot attach an object to itself: ~a" (name object))
+      (return-from attach-object))
+    (when (member (name object) (attached-objects other-object))
+      (warn "Item ~a already attached to ~a. Ignoring new attachment."
+            (name object) (name other-object))
+      (return-from attach-object))
+    (remove-unidirectional-attachment-for object)
+    (push (cons (name object)
+                (cons
+                 (list (make-attachment :object (name object) :attachment attachment-type))
+                 (create-static-collision-information object)))
+          (slot-value other-object 'attached-objects))
+    (if unidirectional
+        (push (name other-object) unidirectional-attached-names)
+        (push (cons (name other-object)
+                    (cons
+                     (list (make-attachment :object (name other-object) :attachment attachment-type))
+                     (create-static-collision-information other-object)))
+              (slot-value object 'attached-objects)))))
 
 (defmethod detach-object ((other-object item) (object item) &key)
   "Removes item names from the given arguments in the corresponding `attached-objects' lists

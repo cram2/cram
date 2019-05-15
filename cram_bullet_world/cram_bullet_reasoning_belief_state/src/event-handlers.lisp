@@ -85,7 +85,6 @@ If there is no other method with 1 as qualifier, this method will be executed al
           (btr:attach-object environment-object btr-object
                              :link environment-link))))))
 
-#+implement-this-when-object-to-object-is-implemented
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
   (let* ((btr-object-name (cpoe:event-object-name event))
          (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
@@ -121,11 +120,11 @@ If there is no other method with 1 as qualifier, this method will be executed al
                 other-object-to-object-transform)))
         ;; (setf (btr:pose btr-object) map-to-object-transform)
         )
-      ;;;; TODO: implement this even when object to object attachment is implemented
-      ;; (if (btr:object-attached robot-object btr-object)
-      ;;     (btr:attach-object robot-object btr-object :link link :loose t)
-      ;;     (btr:attach-object robot-object btr-object :link link :loose nil))
-      )))
+      (if (and
+           attachment-type
+           (prolog `(man-int:unidirectional-attachment ,attachment-type)))
+          (btr:attach-object btr-other-object btr-object :unidirectional T)
+          (btr:attach-object btr-other-object btr-object)))))
 
 
 
