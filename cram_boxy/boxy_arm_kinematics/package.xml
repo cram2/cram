@@ -15,4 +15,5 @@
   <exec_depend>moveit_msgs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>kdl_arm_kinematics</exec_depend>
 </package>
