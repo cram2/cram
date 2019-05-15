@@ -34,7 +34,7 @@
         name="kitchen_joint_state_publisher" output="screen">
         <remap from="robot_description" to="kitchen_description"/>
         <param name="rate" value="25"/>
-        <param name="use_gui" value="True"/>
+        <param name="use_gui" value="False"/>
         <remap from="/joint_states" to="/kitchen/joint_states" />
     </node>
 

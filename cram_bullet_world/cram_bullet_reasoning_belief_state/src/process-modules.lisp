@@ -51,8 +51,7 @@
         ?new-transform-in-map
         new-object
         ?type)
-    (print "mit name")
-    
+   
     (setf map->base (cl-tf:pose->transform (cram-tf:robot-current-pose)))
     (setf map->obj (setf map->obj (cl-transforms-stamped:pose->transform
                         (btr:pose (btr:object btr:*current-bullet-world*
