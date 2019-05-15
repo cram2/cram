@@ -35,8 +35,8 @@
   (:method ((err cpl:common-lisp-error-envelope))
     (cpl:envelop-error err)))
 
-;; pr2 projection specific predicates 
-(def-fact-group tasks (coe:holds)
+#+now-placed-in-cram-plan-occasions-events
+((def-fact-group tasks (coe:holds)
 
   (<- (perform-task-of-top-level ?top-level-name ?task-node)
     (bound ?top-level-name)
@@ -120,7 +120,7 @@
     ;;          (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
     ;;          (>= ?created-time-task ?created-time-other-next-task))
     ;;         (>= ?created-time-next-task ?created-time-other-next-task))
-    ))
+    )))
 
 #+now-ported-to-cram-occason-events
 ((def-fact-group tasks (coe:holds)

@@ -232,7 +232,7 @@
             (>= ?created-time-next-task ?created-time-other-next-task)))
 
 
-  #+still-in-cram-pr2-projection-reasoning-bc-depends-on-cram-executive
+  #+now-placed-in-cram-plan-occasions-events
   ((<- (perform-task-of-top-level ?top-level-name ?task-node)
     (bound ?top-level-name)
     (task-of-top-level ?top-level-name ?task-node)

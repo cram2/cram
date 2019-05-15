@@ -36,13 +36,4 @@
    #:check-placing-collisions #:check-placing-pose-stability
    #:check-environment-manipulation-collisions
    ;; projection-prediction
-   #:pick-best-parameters-by-distance #:with-projected-task-tree
-   ;; predicates
-   #:task-transporting-action
-   #:task-fetching-action
-   #:task-delivering-action
-   #:task-picking-up-action
-   #:task-navigating-action
-   #:task-specific-action
-   #:task-parameter
-   ))
+   #:pick-best-parameters-by-distance #:with-projected-task-tree))

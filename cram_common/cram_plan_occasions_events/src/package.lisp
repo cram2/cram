@@ -68,4 +68,15 @@
            #:object-put
            #:loc
            #:looking-at
-           #:arms-parked))
+           #:arms-parked
+
+           ;; task-declarations
+           ;; Predicates used in searching for tasks.
+           #:task-transporting-action
+           #:task-fetching-action
+           #:task-delivering-action
+           #:task-picking-up-action
+           #:task-navigating-action
+           #:task-specific-action
+           ;; #:task-parameter
+           ))

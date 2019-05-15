@@ -38,4 +38,5 @@
             :components
             ((:file "package")
              (:file "default-plan-events" :depends-on ("package"))
-             (:file "occasion-declarations" :depends-on ("package"))))))
+             (:file "occasion-declarations" :depends-on ("package"))
+             (:file "task-declarations" :depends-on ("package"))))))

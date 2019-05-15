@@ -50,6 +50,5 @@
     (fail))
 
   (<- (arms-parked)
-    (fail))
+    (fail)))
 
-)
