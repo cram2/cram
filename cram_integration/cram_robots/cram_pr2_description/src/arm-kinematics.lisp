@@ -31,11 +31,8 @@
 ;;change the value for the specific robots gripper length
 (defparameter *tcp-in-ee-pose*
   (cl-transforms-stamped:make-transform
-   (cl-transforms:make-3d-vector -0.18 0 0)
-   (cl-transforms:matrix->quaternion
-    #2A((1 0 0)
-        (0 1 0)
-        (0 0 1)))))
+   (cl-transforms:make-3d-vector 0.18 0 0)
+   (cl-transforms-stamped:make-identity-rotation)))
 
 (defparameter *standard-to-pr2-gripper-transform*
   (cl-transforms-stamped:make-transform
