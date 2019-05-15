@@ -39,7 +39,7 @@
                       ;; robot-pre-grasp-joint-states
                       planning-group
                       standard-to-particular-gripper-transform
-                      ee-to-tcp-transform)
+                      tcp-in-ee-pose)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;; rules describing the robot arms
 
@@ -121,7 +121,7 @@
   (<- (standard-to-particular-gripper-transform ?robot ?transform)
     (fail))
 
-  (<- (ee-to-tcp-transform ?robot ?transform)
+  (<- (tcp-in-ee-pose ?robot ?transform)
     (fail)))
 
 
