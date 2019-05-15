@@ -70,7 +70,7 @@
                                 (cl-transforms:axis-angle->quaternion
                                  (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
 
-(defun move-object (?object destination)
+(defun move-object (?object ?destination)
   (let ((?grasping-arm :right)
         (?grasp-pose *pose-grasping*)
         (?grasp-pose-left *pose-grasping-left*)
@@ -97,14 +97,13 @@
                (left-configuration park)
                (right-configuration park)))
 
-
     (setf ?newobject (exe:perform
                       (desig:a motion
                                (type world-state-detecting)
                                (object ?object))))
+
     
-    (setf ?newtransform (second
-                         (man-int:get-object-pose ?newobject)))
+    (setf ?newtransform (man-int:get-object-transform ?newobject))
     
     ;; selecting the grasping arm
     (if (< (cl-transforms:y (cl-transforms:translation ?newtransform)) 0)
@@ -149,11 +148,11 @@
                            (arm ?grasping-arm)
                            (object ?object)
                            (target (desig:a location
-                                            (pose destination)))))))
+                                            (pose ?destination)))))))
 (defun collect-article ()
   (pr2-proj:with-simulated-robot
-    (let ((objects '(:heitmann :somat :dove :denkmit))
-          (y -0.2)
+    (let ((objects '(:heitmann :dove :denkmit))
+          (y 0.2)
           object-desigs
           destination)
       (setf object-desigs (try-detecting objects))
@@ -164,7 +163,7 @@
                                   (cl-tf:make-identity-rotation)))
                (move-object ?object destination)
                (btr:simulate btr:*current-bullet-world* 100)
-               (setf y (+ y 0.1)))
+               (setf y (+ y 0.15)))
       )))
 
 (defun try-detecting (articles)

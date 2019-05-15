@@ -66,14 +66,25 @@
   (btr:simulate btr:*current-bullet-world* 2))
 
 (defun spawn-objects ()
-  (btr-utils:spawn-object 'dove :dove)
-  (btr-utils:spawn-object 'heitmann :heitmann)
-  (btr-utils:spawn-object 'denkmit :denkmit))
+  ;; Dove
+  (prolog:prolog '(and (btr:bullet-world ?world)
+                     (assert (btr:object ?world :mesh :dove ((-1 -1.06 0.7) (0 0 0 1))
+                              :mass 0.2 :color (1 0 0) :mesh :dove))))
+
+  ;; Heitmann
+  (prolog:prolog '(and (btr:bullet-world ?world)
+                     (assert (btr:object ?world :mesh :heitmann ((-1.3 -1.06 1) (0 0 0 1))
+                              :mass 0.2 :color (1 0 0) :mesh :heitmann))))
+
+  ;; Denkmit
+  (prolog:prolog '(and (btr:bullet-world ?world)
+                     (assert (btr:object ?world :mesh :denkmit ((-2 -1.1 1.3) (0 0 0 1))
+                                         :mass 0.2 :color (1 0 0) :mesh :denkmit)))))
 
 (defun place-objects ()
-  (btr-utils:move-object 'dove '((-1 -1.06 0.7) (0 0 0 1)))
-  (btr-utils:move-object 'heitmann '((-1.3 -1.1 1) (0 0 0 1)))
-  (btr-utils:move-object 'denkmit '((-2 -1.1 1.3) (0 0 0 1)))
+  (btr-utils:move-object :dove '((-1 -1.06 0.7) (0 0 0 1)))
+  (btr-utils:move-object :heitmann '((-1.3 -1.1 1) (0 0 0 1)))
+  (btr-utils:move-object :denkmit '((-2 -1.1 1.3) (0 0 0 1)))
   (btr:simulate btr:*current-bullet-world* 10))
 
 (defun replace-denkmit ()
