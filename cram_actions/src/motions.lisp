@@ -127,9 +127,17 @@
     (property ?designator (:type :moving-with-constraints))
     (property ?designator (:constraints ?constraints-string))))
 
-;; temporary name until I come up with somthing better
 (def-fact-group world-state-detecting (motion-grounding)
-  
-  (<- (motion-grounding ?designator (sense-pose ?object))
+
+  (<- (motion-grounding ?designator (sense-pose-name ?object))
     (property ?designator (:type :world-state-detecting))
-    (property ?designator (:object ?object))))
+    (property ?designator (:object ?object))
+    (current-designator ?object ?object-designator)
+    (property ?object (:name ?name)))
+
+    (<- (motion-grounding ?designator (sense-pose-object ?object))
+    (property ?designator (:type :world-state-detecting))
+    (property ?designator (:object ?object))
+    (current-designator ?object ?object-designator)
+    (property ?object-designator (:pose ?pose))
+    (property ?object-designator (:name ?name))))

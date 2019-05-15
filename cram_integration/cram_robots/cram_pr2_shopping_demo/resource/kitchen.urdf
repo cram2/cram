@@ -981,11 +981,16 @@
 
  <!-- This is the vertical Drawer -->
  <!-- Joint oven area to the drawer -->
-  <joint name="oven_area_area_right_drawer_joint" type="fixed">
-    <origin rpy="0 0 0" xyz="0.7 0.45 0.05"/>
+  <joint name="oven_area_area_right_drawer_joint" type="prismatic">
+    <origin rpy="0 0 0" xyz="0.02 0.44 0.05"/>
     <parent link="oven_area_area"/>
     <child link="oven_area_area_right_drawer_main"/>
+    <axis xyz="0.999 0 0.044"/>
+    <!--  the axis needs to be slightly tilted so that the drawers would stay closed in Gazebo-->
+    <limit effort="300" lower="0" upper="0.48" velocity="10"/>
+
 </joint>
+
 
 <link name="oven_area_area_right_drawer_main">
     <inertial>
@@ -995,7 +1000,7 @@
 </link>
 
   <joint name="drawer_oven_right_front_joint" type="fixed">
-    <origin rpy="0 0. 0" xyz="0.3 0 0"/>
+    <origin rpy="0 0. 0" xyz="0.25 0 0"/>
     <parent link="oven_area_area_right_drawer_main"/>
     <child link="drawer_oven_right_front_link"/>
     <!--
@@ -1024,7 +1029,9 @@
     </collision>
 </link>
 
-<link name="drawer_oven_right_back_link">
+<!-- Board 0 -->
+
+<link name="drawer_oven_right_board0_link">
     <inertial>
         <mass value="1.0"/>
         <inertia ixx="0.153554166667" ixy="0" ixz="0" iyy="0.0348041666667" iyz="0" izz="0.173854166667"/>
@@ -1033,85 +1040,82 @@
     <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-            <box size="0.025 0.295 1.325"/>
+            <box size="0.49 0.27 0.025"/>
         </geometry>
     </visual>
     <collision>
             <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-            <box size="0.025 0.3 1.33"/>
-        </geometry>
-    </collision>
-</link>
-
-<joint name="drawer_oven_right_back_joint" type="fixed">
-    <origin rpy="0 0 0" xyz="-0.3 0 0"/>
-    <parent link="oven_area_area_right_drawer_main"/>
-    <child link="drawer_oven_right_back_link"/>
-</joint>
-
-<link name="drawer_oven_right_bottom_link">
-    <inertial>
-        <mass value="1.0"/>
-        <inertia ixx="0.153554166667" ixy="0" ixz="0" iyy="0.0348041666667" iyz="0" izz="0.173854166667"/>
-      </inertial>
-
-    <visual>
-        <origin rpy="0 0 0" xyz="0 0 0"/>
-        <geometry>
-            <box size="0.58 0.3 0.025"/>
-        </geometry>
-    </visual>
-    <collision>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-        <geometry>
-            <box size="0.58 0.3 0.025"/>
+            <box size="0.49 0.27 0.025"/>
         </geometry>
     </collision>
 </link>
     
-<joint name="drawer_oven_right_bottom_joint" type="prismatic">
+<joint name="drawer_oven_right_board0_joint" type="fixed">
     <origin xyz="0 0 -0.655"/>
     <parent link="oven_area_area_right_drawer_main"/>
-    <child link="drawer_oven_right_bottom_link"/>
+    <child link="drawer_oven_right_board0_link"/>
+    <!--
     <axis xyz="0.999 0 0.044"/>
-    <!--  the axis needs to be slightly tilted so that the drawers would stay closed in Gazebo -->
+     the axis needs to be slightly tilted so that the drawers would stay closed in Gazebo
     <limit effort="300" lower="0" upper="0.48" velocity="10"/>
+    -->
 
 </joint>
 
-
-
-<link name="drawer_oven_right_top_link">
+<link name="drawer_oven_right_board0_barrier_right_link">
     <inertial>
         <mass value="1.0"/>
         <inertia ixx="0.153554166667" ixy="0" ixz="0" iyy="0.0348041666667" iyz="0" izz="0.173854166667"/>
-      </inertial>
+    </inertial>
 
     <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-            <box size="0.58 0.3 0.025"/>
+            <box size="0.49 0.02 0.05"/>
         </geometry>
     </visual>
     <collision>
             <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-            <box size="0.58 0.3 0.025"/>
+            <box size="0.49 0.02 0.05"/>
         </geometry>
     </collision>
 </link>
 
-
-<joint name="drawer_oven_right_top_joint" type="prismatic">
-    <origin xyz="0 0 0.655"/>
+<joint name="drawer_oven_right_board0_barrier_right_joint" type="fixed">
+    <origin xyz="0 -0.135 -0.62"/>
     <parent link="oven_area_area_right_drawer_main"/>
-    <child link="drawer_oven_right_top_link"/>
-    <axis xyz="0.999 0 0.044"/>
-    <!--  the axis needs to be slightly tilted so that the drawers would stay closed in Gazebo -->
-    <limit effort="300" lower="0" upper="0.48" velocity="10"/>
-
+    <child link="drawer_oven_right_board0_barrier_right_link"/>
 </joint>
+
+<link name="drawer_oven_right_board0_barrier_left_link">
+    <inertial>
+        <mass value="1.0"/>
+        <inertia ixx="0.153554166667" ixy="0" ixz="0" iyy="0.0348041666667" iyz="0" izz="0.173854166667"/>
+    </inertial>
+
+    <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </visual>
+    <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </collision>
+</link>
+
+<joint name="drawer_oven_right_board0_barrier_left_joint" type="fixed">
+    <origin xyz="0 0.135 -0.62"/>
+    <parent link="oven_area_area_right_drawer_main"/>
+    <child link="drawer_oven_right_board0_barrier_left_link"/>
+</joint>
+
+<!-- Board 1 -->
 
 <link name="drawer_oven_right_board1_link">
     <inertial>
@@ -1122,23 +1126,78 @@
     <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-            <box size="0.58 0.3 0.025"/>
+            <box size="0.49 0.27 0.025"/>
         </geometry>
     </visual>
     <collision>
             <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-            <box size="0.58 0.3 0.025"/>
+            <box size="0.49 0.27 0.025"/>
         </geometry>
     </collision>
 </link>
 
 <joint name="drawer_oven_right_board1_joint" type="fixed">
-    <origin xyz="0 0 -0.35"/>
+    <origin xyz="0 0 -0.33"/>
     <parent link="oven_area_area_right_drawer_main"/>
     <child link="drawer_oven_right_board1_link"/>
 </joint>
 
+<link name="drawer_oven_right_board1_barrier_right_link">
+    <inertial>
+        <mass value="1.0"/>
+        <inertia ixx="0.153554166667" ixy="0" ixz="0" iyy="0.0348041666667" iyz="0" izz="0.173854166667"/>
+    </inertial>
+
+    <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </visual>
+    <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </collision>
+</link>
+
+<joint name="drawer_oven_right_board1_barrier_right_joint" type="fixed">
+    <origin xyz="0 -0.135 -0.295"/>
+    <parent link="oven_area_area_right_drawer_main"/>
+    <child link="drawer_oven_right_board1_barrier_right_link"/>
+</joint>
+
+<link name="drawer_oven_right_board1_barrier_left_link">
+    <inertial>
+        <mass value="1.0"/>
+        <inertia ixx="0.153554166667" ixy="0" ixz="0" iyy="0.0348041666667" iyz="0" izz="0.173854166667"/>
+    </inertial>
+
+    <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </visual>
+    <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </collision>
+</link>
+
+<joint name="drawer_oven_right_board1_barrier_left_joint" type="fixed">
+    <origin xyz="0 0.135 -0.295"/>
+    <parent link="oven_area_area_right_drawer_main"/>
+    <child link="drawer_oven_right_board1_barrier_left_link"/>
+</joint>
+
+
+
+<!-- Board 2 -->
 
 <link name="drawer_oven_right_board2_link">
     <inertial>
@@ -1149,13 +1208,13 @@
     <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-            <box size="0.58 0.3 0.025"/>
+            <box size="0.49 0.27 0.025"/>
         </geometry>
     </visual>
     <collision>
             <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-            <box size="0.58 0.3 0.025"/>
+            <box size="0.49 0.27 0.025"/>
         </geometry>
     </collision>
 </link>
@@ -1166,9 +1225,60 @@
     <child link="drawer_oven_right_board2_link"/>
 </joint>
 
+<link name="drawer_oven_right_board2_barrier_right_link">
+    <inertial>
+        <mass value="1.0"/>
+        <inertia ixx="0.153554166667" ixy="0" ixz="0" iyy="0.0348041666667" iyz="0" izz="0.173854166667"/>
+    </inertial>
+
+    <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </visual>
+    <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </collision>
+</link>
+
+<joint name="drawer_oven_right_board2_barrier_right_joint" type="fixed">
+    <origin xyz="0 -0.135 0.035"/>
+    <parent link="oven_area_area_right_drawer_main"/>
+    <child link="drawer_oven_right_board2_barrier_right_link"/>
+</joint>
+
+<link name="drawer_oven_right_board2_barrier_left_link">
+    <inertial>
+        <mass value="1.0"/>
+        <inertia ixx="0.153554166667" ixy="0" ixz="0" iyy="0.0348041666667" iyz="0" izz="0.173854166667"/>
+    </inertial>
+
+    <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </visual>
+    <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </collision>
+</link>
+
+<joint name="drawer_oven_right_board2_barrier_left_joint" type="fixed">
+    <origin xyz="0 0.135 0.035"/>
+    <parent link="oven_area_area_right_drawer_main"/>
+    <child link="drawer_oven_right_board2_barrier_left_link"/>
+</joint>
 
 
-
+<!-- Board 3 -->
 
 <link name="drawer_oven_right_board3_link">
     <inertial>
@@ -1179,22 +1289,77 @@
     <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-            <box size="0.58 0.3 0.025"/>
+            <box size="0.49 0.27 0.025"/>
         </geometry>
     </visual>
     <collision>
             <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-            <box size="0.58 0.3 0.025"/>
+            <box size="0.49 0.27 0.025"/>
         </geometry>
     </collision>
 </link>
 
 <joint name="drawer_oven_right_board3_joint" type="fixed">
-    <origin xyz="0 0 0.35"/>
+    <origin xyz="0 0 0.33"/>
     <parent link="oven_area_area_right_drawer_main"/>
     <child link="drawer_oven_right_board3_link"/>
 </joint>
+
+
+<link name="drawer_oven_right_board3_barrier_right_link">
+    <inertial>
+        <mass value="1.0"/>
+        <inertia ixx="0.153554166667" ixy="0" ixz="0" iyy="0.0348041666667" iyz="0" izz="0.173854166667"/>
+    </inertial>
+
+    <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </visual>
+    <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </collision>
+</link>
+
+<joint name="drawer_oven_right_board3_barrier_right_joint" type="fixed">
+    <origin xyz="0 -0.135 0.365"/>
+    <parent link="oven_area_area_right_drawer_main"/>
+    <child link="drawer_oven_right_board3_barrier_right_link"/>
+</joint>
+
+<link name="drawer_oven_right_board3_barrier_left_link">
+    <inertial>
+        <mass value="1.0"/>
+        <inertia ixx="0.153554166667" ixy="0" ixz="0" iyy="0.0348041666667" iyz="0" izz="0.173854166667"/>
+    </inertial>
+
+    <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </visual>
+    <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+            <box size="0.49 0.02 0.05"/>
+        </geometry>
+    </collision>
+</link>
+
+<joint name="drawer_oven_right_board3_barrier_left_joint" type="fixed">
+    <origin xyz="0 0.135 0.365"/>
+    <parent link="oven_area_area_right_drawer_main"/>
+    <child link="drawer_oven_right_board3_barrier_left_link"/>
+</joint>
+
+
 
 <!--
   <gazebo reference="drawer_oven_right_link">

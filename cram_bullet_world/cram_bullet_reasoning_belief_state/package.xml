@@ -21,9 +21,9 @@
   <depend>cram_projection</depend>
   <depend>cram_bullet_reasoning</depend>
   <depend>cram_plan_occasions_events</depend>
-  <depend>cran_ocassions_events</depend>
+  <depend>cram_occasions_events</depend>
   <depend>cram_language</depend>
-  <depend>cram_phisics_utils</depend>
+  <depend>cram_physics_utils</depend>
   <depend>roslisp_utilities</depend>
   <depend>roslisp</depend>
   <depend>cram_robot_interfaces</depend>
@@ -34,7 +34,7 @@
   <depend>cl_bullet</depend>
   <depend>tf2_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>shape_msga</depend>
+  <depend>shape_msgs</depend>
 
 </package>
 
