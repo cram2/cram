@@ -44,7 +44,9 @@
    #:robot-free-hand
    #:unidirectional-attachment
    ;; manipulation-interfaces
+   ;; utils
    #:reasoning-engine-for-method
+   ;; manipulation-interfaces
    #:get-action-gripping-effort
    #:get-action-gripper-opening
    #:get-action-trajectory
