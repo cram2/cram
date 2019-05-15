@@ -376,32 +376,43 @@
     (set-configuration :right right-configuration)))
 
 ;;; cartesian movement
-(defparameter *tcp-pose-in-ee*
-  (let* ((frame-bindings
-           (cut:lazy-car
-            (prolog:prolog
-             `(and (cram-robot-interfaces:robot ?robot)
-                   (cram-robot-interfaces:tcp-in-ee-pose ?robot ?tcp-in-ee-pose)))))
-         (tcp-in-ee-pose
-           (cut:var-value '?tcp-in-ee-pose frame-bindings))) tcp-in-ee-pose))
-
 (defun tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame)
   (when tcp-pose
-    (cram-tf:strip-transform-stamped
-     (cram-tf:multiply-transform-stampeds
-      cram-tf:*robot-base-frame*
-      end-effector-frame
-      (cram-tf:pose->transform-stamped
-       cram-tf:*robot-base-frame*
-       tool-frame
-       0.0
-       tcp-pose)
-      (cram-tf:transform-stamped-inv
-       (cram-tf:pose->transform-stamped
-        end-effector-frame
-        tool-frame
-        0.0
-        *tcp-pose-in-ee*))))))
+    (let* ((frame-bindings
+             (cut:lazy-car
+              (prolog:prolog
+               `(and (cram-robot-interfaces:robot ?robot)
+                     (cram-robot-interfaces:tcp-in-ee-pose ?robot ?tcp-in-ee-pose)))))
+           (tcp-pose-in-ee
+             (cut:var-value '?tcp-in-ee-pose frame-bindings))
+
+           ;;tcp pose to transform
+           (tcp-pose-to-transform
+             (cram-tf:pose->transform-stamped
+              cram-tf:*robot-base-frame*
+              tool-frame
+              0.0
+              tcp-pose))
+           
+           ;;base to tcp
+           (bTtcp
+             (cram-tf:transform-stamped-inv
+              (cram-tf:pose->transform-stamped
+               end-effector-frame
+               tool-frame
+               0.0
+               tcp-pose-in-ee)))
+           
+           (multiply-transforms
+             (cram-tf:multiply-transform-stampeds
+              cram-tf:*robot-base-frame*
+              end-effector-frame
+              tcp-pose-to-transform
+              bTtcp)))
+      
+      ;;strip the transform
+      (cram-tf:strip-transform-stamped
+       multiply-transforms))))
 
 (defun ee-pose-in-base->ee-pose-in-torso (ee-pose-in-base)
   (when ee-pose-in-base
