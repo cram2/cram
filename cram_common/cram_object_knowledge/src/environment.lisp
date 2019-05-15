@@ -29,10 +29,20 @@
 
 (in-package :objects)
 
-(def-fact-group object-type-hierarchy (man-int:object-type-direct-subtype)
+(def-fact-group environment-object-type-hierarchy (man-int:object-type-direct-subtype)
   (<- (man-int:object-type-direct-subtype :container :container-prismatic))
   (<- (man-int:object-type-direct-subtype :container-prismatic :drawer))
 
   (<- (man-int:object-type-direct-subtype :container :container-revolute))
   (<- (man-int:object-type-direct-subtype :container-revolute :fridge))
   (<- (man-int:object-type-direct-subtype :container-revolute :oven)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :container)))
+  50)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :container)))
+  0.10)

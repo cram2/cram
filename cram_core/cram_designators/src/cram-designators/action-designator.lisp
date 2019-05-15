@@ -52,10 +52,12 @@
 
 (defmethod resolve-designator ((desig action-designator) (role t))
   (lazy-mapcan (lambda (bdg)
-                 (let ((action-desig (var-value '?act bdg)))
-                   (unless (is-var action-desig)
-                     (list action-desig))))
-               (prolog `(action-grounding ,desig ?act))))
+                 (let ((plan-action-desig-tuple (var-value '?plan-action-tuple bdg)))
+                   (unless (is-var plan-action-desig-tuple)
+                     ;; (unless (desig-equal desig (second plan-action-desig-tuple))
+                     ;;   (equate desig (second plan-action-desig-tuple)))
+                     (list plan-action-desig-tuple))))
+               (prolog `(action-grounding ,desig ?plan-action-tuple))))
 
 (defmethod next-solution ((desig action-designator))
   (reference desig)

@@ -30,6 +30,8 @@
 (in-package :pr2-em)
 
 (defun get-container-pose-and-transform (name btr-environment)
+  "Return a list of the pose-stamped and transform-stamped of the object named
+NAME in the environment BTR-ENVIRONMENT."
   (let* ((name-rosified (roslisp-utilities:rosify-underscores-lisp-name name))
          (urdf-pose (get-urdf-link-pose name-rosified btr-environment))
          (pose (cram-tf:ensure-pose-in-frame
@@ -51,6 +53,9 @@
     (man-int:object-type-subtype :container ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
+    (-> (spec:property ?container-designator (:handle-axis ?handle-axis))
+        (true)
+        (lisp-fun get-handle-axis ?container-designator ?handle-axis))
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
@@ -60,8 +65,8 @@
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
     (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
-    (lisp-fun roslisp-utilities:lispify-ros-underscore-name ?handle-link-string :keyword
-              ?handle-link)
+    (lisp-fun roslisp-utilities:lispify-ros-underscore-name
+              ?handle-link-string :keyword ?handle-link)
     (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
     ;; environment
@@ -69,13 +74,14 @@
     (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
     (lisp-fun btr:name ?environment-obj ?environment-name)
     ;; infer missing information like ?gripper-opening, opening trajectory
-    (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
+    (lisp-fun man-int:get-action-gripper-opening ?container-type ?gripper-opening)
     ;; calculate trajectory
     (equal ?objects (?container-designator))
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory
                        :opening ?arm :open ?objects
                        :opening-distance ?distance
+                       :handle-axis ?handle-axis
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
                        ?left-reach-poses)
@@ -93,6 +99,7 @@
         (and (lisp-fun man-int:get-action-trajectory
                        :opening ?arm :open ?objects
                        :opening-distance ?distance
+                       :handle-axis ?handle-axis
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
                        ?right-reach-poses)
@@ -135,6 +142,9 @@
     (man-int:object-type-subtype :container ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
+    (-> (spec:property ?container-designator (:handle-axis ?handle-axis))
+        (true)
+        (lisp-fun get-handle-axis ?container-designator ?handle-axis))
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
@@ -144,8 +154,8 @@
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
     (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
-    (lisp-fun roslisp-utilities:lispify-ros-underscore-name ?handle-link-string :keyword
-              ?handle-link)
+    (lisp-fun roslisp-utilities:lispify-ros-underscore-name
+              ?handle-link-string :keyword ?handle-link)
     (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
     ;; environment
@@ -153,13 +163,14 @@
     (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
     (lisp-fun btr:name ?environment-obj ?environment-name)
     ;; infer missing information like ?gripper-opening, closing trajectory
-    (lisp-fun man-int:get-object-type-gripper-opening ?container-type ?gripper-opening)
+    (lisp-fun man-int:get-action-gripper-opening ?container-type ?gripper-opening)
     ;; calculate trajectory
     (equal ?objects (?container-designator))
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory
                        :closing ?arm :close ?objects
                        :opening-distance ?distance
+                       :handle-axis ?handle-axis
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
                        ?left-reach-poses)
@@ -177,6 +188,7 @@
         (and (lisp-fun man-int:get-action-trajectory
                        :closing ?arm :close ?objects
                        :opening-distance ?distance
+                       :handle-axis ?handle-axis
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
                        ?right-reach-poses)
