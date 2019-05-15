@@ -29,14 +29,14 @@
 
 (in-package :pr2-proj-reasoning)
 
-(defgeneric extract-task-error (err)
+#+now-placed-in-cram-plan-occasions-events
+((defgeneric extract-task-error (err)
   (:method ((err cpl:plan-failure))
     err)
   (:method ((err cpl:common-lisp-error-envelope))
     (cpl:envelop-error err)))
 
-#+now-placed-in-cram-plan-occasions-events
-((def-fact-group tasks (coe:holds)
+(def-fact-group tasks (coe:holds)
 
   (<- (perform-task-of-top-level ?top-level-name ?task-node)
     (bound ?top-level-name)
