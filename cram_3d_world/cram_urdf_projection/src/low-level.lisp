@@ -381,9 +381,9 @@
            (cut:lazy-car
             (prolog:prolog
              `(and (cram-robot-interfaces:robot ?robot)
-                   (cram-robot-interfaces:ee-to-tcp-transform ?robot ?ee-to-tcp-transform)))))
-         (ee-to-tcp-pose
-           (cut:var-value '?ee-to-tcp-transform frame-bindings))) ee-to-tcp-pose))
+                   (cram-robot-interfaces:tcp-in-ee-pose ?robot ?tcp-in-ee-pose)))))
+         (tcp-in-ee-pose
+           (cut:var-value '?tcp-in-ee-pose frame-bindings))) tcp-in-ee-pose))
 
 (defun tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame)
   (when tcp-pose

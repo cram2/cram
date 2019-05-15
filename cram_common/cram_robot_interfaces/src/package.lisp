@@ -41,7 +41,7 @@
    ;; #:robot-pre-grasp-joint-states
    #:planning-group
    #:standard-to-particular-gripper-transform
-   #:ee-to-tcp-transform
+   #:tcp-in-ee-pose
    ;; designator utils
    #:compute-iks
    #:reachability-designator #:designator-reach-pose #:visibility-designator
