@@ -178,7 +178,7 @@
                                              ))
               (:cup . ,(desig:a location
                                 (right-of (an object (type bowl)))
-                                ;; (behind (an object (type bowl)))
+                                (behind (an object (type bowl)))
                                 (near (an object (type bowl)))
                                 (for (an object (type cup)))))
               (:bowl . ,(desig:a location
@@ -196,7 +196,8 @@
               (:spoon . ,(desig:a location
                                   (right-of (an object (type bowl)))
                                   (near (an object (type bowl)))
-                                  (for (an object (type spoon)))))
+                                  (for (an object (type spoon)))
+                                  (orientation support-aligned)))
               (:milk . ,(desig:a location
                                  (left-of (an object (type bowl)))
                                  (far-from (an object (type bowl)))
