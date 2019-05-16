@@ -30,36 +30,36 @@
   :author "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (cram-projection
+  :depends-on (alexandria ; for CURRY in low-level perception
+               roslisp-utilities ; for rosify-lisp-name
+
+               cram-projection
                cram-prolog
                cram-designators
-               cram-utilities
-               cram-bullet-reasoning
-               cram-tf
-               cram-robot-interfaces    ; for ROBOT predicate and COMPUTE-IKS
+               cram-utilities ; for lazy list stuff with prolog
+               cram-process-modules
+
                cl-transforms
                cl-transforms-stamped
-               cl-tf
-               cram-occasions-events
-               cram-plan-occasions-events
-               cram-common-designators
-               ;;cram-boxy-designators ; for wiggling
-               cram-common-failures
-               cram-process-modules
-               alexandria ; for CURRY in low-level perception
-               roslisp-utilities ; for rosify-lisp-name
-               cram-semantic-map ; for special projection variable definition
+               cl-tf ; for TF transformer to be used without ROS inside projection
+               cram-tf                ; for pose conversions
+               cram-robot-interfaces ; for reading robot descriptions
+               cram-occasions-events ; for on-event for updating TF transformer
+               cram-plan-occasions-events ; for robot-state-changed handler
+               cram-common-designators ; for projection process modules
+               cram-common-failures ; for throwing failures in low-level.lisp
+
+               cram-bullet-reasoning ; for moving the robot in the bullet world
                cram-bullet-reasoning-belief-state ; for special projection variable definition
-               cram-simple-actionlib-client ; for communicating with giskard
-               moveit_msgs-msg ; for IK queries
+
+               moveit_msgs-msg          ; for IK queries
                moveit_msgs-srv)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "tf" :depends-on ("package"))
-     ;; (:file "giskard" :depends-on ("package"))
      (:file "ik" :depends-on ("package"))
-     (:file "low-level" :depends-on ("package" "tf" "ik"))
+     (:file "low-level" :depends-on ("package" "ik"))
      (:file "process-modules" :depends-on ("package" "low-level"))
-     (:file "projection-environment" :depends-on ("package" "tf" "process-modules"))))))
+     (:file "projection-environment" :depends-on ("package" "process-modules"))
+     (:file "tf" :depends-on ("package" "projection-environment"))))))

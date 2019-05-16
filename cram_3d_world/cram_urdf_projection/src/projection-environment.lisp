@@ -98,33 +98,39 @@
 
 #+below-is-a-very-simple-example-of-how-to-use-projection
 (
- (let ((robot (cl-urdf:parse-urdf (roslisp:get-param "robot_description")))
-       (kitchen (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
-   (prolog:prolog `(and
-                    (btr:bullet-world ?w)
-                    (btr:debug-window ?w)
-                    (assert ?w (btr:object :static-plane floor ((0 0 0) (0 0 0 1))
-                                           :normal (0 0 1) :constant 0))
-                    (assert ?w (btr:object :semantic-map sem-map ((0 0 0) (0 0 0 1))
-                                           :urdf ,kitchen))
-                    (cram-robot-interfaces:robot ?robot)
-                    (assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1))
-                                           :urdf ,robot)))))
-
+ (ros-load-manifest:load-system "cram_urdf_projection" :cram-urdf-projection)
+ (ros-load-manifest:load-system "cram_MYROBOT_description" :cram-MYROBOT-description)
  (ros-load-manifest:load-system "cram_executive" :cram-executive)
 
- (proj:with-projection-environment urdf-proj::urdf-bullet-projection-environment
-   (cpl:top-level
-     (exe:perform
-      (let ((?pose (cl-tf:make-pose-stamped
-                    cram-tf:*robot-base-frame* 0.0
-                    (cl-transforms:make-3d-vector -4 -5 0)
-                    (cl-transforms:make-identity-rotation))))
-        (desig:a motion (type going) (pose ?pose))))
-     (exe:perform
-      (let ((?pose (cl-tf:make-pose-stamped
-                    cram-tf:*robot-base-frame* 0.0
-                    (cl-transforms:make-3d-vector 0.8 0.4 1.0)
-                    (cl-transforms:make-identity-rotation))))
-        (desig:a motion (type moving-tcp) (left-pose ?pose))))))
+ ;; roslaunch cram_MYROBOT_bringup myrobot.launch
+
+ (roslisp:start-ros-node "my_node")
+ (cram-tf::init-tf)
+ (coe:clear-belief)
+
+ (urdf-proj:with-simulated-robot
+  (exe:perform
+   (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                 cram-tf:*robot-base-frame* 0.0
+                 (cl-transforms:make-3d-vector -4 -5 0)
+                 (cl-transforms:make-identity-rotation))))
+     (desig:a motion (type going) (pose ?pose))))
+  (exe:perform
+   (desig:a motion (type moving-torso) (joint-angle 0.15)))
+  (exe:perform
+   (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                 cram-tf:*robot-base-frame* 0.0
+                 (cl-transforms:make-3d-vector 1.0 0 1.0)
+                 (cl-transforms:make-identity-rotation))))
+     (desig:a motion (type looking) (pose ?pose))))
+  (exe:perform
+   (desig:a motion (type opening-gripper) (gripper left)))
+  (exe:perform
+   (desig:a motion (type closing-gripper) (gripper right)))
+  (exe:perform
+   (let ((?pose (cl-tf:make-pose-stamped
+                 cram-tf:*robot-base-frame* 0.0
+                 (cl-transforms:make-3d-vector 0.8 0.4 1.0)
+                 (cl-transforms:make-identity-rotation))))
+     (desig:a motion (type moving-tcp) (left-pose ?pose)))))
 )
