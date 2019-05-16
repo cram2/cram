@@ -60,10 +60,10 @@
         (equal ?rotationally-symmetric nil))
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
-        (and (lisp-fun man-int:get-object-type-grasps ?object-type ?arm ?object-transform ?grasps)
+        (and (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
              (member ?grasp ?grasps)))
-    (lisp-fun man-int:get-object-type-gripping-effort ?object-type ?effort)
-    (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
+    (lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
+    (lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
 
     ;; calculate trajectory
     (equal ?objects (?current-object-desig))
@@ -130,7 +130,7 @@
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
-    (lisp-fun man-int:get-object-type-gripper-opening ?object-type ?gripper-opening)
+    (lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
 
     ;; take object-pose from action-designator :target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location-designator))
@@ -197,7 +197,7 @@
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
                                (:target ?current-location-designator)
-                               (:placement-location-name ?placement-location-name)
+                               (:attachment-type ?placement-location-name)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-put-poses ?left-put-poses)

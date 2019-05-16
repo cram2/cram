@@ -56,6 +56,5 @@
     (format "Visibility VR POSE!~%")))
 
 
-;; (defmethod man-int:get-object-type-grasps :around (object-type arm
-;;                                                    object-transform-in-base)
+;; (defmethod man-int:get-action-grasps :vr 40 (object-type arm object-transform-in-base)
 ;;   (remove-duplicates (cut:force-ll (object-grasped-faces-ll object-type))))

@@ -29,8 +29,8 @@
 
 (in-package :cram-manipulation-interfaces)
 
-(defgeneric get-object-type-gripping-effort (object-type)
-  (:documentation "Returns effort in Nm, e.g. 50."))
+(defmethod get-action-gripping-effort :heuristics 20 (object-type)
+  (call-with-specific-type #'get-action-gripping-effort object-type))
 
-(defgeneric get-object-type-gripper-opening (object-type)
-  (:documentation "How wide to open the gripper before grasping, in m."))
+(defmethod get-action-gripper-opening :heuristics 20 (object-type)
+  (call-with-specific-type #'get-action-gripper-opening object-type))

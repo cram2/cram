@@ -34,27 +34,41 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :cutlery))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :spoon))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :fork))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :knife))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :plate))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :tray))) 100)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :bottle))) 60)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :cup))) 50)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :milk))) 15)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :cereal))) 15)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :breakfast-cereal))) 20)
-(defmethod man-int:get-object-type-gripping-effort ((object-type (eql :bowl))) 100)
+(def-fact-group household-object-type-hierarchy (man-int:object-type-direct-subtype)
+  (<- (man-int:object-type-direct-subtype :household-item :cutlery))
+  (<- (man-int:object-type-direct-subtype :household-item :plate))
+  (<- (man-int:object-type-direct-subtype :household-item :tray))
+  (<- (man-int:object-type-direct-subtype :household-item :bottle))
+  (<- (man-int:object-type-direct-subtype :household-item :cup))
+  (<- (man-int:object-type-direct-subtype :household-item :milk))
+  (<- (man-int:object-type-direct-subtype :household-item :cereal))
+  (<- (man-int:object-type-direct-subtype :household-item :bowl))
+
+  (<- (man-int:object-type-direct-subtype :cutlery :knife))
+  (<- (man-int:object-type-direct-subtype :cutlery :fork))
+  (<- (man-int:object-type-direct-subtype :cutlery :spoon))
+
+  (<- (man-int:object-type-direct-subtype :cereal :breakfast-cereal)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :household-item)))
+  50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :milk)))
+  15)
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :cereal)))
+  20)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :cutlery))) 0.04)
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :spoon))) 0.04)
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :fork))) 0.04)
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :knife))) 0.04)
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :plate))) 0.02)
-(defmethod man-int:get-object-type-gripper-opening ((object-type (eql :tray))) 0.02)
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :household-item)))
+  0.10)
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :cutlery)))
+  0.04)
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :plate)))
+  0.02)
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :tray)))
+  0.02)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -75,7 +89,7 @@
 (defparameter *cutlery-pregrasp-xy-offset* 0.10 "in meters")
 
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:cutlery :spoon :fork :knife)
+(man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
     '(:left :right) :top
   :grasp-translation `(0.0 0.0 ,*cutlery-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
@@ -85,7 +99,7 @@
   :2nd-lift-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
 
 ;; BOTTOM grasp
-(man-int:def-object-type-to-gripper-transforms '(:cutlery :spoon :fork :knife)
+(man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
     '(:left :right) :bottom
   :grasp-translation `(0.0 0.0 ,(- *cutlery-grasp-z-offset*))
   :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
@@ -263,7 +277,7 @@
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :top
   :grasp-translation `(0.0d0 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *lift-offset*
@@ -272,7 +286,7 @@
   :2nd-lift-offsets *lift-offset*)
 
 ;; BACK grasp
-(man-int:def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :back
+(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :back
   :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
@@ -281,7 +295,7 @@
   :2nd-lift-offsets *lift-offset*)
 
 ;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms '(:breakfast-cereal :cereal) '(:left :right) :front
+(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :front
   :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)

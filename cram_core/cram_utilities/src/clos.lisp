@@ -73,6 +73,39 @@ The `hook-combination' function gets every method result as a parameter."
               ,@(loop for m in (append ordered-methods other-methods)
                       collecting `(call-method ,m)))))
 
+(define-method-combination first-in-order-and-around ()
+  ((methods *))
+  "Every method should be qualified by two symbols or :around.
+The second one has to be a positive integer. The function will lowest integer will be called:
+ (defmethod my-generic-function some-qualifier 1 (some-arg) ...)
+will be called and not
+ (defmethod my-generic-function some-qualifier 2 (some-arg) ...)
+If there are multiple methods with the same order number, the most specific one will be called.
+Standard :around method combination with around methods is also supported."
+  (let* ((ordered-methods
+           (stable-sort
+            (remove-if-not (lambda (method)
+                             (let ((method-qualifiers (method-qualifiers method)))
+                               (and (= (length method-qualifiers) 2)
+                                    (typep (second method-qualifiers) '(integer 0 *)))))
+                           methods)
+            #'<
+            :key (lambda (method)
+                   (second (method-qualifiers method)))))
+         (method-to-call
+           (car ordered-methods))
+         (around-methods
+           (remove-if-not (lambda (method)
+                            (let ((method-qualifiers (method-qualifiers method)))
+                              (eq (car method-qualifiers) :around)))
+                          methods)))
+    (if around-methods
+        `(call-method ,(first around-methods)
+                      (,@(rest around-methods)
+                       ,method-to-call))
+        `(call-method ,method-to-call))))
+
+
 (defmacro define-hook (fun-name lambda-list &body options)
   "Wrapper around DEFGENERIC. If `options' does not include a
    :METHOD-COMBINATION clause, the HOOKS method combination is used. Also if

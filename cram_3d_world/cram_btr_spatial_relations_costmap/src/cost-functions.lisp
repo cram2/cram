@@ -1,5 +1,7 @@
+;;;
 ;;; Copyright (c) 2012, Gayane Kazhoyan <kazhoyan@in.tum.de>
 ;;;                     Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;                     Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -125,7 +127,54 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
                 (setf highest-body body))
         finally (return highest-body)))
 
+;;;;;;;;;;;;;;;;;;;; Level Calculations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun find-levels-under-link (parent-link)
+  "Finds all the child links under the parent link with the name
+board or level in them"
+  (let ((levels-found))
+    (labels ((find-levels (link)
+               (let* ((child-joints (cl-urdf:to-joints link))
+                      (child-links (mapcar #'cl-urdf:child child-joints)))
+                 (mapcar (lambda (child-link)
+                           (let ((child-name (cl-urdf:name child-link)))
+                             (if (or (search "board" child-name)
+                                     (search "level" child-name))
+                                 (push child-link levels-found)
+                                 (find-levels child-link))))
+                           child-links))))
+      (find-levels parent-link))
+    levels-found))
+
+(defun get-level-links-in-container (btr-environment container-name)
+  (when (symbolp container-name)
+    (setf container-name
+          (roslisp-utilities:rosify-underscores-lisp-name container-name)))
+  (find-levels-under-link
+   (gethash container-name (cl-urdf:links (btr:urdf btr-environment)))))
+
+(defun choose-level (btr-environment level-links tag &key (invert nil))
+  "Chooses the level based on the given tag which can be a number or a
+`:topmost' or `:bottommost' keyword. The sorting to find the level number
+usually sorted from the lowest level to the highest. The `invert' key will
+reverse sort it"
+  (let* ((level-rigid-body-function (alexandria:compose
+                                     (alexandria:curry
+                                      #'get-link-rigid-body btr-environment)
+                                     #'cl-urdf:name))
+         (level-rigid-bodies (mapcar level-rigid-body-function level-links))
+         (level-index (case tag
+                         (:topmost (- (length level-rigid-bodies) 1))
+                         (:bottommost 0)
+                         (:middle (floor (/ (length level-rigid-bodies) 2)))
+                         (otherwise (- tag 1))))
+         ;; Only need to reverse sort if the level specified is an integer
+         ;; since topmost and bottommost always means the same thing
+         (sort-order (if (and (typep tag 'integer)
+                              invert)
+                         #'> #'<)))
+    (nth level-index
+         (sort level-rigid-bodies sort-order :key #'get-rigid-body-aabb-top-z))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -141,6 +190,35 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
            (> x (- center-x dimensions-x/2))
            (< y (+ center-y dimensions-y/2))
            (> y (- center-y dimensions-y/2)))
+          1.0 0.0))))
+
+(defun make-object-in-object-bounding-box-costmap-generator (container-object inner-object)
+  "Returns a costmap generator, which for any point within
+`container-object' axis-aligned bounding box gives 1.0, with the exception that
+the edges of the bounding box have a padding, such that it would be possible
+to fit an `inner-object' inside the bounding box, i.e. the padding is of the size
+of the longest extent of the `inner-object'.
+Please note, that if the object is a box, it might not fit into the bounding box
+when rotated with, e.g., 45 degrees.
+It will also not be quite correct if the object is placed on its side and
+not upright."
+  (let* ((container-obj-bb-dims (btr:calculate-bb-dims container-object))
+         (container-dimensions-x/2 (/ (cl-transforms:x container-obj-bb-dims) 2))
+         (container-dimensions-y/2 (/ (cl-transforms:y container-obj-bb-dims) 2))
+         (container-center-x (cl-transforms:x (cl-transforms:origin (btr:pose container-object))))
+         (container-center-y (cl-transforms:y (cl-transforms:origin (btr:pose container-object))))
+         (inner-obj-bb-dims (btr:calculate-bb-dims inner-object))
+         (inner-obj-x/2 (/ (cl-transforms:x inner-obj-bb-dims) 2))
+         (inner-obj-y/2 (/ (cl-transforms:y inner-obj-bb-dims) 2))
+         (inner-obj-padding (max inner-obj-x/2 inner-obj-y/2))
+         (dimensions-x/2 (- container-dimensions-x/2 inner-obj-padding))
+         (dimensions-y/2 (- container-dimensions-y/2 inner-obj-padding)))
+    (lambda (x y)
+      (if (and
+           (< x (+ container-center-x dimensions-x/2))
+           (> x (- container-center-x dimensions-x/2))
+           (< y (+ container-center-y dimensions-y/2))
+           (> y (- container-center-y dimensions-y/2)))
           1.0 0.0))))
 
 ;;; TODO: maybe include bb into deciding not just the pose and ratio
@@ -405,7 +483,7 @@ if it is on the sign side of the axis. "
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HEIGHT GENERATORS ;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *board-thickness* 0.035)
+(defparameter *board-thickness* 0.040)
 
 (defun make-object-bounding-box-height-generator (object &optional (tag :on))
   (constantly (list
@@ -422,14 +500,25 @@ if it is on the sign side of the axis. "
                                2.0))
                          *board-thickness*))))))
 
-(defun make-object-on-object-bb-height-generator (environment-objects for-object)
+(defun make-object-on/in-object-bb-height-generator (environment-objects for-object
+                                                     &optional (tag :on))
   (let* ((environment-object-top
            (apply #'max
                   (mapcar (lambda (environment-object)
-                            (+ (cl-transforms:z
-                                (cl-transforms:origin (btr:pose environment-object)))
-                               (/ (cl-transforms:z (btr:calculate-bb-dims environment-object))
-                                  2.0)))
+                            (ecase tag
+                              (:on (+ (cl-transforms:z
+                                       (cl-transforms:origin
+                                        (btr:pose environment-object)))
+                                      (/ (cl-transforms:z
+                                          (btr:calculate-bb-dims environment-object))
+                                         2.0)))
+                              (:in (+ (cl-transforms:z
+                                       (cl-transforms:origin
+                                        (btr:pose environment-object)))
+                                      (- (/ (cl-transforms:z
+                                             (btr:calculate-bb-dims environment-object))
+                                            2.0))
+                                      *board-thickness*))))
                           (if (listp environment-objects)
                               environment-objects
                               (list environment-objects)))))
