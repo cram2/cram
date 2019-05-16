@@ -28,12 +28,16 @@
 
 (in-package :urdf-proj)
 
-(defparameter *ik-service-name* "boxy_arm_kinematics/get_ik")
+(defparameter *ik-service-name* '(:left "boxy_arm_kinematics/get_ik"
+                                  :right "boxy_arm_kinematics/get_ik"))
+
+;; (defparameter *ik-service-name* '(:left "pr2_left_arm_kinematics/get_ik"
+;;                                   :right "pr2_right_arm_kinematics/get_ik"))
 
 (defun call-ik-service (left-or-right cartesian-pose &optional seed-state)
   (declare (type keyword left-or-right)
            (type cl-transforms-stamped:pose-stamped cartesian-pose)
-           (ignore seed-state))
+           (type (or null sensor_msgs-msg:jointstate) seed-state))
   (let* ((robot-info-bindings
            (cut:lazy-car
             (prolog:prolog
@@ -48,15 +52,16 @@
          (joint-names
            (cut:var-value '?joints robot-info-bindings))
          (joint-state-msg
-           (btr::make-robot-joint-state-msg
-            (btr:get-robot-object)
-            :joint-names joint-names)))
+           (or seed-state
+               (btr::make-robot-joint-state-msg
+                (btr:get-robot-object)
+                :joint-names joint-names))))
     (roslisp:with-fields ((response-error-code (val error_code))
                           (joint-state (joint_state solution)))
         (progn
-          (roslisp:wait-for-service *ik-service-name* 10.0)
+          (roslisp:wait-for-service (getf *ik-service-name* left-or-right) 10.0)
           (roslisp:call-service
-           *ik-service-name*
+           (getf *ik-service-name* left-or-right)
            'moveit_msgs-srv:getpositionik
            (roslisp:make-request
             'moveit_msgs-srv:getpositionik
@@ -93,8 +98,14 @@
                                                          &key seed-state test-angle
                                                            torso-angle
                                                            torso-lower-limit torso-upper-limit)
-             (let ((ik-solution (call-ik-service left-or-right cartesian-pose seed-state)))
-               (if (not ik-solution)
+             (let ((ik-solution-msg (call-ik-service left-or-right cartesian-pose seed-state)))
+               (if ik-solution-msg
+                   (let ((ik-solution-position
+                           (map 'list #'identity
+                                (roslisp:msg-slot-value
+                                 ik-solution-msg 'sensor_msgs-msg:position)))
+                         (resulting-torso-angle (or test-angle torso-angle)))
+                     (values ik-solution-position resulting-torso-angle))
                    (when (or (not test-angle) (> test-angle torso-lower-limit))
                      ;; When we have no ik solution and have a valid torso angle to try,
                      ;; use it to resample.
@@ -118,8 +129,7 @@
                         :test-angle next-test-angle
                         :torso-angle torso-angle
                         :torso-lower-limit torso-lower-limit
-                        :torso-upper-limit torso-upper-limit)))
-                   (values ik-solution (or test-angle torso-angle))))))
+                        :torso-upper-limit torso-upper-limit)))))))
 
     (let ((old-debug-lvl (roslisp:debug-level NIL)))
       (unwind-protect
@@ -135,77 +145,32 @@
         (roslisp:set-debug-level NIL old-debug-lvl)))))
 
 
-
-#+commentedoutfornow
-(
- (defun set-robot-state-to-ik-result ()
-   (btr:set-robot-state-from-joints
-    (call-ik)
-    (btr:get-robot-object)))
-
- (defun ensure-giskard-cartesian-input-parameters (frame left-pose right-pose)
-   (values (when left-pose
-             (cram-tf:ensure-pose-in-frame left-pose frame))
-           (when right-pose
-             (cram-tf:ensure-pose-in-frame right-pose frame))))
-
- (defun ensure-giskard-cartesian-goal-reached (result status goal-position-left goal-position-right
-                                               goal-frame-left goal-frame-right
-                                               convergence-delta-xy convergence-delta-theta)
-   (when (eql status :preempted)
-     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
-     (return-from ensure-giskard-cartesian-goal-reached))
-   (when (eql status :timeout)
-     (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
-   (when (eql status :aborted)
-     (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action aborted! With result ~a" result)
-     ;; (cpl:fail 'common-fail:manipulation-goal-not-reached
-     ;;           :description "Giskard did not converge to goal because of collision")
-     )
-   (when goal-position-left
-     (unless (cram-tf:tf-frame-converged goal-frame-left goal-position-left
-                                         convergence-delta-xy convergence-delta-theta)
-       (cpl:fail 'common-fail:manipulation-goal-not-reached
-                 :description (format nil "Giskard did not converge to goal:
-~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
-                                      goal-frame-left goal-position-left
-                                      convergence-delta-xy convergence-delta-theta))))
-   (when goal-position-right
-     (unless (cram-tf:tf-frame-converged goal-frame-right goal-position-right
-                                         convergence-delta-xy convergence-delta-theta)
-       (cpl:fail 'common-fail:manipulation-goal-not-reached
-                 :description (format nil "Giskard did not converge to goal:
-~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
-                                      goal-frame-right goal-position-right
-                                      convergence-delta-xy convergence-delta-theta)))))
-
- (defun move-arms-giskard-cartesian (&key
-                                       goal-pose-left goal-pose-right action-timeout
-                                       collision-mode
-                                       (pose-base-frame cram-tf:*robot-base-frame*)
-                                       (left-tool-frame cram-tf:*robot-left-tool-frame*)
-                                       (right-tool-frame cram-tf:*robot-right-tool-frame*)
-                                       (convergence-delta-xy *giskard-convergence-delta-xy*)
-                                       (convergence-delta-theta *giskard-convergence-delta-theta*))
-   (declare (type (or null cl-transforms-stamped:pose-stamped) goal-pose-left goal-pose-right)
-            (type (or null number) action-timeout convergence-delta-xy convergence-delta-theta)
-            (type (or null string) pose-base-frame left-tool-frame right-tool-frame))
-   (if (or goal-pose-left goal-pose-right)
-       (multiple-value-bind (goal-pose-left goal-pose-right)
-           (ensure-giskard-cartesian-input-parameters pose-base-frame goal-pose-left goal-pose-right)
-         (cram-tf:visualize-marker (list goal-pose-left goal-pose-right) :r-g-b-list '(1 0 1))
-         (multiple-value-bind (result status)
-             (let ((goal (make-giskard-cartesian-action-goal
-                          goal-pose-left goal-pose-right
-                          pose-base-frame left-tool-frame right-tool-frame
-                          collision-mode)))
-               (actionlib-client:call-simple-action-client
-                'giskard-action
-                :action-goal goal
-                :action-timeout action-timeout))
-           (ensure-giskard-cartesian-goal-reached result status goal-pose-left goal-pose-right
-                                                  left-tool-frame right-tool-frame
-                                                  convergence-delta-xy convergence-delta-theta)
-           (values result status)))
-       (roslisp:ros-info (pr2-ll giskard-cart) "Got an empty goal...")))
- )
+#+might-be-really-outdated-now
+(defmethod cram-robot-interfaces:compute-iks (pose-stamped
+                                              &key link-name arm robot-state seed-state
+                                                (pose-stamped-frame
+                                                 cram-tf:*robot-torso-frame*)
+                                                (tcp-in-ee-pose
+                                                 (cl-transforms:make-identity-pose)))
+  (declare (ignore link-name robot-state))
+  (let* ((tcp-pose (cl-transforms-stamped:transform-pose-stamped
+                    cram-tf:*transformer*
+                    :pose (cl-transforms-stamped:copy-pose-stamped
+                           pose-stamped :stamp 0.0)
+                    :target-frame pose-stamped-frame
+                    :timeout cram-tf:*tf-default-timeout*))
+         (goal-trans (cl-transforms:transform*
+                      (cl-transforms:reference-transform tcp-pose)
+                      (cl-transforms:transform-inv
+                       (cl-transforms:reference-transform tcp-in-ee-pose))))
+         (ee-pose (cl-transforms-stamped:make-pose-stamped
+                   (cl-transforms-stamped:frame-id tcp-pose)
+                   (cl-transforms-stamped:stamp tcp-pose)
+                   (cl-transforms:translation goal-trans)
+                   (cl-transforms:rotation goal-trans)))
+         (solution
+           (call-ik-service arm
+                            ee-pose
+                            seed-state)))
+    (when solution
+      (list solution))))

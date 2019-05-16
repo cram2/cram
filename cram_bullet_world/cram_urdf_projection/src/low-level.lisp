@@ -100,8 +100,8 @@
                 :description (format nil "Torso goal ~a was out of joint limits" joint-angle)
                 :torso joint-angle))))
 
-;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun look-at-joint-angles (joint-angles)
   (declare (type list joint-angles))
@@ -376,43 +376,36 @@
     (set-configuration :right right-configuration)))
 
 ;;; cartesian movement
+
 (defun tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame)
   (when tcp-pose
-    (let* ((frame-bindings
-             (cut:lazy-car
-              (prolog:prolog
-               `(and (cram-robot-interfaces:robot ?robot)
-                     (cram-robot-interfaces:tcp-in-ee-pose ?robot ?tcp-in-ee-pose)))))
-           (tcp-pose-in-ee
-             (cut:var-value '?tcp-in-ee-pose frame-bindings))
-
-           ;;tcp pose to transform
-           (tcp-pose-to-transform
+    (let* ((ee-P-tcp
+             (cut:var-value
+              '?tcp-in-ee-pose
+              (cut:lazy-car
+               (prolog:prolog
+                `(and (cram-robot-interfaces:robot ?robot)
+                      (cram-robot-interfaces:tcp-in-ee-pose ?robot ?tcp-in-ee-pose))))))
+           (base-T-tcp
              (cram-tf:pose->transform-stamped
               cram-tf:*robot-base-frame*
               tool-frame
               0.0
               tcp-pose))
-           
-           ;;base to tcp
-           (bTtcp
+           (tcp-T-ee
              (cram-tf:transform-stamped-inv
               (cram-tf:pose->transform-stamped
                end-effector-frame
                tool-frame
                0.0
-               tcp-pose-in-ee)))
-           
-           (multiply-transforms
+               ee-P-tcp)))
+           (base-T-ee
              (cram-tf:multiply-transform-stampeds
               cram-tf:*robot-base-frame*
               end-effector-frame
-              tcp-pose-to-transform
-              bTtcp)))
-      
-      ;;strip the transform
-      (cram-tf:strip-transform-stamped
-       multiply-transforms))))
+              base-T-tcp
+              tcp-T-ee)))
+      (cram-tf:strip-transform-stamped base-T-ee))))
 
 (defun ee-pose-in-base->ee-pose-in-torso (ee-pose-in-base)
   (when ee-pose-in-base
@@ -457,7 +450,7 @@
 
 (defun get-ik-joint-positions (arm ee-pose)
   (when ee-pose
-    (multiple-value-bind (ik-solution-msg torso-angle)
+    (multiple-value-bind (ik-solution torso-angle)
         (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
             (car (prolog:prolog
                   `(and
@@ -475,13 +468,10 @@
            :torso-angle ?torso-angle
            :torso-lower-limit ?lower-limit
            :torso-upper-limit ?upper-limit))
-      (unless ik-solution-msg
+      (unless ik-solution
         (cpl:fail 'common-fail:manipulation-pose-unreachable
                   :description (format nil "~a is unreachable for EE." ee-pose)))
-      (values
-       (map 'list #'identity
-            (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))
-       torso-angle))))
+      (values ik-solution torso-angle))))
 
 (defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose)
   (unless collision-mode
@@ -548,10 +538,12 @@
        (cpl:fail 'common-fail:manipulation-goal-not-reached
                  :description "Robot is in collision with environment.")))))
 
-(defun move-tcp (left-tcp-pose right-tcp-pose &optional collision-mode
-                                                collision-object-b collision-object-b-link collision-object-a)
+(defun move-tcp (left-tcp-pose right-tcp-pose
+                 &optional collision-mode
+                   collision-object-b collision-object-b-link collision-object-a)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
-  
+  (declare (ignore collision-object-b collision-object-b-link collision-object-a))
+
   (let* ((frame-bindings
            (cut:lazy-car
             (prolog:prolog
@@ -569,7 +561,6 @@
          (right-ee-frame
            (cut:var-value '?right-ee-frame frame-bindings)))
 
-    
     (multiple-value-bind (left-ik left-torso-angle)
         (get-ik-joint-positions :left
                                 (ee-pose-in-base->ee-pose-in-torso
@@ -597,6 +588,3 @@
 (defun move-with-constraints (constraints-string)
   (declare (ignore constraints-string))
   (warn "Moving with constraints is not supported in projection! Ignoring."))
-
-
-
