@@ -28,9 +28,8 @@
 
 (in-package :cram-pr2-description)
 
-;;change the value for the specific robots gripper length
 (defparameter *tcp-in-ee-pose*
-  (cl-transforms-stamped:make-transform
+  (cl-transforms:make-pose
    (cl-transforms:make-3d-vector 0.18 0 0)
    (cl-transforms-stamped:make-identity-rotation)))
 
