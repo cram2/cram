@@ -226,19 +226,22 @@
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Orienation Generator ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   (<- (generate-orientations ?tag ?supporting-rigid-body ?reference-pose ?costmap)
-    (member ?tag (:aligned :random :cardinal))
-    (-> (equal ?tag :aligned)
-        (and (lisp-fun btr:calculate-bb-dims ?supporting-rigid-body ?supp-obj-dims)
-             (lisp-fun get-rigid-body-aabb-top-z ?supporting-rigid-body ?supp-obj-z)
-             (lisp-fun cl-bullet:pose ?supporting-rigid-body ?supp-obj-pose)
-             (costmap:costmap-add-orientation-generator
-              (make-supporting-obj-aligned-orientations-generator
-               ?supp-obj-dims ?supp-obj-pose ?supp-obj-z ?reference-pose)
-              ?costmap))
-        (and (costmap:costmap-add-orientation-generator
-              (make-z-orientations-generator ?tag)
-              ?costmap))))
-  
+    (-> (member ?tag (:support-aligned :random :axis-aligned))
+        (-> (equal ?tag :support-aligned)
+            (and (lisp-fun btr:calculate-bb-dims ?supporting-rigid-body ?supp-obj-dims)
+                 (lisp-fun get-rigid-body-aabb-top-z ?supporting-rigid-body ?supp-obj-z)
+                 (lisp-fun cl-bullet:pose ?supporting-rigid-body ?supp-obj-pose)
+                 (costmap:costmap-add-orientation-generator
+                  (make-supporting-obj-aligned-orientations-generator
+                   ?supp-obj-dims ?supp-obj-pose ?supp-obj-z ?reference-pose)
+                  ?costmap))
+            (and (costmap:costmap-add-orientation-generator
+                  (make-z-orientations-generator ?tag)
+                  ?costmap)))
+        (format "WARNING: ORIENTATION tag in a location can only be:~%~
+                 SUPPORT-ALIGNED, RANDOM or AXIS-ALIGNED.~%~
+                 Ignoring ORIENTATION tag.")))
+
   ;;;;;;;;;;;;; LEFT-OF etc. for bullet objects or locations ;;;;;;;;;;;;;;;;;;
   ;; uses make-potential-field-cost-function to resolve the designator
   (<- (potential-field-costmap ?edge ?relation ?reference-pose ?supp-obj-pose ?costmap)
