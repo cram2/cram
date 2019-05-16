@@ -577,20 +577,22 @@ reference object (which is optional but has priority)."
                                :ref-obj-dependent ref-obj-dependent
                                :ref-obj-pose ref-obj-pose)))
       (list
-       (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1)
-                                             aligned-direction)))))
+       (cl-transforms:axis-angle->quaternion
+        (cl-transforms:make-3d-vector 0 0 1)
+        aligned-direction)))))
 
-(defun make-z-orientations-generator (tag &key (samples 4))
-  "Generates orientations around z axis randomly or along the cardinal directions
-according to the tag provided. Cardinal directions only support 4 samples. If random
-sampling is used the number of samples can be modified through the optional samples tag."
+(defun make-z-orientations-generator (tag &key (samples 3))
+  "Generates orientations around z axis randomly or along x and y axes
+according to the `tag' provided. Axis-aligned directions generate exactly 4 samples. If random
+sampling is used the number of samples can be modified through the optional `samples' arg."
   (lambda (x y previous-orientations)
     (declare (ignore x y previous-orientations))
-    (cut:lazy-mapcar (lambda (angle)
-                       (cl-transforms:axis-angle->quaternion
-                        (cl-transforms:make-3d-vector 0 0 1)
-                        angle))
-                     (ecase tag
-                       (:random (loop for i from 1 to samples
-                                      collect (random (* 2 pi))))
-                       (:cardinal `(0.0 ,pi ,(/ pi 2) ,(- (/ pi 2))))))))
+    (cut:lazy-mapcar
+     (lambda (angle)
+       (cl-transforms:axis-angle->quaternion
+        (cl-transforms:make-3d-vector 0 0 1)
+        angle))
+     (ecase tag
+       (:random (loop for i from 1 to samples
+                      collect (random (* 2 pi))))
+       (:axis-aligned `(0.0 ,pi ,(/ pi 2) ,(- (/ pi 2))))))))
