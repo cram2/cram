@@ -7,7 +7,7 @@ import kdl_arm_kinematics.ik
 
 
 def callback(request):
-    print "Got request "
+    # print "Got request %s"%(request)
 
     response = moveit_msgs.srv.GetPositionIKResponse()
 
