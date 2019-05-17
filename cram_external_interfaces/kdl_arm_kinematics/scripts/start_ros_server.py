@@ -54,5 +54,6 @@ def server_main():
     print "IK server ready."
     rospy.spin()
 
+
 if __name__ == "__main__":
     server_main()

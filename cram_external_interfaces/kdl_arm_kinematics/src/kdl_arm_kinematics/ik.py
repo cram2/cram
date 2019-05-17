@@ -23,12 +23,21 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     num_joints = kdl_chain.getNrOfJoints()
     print "number of joints: " + str(num_joints)
 
+    # Get Joint limits
     kdl_joint_limits_min, kdl_joint_limits_max = get_kdl_joint_limit_arrays(kdl_chain, urdf_obj)
-    fk_solver, ik_solver = get_kinematics_solvers(kdl_chain, kdl_joint_limits_min, kdl_joint_limits_max)
 
-    # Calculating IK
-    result_joint_state_kdl, goal_frame_kdl = solve_ik(ik_solver, num_joints, seed_joint_state,
-                                                      goal_transform_geometry_msg)
+    fk_solver = PyKDL.ChainFkSolverPos_recursive(kdl_chain)
+    velocity_ik = PyKDL.ChainIkSolverVel_pinv(kdl_chain)
+    # ik_solver = PyKDL.ChainIkSolverPos_LMA(kdl_chain, 1e-5, 1000, 1e-15)
+    ik_solver = PyKDL.ChainIkSolverPos_NR_JL(kdl_chain, kdl_joint_limits_min, kdl_joint_limits_max,
+                                             fk_solver, velocity_ik)
+
+    # Getting the goal frame and seed state
+    goal_frame_kdl = tf2_kdl.transform_to_kdl(goal_transform_geometry_msg)
+    seed_joint_state_kdl = get_kdl_jnt_array_from_list(num_joints, seed_joint_state)
+
+    # Solving IK
+    result_joint_state_kdl = solve_ik(ik_solver, num_joints, seed_joint_state_kdl, goal_frame_kdl)
 
     # check if calculated joint state results in the correct end-effector position using FK
     goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl)
@@ -37,11 +46,9 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     joints_within_limits = check_result_joints_are_within_limits(num_joints, result_joint_state_kdl,
                                                                  kdl_joint_limits_min, kdl_joint_limits_max)
 
-    result_joint_state_vector = []
-    for joint in range(0, num_joints):
-        result_joint_state_vector.append(result_joint_state_kdl[joint])
-
+    result_joint_state_vector = get_list_from_kdl_jnt_array(num_joints, result_joint_state_kdl)
     goal_pose_reached_successfully = goal_pose_reached and joints_within_limits
+
     return result_joint_state_vector, goal_pose_reached_successfully
 
 
@@ -85,25 +92,29 @@ def get_kinematics_solvers(kdl_chain, kdl_limits_min, kdl_limits_max):
     fk_solver = PyKDL.ChainFkSolverPos_recursive(kdl_chain)
     velocity_ik = PyKDL.ChainIkSolverVel_pinv(kdl_chain)
     # ik_solver = PyKDL.ChainIkSolverPos_LMA(kdl_chain, 1e-5, 1000, 1e-15)
-    ik_solver = PyKDL.ChainIkSolverPos_NR_JL(kdl_chain, kdl_limits_min, kdl_limits_max, fk_solver, velocity_ik)
+    ik_solver = PyKDL.ChainIkSolverPos_NR_JL(kdl_chain, kdl_limits_min, kdl_limits_max,
+                                             fk_solver, velocity_ik)
     return fk_solver, ik_solver
 
 
-def get_kdl_seed_joint_state(num_joints, seed_joint_state):
-    seed_joint_state_kdl = PyKDL.JntArray(num_joints)
-    for index, q in enumerate(seed_joint_state):
-        seed_joint_state_kdl[index] = q
-    return seed_joint_state_kdl
+def get_kdl_jnt_array_from_list(num_joints, joint_state_list):
+    joint_state_kdl = PyKDL.JntArray(num_joints)
+    for index, q in enumerate(joint_state_list):
+        joint_state_kdl[index] = q
+    return joint_state_kdl
 
 
-def solve_ik(ik_solver, num_joints, seed_joint_state, goal_transform_geometry_msg):
-    seed_joint_state_kdl = get_kdl_seed_joint_state(num_joints, seed_joint_state)
-    goal_frame_kdl = tf2_kdl.transform_to_kdl(goal_transform_geometry_msg)
+def get_list_from_kdl_jnt_array(num_joints, joint_state_kdl):
+    joint_state_vector = []
+    for joint in range(0, num_joints):
+        joint_state_vector.append(joint_state_kdl[joint])
+    return joint_state_vector
 
+
+def solve_ik(ik_solver, num_joints, seed_joint_state_kdl, goal_frame_kdl):
     result_joint_state_kdl = PyKDL.JntArray(num_joints)
     ik_solver.CartToJnt(seed_joint_state_kdl, goal_frame_kdl, result_joint_state_kdl)
-
-    return result_joint_state_kdl, goal_frame_kdl
+    return result_joint_state_kdl
 
 
 def check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl):
