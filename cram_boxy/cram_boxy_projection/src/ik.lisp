@@ -29,7 +29,7 @@
 
 (in-package :boxy-proj)
 
-(defparameter *ik-service-name* "boxy_arm_kinematics/get_ik")
+(defparameter *ik-service-name* "kdl_arm_kinematics/get_ik")
 
 (defun call-ik-service (left-or-right cartesian-pose &optional seed-state)
   (declare (type keyword left-or-right)
