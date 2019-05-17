@@ -46,6 +46,8 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     joints_within_limits = check_result_joints_are_within_limits(num_joints, result_joint_state_kdl,
                                                                  kdl_joint_limits_min, kdl_joint_limits_max)
 
+    print "Result Joint State Within Limits: " + str(joints_within_limits)
+    print "Can Reach Goal Pose With Solution: " + str(goal_pose_reached)
     result_joint_state_vector = get_list_from_kdl_jnt_array(num_joints, result_joint_state_kdl)
     goal_pose_reached_successfully = goal_pose_reached and joints_within_limits
 
