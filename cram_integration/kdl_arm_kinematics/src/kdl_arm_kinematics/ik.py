@@ -6,6 +6,46 @@ import tf2_kdl
 import math
 
 
+# ================================= API ===================================================
+def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_msg):
+    """
+    Calculates the Inverse Kinematics from base_link to tip_link according to the given
+    goal_transform_geometry_msg. The initial joint states would be considered from seed_joint_state.
+    Returns the result joint states and the success status.
+    base_link eg. - "triangle_base_link" or "calib_left_arm_base_link" or "calib_right_arm_base_link"
+    tip_link eg. - "left_arm_7_link" or "right_arm_7_link"
+    """
+    robot_urdf_string = rospy.get_param('robot_description')
+    urdf_obj = urdf_parser_py.urdf.URDF.from_xml_string(robot_urdf_string)
+    _, kdl_tree = kdl_parser_py.urdf.treeFromUrdfModel(urdf_obj)
+    kdl_chain = kdl_tree.getChain(base_link, tip_link)
+
+    num_joints = kdl_chain.getNrOfJoints()
+    print "number of joints: " + str(num_joints)
+
+    kdl_joint_limits_min, kdl_joint_limits_max = get_kdl_joint_limit_arrays(kdl_chain, urdf_obj)
+    fk_solver, ik_solver = get_kinematics_solvers(kdl_chain, kdl_joint_limits_min, kdl_joint_limits_max)
+
+    # Calculating IK
+    result_joint_state_kdl, goal_frame_kdl = solve_ik(ik_solver, num_joints, seed_joint_state,
+                                                      goal_transform_geometry_msg)
+
+    # check if calculated joint state results in the correct end-effector position using FK
+    goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl)
+
+    # check if calculated joint state is within joint limits
+    joints_within_limits = check_result_joints_are_within_limits(num_joints, result_joint_state_kdl,
+                                                                 kdl_joint_limits_min, kdl_joint_limits_max)
+
+    result_joint_state_vector = []
+    for joint in range(0, num_joints):
+        result_joint_state_vector.append(result_joint_state_kdl[joint])
+
+    goal_pose_reached_successfully = goal_pose_reached and joints_within_limits
+    return result_joint_state_vector, goal_pose_reached_successfully
+
+
+# ================================= Helper ===================================================
 def get_joint_names_from_kdl_chain(kdl_chain):
     number_of_segments = int(kdl_chain.getNrOfSegments())
     joint_names = []
@@ -84,41 +124,7 @@ def check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl):
 
 def check_result_joints_are_within_limits(num_joints, result_joint_state, joint_limits_min, joint_limits_max):
     for joint in range(0, num_joints):
-        if result_joint_state[joint] > joint_limits_max[joint] or result_joint_state[joint] < joint_limits_min[joint]:
+        if (result_joint_state[joint] > joint_limits_max[joint]) or\
+                (result_joint_state[joint] < joint_limits_min[joint]):
             return False
     return True
-
-
-def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_msg):
-    """base_link can be "triangle_base_link" or "calib_left_arm_base_link" or "calib_right_arm_base_link"
-    tip_link can be "left_arm_7_link" or "right_arm_7_link"
-    joint_state is a vector of 7
-    """
-    robot_urdf_string = rospy.get_param('robot_description')
-    urdf_obj = urdf_parser_py.urdf.URDF.from_xml_string(robot_urdf_string)
-    _, kdl_tree = kdl_parser_py.urdf.treeFromUrdfModel(urdf_obj)
-    kdl_chain = kdl_tree.getChain(base_link, tip_link)
-
-    num_joints = kdl_chain.getNrOfJoints()
-    print "number of joints: " + str(num_joints)
-
-    kdl_joint_limits_min, kdl_joint_limits_max = get_kdl_joint_limit_arrays(kdl_chain, urdf_obj)
-    fk_solver, ik_solver = get_kinematics_solvers(kdl_chain, kdl_joint_limits_min, kdl_joint_limits_max)
-
-    # Calculating IK
-    result_joint_state_kdl, goal_frame_kdl = solve_ik(ik_solver, num_joints, seed_joint_state,
-                                                      goal_transform_geometry_msg)
-
-    # check if calculated joint state results in the correct end-effector position using FK
-    goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl)
-
-    # check if calculated joint state is within joint limits
-    joints_within_limits = check_result_joints_are_within_limits(num_joints, result_joint_state_kdl,
-                                                                 kdl_joint_limits_min, kdl_joint_limits_max)
-
-    result_joint_state_vector = []
-    for joint in range(0, num_joints):
-        result_joint_state_vector.append(result_joint_state_kdl[joint])
-
-    goal_pose_reached_successfully = goal_pose_reached and joints_within_limits
-    return result_joint_state_vector, goal_pose_reached_successfully
