@@ -28,8 +28,8 @@
 
 (in-package :urdf-proj)
 
-(defparameter *ik-service-name* '(:left "boxy_arm_kinematics/get_ik"
-                                  :right "boxy_arm_kinematics/get_ik"))
+(defparameter *ik-service-name* '(:left "kdl_arm_kinematics/get_ik"
+                                  :right "kdl_arm_kinematics/get_ik"))
 
 ;; (defparameter *ik-service-name* '(:left "pr2_left_arm_kinematics/get_ik"
 ;;                                   :right "pr2_right_arm_kinematics/get_ik"))
