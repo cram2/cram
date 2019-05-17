@@ -38,7 +38,8 @@
                       ;; end-effector-parking-pose
                       ;; robot-pre-grasp-joint-states
                       planning-group
-                      standard-to-particular-gripper-transform)
+                      standard-to-particular-gripper-transform
+                      tcp-in-ee-pose)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;; rules describing the robot arms
 
@@ -118,7 +119,11 @@
     (fail))
 
   (<- (standard-to-particular-gripper-transform ?robot ?transform)
+    (fail))
+
+  (<- (tcp-in-ee-pose ?robot ?transform)
     (fail)))
+
 
 
 
