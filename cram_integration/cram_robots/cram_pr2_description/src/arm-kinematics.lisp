@@ -220,9 +220,9 @@
                   "r_gripper_palm_link"))))
 
 (def-fact-group pr2-arm-kinematics-facts (arm
-                                          end-effector-link
-                                          robot-tool-frame
+                                          end-effector-link robot-tool-frame
                                           gripper-link gripper-joint
+                                          gripper-meter-to-joint-multiplier
                                           planning-group
                                           robot-joint-states
                                           ;; robot-arms-parking-joint-states
@@ -257,6 +257,8 @@
   (<- (gripper-joint pr2 :left "l_gripper_r_finger_joint"))
   (<- (gripper-joint pr2 :right "r_gripper_l_finger_joint"))
   (<- (gripper-joint pr2 :right "r_gripper_r_finger_joint"))
+
+  (<- (gripper-meter-to-joint-multiplier pr2 5.0))
 
   (<- (planning-group pr2 :left "left_arm"))
   (<- (planning-group pr2 :right "right_arm"))
