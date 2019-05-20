@@ -71,8 +71,7 @@
     (ecase command
       (cram-common-designators:move-tcp (move-tcp arg-1 (first arg-2) (second arg-2)
                                                   (third arg-2) (fourth arg-2) (fifth arg-2)))
-      (cram-common-designators::move-joints (move-joints arg-1 (car arg-2)))
-      (cram-common-designators::move-with-constraints (move-with-constraints arg-1)))))
+      (cram-common-designators::move-joints (move-joints arg-1 (car arg-2))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -99,5 +98,4 @@
 
   (<- (cpm:matching-process-module ?motion-designator urdf-proj-arms)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
-        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
-        (desig:desig-prop ?motion-designator (:type :moving-with-constraints)))))
+        (desig:desig-prop ?motion-designator (:type :moving-arm-joints)))))

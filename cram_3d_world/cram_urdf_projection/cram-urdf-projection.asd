@@ -52,14 +52,12 @@
                cram-bullet-reasoning ; for moving the robot in the bullet world
                cram-bullet-reasoning-belief-state ; for special projection variable definition
 
-               moveit_msgs-msg          ; for IK queries
-               moveit_msgs-srv)
+               cram-ik-interface)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "ik" :depends-on ("package"))
-     (:file "low-level" :depends-on ("package" "ik"))
+     (:file "low-level" :depends-on ("package"))
      (:file "process-modules" :depends-on ("package" "low-level"))
      (:file "projection-environment" :depends-on ("package" "process-modules"))
      (:file "tf" :depends-on ("package" "projection-environment"))))))

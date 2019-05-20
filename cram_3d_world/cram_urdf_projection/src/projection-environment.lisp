@@ -30,18 +30,28 @@
 
 (defvar *last-timeline* nil)
 
+;; (defmethod desig:resolve-designator :around (designator (role (eql 'projection-role)))
+;;   (cram-projection:with-partially-ordered-clock-disabled *projection-clock*
+;;     (call-next-method)))
+
 (cram-projection:define-projection-environment urdf-bullet-projection-environment
   :special-variable-initializers
   ((cram-tf:*transformer*
     (make-instance 'cl-tf:transformer))
    ;; TODO: use custom tf topic "tf_sim"
    ;; For that first change tf2_ros/TransformListener to accept custom topic names
+   (cram-tf:*broadcaster*
+    (cram-tf:make-tf-broadcaster
+     "tf_projection"
+     cram-tf:*tf-broadcasting-interval*))
    ;; (*current-bullet-world* (cl-bullet:copy-world btr:*current-bullet-world*))
    (cram-bullet-reasoning:*current-timeline*
     (btr:timeline-init btr:*current-bullet-world*))
    (desig:*default-role*
     'projection-role)
    ;; (cut:*timestamp-function* #'projection-timestamp-function)
+   ;; (*projection-clock*
+   ;;  (make-instance 'cram-projection:partially-ordered-clock))
    (cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*
     (alexandria:copy-hash-table
      cram-bullet-reasoning-belief-state::*object-identifier-to-instance-mappings*))
@@ -56,12 +66,15 @@
    urdf-proj-arms)
   :startup (progn
              (cram-bullet-reasoning-belief-state:set-tf-from-bullet)
-             (cram-bullet-reasoning-belief-state:update-bullet-transforms))
-  :shutdown (setf *last-timeline* cram-bullet-reasoning:*current-timeline*))
+             (cram-bullet-reasoning-belief-state:update-bullet-transforms)
+             (cram-tf:start-publishing-transforms cram-tf:*broadcaster*))
+  :shutdown (progn
+              (setf *last-timeline* cram-bullet-reasoning:*current-timeline*)
+              (cram-tf:stop-publishing-transforms cram-tf:*broadcaster*)))
 
 
 (def-fact-group projection-available-pms (cpm:available-process-module
-                                    cpm:projection-running)
+                                          cpm:projection-running)
 
   (<- (cpm:available-process-module ?pm)
     (bound ?pm)
@@ -126,7 +139,7 @@
   (exe:perform
    (desig:a motion (type opening-gripper) (gripper left)))
   (exe:perform
-   (desig:a motion (type closing-gripper) (gripper right)))
+   (desig:a motion (type moving-gripper-joint) (gripper right) (joint-angle 0.05)))
   (exe:perform
    (let ((?pose (cl-tf:make-pose-stamped
                  cram-tf:*robot-base-frame* 0.0
