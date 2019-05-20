@@ -30,14 +30,52 @@ Opening or closing a drawer:
 ```lisp
 
 (urdf-proj:with-projected-robot
-    (perform (an action
-              (type opening)
-              (arm left)
-              (object (an object
-                       (type drawer)
-                       (urdf-name sink-area-left-upper-drawer-main)
-                       (part-of kitchen)
-                       (distance 0.3))))))
+  (perform (an action
+               (type opening)
+               (arm right)
+               (object (an object
+                           (type drawer)
+                           (urdf-name sink-area-left-upper-drawer-main)
+                           (part-of kitchen)))
+               (distance 0.3))))
+
+```
+
+Opening or closing a fridge:
+
+```lisp
+
+(urdf-proj:with-simulated-robot
+  (exe:perform
+   (an action
+       (type opening)
+       (arm right)
+       (distance 0.6)
+       (object
+        (an object
+            (type fridge)
+            (urdf-name iai-fridge-door)
+            (part-of kitchen))))))
+
+```
+
+Navigating and opening / closing the fridge (this requires fetch and place plans library):
+
+```lisp
+
+(urdf-proj:with-simulated-robot
+  (exe:perform
+   (an action
+       (type accessing)
+       (arm right)
+       (distance 0.4)
+       (location
+        (a location
+           (in
+            (an object
+                (type container-revolute)
+                (urdf-name iai-fridge-door)
+                (part-of kitchen))))))))
 
 ```
 
