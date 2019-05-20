@@ -90,6 +90,9 @@
         (warn "ROBOT was not defined. Have you loaded a robot package?"))))
 
 (defun init-projection ()
+  ;; for better precision in reading URDFs
+  (setf cl:*read-default-float-format* 'cl:double-float)
+
   (def-fact-group costmap-metadata ()
     (<- (location-costmap:costmap-size 12 12))
     (<- (location-costmap:costmap-origin -6 -6))
