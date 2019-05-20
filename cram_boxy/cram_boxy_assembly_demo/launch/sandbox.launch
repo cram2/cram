@@ -50,5 +50,5 @@
   <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" />
 
   <!-- Boxy IK solver -->
-  <include file="$(find kdl_arm_kinematics)/launch/kdl_ik.launch" />
+  <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
 </launch>

@@ -44,7 +44,7 @@
   <depend>cram_location_costmap</depend>
   <depend>cram_manipulation_interfaces</depend>
 
-  <depend>cram_boxy_projection</depend>
+  <depend>cram_urdf_projection</depend>
   <depend>cram_boxy_description</depend>
   <!-- <depend>cram_boxy_low_level</depend> -->
   <depend>cram_process_modules</depend>
@@ -57,7 +57,7 @@
   <exec_depend>iai_maps</exec_depend>
   <exec_depend>iai_kitchen</exec_depend>
   <exec_depend>map_server</exec_depend>
-  <exec_depend>kdl_arm_kinematics</exec_depend>
+  <exec_depend>kdl_ik_service</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>iai_boxy_description</exec_depend>
 </package>
