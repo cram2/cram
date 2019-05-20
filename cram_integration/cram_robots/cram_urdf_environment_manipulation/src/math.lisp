@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-em)
+(in-package :env-man)
 
 (defun line-equation (x1 y1 x2 y2)
   "Return the a, b and c values of the equation descriping a straight line

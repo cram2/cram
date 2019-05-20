@@ -1,7 +1,9 @@
 <package format="2">
-  <name>cram_pr2_environment_manipulation</name>
+  <name>cram_urdf_environment_manipulation</name>
   <version>0.7.0</version>
-  <description>The cram_pr2_environment_manipulation package</description>
+  <description>
+    Package for opening / closing containers in an environment described with URDF
+  </description>
   <author>Christopher Pollok</author>
   <maintainer email="cpollok@uni-bremen.de">Christopher Pollok</maintainer>
   <license>BSD</license>

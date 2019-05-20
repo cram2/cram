@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-em)
+(in-package :env-man)
 
 (defun get-container-pose-and-transform (name btr-environment)
   "Return a list of the pose-stamped and transform-stamped of the object named

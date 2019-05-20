@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-em)
+(in-package :env-man)
 
 (defparameter *drawer-handle-grasp-x-offset* 0.0 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
