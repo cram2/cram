@@ -51,7 +51,8 @@
 
                cram-bullet-reasoning
 
-               cram-pr2-projection)
+               cram-urdf-projection
+               cram-pr2-description)
   :components
   ((:module "src"
     :components
