@@ -3,7 +3,7 @@
 import rospy
 import moveit_msgs.srv
 import geometry_msgs.msg
-import kdl_arm_kinematics.ik
+import kdl_ik_service.ik
 
 
 def callback(request):
@@ -36,7 +36,7 @@ def callback(request):
     print timeout
 
     response.solution.joint_state = joint_state
-    new_joint_state_vector, success = kdl_arm_kinematics.ik.calculate_ik(base_link, end_effector_link, joint_state.position, transform_stamped)
+    new_joint_state_vector, success = kdl_ik_service.ik.calculate_ik(base_link, end_effector_link, joint_state.position, transform_stamped)
     print new_joint_state_vector
     response.solution.joint_state.position = new_joint_state_vector
 
@@ -49,7 +49,7 @@ def callback(request):
 
 
 def server_main():
-    rospy.init_node('kdl_arm_kinematics')
+    rospy.init_node('kdl_ik_service')
     server = rospy.Service('~get_ik', moveit_msgs.srv.GetPositionIK, callback)
     print "IK server ready."
     rospy.spin()

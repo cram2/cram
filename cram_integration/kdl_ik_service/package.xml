@@ -1,8 +1,10 @@
 <package format="2">
-  <name>kdl_arm_kinematics</name>
-  <version>0.0.0</version>
+  <name>kdl_ik_service</name>
+  <version>0.7.0</version>
   <description>KDL Based IK solver</description>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <maintainer email="amar@uni-bremen.de">Amar Fayaz</maintainer>
+  <author>Gayane Kazhoyan</author>
   <author>Amar Fayaz</author>
   <license>BSD</license>
 
