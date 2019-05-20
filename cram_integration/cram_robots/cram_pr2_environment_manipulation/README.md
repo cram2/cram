@@ -8,7 +8,7 @@ Navigating towards a location for conveniently opening / closing drawer:
 
 ```lisp
 
-(pr2-proj:with-projected-robot
+(urdf-proj:with-projected-robot
     (let ((?arm :left)
           (?container-desig
             (an object
@@ -29,7 +29,7 @@ Opening or closing a drawer:
 
 ```lisp
 
-(pr2-proj:with-projected-robot
+(urdf-proj:with-projected-robot
     (perform (an action
               (type opening)
               (arm left)

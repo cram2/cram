@@ -298,7 +298,7 @@
   (cet:enable-fluent-tracing)
   (cpl-impl::remove-top-level-task-tree :top-level)
 
-  (pr2-proj:with-simulated-robot
+  (urdf-proj:with-simulated-robot
     (pr2-pp-demo::demo-random nil))
 
   (cut:force-ll (prolog:prolog `(task-navigating-action :top-level ((demo-random))
@@ -308,7 +308,7 @@
   (cet:enable-fluent-tracing)
   (cpl-impl::remove-top-level-task-tree :top-level)
 
-  (pr2-proj:with-simulated-robot
+  (urdf-proj:with-simulated-robot
     (pr2-pp-demo::demo-random nil))
 
   (cut:force-ll
@@ -322,7 +322,7 @@
   (cet:enable-fluent-tracing)
   (cpl-impl::remove-top-level-task-tree :top-level)
 
-  (pr2-proj:with-simulated-robot
+  (urdf-proj:with-simulated-robot
     (pr2-pp-demo::demo-random))
 
   (cut:force-ll
@@ -334,7 +334,7 @@
   (cet:enable-fluent-tracing)
   (cpl-impl::remove-top-level-task-tree :top-level)
 
-  (proj:with-projection-environment pr2-proj:pr2-bullet-projection-environment
+  (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
     (cpl-impl::named-top-level (:name :top-level)
       (pr2-pp-demo::demo-random nil))
 

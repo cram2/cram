@@ -36,4 +36,6 @@
   <depend>cram_bullet_reasoning_belief_state</depend>
   <depend>cram_simple_actionlib_client</depend>
   <depend>cram_ik_interface</depend>
+
+  <export><deprecated/></export>
 </package>

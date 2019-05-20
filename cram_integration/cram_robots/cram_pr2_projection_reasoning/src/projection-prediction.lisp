@@ -206,7 +206,7 @@
                 (world-state (btr::get-state world)))
            (time
             (unwind-protect
-                 (proj:with-projection-environment pr2-proj:pr2-bullet-projection-environment
+                 (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
                    (cpl:with-tags
                      ,@(loop for i to (1- number-of-runs)
                              collecting
