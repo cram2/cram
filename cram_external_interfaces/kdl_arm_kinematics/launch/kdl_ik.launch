@@ -1,3 +1,0 @@
-<launch>
-  <node pkg="kdl_arm_kinematics" type="start_ros_server.py" name="kdl_arm_kinematics" output="screen" />
-</launch>
