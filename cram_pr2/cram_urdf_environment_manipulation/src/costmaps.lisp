@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-em)
+(in-package :env-man)
 
 (defun get-handle-min-max-pose (container-name btr-environment)
   "Return a list of two poses representing the container's handle position when

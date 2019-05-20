@@ -1,4 +1,4 @@
-cram_pr2_environment_manipulation
+cram_urdf_environment_manipulation
 =================================
 
 CRAM packages related to ...

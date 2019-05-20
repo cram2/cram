@@ -29,7 +29,7 @@
 
 (in-package :cl-user)
 
-(defpackage cram-pr2-environment-manipulation
-  (:nicknames #:pr2-em #:pr2-env-man)
+(defpackage cram-urdf-environment-manipulation
+  (:nicknames #:env-man)
   (:use #:common-lisp #:cram-prolog
         #:desig #:exe))
