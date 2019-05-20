@@ -68,7 +68,7 @@
   <!-- <include file="$(find wsg_50_simulation)/launch/wsg_50_for_kinematic_sim.launch" /> -->
 
   <!-- Boxy IK solver -->
-   <include file="$(find kdl_arm_kinematics)/launch/kdl_ik.launch" />
+   <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
 
  </group>
 
