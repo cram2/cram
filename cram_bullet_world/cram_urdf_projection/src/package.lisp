@@ -31,8 +31,8 @@
   (:nicknames #:urdf-proj)
   (:use #:common-lisp #:cram-prolog)
   (:export
-   ;; ik
-   ;; #:*torso-step*
    ;; projection-environment
    #:with-simulated-robot #:with-projected-robot
-   #:urdf-bullet-projection-environment))
+   #:urdf-bullet-projection-environment
+   ;; low-level
+   #:*debug-short-sleep-duration* #:*debug-long-sleep-duration*))
