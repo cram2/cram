@@ -1,19 +1,17 @@
 <package format="2">
-  <name>cram_urdf_environment_manipulation</name>
+  <name>cram_fetch_deliver_plans</name>
   <version>0.7.0</version>
-  <description>
-    Package for opening / closing containers in an environment described with URDF
-  </description>
-  <author>Christopher Pollok</author>
-  <maintainer email="cpollok@uni-bremen.de">Christopher Pollok</maintainer>
+  <description>Plans for actions such as NAVIGATE, SEARCH, FETCH, DELIVER, etc.</description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
   <license>BSD</license>
 
   <url type="website">http://cram-system.org</url>
-  <url type="repository">https://github.com/cram2/cram</url>
+  <url type="repository">http://github.com/cram2/cram</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>roslisp_utilities</depend>
+  <depend>roslisp</depend>
   <depend>cl_transforms</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cram_tf</depend>
@@ -21,19 +19,8 @@
   <depend>cram_executive</depend>
   <depend>cram_designators</depend>
   <depend>cram_prolog</depend>
-  <depend>cram_projection</depend>
-  <depend>cram_occasions_events</depend>
-  <depend>cram_utilities</depend>
   <depend>cram_common_failures</depend>
   <depend>cram_mobile_pick_place_plans</depend>
-  <depend>cram_robot_interfaces</depend>
-  <depend>cram_manipulation_interfaces</depend>
-  <depend>cram_designator_specification</depend>
-  <depend>cl_bullet</depend>
-  <depend>cram_bullet_reasoning</depend>
-  <depend>cram_bullet_reasoning_belief_state</depend>
-  <depend>cram_bullet_reasoning_utilities</depend>
-  <depend>cram_robot_pose_gaussian_costmap</depend>
-  <depend>cram_occupancy_grid_costmap</depend>
-  <depend>cram_location_costmap</depend>
+  <depend>cram_urdf_projection_reasoning</depend>
+  <depend>cram_urdf_environment_manipulation</depend>
 </package>
