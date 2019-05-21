@@ -27,8 +27,8 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defpackage cram-pr2-projection-reasoning
-  (:nicknames #:pr2-proj-reasoning)
+(defpackage cram-urdf-projection-reasoning
+  (:nicknames #:proj-reasoning)
   (:use #:common-lisp #:cram-prolog)
   (:export
    ;; check-collisions

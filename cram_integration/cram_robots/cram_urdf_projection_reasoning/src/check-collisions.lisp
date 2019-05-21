@@ -28,7 +28,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-proj-reasoning)
+(in-package :proj-reasoning)
 
 (defparameter *projection-checks-enabled* nil)
 
@@ -41,50 +41,55 @@ Repeat `navigation-location-samples' + 1 times.
 Store found pose into designator or throw error if good pose not found."
 
   (when *projection-checks-enabled*
-    (cpl:with-failure-handling
-        ((desig:designator-error (e)
-           (roslisp:ros-warn (coll-check nav)
-                             "Desig ~a could not be resolved: ~a~%Cannot navigate."
-                             navigation-location-desig e)
-           (cpl:fail 'common-fail:navigation-goal-in-collision
-                     :description "Designator could not be resolved")))
+    (let* ((world btr:*current-bullet-world*)
+           (world-state (btr::get-state world)))
+      (unwind-protect
+           (cpl:with-failure-handling
+               ((desig:designator-error (e)
+                  (roslisp:ros-warn (coll-check nav)
+                                    "Desig ~a could not be resolved: ~a~%Cannot navigate."
+                                    navigation-location-desig e)
+                  (cpl:fail 'common-fail:navigation-goal-in-collision
+                            :description "Designator could not be resolved")))
 
-      (cpl:with-retry-counters ((navigation-location-samples samples-to-try))
-        ;; If a navigation-low-level-failure happens, retry N times
-        ;; with the next solution of `navigation-location-desig'.
-        (cpl:with-failure-handling
-            ((common-fail:navigation-low-level-failure (e)
-               (declare (ignore e))
-               (roslisp:ros-warn (coll-check nav) "Pose was in collision.")
-               (cpl:do-retry navigation-location-samples
-                 (if (desig:next-solution navigation-location-desig)
-                     (progn
-                       (setf navigation-location-desig
-                             (desig:next-solution navigation-location-desig))
-                       (cpl:retry))
-                     (progn
-                       (roslisp:ros-warn (coll-check nav)
-                                         "No other samples in designator. Propagating up.")
-                       (cpl:fail 'common-fail:navigation-goal-in-collision
-                                 :description "No other samples in designator"))))
-               (roslisp:ros-warn (coll-check nav)
-                                 "Couldn't find a nav pose after all retries for~%~a.~%~
+             (cpl:with-retry-counters ((navigation-location-samples samples-to-try))
+               ;; If a navigation-low-level-failure happens, retry N times
+               ;; with the next solution of `navigation-location-desig'.
+               (cpl:with-failure-handling
+                   ((common-fail:navigation-low-level-failure (e)
+                      (declare (ignore e))
+                      (roslisp:ros-warn (coll-check nav) "Pose was in collision.")
+                      (cpl:do-retry navigation-location-samples
+                        (if (desig:next-solution navigation-location-desig)
+                            (progn
+                              (setf navigation-location-desig
+                                    (desig:next-solution navigation-location-desig))
+                              (cpl:retry))
+                            (progn
+                              (roslisp:ros-warn (coll-check nav)
+                                                "No other samples in designator. Propagating up.")
+                              (cpl:fail 'common-fail:navigation-goal-in-collision
+                                        :description "No other samples in designator"))))
+                      (roslisp:ros-warn (coll-check nav)
+                                        "Couldn't find a nav pose after all retries for~%~a.~%~
                                   Propagating up."
-                                 navigation-location-desig)
-               (cpl:fail 'common-fail:navigation-goal-in-collision
-                         :description "Couldn't find a nav pose after all retries")))
+                                        navigation-location-desig)
+                      (cpl:fail 'common-fail:navigation-goal-in-collision
+                                :description "Couldn't find a nav pose after all retries")))
 
-          ;; Pick one pose, store it in `pose-at-navigation-location'
-          ;; In projected world, drive to picked pose
-          ;; If robot is in collision with any object in the world, driving throws a failure.
-          ;; Otherwise, the pose was found, so return location designator,
-          ;; which is currently referenced to the found pose.
-          (let ((pose-at-navigation-location (desig:reference navigation-location-desig)))
-            (urdf-proj::drive pose-at-navigation-location)
-            ;; (roslisp:ros-info (coll-check nav)
-            ;;                   "Found non-colliding pose~%~a to satisfy~%~a."
-            ;;                   pose-at-navigation-location navigation-location-desig)
-            navigation-location-desig))))))
+                 ;; Pick one pose, store it in `pose-at-navigation-location'
+                 ;; In projected world, drive to picked pose
+                 ;; If robot is in collision with any object in the world,
+                 ;; driving throws a failure.
+                 ;; Otherwise, the pose was found, so return location designator,
+                 ;; which is currently referenced to the found pose.
+                 (let ((pose-at-navigation-location (desig:reference navigation-location-desig)))
+                   (urdf-proj::drive pose-at-navigation-location)
+                   ;; (roslisp:ros-info (coll-check nav)
+                   ;;                   "Found non-colliding pose~%~a to satisfy~%~a."
+                   ;;                   pose-at-navigation-location navigation-location-desig)
+                   navigation-location-desig))))
+        (btr::restore-world-state world-state world)))))
 
 
 
