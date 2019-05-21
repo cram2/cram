@@ -551,26 +551,20 @@ current joint states"
                 (cl-urdf:origin (cl-urdf:collision parent))))
               (cl-transforms:make-identity-transform))
           joint-transform)))
-      ;;here mimic joints caculating starts
-      (let ((mimic-joint-names '()))
-        ;;search for mimic joints that are bounded
-        (roslisp:with-fields (joints) urdf
-          (maphash (lambda (key val)
-                     (declare (ignore key))
-                     (when (slot-boundp val 'cl-urdf:mimics)
-                       (push val mimic-joint-names)))
-                   joints))
-        ;; iterate over the mimic joints and filter the name multiplier and offset out
-        (mapcar (lambda (key) 
-                  (with-slots ((mimic-slots cl-urdf:mimics)
-                               (key-name cl-urdf:name)) key
-                    (with-slots ((mimic-name cl-urdf::joint) 
-                                 (multi cl-urdf::multiplier) 
-                                 (ofs cl-urdf::offset)) mimic-slots
-                      ;;when the mimic joint mimics the current joint that has been moved, also move the mirror joint
-                      (when (equalp name mimic-name)
-                        (setf (joint-state obj key-name) (* multi new-value))))))
-                mimic-joint-names)))))
+      ;; also update state of joints that mimic the joint called `name'
+      (loop for joint being the hash-values of (cl-urdf:joints urdf)
+            for joints-mimic-slot = (and (slot-boundp joint 'cl-urdf:mimics)
+                                         (cl-urdf:mimics joint))
+            ;; if the joint mimics some other joint (i.e. mimics slot is bound)
+            when (and joints-mimic-slot
+                      ;; and that other joint happens to be our `name' joint
+                      (string-equal (cl-urdf:joint joints-mimic-slot)
+                                    name))
+              do (let ((multiplier (cl-urdf:multiplier joints-mimic-slot))
+                       (offset (cl-urdf:offset joints-mimic-slot)))
+                   ;; from ROS wiki: value = multiplier * other_joint_value + offset
+                   (setf (joint-state obj (cl-urdf:name joint))
+                         (+ (* multiplier new-value) offset)))))))
 
 (defun set-joint-state (robot name new-state)
   (setf (joint-state robot name) new-state))
