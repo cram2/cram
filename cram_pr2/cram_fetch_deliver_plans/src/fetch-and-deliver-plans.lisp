@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-fd-plans)
+(in-package :fd-plans)
 
 (defun go-without-collisions (&key
                                 ((:location ?navigation-location))

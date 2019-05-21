@@ -40,7 +40,7 @@
   <depend>cram_object_knowledge</depend>
   <depend>cram_cloud_logger</depend>
   <depend>cram_pr2_description</depend>
-  <depend>cram_pr2_fetch_deliver_plans</depend>
+  <depend>cram_fetch_deliver_plans</depend>
   <depend>cram_urdf_environment_manipulation</depend>
 
   <!-- launch file -->

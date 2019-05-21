@@ -1,5 +1,5 @@
 <package format="2">
-  <name>cram_pr2_fetch_deliver_plans</name>
+  <name>cram_fetch_deliver_plans</name>
   <version>0.7.0</version>
   <description>Plans for actions such as NAVIGATE, SEARCH, FETCH, DELIVER, etc.</description>
   <author>Gayane Kazhoyan</author>
