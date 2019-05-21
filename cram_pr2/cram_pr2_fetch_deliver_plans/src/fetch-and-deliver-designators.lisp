@@ -90,6 +90,7 @@ the `look-pose-stamped'."
     (or (spec:property ?action-designator (:type :accessing))
         (spec:property ?action-designator (:type :sealing)))
     (spec:property ?action-designator (:type ?action-type))
+    (rob-int:robot ?robot)
     ;; location
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
@@ -99,8 +100,7 @@ the `look-pose-stamped'."
     ;; arm
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
-        (and (cram-robot-interfaces:robot ?robot)
-             (cram-robot-interfaces:arm ?robot ?arm)
+        (and (cram-robot-interfaces:arm ?robot ?arm)
              (equal ?arm :left)))
     ;; distance
     (once (or (spec:property ?action-designator (:distance ?distance))
@@ -108,7 +108,7 @@ the `look-pose-stamped'."
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-robot-location))
                    (desig:current-designator ?robot-location ?robot-location))
-              (desig:designator :location ((:reachable-for cram-pr2-description:pr2)
+              (desig:designator :location ((:reachable-for ?robot)
                                            (:arm ?arm)
                                            (:object ?object-designator))
                                 ?robot-location)))
@@ -123,6 +123,7 @@ the `look-pose-stamped'."
   (<- (desig:action-grounding ?action-designator (search-for-object
                                                   ?resolved-action-designator))
     (spec:property ?action-designator (:type :searching))
+    (rob-int:robot ?robot)
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
@@ -132,7 +133,7 @@ the `look-pose-stamped'."
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-location-to-stand))
                    (desig:current-designator ?some-location-to-stand ?location-to-stand))
-              (desig:designator :location ((:visible-for cram-pr2-description:pr2)
+              (desig:designator :location ((:visible-for ?robot)
                                            (:location ?location-designator))
                                 ?location-to-stand)))
     (desig:designator :action ((:type :searching)
@@ -144,6 +145,7 @@ the `look-pose-stamped'."
 
   (<- (desig:action-grounding ?action-designator (fetch ?resolved-action-designator))
     (spec:property ?action-designator (:type :fetching))
+    (rob-int:robot ?robot)
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
@@ -163,11 +165,11 @@ the `look-pose-stamped'."
     (once (or (and (spec:property ?action-designator (:robot-location ?some-location-designator))
                    (desig:current-designator ?some-location-designator ?robot-location-designator))
               (-> (spec:property ?action-designator (:arm ?arm))
-                  (desig:designator :location ((:reachable-for cram-pr2-description:pr2)
+                  (desig:designator :location ((:reachable-for ?robot)
                                                (:arm ?arm)
                                                (:object ?object-designator))
                                     ?robot-location-designator)
-                  (desig:designator :location ((:reachable-for cram-pr2-description:pr2)
+                  (desig:designator :location ((:reachable-for ?robot)
                                                (:object ?object-designator))
                                     ?robot-location-designator))))
     ;; pick-up-action
@@ -186,6 +188,7 @@ the `look-pose-stamped'."
 
   (<- (desig:action-grounding ?action-designator (deliver ?resolved-action-designator))
     (spec:property ?action-designator (:type :delivering))
+    (rob-int:robot ?robot)
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
@@ -198,7 +201,7 @@ the `look-pose-stamped'."
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-robot-loc-desig))
                    (desig:current-designator ?some-robot-loc-desig ?robot-location-designator))
-              (desig:designator :location ((:reachable-for cram-pr2-description:pr2)
+              (desig:designator :location ((:reachable-for ?robot)
                                            (:location ?location-designator))
                                 ?robot-location-designator)))
     ;; place-action

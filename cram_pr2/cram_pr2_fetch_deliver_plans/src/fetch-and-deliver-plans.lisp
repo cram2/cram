@@ -61,7 +61,6 @@ if yes, perform GOING action while ignoring failures."
   (declare (type desig:location-designator ?look-target ?robot-location))
   "Perform a LOOKING action, if looking target twists the neck,
 turn the robot base such that it looks in the direction of target and look again."
-
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans turn-towards)
@@ -91,7 +90,6 @@ turn the robot base such that it looks in the direction of target and look again
                (cpl:retry))
              (roslisp:ros-warn (pp-plans turn-towards) "Turning around didn't work :'(~%")
              (cpl:fail 'common-fail:looking-high-level-failure)))
-
         (exe:perform (desig:an action
                                (type looking)
                                (target ?look-target)))))))
@@ -562,7 +560,10 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                       (object ?object-designator)
                                       (location ?search-location)
                                       (desig:when ?search-base-location
-                                        (robot-location ?search-base-location))))))
+                                        (robot-location ?search-base-location)))))
+             (?robot-name
+               (cut:var-value '?robot-name
+                              (car (prolog:prolog '(rob-int:robot ?robot-name))))))
          (roslisp:ros-info (pp-plans transport)
                            "Found object of type ~a."
                            (desig:desig-prop-value ?perceived-object-designator :type))
@@ -570,14 +571,14 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
          (unless ?fetch-robot-location
            (setf ?fetch-robot-location
                  (desig:a location
-                          (reachable-for pr2)
+                          (reachable-for ?robot-name)
                           (desig:when ?arm
                             (arm ?arm))
-                          (object ?object-designator))))
+                          (object ?perceived-object-designator))))
          (unless ?deliver-robot-location
            (setf ?deliver-robot-location
                  (desig:a location
-                          (reachable-for pr2)
+                          (reachable-for ?robot-name)
                           (location ?delivering-location))))
 
          ;; If running on the real robot, execute below task tree in projection
