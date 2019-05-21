@@ -218,7 +218,7 @@
                                        :color color))))))
 
 (defmethod add-object ((world bt-world) (type (eql :static-plane)) name pose
-                       &key normal constant)
+                       &key normal constant (collision-mask '(:default-filter)))
   (destructuring-bind (normal-x normal-y normal-z) normal
     (make-object world name
                  (list
@@ -226,6 +226,7 @@
                       'rigid-body
                     :name name :pose (ensure-pose pose)
                     :group :static-filter
+                    :mask collision-mask
                     :collision-shape (make-instance
                                          'textured-static-plane-shape
                                        :normal (cl-transforms:make-3d-vector

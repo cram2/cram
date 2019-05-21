@@ -90,16 +90,21 @@
         (warn "ROBOT was not defined. Have you loaded a robot package?"))))
 
 (defun init-projection ()
+  ;; for better precision in reading URDFs
+  (setf cl:*read-default-float-format* 'cl:double-float)
+
   (def-fact-group costmap-metadata ()
     (<- (location-costmap:costmap-size 12 12))
     (<- (location-costmap:costmap-origin -6 -6))
     (<- (location-costmap:costmap-resolution 0.05))
 
     (<- (location-costmap:costmap-padding 0.5))
-    (<- (location-costmap:costmap-manipulation-padding 0.2))
-    (<- (location-costmap:costmap-in-reach-distance 0.7))
+    (<- (location-costmap:costmap-manipulation-padding 0.5))
+    (<- (location-costmap:costmap-in-reach-distance 1.0))
     (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-    (<- (location-costmap:visibility-costmap-size 2.5)))
+    (<- (location-costmap:visibility-costmap-size 2.5))
+    (<- (location-costmap:orientation-samples 2))
+    (<- (location-costmap:orientation-sample-step 0.1)))
 
   (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 

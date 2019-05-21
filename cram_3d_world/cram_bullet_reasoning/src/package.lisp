@@ -42,8 +42,7 @@
            merge-bounding-boxes aabb calculate-bb-dims
            with-stored-world *debug-window*
            add-debug-window add-costmap-function-object add-vis-axis-object
-           add-costmap-sample-object clear-costmap-vis-object
-           add-vis-axis-object add-vis-axis-pose
+           add-costmap-sample-object clear-costmap-vis-object add-vis-axis-object
            camera width
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation

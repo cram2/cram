@@ -195,10 +195,9 @@
 
 
 (defparameter *base-x* -2.4)
-(defparameter *base-very-left-side-left-hand-pose* `((,*base-x* 1.7 0) (0 0 0 1)))
+(defparameter *base-very-left-side-left-hand-pose* `((,*base-x* 1.8 0) (0 0 0 1)))
 (defparameter *base-left-side-left-hand-pose* `((,*base-x* 1.5 0) (0 0 0 1)))
 (defparameter *base-somewhat-left-side-left-hand-pose* `((,*base-x* 1.3 0) (0 0 0 1)))
-;; mit  (cl-tf:axis-angle->quaternion (cl-tf:make-3d-vector 0 1 0) 90.0) ...
 (defparameter *base-middle-side-left-hand-pose* `((,*base-x* 1.1 0) (0 0 0 1)))
 ;; (defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.9 0) (0 0 0 1)))
 (defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.7 0) (0 0 0 1)))
@@ -227,8 +226,8 @@
   ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
   (spawn-objects-on-plate)
   (initialize-attachments)
-  (boxy-proj:with-projected-robot
-
+  (urdf-proj:with-projected-robot
+      
     ;; 1
     (go-connect :chassis *base-very-left-side-left-hand-pose*
                 :holder-plane-horizontal *base-middle-side-left-hand-pose*
