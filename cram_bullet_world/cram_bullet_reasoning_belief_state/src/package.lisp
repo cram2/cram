@@ -44,6 +44,6 @@
    #:*kitchen-urdf*
    #:*robot-parameter* #:*kitchen-parameter*
    #:*spawn-debug-window*
-   ;; process-modules
    #:setup-world-database
-   #:world-state-detecting))
+   ;; process-modules
+   #:world-state-detecting-pm))
