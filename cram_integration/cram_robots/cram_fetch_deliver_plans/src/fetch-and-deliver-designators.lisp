@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-fd-plans)
+(in-package :fd-plans)
 
 (defun calculate-pose-towards-target (look-pose-stamped robot-pose-stamped)
   "Given a `look-pose-stamped' and a `robot-pose-stamped' (both in fixed frame),

@@ -29,12 +29,8 @@
 
 (in-package :cl-user)
 
-(defpackage cram-pr2-fetch-deliver-plans
-  (:nicknames #:pr2-fd-plans)
+(defpackage cram-fetch-deliver-plans
+  (:nicknames #:fd-plans)
   (:use #:common-lisp #:cram-prolog)
-  (:export
-   ;; setup
-   ;; #:bla
-   ;; demo
-   ))
+  (:export))
 
