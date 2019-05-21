@@ -41,7 +41,7 @@ if yes, perform GOING action while ignoring failures."
                          (left-configuration park)
                          (right-configuration park)))
 
-  (pr2-proj-reasoning:check-navigating-collisions ?navigation-location)
+  (proj-reasoning:check-navigating-collisions ?navigation-location)
   (setf ?navigation-location (desig:current-desig ?navigation-location))
 
   (cpl:with-failure-handling
@@ -154,7 +154,7 @@ if yes, relocate and retry, if no collisions, open or close container."
                                       (desig:when ?distance
                                         (distance ?distance)))))))
 
-          (pr2-proj-reasoning:check-environment-manipulation-collisions manipulation-action)
+          (proj-reasoning:check-environment-manipulation-collisions manipulation-action)
           (setf manipulation-action (desig:current-desig manipulation-action))
 
           (exe:perform manipulation-action))))))
@@ -368,7 +368,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                                  ?more-precise-perceived-object-desig)))))
 
                             (setf pick-up-action (desig:current-desig pick-up-action))
-                            (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
+                            (proj-reasoning:check-picking-up-collisions pick-up-action)
                             (setf pick-up-action (desig:current-desig pick-up-action))
 
                             (exe:perform pick-up-action)
@@ -484,12 +484,12 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
                   ;; test if the placing trajectory is reachable and not colliding
                   (setf place-action (desig:current-desig place-action))
-                  (pr2-proj-reasoning:check-placing-collisions place-action)
+                  (proj-reasoning:check-placing-collisions place-action)
                   (setf place-action (desig:current-desig place-action))
 
                   ;; test if the placing pose is a good one -- not falling on the floor
                   ;; test function throws a high-level-failure if not good pose
-                  (pr2-proj-reasoning:check-placing-pose-stability
+                  (proj-reasoning:check-placing-pose-stability
                    ?object-designator ?target-location)
 
                   (exe:perform place-action))))))))))
@@ -585,11 +585,11 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
          ;; and use that parameterization in the real world.
          ;; If running in projection, just execute the task tree below as normal.
          (let (?fetch-pick-up-action ?deliver-place-action)
-           (pr2-proj-reasoning:with-projected-task-tree
+           (proj-reasoning:with-projected-task-tree
                (?fetch-robot-location ?fetch-pick-up-action
                                       ?deliver-robot-location ?deliver-place-action)
                3
-               #'pr2-proj-reasoning:pick-best-parameters-by-distance
+               #'proj-reasoning:pick-best-parameters-by-distance
 
              (let ((?fetched-object
                      (exe:perform (desig:an action

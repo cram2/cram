@@ -31,7 +31,7 @@
   <depend>cram_btr_visibility_costmap</depend>
   <depend>cram_btr_spatial_relations_costmap</depend>
   <depend>cram_urdf_projection</depend>
-  <depend>cram_pr2_projection_reasoning</depend>
+  <depend>cram_urdf_projection_reasoning</depend>
   <!-- <depend>cram_semantic_map_costmap</depend> -->
   <depend>cram_robot_pose_gaussian_costmap</depend>
   <depend>cram_occupancy_grid_costmap</depend>

@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-projection-reasoning
+(defsystem cram-urdf-projection-reasoning
   :author "Gayane Kazhoyan"
   :license "BSD"
 
@@ -50,9 +50,8 @@
                cl-transforms
 
                cram-bullet-reasoning
-
-               cram-urdf-projection
-               cram-pr2-description)
+               cram-bullet-reasoning-utilities ; for spawning objects in stability check
+               cram-urdf-projection)
   :components
   ((:module "src"
     :components

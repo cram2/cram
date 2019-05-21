@@ -45,7 +45,7 @@
                cram-common-failures
                cram-mobile-pick-place-plans
 
-               cram-pr2-projection-reasoning ; for projection-based reasoning
+               cram-urdf-projection-reasoning ; for projection-based reasoning
                cram-urdf-environment-manipulation
                )
 
