@@ -2,6 +2,8 @@
 (defparameter *mongo-logger* nil)
 (defparameter num-experiments 1)
 (defparameter connection-retries 0)
+(defparameter *start-time* 0)
+(defparameter *global-timer* 0)
 
 (defun prepare-logging ()
   (setf connection-retries 0)
@@ -27,6 +29,8 @@
     (/ 1 0)))
 
 (defun main ()
+  (setf *start-time* 0)
+  (setf *global-timer* 0)
   (setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
   (setf cram-tf:*tf-broadcasting-enabled* t)
   (roslisp-utilities:startup-ros :name "cram" :anonymous nil)
@@ -46,17 +50,20 @@
                (format t "Starting experiment ~a~%" experiment-id)
                (setf cslg::*mongo-logger* (sb-ext:run-program "rosrun" (list "mongodb_log" "mongodb_log" "-c" experiment-id)
                       :search t :output :stream :wait nil))
-               ;;(asdf-utils:run-program (concatenate 'string "rosrun mongodb_log mongodb_log -c " experiment-id " &"))
+              
                (print "Starting demo")
+               (setf *start-time* (* 1000000 (cram-utilities:current-timestamp)))
                (handler-case
                    (progn
-                     (pr2-proj:with-simulated-robot (demo::demo-random nil '(:bowl)))
+                     (pr2-proj:with-simulated-robot (demo::demo-random nil '(:bowl :spoon)))
+                     (setf *global-timer* (+ *global-timer* ( - (* 1000000 (cram-utilities:current-timestamp)) *start-time*)))
                      (ccl::export-log-to-owl (concatenate 'string experiment-id ".owl"))
                      (format t "Done with experiment ~a~%" experiment-id)
                      (asdf-utils:run-program (concatenate 'string "docker cp seba:/home/ros/user_data/" experiment-id ".owl " experiment-save-path)))
                  (CRAM-CLOUD-LOGGER::CCL-FAILURE ()
                    (print "Logging failed due to exception")
-                   (prepare-logging))
+                   ;;(prepare-logging)
+                   )
                  (simple-error (e)
                    (print "SIMPLE ERROR OCCURRED DURING LOGGING")
                    (print e)))
@@ -83,4 +90,5 @@
                
                    ;;(asdf-utils:run-program "killall -r 'mongod'")))
   ;;(asdf-utils:run-program "killall -r 'mongodb_log'")
-           ))))
+               )))
+  (print (truncate *global-timer*)))
