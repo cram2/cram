@@ -128,16 +128,13 @@
     (property ?designator (:constraints ?constraints-string))))
 
 (def-fact-group world-state-detecting (motion-grounding)
-
-  (<- (motion-grounding ?designator (sense-pose-name ?object))
+  (<- (motion-grounding ?designator (detect-pose ?object ?object-pose ?object-name))
     (property ?designator (:type :world-state-detecting))
     (property ?designator (:object ?object))
     (current-designator ?object ?object-designator)
-    (property ?object (:name ?name)))
-
-    (<- (motion-grounding ?designator (sense-pose-object ?object))
-    (property ?designator (:type :world-state-detecting))
-    (property ?designator (:object ?object))
-    (current-designator ?object ?object-designator)
-    (property ?object-designator (:pose ?pose))
-    (property ?object-designator (:name ?name))))
+    (-> (property ?object-designator (:pose ?object-pose))
+        (true)
+        (equal ?object-pose nil))
+    (-> (property ?object-designator (:name ?object-name))
+        (true)
+        (equal ?object-name nil))))

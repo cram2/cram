@@ -163,8 +163,7 @@
                                   (cl-tf:make-identity-rotation)))
                (move-object ?object destination)
                (btr:simulate btr:*current-bullet-world* 100)
-               (setf y (+ y 0.15)))
-      )))
+               (setf y (+ y 0.15))))))
 
 (defun try-detecting (articles)
   (let ((?pose-detecting *pose-detecting*)
