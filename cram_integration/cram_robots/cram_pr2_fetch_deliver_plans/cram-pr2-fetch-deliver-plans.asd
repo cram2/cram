@@ -46,8 +46,7 @@
                cram-mobile-pick-place-plans
 
                cram-urdf-projection-reasoning ; for projection-based reasoning
-               cram-urdf-environment-manipulation
-               )
+               cram-urdf-environment-manipulation)
 
   :components
   ((:module "src"
