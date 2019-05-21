@@ -553,6 +553,7 @@ current joint states"
           joint-transform)))
       ;; also update state of joints that mimic the joint called `name'
       (loop for joint being the hash-values of (cl-urdf:joints urdf)
+            ;; store the mimic slot of JOINT into a variable if it is bound
             for joints-mimic-slot = (and (slot-boundp joint 'cl-urdf:mimics)
                                          (cl-urdf:mimics joint))
             ;; if the joint mimics some other joint (i.e. mimics slot is bound)
