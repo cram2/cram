@@ -37,7 +37,7 @@
 
 (defun generate-training-data (&optional debug-mode
                                  (object-list '(:bowl :spoon :cup :milk :breakfast-cereal)))
-  (pr2-proj:with-simulated-robot
+  (urdf-proj:with-simulated-robot
 
     (exe:perform
      (desig:an action
@@ -55,18 +55,15 @@
                  (target (desig:a location (pose ?pose))))))
 
     (dotimes (i 4)
-      (pr2-proj::look-at-pose-stamped
+      (urdf-proj::look-at-pose-stamped-two-joints
        (cl-transforms-stamped:make-pose-stamped
                   "base_footprint" 0.0
                   (cl-transforms:make-3d-vector 0.5 0 0.7)
                   (cl-transforms:make-identity-rotation))))
-    (pr2-proj::move-torso 0.15)
+    (urdf-proj::move-torso 0.15)
 
     (btr:detach-all-objects (btr:get-robot-object))
     (btr-utils:kill-all-objects)
-
-    (setf cram-pr2-projection::*ik-solution-cache*
-          (make-hash-table :test 'cram-pr2-projection::arm-poses-equal-accurate))
 
     (when debug-mode
       (btr-utils:spawn-object 'red-dot
@@ -77,8 +74,8 @@
                               :pancake-maker
                               :color '(0 1 0 0.5)
                               :pose '((0.0 0.0 -1.0) (0 0 0 1)))
-      (setf pr2-proj::*debug-long-sleep-duration* 0.5)
-      (setf pr2-proj::*debug-short-sleep-duration* 0.1))
+      (setf urdf-proj::*debug-long-sleep-duration* 0.5)
+      (setf urdf-proj::*debug-short-sleep-duration* 0.1))
 
     (unwind-protect
          ;; for every object in the object-list
@@ -219,5 +216,5 @@
       (when debug-mode
         (btr-utils:kill-object 'red-dot)
         (btr-utils:kill-object 'green-dot)
-        (setf pr2-proj::*debug-long-sleep-duration* 0.5)
-        (setf pr2-proj::*debug-short-sleep-duration* 0.1)))))
+        (setf urdf-proj::*debug-long-sleep-duration* 0.5)
+        (setf urdf-proj::*debug-short-sleep-duration* 0.1)))))

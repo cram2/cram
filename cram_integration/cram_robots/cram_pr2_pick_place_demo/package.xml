@@ -30,7 +30,7 @@
   <depend>cram_bullet_reasoning_utilities</depend>
   <depend>cram_btr_visibility_costmap</depend>
   <depend>cram_btr_spatial_relations_costmap</depend>
-  <depend>cram_pr2_projection</depend>
+  <depend>cram_urdf_projection</depend>
   <depend>cram_pr2_projection_reasoning</depend>
   <!-- <depend>cram_semantic_map_costmap</depend> -->
   <depend>cram_robot_pose_gaussian_costmap</depend>
@@ -41,7 +41,7 @@
   <depend>cram_cloud_logger</depend>
   <depend>cram_pr2_description</depend>
   <depend>cram_pr2_fetch_deliver_plans</depend>
-  <depend>cram_pr2_environment_manipulation</depend>
+  <depend>cram_urdf_environment_manipulation</depend>
 
   <!-- launch file -->
   <exec_depend>iai_maps</exec_depend>

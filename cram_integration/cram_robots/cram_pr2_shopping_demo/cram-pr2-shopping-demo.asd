@@ -54,7 +54,7 @@
                cram-btr-visibility-costmap
                cram-robot-pose-gaussian-costmap
                cram-location-costmap
-               cram-pr2-projection
+               cram-urdf-projection
                cram-mobile-pick-place-plans
                cram-pr2-description
                cram-object-knowledge)

@@ -411,8 +411,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
     (cpl:with-retry-counters ((outer-target-location-retries 2))
       (cpl:with-failure-handling
           (((or desig:designator-error
-                common-fail:object-undeliverable
-                common-fail:high-level-failure) (e)
+                common-fail:object-undeliverable) (e)
              (common-fail:retry-with-loc-designator-solutions
                  ?target-location
                  outer-target-location-retries
@@ -421,11 +420,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   :warning-namespace (fd-plans deliver)
                   :reset-designators (list ?target-robot-location)
                   :rethrow-failure 'common-fail:object-undeliverable))))
-
-        ;; test if the placing pose is a good one -- not falling on the floor
-        ;; test function throws a high-level-failure if not good pose
-        (pr2-proj-reasoning:check-placing-pose-stability
-         ?object-designator ?target-location)
 
         ;; take a new `?target-robot-location' sample if a failure happens
         (cpl:with-retry-counters ((relocation-for-ik-retries 4))
@@ -447,10 +441,11 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                    (location ?target-robot-location)))
 
             ;; take a new `?target-location' sample if a failure happens
-            (cpl:with-retry-counters ((target-location-retries 5))
+            (cpl:with-retry-counters ((target-location-retries 9))
               (cpl:with-failure-handling
                   (((or common-fail:looking-high-level-failure
-                        common-fail:object-unreachable) (e)
+                        common-fail:object-unreachable
+                        common-fail:high-level-failure) (e)
                      (common-fail:retry-with-loc-designator-solutions
                          ?target-location
                          target-location-retries
@@ -487,9 +482,15 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                       (object ?object-designator)
                                       (target ?target-location)))))
 
+                  ;; test if the placing trajectory is reachable and not colliding
                   (setf place-action (desig:current-desig place-action))
                   (pr2-proj-reasoning:check-placing-collisions place-action)
                   (setf place-action (desig:current-desig place-action))
+
+                  ;; test if the placing pose is a good one -- not falling on the floor
+                  ;; test function throws a high-level-failure if not good pose
+                  (pr2-proj-reasoning:check-placing-pose-stability
+                   ?object-designator ?target-location)
 
                   (exe:perform place-action))))))))))
 

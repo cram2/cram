@@ -1,0 +1,22 @@
+<package format="2">
+  <name>cram_ik_interface</name>
+  <version>0.7.0</version>
+  <description>
+    ROS service client side of the KDL-based IK service
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram/issues</url>
+  <url type="repository">https://github.com/cram2/cram</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cl_tf</depend>
+  <depend>cram_tf</depend>
+  <depend>moveit_msgs</depend>
+</package>

@@ -80,7 +80,7 @@ Store found pose into designator or throw error if good pose not found."
           ;; Otherwise, the pose was found, so return location designator,
           ;; which is currently referenced to the found pose.
           (let ((pose-at-navigation-location (desig:reference navigation-location-desig)))
-            (pr2-proj::drive pose-at-navigation-location)
+            (urdf-proj::drive pose-at-navigation-location)
             ;; (roslisp:ros-info (coll-check nav)
             ;;                   "Found non-colliding pose~%~a to satisfy~%~a."
             ;;                   pose-at-navigation-location navigation-location-desig)
@@ -152,7 +152,7 @@ Store found pose into designator or throw error if good pose not found."
                         (object-name
                           (desig:desig-prop-value object-designator :name)))
 
-                   (pr2-proj::gripper-action gripper-opening arm)
+                   (urdf-proj::gripper-action gripper-opening arm)
 
                    ;; Go over all the trajectory via points and check for collisions
                    ;; with any object except the one to pick up.
@@ -166,15 +166,15 @@ Store found pose into designator or throw error if good pose not found."
                       (multiple-value-bind (left-poses right-poses)
                           (cut:equalize-two-list-lengths left-poses right-poses)
                         (dotimes (i (length left-poses))
-                          (pr2-proj::move-tcp (nth i left-poses) (nth i right-poses)
-                                              :allow-all)
-                          (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
-                            (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
+                          (urdf-proj::move-tcp (nth i left-poses) (nth i right-poses)
+                                               :allow-all)
+                          (unless (< (abs urdf-proj::*debug-short-sleep-duration*) 0.0001)
+                            (cpl:sleep urdf-proj::*debug-short-sleep-duration*))
                           (when (remove object-name
                                         (btr:robot-colliding-objects-without-attached))
                             (roslisp:ros-warn (coll-check pick)
                                               "Robot is in collision with environment.")
-                            (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
+                            (cpl:sleep urdf-proj::*debug-long-sleep-duration*)
                             (btr::restore-world-state world-state world)
                             (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
                     (list left-reach-poses left-grasp-poses left-lift-poses)
@@ -225,7 +225,7 @@ Store found pose into designator or throw error if good pose not found."
                     (object-name
                       (desig:desig-prop-value object-designator :name)))
 
-               (pr2-proj::gripper-action :open arm)
+               (urdf-proj::gripper-action :open arm)
 
                (roslisp:ros-info (coll-check place)
                                  "Trying to place object ~a with arm ~a~%"
@@ -236,10 +236,10 @@ Store found pose into designator or throw error if good pose not found."
                   (multiple-value-bind (left-poses right-poses)
                       (cut:equalize-two-list-lengths left-poses right-poses)
                     (dotimes (i (length left-poses))
-                      (pr2-proj::move-tcp (nth i left-poses) (nth i right-poses)
-                                          :allow-all)
-                      (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
-                        (cpl:sleep pr2-proj:*debug-short-sleep-duration*))
+                      (urdf-proj::move-tcp (nth i left-poses) (nth i right-poses)
+                                           :allow-all)
+                      (unless (< (abs urdf-proj:*debug-short-sleep-duration*) 0.0001)
+                        (cpl:sleep urdf-proj:*debug-short-sleep-duration*))
                       (when (or
                              ;; either robot collied with environment
                              (btr:robot-colliding-objects-without-attached)
@@ -260,7 +260,7 @@ Store found pose into designator or throw error if good pose not found."
                              )
                         (roslisp:ros-warn (coll-check place)
                                           "Robot is in collision with environment.")
-                        (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
+                        (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
                         (btr::restore-world-state world-state world)
                         ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
                         ))))
@@ -285,7 +285,7 @@ Store found pose into designator or throw error if good pose not found."
     (unwind-protect
          (progn
            (setf (btr:pose new-btr-object) placing-pose)
-           (cpl:sleep pr2-proj::*debug-short-sleep-duration*)
+           (cpl:sleep urdf-proj::*debug-short-sleep-duration*)
            (btr:simulate btr:*current-bullet-world* 500)
            (btr:simulate btr:*current-bullet-world* 100)
            (let* ((new-pose
@@ -351,7 +351,7 @@ Store found pose into designator or throw error if good pose not found."
                     (right-poses-4
                       (desig:desig-prop-value action-referenced :right-retract-poses)))
 
-               (pr2-proj::gripper-action :open arm)
+               (urdf-proj::gripper-action :open arm)
 
                (roslisp:ros-info (coll-check environment)
                                  "Trying ~a with joint ~a with arm ~a~%"
@@ -361,17 +361,17 @@ Store found pose into designator or throw error if good pose not found."
                          (multiple-value-bind (left-poses right-poses)
                              (cut:equalize-two-list-lengths left-poses right-poses)
                            (dotimes (i (length left-poses))
-                             (pr2-proj::move-tcp (nth i left-poses) (nth i right-poses)
+                             (urdf-proj::move-tcp (nth i left-poses) (nth i right-poses)
                                                  :allow-all)
-                             (unless (< (abs pr2-proj:*debug-short-sleep-duration*) 0.0001)
-                               (cpl:sleep pr2-proj:*debug-short-sleep-duration*)))))
+                             (unless (< (abs urdf-proj:*debug-short-sleep-duration*) 0.0001)
+                               (cpl:sleep urdf-proj:*debug-short-sleep-duration*)))))
                        (list left-poses-1 left-poses-2 left-poses-3 left-poses-4)
                        (list right-poses-1 right-poses-2 right-poses-3 right-poses-4))
                (when (eq (desig:desig-prop-value action-desig :type) :opening)
                  (when (btr:robot-colliding-objects-without-attached)
                    (roslisp:ros-warn (coll-check environment)
                                      "Robot is in collision with environment.")
-                   (cpl:sleep pr2-proj:*debug-long-sleep-duration*)
+                   (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
                    (btr::restore-world-state world-state world)
                    ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
                    ))))
