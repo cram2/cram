@@ -400,3 +400,15 @@ it is possible to change the pose of its attachments when its pose changes."
             (if (equal (name object) (car (last already-moved)))
                 (setf already-moved '()))))
         (call-next-method))))
+
+(defmethod objects-colliding-robot-or-objects-without-attached ()
+  (some #'identity
+        (mapcar (lambda (attachment)                                
+                  (remove-if #'attached-objects ;; remove if object has attachments, which are then colliding
+                             (remove (get-robot-object) ;; remove if robot is colliding
+                                     (find-objects-in-contact
+                                      *current-bullet-world*
+                                      (object
+                                       *current-bullet-world*
+                                       (car attachment))))))
+                (attached-objects (get-robot-object)))))
