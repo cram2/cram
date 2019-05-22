@@ -70,7 +70,8 @@ is replaced with replacement.
                 ,@(when *spawn-debug-window*
                     '((btr:debug-window ?w)))
                 (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
-                                                         :normal (0 0 1) :constant 0))
+                                                         :normal (0 0 1) :constant 0
+                                                         :collision-mask (:default-filter)))
                 (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
                                                  :collision-group :static-filter
                                                  :collision-mask (:default-filter

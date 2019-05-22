@@ -60,7 +60,7 @@
 
   (setf cram-tf:*tf-broadcasting-enabled* t)
 
-  (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+  (setf proj-reasoning::*projection-reasoning-enabled* nil)
 
   (setf ccl::*is-client-connected* nil)
   (setf ccl::*is-logging-enabled* nil)

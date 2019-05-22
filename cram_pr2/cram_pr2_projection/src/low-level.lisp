@@ -109,8 +109,8 @@
             (prolog:prolog
              '(and
                (cram-robot-interfaces:robot ?robot)
-               (cram-robot-interfaces:robot-pan-tilt-links ?robot ?pan-link ?tilt-link)
-               (cram-robot-interfaces:robot-pan-tilt-joints ?robot ?pan-joint ?tilt-joint)
+               (cram-robot-interfaces:robot-neck-links ?robot ?pan-link ?tilt-link)
+               (cram-robot-interfaces:robot-neck-joints ?robot ?pan-joint ?tilt-joint)
                (cram-robot-interfaces:joint-lower-limit ?robot ?pan-joint ?pan-lower)
                (cram-robot-interfaces:joint-upper-limit ?robot ?pan-joint ?pan-upper)
                (cram-robot-interfaces:joint-lower-limit ?robot ?tilt-joint ?tilt-lower)

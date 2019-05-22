@@ -32,13 +32,15 @@
 (def-fact-group arms (;; rules describing the robot arms
                       arm required-arms available-arms
                       arm-joints arm-links arm-base-joints arm-base-links arm-tool-joints
-                      hand-links end-effector-link robot-tool-frame gripper-joint gripper-link
+                      hand-links end-effector-link robot-tool-frame
+                      gripper-joint gripper-link gripper-meter-to-joint-multiplier
                       ;; specific configurations
                       ;; robot-arms-parking-joint-states robot-arms-carrying-joint-states
                       ;; end-effector-parking-pose
                       ;; robot-pre-grasp-joint-states
                       planning-group
-                      standard-to-particular-gripper-transform)
+                      standard-to-particular-gripper-transform
+                      tcp-in-ee-pose)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;; rules describing the robot arms
 
@@ -96,6 +98,9 @@
   (<- (gripper-link ?robot ?arm ?link)
     (fail))
 
+  (<- (gripper-meter-to-joint-multiplier ?robot ?multiplier)
+    (fail))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;; specific configurations
 
   ;; (<- (robot-arms-parking-joint-states ?robot ?joint-states)
@@ -118,7 +123,11 @@
     (fail))
 
   (<- (standard-to-particular-gripper-transform ?robot ?transform)
+    (fail))
+
+  (<- (tcp-in-ee-pose ?robot ?transform)
     (fail)))
+
 
 
 
