@@ -42,8 +42,9 @@
    #:object-type-subtype
    #:object-type-direct-subtype
    #:robot-free-hand
-   ;; manipulation-interfaces
+   ;; utils
    #:reasoning-engine-for-method
+   ;; manipulation-interfaces
    #:get-action-gripping-effort
    #:get-action-gripper-opening
    #:get-action-trajectory

@@ -44,23 +44,17 @@
                cram-plan-occasions-events
                cram-boxy-description ; to get kinematic structure names
                cram-common-designators
-               cram-boxy-designators ; for wiggling
                cram-common-failures
                cram-process-modules
                alexandria ; for CURRY in low-level perception
                roslisp-utilities ; for rosify-lisp-name
-               cram-semantic-map ; for special projection variable definition
                cram-bullet-reasoning-belief-state ; for special projection variable definition
-               cram-simple-actionlib-client ; for communicating with giskard
-               moveit_msgs-msg ; for IK queries
-               moveit_msgs-srv)
+               cram-ik-interface)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "tf" :depends-on ("package"))
-     ;; (:file "giskard" :depends-on ("package"))
-     (:file "ik" :depends-on ("package"))
-     (:file "low-level" :depends-on ("package" "tf" "ik"))
+     (:file "low-level" :depends-on ("package" "tf"))
      (:file "process-modules" :depends-on ("package" "low-level"))
      (:file "projection-environment" :depends-on ("package" "tf" "process-modules"))))))

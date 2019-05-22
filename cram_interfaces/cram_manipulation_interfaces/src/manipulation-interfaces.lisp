@@ -29,25 +29,6 @@
 
 (in-package :cram-manipulation-interfaces)
 
-(defun reasoning-engine-for-method (manipulation-interface-method)
-  (declare (type function manipulation-interface-method))
-  "Returns the reasoning engine keyword (or symbol) that is calculated to be
-the one used for answering the `manipulation-interface-method' query.
-The calculation is done by ordering the method implementations
-similar to how the corresponding method combination does it.
-Example usage: (man-int:reasoning-engine-for-method #'man-int:get-action-grasps)."
-  #+sbcl
-  (caar
-   (stable-sort
-    (remove '(:around)
-            (mapcar #'method-qualifiers
-                    (sb-pcl:generic-function-methods manipulation-interface-method))
-            :test #'equalp)
-    #'<
-    :key #'second))
-  #-sbcl
-  (error "Sorry, MAN-INT:REASONING-ENGINE-FOR-METHOD is only supported under SBCL..."))
-
 (defgeneric get-action-gripping-effort (object-type)
   (:method-combination cut:first-in-order-and-around)
   (:documentation "Returns effort in Nm, e.g. 50."))

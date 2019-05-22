@@ -44,7 +44,7 @@
             do ;; if no links were asserted last loop, we are stuck and have to return
                (when (= prev-link-count (length urdf-link-names))
                  (when display-warnings
-                   (roslisp:ros-warn (pr2-proj tf)
+                   (roslisp:ros-warn (btr-belief tf)
                                       "Somehow a virtual link with no parents in ~
                                        the bullet world was found in the urdf. ~
                                        This should never happen."))
@@ -59,7 +59,7 @@
                               (let ((parent-name (cl-urdf:name (cl-urdf:parent link-joint))))
                                 (when (and (not (eq (cl-urdf:joint-type link-joint) :FIXED))
                                            display-warnings)
-                                  (roslisp:ros-warn (pr2-proj tf)
+                                  (roslisp:ros-warn (btr-belief tf)
                                                     "Joint of ~a is ~a. ~
                                                      Only links on FIXED joints should ~
                                                      be asserted as virtual links."

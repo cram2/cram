@@ -28,6 +28,11 @@
 
 (in-package :cram-pr2-description)
 
+(defparameter *tcp-in-ee-pose*
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector 0.18 0 0)
+   (cl-transforms-stamped:make-identity-rotation)))
+
 (defparameter *standard-to-pr2-gripper-transform*
   (cl-transforms-stamped:make-transform
    (cl-transforms:make-identity-vector)
@@ -215,9 +220,9 @@
                   "r_gripper_palm_link"))))
 
 (def-fact-group pr2-arm-kinematics-facts (arm
-                                          end-effector-link
-                                          robot-tool-frame
+                                          end-effector-link robot-tool-frame
                                           gripper-link gripper-joint
+                                          gripper-meter-to-joint-multiplier
                                           planning-group
                                           robot-joint-states
                                           ;; robot-arms-parking-joint-states
@@ -227,7 +232,8 @@
                                           arm-joints arm-base-joints arm-tool-joints
                                           arm-links arm-base-links
                                           hand-links
-                                          standard-to-particular-gripper-transform)
+                                          standard-to-particular-gripper-transform
+                                          tcp-in-ee-pose)
 
   (<- (arm pr2 :right))
   (<- (arm pr2 :left))
@@ -251,6 +257,8 @@
   (<- (gripper-joint pr2 :left "l_gripper_r_finger_joint"))
   (<- (gripper-joint pr2 :right "r_gripper_l_finger_joint"))
   (<- (gripper-joint pr2 :right "r_gripper_r_finger_joint"))
+
+  (<- (gripper-meter-to-joint-multiplier pr2 5.0))
 
   (<- (planning-group pr2 :left "left_arm"))
   (<- (planning-group pr2 :right "right_arm"))
@@ -332,4 +340,8 @@
     (lisp-fun get-hand-link-names ?arm ?links))
 
   (<- (standard-to-particular-gripper-transform pr2 ?transform)
-    (symbol-value *standard-to-pr2-gripper-transform* ?transform)))
+    (symbol-value *standard-to-pr2-gripper-transform* ?transform))
+
+  (<- (tcp-in-ee-pose pr2 ?transform)
+    (symbol-value *tcp-in-ee-pose* ?transform)))
+

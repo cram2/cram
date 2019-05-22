@@ -72,7 +72,7 @@
   ;;    (ccl::connect-to-cloud-logger)
   ;;    (ccl::reset-logged-owl))
 
-  (setf pr2-proj-reasoning::*projection-checks-enabled* t)
+  (setf proj-reasoning::*projection-checks-enabled* t)
 
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
@@ -91,7 +91,7 @@
   )
 
 (defun finalize ()
-  ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+  ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
 
   ;;(when ccl::*is-logging-enabled*
   ;;  (ccl::export-log-to-owl "ease_milestone_2018.owl")
@@ -178,7 +178,7 @@
                                              ))
               (:cup . ,(desig:a location
                                 (right-of (an object (type bowl)))
-                                ;; (behind (an object (type bowl)))
+                                (behind (an object (type bowl)))
                                 (near (an object (type bowl)))
                                 (for (an object (type cup)))))
               (:bowl . ,(desig:a location
@@ -196,7 +196,8 @@
               (:spoon . ,(desig:a location
                                   (right-of (an object (type bowl)))
                                   (near (an object (type bowl)))
-                                  (for (an object (type spoon)))))
+                                  (for (an object (type spoon)))
+                                  (orientation support-aligned)))
               (:milk . ,(desig:a location
                                  (left-of (an object (type bowl)))
                                  (far-from (an object (type bowl)))
@@ -266,10 +267,10 @@
                              (location ?fetching-location)
                              (target ?delivering-location))))))
 
-        ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+        ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
         )))
 
-  ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+  ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
 
   (park-robot)
 

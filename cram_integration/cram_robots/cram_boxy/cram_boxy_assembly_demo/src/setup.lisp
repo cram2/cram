@@ -96,10 +96,12 @@
     (<- (location-costmap:costmap-resolution 0.05))
 
     (<- (location-costmap:costmap-padding 0.5))
-    (<- (location-costmap:costmap-manipulation-padding 0.2))
-    (<- (location-costmap:costmap-in-reach-distance 0.7))
+    (<- (location-costmap:costmap-manipulation-padding 0.5))
+    (<- (location-costmap:costmap-in-reach-distance 1.2))
     (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-    (<- (location-costmap:visibility-costmap-size 2.5)))
+    (<- (location-costmap:visibility-costmap-size 2.5))
+    (<- (location-costmap:orientation-samples 2))
+    (<- (location-costmap:orientation-sample-step 0.1)))
 
   (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
