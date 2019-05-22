@@ -63,7 +63,9 @@ NAME in the environment BTR-ENVIRONMENT."
         (true)
         (lisp-fun man-int:get-container-opening-distance
                   ?container-designator ?distance))
-    (lisp-fun clip-distance ?container-name ?btr-environment ?distance :opening
+    (lisp-fun get-relative-distance ?container-name ?btr-environment ?distance :opening
+              ?rel-distance)
+    (lisp-fun clip-distance ?container-name ?btr-environment ?rel-distance :opening
               ?clipped-distance)
     ;; infer joint information
     ;; joint-name
@@ -157,7 +159,9 @@ NAME in the environment BTR-ENVIRONMENT."
         (true)
         (lisp-fun man-int:get-container-opening-distance
                   ?container-designator ?distance))
-    (lisp-fun clip-distance ?container-name ?btr-environment ?distance :closing
+    (lisp-fun get-relative-distance ?container-name ?btr-environment ?distance :closing
+              ?rel-distance)
+    (lisp-fun clip-distance ?container-name ?btr-environment ?rel-distance :closing
               ?clipped-distance)
     ;; infer joint information
     ;; joint-name

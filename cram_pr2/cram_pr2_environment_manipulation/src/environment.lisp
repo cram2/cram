@@ -203,3 +203,15 @@ Using a default (1 0 0)."
           (if (< (- state distance) lower-limit)
               (- state lower-limit)
               distance)))))
+
+(defun get-relative-distance (container-name btr-environment distance action-type)
+  (let* ((joint (get-connecting-joint
+                (get-container-link container-name
+                                    btr-environment)))
+         (state (btr:joint-state
+                 (btr:object btr:*current-bullet-world*
+                             btr-environment)
+                 (cl-urdf:name joint))))
+    (if (eq action-type :opening)
+        (- distance state)
+        (- (- distance state)))))
