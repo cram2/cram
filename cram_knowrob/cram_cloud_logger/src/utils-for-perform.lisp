@@ -71,6 +71,8 @@
           (push action-id *action-parents*)
           (let ((perform-result (call-next-method))
                 (referenced-action-id (log-perform-call *referenced-designator*)))
+            (print designator)
+            (print *referenced-designator*)
             (log-cram-finish-action action-id)
             (equate action-id referenced-action-id)
             (when (and perform-result (typep perform-result 'desig:object-designator))

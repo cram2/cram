@@ -1,97 +1,79 @@
 (in-package :ccl)
 
+(defmethod cram-manipulation-interfaces:get-action-gripping-effort :around (object-type)
+    (if *is-logging-enabled*
+        (let ((query-result (call-next-method)))
+          (log-reasoning-task "cram-manipulation-interfaces:get-action-gripping-effort" object-type (write-to-string query-result))
+          query-result)
+        (call-next-method)))
 
-(defmethod man-int:calculate-object-faces :around (robot-to-object-transform)
-  (if *is-logging-enabled*
-      (let ((pose-id (send-create-transform-pose-stamped robot-to-object-transform)))
-        (let ((query-id
-                (ccl::create-prolog-log-query-str
-                 "calculate-object-faces"
-                 (list pose-id)))
-              (query-result (call-next-method)))
-          (log-end-of-query query-id)
-          (log-result-of-query
-           query-id
-           (concatenate 'string (write-to-string (car query-result)) " " (write-to-string (cadr query-result))))
-          query-result))
+(defmethod cram-manipulation-interfaces:get-action-gripper-opening :around (object-type)
+    (if *is-logging-enabled*
+        (let ((query-result (call-next-method)))
+          (log-reasoning-task "cram-manipulation-interfaces:get-action-gripper-opening" object-type (write-to-string query-result))
+          query-result)
+        (call-next-method)))
+
+(defmethod cram-manipulation-interfaces:get-action-grasps :around  (object-type arm object-transform-in-base)
+    (if *is-logging-enabled*
+        (let ((query-result (call-next-method)))
+          (log-reasoning-task "cram-manipulation-interfaces:get-action-grasps" object-type (write-to-string query-result))
+          query-result)
+        (call-next-method)))
+
+(defmethod cram-manipulation-interfaces:get-action-trajectory :around  (action-type arm grasp objects-acted-on  &key &allow-other-keys)
+    (if *is-logging-enabled*
+        (let ((query-result (call-next-method)))
+          (log-reasoning-task "cram-manipulation-interfaces:get-action-trajectory" grasp "result")
+          query-result)
+        (call-next-method)))
+
+(defmethod cram-manipulation-interfaces:get-location-poses :around (location-designator)
+    (if *is-logging-enabled*
+        (let ((query-result (call-next-method)))
+          ;;(log-reasoning-task "cram-manipulation-interfaces:get-location-pose" location-designator query-result)
+          query-result)
       (call-next-method)))
 
-(defmethod man-int:get-action-gripping-effort :around (object-type)
-  (if *is-logging-enabled*
-      (let ((query-id
-              (ccl::create-prolog-log-query-str
-               "get-object-type-gripping-effort"
-               (list (write-to-string object-type))))
-            (query-result (call-next-method)))
-        (log-end-of-query query-id)
-        query-result)
-      (call-next-method)))
+(defun log-reasoning-task (predicate-name parameter reasoning-result)
+  (let
+      ((query-id (create-reasoning-task-query-id predicate-name)))
+    (send-init-reasoning-query query-id)
+    (send-predicate-query query-id predicate-name)
+    (send-parameter-query query-id parameter)
+    (send-link-reasoing-to-action query-id)
+    (send-result-query query-id reasoning-result)))
 
 
-(defmethod man-int:get-action-grasps :around (object-type
-                                              arm
-                                              object-transform-in-base)
-  (if *is-logging-enabled*
-      (let ((query-id
-              (ccl::create-prolog-log-query-str
-               "get-object-type-grasps"
-               (list (write-to-string object-type)
-                     (write-to-string nil)
-                     (write-to-string nil)
-                     (write-to-string nil)
-                     (write-to-string arm))))
-            (query-result (call-next-method)))
-        (log-end-of-query query-id)
-        query-result)
-      (call-next-method)))
+(defun send-init-reasoning-query (query-id)
+  (send-prolog-query-1
+   (create-query
+    "cram_start_action"
+    (list (concatenate 'string "knowrob:" (convert-to-prolog-str "PrologQuery"))
+          "\\'TableSetting\\'"
+          (get-timestamp-for-logging)
+          "PV"
+          query-id))))
 
-(defmethod man-int:get-action-gripper-opening :around (object-type)
-  ;;(format t "Asking for GRIPPER OPENING for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "GRIPPER OPENING Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
+(defun send-predicate-query (query-id predicate-name)
+  (send-rdf-query (convert-to-prolog-str query-id)
+                  "knowrob:predicate"
+                  (convert-to-prolog-str predicate-name)))
 
-(defmethod man-int:get-object-type-to-gripper-lift-transform :around (object-type
-                                                                      object-name
-                                                                      arm
-                                                                      grasp
-                                                                      grasp-transform)
-  ;;(format t "Asking for GRIPPER LIFT TRANSFORMATION for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "GRIPPER LIFT TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
+(defun send-result-query (query-id result-query)
+  (send-rdf-query (convert-to-prolog-str query-id)
+                    "knowrob:result"
+                    (convert-to-prolog-str result-query)))
 
-(defmethod man-int:get-object-type-to-gripper-transform :around (object-type
-                                                                 object-name
-                                                                 arm
-                                                                 grasp)
-  ;;(format t "Asking for GRIPPER TRANSFORM for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "GRIPPER TRANSFORM Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
+(defun send-parameter-query (query-id parameter)
+  (send-rdf-query (convert-to-prolog-str query-id)
+                  "knowrob:parameter"
+                  (convert-to-prolog-str parameter)))
 
-(defmethod man-int:get-object-type-to-gripper-pregrasp-transform :around (object-type
-                                                                      object-name
-                                                                      arm
-                                                                      grasp
-                                                                      grasp-transform)
-  ;;(format t "Asking for GRIPPER PREGRASP TRANSFORMATION for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "GRIPPER PREGRASP TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
+(defun send-link-reasoing-to-action (query-id)
+  (send-rdf-query (convert-to-prolog-str (car *action-parents*))
+                  "knowrob:reasoningTask"
+                  (convert-to-prolog-str query-id)))
 
-(defmethod man-int:get-object-type-to-gripper-2nd-pregrasp-transform :around (object-type
-                                                                      object-name
-                                                                      arm
-                                                                      grasp
-                                                                      grasp-transform)
-  ;;(format t "Asking for GRIPPER 2ND PREGRASP TRANSFORMATION for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "GRIPPER 2ND PREGRASP TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
-
-(defmethod man-int:get-object-grasping-poses :around (object-name object-type arm grasp object-transform)
-  ;;(format t "Asking for GRASPING POSES for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "Asking for GRASPING POSES Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
+(defun create-reasoning-task-query-id (predicate-name)
+  (concatenate 'string predicate-name (format nil "~x" (random (expt 16 8)))))
