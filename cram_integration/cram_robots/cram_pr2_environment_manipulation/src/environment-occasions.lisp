@@ -1,3 +1,4 @@
+;;;
 ;;; Copyright (c) 2018, Christopher Pollok <cpollok@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -26,46 +27,14 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-environment-manipulation
-  :author "Christopher Pollok"
-  :license "BSD"
+(in-package :pr2-em)
 
-  :depends-on (roslisp-utilities
-
-               cl-transforms
-               cl-transforms-stamped
-               cram-tf
-
-               cram-language
-               cram-executive
-               cram-designators
-               cram-prolog
-               cram-projection
-               cram-occasions-events
-               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
-
-               cram-common-failures
-               cram-mobile-pick-place-plans
-               cram-robot-interfaces ; for REACHABILITY-DESIGNATOR predicate
-               cram-manipulation-interfaces
-               cram-designator-specification
-
-               cl-bullet ; for handling BOUNDING-BOX datastructures
-               cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
-               cram-bullet-reasoning-utilities
-
-               ;; cram-robot-pose-gaussian-costmap
-               ;; cram-occupancy-grid-costmap
-               cram-location-costmap)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "math" :depends-on ("package"))
-     (:file "environment" :depends-on ("package"))
-     (:file "environment-occasions" :depends-on ("package" "environment"))
-     (:file "costmaps" :depends-on ("package" "math" "environment"))
-     (:file "trajectories" :depends-on ("package"))
-     (:file "action-designators" :depends-on ("package" "trajectories"))
-     (:file "plans" :depends-on ("package" "environment"))))))
+(prolog:def-fact-group environment-occasions ()
+  (prolog:<- (:container-state ?container-designator ?distance)
+    (spec:property ?container-designator (:urdf-name ?container-name))
+    (spec:property ?container-designator (:part-of ?btr-environment))
+    (btr:bullet-world ?world)
+    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+    (lisp-fun get-connecting-joint ?container-link ?joint)
+    (lisp-fun cl-urdf:name ?joint ?joint-name)
+    (btr:joint-state ?world ?btr-environment ?joint-name ?distance)))
