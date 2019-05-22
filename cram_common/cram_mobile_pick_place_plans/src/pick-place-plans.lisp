@@ -127,7 +127,7 @@
                 ((:other-object ?other-object-designator))
                 ((:arm ?arm))
                 ((:gripper-opening ?gripper-opening))
-                ((:placing-location-name ?placing-location-name))
+                ((:attachment-type ?placing-location-name))
                 ((:left-reach-poses ?left-reach-poses))
                 ((:right-reach-poses ?right-reach-poses))
                 ((:left-put-poses ?left-put-poses))

@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="kdl_ik_service" type="start_ros_server.py" name="kdl_ik_service" output="screen" />
+</launch>
