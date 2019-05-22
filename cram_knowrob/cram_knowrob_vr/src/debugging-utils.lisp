@@ -55,10 +55,10 @@ initial position."
                                        (btr:pose
                                         (btr:get-robot-object)))))
 
-;; look up transfrom from tf. ex: "l_wrist_roll_link" "l_gripper_l_finger_tip_link" 
+;; look up transfrom from tf. ex: "l_wrist_roll_link" "l_gripper_l_finger_tip_link"
 (defun lookup-tf-transform (parent_frame child_frame)
   "Looks up the tf transform."
-  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment 
+  (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
     (cram-tf::lookup-transform cram-tf::*transformer* parent_frame child_frame)))
 
 
@@ -85,11 +85,11 @@ initial position."
          (transf_l))
     (setq transf_r (car
                     (cram-projection::projection-environment-result-result
-                     (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment 
+                     (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
                        (cram-tf::lookup-transform cram-tf::*transformer* "map" "r_gripper_r_finger_tip_link" )))))
     (setq transf_l (car
                     (cram-projection::projection-environment-result-result
-                     (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment 
+                     (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
                        (cram-tf::lookup-transform cram-tf::*transformer* "map" "l_gripper_l_finger_tip_link" )))))
     
     (setq transf_r
@@ -111,7 +111,7 @@ initial position."
 
 
 (defun reset-robot ()
-  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+  (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
     (cpl:top-level
       (cpl:seq
         (exe:perform

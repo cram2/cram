@@ -211,7 +211,7 @@ RETURNS: The object designator of the object that has been picked up in this pla
     (unwind-protect
          (progn
            (setf (btr:pose new-btr-object) placing-pose)
-           (cpl:sleep pr2-proj::*debug-short-sleep-duration*)
+           (cpl:sleep urdf-proj::*debug-short-sleep-duration*)
            (btr:simulate btr:*current-bullet-world* 500)
            (btr:simulate btr:*current-bullet-world* 100)
            (let* ((new-pose

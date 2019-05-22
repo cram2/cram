@@ -537,7 +537,7 @@ if it is on the sign side of the axis. "
    perpendicular to the edge of the supporting object, to which _pose_ is the closest.
    If `ref-obj-dependent' is t then _pose_ will be `ref-obj-pose',
    otherwise it will be defined by (x, y)."
-  (declare (type cl-transforms:pose supp-obj-pose ref-obj-pose)
+  (declare (type cl-transforms:pose supp-obj-pose)
            (type cl-transforms:3d-vector supp-obj-dims)
            (type boolean ref-obj-dependent))
   (let* ((pose
@@ -564,11 +564,35 @@ if it is on the sign side of the axis. "
       (setf supp-angle (- (* 2 pi) supp-angle)))
     (+ supp-angle angle-in-supp)))
 
-(defun make-discrete-orientations-generator ()
+(defun make-supporting-obj-aligned-orientations-generator (supp-obj-dims supp-obj-pose
+                                                           supp-obj-z &optional ref-obj-pose)
+  "Generates orientations around z axis which is aligned to the edge of the supporting
+object. The edge selected is dependent on the pose in consideration or the pose of a
+reference object (which is optional but has priority)."
+  (lambda (x y previous-orientations)
+    (declare (ignore previous-orientations))
+    (let* ((ref-obj-dependent (not (null ref-obj-pose)))
+           (aligned-direction (supporting-obj-aligned-direction
+                               x y supp-obj-pose supp-obj-dims supp-obj-z
+                               :ref-obj-dependent ref-obj-dependent
+                               :ref-obj-pose ref-obj-pose)))
+      (list
+       (cl-transforms:axis-angle->quaternion
+        (cl-transforms:make-3d-vector 0 0 1)
+        aligned-direction)))))
+
+(defun make-z-orientations-generator (tag &key (samples 3))
+  "Generates orientations around z axis randomly or along x and y axes
+according to the `tag' provided. Axis-aligned directions generate exactly 4 samples. If random
+sampling is used the number of samples can be modified through the optional `samples' arg."
   (lambda (x y previous-orientations)
     (declare (ignore x y previous-orientations))
-    (cut:lazy-mapcar (lambda (angle)
-                       (cl-transforms:axis-angle->quaternion
-                        (cl-transforms:make-3d-vector 0 0 1)
-                        angle))
-                     `(0.0 ,pi ,(/ pi 2) ,(- (/ pi 2))))))
+    (cut:lazy-mapcar
+     (lambda (angle)
+       (cl-transforms:axis-angle->quaternion
+        (cl-transforms:make-3d-vector 0 0 1)
+        angle))
+     (ecase tag
+       (:random (loop for i from 1 to samples
+                      collect (random (* 2 pi))))
+       (:axis-aligned `(0.0 ,pi ,(/ pi 2) ,(- (/ pi 2))))))))
