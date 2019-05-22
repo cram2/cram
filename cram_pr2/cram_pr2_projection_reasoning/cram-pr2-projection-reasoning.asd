@@ -57,5 +57,4 @@
     :components
     ((:file "package")
      (:file "check-collisions" :depends-on ("package"))
-     (:file "task-tree-prolog" :depends-on ("package"))
-     (:file "projection-prediction" :depends-on ("package" "task-tree-prolog"))))))
+     (:file "projection-prediction" :depends-on ("package"))))))

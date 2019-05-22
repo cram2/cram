@@ -62,7 +62,8 @@
          (bindings (reverse bindings))
          (first-action (pop bindings)))
     (flet ((ignore-desig (&rest desig) 
-             (declare (ignore desig))))
+             (declare (ignore desig))
+             T))
       ;; remove closing action from first transport
     (destructuring-bind (_x closing-path) first-action
       (declare (ignore _x))

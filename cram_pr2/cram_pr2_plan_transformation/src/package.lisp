@@ -41,5 +41,11 @@
   (:import-from #:cpl-impl
                 #:replace-task-code)
   (:export
-   ;; #:init-environment
+   ;; plan-transformation.lisp
+   #:get-top-level-name
+   #:register-transformation-rule
+   #:disable-transformation-rule
+   #:enable-transformation-rule
+   #:prioritize-rule
+   #:apply-rules
    ))

@@ -84,16 +84,7 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "setup" :depends-on ("package"))
      (:file "plan-transformation" :depends-on ("package"))
      (:file "predicates" :depends-on ("package"))
-     (:file "projection-demo" :depends-on ("package"))
-     (:file "demo" :depends-on ("package" "setup" "projection-demo"))
      (:file "demo-transformation-rules" :depends-on ("package" "plan-transformation" "predicates"))
-     (:file "task-tree-functions" :depends-on ("package" "plan-transformation" "predicates"))
-     (:file "costmaps" :depends-on ("package"))
-
-     ;; (:file "designators" :depends-on ("package"))
-     ;; (:file "evaluation" :depends-on ("package"))
-     ;; (:file "plans" :depends-on ("package" "utils" "designators"))
-    ))))
+     (:file "task-tree-functions" :depends-on ("package" "plan-transformation" "predicates"))))))

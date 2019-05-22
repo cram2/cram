@@ -78,5 +78,6 @@
            #:task-picking-up-action
            #:task-navigating-action
            #:task-specific-action
+           #:task-previous-action-sibling
            ;; #:task-parameter
            ))
