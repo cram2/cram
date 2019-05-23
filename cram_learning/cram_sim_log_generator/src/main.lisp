@@ -52,7 +52,7 @@
                (setf *start-time* (* 1000000 (cram-utilities:current-timestamp)))
                (handler-case
                    (progn
-                     (pr2-proj:with-simulated-robot (demo::demo-random nil '(:bowl :spoon)))
+                     (urdf-proj:with-simulated-robot (demo::demo-random nil '(:bowl :spoon)))
                      (setf *global-timer* (+ *global-timer* ( - (* 1000000 (cram-utilities:current-timestamp)) *start-time*)))
                      (ccl::export-log-to-owl (concatenate 'string experiment-id ".owl"))
                      (format t "Done with experiment ~a~%" experiment-id)
@@ -69,7 +69,8 @@
 ;;                      (demo::generate-training-data nil '(:bowl :spoon))
                     ;;(pr2-proj:with-simulated-robot (demo::evaluation-there-and-back-again 3))
              (handler-case 
-                 (ccl::reset-logged-owl)
+                 (progn (print "RESET LOG FILE")
+                        (ccl::reset-logged-owl))
                (CRAM-CLOUD-LOGGER::CCL-FAILURE ()
                  (print "Logging failed due to exception")
                  (prepare-logging))
