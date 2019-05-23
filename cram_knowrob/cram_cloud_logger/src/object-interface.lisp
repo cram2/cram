@@ -16,8 +16,12 @@
 
 (defmethod cram-manipulation-interfaces:get-action-grasps :around  (object-type arm object-transform-in-base)
     (if *is-logging-enabled*
-        (let ((query-result (call-next-method)))
-          (log-reasoning-task "cram-manipulation-interfaces:get-action-grasps" object-type (write-to-string query-result))
+        (let* ((query-result (call-next-method))
+               (query-id (log-reasoning-task "cram-manipulation-interfaces:get-action-grasps" object-type (write-to-string query-result)))
+               (pose-id (send-create-transform-pose-stamped object-transform-in-base)))
+          (send-rdf-query (convert-to-prolog-str query-id)
+                          "knowrob:parameter2"
+                          (convert-to-prolog-str pose-id))
           query-result)
         (call-next-method)))
 
@@ -42,7 +46,8 @@
     (send-predicate-query query-id predicate-name)
     (send-parameter-query query-id parameter)
     (send-link-reasoing-to-action query-id)
-    (send-result-query query-id reasoning-result)))
+    (send-result-query query-id reasoning-result)
+    query-id))
 
 
 (defun send-init-reasoning-query (query-id)
