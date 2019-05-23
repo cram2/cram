@@ -32,14 +32,6 @@
 
 (cpl:define-task-variable *action-parents* '())
 (defparameter *action-siblings* (make-hash-table))
-(defparameter *referenced-designator* nil)
-
-(defmethod exe:try-reference-designator :around (designator error-message)
-  (if (string= "" error-message)
-      (let ((referenced-designator (call-next-method)))
-        (setf *referenced-designator* (cadr referenced-designator))
-        referenced-designator))
-  (call-next-method))
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
@@ -69,10 +61,12 @@
           (if (not *action-parents*)
               (setq is-parent-action t))
           (push action-id *action-parents*)
-          (let ((perform-result (call-next-method))
-                (referenced-action-id (log-perform-call *referenced-designator*)))
-            (print designator)
-            (print *referenced-designator*)
+          (multiple-value-bind (perform-result action-desig)
+              (call-next-method)
+          (let ((referenced-action-id (log-perform-call action-desig
+                                                        ;; (second (desig:reference action-desig))
+                                                        ;; *referenced-designator*
+                                                        )))
             (log-cram-finish-action action-id)
             (equate action-id referenced-action-id)
             (when (and perform-result (typep perform-result 'desig:object-designator))
@@ -82,7 +76,7 @@
             (send-task-success action-id "true")
             (if is-parent-action
                    (send-batch-query))
-            perform-result)))
+            perform-result))))
       (call-next-method)))
 
 (defun equate (designator-id referenced-designator-id)
