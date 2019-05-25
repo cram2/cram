@@ -224,7 +224,8 @@
         (equal ?joint-states nil))
     (-> (and (equal ?pose-stamped nil) (equal ?joint-states nil))
         (format "WARNING: in a LOOKING action DIRECTION ~a was unknown.~%"
-                ?direction))
+                ?direction)
+        (true))
     ;; (-> (spec:property ?action-designator (:camera ?camera))
     ;;     (equal ?camera :head)
     ;;     (true))
