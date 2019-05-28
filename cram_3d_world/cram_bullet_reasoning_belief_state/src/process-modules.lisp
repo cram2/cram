@@ -109,13 +109,12 @@
 
 
 (defun create-new-object-desig (name type pose transform pose-in-map transform-in-map)
-  ;;(let ((obj (desig:an object (name name))))
+  (let ((obj (desig:an object (name name))))
     
-;;  (setf obj
-  (desig:copy-designator obj :new-description
-                         `((:name ,name)
-                           (:type ,type)
-                           (:pose ((:pose ,pose)
-                                   (:transform ,transform)
-                                   (:pose-in-map ,pose-in-map)
-                                   (:transform-in-map ,transform-in-map))))))
+    (desig:copy-designator obj :new-description
+                           `((:name ,name)
+                             (:type ,type)
+                             (:pose ((:pose ,pose)
+                                     (:transform ,transform)
+                                     (:pose-in-map ,pose-in-map)
+                                     (:transform-in-map ,transform-in-map)))))))
