@@ -75,6 +75,18 @@ NAME in the environment BTR-ENVIRONMENT."
     (lisp-fun btr:name ?environment-obj ?environment-name)
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun man-int:get-action-gripper-opening ?container-type ?gripper-opening)
+    ;; TODO: this is here so far only for logging, in the future we should
+    ;; implement grasps such as front grasp, top grasp etc.
+    ;; and incorporate this into GET-ACTION-TRAJECTORY
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (or (and
+             (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
+                       (?_ ?object-transform))
+             (lisp-fun man-int:get-action-grasps ?container-type ?arm ?object-transform
+                       ?grasps)
+             (member ?grasp ?grasps))
+            (true)))
     ;; calculate trajectory
     (equal ?objects (?container-designator))
     (-> (equal ?arm :left)
@@ -164,6 +176,18 @@ NAME in the environment BTR-ENVIRONMENT."
     (lisp-fun btr:name ?environment-obj ?environment-name)
     ;; infer missing information like ?gripper-opening, closing trajectory
     (lisp-fun man-int:get-action-gripper-opening ?container-type ?gripper-opening)
+    ;; TODO: this is here so far only for logging, in the future we should
+    ;; implement grasps such as front grasp, top grasp etc.
+    ;; and incorporate this into GET-ACTION-TRAJECTORY
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (or (and
+             (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
+                       (?_ ?object-transform))
+             (lisp-fun man-int:get-action-grasps ?container-type ?arm ?object-transform
+                       ?grasps)
+             (member ?grasp ?grasps))
+            (true)))
     ;; calculate trajectory
     (equal ?objects (?container-designator))
     (-> (equal ?arm :left)
