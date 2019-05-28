@@ -31,6 +31,11 @@
 
 (in-package :cram-hsrb-description)
 
+(defparameter *tcp-in-ee-pose*
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector 0.18 0 0)
+   (cl-transforms-stamped:make-identity-rotation)))
+
 (defparameter *standard-to-hsrb-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
 
@@ -39,7 +44,8 @@
                                 arm-joints arm-links
                                 gripper-joint
                                 gripper-link
-                                standard-to-particular-gripper-transform)
+                                standard-to-particular-gripper-transform
+                                tcp-in-ee-pose)
 
   (<- (end-effector-link hsrb :left "wrist_roll_link"))
 
@@ -67,4 +73,7 @@
 
 
   (<- (standard-to-particular-gripper-transform hsrb ?transform)
-    (symbol-value *standard-to-hsrb-gripper-transform* ?transform)))
+    (symbol-value *standard-to-hsrb-gripper-transform* ?transform))
+
+  (<- (tcp-in-ee-pose pr2 ?transform)
+    (symbol-value *tcp-in-ee-pose* ?transform)))
