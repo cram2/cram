@@ -3,23 +3,23 @@
 (defmethod cram-manipulation-interfaces:get-action-gripping-effort :around (object-type)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "cram-manipulation-interfaces:get-action-gripping-effort" object-type (write-to-string query-result))
+          (log-reasoning-task "cram-manipulation-interfaces:get-action-gripping-effort" (write-to-string object-type) (write-to-string query-result))
           query-result)
         (call-next-method)))
 
 (defmethod cram-manipulation-interfaces:get-action-gripper-opening :around (object-type)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "cram-manipulation-interfaces:get-action-gripper-opening" object-type (write-to-string query-result))
+          (log-reasoning-task "cram-manipulation-interfaces:get-action-gripper-opening" (write-to-string object-type) (write-to-string query-result))
           query-result)
         (call-next-method)))
 
 (defmethod cram-manipulation-interfaces:get-action-grasps :around  (object-type arm object-transform-in-base)
     (if *is-logging-enabled*
         (let* ((query-result (call-next-method))
-               (query-id (log-reasoning-task "cram-manipulation-interfaces:get-action-grasps" object-type (write-to-string query-result)))
+               (query-id (log-reasoning-task "cram-manipulation-interfaces:get-action-grasps" (write-to-string object-type) (write-to-string query-result)))
                (pose-id (send-create-transform-pose-stamped object-transform-in-base)))
-          (send-rdf-query (convert-to-prolog-str query-id)
+          (send-rdf-query query-id
                           "knowrob:parameter2"
                           (convert-to-prolog-str pose-id))
           query-result)
@@ -28,7 +28,7 @@
 (defmethod cram-manipulation-interfaces:get-action-trajectory :around  (action-type arm grasp objects-acted-on  &key &allow-other-keys)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "cram-manipulation-interfaces:get-action-trajectory" grasp "result")
+          (log-reasoning-task "cram-manipulation-interfaces:get-action-trajectory" (write-to-string grasp) "result")
           query-result)
         (call-next-method)))
 
@@ -41,12 +41,25 @@
 
 (defun log-reasoning-task (predicate-name parameter reasoning-result)
   (let
-      ((query-id (create-reasoning-task-query-id predicate-name)))
-    (send-init-reasoning-query query-id)
+      ((query-id (convert-to-prolog-str (get-value-of-json-prolog-dict
+                      (cdaar
+                       (send-cram-start-action
+                        (concatenate 'string "knowrob:" (convert-to-prolog-str "ReasoningTask"))
+                        " \\'TableSetting\\'"
+                        (convert-to-prolog-str (get-timestamp-for-logging))
+                        "PV"
+                        "ActionInst"))
+                      "ActionInst"))))
+    (print "REASONING LOGGING")
+    ;;(send-init-reasoning-query query-id)
     (send-predicate-query query-id predicate-name)
+        (print "REASONING LOGGING 1")
     (send-parameter-query query-id parameter)
+        (print "REASONING LOGGING 2")
     (send-link-reasoing-to-action query-id)
+        (print "REASONING LOGGING 3")
     (send-result-query query-id reasoning-result)
+        (print "REASONING LOGGING 4")
     query-id))
 
 
@@ -61,24 +74,25 @@
           query-id))))
 
 (defun send-predicate-query (query-id predicate-name)
-  (send-rdf-query (convert-to-prolog-str query-id)
+  (send-rdf-query query-id
                   "knowrob:predicate"
                   (convert-to-prolog-str predicate-name)))
 
 (defun send-result-query (query-id result-query)
-  (send-rdf-query (convert-to-prolog-str query-id)
+  (send-rdf-query query-id
                     "knowrob:result"
                     (convert-to-prolog-str result-query)))
 
 (defun send-parameter-query (query-id parameter)
-  (send-rdf-query (convert-to-prolog-str query-id)
+  (send-rdf-query query-id
                   "knowrob:parameter"
                   (convert-to-prolog-str parameter)))
 
 (defun send-link-reasoing-to-action (query-id)
   (send-rdf-query (convert-to-prolog-str (car *action-parents*))
                   "knowrob:reasoningTask"
-                  (convert-to-prolog-str query-id)))
+                  query-id))
 
-(defun create-reasoning-task-query-id (predicate-name)
-  (concatenate 'string predicate-name (format nil "~x" (random (expt 16 8)))))
+(defun create-reasoning-task-query-id ()
+  (convert-to-prolog-str (concatenate 'string "http://knowrob.org/kb/knowrob.owl#" "PrologQuery_" (format nil "~x" (random (expt 16 8))))))
+  ;;(concatenate (concatenate 'string "knowrob:" (convert-to-prolog-str (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8))))))))

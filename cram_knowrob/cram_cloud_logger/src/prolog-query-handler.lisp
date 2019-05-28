@@ -6,7 +6,8 @@
 
 
 (defmethod prolog::prove-one :around (query binds &optional rethrow-cut)
-  (if *is-logging-enabled*
+  ;;(if *is-logging-enabled*
+  (if nil
       (let ((query-id (create-prolog-log-query
                        (car query)
                        '("http://knowrob.org/kb/knowrob.owl#no-parameter")))
@@ -83,9 +84,9 @@
 
 (defun send-batch-query ()
   (print "Preparing batch query ...")
-  (if (cpl:value *prolog-queries*)
-      (progn (print "Sending batch query ...")
-      (send-prolog-query-1 (create-batch-query))))
+  ;;(if (cpl:value *prolog-queries*)
+  ;;    (progn (print "Sending batch query ...")
+  ;;    (send-prolog-query-1 (create-batch-query))))
   (print "Batch query is done"))
 
 (defun create-obj-true-false-log-query (predicate-name)
