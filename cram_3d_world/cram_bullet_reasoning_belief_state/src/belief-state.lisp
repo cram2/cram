@@ -63,6 +63,13 @@ is replaced with replacement.
                        (when kitchen-urdf-string
                          (setf *kitchen-urdf* (cl-urdf:parse-urdf
                                                kitchen-urdf-string)))))))
+
+    ;; set robot's URDF root link to *robot-base-frame* as that's how going actions works
+    (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
+          (or (gethash cram-tf:*robot-base-frame*
+                       (cl-urdf:links rob-int:*robot-urdf*))
+              (error "[setup-bullet-world] cram-tf:*robot-base-frame* was undefined or smt.")))
+
     (assert
      (cut:force-ll
       (prolog `(and
