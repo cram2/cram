@@ -180,4 +180,9 @@
   (<- (%property ?designator (:handle-axis ?axis))
     (lisp-pred typep ?designator desig:object-designator)
     (property-member (:handle-axis ?axis) ?designator)
-    (assert-type ?axis cl-transforms:3d-vector "OBJECT SPEC:PROPERTY")))
+    (assert-type ?axis cl-transforms:3d-vector "OBJECT SPEC:PROPERTY"))
+
+  (<- (%property ?designator (:pose ?pose))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:pose ?pose) ?designator)
+    (assert-type ?pose list "OBEJCT SPEC:PROPERTY")))

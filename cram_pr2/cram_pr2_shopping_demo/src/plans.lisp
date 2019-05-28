@@ -31,7 +31,7 @@
 
 (defparameter *table* (cl-transforms-stamped:make-pose-stamped
                        "map" 0.0
-                       (cl-transforms:make-3d-vector -3.1 0.7 0.75)
+                       (cl-transforms:make-3d-vector -3.1 0.5 0.75)
                        (cl-transforms:make-identity-rotation)))
 
 (defparameter *pose-grasping* (cl-transforms-stamped:make-pose-stamped
@@ -55,7 +55,7 @@
 
 (defparameter *pose-near-table* (cl-transforms-stamped:make-pose-stamped
                                  "map" 0.0
-                                 (cl-transforms:make-3d-vector -2.5 0.5 0)
+                                 (cl-transforms:make-3d-vector -2.45 0.5 0)
                                  (cl-transforms:axis-angle->quaternion
                                   (cl-transforms:make-3d-vector 0 0 1) (/ pi 1))))
 
@@ -70,17 +70,14 @@
                                 (cl-transforms:axis-angle->quaternion
                                  (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
 
-(defun move-object (?object)
+(defun move-object (?object ?destination)
   (let ((?grasping-arm :right)
         (?grasp-pose *pose-grasping*)
         (?grasp-pose-left *pose-grasping-left*)
         (?grasp-pose-right *pose-grasping-right*)
         (?pose-near-table *pose-near-table*)
         (?table *table*)
-        map->obj
-        map->base
-        trans
-        ?newpose
+        ?newobject
         ?newtransform)
 
     (exe:perform
@@ -100,48 +97,14 @@
                (left-configuration park)
                (right-configuration park)))
 
-    ;; creating the new Transform from the base_footprint infront of the shelf and the object
-    (setf map->base (cl-transforms:make-transform
-                     (cl-transforms:translation
-                      (cl-transforms:reference-transform *pose-grasping*))
-                     (cl-transforms:orientation *pose-grasping*)))
+    (setf ?newobject (exe:perform
+                      (desig:a motion
+                               (type world-state-detecting)
+                               (object ?object))))
 
-    (setf map->obj (second
-                    (find :transform-in-map (desig:desig-prop-value ?object :pose)
-                          :test #'equal :key #'first)))
-    (setf trans (cl-transforms:transform* (cl-transforms:transform-inv map->base) map->obj))
-
-    (setf ?newpose (cl-transforms-stamped:make-pose-stamped
-                    "base_footprint"
-                    0.0
-                    (cl-transforms:translation trans)
-                    (cl-transforms:orientation
-                     (second (first (desig:desig-prop-value ?object :pose))))))
-
-    (setf ?newTransform (cl-transforms-stamped:make-transform-stamped
-                         "base_footprint"
-                         (desig:desig-prop-value ?object :name)
-                         0.0
-                         (cl-transforms:translation trans)
-                         (cl-transforms:rotation
-                          (second (second (desig:desig-prop-value ?object :pose))))))
-
-    ;; constructing the new Object designator with the new pose and transformation
-    (setf ?object
-          (desig:copy-designator
-           ?object
-           :new-description
-           `((:type ,(desig:desig-prop-value ?object :type))
-             (:name ,(desig:desig-prop-value ?object :name))
-             (:pose ((:pose ,?newpose)
-                     (:transform ,?newTransform)
-                     (:pose-in-map
-                      ,(second (third (desig:desig-prop-value ?object :pose))))
-                     (:transform-in-map
-                      ,(second (fourth (desig:desig-prop-value ?object :pose)))))))))
-
-    (print ?object)
-
+    
+    (setf ?newtransform (man-int:get-object-transform ?newobject))
+    
     ;; selecting the grasping arm
     (if (< (cl-transforms:y (cl-transforms:translation ?newtransform)) 0)
         (setf ?grasping-arm :right)
@@ -168,7 +131,7 @@
                            (type picking-up)
                            (arm ?grasping-arm)
                            (grasp left-side)
-                           (object ?object)))
+                           (object ?newobject)))
 
     (exe:perform (desig:an action
                            (type going)
@@ -185,15 +148,22 @@
                            (arm ?grasping-arm)
                            (object ?object)
                            (target (desig:a location
-                                            (pose ?table)))))))
-
+                                            (pose ?destination)))))))
 (defun collect-article ()
   (urdf-proj:with-simulated-robot
-    (let ((objects '(:heitmann :somat :dove :denkmit))
-          object-desigs)
+    (let ((objects '(:heitmann :dove :denkmit))
+          (y 0.2)
+          object-desigs
+          destination)
       (setf object-desigs (try-detecting objects))
       (loop for ?object in object-desigs
-            do (move-object ?object)))))
+            do (setf destination (cl-transforms-stamped:make-pose-stamped
+                                  "map" 0
+                                  (cl-transforms:make-3d-vector -3.1 y 0.75)
+                                  (cl-transforms:make-identity-rotation)))
+               (move-object ?object destination)
+               (btr:simulate btr:*current-bullet-world* 100)
+               (setf y (+ y 0.15))))))
 
 (defun try-detecting (articles)
   (let ((?pose-detecting *pose-detecting*)
