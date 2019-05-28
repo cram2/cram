@@ -187,7 +187,7 @@
 (defun demo-hard-coded ()
   (spawn-objects-on-sink-counter)
 
-  (pr2-proj:with-simulated-robot
+  (urdf-proj:with-simulated-robot
 
     (dolist (object-type '(:breakfast-cereal :cup :bowl :spoon :milk))
 
@@ -211,7 +211,7 @@
 
 
 ;; (defun test-projection ()
-;;   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
 ;;     (cpl:top-level
 ;;       (exe:perform
 ;;        (let ((?pose (cl-tf:make-pose-stamped
@@ -330,7 +330,7 @@
 ;;                                 (type looking)
 ;;                                 (pose ?ptu-goal))))))
 ;; (defun test-pr2-plans ()
-;;   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
 ;;     (cpl:top-level
 ;;       (prepare))))
 
@@ -338,7 +338,7 @@
 ;;   (spawn-objects)
 ;;   (test-pr2-plans)
 ;;   (cpl:sleep 1)
-;;   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
 ;;     (cpl:top-level
 ;;       (exe:perform
 ;;        (let ((?object-designator
@@ -349,7 +349,7 @@
 
 ;; (defun test-grasp-and-place-object (&optional (?object-type :bottle) (?arm :right))
 ;;   (let ((proj-result
-;;           (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;           (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
 ;;             (cpl:top-level
 ;;               (prepare))
 ;;             (cpl:top-level
@@ -377,7 +377,7 @@
 ;;                 (desig:current-desig ?bottle-desig))))))
 ;;     (cpl:sleep 1.0)
 ;;     (let ((?result-object (car (proj::projection-environment-result-result proj-result))))
-;;       (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;       (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
 ;;         (cpl:top-level
 ;;           (exe:perform (desig:an action
 ;;                                  (type placing)
@@ -385,7 +385,7 @@
 ;;                                  (object ?result-object))))))))
 
 ;; (defun test-place-bottle ()
-;;   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+;;   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
 ;;     (cpl:top-level
 ;;       (exe:perform (desig:an action
 ;;                              (type placing)

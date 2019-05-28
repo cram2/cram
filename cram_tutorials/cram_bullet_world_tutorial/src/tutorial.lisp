@@ -128,7 +128,7 @@
 
 (defun test-switch-two-bottles ()
   (spawn-two-bottles)
-  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+  (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
     (cpl:top-level
       ;; Go to counter top and perceive bottle
       (let ((?navigation-goal *pose-counter*)

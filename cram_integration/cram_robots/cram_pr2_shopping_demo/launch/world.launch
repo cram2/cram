@@ -25,7 +25,7 @@
 
     <!-- Uploading the kitchen to the param server -->
     <param name="kitchen_description" command="$(find xacro)/xacro.py
-        '$(find cram_pr2_shopping_demo)/resource/kitchen.urdf'"/>
+        '$(find iai_kitchen)/urdf_obj/kitchen.urdf'"/>
 
     <node pkg="tf" type="static_transform_publisher" name="iai_kitchen_room_link_broadcaster"
         args="0 0 0 0 0 0 /map iai_kitchen/world 25"></node>

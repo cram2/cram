@@ -57,7 +57,7 @@
                cram-occupancy-grid-costmap
                cram-location-costmap
 
-               cram-pr2-projection ; for projection process modules
+               cram-urdf-projection ; for projection process modules
                cram-mobile-pick-place-plans
                cram-pr2-description
                cram-object-knowledge)

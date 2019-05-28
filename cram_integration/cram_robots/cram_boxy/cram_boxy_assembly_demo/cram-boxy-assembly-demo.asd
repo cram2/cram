@@ -65,7 +65,7 @@
                cram-location-costmap
                cram-manipulation-interfaces ; for standard rotations
 
-               cram-boxy-projection      ; for with-simulated-robot
+               cram-urdf-projection      ; for with-simulated-robot
                cram-boxy-description
                ;; cram-boxy-low-level
                cram-process-modules

@@ -105,7 +105,7 @@
    (prolog:prolog
     `(and (cram-robot-interfaces:robot ?robot)
           (btr:bullet-world ?w)
-          (cram-robot-interfaces:robot-pan-tilt-joints ?robot . ?joint-names)
+          (cram-robot-interfaces:robot-neck-joints ?robot . ?joint-names)
           (prolog:lisp-fun mapcar list ?joint-names ,joint-angles ?joint-states)
           (btr:assert ?w (btr:joint-state ?robot ?joint-states))))))
 
@@ -117,13 +117,152 @@
           (btr:bullet-world ?w)
           (btr:assert ?w (btr:joint-state ?robot ,joint-states))))))
 
+(defparameter *camera-pose-unit-vector-multiplyer* 0.4)
+(defparameter *camera-pose-z-offset* 0.2)
+(defparameter *camera-resampling-step* 0.1)
+(defparameter *camera-x-axis-limit* 0.5)
+(defparameter *camera-y-axis-limit* 0.5)
+
+(defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
+  (let ((joint-state-msg
+          (or (ik:call-ik-service-with-resampling
+               (cl-tf:pose->pose-stamped
+                base-link
+                0.0
+                cartesian-pose)
+               base-link ee-link
+               (btr::make-robot-joint-state-msg
+                (btr:get-robot-object)
+                :joint-names joint-names)
+               *camera-resampling-step* :x
+               0 (- *camera-x-axis-limit*) *camera-x-axis-limit*)
+              (ik:call-ik-service-with-resampling
+               (cl-tf:pose->pose-stamped
+                base-link
+                0.0
+                cartesian-pose)
+               base-link ee-link
+               (btr::make-robot-joint-state-msg
+                (btr:get-robot-object)
+                :joint-names joint-names)
+               *camera-resampling-step* :y
+               0 (- *camera-y-axis-limit*) *camera-y-axis-limit*))))
+    (when joint-state-msg
+      (map 'list #'identity (roslisp:msg-slot-value joint-state-msg :position)))))
+
+(defun calculate-camera-pose-from-object-pose (neck-base-t-object)
+  "Takes the vector from neck-base to object, sets its Z to 0,
+then normalizes to get a unit vector, then multiplies with a multiplier to make it shorter
+ (multiplier should be comparable to maximum length between neck base and camera),
+then pulls the vector up in Z a bit to avoid colliding with bottom parts of robot,
+and that would be the desired camera position.
+Next, to calculate desired camera rotation, looks at the object from camera position,
+calculates an angle that would have to be applied around X axis to align camera's Z
+with the object, calculates similar angle around Y axis and applies the rotations. "
+  (let* ((neck-base-t-object-vector
+           (cl-transforms:translation neck-base-t-object))
+         (neck-base-t-object-vector-without-z
+           (cl-transforms:copy-3d-vector neck-base-t-object-vector :z 0.0))
+         (neck-base-t-object-unit-vector
+           (cl-transforms:normalize-vector neck-base-t-object-vector-without-z))
+         (neck-base-t-object-short-vector
+           (cl-transforms:v* neck-base-t-object-unit-vector *camera-pose-unit-vector-multiplyer*))
+         (neck-base-t-object-short-vector-lifted
+           (cl-transforms:v+ neck-base-t-object-short-vector
+                             (cl-transforms:make-3d-vector 0 0 *camera-pose-z-offset*)))
+
+         (neck-base-t-camera-not-oriented
+           (cl-transforms:make-transform
+            neck-base-t-object-short-vector-lifted
+            (cl-transforms:make-quaternion -1 0 0 0)))
+         (camera-not-oriented-t-neck-base
+           (cl-transforms:transform-inv
+            neck-base-t-camera-not-oriented))
+         (camera-not-oriented-t-object
+           (cl-transforms:transform*
+            camera-not-oriented-t-neck-base
+            neck-base-t-object))
+         (rotation-angle-around-x
+           (- (atan
+               (cl-transforms:y (cl-transforms:translation camera-not-oriented-t-object))
+               (cl-transforms:z (cl-transforms:translation camera-not-oriented-t-object)))))
+         (neck-base-t-camera-rotated-around-x
+           (cram-tf:rotate-transform-in-own-frame
+            neck-base-t-camera-not-oriented
+            :x rotation-angle-around-x))
+         (camera-rotated-around-x-t-neck-base
+           (cl-transforms:transform-inv
+            neck-base-t-camera-rotated-around-x))
+         (camera-rotated-around-x-t-object
+           (cl-transforms:transform*
+            camera-rotated-around-x-t-neck-base
+            neck-base-t-object))
+         (rotation-angle-around-y
+           (atan
+            (cl-transforms:x (cl-transforms:translation camera-rotated-around-x-t-object))
+            (cl-transforms:z (cl-transforms:translation camera-rotated-around-x-t-object))))
+         (neck-base-t-camera
+           (cram-tf:rotate-transform-in-own-frame
+            neck-base-t-camera-rotated-around-x
+            :y rotation-angle-around-y)))
+    neck-base-t-camera))
+
+(defun look-at-pose (object-pose)
+  (let* ((map-p-object
+           (cram-tf:ensure-pose-in-frame object-pose cram-tf:*fixed-frame* :use-zero-time t))
+         (bindings
+           (cut:lazy-car
+            (prolog:prolog
+             `(and (cram-robot-interfaces:robot ?robot)
+                   (cram-robot-interfaces:robot-neck-links ?robot . ?neck-frames)
+                   (cram-robot-interfaces:robot-neck-joints ?robot . ?neck-joints)
+                   (cram-robot-interfaces:robot-neck-base-link ?robot ?neck-base-frame)
+                   (cram-robot-interfaces:camera-in-neck-ee-pose ?robot ?neck-ee-p-cam)))))
+         (neck-ee-frame
+           (car (last (cut:var-value '?neck-frames bindings))))
+         (neck-joints
+           (cut:var-value '?neck-joints bindings))
+         (neck-base-frame
+           (cut:var-value '?neck-base-frame bindings))
+         (neck-ee-p-camera
+           (cut:var-value '?neck-ee-p-cam bindings))
+
+         (map-p-neck-base
+           (btr:link-pose (btr:get-robot-object) neck-base-frame))
+         (neck-base-t-map
+           (cl-transforms:transform-inv
+            (cl-transforms:pose->transform map-p-neck-base)))
+         (neck-base-t-object
+           (cl-transforms:transform*
+            neck-base-t-map
+            (cl-transforms:pose->transform map-p-object)))
+
+         (neck-base-t-camera
+           (calculate-camera-pose-from-object-pose neck-base-t-object))
+
+         (camera-t-neck-ee
+           (cl-transforms:transform-inv (cl-transforms:pose->transform neck-ee-p-camera)))
+         (neck-base-t-neck-ee
+           (cl-transforms:transform* neck-base-t-camera camera-t-neck-ee))
+         (neck-base-p-neck-ee
+           (cl-transforms:transform->pose neck-base-t-neck-ee))
+
+         (joint-state
+           (get-neck-ik neck-ee-frame neck-base-p-neck-ee neck-base-frame neck-joints)))
+
+    (if joint-state
+        (look-at-joint-angles joint-state)
+        (cpl:fail 'common-fail:ptu-goal-not-reached
+                  :description "Look goal was not reachable"))))
+
 (defun look-at (pose configuration)
-  (declare (ignore pose))
-  (if configuration
-      (if (typep (car configuration) 'list)
-          (look-at-joint-states configuration)
-          (look-at-joint-angles configuration))
-      (error "Boxy only supports looking with given joint configuration ATM.")))
+  (if pose
+      (look-at-pose pose)
+      (if configuration
+          (if (typep (car configuration) 'list)
+              (look-at-joint-states configuration)
+              (look-at-joint-angles configuration))
+          (error "LOOK action has to have either pose or configuration given."))))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -295,6 +434,8 @@
                                 (cl-transforms:make-identity-rotation))
   "In meters, Teetcp, EE -> TCP but a Pose")
 
+(defparameter *torso-resampling-step* 0.1)
+
 (defun move-tcp (left-tcp-pose right-tcp-pose)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
   (flet ((tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame)
@@ -354,61 +495,74 @@
                     base-ee-transform
                     :result-as-pose-or-transform :pose))
                  (error "Arm movement goals should be given in robot base frame"))))
-         (get-ik-joint-positions (arm ee-pose)
+         (get-ik-joint-positions (ee-pose base-link end-effector-link joint-names
+                                  torso-joint-name
+                                  torso-joint-lower-limit torso-joint-upper-limit)
            (when ee-pose
              (multiple-value-bind (ik-solution-msg torso-angle)
-                 (cut:with-vars-bound (?torso-angle ?lower-limit ?upper-limit)
-                     (car (prolog:prolog
-                           `(and
-                             (cram-robot-interfaces:robot ?robot)
-                             (cram-robot-interfaces:robot-torso-link-joint ?robot
-                                                                           ?_ ?torso-joint)
-                             (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint
-                                                                      ?lower-limit)
-                             (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint
-                                                                      ?upper-limit)
-                             (btr:bullet-world ?world)
-                             (btr:joint-state ?world ?robot ?torso-joint ?torso-angle))))
-                   (call-ik-service-with-torso-resampling
-                    arm ee-pose
-                    :torso-angle ?torso-angle
-                    :torso-lower-limit ?lower-limit
-                    :torso-upper-limit ?upper-limit))
+                 (let ((torso-current-angle
+                         (btr:joint-state
+                          (btr:get-robot-object)
+                          torso-joint-name))
+                       (seed-state-msg
+                         (btr::make-robot-joint-state-msg
+                          (btr:get-robot-object)
+                          :joint-names joint-names)))
+                   (ik:call-ik-service-with-resampling
+                    ee-pose base-link end-effector-link seed-state-msg *torso-resampling-step* :z
+                    torso-current-angle torso-joint-lower-limit torso-joint-upper-limit))
                (unless ik-solution-msg
                  (cpl:fail 'common-fail:manipulation-pose-unreachable
                            :description (format nil "~a is unreachable for EE." ee-pose)))
-               (values
-                (map 'list #'identity
-                     (roslisp:msg-slot-value ik-solution-msg 'sensor_msgs-msg:position))
-                torso-angle)))))
+               (values (map 'list #'identity (roslisp:msg-slot-value ik-solution-msg :position))
+                       torso-angle)))))
 
-    (let* ((frame-bindings
+    (let* ((bindings
              (cut:lazy-car
               (prolog:prolog
                `(and (cram-robot-interfaces:robot ?robot)
                      (cram-robot-interfaces:robot-tool-frame ?robot :left ?left-tool-frame)
                      (cram-robot-interfaces:robot-tool-frame ?robot :right ?right-tool-frame)
                      (cram-robot-interfaces:end-effector-link ?robot :left ?left-ee-frame)
-                     (cram-robot-interfaces:end-effector-link ?robot :right ?right-ee-frame)))))
+                     (cram-robot-interfaces:end-effector-link ?robot :right ?right-ee-frame)
+                     (cram-robot-interfaces:arm-joints ?robot :left ?left-arm-joints)
+                     (cram-robot-interfaces:arm-joints ?robot :right ?right-arm-joints)
+                     (cram-robot-interfaces:robot-torso-link-joint ?robot ?torso-link ?torso-joint)
+                     (cram-robot-interfaces:joint-lower-limit ?robot ?torso-joint ?lower-limit)
+                     (cram-robot-interfaces:joint-upper-limit ?robot ?torso-joint ?upper-limit)))))
            (left-tcp-frame
-             (cut:var-value '?left-tool-frame frame-bindings))
+             (cut:var-value '?left-tool-frame bindings))
            (right-tcp-frame
-             (cut:var-value '?right-tool-frame frame-bindings))
+             (cut:var-value '?right-tool-frame bindings))
            (left-ee-frame
-             (cut:var-value '?left-ee-frame frame-bindings))
+             (cut:var-value '?left-ee-frame bindings))
            (right-ee-frame
-             (cut:var-value '?right-ee-frame frame-bindings)))
+             (cut:var-value '?right-ee-frame bindings))
+           (left-arm-joints
+             (cut:var-value '?left-arm-joints bindings))
+           (right-arm-joints
+             (cut:var-value '?right-arm-joints bindings))
+           (torso-link-name
+             (cut:var-value '?torso-link bindings))
+           (torso-joint-name
+             (cut:var-value '?torso-joint bindings))
+           (torso-lower-limit
+             (cut:var-value '?lower-limit bindings))
+           (torso-upper-limit
+             (cut:var-value '?upper-limit bindings)))
 
       (multiple-value-bind (left-ik left-torso-angle)
-          (get-ik-joint-positions :left
-                                  (ee-pose-in-base->ee-pose-in-torso
+          (get-ik-joint-positions (ee-pose-in-base->ee-pose-in-torso
                                    (tcp-pose->ee-pose left-tcp-pose
-                                                      left-tcp-frame left-ee-frame)))
+                                                      left-tcp-frame left-ee-frame))
+                                  torso-link-name left-ee-frame left-arm-joints
+                                  torso-joint-name torso-lower-limit torso-upper-limit)
         (multiple-value-bind (right-ik right-torso-angle)
-            (get-ik-joint-positions :right
-                                    (ee-pose-in-base->ee-pose-in-torso
+            (get-ik-joint-positions (ee-pose-in-base->ee-pose-in-torso
                                      (tcp-pose->ee-pose right-tcp-pose
-                                                        right-tcp-frame right-ee-frame)))
+                                                        right-tcp-frame right-ee-frame))
+                                    torso-link-name right-ee-frame right-arm-joints
+                                    torso-joint-name torso-lower-limit torso-upper-limit)
           (cond
             ((and left-torso-angle right-torso-angle)
              (when (not (eq left-torso-angle right-torso-angle))
