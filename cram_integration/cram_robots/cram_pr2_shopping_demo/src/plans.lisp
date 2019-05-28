@@ -151,8 +151,10 @@
                                             (pose ?destination)))))))
 (defun collect-article ()
   (urdf-proj:with-simulated-robot
-    (let ((objects '(:heitmann :somat :dove :denkmit))
-          object-desigs)
+    (let ((objects '(:heitmann :dove :denkmit))
+          (y 0.2)
+          object-desigs
+          destination)
       (setf object-desigs (try-detecting objects))
       (loop for ?object in object-desigs
             do (setf destination (cl-transforms-stamped:make-pose-stamped
