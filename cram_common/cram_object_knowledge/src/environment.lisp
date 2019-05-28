@@ -46,3 +46,15 @@
 
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :container)))
   0.10)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-action-grasps :heuristics 20 ((object-type (eql :drawer))
+                                                     arm transform)
+  '(:front))
+(defmethod man-int:get-action-grasps :heuristics 20 ((object-type (eql :fridge))
+                                                     arm transform)
+  '(:front))
+(defmethod man-int:get-action-grasps :heuristics 20 ((object-type (eql :container-revolute))
+                                                     arm transform)
+  '(:front))

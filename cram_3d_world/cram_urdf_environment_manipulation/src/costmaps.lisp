@@ -266,6 +266,24 @@ quaternions to face from `pos1' to `pos2'."
    :samples samples
    :sample-step sample-step))
 
+(defun angle-halfway-to-point-direction (x y pos1 pos2 target-pos)
+  "Takes an X and Y coordinate and returns a quaternion between the one facing
+from pos1 to pos2 and the one facing from (X,Y) to target-pos."
+  (let ((pos-direction (point-to-point-direction 0 0 pos1 pos2))
+        (target-direction (costmap::angle-to-point-direction x y target-pos)))
+    (/ (+ pos-direction target-direction) 2)))
+
+(defun make-angle-halfway-to-point-generator (pos1 pos2 target-pos &key (samples 1) sample-step)
+  "Returns a function that takes an X and Y coordinate and returns a lazy-list of
+quaternions facing from (X,Y) halfway to target-pos. Meaning pos1 and pos2
+describe a direction and the quaternion is the angle between one facing directly
+from (X,Y) to target-pos and the direction between pos1 and pos2."
+  (location-costmap:make-orientation-generator
+   (alexandria:rcurry #'angle-halfway-to-point-direction
+                      pos1 pos2 target-pos)
+   :samples samples
+   :sample-step sample-step))
+
 (defun middle-pose (pose1 pose2)
   "Take two poses and return a pose in the middle of them.
 Disregarding the orientation (using the pose2's)."
@@ -331,8 +349,9 @@ Disregarding the orientation (using the pose2's)."
     (costmap:orientation-samples ?samples)
     (costmap:orientation-sample-step ?sample-step)
     (costmap:costmap-add-orientation-generator
-     (make-point-to-point-generator
+     (make-angle-halfway-to-point-generator
       ?manipulated-pose
+      ?neutral-pose
       ?neutral-pose
       :samples ?samples
       :sample-step ?sample-step)
