@@ -188,7 +188,7 @@
                                             (pose ?table)))))))
 
 (defun collect-article ()
-  (pr2-proj:with-simulated-robot
+  (urdf-proj:with-simulated-robot
     (let ((objects '(:heitmann :somat :dove :denkmit))
           object-desigs)
       (setf object-desigs (try-detecting objects))

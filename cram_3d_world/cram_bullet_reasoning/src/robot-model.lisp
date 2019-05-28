@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
@@ -549,7 +550,22 @@ current joint states"
                (cl-transforms:reference-transform
                 (cl-urdf:origin (cl-urdf:collision parent))))
               (cl-transforms:make-identity-transform))
-          joint-transform))))))
+          joint-transform)))
+      ;; also update state of joints that mimic the joint called `name'
+      (loop for joint being the hash-values of (cl-urdf:joints urdf)
+            ;; store the mimic slot of JOINT into a variable if it is bound
+            for joints-mimic-slot = (and (slot-boundp joint 'cl-urdf:mimics)
+                                         (cl-urdf:mimics joint))
+            ;; if the joint mimics some other joint (i.e. mimics slot is bound)
+            when (and joints-mimic-slot
+                      ;; and that other joint happens to be our `name' joint
+                      (string-equal (cl-urdf:joint joints-mimic-slot)
+                                    name))
+              do (let ((multiplier (cl-urdf:multiplier joints-mimic-slot))
+                       (offset (cl-urdf:offset joints-mimic-slot)))
+                   ;; from ROS wiki: value = multiplier * other_joint_value + offset
+                   (setf (joint-state obj (cl-urdf:name joint))
+                         (+ (* multiplier new-value) offset)))))))
 
 (defun set-joint-state (robot name new-state)
   (setf (joint-state robot name) new-state))
