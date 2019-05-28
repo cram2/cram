@@ -29,6 +29,11 @@
 
 (in-package :boxy-descr)
 
+(defparameter *tcp-in-ee-pose*
+  (cl-transforms:make-pose
+   (cl-transforms:make-3d-vector 0 0 0.3191d0)
+   (cl-transforms:make-identity-rotation)))
+
 (defparameter *standard-to-boxy-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
 
@@ -62,12 +67,13 @@
 (def-fact-group boxy-arm-facts (end-effector-link
                                 robot-tool-frame
                                 arm-joints arm-links
-                                gripper-joint
-                                gripper-link
+                                gripper-joint gripper-link
+                                gripper-meter-to-joint-multiplier
                                 standard-to-particular-gripper-transform
                                 ;; robot-arms-parking-joint-states
                                 ;; robot-arms-carrying-joint-states
-                                robot-joint-states)
+                                robot-joint-states
+                                tcp-in-ee-pose)
 
   (<- (end-effector-link boxy :left "left_arm_7_link"))
   (<- (end-effector-link boxy :right "right_arm_7_link"))
@@ -117,6 +123,8 @@
     (lisp-fun search "right_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
 
+  (<- (gripper-meter-to-joint-multiplier boxy 1.0))
+
   (<- (standard-to-particular-gripper-transform boxy ?transform)
     (symbol-value *standard-to-boxy-gripper-transform* ?transform))
 
@@ -135,25 +143,5 @@
   (<- (robot-joint-states boxy :arm :left :flip ?joint-states)
     (symbol-value *left-nicer-configuration* ?joint-states))
 
-  ;; (<- (robot-arms-parking-joint-states boxy ?joint-states)
-  ;;   (symbol-value *right-parking-joint-states* ?right-joint-states)
-  ;;   (symbol-value *left-parking-joint-states* ?left-joint-states)
-  ;;   (append ?right-joint-states ?left-joint-states ?joint-states))
-
-  ;; (<- (robot-arms-parking-joint-states boxy ?joint-states :left)
-  ;;   (symbol-value *left-parking-joint-states* ?joint-states))
-
-  ;; (<- (robot-arms-parking-joint-states boxy ?joint-states :right)
-  ;;   (symbol-value *right-parking-joint-states* ?joint-states))
-
-  ;; (<- (robot-arms-carrying-joint-states boxy ?joint-states)
-  ;;   (symbol-value *right-carrying-joint-states* ?right-joint-states)
-  ;;   (symbol-value *left-carrying-joint-states* ?left-joint-states)
-  ;;   (append ?right-joint-states ?left-joint-states ?joint-states))
-
-  ;; (<- (robot-arms-carrying-joint-states boxy ?joint-states :left)
-  ;;   (symbol-value *left-carrying-joint-states* ?joint-states))
-
-  ;; (<- (robot-arms-carrying-joint-states boxy ?joint-states :right)
-  ;;   (symbol-value *right-carrying-joint-states* ?joint-states))
-  )
+  (<- (tcp-in-ee-pose boxy ?pose)
+    (symbol-value *tcp-in-ee-pose* ?pose)))

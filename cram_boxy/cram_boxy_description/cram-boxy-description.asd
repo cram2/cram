@@ -32,7 +32,9 @@
   :license "BSD"
 
   :depends-on (cram-prolog
-               cram-robot-interfaces)
+               cram-robot-interfaces
+               cram-location-costmap ; for robot-specific costmap metadata
+               )
   :components
   ((:module "src"
     :components

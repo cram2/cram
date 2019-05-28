@@ -67,9 +67,9 @@
   (btr:detach-all-objects (btr:get-robot-object))
   (btr-utils:kill-all-objects)
 
-  ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+  ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
   (when (eql cram-projection:*projection-environment*
-             'cram-pr2-projection::pr2-bullet-projection-environment)
+             'urdf-proj:urdf-bullet-projection-environment)
     (if random
         (spawn-objects-on-sink-counter-randomly)
         (spawn-objects-on-sink-counter)))

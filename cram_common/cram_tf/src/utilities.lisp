@@ -160,18 +160,61 @@
        (cl-transforms:copy-pose pose :origin new-origin)))))
 
 (defun rotate-pose (pose axis angle)
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
-                  (cl-transforms:q*
-                   (cl-transforms:axis-angle->quaternion
-                    (case axis
-                      (:x (cl-transforms:make-3d-vector 1 0 0))
-                      (:y (cl-transforms:make-3d-vector 0 1 0))
-                      (:z (cl-transforms:make-3d-vector 0 0 1))
-                      (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
-                    angle)
-                   pose-orientation))))
+  (let* ((pose-orientation
+           (cl-transforms:orientation pose))
+         (new-orientation
+           (cl-transforms:q*
+            (cl-transforms:axis-angle->quaternion
+             (case axis
+               (:x (cl-transforms:make-3d-vector 1 0 0))
+               (:y (cl-transforms:make-3d-vector 0 1 0))
+               (:z (cl-transforms:make-3d-vector 0 0 1))
+               (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
+             angle)
+            pose-orientation)))
+    (etypecase pose
+      (cl-transforms-stamped:pose-stamped
+       (cl-transforms-stamped:copy-pose-stamped pose :orientation new-orientation))
+      (cl-transforms:pose
+       (cl-transforms:copy-pose pose :orientation new-orientation)))))
+
+(defun rotate-pose-in-own-frame (pose axis angle)
+  (let* ((pose-orientation
+           (cl-transforms:orientation pose))
+         (new-orientation
+           (cl-transforms:q*
+            pose-orientation
+            (cl-transforms:axis-angle->quaternion
+             (case axis
+               (:x (cl-transforms:make-3d-vector 1 0 0))
+               (:y (cl-transforms:make-3d-vector 0 1 0))
+               (:z (cl-transforms:make-3d-vector 0 0 1))
+               (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
+             angle))))
+    (etypecase pose
+      (cl-transforms-stamped:pose-stamped
+       (cl-transforms-stamped:copy-pose-stamped pose :orientation new-orientation))
+      (cl-transforms:pose
+       (cl-transforms:copy-pose pose :orientation new-orientation)))))
+
+(defun rotate-transform-in-own-frame (transform axis angle)
+  (let* ((transform-rotation
+           (cl-transforms:rotation transform))
+         (new-rotation
+           (cl-transforms:q*
+            transform-rotation
+            (cl-transforms:axis-angle->quaternion
+             (case axis
+               (:x (cl-transforms:make-3d-vector 1 0 0))
+               (:y (cl-transforms:make-3d-vector 0 1 0))
+               (:z (cl-transforms:make-3d-vector 0 0 1))
+               (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
+             angle))))
+    (etypecase transform
+      (cl-transforms-stamped:transform-stamped
+       (copy-transform-stamped transform :rotation new-rotation))
+      (cl-transforms:transform
+       (cl-transforms:copy-transform transform :rotation new-rotation)))))
 
 (defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
   (let* ((pose-in-frame
@@ -192,6 +235,12 @@
         (rotation (cl-transforms:orientation pose)))
     (cl-transforms-stamped:make-transform-stamped
      parent-frame child-frame stamp translation rotation)))
+
+(defun transform->pose-stamped (parent-frame stamp transform)
+  (let ((origin (cl-transforms:translation transform))
+        (orientation (cl-transforms:rotation transform)))
+    (cl-transforms-stamped:make-pose-stamped
+     parent-frame stamp origin orientation)))
 
 (defun transform-stamped-inv (transform-stamped)
   (let ((frame-id (cl-transforms-stamped:frame-id transform-stamped))

@@ -65,11 +65,11 @@
                cram-occupancy-grid-costmap
                cram-location-costmap
 
-               cram-pr2-projection      ; for with-simulated-robot
-               cram-pr2-projection-reasoning ; for projection-based reasoning
-               cram-pr2-description
-               cram-pr2-fetch-deliver-plans
-               cram-pr2-environment-manipulation)
+               cram-urdf-projection      ; for with-simulated-robot
+               cram-urdf-projection-reasoning ; to set projection reasoning to T
+               ;; cram-pr2-description
+               cram-fetch-deliver-plans
+               cram-urdf-environment-manipulation)
 
   :components
   ((:module "src"

@@ -59,7 +59,8 @@
 
                cram-knowrob-cloud
 
-               cram-pr2-projection
+               cram-urdf-projection
+               cram-pr2-description
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
 

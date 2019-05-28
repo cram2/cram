@@ -32,7 +32,7 @@
  (defun move-toso-up (?angle)
    "Moves up the torso of the robot by the given angle. The robot should do this automatically during picking and placing actions, but for debugging purposes this can be useful.
 ?ANGLE: Angle, by which the robot should move up his torso."
-   (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
      (cpl:top-level
        (exe:perform
         (desig:a motion (type moving-torso) (joint-angle ?angle))))))

@@ -51,7 +51,7 @@
                tf2_msgs-msg
                geometry_msgs-msg
                shape_msgs-msg
-               cram-common-designators
+               cram-common-designators ;; for world-state-detecting motion
                cram-bullet-reasoning-utilities)
   :components
   ((:module "src"

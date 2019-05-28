@@ -108,19 +108,6 @@
      :object-name 'heitmann))
   (btr-utils:move-object 'heitmann '((-1.3 -1.1 1) (0 0 0 1))))
 
-(def-fact-group costmap-metadata ()
-    (<- (location-costmap:costmap-size 12 12))
-    (<- (location-costmap:costmap-origin -6 -6))
-    (<- (location-costmap:costmap-resolution 0.04))
-
-    (<- (location-costmap:costmap-padding 0.3))
-    (<- (location-costmap:costmap-manipulation-padding 0.4))
-    (<- (location-costmap:costmap-in-reach-distance 0.9))
-    (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-    (<- (location-costmap:visibility-costmap-size 2))
-    (<- (location-costmap:orientation-samples 2))
-  (<- (location-costmap:orientation-sample-step 0.1)))
-
 (defun init ()
   (roslisp:start-ros-node "shopping_demo")
 
