@@ -128,8 +128,8 @@
   ;;    (ccl::reset-logged-owl))
 
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
-  (setf pr2-proj-reasoning::*projection-checks-enabled* t)
+  (setf proj-reasoning::*projection-reasoning-enabled* nil)
+  (setf proj-reasoning::*projection-checks-enabled* t)
 
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
@@ -158,7 +158,7 @@
   )
 
 (defun finalize ()
-  ;; (setf pr2-proj-reasoning::*projection-reasoning-enabled* nil)
+  ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
 
   ;;(when ccl::*is-logging-enabled*
   ;;  (ccl::export-log-to-owl "ease_milestone_2018.owl")

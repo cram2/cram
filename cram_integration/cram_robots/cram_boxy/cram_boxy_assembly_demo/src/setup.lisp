@@ -97,7 +97,7 @@
 
     (<- (location-costmap:costmap-padding 0.5))
     (<- (location-costmap:costmap-manipulation-padding 0.5))
-    (<- (location-costmap:costmap-in-reach-distance 1.0))
+    (<- (location-costmap:costmap-in-reach-distance 1.2))
     (<- (location-costmap:costmap-reach-minimal-distance 0.2))
     (<- (location-costmap:visibility-costmap-size 2.5))
     (<- (location-costmap:orientation-samples 2))
