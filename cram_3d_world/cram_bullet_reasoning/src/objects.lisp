@@ -328,14 +328,31 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
 (defgeneric detach-all-objects (object)
   (:documentation "Removes all attachments form the list of attached objects of `object'."))
 
-(defmethod attach-object ((object-to-attach-to-name symbol) (object-name symbol) &key)
+(defmethod attach-object ((object-to-attach-to-names list) (object-name symbol)
+                          &key attachment-type loose skip-removing-loose link grasp)
+  "Attaches object named `object-name' to other objects which names are in
+`object-to-attach-names'."
+  (declare (ignore skip-removing-loose link grasp))
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-name)
+    (when obj-found
+      (attach-object
+       (remove-if-not #'identity
+                      (mapcar (alexandria:curry #'object *current-bullet-world*) object-to-attach-to-names))
+       obj :attachment-type attachment-type :loose loose))))
+
+(defmethod attach-object ((object-to-attach-to-name symbol) (object-name symbol)
+                          &key attachment-type loose skip-removing-loose link grasp)
   "Attaches object named `object-name' to another object named `object-to-attach-to-name'."
   (multiple-value-bind (obj obj-found)
       (btr:object *current-bullet-world* object-name)
     (multiple-value-bind (other-obj other-obj-found)
         (btr:object *current-bullet-world* object-to-attach-to-name)
       (when (and obj-found other-obj-found)
-        (attach-object obj other-obj)))))
+        (attach-object other-obj obj
+                       :attachment-type attachment-type :loose loose
+                       :skip-removing-loose skip-removing-loose :link link
+                       :grasp grasp))))) ;; merged keywords from items.lisp and robot-model.lisp
 
 (defmethod detach-object ((object-to-detach-from-name symbol) (object-name symbol) &key)
   "Detaches object named `object-name' from another object named `object-to-detach-from-name'."
