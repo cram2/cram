@@ -123,7 +123,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
       (if (and
            attachment-type
            (prolog `(man-int:unidirectional-attachment ,attachment-type)))
-          (btr:attach-object btr-other-object btr-object :unidirectional T)
+          (btr:attach-object btr-other-object btr-object :loose T)
           (btr:attach-object btr-other-object btr-object)))))
 
 
