@@ -153,12 +153,13 @@
               (mapcar #'attachment-grasp (car (cdr (assoc (name object) attached-objects
                                                           :test #'equal))))))))
 
-(defmethod attach-object ((robot-object robot-object) (obj object) &key link loose grasp)
+(defmethod attach-object ((robot-object robot-object) (obj object) &key link loose grasp attachment-type skip-removing-loose)
   "Adds `obj' to the set of attached objects of `robot-object'.
 `link' specifies to which link of `robot-object' to attach the `obj'.
 If `loose' is set to NIL and the link the object is attached to is moved,
 the object moves accordingly.
 Otherwise, the attachment is only used as information but does not affect the world."
+  (declare (ignore attachment-type skip-removing-loose)) ;; used in items.lisp
   (unless (gethash link (links robot-object))
     (error 'simple-error :format-control "Link ~a unknown"
                          :format-arguments (list link)))
