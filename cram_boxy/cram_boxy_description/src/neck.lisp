@@ -88,6 +88,9 @@
   (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :away ?joint-states)
     (symbol-value *neck-parking-joint-states* ?joint-states))
 
+  (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :forward ?joint-states)
+    (symbol-value *neck-parking-joint-states* ?joint-states))
+
   (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :down ?joint-states)
     (symbol-value *neck-good-looking-down-state* ?joint-states))
 

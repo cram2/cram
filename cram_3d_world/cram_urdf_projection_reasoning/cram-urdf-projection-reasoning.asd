@@ -1,4 +1,3 @@
-;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -27,14 +26,36 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(defsystem cram-urdf-projection-reasoning
+  :author "Gayane Kazhoyan"
+  :license "BSD"
 
-(defpackage cram-pr2-fetch-deliver-plans
-  (:nicknames #:pr2-fd-plans)
-  (:use #:common-lisp #:cram-prolog)
-  (:export
-   ;; setup
-   ;; #:bla
-   ;; demo
-   ))
+  :depends-on (alexandria ; for WITH-GENSYMS in proj-pred and for CURRY
 
+               roslisp
+
+               cram-designators
+               cram-language
+               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS and prolog utils
+               cram-projection ; for checking if projection is running in proj-pred
+               cram-prolog ; for asking Prolog about task tree stuff
+               ;; for Prolog facts, might get rid of this soon
+               cram-execution-trace
+               cram-occasions-events
+
+               cram-common-failures
+               cram-mobile-pick-place-plans
+               cram-tf
+               cl-transforms-stamped
+               cl-transforms
+
+               cram-bullet-reasoning
+               cram-bullet-reasoning-utilities ; for spawning objects in stability check
+               cram-urdf-projection)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "check-collisions" :depends-on ("package"))
+     (:file "task-tree-prolog" :depends-on ("package"))
+     (:file "projection-prediction" :depends-on ("package" "task-tree-prolog"))))))

@@ -49,7 +49,7 @@
                cram-urdf-projection
                cram-pr2-description
                cram-robot-interfaces
-               cram-pr2-fetch-deliver-plans)
+               cram-fetch-deliver-plans)
 	:components
 
 	((:module "src"

@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :pr2-fd-plans)
+(in-package :fd-plans)
 
 (defun go-without-collisions (&key
                                 ((:location ?navigation-location))
@@ -41,7 +41,7 @@ if yes, perform GOING action while ignoring failures."
                          (left-configuration park)
                          (right-configuration park)))
 
-  (pr2-proj-reasoning:check-navigating-collisions ?navigation-location)
+  (proj-reasoning:check-navigating-collisions ?navigation-location)
   (setf ?navigation-location (desig:current-desig ?navigation-location))
 
   (cpl:with-failure-handling
@@ -61,7 +61,6 @@ if yes, perform GOING action while ignoring failures."
   (declare (type desig:location-designator ?look-target ?robot-location))
   "Perform a LOOKING action, if looking target twists the neck,
 turn the robot base such that it looks in the direction of target and look again."
-
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans turn-towards)
@@ -91,7 +90,6 @@ turn the robot base such that it looks in the direction of target and look again
                (cpl:retry))
              (roslisp:ros-warn (pp-plans turn-towards) "Turning around didn't work :'(~%")
              (cpl:fail 'common-fail:looking-high-level-failure)))
-
         (exe:perform (desig:an action
                                (type looking)
                                (target ?look-target)))))))
@@ -154,7 +152,7 @@ if yes, relocate and retry, if no collisions, open or close container."
                                       (desig:when ?distance
                                         (distance ?distance)))))))
 
-          (pr2-proj-reasoning:check-environment-manipulation-collisions manipulation-action)
+          (proj-reasoning:check-environment-manipulation-collisions manipulation-action)
           (setf manipulation-action (desig:current-desig manipulation-action))
 
           (exe:perform manipulation-action))))))
@@ -368,7 +366,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                                  ?more-precise-perceived-object-desig)))))
 
                             (setf pick-up-action (desig:current-desig pick-up-action))
-                            (pr2-proj-reasoning:check-picking-up-collisions pick-up-action)
+                            (proj-reasoning:check-picking-up-collisions pick-up-action)
                             (setf pick-up-action (desig:current-desig pick-up-action))
 
                             (exe:perform pick-up-action)
@@ -484,12 +482,12 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
                   ;; test if the placing trajectory is reachable and not colliding
                   (setf place-action (desig:current-desig place-action))
-                  (pr2-proj-reasoning:check-placing-collisions place-action)
+                  (proj-reasoning:check-placing-collisions place-action)
                   (setf place-action (desig:current-desig place-action))
 
                   ;; test if the placing pose is a good one -- not falling on the floor
                   ;; test function throws a high-level-failure if not good pose
-                  (pr2-proj-reasoning:check-placing-pose-stability
+                  (proj-reasoning:check-placing-pose-stability
                    ?object-designator ?target-location)
 
                   (exe:perform place-action))))))))))
@@ -562,7 +560,10 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                       (object ?object-designator)
                                       (location ?search-location)
                                       (desig:when ?search-base-location
-                                        (robot-location ?search-base-location))))))
+                                        (robot-location ?search-base-location)))))
+             (?robot-name
+               (cut:var-value '?robot-name
+                              (car (prolog:prolog '(rob-int:robot ?robot-name))))))
          (roslisp:ros-info (pp-plans transport)
                            "Found object of type ~a."
                            (desig:desig-prop-value ?perceived-object-designator :type))
@@ -570,14 +571,14 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
          (unless ?fetch-robot-location
            (setf ?fetch-robot-location
                  (desig:a location
-                          (reachable-for pr2)
+                          (reachable-for ?robot-name)
                           (desig:when ?arm
                             (arm ?arm))
-                          (object ?object-designator))))
+                          (object ?perceived-object-designator))))
          (unless ?deliver-robot-location
            (setf ?deliver-robot-location
                  (desig:a location
-                          (reachable-for pr2)
+                          (reachable-for ?robot-name)
                           (location ?delivering-location))))
 
          ;; If running on the real robot, execute below task tree in projection
@@ -585,11 +586,11 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
          ;; and use that parameterization in the real world.
          ;; If running in projection, just execute the task tree below as normal.
          (let (?fetch-pick-up-action ?deliver-place-action)
-           (pr2-proj-reasoning:with-projected-task-tree
+           (proj-reasoning:with-projected-task-tree
                (?fetch-robot-location ?fetch-pick-up-action
                                       ?deliver-robot-location ?deliver-place-action)
                3
-               #'pr2-proj-reasoning:pick-best-parameters-by-distance
+               #'proj-reasoning:pick-best-parameters-by-distance
 
              (let ((?fetched-object
                      (exe:perform (desig:an action
