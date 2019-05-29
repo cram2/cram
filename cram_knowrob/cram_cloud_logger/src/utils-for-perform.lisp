@@ -45,7 +45,7 @@
                (log-cram-finish-action action-id)
                (send-task-success action-id "false")
                (log-failure action-id e)
-               ;;(format t "failure string: ~a" (write-to-string e))
+               (equate action-id (log-perform-call  (second (desig:reference designator))))
                (if is-parent-action
                    (send-batch-query))))
           ;;(print designator)
