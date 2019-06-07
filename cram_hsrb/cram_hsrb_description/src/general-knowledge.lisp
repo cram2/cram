@@ -35,7 +35,7 @@
                                robot-base-frame robot-torso-link-joint
                                arm
                                camera-frame
-                               robot-pan-tilt-links robot-pan-tilt-joints)
+                               robot-neck-links robot-neck-joints)
   (<- (robot hsrb))
 
   (<- (robot-odom-frame hsrb "odom"))
@@ -43,13 +43,10 @@
   (<- (robot-base-frame hsrb "base_footprint"))
   (<- (robot-torso-link-joint hsrb "arm_lift_link" "arm_lift_joint"))
 
-  ;mimic joint for arm_lift_link implemented in lower-level.lisp (cram-hsrb-projection) 
-  ;(<- (robot-torso-link-joint hsrb "torso_lift_link" "torso_lift_joint"))
-
   (<- (arm hsrb :left))
-  (<- (camera-frame hsrb "head_rgbd_sensor_link"))
-  (<- (robot-pan-tilt-links hsrb "head_pan_link" "head_tilt_link"))
-  (<- (robot-pan-tilt-joints hsrb "head_pan_joint" "head_tilt_joint")))
+  (<- (camera-frame hsrb "head_center_camera_frame"))
+  (<- (robot-neck-links hsrb "head_pan_link" "head_tilt_link"))
+  (<- (robot-neck-joints hsrb "head_pan_joint" "head_tilt_joint")))
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding
                                            costmap:costmap-manipulation-padding

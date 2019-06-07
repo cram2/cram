@@ -48,6 +48,7 @@
                                 tcp-in-ee-pose)
 
   (<- (end-effector-link hsrb :left "wrist_roll_link"))
+  (<- (end-effector-link hsrb :right "ATTENTION please don't use this frame"))
 
 
   (<- (robot-tool-frame hsrb :left "gripper_tool_joint"))
@@ -63,17 +64,27 @@
                              "wrist_flex_link"
                              "wrist_roll_link")))
 
+  (<- (arm-joints hsrb :right ("ATTENTION please don't use this frame")))
+
+  (<- (arm-links hsrb :right ("ATTENTION please don't use this frame")))
 
   (<- (gripper-joint hsrb :left "hand_motor_joint"))
+
+  (<- (gripper-joint hsrb :right "ATTENTION please don't use this frame"))
 
   (<- (gripper-link hsrb :left ?link)
     (bound ?link)
     (lisp-fun search "hand_palm_link" ?link ?pos)
     (lisp-pred identity ?pos))
 
+  (<- (gripper-link hsrb :right ?link)
+    (bound ?link)
+    (lisp-fun search "ATTENTION please don't use this frame" ?link ?pos)
+    (lisp-pred identity ?pos))
+
 
   (<- (standard-to-particular-gripper-transform hsrb ?transform)
     (symbol-value *standard-to-hsrb-gripper-transform* ?transform))
 
-  (<- (tcp-in-ee-pose pr2 ?transform)
+  (<- (tcp-in-ee-pose hsrb ?transform)
     (symbol-value *tcp-in-ee-pose* ?transform)))
