@@ -62,7 +62,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (spec:property ?action-designator (:distance ?distance))
         (true)
         (lisp-fun man-int:get-container-opening-distance
-                  ?container-designator ?distance))
+                  ?container-type ?distance))
     (lisp-fun get-relative-distance ?container-name ?btr-environment ?distance :opening
               ?rel-distance)
     (lisp-fun clip-distance ?container-name ?btr-environment ?rel-distance :opening
@@ -158,7 +158,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (spec:property ?action-designator (:distance ?distance))
         (true)
         (lisp-fun man-int:get-container-opening-distance
-                  ?container-designator ?distance))
+                  ?container-type ?distance))
     (lisp-fun get-relative-distance ?container-name ?btr-environment ?distance :closing
               ?rel-distance)
     (lisp-fun clip-distance ?container-name ?btr-environment ?rel-distance :closing
