@@ -49,10 +49,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-container-opening-distance :heuristics 20 (container-designator)
-  (let ((container-type
-          (desig:desig-prop-value container-designator
-                                  :type)))
-    (if (prolog:prolog `(man-int:object-type-subtype :container-prismatic ,container-type))
-        0.4
-        (/ pi 4))))
+(defmethod man-int:get-container-opening-distance :heuristics 20
+    ((container-type (eql :container-prismatic)))
+  0.4)
+
+(defmethod man-int:get-container-opening-distance :heuristics 20
+    ((container-type (eql :container-revolute)))
+  (/ pi 4))

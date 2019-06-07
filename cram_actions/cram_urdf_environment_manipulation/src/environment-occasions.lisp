@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Christopher Pollok <cpollok@uni-bremen.de>
+;;; Copyright (c) 2019, Christopher Pollok <cpollok@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@
 
 (in-package :env-man)
 
-(prolog:def-fact-group environment-occasions ()
-  (prolog:<- (:container-state ?container-designator ?distance)
+(def-fact-group environment-occasions ()
+  (<- (:container-state ?container-designator ?distance)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (btr:bullet-world ?world)
