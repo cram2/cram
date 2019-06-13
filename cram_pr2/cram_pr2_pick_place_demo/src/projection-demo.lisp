@@ -78,10 +78,20 @@
   (let ((object-types '(:breakfast-cereal :cup :bowl :spoon :milk)))
     ;; spawn objects at default poses
     (let ((objects (mapcar (lambda (object-type)
-                             (btr-utils:spawn-object
-                              (intern (format nil "~a-1" object-type) :keyword)
-                              object-type
-                              :pose (cdr (assoc object-type spawning-poses))))
+                             (let* ((object-name
+                                      (intern (format nil "~a-1" object-type) :keyword))
+                                    (object-pose-list
+                                      (cdr (assoc object-type spawning-poses)))
+                                    (object
+                                      (btr-utils:spawn-object
+                                       object-name
+                                       object-type
+                                       :pose object-pose-list)))
+                               (btr-utils:move-object
+                                (btr:name object)
+                                (cram-tf:rotate-pose
+                                 (btr:pose object) :z (/ (* 2 pi) (random 10.0))))
+                               object))
                            object-types)))
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
