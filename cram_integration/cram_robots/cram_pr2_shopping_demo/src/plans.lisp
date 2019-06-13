@@ -76,7 +76,6 @@
         (?grasp-pose-left *pose-grasping-left*)
         (?grasp-pose-right *pose-grasping-right*)
         (?pose-near-table *pose-near-table*)
-        (?table *table*)
         ?newobject
         ?newtransform)
 
