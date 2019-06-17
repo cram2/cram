@@ -180,7 +180,7 @@ Otherwise, the attachment is only used as information but does not affect the wo
                                 collecting (make-collision-information
                                             :rigid-body-name (name body)
                                             :flags (collision-flags body))
-                                do (setf (collision-flags body) :cf-static-object))))
+                                do (setf (collision-flags body) :cf-kinematic-object))))
                    attached-objects))))))
 
 (defmethod detach-object ((robot-object robot-object) (object object) &key link)
