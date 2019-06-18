@@ -49,11 +49,17 @@
    (cl-transforms:make-identity-rotation)))
 
 (defparameter *object-spawning-poses*
-  '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
-    (:cup . ((1.3 0.6 0.9) (0 0 0 1)))
-    (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
-    (:spoon . ((1.43 0.9 0.74132) (0 0 0 1)))
-    (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
+  '((:breakfast-cereal . ((0.2 -0.15 0.1) (0 0 0 1)))
+    (:cup . ((0.2 -0.35 0.1) (0 0 0 1)))
+    (:bowl . ((0.18 -0.55 0.1) (0 0 0 1)))
+    (:spoon . ((0.15 -0.4 -0.05) (0 0 0 1)))
+    (:milk . ((0.07 -0.35 0.1) (0 0 0 1)))))
+  
+  ;; '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
+  ;;   (:cup . ((1.3 0.6 0.9) (0 0 0 1)))
+  ;;   (:bowl . ((1.4 0.8 0.87) (0 0 0 1)))
+  ;;   (:spoon . ((1.43 0.9 0.74132) (0 0 0 1)))
+  ;;   (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
 
 (defparameter *object-grasping-arms*
   '(;; (:breakfast-cereal . :right)
@@ -70,8 +76,30 @@
     (:spoon . ((-0.78 1.5 0.86) (0 0 0 1)))
     (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
 
+(defun make-poses-relative (&optional (spawning-poses *object-spawning-poses*))
+  (let* ((map->surface (cl-transforms:pose->transform
+                       (btr:pose
+                        (btr:rigid-body
+                         (btr:object btr::*current-bullet-world* :kitchen) :|KITCHEN.sink_area_surface|))))
+         (object-types '(:breakfast-cereal :cup :bowl :spoon :milk))
+         (surface->objects (mapcar (lambda (type)
+                                     (setf coordinates (car (cdr (assoc type spawning-poses))))
+                                     (cl-transforms:make-transform
+                                      (cl-transforms:make-3d-vector (first coordinates) (second coordinates) (third coordinates))
+                                      (cl-transforms:make-identity-rotation)))
+                                   object-types)))
 
-(defun spawn-objects-on-sink-counter (&optional (spawning-poses *object-spawning-poses*))
+    (setf map->objects (mapcar (lambda (surface->object)
+                                 (cl-transforms:transform* map->surface surface->object))
+                               surface->objects))
+
+    (mapcar (lambda (transform type)
+              (setf tr (cl-transforms:translation transform))
+                  `(,type . ((,(cl-transforms:x tr) ,(cl-transforms:y tr) ,(cl-transforms:z tr)) (0 0 0 1))))
+            map->objects object-types)))
+    
+
+(defun spawn-objects-on-sink-counter (&optional (spawning-poses (make-poses-relative)))
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
