@@ -77,25 +77,32 @@
     (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
 
 (defun make-poses-relative (&optional (spawning-poses *object-spawning-poses*))
-  (let* ((map->surface (cl-transforms:pose->transform
+  (let* ((object-types '(:breakfast-cereal :cup :bowl :spoon :milk))
+         (map->surface (cl-transforms:pose->transform
                        (btr:pose
                         (btr:rigid-body
                          (btr:object btr::*current-bullet-world* :kitchen) :|KITCHEN.sink_area_surface|))))
-         (object-types '(:breakfast-cereal :cup :bowl :spoon :milk))
+         
          (surface->objects (mapcar (lambda (type)
                                      (setf coordinates (car (cdr (assoc type spawning-poses))))
                                      (cl-transforms:make-transform
-                                      (cl-transforms:make-3d-vector (first coordinates) (second coordinates) (third coordinates))
+                                      (cl-transforms:make-3d-vector
+                                       (first coordinates)
+                                       (second coordinates)
+                                       (third coordinates))
                                       (cl-transforms:make-identity-rotation)))
-                                   object-types)))
-
-    (setf map->objects (mapcar (lambda (surface->object)
-                                 (cl-transforms:transform* map->surface surface->object))
-                               surface->objects))
+                                   object-types))
+         
+         (map->objects (mapcar (lambda (surface->object)
+                            (cl-transforms:transform* map->surface surface->object))
+                          surface->objects)))
 
     (mapcar (lambda (transform type)
               (setf tr (cl-transforms:translation transform))
-                  `(,type . ((,(cl-transforms:x tr) ,(cl-transforms:y tr) ,(cl-transforms:z tr)) (0 0 0 1))))
+              `(,type . ((,(cl-transforms:x tr)
+                          ,(cl-transforms:y tr)
+                          ,(cl-transforms:z tr))
+                         (0 0 0 1))))
             map->objects object-types)))
     
 
