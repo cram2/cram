@@ -54,9 +54,17 @@ the `look-pose-stamped'."
    (desig:reference target-designator)
    (cram-tf:robot-current-pose)))
 
-
-
-
+(defun replace-tag-in-location-designator (loc-designator old-tag new-tag)
+  (let ((?loc-designator-copy (desig:copy-designator loc-designator))
+        (?description (slot-value loc-designator 'desig:description))
+        (?tag-value (desig:desig-prop-value loc-designator old-tag)))
+    
+    (setf (slot-value ?loc-designator-copy 'desig:description)
+          (append
+           (remove `(,old-tag ,?tag-value) ?description :test #'equal)
+           `((,new-tag ,?tag-value))))
+    ?loc-designator-copy))
+    
 (def-fact-group fetch-and-deliver-designators (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (go-without-collisions
@@ -217,9 +225,46 @@ the `look-pose-stamped'."
                                (:place-action ?place-action-designator))
                       ?resolved-action-designator))
 
+  (<- (desig:action-grounding ?action-designator (deliver ?resolved-action-designator))
+    (spec:property ?action-designator (:type :dropping))
+    (rob-int:robot ?robot)
+    ;; object
+    (spec:property ?action-designator (:object ?some-object-designator))
+    (desig:current-designator ?some-object-designator ?object-designator)
+    ;; arm
+    (once (or (spec:property ?action-designator (:arm ?arm))
+              (equal ?arm NIL)))
+    ;; target
+    (spec:property ?action-designator (:target ?some-location-designator))
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (-> (desig:desig-prop ?location-designator (:in ?_))
+        (lisp-fun replace-tag-in-location-designator
+                   ?location-designator :in :on ?target-location)
+        (equal ?location-designator ?target-location))
+
+    ;; robot-location
+    (once (or (and (spec:property ?action-designator (:robot-location ?some-robot-loc-desig))
+                   (desig:current-designator ?some-robot-loc-desig ?robot-location-designator))
+              (desig:designator :location ((:reachable-for ?robot)
+                                           (:location ?target-location))
+                                ?robot-location-designator)))
+
+    ;; place-action
+    (once (or (desig:desig-prop ;; spec:property
+               ?action-designator (:place-action ?some-place-action-designator))
+              (equal ?some-place-action-designator NIL)))
+    (desig:current-designator ?some-place-action-designator ?place-action-designator)
+    (desig:designator :action ((:type :dropping)
+                               (:object ?object-designator)
+                               (:arm ?arm)
+                               (:target ?target-location)
+                               (:robot-location ?robot-location-designator)
+                               (:place-action ?place-action-designator))
+                      ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (transport ?resolved-action-designator))
-    (spec:property ?action-designator (:type :transporting))
+    (spec:property ?action-designator (:type ?transport-type))
+    (member ?transport-type (:transporting :transport-and-drop))
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
@@ -270,7 +315,7 @@ the `look-pose-stamped'."
                                   ?deliver-robot-location-designator)
         (equal ?deliver-robot-location-designator NIL))
     ;; resulting action desig
-    (desig:designator :action ((:type :transporting)
+    (desig:designator :action ((:type ?transport-type)
                                (:object ?object-designator)
                                (:search-location ?search-location-designator)
                                (:search-robot-location ?search-robot-location-designator)

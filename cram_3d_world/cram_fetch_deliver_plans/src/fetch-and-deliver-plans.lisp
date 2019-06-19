@@ -382,6 +382,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
 
 (defun deliver (&key
+                  ((:type ?delivery-type))
                   ((:object ?object-designator))
                   ((:arm ?arm))
                   ((:target ?target-location))
@@ -389,7 +390,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                   place-action
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
-           (type (or keyword null) ?arm)
+           (type (or keyword null) ?arm ?delivery-type)
            ;; don't pass NULL as ?target-location or ?target-robot-location!
            ;; they can turn NULL during execution but not at the beginning
            (type (or desig:location-designator null) ?target-location ?target-robot-location)
@@ -487,8 +488,9 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
                   ;; test if the placing pose is a good one -- not falling on the floor
                   ;; test function throws a high-level-failure if not good pose
-                  (proj-reasoning:check-placing-pose-stability
-                   ?object-designator ?target-location)
+                  (unless (equal ?delivery-type :dropping)
+                    (proj-reasoning:check-placing-pose-stability
+                     ?object-designator ?target-location))
 
                   (exe:perform place-action))))))))))
 
@@ -534,6 +536,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
 
 (defun transport (&key
+                    ((:type ?transport-type))
                     ((:object ?object-designator))
                     ((:search-location ?search-location))
                     ((:search-robot-location ?search-base-location))
@@ -621,7 +624,10 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                           (distance 0.3))))
                  (unwind-protect
                       (exe:perform (desig:an action
-                                             (type delivering)
+                                             (desig:when (equal ?transport-type :transporting)
+                                               (type delivering))
+                                             (desig:when (equal ?transport-type :transport-and-drop)
+                                               (type dropping))
                                              (desig:when ?arm
                                                (arm ?arm))
                                              (object ?fetched-object)
