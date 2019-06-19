@@ -118,7 +118,7 @@ if yes, relocate and retry, if no collisions, open or close container."
          (cpl:fail 'common-fail:environment-manipulation-impossible
                    :description "Some designator could not be resolved.")))
 
-    (cpl:with-retry-counters ((relocation-retries 10))
+    (cpl:with-retry-counters ((relocation-retries 20))
       (cpl:with-failure-handling
           (((or common-fail:navigation-goal-in-collision
                 common-fail:environment-unreachable
