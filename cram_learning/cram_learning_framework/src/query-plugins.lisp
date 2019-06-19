@@ -260,9 +260,9 @@ that is returned from the learning framework based on the location properties."
                        (transforms
                          (make-designator-transforms reach-location-designator)))
                   (setf transform-in-base
-                        (first transforms)
+                        (second transforms)
                         transform-in-map
-                        (second transforms)))
+                        (first transforms)))
 
                 ;; any other location designator
                 (return-from man-int:get-location-poses
@@ -281,9 +281,9 @@ that is returned from the learning framework based on the location properties."
                (merged-costmap
                  (apply #'costmap:merge-costmaps (cons learned-costmap heuristics-costmaps))))
           ;; TODO: check for invalid-probability-distribution
-          ;; to test the costmap without cutting out the heuristic-based environment, use
-          ;; (costmap:costmap-samples learned-costmap)
-          ;; instead of the next line
+          (costmap:costmap-samples learned-costmap)
+          (roslisp:ros-info (ralf costmap) "Visualizing learned costmap.")
+          (cpl:sleep 1.0)
           (costmap:costmap-samples merged-costmap)))
 
       (desig:resolve-location-designator-through-generators-and-validators location-designator)))
