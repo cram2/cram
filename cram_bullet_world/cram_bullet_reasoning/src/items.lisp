@@ -389,7 +389,7 @@ it is possible to change the pose of its attachments when its pose changes."
             (call-next-method)
             (dolist (attachment (remove-if #'attachment-loose
                                            (mapcar #'car (mapcar #'second (attached-objects object)))))
-              (let ((current-attachment-pose (pose (object (attachment-object attachment) *current-bullet-world*))))
+              (let ((current-attachment-pose (pose (object *current-bullet-world* (attachment-object attachment)))))
                 (when (and carrier-transform current-attachment-pose)
                   (setf (pose (btr:object btr:*current-bullet-world*
                                           (attachment-object attachment)))
