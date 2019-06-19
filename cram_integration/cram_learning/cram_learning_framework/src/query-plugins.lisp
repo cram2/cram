@@ -29,12 +29,13 @@
 
 (in-package :learning)
 
-(defvar *learning-framework-on* nil)
+(defvar *learning-framework-on* t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun json-prolog-simple-ralf (query-str &key (mode 0) (lispify nil) (package *package*))
   (setf json-prolog::*service-namespace* "/ralf")
+  (roslisp:ros-info (ralf json-prolog) "QUERY: ~a" query-str)
   (unwind-protect
        (json-prolog:prolog-simple query-str :mode mode :lispify lispify :package package)
     (setf json-prolog::*service-namespace* "/json_prolog")))
@@ -122,7 +123,7 @@ with the rotation of the object specified by `map-to-object-transform' around th
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GET-ACTION-GRASPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-action-grasps :learning 30 (object-type
+(defmethod man-int:get-action-grasps :learning 10 (object-type
                                                    arm
                                                    object-transform-in-base)
   (when (and *learning-framework-on* object-transform-in-base)
@@ -133,7 +134,8 @@ with the rotation of the object specified by `map-to-object-transform' around th
                     (json-prolog-simple-ralf
                      (format nil
                              "object_type_grasps(~(~a, ~a~), ~a, GRASP)."
-                             object-type arm
+                             object-type
+                             arm
                              (serialize-transform object-transform-in-base))
                      :package :learning)))))
            (learned-grasps
@@ -146,9 +148,11 @@ with the rotation of the object specified by `map-to-object-transform' around th
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GET-LOCATION-POSES ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun get-learned-costmap-samples (location-type object-type object-name
-                                    object-transform-in-base object-transform-in-map)
-  "Returns a lazy list of costmap samples, where the costmap is generated from a grid
+(defmethod costmap:costmap-generator-name->score ((name (eql 'learned-grid))) 10)
+
+(defun get-learned-costmap (location-type object-type object-name
+                            object-transform-in-base object-transform-in-map)
+  "Returns a costmap generated from a grid
 that is returned from the learning framework based on the location properties."
   (let* ((bindings
            (car (json-prolog-simple-ralf
@@ -170,9 +174,13 @@ that is returned from the learning framework based on the location properties."
          (width
            (length (first matrix-list)))
          (array
-           (make-array (list width height)
-                       :element-type 'double-float
-                       :initial-contents matrix-list))
+           ;; Sebastian's arrays have their origin in top left corner.
+           ;; Our costmap matrices have their origin in bottom right corner,
+           ;; when looking from up-down.
+           (cma:double-matrix-transpose
+            (make-array (list width height)
+                        :element-type 'double-float
+                        :initial-contents matrix-list)))
          (bottom-right-corner-x
            (- (cl-transforms:x (cl-transforms:translation object-transform-in-map))
               (* height 1/2 ?resolution)))
@@ -180,60 +188,109 @@ that is returned from the learning framework based on the location properties."
            (- (cl-transforms:y (cl-transforms:translation object-transform-in-map))
               (* width 1/2 ?resolution)))
          (costmap
-           (make-instance 'costmap:location-costmap
-             :resolution ?resolution
-             :origin-x bottom-right-corner-x
-             :origin-y bottom-right-corner-y
-             :height height
-             :width width)))
+           (apply #'make-instance 'costmap:location-costmap (costmap:costmap-metadata))))
     (costmap:register-cost-function
      costmap
      (costmap:make-matrix-cost-function
       bottom-right-corner-x bottom-right-corner-y ?resolution array
-      (calculate-rotation-angle object-transform-in-map))
-     :learned-grid)
-    (costmap:costmap-samples costmap)))
+      ;; Sebastian's X axis looks to the right,
+      ;; after transposing, which happened above, see the comment,
+      ;; his axis now looks to the left.
+      ;; Our X axis looks up, so we need to rotate the transposed array with 90 degrees
+      (- (calculate-rotation-angle object-transform-in-map) (/ pi 2)))
+     'learned-grid)
+    costmap))
 
-(defmethod man-int:get-location-poses :learning 30 (location-designator)
-  (when (and *learning-framework-on* (rob-int:reachability-designator-p location-designator))
-    (let (object-type object-name transform-in-base transform-in-map)
+(defun get-environment-object-transforms (urdf-name environment-name)
+  (let* ((base-T-object
+           (second
+            (env-man::get-container-pose-and-transform
+             urdf-name environment-name)))
+         (map-T-base
+           (cl-transforms-stamped:transform->transform-stamped
+            cram-tf:*fixed-frame* cram-tf:*robot-base-frame* 0.0
+            (cl-transforms:pose->transform
+             (btr:pose (btr:get-robot-object)))))
+         (urdf-name-string
+           (roslisp-utilities:rosify-underscores-lisp-name urdf-name))
+         (map-T-object
+           (cram-tf:multiply-transform-stampeds
+            cram-tf:*fixed-frame* urdf-name-string
+            map-T-base base-T-object)))
+    (list map-T-object base-T-object)))
 
-      (if (desig:desig-prop-value location-designator :object)
-          ;; (a location (reachable-for robot-name) (object (an object ...)))
-          (let* ((object-designator
-                   (desig:current-desig
-                    (desig:desig-prop-value location-designator :object))))
-            (setf object-type
-                  (desig:desig-prop-value object-designator :type)
-                  object-name
-                  (desig:desig-prop-value object-designator :name)
-                  transform-in-base
-                  (man-int:get-object-transform object-designator)
-                  transform-in-map
-                  (man-int:get-object-transform-in-map object-designator)))
+(defmethod man-int:get-location-poses :learning 10 (location-designator)
+  (if (and *learning-framework-on* (rob-int:reachability-designator-p location-designator))
+      (let (object-type object-name transform-in-base transform-in-map)
 
-          (if (desig:desig-prop-value location-designator :location)
-              ;; (a location (reachable-for robot-name) (location (a location ...)))
-              (let* ((reach-location-designator
-                       (desig:current-desig
-                        (desig:desig-prop-value location-designator :location)))
-                     (transforms
-                       (make-designator-transforms reach-location-designator)))
-                (setf transform-in-base
-                      (first transforms)
-                      transform-in-map
-                      (second transforms)))
+        (if (desig:desig-prop-value location-designator :object)
+            ;; (a location (reachable-for robot-name) (object (an object ...)))
+            (let* ((object-designator
+                     (desig:current-desig
+                      (desig:desig-prop-value location-designator :object))))
+              (if (desig:desig-prop-value object-designator :name)
+                  (setf object-type
+                        (desig:desig-prop-value object-designator :type)
+                        object-name
+                        (desig:desig-prop-value object-designator :name)
+                        transform-in-base
+                        (man-int:get-object-transform object-designator)
+                        transform-in-map
+                        (man-int:get-object-transform-in-map object-designator))
+                  (let* ((urdf-name
+                           (desig:desig-prop-value object-designator :urdf-name))
+                         (environment-name
+                           (desig:desig-prop-value object-designator :part-of))
+                         (transforms
+                           (get-environment-object-transforms urdf-name environment-name))
+                         (base-T-object
+                           (second transforms))
+                         (map-T-object
+                           (first transforms)))
+                    (setf object-type (desig:desig-prop-value object-designator :type)
+                          object-name urdf-name
+                          transform-in-base base-T-object
+                          transform-in-map map-T-object))))
 
-              ;; any other location designator
-              (return-from man-int:get-location-poses
-                (desig:resolve-location-designator-through-generators-and-validators
-                 location-designator))))
+            (if (desig:desig-prop-value location-designator :location)
+                ;; (a location (reachable-for robot-name) (location (a location ...)))
+                (let* ((reach-location-designator
+                         (desig:current-desig
+                          (desig:desig-prop-value location-designator :location)))
+                       (transforms
+                         (make-designator-transforms reach-location-designator)))
+                  (setf transform-in-base
+                        (first transforms)
+                        transform-in-map
+                        (second transforms)))
 
-      (get-learned-costmap-samples
-       :reachable object-type object-name transform-in-base transform-in-map))))
+                ;; any other location designator
+                (return-from man-int:get-location-poses
+                  (desig:resolve-location-designator-through-generators-and-validators
+                   location-designator))))
+
+        (let* ((learned-costmap
+                 (get-learned-costmap
+                  :reachable object-type object-name transform-in-base transform-in-map))
+               (heuristics-costmaps
+                 (mapcar (lambda (bindings)
+                           (cut:var-value '?cm bindings))
+                         (cut:force-ll
+                          (prolog:prolog
+                           `(costmap:desig-costmap ,location-designator ?cm)))))
+               (merged-costmap
+                 (apply #'costmap:merge-costmaps (cons learned-costmap heuristics-costmaps))))
+          ;; TODO: check for invalid-probability-distribution
+          ;; to test the costmap without cutting out the heuristic-based environment, use
+          ;; (costmap:costmap-samples learned-costmap)
+          ;; instead of the next line
+          (costmap:costmap-samples merged-costmap)))
+
+      (desig:resolve-location-designator-through-generators-and-validators location-designator)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; POPULATE RALF WORLD STATE ;;;;;;;;;;;;;;;;;;
 
+;; TODO: GET RID OF HARD-CODED ARM!!!
 (defmethod exe:generic-perform :around (designator)
   (if *learning-framework-on*
       (if (typep designator 'desig:action-designator)
@@ -247,10 +304,30 @@ that is returned from the learning framework based on the location properties."
                     (object-transform-in-map (man-int:get-object-transform-in-map object))
                     (arm (desig:desig-prop-value designator :arm)))
                (json-prolog-simple-ralf
-                (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~a)~)."
+                (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~s)~)."
                         :fetching object-type object-name
                         (serialize-transform object-transform-in-base)
-                        (serialize-transform object-transform-in-map) arm))
+                        (serialize-transform object-transform-in-map) (or arm "left")))
+               (let ((result (call-next-method)))
+                 (json-prolog-simple-ralf
+                  (format nil "finished_action(~(~a)~)." :fetching))
+                 result)))
+            ((eql (desig:desig-prop-value designator :type) :accessing)
+             (let* ((location (desig:desig-prop-value designator :location))
+                    (some-object (desig:desig-prop-value location :in))
+                    (object (desig:current-desig some-object))
+                    (object-type (desig:desig-prop-value object :type))
+                    (object-name (desig:desig-prop-value object :urdf-name))
+                    (env-name (desig:desig-prop-value object :part-of))
+                    (transforms (get-environment-object-transforms object-name env-name))
+                    (object-transform-in-base (second transforms))
+                    (object-transform-in-map (first transforms))
+                    (arm (desig:desig-prop-value designator :arm)))
+               (json-prolog-simple-ralf
+                (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~s)~)."
+                        :fetching object-type object-name
+                        (serialize-transform object-transform-in-base)
+                        (serialize-transform object-transform-in-map) (or arm "left")))
                (let ((result (call-next-method)))
                  (json-prolog-simple-ralf
                   (format nil "finished_action(~(~a)~)." :fetching))
