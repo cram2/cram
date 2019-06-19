@@ -126,3 +126,14 @@
   (<- (motion-grounding ?designator (move-with-constraints ?constraints-string))
     (property ?designator (:type :moving-with-constraints))
     (property ?designator (:constraints ?constraints-string))))
+
+(def-fact-group world-state-detecting (motion-grounding)
+
+  (<- (motion-grounding ?designator (world-state-detect ?object-designator))
+    (property ?designator (:type :world-state-detecting))
+    (property ?designator (:object ?object))
+    (desig:current-designator ?object ?object-designator)
+    (or (and (property ?object-designator (:pose ?_))
+             (property ?object-designator (:type ?_))
+             (property ?object-designator (:name ?_)))
+        (property ?object-designator (:name ?_)))))

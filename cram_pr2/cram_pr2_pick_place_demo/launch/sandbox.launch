@@ -16,6 +16,9 @@
     <param name="rate" value="25"/>
     <param name="use_gui" value="False"/>
     <remap from="joint_states" to="kitchen/joint_states" />
+    <rosparam param="source_list">
+      - /kitchen/cram_joint_states
+    </rosparam>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
         args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
