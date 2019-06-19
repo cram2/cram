@@ -186,12 +186,13 @@ in a value of 1.0"
     (list x-translated-back y-translated-back)))
 
 (defun make-matrix-cost-function (origin-x origin-y resolution matrix &optional theta)
-  "Creates a cost function that adds a matrix (i.e. a 2d bitmap) of
-type CMA:DOUBLE-MATRIX into the costmap. `resolution' specifies the
-resolution of `matrix', i.e. the size in meters of one
-entry. `origin-x' and `origin-y' specify the position of the top left
-corner (bottom right if viewed from top down, i.e. from the tip of the Z axis, looking down).
-Optionally an angle `theta' can be given in radiant, if the input matrix needs to be rotated."
+  "Creates a cost function which has two arguments: the `costmap-metadata' and `output-matrix'.
+The cost function adds the input `matrix' (i.e. a 2d bitmap) of type CMA:DOUBLE-MATRIX
+into the `output-matrix' given to the generator.
+`resolution' specifies the resolution of `matrix', i.e. the size in meters of one entry.
+`origin-x' and `origin-y' specify the position of the bottom right corner
+ (if viewed from top down, i.e. from the tip of the Z axis, looking down) in the fixed frame.
+Optionally an angle `theta' can be given in radiant, if the input `matrix' needs to be rotated."
   (declare (type number origin-x origin-y resolution)
            (type cma:double-matrix matrix))
   (flet ((generator (costmap-metadata output-matrix)
