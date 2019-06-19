@@ -105,7 +105,7 @@ similar to what we have for locations.")
                       (call-plan-with-designator-properties plan referenced-action-designator))
                   (unless (cram-occasions-events:holds occasion)
                     (cpl:fail "Goal `~a' of action `~a' was not achieved."
-                              designator occasion)))
+                              occasion designator)))
                 (call-plan-with-designator-properties plan referenced-action-designator)))
           (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
                      but it isn't defined. Cannot perform action." designator plan)))))
