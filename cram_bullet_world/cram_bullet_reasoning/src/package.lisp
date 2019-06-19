@@ -50,7 +50,7 @@
            get-rendering-context read-pixelbuffer read-depthbuffer to-png-image
            add-object generic-cup item mesh
            remove-object object
-           object-type item-type name rigid-bodies
+           object-type item-type item-types name rigid-bodies
            rigid-body-names rigid-body world make-object box
            static-plane sphere cylinder cone point-cloud
            cutlery fork knife mug plate mondamin pot bowl sugar-box apple orange

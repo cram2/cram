@@ -31,7 +31,7 @@
 
 (defun get-container-pose-and-transform (name btr-environment)
   "Return a list of the pose-stamped and transform-stamped of the object named
-NAME in the environment BTR-ENVIRONMENT."
+NAME in the environment BTR-ENVIRONMENT. In robot base frame."
   (let* ((name-rosified (roslisp-utilities:rosify-underscores-lisp-name name))
          (urdf-pose (get-urdf-link-pose name-rosified btr-environment))
          (pose (cram-tf:ensure-pose-in-frame
