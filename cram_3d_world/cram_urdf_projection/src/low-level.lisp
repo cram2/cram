@@ -74,7 +74,8 @@
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun move-torso (joint-angle)
-  (declare (type number joint-angle))
+  (declare (type (or number keyword) joint-angle))
+  "Joint-angle can be a number or :UPPER-LIMIT or :LOWER-LIMIT keywords."
   (let* ((bindings
            (car
             (prolog:prolog
@@ -88,18 +89,23 @@
          (upper-limit
            (cut:var-value '?upper bindings))
          (cropped-joint-angle
-           (if (< joint-angle lower-limit)
-               lower-limit
-               (if (> joint-angle upper-limit)
-                   upper-limit
-                   joint-angle))))
+           (if (numberp joint-angle)
+               (if (< joint-angle lower-limit)
+                      lower-limit
+                      (if (> joint-angle upper-limit)
+                          upper-limit
+                          joint-angle))
+               (ecase joint-angle
+                 (:upper-limit upper-limit)
+                 (:lower-limit lower-limit)))))
     (prolog:prolog
      `(btr:assert (btr:joint-state ?w ?robot ((?joint ,cropped-joint-angle))))
      bindings)
-    (unless (< (abs (- joint-angle cropped-joint-angle)) 0.0001)
-      (cpl:fail 'common-fail:torso-goal-not-reached
-                :description (format nil "Torso goal ~a was out of joint limits" joint-angle)
-                :torso joint-angle))))
+    (when (numberp joint-angle)
+      (unless (< (abs (- joint-angle cropped-joint-angle)) 0.0001)
+        (cpl:fail 'common-fail:torso-goal-not-reached
+                  :description (format nil "Torso goal ~a was out of joint limits" joint-angle)
+                  :torso joint-angle)))))
 
 
 ;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
