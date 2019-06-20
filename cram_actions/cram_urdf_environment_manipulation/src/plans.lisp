@@ -68,7 +68,7 @@
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (env-plans open)
-                             "Manipulation messed up: ~a~%Ignoring."
+                             "Manipulation messed up: ~a~%Failing."
                              e)
            ;; (return)
            ))
@@ -80,7 +80,7 @@
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans open)
-                           "Manipulation messed up: ~a~%Ignoring."
+                           "Manipulation messed up: ~a~%Failing."
                            e)
          ;; (return)
          ))
@@ -110,9 +110,10 @@
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans open)
-                           "Manipulation messed up: ~a~%Ignoring."
+                           "Manipulation messed up: ~a~%Failing."
                            e)
-         (return)))
+         ;; (return)
+         ))
     (exe:perform
      (desig:an action
                (type pulling)
@@ -188,7 +189,7 @@
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans open)
-                           "Manipulation messed up: ~a~%Ignoring."
+                           "Manipulation messed up: ~a~%Failing."
                            e)
          ;; (return)
          ))
@@ -200,7 +201,7 @@
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans open)
-                           "Manipulation messed up: ~a~%Ignoring."
+                           "Manipulation messed up: ~a~%Failing."
                            e)
          ;; (return)
          ))
