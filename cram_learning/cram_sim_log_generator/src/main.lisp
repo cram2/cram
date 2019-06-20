@@ -1,6 +1,6 @@
 (in-package :cslg)
 (defparameter *mongo-logger* nil)
-(defparameter num-experiments 1)
+(defparameter num-experiments 1000)
 (defparameter connection-retries 0)
 (defparameter *start-time* 0)
 (defparameter *global-timer* 0)
@@ -11,7 +11,7 @@
   (asdf-utils:run-program (concatenate 'string "echo 'y' | rosnode cleanup"))
   (print "Cleaning old ros nodes done")
   (print "Waiting for JSON Prolog to start ...")
-  ;;(asdf-utils:run-program (concatenate 'string " python ~/Desktop/lol_launcher.py"))
+  (asdf-utils:run-program (concatenate 'string "python ~/Desktop/lol_launcher.py"))
   (print "JSON Prolog started")
   (setf ccl::*is-client-connected* nil)
   (setf ccl::*is-logging-enabled* t)
@@ -26,6 +26,8 @@
     (/ 1 0)))
 
 (defun main ()
+  (ros-load:load-system "cram_pr2_description" :cram-pr2-description)
+  ;;(ros-load:load-system "cram_boxy_description" :cram-boxy-description)
   (setf *start-time* 0)
   (setf *global-timer* 0)
   (setf cram-bullet-reasoning-belief-state:*spawn-debug-window* nil)
@@ -45,14 +47,15 @@
                  (simple-error ()
                    (print "Logger cannot connect")))
                (format t "Starting experiment ~a~%" experiment-id)
-               (setf cslg::*mongo-logger* (sb-ext:run-program "rosrun" (list "mongodb_log" "mongodb_log" "-c" experiment-id)
-                      :search t :output :stream :wait nil))
+               ;;(setf cslg::*mongo-logger* (sb-ext:run-program "rosrun" (list "mongodb_log" "mongodb_log" "-c" experiment-id)
+               ;;       :search t :output :stream :wait nil))
               
                (print "Starting demo")
                (setf *start-time* (* 1000000 (cram-utilities:current-timestamp)))
                (handler-case
                    (progn
-                     (urdf-proj:with-simulated-robot (demo::demo-random nil '(:bowl :spoon)))
+                     ;;(urdf-proj:with-simulated-robot (demo::demo-random nil '(:bowl :spoon)))
+                     (urdf-proj:with-simulated-robot (demo::demo-random nil ))
                      (setf *global-timer* (+ *global-timer* ( - (* 1000000 (cram-utilities:current-timestamp)) *start-time*)))
                      (ccl::export-log-to-owl (concatenate 'string experiment-id ".owl"))
                      (format t "Done with experiment ~a~%" experiment-id)
@@ -77,14 +80,14 @@
                (simple-error (e)
                    (print "SIMPLE ERROR OCCURRED DURING LOGGING")
                    (print e)))
-               (handler-case
-                   (progn
-                       (asdf-utils:run-program
-                        (concatenate 'string
-                         "pkill  -SIGKILL -f '/usr/bin/python /home/koralewski/catkin_ws/ros_cram/src/ros-mongodb_log/bin/mongodb_log'"))
-                      (sb-ext:process-kill *mongo-logger* 15))
+               ;;(handler-case
+               ;;    (progn
+               ;;        (asdf-utils:run-program
+               ;;         (concatenate 'string
+               ;;          "pkill  -SIGKILL -f '/usr/bin/python /home/koralewski/catkin_ws/ros_cram/src/ros-mongodb_log/bin/mongodb_log'"))
+               ;;       (sb-ext:process-kill *mongo-logger* 15))
                  
-                 (UIOP/RUN-PROGRAM:SUBPROCESS-ERROR () (print "killed")))
+               ;;  (UIOP/RUN-PROGRAM:SUBPROCESS-ERROR () (print "killed")))
                
                    ;;(asdf-utils:run-program "killall -r 'mongod'")))
   ;;(asdf-utils:run-program "killall -r 'mongodb_log'")
