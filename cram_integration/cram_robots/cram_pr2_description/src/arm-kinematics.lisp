@@ -41,19 +41,33 @@
         (0 0 1)
         (1 0 0)))))
 
-(defparameter *right-parking-end-effector-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "torso_lift_link" 0.0
-   (cl-transforms:make-3d-vector 0.3 -0.3 -0.23)
-   (cl-transforms:euler->quaternion :ay (/ pi 2))))
+;; (defparameter *right-parking-end-effector-pose*
+;;   (cl-transforms-stamped:make-pose-stamped
+;;    "torso_lift_link" 0.0
+;;    (cl-transforms:make-3d-vector 0.3 -0.3 -0.23)
+;;    (cl-transforms:euler->quaternion :ay (/ pi 2))))
 
-(defparameter *right-parking-tcp-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "base_footprint"
-   0.0
-   (cl-transforms:make-3d-vector 0.4 -0.3 1.55)
-   (cl-transforms:make-quaternion 0.029319081708036543d0 -0.018714920400581137d0
-                                  0.5257710356470319d0 0.8499146788218482d0)))
+;; (defparameter *right-parking-tcp-pose*
+;;   (cl-transforms-stamped:make-pose-stamped
+;;    "base_footprint"
+;;    0.0
+;;    (cl-transforms:make-3d-vector 0.4 -0.3 1.55)
+;;    (cl-transforms:make-quaternion 0.029319081708036543d0 -0.018714920400581137d0
+;;                                   0.5257710356470319d0 0.8499146788218482d0)))
+
+;; (defparameter *left-parking-end-effector-pose*
+;;   (cl-transforms-stamped:make-pose-stamped
+;;    "torso_lift_link" 0.0
+;;    (cl-transforms:make-3d-vector 0.3 0.3 -0.23)
+;;    (cl-transforms:euler->quaternion :ay (/ pi 2))))
+
+;; (defparameter *left-parking-tcp-pose*
+;;   (cl-transforms-stamped:make-pose-stamped
+;;    "base_footprint"
+;;    0.0
+;;    (cl-transforms:make-3d-vector 0.4 0.3 1.55)
+;;    (cl-transforms:make-quaternion 0.9215513103717499d0 -0.387996037470125d0
+;;                                   -0.014188589447636247d0 -9.701489976338351d-4)))
 
 ;; (defparameter *right-parking-joint-states*
 ;;   '(("r_shoulder_pan_joint" -1.3810115229719555d0)
@@ -63,38 +77,6 @@
 ;;     ("r_forearm_roll_joint" -2.658135473603226d0)
 ;;     ("r_wrist_flex_joint" -1.9927790883777252d0)
 ;;     ("r_wrist_roll_joint" -2.5861844605475843d0)))
-
-(defparameter *right-carrying-joint-states*
-  '(("r_shoulder_pan_joint" -1.712587449591307d0)
-    ("r_shoulder_lift_joint" -0.2567290370386635d0)
-    ("r_upper_arm_roll_joint" -1.4633501125737374d0)
-    ("r_elbow_flex_joint" -2.1221670650093913d0)
-    ("r_forearm_roll_joint" 1.7663253481913623d0)
-    ("r_wrist_flex_joint" -0.07942669250968948d0)
-    ("r_wrist_roll_joint" 0.05106258161229582d0)))
-
-(defparameter *right-parking-joint-states*
-  '(("r_shoulder_pan_joint" -0.08181428617939712d0)
-    ("r_shoulder_lift_joint" 0.9781030555170612d0)
-    ("r_upper_arm_roll_joint" -1.4665572091011352d0)
-    ("r_elbow_flex_joint" -1.6859729116108224d0)
-    ("r_forearm_roll_joint" -27.72481374424779d0)
-    ("r_wrist_flex_joint" -0.10621948550701799d0)
-    ("r_wrist_roll_joint" 7.662671673625887d0)))
-
-(defparameter *left-parking-end-effector-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "torso_lift_link" 0.0
-   (cl-transforms:make-3d-vector 0.3 0.3 -0.23)
-   (cl-transforms:euler->quaternion :ay (/ pi 2))))
-
-(defparameter *left-parking-tcp-pose*
-  (cl-transforms-stamped:make-pose-stamped
-   "base_footprint"
-   0.0
-   (cl-transforms:make-3d-vector 0.4 0.3 1.55)
-   (cl-transforms:make-quaternion 0.9215513103717499d0 -0.387996037470125d0
-                                  -0.014188589447636247d0 -9.701489976338351d-4)))
 
 ;; (defparameter *left-parking-joint-states*
 ;;   '(("l_shoulder_pan_joint" 1.3810115229719555d0)
@@ -114,7 +96,7 @@
     ("l_wrist_flex_joint" -0.07350789589924167d0)
     ("l_wrist_roll_joint" 0.0)))
 
-(defparameter *left-parking-joint-states*
+(defparameter *left-tucked-joint-states*
   '(("l_shoulder_pan_joint" 0.1709440184822959d0)
     ("l_shoulder_lift_joint" 1.1472294789783886d0)
     ("l_upper_arm_roll_joint" 1.9124515764640622d0)
@@ -122,6 +104,25 @@
     ("l_forearm_roll_joint" 6.255471931555043d0)
     ("l_wrist_flex_joint" -0.07476630774212056d0)
     ("l_wrist_roll_joint" -14.7079336142174d0)))
+
+(defparameter *right-carrying-joint-states*
+  '(("r_shoulder_pan_joint" -1.712587449591307d0)
+    ("r_shoulder_lift_joint" -0.2567290370386635d0)
+    ("r_upper_arm_roll_joint" -1.4633501125737374d0)
+    ("r_elbow_flex_joint" -2.1221670650093913d0)
+    ("r_forearm_roll_joint" 1.7663253481913623d0)
+    ("r_wrist_flex_joint" -0.07942669250968948d0)
+    ("r_wrist_roll_joint" 0.05106258161229582d0)))
+
+(defparameter *right-tucked-joint-states*
+  '(("r_shoulder_pan_joint" -0.08181428617939712d0)
+    ("r_shoulder_lift_joint" 0.9781030555170612d0)
+    ("r_upper_arm_roll_joint" -1.4665572091011352d0)
+    ("r_elbow_flex_joint" -1.6859729116108224d0)
+    ("r_forearm_roll_joint" -27.72481374424779d0)
+    ("r_wrist_flex_joint" -0.10621948550701799d0)
+    ("r_wrist_roll_joint" 7.662671673625887d0)))
+
 
 (defun get-arm-base-joint-names (arm)
   (declare (ignore arm))
@@ -272,14 +273,16 @@
     (symbol-value *right-carrying-joint-states* ?joint-states))
 
   (<- (robot-joint-states pr2 :arm :left :park ?joint-states)
-    (symbol-value *left-carrying-joint-states*
-                  ;; *left-parking-joint-states*
-                  ?joint-states))
+    (symbol-value *left-carrying-joint-states* ?joint-states))
 
   (<- (robot-joint-states pr2 :arm :right :park ?joint-states)
-    (symbol-value *right-carrying-joint-states*
-                  ;; *right-parking-joint-states*
-                  ?joint-states))
+    (symbol-value *right-carrying-joint-states* ?joint-states))
+
+  (<- (robot-joint-states pr2 :arm :left :tucked ?joint-states)
+    (symbol-value *left-tucked-joint-states* ?joint-states))
+
+  (<- (robot-joint-states pr2 :arm :right :tucked ?joint-states)
+    (symbol-value *right-tucked-joint-states* ?joint-states))
 
   ;; (<- (robot-arms-carrying-joint-states pr2 ?joint-states)
   ;;   (symbol-value *right-carrying-joint-states* ?right-joint-states)
