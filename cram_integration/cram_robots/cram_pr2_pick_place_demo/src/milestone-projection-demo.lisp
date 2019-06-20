@@ -31,22 +31,18 @@
 (in-package :demo)
 
 (defparameter *demo-object-spawning-poses*
-  '(;; So far only this orientation works
+  '((:bowl . ((1.45 1.05 0.48) (0 0 0 1))) ; left-middle-drawer
+    (:cup . ((1.42 0.7 0.48) (0 0 0 1))) ; left-middle-drawer
+    (:spoon . ((1.43 0.9 0.74132) (0 0 0 1))) ;; left-upper-drawer
+    ;; So far only this orientation works
     (:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.83147d0 0.55557d0)))
     ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
     ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
-    (:cup . ((1.42 0.85 0.48) (0 0 0 1))) ;; left-middle-drawer
-    (:bowl . ((1.45 0.95 0.48) (0 0 0 1))) ;; left-middle-drawer
-    ;; (:cup . ((1.42 0.85 0.76) (0 0 0 1))) ;;left-upper-drawer
-    ;; (:bowl . ((1.45 0.95 0.76) (0 0 0 1))) ;; left-upper-drawer
-    (:spoon . ((1.43 0.9 0.74132) (0 0 0 1))) ;; left-upper-drawer
-    ;; (:spoon . ((1.4 1.9 0.89132) (0 0 0 1)))
-    ;; (:milk . ((1.42 -1.039 0.95) (0 0 1 0))))) ;;more-centered in the fridge
-    (:milk . ((1.42 -0.97 0.95) (0 0 1 0)))))
+    (:milk . ((1.45 -1.04 0.955) (0 0 0 1)))))
 
 (defparameter *object-attachment-links*
   '((:breakfast-cereal . "oven_area_area_right_drawer_board_3_link")
-    (:milk . "sink_area_left_middle_drawer_main")
+    ;; (:milk . "sink_area_left_middle_drawer_main")
     (:cup . "sink_area_left_middle_drawer_main")
     (:bowl . "sink_area_left_middle_drawer_main")
     ;; (:cup . "sink_area_left_middle_drawer_main")
@@ -55,42 +51,35 @@
     ))
 
 (defparameter *fetch-locations*
-  `((:milk . ,(a location (in (an object
+  `((:bowl . ,(a location
+                 (in (an object
+                         (type drawer)
+                         (urdf-name sink-area-left-middle-drawer-main)
+                         (part-of kitchen)))))
+    (:cup . ,(a location
+                (in (an object
+                        (type drawer)
+                        (urdf-name sink-area-left-middle-drawer-main)
+                        (part-of kitchen)))))
+    (:spoon . ,(desig:a location
+                        (in (desig:an object
+                                      (type drawer)
+                                      (urdf-name sink-area-left-upper-drawer-main)
+                                      (owl-name "drawer_sinkblock_upper_open")
+                                      (part-of kitchen)))
+                        (side front)))
+    (:breakfast-cereal . ,(a location
+                             (in (an object
+                                     (type drawer)
+                                     (urdf-name oven-area-area-right-drawer-main)
+                                     (part-of kitchen)
+                                     (level topmost)))
+                             (side front)))
+    (:milk . ,(a location (in (an object
                                   (type container)
                                   (urdf-name iai-fridge-main)
                                   (part-of kitchen)
-                                  (level topmost)))))
-    (:cup . ,(a location
-                (in
-                 (an object
-                     (type drawer)
-                     (urdf-name sink-area-left-middle-drawer-main)
-                     ;; (urdf-name sink-area-left-upper-drawer-main)
-                     (part-of kitchen)))))
-    (:bowl . ,(a location
-                 (in
-                  (an object
-                      (type drawer)
-                      (urdf-name sink-area-left-middle-drawer-main)
-                      ;; (urdf-name sink-area-left-upper-drawer-main)
-                      (part-of kitchen)))))
-    ;;(side front)))
-    (:spoon . ,(a location
-                  (in
-                   (an object
-                       (type drawer)
-                       (urdf-name sink-area-left-upper-drawer-main)
-                       ;; (urdf-name oven-area-area-middle-upper-drawer-main)
-                       (part-of kitchen)))))
-    ;;(side front)))
-    (:breakfast-cereal . ,(a location
-                             (in
-                              (an object
-                                  (type drawer)
-                                  (urdf-name oven-area-area-right-drawer-main)
-                                  (part-of kitchen)
-                                  (level topmost)))
-                             (side front)))))
+                                  (level topmost)))))))
 
 
 (defparameter *delivery-locations*
@@ -131,6 +120,12 @@
                              (side right)))))
 
 
+(defun attach-objects-to-the-world (object-type)
+  (when (assoc object-type *object-attachment-links*)
+    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+                       (btr:object btr:*current-bullet-world*
+                                   (intern (format nil "~a-1" object-type) :keyword))
+                       :link (cdr (assoc object-type *object-attachment-links*)))))
 
 (defun spawn-objects-on-fixed-spots (&key (spawning-poses *demo-object-spawning-poses*)
                                        (object-types '(:breakfast-cereal :cup :bowl :spoon :milk)))
@@ -145,18 +140,11 @@
                             :pose (cdr (assoc object-type spawning-poses))))
                          object-types)))
     ;; stabilize world
-    (btr:simulate btr:*current-bullet-world* 100)
+    ;; (btr:simulate btr:*current-bullet-world* 100)
     objects)
 
   (mapcar #'attach-objects-to-the-world object-types))
 
-
-(defun attach-objects-to-the-world (object-type)
-  (when (assoc object-type *object-attachment-links*)
-    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
-                       (btr:object btr:*current-bullet-world*
-                                   (intern (format nil "~a-1" object-type) :keyword))
-                       :link (cdr (assoc object-type *object-attachment-links*)))))
 
 
 (defun setup-for-demo (object-list)
@@ -184,7 +172,7 @@
   ;;               (part-of kitchen))))))))
 
 
-(cpl:def-cram-function perform-demo (&optional (object-list '(:milk)))
+(defun perform-demo (&optional (object-list '(:milk)))
   "Generic implementation, ideally this should work for all objects together.
 Right now, only works with '(:milk) and '(:bowl :cup :spoon). There is a separate method
 for :breakfast-cereal in the bottom.
@@ -192,20 +180,21 @@ To get this working with milk, all the code of accessing and sealing inside the 
 commented out "
   (setup-for-demo object-list)
 
-  (dolist (?object object-list)
-    (let* ((?d (cdr (assoc ?object *delivery-locations*)))
-          (?f (cdr (assoc ?object *fetch-locations*)))
-          (?obj (an object
-                    (type ?object)
-                    (location ?f))))
-      (exe:perform
-       (an action
-           (type transporting)
-           (object ?obj)
-           (desig:when (member ?object '(:bowl :cup))
-             (grasp top))
-           (location ?f)
-           (target ?d))))))
+  (urdf-proj:with-simulated-robot
+    (dolist (?object object-list)
+      (let* ((?d (cdr (assoc ?object *delivery-locations*)))
+             (?f (cdr (assoc ?object *fetch-locations*)))
+             (?obj (an object
+                       (type ?object)
+                       (location ?f))))
+        (exe:perform
+         (an action
+             (type transporting)
+             (object ?obj)
+             (desig:when (member ?object '(:bowl :cup))
+               (grasp top))
+             (location ?f)
+             (target ?d)))))))
 
 
 (cpl:def-cram-function get-from-vertical-drawer (&optional ?open (?object :breakfast-cereal))
