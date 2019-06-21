@@ -29,21 +29,6 @@
 
 (in-package :env-man)
 
-(defun get-container-pose-and-transform (name btr-environment)
-  "Return a list of the pose-stamped and transform-stamped of the object named
-NAME in the environment BTR-ENVIRONMENT. In robot base frame."
-  (let* ((name-rosified (roslisp-utilities:rosify-underscores-lisp-name name))
-         (urdf-pose (get-urdf-link-pose name-rosified btr-environment))
-         (pose (cram-tf:ensure-pose-in-frame
-                (cl-transforms-stamped:pose->pose-stamped
-                 cram-tf:*fixed-frame*
-                 0.0
-                 urdf-pose)
-                cram-tf:*robot-base-frame*
-                :use-zero-time t))
-         (transform (cram-tf:pose-stamped->transform-stamped pose name-rosified)))
-    (list pose transform)))
-
 (def-fact-group environment-manipulation (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (open-container ?referenced-action-designator))

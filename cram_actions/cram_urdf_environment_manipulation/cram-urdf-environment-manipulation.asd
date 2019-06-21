@@ -67,6 +67,6 @@
      (:file "environment" :depends-on ("package"))
      (:file "environment-occasions" :depends-on ("package" "environment"))
      (:file "costmaps" :depends-on ("package" "math" "environment"))
-     (:file "trajectories" :depends-on ("package"))
+     (:file "trajectories" :depends-on ("package" "environment"))
      (:file "action-designators" :depends-on ("package" "trajectories"))
      (:file "plans" :depends-on ("package" "environment"))))))
