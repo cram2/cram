@@ -492,7 +492,19 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     (proj-reasoning:check-placing-pose-stability
                      ?object-designator ?target-location))
 
-                  (exe:perform place-action))))))))))
+                  (exe:perform place-action)
+                  ;; Hacky workaround for gravity bug
+                  ;; Teleporting all objects that are dropped to below the floor to avoid
+                  ;; them causing occlusions and obstructions in the bullet world.
+                  (if (equal ?delivery-type :dropping)
+                      (progn
+                        (let* ((?obj-name (desig:desig-prop-value ?object-designator :name))
+                               (?obj-pose (btr:pose (btr:object btr:*current-bullet-world*
+                                                                ?obj-name))))
+                          (btr-utils:move-object ?obj-name
+                                                 (cram-tf:translate-pose
+                                                  ?obj-pose
+                                                  :z-offset -3.0))))))))))))))
 
 
 
