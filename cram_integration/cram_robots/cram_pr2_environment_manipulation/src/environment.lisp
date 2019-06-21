@@ -36,6 +36,23 @@
   ;;       :key #'type-of)
   )
 
+(defun get-container-pose-and-transform (name btr-environment)
+  "Return a list of the pose-stamped and transform-stamped of the object named
+NAME in the environment BTR-ENVIRONMENT."
+  (when (symbolp name)
+    (setf name
+          (roslisp-utilities:rosify-underscores-lisp-name name)))
+  (let* ((urdf-pose (get-urdf-link-pose name btr-environment))
+         (pose (cram-tf:ensure-pose-in-frame
+                (cl-transforms-stamped:pose->pose-stamped
+                 cram-tf:*fixed-frame*
+                 0.0
+                 urdf-pose)
+                cram-tf:*robot-base-frame*
+                :use-zero-time t))
+         (transform (cram-tf:pose-stamped->transform-stamped pose name)))
+    (list pose transform)))
+
 (defun get-urdf-link-pose (name btr-environment)
   (when (symbolp name)
     (setf name
@@ -81,8 +98,9 @@
 (defun find-handle-under-link (link)
   (if (search "handle" (cl-urdf:name link))
       link
-      (find-handle-under-link (cl-urdf:child
-                     (car (cl-urdf:to-joints link))))))
+      (reduce (lambda (&optional x y) (or x y))
+              (mapcar 'find-handle-under-link
+                      (mapcar 'cl-urdf:child (cl-urdf:to-joints link))))))
 
 (defun get-joint-position (joint btr-environment)
   (gethash (cl-urdf:name joint)
@@ -121,6 +139,11 @@
 
         (when (typep part 'cl-urdf:link)
           (get-connecting-joint-above (cl-urdf:from-joint part))))))
+
+(defun get-manipulated-link (part)
+  "Returns the link under the connecting joint. Which is the one actuallz being manipulated."
+  (cl-urdf:child
+   (get-connecting-joint part)))
 
 (defun get-manipulated-pose (link-name joint-position btr-environment &key relative)
   "Returns the pose of a link based on its connection joint position
