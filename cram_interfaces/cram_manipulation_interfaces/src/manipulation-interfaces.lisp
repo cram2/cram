@@ -66,10 +66,18 @@ and man-int is way too high level to make it a dependency of CRAM_CORE.
 This hijacking is kind of an ugly hack that Gaya feels bad about :(."
   (get-location-poses desig))
 
-(defgeneric get-container-opening-distance (container-type)
+(defgeneric get-container-opening-distance (container-name)
   (:method-combination cut:first-in-order-and-around)
   (:documentation "Returns a value describing the distance a container can
 be openend.
 `container-designator' is a designator describing the container.")
-  (:method :heuristics 20 (container-type)
-    (call-with-specific-type #'get-container-opening-distance container-type)))
+  (:method :heuristics 20 (container-name)
+    nil))
+
+(defgeneric get-container-closing-distance (container-name)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns a value describing the distance for which a container
+is considered closed.
+`container-designator' is a designator describing the container.")
+  (:method :heuristics 20 (container-name)
+    nil))
