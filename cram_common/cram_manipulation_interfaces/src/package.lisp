@@ -51,6 +51,7 @@
    #:get-action-grasps
    #:get-location-poses
    #:get-container-opening-distance
+   #:get-container-closing-distance
    ;; grasps
    #:calculate-object-faces
    #:calculate-face-vector

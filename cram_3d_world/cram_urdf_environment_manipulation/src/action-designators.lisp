@@ -59,22 +59,26 @@ NAME in the environment BTR-ENVIRONMENT. In robot base frame."
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
+    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+    (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (-> (spec:property ?action-designator (:distance ?distance))
         (true)
-        (lisp-fun man-int:get-container-opening-distance
-                  ?container-type ?distance))
+        (-> (lisp-pred man-int:get-container-opening-distance
+                       ?container-name)
+            (lisp-fun man-int:get-container-opening-distance
+                      ?container-name ?distance)
+            (and (lisp-fun cl-urdf:limits ?connecting-joint ?limits)
+                 (lisp-fun cl-urdf:upper ?limits ?distance))))
     (lisp-fun get-relative-distance ?container-name ?btr-environment ?distance :opening
               ?rel-distance)
     (lisp-fun clip-distance ?container-name ?btr-environment ?rel-distance :opening
               ?clipped-distance)
     ;; infer joint information
     ;; joint-name
-    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
     (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
     (lisp-fun roslisp-utilities:lispify-ros-underscore-name
               ?handle-link-string :keyword ?handle-link)
-    (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
     ;; environment
     (btr:bullet-world ?world)
@@ -167,22 +171,26 @@ NAME in the environment BTR-ENVIRONMENT. In robot base frame."
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
+    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+    (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (-> (spec:property ?action-designator (:distance ?distance))
         (true)
-        (lisp-fun man-int:get-container-opening-distance
-                  ?container-type ?distance))
+        (-> (lisp-pred man-int:get-container-closing-distance
+                       ?container-name)
+            (lisp-fun man-int:get-container-closing-distance
+                      ?container-name ?distance)
+            (and (lisp-fun cl-urdf:limits ?connecting-joint ?limits)
+                 (lisp-fun cl-urdf:lower ?limits ?distance))))
     (lisp-fun get-relative-distance ?container-name ?btr-environment ?distance :closing
               ?rel-distance)
     (lisp-fun clip-distance ?container-name ?btr-environment ?rel-distance :closing
               ?clipped-distance)
     ;; infer joint information
     ;; joint-name
-    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
     (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
     (lisp-fun roslisp-utilities:lispify-ros-underscore-name
               ?handle-link-string :keyword ?handle-link)
-    (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
     ;; environment
     (btr:bullet-world ?world)

@@ -62,9 +62,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod man-int:get-container-opening-distance :heuristics 20
-    ((container-type (eql :container-prismatic)))
-  0.5)
-
-(defmethod man-int:get-container-opening-distance :heuristics 20
-    ((container-type (eql :container-revolute)))
+    ((container-name (eql :iai_fridge_door)))
   (/ pi 4))
