@@ -30,8 +30,9 @@ __:level__
 ;;			|______|
 ;;			|______|
 ;;			|______|
+```  
 
-
+``` lisp
 (a location
 	(in 
 		(an object
@@ -45,8 +46,9 @@ __:level__
 ;;			|__x___|
 ;;			|______|
 ;;			|______|
+```  
 
-
+``` lisp
 (a location
 	(in 
 		(an object
@@ -62,7 +64,8 @@ __:level__
 ;;			|______|
 
 
-  ``` 
+```  
+
 __:level-invert__  
   Works exactly like __:level__, except the numbering of the levels inside the container is done from top to bottom. The behaviour
   only changes when referring levels with numbers, the other keywords behave and refer the same as __:level__
