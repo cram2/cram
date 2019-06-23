@@ -74,7 +74,8 @@
                                      (urdf-name oven-area-area-right-drawer-main)
                                      (part-of kitchen)
                                      (level topmost)))
-                             (side front)))
+                             ;; (side front)
+                             ))
     (:milk . ,(a location (in (an object
                                   (type container)
                                   (urdf-name iai-fridge-main)
