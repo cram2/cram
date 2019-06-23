@@ -53,7 +53,7 @@
                                                                         (second
                                                                          joint-state-left))))
                                          (roslisp:make-message
-                                          'giskard_msgs-msg:controller
+                                          'giskard_msgs-msg:jointconstraint
                                           :type (roslisp:symbol-code
                                                  'giskard_msgs-msg:jointconstraint
                                                  :joint)
@@ -80,7 +80,7 @@
                              (cut:lazy-car
                               (prolog:prolog
                                `(cram-robot-interfaces:arm-joints
-                                 (intern "PR2" :cram-pr2-description) ,arm ?joints))))))
+                                 ,(intern "PR2" :cram-pr2-description) ,arm ?joints))))))
         (list joint-names
               (joints:joint-positions joint-names)))))
 
