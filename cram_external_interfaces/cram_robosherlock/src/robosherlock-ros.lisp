@@ -117,7 +117,8 @@
            (if (string-equal string "")
                nil
                (roslisp-utilities:lispify-ros-underscore-name string :keyword))))
-    `((:name ,(to-keyword (roslisp:msg-slot-value message :uid)))
+    `((:name ,(to-keyword ;; (roslisp:msg-slot-value message :uid)
+                          (format nil "~a-1" (roslisp:msg-slot-value message :type))))
       (:type ,(to-keyword (roslisp:msg-slot-value message :type)))
       (:shape ,(map 'list #'to-keyword (roslisp:msg-slot-value message :shape)))
       (:color ,(map 'list #'to-keyword (roslisp:msg-slot-value message :color)))
