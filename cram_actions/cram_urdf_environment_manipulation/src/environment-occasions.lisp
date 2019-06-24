@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Christopher Pollok <cpollok@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,14 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-plan-occasions-events)
+(in-package :env-man)
 
-(def-fact-group occasions (object-in-hand object-placed-at object-picked object-put
-                                          loc looking-at arms-parked
-                                          container-state)
-  (<- (object-in-hand ?object)
-    (fail))
-
-  (<- (object-placed-at ?object ?location)
-    (fail))
-
-  (<- (object-picked ?object)
-    (fail))
-
-  (<- (object-put ?object)
-    (fail))
-
-  (<- (loc ?robot-or-object ?location)
-    (fail))
-
-  (<- (looking-at ?location)
-    (fail))
-
-  (<- (arms-parked)
-    (fail))
-
-  (<- (container-state ?container-object-designator ?joint-state)
-    (fail)))
+(def-fact-group environment-occasions (cpoe:container-state)
+  (<- (cpoe:container-state ?container-designator ?distance)
+    (spec:property ?container-designator (:urdf-name ?container-name))
+    (spec:property ?container-designator (:part-of ?btr-environment))
+    (btr:bullet-world ?world)
+    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+    (lisp-fun get-connecting-joint ?container-link ?joint)
+    (lisp-fun cl-urdf:name ?joint ?joint-name)
+    (btr:joint-state ?world ?btr-environment ?joint-name ?distance)))
