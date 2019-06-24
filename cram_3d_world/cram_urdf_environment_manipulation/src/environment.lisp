@@ -228,3 +228,34 @@ vertical handles on the container described by CONTAINER-DESIGNATOR."
 Using a default (1 0 0)."
                                          container-designator)
                (cl-transforms:make-3d-vector 1 0 0)))))))
+
+(defun clip-distance (container-name btr-environment distance action-type)
+  "Return a distance that stays inside the joint's limits."
+  (let ((joint (get-connecting-joint
+                (get-container-link container-name
+                                    btr-environment))))
+    (let ((upper-limit (- (cl-urdf:upper (cl-urdf:limits joint)) 0.001))
+          (lower-limit (+ (cl-urdf:lower (cl-urdf:limits joint)) 0.001))
+          (state (btr:joint-state
+                  (btr:object btr:*current-bullet-world*
+                              btr-environment)
+                  (cl-urdf:name joint))))
+      (if (eq action-type :opening)
+          (if (> (+ state distance) upper-limit)
+              (- upper-limit state)
+              distance)
+          (if (< (- state distance) lower-limit)
+              (- state lower-limit)
+              distance)))))
+
+(defun get-relative-distance (container-name btr-environment distance action-type)
+  (let* ((joint (get-connecting-joint
+                (get-container-link container-name
+                                    btr-environment)))
+         (state (btr:joint-state
+                 (btr:object btr:*current-bullet-world*
+                             btr-environment)
+                 (cl-urdf:name joint))))
+    (if (eq action-type :opening)
+        (- distance state)
+        (- (- distance state)))))
