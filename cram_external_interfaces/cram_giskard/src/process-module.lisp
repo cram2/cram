@@ -42,14 +42,20 @@
                                       :collision-object-a (fifth rest-arguments)))
       (cram-common-designators:move-joints
        (call-giskard-joint-action :goal-configuration-left argument-1
-                                  :goal-configuration-right (first rest-arguments))))))
+                                  :goal-configuration-right (first rest-arguments)))
+      (cram-common-designators:move-base
+       (call-giskard-base-action :goal-pose argument-1))
+      (cram-common-designators:move-torso
+       (call-giskard-torso-action :goal-joint-state argument-1)))))
 
 (prolog:def-fact-group giskard-pm (cpm:matching-process-module
                                    cpm:available-process-module)
 
   (prolog:<- (cpm:matching-process-module ?motion-designator giskard-pm)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
-        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))))
+        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
+        (desig:desig-prop ?motion-designator (:type :going))
+        (desig:desig-prop ?motion-designator (:type :moving-torso))))
 
   (prolog:<- (cpm:available-process-module giskard-pm)
     (prolog:not (cpm:projection-running ?_))))

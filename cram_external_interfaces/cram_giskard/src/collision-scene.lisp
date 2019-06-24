@@ -194,7 +194,7 @@
     (let* ((object-name
              (cpoe:event-object-name event))
            (object-name-string
-             (symbol-name object-name))
+             (roslisp-utilities:rosify-underscores-lisp-name object-name))
            (btr-object
              (btr:object btr:*current-bullet-world* object-name))
            (link (cut:var-value
@@ -240,7 +240,7 @@
 (defmethod coe:on-event giskard-detach-object ((event cpoe:object-detached-robot))
   (unless cram-projection:*projection-environment*
     (let* ((object-name (cpoe:event-object-name event))
-           (object-name-string (symbol-name object-name)))
+           (object-name-string (roslisp-utilities:rosify-underscores-lisp-name object-name)))
       (call-giskard-environment-service
        :detach
        :name object-name-string))))
@@ -248,7 +248,7 @@
 (defmethod coe:on-event giskard-perceived ((event cpoe:object-perceived-event))
   (unless cram-projection:*projection-environment*
     (let* ((object-name (desig:desig-prop-value (cpoe:event-object-designator event) :name))
-           (object-name-string (symbol-name object-name))
+           (object-name-string (roslisp-utilities:rosify-underscores-lisp-name object-name))
            (btr-object (btr:object btr:*current-bullet-world* object-name)))
       (call-giskard-environment-service
        :remove
