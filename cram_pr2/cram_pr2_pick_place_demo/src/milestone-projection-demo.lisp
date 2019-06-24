@@ -55,11 +55,13 @@
                  (in (an object
                          (type drawer)
                          (urdf-name sink-area-left-middle-drawer-main)
+                         (owl-name "drawer_sinkblock_middle_open")
                          (part-of kitchen)))))
     (:cup . ,(a location
                 (in (an object
                         (type drawer)
                         (urdf-name sink-area-left-middle-drawer-main)
+                        (owl-name "drawer_sinkblock_middle_open")
                         (part-of kitchen)))))
     (:spoon . ,(desig:a location
                         (in (desig:an object
@@ -72,13 +74,15 @@
                              (in (an object
                                      (type drawer)
                                      (urdf-name oven-area-area-right-drawer-main)
+                                     (owl-name "drawer_oven_right_open")
                                      (part-of kitchen)
                                      (level topmost)))
                              ;; (side front)
                              ))
     (:milk . ,(a location (in (an object
-                                  (type container)
+                                  (type fridge)
                                   (urdf-name iai-fridge-main)
+                                  (owl-name "drawer_fridge_upper_interior")
                                   (part-of kitchen)
                                   (level topmost)))))))
 
@@ -150,9 +154,12 @@
 
 (defun setup-for-demo (object-list)
   (initialize)
-  (spawn-objects-on-fixed-spots :object-types object-list)
+  (when cram-projection:*projection-environment*
+    (spawn-objects-on-fixed-spots :object-types object-list))
+  ;; (park-robot)
   )
-  ;; Open the fridge manually
+
+;; Open the fridge manually
   ;; Uncomment and include in `setup-for-demo' to get it working as long as the
   ;; automatic opening of the fridge door when referring to container is still in work
   ;; Can only be used with the milk situation right now, as keeping the fridge opened will block pr2 from
@@ -181,21 +188,20 @@ To get this working with milk, all the code of accessing and sealing inside the 
 commented out "
   (setup-for-demo object-list)
 
-  (urdf-proj:with-simulated-robot
-    (dolist (?object object-list)
-      (let* ((?d (cdr (assoc ?object *delivery-locations*)))
-             (?f (cdr (assoc ?object *fetch-locations*)))
-             (?obj (an object
-                       (type ?object)
-                       (location ?f))))
-        (exe:perform
-         (an action
-             (type transporting)
-             (object ?obj)
-             (desig:when (member ?object '(:bowl :cup))
-               (grasp top))
-             (location ?f)
-             (target ?d)))))))
+  (dolist (?object object-list)
+    (let* ((?d (cdr (assoc ?object *delivery-locations*)))
+           (?f (cdr (assoc ?object *fetch-locations*)))
+           (?obj (an object
+                     (type ?object)
+                     (location ?f))))
+      (exe:perform
+       (an action
+           (type transporting)
+           (object ?obj)
+           (desig:when (member ?object '(:bowl :cup))
+             (grasp top))
+           (location ?f)
+           (target ?d))))))
 
 
 (cpl:def-cram-function get-from-vertical-drawer (&optional ?open (?object :breakfast-cereal))
