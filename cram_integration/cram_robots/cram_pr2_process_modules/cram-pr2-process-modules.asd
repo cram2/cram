@@ -42,7 +42,8 @@
                ;; cram-knowrob-world-state
                cram-robosherlock
                cram-giskard
-               cram-nav-pcontroller)
+               ;; cram-nav-pcontroller
+               )
 
   :components
   ((:module "src"
