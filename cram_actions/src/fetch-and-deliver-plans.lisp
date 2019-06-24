@@ -549,8 +549,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
   (unless search-location-accessible
     (exe:perform (desig:an action
                            (type accessing)
-                           (location ?search-location)
-                           (distance 0.48))))
+                           (location ?search-location))))
 
   (unwind-protect
        (let ((?perceived-object-designator
@@ -636,5 +635,4 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
     (unless search-location-accessible
       (exe:perform (desig:an action
                              (type sealing)
-                             (location ?search-location)
-                             (distance 0.48))))))
+                             (location ?search-location))))))
