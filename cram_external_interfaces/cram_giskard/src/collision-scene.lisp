@@ -36,14 +36,20 @@
 
 (defun init-giskard-environment-service ()
   "Initializes *robosherlock-service* ROS publisher"
-  (loop until (roslisp:wait-for-service *giskard-environment-service-name* 5)
-        do (roslisp:ros-info (gisk-env-service) "Waiting for giskard environment service."))
-  (prog1
-      (setf *giskard-environment-service*
-            (make-instance 'roslisp:persistent-service
-              :service-name *giskard-environment-service-name*
-              :service-type 'giskard_msgs-srv:updateworld))
-    (roslisp:ros-info (gisk-env-service) "Giskard environment service client created.")))
+  (let (ready)
+    (loop repeat 12                     ; for one minute then give up
+          until (setf ready (roslisp:wait-for-service *giskard-environment-service-name* 5))
+          do (roslisp:ros-info (gisk-env-service) "Waiting for giskard environment service."))
+   (if ready
+       (prog1
+           (setf *giskard-environment-service*
+                 (make-instance 'roslisp:persistent-service
+                   :service-name *giskard-environment-service-name*
+                   :service-type 'giskard_msgs-srv:updateworld))
+         (roslisp:ros-info (gisk-env-service) "Giskard environment service client created."))
+       (progn
+         (roslisp:ros-error (gisk-env-service) "Giskard environment service doesn't reply. Ignoring.")
+         nil))))
 
 (defun get-giskard-environment-service ()
   (if (and *giskard-environment-service*
@@ -156,26 +162,29 @@
                                          &key name pose dimensions joint-state-topic)
 
   (ensure-giskard-environment-service-input-parameters)
-  (roslisp:with-fields (giskard_msgs-srv:error_msg)
-      (cpl:with-failure-handling
-          (((or simple-error roslisp:service-call-error) (e)
-             (format t "Service call error occured!~%~a~%Reinitializing...~%~%" e)
-             (destroy-giskard-environment-service)
-             (init-giskard-environment-service)
-             (let ((restart (find-restart 'roslisp:reconnect)))
-               (if restart
-                   (progn (roslisp:wait-duration 5.0)
-                          (invoke-restart 'roslisp:reconnect))
-                   (cpl:retry)))))
-        (roslisp:call-persistent-service
-         (get-giskard-environment-service)
-         (make-giskard-environment-request
-          add-or-remove-or-attach-or-detach
-          :name name
-          :pose pose
-          :dimensions dimensions
-          :joint-state-topic joint-state-topic)))
-    giskard_msgs-srv:error_msg))
+  (cpl:with-failure-handling
+      (((or simple-error roslisp:service-call-error) (e)
+         (format t "Service call error occured!~%~a~%Reinitializing...~%~%" e)
+         (destroy-giskard-environment-service)
+         (init-giskard-environment-service)
+         (let ((restart (find-restart 'roslisp:reconnect)))
+           (if restart
+               (progn (roslisp:wait-duration 5.0)
+                      (invoke-restart 'roslisp:reconnect))
+               (cpl:retry)))))
+    (let ((service (get-giskard-environment-service)))
+      (if service
+          (roslisp:msg-slot-value
+           (roslisp:call-persistent-service
+           service
+           (make-giskard-environment-request
+            add-or-remove-or-attach-or-detach
+            :name name
+            :pose pose
+            :dimensions dimensions
+            :joint-state-topic joint-state-topic))
+           'giskard_msgs-srv:error_msg)
+          nil))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;; EVENT HANDLERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
