@@ -37,9 +37,10 @@
 (defun make-giskard-cartesian-action-goal (left-pose right-pose
                                            pose-base-frame left-tool-frame right-tool-frame
                                            collision-mode
-                                           &optional
+                                           &key
                                              collision-object-b collision-object-b-link
-                                             collision-object-a)
+                                             collision-object-a
+                                             move-the-ass)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type string pose-base-frame left-tool-frame right-tool-frame))
   (roslisp:make-message
@@ -50,6 +51,32 @@
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
+              ;; THIS STUFF HAS A STATE
+              ;; RESET THE STATE EXPLICITLY IF YOU WANT A NON CART MOVEMENT AFTER THIS
+              :constraints
+              (vector (roslisp:make-message
+                       'giskard_msgs-msg:constraint
+                       :type
+                       "UpdateGodMap"
+                       :parameter_value_pair
+                       (let ((stream (make-string-output-stream)))
+                         (yason:encode
+                          (alexandria:alist-hash-table
+                           `(("updates"
+                              .
+                              ,(alexandria:alist-hash-table
+                                `(("rosparam"
+                                   .
+                                   ,(alexandria:alist-hash-table
+                                     `(("joint_weights"
+                                        .
+                                        ,(alexandria:alist-hash-table
+                                          `(("odom_x_joint" . ,(if move-the-ass 0.0001 1.0))
+                                            ("odom_y_joint" . ,(if move-the-ass 0.0001 1.0))
+                                            ("odom_z_joint" . ,(if move-the-ass 0.0001 1.0)))))))))
+                                :test #'equal))))
+                          stream)
+                         (get-output-stream-string stream))))
               :cartesian_constraints
               (map 'vector #'identity
                    (remove nil
@@ -134,14 +161,22 @@
                                                   `(and (rob-int:robot ?robot)
                                                         (rob-int:hand-links ?robot :right
                                                                             ?hand-links))))))))
-                          :body_b (roslisp-utilities:rosify-underscores-lisp-name
-                                   collision-object-b)
-                          :link_bs (if collision-object-b-link
-                                       (vector (roslisp-utilities:rosify-underscores-lisp-name
-                                                collision-object-b-link))
-                                       (vector (roslisp:symbol-code
-                                                'giskard_msgs-msg:collisionentry
-                                                :all))))))
+                          :body_b (if collision-object-b
+                                      (roslisp-utilities:rosify-underscores-lisp-name
+                                       collision-object-b)
+                                      (roslisp:symbol-code
+                                            'giskard_msgs-msg:collisionentry
+                                            :all))
+                          :link_bs (vector (roslisp:symbol-code
+                                            'giskard_msgs-msg:collisionentry
+                                            :all))
+                          ;; (if collision-object-b-link
+                          ;;     (vector (roslisp-utilities:rosify-underscores-lisp-name
+                          ;;              collision-object-b-link))
+                          ;;     (vector (roslisp:symbol-code
+                          ;;              'giskard_msgs-msg:collisionentry
+                          ;;              :all)))
+                          )))
                  ;; (apply #'vector
                  ;;        (roslisp:make-message
                  ;;         'giskard_msgs-msg:collisionentry
@@ -216,14 +251,17 @@
                    :type (roslisp:symbol-code
                           'giskard_msgs-msg:collisionentry
                           :allow_collision)
-                   :robot_links (vector (roslisp-utilities:rosify-underscores-lisp-name
-                                         collision-object-a)) ; collision-object-a = attached-obj
+                   :robot_links (if collision-object-a
+                                    (vector (roslisp-utilities:rosify-underscores-lisp-name
+                                             collision-object-a))
+                                    (vector (roslisp:symbol-code
+                                             'giskard_msgs-msg:collisionentry
+                                             :all))) ; collision-object-a = attached-obj
                    :body_b "kitchen";; (roslisp-utilities:rosify-underscores-lisp-name
                    ;;  collision-object-b-link)
                    :link_bs (if collision-object-b-link
-                                (vector
-                                 (roslisp-utilities:rosify-underscores-lisp-name
-                                  collision-object-b-link))
+                                (vector (roslisp-utilities:rosify-underscores-lisp-name
+                                         collision-object-b-link))
                                 (vector (roslisp:symbol-code
                                          'giskard_msgs-msg:collisionentry
                                          :all))))))
@@ -275,6 +313,7 @@
                                         goal-pose-left goal-pose-right action-timeout
                                         collision-mode collision-object-b collision-object-b-link
                                         collision-object-a
+                                        move-the-ass
                                         (pose-base-frame ;; cram-tf:*robot-base-frame*
                                          cram-tf:*odom-frame*)
                                         (left-tool-frame cram-tf:*robot-left-tool-frame*)
@@ -292,8 +331,11 @@
             (let ((goal (make-giskard-cartesian-action-goal
                          goal-pose-left goal-pose-right
                          pose-base-frame left-tool-frame right-tool-frame
-                         collision-mode collision-object-b collision-object-b-link
-                         collision-object-a)))
+                         collision-mode
+                         :collision-object-b collision-object-b
+                         :collision-object-b-link collision-object-b-link
+                         :collision-object-a collision-object-a
+                         :move-the-ass move-the-ass)))
               (actionlib-client:call-simple-action-client
                'giskard-action
                :action-goal goal
