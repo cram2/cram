@@ -269,7 +269,7 @@
     (when (btr:get-environment-object)
       (call-giskard-environment-service
        :add-environment
-       :name (symbol-name (btr:name (btr:get-environment-object)))
+       :name (roslisp-utilities:rosify-underscores-lisp-name (btr:name (btr:get-environment-object)))
        :pose (cl-transforms-stamped:pose->pose-stamped
               cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
        :joint-state-topic "kitchen/joint_states"))))
