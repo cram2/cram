@@ -79,7 +79,7 @@
     (lisp-pred typep ?designator desig:motion-designator)
     (member ?number-key (:effort :joint-angle))
     (property-member (?number-key ?value) ?designator)
-    (assert-type ?value number "MOTION SPEC:PROPERTY"))
+    (assert-type ?value (or keyword number) "MOTION SPEC:PROPERTY"))
 
   (<- (%property ?designator (?keyword-key ?value))
     (lisp-pred typep ?designator desig:motion-designator)

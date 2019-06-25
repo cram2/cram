@@ -54,25 +54,31 @@
 
 (defun ensure-torso-input-parameters (position)
   (declare (type (or keyword number) position))
-  (etypecase position
-    (number (cond
-              ((< position 0.02)
-               (roslisp:ros-warn
-                (torso-action)
-                "POSITION (~a) cannot be smaller than 0.02. Clipping."
-                position)
-               0.02)
-              ((> position 0.32)
-               (roslisp:ros-warn
-                (torso-action)
-                "POSITION (~a) shouldn't be bigger than 0.32. Clipping."
-                position)
-               0.32)
-              (t
-               position)))
-    (keyword (ecase position
-               (:up 0.32)
-               (:down 0.02)))))
+  (let* ((bindings
+           (car
+            (prolog:prolog
+             `(and (rob-int:robot ?robot)
+                   (btr:bullet-world ?w)
+                   (rob-int:robot-torso-link-joint ?robot ?_ ?joint)
+                   (rob-int:joint-lower-limit ?robot ?joint ?lower)
+                   (rob-int:joint-upper-limit ?robot ?joint ?upper)))))
+         (lower-limit
+           (+ (cut:var-value '?lower bindings) 0.01)) ; don't push the robot so hard
+         (upper-limit
+           (- (cut:var-value '?upper bindings) 0.01)) ; no don't do it
+         (cropped-joint-angle
+           (etypecase position
+             (number (if (< position lower-limit)
+                         lower-limit
+                         (if (> position upper-limit)
+                             upper-limit
+                             position)))
+             (keyword (ecase position
+                        (:upper-limit upper-limit)
+                        (:lower-limit lower-limit))))))
+    cropped-joint-angle))
+
+
 
 (defun ensure-giskard-torso-goal-reached (result status goal convergence-delta)
   (when (eql status :preempted)
@@ -95,7 +101,7 @@
 (defun call-giskard-torso-action (&key
                                     goal-joint-state action-timeout
                                     (convergence-delta *torso-convergence-delta-joint*))
-  (declare (type number goal-joint-state)
+  (declare (type (or number keyword) goal-joint-state)
            (type (or null number) action-timeout convergence-delta))
   (let ((goal-joint-state (ensure-torso-input-parameters goal-joint-state)))
     (multiple-value-bind (result status)
