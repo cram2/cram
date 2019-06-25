@@ -146,6 +146,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 
 (defun move-joint-by-event (event open-or-close)
+  (print event)
   (let* ((joint-name (cpoe:environment-event-joint-name event))
          (object (cpoe:environment-event-object event))
          (distance (cpoe:environment-event-distance event))
@@ -158,16 +159,22 @@ If there is no other method with 1 as qualifier, this method will be executed al
             current-opening
             distance))
          ;; sometimes there is a tiny floating point inaccuracy,
-         ;; which can cause out of joint limits exception, so we round the number up.
+         ;; which can cause out of joint limits exception, so we round the number.
          (new-joint-angle-rounded
-           (read-from-string
-            (format nil "~5$" new-joint-angle))))
+           (/ (funcall
+               (case open-or-close
+                 (:open #'ffloor)
+                 (:close #'fceiling))
+               new-joint-angle
+               0.0001)
+              10000)))
     (btr:set-robot-state-from-joints
      `((,joint-name
         ,new-joint-angle-rounded))
      object)))
 
 (defmethod cram-occasions-events:on-event open-container ((event cpoe:container-opening-event))
+  (print event)
   (move-joint-by-event event :open)
   (unless cram-projection:*projection-environment*
     (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event)))))
