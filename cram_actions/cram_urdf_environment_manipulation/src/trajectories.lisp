@@ -149,14 +149,15 @@ container with revolute joints."
              grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
       (list grasp-pose)
       traj-poses
-      (list (cram-tf:apply-transform
-             last-traj-pose
-             (cl-transforms-stamped:make-transform-stamped
-              (cl-transforms-stamped:child-frame-id last-traj-pose)
-              (cl-transforms-stamped:child-frame-id last-traj-pose)
-              (cl-transforms-stamped:stamp last-traj-pose)
-              (cl-transforms:make-3d-vector 0 0 -0.1)
-              (cl-transforms:make-identity-rotation))))))))
+      (when last-traj-pose
+        (list (cram-tf:apply-transform
+               last-traj-pose
+               (cl-transforms-stamped:make-transform-stamped
+                (cl-transforms-stamped:child-frame-id last-traj-pose)
+                (cl-transforms-stamped:child-frame-id last-traj-pose)
+                (cl-transforms-stamped:stamp last-traj-pose)
+                (cl-transforms:make-3d-vector 0 0 -0.1)
+                (cl-transforms:make-identity-rotation)))))))))
 
 
 (defun 3d-vector->keyparam-list (v)
