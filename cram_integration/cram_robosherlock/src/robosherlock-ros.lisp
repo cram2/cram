@@ -244,7 +244,7 @@
              (transform-stamped-in-base-frame
                (cram-tf:pose-stamped->transform-stamped
                 pose-stamped-in-base-frame
-                name))
+                (roslisp-utilities:rosify-underscores-lisp-name name)))
              (pose-stamped-in-map-frame
                (if cram-tf:*fixed-frame*
                    (cram-tf:ensure-pose-in-frame
@@ -255,7 +255,7 @@
              (transform-stamped-in-map-frame
                (cram-tf:pose-stamped->transform-stamped
                 pose-stamped-in-map-frame
-                name)))
+                (roslisp-utilities:rosify-underscores-lisp-name name))))
 
         (cram-tf:visualize-marker pose-stamped-in-whatever :r-g-b-list '(0 0 1) :id 1234)
 
