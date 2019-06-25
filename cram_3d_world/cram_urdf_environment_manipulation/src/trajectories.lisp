@@ -113,7 +113,7 @@ container with prismatic joints."
    (lambda (label transform)
      (man-int:make-traj-segment
       :label label
-      :poses (list (man-int:calculate-gripper-pose-in-base object-transform arm transform))))
+      :poses (list (man-int:calculate-gripper-pose-in-map object-transform arm transform))))
    `(:reaching
      :grasping
      ,action-type
@@ -137,7 +137,7 @@ container with revolute joints."
      (lambda (label transforms)
        (man-int:make-traj-segment
         :label label
-        :poses (mapcar (alexandria:curry #'man-int:calculate-gripper-pose-in-base
+        :poses (mapcar (alexandria:curry #'man-int:calculate-gripper-pose-in-map
                                          object-transform arm)
                        transforms)))
      `(:reaching

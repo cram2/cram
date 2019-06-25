@@ -66,6 +66,7 @@
    #:make-empty-trajectory
    #:get-traj-poses-by-label
    #:calculate-gripper-pose-in-base
+   #:calculate-gripper-pose-in-map
    ;;
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform
