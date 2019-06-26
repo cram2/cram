@@ -32,9 +32,11 @@
 (defun visualize-marker (pose/s &key
                                   (topic "visualization_marker")
                                   (r-g-b-list '(1 0 0))
+                                  (scale-list '(0.1 0.06 0.02))
                                   (marker-type :arrow)
                                   (id 1)
-                                  (in-frame cram-tf:*fixed-frame*))
+                                  (in-frame cram-tf:*fixed-frame*)
+                                  mesh-path)
   (declare (type (or cl-transforms:pose cl-transforms-stamped:pose-stamped list) pose/s)
            (type string topic)
            (type (or string null) in-frame)
@@ -44,35 +46,37 @@
            (if pose
                (let ((point (cl-transforms:origin pose))
                      (rot (cl-transforms:orientation pose)))
-                 (roslisp:publish (roslisp:advertise topic "visualization_msgs/Marker")
-                                  (roslisp:make-message "visualization_msgs/Marker"
-                                                        (std_msgs-msg:stamp header) (roslisp:ros-time)
-                                                        (std_msgs-msg:frame_id header)
-                                                        (typecase pose
-                                                          (cl-transforms-stamped:pose-stamped
-                                                           (cl-transforms-stamped:frame-id pose))
-                                                          (t (or in-frame cram-tf:*fixed-frame*)))
-                                                        ns "goal_locations"
-                                                        id id
-                                                        type (roslisp:symbol-code
-                                                              'visualization_msgs-msg:<marker>
-                                                              marker-type)
-                                                        action (roslisp:symbol-code
-                                                                'visualization_msgs-msg:<marker> :add)
-                                                        (x position pose) (cl-transforms:x point)
-                                                        (y position pose) (cl-transforms:y point)
-                                                        (z position pose) (cl-transforms:z point)
-                                                        (x orientation pose) (cl-transforms:x rot)
-                                                        (y orientation pose) (cl-transforms:y rot)
-                                                        (z orientation pose) (cl-transforms:z rot)
-                                                        (w orientation pose) (cl-transforms:w rot)
-                                                        (x scale) 0.1 ;0.05
-                                                        (y scale) 0.06 ;0.03
-                                                        (z scale) 0.02; 0.01
-                                                        (r color) (first r-g-b-list)
-                                                        (g color) (second r-g-b-list)
-                                                        (b color) (third r-g-b-list)
-                                                        (a color) 0.7)))
+                 (roslisp:publish
+                  (roslisp:advertise topic "visualization_msgs/Marker")
+                  (roslisp:make-message "visualization_msgs/Marker"
+                                        (std_msgs-msg:stamp header) (roslisp:ros-time)
+                                        (std_msgs-msg:frame_id header)
+                                        (typecase pose
+                                          (cl-transforms-stamped:pose-stamped
+                                           (cl-transforms-stamped:frame-id pose))
+                                          (t (or in-frame cram-tf:*fixed-frame*)))
+                                        ns "goal_locations"
+                                        id id
+                                        type (roslisp:symbol-code
+                                              'visualization_msgs-msg:<marker>
+                                              marker-type)
+                                        action (roslisp:symbol-code
+                                                'visualization_msgs-msg:<marker> :add)
+                                        (x position pose) (cl-transforms:x point)
+                                        (y position pose) (cl-transforms:y point)
+                                        (z position pose) (cl-transforms:z point)
+                                        (x orientation pose) (cl-transforms:x rot)
+                                        (y orientation pose) (cl-transforms:y rot)
+                                        (z orientation pose) (cl-transforms:z rot)
+                                        (w orientation pose) (cl-transforms:w rot)
+                                        (x scale) (first scale-list)
+                                        (y scale) (second scale-list)
+                                        (z scale) (third scale-list)
+                                        (r color) (first r-g-b-list)
+                                        (g color) (second r-g-b-list)
+                                        (b color) (third r-g-b-list)
+                                        (a color) 0.7
+                                        :mesh_resource (or mesh-path ""))))
                ;; (roslisp:ros-warn (ll visualize-marker) "asked to visualize a null pose")
                )))
     (if (listp pose/s)

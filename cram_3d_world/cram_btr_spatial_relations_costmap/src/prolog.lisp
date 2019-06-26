@@ -448,8 +448,8 @@
     (spec:property ?object (:part-of ?environment-name))
     (btr:bullet-world ?world)
     (btr:%object ?world ?environment-name ?environment-object)
-    (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?environment-link)
-    (lisp-pred identity ?environment-link)
+    (height-calculation-body-or-tag ?environment-object ?object
+                                    ?environment-link ?height-calculation-tag)
     (costmap:costmap ?costmap)
     (once (or (and (desig:desig-prop ?designator (:for ?for-object))
                    (btr-belief:object-designator-name ?for-object ?for-object-name)
@@ -459,8 +459,6 @@
                     (make-object-in-object-bounding-box-costmap-generator
                      ?environment-link ?for-object-instance)
                     ?costmap)
-                   (height-calculation-body-or-tag ?environment-object ?object ?environment-link
-                                                   ?height-calculation-tag)
                    (costmap:costmap-add-height-generator
                     (make-object-on/in-object-bb-height-generator
                      ?environment-link ?for-object-instance ?height-calculation-tag)
@@ -472,7 +470,7 @@
                     ?costmap)
                    (costmap:costmap-add-cached-height-generator
                     (make-object-bounding-box-height-generator
-                     ?environment-link :in)
+                     ?environment-link ?height-calculation-tag)
                     ?costmap))))
     (once (or (desig:desig-prop ?designator (:orientation ?orientation-type))
               (equal ?orientation-type :random)))

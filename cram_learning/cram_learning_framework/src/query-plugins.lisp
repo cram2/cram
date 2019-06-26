@@ -332,6 +332,26 @@ that is returned from the learning framework based on the location properties."
                  (json-prolog-simple-ralf
                   (format nil "finished_action(~(~a)~)." :fetching))
                  result)))
+            ((eql (desig:desig-prop-value designator :type) :sealing)
+             (let* ((location (desig:desig-prop-value designator :location))
+                    (some-object (desig:desig-prop-value location :in))
+                    (object (desig:current-desig some-object))
+                    (object-type (desig:desig-prop-value object :type))
+                    (object-name (desig:desig-prop-value object :urdf-name))
+                    (env-name (desig:desig-prop-value object :part-of))
+                    (transforms (get-environment-object-transforms object-name env-name))
+                    (object-transform-in-base (second transforms))
+                    (object-transform-in-map (first transforms))
+                    (arm (desig:desig-prop-value designator :arm)))
+               (json-prolog-simple-ralf
+                (format nil "performing_action(~(~a, ~a, ~a, ~a, ~a, ~s)~)."
+                        :delivering object-type object-name
+                        (serialize-transform object-transform-in-base)
+                        (serialize-transform object-transform-in-map) (or arm "left")))
+               (let ((result (call-next-method)))
+                 (json-prolog-simple-ralf
+                  (format nil "finished_action(~(~a)~)." :delivering))
+                 result)))
             ((eql (desig:desig-prop-value designator :type) :delivering)
              (let* ((some-object (desig:desig-prop-value designator :object))
                     (object (desig:current-desig some-object))

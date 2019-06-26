@@ -96,7 +96,7 @@ after each iteration of the retry."
   the current solution of `designator'."
   (declare (type desig:location-designator designator))
   (desig:next-filtered-designator-solution
-   designator (cram-tf:make-euclidean-distance-filter
+   designator (cram-tf:make-euclidean-or-angular-distance-filter
                (desig:reference designator)
                distance-threshold)))
 
