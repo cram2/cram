@@ -175,9 +175,11 @@ in a value of 1.0"
             (occupancy-grid-put-mask col row result-grid padding-mask :coords-raw-p t))))
       (make-occupancy-grid-cost-function result-grid :invert invert))))
 
-(defun rotate-point (x y sin-theta cos-theta rotation-point-x rotation-point-y)
+(defun rotate-point (x y sin-theta cos-theta &optional rotation-point-x rotation-point-y)
   (let ((x-translated (- x rotation-point-x))
         (y-translated (- y rotation-point-y)))
+    ;; the rotation is done with a standard rotation matrix
+    ;; https://en.wikipedia.org/wiki/Rotation_matrix#In_two_dimensions
     (list
      (+ ;; Add rotation-point-x again back
       (- (* x-translated cos-theta) (* y-translated sin-theta)) ;; calculate rotation for x
@@ -282,6 +284,7 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                                             (fourth new-x-and-y)
                                             x-coordinate-maybe-rotated-mid
                                             (second new-x-and-y))
+                                       ;; check if the rotated points are out-of-bounds
                                       (when (or (< y-coordinate-maybe-rotated destination-origin-y)
                                                 (>= y-coordinate-maybe-rotated destination-end-y)
                                                 (< x-coordinate-maybe-rotated destination-origin-x)
@@ -292,6 +295,9 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                                                 (>= x-coordinate-maybe-rotated-mid destination-end-x))
                                         (continue))))
 
+                                   ;; Get the indices from the input matrix to get the value
+                                   ;; Get the corresponding indices from the maybe rotated point
+                                   ;; in the output-matrix to put the value from the input matrix in
                                    (let ((y-input-index
                                            (map-coordinate->array-index
                                             y-coordinate resolution origin-y))
@@ -315,6 +321,8 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                                             x-coordinate-maybe-rotated-mid
                                             (resolution costmap-metadata) destination-origin-x)))
 
+                                     ;; Save the value from the rotated input-matrix in the
+                                     ;; corresponding field in the output-matrix.
                                      (setf (aref empty-output-matrix
                                                  y-destination-index x-destination-index)
                                            (aref matrix
