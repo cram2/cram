@@ -243,7 +243,7 @@ environment, in which it can be found, respectively."
          (manipulated-handle-pose
            (get-manipulated-pose
             (cl-urdf:name handle-link)
-            0.7
+            0.8
             btr-environment
             :relative T))
          (neutral-handle-pos-2d

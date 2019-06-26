@@ -176,10 +176,12 @@ NAME in the environment BTR-ENVIRONMENT."
               (let* ((rotation
                        (cl-transforms:axis-angle->quaternion
                         (cl-transforms:make-3d-vector 0 0 1) ;; might be some other axis
-                        (if relative
-                            (* joint-position
-                               (cl-urdf:upper (cl-urdf:limits joint)))
-                            joint-position)))
+                        (-
+                         (if relative
+                             (* joint-position
+                                (cl-urdf:upper (cl-urdf:limits joint)))
+                             joint-position)
+                         (get-joint-position joint btr-environment))))
                      (link-transform
                        (cl-transforms:pose->transform
                         (get-urdf-link-pose link-name btr-environment)))
