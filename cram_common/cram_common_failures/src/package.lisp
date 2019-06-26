@@ -70,6 +70,7 @@
    #:perception-low-level-failure
    #:perception-object-not-found
    #:object-not-found-object
+   #:perception-object-not-in-world
    ;; ptu
    #:ptu-low-level-failure
    #:ptu-goal-unreachable

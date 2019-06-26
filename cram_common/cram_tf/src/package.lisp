@@ -33,42 +33,45 @@
   (:use #:cl #:desig #:cut #:prolog
         #:cl-transforms-stamped #:cl-transforms
         #:cram-robot-interfaces)
-  (:export #:make-euclidean-distance-filter
-           ;; tf-broadcaster
-           #:make-tf-broadcaster #:add-transform #:remove-transform #:publish-transforms
-           #:start-publishing-transforms #:stop-publishing-transforms
-           ;; utilities
-           #:poses-equal-p
-           #:frame-to-pose-in-fixed-frame
-           #:pose->flat-list #:pose->flat-list-w-first
-           #:pose->list
-           #:flat-list->pose #:flat-list->transform #:flat-list-w-first->pose
-           #:list->pose
-           #:ensure-pose-in-frame #:ensure-point-in-frame
-           #:translate-pose #:rotate-pose
-           #:rotate-pose-in-own-frame #:rotate-transform-in-own-frame
-           #:tf-frame-converged
-           #:pose->transform-stamped #:transform->pose-stamped
-           #:transform-stamped-inv
-           #:multiply-transform-stampeds
-           #:strip-transform-stamped
-           #:copy-transform-stamped
-           #:translate-transform-stamped
-           #:pose-stamped->transform-stamped
-           #:apply-transform
-           #:values-converged
-           ;; prolog facts
-           #:pose #:pose-stamped #:position #:orientation #:poses-equal
-           #:location-pose
-           ;; robot current pose
-           #:robot-current-pose
-           ;; setup
-           #:*transformer*
-           #:*tf-default-timeout*
-           #:*fixed-frame* #:*robot-base-frame* #:*odom-frame*
-           #:*robot-torso-frame* #:*robot-torso-joint*
-           #:*robot-left-tool-frame* #:*robot-right-tool-frame*
-           #:*broadcaster*
-           *tf-broadcasting-enabled* *tf-broadcasting-topic* *tf-broadcasting-interval*
-           ;; visualization
-           #:visualize-marker))
+  (:export
+   ;; designator-filters
+   #:make-euclidean-distance-filter
+   #:make-euclidean-or-angular-distance-filter
+   ;; tf-broadcaster
+   #:make-tf-broadcaster #:add-transform #:remove-transform #:publish-transforms
+   #:start-publishing-transforms #:stop-publishing-transforms
+   ;; utilities
+   #:poses-equal-p
+   #:frame-to-pose-in-fixed-frame
+   #:pose->flat-list #:pose->flat-list-w-first
+   #:pose->list
+   #:flat-list->pose #:flat-list->transform #:flat-list-w-first->pose
+   #:list->pose
+   #:ensure-pose-in-frame #:ensure-point-in-frame
+   #:translate-pose #:rotate-pose
+   #:rotate-pose-in-own-frame #:rotate-transform-in-own-frame
+   #:tf-frame-converged
+   #:pose->transform-stamped #:transform->pose-stamped
+   #:transform-stamped-inv
+   #:multiply-transform-stampeds
+   #:strip-transform-stamped
+   #:copy-transform-stamped
+   #:translate-transform-stamped
+   #:pose-stamped->transform-stamped
+   #:apply-transform
+   #:values-converged
+   ;; prolog facts
+   #:pose #:pose-stamped #:position #:orientation #:poses-equal
+   #:location-pose
+   ;; robot current pose
+   #:robot-current-pose
+   ;; setup
+   #:*transformer*
+   #:*tf-default-timeout*
+   #:*fixed-frame* #:*robot-base-frame* #:*odom-frame*
+   #:*robot-torso-frame* #:*robot-torso-joint*
+   #:*robot-left-tool-frame* #:*robot-right-tool-frame*
+   #:*broadcaster*
+   *tf-broadcasting-enabled* *tf-broadcasting-topic* *tf-broadcasting-interval*
+   ;; visualization
+   #:visualize-marker))

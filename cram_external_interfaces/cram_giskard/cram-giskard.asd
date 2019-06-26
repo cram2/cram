@@ -46,6 +46,7 @@
                cram-bullet-reasoning ; also for updating giskard collision scene
                cram-bullet-reasoning-belief-state ; for *kitchen-parameter*
                cram-joint-states ; for joint-interface to send current joint state
+               cram-simple-actionlib-client
                giskard_msgs-msg
                giskard_msgs-srv)
   :components

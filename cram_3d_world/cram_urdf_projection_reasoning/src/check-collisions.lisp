@@ -30,7 +30,7 @@
 
 (in-package :proj-reasoning)
 
-(defparameter *projection-checks-enabled* nil)
+(defparameter *projection-checks-enabled* t)
 
 (defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 30))
   (declare (type desig:location-designator navigation-location-desig))
@@ -117,6 +117,7 @@ Store found pose into designator or throw error if good pose not found."
                    (((or common-fail:manipulation-pose-unreachable
                          common-fail:manipulation-goal-in-collision) (e)
                       (declare (ignore e))
+                      (urdf-proj::move-torso :upper-limit)
                       (cpl:do-retry pick-up-configuration-retries
                         (setf pick-up-action-desig
                               (desig:next-solution pick-up-action-desig))
@@ -167,7 +168,7 @@ Store found pose into designator or throw error if good pose not found."
                                      grasp object-name arm)
 
                    (mapcar
-                    (lambda (left-poses right-poses)
+                    (lambda (left-poses right-poses collision-flag)
                       (multiple-value-bind (left-poses right-poses)
                           (cut:equalize-two-list-lengths left-poses right-poses)
                         (dotimes (i (length left-poses))
@@ -175,15 +176,18 @@ Store found pose into designator or throw error if good pose not found."
                                                :allow-all)
                           (unless (< (abs urdf-proj::*debug-short-sleep-duration*) 0.0001)
                             (cpl:sleep urdf-proj::*debug-short-sleep-duration*))
-                          (when (remove object-name
-                                        (btr:robot-colliding-objects-without-attached))
+                          (when ;; (remove object-name
+                              ;;         (btr:robot-colliding-objects-without-attached))
+                              (urdf-proj::perform-collision-check
+                               collision-flag (nth i left-poses) (nth i right-poses))
                             (roslisp:ros-warn (coll-check pick)
                                               "Robot is in collision with environment.")
                             (cpl:sleep urdf-proj::*debug-long-sleep-duration*)
                             (btr::restore-world-state world-state world)
                             (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
                     (list left-reach-poses left-grasp-poses left-lift-poses)
-                    (list right-reach-poses right-grasp-poses right-lift-poses))))))
+                    (list right-reach-poses right-grasp-poses right-lift-poses)
+                    (list :avoid-all :allow-hand :avoid-all))))))
         (btr::restore-world-state world-state world)))))
 
 
@@ -367,7 +371,7 @@ Store found pose into designator or throw error if good pose not found."
                              (cut:equalize-two-list-lengths left-poses right-poses)
                            (dotimes (i (length left-poses))
                              (urdf-proj::move-tcp (nth i left-poses) (nth i right-poses)
-                                                 :allow-all)
+                                                  :allow-all)
                              (unless (< (abs urdf-proj:*debug-short-sleep-duration*) 0.0001)
                                (cpl:sleep urdf-proj:*debug-short-sleep-duration*)))))
                        (list left-poses-1 left-poses-2 left-poses-3 left-poses-4)

@@ -41,7 +41,7 @@
     (<- (costmap:costmap-origin -6 -6))
     (<- (costmap:costmap-resolution 0.04))
     (<- (costmap:orientation-samples 2))
-    (<- (costmap:orientation-sample-step 0.1)))
+    (<- (costmap:orientation-sample-step 0.3)))
 
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")

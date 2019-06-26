@@ -271,7 +271,8 @@ quaternions to face from `pos1' to `pos2'."
 from pos1 to pos2 and the one facing from (X,Y) to target-pos."
   (let ((pos-direction (point-to-point-direction 0 0 pos1 pos2))
         (target-direction (costmap::angle-to-point-direction x y target-pos)))
-    (/ (+ pos-direction target-direction) 2)))
+    (/ (+ pos-direction target-direction) 4;; 2
+       )))
 
 (defun make-angle-halfway-to-point-generator (pos1 pos2 target-pos &key (samples 1) sample-step)
   "Returns a function that takes an X and Y coordinate and returns a lazy-list of
