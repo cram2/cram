@@ -175,28 +175,15 @@ in a value of 1.0"
             (occupancy-grid-put-mask col row result-grid padding-mask :coords-raw-p t))))
       (make-occupancy-grid-cost-function result-grid :invert invert))))
 
-(defun rotate-point (x y sin-theta cos-theta &optional rotation-point-x rotation-point-y)
-  (let ((x-translated (- x rotation-point-x))
-        (y-translated (- y rotation-point-y)))
-    ;; the rotation is done with a standard rotation matrix
-    ;; https://en.wikipedia.org/wiki/Rotation_matrix#In_two_dimensions
-    (list
-     (+ ;; Add rotation-point-x again back
-      (- (* x-translated cos-theta) (* y-translated sin-theta)) ;; calculate rotation for x
-      rotation-point-x)
-     (+ ;; Add rotation-point-y again back
-      (+ (* x-translated sin-theta) (* y-translated cos-theta)) ;; calculate rotation for y
-      rotation-point-y))))
-
-(defun rotate-point-around-another-point (x x-mid y y-mid sin-theta cos-theta
+(defun rotate-point-around-another-point (x y sin-theta cos-theta
                                           rotation-point-x rotation-point-y)
-  (let* ((rotated-point     (rotate-point x y sin-theta cos-theta rotation-point-x rotation-point-y))
-         (rotated-point-mid (rotate-point x-mid y-mid sin-theta cos-theta rotation-point-x rotation-point-y))
-         (rotated-x (first rotated-point))
-         (rotated-y (second rotated-point))
-         (rotated-x-mid (first rotated-point-mid))
-         (rotated-y-mid (second rotated-point-mid)))
-    (list rotated-x rotated-x-mid rotated-y rotated-y-mid)))
+  (let* ((x-translated (- x rotation-point-x))
+         (y-translated (- y rotation-point-y))
+         (x-rotated (- (* x-translated cos-theta) (* y-translated sin-theta)))
+         (y-rotated (+ (* x-translated sin-theta) (* y-translated cos-theta)))
+         (x-translated-back (+ x-rotated rotation-point-x))
+         (y-translated-back (+ y-rotated rotation-point-y)))
+    (list x-translated-back y-translated-back)))
 
 (defun make-matrix-cost-function (origin-x origin-y resolution matrix &optional theta)
   "Creates a cost function which has two arguments: the `costmap-metadata' and `output-matrix'.
@@ -263,36 +250,23 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                      do (loop for x-coordinate
                               from start-x below (- end-x 0.000001) by (resolution costmap-metadata)
                               do (let ((y-coordinate-maybe-rotated y-coordinate)
-                                       (x-coordinate-maybe-rotated x-coordinate)
-                                       (y-coordinate-maybe-rotated-mid (+ y-coordinate (/ (resolution costmap-metadata) 2)))
-                                       (x-coordinate-maybe-rotated-mid (+ x-coordinate (/ (resolution costmap-metadata) 2))))
+                                       (x-coordinate-maybe-rotated x-coordinate))
                                    (when theta
                                      (let ((new-x-and-y
                                              (rotate-point-around-another-point
-                                              x-coordinate x-coordinate-maybe-rotated-mid
-                                              y-coordinate y-coordinate-maybe-rotated-mid
-                                              sin-theta cos-theta
+                                              x-coordinate y-coordinate sin-theta cos-theta
                                               (+ origin-x
                                                  (* (/ (cma:width matrix) 2.0) resolution))
                                               (+ origin-y
                                                  (* (/ (cma:height matrix) 2.0) resolution)))))
                                       (setf y-coordinate-maybe-rotated
-                                            (third new-x-and-y)
+                                            (second new-x-and-y)
                                             x-coordinate-maybe-rotated
-                                            (first new-x-and-y)
-                                            y-coordinate-maybe-rotated-mid
-                                            (fourth new-x-and-y)
-                                            x-coordinate-maybe-rotated-mid
-                                            (second new-x-and-y))
-                                       ;; check if the rotated points are out-of-bounds
+                                            (first new-x-and-y))
                                       (when (or (< y-coordinate-maybe-rotated destination-origin-y)
                                                 (>= y-coordinate-maybe-rotated destination-end-y)
                                                 (< x-coordinate-maybe-rotated destination-origin-x)
-                                                (>= x-coordinate-maybe-rotated destination-end-x)
-                                                (< y-coordinate-maybe-rotated-mid destination-origin-y)
-                                                (>= y-coordinate-maybe-rotated-mid destination-end-y)
-                                                (< x-coordinate-maybe-rotated-mid destination-origin-x)
-                                                (>= x-coordinate-maybe-rotated-mid destination-end-x))
+                                                (>= x-coordinate-maybe-rotated destination-end-x))
                                         (continue))))
 
                                    ;; Get the indices from the input matrix to get the value
@@ -311,14 +285,6 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                                          (x-destination-index
                                            (map-coordinate->array-index
                                             x-coordinate-maybe-rotated
-                                            (resolution costmap-metadata) destination-origin-x))
-                                         (y-destination-index-mid
-                                           (map-coordinate->array-index
-                                            y-coordinate-maybe-rotated-mid
-                                            (resolution costmap-metadata) destination-origin-y))
-                                         (x-destination-index-mid
-                                           (map-coordinate->array-index
-                                            x-coordinate-maybe-rotated-mid
                                             (resolution costmap-metadata) destination-origin-x)))
 
                                      ;; Save the value from the rotated input-matrix in the
@@ -326,12 +292,7 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                                      (setf (aref empty-output-matrix
                                                  y-destination-index x-destination-index)
                                            (aref matrix
-                                                 y-input-index x-input-index)
-                                           (aref empty-output-matrix
-                                                 y-destination-index-mid x-destination-index-mid)
-                                           (aref matrix
                                                  y-input-index x-input-index)))))
-
                      finally (return (cma:m+ output-matrix empty-output-matrix)))))))
     (make-instance 'map-costmap-generator
       :generator-function #'generator)))
