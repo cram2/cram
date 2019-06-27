@@ -319,3 +319,17 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
         (btr:object *current-bullet-world* object-to-detach-from-name)
       (when (and obj-found other-obj-found)
         (detach-object obj other-obj)))))
+
+(defmethod respawn-object-as-dynamic ((object object))
+  (let* ((world (world object))
+         (world-state (get-state world)))
+    (loop for rigid-body in (rigid-bodies object)
+          for rigid-body-name = (name rigid-body)
+          for body = (find rigid-body-name
+                           (bodies world)
+                           :key 'name)
+          for body-state = (find rigid-body-name
+                                 (bodies world-state)
+                                 :key 'name)
+          when (and body body-state)
+            do (bullet:respawn-rigid-body-with-flags body world nil))))

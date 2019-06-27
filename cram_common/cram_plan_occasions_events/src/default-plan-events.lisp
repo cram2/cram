@@ -110,6 +110,13 @@
 
 (defclass object-detached-object (object-connection-event) ())
 
+(defclass object-placed-event (object-connection-event)
+  ((object-name
+    :documentation "The name of the object that is placed."
+    :initarg :object-name :reader event-object-name
+    :initform (error 'simple-error
+                     :format-control "OBJECT-PLACED-EVENT event requires an OBJECT-NAME."))))
+
 ;; (defclass object-articulation-event (event)
 ;;   ((object-designator
 ;;     :initarg :object-designator :reader event-object-designator

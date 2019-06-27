@@ -184,4 +184,5 @@
    get-state world-state
    restore-world-state
    restore-state
-   copy-world))
+   copy-world
+   #:respawn-rigid-body-with-flags))

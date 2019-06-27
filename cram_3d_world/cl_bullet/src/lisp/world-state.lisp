@@ -241,3 +241,42 @@ world."
   (let ((constraint (make-motor-constraint 'slider-constraint world constraint)))
     (add-constraint world constraint)
     constraint))
+
+(defun respawn-rigid-body-with-flags (body world new-collision-flags)
+  "Creates a new `rigid-body-state' from the existing, with the
+given `new-collision-flags' as collision-flags. Then removes the current `rigid-body'
+and uses the new rigid-body-state to respawn it. Since rigid-body-state
+instances are not meant to be changed, we need this cloning procedure."
+  (let ((body-state (find (name body)
+                          (bodies (get-state world))
+                          :key 'name)))
+    (when body-state
+      (with-slots (name
+                   mass
+                   pose
+                   force torque
+                   linear-velocity
+                   angular-velocity
+                   activation-state
+                   collision-flags
+                   collision-shape
+                   collision-group
+                   collision-mask) body-state
+        (let ((new-body-state
+                (make-instance 'rigid-body-state
+                               :name name
+                               :mass mass
+                               :pose pose
+                               :force force
+                               :torque torque
+                               :linear-velocity linear-velocity
+                               :angular-velocity angular-velocity
+                               :activation-state activation-state
+                               :collision-flags new-collision-flags
+                               :collision-shape collision-shape
+                               :collision-group collision-group
+                               :collision-mask collision-mask)))
+          (with-world-locked world
+            (remove-rigid-body world body)
+            (restore-state new-body-state world))))))
+        world)

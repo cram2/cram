@@ -180,7 +180,7 @@ Otherwise, the attachment is only used as information but does not affect the wo
                                 collecting (make-collision-information
                                             :rigid-body-name (name body)
                                             :flags (collision-flags body))
-                                do (setf (collision-flags body) :cf-kinematic-object))))
+                                do (setf (collision-flags body) :cf-static-object))))
                    attached-objects))))))
 
 (defmethod detach-object ((robot-object robot-object) (object object) &key link)
@@ -189,9 +189,8 @@ If `link' is specified, detaches `object' only from
   `link'. Otherwise, detaches `object' from all links."
   (flet ((reset-collision-information (object collision-information)
            (loop for collision-data in collision-information
-                 for body = (rigid-body
-                             object (collision-information-rigid-body-name
-                                     collision-data))
+                 for body = (rigid-body object
+                                        (collision-information-rigid-body-name collision-data))
                  do (setf (collision-flags body)
                           (collision-information-flags collision-data)))))
     (with-slots (attached-objects) robot-object

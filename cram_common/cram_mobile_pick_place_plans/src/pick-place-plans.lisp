@@ -203,7 +203,10 @@
      (desig:an action
                (type retracting)
                (left-poses ?left-retract-poses)
-               (right-poses ?right-retract-poses)))))
+               (right-poses ?right-retract-poses))))
+  (cram-occasions-events:on-event
+   (make-instance 'cpoe:object-placed-event
+     :object-name (desig:desig-prop-value ?object-designator :name))))
 
 
 ;; (defun perform-phases-in-sequence (action-designator)

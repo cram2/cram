@@ -87,6 +87,7 @@
            ros-household-object execute open close ;; reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects
+           #:respawn-object-as-dynamic
            item-dimensions
            add-objects-to-mesh-list
            make-joint-state-message open-object close-object
