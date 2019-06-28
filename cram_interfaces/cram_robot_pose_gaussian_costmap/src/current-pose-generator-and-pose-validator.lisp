@@ -30,18 +30,18 @@
 (in-package :gaussian-costmap)
 
 (defun robot-current-pose-tf-generator (desig)
-  (when (or (cram-robot-interfaces:reachability-designator-p desig)
-            (cram-robot-interfaces:visibility-designator-p desig))
-    (when cram-tf:*transformer*
-      (handler-case
-          (list (cram-tf:robot-current-pose))
-        (cl-transforms-stamped:transform-stamped-error () nil)))))
+  nil;; (when (or (cram-robot-interfaces:reachability-designator-p desig)
+  ;;           (cram-robot-interfaces:visibility-designator-p desig))
+  ;;   (when cram-tf:*transformer*
+  ;;     (handler-case
+  ;;         (list (cram-tf:robot-current-pose))
+  ;;       (cl-transforms-stamped:transform-stamped-error () nil))))
+  )
 
 (desig:register-location-generator
  3 robot-current-pose-tf-generator
  "We should move the robot only if we really need to move. Try the
  current robot pose as a first solution.")
-
 
 (defun robot-location-on-floor (designator pose)
   (cond ((not (or (cram-robot-interfaces:reachability-designator-p designator)

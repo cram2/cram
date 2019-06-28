@@ -139,7 +139,8 @@
                                (:joint-name ?joint-name)
                                (:link-name ?handle-link)
                                (:environment ?environment-obj)
-                               (:environment-name ?environment-name))
+                               (:environment-name ?environment-name)
+                               (:container-object ?container-designator))
                       ?referenced-action-designator))
 
 
@@ -251,5 +252,6 @@
                                (:joint-name ?joint-name)
                                (:link-name ?handle-link)
                                (:environment ?environment-obj)
-                               (:environment-name ?environment-name))
+                               (:environment-name ?environment-name)
+                               (:container-object ?container-designator))
                       ?referenced-action-designator)))

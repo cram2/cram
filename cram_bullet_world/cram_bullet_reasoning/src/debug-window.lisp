@@ -37,7 +37,7 @@
 (defvar *vis-axis-x* nil "The X axis of an object for visualizing poses.")
 (defvar *vis-axis-y* nil "The Y axis of an object for visualizing poses.")
 (defvar *vis-axis-z* nil "The Z axis of an object for visualizing poses.")
-(defparameter *costmap-z* 0.0)
+(defparameter *costmap-z* 0.8)
 (defparameter *costmap-tilt* (cl-transforms:make-quaternion 0 0 0 1))
 
 (defun add-debug-window (world)

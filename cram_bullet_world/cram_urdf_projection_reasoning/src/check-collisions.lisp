@@ -30,9 +30,9 @@
 
 (in-package :proj-reasoning)
 
-(defparameter *projection-checks-enabled* t)
+(defparameter *projection-checks-enabled* nil)
 
-(defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 30))
+(defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 5))
   (declare (type desig:location-designator navigation-location-desig))
   "Store current world state and in the current world try to go to different
 poses that satisfy `navigation-location-desig'.
@@ -40,7 +40,7 @@ If chosen pose results in collisions, choose another pose.
 Repeat `navigation-location-samples' + 1 times.
 Store found pose into designator or throw error if good pose not found."
 
-  (when *projection-checks-enabled*
+  (when t ;; *projection-checks-enabled*
     (let* ((world btr:*current-bullet-world*)
            (world-state (btr::get-state world)))
       (unwind-protect
@@ -280,33 +280,34 @@ Store found pose into designator or throw error if good pose not found."
 
 
 (defun check-placing-pose-stability (object-desig placing-location)
-  (let* ((placing-pose
-           (desig:reference placing-location))
-         (world
-           btr:*current-bullet-world*)
-         (world-state
-           (btr::get-state world))
-         (bullet-object-type
-           (desig:desig-prop-value object-desig :type))
-         (new-btr-object
-           (btr-utils:spawn-object
-            (gensym "obj") bullet-object-type :pose placing-pose)))
-    (unwind-protect
-         (progn
-           (setf (btr:pose new-btr-object) placing-pose)
-           (cpl:sleep urdf-proj::*debug-short-sleep-duration*)
-           (btr:simulate btr:*current-bullet-world* 500)
-           (btr:simulate btr:*current-bullet-world* 100)
-           (let* ((new-pose
-                    (btr:pose new-btr-object))
-                  (distance-new-pose-and-place-pose
-                    (cl-tf:v-dist
-                     (cl-transforms:origin new-pose)
-                     (cl-transforms:origin placing-pose))))
-             (when (> distance-new-pose-and-place-pose 0.2)
-               (cpl:fail 'common-fail:high-level-failure
-                         :description "Pose unstable."))))
-      (btr::restore-world-state world-state world))))
+  (when *projection-checks-enabled*
+    (let* ((placing-pose
+             (desig:reference placing-location))
+           (world
+             btr:*current-bullet-world*)
+           (world-state
+             (btr::get-state world))
+           (bullet-object-type
+             (desig:desig-prop-value object-desig :type))
+           (new-btr-object
+             (btr-utils:spawn-object
+              (gensym "obj") bullet-object-type :pose placing-pose)))
+      (unwind-protect
+           (progn
+             (setf (btr:pose new-btr-object) placing-pose)
+             (cpl:sleep urdf-proj::*debug-short-sleep-duration*)
+             (btr:simulate btr:*current-bullet-world* 500)
+             (btr:simulate btr:*current-bullet-world* 100)
+             (let* ((new-pose
+                      (btr:pose new-btr-object))
+                    (distance-new-pose-and-place-pose
+                      (cl-tf:v-dist
+                       (cl-transforms:origin new-pose)
+                       (cl-transforms:origin placing-pose))))
+               (when (> distance-new-pose-and-place-pose 0.2)
+                 (cpl:fail 'common-fail:high-level-failure
+                           :description "Pose unstable."))))
+        (btr::restore-world-state world-state world)))))
 
 
 

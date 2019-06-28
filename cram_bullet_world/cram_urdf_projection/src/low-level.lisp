@@ -97,7 +97,8 @@
                           joint-angle))
                (ecase joint-angle
                  (:upper-limit upper-limit)
-                 (:lower-limit lower-limit)))))
+                 (:lower-limit lower-limit)
+                 (:middle (/ (- upper-limit lower-limit) 2))))))
     (prolog:prolog
      `(btr:assert (btr:joint-state ?w ?robot ((?joint ,cropped-joint-angle))))
      bindings)
@@ -714,6 +715,10 @@ with the object, calculates similar angle around Y axis and applies the rotation
   (declare (ignore collision-object-b collision-object-b-link collision-object-a))
 
   (cram-tf:visualize-marker (list left-tcp-pose right-tcp-pose) :r-g-b-list '(1 0 1))
+  (btr:add-vis-axis-object (or left-tcp-pose right-tcp-pose))
+  (cpl:sleep 0.5)
+  (btr:add-vis-axis-object  (cl-transforms:make-pose (cl-transforms:make-3d-vector 0 0 -3)
+                                                     (cl-transforms:make-identity-rotation)))
   (cut:with-vars-strictly-bound (?robot
                                  ?left-tool-frame ?right-tool-frame
                                  ?left-ee-frame ?right-ee-frame
