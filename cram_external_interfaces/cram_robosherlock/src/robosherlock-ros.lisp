@@ -210,6 +210,8 @@
   ;; (when (and (find :color rs-answer :key #'car) ; <- COLOR comes from original query
   ;;            (find :color keyword-key-value-pairs-list :key #'car))
   ;;   (setf rs-answer (remove :color rs-answer :key #'car)))
+  (setf rs-answer (remove :color rs-answer :key #'car)) ; <- if we don't do this
+                                                        ; might end up asking about mutliple colors
   (setf rs-answer (remove :shape rs-answer :key #'car)); <- SHAPE comes from original query
   ;; (when (and (find :pose rs-answer :key #'car)
   ;;            (find :pose keyword-key-value-pairs-list :key #'car))

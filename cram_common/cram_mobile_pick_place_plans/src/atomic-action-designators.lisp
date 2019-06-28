@@ -42,6 +42,12 @@
 
 
 
+  (<- (desig:action-grounding ?action-designator (go-with-torso ?action-designator))
+    (spec:property ?action-designator (:type :moving-torso))
+    (spec:property ?action-designator (:joint-angle ?_)))
+
+
+
   (<- (desig:action-grounding ?action-designator (perceive ?action-designator))
     (spec:property ?action-designator (:type :detecting))
     (spec:property ?action-designator (:object ?_)))
@@ -86,14 +92,25 @@
                                         (:collision-object-b-link ?object-link))
                                ?resolved-action-designator))
         (and (spec:property ?action-designator (:type :pulling))
-             (desig:designator :action ((:type ?action-type)
-                                        (:left-poses ?left-poses)
-                                        (:right-poses ?right-poses)
-                                        (:collision-mode :allow-hand)
-                                        (:collision-object-b ?object-name)
-                                        (:collision-object-b-link ?object-link)
-                                        (:move-the-ass t))
-                               ?resolved-action-designator))))
+             (spec:property ?action-designator (:container-object ?container-designator))
+             (spec:property ?container-designator (:type ?container-type))
+             (or (and (man-int:object-type-subtype :container-prismatic ?container-type)
+                      (desig:designator :action ((:type ?action-type)
+                                                 (:left-poses ?left-poses)
+                                                 (:right-poses ?right-poses)
+                                                 (:collision-mode :allow-hand)
+                                                 (:collision-object-b ?object-name)
+                                                 (:collision-object-b-link ?object-link)
+                                                 (:move-the-ass t))
+                                        ?resolved-action-designator))
+                 (desig:designator :action ((:type ?action-type)
+                                            (:left-poses ?left-poses)
+                                            (:right-poses ?right-poses)
+                                            (:collision-mode :allow-hand)
+                                            (:collision-object-b ?object-name)
+                                            (:collision-object-b-link ?object-link)
+                                            (:move-the-ass nil))
+                                   ?resolved-action-designator)))))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
@@ -116,7 +133,8 @@
     (desig:designator :action ((:type :putting)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :allow-attached)
+                               (:collision-mode :allow-all;; :allow-attached
+                                                )
                                (:collision-object-b ?other-object-name)
                                (:collision-object-b-link ?object-link)
                                (:collision-object-a ?object-name))
