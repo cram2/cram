@@ -30,6 +30,11 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
+(defparameter *simulated-perception-noise-factor* 0.0
+  "Gives the maximum distance where the simulated perception noise can move an object.
+Eg. A value 0.1 means the perceived object can be moved around upto 0.1 meters in a simulated
+perception noise. 0 Means no error")
+
 (defmethod cram-occasions-events:on-event btr-attach-object 2 ((event cpoe:object-attached-robot))
   "2 means this method has to be ordered based on integer qualifiers.
 It could have been 1 but 1 is reserved in case somebody has to be even more urgently
@@ -177,24 +182,63 @@ If there is no other method with 1 as qualifier, this method will be executed al
   (unless cram-projection:*projection-environment*
     (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event)))))
 
-
-
 (defmethod cram-occasions-events:on-event object-perceived 2 ((event cpoe:object-perceived-event))
-  (if cram-projection:*projection-environment*
-      ;; if in projection, only add the object name to perceived designators list
-      (let ((object-data (desig:reference (cpoe:event-object-designator event))))
-        (or
-         (gethash (desig:object-identifier object-data)
-                  *object-identifier-to-instance-mappings*)
-         (setf (gethash (desig:object-identifier object-data)
-                        *object-identifier-to-instance-mappings*)
-               (desig:object-identifier object-data))))
-      ;; otherwise, spawn a new object in the bullet world
-      (register-object-designator-data
-       (desig:reference (cpoe:event-object-designator event))
-       :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))))
+  (let ((object-data (desig:reference (cpoe:event-object-designator event))))
+    (if cram-projection:*projection-environment*
+        ;; if in projection, only add the object name to perceived designators list
+        (progn
+          (add-perception-noise object-data)
+          (or
+           (gethash (desig:object-identifier object-data)
+                    *object-identifier-to-instance-mappings*)
+           (setf (gethash (desig:object-identifier object-data)
+                          *object-identifier-to-instance-mappings*)
+                 (desig:object-identifier object-data))))
+        ;; otherwise, spawn a new object in the bullet world
+        (register-object-designator-data
+         object-data
+         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type)))
+    (btr:simulate btr:*current-bullet-world* 100)
+    (let* ((obj-name (desig:object-identifier object-data))
+           (obj-pose (desig:object-pose object-data))
+           (obj-curr-pose (btr:pose (btr:object btr:*current-bullet-world* obj-name)))
+           (distance-new-pose-perceived-pose (cl-tf:v-dist
+                                              (cl-transforms:origin obj-curr-pose)
+                                              (cl-transforms:origin obj-pose))))
+      (when (> distance-new-pose-perceived-pose 0.1)
+        ;; Retry by spawning the object a little above the original pose
+        (btr-utils:move-object obj-name (cram-tf:translate-pose
+                                          obj-pose
+                                          :z-offset 0.04))
+        (btr:simulate btr:*current-bullet-world* 100)
+        (setf obj-curr-pose (btr:pose (btr:object btr:*current-bullet-world* obj-name)))
+        (setf distance-new-pose-perceived-pose (cl-tf:v-dist
+                                                (cl-transforms:origin obj-curr-pose)
+                                                (cl-transforms:origin obj-pose)))
+        (when (> distance-new-pose-perceived-pose 0.1)
+          (error "[BTR-BELIEF OBJECT-PERCEIVED] Perceived pose is not stable"))))))
 
-
+(defun add-perception-noise (object-data)
+  "Randomly moves around the object to simulate the errors in perception"
+  (when (> *simulated-perception-noise-factor* 0.0)
+    (let* ((?obj-pose (desig:object-pose object-data))
+           (?obj-name (desig:object-identifier object-data))
+           (?possible-offset-directions '((0 0 1) (0 1 0) (1 0 0)))
+           (?offset-direction (nth (random (length ?possible-offset-directions))
+                                   ?possible-offset-directions))
+           (?offset-distance (- (random (* 2 *simulated-perception-noise-factor*))
+                                *simulated-perception-noise-factor*))
+           (?x-offset (* (first ?offset-direction) ?offset-distance))
+           (?y-offset (* (second ?offset-direction) ?offset-distance))
+           (?z-offset (* (third ?offset-direction) ?offset-distance)))
+      (format T "offset used to simulate perception noise: ~a for axes :~a~%"
+              ?offset-distance ?offset-direction)
+      (btr-utils:move-object ?obj-name
+                             (cram-tf:translate-pose
+                              ?obj-pose
+                              :x-offset ?x-offset
+                              :y-offset ?y-offset
+                              :z-offset ?z-offset)))))
 
 #+old-Lorenzs-stuff-currently-not-used-but-maybe-in-the-future
 (
