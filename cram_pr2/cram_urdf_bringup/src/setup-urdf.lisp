@@ -47,7 +47,7 @@
 ;;the tool-frame for the hsrb, since the urdf does not provide one
 (defparameter *tool-frame*
       "<joint name=\"gripper_tool_joint\" type=\"fixed\">
-         <origin rpy=\"0.0 0.0 -80.14159265359\" xyz=\"0.012 0.0 0.075\"/>
+         <origin rpy=\"0.0 0.0 3.1415927\" xyz=\"0.0 0.0 0.0735\"/>
          <parent link=\"hand_palm_link\" />
           <child link=\"gripper_tool_frame\"/>
         </joint>

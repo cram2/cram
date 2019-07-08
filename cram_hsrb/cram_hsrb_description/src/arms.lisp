@@ -33,8 +33,8 @@
 
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector 0.18 0 0)
-   (cl-transforms-stamped:make-identity-rotation)))
+   (cl-transforms:make-3d-vector 0.011999988555908198d0 0.0d0 0.21400000508626305d0)
+   (cl-transforms:make-quaternion 0.0d0 0.0d0 -2.3205206744697995d-8 -0.9999999999999998d0)))
 
 (defparameter *standard-to-hsrb-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
