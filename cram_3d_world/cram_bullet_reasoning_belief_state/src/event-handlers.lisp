@@ -30,6 +30,11 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
+(defparameter *perception-instability-threshold* 0.1
+  "The distance threshold in which the perception noise is expected to safely move the object around
+Anything beyond this distance will cause a correction method to be triggered to try and correct the
+unstable object")
+
 (defparameter *simulated-perception-noise-factor* 0.0
   "Gives the maximum distance where the simulated perception noise can move an object.
 Eg. A value 0.1 means the perceived object can be moved around upto 0.1 meters in a simulated
@@ -202,31 +207,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
         (register-object-designator-data
          object-data
          :type (desig:desig-prop-value (cpoe:event-object-designator event) :type)))
-    (btr:simulate btr:*current-bullet-world* 100)
-    (let* ((obj-name (desig:object-identifier object-data))
-           (obj-pose (desig:object-pose object-data))
-           (obj-curr-pose (btr:pose (btr:object btr:*current-bullet-world* obj-name)))
-           (distance-new-pose-perceived-pose (cl-tf:v-dist
-                                              (cl-transforms:origin obj-curr-pose)
-                                              (cl-transforms:origin obj-pose))))
-      (break)
-      (when (> distance-new-pose-perceived-pose 0.1)
-        ;; Retry by spawning the object a corrected distance from the original pose
-        (multiple-value-bind (x-corr y-corr z-corr)
-            (get-perception-noise-correction obj-pose obj-curr-pose)
-          (format T "Correcting with factors ~a ~a ~a ~%" x-corr y-corr z-corr)
-          (btr-utils:move-object obj-name (cram-tf:translate-pose
-                                           obj-pose
-                                           :x-offset x-corr
-                                           :y-offset y-corr
-                                           :z-offset z-corr)))
-        (btr:simulate btr:*current-bullet-world* 100)
-        (setf obj-curr-pose (btr:pose (btr:object btr:*current-bullet-world* obj-name)))
-        (setf distance-new-pose-perceived-pose (cl-tf:v-dist
-                                                (cl-transforms:origin obj-curr-pose)
-                                                (cl-transforms:origin obj-pose)))
-        (when (> distance-new-pose-perceived-pose 0.1)
-          (error "[BTR-BELIEF OBJECT-PERCEIVED] Perceived pose is not stable"))))))
+    (let ((obj-name (desig:object-identifier object-data))
+          (obj-pose (desig:object-pose object-data)))
+      (check-and-correct-perception-instability obj-name obj-pose))))
 
 (defun add-perception-noise (object-data)
   "Randomly moves around the object to simulate the errors in perception. The range
@@ -243,14 +226,36 @@ and setting it to zero will disable this method."
            (?x-offset (* (first ?offset-direction) ?offset-distance))
            (?y-offset (* (second ?offset-direction) ?offset-distance))
            (?z-offset (* (third ?offset-direction) ?offset-distance)))
-      (format T "offset used to simulate perception noise: ~a for axes :~a~%"
-              ?offset-distance ?offset-direction)
       (btr-utils:move-object ?obj-name
                              (cram-tf:translate-pose
                               ?obj-pose
                               :x-offset ?x-offset
                               :y-offset ?y-offset
                               :z-offset ?z-offset)))))
+
+(defun check-and-correct-perception-instability (obj-name obj-pose)
+  (btr:simulate btr:*current-bullet-world* 100)
+  (let* ((obj-curr-pose (btr:pose (btr:object btr:*current-bullet-world* obj-name)))
+         (distance-new-pose-perceived-pose (cl-tf:v-dist
+                                            (cl-transforms:origin obj-curr-pose)
+                                            (cl-transforms:origin obj-pose))))
+    (when (> distance-new-pose-perceived-pose 0.1)
+      ;; Retry by spawning the object a corrected distance from the original pose
+      (multiple-value-bind (x-corr y-corr z-corr)
+          (get-perception-noise-correction obj-pose obj-curr-pose)
+        (btr-utils:move-object obj-name (cram-tf:translate-pose
+                                         obj-pose
+                                         :x-offset x-corr
+                                         :y-offset y-corr
+                                         :z-offset z-corr)))
+      (btr:simulate btr:*current-bullet-world* 100)
+      (setf obj-curr-pose (btr:pose (btr:object btr:*current-bullet-world* obj-name)))
+      (setf distance-new-pose-perceived-pose (cl-tf:v-dist
+                                              (cl-transforms:origin obj-curr-pose)
+                                              (cl-transforms:origin obj-pose)))
+      (when (> distance-new-pose-perceived-pose 0.1)
+        (error "[BTR-BELIEF OBJECT-PERCEIVED] Perceived pose is not stable")))))
+
 
 (defun get-perception-noise-correction (initial-pose final-pose)
   "Returns a correction distance to counteract the movement of the  object due
@@ -267,11 +272,8 @@ Returns 3 values which are the respective correction distances forx y and z axes
          (?axis-diff `(,?x-diff ,?y-diff ,?z-diff)))
     (apply #'values
            (mapcar (lambda(x)
-                     (if (< (abs x) (apply #'max (mapcar #'abs ?axis-diff)))
+                     (if (zerop x)
                          0
-                         ;; Correction done opposite to the direction of noise
-                         ;; movement. This is carried out only for the axis that
-                         ;; had the maximum absolute deviation
                          (if (plusp x)
                              (- *perception-noise-correction-factor*)
                              *perception-noise-correction-factor*)))
