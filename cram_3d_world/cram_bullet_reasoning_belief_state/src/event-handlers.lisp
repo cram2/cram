@@ -35,6 +35,10 @@
 Eg. A value 0.1 means the perceived object can be moved around upto 0.1 meters in a simulated
 perception noise. 0 Means no error")
 
+(defparameter *perception-noise-correction-factor* 0.04
+  "Gives the distance which the perception event will try to counter move an object when it falls through
+or get unstable while spawning an object during perception")
+
 (defmethod cram-occasions-events:on-event btr-attach-object 2 ((event cpoe:object-attached-robot))
   "2 means this method has to be ordered based on integer qualifiers.
 It could have been 1 but 1 is reserved in case somebody has to be even more urgently
@@ -205,11 +209,17 @@ If there is no other method with 1 as qualifier, this method will be executed al
            (distance-new-pose-perceived-pose (cl-tf:v-dist
                                               (cl-transforms:origin obj-curr-pose)
                                               (cl-transforms:origin obj-pose))))
+      (break)
       (when (> distance-new-pose-perceived-pose 0.1)
-        ;; Retry by spawning the object a little above the original pose
-        (btr-utils:move-object obj-name (cram-tf:translate-pose
-                                          obj-pose
-                                          :z-offset 0.04))
+        ;; Retry by spawning the object a corrected distance from the original pose
+        (multiple-value-bind (x-corr y-corr z-corr)
+            (get-perception-noise-correction obj-pose obj-curr-pose)
+          (format T "Correcting with factors ~a ~a ~a ~%" x-corr y-corr z-corr)
+          (btr-utils:move-object obj-name (cram-tf:translate-pose
+                                           obj-pose
+                                           :x-offset x-corr
+                                           :y-offset y-corr
+                                           :z-offset z-corr)))
         (btr:simulate btr:*current-bullet-world* 100)
         (setf obj-curr-pose (btr:pose (btr:object btr:*current-bullet-world* obj-name)))
         (setf distance-new-pose-perceived-pose (cl-tf:v-dist
@@ -219,7 +229,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
           (error "[BTR-BELIEF OBJECT-PERCEIVED] Perceived pose is not stable"))))))
 
 (defun add-perception-noise (object-data)
-  "Randomly moves around the object to simulate the errors in perception"
+  "Randomly moves around the object to simulate the errors in perception. The range
+at which the object is moved is determined by `*simulated-perception-noise-factor*' and setting
+it to zero will disable this method."
   (when (> *simulated-perception-noise-factor* 0.0)
     (let* ((?obj-pose (desig:object-pose object-data))
            (?obj-name (desig:object-identifier object-data))
@@ -239,6 +251,28 @@ If there is no other method with 1 as qualifier, this method will be executed al
                               :x-offset ?x-offset
                               :y-offset ?y-offset
                               :z-offset ?z-offset)))))
+
+(defun get-perception-noise-correction (initial-pose final-pose)
+  "Adds a fixed correction distance opposite to the maximum distance the object has moved
+due to the perception noise. The correction is only applied to the axis with the maximum
+deviation from the original pose."
+  (let* ((?x-diff (- (cl-tf:x (cl-tf:origin final-pose))
+                     (cl-tf:x (cl-tf:origin initial-pose))))
+         (?y-diff (- (cl-tf:y (cl-tf:origin final-pose))
+                     (cl-tf:y (cl-tf:origin initial-pose))))
+         (?z-diff (- (cl-tf:z (cl-tf:origin final-pose))
+                     (cl-tf:z (cl-tf:origin initial-pose))))
+         (?axis-diff `(,?x-diff ,?y-diff ,?z-diff)))
+    (apply #'values
+           (mapcar (lambda(x)
+                     (if (< (abs x) (apply #'max (mapcar #'abs ?axis-diff)))
+                         0
+                         ;; Correction done opposite to the direction of initial movement
+                         ;; This is carried out only for the axis that had maximum movement
+                         (if (plusp x)
+                             (- *perception-noise-correction-factor*)
+                             *perception-noise-correction-factor*)))
+                   ?axis-diff))))
 
 #+old-Lorenzs-stuff-currently-not-used-but-maybe-in-the-future
 (
