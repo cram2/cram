@@ -230,8 +230,8 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 (defun add-perception-noise (object-data)
   "Randomly moves around the object to simulate the errors in perception. The range
-at which the object is moved is determined by `*simulated-perception-noise-factor*' and setting
-it to zero will disable this method."
+at which the object is moved is determined by `*simulated-perception-noise-factor*'
+and setting it to zero will disable this method."
   (when (> *simulated-perception-noise-factor* 0.0)
     (let* ((?obj-pose (desig:object-pose object-data))
            (?obj-name (desig:object-identifier object-data))
@@ -253,9 +253,11 @@ it to zero will disable this method."
                               :z-offset ?z-offset)))))
 
 (defun get-perception-noise-correction (initial-pose final-pose)
-  "Adds a fixed correction distance opposite to the maximum distance the object has moved
-due to the perception noise. The correction is only applied to the axis with the maximum
-deviation from the original pose."
+  "Returns a correction distance to counteract the movement of the  object due
+to perception noise. The correction is only applied to the axis with the maximum
+absolute deviation from the original pose and the values for the other axis are
+set to zero. The correction distance is determined by `*perception-noise-correction-factor*'
+Returns 3 values which are the respective correction distances forx y and z axes"
   (let* ((?x-diff (- (cl-tf:x (cl-tf:origin final-pose))
                      (cl-tf:x (cl-tf:origin initial-pose))))
          (?y-diff (- (cl-tf:y (cl-tf:origin final-pose))
@@ -267,8 +269,9 @@ deviation from the original pose."
            (mapcar (lambda(x)
                      (if (< (abs x) (apply #'max (mapcar #'abs ?axis-diff)))
                          0
-                         ;; Correction done opposite to the direction of initial movement
-                         ;; This is carried out only for the axis that had maximum movement
+                         ;; Correction done opposite to the direction of noise
+                         ;; movement. This is carried out only for the axis that
+                         ;; had the maximum absolute deviation
                          (if (plusp x)
                              (- *perception-noise-correction-factor*)
                              *perception-noise-correction-factor*)))
