@@ -68,7 +68,7 @@
 
                cram-urdf-projection      ; for with-simulated-robot, depends on bullet-resoning
                cram-urdf-projection-reasoning ; for projection-based reasoning
-               cram-pr2-description ;
+               ;; cram-pr2-description ;
                cram-fetch-deliver-plans
                cram-urdf-environment-manipulation ;
 

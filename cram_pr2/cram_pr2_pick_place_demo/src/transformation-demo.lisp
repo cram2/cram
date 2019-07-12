@@ -46,11 +46,11 @@
   (funcall rule-function))
 
 (defun demo-both-hands ()
-  (pr2-proj:with-projected-robot
+  (urdf-proj:with-projected-robot
       (demo-random nil '(:bowl :breakfast-cereal))))
 
 (defun demo-environment ()
-  (pr2-proj:with-projected-robot
+  (urdf-proj:with-projected-robot
       (demo-environment-rule)))
 
 (cpl:def-cram-function demo-environment-rule (&optional
