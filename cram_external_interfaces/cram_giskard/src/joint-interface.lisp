@@ -36,46 +36,41 @@
   (roslisp:make-message
    'giskard_msgs-msg:MoveGoal
    :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal :plan_and_execute)
-   :cmd_seq (vector (roslisp:make-message
-                     'giskard_msgs-msg:movecmd
-                     :controllers (vector (roslisp:make-message
-                                           'giskard_msgs-msg:controller
-                                           :type (roslisp:symbol-code
-                                                  'giskard_msgs-msg:controller
-                                                  :joint)
-                                           :p_gain 10
-                                           :weight 1
-                                           :max_speed (cma:degrees->radians 30)
-                                           :goal_state (roslisp:make-message
-                                                        'sensor_msgs-msg:jointstate
-                                                        :name (apply #'vector
-                                                                     (first
-                                                                      joint-state-left))
-                                                        :position (apply #'vector
-                                                                         (second
-                                                                          joint-state-left))))
-                                          (roslisp:make-message
-                                           'giskard_msgs-msg:controller
-                                           :type (roslisp:symbol-code
-                                                  'giskard_msgs-msg:controller
-                                                  :joint)
-                                           :p_gain 10
-                                           :weight 1
-                                           :max_speed (cma:degrees->radians 30)
-                                           :goal_state (roslisp:make-message
-                                                        'sensor_msgs-msg:jointstate
-                                                        :name (apply #'vector
-                                                                     (first
-                                                                      joint-state-right))
-                                                        :position (apply #'vector
-                                                                         (second
-                                                                          joint-state-right)))))
-                     :collisions (vector (roslisp:make-message
-                                          'giskard_msgs-msg:collisionentry
+   :cmd_seq (vector
+             (roslisp:make-message
+              'giskard_msgs-msg:movecmd
+              :joint_constraints (vector (roslisp:make-message
+                                          'giskard_msgs-msg:jointconstraint
                                           :type (roslisp:symbol-code
-                                                 'giskard_msgs-msg:collisionentry
-                                                 :avoid_all_collisions)
-                                          :min_dist 0.05))))))
+                                                 'giskard_msgs-msg:jointconstraint
+                                                 :joint)
+                                          :goal_state (roslisp:make-message
+                                                       'sensor_msgs-msg:jointstate
+                                                       :name (apply #'vector
+                                                                    (first
+                                                                     joint-state-left))
+                                                       :position (apply #'vector
+                                                                        (second
+                                                                         joint-state-left))))
+                                         (roslisp:make-message
+                                          'giskard_msgs-msg:jointconstraint
+                                          :type (roslisp:symbol-code
+                                                 'giskard_msgs-msg:jointconstraint
+                                                 :joint)
+                                          :goal_state (roslisp:make-message
+                                                       'sensor_msgs-msg:jointstate
+                                                       :name (apply #'vector
+                                                                    (first
+                                                                     joint-state-right))
+                                                       :position (apply #'vector
+                                                                        (second
+                                                                         joint-state-right)))))
+              ;; :collisions (vector (roslisp:make-message
+              ;;                      'giskard_msgs-msg:collisionentry
+              ;;                      :type (roslisp:symbol-code
+              ;;                             'giskard_msgs-msg:collisionentry
+              ;;                             :avoid_all_collisions)))
+              ))))
 
 (defun get-arm-joint-names-and-positions-list (arm &optional joint-states)
   (if joint-states
@@ -86,7 +81,7 @@
                              (cut:lazy-car
                               (prolog:prolog
                                `(cram-robot-interfaces:arm-joints
-                                 cram-pr2-description:pr2 ,arm ?joints))))))
+                                 ,(intern "PR2" :cram-pr2-description) ,arm ?joints))))))
         (list joint-names
               (joints:joint-positions joint-names)))))
 

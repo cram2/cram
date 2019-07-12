@@ -118,7 +118,7 @@ if yes, relocate and retry, if no collisions, open or close container."
          (cpl:fail 'common-fail:environment-manipulation-impossible
                    :description "Some designator could not be resolved.")))
 
-    (cpl:with-retry-counters ((relocation-retries 10))
+    (cpl:with-retry-counters ((relocation-retries 50))
       (cpl:with-failure-handling
           (((or common-fail:navigation-goal-in-collision
                 common-fail:environment-unreachable
@@ -130,6 +130,9 @@ if yes, relocate and retry, if no collisions, open or close container."
                  (:error-object-or-string e
                   :warning-namespace (fd-plans environment)
                   :rethrow-failure 'common-fail:environment-manipulation-impossible)
+               (exe:perform (desig:an action
+                                      (type opening-gripper)
+                                      (gripper (left right))))
                (roslisp:ros-info (fd-plans environment) "Relocating..."))))
 
         ;; navigate, open / close
@@ -162,7 +165,6 @@ if yes, relocate and retry, if no collisions, open or close container."
                             ((:object ?object-designator))
                             ((:location ?search-location))
                             ((:robot-location ?robot-location))
-                            (retries 3)
                           &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            ;; location desigs can turn NILL in the course of execution
@@ -181,7 +183,7 @@ retries with different search location or robot base location."
                    :description "Search location designator could not be resolved.")))
 
     ;; take new `?search-location' sample if a failure happens and retry
-    (cpl:with-retry-counters ((outer-search-location-retries 2))
+    (cpl:with-retry-counters ((outer-search-location-retries 10))
       (cpl:with-failure-handling
           ((common-fail:object-nowhere-to-be-found (e)
              (common-fail:retry-with-loc-designator-solutions
@@ -195,7 +197,7 @@ retries with different search location or robot base location."
                                  "Search is about to give up. Retrying~%"))))
 
         ;; if the going action fails, pick another `?robot-location' sample and retry
-        (cpl:with-retry-counters ((robot-location-retries 10))
+        (cpl:with-retry-counters ((robot-location-retries 3))
           (cpl:with-failure-handling
               (((or common-fail:navigation-goal-in-collision
                     common-fail:looking-high-level-failure
@@ -214,7 +216,7 @@ retries with different search location or robot base location."
                                    (location ?robot-location)))
 
             ;; if perception action fails, try another `?search-location' and retry
-            (cpl:with-retry-counters ((search-location-retries retries))
+            (cpl:with-retry-counters ((search-location-retries 3))
               (cpl:with-failure-handling
                   (((or common-fail:perception-low-level-failure
                         common-fail:looking-high-level-failure) (e)
@@ -550,8 +552,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
   (unless search-location-accessible
     (exe:perform (desig:an action
                            (type accessing)
-                           (location ?search-location)
-                           (distance 0.3))))
+                           (location ?search-location))))
 
   (unwind-protect
        (let ((?perceived-object-designator
@@ -637,5 +638,4 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
     (unless search-location-accessible
       (exe:perform (desig:an action
                              (type sealing)
-                             (location ?search-location)
-                             (distance 0.3))))))
+                             (location ?search-location))))))

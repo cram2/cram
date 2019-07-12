@@ -67,7 +67,8 @@
 
                cram-urdf-projection      ; for with-simulated-robot
                cram-urdf-projection-reasoning ; to set projection reasoning to T
-               cram-pr2-description
+
+               ;; cram-pr2-description
 
                cram-fetch-deliver-plans
                cram-urdf-environment-manipulation
@@ -82,6 +83,7 @@
      (:file "projection-demo" :depends-on ("package" "costmaps"))
      (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))
      (:file "transformation-demo" :depends-on ("package" "demo"))
+     (:file "milestone-projection-demo" :depends-on ("package" "costmaps"))
      (:file "data-generation-script" :depends-on ("package" "projection-demo" "costmaps"))
      (:file "data-generation-plan" :depends-on ("package" "demo"))
      (:file "evaluation-plan" :depends-on ("package" "demo"))))))

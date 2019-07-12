@@ -32,23 +32,19 @@
 ;; roslaunch cram_pr2_pick_place_demo sandbox.launch
 
 (defun init-projection ()
-  (def-fact-group costmap-metadata ()
-    (<- (location-costmap:costmap-size 12 12))
-    (<- (location-costmap:costmap-origin -6 -6))
-    (<- (location-costmap:costmap-resolution 0.04))
-
-    (<- (location-costmap:costmap-padding 0.3))
-    (<- (location-costmap:costmap-manipulation-padding 0.4))
-    (<- (location-costmap:costmap-in-reach-distance 0.9))
-    (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-    (<- (location-costmap:visibility-costmap-size 2))
-    (<- (location-costmap:orientation-samples 2))
-    (<- (location-costmap:orientation-sample-step 0.1)))
+  (def-fact-group costmap-metadata (costmap:costmap-size
+                                    costmap:costmap-origin
+                                    costmap:costmap-resolution
+                                    costmap:orientation-samples
+                                    costmap:orientation-sample-step)
+    (<- (costmap:costmap-size 12 12))
+    (<- (costmap:costmap-origin -6 -6))
+    (<- (costmap:costmap-resolution 0.04))
+    (<- (costmap:orientation-samples 2))
+    (<- (costmap:orientation-sample-step 0.3)))
 
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
-
-  ;; (sem-map:get-semantic-map)
 
   (cram-occasions-events:clear-belief)
 

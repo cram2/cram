@@ -81,11 +81,15 @@ This should only be used by get-action-trajectory for action-types :opening and 
            (desig:desig-prop-value object-designator :type))
          (object-environment
            (desig:desig-prop-value object-designator :part-of))
+         (manipulated-link-name
+           (cl-urdf:name
+            (get-manipulated-link
+             (get-container-link object-name object-environment))))
          (object-transform
            (second
-            (get-container-pose-and-transform object-name object-environment)))
+            (get-container-pose-and-transform manipulated-link-name object-environment)))
          (grasp-pose
-           (get-container-to-gripper-transform object-name arm handle-axis object-environment)))
+           (get-container-to-gripper-transform manipulated-link-name arm handle-axis object-environment)))
 
     ;; checks if `object-type' is a subtype of :container-prismatic or :container-revolute
     ;; and executes the corresponding MAKE-PRISMATIC-TRAJECTORY or MAKE-REVOLUTE-TRAJECTORY.
@@ -109,7 +113,7 @@ container with prismatic joints."
    (lambda (label transform)
      (man-int:make-traj-segment
       :label label
-      :poses (list (man-int:calculate-gripper-pose-in-base object-transform arm transform))))
+      :poses (list (man-int:calculate-gripper-pose-in-map object-transform arm transform))))
    `(:reaching
      :grasping
      ,action-type
@@ -133,7 +137,7 @@ container with revolute joints."
      (lambda (label transforms)
        (man-int:make-traj-segment
         :label label
-        :poses (mapcar (alexandria:curry #'man-int:calculate-gripper-pose-in-base
+        :poses (mapcar (alexandria:curry #'man-int:calculate-gripper-pose-in-map
                                          object-transform arm)
                        transforms)))
      `(:reaching
@@ -198,9 +202,10 @@ container with revolute joints."
                                            handle-axis
                                            btr-environment)
   "Get the transform from the container handle to the robot's gripper."
-  (let* ((object-name
-           (roslisp-utilities:rosify-underscores-lisp-name object-name))
-         (handle-name
+  (when (symbolp object-name)
+    (setf object-name
+          (roslisp-utilities:rosify-underscores-lisp-name object-name)))
+  (let* ((handle-name
            (cl-urdf:name (get-handle-link object-name btr-environment)))
          (handle-tf
            (cl-transforms-stamped:transform->transform-stamped

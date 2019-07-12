@@ -59,6 +59,9 @@
   "Call detecting motion on `?object-designator', retry on failure, issue perceived event,
 equate resulting designator to the original one."
 
+  (exe:perform
+   (desig:a motion (type moving-torso) (joint-angle upper-limit)))
+
   (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
                      1
                      4)))
@@ -97,6 +100,7 @@ equate resulting designator to the original one."
                                 ((:collision-object-b ?collision-object-b))
                                 ((:collision-object-b-link ?collision-object-b-link))
                                 ((:collision-object-a ?collision-object-a))
+                                ((:move-the-ass ?move-the-ass))
                               &allow-other-keys)
   (declare (type (or list cl-transforms-stamped:pose-stamped) left-poses right-poses)
            (type (or null keyword) ?collision-mode)
@@ -136,7 +140,9 @@ while ignoring failures; and execute the last pose with propagating the failures
                         (desig:when ?collision-object-b-link
                           (collision-object-b-link ?collision-object-b-link))
                         (desig:when ?collision-object-a
-                          (collision-object-a ?collision-object-a))))
+                          (collision-object-a ?collision-object-a))
+                        (desig:when ?move-the-ass
+                          (move-the-ass ?move-the-ass))))
 
               (cram-occasions-events:on-event
                (make-instance 'cram-plan-occasions-events:robot-state-changed))))
@@ -166,7 +172,9 @@ while ignoring failures; and execute the last pose with propagating the failures
                 (desig:when ?collision-object-b-link
                   (collision-object-b-link ?collision-object-b-link))
                 (desig:when ?collision-object-a
-                  (collision-object-a ?collision-object-a))))
+                  (collision-object-a ?collision-object-a))
+                (desig:when ?move-the-ass
+                  (move-the-ass ?move-the-ass))))
 
       (cram-occasions-events:on-event
        (make-instance 'cram-plan-occasions-events:robot-state-changed)))))

@@ -29,21 +29,6 @@
 
 (in-package :env-man)
 
-(defun get-container-pose-and-transform (name btr-environment)
-  "Return a list of the pose-stamped and transform-stamped of the object named
-NAME in the environment BTR-ENVIRONMENT."
-  (let* ((name-rosified (roslisp-utilities:rosify-underscores-lisp-name name))
-         (urdf-pose (get-urdf-link-pose name-rosified btr-environment))
-         (pose (cram-tf:ensure-pose-in-frame
-                (cl-transforms-stamped:pose->pose-stamped
-                 cram-tf:*fixed-frame*
-                 0.0
-                 urdf-pose)
-                cram-tf:*robot-base-frame*
-                :use-zero-time t))
-         (transform (cram-tf:pose-stamped->transform-stamped pose name-rosified)))
-    (list pose transform)))
-
 (def-fact-group environment-manipulation (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (open-container ?referenced-action-designator))
@@ -59,15 +44,26 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
-    (spec:property ?action-designator (:distance ?distance))
+    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+    (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
+    (-> (spec:property ?action-designator (:distance ?distance))
+        (true)
+        (-> (lisp-pred man-int:get-container-opening-distance
+                       ?container-name)
+            (lisp-fun man-int:get-container-opening-distance
+                      ?container-name ?distance)
+            (and (lisp-fun cl-urdf:limits ?connecting-joint ?limits)
+                 (lisp-fun cl-urdf:upper ?limits ?distance))))
+    (lisp-fun get-relative-distance ?container-name ?btr-environment ?distance :opening
+              ?rel-distance)
+    (lisp-fun clip-distance ?container-name ?btr-environment ?rel-distance :opening
+              ?clipped-distance)
     ;; infer joint information
     ;; joint-name
-    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
     (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
     (lisp-fun roslisp-utilities:lispify-ros-underscore-name
               ?handle-link-string :keyword ?handle-link)
-    (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
     ;; environment
     (btr:bullet-world ?world)
@@ -75,12 +71,24 @@ NAME in the environment BTR-ENVIRONMENT."
     (lisp-fun btr:name ?environment-obj ?environment-name)
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun man-int:get-action-gripper-opening ?container-type ?gripper-opening)
+    ;; TODO: this is here so far only for logging, in the future we should
+    ;; implement grasps such as front grasp, top grasp etc.
+    ;; and incorporate this into GET-ACTION-TRAJECTORY
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (or (and
+             (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
+                       (?_ ?object-transform))
+             (lisp-fun man-int:get-action-grasps ?container-type ?arm ?object-transform
+                       ?grasps)
+             (member ?grasp ?grasps))
+            (true)))
     ;; calculate trajectory
     (equal ?objects (?container-designator))
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory
                        :opening ?arm :open ?objects
-                       :opening-distance ?distance
+                       :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
@@ -98,7 +106,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (equal ?arm :right)
         (and (lisp-fun man-int:get-action-trajectory
                        :opening ?arm :open ?objects
-                       :opening-distance ?distance
+                       :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
@@ -119,7 +127,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (desig:designator :action ((:type :opening)
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
-                               (:distance ?distance)
+                               (:distance ?clipped-distance)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)
@@ -148,15 +156,26 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
-    (spec:property ?action-designator (:distance ?distance))
+    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+    (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
+    (-> (spec:property ?action-designator (:distance ?distance))
+        (true)
+        (-> (lisp-pred man-int:get-container-closing-distance
+                       ?container-name)
+            (lisp-fun man-int:get-container-closing-distance
+                      ?container-name ?distance)
+            (and (lisp-fun cl-urdf:limits ?connecting-joint ?limits)
+                 (lisp-fun cl-urdf:lower ?limits ?distance))))
+    (lisp-fun get-relative-distance ?container-name ?btr-environment ?distance :closing
+              ?rel-distance)
+    (lisp-fun clip-distance ?container-name ?btr-environment ?rel-distance :closing
+              ?clipped-distance)
     ;; infer joint information
     ;; joint-name
-    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-handle-link ?container-name ?btr-environment ?handle-link-object)
     (lisp-fun cl-urdf:name ?handle-link-object ?handle-link-string)
     (lisp-fun roslisp-utilities:lispify-ros-underscore-name
               ?handle-link-string :keyword ?handle-link)
-    (lisp-fun get-connecting-joint ?container-link ?connecting-joint)
     (lisp-fun cl-urdf:name ?connecting-joint ?joint-name)
     ;; environment
     (btr:bullet-world ?world)
@@ -164,12 +183,24 @@ NAME in the environment BTR-ENVIRONMENT."
     (lisp-fun btr:name ?environment-obj ?environment-name)
     ;; infer missing information like ?gripper-opening, closing trajectory
     (lisp-fun man-int:get-action-gripper-opening ?container-type ?gripper-opening)
+    ;; TODO: this is here so far only for logging, in the future we should
+    ;; implement grasps such as front grasp, top grasp etc.
+    ;; and incorporate this into GET-ACTION-TRAJECTORY
+    (-> (spec:property ?action-designator (:grasp ?grasp))
+        (true)
+        (or (and
+             (lisp-fun get-container-pose-and-transform ?container-name ?btr-environment
+                       (?_ ?object-transform))
+             (lisp-fun man-int:get-action-grasps ?container-type ?arm ?object-transform
+                       ?grasps)
+             (member ?grasp ?grasps))
+            (true)))
     ;; calculate trajectory
     (equal ?objects (?container-designator))
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory
                        :closing ?arm :close ?objects
-                       :opening-distance ?distance
+                       :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
@@ -187,7 +218,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (-> (equal ?arm :right)
         (and (lisp-fun man-int:get-action-trajectory
                        :closing ?arm :close ?objects
-                       :opening-distance ?distance
+                       :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
@@ -208,7 +239,7 @@ NAME in the environment BTR-ENVIRONMENT."
     (desig:designator :action ((:type :closing)
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
-                               (:distance ?distance)
+                               (:distance ?clipped-distance)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)

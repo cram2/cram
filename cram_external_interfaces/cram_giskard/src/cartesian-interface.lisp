@@ -37,9 +37,10 @@
 (defun make-giskard-cartesian-action-goal (left-pose right-pose
                                            pose-base-frame left-tool-frame right-tool-frame
                                            collision-mode
-                                           &optional
+                                           &key
                                              collision-object-b collision-object-b-link
-                                             collision-object-a)
+                                             collision-object-a
+                                             move-the-ass)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type string pose-base-frame left-tool-frame right-tool-frame))
   (roslisp:make-message
@@ -50,58 +51,72 @@
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
-              :controllers
+              ;; THIS STUFF HAS A STATE
+              ;; RESET THE STATE EXPLICITLY IF YOU WANT A NON CART MOVEMENT AFTER THIS
+              :constraints
+              (vector (roslisp:make-message
+                       'giskard_msgs-msg:constraint
+                       :type
+                       "UpdateGodMap"
+                       :parameter_value_pair
+                       (let ((stream (make-string-output-stream)))
+                         (yason:encode
+                          (alexandria:alist-hash-table
+                           `(("updates"
+                              .
+                              ,(alexandria:alist-hash-table
+                                `(("rosparam"
+                                   .
+                                   ,(alexandria:alist-hash-table
+                                     `(("joint_weights"
+                                        .
+                                        ,(alexandria:alist-hash-table
+                                          `(("odom_x_joint" . ,(if move-the-ass 0.0001 1.0))
+                                            ("odom_y_joint" . ,(if move-the-ass 0.0001 1.0))
+                                            ("odom_z_joint" . ,(if move-the-ass 0.0001 1.0)))))))))
+                                :test #'equal))))
+                          stream)
+                         (get-output-stream-string stream))))
+              :cartesian_constraints
               (map 'vector #'identity
                    (remove nil
                            (list
                             (when left-pose
                               (roslisp:make-message
-                               'giskard_msgs-msg:controller
+                               'giskard_msgs-msg:cartesianconstraint
                                :type (roslisp:symbol-code
-                                      'giskard_msgs-msg:controller
+                                      'giskard_msgs-msg:cartesianconstraint
                                       :translation_3d)
                                :root_link pose-base-frame
                                :tip_link left-tool-frame
-                               :p_gain 3
-                               :weight 1
-                               :max_speed 0.3
-                               :goal_pose (cl-transforms-stamped:to-msg left-pose)))
+                               :goal (cl-transforms-stamped:to-msg left-pose)))
                             (when left-pose
                               (roslisp:make-message
-                               'giskard_msgs-msg:controller
+                               'giskard_msgs-msg:cartesianconstraint
                                :type (roslisp:symbol-code
-                                      'giskard_msgs-msg:controller
+                                      'giskard_msgs-msg:cartesianconstraint
                                       :rotation_3d)
                                :root_link pose-base-frame
                                :tip_link left-tool-frame
-                               :p_gain 3
-                               :weight 1
-                               :max_speed (cma:degrees->radians 30)
-                               :goal_pose (cl-transforms-stamped:to-msg left-pose)))
+                               :goal (cl-transforms-stamped:to-msg left-pose)))
                             (when right-pose
                               (roslisp:make-message
-                               'giskard_msgs-msg:controller
+                               'giskard_msgs-msg:cartesianconstraint
                                :type (roslisp:symbol-code
-                                      'giskard_msgs-msg:controller
+                                      'giskard_msgs-msg:cartesianconstraint
                                       :translation_3d)
                                :root_link pose-base-frame
                                :tip_link right-tool-frame
-                               :p_gain 3
-                               :weight 1
-                               :max_speed 0.3
-                               :goal_pose (cl-transforms-stamped:to-msg right-pose)))
+                               :goal (cl-transforms-stamped:to-msg right-pose)))
                             (when right-pose
                               (roslisp:make-message
-                               'giskard_msgs-msg:controller
+                               'giskard_msgs-msg:cartesianconstraint
                                :type (roslisp:symbol-code
-                                      'giskard_msgs-msg:controller
+                                      'giskard_msgs-msg:cartesianconstraint
                                       :rotation_3d)
                                :root_link pose-base-frame
                                :tip_link right-tool-frame
-                               :p_gain 3
-                               :weight 1
-                               :max_speed (cma:degrees->radians 30)
-                               :goal_pose (cl-transforms-stamped:to-msg right-pose))))))
+                               :goal (cl-transforms-stamped:to-msg right-pose))))))
               :collisions
               (case collision-mode
                 (:allow-all
@@ -116,68 +131,113 @@
                           :type (roslisp:symbol-code
                                  'giskard_msgs-msg:collisionentry
                                  :avoid_all_collisions)
-                          :min_dist 0.05)))
+                          :min_dist 0.1)))
                 (:allow-hand
-                 (apply #'vector
-                        (roslisp:make-message
-                         'giskard_msgs-msg:collisionentry
-                         :type (roslisp:symbol-code
-                                'giskard_msgs-msg:collisionentry
-                                :avoid_all_collisions)
-                         :min_dist 0.05)
-                        (append
-                         (mapcar (lambda (robot-link)
-                                   (roslisp:make-message
-                                    'giskard_msgs-msg:collisionentry
-                                    :type (roslisp:symbol-code
-                                           'giskard_msgs-msg:collisionentry
-                                           :allow_collision)
-                                    :robot_links (vector robot-link)
-                                    :body_b (roslisp-utilities:rosify-underscores-lisp-name
-                                             collision-object-b)
-                                    :link_bs (if collision-object-b-link
-                                                 (vector
-                                                  (roslisp-utilities:rosify-underscores-lisp-name
-                                                   collision-object-b-link))
-                                                 (vector))))
-                                 (append
-                                  (when left-pose
-                                    (cut:var-value
-                                     '?hand-links
-                                     (car (prolog:prolog
-                                           `(and (rob-int:robot ?robot)
-                                                 (rob-int:hand-links ?robot :left
-                                                                     ?hand-links))))))
-                                  (when right-pose
-                                    (cut:var-value
-                                     '?hand-links
-                                     (car (prolog:prolog
-                                           `(and (rob-int:robot ?robot)
-                                                 (rob-int:hand-links ?robot :right
-                                                                     ?hand-links))))))))
-                         (mapcar (lambda (robot-link)
-                                   (roslisp:make-message
-                                    'giskard_msgs-msg:collisionentry
-                                    :type (roslisp:symbol-code
-                                           'giskard_msgs-msg:collisionentry
-                                           :allow_collision)
-                                    :robot_links (vector robot-link)
-                                    :body_b "kitchen"))
-                                 (append
-                                  (when left-pose
-                                    (cut:var-value
-                                     '?hand-links
-                                     (car (prolog:prolog
-                                           `(and (rob-int:robot ?robot)
-                                                 (rob-int:hand-links ?robot :left
-                                                                     ?hand-links))))))
-                                  (when right-pose
-                                    (cut:var-value
-                                     '?hand-links
-                                     (car (prolog:prolog
-                                           `(and (rob-int:robot ?robot)
-                                                 (rob-int:hand-links ?robot :right
-                                                                     ?hand-links)))))))))))
+                 (vector (roslisp:make-message
+                          'giskard_msgs-msg:collisionentry
+                          :type (roslisp:symbol-code
+                                 'giskard_msgs-msg:collisionentry
+                                 :avoid_all_collisions)
+                          :min_dist 0.05)
+                         (roslisp:make-message
+                          'giskard_msgs-msg:collisionentry
+                          :type (roslisp:symbol-code
+                                 'giskard_msgs-msg:collisionentry
+                                 :allow_collision)
+                          :robot_links (apply
+                                        #'vector
+                                        (append
+                                         (when left-pose
+                                           (cut:var-value
+                                            '?hand-links
+                                            (car (prolog:prolog
+                                                  `(and (rob-int:robot ?robot)
+                                                        (rob-int:hand-links ?robot :left
+                                                                            ?hand-links))))))
+                                         (when right-pose
+                                           (cut:var-value
+                                            '?hand-links
+                                            (car (prolog:prolog
+                                                  `(and (rob-int:robot ?robot)
+                                                        (rob-int:hand-links ?robot :right
+                                                                            ?hand-links))))))))
+                          :body_b (if collision-object-b
+                                      (roslisp-utilities:rosify-underscores-lisp-name
+                                       collision-object-b)
+                                      (roslisp:symbol-code
+                                            'giskard_msgs-msg:collisionentry
+                                            :all))
+                          :link_bs (vector (roslisp:symbol-code
+                                            'giskard_msgs-msg:collisionentry
+                                            :all))
+                          ;; (if collision-object-b-link
+                          ;;     (vector (roslisp-utilities:rosify-underscores-lisp-name
+                          ;;              collision-object-b-link))
+                          ;;     (vector (roslisp:symbol-code
+                          ;;              'giskard_msgs-msg:collisionentry
+                          ;;              :all)))
+                          )))
+                 ;; (apply #'vector
+                 ;;        (roslisp:make-message
+                 ;;         'giskard_msgs-msg:collisionentry
+                 ;;         :type (roslisp:symbol-code
+                 ;;                'giskard_msgs-msg:collisionentry
+                 ;;                :avoid_all_collisions)
+                 ;;         :min_dist 0.02)
+                 ;;        (append
+                 ;;         (mapcar (lambda (robot-link)
+                 ;;                   (roslisp:make-message
+                 ;;                    'giskard_msgs-msg:collisionentry
+                 ;;                    :type (roslisp:symbol-code
+                 ;;                           'giskard_msgs-msg:collisionentry
+                 ;;                           :allow_collision)
+                 ;;                    :robot_links (vector robot-link)
+                 ;;                    :body_b (roslisp-utilities:rosify-underscores-lisp-name
+                 ;;                             collision-object-b)
+                 ;;                    :link_bs (if collision-object-b-link
+                 ;;                                 (vector
+                 ;;                                  (roslisp-utilities:rosify-underscores-lisp-name
+                 ;;                                   collision-object-b-link))
+                 ;;                                 (vector "" ; :all
+                 ;;                                         ))))
+                 ;;                 (append
+                 ;;                  (when left-pose
+                 ;;                    (cut:var-value
+                 ;;                     '?hand-links
+                 ;;                     (car (prolog:prolog
+                 ;;                           `(and (rob-int:robot ?robot)
+                 ;;                                 (rob-int:hand-links ?robot :left
+                 ;;                                                     ?hand-links))))))
+                 ;;                  (when right-pose
+                 ;;                    (cut:var-value
+                 ;;                     '?hand-links
+                 ;;                     (car (prolog:prolog
+                 ;;                           `(and (rob-int:robot ?robot)
+                 ;;                                 (rob-int:hand-links ?robot :right
+                 ;;                                                     ?hand-links))))))))
+                 ;;         (mapcar (lambda (robot-link)
+                 ;;                   (roslisp:make-message
+                 ;;                    'giskard_msgs-msg:collisionentry
+                 ;;                    :type (roslisp:symbol-code
+                 ;;                           'giskard_msgs-msg:collisionentry
+                 ;;                           :allow_collision)
+                 ;;                    :robot_links (vector robot-link)
+                 ;;                    :body_b "kitchen"))
+                 ;;                 (append
+                 ;;                  (when left-pose
+                 ;;                    (cut:var-value
+                 ;;                     '?hand-links
+                 ;;                     (car (prolog:prolog
+                 ;;                           `(and (rob-int:robot ?robot)
+                 ;;                                 (rob-int:hand-links ?robot :left
+                 ;;                                                     ?hand-links))))))
+                 ;;                  (when right-pose
+                 ;;                    (cut:var-value
+                 ;;                     '?hand-links
+                 ;;                     (car (prolog:prolog
+                 ;;                           `(and (rob-int:robot ?robot)
+                 ;;                                 (rob-int:hand-links ?robot :right
+                 ;;                                                     ?hand-links))))))))))
                 (:allow-attached
                  (vector
                   (roslisp:make-message
@@ -185,28 +245,33 @@
                    :type (roslisp:symbol-code
                           'giskard_msgs-msg:collisionentry
                           :avoid_all_collisions)
-                   :min_dist 0.05)
+                   :min_dist 0.02)
                   (roslisp:make-message
                    'giskard_msgs-msg:collisionentry
                    :type (roslisp:symbol-code
                           'giskard_msgs-msg:collisionentry
                           :allow_collision)
-                   :robot_links (vector (roslisp-utilities:rosify-underscores-lisp-name
-                                         collision-object-a))
+                   :robot_links (if collision-object-a
+                                    (vector (roslisp-utilities:rosify-underscores-lisp-name
+                                             collision-object-a))
+                                    (vector (roslisp:symbol-code
+                                             'giskard_msgs-msg:collisionentry
+                                             :all))) ; collision-object-a = attached-obj
                    :body_b "kitchen";; (roslisp-utilities:rosify-underscores-lisp-name
                    ;;  collision-object-b-link)
                    :link_bs (if collision-object-b-link
-                                (vector
-                                 (roslisp-utilities:rosify-underscores-lisp-name
-                                  collision-object-b-link))
-                                (vector)))))
+                                (vector (roslisp-utilities:rosify-underscores-lisp-name
+                                         collision-object-b-link))
+                                (vector (roslisp:symbol-code
+                                         'giskard_msgs-msg:collisionentry
+                                         :all))))))
                 (t
                  (vector (roslisp:make-message
                           'giskard_msgs-msg:collisionentry
                           :type (roslisp:symbol-code
                                  'giskard_msgs-msg:collisionentry
                                  :avoid_all_collisions)
-                          :min_dist 0.05))))))))
+                          :min_dist 0.1))))))))
 
 (defun ensure-giskard-cartesian-input-parameters (frame left-pose right-pose)
   (values (when left-pose
@@ -248,7 +313,9 @@
                                         goal-pose-left goal-pose-right action-timeout
                                         collision-mode collision-object-b collision-object-b-link
                                         collision-object-a
-                                        (pose-base-frame cram-tf:*robot-base-frame*)
+                                        move-the-ass
+                                        (pose-base-frame ;; cram-tf:*robot-base-frame*
+                                         cram-tf:*odom-frame*)
                                         (left-tool-frame cram-tf:*robot-left-tool-frame*)
                                         (right-tool-frame cram-tf:*robot-right-tool-frame*)
                                         (convergence-delta-xy *giskard-convergence-delta-xy*)
@@ -264,8 +331,11 @@
             (let ((goal (make-giskard-cartesian-action-goal
                          goal-pose-left goal-pose-right
                          pose-base-frame left-tool-frame right-tool-frame
-                         collision-mode collision-object-b collision-object-b-link
-                         collision-object-a)))
+                         collision-mode
+                         :collision-object-b collision-object-b
+                         :collision-object-b-link collision-object-b-link
+                         :collision-object-a collision-object-a
+                         :move-the-ass move-the-ass)))
               (actionlib-client:call-simple-action-client
                'giskard-action
                :action-goal goal
@@ -276,3 +346,78 @@
           (values result status)))
       (roslisp:ros-info (pr2-ll giskard-cart) "Got an empty goal...")))
 
+
+
+
+
+
+
+
+
+;; header: 
+;;   seq: 17
+;;   stamp: 
+;;     secs: 1560439219
+;;     nsecs: 637718915
+;;   frame_id: ''
+;; goal_id: 
+;;   stamp: 
+;;     secs: 1560439219
+;;     nsecs: 637681961
+;;   id: "/giskard_interactive_marker-17-1560439219.638"
+;; goal: 
+;;   type: 1
+;;   cmd_seq: 
+;;     - 
+;;       constraints: []
+;;       joint_constraints: []
+;;       cartesian_constraints: 
+;;         - 
+;;           type: "CartesianPosition"
+;;           root_link: "odom"
+;;           tip_link: "base_footprint"
+;;           goal: 
+;;             header: 
+;;               seq: 0
+;;               stamp: 
+;;                 secs: 0
+;;                 nsecs:         0
+;;               frame_id: "base_footprint"
+;;             pose: 
+;;               position: 
+;;                 x: 2.50292941928e-08
+;;                 y: 0.0
+;;                 z: 0.209769845009
+;;               orientation: 
+;;                 x: 0.0
+;;                 y: 0.0
+;;                 z: 0.0
+;;                 w: 1.0
+;;         - 
+;;           type: "CartesianOrientationSlerp"
+;;           root_link: "odom"
+;;           tip_link: "base_footprint"
+;;           goal: 
+;;             header: 
+;;               seq: 0
+;;               stamp: 
+;;                 secs: 0
+;;                 nsecs:         0
+;;               frame_id: "base_footprint"
+;;             pose: 
+;;               position: 
+;;                 x: 2.50292941928e-08
+;;                 y: 0.0
+;;                 z: 0.209769845009
+;;               orientation: 
+;;                 x: 0.0
+;;                 y: 0.0
+;;                 z: 0.0
+;;                 w: 1.0
+;;       collisions: 
+;;         - 
+;;           type: 1
+;;           min_dist: 0.0
+;;           robot_links: ['']
+;;           body_b: "pr2"
+;;           link_bs: ['']
