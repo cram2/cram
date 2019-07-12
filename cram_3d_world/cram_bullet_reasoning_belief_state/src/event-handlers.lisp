@@ -146,7 +146,6 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 
 (defun move-joint-by-event (event open-or-close)
-  (print event)
   (let* ((joint-name (cpoe:environment-event-joint-name event))
          (object (cpoe:environment-event-object event))
          (distance (cpoe:environment-event-distance event))
@@ -174,7 +173,6 @@ If there is no other method with 1 as qualifier, this method will be executed al
      object)))
 
 (defmethod cram-occasions-events:on-event open-container ((event cpoe:container-opening-event))
-  (print event)
   (move-joint-by-event event :open)
   (unless cram-projection:*projection-environment*
     (publish-environment-joint-state (btr:joint-states (cpoe:environment-event-object event)))))
