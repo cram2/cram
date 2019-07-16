@@ -239,7 +239,7 @@ and setting it to zero will disable this method."
          (distance-new-pose-perceived-pose (cl-tf:v-dist
                                             (cl-transforms:origin obj-curr-pose)
                                             (cl-transforms:origin obj-pose))))
-    (when (> distance-new-pose-perceived-pose 0.1)
+    (when (> distance-new-pose-perceived-pose *perception-instability-threshold*)
       ;; Retry by spawning the object a corrected distance from the original pose
       (multiple-value-bind (x-corr y-corr z-corr)
           (get-perception-noise-correction obj-pose obj-curr-pose)
@@ -253,7 +253,7 @@ and setting it to zero will disable this method."
       (setf distance-new-pose-perceived-pose (cl-tf:v-dist
                                               (cl-transforms:origin obj-curr-pose)
                                               (cl-transforms:origin obj-pose)))
-      (when (> distance-new-pose-perceived-pose 0.1)
+      (when (> distance-new-pose-perceived-pose *perception-instability-threshold*)
         (error "[BTR-BELIEF OBJECT-PERCEIVED] Perceived pose is not stable")))))
 
 
