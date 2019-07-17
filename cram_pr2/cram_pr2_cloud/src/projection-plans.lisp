@@ -29,10 +29,23 @@
 
 (in-package :pr2-cloud)
 
-(defmacro with-projected-robot (&body body)
-  `(proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
-      (cpl:top-level
-        ,@body)))
+(defun init ()
+  (setf *cloud-handle-transform* nil)
+  (setf *cloud-joint-transform* nil)
+  (setf *local-handle-transform* nil)
+  (setf *local-joint-transform* nil)
+  (init-connection)
+  (load-trajectory-episode))
+
+
+
+
+(defmacro with-simulated-robot (&body body)
+  `(let ((results
+           (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
+             (cpl:top-level
+               ,@body))))
+     (car (cram-projection::projection-environment-result-result results))))
 
 (defun visualize-cloud-handle-and-joint ()
   (btr-utils:spawn-object 'cloud-handle-original :mug
@@ -60,7 +73,7 @@
        (intern (format nil "cereal-~a" i) :keyword)
        :visualization-box
        :pose pose)
-      (cram-pr2-low-level:visualize-marker pose :id (+ i 0) :r-g-b-list '(0.5 0 1))
+      (cram-tf:visualize-marker pose :id (+ i 0) :r-g-b-list '(0.5 0 1))
       (incf i))))
 
 
@@ -87,26 +100,26 @@
 
 
 (defun move-in-projection-to-fridge ()
-  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+  (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
     (cpl:top-level
       (exe:perform
        (let ((?pose (cl-transforms-stamped:make-pose-stamped
                      "map" 0.0
                      (cl-transforms:make-3d-vector 0.5 -0.8 0)
                      (cl-transforms:make-identity-rotation))))
-         (desig:a motion (type going) (target (desig:a location (pose ?pose))))))
+         (desig:a motion (type going) (pose ?pose))))
       (exe:perform
        (desig:a motion (type moving-torso) (joint-angle 0.3))))))
 
 (defun execute-trajectory-in-projection ()
   (move-in-projection-to-fridge)
   (let ((trajectory-in-base (local-gripper-trajectory-in-base-from-radius)))
-    (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+    (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
       (cpl:top-level
         (mapc (lambda (via-point-transform)
                 (let ((?pose (strip-transform-stamped via-point-transform)))
                  (exe:perform
                   (desig:a motion
                            (type moving-tcp)
-                           (right-target (desig:a location (pose ?pose)))))))
+                           (right-pose ?pose)))))
               trajectory-in-base)))))

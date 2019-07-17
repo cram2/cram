@@ -31,28 +31,39 @@
 (in-package :btr)
 
 (defun set-robot-state-from-tf (tf-buffer robot
-                                &key (reference-frame *fixed-frame*) timestamp)
-  (handler-case
-      (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
-             (robot-transform
+                                &key (reference-frame *fixed-frame*)
+                                  timestamp
+                                  only-these-links)
+  (let* ((root-link (cl-urdf:name (cl-urdf:root-link (urdf robot))))
+         (robot-transform
+           (handler-case
                (cl-transforms-stamped:lookup-transform
                 tf-buffer reference-frame root-link
-                :time timestamp :timeout *tf-default-timeout*)))
-        (when robot-transform
-          (setf (link-pose robot root-link)
-                (cl-transforms:transform->pose robot-transform))
-          (loop for name being the hash-keys in  (slot-value robot 'links) do
-            (setf (link-pose robot name)
-                  (cl-transforms:transform->pose
-                   (cl-transforms:transform*
-                    robot-transform
-                    (cl-transforms-stamped:lookup-transform
-                     tf-buffer root-link name
-                     :time timestamp
-                     :timeout *tf-default-timeout*)))))))
-    (transform-stamped-error (error)
-      (roslisp:ros-warn (set-robot-state-from-tf)
-                        "Failed with transform-stamped-error: ~a" error))))
+                :time timestamp :timeout *tf-default-timeout*)
+             (transform-stamped-error (error)
+               (roslisp:ros-warn (set-robot-state-from-tf)
+                                 "Failed with transform-stamped-error: ~a" error)
+               NIL))))
+    (when robot-transform
+      (setf (link-pose robot root-link)
+            (cl-transforms:transform->pose robot-transform))
+      (let ((link-names
+              (or only-these-links
+                  (loop for name being the hash-keys in (slot-value robot 'links)
+                        collect name))))
+       (loop for name in link-names
+             do (handler-case
+                    (setf (link-pose robot name)
+                          (cl-transforms:transform->pose
+                           (cl-transforms:transform*
+                            robot-transform
+                            (cl-transforms-stamped:lookup-transform
+                             tf-buffer root-link name
+                             :time timestamp
+                             :timeout *tf-default-timeout*))))
+                  (transform-stamped-error (error)
+                    (roslisp:ros-warn (set-robot-state-from-tf)
+                                      "Failed with transform-stamped-error: ~a" error))))))))
 
 (defgeneric set-robot-state-from-joints (joint-states robot)
   (:method ((joint-states sensor_msgs-msg:jointstate) (robot robot-object))
@@ -104,7 +115,7 @@ sensor_msgs/JointStates message."
 (defun calculate-pan-tilt (robot pan-link tilt-link pose)
   "Calculates values for the pan and tilt joints so that they pose on
   `pose'. Returns (LIST PAN-VALUE TILT-VALUE)
-Used in desig-check-to-see of btr-desigs.
+Used in desig-check-to-see of btr-visibility-costmap.
 Should it be taken out and made PR2-specific?"
   (let* ((pan-transform (cl-transforms:reference-transform
                          (link-pose robot pan-link)))
@@ -140,3 +151,37 @@ Should it be taken out and made PR2-specific?"
             (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
                   (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
                      (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2))))))))
+
+
+
+(defun get-robot-object ()
+  (with-vars-bound (?robot-object)
+      (lazy-car (prolog `(and (cram-robot-interfaces:robot ?robot-name)
+                              (bullet-world ?world)
+                              (%object ?world ?robot-name ?robot-object))))
+    (unless (is-var ?robot-object)
+      ?robot-object)))
+
+(defun get-robot-name ()
+  (with-vars-bound (?robot)
+      (lazy-car (prolog `(cram-robot-interfaces:robot ?robot)))
+    (unless (is-var ?robot)
+      ?robot)))
+
+(defun get-environment-object ()
+  (object *current-bullet-world* :kitchen))
+
+
+(defun robot-colliding-objects-without-attached (&optional other-objects-to-discard)
+  (let* ((robot-object (get-robot-object))
+         (colliding-object-names
+           (mapcar #'name
+                   (find-objects-in-contact *current-bullet-world* robot-object)))
+         (attached-object-names
+           (mapcar #'car
+                   (attached-objects robot-object)))
+         (robot-object-name-list
+           (list (name robot-object))))
+    (reduce #'set-difference
+            (list colliding-object-names attached-object-names
+                  robot-object-name-list other-objects-to-discard))))

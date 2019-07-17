@@ -30,32 +30,37 @@
 
 (defpackage cram-robot-interfaces
   (:use #:common-lisp #:cram-prolog #:cram-designators)
+  (:nicknames #:rob-int)
   (:export
    ;; arms
    #:arm #:required-arms #:available-arms
    #:arm-joints #:arm-links #:arm-base-joints #:arm-base-links #:arm-tool-joints
-   #:hand-links #:end-effector-link #:robot-tool-frame #:gripper-link #:gripper-joint
-   #:joint-lower-limit #:joint-upper-limit #:joint-type #:joint-axis #:joint-origin
-   #:joint-parent-link #:joint-child-link
-   #:robot-arms-parking-joint-states #:end-effector-parking-pose
-   #:robot-pre-grasp-joint-states #:planning-group
+   #:hand-links #:end-effector-link #:robot-tool-frame
+   #:gripper-link #:gripper-joint #:gripper-meter-to-joint-multiplier
+   #:planning-group
+   #:standard-to-particular-gripper-transform
+   #:tcp-in-ee-pose
    ;; designator utils
    #:compute-iks
-   #:reachability-designator #:designator-reach-pose
+   #:reachability-designator #:designator-reach-pose #:visibility-designator
    #:reachability-designator-p #:visibility-designator-p
    #:trajectory-desig? #:constraints-desig?
-   ;; grasps
-   #:def-grasp #:def-tool #:get-grasp #:get-grasps #:get-grasp-names
-   #:calculate-bounding-box-tool-length #:get-tool-direction-vector
-   #:get-tool-length #:get-tool-vector #:calculate-tool
-   #:grasp #:side #:object-type-grasp #:object-designator-grasp
    ;; ptu
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
-   #:robot-pan-tilt-links #:robot-pan-tilt-joints
+   #:robot-neck-links #:robot-neck-joints #:robot-neck-base-link
+   #:camera-in-neck-ee-pose
    ;; robot
-   #:robot #:robot-base-frame #:robot-torso-link-joint #:robot-odom-frame
+   #:robot #:robot-base-frame #:robot-odom-frame #:robot-torso-link-joint
    #:current-robot-symbol #:current-robot-package #:current-robot-name
+   #:robot-joint-states
+   #:robot-pose
    ;; trajectories
    #:trajectory-point
    ;; utilities
-   #:symbol-to-prolog-rule))
+   #:symbol-to-prolog-rule
+   ;; urdf
+   #:*robot-urdf*
+   #:get-joint-type #:get-joint-lower-limit #:get-joint-upper-limit
+   #:get-joint-axis #:get-joint-origin #:get-joint-parent #:get-joint-child
+   #:joint-lower-limit #:joint-upper-limit #:joint-type #:joint-axis #:joint-origin
+   #:joint-parent-link #:joint-child-link))

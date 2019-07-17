@@ -33,11 +33,11 @@
   :depends-on (cram-semantic-map-utils
                cram-plan-occasions-events
                cram-occasions-events
-               cram-designators
-               cram-projection)
+               cram-designators)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "semantic-map-cache" :depends-on ("package"))
-     (:file "events" :depends-on ("package"))))))
+     ;; (:file "events" :depends-on ("package"))
+     ))))

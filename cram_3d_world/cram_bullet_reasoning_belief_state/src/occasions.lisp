@@ -29,20 +29,24 @@
 (in-package :cram-bullet-reasoning-belief-state)
 
 (def-fact-group occasions (cpoe:object-in-hand cpoe:object-picked cpoe:object-placed-at cpoe:loc)
+  (<- (cpoe:object-in-hand ?object ?side ?grasp)
+    (btr:bullet-world ?world)
+    (cram-robot-interfaces:robot ?robot)
+    (btr:attached ?world ?robot ?link ?object-name ?grasp)
+    (once
+     (and (object-designator-name ?object ?object-name)
+          (desig:obj-desig? ?object)))
+    (cram-robot-interfaces:end-effector-link ?robot ?side ?link))
+
+  (<- (cpoe:object-in-hand ?object ?side)
+    (cpoe:object-in-hand ?object ?side ?_))
+
   (<- (cpoe:object-in-hand ?object)
     (setof ?object (cpoe:object-in-hand ?object ?_) ?objects)
     (member ?object ?objects))
 
   (<- (cpoe:object-picked ?object)
     (cpoe:object-in-hand ?object))
-
-  (<- (cpoe:object-in-hand ?object ?side)
-    (btr:bullet-world ?world)
-    (cram-robot-interfaces:robot ?robot)
-    (btr:attached ?world ?robot ?link ?object-name)
-    (once
-     (object-designator-name ?object ?object-name))
-    (cram-robot-interfaces:end-effector-link ?robot ?side ?link))
 
   (<- (cpoe:object-placed-at ?object ?location)
     (cpoe:loc ?object ?location))
@@ -56,19 +60,45 @@
     (object-designator-name ?object ?object-name)
     (object-at-location ?_ ?object-name ?location)))
 
-(def-fact-group occasion-utilities ()
+
+
+(def-fact-group occasion-utilities (object-designator-name desig:desig-location-prop)
+  (<- (object-designator-name ?name ?name)
+    (lisp-type ?name symbol))
+
   (<- (object-designator-name ?object-designator ?object-name)
-    (or (not (bound ?object-designator))
-        (lisp-type ?object-designator desig:object-designator))
-    (-> (bound ?object-designator)
-        (true)
-        (and
-         (lisp-fun unique-object-designators ?object-designators)
-         (member ?object-designator ?object-designators)))
-    (lisp-fun get-designator-object-name ?object-designator
-              ?object-name)
-    (lisp-pred identity ?object-name))
-  
+    (or (and (bound ?object-designator)
+             (desig:obj-desig? ?object-designator))
+        (and (not (bound ?object-designator))
+             (lisp-fun unique-object-designators ?object-designators)
+             (member ?one-object-designator-from-chain ?object-designators)
+             (desig:current-designator ?one-object-designator-from-chain ?object-designator)))
+    (lisp-fun get-designator-object-name ?object-designator ?belief-name)
+    (-> (lisp-pred identity ?belief-name)
+        (equal ?object-name ?belief-name)
+        (and (desig:desig-prop ?object-designator (:type ?object-type))
+             (btr:bullet-world ?w)
+             (btr:item-type ?world ?object-name ?object-type))))
+
+  (<- (desig:desig-location-prop ?designator ?location)
+    (desig:obj-desig? ?designator)
+    (desig:desig-prop ?designator (:type ?type))
+    (not (desig:desig-prop ?designator (:name ?name)))
+    (not (desig:desig-prop ?designator (:pose ?pose)))
+    (btr:bullet-world ?world)
+    (btr:item-type ?world ?name ?type)
+    (btr:pose ?world ?name ?location))
+
+  (<- (desig:desig-location-prop ?desig ?loc)
+    (desig:loc-desig? ?desig)
+    (desig:desig-prop ?desig (:object ?o))
+    (btr:object ?_ ?o)
+    (btr:pose ?_ ?o ?loc))
+
+  (<- (desig:desig-location-prop ?o ?loc)
+    (btr:object ?_ ?o)
+    (btr:pose ?_ ?o ?loc))
+
   (<- (object-at-location ?world ?object-name ?location-designator)
     (lisp-type ?location-designator desig:location-designator)
     (btr:bullet-world ?world)
@@ -83,7 +113,10 @@
     (not (bound ?location))
     (btr:bullet-world ?world)
     (btr:object-pose ?world ?object-name ?object-pose)
-    (desig:designator :location ((:pose ?object-pose))
+    (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
+    (lisp-fun cl-transforms-stamped:pose->pose-stamped ?fixed-frame 0.0 ?object-pose
+              ?object-pose-stamped)
+    (desig:designator :location ((:pose ?object-pose-stamped))
                       ?location-designator)))
 
 (defun unique-object-designators ()

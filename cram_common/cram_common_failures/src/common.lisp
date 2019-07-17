@@ -31,7 +31,7 @@
 
 (define-condition low-level-failure (cpl:simple-plan-failure)
   ((description :initarg :description
-                :initform "Low level failure happened"
+                :initform "Low-level failure happened"
                 :reader error-description))
   (:documentation "Failure thrown by low-level modules: robot or projection PMs.")
   (:report (lambda (condition stream)
@@ -39,3 +39,12 @@
 
 (define-condition actionlib-action-timed-out (low-level-failure) ()
   (:documentation "Actionlib action timeout was reached"))
+
+
+(define-condition high-level-failure (cpl:simple-plan-failure)
+  ((description :initarg :description
+                :initform "High-level failure happened"
+                :reader error-description))
+  (:documentation "Failure thrown by high-level modules, i.e. plans.")
+  (:report (lambda (condition stream)
+             (format stream (error-description condition)))))

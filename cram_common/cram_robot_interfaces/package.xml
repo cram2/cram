@@ -1,6 +1,6 @@
 <package>
   <name>cram_robot_interfaces</name>
-  <version>0.3.0</version>
+  <version>0.7.0</version>
   <description>
     CRAM Manipulation Knowledge package
   </description>
@@ -21,9 +21,11 @@
   <build_depend>cram_utilities</build_depend>
   <build_depend>cl_transforms</build_depend>
   <build_depend>cram_designators</build_depend>
+  <build_depend>cl_urdf</build_depend>
 
   <run_depend>cram_prolog</run_depend>
   <run_depend>cram_utilities</run_depend>
   <run_depend>cl_transforms</run_depend>
   <run_depend>cram_designators</run_depend>
+  <run_depend>cl_urdf</run_depend>
 </package>

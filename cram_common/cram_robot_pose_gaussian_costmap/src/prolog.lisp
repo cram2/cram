@@ -28,11 +28,9 @@
 
 (in-package :gaussian-costmap)
 
-(defparameter *orientation-samples* 5)
-(defparameter *orientation-sample-step* (/ pi 18))
-
-(defmethod costmap-generator-name->score ((name (eql 'pose-distribution)))
-  5)
+(defmethod costmap-generator-name->score ((name (eql 'pose-distribution))) 5)
+(defmethod costmap-generator-name->score ((name (eql 'reachable-from-space))) 5)
+(defmethod costmap-generator-name->score ((name (eql 'reachable-from-weighted))) 4)
 
 (defclass pose-distribution-range-include-generator () ())
 
@@ -49,7 +47,7 @@
 (def-fact-group robot-pose-gaussian-costmap (desig-costmap)
 
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (:to :see))
+    (cram-robot-interfaces:visibility-designator ?desig)
     (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
     (costmap ?cm)
     (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
@@ -57,10 +55,19 @@
      pose-distribution
      (make-gauss-cost-function ?mean ?covariance)
      ?cm)
-    (symbol-value *orientation-samples* ?samples)
-    (symbol-value *orientation-sample-step* ?sample-step)
+    (costmap:visibility-costmap-size ?distance)
+    (instance-of pose-distribution-range-include-generator ?include-generator-id)
+    (costmap-add-function
+     ?include-generator-id
+     (make-range-cost-function ?mean ?distance)
+     ?cm)
+    (costmap:orientation-samples ?samples)
+    (costmap:orientation-sample-step ?sample-step)
     (costmap-add-orientation-generator
      (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
+     ?cm)
+    (costmap-add-height-generator
+     (make-constant-height-function 0.0)
      ?cm))
 
   (<- (desig-costmap ?desig ?cm)
@@ -84,12 +91,30 @@
        ?exclude-generator-id
        (make-range-cost-function ?pose ?minimal-distance :invert t)
        ?cm)))
-    (costmap-add-function
-     pose-distribution
-     (make-gauss-cost-function ?mean ?covariance)
-     ?cm)
-    (symbol-value *orientation-samples* ?samples)
-    (symbol-value *orientation-sample-step* ?sample-step)
+    (costmap:orientation-samples ?samples)
+    (costmap:orientation-sample-step ?sample-step)
     (costmap-add-orientation-generator
      (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
-     ?cm)))
+     ?cm)
+    (costmap-add-height-generator
+     (make-constant-height-function 0.0)
+     ?cm))
+
+  ;; poses reachable-from ?pose for the robot
+  ;; ?pose should usually be robot's current pose I suppose
+  (<- (desig-costmap ?desig ?cm)
+    (costmap ?cm)
+    (desig-prop ?desig (:reachable-from ?from-what))
+    (or (and (lisp-type ?from-what symbol)
+             ;; (cram-robot-interfaces:robot ?from-what)
+             (lisp-fun cram-tf:robot-current-pose ?pose))
+        (and (lisp-type ?from-what cl-transforms:pose)
+             (equal ?pose ?from-what)))
+    (lisp-fun cl-transforms:origin ?pose ?point)
+    (costmap-in-reach-distance ?distance)
+    (costmap-add-function reachable-from-space
+                          (make-range-cost-function ?point ?distance)
+                          ?cm)
+    (costmap-add-function reachable-from-weighted
+                          (make-location-cost-function ?pose ?distance)
+                          ?cm)))

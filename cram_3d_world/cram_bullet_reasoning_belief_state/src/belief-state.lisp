@@ -28,18 +28,11 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(defmethod cram-occasions-events:clear-belief cram-bullet-reasoning-belief-state ()
-  (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-  (setup-world-database)
-  (let ((robot-object (btr:get-robot-object)))
-    (if robot-object
-        (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
-        (warn "ROBOT was not defined. Have you loaded a robot package?"))) )
-
-(defvar *robot-urdf* nil)
 (defvar *kitchen-urdf* nil)
 (defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
+(defparameter *spawn-debug-window* t
+  "If the debug window should be spawned when belief state is set up.")
 
 (defun replace-all (string part replacement &key (test #'char=))
   "Returns a new string in which all the occurences of the part
@@ -57,9 +50,10 @@ is replaced with replacement.
           when pos do (write-string replacement out)
             while pos)))
 
+(defun average (min max) (+ min (/ (- max min) 2)))
 (defun setup-world-database ()
-  (let ((robot (or *robot-urdf*
-                   (setf *robot-urdf*
+  (let ((robot (or rob-int:*robot-urdf*
+                   (setf rob-int:*robot-urdf*
                          (cl-urdf:parse-urdf
                           (replace-all (roslisp:get-param *robot-parameter*) "\\" "  ")))))
         ;; TODO get rid of replace-all and instead fix the URDF of our real PR2
@@ -69,19 +63,50 @@ is replaced with replacement.
                        (when kitchen-urdf-string
                          (setf *kitchen-urdf* (cl-urdf:parse-urdf
                                                kitchen-urdf-string)))))))
+
+    ;; set robot's URDF root link to *robot-base-frame* as that's how going actions works
+    (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
+          (or (gethash cram-tf:*robot-base-frame*
+                       (cl-urdf:links rob-int:*robot-urdf*))
+              (error "[setup-bullet-world] cram-tf:*robot-base-frame* was undefined or smt.")))
+
     (assert
      (cut:force-ll
       (prolog `(and
                 (btr:bullet-world ?w)
-                (btr:debug-window ?w)
+                ,@(when *spawn-debug-window*
+                    '((btr:debug-window ?w)))
                 (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
-                                           :normal (0 0 1) :constant 0))
-                (btr:assert ?w (btr:object :semantic-map :kitchen ((0 0 0) (0 0 0 1))
+                                                         :normal (0 0 1) :constant 0
+                                                         :collision-mask (:default-filter)))
+                (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
+                                                 :collision-group :static-filter
+                                                 :collision-mask (:default-filter
+                                                                  :character-filter)
                                            ,@(when kitchen
-                                               `(:urdf ,kitchen))))
-                (-> (cram-robot-interfaces:robot ?robot)
-                    (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))
-                         (cram-robot-interfaces:robot-arms-parking-joint-states ?robot ?joint-states)
-                         (assert (btr:joint-state ?world ?robot ?joint-states))
-                         (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15)))))
+                                               `(:urdf ,kitchen))
+                                           :compound T))
+                (-> (rob-int:robot ?robot)
+                    (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1))
+                                                    ;; :color (0.9 0.9 0.9 1.0)
+                                                    :urdf ,robot))
+                         (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
+                         (assert (btr:joint-state ?world ?robot ?left-joint-states))
+                         (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
+                         (assert (btr:joint-state ?world ?robot ?right-joint-states))
+                         (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
+                         (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
+                         (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit)
+                         (lisp-fun average ?lower-limit ?upper-limit ?average-joint-value)
+                         (assert (btr:joint-state ?world ?robot
+                                                  ((?torso-joint ?average-joint-value)))))
                     (warn "ROBOT was not defined. Have you loaded a robot package?"))))))))
+
+
+(defmethod cram-occasions-events:clear-belief cram-bullet-reasoning-belief-state ()
+  (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
+  (setup-world-database)
+  (let ((robot-object (btr:get-robot-object)))
+    (if robot-object
+        (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
+        (warn "ROBOT was not defined. Have you loaded a robot package?"))))

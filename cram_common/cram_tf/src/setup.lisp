@@ -1,10 +1,11 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +15,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -33,8 +34,15 @@
 (defvar *transformer* nil
   "A TF transformer object: be it TF:TRANSFORM-LISTENER or TF2:BUFFER-CLIENT etc.")
 
-(defvar *tf-default-timeout* 4.0
+(defparameter *tf-default-timeout* 4.0
   "How long to wait until a tansform in secs. For simulation the default is 10.0")
+
+
+(defvar *broadcaster* nil "A tf-broadcaster instance")
+
+(defparameter *tf-broadcasting-enabled* nil)
+(defparameter *tf-broadcasting-topic* "tf")
+(defparameter *tf-broadcasting-interval* 0.1)
 
 
 (defvar *fixed-frame* nil
@@ -56,7 +64,6 @@ or in general at compile-time.")
   "Tool frame of the left arm. Initialized from CRAM robot description.")
 (defvar *robot-right-tool-frame* nil
   "Tool frame of the right arm. Initialized from CRAM robot desciption.")
-
 
 
 (defun init-tf ()
@@ -113,3 +120,23 @@ or in general at compile-time.")
 
 (roslisp-utilities:register-ros-init-function init-tf)
 (roslisp-utilities:register-ros-cleanup-function destroy-tf)
+
+
+(defun init-tf-broadcaster ()
+  (setf *broadcaster*
+          (make-tf-broadcaster
+           *tf-broadcasting-topic*
+           *tf-broadcasting-interval*))
+  (when *tf-broadcasting-enabled*
+    (start-publishing-transforms *broadcaster*)))
+
+(defun destroy-tf-broadcaster ()
+  (when *broadcaster*
+    (stop-publishing-transforms *broadcaster*)
+    (with-slots (publisher tf-topic) *broadcaster*
+      (roslisp:unadvertise tf-topic)
+      (setf publisher nil))
+    (setf *broadcaster* nil)))
+
+(roslisp-utilities:register-ros-init-function init-tf-broadcaster)
+(roslisp-utilities:register-ros-cleanup-function destroy-tf-broadcaster)

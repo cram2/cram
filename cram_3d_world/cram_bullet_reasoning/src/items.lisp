@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -45,8 +46,38 @@
     (:glove "package://cram_bullet_reasoning/resource/glove.stl" nil)
     (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil)))
 
+(defun add-objects-to-mesh-list (ros-package &key (directory "resource") extension)
+  "Adds all meshes from `ros-package' resource directory into *mesh-files* list.
+The name in the list is a keyword that is created by lispifying the filename."
+  (mapcar (lambda (object-filename-and-object-extension)
+            (declare (type list object-filename-and-object-extension))
+            (destructuring-bind (object-filename object-extension)
+                object-filename-and-object-extension
+              (if (if extension
+                      (string-equal object-extension extension)
+                      (or (string-equal object-extension "stl")
+                          (string-equal object-extension "dae")))
+                  (let* ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
+                                     object-filename :keyword))
+                         (new-entry (list lisp-name
+                                          (format nil "package://~a/~a/~a.~a"
+                                                  ros-package directory
+                                                  object-filename object-extension)
+                                          nil))
+                         (position-of-entry (position lisp-name *mesh-files* :key #'car)))
+                    (if position-of-entry
+                        (setf (nth position-of-entry *mesh-files*) new-entry)
+                        (push new-entry *mesh-files*))
+                    lisp-name))))
+          (mapcar (lambda (pathname)
+                    (list (pathname-name pathname) (pathname-type pathname)))
+                  (directory (physics-utils:parse-uri
+                              (format nil "package://~a/~a/*.*" ros-package directory))))))
+
 (defclass item (object)
-  ((types :reader item-types :initarg :types)))
+  ((types :reader item-types :initarg :types)
+   (attached-objects :reader attached-objects :initarg :attached-objects
+                     :type 'list :initform nil)))
 
 (defmethod copy-object ((object item) (world bt-reasoning-world))
   (change-class (call-next-method) 'item
@@ -60,7 +91,7 @@
         (let ((mesh-specification (assoc object-type *mesh-files*)))
           (assert
            mesh-specification ()
-           "Couldn't fine a mesh for object type ~a." object-type)
+           "Couldn't find a mesh for object type ~a." object-type)
           (destructuring-bind (type uri &optional flip-winding-order)
               mesh-specification
             (declare (ignore type))
@@ -102,10 +133,10 @@
                          (/ (* i pi)
                             4)))
                        (make-instance
-                        'box-shape
-                        :half-extents (cl-transforms:make-3d-vector
-                                       radius (* radius (sin (/ pi 8)))
-                                       (/ height 2)))))
+                           'box-shape
+                         :half-extents (cl-transforms:make-3d-vector
+                                        radius (* radius (sin (/ pi 8)))
+                                        (/ height 2)))))
     compound-shape))
 
 (defun make-cup-shape (radius height handle-size)
@@ -119,14 +150,15 @@
                        0 0)
                       (cl-transforms:make-quaternion 0 0 0 1))
                      (make-instance
-                      'box-shape
-                      :half-extents (cl-transforms:v* handle-size 0.5)))
+                         'box-shape
+                       :half-extents (cl-transforms:v* handle-size 0.5)))
     collision-shape))
 
-(defmethod add-object ((world bt-world) (type (eql :generic-cup)) name pose &key
-                       mass radius height
-                       (handle-size (cl-transforms:make-3d-vector
-                                     0.03 0.01 (* height 0.8))))
+(defmethod add-object ((world bt-world) (type (eql :generic-cup)) name pose
+                       &key
+                         mass radius height
+                         (handle-size (cl-transforms:make-3d-vector
+                                       0.03 0.01 (* height 0.8))))
   (make-item world name '(generic-cup)
              (list
               (make-instance
@@ -135,25 +167,28 @@
                 :collision-shape (make-cup-shape radius height handle-size)))))
 
 (defmethod add-object ((world bt-world) (type (eql :mug)) name pose &key
-                       mass)
+                                                                      mass)
   (add-object world :mesh name pose :mass mass :mesh :mug))
 
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
                        &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
                          disable-face-culling)
-  (let ((mesh-model (physics-utils:scale-3d-model
-                     (etypecase mesh
-                       (symbol (let ((uri (physics-utils:parse-uri
-                                           (cadr (assoc mesh *mesh-files*)))))
-                                 (with-file-cache model uri
-                                     (physics-utils:load-3d-model
-                                      uri :flip-winding-order (caddr (assoc mesh *mesh-files*)))
-                                   model)))
-                       (string (let ((uri  (physics-utils:parse-uri mesh)))
-                                 (with-file-cache model uri (physics-utils:load-3d-model uri)
-                                   model)))
-                       (physics-utils:3d-model mesh))
-                     scale)))
+  (let ((mesh-model
+          (physics-utils:scale-3d-model
+           (etypecase mesh
+             (symbol (let ((uri (cadr (assoc mesh *mesh-files*))))
+                       (unless uri (error "(btr add-object) Item of type ~a is unknown." mesh))
+                       (let ((uri-path (physics-utils:parse-uri uri)))
+                         (with-file-cache model uri-path
+                             (physics-utils:load-3d-model
+                              uri-path :flip-winding-order (caddr (assoc mesh *mesh-files*)))
+                           model))))
+             (string (let ((uri-path (physics-utils:parse-uri mesh)))
+                       (with-file-cache model uri-path
+                           (physics-utils:load-3d-model uri-path)
+                         model)))
+             (physics-utils:3d-model mesh))
+           scale)))
     (make-item world name (or types (list mesh))
                (list
                 (make-instance 'rigid-body
@@ -242,3 +277,62 @@
                 :collision-shape (make-instance 'colored-box-shape
                                    :half-extents (ensure-vector size)
                                    :color color)))))
+
+
+(defmethod attach-object ((other-object item) (object item) &key attachment-type)
+  "Attaches `object' to `other-object': adds an attachment to the
+attached-objects lists of each other. The attachments are bidirectional.
+`attachment-type' is a keyword that specifies the type of attachment."
+  (when (equal (name object) (name other-object))
+    (warn "Cannot attach an object to itself: ~a" (name object))
+    (return-from attach-object))
+  (when (member (name object) (attached-objects other-object))
+    (warn "Item ~a already attached to ~a. Ignoring new attachment."
+          (name object) (name other-object))
+    (return-from attach-object))
+  (push (make-attachment :object (name object) :attachment attachment-type)
+        (slot-value other-object 'attached-objects))
+  (push (make-attachment :object (name other-object) :attachment attachment-type)
+        (slot-value object 'attached-objects))
+  (setf (mass (car (rigid-bodies object))) 0.0)
+  (setf (mass (car (rigid-bodies other-object))) 0.0))
+
+(defmethod detach-object ((other-object item) (object item) &key)
+  "Removes item names from the given arguments in the corresponding `attached-objects' lists
+   of the given items."
+  (setf (slot-value other-object 'attached-objects)
+        (remove (name object) (attached-objects other-object)
+                :key #'attachment-object :test #'equal))
+  (setf (slot-value object 'attached-objects)
+        (remove (name other-object) (attached-objects object)
+                :key #'attachment-object :test #'equal))
+  (setf (mass (car (rigid-bodies object))) 0.2)
+  (setf (mass (car (rigid-bodies other-object))) 0.2))
+
+(let ((already-moved '()))
+  (defmethod (setf pose) :around (new-value (object item))
+    "Since we save the original pose of the object at the time of attaching,
+it is possible to change the pose of its attachments when its pose changes."
+    (if (and (slot-boundp object 'attached-objects)
+             (> (length (attached-objects object)) 0))
+        (let ((carrier-transform
+                (cl-transforms:transform-diff
+                 (cl-transforms:pose->transform new-value)
+                 (cl-transforms:pose->transform (pose object)))))
+          ;; If none item already moved or item wasn't already moved
+          (unless (and already-moved
+                       (member (name object) already-moved :test #'equal))
+            (push (name object) already-moved)
+            (call-next-method)
+            (dolist (attachment (attached-objects object))
+              (let ((current-attachment-pose (object-pose (attachment-object attachment))))
+                (when (and carrier-transform current-attachment-pose)
+                  (setf (pose (btr:object btr:*current-bullet-world*
+                                          (attachment-object attachment)))
+                        (cl-transforms:transform-pose
+                         carrier-transform
+                         current-attachment-pose)))))
+            ;; If all attachments from root head passed, remove all.
+            (if (equal (name object) (car (last already-moved)))
+                (setf already-moved '()))))
+        (call-next-method))))

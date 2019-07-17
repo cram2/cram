@@ -98,12 +98,12 @@
 (defun navigate-to (?navigation-goal)
   (exe:perform (desig:a motion
                         (type going)
-                        (target (desig:a location (pose ?navigation-goal))))))
+                        (pose ?navigation-goal))))
 
 (defun look-at (?point-of-interest)
   (exe:perform (desig:a motion
                         (type looking)
-                        (target (desig:a location (pose ?point-of-interest))))))
+                        (pose ?point-of-interest))))
 
 (defun get-perceived-bottle-desig ()
   (let* ((?bottle-desig (desig:an object (type bottle)))
@@ -128,7 +128,7 @@
 
 (defun test-switch-two-bottles ()
   (spawn-two-bottles)
-  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+  (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
     (cpl:top-level
       ;; Go to counter top and perceive bottle
       (let ((?navigation-goal *pose-counter*)
@@ -142,13 +142,20 @@
           ;; Move torso up
           (exe:perform
            (desig:a motion (type moving-torso) (joint-angle 0.3)))
-          (pr2-pp-plans::park-arms)
+          (exe:perform
+           (desig:an action
+                     (type positioning-arm)
+                     (left-configuration park)
+                     (right-configuration park)))
           (navigate-to ?navigation-goal))
         (look-at ?ptu-goal))
       ;; Pick up bottle-1 with right arm.
       (let ((?perceived-bottle-1 (get-perceived-bottle-desig)))
         (pick-up ?perceived-bottle-1 :right)
-        (pr2-pp-plans::park-arms :arm :right)
+        (exe:perform
+         (desig:an action
+                   (type positioning-arm)
+                   (right-configuration park)))
         ;; Move to the meal table
         (let ((?pose *pose-meal-table*))
           (navigate-to ?pose))
@@ -156,16 +163,26 @@
         (let ((?perceived-bottle-2 (get-perceived-bottle-desig)))
           (pick-up ?perceived-bottle-2 :left)
           ;; Move left arm out of sight
-          (pr2-pp-plans::park-arms :arm :left)
+          (exe:perform
+           (desig:an action
+                     (type positioning-arm)
+                     (left-configuration park)))
           ;; Place bottle-1 on second table
           (let ((?drop-pose *pose-bottle-2*))
             (place-down ?drop-pose ?perceived-bottle-1 :right))
           ;; Move right arm out of sight
-          (pr2-pp-plans::park-arms :arm :right)
+          (exe:perform
+           (desig:an action
+                     (type positioning-arm)
+                     (right-configuration park)))
           ;; Move to the counter table 
           (let ((?navigation-goal *pose-counter*))
             (navigate-to ?navigation-goal))
           ;; Place bottle-2 on the counter
           (let ((?drop-pose *pose-bottle-1*))
             (place-down ?drop-pose ?perceived-bottle-2 :left))
-          (pr2-pp-plans::park-arms))))))
+          (exe:perform
+           (desig:an action
+                     (type positioning-arm)
+                     (left-configuration park)
+                     (right-configuration park))))))))

@@ -31,7 +31,6 @@
 (in-package :location-costmap)
 
 (defparameter *costmap-valid-solution-threshold* 0.10)
-(defconstant +costmap-n-samples+ 1)
 
 (defvar *costmap-cache* (tg:make-weak-hash-table :test 'eq :weakness :key))
 (defvar *costmap-max-values (tg:make-weak-hash-table :test 'eq :weakness :key))
@@ -45,6 +44,11 @@
                    (prolog `(merged-desig-costmap ,desig ?cm)))
                 (unless (is-var ?cm)
                   ?cm))))))
+
+(defmethod desig:reset ((desig location-designator))
+  "Deleted cached costmap associated with this designator"
+  (let ((first-designator (desig:first-desig desig)))
+    (remhash first-designator *costmap-cache*)))
 
 (defun get-cached-costmap-maxvalue (costmap)
   (or (gethash costmap *costmap-max-values)
@@ -72,21 +76,23 @@
         (unless cm
           (return-from location-costmap-pose-validator :unknown))
         (handler-case
-            (let ((costmap-value (/ (get-map-value
-                                     cm
-                                     (cl-transforms:x p)
-                                     (cl-transforms:y p))
-                                    (get-cached-costmap-maxvalue cm)))
-                  (costmap-heights (generate-heights
-                                    cm (cl-transforms:x p) (cl-transforms:y p))))
-              (when (> costmap-value *costmap-valid-solution-threshold*)
-                (cond ((not costmap-heights)
-                       :accept)
-                      ((find-if (lambda (height)
-                                  (< (abs (- height (cl-transforms:z p)))
-                                     1e-3))
-                                costmap-heights)
-                       :accept))))
+            (let ((costmap-value
+                    (/ (get-map-value
+                        cm
+                        (cl-transforms:x p)
+                        (cl-transforms:y p))
+                       (get-cached-costmap-maxvalue cm))))
+              (if (> costmap-value *costmap-valid-solution-threshold*)
+                  (let ((costmap-heights
+                          (generate-heights cm (cl-transforms:x p) (cl-transforms:y p))))
+                    (cond ((not costmap-heights)
+                           :accept)
+                          ((find-if (lambda (height)
+                                      (< (abs (- height (cl-transforms:z p)))
+                                         1e-3))
+                                    costmap-heights)
+                           :accept)))
+                  :reject))
           (cma:invalid-probability-distribution ()
             :maybe-reject)))
       :unknown))

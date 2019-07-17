@@ -49,7 +49,7 @@
         (true)))
 
   (<- (desig-costmap ?desig ?cm)
-    (desig-prop ?desig (:to :see))
+    (cram-robot-interfaces:visibility-designator ?desig)
     (costmap ?cm)
     (costmap-padding ?padding)
     (drivable-location-costmap ?cm ?padding))

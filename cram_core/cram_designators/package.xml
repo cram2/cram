@@ -1,6 +1,6 @@
-<package>
+<package format="2">
   <name>cram_designators</name>
-  <version>0.3.0</version>
+  <version>0.7.0</version>
   <description>
       cram_designators defines the protocol for designators and provides an
       implementation for location, object and action designators.
@@ -18,20 +18,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>sbcl</build_depend>
-  <build_depend>alexandria</build_depend>
-  <build_depend>cram_utilities</build_depend>
-  <build_depend>cram_prolog</build_depend>
-  <build_depend>cram_language</build_depend>
-  <build_depend>trivial_garbage</build_depend>
-  <build_depend>lisp_unit</build_depend>
-
-  <run_depend>sbcl</run_depend>
-  <run_depend>alexandria</run_depend>
-  <run_depend>cram_utilities</run_depend>
-  <run_depend>cram_prolog</run_depend>
-  <run_depend>cram_language</run_depend>
-  <run_depend>trivial_garbage</run_depend>
-  <run_depend>lisp_unit</run_depend>
-
+  <depend>alexandria</depend>
+  <depend>cram_utilities</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_language</depend>
+  <depend>trivial_garbage</depend>
+  <test_depend>lisp_unit</test_depend>
 </package>

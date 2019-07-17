@@ -94,19 +94,20 @@
          (cut-signal (cut)
            (invoke-nth-restart ,nesting-level :rest (,cut-continuation-name cut)))))))
 
-(defun prove-one (goal binds &optional rethrow-cut)
-  "Proves the `goal' under `binds' and returns the new bindings or NIL
-if none could be found."
-  (let ((handler (get-prolog-handler (car goal))))
-    (or
-     (when handler
-       (apply handler binds (cdr goal)))
-     (lazy-mapcan (lambda (clause-match)
-                    (with-cut-exit 0 ((cut) (bindings cut))
-                      (prove-all (fact-clauses (car clause-match))
-                                 (cdr clause-match)
-                                 rethrow-cut)))
-                  (get-matching-clauses goal binds (not handler))))))
+(defgeneric prove-one (goal binds &optional rethrow-cut)
+  (:documentation "Proves the `goal' under `binds' and returns the new bindings
+or NIL if none could be found.")
+  (:method (goal binds &optional rethrow-cut)
+    (let ((handler (get-prolog-handler (car goal))))
+      (or
+       (when handler
+         (apply handler binds (cdr goal)))
+       (lazy-mapcan (lambda (clause-match)
+                      (with-cut-exit 0 ((cut) (bindings cut))
+                        (prove-all (fact-clauses (car clause-match))
+                                   (cdr clause-match)
+                                   rethrow-cut)))
+                    (get-matching-clauses goal binds (not handler)))))))
 
 (defun prove-all (goals binds &optional rethrow-cut)
   "Proves all `goals' under binds and returns the resulting
@@ -188,10 +189,11 @@ form (renamed-fact new-binds)"
 (define-hook cram-utilities::on-prepare-prolog-prove (query binds))
 (define-hook cram-utilities::on-finish-prolog-prove (log-id success))
 
-(defun prolog (query &optional (binds nil))
-  (let ((log-id (first (cram-utilities::on-prepare-prolog-prove query binds))))
-    (let ((result
-            (lazy-mapcar (rcurry (curry #'filter-bindings query) binds)
-                         (prove-all (list query) binds))))
-      (cram-utilities::on-finish-prolog-prove log-id (not (eql result nil)))
-      result)))
+(defgeneric prolog (query &optional binds)
+  (:method (query &optional (binds nil))
+    (let ((log-id (first (cram-utilities::on-prepare-prolog-prove query binds))))
+      (let ((result
+              (lazy-mapcar (rcurry (curry #'filter-bindings query) binds)
+                           (prove-all (list query) binds))))
+        (cram-utilities::on-finish-prolog-prove log-id (not (eql result nil)))
+        result))))

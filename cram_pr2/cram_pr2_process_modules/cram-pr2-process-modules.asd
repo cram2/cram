@@ -37,7 +37,12 @@
                cram-pr2-low-level
                cram-tf
                cram-common-failures
-               cram-common-designators)
+               cram-common-designators
+               cram-language ; for with-real-robot
+               cram-knowrob-world-state
+               cram-robosherlock
+               cram-giskard
+               cram-nav-pcontroller)
 
   :components
   ((:module "src"
@@ -46,6 +51,4 @@
      (:file "designators" :depends-on ("package"))
      (:file "grippers" :depends-on ("package"))
      (:file "ptu" :depends-on ("package"))
-     (:file "base" :depends-on ("package"))
-     (:file "arms" :depends-on ("package"))
-     (:file "perception" :depends-on ("package"))))))
+     (:file "with-real-robot" :depends-on ("package"))))))

@@ -32,10 +32,12 @@
   :license "BSD"
 
   :depends-on (roslisp
-               actionlib
                roslisp-utilities
-               roslisp-msg-protocol ; for ros-message class type
+               actionlib
+               cram-simple-actionlib-client
+               roslisp-msg-protocol     ; for ros-message class type
                cram-language ; for with-failure-handling to the least
+               cram-math ; for degrees->radians
                cl-transforms-stamped
                cl-transforms
                cram-tf
@@ -45,38 +47,23 @@
                cram-utilities
                cram-prolog
                cram-boxy-description
+               cram-joint-states
                ;; msgs for low-level communication
                geometry_msgs-msg ; for force-torque sensor wrench
                std_srvs-srv ; for zeroing force-torque sensor
-               giskard_msgs-msg
-               move_base_msgs-msg
+               sensor_msgs-msg
                visualization_msgs-msg
                iai_wsg_50_msgs-msg
-               sensor_msgs-msg
-               iai_control_msgs-msg ; neck message
-               wiggle_msgs-msg)
+               control_msgs-msg ; neck message
+               trajectory_msgs-msg ; also for neck
+               ;; iai_control_msgs-msg ; neck message
+               iai_dlr_msgs-msg)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "low-level-common" :depends-on ("package"))
-     (:file "simple-actionlib-client" :depends-on ("package"))
-     (:file "joint-states" :depends-on ("package"))
-     (:file "giskard-joint" :depends-on ("package"
-                                         "low-level-common"
-                                         "simple-actionlib-client"
-                                         "giskard-common"
-                                         "joint-states"))
-     (:file "giskard-common" :depends-on ("package" "simple-actionlib-client"))
-     (:file "giskard-cartesian" :depends-on ("package"
-                                             "simple-actionlib-client"
-                                             "giskard-common"
-                                             "giskard-joint"))
-     (:file "nav-pcontroller" :depends-on ("package"
-                                           "low-level-common"
-                                           "simple-actionlib-client"))
      (:file "neck" :depends-on ("package"))
-     (:file "grippers" :depends-on ("package" "joint-states"))
+     (:file "grippers" :depends-on ("package"))
      (:file "force-torque-sensor" :depends-on ("package"))
-     (:file "wiggle" :depends-on ("package" "simple-actionlib-client"
-                                            "giskard-cartesian" "force-torque-sensor"))))))
+     (:file "joint-action-client" :depends-on ("package"))
+     (:file "cart-action-client" :depends-on ("package"))))))

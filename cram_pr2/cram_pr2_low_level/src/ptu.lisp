@@ -55,7 +55,7 @@
 (defun make-ptu-action-goal (point-stamped)
   (actionlib:make-action-goal
       (get-ptu-action-client)
-    max_velocity 10
+    max_velocity 1
     min_duration 0.3
     pointing_frame "high_def_frame"
     (x pointing_axis) 1.0
@@ -63,42 +63,38 @@
     (z pointing_axis) 0.0
     target (cl-transforms-stamped:to-msg point-stamped)))
 
-(defun ensure-ptu-input-parameters (frame point)
-  (declare (type (or null string) frame)
-           (type (or cl-transforms:3d-vector
+(defun ensure-ptu-input-parameters (pose)
+  (declare (type (or cl-transforms:3d-vector
                      cl-transforms:point cl-transforms-stamped:point-stamped
-                     cl-transforms:pose cl-transforms-stamped:pose-stamped)))
-  "Returns a point-stamped in `frame'"
-  (let ((frame (or (when (typep point 'cl-transforms-stamped:pose-stamped)
-                     (cl-transforms-stamped:frame-id point))
-                   frame
+                     cl-transforms:pose cl-transforms-stamped:pose-stamped) pose))
+  "Returns a point-stamped in base_footprint or given frame"
+  (let ((frame (or (when (typep pose 'cl-transforms-stamped:pose-stamped)
+                     (cl-transforms-stamped:frame-id pose))
                    cram-tf:*robot-base-frame*)))
     (cram-tf:ensure-point-in-frame
-     (etypecase point
+     (etypecase pose
        (cl-transforms:point ; also covers 3d-vector and point-stamped
-        point)
-       (cl-transforms:pose  ; also covers pose-stamped
-        (cl-transforms:origin point)))
+        pose)
+       (cl-transforms:pose          ; also covers pose-stamped
+        (cl-transforms:origin pose)))
      frame)))
 
 (defun ensure-ptu-goal-reached (status)
   (when (eql status :timeout)
-    (cpl:fail 'common-fail:actionlib-action-timed-out :description "PTU action timed out."))
+    (roslisp:ros-warn (pr2-ll ptu) "PTU action timed out."))
   (unless (eql status :succeeded)
-    (cpl:fail 'common-fail:low-level-failure :description "PTU action did not succeed."))
+    (cpl:fail 'common-fail:ptu-low-level-failure :description "PTU action did not succeed."))
   ;; todo: would be nice to check if the point is actually visible from the
   ;; end configuration
   ;; using looking-at or point-head-at from cram_3d_world
   )
 
-(defun call-ptu-action (&key (frame cram-tf:*robot-base-frame*)
-                          (point (cl-transforms:make-identity-vector))
+(defun call-ptu-action (&key (pose (cl-transforms:make-identity-pose))
                           (action-timeout *ptu-action-timeout*))
-  (declare (type (or null string) frame)
-           (type (or cl-transforms:3d-vector
+  (declare (type (or cl-transforms:3d-vector
                      cl-transforms:point cl-transforms-stamped:point-stamped
-                     cl-transforms:pose cl-transforms-stamped:pose-stamped)))
-  (let ((goal-point-stamped (ensure-ptu-input-parameters frame point)))
+                     cl-transforms:pose cl-transforms-stamped:pose-stamped) pose))
+  (let ((goal-point-stamped (ensure-ptu-input-parameters pose)))
     (multiple-value-bind (result status)
         (cpl:with-failure-handling
             ((simple-error (e)
@@ -115,10 +111,15 @@
 
 (defun shake-head (n-times)
   (dotimes (n n-times)
-    (call-ptu-action :point (cl-transforms:make-3d-vector 5.0 1.0 1.2))
-    (call-ptu-action :point (cl-transforms:make-3d-vector 5.0 -1.0 1.2))))
+    (call-ptu-action :pose (cl-transforms:make-3d-vector 5.0 1.0 1.2))
+    (call-ptu-action :pose (cl-transforms:make-3d-vector 5.0 -1.0 1.2))))
 
 (defun look-at-gripper (left-or-right)
-  (call-ptu-action :frame (ecase left-or-right
-                            (:left "l_gripper_tool_frame")
-                            (:right "r_gripper_tool_frame"))))
+  (call-ptu-action :pose
+                   (cl-tf:make-pose-stamped
+                    (ecase left-or-right
+                      (:left "l_gripper_tool_frame")
+                      (:right "r_gripper_tool_frame"))
+                    0.0
+                    (cl-transforms:make-identity-vector)
+                    (cl-transforms:make-identity-rotation))))

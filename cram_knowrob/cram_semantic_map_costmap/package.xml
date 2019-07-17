@@ -1,6 +1,6 @@
-<package>
+<package format="2">
   <name>cram_semantic_map_costmap</name>
-  <version>0.3.0</version>
+  <version>0.7.0</version>
   <description>
     Semantic Map Costmap package
   </description>
@@ -17,19 +17,13 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>cl_transforms</build_depend>
-  <build_depend>cram_semantic_map_utils</build_depend>
-  <build_depend>cram_semantic_map_designators</build_depend>
-  <build_depend>cram_projection</build_depend>
-  <build_depend>cram_location_costmap</build_depend>
-  <build_depend>alexandria</build_depend>
-  <build_depend>cram_semantic_map</build_depend>
-
-  <run_depend>cl_transforms</run_depend>
-  <run_depend>cram_semantic_map_utils</run_depend>
-  <run_depend>cram_semantic_map_designators</run_depend>
-  <run_depend>cram_projection</run_depend>
-  <run_depend>cram_location_costmap</run_depend>
-  <run_depend>alexandria</run_depend>
-  <run_depend>cram_semantic_map</run_depend>
+  <depend>cl_transforms</depend>
+  <depend>cram_semantic_map_utils</depend>
+  <depend>cram_semantic_map_designators</depend>
+  <depend>cram_projection</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_location_costmap</depend>
+  <depend>alexandria</depend>
+  <depend>cram_semantic_map</depend>
+  <depend>cram_robot_interfaces</depend>
 </package>

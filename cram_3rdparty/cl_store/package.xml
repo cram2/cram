@@ -1,6 +1,6 @@
 <package>
   <name>cl_store</name>
-  <version>0.3.0</version>
+  <version>0.7.0</version>
   <description>
       3rd party library: CL-STORE
   </description>

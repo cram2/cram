@@ -49,6 +49,7 @@
            #:first-desig
            #:current-desig
            #:current-designator
+           #:reset
            #:make-effective-designator
            #:newest-effective-designator #:with-desig-props
            #:designator-solutions #:desig-prop-value
@@ -64,7 +65,7 @@
            #:assert-desig-binding
            #:retract-desig-binding
            #:object-designator
-           #:object-designator-data #:object-pose #:object-identifier
+           #:object-designator-data #:object-pose #:object-color #:object-identifier
            #:register-object-desig-resolver
            #:resolve-object-desig
            #:action-designator #:action-grounding #:action
@@ -77,7 +78,7 @@
            #:list-location-validation-functions
            #:accept-solution
            #:reject-solution
-           #:location-grounding #:obj-desig-location
+           #:location-grounding ;; #:obj-desig-location
            #:desig-reference
            #:designator-groundings
            #:loc-desig-location
@@ -85,6 +86,7 @@
            #:designator-pose
            #:designator-distance
            #:resolve-designator
+           #:resolve-location-designator-through-generators-and-validators
            #:delete-location-generator-function
            #:delete-location-validation-function
            #:enable-location-generator-function

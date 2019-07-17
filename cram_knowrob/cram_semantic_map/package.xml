@@ -1,6 +1,6 @@
 <package>
   <name>cram_semantic_map</name>
-  <version>0.3.0</version>
+  <version>0.7.0</version>
   <description>
     Cache functionality for semantic maps
   </description>
@@ -21,11 +21,9 @@
   <build_depend>cram_plan_occasions_events</build_depend>
   <build_depend>cram_occasions_events</build_depend>
   <build_depend>cram_designators</build_depend>
-  <build_depend>cram_projection</build_depend>
 
   <run_depend>cram_semantic_map_utils</run_depend>
   <run_depend>cram_plan_occasions_events</run_depend>
   <run_depend>cram_occasions_events</run_depend>
   <run_depend>cram_designators</run_depend>
-  <run_depend>cram_projection</run_depend>
 </package>

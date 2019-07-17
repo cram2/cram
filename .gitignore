@@ -1,0 +1,5 @@
+*.fasl
+build
+*#
+latest_asdf_check
+.#*

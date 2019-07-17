@@ -50,11 +50,11 @@
 ;; NOTE(winkler): This contradicts the above notice; will be resolved
 ;; later after everything got cleaned up, as this is a conceptual
 ;; issue, not a code-one.
-(defclass object-updated-event (object-perceived-event) ())
+;; (defclass object-updated-event (object-perceived-event) ())
 
-(defclass object-removed-event (event)
-  ((object-name :initarg :object-name :reader event-object-name
-                :initform :object-name)))
+;; (defclass object-removed-event (event)
+;;   ((object-name :initarg :object-name :reader event-object-name
+;;                 :initform :object-name)))
 
 (defclass robot-state-changed (event)
   ()
@@ -63,78 +63,119 @@
 
 (defclass object-connection-event (event)
   ((object-name
-    :initarg :object-name :reader event-object-name
+    :initarg :object-name
+    :reader event-object-name
     :initform (error
                'simple-error
-               :format-control "OBJECT-CONNECTION-EVENT requires an object."))
-   (link
-    :initarg :link :reader event-link
+               :format-control "OBJECT-CONNECTION-EVENT requires an object.")))
+  (:documentation "Base class for all events that indicate that a change occurred in a
+  physical connection between an object and another object or the robot."))
+
+(defclass object-attached-robot (object-connection-event)
+  ((arm
+    :initarg :arm
+    :reader event-arm
     :initform (error
                'simple-error
-               :format-control "OBJECT-CONNECTION-EVENT requires a link."))
+               :format-control "OBJECT-ATTACHED-ROBOT event requires an arm."))
+   (grasp
+    :initarg :grasp
+    :reader event-grasp
+    :initform nil
+    ;; (error 'simple-error
+    ;;        :format-control "OBJECT-ATTACHED-ROBOT event requires GRASP.")
+    )))
+
+(defclass object-detached-robot (object-connection-event)
+  ((arm
+    :initarg :arm
+    :reader event-arm
+    :initform (error
+               'simple-error
+               :format-control "OBJECT-DETACHED-ROBOT event requires an arm."))))
+
+(defclass object-attached-object (object-connection-event)
+  ((other-object-name
+    :initarg :other-object-name
+    :reader event-other-object-name
+    :initform (error
+               'simple-error
+               :format-control "OBJECT-ATTACHED-OBJECT event requires OTHER-OBJECT-NAME."))
+   (attachment-type
+    :initarg :attachment-type
+    :reader event-attachment-type
+    :initform (error
+               'simple-error
+               :format-control "OBJECT-ATTACHED-OBJECT event requires ATTACHMENT-TYPE."))))
+
+(defclass object-detached-object (object-connection-event) ())
+
+;; (defclass object-articulation-event (event)
+;;   ((object-designator
+;;     :initarg :object-designator :reader event-object-designator
+;;     :initform (error
+;;                'simple-error
+;;                :format-control "OBJECT-ARTICULATION-EVENT requires an object."))
+;;    (opening-distance
+;;     :initarg :opening-distance :reader opening-distance
+;;     :initform  (error
+;;                 'simple-error
+;;                 :format-control "OBJECT-ARTICULATION-EVENT requires an opening distance."))))
+
+(defclass environment-manipulation-event (event)
+  ((joint-name
+    :documentation "The name of the joint that is being manipulated."
+    :initarg :joint-name :reader environment-event-joint-name
+    :initform (error
+               'simple-error
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a joint-name."))
    (arm
-    :initarg :arm :reader event-arm
+    :documentation "Which arm is used to manipulate."
+    :initarg :side :reader environment-event-arm
     :initform (error
                'simple-error
-               :format-control "OBJECT-CONNECTION-EVENT requires an arm.")))
-  (:documentation "Base class for all events that indicate that a
-  physical connection between an object and the robot changed."))
-
-;; (defclass object-connection-event (event)
-;;   ((object
-;;     :initarg :object :reader event-object
-;;     :initform (error
-;;                'simple-error
-;;                :format-control "OBJECT-CONNECTION-EVENT requires an object."))
-;;    (link
-;;     :initarg :link :reader event-link
-;;     :initform (error
-;;                'simple-error
-;;                :format-control "OBJECT-CONNECTION-EVENT requires a link."))
-;;    (side
-;;     :initarg :side :reader event-side
-;;     :initform nil))
-;;   (:documentation "Base class for all events that indicate that a
-;;   physical connection between an object and the robot changed."))
-
-(defclass object-attached (object-connection-event) ())
-
-(defclass object-detached (object-connection-event) ())
-
-(defclass object-articulation-event (event)
-  ((object-designator
-    :initarg :object-designator :reader event-object-designator
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an arm."))
+   (object
+    :documentation "The btr:object in which the joint can be found with the joint-name."
+    :initarg :environment :reader environment-event-object
     :initform (error
                'simple-error
-               :format-control "OBJECT-ARTICULATION-EVENT requires an object."))
-   (opening-distance
-    :initarg :opening-distance :reader opening-distance
-    :initform  (error
-                'simple-error
-                :format-control "OBJECT-ARTICULATION-EVENT requires an opening distance."))))
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires an object."))
+   (distance
+    :documentation "Joint angle distance to open or close container."
+    :initarg :distance :reader environment-event-distance
+    :initform (error
+               'simple-error
+               :format-control "ENVIRONMENT_MANIPULATION_EVENT requires a distance."))))
 
-(defclass object-gripped (cram-occasions-events:event)
-  ((arm :initarg :arm
-        :reader event-arm
-        :initform (error 'simple-error
-                         :format-control "OBJECT-GRIPPED event requires ARM."))
-   (object :initarg :object
-           :reader event-object
-           :initform (error 'simple-error
-                            :format-control "OBJECT-GRIPPED event requires OBJECT."))
-   (grasp :initarg :grasp
-          :reader event-grasp
-          :initform (error 'simple-error
-                           :format-control "OBJECT-GRIPPED event requires GRASP.")))
-  (:documentation "Event that is generated whenever the robot successfully
-closed a gripper around an object."))
+;; (defclass container-handle-grasping-event (environment-manipulation-event) ())
 
-(defclass object-released (cram-occasions-events:event)
-  ((arm :initarg :arm
-        :reader event-arm
-        :initform (error 'simple-error
-                         :format-control "OBJECT-GRIPPED event requires OBJECT."))
-   (object :initarg :object ; maybe some epic robots can release only one of two objects they hold
-           :reader event-object
-           :initform (error 'simple-error
-                            :format-control "OBJECT-GRIPPED event requires OBJECT."))))
+(defclass container-opening-event (environment-manipulation-event) ())
+
+(defclass container-closing-event (environment-manipulation-event) ())
+
+;; (defclass object-gripped (cram-occasions-events:event)
+;;   ((arm :initarg :arm
+;;         :reader event-arm
+;;         :initform (error 'simple-error
+;;                          :format-control "OBJECT-GRIPPED event requires ARM."))
+;;    (object :initarg :object
+;;            :reader event-object
+;;            :initform (error 'simple-error
+;;                             :format-control "OBJECT-GRIPPED event requires OBJECT."))
+;;    (grasp :initarg :grasp
+;;           :reader event-grasp
+;;           :initform (error 'simple-error
+;;                            :format-control "OBJECT-GRIPPED event requires GRASP.")))
+;;   (:documentation "Event that is generated whenever the robot successfully
+;; closed a gripper around an object."))
+
+;; (defclass object-released (cram-occasions-events:event)
+;;   ((arm :initarg :arm
+;;         :reader event-arm
+;;         :initform (error 'simple-error
+;;                          :format-control "OBJECT-GRIPPED event requires OBJECT."))
+;;    (object :initarg :object ; maybe some epic robots can release only one of two objects they hold
+;;            :reader event-object
+;;            :initform (error 'simple-error
+;;                             :format-control "OBJECT-GRIPPED event requires OBJECT."))))

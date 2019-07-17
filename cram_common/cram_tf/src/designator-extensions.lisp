@@ -93,7 +93,11 @@
 
 (def-fact-group desig-tf-solutions (location-grounding)
   (<- (location-grounding ?desig ?solution)
-    (spec:property ?desig (:pose ?solution))))
+    (spec:property ?desig (:pose ?solution)))
+
+  (<- (location-grounding ?desig ?solution)
+    (desig:desig-prop ?desig (:poses ?poses-list))
+    (member ?solution ?poses-list)))
 
 ;; (defgeneric ground (designator)
 ;;   (:documentation "Returns a designator with properties augmented with subsymbolic data"))

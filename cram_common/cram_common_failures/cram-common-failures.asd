@@ -32,12 +32,19 @@
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (cram-language)
+  :depends-on (cram-language
+               cram-designators
+               cram-tf
+               roslisp)
   :components
   ((:module "src"
             :components
             ((:file "package")
              (:file "common" :depends-on ("package"))
+             (:file "failure-handling-strategies" :depends-on ("package"))
              (:file "manipulation" :depends-on ("package" "common"))
+             (:file "torso" :depends-on ("package" "common" "manipulation"))
              (:file "navigation" :depends-on ("package" "common"))
-             (:file "perception" :depends-on ("package" "common"))))))
+             (:file "perception" :depends-on ("package" "common"))
+             (:file "ptu" :depends-on ("package" "common"))
+             (:file "high-level" :depends-on ("package" "common"))))))

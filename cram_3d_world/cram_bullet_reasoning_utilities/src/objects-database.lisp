@@ -29,7 +29,6 @@
 
 (in-package :bullet-reasoning-utilities)
 
-;; defmethods for all defgenerics of objects
 (def-fact-group scenario-objects-database ()
   ;; Pose where objects are spawned.
   (<- (scenario-objects-init-pose ((2 0 0) (0 0 0 1))))
@@ -53,11 +52,13 @@
   (<- (%scenario-object-color :fork     (0.2 0.1 0.3)))
   (<- (%scenario-object-color :knife    (0.5 0 0)))
   (<- (%scenario-object-color :mug      (0.8 0.3 0)))
+  (<- (%scenario-object-color :cup      (1.0 0.64 0.293)))
   (<- (%scenario-object-color :pot      (0.1 0.2 0.3)))
-  (<- (%scenario-object-color :bowl     (0 0.3 0)))
+  (<- (%scenario-object-color :bowl     (0.61 0.17 0.06)))
   (<- (%scenario-object-color :mondamin (0.5 0.1 0)))
   (<- (%scenario-object-color :spatula  (0.1 0.1 0.1)))
   (<- (%scenario-object-color :pancake-maker (0.15 0.15 0.15)))
+  (<- (%scenario-object-color :breakfast-cereal (0.5 0.5 0.21)))
   (<- (%scenario-object-color :visualization-box (1.0 0.0 0.0 0.5)))
 
   ;; Object type shapes
@@ -71,7 +72,7 @@
   (<- (non-mesh-object :orange))
   (<- (non-mesh-object :apple))
   (<- (non-mesh-object :sugar-box))
-  (<- (non-mesh-object :cereal))
+  (<- (non-mesh-object :cereal-box))
   (<- (non-mesh-object :visualization-box))
 
   ;; Extra attributes for objects to pass to the spawn function (e.g. :mesh pot)
@@ -82,7 +83,7 @@
   (<- (scenario-object-extra-attributes ?_ :pancake-maker (:size (0.15 0.15 0.035))))
   (<- (scenario-object-extra-attributes ?_ :orange (:radius 0.04)))
   (<- (scenario-object-extra-attributes ?_ :apple (:radius 0.0425)))
-  (<- (scenario-object-extra-attributes ?_ :cereal (:size (0.029 0.0965 0.1385))))
+  (<- (scenario-object-extra-attributes ?_ :cereal-box (:size (0.029 0.0965 0.1385))))
   (<- (scenario-object-extra-attributes ?_ :visualization-box (:size (0.03 0.01 0.01))))
   (<- (scenario-object-extra-attributes ?_ :sugar-box (:size (0.0275 0.047 0.1035)))))
 
@@ -95,5 +96,5 @@
                    (make-instance 'btr:rigid-body
                      :name name :mass mass :pose (btr:ensure-pose pose)
                      :collision-shape (make-instance 'bt-vis:colored-box-shape
-                                        :half-extents (ensure-vector size)
+                                        :half-extents (btr:ensure-vector size)
                                         :color color)))))

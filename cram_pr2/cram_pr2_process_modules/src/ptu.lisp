@@ -29,14 +29,14 @@
 
 (in-package :pr2-pms)
 
-(def-process-module pr2-ptu-pm (action-designator)
-  (destructuring-bind (command goal-type goal) (reference action-designator)
+(def-process-module pr2-ptu-pm (motion-designator)
+  (destructuring-bind (command goal-pose goal-configuration)
+      (reference motion-designator)
+    (declare (ignore goal-configuration))
     (ecase command
       (cram-common-designators:move-head
        (handler-case
-           (ecase goal-type
-             (:point (pr2-ll:call-ptu-action :point goal))
-             (:frame (pr2-ll:call-ptu-action :frame goal)))
+           (pr2-ll:call-ptu-action :pose goal-pose)
          ;; (cram-pr2:look-at-failed ()
          ;;   (cpl:fail 'cram-plan-failures:look-at-failed :action action-designator))
          )))))

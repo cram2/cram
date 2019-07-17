@@ -30,14 +30,20 @@
 
 (defpackage cram-bullet-reasoning-belief-state
   (:use #:common-lisp #:cram-prolog)
+  (:nicknames #:btr-belief)
   (:export
    ;; utilities
    #:get-designator-object-name #:get-designator-object
+   ;; tf
+   #:set-tf-from-bullet
+   ;; broadcaster
+   #:update-bullet-transforms
    ;; occasions
    #:object-designator-name
-   ;; event handlers
-   #:object-pose-in-frame
    ;; belief-state
-   #:*robot-urdf* #:*kitchen-urdf*
+   #:*kitchen-urdf*
    #:*robot-parameter* #:*kitchen-parameter*
-   #:setup-world-database))
+   #:*spawn-debug-window*
+   #:setup-world-database
+   ;; process-modules
+   #:world-state-detecting-pm))

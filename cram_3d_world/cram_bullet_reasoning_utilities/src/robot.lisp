@@ -30,19 +30,25 @@
 (in-package :bullet-reasoning-utilities)
 
 (defun robot-name ()
-  (var-value '?robot-name (car (prolog '(robot ?robot-name)))))
+  (cut:var-value '?robot-name (car (prolog '(rob-int:robot ?robot-name)))))
 
 (defun move-robot (&optional (new-pose '((0 0 0) (0 0 0 1))))
   (move-object (robot-name) new-pose))
 
+(defun average (min max) (+ min (/ (- max min) 2)))
 (defun park-robot ()
-  (prolog `(and (robot ?robot)
-                (robot-arms-parking-joint-states ?robot ?joint-states)
-                (robot-torso-link-joint ?robot ?_ ?joint)
-                (assert (joint-state ?w ?robot ?joint-states))
-                (assert (joint-state ?w ?robot ((?joint 0.16825d0)))))))
+  (prolog `(and (rob-int:robot ?robot)
+                (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
+                (assert (btr:joint-state ?world ?robot ?left-joint-states))
+                (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
+                (assert (btr:joint-state ?world ?robot ?right-joint-states))
+                (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
+                (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
+                (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit)
+                (lisp-fun average ?lower-limit ?upper-limit ?average-joint-value)
+                (assert (btr:joint-state ?w ?robot ((?torso-joint ?average-joint-value)))))))
 
 (defun move-robot-away ()
   (move-robot))
 
-(declaim (inline robot-name move-robot move-robot-away))
+;; (declaim (inline robot-name move-robot move-robot-away))

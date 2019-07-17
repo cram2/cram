@@ -87,6 +87,8 @@
   #.`(:export
       ;; clos
       #:hooks
+      #:ordered-hooks
+      #:first-in-order-and-around
       #:define-hook
       #:copy-object
       ;; conditions
@@ -117,6 +119,7 @@
       #:style-warn
       #:compare
       #:choose
+      #:equalize-two-list-lengths #:equalize-lists-of-lists-lengths
       ;; time
       #:current-timestamp
       #:set-default-timestamp-function

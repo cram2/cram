@@ -1,6 +1,6 @@
 <package>
   <name>cram_pr2</name>
-  <version>0.3.0</version>
+  <version>0.7.0</version>
   <description>Metapackage for pr2-related code.</description>
   <author>Lorenz Moesenlechner</author>
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
@@ -13,9 +13,4 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>cram_pr2_description</run_depend>
-  <run_depend>pr2_description_lowres</run_depend>
-  <!--run_depend>point_head_process_module</run_depend-->
-  <!--run_depend>pr2_navigation_process_module</run_depend>
-  <run_depend>pr2_manipulation_process_module</run_depend>
-  <run_depend>pr2_reachability_costmap</run_depend-->
 </package>

@@ -40,105 +40,8 @@
 ;;   (:method ((desig desig:designator) key)
 ;;     (desig:description desig)))
 
-(def-fact-group motion-designator-specs (property)
 
-  (<- (property ?designator (?location-key ?location))
-    (lisp-pred typep ?designator desig:motion-designator)
-    (member ?location-key (:target :left-target :right-target))
-    (property-member (?location-key ?location) ?designator)
-    (assert-type ?location desig:location-designator "MOTION SPEC:PROPERTY"))
-
-  (<- (property ?designator (?object-key ?object))
-    (lisp-pred typep ?designator desig:motion-designator)
-    (member ?object-key (:object :objects))
-    (property-member (?object-key ?object) ?designator)
-    (assert-type ?object desig:object-designator "MOTION SPEC:PROPERTY"))
-
-  (<- (property ?designator (?string-key ?value))
-    (lisp-pred typep ?designator desig:motion-designator)
-    (member ?string-key (:frame))
-    (property-member (?string-key ?value) ?designator)
-    (assert-type ?value string "MOTION SPEC:PROPERTY"))
-
-  (<- (property ?designator (?number-key ?value))
-    (lisp-pred typep ?designator desig:motion-designator)
-    (member ?number-key (:effort :joint-angle))
-    (property-member (?number-key ?value) ?designator)
-    (assert-type ?value number "MOTION SPEC:PROPERTY"))
-
-  (<- (property ?designator (?keyword-key ?value))
-    (lisp-pred typep ?designator desig:motion-designator)
-    (member ?keyword-key (:gripper :direction :arm))
-    (property-member (?keyword-key ?value) ?designator)
-    (assert-type ?value keyword "MOTION SPEC:PROPERTY"))
-
-  (<- (property ?designator (?list-key ?value))
-    (lisp-pred typep ?designator desig:motion-designator)
-    (member ?list-key (:left-configuration :right-configuration))
-    (property-member (?list-key ?value) ?designator)
-    (assert-type ?value list "MOTION SPEC:PROPERTY")))
-
-
-(def-fact-group action-designator-specs (property)
-
-  (<- (property ?designator (?location-key ?location))
-    (lisp-pred typep ?designator desig:action-designator)
-    (member ?location-key (:target))
-    (property-member (?location-key ?location) ?designator)
-    (assert-type ?location desig:location-designator "ACTION SPEC:PROPERTY"))
-
-  (<- (property ?designator (?list-key ?value))
-    (lisp-pred typep ?designator desig:action-designator)
-    (member ?list-key (:left-poses :right-poses))
-    (property-member (?list-key ?value) ?designator)
-    (assert-type ?value list "ACTION SPEC:PROPERTY"))
-
-  (<- (property ?designator (?keyword-or-list-key ?value))
-    (lisp-pred typep ?designator desig:action-designator)
-    (member ?keyword-or-list-key (:gripper :arm))
-    (property-member (?keyword-or-list-key ?value) ?designator)
-    (assert-type ?value (or keyword list) "ACTION SPEC:PROPERTY"))
-
-  (<- (property ?designator (?object-key ?object))
-    (lisp-pred typep ?designator desig:action-designator)
-    (member ?object-key (:object :on-object :with-object))
-    (property-member (?object-key ?object) ?designator)
-    (assert-type ?object desig:object-designator "ACTION SPEC:PROPERTY"))
-
-  (<- (property ?designator (?number-key ?value))
-    (lisp-pred typep ?designator desig:action-designator)
-    (member ?number-key (:position :effort :distance))
-    (property-member (?number-key ?value) ?designator)
-    (assert-type ?value number "ACTION SPEC:PROPERTY"))
-
-  (<- (property ?designator (:for ?for-value))
-    (lisp-pred typep ?designator desig:action-designator)
-    (property-member (:for ?for-value) ?designator)
-    (assert-type ?for-value (or keyword desig:object-designator) "ACTION SPEC:PROPERTY")))
-
-
-(def-fact-group location-designator-specs (property)
-
-  (<- (property ?designator (:pose ?pose-stamped))
-    (lisp-pred typep ?designator desig:location-designator)
-    (property-member (:pose ?pose-stamped) ?designator)
-    (assert-type ?pose-stamped cl-transforms-stamped:pose-stamped "LOCATION SPEC:PROPERTY")))
-
-
-(def-fact-group object-designator-specs (property)
-
-  (<- (property ?designator (:type ?type))
-    (lisp-pred typep ?designator desig:object-designator)
-    (property-member (:type ?type) ?designator)
-    (assert-type ?type keyword "OBJECT SPEC:PROPERTY"))
-
-  (<- (property ?designator (:name ?name))
-    (lisp-pred typep ?designator desig:object-designator)
-    (property-member (:name ?name) ?designator)
-    (assert-type ?name (or symbol string) "OBJECT SPEC:PROPERTY")))
-
-
-(def-fact-group all-designator-specs (property)
+(def-fact-group all-designator-specs (property %property)
 
   (<- (property-member (?key ?value) ?designator)
     (assert-type ?designator desig:designator "PROPERTY-MEMBER")
@@ -147,5 +50,139 @@
 
   (<- (property ?designator (?key ?value))
     (bound ?key)
-    ;; (bound ?value) ; set default behaviour to not throw errors if no spec is defined
-    (property-member (?key ?value) ?designator)))
+    (bound ?value)
+    (property-member (?key ?value) ?designator))
+
+  (<- (property ?designator (?key ?value))
+    (bound ?key)
+    (not (bound ?value))
+    (%property ?designator (?key ?value)))
+
+  (<- (%property ?designator (?key ?value))
+    (fail)))
+
+(def-fact-group motion-designator-specs (%property)
+
+  (<- (%property ?designator (?location-key ?location))
+    (lisp-pred typep ?designator desig:motion-designator)
+    (member ?location-key (:pose :left-pose :right-pose))
+    (property-member (?location-key ?location) ?designator)
+    (assert-type ?location cl-transforms-stamped:pose-stamped "MOTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?object-key ?object))
+    (lisp-pred typep ?designator desig:motion-designator)
+    (member ?object-key (:object :objects))
+    (property-member (?object-key ?object) ?designator)
+    (assert-type ?object desig:object-designator "MOTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?number-key ?value))
+    (lisp-pred typep ?designator desig:motion-designator)
+    (member ?number-key (:effort :joint-angle))
+    (property-member (?number-key ?value) ?designator)
+    (assert-type ?value number "MOTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?keyword-key ?value))
+    (lisp-pred typep ?designator desig:motion-designator)
+    (member ?keyword-key (:gripper :direction :arm))
+    (property-member (?keyword-key ?value) ?designator)
+    (assert-type ?value (or keyword list) "MOTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?list-key ?value))
+    (lisp-pred typep ?designator desig:motion-designator)
+    (member ?list-key (:joint-states :left-joint-states :right-joint-states))
+    (property-member (?list-key ?value) ?designator)
+    (assert-type ?value list "MOTION SPEC:PROPERTY")))
+
+
+(def-fact-group action-designator-specs (%property)
+
+  (<- (%property ?designator (?location-key ?location))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?location-key (:target :location :robot-location))
+    (property-member (?location-key ?location) ?designator)
+    (assert-type ?location desig:location-designator "ACTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?list-key ?value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?list-key (:left-poses :right-poses))
+    (property-member (?list-key ?value) ?designator)
+    (assert-type ?value list "ACTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?keyword-or-list-key ?value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?keyword-or-list-key (:gripper :arm :direction :grasp :camera :type
+                                  :link :configuration
+                                  :left-configuration :right-configuration))
+    (property-member (?keyword-or-list-key ?value) ?designator)
+    (assert-type ?value (or keyword list) "ACTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?object-key ?object))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?object-key (:object :on-object :with-object :supporting-object))
+    (property-member (?object-key ?object) ?designator)
+    (assert-type ?object desig:object-designator "ACTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?number-key ?value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?number-key (:position :effort :distance))
+    (property-member (?number-key ?value) ?designator)
+    (assert-type ?value number "ACTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?string-key ?value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (member ?string-key (:frame))
+    (property-member (?string-key ?value) ?designator)
+    (assert-type ?value string "ACTION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (:for ?for-value))
+    (lisp-pred typep ?designator desig:action-designator)
+    (property-member (:for ?for-value) ?designator)
+    (assert-type ?for-value (or keyword desig:object-designator) "ACTION SPEC:PROPERTY")))
+
+
+(def-fact-group location-designator-specs (%property)
+
+  (<- (%property ?designator (:pose ?pose-stamped))
+    (lisp-pred typep ?designator desig:location-designator)
+    (property-member (:pose ?pose-stamped) ?designator)
+    (assert-type ?pose-stamped cl-transforms-stamped:pose-stamped "LOCATION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (:object ?value))
+    (lisp-pred typep ?designator desig:location-designator)
+    (property-member (:object ?value) ?designator)
+    (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?keyword-key ?value))
+    (lisp-pred typep ?designator desig:location-designator)
+    (member ?keyword-key (:arm))
+    (property-member (?keyword-key ?value) ?designator)
+    (assert-type ?value keyword "LOCATION SPEC:PROPERTY")))
+
+
+(def-fact-group object-designator-specs (%property)
+
+  (<- (%property ?designator (:type ?type))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:type ?type) ?designator)
+    (assert-type ?type keyword "OBJECT SPEC:PROPERTY"))
+
+  (<- (%property ?designator (?keyword-key ?name))
+    (lisp-pred typep ?designator desig:object-designator)
+    (member ?keyword-key (:name :urdf-name))
+    (property-member (?keyword-key ?name) ?designator)
+    (assert-type ?name symbol "OBJECT SPEC:PROPERTY"))
+
+  (<- (%property ?designator (:part-of ?environment))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:part-of ?environment) ?designator)
+    (assert-type ?environment keyword "OBJECT SPEC:PROPERTY"))
+
+  (<- (%property ?designator (:handle-axis ?axis))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:handle-axis ?axis) ?designator)
+    (assert-type ?axis cl-transforms:3d-vector "OBJECT SPEC:PROPERTY"))
+
+  (<- (%property ?designator (:pose ?pose))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:pose ?pose) ?designator)
+    (assert-type ?pose list "OBEJCT SPEC:PROPERTY")))

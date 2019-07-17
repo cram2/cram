@@ -31,5 +31,5 @@
 
 (defpackage cram-pr2-cloud
   (:nicknames :pr2-cloud)
-  (:use #:common-lisp #:cram-prolog ;; #:cram-designators
+  (:use #:common-lisp #:cram-prolog #:cram-tf ;; #:cram-designators
         ))

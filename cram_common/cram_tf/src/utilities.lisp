@@ -72,10 +72,29 @@
          (w (cl-transforms:w qqqw)))
     (list x y z w q1 q2 q3)))
 
+(defun pose->list (pose)
+  (let* ((xyz (cl-transforms:origin pose))
+         (qqqw (cl-transforms:orientation pose))
+         (x (cl-transforms:x xyz))
+         (y (cl-transforms:y xyz))
+         (z (cl-transforms:z xyz))
+         (q1 (cl-transforms:x qqqw))
+         (q2 (cl-transforms:y qqqw))
+         (q3 (cl-transforms:z qqqw))
+         (w (cl-transforms:w qqqw)))
+    `((,x ,y ,z) (,q1 ,q2 ,q3 ,w))))
+
 (defun flat-list->pose (pose-list)
   (destructuring-bind (x y z q1 q2 q3 w)
       pose-list
     (cl-transforms:make-pose
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
+
+(defun flat-list->transform (pose-list)
+  (destructuring-bind (x y z q1 q2 q3 w)
+      pose-list
+    (cl-transforms:make-transform
      (cl-transforms:make-3d-vector x y z)
      (cl-transforms:make-quaternion q1 q2 q3 w))))
 
@@ -86,17 +105,23 @@
      (cl-transforms:make-3d-vector x y z)
      (cl-transforms:make-quaternion q1 q2 q3 w))))
 
+(defun list->pose (pose-list)
+  (destructuring-bind ((x y z) (q1 q2 q3 w))
+      pose-list
+    (cl-transforms:make-pose
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
+
 (defun ensure-pose-in-frame (pose frame &key use-current-ros-time use-zero-time)
   (declare (type (or null cl-transforms:pose cl-transforms-stamped:pose-stamped)))
   (when pose
     (cl-transforms-stamped:transform-pose-stamped
      *transformer*
-     :pose (cl-transforms-stamped:ensure-pose-stamped
-            (if use-zero-time
-                (cl-transforms-stamped:copy-pose-stamped pose :stamp 0.0)
-                pose)
-            frame
-            0.0)
+     :pose (let ((pose-stamped
+                   (cl-transforms-stamped:ensure-pose-stamped pose frame 0.0)))
+             (if use-zero-time
+                 (cl-transforms-stamped:copy-pose-stamped pose-stamped :stamp 0.0)
+                 pose-stamped))
      :target-frame frame
      :timeout *tf-default-timeout*
      :use-current-ros-time use-current-ros-time)))
@@ -117,40 +142,86 @@
    :use-current-ros-time use-current-ros-time))
 
 (defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :origin (let ((pose-origin (cl-transforms:origin pose)))
-             (cl-transforms:copy-3d-vector
-              pose-origin
-              :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
-                   (+ x-pose-origin x-offset))
-              :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
-                   (+ y-pose-origin y-offset))
-              :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
-                   (+ z-pose-origin z-offset))))))
+  (let* ((pose-origin
+           (cl-transforms:origin pose))
+         (new-origin
+           (cl-transforms:copy-3d-vector
+            pose-origin
+            :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
+                 (+ x-pose-origin x-offset))
+            :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
+                 (+ y-pose-origin y-offset))
+            :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
+                 (+ z-pose-origin z-offset)))))
+    (etypecase pose
+      (cl-transforms-stamped:pose-stamped
+       (cl-transforms-stamped:copy-pose-stamped pose :origin new-origin))
+      (cl-transforms:pose
+       (cl-transforms:copy-pose pose :origin new-origin)))))
 
 (defun rotate-pose (pose axis angle)
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
-                  (cl-transforms:q*
-                   (cl-transforms:axis-angle->quaternion
-                    (case axis
-                      (:x (cl-transforms:make-3d-vector 1 0 0))
-                      (:y (cl-transforms:make-3d-vector 0 1 0))
-                      (:z (cl-transforms:make-3d-vector 0 0 1))
-                      (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
-                    angle)
-                   pose-orientation))))
+  (let* ((pose-orientation
+           (cl-transforms:orientation pose))
+         (new-orientation
+           (cl-transforms:q*
+            (cl-transforms:axis-angle->quaternion
+             (case axis
+               (:x (cl-transforms:make-3d-vector 1 0 0))
+               (:y (cl-transforms:make-3d-vector 0 1 0))
+               (:z (cl-transforms:make-3d-vector 0 0 1))
+               (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
+             angle)
+            pose-orientation)))
+    (etypecase pose
+      (cl-transforms-stamped:pose-stamped
+       (cl-transforms-stamped:copy-pose-stamped pose :orientation new-orientation))
+      (cl-transforms:pose
+       (cl-transforms:copy-pose pose :orientation new-orientation)))))
+
+(defun rotate-pose-in-own-frame (pose axis angle)
+  (let* ((pose-orientation
+           (cl-transforms:orientation pose))
+         (new-orientation
+           (cl-transforms:q*
+            pose-orientation
+            (cl-transforms:axis-angle->quaternion
+             (case axis
+               (:x (cl-transforms:make-3d-vector 1 0 0))
+               (:y (cl-transforms:make-3d-vector 0 1 0))
+               (:z (cl-transforms:make-3d-vector 0 0 1))
+               (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
+             angle))))
+    (etypecase pose
+      (cl-transforms-stamped:pose-stamped
+       (cl-transforms-stamped:copy-pose-stamped pose :orientation new-orientation))
+      (cl-transforms:pose
+       (cl-transforms:copy-pose pose :orientation new-orientation)))))
+
+(defun rotate-transform-in-own-frame (transform axis angle)
+  (let* ((transform-rotation
+           (cl-transforms:rotation transform))
+         (new-rotation
+           (cl-transforms:q*
+            transform-rotation
+            (cl-transforms:axis-angle->quaternion
+             (case axis
+               (:x (cl-transforms:make-3d-vector 1 0 0))
+               (:y (cl-transforms:make-3d-vector 0 1 0))
+               (:z (cl-transforms:make-3d-vector 0 0 1))
+               (t (error "[CRAM-TF:ROTATE-POSE] axis ~a not specified properly" axis)))
+             angle))))
+    (etypecase transform
+      (cl-transforms-stamped:transform-stamped
+       (copy-transform-stamped transform :rotation new-rotation))
+      (cl-transforms:transform
+       (cl-transforms:copy-transform transform :rotation new-rotation)))))
 
 (defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
   (let* ((pose-in-frame
-           (cl-transforms-stamped:transform-pose-stamped
-            cram-tf:*transformer*
-            :pose goal-pose-stamped
-            :target-frame goal-frame
-            :timeout cram-tf:*tf-default-timeout*
-            :use-current-ros-time t))
+           (cram-tf:ensure-pose-in-frame
+            goal-pose-stamped
+            goal-frame
+            :use-zero-time t))
          (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
                          (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
          (goal-angle (cl-transforms:normalize-angle
@@ -164,6 +235,12 @@
         (rotation (cl-transforms:orientation pose)))
     (cl-transforms-stamped:make-transform-stamped
      parent-frame child-frame stamp translation rotation)))
+
+(defun transform->pose-stamped (parent-frame stamp transform)
+  (let ((origin (cl-transforms:translation transform))
+        (orientation (cl-transforms:rotation transform)))
+    (cl-transforms-stamped:make-pose-stamped
+     parent-frame stamp origin orientation)))
 
 (defun transform-stamped-inv (transform-stamped)
   (let ((frame-id (cl-transforms-stamped:frame-id transform-stamped))
@@ -187,34 +264,103 @@
 Take xTy, ensure it's from x-frame.
 Multiply from the right with the yTz transform -- xTy * yTz == xTz."
 
-  (unless (equal (cl-transforms-stamped:frame-id x-y-transform) x-frame)
-      (error "In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
+  (unless (string-equal (cl-transforms-stamped:frame-id x-y-transform) x-frame)
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
               correct parent frame: ~a and ~a"
-             (cl-transforms-stamped:frame-id x-y-transform) x-frame))
+           (cl-transforms-stamped:frame-id x-y-transform) x-frame))
 
-  (unless (equal (cl-transforms-stamped:child-frame-id y-z-transform) z-frame)
-      (error "In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
+  (unless (string-equal (cl-transforms-stamped:child-frame-id y-z-transform) z-frame)
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
               correct child frame: ~a and ~a"
-             (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
+           (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
 
-  (unless (equal (cl-transforms-stamped:child-frame-id x-y-transform)
-                 (cl-transforms-stamped:frame-id y-z-transform))
-      (error "In multiply-transform-stampeds X-Y-TRANSFORM and ~
+  (unless (string-equal (cl-transforms-stamped:child-frame-id x-y-transform)
+                        (cl-transforms-stamped:frame-id y-z-transform))
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM and ~
               Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
-             (cl-transforms-stamped:child-frame-id x-y-transform)
-             (cl-transforms-stamped:frame-id y-z-transform)))
+           (cl-transforms-stamped:child-frame-id x-y-transform)
+           (cl-transforms-stamped:frame-id y-z-transform)))
 
   (let ((multiplied-transforms
-          (cl-transforms:transform* x-y-transform y-z-transform)))
+          (cl-transforms:transform* x-y-transform y-z-transform))
+        (timestamp (min (cl-transforms-stamped:stamp x-y-transform)
+                        (cl-transforms-stamped:stamp y-z-transform))))
     (ecase result-as-pose-or-transform
       (:pose
        (cl-transforms-stamped:pose->pose-stamped
         x-frame
-        0.0
+        timestamp
         (cl-transforms:transform->pose multiplied-transforms)))
       (:transform
        (cl-transforms-stamped:transform->transform-stamped
         x-frame
         z-frame
-        0.0
+        timestamp
         multiplied-transforms)))))
+
+(defun strip-transform-stamped (transform-stamped)
+  (cl-transforms-stamped:make-pose-stamped
+   (cl-transforms-stamped:frame-id transform-stamped)
+   (cl-transforms-stamped:stamp transform-stamped)
+   (cl-transforms-stamped:translation transform-stamped)
+   (cl-transforms:rotation transform-stamped)))
+
+(defun copy-transform-stamped (transform-stamped &key frame-id child-frame-id stamp
+                                                   translation rotation)
+  (cl-transforms-stamped:make-transform-stamped
+   (or frame-id (cl-transforms-stamped:frame-id transform-stamped))
+   (or child-frame-id (cl-transforms-stamped:child-frame-id transform-stamped))
+   (or stamp (cl-transforms-stamped:stamp transform-stamped))
+   (or translation (cl-transforms-stamped:translation transform-stamped))
+   (or rotation (cl-transforms-stamped:rotation transform-stamped))))
+
+(defun translate-transform-stamped (transform &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
+  (copy-transform-stamped
+   transform
+   :translation (let ((transform-translation (cl-transforms:translation transform)))
+                  (cl-transforms:copy-3d-vector
+                   transform-translation
+                   :x (let ((x-transform-translation (cl-transforms:x transform-translation)))
+                        (+ x-transform-translation x-offset))
+                   :y (let ((y-transform-translation (cl-transforms:y transform-translation)))
+                        (+ y-transform-translation y-offset))
+                   :z (let ((z-transform-translation (cl-transforms:z transform-translation)))
+                        (+ z-transform-translation z-offset))))))
+
+(defun pose-stamped->transform-stamped (pose-stamped child-frame-id)
+  (cl-transforms-stamped:make-transform-stamped
+   (cl-transforms-stamped:frame-id pose-stamped)
+   child-frame-id
+   (cl-transforms-stamped:stamp pose-stamped)
+   (cl-transforms-stamped:origin pose-stamped)
+   (cl-transforms-stamped:orientation pose-stamped)))
+
+(defun apply-transform (left-hand-side-transform right-hand-side-transform)
+  (cram-tf:multiply-transform-stampeds
+   (cl-transforms-stamped:frame-id left-hand-side-transform)
+   (cl-transforms-stamped:child-frame-id right-hand-side-transform)
+   left-hand-side-transform
+   right-hand-side-transform))
+
+
+(defun values-converged (values goal-values deltas)
+  (flet ((value-converged (value goal-value delta)
+           (<= (abs (- value goal-value)) delta)))
+    ;; correct arguments
+    (if (listp values)
+        (if (or (atom goal-values)
+                (not (= (length values) (length goal-values))))
+            (error "GOAL-VALUES (~a) and VALUES (~a) should be of same length."
+                   goal-values values)
+            (if (atom deltas)
+                (setf deltas (make-list (length values) :initial-element deltas))
+                (unless (= (length values) (length deltas))
+                  (error "DELTAS (~a) and VALUES (~a) should be of same length."
+                         deltas values))))
+        (if (or (listp goal-values) (listp deltas))
+            (error "All arguments should be of same length")
+            (setf values (list values)
+                  goal-values (list goal-values)
+                  deltas (list deltas))))
+    ;; actually compare
+    (every #'value-converged values goal-values deltas)))

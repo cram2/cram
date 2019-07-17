@@ -55,11 +55,14 @@
                cram-robot-interfaces
                cram-pr2-low-level
                cram-pr2-process-modules
-               cram-pr2-pick-place-plans
+               cram-mobile-pick-place-plans
 
                cram-knowrob-cloud
 
-               cram-pr2-projection-sandbox
+               cram-urdf-projection
+               cram-pr2-description
+               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-utilities
 
                cram-location-costmap
                cram-semantic-map-costmap
@@ -78,7 +81,7 @@
                                       "tf-utilities"
                                       "geometry-calculations"
                                       "cloud-data"))
-     (:file "costmaps" :depends-on ("package" "local-data"))
+     (:file "costmaps" :depends-on ("package" "local-data" "tf-utilities"))
      (:file "projection-plans" :depends-on ("package"))
      (:file "real-world-plans" :depends-on ("package"
                                             "tf-utilities"

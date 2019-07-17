@@ -1,6 +1,6 @@
-<package>
+<package format="2">
   <name>cram_utilities</name>
-  <version>0.3.0</version>
+  <version>0.7.0</version>
   <description>
     This packages contains some basic lisp utilities. This includes
     pattern matching and lazy lists.
@@ -18,13 +18,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>sbcl</build_depend>
-  <build_depend>alexandria</build_depend>
-  <build_depend>synchronization_tools</build_depend>
-  <build_depend>lisp_unit</build_depend>
+  <depend>alexandria</depend>
+  <depend>synchronization_tools</depend>
 
-  <run_depend>sbcl</run_depend>
-  <run_depend>alexandria</run_depend>
-  <run_depend>synchronization_tools</run_depend>
-  <run_depend>lisp_unit</run_depend>
+  <test_depend>lisp_unit</test_depend>
 </package>

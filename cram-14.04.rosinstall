@@ -5,29 +5,23 @@
     uri: https://github.com/cram2/cram.git
     version: master
 
-############## ROS Lisp libraries, e.g. TF ###########
-- git:
-    local-name: roslisp_common
-    uri: https://github.com/ros/roslisp_common.git
-    version: 093c131b6dcfa67f125fb3989eee14b5ba622bcf
-
-############## IAI semantic maps repository ##########
+############## IAI maps repository ##########
 - git:
     local-name: iai_maps
     uri: https://github.com/code-iai/iai_maps.git
-    version: 6a4f3fab1fa836fdf26e7ea9a36ab140c2e2d563
+    version: e64b1dcd0ffb41ea7a07c0817e4fb298976489a8
 
 ############## IAI common msgs repository ############
 - git:
     local-name: iai_common_msgs
     uri: https://github.com/code-iai/iai_common_msgs.git
-    version: 412fc76df417189d4f65c2c72d272c3a8f47105a
+    version: 673045b2364e54b569438794b0240486e4afae2b
 
-############## KnowRob repository ####################
+############## Giskard msgs repository ############
 - git:
-    local-name: knowrob
-    uri: https://github.com/knowrob/knowrob.git
-    version: 723c4c54b58bcc71909b8e233841a6d5e3830e49
+    local-name: giskard_msgs
+    uri: https://github.com/SemRoCo/giskard_msgs.git
+    version: 3cea851f1823e5fa58164700e06a8e34cd78a639
 
 ############## PR2 inverse kinematics solver #########
 - git:
@@ -35,7 +29,7 @@
     uri: https://github.com/code-iai/pr2_kinematics.git
     version: kinetic-devel
 
-### Newer version of moveit_msgs for Kinetic #########
+### Newer version of moveit_msgs from Kinetic #########
 - git:
     local-name: moveit_msgs
     uri: https://github.com/ros-planning/moveit_msgs.git

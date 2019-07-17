@@ -1,0 +1,30 @@
+<package format="2">
+  <name>cram_giskard</name>
+  <version>0.7.0</version>
+  <description>
+    CRAM interfaces to talk to Giskard
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp</depend>
+  <depend>roslisp_utilities</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cram_tf</depend>
+  <depend>cram_common_failures</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_process_modules</depend>
+  <depend>cram_prolog</depend>
+  <depend>cram_common_designators</depend>
+  <depend>cram_occasions_events</depend>
+  <depend>cram_plan_occasions_events</depend>
+  <depend>cram_bullet_reasoning</depend>
+  <depend>cram_bullet_reasoning_belief_state</depend>
+  <depend>cram_joint_states</depend>
+  <depend>cram_simple_actionlib_client</depend>
+  <depend>giskard_msgs</depend>
+</package>

@@ -28,7 +28,7 @@
 ;;;
 
 (defpackage cram-location-costmap
-  (:nicknames #:location-costmap)
+  (:nicknames #:location-costmap #:costmap)
   (:use #:cl #:prolog #:cram-utilities #:roslisp-utilities
         #:alexandria #:roslisp #:cram-tf #:cram-designators
         #:cl-transforms-stamped)
@@ -64,9 +64,7 @@
            #:lazy-2d-value-map
            #:make-padding-mask
            #:point-in-padding-mask-p
-           #:costmap-padding
-           #:padding #:costmap-manipulation-padding
-           #:costmap-in-reach-padding
+           #:padding
            #:occupancy-grid-put-mask
            #:grid-cells-msg->occupancy-grid
            #:grid-cells-msg->height-map
@@ -109,6 +107,8 @@
            #:costmap-size #:costmap-origin #:costmap-resolution
            #:costmap-padding #:costmap-manipulation-padding
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance
+           #:visibility-costmap-size
+           #:orientation-samples #:orientation-sample-step
            ;; facts
            #:make-angle-to-point-generator #:make-orientation-generator
            #:2d-pose-covariance)

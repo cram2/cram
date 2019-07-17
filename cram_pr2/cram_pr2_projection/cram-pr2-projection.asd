@@ -35,6 +35,7 @@
                cram-designators
                cram-utilities
                cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state ; for event updating before ik requests
                cram-tf
                cram-robot-interfaces    ; for ROBOT predicate and COMPUTE-IKS
                cl-transforms
@@ -47,6 +48,7 @@
                cram-common-failures
                cram-process-modules
                alexandria ; for CURRY in low-level perception
+               roslisp-utilities ; for rosify-lisp-name
                moveit_msgs-msg
                moveit_msgs-srv
                pr2_arm_kinematics-msg
@@ -56,12 +58,9 @@
     :components
     ((:file "package")
      (:file "projection-clock" :depends-on ("package"))
-     (:file "tf" :depends-on ("package" "projection-clock"))
+     (:file "tf" :depends-on ("package"))
      (:file "ik" :depends-on ("package"))
-     (:file "low-level" :depends-on ("package" "projection-clock" "tf" "ik"))
+     (:file "low-level" :depends-on ("package" "tf" "ik"))
      (:file "process-modules" :depends-on ("package" "low-level"))
      (:file "projection-environment" :depends-on ("package" "projection-clock" "tf"
-                                                            "process-modules"))
-     ;; (:file "action-designators" :depends-on ("package"))
-     ;; (:file "resources" :depends-on ("package"))
-     ))))
+                                                            "process-modules"))))))

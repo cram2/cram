@@ -31,7 +31,7 @@
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (roslisp
+  :depends-on (roslisp ; for debug statements
 
                cram-designators
                cram-executive
@@ -42,9 +42,10 @@
                cram-designator-specification
                cram-common-failures
                cram-plan-occasions-events
+               cram-mobile-pick-place-plans
 
-               cram-object-interfaces
-               cram-knowrob-assembly
+               cram-manipulation-interfaces
+               cram-object-knowledge
 
                cl-transforms-stamped
                cl-transforms)
@@ -52,8 +53,6 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "atomic-action-plans" :depends-on ("package"))
-     (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
-     (:file "composite-plans" :depends-on ("package" "atomic-action-designators"))
-     (:file "composite-plan-designators" :depends-on ("package" "composite-plans"))
-     (:file "high-level-plans" :depends-on ("package" "composite-plan-designators"))))))
+     (:file "action-plans" :depends-on ("package"))
+     (:file "action-designators" :depends-on ("package" "action-plans"))
+     (:file "high-level-plans" :depends-on ("package" "action-designators"))))))

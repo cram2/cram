@@ -34,60 +34,45 @@
 (cpm:def-process-module pr2-proj-navigation (motion-designator)
   (destructuring-bind (command argument) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-base
-       (handler-case
-           (drive argument))))))
+      (cram-common-designators:move-base (drive argument)))))
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-torso (motion-designator)
   (destructuring-bind (command argument) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-torso
-       (handler-case
-           (move-torso argument))))))
+      (cram-common-designators:move-torso (move-torso argument)))))
 
 ;;;;;;;;;;;;;;;;; PTU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-ptu (motion-designator)
-  (destructuring-bind (command argument) (desig:reference motion-designator)
+  (destructuring-bind (command goal-pose goal-configuration) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-head
-       (handler-case
-           (look-at argument))))))
+      (cram-common-designators:move-head (look-at goal-pose goal-configuration)))))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-perception (motion-designator)
   (destructuring-bind (command argument-1) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:detect
-       (handler-case
-           (detect argument-1))))))
+      (cram-common-designators:detect (detect argument-1)))))
 
 ;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-grippers (motion-designator)
   (destructuring-bind (command arg-1 arg-2 &rest arg-3) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-gripper-joint
-       (handler-case
-           (gripper-action arg-1 arg-2 (car arg-3)))))))
+      (cram-common-designators:move-gripper-joint (gripper-action arg-1 arg-2 (car arg-3))))))
 
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module pr2-proj-arms (motion-designator)
   (destructuring-bind (command arg-1 &rest arg-2) (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-tcp
-       (handler-case
-           (move-tcp arg-1 (car arg-2))))
-      (cram-common-designators::move-joints
-       (handler-case
-           (move-joints arg-1 (car arg-2))))
-      (cram-common-designators::move-with-constraints
-       (handler-case
-           (move-with-constraints arg-1))))))
+      (cram-common-designators:move-tcp (move-tcp arg-1 (first arg-2) (second arg-2)
+                                                  (third arg-2) (fourth arg-2) (fifth arg-2)))
+      (cram-common-designators::move-joints (move-joints arg-1 (car arg-2)))
+      (cram-common-designators::move-with-constraints (move-with-constraints arg-1)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -109,9 +94,8 @@
   (<- (cpm:matching-process-module ?motion-designator pr2-proj-grippers)
     (or (desig:desig-prop ?motion-designator (:type :gripping))
         (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))
-        (and (desig:desig-prop ?motion-designator (:gripper ?_))
-             (or (desig:desig-prop ?motion-designator (:type :opening))
-                 (desig:desig-prop ?motion-designator (:type :closing))))))
+        (desig:desig-prop ?motion-designator (:type :opening-gripper))
+        (desig:desig-prop ?motion-designator (:type :closing-gripper))))
 
   (<- (cpm:matching-process-module ?motion-designator pr2-proj-arms)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))

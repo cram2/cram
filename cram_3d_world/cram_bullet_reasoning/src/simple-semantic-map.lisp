@@ -28,6 +28,9 @@
 
 (in-package :btr)
 
+(defparameter *mesh-path-whitelist* nil
+  "When not NIL, only meshes present in the whitelist will be loaded into the semantic map.")
+
 (defclass simple-semantic-map-object (semantic-map-object) ())
 
 (defmethod initialize-instance :after ((semantic-map-object simple-semantic-map-object)
@@ -44,7 +47,7 @@
                                     :collision-mask collision-mask)
                         when body collect body)))
       (initialize-rigid-bodies semantic-map-object bodies)
-      (setf pose-reference-body (car bodies)))))
+      (setf pose-reference-body (cl-bullet:name (car bodies))))))
 
 (defmethod copy-object ((obj simple-semantic-map-object) (world bt-reasoning-world))
   (with-slots (semantic-map) obj
@@ -54,18 +57,34 @@
 
 (defgeneric semantic-map-part-rigid-body (part &key pose collision-group collision-mask)
   (:documentation "Returns a rigid body for the semantic map part `part'.")
+
   (:method ((part sem-map-utils:semantic-map-geom) &key pose collision-group collision-mask)
-    (make-instance 'rigid-body
-      :name (intern (sem-map-utils:name part))
-      :group collision-group
-      :mask collision-mask
-      :pose (cl-transforms:transform-pose
-             (cl-transforms:pose->transform pose)
-             (sem-map-utils:pose part))
-      :collision-shape (make-instance 'box-shape
-                         :half-extents (cl-transforms:v*
-                                        (sem-map-utils:dimensions part)
-                                        0.5))))
+    (let ((mesh-uri (sem-map-utils:get-mesh-path (semantic-map-utils:owl-name part))))
+      (when (and mesh-uri (find mesh-uri *mesh-path-whitelist* :test #'equalp))
+        (make-instance 'rigid-body
+          :name (intern (sem-map-utils:name part))
+          :group collision-group
+          :mask collision-mask
+          :pose (cl-transforms:transform-pose
+                 (cl-transforms:pose->transform pose)
+                 (sem-map-utils:pose part))
+          :collision-shape (let* ((mesh-path
+                                    (physics-utils:parse-uri mesh-uri))
+                                  (mesh-model
+                                    (when mesh-path
+                                      (with-file-cache model mesh-path
+                                          (physics-utils:load-3d-model mesh-path)
+                                        (physics-utils:scale-3d-model model 1.0)))))
+                             (if mesh-path
+                                 (make-instance 'convex-hull-mesh-shape
+                                   :points (physics-utils:3d-model-vertices mesh-model)
+                                   :faces (physics-utils:3d-model-faces mesh-model)
+                                   :color '(0.5 0.5 0.5 1.0))
+                                 (make-instance 'box-shape
+                                   :half-extents (cl-transforms:v*
+                                                  (sem-map-utils:dimensions part)
+                                                  0.5))))))))
+
   (:method ((part t) &key pose collision-group collision-mask)
     (declare (ignore pose collision-group collision-mask))
     (warn 'simple-warning

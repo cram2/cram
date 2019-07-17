@@ -1,0 +1,404 @@
+v0.7.0
+
+2018-08-13  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * handling objects attached to kitchen in case of env. manipulation:
+    objects attached to kitchen get detached upon grasping
+    spoon in the demo gets spawned in the drawer and is attached to it
+  * [btr] new function GET-ENVIRONMENT-OBJECT can be used to access kitchen object
+  * [btr-spatial-cm] enabling to combine RANGE and RANGE-INVERT in one desig
+2018-08-13  Gayane Kazhoyan <gayanek@gmail.com>
+  * [gaussian-cm] orientation-samples variable is now a prolog predicate
+2018-07-20  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pnp] added ARM as an argument of OBJ-INT:GET-OBJECT-TYPE-GRASPS
+2018-07-19  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-pp-demo] wrote a script for generating training data
+  * [pr2-proj-reason] collision failures are in again for picking
+  * [kr-pnp] started ignoring rotational symmetry, it's buggy
+  * [mobile-pp-plans] using GET-OBJECT-TYPE-GRASPS for picking up actions now
+  * [btr] added ugly gripper cad model
+  * [btr-utils] added VISUALIZE-GRIPPER function
+  * [kr-pnp] SIDE grasp is now LEFT-SIDE + RIGHT-SIDE grasp
+2018-07-17  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [obj-int] implemented functions for discretizing object orientation for learning grasps
+  * [obj-int] reimplemented grasping interface: now macros generate defmethods
+  * [btr] added Alina's axis object for easier debugging of poses
+  * [boxy-proj] changed from cpp giskard to giskardpy
+2018-07-06  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [rosinstall] added dep on giskard_msgs :(
+  * [rosinstalls] updated iai_maps version and removed knowrob
+2018-06-26  Gayane Kazhoyan <gayanek@gmail.com>
+  * [spatial-cm] SIDE can be used multiple times now, together with RANGE
+2018-06-25  Gayane Kazhoyan <gayanek@gmail.com>
+  * [spatial-cm] for robot base pose CMs always CM with clear space of environment URDF is added
+2018-06-25  Gayane Kazhoyan <gayanek@gmail.com>
+  * [pr2-pp-demo] added knowrob beliefstate reset
+  * [btr-belief] added knowrob belief state event updates
+2018-06-24  Gayane Kazhoyan <gayanek@gmail.com>
+  * VISUALIZE-MARKER moved to CRAM-TF
+  * [3d-world] moved CALCULATE-BB-DIMS from SPATIAL-CM into BTR
+2018-06-22  Gayane Kazhoyan <gayanek@gmail.com>
+  * integrated using giskard collision environment for manipulation
+2018-06-21  Gayane Kazhoyan <gayanek@gmail.com>
+  * differentiating between collision-free and collision-ok movements with Giskard
+  * [btr-belief] publishing joint states of environment on open/close events
+  * [pr2-proj-reason] let giskard take care of placing collisions
+2018-06-21  Sebastian Koralewski <seba@cs.uni-bremen.de>
+  * flatten costmap visualization in RViz
+2018-06-20  Gayane Kazhoyan <gayanek@gmail.com>
+  * [pr2-proj-reason] turned off collision checks when picking: Giskard will take care of that
+  * [pr2-pp-demo] switched to .OBJ kitchen urdf
+  * [rs] updated to new rs interfaces
+2018-06-20  Arthur Niedzwiecki <arthur.niedzwiecki@gmail.com>
+  * Add collision group and mask to prolog predicate to spawn special URDFs:
+    this enables collisions between robot and kitchen, although they are both pure URDF objects
+2018-06-19  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * completely got rid of knowrob dependency for pr2-pp-demo muahahHAHAHAHAHAAHAHAH
+  * [btr] fixed the damn bug with calculating prismatic joint state
+2018-06-18  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * added DISTANCE to environment events and used it
+  * [pr2-fd-plans] failure handling and improvements for environment manip plans
+  * [pr2-proj-reasoning] first projection check for environment manip
+  * [pr2-proj] one can grip items and handles of environment
+  * [common-fail] added environment-related high-level failures
+  * [gauss-cm] added validation function for visibility costmap
+  * [gauss-cm] reduce size of visibility costmap to VISIBILITY-CM-SIZE
+  * [desig] reduced number of validation samples in location designator to 30
+2018-06-14  Gayane Kazhoyan <gayanek@gmail.com>
+  * [fd-plans] if gripper empty, park arms before reperceiving
+2018-06-13  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-ll] switched from old giskard to new giskardpy interface
+2018-06-12  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * cleaned up failure handling thoroughly in manipulation plans
+  * [gauss-cm] added pose validator for reachable location
+  * [exe] designator-reference failures from EXE are now also children of desig:desig-error
+2018-06-11  Arthur Niedzwiecki <arthur.niedzwiecki@gmail.com>
+  * Implemented support for loading compound .obj meshes as btr:compound-mesh object
+2018-06-07  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [spatial-cm] got rid of dependency on semantic map packages
+  * moved deprecated DUMMY_PMS, PLAN_LIB, PROJ_DEMOS into cram_experimental
+  * [pr2-fetch-deliver] added first simple version of environment manipulation plans
+2018-06-06  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [spatial-cm] implemented IN and ON for URDF environment objects
+  * [btr] in URDF object stop attaching everything when doing environment manipulation
+  * [obj-int] added predicate OBJECT-TYPE-SUBTYPE
+2018-06-05  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * CRAM-BTR-COSTMAP -> CRAM-BTR-SPATIAL-RELATIONS-COSTMAP
+  * major revision of CRAM-BTR-DESIGNATORS: reachability got commented out, only visibility left
+2018-05-31  Christopher Pollok <cpollok@uni-bremen.de>
+  * [pr2-em] Adjusted costmaps for drawers to only generate poses to the sides of them.
+    And adjusted the orientation generator, so that the robot aligns itself with the drawer axis.
+2018-05-28  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [cram-pr2] moved deprecated packages into cram_experimental
+2018-05-28  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [btr-utils] added new util function RESPAWN-OBJECT
+2018-05-25  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pp-demo] use the (old) new spatial relations to set the table
+2018-05-23  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * Added tray meshes and grasping poses: manual merge from Arthur's https://github.com/cram2/cram/pull/48
+  * [pr2-descr] DEF-TOOL doesn't exist anymore
+2018-05-21  Christopher Pollok <cpollok@uni-bremen.de>
+  * [pr2-em] Move data management from plans to designator referencing.
+2018-05-18  Christopher Pollok <cpollok@uni-bremen.de>
+  * [location-costmap] Add orientation-samples and orientation-sample-step predicates.
+2018-05-16  Sebastian Koralewski <seba@cs.uni-bremen.de>
+  * [ccl] It is possible to differ if a task was executed in simulation or real world
+2018-05-15  Sebastian Koralewski <seba@cs.uni-bremen.de>
+  * [ccl] Added clear owl file method and support for logging tf
+2018-05-14  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * Simplified a lot grasp definition code
+2018-05-09  Christopher Pollok <cpollok@uni-bremen.de>
+  * [pr2_em] Add orientation generation to drawer costmap.
+2018-04-20  Christopher Pollok <cpollok@uni-bremen.de>
+  * {pr2-em] Add close-container plan.
+2018-04-18  Arthur Niedzwiecki <arthur.niedzwiecki@gmail.com>
+  * [btr-desig] Add variable for visibility threshold, so that setups can be more or less forgiving with occlusion
+2018-04-18  Christopher Pollok <cpollok@uni-bremen.de>
+  * [pr2-em] working on robot performing environment manipulation
+
+v0.6.0
+
+2018-04-10  Gayane Kazhoyan <gayanek@gmail.com>
+  * implemented broadcasting of TF from projection (robot + items)
+2018-04-04  Christopher Pollok <cpollok@uni-bremen.de>
+  * [obj-int] Add second lift pose to get-object-grasping-poses.
+2018-03-16  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [btr-belief] added *SPAWN-DEBUG-WINDOW* parameters for belief state setup
+2018-03-13  Gayane Kazhoyan <gayanek@gmail.com>
+  * [cram-pr2] made projection reasoning work on the robot
+  * [pr2-pp-demo] don't use cad model fitter for perception of CUP and BOWL
+  * [desig] allow asking CURRENT-DESIG also on NULL objects
+2018-03-02  Gayane Kazhoyan <gayanek@gmail.com>
+  * [pr2-pp-demo] made placing locations more easily reachable
+  * [pr2-pp-plans] assert ROBOT-STATE-CHANGED even if navigation action failed
+  * [btr-belief] simulate world after spawning perceived obj
+2018-02-28  Christopher Pollok <cpollok@uni-bremen.de>
+  * [pr2-proj] Add virtual links in the PR2 URDF to the projection tf tree.
+2018-02-23  Gayane Kazhoyan <gayanek@gmail.com>
+  * [pr2-proj] fixed PROJECTION-RUNNING predicate
+  * [pr2-pp-demo] WITH-REAL-ROBOT now creates a named top level
+  * [rs] only supporting input parameters such as TYPE and CAD-MODEL
+2018-02-22  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-fd-plans] made relevant desigs into explicit args
+  * [pr2-proj-reason] implemented WITH-PROJECTED-TASK-TREE
+2018-02-20  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-transporting-plans] moved SEARCHING out of FETCHING into TRANSPORTING
+  * [pr2-proj-reasoning] bugfix: when checking for collisions ignore attached objects
+  * [pr2-proj-reasoning] bugfix: IK solver only works if every arm movement is asserted into TF
+2018-02-16  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-pp-demo] found best projection round according to driving distance
+  * [pick-place] GRASP is now an attribute of PICKING-UP action desig
+2018-02-14  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * fixed (HOLDS ?TIMELINE ?OCC ...)
+  * [btr-belief] LOC occasion now returns a designator with pose-stamped
+2018-02-09  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * [pr2-pp-demo] added some more predicates and testing functions for traversing task tree
+  * [cram-occ-events] decided that AT and DURING and THROUGHOUT should be from cet package
+  * [cpl] null pointer guards
+2018-02-07  Gayane Kazhoyan <gayanek@gmail.com>
+  * [pr2-pp-demo] started working on projection for plan parameterization
+  * [exe] change PERFORM from cram function into goal to use execution trace tools
+  * moved CET:*EPISODE-KNOWLEDGE* projection var declaration into pr2-proj package
+  * [cpl] TASK-TREE-NODE now has an optional NODE param
+2018-02-06  Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+  * pick and place is stable-ish on real robot
+
+v0.5.0
+
+2018-01-30  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * [pr2-proj] WITH-SIMULATED-ROBOT now creates a named top level
+  * [exe], [ccl] made PERFORM into a cram function and renamed the generic function into GENERIC-PERFORM
+2018-01-16  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [pr2-pp-demo] put ADD-OBJECTS-TO-MESH-LIST into node initialization function
+  * [kr-pp] tweaked grasping offsets to work better on real robot
+2018-01-11  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [pr2-pp-demo] specified arms for object transporting
+  * [pr2-pp-plans] added ?arm as a parameter for transporting action
+  * [pr2-proj] implemented caching for IK
+  * [pr2-proj-reasoning] changed long debug duration also to 0.0
+2018-01-10  Christopher Pollok  <cpollok@uni-bremen.de>
+  * [pr2-projection] Fix torso angle resampling in ik solver call.
+2017-12-19  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [logging] moved logging-specific things from cram-executive to cram-cloud-logger
+  * [cram-pr2] moved FETCHING and DELIVERING plans into separate package
+  * Renamed pr2-plans -> pr2-plans-deprecated
+  * [pr2-proj-reasoning] added sleep duration param and tweaked retries
+2017-12-12  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * [cram_pr2] created new package CRAM-PR2-PROJ-REASONING and moved related things there
+2017-12-11  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * Moved ROBOT-COLLIDING-OBJECTS-WITHOUT-ATTACHED into BTR
+  * Moved EQUALIZE-LISTS-OF-LISTS-LENGTHS into cram_utilities
+  * moved ADD-OBJECTS-TO-MESH-LIST into BTR
+  * [cram-pr2] moved WITH-PROJECTED-ROBOT & WITH-SIMULATED-ROBOT to pr2-proj
+  * [pr2-pp-demo] in ADD-OBJECTS-TO-MESH-LIST made argument non-optional
+  * [pr2-pp-demo] reorganized navigate without collisions and added more failure handling
+  * [pr2-pp-demo] changed launch file to correspond to the one in iai_maps
+2017-12-08  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * [pr2-pp-demo] renamed FETCHING-AND-DELIVERING into TRANSPORTING
+  * [btr-tutorial] pr2-pp-plans were renamed into mobile-pp-plans
+2017-12-06  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * [cl-bullet] got rid of asdf directory
+2017-11-28  Gayane Kazhoyan  <gayanek@gmail.com>
+  * demo day fixes
+  * [ccl] set logging to disabled per default
+2017-11-27  Gayane Kazhoyan  <gayanek@gmail.com>
+  * Fixed relative offsets in grasping
+  * [pr2-pp-demo] working on the plans and tweaking things
+  * [kr-ccl] added frame to pose entity
+  * [btr-utils] got rid of INLINE declarations, they were only producing warnings
+  * [exe] logging-related things for PERFORM
+  * [specs] new specs for action desigs
+  * [pr2-pp-demo] restructured code
+2017-11-27  Sebastian Koralewski  <seba@tzi.de>
+  * [ccl] logged position parameter
+  * [ccl] left-right-poses are handled better for the knowledge representation
+  * [ccl] nil objects will not be asserted
+  * [ccl] Location description are logged now
+2017-11-26  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [pr2-pp-demo] working on the scenario
+  * [pr2-descr] make sure left arm is upright when carrying
+  * [pp-plans] if perception is with cad-model, only retry once
+2017-11-25  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [rs] RS gives different poses from different estimators: choosing correct one
+  * [kr-pp] breakfast-cereal parameters
+  * [btr-belief] don't need the hack for fixing identity resolution anymore
+2017-11-25  Seba  <seba.cs.uni-bremen.de>
+  * [ccl] Changed string names and fixed object name bug
+  * [ccl] Updated path to store belief state
+2017-11-24  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [pr2-pp-demo] working on the demo script and using cad models from RS
+  * [kr-pp] better parameters for pick-place objects
+  * [pp-plans] improving failure handling and event management
+2017-11-24  Sebastian Koralewski  <seba@tzi.de>
+  * [ccl] Added export belief state method
+2017-11-23  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [pr2-pp-demo] working on demo scenario
+  * Correct handling of events for pick-place plans and their low-level execution
+  * [pr2-ll] added a bit more tolerance for nav-p
+  * [btr-belief] integrated RS perception into beliefstate
+  * [desig] added COLOR to OBJECT-DESIGNATOR-DATA
+  * [pr2-proj] bugfix in UPDATE-TF event handler: it should only SET-TF-FROM-BULLET in projection
+  * [rs] handling colors, creating TRANSFORM out of POSE, populating OBJECT-DESIG-DATA
+  * [location-cm] exported VISIBILITY-COSTMAP-SIZE
+  * [btr-utils] if in SPAWN-OBJECT it already exists, just MOVE-OBJECT
+  * [btr-desig] VISIBILITY-COSTMAP-SIZE is now a LOCATION-COSTMAP predicate
+  * [pr2-pp-demo] renamed cereal into breakfast_cereal
+  * [knowrob-cloud] always FINISH_QUERY otherwise json_prolog freezes
+2017-11-23  Sebastian Koralewski  <seba@tzi.de>
+  * [ccl] updated method to log object from robosherlock
+  * [ccl] Location designators are logged now
+  * [ccl] Updated pose stamps
+  * [ccl] Location action parmeter is logged.
+  * [ccl] Added logging finish predicate
+2017-11-22  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [pr2-plans] added OBJECT parameter to GRIPPING action (and RELEASING)
+  * [pp-plans] added DETECTING action
+  * [cram-exe] log failed actions and escaping errors
+  * [rs] file got renamed and forgot to update in asd file
+  * [pr2-proj] fixed infinite prolog loop in AVAILABLE-PROCESS-MODULE
+  * [rs] updates for new RS apis
+  * integrating logging
+  * unified looking motions between real robot and projection
+2017-11-22  Sebastian Koralewski  <seba@tzi.de>
+  * [ccl] Logger can be disabled
+  * [ccl] Started to log location designators
+2017-11-21  Gayane Kazhoyan  <gayanek@gmail.com>
+  * removed CATKIN_IGNORES on real robot packages for this branch
+  * [pr2-pms] failure handling was confusing things + RS PM went to its own pkg
+  * [pr2-pp-demo] now depends also on RS package
+  * [pr2-ll] rs api went to its own package
+  * [pr2-ll] giskard api update
+  * [pr2-cloud] some fixes and intermediate joint configs
+  * [pp-plans] nicer park-arms for avoiding navigation collisions
+  * [robot-int + pr2-desc] added robot-carrying-poses
+  * [pr2-cloud] lots of fixes for the cloud demo
+  * [rs] robosherlock api update
+2017-11-20  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [btr-desig] disabling costmap validation function properly this time
+  * [pr2-ll] got rid of some unnecessary deps
+  * [pr2-demo] added dependencies for the real robot
+  * [kr-cloud] updated connection info for Asil's new PC
+  * [rs] updates for the newer API
+2017-11-17  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * [common-fail] some more failures for FETCH and DELIVER
+  * [pr2-pp-demo] finished with FETCH plan, I hope (next DELIVER)
+  * [pp-plans] some fixes concerning objects in hand etc
+  * [desig-specs] being strict about specs again
+  * [kr-pp] changed cutlery Z offset, as it was colliding with table
+  * [common-fail] added new failures, especially high-level ones
+  * [btr-belief] fixed bug in perceived object lookup: always take current designator
+  * [pp-demo] took collision checking part of plan into its own plan
+2017-11-14  Christopher Pollok  <cpollok@uni-bremen.de>
+  * [cram_pr2_projection] Fix setting of debug level in call-ik-service.
+2017-11-14  Sebastian Koralewski  <seba@tzi.de>
+  * [ccl] arms and grippers are logged
+  * [ccl] objects are logged now
+  * [ccl] All poses are logged now
+  * [ccl] Pose-Stamped can be logged now
+  * [ccl] started to log object designators and added functions for simple rdf logging
+2017-11-13  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * [pr2-pp-demo] implemented DELIVER plan and a new demo and more failure handling
+  * [pr2-pp-demo] better costmap paddings for reachability
+  * [obj-int] implementation of (A LOCATION (OF (AN OBJECT (POSE ...)
+  * [common-fail] added a new type of navigation failure
+2017-11-13  Sebastian Koralewski  <seba@tzi.de>
+  * [ccl] Effort action parameter will be logged
+  * [ccl] Added function to read designator property value
+2017-11-12  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [pr2-pp-demo] wrote FETCH plan until going to pick up location
+  * [pr2-pp-demo] wrote FETCH plan until finding object
+  * [pp-plans] improved LOOK-AT plan
+2017-11-10  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [pr2-proj] PTU action now fails if point is unreachable
+  * [btr] exported CALCULATE-PAN-TILT and added namespaces
+  * [common-fail] added ptu-specific failures
+2017-11-09  Sebastian Koralewski  <seba@tzi.de>
+  * [ccl] Logs if task was successful
+  * [ccl] Action Names, Start / End of action will be logged now.
+  * [ccl] Added the correct knowrob action names and logging of end action is possible
+2017-11-08  Sebastian Koralewski  <seba@tzi.de>
+  * [ccl] Added basic structure for logging finishing action
+  * [ccl] ID will be retracted now
+2017-11-08  Gayane Kazhoyan  <gayanek@gmail.com>
+  * renamed locations (TYPE REACHABLE) into (REACHABLE-FOR PR2)
+  * [pp-demo] added some namespaces to use
+  * in GRIPPING action ARM parameter should be called GRIPPER
+2017-11-08  Christopher Pollok  <cpollok@uni-bremen.de>
+  * Replace object-type-grasp predicate with new one from  cram_object_interfaces.
+  * [cram_robot_interfaces] Deprecate grasps.lisp.
+  * [cram_object_interfaces] Add object_type_grasp predicate to interface.
+  * [cram_pr2_description] Add arm predicate to pr2_arm_kinematics.
+2017-11-07  Sebastian Koralewski  <seba@tzi.de>
+  * [ccl] Added method to read out the create cram_action_instance
+2017-11-06  Seba  <seba.cs.uni-bremen.de>
+  * [ccl] Logs will contain unix timestamp now
+2017-11-03  Seba  <seba.cs.uni-bremen.de>
+  * [ccl] CRAM creates first simple log from executed plans.
+2017-11-03  Seba  <seba.cs.uni-bremen.de>
+  * [ccl] Added a lil bit of failure handling to cloud logger client
+2017-11-02  Seba  <seba.cs.uni-bremen.de>
+  * [ccl] Started to implement logging in perform
+  * [ccl] Added cloud logger interface
+2017-10-27  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * [pr2-pp-demo] created a package for pick and place demo: ease symposium
+  * [pr2-proj] bugfixes and nicifications for the new torso in IK functionality:
+2017-10-27  Christopher Pollok  <cpollok@uni-bremen.de>
+  * [pr2-proj] Export *torso-step* variable.
+2017-10-26  Christopher Pollok  <cpollok@uni-bremen.de>
+  * [pr2-proj] Add trying of different torso angles to low-level move-tcp (WIP).
+2017-10-25  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * [kr-pp] grasping configurations for ease demo objects
+  * [pp-plans] fail when pose unreachable in arm movements
+  * [btr-utils] cereal made of primitive shapes is now called cereal-box
+  * [sandbox] adjusted cad model origins and scale
+2017-10-24  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * [sandbox] added new meshes and wrote some scripts for ease demo
+  * [mobile-pp] moved PERCEIVE into atomic action plans
+  * [sandbox] added dependency on knowrob-pp
+  * [mobile-pp] got rid of unrequired dependencies
+  * [mobile-pp] removed old occasions-events, using btr-belief instead
+  * fixed object attached and object detached events
+2017-10-20  Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
+  * fixed some CMakeLists to make cram compile with catkin tools
+  * cram_pr2_pick_place_plans -> cram_mobile_pick_place_plans
+2017-10-14  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [pp-plans] commented out driving-related plans as they don't handle object poses correctly
+  * [pp-plans] fixed placing at a specific target
+  * [btr-belief] moved object perception utilities into object-perceptions
+2017-10-13  Gayane Kazhoyan  <gayanek@gmail.com>
+  * [btr-belief] changed perceived objects hash table into a defvar
+  * moved special projection variables of btr-belief and sem-map to pr2-proj
+  * [pr2-proj] in perception emitting an object perceived event and using correct timestampts
+  * [btr-belief] fixed handling of perceived objects in the belief state
+  * [cram-tf] fixed a bug in multiply-transform-stampeds
+  * [proj-sandbox] don't drive and look in parallel if looking target is in base frame
+  * [pr2-proj] as we are not using the projection clock properly, better not use it completely
+2017-10-10  Gayane Kazhoyan  <gaya@cs.uni-bremen.de>
+  * cleaned up and fixed grasping code: it's awesome now, it is... it's amazing... huge!
+  * [specs] arm or gripper can now also be a list, not just keyword
+  * [pr2-proj] improvements for gripper actions
+  * made manipulation code independent of robot tool frame definition:
+  * moved TF utilities from cram_pr2_cloud to cram_tf
+  * [pr2-projection] perceived object poses should be in base frame
+2017-10-09  Gayane Kazhoyan  <gaya@cs.uni-bremen.de>
+  * cleaned up package.xml-s: now they correspond to their asd files
+  * [gitignore] ignore latest-asdf-check file, it's user-specific
+2017-10-06  Gayane Kazhoyan  <gaya@cs.uni-bremen.de>
+  * [rosinstall] fixed the knowrob commit for 14.04
+2017-10-05  cpollok  <cpollok@users.noreply.github.com>
+  * [asdf_check.py] Remove unnecessary depend tags.
+2017-10-04  Christopher Pollok  <cpollok@uni-bremen.de>
+  * [asdf_check.py] Remove check for quotes. Add missing packages for asdf. Fix regex to include asdf:defsystem.
+  * [check_asdf.py] Remove #+ deps.
+  * [asdf_check.py] Replace string.find based approach to find dependencies woth regex-based approach in get_asdf_dependencies().
+2017-09-28  Christopher Pollok  <cpollok@uni-bremen.de>
+  * [asdf_check] Initial commit of asdf script.
+2017-09-21  Gayane Kazhoyan  <gaya@cs.uni-bremen.de>
+  * [pr2-proj-sandbox] readability syntactic sugar
+  * [pr2 stuff] an action type LOOKING-AT got renamed into an action type LOOKING
+  * [pr2-pp-plans] exported relevant symbols
+  * [pr2-pp-plans] fail when unreachable trajectory and minor rearrangement
+  * [kr-pp] fixed grasping offsets
+  * [desig] pretty printer for designator class
+  * [object-interface] added implementation of DESIG-LOCATION-PROP with GET-OBJECT-POSE
+2017-09-19  (tag: v0.4.0) (tag: v0.4.0) Gayane Kazhoyan  (tag: v0.4.0) (tag: v0.4.0) <gaya@cs.uni-bremen.de>
+  (tag: v0.4.0) * v0.4.0

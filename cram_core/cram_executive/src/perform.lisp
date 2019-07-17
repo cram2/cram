@@ -29,10 +29,10 @@
 
 (in-package :exe)
 
-(define-condition designator-reference-failure (cpl:simple-plan-failure)
+(define-condition designator-reference-failure (cpl:simple-plan-failure desig:designator-error)
   ((result :initarg :result :reader result :initform nil))
   (:default-initargs :format-control "designator-failure"))
-(define-condition designator-goal-parsing-failure (cpl:simple-plan-failure)
+(define-condition designator-goal-parsing-failure (cpl:simple-plan-failure  desig:designator-error)
   ((result :initarg :result :reader result :initform nil))
   (:default-initargs :format-control "designator-goal-parsing-failure"))
 
@@ -54,7 +54,29 @@
                 :format-control "Designator goal ~a could not be parsed.~%~a"
                 :format-arguments (list keyword-expression error-message)))))
 
-(defgeneric perform (designator)
+(defun call-plan-with-designator-properties (plan-function action-designator)
+  (declare (type desig:action-designator action-designator))
+  "Returns the result of executing the plan function and the action-designator
+that was used as the parameter of the plan as multiple values."
+  (let ((designator-props-as-key-lambda-list
+          (let (plist)
+            (dolist (pair (desig:properties action-designator))
+              (push (first pair) plist)
+              (push (second pair) plist))
+            (nreverse plist))))
+    (values (apply plan-function designator-props-as-key-lambda-list)
+            action-designator)))
+
+
+(cpl:declare-goal perform (designator)
+  (declare (ignore designator))
+  "Performs the action or motion defined by `designator'. This goal
+  infers which process module to use and calls pm-execute in it.")
+
+(cpl:def-goal (perform ?designator)
+  (generic-perform ?designator))
+
+(defgeneric generic-perform (designator)
   (:documentation "If the action designator has a GOAL key it will be checked if the goal holds.
 TODO: there might be multiple plans that can execute the same action designator.
 In PMs the solution is: try-each-in-order.
@@ -70,9 +92,9 @@ similar to what we have for locations.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
-    (destructuring-bind (command &rest arguments)
+    (destructuring-bind (plan referenced-action-designator)
         (try-reference-designator designator)
-      (if (fboundp command)
+      (if (fboundp plan)
           (let ((desig-goal (desig-prop-value designator :goal)))
             (if desig-goal
                 (let ((occasion (convert-desig-goal-to-occasion desig-goal)))
@@ -80,10 +102,10 @@ similar to what we have for locations.")
                       (warn 'simple-warning
                             :format-control "Action goal `~a' already achieved."
                             :format-arguments (list occasion))
-                      (apply command arguments))
+                      (call-plan-with-designator-properties plan referenced-action-designator))
                   (unless (cram-occasions-events:holds occasion)
                     (cpl:fail "Goal `~a' of action `~a' was not achieved."
                               designator occasion)))
-                (apply command arguments)))
-          (cpl:fail "Action designator `~a' resolved to cram function `~a',
-but it isn't defined. Cannot perform action." designator command)))))
+                (call-plan-with-designator-properties plan referenced-action-designator)))
+          (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
+                     but it isn't defined. Cannot perform action." designator plan)))))

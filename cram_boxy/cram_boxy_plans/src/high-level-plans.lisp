@@ -56,7 +56,10 @@
 
 (defun find-object-on-surface (?object-type)
   ;; move arms from field of view
-  (move-arms-from-field-of-view)
+  (exe:perform (desig:an action
+                         (type positioning-arm)
+                         (left-configuration park)
+                         (right-configuration park)))
   ;; detect object with kinect
   (let* ((?object
            (exe:perform (desig:an action
@@ -81,11 +84,11 @@
 
 (defun attach (?object-type ?holder-object-type ?with-object-type ?with-holder-object-type)
   (let (;; find object to which to attach
-        (?with-object (boxy-plans::find-object ?with-object-type
-                                               :holder-object-type ?with-holder-object-type))
+        (?with-object (find-object ?with-object-type
+                                   :holder-object-type ?with-holder-object-type))
         ;; find object
-        (?object (boxy-plans::find-object ?object-type
-                                          :holder-object-type ?holder-object-type)))
+        (?object (find-object ?object-type
+                              :holder-object-type ?holder-object-type)))
     ;; pick up object
     (exe:perform
      (desig:an action
@@ -93,7 +96,7 @@
                (object ?object)
                (arm left)))
     ;; attach objects
-    (cram-executive:perform
+    (exe:perform
      (desig:a action
               (type connecting)
               (arm left)

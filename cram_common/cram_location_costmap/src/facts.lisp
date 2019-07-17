@@ -35,7 +35,7 @@
 ;;; also load a file describing costmaps and providing them with prolog rules such as
 ;;;   (<- (desig-costmap ?desig ?cm)
 ;;;     (costmap ?cm)
-;;;     (desig-prop ?desig (:to :see))
+;;;     (desig-prop ?desig (:type :visible))
 ;;;     ...)
 ;;; examples are in table_costmap and semantic_map_costmap
 
@@ -108,7 +108,7 @@ If the value is greater than 1, the samples' orientations differ by `sample-step
     (list (cl-transforms:make-3d-vector mean-x mean-y 0.0d0)
           result)))
 
-(def-fact-group location-costmap-utils ()
+(def-fact-group location-costmap-utils (desig-costmap)
 
   ;; default costmap resolver to define the predicate
   (<- (desig-costmap ?designator ?costmap)
@@ -163,3 +163,63 @@ If the value is greater than 1, the samples' orientations differ by `sample-step
     (lisp-type ?msg nav_msgs-msg:gridcells)
     (lisp-fun grid-cells-msg->occupancy-grid ?msg ?p ?tmp-grid)
     (lisp-fun invert-occupancy-grid ?tmp-grid ?grid)))
+
+;; costmap metadata default predicate definition
+(def-fact-group location-costmap-metadata (costmap-size
+                                           costmap-origin
+                                           costmap-resolution
+                                           orientation-samples orientation-sample-step
+                                           costmap-padding costmap-manipulation-padding
+                                           costmap-in-reach-distance
+                                           costmap-reach-minimal-distance
+                                           visibility-costmap-size)
+
+  ;; costmap dimensions in meters, diameter not radius
+  ;; depends on the size of the environment the robot operates in
+  (<- (costmap-size ?width ?height)
+    (fail))
+
+  ;; the coordinate of the left bottom corner of the costmap in meters in map frame
+  ;; depends on the environment
+  (<- (costmap-origin ?x ?y)
+    (fail))
+
+  ;; size of one costmap cell in meters
+  ;; the smaller the number the higher the accuracy and the slower the algorithms
+  (<- (costmap-resolution ?resolution)
+    (fail))
+
+  ;; number of orientations to generate for orientation generators
+  ;; mostly used in gaussian-cm
+  (<- (orientation-samples ?samples)
+    (fail))
+
+  ;; when generating ORIENTATION-SAMPLES number of samples,
+  ;; what should be the distance between different samples in radians
+  (<- (orientation-sample-step ?step-in-radian)
+    (fail))
+
+  ;; padding offset from obstacles, depends on the robot base dimension
+  ;; mostly used for visibility
+  (<- (costmap-padding ?padding-in-meters)
+    (fail))
+
+  ;; padding offset from obstacles when manipulating objects
+  ;; can be different from COSTMAP-PADDING if the arm needs extra padding when grasping
+  (<- (costmap-manipulation-padding ?padding-in-meters)
+    (fail))
+
+  ;; maximum length at which a robot can reach an object from its base location
+  (<- (costmap-in-reach-distance ?distance-in-meters)
+    (fail))
+
+  ;; minimum distance from which the robot can reach an object from its base location
+  ;; actually should probably be merged with COSTMAP-MANIPULATION-PADDING
+  ;; at least the numbers should be very close to each other
+  (<- (costmap-reach-minimal-distance ?distance-in-meters)
+    (fail))
+
+  ;; maximum distance from which the robot can perceive an object
+  ;; i.e. the radius of the visibility gaussian costmap
+  (<- (visibility-costmap-size ?radius-in-meters)
+    (fail)))

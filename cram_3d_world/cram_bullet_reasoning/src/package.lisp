@@ -38,10 +38,11 @@
   (:import-from #:desig designator-groundings)
   (:shadowing-import-from #:cl-bullet points pose)
   (:shadow copy-object)
-  (:export *current-bullet-world* *current-timeline*
-           merge-bounding-boxes aabb with-stored-world *debug-window*
-           add-debug-window add-costmap-function-object
-           add-costmap-sample-object clear-costmap-vis-object
+  (:export *current-bullet-world* *current-timeline* *visibility-threshold*
+           merge-bounding-boxes aabb calculate-bb-dims
+           with-stored-world *debug-window*
+           add-debug-window add-costmap-function-object add-vis-axis-object
+           add-costmap-sample-object clear-costmap-vis-object add-vis-axis-object
            camera width
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
@@ -49,7 +50,7 @@
            get-rendering-context read-pixelbuffer read-depthbuffer to-png-image
            add-object generic-cup item mesh
            remove-object object
-           object-type item-type name rigid-bodies
+           object-type item-type item-types name rigid-bodies
            rigid-body-names rigid-body world make-object box
            static-plane sphere cylinder cone point-cloud
            cutlery fork knife mug plate mondamin pot bowl sugar-box apple orange
@@ -77,23 +78,29 @@
            object-grasp
            point-reachable pose-reachable blocking debug-window
            debug-costmap head-pointing-at with-current-bullet-world prolog-?w ?w
-           reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
-           object-reachable-p pose-reachable-p calculate-orientation-in-robot
-           calculate-object-tool-length set-robot-state-from-joints
+           ;; reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
+           ;; object-reachable-p pose-reachable-p calculate-orientation-in-robot
+           ;; calculate-object-tool-length
+           set-robot-state-from-joints
+           calculate-pan-tilt
            init-ros-object-database clear-bullet-world
-           ros-household-object execute open close reach-ik-solution
+           ros-household-object execute open close ;; reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects
            item-dimensions
+           add-objects-to-mesh-list
            make-joint-state-message open-object close-object
            set-articulated-object-joint-position
            with-world copied-world with-copied-world
            obj-pose-on obj-poses-on flat-color-object-proxy drawable-list
            drawable-list-drawables make-drawable-list
-
-           get-robot-object get-robot-name
-
+           ;; robot-model-utils
+           #:get-robot-object #:get-robot-name
+           #:get-environment-object
+           #:robot-colliding-objects-without-attached
+           ;; temporal-reasoning
            event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup
-           holds-in-world holds occurs at
-           during throughout with-timeline))
+           holds-in-world with-timeline
+           ;; simple-sem-map
+           #:*mesh-path-whitelist*))

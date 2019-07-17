@@ -64,9 +64,11 @@
     (costmap-add-function semantic-map-objects
                           (make-semantic-map-costmap ?objects)
                           ?cm)
-    (costmap-add-cached-height-generator
-     (make-semantic-map-height-function ?objects :on)
-     ?cm))
+    (-> (not (desig-prop ?desig (:for ?_)))
+        (costmap-add-cached-height-generator
+         (make-semantic-map-height-function ?objects :on)
+         ?cm)
+        (true)))
 
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (:in ?_))
@@ -75,10 +77,12 @@
     (costmap-add-function semantic-map-objects
                           (make-semantic-map-costmap ?objects)
                           ?cm)
-    (costmap-add-cached-height-generator
-     (make-semantic-map-height-function ?objects :in)
-     ?cm))
-  
+    (-> (not (desig-prop ?desig (:for ?_)))
+        (costmap-add-cached-height-generator
+         (make-semantic-map-height-function ?objects :in)
+         ?cm)
+        (true)))
+
   (<- (desig-costmap ?desig ?cm)
     (desig-prop ?desig (:centered-with-padding ?padding))
     (costmap ?cm)
@@ -88,8 +92,8 @@
                           ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (or (desig-prop ?desig (:to :see))
-        (desig-prop ?desig (:to :reach)))
+    (or (cram-robot-interfaces:visibility-designator ?desig)
+        (cram-robot-interfaces:reachability-designator ?desig))
     (costmap ?cm)
     (semantic-map-objects ?objects)
     (costmap-padding ?padding)

@@ -30,13 +30,13 @@
 
 (in-package :desig)
 
-(defun obj-desig-location (obj-desig)
-  (when (and (typep obj-desig 'object-designator)
-             (desig-prop-value obj-desig :at)
-             (typep (desig-prop-value obj-desig :at) 'designator))
-    (reference (current-desig (desig-prop-value
-                               (current-desig obj-desig)
-                               :at)))))
+;; (defun obj-desig-location (obj-desig)
+;;   (when (and (typep obj-desig 'object-designator)
+;;              (desig-prop-value obj-desig :at)
+;;              (typep (desig-prop-value obj-desig :at) 'designator))
+;;     (reference (current-desig (desig-prop-value
+;;                                (current-desig obj-desig)
+;;                                :at)))))
 
 (defun loc-desig-location (loc-desig)
   (when (and loc-desig (typep loc-desig 'location-designator))
@@ -67,18 +67,17 @@
   (<- (motion-desig? ?designator)
     (lisp-type ?designator motion-designator))
 
-  (<- (desig-location-prop ?desig ?loc)
-    (obj-desig? ?desig)
-    (lisp-fun obj-desig-location ?desig ?loc)
-    (lisp-pred identity ?loc))
+  ;; (<- (desig-location-prop ?desig ?loc)
+  ;;   (obj-desig? ?desig)
+  ;;   (lisp-fun obj-desig-location ?desig ?loc)
+  ;;   (lisp-pred identity ?loc))
   
   ;; (location ... (obj ?obj)...), e.g. location to see obj
-  (<- (desig-location-prop ?desig ?loc)
-    (or (desig-prop ?desig (:obj ?obj))
-        (desig-prop ?desig (:object ?obj)))
-    (obj-desig? ?obj)
-    (lisp-fun obj-desig-location ?obj ?loc)
-    (lisp-pred identity ?loc))
+  ;; (<- (desig-location-prop ?desig ?loc)
+  ;;   (desig-prop ?desig (:object ?obj))
+  ;;   (obj-desig? ?obj)
+  ;;   (lisp-fun obj-desig-location ?obj ?loc)
+  ;;   (lisp-pred identity ?loc))
 
   ;; (location ... (location ?loc)...), e.g. location to see location
   (<- (desig-location-prop ?desig ?loc)

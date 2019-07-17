@@ -31,11 +31,9 @@
 
 (def-fact-group navigation-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-base ?pose))
+  (<- (motion-grounding ?designator (move-base ?pose-stamped))
     (property ?designator (:type :going))
-    (property ?designator (:target ?location-designator))
-    (designator-groundings ?location-designator ?poses)
-    (member ?pose ?poses)))
+    (property ?designator (:pose ?pose-stamped))))
 
 
 (def-fact-group torso-motions (motion-grounding)
@@ -47,19 +45,14 @@
 
 (def-fact-group ptu-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-head ?pose))
+  (<- (motion-grounding ?designator (move-head ?pose-stamped ?configuration))
     (property ?designator (:type :looking))
-    (property ?designator (:target ?location-designator))
-    (designator-groundings ?location-designator ?poses)
-    (member ?pose ?poses))
-
-  (<- (motion-grounding ?designator (move-head ?frame))
-    (property ?designator (:type :looking))
-    (property ?designator (:frame ?frame)))
-
-  (<- (motion-grounding ?designator (move-head ?direction))
-    (property ?designator (:type :looking))
-    (property ?designator (:direction ?direction))))
+    (-> (property ?designator (:pose ?pose-stamped))
+        (true)
+        (equal ?pose-stamped nil))
+    (-> (property ?designator (:joint-states ?configuration))
+        (true)
+        (equal ?configuration nil))))
 
 
 (def-fact-group perception-motions (motion-grounding)
@@ -67,17 +60,22 @@
   (<- (motion-grounding ?designator (detect ?current-object-designator))
     (property ?designator (:type :detecting))
     (property ?designator (:object ?object-designator))
+    (current-designator ?object-designator ?current-object-designator))
+
+  (<- (motion-grounding ?designator (inspect ?current-object-designator))
+    (property ?designator (:type :inspecting))
+    (property ?designator (:object ?object-designator))
     (current-designator ?object-designator ?current-object-designator)))
 
 
 (def-fact-group gripper-motions (motion-grounding)
 
   (<- (motion-grounding ?designator (move-gripper-joint :open ?which-gripper))
-    (property ?designator (:type :opening))
+    (property ?designator (:type :opening-gripper))
     (property ?designator (:gripper ?which-gripper)))
 
   (<- (motion-grounding ?designator (move-gripper-joint :close ?which-gripper))
-    (property ?designator (:type :closing))
+    (property ?designator (:type :closing-gripper))
     (property ?designator (:gripper ?which-gripper)))
 
   (<- (motion-grounding ?designator (move-gripper-joint :grip ?which-gripper ?maximum-effort))
@@ -94,24 +92,48 @@
 
 (def-fact-group arm-motions (motion-grounding)
 
-  (<- (motion-grounding ?designator (move-tcp ?left-pose ?right-pose))
+  (<- (motion-grounding ?designator (move-tcp ?left-pose ?right-pose
+                                              ?collision-mode
+                                              ?collision-object-b ?collision-object-b-link
+                                              ?collision-object-a))
     (property ?designator (:type :moving-tcp))
-    (-> (property ?designator (:left-target ?left-location))
-        (and (designator-groundings ?left-location ?left-poses)
-             (member ?left-pose ?left-poses))
+    (-> (property ?designator (:left-pose ?left-pose))
+        (true)
         (equal ?left-pose nil))
-    (-> (property ?designator (:right-target ?right-location))
-        (and (designator-groundings ?right-location ?right-poses)
-             (member ?right-pose ?right-poses))
-        (equal ?right-pose nil)))
+    (-> (property ?designator (:right-pose ?right-pose))
+        (true)
+        (equal ?right-pose nil))
+    (-> (desig:desig-prop ?designator (:collision-mode ?collision-mode))
+        (true)
+        (equal ?collision-mode nil))
+    (-> (desig:desig-prop ?designator (:collision-object-b ?collision-object-b))
+        (true)
+        (equal ?collision-object-b nil))
+    (-> (desig:desig-prop ?designator (:collision-object-b-link ?collision-object-b-link))
+        (true)
+        (equal ?collision-object-b-link nil))
+    (-> (desig:desig-prop ?designator (:collision-object-a ?collision-object-a))
+        (true)
+        (equal ?collision-object-a nil)))
 
   (<- (motion-grounding ?designator (move-joints ?left-config ?right-config))
     (property ?designator (:type :moving-arm-joints))
-    (once (or (property ?designator (:left-configuration ?left-config))
+    (once (or (property ?designator (:left-joint-states ?left-config))
               (equal ?left-config nil)))
-    (once (or (property ?designator (:right-configuration ?right-config))
+    (once (or (property ?designator (:right-joint-states ?right-config))
               (equal ?right-config nil))))
 
   (<- (motion-grounding ?designator (move-with-constraints ?constraints-string))
     (property ?designator (:type :moving-with-constraints))
     (property ?designator (:constraints ?constraints-string))))
+
+(def-fact-group world-state-detecting (motion-grounding)
+
+  (<- (motion-grounding ?designator (world-state-detect ?object-designator))
+    (property ?designator (:type :world-state-detecting))
+    (property ?designator (:object ?object))
+    (desig:current-designator ?object ?object-designator)
+    (or (and (property ?object-designator (:pose ?_))
+             (property ?object-designator (:type ?_))
+             (property ?object-designator (:name ?_)))
+        (property ?object-designator (:name ?_)))))

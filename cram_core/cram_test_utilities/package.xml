@@ -1,6 +1,6 @@
-<package>
+<package format="2">
   <name>cram_test_utilities</name>
-  <version>0.3.0</version>
+  <version>0.7.0</version>
   <description>
     Some utilities to make writing unit tests for various cram packages
     easier. This should not depend on any other cram package so package
@@ -19,11 +19,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>sbcl</build_depend>
-  <build_depend>alexandria</build_depend>
-  <build_depend>fiveam</build_depend>
-
-  <run_depend>sbcl</run_depend>
-  <run_depend>alexandria</run_depend>
-  <run_depend>fiveam</run_depend>
+  <depend>alexandria</depend>
+  <depend>fiveam</depend>
 </package>

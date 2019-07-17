@@ -1,0 +1,17 @@
+<package format="2">
+  <name>cram_simple_actionlib_client</name>
+  <version>0.7.0</version>
+  <description>
+    Syntactic sugar for actionlib client code
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp</depend>
+  <depend>actionlib</depend>
+  <depend>roslisp_utilities</depend>
+  <depend>cram_language</depend>
+</package>

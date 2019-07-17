@@ -46,37 +46,20 @@
                cram-robot-interfaces
                cram-pr2-description ; for tool frames
                cram-common-failures
-               sensor_msgs-msg
+               cram-simple-actionlib-client
+               cram-joint-states
+               sensor_msgs-msg ; for kinematics-trajectory
                geometry_msgs-msg
-               visualization_msgs-msg
-               moveit_msgs-msg
-               moveit_msgs-srv
+               moveit_msgs-msg ; also for kinematics-trajectory
                pr2_controllers_msgs-msg
-               trajectory_msgs-msg
-               move_base_msgs-msg
-               giskard_msgs-msg
-               iai_robosherlock_msgs-msg
-               iai_robosherlock_msgs-srv)
+               trajectory_msgs-msg)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "low-level-common" :depends-on ("package"))
-     (:file "joint-states" :depends-on ("package"))
      (:file "base-controller" :depends-on ("package"))
-     (:file "nav-pcontroller" :depends-on ("package" "low-level-common" "base-controller"))
-     (:file "torso" :depends-on ("package" "low-level-common"))
-     (:file "gripper" :depends-on ("package" "low-level-common"))
-     (:file "ptu" :depends-on ("package" "low-level-common"))
-     (:file "joint-trajectory" :depends-on ("package" "low-level-common"))
-     (:file "kinematics-trajectory" :depends-on ("package"
-                                                 "joint-trajectory"
-                                                 "joint-states"))
-     (:file "giskard-common" :depends-on ("package" "low-level-common"))
-     (:file "giskard-cartesian" :depends-on ("package" "low-level-common" "giskard-common"))
-     (:file "giskard-joint" :depends-on ("package" "low-level-common" "giskard-common"
-                                                   "joint-states"))
-     (:file "yaml-builder" :depends-on ("package"))
-     (:file "giskard-yaml" :depends-on ("package" "giskard-common" "yaml-builder"))
-     (:file "json-parser" :depends-on ("package"))
-     (:file "robosherlock-json" :depends-on ("package" "json-parser" "low-level-common"))))))
+     (:file "torso" :depends-on ("package"))
+     (:file "gripper" :depends-on ("package"))
+     (:file "ptu" :depends-on ("package"))
+     (:file "joint-trajectory" :depends-on ("package"))
+     (:file "kinematics-trajectory" :depends-on ("package" "joint-trajectory"))))))

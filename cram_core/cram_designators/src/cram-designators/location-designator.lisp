@@ -89,7 +89,7 @@
   "List of validation function names that should not be used although
   registered.")
 
-(defparameter *location-generator-max-retries* 200)
+(defparameter *location-generator-max-retries* 30)
 
 (defparameter *print-location-validation-function-results* nil
   "Enable this to get a text output by each rejected location designator solution.")
@@ -183,7 +183,8 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
             (setf (slot-value new-desig 'current-solution) (lazy-car (lazy-cdr data)))
             (equate desig new-desig))))))
 
-(defmethod resolve-designator ((desig location-designator) (role t))
+(defun resolve-location-designator-through-generators-and-validators (desig)
+  (declare (type desig:location-designator desig))
   (let* ((generators (location-resolution-function-list
                       (remove-if (lambda (generator)
                                    (member generator *disabled-location-generators*))
@@ -204,6 +205,13 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
                             (invoke-restart :finish))
                            (t (decf retries) nil))))
                  solutions)))
+
+(defmethod resolve-designator ((desig location-designator) (role t))
+  (resolve-location-designator-through-generators-and-validators desig))
+
+(defmethod reset :after ((desig location-designator))
+  "Empties the current-solution slot"
+  (setf (slot-value desig 'current-solution) nil))
 
 (defun validate-location-designator-solution (designator solution)
   (declare (type location-designator designator))
@@ -234,11 +242,12 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
                      (validate
                       (cdr validation-functions) designator solution
                       (if (eq result :accept) :accept :maybe-reject)))))))))
-    (let ((validation-functions (location-resolution-function-list
-                                 (remove-if (lambda (validation-function)
-                                              (member validation-function *disabled-validation-functions*))
-                                            *location-validation-functions*
-                                            :key #'location-resolution-function-function))))
+    (let ((validation-functions
+            (location-resolution-function-list
+             (remove-if (lambda (validation-function)
+                          (member validation-function *disabled-validation-functions*))
+                        *location-validation-functions*
+                        :key #'location-resolution-function-function))))
       (block nil
         (restart-case
             (validate validation-functions designator solution)

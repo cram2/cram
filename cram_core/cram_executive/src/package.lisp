@@ -38,4 +38,5 @@
    #:designator-reference-failure
    #:designator-goal-parsing-failure
    #:try-reference-designator
-   #:perform))
+   #:call-plan-with-designator-properties
+   #:perform #:generic-perform))

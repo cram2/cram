@@ -28,11 +28,13 @@
 ;;;
 
 (defsystem cram-location-costmap
-  :depends-on (cram-prolog
+  :depends-on (alexandria
+               cram-prolog
                cram-language
                cram-math
                cram-utilities
                roslisp-utilities
+               cl-transforms
                cl-transforms-stamped
                nav_msgs-msg
                visualization_msgs-msg
@@ -51,10 +53,10 @@
              (:file "location-costmap"
               :depends-on ("package" "occupancy-grid" "costmap-generators"))
              (:file "2d-value-map" :depends-on ("package" "occupancy-grid"))
-             (:file "location-prolog-handlers"
-              :depends-on ("package" "location-costmap" "2d-value-map"))
-             (:file "designator-integration" :depends-on ("package" "location-costmap")) 
              (:file "facts" :depends-on ("package" "cost-functions"))
+             (:file "location-prolog-handlers"
+              :depends-on ("package" "location-costmap" "2d-value-map" "facts"))
+             (:file "designator-integration" :depends-on ("package" "location-costmap"))
              (:file "cost-function-utils" :depends-on ("package"))
              (:file "ros-grid-cells" :depends-on ("package" "2d-value-map"))
              (:file "ros-occupancy-grid" :depends-on ("package"))

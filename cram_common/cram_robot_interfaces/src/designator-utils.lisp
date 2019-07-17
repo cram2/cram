@@ -45,28 +45,30 @@ Returns a ROS JointState message with solution states of the joints in the `arm'
 (def-fact-group reachability-designators ()
 
   (<- (reachability-designator ?designator)
-    (desig-prop ?designator (:to :reach)))
+    (desig-prop ?designator (:reachable-for ?robot))
+    ;; (robot ?robot)
+    )
 
-  (<- (reachability-designator ?designator)
-    (desig-prop ?designator (:to :execute))
-    (desig-prop ?designator (:action ?_)))
+  (<- (visibility-designator ?designator)
+    (desig-prop ?designator (:visible-for ?robot))
+    ;; (robot ?robot)
+    )
 
   (<- (designator-reach-pose ?designator ?pose ?side)
     (reachability-designator ?designator)
     (desig-prop ?designator (:pose ?pose))
     (once
-     (-> (desig-prop ?designator (:side ?side))
+     (-> (desig-prop ?designator (:arm ?side))
          (true)
          (and (robot ?robot)
               (arm ?robot ?side)))))
 
   (<- (designator-reach-pose ?designator ?point ?side)
     (reachability-designator ?designator)
-    (or (desig-prop ?designator (:object ?object))
-        (desig-prop ?designator (:obj ?object)))
+    (desig-prop ?designator (:object ?object))
     (desig-location-prop ?object ?pose)
     (once
-     (-> (desig-prop ?designator (:side ?side))
+     (-> (desig-prop ?designator (:arm ?side))
          (true)
          (and (robot ?robot)
               (arm ?robot ?side))))
@@ -76,30 +78,31 @@ Returns a ROS JointState message with solution states of the joints in the `arm'
     (reachability-designator ?designator)
     (desig-prop ?designator (:location ?location))
     (once
-     (-> (desig-prop ?designator (:side ?side))
+     (-> (desig-prop ?designator (:arm ?side))
          (true)
          (and (robot ?robot)
               (arm ?robot ?side))))
     (desig-location-prop ?designator ?pose))
 
-  (<- (designator-reach-pose ?designator ?robot-pose ?pose ?side)
-    (reachability-designator ?designator)
-    (desig-prop ?designator (:to :execute))
-    (desig-prop ?designator (:action ?action))
-    (trajectory-point ?action ?robot-pose ?pose ?side))
+  ;; (<- (designator-reach-pose ?designator ?robot-pose ?pose ?side)
+  ;;   (reachability-designator ?designator)
+  ;;   (desig-prop ?designator (:to :execute))
+  ;;   (desig-prop ?designator (:action ?action))
+  ;;   (trajectory-point ?action ?robot-pose ?pose ?side))
 
-  (<- (designator-reach-pose ?designator ?pose ?side)
-    (reachability-designator ?designator)
-    (desig-prop ?designator (:to :execute))
-    (desig-prop ?designator (:action ?action))
-    (trajectory-point ?action ?pose ?side)))
+  ;; (<- (designator-reach-pose ?designator ?pose ?side)
+  ;;   (reachability-designator ?designator)
+  ;;   (desig-prop ?designator (:to :execute))
+  ;;   (desig-prop ?designator (:action ?action))
+  ;;   (trajectory-point ?action ?pose ?side))
+  )
 
 
 (defun reachability-designator-p (designator)
   (prolog `(reachability-designator ,designator)))
 
 (defun visibility-designator-p (designator)
-  (eq (desig-prop-value designator :to) :see))
+  (prolog `(visibility-designator ,designator)))
 
 
 (def-fact-group manipulation-designators ()

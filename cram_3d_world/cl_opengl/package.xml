@@ -1,6 +1,6 @@
-<package>
+<package format="2">
   <name>cl_opengl</name>
-  <version>0.3.0</version>
+  <version>0.7.0</version>
   <description>
      cl_opengl
   </description>
@@ -14,9 +14,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>cffi</build_depend>
-
-  <run_depend>cffi</run_depend>
+  <depend>cffi</depend>
+  <depend>alexandria</depend>
 </package>
 
 
