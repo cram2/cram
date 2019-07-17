@@ -76,6 +76,32 @@ RETURNS: A pose stamped for the robot base."
      (cl-transforms:translation map-T-base-offset)
      (cl-transforms:rotation map-T-base-offset))))
 
+(defun umap-T-uobj (name-and-surface-T-object) ;; optinal list? 
+  (print "entered with")
+  (print name-and-surface-T-object)
+  (let* ((surface-name
+           (car name-and-surface-T-object)) ;; wenn list s.o t, dann (first name-and-surface-T-object))
+         (ssurface-T-sobject
+           (cdr name-and-surface-T-object)) ;; wenn list s.o. t, dann (second name-and-surface-T-object))
+         (umap-T-usurface
+           (cl-transforms:pose->transform
+            (btr:pose
+             (btr:rigid-body
+              (btr:get-environment-object)
+              (match-kitchens surface-name)))))
+         (umap-T-uobj
+           (cl-transforms:transform*
+            umap-T-usurface ssurface-T-sobject)))
+    (print surface-name)
+    (print "**************************************************************")
+    (print umap-T-uobj)
+    (break)
+    (cl-transforms-stamped:make-pose-stamped
+     cram-tf:*fixed-frame*
+     0.0
+     (cl-transforms:translation umap-T-uobj)
+     (cl-transforms:rotation umap-T-uobj))))
+
 (defun umap-P-uobj-through-surface-ll (type start-or-end)
   "Calculates the pose of the object in map relative to its supporting surface.
 Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
@@ -86,27 +112,49 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
             start-or-end
             :table-setting)))
     (cut:lazy-mapcar
-     (lambda (name-and-surface-T-object)
-       (let* ((surface-name
-                (car name-and-surface-T-object))
-              (ssurface-T-sobject
-                (cdr name-and-surface-T-object))
-              (umap-T-usurface
-                (cl-transforms:pose->transform
-                 (btr:pose
-                  (btr:rigid-body
-                   (btr:get-environment-object)
-                   (match-kitchens surface-name)))))
-              (umap-T-uobj
-                (cl-transforms:transform*
-                 umap-T-usurface ssurface-T-sobject)))
-         (cl-transforms-stamped:make-pose-stamped
-          cram-tf:*fixed-frame*
-          0.0
-          (cl-transforms:translation umap-T-uobj)
-          (cl-transforms:rotation umap-T-uobj))))
+     #'umap-T-uobj
      name-and-surface-T-object-ll)))
 
+(defun export-for-csv-data (start-or-end)
+  (let ((muesli (list "SpoonSoup" "JaNougatBits" "BaerenMarkeFrischeAlpenmilch38" "BowlLarge")))
+    (mapcar
+     (lambda (type)
+       (let ((name-and-surface-T-object-ll
+               (kvr::query-for-csv-export
+                (object-type-filter-prolog type)
+                start-or-end
+                :table-setting)))
+         (cut:force-ll
+          (cut:lazy-mapcar
+           (lambda (name-and-surface-T-object)
+             (print name-and-surface-T-object)
+             (let* ((surface-name
+                      (first name-and-surface-T-object))
+                    (ssurface-T-sobject
+                      (second name-and-surface-T-object))
+                    (umap-T-usurface
+                      (cl-transforms:pose->transform
+                       (btr:pose
+                        (btr:rigid-body
+                         (btr:get-environment-object)
+                         (match-kitchens surface-name)))))
+                    (umap-T-uobj
+                      (cl-transforms:transform*
+                       umap-T-usurface ssurface-T-sobject))
+                    (obj-position
+                      (cl-transforms:origin
+                       (cl-transforms-stamped:make-pose-stamped
+                        cram-tf:*fixed-frame*
+                        0.0
+                        (cl-transforms:translation umap-T-uobj)
+                        (cl-transforms:rotation umap-T-uobj)))))
+               (list
+                type
+                (cl-transforms:x obj-position)
+                (cl-transforms:y obj-position)
+                (third name-and-surface-T-object))))
+           name-and-surface-T-object-ll))))
+       muesli)))
 
 
 

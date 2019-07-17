@@ -40,7 +40,7 @@
 (in-package :kvr)
 
 (defvar *episode-path*
-  "/home/cram/ros/episode_data/episodes/Own-Episodes/set-clean-table/"
+  "/media/thomas/LEXAR/episodes/bachelor-thesis/"
   "path of where the episode data is located")
 
 (defun load-multiple-episodes (&optional namedir-list)
@@ -51,10 +51,10 @@
                   (uiop:subdirectories *episode-path*))))
   (mapcar #'(lambda (namedir)
               (u-load-episodes (concatenate 'string
-                                            *episode-path* namedir "Episodes/"))
+                                            *episode-path* namedir "/Episodes/"))
               (owl-parse (concatenate 'string
-                                      *episode-path* namedir "SemanticMap.owl"))
-              (connect-to-db "Own-Episodes_set-clean-table"))
+                                      *episode-path* namedir "/SemanticMap.owl"))
+              (connect-to-db "bachelor-thesis"))
           namedir-list))
 
 (defun init-episode (&optional namedir-list)
@@ -130,18 +130,30 @@ semantic map kitchen."
       objects)))
 
 (defun init-location-costmap-parameters ()
-  (def-fact-group costmap-metadata ()
-    (<- (location-costmap:costmap-size 12 12))
-    (<- (location-costmap:costmap-origin -6 -6))
-    (<- (location-costmap:costmap-resolution 0.04))
+  (def-fact-group costmap-metadata (costmap:costmap-size
+                                    costmap:costmap-origin
+                                    costmap:costmap-resolution
+                                    costmap:orientation-samples
+                                    costmap:orientation-sample-step)
+    (<- (costmap:costmap-size 12 12))
+    (<- (costmap:costmap-origin -6 -6))
+    (<- (costmap:costmap-resolution 0.04))
+    (<- (costmap:orientation-samples 2))
+    (<- (costmap:orientation-sample-step 0.3)))
 
-    (<- (location-costmap:costmap-padding 0.3))
-    (<- (location-costmap:costmap-manipulation-padding 0.4))
-    (<- (location-costmap:costmap-in-reach-distance 0.9))
-    (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-    (<- (location-costmap:visibility-costmap-size 2))
-    (<- (location-costmap:orientation-samples 2))
-    (<- (location-costmap:orientation-sample-step 0.1))))
+  ;; (def-fact-group costmap-metadata ()
+  ;;   (<- (location-costmap:costmap-size 12 12))
+  ;;   (<- (location-costmap:costmap-origin -6 -6))
+  ;;   (<- (location-costmap:costmap-resolution 0.04))
+
+  ;;   (<- (location-costmap:costmap-padding 0.3))
+  ;;   (<- (location-costmap:costmap-manipulation-padding 0.4))
+  ;;   (<- (location-costmap:costmap-in-reach-distance 0.9))
+  ;;   (<- (location-costmap:costmap-reach-minimal-distance 0.2))
+  ;;   (<- (location-costmap:visibility-costmap-size 2))
+  ;;   (<- (location-costmap:orientation-samples 2))
+  ;;   (<- (location-costmap:orientation-sample-step 0.1)))
+  )
 
 (defun init-full-simulation (&optional namedir)
    "Spawns all the objects which are necessary for the current
