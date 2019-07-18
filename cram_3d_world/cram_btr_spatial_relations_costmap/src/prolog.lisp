@@ -223,6 +223,24 @@
         (far-from-costmap ?designator ?ref-obj-pose ?ref-obj-size ?ref-padding
                           ?for-obj-size ?for-padding ?costmap)))
 
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Orienation Generator ;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  (<- (generate-orientations ?tag ?supporting-rigid-body ?reference-pose ?costmap)
+    (-> (member ?tag (:support-aligned :random :axis-aligned))
+        (-> (equal ?tag :support-aligned)
+            (and (lisp-fun btr:calculate-bb-dims ?supporting-rigid-body ?supp-obj-dims)
+                 (lisp-fun get-rigid-body-aabb-top-z ?supporting-rigid-body ?supp-obj-z)
+                 (lisp-fun cl-bullet:pose ?supporting-rigid-body ?supp-obj-pose)
+                 (costmap:costmap-add-orientation-generator
+                  (make-supporting-obj-aligned-orientations-generator
+                   ?supp-obj-dims ?supp-obj-pose ?supp-obj-z ?reference-pose)
+                  ?costmap))
+            (and (costmap:costmap-add-orientation-generator
+                  (make-z-orientations-generator ?tag)
+                  ?costmap)))
+        (format "WARNING: ORIENTATION tag in a location can only be:~%~
+                 SUPPORT-ALIGNED, RANDOM or AXIS-ALIGNED.~%~
+                 Ignoring ORIENTATION tag.")))
 
   ;;;;;;;;;;;;; LEFT-OF etc. for bullet objects or locations ;;;;;;;;;;;;;;;;;;
   ;; uses make-potential-field-cost-function to resolve the designator
@@ -267,7 +285,11 @@
                   (lisp-fun get-closest-edge ?reference-pose ?supp-obj-pose ?supp-obj-dims ?edge))
                  (and (equal ?edge :front)
                       (lisp-fun cl-transforms:make-identity-pose ?supp-obj-pose)))))
-    (potential-field-costmap ?edge ?relation ?reference-pose ?supp-obj-pose ?costmap))
+    (potential-field-costmap ?edge ?relation ?reference-pose ?supp-obj-pose ?costmap)
+    (once (or (desig:desig-prop ?designator (:orientation ?orientation-type))
+              (equal ?orientation-type :random)))
+    (generate-orientations ?orientation-type ?supporting-rigid-body ?reference-pose ?costmap))
+
   ;;
   ;; Disabled.
   ;; collision avoidance costmap for the spatial relations desigs
@@ -380,9 +402,10 @@
                (make-object-bounding-box-height-generator ?environment-link :on)
                ?costmap)))
     ;; orientation generator
-    (costmap:costmap-add-orientation-generator
-     (make-discrete-orientations-generator)
-     ?costmap))
+    (once (or (desig:desig-prop ?designator (:orientation ?orientation-type))
+              (equal ?orientation-type :random)))
+    (generate-orientations ?orientation-type ?environment-link nil ?costmap))
+
   ;;
   ;;;;;;;;;;;;;;; spatial relation IN for environment objects ;;;;;;;;;;;;;;;;;;;
   ;; LEVEL relationship for container type locations
@@ -425,8 +448,8 @@
     (spec:property ?object (:part-of ?environment-name))
     (btr:bullet-world ?world)
     (btr:%object ?world ?environment-name ?environment-object)
-    (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?environment-link)
-    (lisp-pred identity ?environment-link)
+    (height-calculation-body-or-tag ?environment-object ?object
+                                    ?environment-link ?height-calculation-tag)
     (costmap:costmap ?costmap)
     (once (or (and (desig:desig-prop ?designator (:for ?for-object))
                    (btr-belief:object-designator-name ?for-object ?for-object-name)
@@ -436,8 +459,6 @@
                     (make-object-in-object-bounding-box-costmap-generator
                      ?environment-link ?for-object-instance)
                     ?costmap)
-                   (height-calculation-body-or-tag ?environment-object ?object ?environment-link
-                                                   ?height-calculation-tag)
                    (costmap:costmap-add-height-generator
                     (make-object-on/in-object-bb-height-generator
                      ?environment-link ?for-object-instance ?height-calculation-tag)
@@ -449,11 +470,11 @@
                     ?costmap)
                    (costmap:costmap-add-cached-height-generator
                     (make-object-bounding-box-height-generator
-                     ?environment-link :in)
+                     ?environment-link ?height-calculation-tag)
                     ?costmap))))
-    (costmap:costmap-add-orientation-generator
-     (make-discrete-orientations-generator)
-     ?costmap))
+    (once (or (desig:desig-prop ?designator (:orientation ?orientation-type))
+              (equal ?orientation-type :random)))
+    (generate-orientations ?orientation-type ?environment-link nil ?costmap))
   ;;
   ;;;;;;;;;;;;;; for TABLE-SETTING context ON (SLOTS) ;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; '((on counter-top) (name kitchen-island)
@@ -527,3 +548,4 @@
               (costmap:make-range-cost-function ?object-pose ?range-invert :invert t)
               ?costmap))
         (true))))
+

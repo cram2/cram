@@ -197,7 +197,7 @@
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
                                (:target ?current-location-designator)
-                               (:placement-location-name ?placement-location-name)
+                               (:attachment-type ?placement-location-name)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-put-poses ?left-put-poses)

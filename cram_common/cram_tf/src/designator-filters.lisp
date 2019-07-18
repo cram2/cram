@@ -35,3 +35,14 @@
     (> (cl-transforms:v-dist
         (cl-transforms:origin pose) (cl-transforms:origin solution))
        distance-threshold)))
+
+(defun make-euclidean-or-angular-distance-filter (pose distance-threshold)
+  "Filters (i.e. removes) all solutions that are closer than
+`distance-threshold' to `pose'."
+  (lambda (solution)
+    (or (> (cl-transforms:v-dist
+            (cl-transforms:origin pose) (cl-transforms:origin solution))
+           distance-threshold)
+        (> (cl-transforms:angle-between-quaternions
+            (cl-transforms:orientation pose) (cl-transforms:orientation solution))
+           distance-threshold))))

@@ -84,7 +84,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *cutlery-grasp-z-offset* -0.0 "in meters") ; because TCP is not at the edge
+(defparameter *cutlery-grasp-z-offset* 0.015 "in meters") ; because TCP is not at the edge
 (defparameter *cutlery-pregrasp-z-offset* 0.20 "in meters")
 (defparameter *cutlery-pregrasp-xy-offset* 0.10 "in meters")
 

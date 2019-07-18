@@ -46,9 +46,10 @@
                cram-designators
                cram-prolog
                cram-common-failures
-               cram-pr2-projection
+               cram-urdf-projection
+               cram-pr2-description
                cram-robot-interfaces
-               cram-pr2-fetch-deliver-plans)
+               cram-fetch-deliver-plans)
 	:components
 
 	((:module "src"

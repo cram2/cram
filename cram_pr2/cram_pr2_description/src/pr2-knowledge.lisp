@@ -37,7 +37,7 @@
                               robot-base-frame robot-torso-link-joint
                               robot-odom-frame
                               camera-frame camera-minimal-height camera-maximal-height
-                              robot-pan-tilt-links robot-pan-tilt-joints
+                              robot-neck-links robot-neck-joints
                               robot-joint-states robot-pose)
   (<- (robot pr2))
 
@@ -51,11 +51,11 @@
   (<- (camera-frame pr2 "narrow_stereo_optical_frame"))
   (<- (camera-minimal-height pr2 1.27))
   (<- (camera-maximal-height pr2 1.60))
-  (<- (robot-pan-tilt-links pr2 "head_pan_link" "head_tilt_link"))
-  (<- (robot-pan-tilt-joints pr2 "head_pan_joint" "head_tilt_joint"))
+  (<- (robot-neck-links pr2 "head_pan_link" "head_tilt_link"))
+  (<- (robot-neck-joints pr2 "head_pan_joint" "head_tilt_joint"))
 
   (<- (robot-joint-states pr2 :neck ?_ :forward ((?pan_joint 0.0) (?tilt_joint 0.0)))
-    (robot-pan-tilt-joints pr2 ?pan_joint ?tilt_joint))
+    (robot-neck-joints pr2 ?pan_joint ?tilt_joint))
 
   (<- (robot-pose pr2 :neck ?_ :forward ?pose-stamped)
     (robot-base-frame pr2 ?base-frame)
@@ -64,3 +64,14 @@
     (lisp-fun cl-transforms-stamped:make-pose-stamped
               ?base-frame 0.0 ?forward-point ?identity-quaternion
               ?pose-stamped)))
+
+(def-fact-group location-costmap-metadata (costmap:costmap-padding
+                                           costmap:costmap-manipulation-padding
+                                           costmap:costmap-in-reach-distance
+                                           costmap:costmap-reach-minimal-distance
+                                           costmap:visibility-costmap-size)
+  (<- (costmap:costmap-padding 0.3))
+  (<- (costmap:costmap-manipulation-padding 0.4))
+  (<- (costmap:costmap-in-reach-distance 0.9))
+  (<- (costmap:costmap-reach-minimal-distance 0.2))
+  (<- (costmap:visibility-costmap-size 2)))

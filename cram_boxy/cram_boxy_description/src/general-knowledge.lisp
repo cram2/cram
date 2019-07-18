@@ -45,3 +45,14 @@
   (<- (arm boxy :right))
 
   (<- (camera-frame boxy "head_mount_kinect2_rgb_optical_frame")))
+
+(def-fact-group location-costmap-metadata (costmap:costmap-padding
+                                           costmap:costmap-manipulation-padding
+                                           costmap:costmap-in-reach-distance
+                                           costmap:costmap-reach-minimal-distance
+                                           costmap:visibility-costmap-size)
+  (<- (costmap:costmap-padding 0.5))
+  (<- (costmap:costmap-manipulation-padding 0.5))
+  (<- (costmap:costmap-in-reach-distance 1.2))
+  (<- (costmap:costmap-reach-minimal-distance 0.2))
+  (<- (costmap:visibility-costmap-size 2)))

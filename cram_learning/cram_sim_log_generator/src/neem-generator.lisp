@@ -19,8 +19,8 @@
     
       (unwind-protect
            (if objects
-               (pr2-proj:with-simulated-robot (demo::demo-random nil objects))
-               (pr2-proj:with-simulated-robot (demo::demo-random)))
+               (urdf-proj::with-simulated-robot (demo::demo-random nil objects))
+               (urdf-proj:with-simulated-robot (demo::demo-random)))
         (ccl::export-log-to-owl (concatenate 'string experiment-id ".owl"))
         (format t "Done with experiment ~a~%" experiment-id)
         (ccl::reset-logged-owl)))))

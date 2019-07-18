@@ -42,8 +42,7 @@
            merge-bounding-boxes aabb calculate-bb-dims
            with-stored-world *debug-window*
            add-debug-window add-costmap-function-object add-vis-axis-object
-           add-costmap-sample-object clear-costmap-vis-object
-           add-vis-axis-object add-vis-axis-pose
+           add-costmap-sample-object clear-costmap-vis-object add-vis-axis-object
            camera width
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
@@ -51,7 +50,7 @@
            get-rendering-context read-pixelbuffer read-depthbuffer to-png-image
            add-object generic-cup item mesh
            remove-object object
-           object-type item-type name rigid-bodies
+           object-type item-type item-types name rigid-bodies
            rigid-body-names rigid-body world make-object box
            static-plane sphere cylinder cone point-cloud
            cutlery fork knife mug plate mondamin pot bowl sugar-box apple orange

@@ -31,7 +31,7 @@
 
 (defun demo-all-pick-place ()
   "Picks and places all objects of an episode one by one. Meaning the robot will always hold on to just one object and finish placing it before going back to picking up another one. "
-  (pr2-proj:with-simulated-robot
+  (urdf-proj:with-simulated-robot
     (move-urdf-objects-to-start-pose)
     (move-semantic-objects-to-start-pose)
 
@@ -41,3 +41,28 @@
     (execute-pick-and-place 'bowl)
     (execute-pick-and-place 'fork)))
 
+
+#+not-used
+(defun demo-all-obj ()
+  "For the entire episode, first place the object at the location where it was
+for the robot to pick up, and then pick it up and place it. "
+  (urdf-proj:with-simulated-robot
+    ;; muesli
+    (move-object-to-starting-pose 'koelln-muesli-knusper-honig-nuss)
+    (execute-pick-and-place 'muesli)
+
+    ;; milk
+    (move-object-to-starting-pose 'weide-milch-small)
+    (execute-pick-and-place 'milk)
+
+    ;; cup
+    (move-object-to-starting-pose 'cup-eco-orange)
+    (execute-pick-and-place 'cup)
+
+    ;; bowl
+    (move-object-to-starting-pose 'edeka-red-bowl)
+    (execute-pick-and-place 'bowl)
+
+    ;; fork
+    (move-object-to-starting-pose 'fork-blue-plastic)
+    (execute-pick-and-place 'fork)))
