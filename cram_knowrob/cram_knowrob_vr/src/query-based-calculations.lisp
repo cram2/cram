@@ -4,7 +4,7 @@
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
-;;; modification, are permitted provided that the following conditions are met:
+;;; modification, are permitted provided that the following conditions are meexpot:
 ;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
@@ -77,8 +77,6 @@ RETURNS: A pose stamped for the robot base."
      (cl-transforms:rotation map-T-base-offset))))
 
 (defun umap-T-uobj (name-and-surface-T-object) ;; optinal list? 
-  (print "entered with")
-  (print name-and-surface-T-object)
   (let* ((surface-name
            (car name-and-surface-T-object)) ;; wenn list s.o t, dann (first name-and-surface-T-object))
          (ssurface-T-sobject
@@ -92,9 +90,6 @@ RETURNS: A pose stamped for the robot base."
          (umap-T-uobj
            (cl-transforms:transform*
             umap-T-usurface ssurface-T-sobject)))
-    (print surface-name)
-    (print "**************************************************************")
-    (print umap-T-uobj)
     (break)
     (cl-transforms-stamped:make-pose-stamped
      cram-tf:*fixed-frame*
@@ -115,46 +110,92 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
      #'umap-T-uobj
      name-and-surface-T-object-ll)))
 
-(defun export-for-csv-data (start-or-end)
-  (let ((muesli (list "SpoonSoup" "JaNougatBits" "BaerenMarkeFrischeAlpenmilch38" "BowlLarge")))
-    (mapcar
-     (lambda (type)
-       (let ((name-and-surface-T-object-ll
-               (kvr::query-for-csv-export
-                (object-type-filter-prolog type)
-                start-or-end
-                :table-setting)))
-         (cut:force-ll
-          (cut:lazy-mapcar
-           (lambda (name-and-surface-T-object)
-             (print name-and-surface-T-object)
-             (let* ((surface-name
-                      (first name-and-surface-T-object))
-                    (ssurface-T-sobject
-                      (second name-and-surface-T-object))
-                    (umap-T-usurface
-                      (cl-transforms:pose->transform
-                       (btr:pose
-                        (btr:rigid-body
-                         (btr:get-environment-object)
-                         (match-kitchens surface-name)))))
-                    (umap-T-uobj
-                      (cl-transforms:transform*
-                       umap-T-usurface ssurface-T-sobject))
-                    (obj-position
-                      (cl-transforms:origin
-                       (cl-transforms-stamped:make-pose-stamped
-                        cram-tf:*fixed-frame*
-                        0.0
-                        (cl-transforms:translation umap-T-uobj)
-                        (cl-transforms:rotation umap-T-uobj)))))
-               (list
-                type
-                (cl-transforms:x obj-position)
-                (cl-transforms:y obj-position)
-                (third name-and-surface-T-object))))
-           name-and-surface-T-object-ll))))
-       muesli)))
+(defun export-for-csv-data ()
+  (let* ((muesli (list "SpoonSoup" "JaNougatBits" "BaerenMarkeFrischeAlpenmilch38" "BowlLarge"))
+         (samples (remove-ugly-chars
+                   (apply #'append
+                          (loop for object-type in muesli collect
+                                                          (samples-for-object-type object-type))))))
+    (create-csv samples)))
+
+(defun create-csv (samples)
+  (with-open-file (csv-stream "/home/thomas/nameisthiscsvname.csv" :direction :output :if-exists :supersede)
+    (loop for sample in samples do
+      (print sample)
+      (fresh-line csv-stream)
+      (loop for feature in sample do
+        (write-string feature csv-stream)
+        (unless (equal (first (last sample)) feature)
+          (write-char #\, csv-stream))))))
+
+(defun format-samples (samples)
+  "removes chars ' and | and : in samples"
+  (mapcar (lambda (sample)
+            (loop for feature in sample collect
+                                        (remove-chars-in-given-string feature)))
+          samples))
+
+(defun remove-chars-in-given-string (string &optional (ugly-chars  '(#\| #\' #\:)))
+  (let* ((splitted-string (split-sequence:split-sequence #\| (feature-to-string string))))
+    (reduce (alexandria:curry #'concatenate 'string)
+            (loop for elem in splitted-string collect
+                                               (string-trim ugly-chars elem)))))
+          
+(defun feature-to-string (feature)
+  (if (stringp feature)
+      feature
+      (if (numberp feature)
+          (double-to-string feature)
+          (write-to-string feature))))
+
+(defun double-to-string (double)
+  (let ((start 0)
+        (end (if (> double 0) 6 7)))
+    (subseq (first
+             (split-sequence:split-sequence #\d (write-to-string double))) start end)))
+
+(defun samples-for-object-type (type)
+  (let* ((sample-for-object-type-ll
+           (kvr::query-for-csv-export
+            (object-type-filter-prolog type)
+            "End"
+            :table-setting))
+         (epinst-name
+           (first (last (car sample-for-object-type-ll))))
+         (object-from
+           (query-contact-surface-name type "Start" epinst-name)))
+    (cut:force-ll
+     (cut:lazy-mapcar
+      (lambda (sample-for-object-type)
+        (let* ((surface-name
+                 (first sample-for-object-type))
+               (ssurface-T-sobject
+                 (second sample-for-object-type))
+               (umap-T-usurface
+                 (cl-transforms:pose->transform
+                  (btr:pose
+                   (btr:rigid-body
+                    (btr:get-environment-object)
+                    (match-kitchens surface-name)))))
+               (umap-T-uobj
+                 (cl-transforms:transform*
+                  umap-T-usurface ssurface-T-sobject))
+               (obj-position
+                 (cl-transforms:origin
+                  (cl-transforms-stamped:make-pose-stamped
+                   cram-tf:*fixed-frame*
+                   0.0
+                   (cl-transforms:translation umap-T-uobj)
+                   (cl-transforms:rotation umap-T-uobj)))))
+          (list
+           type
+           (car object-from)
+           (nth 0 sample-for-object-type)
+           (cl-transforms:x obj-position)
+           (cl-transforms:y obj-position)
+           (third sample-for-object-type)
+           (nth 3 sample-for-object-type))))
+      sample-for-object-type-ll))))
 
 
 
@@ -306,8 +347,6 @@ Formula: umap-T-uobj = umap-T-usurface * ssurface-T-obj
                 (get-closest-edge-and-distance
                  umap-T-uobj umap-T-usurface usurface-dimensions)))
 
-         (print closest-edge-and-distance)
-         (print uclosest-edge-and-distance)
          (cl-transforms-stamped:make-pose-stamped
           cram-tf:*fixed-frame*
           0.0

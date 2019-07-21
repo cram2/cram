@@ -210,7 +210,7 @@ in the currently loaded episode."
       actor_pose(EpInst, HandInstShortName, " start-or-end ", HandPose).")
     :package :kvr)))
 
-(defun query-contact-surface-name (object-type start-or-end)
+(defun query-contact-surface-name (object-type start-or-end &optional (EpInst "EpInst"))
   (declare (type string object-type start-or-end))
   "Returns the name of the object surface an object is picked up from."
   (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
@@ -230,7 +230,7 @@ in the currently loaded episode."
       rdf_has(TouchingEventInst, knowrob_u:'inContact', ObjInst),
       rdf_has(TouchingEventInst, knowrob_u:'inContact', Surface),
       not(ObjInst==Surface),
-      u_occurs(EpInst, TouchingEventInst, TouchStart, TouchEnd),
+      u_occurs(" EpInst ", TouchingEventInst, TouchStart, TouchEnd),
       StartWithOffset = Start,
       time_term(End, EndSeconds),
       EndWithOffset is EndSeconds + 1,
@@ -289,7 +289,6 @@ and the transform surface-T-object as a lazy list of pairs:
             (surface-T-object
               (cl-transforms:transform*
                surface-T-map map-T-object)))
-       (print map-T-object)
        (cons surface-name surface-T-object)))
    (json-prolog:prolog-simple
     (concatenate
@@ -457,9 +456,9 @@ and the transform surface-T-camera as a lazy list of pairs:
 (defun query-for-csv-export (object-type start-or-end &optional context)
   (declare (type string object-type start-or-end)
            (type (or null keyword) context))
-  "Returns the OWL type of the supporting surface an object is picked up from
-and the transform surface-T-object as a lazy list of pairs:
- '((name-1 . surface-T-object-1) . rest-of-lazy-list)."
+  "Returns the OWL type of the supporting surface an object is picked up from or
+placed, the transform surface-T-object and the used hand of the robot as a lazy list
+of pairs: '((name-1 . surface-T-object-1 . hand-1) . rest-of-lazy-list)."
   (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
   (cut:lazy-mapcar
    (lambda (binding-set)
@@ -477,16 +476,49 @@ and the transform surface-T-object as a lazy list of pairs:
             (surface-T-object
               (cl-transforms:transform*
                surface-T-map map-T-object))
+            (map-T-camera
+              (cram-tf:flat-list->transform
+               (cut:var-value '|?CameraPose| binding-set)))
+            (obj-T-map
+              (cl-transforms:transform-inv
+               map-T-object))
+            (obj-T-cam-zeroed-x-y-orient
+              (let* ((obj-T-cam (cl-transforms:transform* obj-T-map map-T-camera))
+                     (obj-T-cam-q (cl-tf:rotation obj-T-cam)))
+                (cl-tf:make-transform
+                 (cl-tf:translation obj-T-cam)
+                 (cl-tf:make-quaternion 0
+                                        0
+                                        (cl-tf:z obj-T-cam-q)
+                                        (cl-tf:w obj-T-cam-q)))))
+            (angle-between-obj-and-cam
+              (* 180
+                 (/
+                  (cl-tf:angle-between-quaternions
+                   (cl-transforms:rotation (cl-transforms:transform-inv obj-T-cam-zeroed-x-y-orient))
+                   (cl-tf:make-identity-rotation)) pi)))
+            (discreted-angle-betw-obj-and-cam
+              (if (or
+                   (< 45 angle-between-obj-and-cam 135)
+                   (< 225 angle-between-obj-and-cam 315))
+                  "horizontal"
+                  "vertical"))
             (hand-string
               (string
-               (cut:var-value '|?HandTypeName| binding-set))))
+               (cut:var-value '|?HandTypeName| binding-set)))
+            (EpInst-name
+              (first (remove-if-not (alexandria:curry #'search "UnrealExperiment")
+                                    (split-sequence:split-sequence-if
+                                     (lambda (c)
+                                       (or (equal c #\')
+                                           (equal c #\#)))
+                                     (string (cut:var-value '|?EpInst| binding-set)))))))
        (if (search "Left" hand-string)
            (setf hand-string :left)
            (if (search "Right" hand-string)
                (setf hand-string :right)
                (setf hand-string NIL)))
-       (print map-T-object)
-       (list surface-name surface-T-object hand-string)))
+       (list surface-name surface-T-object hand-string discreted-angle-betw-obj-and-cam EpInst-name)))
    (json-prolog:prolog-simple
     (concatenate
      'string
@@ -508,7 +540,12 @@ and the transform surface-T-object as a lazy list of pairs:
       iri_xml_namespace(ObjInst, _, ObjShortName),
       actor_pose(EpInst, ObjShortName, " start-or-end ", ObjectPose),
       obj_type(Surface, SurfaceType),
-      iri_xml_namespace(SurfaceType, _, SurfaceTypeShortName)"
+      iri_xml_namespace(SurfaceType, _, SurfaceTypeShortName),
+      iri_xml_namespace(ObjInst, _, ObjShortName),
+      actor_pose(EpInst, ObjShortName, " start-or-end ", ObjPose),
+      obj_type(CameraInst, knowrob:'CharacterCamera'),
+      iri_xml_namespace(CameraInst, _, CameraShortName),
+      actor_pose(EpInst, CameraShortName, " start-or-end ", CameraPose)"  
       (case context
         ;; if we're setting a table, the source ("Start") should not be island,
         ;; and destination ("End") should be island
