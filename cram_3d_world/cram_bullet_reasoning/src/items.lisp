@@ -352,6 +352,9 @@ attaching more objects unidirectional and should be for this T. See
 (defmethod detach-object ((other-object item) (object item) &key)
   "Removes item names from the given arguments in the corresponding `attached-objects' lists
    of the given items."
+  (when (equal (name object) (name other-object))
+    (warn "Cannot attach an object to itself: ~a" (name object))
+    (return-from detach-object))
   (flet ((get-attachment-object (elem)
            (attachment-object (car (second elem))))
          (get-collision-info (attached obj)
