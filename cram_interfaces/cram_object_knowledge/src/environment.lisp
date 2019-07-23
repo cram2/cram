@@ -67,4 +67,4 @@
 
 (defmethod man-int:get-container-opening-distance :heuristics 20
     ((container-name (eql :iai-fridge-main)))
-  pi)
+  1.0)
