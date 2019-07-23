@@ -75,7 +75,8 @@
                              position)))
              (keyword (ecase position
                         (:upper-limit upper-limit)
-                        (:lower-limit lower-limit))))))
+                        (:lower-limit lower-limit)
+                        (:middle (/ (- upper-limit lower-limit) 2)))))))
     cropped-joint-angle))
 
 

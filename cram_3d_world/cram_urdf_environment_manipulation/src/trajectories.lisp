@@ -172,7 +172,7 @@ container with revolute joints."
 (defun get-revolute-traj-poses (joint-to-gripper
                                 &key
                                   (axis (cl-transforms:make-3d-vector 0 0 1))
-                                  (angle-max (cram-math:degrees->radians 80)))
+                                  angle-max)
   "Return a list of transforms from joint to gripper rotated around AXIS by ANGLE-MAX."
   (let ((angle-step (if (>= angle-max 0)
                         0.1
@@ -180,8 +180,7 @@ container with revolute joints."
     (loop for angle = 0.0 then (+ angle angle-step)
           while (< (abs angle) (abs angle-max))
           collect
-          (let ((rotation
-                  (cl-transforms:axis-angle->quaternion axis angle)))
+          (let ((rotation (cl-transforms:axis-angle->quaternion axis angle)))
             (cl-transforms-stamped:make-transform-stamped
              (cl-transforms-stamped:frame-id joint-to-gripper)
              (cl-transforms-stamped:child-frame-id joint-to-gripper)
