@@ -110,16 +110,18 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
      #'umap-T-uobj
      name-and-surface-T-object-ll)))
 
-(defun export-for-csv-data ()
+(defun export-for-csv-data (&optional (kitchen "kitchen_description") (name "Thomas") (context :table-setting))
   (let* ((muesli (list "SpoonSoup" "JaNougatBits" "BaerenMarkeFrischeAlpenmilch38" "BowlLarge"))
-         (samples (remove-ugly-chars
-                   (apply #'append
-                          (loop for object-type in muesli collect
-                                                          (samples-for-object-type object-type))))))
+         (samples (format-samples
+                   (mapcar (alexandria:curry #'append (list kitchen name context)) ;; addr more features
+                           (apply #'append ;; objects types in one list
+                                  (loop for object-type in muesli collect
+                                                                  (samples-for-object-type object-type)))))))
     (create-csv samples)))
 
 (defun create-csv (samples)
   (with-open-file (csv-stream "/home/thomas/nameisthiscsvname.csv" :direction :output :if-exists :supersede)
+    (write-string "kitchen_name,human_name,context,object-type,from-location,to-location,x,y,arm,object-orient-from-cam" csv-stream)
     (loop for sample in samples do
       (print sample)
       (fresh-line csv-stream)
@@ -135,7 +137,7 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
                                         (remove-chars-in-given-string feature)))
           samples))
 
-(defun remove-chars-in-given-string (string &optional (ugly-chars  '(#\| #\' #\:)))
+(defun remove-chars-in-given-string (string &optional (ugly-chars '(#\| #\' #\:)))
   (let* ((splitted-string (split-sequence:split-sequence #\| (feature-to-string string))))
     (reduce (alexandria:curry #'concatenate 'string)
             (loop for elem in splitted-string collect
