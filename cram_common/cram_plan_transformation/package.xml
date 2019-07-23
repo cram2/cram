@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cram_plan_transformation</name>
+  <version>0.1.0</version>
+  <description>
+    The plan_transformation package takes cram-task-trees and modifies them by applying specific rules on them.
+    The purpose of this modification is to optimize plans by slightly altering the sequence of executed plans.
+  </description>
+  <author>Arthur Niedzwiecki, Gayane Kazhoyan</author>
+  <maintainer email="aniedz@cs.uni-bremen.de">Arthur Niedzwiecki</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp_utilities</depend>
+  <depend>cl_transforms</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cl_tf</depend>
+  <depend>cram_tf</depend>
+  <depend>cram_language</depend>
+  <depend>cram_executive</depend>
+  <depend>cram_projection</depend>
+  <depend>cram_common_failures</depend>
+  <depend>cram_mobile_pick_place_plans</depend>
+  <depend>cram_object_knowledge</depend>
+  <depend>cram_physics_utils</depend>
+  <depend>cl_bullet</depend>
+  <depend>cram_bullet_reasoning</depend>
+  <depend>cram_bullet_reasoning_belief_state</depend>
+  <depend>cram_bullet_reasoning_utilities</depend>
+  <depend>cram_btr_visibility_costmap</depend>
+  <depend>cram_btr_spatial_relations_costmap</depend>
+  <depend>cram_robot_pose_gaussian_costmap</depend>
+  <depend>cram_occupancy_grid_costmap</depend>
+  <depend>cram_location_costmap</depend>
+  <depend>cram_urdf_projection</depend>
+  <depend>cram_urdf_projection_reasoning</depend>
+  <depend>cram_fetch_deliver_plans</depend>
+  <depend>cram_urdf_environment_manipulation</depend>
+  <depend>cram_pr2_pick_place_demo</depend>
+  <!-- <exec_depend></exec_depend> -->
+  
+</package>

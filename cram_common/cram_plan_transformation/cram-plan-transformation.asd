@@ -28,7 +28,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-plan-transformation
+(defsystem cram-plan-transformation
   :author "artnie"
   :license "BSD"
   
@@ -68,17 +68,8 @@
 
                cram-urdf-projection      ; for with-simulated-robot, depends on bullet-resoning
                cram-urdf-projection-reasoning ; for projection-based reasoning
-               ;; cram-pr2-description ;
                cram-fetch-deliver-plans
                cram-urdf-environment-manipulation ;
-
-               
-
-               ;; cram-robosherlock
-               ;; cram-bullet-reasoning-designators
-               ;; cram-bullet-reasoning-costmap ; not using any spatial relation cms yet
-               ;; cram-bullet-reasoning-designators ; not using visibility cm or collision checks
-               
                )
   :components
   ((:module "src"

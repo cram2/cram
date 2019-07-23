@@ -44,7 +44,10 @@
     (lisp-fun get-top-level-name ?top-level-name))
 
   (<- (top-level-path ?top-level-path)
-    (lisp-fun get-top-level-path ?top-level-path))
+    (top-level-name ?top-level-name)
+    (coe:top-level-task ?top-level-name ?top-level-task)
+    (coe:subtask ?top-level-task ?subtask)
+    (coe:task-full-path ?subtask ?top-level-path))
 
   (<- (location-distance-threshold ?threshold)
     (lisp-fun get-location-distance-threshold ?threshold))
@@ -125,9 +128,11 @@
     (not (== ?first-task ?second-task))
     (task-location-description-equal ?first-task ?second-task)
     (coe:task-full-path ?first-task ?first-path)
-    (coe:task-full-path ?second-task ?second-path)
+    (coe:task-full-path ?second-task ?second-transporting-path)
     (cpoe:task-fetching-action ?top-level-name ?first-path ?_ ?first-fetching-desig)
-    (cpoe:task-delivering-action ?top-level-name ?first-path ?_ ?first-delivering-desig))
+    (cpoe:task-delivering-action ?top-level-name ?first-path ?_ ?first-delivering-desig)
+    (cpoe:task-delivering-action ?top-level-name ?second-transporting-path ?second-delivering-task ?_)
+    (coe:task-full-path ?second-delivering-task ?second-path))
 
   (<- (task-transporting-from-container ?opening-path ?closing-path)
     (top-level-name ?top-level-name)

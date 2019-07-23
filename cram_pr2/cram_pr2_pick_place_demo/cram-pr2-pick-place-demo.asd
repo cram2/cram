@@ -71,8 +71,7 @@
                ;; cram-pr2-description
 
                cram-fetch-deliver-plans
-               cram-urdf-environment-manipulation
-               cram-pr2-plan-transformation)
+               cram-urdf-environment-manipulation)
 
   :components
   ((:module "src"
@@ -82,7 +81,6 @@
      (:file "costmaps" :depends-on ("package"))
      (:file "projection-demo" :depends-on ("package" "costmaps"))
      (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))
-     (:file "transformation-demo" :depends-on ("package" "demo"))
      (:file "milestone-projection-demo" :depends-on ("package" "costmaps"))
      (:file "data-generation-script" :depends-on ("package" "projection-demo" "costmaps"))
      (:file "data-generation-plan" :depends-on ("package" "demo"))

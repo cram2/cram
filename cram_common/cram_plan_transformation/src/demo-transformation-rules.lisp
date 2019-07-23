@@ -49,8 +49,8 @@
                                  (cpl-impl::get-top-level-task-tree top-level-name))
     (cpl-impl::replace-task-code '(BOTH-HANDS-TRANSFORM-2)
                                  #'(lambda (&rest desig)
-                                     (exe:perform (car desig))
-                                     (exe:perform deliver-action))
+                                     (exe:perform deliver-action)
+                                     (exe:perform (car desig)))
                                  path-2
                                  (cpl-impl::get-top-level-task-tree top-level-name))))
 

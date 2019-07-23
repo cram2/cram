@@ -1,6 +1,6 @@
 ;;;
-;;; Copyright (c) 2018, Arthur Niedzwiecki <niedzwiecki@uni-bremen.de>
-;;;                    
+;;; Copyright (c) 2019, Arthur Niedzwiecki <aniedz@cs.uni-bremen.de>
+;;;                     
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,19 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
-
-(defpackage cram-pr2-plan-transformation
-  (:nicknames :plt)
-  (:use #:cram-prolog
-        #:common-lisp
-        #:desig
-        #:exe)
-  (:import-from #:cpl
-                #:def-cram-function #:def-top-level-cram-function #:plan-failure)
-  (:import-from #:cpl-impl
-                #:replace-task-code)
-  (:export
-   ;; plan-transformation.lisp
-   #:get-top-level-name
-   #:register-transformation-rule
-   #:disable-transformation-rule
-   #:enable-transformation-rule
-   #:prioritize-rule
-   #:apply-rules
-   ))
+(defsystem cram-plan-transformation-tests
+  :author "artnie"
+  :license "BSD"
+  :depends-on (cram-plan-transformation 
+               lisp-unit
+               cram-pr2-pick-place-demo
+               cram-pr2-description
+               )
+  :components
+  ((:module "tests"
+    :components
+    ((:file "package")
+     (:file "transformation-tests" :depends-on ("package")))))
+  :perform
+  (test-op (operation component)
+           (symbol-call :lisp-unit '#:run-tests :all :cram-plan-transformation-tests)))

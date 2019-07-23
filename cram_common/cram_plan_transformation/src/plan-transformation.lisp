@@ -77,6 +77,7 @@
                                     (find most-important-rule applicable-rules :key #'car)
                                     (car applicable-rules))))
             (funcall (car rule-to-apply) (cdr rule-to-apply))))
-        (roslisp:ros-info (plt) "No rule applicable. Check the predicates and/or enable other rules."))))
+        (progn (roslisp:ros-info (plt) "No rule applicable. Check the predicates and/or enable other rules.")
+               nil))))
       
 
