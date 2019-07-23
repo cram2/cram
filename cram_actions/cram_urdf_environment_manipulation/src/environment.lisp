@@ -234,8 +234,8 @@ Using a default (1 0 0)."
   (let ((joint (get-connecting-joint
                 (get-container-link container-name
                                     btr-environment))))
-    (let ((upper-limit (- (cl-urdf:upper (cl-urdf:limits joint)) 0.001))
-          (lower-limit (+ (cl-urdf:lower (cl-urdf:limits joint)) 0.001))
+    (let ((upper-limit (cl-urdf:upper (cl-urdf:limits joint)))
+          (lower-limit (cl-urdf:lower (cl-urdf:limits joint)))
           (state (btr:joint-state
                   (btr:object btr:*current-bullet-world*
                               btr-environment)

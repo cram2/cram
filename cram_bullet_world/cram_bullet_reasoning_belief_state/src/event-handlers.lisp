@@ -158,10 +158,15 @@ If there is no other method with 1 as qualifier, this method will be executed al
             current-opening
             distance))
          ;; sometimes there is a tiny floating point inaccuracy,
-         ;; which can cause out of joint limits exception, so we round the number up.
+         ;; which can cause out of joint limits exception, so we round the number.
          (new-joint-angle-rounded
-           (read-from-string
-            (format nil "~5$" new-joint-angle))))
+           (/ (funcall
+               (case open-or-close
+                 (:open #'ffloor)
+                 (:close #'fceiling))
+               new-joint-angle
+               0.0001)
+              10000)))
     (btr:set-robot-state-from-joints
      `((,joint-name
         ,new-joint-angle-rounded))
