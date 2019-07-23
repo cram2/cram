@@ -68,6 +68,6 @@
     (desig-prop ?desig (:height ?height))
     (lisp-fun get-shape-vertices :triangle ?base-width ?height ?vertices))
   
-  (<- (desig:action-grounding ?desig (move ?target))
-    (desig-prop ?desig (:type :moving))
+  (<- (desig:action-grounding ?desig (navigate ?target))
+    (desig-prop ?desig (:type :navigating))
     (desig-prop ?desig (:target ?target))))
