@@ -88,6 +88,45 @@
   (btr:remove-object btr:*current-bullet-world* 'oo1)
   (btr:remove-object btr:*current-bullet-world* 'oo2))
 
+(define-test attach-object-called-with-more-items-connecting-to-one-item-in-one-call
+  ;; Attaches three objects and 'o1 is connected with both objects in one call
+  (btr-utils:spawn-object 'o1 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'o2 :mug :pose 
+                          '((-1 0.75 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'o3 :mug :pose 
+                          '((-1 0.75 0.92)(0 0 0 1)))
+
+  ;;connect objects o2 <-> o1 <-> o3
+  (btr:attach-object (list 'o2 'o3) 'o1)
+  
+  ;;these are connected o2 <-> o1 <-> o3
+  (lisp-unit:assert-equal 'o2 (car (assoc 'o2 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o1)))))
+  (lisp-unit:assert-equal 'o3 (car (assoc 'o3 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o1)))))
+  (lisp-unit:assert-equal 'o1 (car (assoc 'o1 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o2)))))
+  (lisp-unit:assert-equal 'o1 (car (assoc 'o1 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o3)))))
+  ;;these are not connected to each other: o2 o3
+  (lisp-unit:assert-false (equal 'o2 (car (assoc 'o2 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o3))))))
+  (lisp-unit:assert-false (equal 'o3 (car (assoc 'o3 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o2))))))
+
+  ;; recreate begin state for next test case
+  (btr:remove-object btr:*current-bullet-world* 'o1)
+  (btr:remove-object btr:*current-bullet-world* 'o2)
+  (btr:remove-object btr:*current-bullet-world* 'o3))
+
+(define-test attach-object-called-with-item-symbol-and-nil-as-parameter
+  ;; Tests if the attach-object function does nothing if called with nil and an valid item object
+  (btr-utils:spawn-object 'oo1 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+
+  (lisp-unit:assert-false (btr:attach-object 'oo1 nil))
+  (lisp-unit:assert-number-equal 0 (list-length (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1))))
+  (lisp-unit:assert-false (btr:attach-object nil 'oo1))
+  (lisp-unit:assert-number-equal 0 (list-length (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1))))
+  (lisp-unit:assert-false (btr:attach-object nil nil))
+  
+  (btr:remove-object btr:*current-bullet-world* 'oo1))
+
 (define-test detach-object-called-with-item-symbols
   ;; Tests if the detach-object function gets properly called if it was called with the object item names
   (btr-utils:spawn-object 'oo1 :mug :pose 
@@ -106,19 +145,6 @@
   (btr:remove-object btr:*current-bullet-world* 'oo1)
   (btr:remove-object btr:*current-bullet-world* 'oo2))
 
-
-(define-test attach-object-called-with-item-symbol-and-nil-as-parameter
-  ;; Tests if the attach-object function does nothing if called with nil and an valid item object
-  (btr-utils:spawn-object 'oo1 :mug :pose 
-                          '((-1 0.0 0.92)(0 0 0 1)))
-
-  (lisp-unit:assert-false (btr:attach-object 'oo1 nil))
-  (lisp-unit:assert-number-equal 0 (list-length (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1))))
-  (lisp-unit:assert-false (btr:attach-object nil 'oo1))
-  (lisp-unit:assert-number-equal 0 (list-length (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1))))
-  (lisp-unit:assert-false (btr:attach-object nil nil))
-  
-  (btr:remove-object btr:*current-bullet-world* 'oo1))
 
 (define-test detach-object-called-with-item-symbol-and-nil-as-parameter
   ;; Tests if the detach-object function does nothing if called with nil and an valid item object
