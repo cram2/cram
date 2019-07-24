@@ -1,7 +1,6 @@
 (in-package :btr-tests)
 
-;; Help functions to convert objects to list, so these can be compared with equals
-
+;; Help functions to convert objects to lists, so these can be compared with equals
 (defun orientation->list (orient)
   (list (cl-transforms:w orient)
         (cl-transforms:x orient)
