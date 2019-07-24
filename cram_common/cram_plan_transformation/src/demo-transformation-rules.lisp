@@ -52,7 +52,8 @@
                                      (exe:perform deliver-action)
                                      (exe:perform (car desig)))
                                  path-2
-                                 (cpl-impl::get-top-level-task-tree top-level-name))))
+                                 (cpl-impl::get-top-level-task-tree top-level-name)))
+  (roslisp:ros-info (plt) "BOTH-HANDS-TRANSPORTING-RULE applied."))
 
 (defun environment-rule (lazy-bindings &optional (top-level-name (get-top-level-name)))
   (roslisp:ros-info (plt) "Applying ENVIRONMENT-RULE to top-level-plan ~a." top-level-name)
@@ -89,4 +90,5 @@
                (cpl-impl::replace-task-code `(,(intern (format nil "CONTAINER-CLOSE-TRANSFORM-~a" index)))
                                             #'ignore-desig
                                             (cdr opening-path)
-                                            (cpl-impl::get-top-level-task-tree top-level-name))))))
+                                            (cpl-impl::get-top-level-task-tree top-level-name)))))
+  (roslisp:ros-info (plt) "ENVIRONMENT-RULE applied."))

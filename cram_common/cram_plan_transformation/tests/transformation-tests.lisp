@@ -35,59 +35,47 @@
 (setf lisp-unit:*print-summary* t)
 (setf btr-belief:*spawn-debug-window* t)
 
-(defun move-to-origin ()
-  "Navigating the robot will reset the rigid bodies of the objects,
-such that they can fall down and collide with the supporting surface."
-  (let* ((?pose
-           (cl-transforms-stamped:make-pose-stamped 
-            "map" 0.0
-            (cl-transforms:make-3d-vector 0 0 0)
-            (cl-tf:make-identity-rotation)))
-         (?target-robot-location (desig:a location
-                                          (pose ?pose))))
-    (exe:perform (desig:an action
-                           (type navigating)
-                           (location ?target-robot-location)))))
-
-(defun demo-successful ()
-  "Check if bowl and cup are on the kitchen table."
-  (btr:simulate btr:*current-bullet-world* 100)
-  (prolog `(and (btr:bullet-world ?w)
-                (btr:contact ?w :bowl-1 :kitchen "kitchen_island")
-                (btr:contact ?w :cup-1 :kitchen "kitchen_island"))))
-
-(defun execute-demo-for-both-hands (&optional (reset-tt nil) (retries 5))
-  (when (>= retries 0)
-    (when reset-tt
-      (plt:reset-task-tree))
-    (urdf-proj:with-projected-robot
-      (cet:enable-fluent-tracing)
-      (demo::demo-random nil '(:bowl :cup))
-      (cet:disable-fluent-tracing)
-      (move-to-origin))
-    (or (demo-successful)
-        (execute-demo-for-both-hands t (decf retries)))))
-
-
-(defun demo-environment (&optional (reset-tt nil))
-  (urdf-proj:with-projected-robot
-      (demo-environment-rule)))
-
-
 (define-test apply-rules-both-hands-test
+  "Executes the `both-hands-demo', transforms the task tree with `plt:apply-rules'
+and executes the `both-hands-demo' again. Is successful when the transformation worked and
+bowl and cup are on the kitchen island after both executions.
+Since demos go wrong for no reason, the transformed demo is executed up to 5 times,
+or until the demo was successful."
   (unless (eq (roslisp:node-status) :RUNNING)
     (roslisp-utilities:startup-ros))
-  (execute-demo-for-both-hands t)
-  (let* ((executing-basic-demo-successful (demo-successful))
+  (execute-demo 'both-hands-demo '(:bowl-1 :cup-1) t)
+  (let* ((executing-basic-demo-successful (demo-successful :bowl-1 :cup-1))
          (both-hands-rule-applied
            (when executing-basic-demo-successful (plt:apply-rules)))
          transformed-demo-results)
-        (assert-true executing-basic-demo-successful)
-        (assert-true both-hands-rule-applied)
-        (when both-hands-rule-applied
-          (btr-utils:kill-all-objects)
-          (loop for try-count to 4
-                until (demo-successful)
-                do (execute-demo-for-both-hands)
-                   (push (demo-successful) transformed-demo-results)))
-        (assert-true (reduce (lambda (r1 r2) (or r1 r2)) transformed-demo-results))))
+    (assert-true executing-basic-demo-successful)
+    (assert-true both-hands-rule-applied)
+    (when both-hands-rule-applied
+      (btr-utils:kill-all-objects)
+      (loop for try-count to 4
+            until (demo-successful :bowl-1 :cup-1)
+            do (execute-demo 'both-hands-demo '(:bowl-1 :cup-1))
+               (push (demo-successful :bowl-1 :cup-1) transformed-demo-results)))
+    ;; If transformed-demo-results contains at least one non-NIL value, this will yield T.
+    (assert-true (remove nil transformed-demo-results))))
+
+(define-test apply-rules-environment-test
+  "Executes the `environment-demo' before and after transformation via `plt:apply-rules'.
+Same structure as in `apply-rules-both-hands-test'."
+  (unless (eq (roslisp:node-status) :RUNNING)
+    (roslisp-utilities:startup-ros))
+  (execute-demo 'environment-demo '(:spoon-1 :fork-1) t)
+  (let* ((executing-basic-demo-successful (demo-successful :spoon-1 :fork-1))
+         (environment-rule-applied
+           (when executing-basic-demo-successful (plt:apply-rules)))
+         transformed-demo-results)
+    (assert-true executing-basic-demo-successful)
+    (assert-true environment-rule-applied)
+    (when environment-rule-applied
+      (btr-utils:kill-all-objects)
+      (loop for try-count to 4
+            until (demo-successful :spoon-1 :fork-1)
+            do (execute-demo 'environment-demo '(:spoon-1 :fork-1))
+               (push (demo-successful :spoon-1 :fork-1) transformed-demo-results)))
+    (assert-true (reduce (lambda (r1 r2) (or r1 r2)) transformed-demo-results))))
+

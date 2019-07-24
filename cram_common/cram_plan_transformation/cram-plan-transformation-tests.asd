@@ -40,7 +40,8 @@
   ((:module "tests"
     :components
     ((:file "package")
-     (:file "transformation-tests" :depends-on ("package")))))
+     (:file "functions" :depends-on ("package"))
+     (:file "transformation-tests" :depends-on ("package" "functions")))))
   :perform
   (test-op (operation component)
            (symbol-call :lisp-unit '#:run-tests :all :cram-plan-transformation-tests)))
