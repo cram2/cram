@@ -38,20 +38,21 @@
 (defun both-hands-transporting-rule (lazy-bindings &optional (top-level-name (get-top-level-name)))
   (roslisp:ros-info (plt) "Applying BOTH-HANDS-TRANSPORTING-RULE to top-level-plan ~a." top-level-name)
   (destructuring-bind
-      ((key path-1 fetch-action) (other-key path-2 deliver-action))
+      ((key transport-path 1st-fetch-action)
+       (other-key 2nd-deliver-path 1st-deliver-action))
       (cut:lazy-car lazy-bindings)
     (declare (ignore key other-key))
-    (cpl-impl::replace-task-code '(BOTH-HANDS-TRANSFORM-1)
+    (cpl-impl:replace-task-code '(BOTH-HANDS-TRANSFORM-1)
                                  #'(lambda (&rest desig)
                                      (declare (ignore desig))
-                                     (exe:perform fetch-action))
-                                 path-1
+                                     (exe:perform 1st-fetch-action))
+                                 transport-path
                                  (cpl-impl::get-top-level-task-tree top-level-name))
-    (cpl-impl::replace-task-code '(BOTH-HANDS-TRANSFORM-2)
+    (cpl-impl:replace-task-code '(BOTH-HANDS-TRANSFORM-2)
                                  #'(lambda (&rest desig)
-                                     (exe:perform deliver-action)
+                                     (exe:perform 1st-deliver-action)
                                      (exe:perform (car desig)))
-                                 path-2
+                                 2nd-deliver-path
                                  (cpl-impl::get-top-level-task-tree top-level-name)))
   (roslisp:ros-info (plt) "BOTH-HANDS-TRANSPORTING-RULE applied."))
 
@@ -68,14 +69,14 @@
       ;; remove closing action from first transport
     (destructuring-bind (_x closing-path) first-action
       (declare (ignore _x))
-      (cpl-impl::replace-task-code '(CONTAINER-FIRST-CLOSING-TRANSFORM)
+      (cpl-impl:replace-task-code '(CONTAINER-FIRST-CLOSING-TRANSFORM)
                                    #'ignore-desig
                                    (cdr closing-path)
                                    (cpl-impl::get-top-level-task-tree top-level-name)))
       ;; remove opening action from last transport
     (destructuring-bind (opening-path _x) last-action
       (declare (ignore _x))
-      (cpl-impl::replace-task-code '(CONTAINER-LAST-OPENING-TRANSFORM)
+      (cpl-impl:replace-task-code '(CONTAINER-LAST-OPENING-TRANSFORM)
                                    #'ignore-desig
                                    (cdr opening-path)
                                    (cpl-impl::get-top-level-task-tree top-level-name)))

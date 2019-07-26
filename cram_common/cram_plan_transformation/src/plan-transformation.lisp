@@ -30,9 +30,19 @@
 
 (in-package :plt)
 
-(defparameter *top-level-name* :top-level)
+
+(defparameter *top-level-name* :top-level
+  "The default task tree name.")
+
 (defun get-top-level-name ()
-  *top-level-name*)
+  (let* ((task-trees (alexandria:hash-table-keys cpl-impl::*top-level-task-trees*)))
+    (case (length task-trees)
+      (1
+       (car task-trees))
+      (otherwise
+       (roslisp:ros-warn (plt) "There are ~a task trees. Returning default: ~a."
+                         (length task-trees) *top-level-name*)
+       *top-level-name*))))
 
 (defvar *transformation-rules* (make-hash-table :test 'eq))
 (defvar *disabled-transformation-rules* '())

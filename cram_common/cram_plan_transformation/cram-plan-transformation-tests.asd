@@ -34,7 +34,8 @@
   :depends-on (cram-plan-transformation 
                lisp-unit
                cram-pr2-pick-place-demo
-               cram-pr2-description
+               ;; cram-pr2-description
+               ;; cram-boxy-description
                )
   :components
   ((:module "tests"

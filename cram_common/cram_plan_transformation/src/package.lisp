@@ -51,4 +51,17 @@
    #:enable-transformation-rule
    #:prioritize-rule
    #:apply-rules
+
+   ;; predicates.lisp
+   :top-level-name
+   :top-level-path
+   :location-distance-threshold
+   :without-replacement
+   :task-location-description-equal
+   :task-nearby
+   :task-targets-nearby
+   :task-specific-motion
+   :task-transporting
+   :task-transporting-siblings
+   :task-transporting-from-container
    ))
