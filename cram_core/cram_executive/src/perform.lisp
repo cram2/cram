@@ -64,9 +64,9 @@ that was used as the parameter of the plan as multiple values."
               (push (first pair) plist)
               (push (second pair) plist))
             (nreverse plist))))
+    (roslisp:ros-info (perform resolved) "~%~A~%~%" action-designator)
     (values (apply plan-function designator-props-as-key-lambda-list)
             action-designator)))
-
 
 (cpl:declare-goal perform (designator)
   (declare (ignore designator))
@@ -86,12 +86,14 @@ For future we can implement something like next-different-action-solution
 similar to what we have for locations.")
 
   (:method ((designator motion-designator))
+    (roslisp:ros-info (perform motion) "~%~A~%~%" designator)
     (unless (cpm:matching-available-process-modules designator)
       (cpl:fail "No matching process module found for ~a" designator))
     (try-reference-designator designator "Cannot perform motion.")
     (cpm:pm-execute-matching designator))
 
   (:method ((designator action-designator))
+    (roslisp:ros-info (perform action) "~%~A~%~%" designator)
     (destructuring-bind (plan referenced-action-designator)
         (try-reference-designator designator)
       (if (fboundp plan)
@@ -105,7 +107,7 @@ similar to what we have for locations.")
                       (call-plan-with-designator-properties plan referenced-action-designator))
                   (unless (cram-occasions-events:holds occasion)
                     (cpl:fail "Goal `~a' of action `~a' was not achieved."
-                              designator occasion)))
+                              occasion designator)))
                 (call-plan-with-designator-properties plan referenced-action-designator)))
           (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
                      but it isn't defined. Cannot perform action." designator plan)))))

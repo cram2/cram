@@ -87,17 +87,20 @@ If there is no other method with 1 as qualifier, this method will be executed al
       (btr:detach-object robot-object btr-object :link link)
       (btr:simulate btr:*current-bullet-world* 10)
       ;; finding the link that supports the object now
-      (let ((environment-object (btr:get-environment-object))
-            (environment-link (cut:var-value
-                               '?env-link
-                               (car (prolog:prolog
-                                     `(and (btr:bullet-world ?world)
-                                           (btr:supported-by
-                                            ?world ,btr-object-name ?env-name ?env-link)))))))
-        ;; attaching the link to the object if it finds one.
-        (unless (cut:is-var environment-link)
-          (btr:attach-object environment-object btr-object
-                             :link environment-link))))))
+      ;; TODO: This part seems to be buggy, needs more testing.
+      ;;       The part that fails is the environment link, sometimes it gets weird values.
+      ;; (let ((environment-object (btr:get-environment-object))
+      ;;       (environment-link (cut:var-value
+      ;;                          '?env-link
+      ;;                          (car (prolog:prolog
+      ;;                                `(and (btr:bullet-world ?world)
+      ;;                                      (btr:supported-by
+      ;;                                       ?world ,btr-object-name ?env-name ?env-link)))))))
+      ;;   ;; attaching the link to the object if it finds one.
+      ;;   (unless (cut:is-var environment-link)
+      ;;     (btr:attach-object environment-object btr-object
+      ;;                        :link environment-link)))
+      )))
 
 #+implement-this-when-object-to-object-is-implemented
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
@@ -172,10 +175,15 @@ If there is no other method with 1 as qualifier, this method will be executed al
             current-opening
             distance))
          ;; sometimes there is a tiny floating point inaccuracy,
-         ;; which can cause out of joint limits exception, so we round the number up.
+         ;; which can cause out of joint limits exception, so we round the number.
          (new-joint-angle-rounded
-           (read-from-string
-            (format nil "~5$" new-joint-angle))))
+           (/ (funcall
+               (case open-or-close
+                 (:open #'ffloor)
+                 (:close #'fceiling))
+               new-joint-angle
+               0.0001)
+              10000)))
     (btr:set-robot-state-from-joints
      `((,joint-name
         ,new-joint-angle-rounded))

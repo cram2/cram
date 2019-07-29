@@ -29,6 +29,8 @@
 
 (in-package :rs)
 
+;; (rs:perceive :detect (desig:an object (type milk) (color (blue white)) (shape (box flat))))
+
 (defparameter *no-robosherlock-mode* nil
   "Toggles if we want to use the robosherlock service for detecting or just
 look up stuff from TF.")
@@ -94,7 +96,6 @@ look up stuff from TF.")
                           ;;    (:type ,find-object-type))
                           ;;  (desig:properties object-designator))
                           ))))
-    (setf *rs-result-debug* all-objects)
     (ecase (desig:quantifier object-designator)
       ((:a :an) (car all-objects))
       (:all all-objects))))
@@ -105,8 +106,7 @@ look up stuff from TF.")
       ;; use TF to find out object coordinates
       (perceive-in-no-robosherlock-mode detect-or-inspect object-designator)
       ;; use RoboSherlock to find out object coordinates
-      (call-robosherlock-service detect-or-inspect
-                                 (desig:properties object-designator)
+      (call-robosherlock-service (desig:properties object-designator)
                                  :quantifier (desig:quantifier object-designator))))
 
 ;; DEMO> (rs::detect (desig:an object (type wheel)))

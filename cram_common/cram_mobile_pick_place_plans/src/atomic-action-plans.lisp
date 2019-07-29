@@ -51,6 +51,26 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
+(defun go-with-torso (&key
+                     ((:joint-angle ?joint-angle))
+                     &allow-other-keys)
+  (declare (type (or number keyword) ?joint-angle))
+  "Go to `?joint-angle' with torso, if a failure happens propagate it up, robot-state-changed event."
+  (unwind-protect
+       (cpl:with-retry-counters ((torso-retries 1))
+         (cpl:with-failure-handling
+             ((common-fail:torso-low-level-failure (e)
+                (roslisp:ros-warn (pick-and-place move-torso)
+                                  "Some low-level failure happened: ~a"
+                                  e)
+                (cpl:do-retry torso-retries
+                  (roslisp:ros-warn (pick-and-place move-torso) "Retrying...")
+                  (cpl:retry))))
+           (exe:perform
+            (desig:a motion (type moving-torso) (joint-angle ?joint-angle)))))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
 (defun perceive (&key
                    ((:object ?object-designator))
                    (object-chosing-function #'identity)
@@ -68,6 +88,7 @@ equate resulting designator to the original one."
              (cpl:do-retry perceive-retries
                (roslisp:ros-warn (pick-and-place perceive) "~a" e)
                (cpl:retry))))
+
         (let* ((resulting-designators
                  (exe:perform
                   (desig:a motion
@@ -97,6 +118,7 @@ equate resulting designator to the original one."
                                 ((:collision-object-b ?collision-object-b))
                                 ((:collision-object-b-link ?collision-object-b-link))
                                 ((:collision-object-a ?collision-object-a))
+                                ((:move-the-ass ?move-the-ass))
                               &allow-other-keys)
   (declare (type (or list cl-transforms-stamped:pose-stamped) left-poses right-poses)
            (type (or null keyword) ?collision-mode)
@@ -111,7 +133,7 @@ while ignoring failures; and execute the last pose with propagating the failures
   (unless (listp right-poses)
     (setf right-poses (list right-poses)))
   (multiple-value-bind (left-poses right-poses)
-      (cut:equalize-two-list-lengths left-poses right-poses)
+      (cut:equalize-two-list-lengths (butlast left-poses) (butlast right-poses))
 
     ;; Move arms through all but last poses of `?left-poses' and `?right-poses'
     ;; while ignoring failures: accuracy is not so important in intermediate poses.
@@ -136,7 +158,9 @@ while ignoring failures; and execute the last pose with propagating the failures
                         (desig:when ?collision-object-b-link
                           (collision-object-b-link ?collision-object-b-link))
                         (desig:when ?collision-object-a
-                          (collision-object-a ?collision-object-a))))
+                          (collision-object-a ?collision-object-a))
+                        (desig:when ?move-the-ass
+                          (move-the-ass ?move-the-ass))))
 
               (cram-occasions-events:on-event
                (make-instance 'cram-plan-occasions-events:robot-state-changed))))
@@ -166,7 +190,9 @@ while ignoring failures; and execute the last pose with propagating the failures
                 (desig:when ?collision-object-b-link
                   (collision-object-b-link ?collision-object-b-link))
                 (desig:when ?collision-object-a
-                  (collision-object-a ?collision-object-a))))
+                  (collision-object-a ?collision-object-a))
+                (desig:when ?move-the-ass
+                  (move-the-ass ?move-the-ass))))
 
       (cram-occasions-events:on-event
        (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
