@@ -1,6 +1,8 @@
 
-(in-package :bullet-reasoning-tests)
+(in-package :btr-tests)
 
+#+outdated-and-execution-error
+(
 (defun compute-ik-client (position-ik-request)
   (roslisp:with-ros-node ("moveit-test-client")
     (if (not (roslisp:wait-for-service "compute_ik" 10))
@@ -25,3 +27,4 @@
     (assert-eql (roslisp-msg-protocol:symbol-code 'moveit_msgs-msg:moveiterrorcodes
                                                   :success)
                 (moveit_msgs-msg:val (moveit_msgs-srv:error_code result)))))
+)
