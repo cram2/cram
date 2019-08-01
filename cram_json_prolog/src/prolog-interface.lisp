@@ -130,7 +130,7 @@ evaluates it."
   (let ((query-id (make-query-id)))
     (prolog-result->bdgs
      query-id
-     (call-prolog-service (concatenate 'string *service-namespace* "/query")
+     (call-prolog-service (concatenate 'string *service-namespace* "/simple_query")
                           'json_prolog_msgs-srv:PrologQuery
                           :id query-id
                           :mode mode
