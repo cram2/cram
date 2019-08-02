@@ -38,7 +38,6 @@
                cram-common-designators ; for world-state-detecting motion
                cram-common-failures ; for world-state-detecting motion
                cram-bullet-reasoning
-               cram-bullet-reasoning-utilities
                cram-occasions-events
                cram-plan-occasions-events
                cram-language ; for DEFINE-TASK-VARIABLE in utitlities

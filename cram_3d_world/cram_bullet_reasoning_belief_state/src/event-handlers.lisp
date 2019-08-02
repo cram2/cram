@@ -233,13 +233,13 @@ and setting it to zero will disable this method."
                                 *simulated-perception-noise-factor*))
            (?x-offset (* (first ?offset-direction) ?offset-distance))
            (?y-offset (* (second ?offset-direction) ?offset-distance))
-           (?z-offset (* (third ?offset-direction) ?offset-distance)))
-      (btr-utils:move-object ?obj-name
-                             (cram-tf:translate-pose
-                              ?obj-pose
-                              :x-offset ?x-offset
-                              :y-offset ?y-offset
-                              :z-offset ?z-offset)))))
+           (?z-offset (* (third ?offset-direction) ?offset-distance))
+           (?new-pose (cram-tf:translate-pose ?obj-pose
+                                              :x-offset ?x-offset
+                                              :y-offset ?y-offset
+                                              :z-offset ?z-offset)))
+      (btr:prolog-?w
+        `(assert (btr:object-pose ?w ,?obj-name ,?new-pose))))))
 
 (defun check-and-correct-perception-instability (obj-name obj-pose)
   (btr:simulate btr:*current-bullet-world* 100)
@@ -251,11 +251,12 @@ and setting it to zero will disable this method."
       ;; Retry by spawning the object a corrected distance from the original pose
       (multiple-value-bind (x-corr y-corr z-corr)
           (get-perception-noise-correction obj-pose obj-curr-pose)
-        (btr-utils:move-object obj-name (cram-tf:translate-pose
-                                         obj-pose
-                                         :x-offset x-corr
-                                         :y-offset y-corr
-                                         :z-offset z-corr)))
+        (btr:prolog-?w
+        `(assert (btr:object-pose ?w ,obj-name ,(cram-tf:translate-pose
+                                                 obj-pose
+                                                 :x-offset x-corr
+                                                 :y-offset y-corr
+                                                 :z-offset z-corr)))))
       (btr:simulate btr:*current-bullet-world* 100)
       (setf obj-curr-pose (btr:pose (btr:object btr:*current-bullet-world* obj-name)))
       (setf distance-new-pose-perceived-pose (cl-tf:v-dist
