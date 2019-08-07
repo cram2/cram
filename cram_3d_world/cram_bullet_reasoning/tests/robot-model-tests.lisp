@@ -1,3 +1,31 @@
+;;;
+;;; Copyright (c) 2016, Thomas Lipps <tlipps@uni-bremen.de>
+;;; All rights reserved.
+;;;
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions are met:
+;;;
+;;;     * Redistributions of source code must retain the above copyright
+;;;       notice, this list of conditions and the following disclaimer.
+;;;     * Redistributions in binary form must reproduce the above copyright
+;;;       notice, this list of conditions and the following disclaimer in the
+;;;       documentation and/or other materials provided with the distribution.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
+;;;
+;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+;;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+;;; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+;;; POSSIBILITY OF SUCH DAMAGE.
 (in-package :btr-tests)
 
 (defun setup-world ()
@@ -17,7 +45,7 @@
          (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15d0)))))))
 
 (define-test attach-object-unknown-link
-  "Tries to attach an item to an unkown link of the robot. This should fail."
+  ;; Tries to attach an item to an unkown link of the robot. This should fail.
   (setup-world)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
@@ -29,9 +57,9 @@
   (btr:remove-object btr:*current-bullet-world* 'o1))
 
 (define-test attach-object-same-object-to-two-links
-  "Attaches one object to two links of the robot and checks if it is saved properly
-in the list under the name of the item attached. The collision information is therefore
-shared between the attachments."
+  ;; Attaches one object to two links of the robot and checks if it is saved properly
+  ;; in the list under the name of the item attached. The collision information is therefore
+  ;; shared between the attachments.
   (setup-world)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
@@ -53,8 +81,8 @@ shared between the attachments."
     (btr:remove-object btr:*current-bullet-world* 'o1)))
 
 (define-test attach-object-different-objects-to-two-links
-  "Attaches two object to two links of the robot and checks if it is saved properly
-in the list under the name of the item attached."
+  ;; Attaches two object to two links of the robot and checks if it is saved properly
+  ;; in the list under the name of the item attached.
   (setup-world)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
@@ -82,8 +110,8 @@ in the list under the name of the item attached."
     (btr:remove-object btr:*current-bullet-world* 'o2)))
 
 (define-test attach-object-different-objects-to-same-link
-  "Attaches two objects to one link of the robot and checks if it is saved properly
-in the list under the name of the item attached."
+  ;; Attaches two objects to one link of the robot and checks if it is saved properly
+  ;; in the list under the name of the item attached.
   (setup-world)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
@@ -110,8 +138,8 @@ in the list under the name of the item attached."
     (btr:remove-object btr:*current-bullet-world* 'o2)))
 
 (define-test detach-object-completly-same-object-to-two-links
-  "Detaches object which was attached to two links of the robot and checks if it is removed properly
-in the list under the name of the item attached. Moreover, it should not touch other object attachments."
+  ;; Detaches object which was attached to two links of the robot and checks if it is removed properly
+  ;; in the list under the name of the item attached. Moreover, it should not touch other object attachments.
   (setup-world)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
@@ -141,8 +169,8 @@ in the list under the name of the item attached. Moreover, it should not touch o
     (btr:remove-object btr:*current-bullet-world* 'o2)))
 
 (define-test detach-object-partially-same-object-to-two-links
-  "Detaches object which was attached to two links partially of the robot and checks if it is removed properly
-in the list under the name of the item attached. Moreover, it should not touch other object attachments."
+  ;; Detaches object which was attached to two links partially of the robot and checks if it is removed properly
+  ;; in the list under the name of the item attached. Moreover, it should not touch other object attachments.
   (setup-world)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
