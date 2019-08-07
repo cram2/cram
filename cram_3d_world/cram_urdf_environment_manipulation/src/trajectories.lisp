@@ -81,11 +81,15 @@ This should only be used by get-action-trajectory for action-types :opening and 
            (desig:desig-prop-value object-designator :type))
          (object-environment
            (desig:desig-prop-value object-designator :part-of))
+         (manipulated-link-name
+           (cl-urdf:name
+            (get-manipulated-link
+             (get-container-link object-name object-environment))))
          (object-transform
            (second
-            (get-container-pose-and-transform object-name object-environment)))
+            (get-container-pose-and-transform manipulated-link-name object-environment)))
          (grasp-pose
-           (get-container-to-gripper-transform object-name arm handle-axis object-environment)))
+           (get-container-to-gripper-transform manipulated-link-name arm handle-axis object-environment)))
 
     ;; checks if `object-type' is a subtype of :container-prismatic or :container-revolute
     ;; and executes the corresponding MAKE-PRISMATIC-TRAJECTORY or MAKE-REVOLUTE-TRAJECTORY.
@@ -109,7 +113,7 @@ container with prismatic joints."
    (lambda (label transform)
      (man-int:make-traj-segment
       :label label
-      :poses (list (man-int:calculate-gripper-pose-in-base object-transform arm transform))))
+      :poses (list (man-int:calculate-gripper-pose-in-map object-transform arm transform))))
    `(:reaching
      :grasping
      ,action-type
@@ -133,7 +137,7 @@ container with revolute joints."
      (lambda (label transforms)
        (man-int:make-traj-segment
         :label label
-        :poses (mapcar (alexandria:curry #'man-int:calculate-gripper-pose-in-base
+        :poses (mapcar (alexandria:curry #'man-int:calculate-gripper-pose-in-map
                                          object-transform arm)
                        transforms)))
      `(:reaching
@@ -145,14 +149,15 @@ container with revolute joints."
              grasp-pose :x-offset *drawer-handle-pregrasp-x-offset*))
       (list grasp-pose)
       traj-poses
-      (list (cram-tf:apply-transform
-             last-traj-pose
-             (cl-transforms-stamped:make-transform-stamped
-              (cl-transforms-stamped:child-frame-id last-traj-pose)
-              (cl-transforms-stamped:child-frame-id last-traj-pose)
-              (cl-transforms-stamped:stamp last-traj-pose)
-              (cl-transforms:make-3d-vector 0 0 -0.1)
-              (cl-transforms:make-identity-rotation))))))))
+      (when last-traj-pose
+        (list (cram-tf:apply-transform
+               last-traj-pose
+               (cl-transforms-stamped:make-transform-stamped
+                (cl-transforms-stamped:child-frame-id last-traj-pose)
+                (cl-transforms-stamped:child-frame-id last-traj-pose)
+                (cl-transforms-stamped:stamp last-traj-pose)
+                (cl-transforms:make-3d-vector 0 0 -0.1)
+                (cl-transforms:make-identity-rotation)))))))))
 
 
 (defun 3d-vector->keyparam-list (v)
@@ -167,7 +172,7 @@ container with revolute joints."
 (defun get-revolute-traj-poses (joint-to-gripper
                                 &key
                                   (axis (cl-transforms:make-3d-vector 0 0 1))
-                                  (angle-max (cram-math:degrees->radians 80)))
+                                  angle-max)
   "Return a list of transforms from joint to gripper rotated around AXIS by ANGLE-MAX."
   (let ((angle-step (if (>= angle-max 0)
                         0.1
@@ -175,8 +180,7 @@ container with revolute joints."
     (loop for angle = 0.0 then (+ angle angle-step)
           while (< (abs angle) (abs angle-max))
           collect
-          (let ((rotation
-                  (cl-transforms:axis-angle->quaternion axis angle)))
+          (let ((rotation (cl-transforms:axis-angle->quaternion axis angle)))
             (cl-transforms-stamped:make-transform-stamped
              (cl-transforms-stamped:frame-id joint-to-gripper)
              (cl-transforms-stamped:child-frame-id joint-to-gripper)
@@ -198,9 +202,10 @@ container with revolute joints."
                                            handle-axis
                                            btr-environment)
   "Get the transform from the container handle to the robot's gripper."
-  (let* ((object-name
-           (roslisp-utilities:rosify-underscores-lisp-name object-name))
-         (handle-name
+  (when (symbolp object-name)
+    (setf object-name
+          (roslisp-utilities:rosify-underscores-lisp-name object-name)))
+  (let* ((handle-name
            (cl-urdf:name (get-handle-link object-name btr-environment)))
          (handle-tf
            (cl-transforms-stamped:transform->transform-stamped
