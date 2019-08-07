@@ -3,6 +3,8 @@
                cram-bullet-reasoning-utilities
                lisp-unit
                cl-transforms
+               cram-pr2-description
+               ;;cram-boxy-description
                roslisp)
   :components ((:module "tests"
                 :components

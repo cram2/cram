@@ -29,20 +29,14 @@
 (in-package :btr-tests)
 
 (defun setup-world ()
-  (unless roslisp:*master-uri*
-    (ros-load:load-system "cram_bullet_reasoning" :cram-bullet-reasoning)
-    (ros-load:load-system "cram_pr2_description" :cram-pr2-description)
-    (setf roslisp:*master-uri* "http://127.0.0.1:11311"))
-
-  ;;spawn the robot-colliding-objects-without-attached  
   (setf rob-int:*robot-urdf*
         (cl-urdf:parse-urdf (roslisp:get-param "robot_description")))
   (prolog:prolog
    `(and (btr:bullet-world ?world)
          (rob-int:robot ?robot)
          (assert (btr:object ?world :urdf ?robot ((0 0 0) (0 0 0 1))
-                             :urdf ,rob-int:*robot-urdf*))
-         (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15d0)))))))
+                             :urdf ,rob-int:*robot-urdf*))))
+  (btr:detach-all-objects (btr:get-robot-object)))
 
 (define-test attach-object-unknown-link
   ;; Tries to attach an item to an unkown link of the robot. This should fail.
