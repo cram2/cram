@@ -24,5 +24,7 @@
   <depend>cram_plan_occasions_events</depend>
   <depend>cram_bullet_reasoning</depend>
   <depend>cram_bullet_reasoning_belief_state</depend>
+  <depend>cram_joint_states</depend>
+  <depend>cram_simple_actionlib_client</depend>
   <depend>giskard_msgs</depend>
 </package>

@@ -95,7 +95,8 @@
   (<- (motion-grounding ?designator (move-tcp ?left-pose ?right-pose
                                               ?collision-mode
                                               ?collision-object-b ?collision-object-b-link
-                                              ?collision-object-a))
+                                              ?collision-object-a
+                                              ?move-the-ass))
     (property ?designator (:type :moving-tcp))
     (-> (property ?designator (:left-pose ?left-pose))
         (true)
@@ -114,7 +115,10 @@
         (equal ?collision-object-b-link nil))
     (-> (desig:desig-prop ?designator (:collision-object-a ?collision-object-a))
         (true)
-        (equal ?collision-object-a nil)))
+        (equal ?collision-object-a nil))
+    (-> (desig:desig-prop ?designator (:move-the-ass ?move-the-ass))
+        (true)
+        (equal ?move-the-ass nil)))
 
   (<- (motion-grounding ?designator (move-joints ?left-config ?right-config))
     (property ?designator (:type :moving-arm-joints))
@@ -128,13 +132,12 @@
     (property ?designator (:constraints ?constraints-string))))
 
 (def-fact-group world-state-detecting (motion-grounding)
-  (<- (motion-grounding ?designator (detect-pose ?object ?object-pose ?object-name))
+
+  (<- (motion-grounding ?designator (world-state-detect ?object-designator))
     (property ?designator (:type :world-state-detecting))
     (property ?designator (:object ?object))
-    (current-designator ?object ?object-designator)
-    (-> (property ?object-designator (:pose ?object-pose))
-        (true)
-        (equal ?object-pose nil))
-    (-> (property ?object-designator (:name ?object-name))
-        (true)
-        (equal ?object-name nil))))
+    (desig:current-designator ?object ?object-designator)
+    (or (and (property ?object-designator (:pose ?_))
+             (property ?object-designator (:type ?_))
+             (property ?object-designator (:name ?_)))
+        (property ?object-designator (:name ?_)))))
