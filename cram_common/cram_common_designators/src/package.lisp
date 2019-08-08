@@ -38,4 +38,4 @@
   (:export
    ;; motions
    #:move-base #:move-torso #:move-head #:detect #:inspect #:move-gripper-joint
-   #:move-tcp #:move-joints #:move-with-constraints #:detect-pose))
+   #:move-tcp #:move-joints #:move-with-constraints #:world-state-detect))

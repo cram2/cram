@@ -35,10 +35,16 @@
     ))
 
 (defparameter *object-colors*
-  '((:spoon . "blue")))
+  '((:spoon . "blue")
+    (:breakfast-cereal . "yellow")
+    (:milk . "blue")))
 
-(defmethod exe:generic-perform :before (designator)
-  (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
+(defparameter *object-grasps*
+  '((:spoon . :top)
+    (:breakfast-cereal . :front)
+    (:milk . :front)
+    (:cup . :top)
+    (:bowl . :top)))
 
 (cpl:def-cram-function park-robot ()
   (cpl:with-failure-handling
@@ -72,20 +78,34 @@
   ;;    (ccl::connect-to-cloud-logger)
   ;;    (ccl::reset-logged-owl))
 
-  (setf proj-reasoning::*projection-checks-enabled* t)
+  ;; (setf proj-reasoning::*projection-checks-enabled* t)
 
   (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
+  (btr:detach-all-objects (btr:get-environment-object))
   (btr-utils:kill-all-objects)
-  (setf (btr:joint-state (btr:object btr:*current-bullet-world* :kitchen)
+  (setf (btr:joint-state (btr:get-environment-object)
                          "sink_area_left_upper_drawer_main_joint")
-        0.0)
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_middle_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "iai_fridge_door_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "oven_area_area_right_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_trash_drawer_main_joint")
+        0)
   (btr-belief::publish-environment-joint-state
-   (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
+   (btr:joint-states (btr:get-environment-object)))
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
   (coe:clear-belief)
+
+  (btr:clear-costmap-vis-object)
 
   ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
   )

@@ -51,6 +51,7 @@
 
                cram-bullet-reasoning ; for moving the robot in the bullet world
                cram-bullet-reasoning-belief-state ; for special projection variable definition
+                                                  ; and world-state-detecting PM
 
                cram-ik-interface)
   :components

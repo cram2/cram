@@ -33,28 +33,28 @@
   (with-fields (x y)
       (value *turtle-pose*)
     (exe:perform (an action (type drawing) (shape rectangle) (width 5) (height 4.5)))
-    (move-without-pen (list (+ x 3) y 0))
+    (navigate-without-pen (list (+ x 3) y 0))
     (exe:perform (an action (type drawing) (shape rectangle) (width 1) (height 2.5)))
-    (move-without-pen (list (+ x 0.5) (+ y 2) 0))
+    (navigate-without-pen (list (+ x 0.5) (+ y 2) 0))
     (exe:perform (an action (type drawing) (shape rectangle) (width 1) (height 1)))
-    (move-without-pen (list x (+ y 4.5) 0))
+    (navigate-without-pen (list x (+ y 4.5) 0))
     (exe:perform (an action (type drawing) (shape triangle) (base-width 5) (height 4)))))
 
 (defun draw-simple-shape (vertices)
   (mapcar
    (lambda (?v)
-     (exe:perform (an action (type moving) (target ?v))))
+     (exe:perform (an action (type navigating) (target ?v))))
    vertices))
 
-(defun move-without-pen (?target)
+(defun navigate-without-pen (?target)
   (exe:perform (a motion (type setting-pen) (off 1)))
-  (exe:perform (an action (type moving) (target ?target)))
+  (exe:perform (an action (type navigating) (target ?target)))
   (exe:perform (a motion (type setting-pen) (off 0))))
 
 (defparameter *min-bound* 0.5)
 (defparameter *max-bound* 10.5)
 
-(defun move (?v)
+(defun navigate (?v)
   (flet ((out-of-bounds (pose)
            (with-fields (x y)
                (value pose)
@@ -87,5 +87,5 @@
 (defun perform-draw-house ()
   (top-level
     (with-process-modules-running (turtlesim-navigation turtlesim-pen-control)
-      (move-without-pen '(3 2 0))
+      (navigate-without-pen '(3 2 0))
       (exe:perform (an action (type drawing) (shape house))))))

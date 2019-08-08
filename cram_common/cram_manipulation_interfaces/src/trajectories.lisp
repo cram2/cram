@@ -78,7 +78,21 @@
      standard-to-particular-gripper-transform ; g'Tg
      :result-as-pose-or-transform :pose)))
 
-
+(defun calculate-gripper-pose-in-map (base-to-object-transform arm
+                                      object-to-standard-gripper-transform)
+  (let ((gripper-tool-frame
+          (ecase arm
+            (:left cram-tf:*robot-left-tool-frame*)
+            (:right cram-tf:*robot-right-tool-frame*))))
+    (cram-tf:multiply-transform-stampeds
+     cram-tf:*fixed-frame* gripper-tool-frame
+     (cram-tf:pose-stamped->transform-stamped
+      (cram-tf:robot-current-pose) cram-tf:*robot-base-frame*)
+     (cram-tf:pose-stamped->transform-stamped
+      (calculate-gripper-pose-in-base base-to-object-transform arm
+                                      object-to-standard-gripper-transform)
+      gripper-tool-frame)
+     :result-as-pose-or-transform :pose)))
 
 
 
@@ -264,7 +278,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
     (mapcar (lambda (label transforms)
               (make-traj-segment
                :label label
-               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-base bTo arm)
+               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map bTo arm)
                               transforms)))
             '(:reaching
               :grasping
@@ -297,7 +311,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
     (mapcar (lambda (label transforms)
               (make-traj-segment
                :label label
-               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-base
+               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map
                                                 target-object-transform-in-base arm)
                               transforms)))
             '(:reaching

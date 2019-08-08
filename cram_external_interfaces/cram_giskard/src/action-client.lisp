@@ -33,6 +33,6 @@
   (actionlib-client:make-simple-action-client
    'giskard-action
    "giskardpy/command" "giskard_msgs/MoveAction"
-   40))
+   60))
 
 (roslisp-utilities:register-ros-init-function make-giskard-action-client)

@@ -31,12 +31,15 @@
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (cram-utilities
+  :depends-on (roslisp ; for ros-info
+               cram-utilities
                cram-prolog
+               cram-math ; for transposing an array
                cram-json-prolog
                cram-robot-interfaces
                cram-manipulation-interfaces
-               cram-location-costmap)
+               cram-location-costmap
+               cram-urdf-environment-manipulation)
   :components
   ((:module "src"
     :components
