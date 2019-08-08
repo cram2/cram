@@ -180,31 +180,19 @@ retries with different search location or robot base location."
          (cpl:fail 'common-fail:object-nowhere-to-be-found
                    :description "Search location designator could not be resolved.")))
 
-    ;; if the detection fails try to detect the object using the belief state
-    (cpl:with-failure-handling
-        (((or common-fail:object-nowhere-to-be-found
-              common-fail:perception-low-level-failure
-              common-fail:object-unfetchable) (e)
-           (roslisp:ros-warn (fd-plans search-for-object)
-                             "Could not detect Object. Retry with belief state.~%")
-           (exe:perform (desig:a motion
-                                 (type world-state-detecting)
-                                 (object ?object-designator)))))
-            
-
-      ;; take new `?search-location' sample if a failure happens and retry
-      (cpl:with-retry-counters ((outer-search-location-retries 2))
-        (cpl:with-failure-handling
-            ((common-fail:object-nowhere-to-be-found (e)
-               (common-fail:retry-with-loc-designator-solutions
+    ;; take new `?search-location' sample if a failure happens and retry
+    (cpl:with-retry-counters ((outer-search-location-retries 2))
+      (cpl:with-failure-handling
+          ((common-fail:object-nowhere-to-be-found (e)
+             (common-fail:retry-with-loc-designator-solutions
                  ?search-location
-                   outer-search-location-retries
-                   (:error-object-or-string e
+                 outer-search-location-retries
+                 (:error-object-or-string e
                   :warning-namespace (fd-plans search-for-object)
-                    :reset-designators (list ?robot-location)
-                    :rethrow-failure 'common-fail:object-nowhere-to-be-found)
-                 (roslisp:ros-warn (fd-plans search-for-object)
-                                   "Search is about to give up. Retrying~%"))))
+                  :reset-designators (list ?robot-location)
+                  :rethrow-failure 'common-fail:object-nowhere-to-be-found)
+               (roslisp:ros-warn (fd-plans search-for-object)
+                                 "Search is about to give up. Retrying~%"))))
 
         ;; if the going action fails, pick another `?robot-location' sample and retry
         (cpl:with-retry-counters ((robot-location-retries 10))
@@ -242,7 +230,7 @@ retries with different search location or robot base location."
                                        (target ?search-location)))
                 (exe:perform (desig:an action
                                        (type detecting)
-                                       (object ?object-designator))))))))))))
+                                       (object ?object-designator)))))))))))
 
 
 
@@ -271,18 +259,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                    :object ?object-designator
                    :description "Some designator could not be resolved.")))
 
-    
-    ;; (cpl:with-failure-handling
-    ;;     (((or common-fail:perception-object-not-found
-    ;;           common-fail:perception-low-level-failure
-    ;;           common-fail:object-unfetchable) (e)
-    ;;        (roslisp:ros-info (fd-plans fetch) "Couldn't find object with perception, trying with belief state. ~%")
-    ;;        (exe:perform (desig:a motion
-    ;;                              (type world-state-detecting)
-    ;;                              (object ?object-designator)))))
-
-    (let ((count 21))
-      
     ;; take a new `?pick-up-robot-location' sample if a failure happens
     (cpl:with-retry-counters ((relocation-for-ik-retries 20))
       (cpl:with-failure-handling
@@ -290,7 +266,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 common-fail:looking-high-level-failure
                 common-fail:perception-low-level-failure
                 common-fail:object-unreachable
-                common-fail:manipulation-low-level-failure) (e) 
+                common-fail:manipulation-low-level-failure) (e)
              (common-fail:retry-with-loc-designator-solutions
                  ?pick-up-robot-location
                  relocation-for-ik-retries
@@ -299,7 +275,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                           (desig:desig-prop-value ?object-designator :type) e)
                   :warning-namespace (fd-plans fetch)
                   :rethrow-failure 'common-fail:object-unfetchable))))
-           
+
         ;; navigate, look, detect and pick-up
         (exe:perform (desig:an action
                                (type navigating)
@@ -322,26 +298,11 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                  (roslisp:ros-warn (fd-plans fetch) "No more regrasping retries left :'(")
                  (cpl:fail 'common-fail:object-unreachable
                            :description "Misgrasp happened and retrying didn't help.")))
-            (setf count (- count 1))
-            
-            ;; (print "Occluding: ")
-            ;; (print (prolog:prolog `(and (btr:bullet-world ?world)
-            ;;                             (cram-robot-interfaces:robot ?robot)
-            ;;                             (and (btr::camera-frame ?robot ?camera-frame)
-            ;;                                  (btr::link-pose ?robot ?camera-frame ?camera-pose))
-            ;;                             (spec:property ?object-designator (:name ?name))
-            ;;                             (btr:occluding-objects ?world ?camera-pose ?name))))
-            ;; (btr:occluding-objects btr:*current-bullet-world* 
-            
+
             (let ((?more-precise-perceived-object-desig
-                    (if (<= count 3)
-                        (exe:perform (desig:a motion
-                                              (type world-state-detecting)
-                                              (object ?object-designator)))
-                        (exe:perform (desig:an action
-                                               (type detecting)
-                                               (object ?object-designator))))))
-                
+                    (exe:perform (desig:an action
+                                           (type detecting)
+                                           (object ?object-designator)))))
 
 
               (let ((?arm (cut:lazy-car ?arms)))
@@ -414,7 +375,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                                    (type positioning-arm)
                                                    (left-configuration park)
                                                    (right-configuration park)))
-                            (desig:current-desig ?object-designator))))))))))))))))
+                            (desig:current-desig ?object-designator)))))))))))))))
 
 
 
