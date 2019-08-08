@@ -45,6 +45,5 @@
    #:*robot-parameter* #:*kitchen-parameter*
    #:*spawn-debug-window*
    #:setup-world-database
-   #:make-kitchen-variation
    ;; process-modules
    #:world-state-detecting-pm))

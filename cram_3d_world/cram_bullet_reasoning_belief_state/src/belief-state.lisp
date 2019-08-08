@@ -34,11 +34,6 @@
 (defparameter *spawn-debug-window* t
   "If the debug window should be spawned when belief state is set up.")
 
-(defparameter *locations* '(((1.825 1.32 0) (0 0 3.14159265359))
-                            ((1.805 2.52 0) (0 0 3.14159265359))
-                            ((-1.365 0.59 0) (0 0 0))
-                            ((1.825 -0.74 0) (0 0 3.14159265359))))
-
 (defun replace-all (string part replacement &key (test #'char=))
   "Returns a new string in which all the occurences of the part
 is replaced with replacement.
@@ -66,7 +61,8 @@ is replaced with replacement.
                      (let ((kitchen-urdf-string
                              (roslisp:get-param *kitchen-parameter* nil)))
                        (when kitchen-urdf-string
-                         (setf *kitchen-urdf* (cl-urdf:parse-urdf kitchen-urdf-string)))))))
+                         (setf *kitchen-urdf* (cl-urdf:parse-urdf
+                                               kitchen-urdf-string)))))))
 
     ;; set robot's URDF root link to *robot-base-frame* as that's how going actions works
     (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
@@ -114,29 +110,3 @@ is replaced with replacement.
     (if robot-object
         (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
         (warn "ROBOT was not defined. Have you loaded a robot package?"))))
-
-(defun make-kitchen-variation (&optional (sink '((1.825 1.32 0) (0 0 0 1)))
-                                 (oven '((1.805 2.52 0) (0 0 5 1)))
-                                 (island '((-1.365 0.59 0) (0 0 0 1)))
-                                 (fridge `((1.825 -0.74 0) (0 0 5 0.5))))
-  (let* ((sink_foot (gethash "sink_area_footprint_joint" (cl-urdf:joints *kitchen-urdf*)))
-        (oven_foot (gethash "oven_area_footprint_joint" (cl-urdf:joints *kitchen-urdf*)))
-        (island_foot (gethash "kitchen_island_footprint_joint" (cl-urdf:joints *kitchen-urdf*)))
-        (fridge_foot (gethash "fridge_area_footprint_joint" (cl-urdf:joints *kitchen-urdf*)))
-         (poses (mapcar (lambda (pose) (cl-transforms:make-transform
-                                        (cl-transforms:make-3d-vector (first (car pose))
-                                                                      (second (car pose))
-                                                                      (third (car posE)))
-                                        (cl-transforms:make-quaternion (first (cadr pose))
-                                                                       (second (cadr pose))
-                                                                     (third (cadr pose))
-                                                                     (fourth (cadr posE)))))
-                        (concatenate 'list (list sink) (list oven) (list island) (list fridge))))
-
-         (locations (list sink_foot oven_foot island_foot fridge_foot)))
-    
-    (mapcar (lambda (pose loc) 
-              (setf (slot-value loc 'cl-urdf:origin) pose)) poses locations)
-    (coe:clear-belief)
-         
-  ))
