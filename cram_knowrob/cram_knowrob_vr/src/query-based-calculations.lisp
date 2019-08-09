@@ -108,7 +108,46 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
      name-and-surface-T-object-ll)))
 
 
-
+;;; --- NEW ---
+(defun umap-P-uobj-through-surface-from-list-ll (type start-or-end)
+  "Calculates the pose of the object in map relative to its supporting surface.
+Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
+`type' is a simple symbol such as 'milk."
+  (let ((name-and-surface-T-object-ll
+          (query-object-and-camera-t-camera-by-object-object-type
+           (object-type-filter-prolog type)
+           start-or-end
+           :table-setting)))
+    
+    (cut:lazy-mapcar
+     (progn
+       (lambda (name-and-surface-T-object)
+         (let* ((surface-name
+                  (caar name-and-surface-T-object))
+                (ssurface-T-sobject
+                  (cdar name-and-surface-T-object))
+                (umap-T-usurface
+                  (cl-transforms:pose->transform
+                   (btr:pose
+                    (btr:rigid-body
+                     (btr:get-environment-object)
+                     (match-kitchens surface-name)))))
+              
+                (umap-T-uobj
+                  (cl-transforms:transform*
+                   umap-T-usurface ssurface-T-sobject)))
+           
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*fixed-frame*
+            0.0
+            (cl-transforms:translation umap-T-uobj)
+            (cl-transforms:rotation umap-T-uobj))))      
+       
+       (lambda (umap-T-ucamera)
+         (format t "TRANSFORM ~a" umap-T-ucamera)
+         (map-T-camera->map-P-base (cdadr umap-T-ucamera))))
+     
+     name-and-surface-T-object-ll)))
 
 
 
@@ -420,3 +459,8 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
           (roslisp-utilities:rosify-lisp-name
            (object-type-fixer bullet-type))))
     (object-grasped-faces-ll-from-prolog-type prolog-type)))
+
+
+;;; --- NEW ---
+(defun look-and-base-poses-for-searching-and-fetching (type)
+  (umap-P-uobj-through-surface-from-list-ll type "Start"))

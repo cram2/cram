@@ -46,6 +46,7 @@
   "semantic map . urdf")
 
 (defun match-kitchens (name)
+  (format t "NAME: ~a " name)
   (cdr (assoc name *semantic-to-urdf*)))
 
 (defun get-all-objects-urdf ()
