@@ -85,20 +85,6 @@ If there is no other method with 1 as qualifier, this method will be executed al
           (btr:attach-object environment-object btr-object
                              :link environment-link))))))
 
-(defmethod cram-occasions-events:on-event btr-stabilize-placed-object 2 ((event cpoe:object-placed-event))
-  "Forces an object to be affected by simulation again. Every object has static collision-features
-during its transportation by a robot and will never be affected by simulation, until it is respawned again."
-  (let* ((btr-object-name (cpoe:event-object-name event))
-         (btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
-    (when btr-object
-      (btr:respawn-object-as-dynamic btr-object)
-      (btr:simulate btr:*current-bullet-world* 10))
-    ;; This is good place to attach this object to a movable surface
-    ;; like a drawer or tray or something. Add the name of the link
-    ;; as a slot to the object-placed-event if you like to, then
-    ;; make the object static.
-    ))
-
 #+implement-this-when-object-to-object-is-implemented
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
   (let* ((btr-object-name (cpoe:event-object-name event))

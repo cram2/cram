@@ -192,7 +192,8 @@ If `link' is specified, detaches `object' only from
                  for body = (rigid-body object
                                         (collision-information-rigid-body-name collision-data))
                  do (setf (collision-flags body)
-                          (collision-information-flags collision-data)))))
+                          (collision-information-flags collision-data))
+                    (respawn-object-as-dynamic object (collision-flags body)))))
     (with-slots (attached-objects) robot-object
       (let ((attachment (assoc (name object) attached-objects)))
         (cond (link

@@ -43,7 +43,6 @@
            #:object-attached-robot #:object-detached-robot
            #:object-attached-object #:object-detached-object
 
-           #:object-placed-event
            ;; #:object-removed-event
            ;; #:object-updated-event
            #:event-object-name

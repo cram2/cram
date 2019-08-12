@@ -320,7 +320,7 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
       (when (and obj-found other-obj-found)
         (detach-object obj other-obj)))))
 
-(defmethod respawn-object-as-dynamic ((object object))
+(defmethod respawn-object-as-dynamic ((object object) &optional collision-flags)
   (let* ((world (world object))
          (world-state (get-state world)))
     (loop for rigid-body in (rigid-bodies object)
@@ -332,4 +332,4 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
                                  (bodies world-state)
                                  :key 'name)
           when (and body body-state)
-            do (bullet:respawn-rigid-body-with-flags body world nil))))
+            do (bullet:respawn-rigid-body-with-flags body world collision-flags))))
