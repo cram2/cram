@@ -74,6 +74,7 @@ bl_pkg_paths = {}
 ##################
 
 def blacklist(dirpath, pkg=None):
+    """Add DIRPATH to the blacklist if it's not already CATKIN_IGNOREd."""
     dir_content = os.listdir(dirpath)
     if 'CATKIN_IGNORE' not in dir_content:
         # open(os.path.join(dirpath, 'CATKIN_IGNORE'), 'w')
@@ -81,6 +82,7 @@ def blacklist(dirpath, pkg=None):
     # print "Blacklisted: " + dirpath
 
 def whitelist(dirpath, pkg=None):
+    """Add DIRPATH to the whitelist if it's CATKIN_IGNOREd."""
     dir_content = os.listdir(dirpath)
     if 'CATKIN_IGNORE' in dir_content:
         # os.remove(os.path.join(dirpath, 'CATKIN_IGNORE')) 
@@ -89,11 +91,13 @@ def whitelist(dirpath, pkg=None):
 
 
 def get_package_name(path):
+    """Return the package name stated in the package.xml under PATH."""
     xml_path = os.path.join(path, 'package.xml')
     e = et.parse(xml_path).getroot()
     return e.find('name').text
 
 def get_dependencies(xml):
+    """Return the list of dependencies in the XML as strings."""
     # Choose the right set of dependency tags
     depend_tags = set()
     if "format" in xml.attrib and xml.attrib["format"] == "2":
@@ -108,9 +112,12 @@ def get_dependencies(xml):
     dependencies = map(lambda x: x.text, dependency_elements)
     return dependencies
 
-def print_pkg_list(pkg_list):
+def print_pkg_list(pkg_dict):
+    """Print a list of packages in PKG_DICT."""
+
+    # Sort packages and directories in two groups.
     keyfun = lambda x: x[1] == None
-    sort = sorted(pkg_list.items(), key=keyfun)
+    sort = sorted(pkg_dict.items(), key=keyfun)
     groups = []
     keys = []
     for k, g in itertools.groupby(sort, keyfun):
@@ -124,6 +131,7 @@ def print_pkg_list(pkg_list):
     if True in keys:
         dirnames = [x[0] for x in groups[keys.index(True)]]
     
+    # Print the packages.
     step = 5
     if len(pkgs) != 0:
         for i in range(0, min(MAX_PKG_LIST, len(pkgs)), step):
@@ -131,7 +139,7 @@ def print_pkg_list(pkg_list):
         if len(pkgs) > MAX_PKG_LIST:
             print("\n   and {} more...".format(len(pkgs) - MAX_PKG_LIST))
 
-
+    # Print the directories.
     if len(dirnames) != 0:
         print("\n  And also in the sub packages of these directories/stacks:")
         for dirname in dirnames[:MAX_STACK_LIST]:
@@ -245,6 +253,7 @@ def execute():
         os.remove(os.path.join(dirpath, 'CATKIN_IGNORE')) 
 
 def profile_str():
+    """Return the profile of white- and blacklisted packages as a string."""
     profile = """Latest configuration ({}):""".format(datetime.datetime.now())
     for pkg, dirpath in sorted(pkg_paths.items(), key=operator.itemgetter(1)):
         profile += "\n  * "
@@ -257,6 +266,7 @@ def profile_str():
     return profile
 
 def parse_args():
+    """Parse the arguments passed to the script."""
     parser = argparse.ArgumentParser(description="Configure a CRAM repository for a set of given packages.",
         epilog="""The script has to be run inside the top-level directory of the CRAM repository.
 You can only pass packages which are inside the CRAM repository, otherwise the script can't know for which dependencies to configure.""")
