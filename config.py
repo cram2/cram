@@ -35,6 +35,7 @@ import yaml
 import datetime
 import operator
 import itertools
+import argparse
 import xml.etree.ElementTree as et
 
 MAX_STACK_LIST = 5
@@ -144,7 +145,7 @@ def print_pkg_list(pkg_list):
 ##################
 
 def crawl():
-    """Traverse the repository and collect all pacakges in pkg_paths."""
+    """Traverse the repository and collect all packages in pkg_paths."""
     global pkg_paths
     for dirpath, dirnames, filenames in os.walk('.'):
         if '.git' in dirnames:
@@ -255,36 +256,36 @@ def profile_str():
     profile += "\n"
     return profile
 
-def usage():
-    usage_txt = """Usage:
-    python config.py <package> [*<package>]
+def parse_args():
+    parser = argparse.ArgumentParser(description="Configure a CRAM repository for a set of given packages.",
+        epilog="""The script has to be run inside the top-level directory of the CRAM repository.
+You can only pass packages which are inside the CRAM repository, otherwise the script can't know for which dependencies to configure.""")
 
-    The script has to be run inside the top-level directory of the CRAM repository.
-    You can only pass packages which are inside the CRAM repository, otherwise the script can't know for which dependencies to configure.
-    """
-    return usage_txt
-
+    parser.add_argument("packages", nargs='+', help="The packages to configure for.")
+    parser.add_argument("-n3p", "--no_3rdparty", action='store_true', help="This option can be supplied if for some reason not all cram_3rdparty packages should be included in the configuration.")
+    return parser.parse_args()
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2 or sys.argv[1] in ["-h", "--help"]:
-        print(usage())
-        sys.exit()
+    args = parse_args()
 
     crawl()
     check_package_names()
 
-    if not check_for_high_level_packages(sys.argv[1:]):
+    if not check_for_high_level_packages(args.packages):
         print(usage())
         sys.exit()
 
-    build_profile(sys.argv[1:])
+    packages = args.packages
+    if not args.no_3rdparty and "cram_3rdparty" not in packages:
+        packages.append("cram_3rdparty")
+        print("To prevent complications the packages in 'cram_3rdparty' have been included by default.")
+    build_profile(packages)
     config()
     if not ask_permission():
         sys.exit()
     execute()
 
     profile = profile_str()
-    # print(profile)
+
     with open("latest_config", "w") as f:
         f.write(profile)
-
