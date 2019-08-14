@@ -347,6 +347,34 @@ Otherwise, the attachment is only used as information but does not affect the wo
     :collision-mask collision-mask
     :compound compound))
 
+(let ((updated-attachments (make-hash-table)))
+  (defun get-updated-attachments ()
+    "Returns `updated-attachments'. Exists for testing."
+    updated-attachments)
+  
+  (defun updated-link-in-attachment (link attachment)
+    "Returns if the pose of the attached object behind the `attachment'
+was updated by checking if `link' was already updated. The already
+updated links are saved under the attachment name in `updated-attachments'.
+If all links of an attachment were updated the entry under the attachment
+name in `updated-attachments' gets deleted."
+    (let ((links-attached-to (mapcar #'btr::attachment-link (car (cdr attachment)))))
+      (when (and link (member (cl-urdf:name link) links-attached-to :test #'string-equal))
+        (if (gethash (car attachment) updated-attachments)
+            (setf (gethash (car attachment) updated-attachments)
+                  (push (cl-urdf:name link) (gethash (car attachment) updated-attachments)))
+            (progn
+              (setf (gethash (car attachment) updated-attachments) (list (cl-urdf:name link)))
+              (return-from updated-link-in-attachment NIL)))
+        (when (equal ;; checks if the list of links in attachment and the already visited links are equal
+               (length links-attached-to)
+               (length
+                (intersection
+                 (gethash (car attachment) updated-attachments)
+                 links-attached-to :test #'string-equal)))
+          (remhash (car attachment) updated-attachments))
+        (return-from updated-link-in-attachment T)))))
+
 (defun update-attached-object-poses (robot-object link pose)
   "Updates the poses of all objects that are attached to
 `link'. `pose' is the new pose of `link'"
@@ -362,7 +390,8 @@ Otherwise, the attachment is only used as information but does not affect the wo
                              (find (cl-urdf:name link) (car (cdr attachment))
                                    :key #'attachment-link :test #'equal)))
                        (and link-attachment
-                            (not (attachment-loose link-attachment)))))
+                            (not (attachment-loose link-attachment))
+                            (not (updated-link-in-attachment link attachment)))))
                    attached-objects)))
                (body-transform (cl-transforms:reference-transform (pose body)))
                (pose-transform (cl-transforms:reference-transform pose))
