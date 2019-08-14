@@ -12,7 +12,7 @@
                  (:file "items-tests" :depends-on ("package"))
                  (:file "objects-tests" :depends-on ("package"))
                  (:file "robot-model-tests" :depends-on ("package"))
-                 (:file "robot-model-utils-tests" :depends-on ("package" "robot-model-tests"))
+                 (:file "robot-model-utils-tests" :depends-on ("package" "robot-model-tests objects-tests"))
                  (:file "bounding-box-tests" :depends-on ("package"))
                  (:file "timeline-tests" :depends-on ("package"))
                  (:file "copy-world-tests" :depends-on ("package"))
