@@ -36,7 +36,7 @@
          (rob-int:robot ?robot)
          (assert (btr:object ?world :urdf ?robot ((0 0 0) (0 0 0 1))
                              :urdf ,rob-int:*robot-urdf*))))
-  (clrhash (btr::get-updated-attachments))
+  (clrhash btr::*updated-attachments*)
   (btr:detach-all-objects (btr:get-robot-object)))
 
 (define-test attach-object-unknown-link
@@ -200,7 +200,26 @@
     (btr:remove-object btr:*current-bullet-world* 'o1)
     (btr:remove-object btr:*current-bullet-world* 'o2)))
 
-(define-test updated-link-in-attachment-simple
+(define-test updated-link-in-attachment-with-attachment-attached-to-one-link
+  ;; Tests if the function updated-link-in-attachment work as the doc of it explains
+  (setup-world)
+  (btr-utils:spawn-object 'o1 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (let ((link "base_link"))
+    (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world* 'o1) :link link)
+    ;;'((o1
+    ;;   (list of attachments) <- link1, link2 
+    ;;   collision-info of o1))
+    (lisp-unit:assert-false
+     (btr::updated-link-in-attachment
+      (gethash link (cl-urdf:links (btr:urdf (btr:get-robot-object))))
+      (first (btr::attached-objects (btr:get-robot-object)))))
+    (lisp-unit:assert-number-equal 0 (length (gethash 'o1 btr::*updated-attachments*)))
+    (lisp-unit:assert-false (gethash 'o1 btr::*updated-attachments*))
+    
+    (btr:remove-object btr:*current-bullet-world* 'o1)))
+
+(define-test updated-link-in-attachment-with-attachment-attached-to-two-links
   ;; Tests if the function updated-link-in-attachment work as the doc of it explains
   (setup-world)
   (btr-utils:spawn-object 'o1 :mug :pose 
@@ -216,14 +235,14 @@
      (btr::updated-link-in-attachment
       (gethash link1 (cl-urdf:links (btr:urdf (btr:get-robot-object))))
       (first (btr::attached-objects (btr:get-robot-object)))))
-    (lisp-unit:assert-number-equal 1 (length (gethash 'o1 (btr::get-updated-attachments))))
-    (lisp-unit:assert-equal link1 (first (gethash 'o1 (btr::get-updated-attachments))))
+    (lisp-unit:assert-number-equal 1 (length (gethash 'o1 btr::*updated-attachments*)))
+    (lisp-unit:assert-equal link1 (first (gethash 'o1 btr::*updated-attachments*)))
  
     (lisp-unit:assert-true
      (btr::updated-link-in-attachment
       (gethash link2 (cl-urdf:links (btr:urdf (btr:get-robot-object))))
       (first (btr::attached-objects (btr:get-robot-object)))))
-    (lisp-unit:assert-false (gethash 'o1 (btr::get-updated-attachments)))
+    (lisp-unit:assert-false (gethash 'o1 btr::*updated-attachments*))
     
     (btr:remove-object btr:*current-bullet-world* 'o1)))
 
@@ -243,7 +262,33 @@
      (btr::updated-link-in-attachment
       (gethash "asdasdasd" (cl-urdf:links (btr:urdf (btr:get-robot-object))))
       (first (btr::attached-objects (btr:get-robot-object)))))
-    (lisp-unit:assert-false (gethash 'o1 (btr::get-updated-attachments)))
+    (lisp-unit:assert-false (gethash 'o1 btr::*updated-attachments*))
+    
+    (btr:remove-object btr:*current-bullet-world* 'o1)))
+
+(define-test setf-pose-robot-object-with-one-attached-object-to-one-link
+  ;; Tests if the attached object gets properly positioned if it is attached to two links
+  ;; and the robot moves and rotates
+  (setup-world)
+  (setf (pose (btr:get-robot-object)) (cl-transforms:make-pose
+                                         (cl-tf:make-3d-vector 0 0 0)
+                                         (cl-transforms:make-quaternion 0 0 0 1)))
+  (btr-utils:spawn-object 'o1 :mug :pose 
+                          '((0.2 0.0 0.9)(0 0 0 1)))
+  (let ((link "base_link"))
+    (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world* 'o1) :link link)
+    ;;'((o1
+    ;;   (list of attachments) <- link1, link2 
+    ;;   collision-info of o1))
+    (setf (pose (btr:get-robot-object)) (cl-transforms:make-pose
+                                         (cl-tf:make-3d-vector 0.2 0 0)
+                                         (cl-transforms:make-quaternion 0 0 1 1)))
+    (lisp-unit:assert-equal
+     (list 0.2d0 0.2d0 0.9d0)
+     (vector->list (cl-transforms:origin (pose (object *current-bullet-world* 'o1)))))
+    (lisp-unit:assert-equal
+     (list 0.7071067690849304d0 0.0d0 0.0d0 0.7071067690849304d0)
+     (orientation->list (cl-transforms:orientation (pose (object *current-bullet-world* 'o1)))))
     
     (btr:remove-object btr:*current-bullet-world* 'o1)))
 
