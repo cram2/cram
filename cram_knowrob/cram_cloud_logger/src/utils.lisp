@@ -1,5 +1,20 @@
 (in-package :ccl)
 
+(defun get-url-variable-result-as-str-from-json-prolog-result (variable-name json-prolog-result)
+  (let* ((variable-name-key
+           (transform-variable-name-to-variable-key variable-name))
+         (json-prolog-first-result
+           (car json-prolog-result))
+         (prolog-string-url
+           (string (cdr (assoc variable-name-key json-prolog-first-result)))))
+    (convert-to-lisp-str prolog-string-url)))
+
+(defun transform-variable-name-to-variable-key (variable-name)
+  (read-from-string (concatenate 'string "|?" variable-name "|")))
+
+(defun convert-to-lisp-str (prolog-str)
+  (subseq prolog-str 1 (- (length prolog-str) 1)))
+
 (defun get-designator-property-value-str (designator property-keyname)
   (string (cadr (assoc property-keyname (desig:properties designator)))))
 
