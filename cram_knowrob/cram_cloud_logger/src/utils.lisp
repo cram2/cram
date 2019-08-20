@@ -7,7 +7,7 @@
            (car json-prolog-result))
          (prolog-string-url
            (string (cdr (assoc variable-name-key json-prolog-first-result)))))
-    (convert-to-lisp-str prolog-string-url)))
+    prolog-string-url))
 
 (defun transform-variable-name-to-variable-key (variable-name)
   (read-from-string (concatenate 'string "|?" variable-name "|")))
