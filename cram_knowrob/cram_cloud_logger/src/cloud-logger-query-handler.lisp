@@ -1,5 +1,33 @@
 (in-package :ccl)
 
+(defun start-episode ()
+  (send-episode-query "mem_episode_start"))
+
+(defun stop-episode ()
+  (send-episode-query "mem_episode_stop"))
+
+(defun send-episode-query (predicate-name)
+  (let ((query-result (send-query-1 predicate-name '("Episode"))))
+    (ccl::get-url-variable-result-as-str-from-json-prolog-result "Episode" query-result)))
+
+(defun send-query-1 (query-name query-parameters)
+  (let ((query (create-query query-name query-parameters)))
+    (json-prolog:prolog-simple query)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; CLOUD LOGGER RELATED STUFF (OLD) ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun send-cram-start-parent-action (owl-action-class task-context start-time
                                prev-action parent-task action-inst)
   (send-prolog-query-1
