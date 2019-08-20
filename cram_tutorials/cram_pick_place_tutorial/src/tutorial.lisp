@@ -42,29 +42,9 @@
    `((,joint-name  ,joint-angle))
    (btr:object btr:*current-bullet-world* kitchen-name)))
 
-(defun add-objects-to-mesh-list (&optional (ros-package "cram_bullet_world_tutorial"))
-  (mapcar (lambda (object-filename-and-object-extension)
-            (declare (type list object-filename-and-object-extension))
-            (destructuring-bind (object-filename object-extension)
-                object-filename-and-object-extension
-              (let ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
-                                object-filename :keyword)))
-                (pushnew (list lisp-name
-                               (format nil "package://~a/resource/~a.~a"
-                                       ros-package object-filename object-extension)
-                               nil)
-                         btr::*mesh-files*
-                         :key #'car)
-                lisp-name)))
-          (mapcar (lambda (pathname)
-                    (list (pathname-name pathname) (pathname-type pathname)))
-                  (directory (physics-utils:parse-uri
-                              (format nil "package://~a/resource/*.*" ros-package))))))
-
-
 (defun spawn-object (spawn-pose &optional (obj-type :bottle) (obj-name 'bottle-1) (obj-color '(1 0 0)))
   (unless (assoc obj-type btr::*mesh-files*)
-    (add-objects-to-mesh-list))
+    (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo"))
   (btr-utils:spawn-object obj-name obj-type :color obj-color :pose spawn-pose)
   (btr:simulate btr:*current-bullet-world* 10))
 
