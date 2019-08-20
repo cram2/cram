@@ -1,6 +1,15 @@
 (in-package :ccl)
 
 
+(defun start-situation (situation-uri)
+  (attach-time-to-situation "mem_event_begin" situation-uri))
+
+(defun stop-situation (situation-uri)
+  (attach-time-to-situation "mem_event_end" situation-uri))
+
+(defun attach-time-to-situation (predicate-name situation-uri)
+  (send-query-1-without-result predicate-name situation-uri))
+
 (defun attach-event-to-situation (event-prolog-url situation-prolog-url)
   (get-url-from-send-query-1 "TaskNode" "mem_event_create" situation-prolog-url event-prolog-url "TaskNode"))
 
@@ -12,6 +21,10 @@
 
 (defun send-episode-query (predicate-name)
   (get-url-from-send-query-1 "Episode" predicate-name "Episode"))
+
+(defun send-query-1-without-result (query-name &rest query-parameters)
+  (let ((query (create-query query-name query-parameters)))
+    (send-query-1 query)))
 
 (defun send-query-1 (query)
   (json-prolog:prolog-simple query))
