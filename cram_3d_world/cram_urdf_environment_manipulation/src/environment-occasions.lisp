@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Christopher Pollok <cpollok@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,14 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :rs)
+(in-package :env-man)
 
-(cpm:def-process-module robosherlock-perception-pm (motion-designator)
-  (destructuring-bind (command argument-1) (desig:reference motion-designator)
-    (ecase command
-      (cram-common-designators:detect
-       (handler-case
-           (perceive :detect argument-1)))
-      ;; (cram-common-designators:inspect
-      ;;  (handler-case
-      ;;      (perceive :inspect argument-1)))
-      )))
-
-
-(prolog:def-fact-group rs-pm (cpm:matching-process-module
-                              cpm:available-process-module)
-
-  (prolog:<- (cpm:matching-process-module ?motion-designator robosherlock-perception-pm)
-    (or (desig:desig-prop ?motion-designator (:type :detecting))
-        (desig:desig-prop ?motion-designator (:type :inspecting))))
-
-  (prolog:<- (cpm:available-process-module robosherlock-perception-pm)
-    (prolog:not (cpm:projection-running ?_))))
+(def-fact-group environment-occasions (cpoe:container-state)
+  (<- (cpoe:container-state ?container-designator ?distance)
+    (spec:property ?container-designator (:urdf-name ?container-name))
+    (spec:property ?container-designator (:part-of ?btr-environment))
+    (btr:bullet-world ?world)
+    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
+    (lisp-fun get-connecting-joint ?container-link ?joint)
+    (lisp-fun cl-urdf:name ?joint ?joint-name)
+    (btr:joint-state ?world ?btr-environment ?joint-name ?distance)))

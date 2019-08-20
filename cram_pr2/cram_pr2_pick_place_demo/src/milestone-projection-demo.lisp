@@ -35,7 +35,7 @@
     (:cup . ((1.42 0.7 0.48) (0 0 0 1))) ; left-middle-drawer
     (:spoon . ((1.43 0.9 0.74132) (0 0 0 1))) ;; left-upper-drawer
     ;; So far only this orientation works
-    (:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.83147d0 0.55557d0)))
+    (:breakfast-cereal . ((1.412 1.490 1.2558) (0 0 -0.55557d0 0.83147d0)))
     ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
     ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
     (:milk . ((1.45 -1.04 0.955) (0 0 0 1)))))
@@ -55,11 +55,13 @@
                  (in (an object
                          (type drawer)
                          (urdf-name sink-area-left-middle-drawer-main)
+                         (owl-name "drawer_sinkblock_middle_open")
                          (part-of kitchen)))))
     (:cup . ,(a location
                 (in (an object
                         (type drawer)
                         (urdf-name sink-area-left-middle-drawer-main)
+                        (owl-name "drawer_sinkblock_middle_open")
                         (part-of kitchen)))))
     (:spoon . ,(desig:a location
                         (in (desig:an object
@@ -72,12 +74,15 @@
                              (in (an object
                                      (type drawer)
                                      (urdf-name oven-area-area-right-drawer-main)
+                                     (owl-name "drawer_oven_right_open")
                                      (part-of kitchen)
                                      (level topmost)))
-                             (side front)))
+                             ;; (side front)
+                             ))
     (:milk . ,(a location (in (an object
-                                  (type container)
+                                  (type fridge)
                                   (urdf-name iai-fridge-main)
+                                  (owl-name "drawer_fridge_upper_interior")
                                   (part-of kitchen)
                                   (level topmost)))))))
 
@@ -120,6 +125,28 @@
                              (side right)))))
 
 
+(defparameter *delivery-poses*
+  `((:bowl . ((-0.8399440765380859d0 1.2002920786539713d0 0.8932199478149414d0)
+              (0.0 0.0 0.33465 0.94234)))
+    (:cup . ((-0.8908212025960287d0 1.4991984049479166d0 0.9027448018391927d0)
+             (0.0 0.0 0.33465 0.94234)))
+    (:spoon . ((-0.8409400304158529d0 1.38009208679199219d0 0.8673268000284831d0)
+               (0.0 0.0 1 0)))
+    (:milk . ((-0.8495257695515951d0 1.6991498311360678d0 0.9483174006144206d0)
+              (0.0 0.0 -0.9 0.7)))
+    (:breakfast-cereal . ((-0.8497650782267253d0 0.8972648620605469d0 0.9625186920166016d0)
+                          (0 0 0 1)))))
+
+(defparameter *cleaning-deliver-poses*
+  `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
+    (:cup . ((1.45 -0.4 1.0) (0 0 0 1)))
+    (:spoon . ((1.45 -0.4 1.0) (0 0 0 1)))
+    (:milk . ((1.2 -0.5 0.8) (0 0 1 0)))
+    (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
+
+
+
+
 (defun attach-objects-to-the-world (object-type)
   (when (assoc object-type *object-attachment-links*)
     (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
@@ -149,9 +176,12 @@
 
 (defun setup-for-demo (object-list)
   (initialize)
-  (spawn-objects-on-fixed-spots :object-types object-list)
+  (when cram-projection:*projection-environment*
+    (spawn-objects-on-fixed-spots :object-types object-list :spawning-poses *delivery-poses*))
+  ;; (park-robot)
   )
-  ;; Open the fridge manually
+
+;; Open the fridge manually
   ;; Uncomment and include in `setup-for-demo' to get it working as long as the
   ;; automatic opening of the fridge door when referring to container is still in work
   ;; Can only be used with the milk situation right now, as keeping the fridge opened will block pr2 from
@@ -171,6 +201,12 @@
   ;;               (urdf-name :iai_fridge_door_handle)
   ;;               (part-of kitchen))))))))
 
+(defun projection-init ()
+  (setf btr:*visibility-threshold* 0.7)
+  (setf cram-urdf-projection:*debug-short-sleep-duration* 0.5)
+  (setf cram-urdf-projection:*debug-long-sleep-duration* 1.0)
+  (setf cram-urdf-projection-reasoning::*projection-checks-enabled* t)
+  (spawn-objects-on-fixed-spots))
 
 (defun perform-demo (&optional (object-list '(:milk)))
   "Generic implementation, ideally this should work for all objects together.
@@ -178,23 +214,115 @@ Right now, only works with '(:milk) and '(:bowl :cup :spoon). There is a separat
 for :breakfast-cereal in the bottom.
 To get this working with milk, all the code of accessing and sealing inside the transport plan has to be
 commented out "
-  (setup-for-demo object-list)
+  ;; (setup-for-demo object-list)
 
-  (urdf-proj:with-simulated-robot
-    (dolist (?object object-list)
-      (let* ((?d (cdr (assoc ?object *delivery-locations*)))
-             (?f (cdr (assoc ?object *fetch-locations*)))
-             (?obj (an object
-                       (type ?object)
-                       (location ?f))))
-        (exe:perform
-         (an action
-             (type transporting)
-             (object ?obj)
-             (desig:when (member ?object '(:bowl :cup))
-               (grasp top))
-             (location ?f)
-             (target ?d)))))))
+  (dolist (?object-type object-list)
+    (let* (;; (?deliver-location (cdr (assoc ?object-type *delivery-locations*)))
+           (?deliver-pose (cram-tf:ensure-pose-in-frame
+                           (btr:ensure-pose
+                            (cdr (assoc ?object-type *delivery-poses*)))
+                           cram-tf:*fixed-frame*))
+           (?deliver-location (a location (pose ?deliver-pose)))
+           (?fetch-location (cdr (assoc ?object-type *fetch-locations*)))
+           (?color (cdr (assoc ?object-type *object-colors*)))
+           (?grasp (cdr (assoc ?object-type *object-grasps*)))
+           (?object (an object
+                        (type ?object-type)
+                        (location ?fetch-location)
+                        (desig:when ?color
+                          (color ?color)))))
+      (exe:perform
+       (an action
+           (type transporting)
+           (object ?object)
+           (desig:when ?color
+             (color ?color))
+           (grasps (:back :top :front))
+           (arms (left right))
+           ;; (desig:when ?grasp
+           ;;   (grasp ?grasp))
+           (location ?fetch-location)
+           (target ?deliver-location))))))
+
+(defun cleaning-demo (&optional (object-list '(:milk)))
+  "Generic implementation, ideally this should work for all objects together.
+Right now, only works with '(:milk) and '(:bowl :cup :spoon). There is a separate method
+for :breakfast-cereal in the bottom.
+To get this working with milk, all the code of accessing and sealing inside the transport plan has to be
+commented out "
+  ;; (setup-for-demo object-list)
+
+  (dolist (?object-type object-list)
+    (let* ((?deliver-pose (cram-tf:ensure-pose-in-frame
+                           (btr:ensure-pose
+                            (cdr (assoc ?object-type *cleaning-deliver-poses*)))
+                           cram-tf:*fixed-frame*))
+           (?deliver-location (a location (pose ?deliver-pose)))
+           (?fetch-location (a location
+                               (on (an object
+                                       (type counter-top)
+                                       (urdf-name kitchen-island-surface)
+                                       (owl-name "kitchen_island_counter_top")
+                                       (part-of kitchen)))
+                               (side back)
+                               (side right)))
+           (?color (cdr (assoc ?object-type *object-colors*)))
+           (?grasp (cdr (assoc ?object-type *object-grasps*)))
+           (?object (an object
+                        (type ?object-type)
+                        (location ?fetch-location)
+                        (desig:when ?color
+                          (color ?color)))))
+      (when (or (eql ?object-type :milk)
+                (eql ?object-type :breakfast-cereal))
+        (exe:perform (an action
+                         (type accessing)
+                         (arm left)
+                         (location
+                          (desig:a location
+                                   (in (an object
+                                           (type drawer)
+                                           (urdf-name sink-area-trash-drawer-main)
+                                           (owl-name "drawer_sinkblock_middle_open")
+                                           (part-of kitchen))))))))
+      (let ((?obj (exe:perform
+                   (an action
+                       (type searching)
+                       (object ?object)
+                       (location ?fetch-location)))))
+        (exe:perform (desig:an action
+                               (type fetching)
+                               (object ?obj)
+                               (grasp ?grasp)
+                               (arm right)))
+        (exe:perform (desig:an action
+                               (type delivering)
+                               (object ?obj)
+                               (target ?deliver-location)))
+        (setf (btr:pose (btr:object btr:*current-bullet-world*
+                                    (desig:desig-prop-value ?obj :name)))
+              (cram-tf:translate-pose
+               (btr:pose (btr:object btr:*current-bullet-world*
+                                     (desig:desig-prop-value ?obj :name)))
+               :z-offset -0.3))
+        (when (or (eql ?object-type :milk)
+                  (eql ?object-type :breakfast-cereal))
+          (btr:attach-object (btr:get-environment-object)
+                             (btr:object btr:*current-bullet-world*
+                                         (desig:desig-prop-value ?obj :name))
+                             :link "sink_area_trash_drawer_main")))
+      (when (or (eql ?object-type :milk)
+                (eql ?object-type :breakfast-cereal))
+        (exe:perform (an action
+                         (type sealing)
+                         (arm left)
+                         (location
+                          (desig:a location
+                                   (in (an object
+                                           (type drawer)
+                                           (urdf-name sink-area-trash-drawer-main)
+                                           (owl-name "drawer_sinkblock_middle_open")
+                                           (part-of kitchen)))))))))))
 
 
 (cpl:def-cram-function get-from-vertical-drawer (&optional ?open (?object :breakfast-cereal))

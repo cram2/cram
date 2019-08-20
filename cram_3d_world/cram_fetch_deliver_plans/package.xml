@@ -21,6 +21,7 @@
   <depend>cram_prolog</depend>
   <depend>cram_common_failures</depend>
   <depend>cram_mobile_pick_place_plans</depend>
+  <depend>cram_manipulation_interfaces</depend>
   <depend>cram_urdf_projection_reasoning</depend>
   <depend>cram_urdf_environment_manipulation</depend>
 </package>

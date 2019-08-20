@@ -25,6 +25,7 @@
   <run_depend>cl_store</run_depend>
   <run_depend>cl_utilities</run_depend>
   <run_depend>fiveam</run_depend>
+  <run_depend>float_features</run_depend>
   <run_depend>gsll</run_depend>
   <run_depend>iterate</run_depend>
   <run_depend>lisp_unit</run_depend>
