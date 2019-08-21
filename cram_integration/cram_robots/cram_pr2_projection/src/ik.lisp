@@ -55,42 +55,55 @@
                                            "/get_ik")
                 :service-type "moveit_msgs/GetPositionIK")))))
 
-(defun get-ik-solver-info (left-or-right)
-  (or (getf *ik-solver-infos* left-or-right)
-      (setf (getf *ik-solver-infos* left-or-right)
-            (roslisp:with-fields (kinematic_solver_info)
-                (roslisp:call-service
-                 (concatenate 'string
-                              (getf *ik-service-namespaces* left-or-right)
-                              "/get_ik_solver_info")
-                 "pr2_arm_kinematics/GetKinematicSolverInfo")
-              kinematic_solver_info))))
+;; (defun get-ik-solver-info (left-or-right)
+;;   (or (getf *ik-solver-infos* left-or-right)
+;;       (setf (getf *ik-solver-infos* left-or-right)
+;;             (roslisp:with-fields (kinematic_solver_info)
+;;                 (roslisp:call-service
+;;                  (concatenate 'string
+;;                               (getf *ik-service-namespaces* left-or-right)
+;;                               "/get_ik_solver_info")
+;;                  "pr2_arm_kinematics/GetKinematicSolverInfo")
+;;               kinematic_solver_info))))
 
 (defun get-ik-solver-joints (left-or-right)
-  (roslisp:with-fields (joint_names)
-      (get-ik-solver-info left-or-right)
-    joint_names))
+  ;; (roslisp:with-fields (joint_names)
+  ;;     (get-ik-solver-info left-or-right)
+  ;;   joint_names)
+  (ecase left-or-right
+    (:left
+     #("l_shoulder_pan_joint" "l_shoulder_lift_joint" "l_upper_arm_roll_joint"
+       "l_elbow_flex_joint" "l_forearm_roll_joint" "l_wrist_flex_joint"
+       "l_wrist_roll_joint"))
+    (:right
+     #("r_shoulder_pan_joint" "r_shoulder_lift_joint" "r_upper_arm_roll_joint"
+       "r_elbow_flex_joint" "r_forearm_roll_joint" "r_wrist_flex_joint"
+       "r_wrist_roll_joint"))))
 
 (defun get-ik-solver-link (left-or-right)
-  (roslisp:with-fields (link_names)
-      (get-ik-solver-info left-or-right)
-    (aref link_names 0)))
+  ;; (roslisp:with-fields (link_names)
+  ;;     (get-ik-solver-info left-or-right)
+  ;;   (aref link_names 0))
+  (ecase left-or-right
+    (:left "l_wrist_roll_link")
+    (:right "r_wrist_roll_link")))
 
-(defun get-fk-solver-info (left-or-right)
-  (or (getf *fk-solver-infos* left-or-right)
-      (setf (getf *fk-solver-infos* left-or-right)
-            (roslisp:with-fields (kinematic_solver_info)
-                (roslisp:call-service
-                 (concatenate 'string
-                              (getf *ik-service-namespaces* left-or-right)
-                              "/get_fk_solver_info")
-                 "pr2_arm_kinematics/GetKinematicSolverInfo")
-              kinematic_solver_info))))
+;; (defun get-fk-solver-info (left-or-right)
+;;   (or (getf *fk-solver-infos* left-or-right)
+;;       (setf (getf *fk-solver-infos* left-or-right)
+;;             (roslisp:with-fields (kinematic_solver_info)
+;;                 (roslisp:call-service
+;;                  (concatenate 'string
+;;                               (getf *ik-service-namespaces* left-or-right)
+;;                               "/get_fk_solver_info")
+;;                  "pr2_arm_kinematics/GetKinematicSolverInfo")
+;;               kinematic_solver_info))))
 
 (defun get-fk-solver-joints (left-or-right)
-  (roslisp:with-fields (joint_names)
-      (get-fk-solver-info left-or-right)
-    joint_names))
+  ;; (roslisp:with-fields (joint_names)
+  ;;     (get-fk-solver-info left-or-right)
+  ;;   joint_names)
+  (get-ik-solver-joints left-or-right))
 
 (defun get-fk-links (left-or-right)
   (ecase left-or-right
