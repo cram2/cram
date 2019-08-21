@@ -1,0 +1,26 @@
+<package>
+  <name>quadtree</name>
+  <version>0.1.0</version>
+  <description>
+      3rd party library: quadtree
+  </description>
+
+  <author>Masayuki Takagi</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>Public domain</license>
+
+  <url type="website">http://www.quickdocs.org/quadtree/api#system-quadtree</url>
+  <url type="bugtracker">https://github.com/cram2/cram_3rdparty/issues</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <url type="repository">https://github.com/takagi/quadtree.git</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sbcl</build_depend>
+
+  <run_depend>sbcl</run_depend>
+</package>
+
+
