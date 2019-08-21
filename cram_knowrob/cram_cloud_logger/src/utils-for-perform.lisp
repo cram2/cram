@@ -32,51 +32,57 @@
 
 (cpl:define-task-variable *action-parents* '())
 (defparameter *action-siblings* (make-hash-table))
+(defparameter *episode-name* nil)
+(defparameter *is-logging-enabled* nil)
+
+(defun get-parent-uri()
+  (if (is-action-parent)
+      *episode-name*
+      (car *action-parents*)))
+
+(defun is-action-parent ()
+  (if (not *action-parents*) t nil))
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
-      ;;This hack was needed for the milestone 2018
-      ;;(if (and *is-logging-enabled* (not (string-equal (get-designator-property-value-str designator :TYPE) "grasping")))
       (let ((action-id (log-perform-call designator))
-            (is-parent-action nil)
             (cram-action-name (get-designator-property-value-str designator :TYPE)))
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
-               (log-cram-finish-action action-id)
-               (send-task-success action-id "false")
-               (log-failure action-id e)
-               (equate action-id (log-perform-call  (second (desig:reference designator))))
-               (if is-parent-action
-                   (send-batch-query))))
-          ;;(print designator)
-          (if cram-projection:*projection-environment*
-            (send-performed-in-projection action-id "true")
-            (send-performed-in-projection action-id "false"))
-          (log-cram-sub-action
-           (car *action-parents*)
-           action-id
-           (get-knowrob-action-name cram-action-name designator))
-          (log-cram-sibling-action
-           (car *action-parents*) action-id (get-knowrob-action-name cram-action-name designator))
-          (if (not *action-parents*)
-              (setq is-parent-action t))
+               ;;(log-cram-finish-action action-id)
+               ;;(send-task-success action-id "false")
+               ;;(log-failure action-id e)
+               ;;(equate action-id (log-perform-call  (second (desig:reference designator)))))
+               (print "plan failure")))
+
+          ;;;;;;;;;;;;;;;; CHECK IF ENVIRONMENT IS A SIMULATION
+          ;;(if cram-projection:*projection-environment*
+          ;;  (send-performed-in-projection action-id "true")
+          ;;  (send-performed-in-projection action-id "false"))
+
+          ;;;;;;;;;;;;;;;; LOG SUBACTIONS
+          ;;(log-cram-sub-action
+          ;; (car *action-parents*)
+          ;; action-id
+          ;; (get-knowrob-action-name cram-action-name designator))
+
+          ;;(log-cram-sibling-action
+          ;; (car *action-parents*) action-id (get-knowrob-action-name cram-action-name designator))
+          (print "LAAAAAAAAAAAAAAAAAAAAAAAAAA")
           (push action-id *action-parents*)
+          
           (multiple-value-bind (perform-result action-desig)
               (call-next-method)
-          (let ((referenced-action-id (log-perform-call action-desig
-                                                        ;; (second (desig:reference action-desig))
-                                                        ;; *referenced-designator*
-                                                        )))
-            (log-cram-finish-action action-id)
-            (equate action-id referenced-action-id)
-            (when (and perform-result (typep perform-result 'desig:object-designator))
-              (let ((name (desig:desig-prop-value perform-result :name)))
-                (when name
-                  (send-object-action-parameter action-id perform-result))))
-            (send-task-success action-id "true")
-            (if is-parent-action
-                   (send-batch-query))
-            perform-result))))
+            ;;(let ((referenced-action-id (log-perform-call action-desig)))
+            (let ((referenced-action-id ""))
+              ;;(log-cram-finish-action action-id)
+              ;;(equate action-id referenced-action-id)
+              ;;(when (and perform-result (typep perform-result 'desig:object-designator))
+              ;;  (let ((name (desig:desig-prop-value perform-result :name)))
+              ;;    (when name
+              ;;      (send-object-action-parameter action-id perform-result))))
+              ;;(send-task-success action-id "true")
+              perform-result))))
       (call-next-method)))
 
 (defun equate (designator-id referenced-designator-id)
@@ -85,23 +91,15 @@
                     (convert-to-prolog-str referenced-designator-id)))
 
 (defun log-perform-call (designator)
-  (connect-to-cloud-logger)
-  (if *is-client-connected*
-      (let ((result "")
-            (cram-action-name (get-designator-property-value-str designator :TYPE))
+  (if *is-logging-enabled*
+      (let ((cram-action-name (get-knowrob-action-name-uri (get-designator-property-value-str designator :TYPE) designator))
             (action-designator-parameters (desig:properties designator)))
-        (setf result (get-value-of-json-prolog-dict
-                      (cdaar
-                       (send-cram-start-action
-                        (get-knowrob-action-name-uri cram-action-name designator)
-                        " \\'TableSetting\\'"
-                        (convert-to-prolog-str (get-timestamp-for-logging))
-                        "PV"
-                        "ActionInst"))
-                      "ActionInst"))
-        (log-action-designator-parameters-for-logged-action-designator
-         action-designator-parameters result)
-        result)
+        (print cram-action-name)
+        (attach-event-to-situation cram-action-name (get-parent-uri))
+        ;;LOG THE ACTION PARAMETERS
+        ;;(log-action-designator-parameters-for-logged-action-designator
+        ;; action-designator-parameters result)
+        )
       "NOLOGGING"))
 
 (defun log-failure (action-id failure-type)

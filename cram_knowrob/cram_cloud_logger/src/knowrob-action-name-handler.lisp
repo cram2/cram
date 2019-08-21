@@ -1,7 +1,7 @@
 (in-package :ccl)
 
 (defun get-knowrob-action-name-uri (cram-action-name designator)
-  (concatenate 'string "knowrob:" (convert-to-prolog-str (get-knowrob-action-name cram-action-name designator))))
+  (concatenate 'string "'http://www.ease-crc.org/ont/EASE-ACT.owl#" (get-knowrob-action-name cram-action-name designator) "'"))
 
 (defun get-knowrob-action-name (cram-action-name designator)
   (let ((knowrob-action-name nil))
