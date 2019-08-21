@@ -1,6 +1,6 @@
 ;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
-;;;                     Thomas Lipps <tlipps@uni-bremen.de>
+;;;               2019, Thomas Lipps <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,8 @@
   (<- (man-int:object-type-direct-subtype :assembly-item :front-wheel))
   (<- (man-int:object-type-direct-subtype :assembly-item :nut)))
 
-(def-fact-group assembly-attachment-type-attachment (man-int:unidirectional-attachment)
-  
+(def-fact-group attachmend-knowledge (man-int:unidirectional-attachment)
+
   (<- (man-int:unidirectional-attachment ?attachment-type)
     (member ?attachment-type (:horizontal-attachment :vertical-attachment))))
 
@@ -177,6 +177,7 @@
 (defparameter *window-grasp-y-offset* 0.005)
 (defparameter *window-grasp-z-offset* 0.015)
 
+;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :window '(:left :right) :top
   :grasp-translation `(,(- *window-grasp-x-offset*)
                         ,*window-grasp-y-offset*
@@ -193,6 +194,7 @@
 (defparameter *front-wheel-grasp-y-offset* 0.01)
 (defparameter *front-wheel-grasp-z-offset* 0.004)
 
+;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :front-wheel '(:left :right) :top
   :grasp-translation `(,(- *front-wheel-grasp-x-offset*)
                        ,*front-wheel-grasp-y-offset*
@@ -209,6 +211,7 @@
 (defparameter *propeller-grasp-y-offset* 0.0)
 (defparameter *propeller-grasp-z-offset* 0.003)
 
+;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :propeller '(:left :right) :top
   :grasp-translation `(,*propeller-grasp-x-offset*
                        ,*propeller-grasp-y-offset*
@@ -221,6 +224,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOLT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :bolt '(:left :right) :top
   :grasp-translation `(0.0 0.0 0.003)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
@@ -256,15 +260,15 @@
 
 (man-int:def-object-type-in-other-object-transform :front-wheel :chassis :left-wheel-attachment
   :attachment-translation `(-0.0 -0.15 0.00)
-  :attachment-rot-matrix man-int:*rotation-around-x-90-matrix*)
+  :attachment-rot-matrix man-int:*rotation-around-x+90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :front-wheel :chassis :right-wheel-attachment
   :attachment-translation `(-0.0 -0.15 0.00)
-  :attachment-rot-matrix  man-int:*rotation-around-x-90-matrix*)
+  :attachment-rot-matrix  man-int:*rotation-around-x+90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :top-wing :holder-plane-vertical :vertical-attachment
   :attachment-translation `(0.025 0 0.183)
-  :attachment-rot-matrix man-int:*rotation-around-x+90-and-z-180-matrix*)
+  :attachment-rot-matrix man-int:*rotation-around-z-180-and-x+90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :bolt :upper-body :rear-thread
   :attachment-translation `(-0.0525 0.0 -0.01;; -0.025

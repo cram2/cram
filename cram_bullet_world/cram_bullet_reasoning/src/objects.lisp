@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +14,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -29,6 +29,26 @@
 ;;;
 
 (in-package :btr)
+
+(defclass object ()
+  ((name :initarg :name :reader name)
+   (rigid-bodies :initform (make-hash-table :test 'equal))
+   (pose-reference-body :initarg :pose-reference-body
+                        :documentation "The name of the rigid-body
+                        that is used for returning the pose of the
+                        object. It defaults to the first body that got
+                        added.")
+   (world :initarg :world :reader world)))
+
+
+(defun make-object (world name &optional
+                                 bodies (add-to-world t))
+  (make-instance 'object
+    :name name
+    :world world
+    :rigid-bodies bodies
+    :add add-to-world))
+
 
 (defgeneric add-object (world type name pose &key &allow-other-keys)
   (:documentation "Adds an object of `type' named `name' to the bullet
@@ -47,15 +67,6 @@
                      :format-control "Could not find a body named `~a'"
                      :format-arguments (list name)))))))
 
-(defclass object ()
-  ((name :initarg :name :reader name)
-   (rigid-bodies :initform (make-hash-table :test 'equal))
-   (pose-reference-body :initarg :pose-reference-body
-                        :documentation "The name of the rigid-body
-                        that is used for returning the pose of the
-                        object. It defaults to the first body that got
-                        added.")
-   (world :initarg :world :reader world)))
 
 (defgeneric rigid-bodies (obj)
   (:documentation "Return the list of rigid bodies that belong to the object `obj'")
@@ -87,6 +98,7 @@
                             :format-control "Could not find body with name `~a'"
                             :format-arguments (list name))))))))))
 
+
 (defgeneric copy-object (obj world)
   (:documentation "Copies the object `obj' and makes it an object of world `world'")
   (:method ((obj object) (world bt-reasoning-world))
@@ -99,6 +111,7 @@
         (prog1 new-instance
           (setf (slot-value new-instance 'rigid-bodies)
                 (copy-hash-table rigid-bodies)))))))
+
 
 (defgeneric initialize-rigid-bodies (object rigid-bodies &key add)
   (:method ((object object) rigid-bodies &key (add t))
@@ -115,13 +128,6 @@
         (setf (gethash (name body) (slot-value object 'rigid-bodies))
               body)))))
 
-(defun make-object (world name &optional
-                                 bodies (add-to-world t))
-  (make-instance 'object
-    :name name
-    :world world
-    :rigid-bodies bodies
-    :add add-to-world))
 
 (defmethod initialize-instance :after ((object object)
                                        &key rigid-bodies pose-reference-body
@@ -140,14 +146,6 @@
     (loop for key being the hash-keys in rigid-bodies do
       (setf (gethash key rigid-bodies) nil))))
 
-(defgeneric attach-object (attach-to-obj obj &key &allow-other-keys) 
-  (:documentation "Adds `obj' to the set of attached objects."))
-
-(defgeneric detach-object (obj detach-obj &key &allow-other-keys)
-  (:documentation "Detaches `obj' from the set of attached objects."))
-
-(defgeneric detach-all-objects (obj)
-  (:documentation "Removes all objects form the list of attached objects."))
 
 (defmethod pose ((object object))
   "Returns the pose of the object, i.e. the pose of the body named by
@@ -164,9 +162,11 @@
 (defun set-object-pose (object new-pose)
   (setf (pose object) (ensure-pose new-pose)))
 
+
 (defmethod draw ((context gl-context) (object object))
   (dolist (body (rigid-bodies object))
     (draw context body)))
+
 
 (defun make-rigid-body-name (obj-name body-name)
   (flet ((ensure-string (name)
@@ -179,6 +179,7 @@
              "."
              (ensure-string body-name))
             :keyword)))
+
 
 (defmethod add-object ((world bt-reasoning-world) type name pose
                        &key disable-collisions-with)
@@ -291,7 +292,7 @@
 
 (defmethod create-static-collision-information ((object object))
   (if (not (object *current-bullet-world* (name object)))
-      (warn "Cannot find object named ~a" (name object))
+      (error "Cannot find object named ~a" (name object))
       (loop for body in (rigid-bodies object)
             collecting (make-collision-information
                         :rigid-body-name (name body)
@@ -305,6 +306,7 @@
                             collision-data))
         do (setf (collision-flags body)
                  (collision-information-flags collision-data))))
+
 
 (defstruct attachment
   "Represents a link between an object and another object or its link.
@@ -328,19 +330,6 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
 (defgeneric detach-all-objects (object)
   (:documentation "Removes all attachments form the list of attached objects of `object'."))
 
-(defmethod attach-object ((object-to-attach-to-names list) (object-name symbol)
-                          &key attachment-type loose skip-removing-loose link grasp)
-  "Attaches object named `object-name' to other objects which names are in
-`object-to-attach-names'."
-  (declare (ignore skip-removing-loose link grasp))
-  (multiple-value-bind (obj obj-found)
-      (btr:object *current-bullet-world* object-name)
-    (when obj-found
-      (attach-object
-       (remove-if-not #'identity
-                      (mapcar (alexandria:curry #'object *current-bullet-world*) object-to-attach-to-names))
-       obj :attachment-type attachment-type :loose loose))))
-
 (defmethod attach-object ((object-to-attach-to-name symbol) (object-name symbol)
                           &key attachment-type loose skip-removing-loose link grasp)
   "Attaches object named `object-name' to another object named `object-to-attach-to-name'."
@@ -350,9 +339,26 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
         (btr:object *current-bullet-world* object-to-attach-to-name)
       (when (and obj-found other-obj-found)
         (attach-object other-obj obj
+                       ;; merged keywords from items.lisp and robot-model.lisp
                        :attachment-type attachment-type :loose loose
                        :skip-removing-loose skip-removing-loose :link link
-                       :grasp grasp))))) ;; merged keywords from items.lisp and robot-model.lisp
+                       :grasp grasp)))))
+
+(defmethod attach-object ((object-to-attach-to-names list) (object-name symbol)
+                          &key attachment-type loose skip-removing-loose link grasp)
+  "Attaches object named `object-name' to other objects,
+the names of which are in `object-to-attach-names'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-name)
+    (when obj-found
+      (attach-object
+       (remove-if-not #'identity
+                      (mapcar (alexandria:curry #'object *current-bullet-world*)
+                              object-to-attach-to-names))
+       obj
+       :attachment-type attachment-type :loose loose
+       :skip-removing-loose skip-removing-loose :link link
+       :grasp grasp))))
 
 (defmethod detach-object ((object-to-detach-from-name symbol) (object-name symbol) &key)
   "Detaches object named `object-name' from another object named `object-to-detach-from-name'."

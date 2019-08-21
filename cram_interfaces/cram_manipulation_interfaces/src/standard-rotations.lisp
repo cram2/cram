@@ -39,12 +39,12 @@
     (1  0  0)
     (0  0  1)))
 
-(defparameter *rotation-around-x+90-and-z-180-matrix*
+(defparameter *rotation-around-z-180-and-x+90-matrix*
   '((0  0  1)
     (1  0  0)
     (0  1  0)))
 
-(defparameter *rotation-around-x-90-matrix*
+(defparameter *rotation-around-x+90-matrix*
   '((1  0  0)
     (0  0 -1)
     (0  1  0)))

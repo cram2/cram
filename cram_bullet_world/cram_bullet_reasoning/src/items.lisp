@@ -279,25 +279,32 @@ The name in the list is a keyword that is created by lispifying the filename."
                                    :half-extents (ensure-vector size)
                                    :color color)))))
 
+
+
 (defmethod get-loose-attached-objects ((object item))
-  "`get-loose-attached-objects' returns all objects with `attachment's
-where the keyword `loose' is not nil"
+  "Returns all objects attached to `object',
+where ATTACHMENTs have the keyword LOOSE as not NIL."
   (mapcar #'car
-          (remove-if-not ;; gets only attached objects with loose not nil
-           (alexandria:compose #'btr::attachment-loose #'car #'car #'cdr)
+          (remove-if-not
+           (alexandria:compose #'attachment-loose #'car #'car #'cdr)
            (attached-objects object))))
-  
-(let ((already-visited '()))  
+
+(let ((already-visited '()))
   (defmethod remove-loose-attachment-for ((object item))
     "Searches if the `object' was connected unidirectional/loosly to other
-objects and removes ALL corresponding attachment if so. To search trough
-the attached objects `already-visited' will help to check, if we already
-checked this object."
+objects and removes ALL corresponding attachments if so.
+To search through the attached objects ALREADY-VISITED will help to check
+if we already checked this object, as this is a recursive function.
+In bidirectional attachments both objects are attached to each other.
+In unidirectional attachments, one object is properly attached,
+and the other one is loosly attached. "
     (let ((loose-attached-objects (get-loose-attached-objects object)))
       (when loose-attached-objects
+        ;; Map the following: (detach-object object loosly-attached-object)
         (mapcar (alexandria:curry #'detach-object object)
-                (mapcar (alexandria:curry #'object *current-bullet-world*) loose-attached-objects))))
-    ;; searching recrusivly, if a object with attachments was attached to something
+                (mapcar (alexandria:curry #'object *current-bullet-world*)
+                        loose-attached-objects))))
+    ;; searching recrusivly, if an object with attachments was attached to something
     ;; to remove unidirectional/loose objects attachments if they were attached too
     (when (and (slot-boundp object 'attached-objects)
                (> (length (attached-objects object)) 0))
@@ -305,23 +312,13 @@ checked this object."
       (loop for attached-object in (mapcar (lambda (attach)
                                              (object *current-bullet-world* (car attach)))
                                            (attached-objects object))
-            do
-               (unless (member (name attached-object) already-visited)
+            do (unless (member (name attached-object) already-visited)
                  (remove-loose-attachment-for attached-object)))
       (if (equal (car (last already-visited)) (name object))
           (setf already-visited '())))))
 
-(defmethod attach-object ((other-objects list) (object item) &key attachment-type loose)
-  "Will be used if an attachment should be made from one item to more
-than one item. If `loose' T the other attachments have to be made with
-`skip-removing-loose' as T to prevent removing loose attachments between
-the element before in `other-objects' and `object'."
-  (attach-object (first other-objects) object :attachment-type attachment-type :loose loose)
-  (mapcar (lambda (obj)
-            (attach-object obj object :attachment-type attachment-type :loose loose :skip-removing-loose T))
-          (cdr other-objects)))
-  
-(defmethod attach-object ((other-object item) (object item) &key attachment-type loose skip-removing-loose link grasp)
+(defmethod attach-object ((other-object item) (object item)
+                          &key attachment-type loose skip-removing-loose link grasp)
   "Attaches `object' to `other-object': adds an attachment to the
 attached-objects lists of each other. `attachment-type' is a keyword
 that specifies the type of attachment. `loose' specifies if the attachment
@@ -340,14 +337,29 @@ attaching more objects unidirectional and should be for this T. See
     (remove-loose-attachment-for object))
   (push (cons (name object)
               (cons
-               (list (make-attachment :object (name object) :attachment attachment-type))
+               (list (make-attachment :object (name object)
+                                      :attachment attachment-type))
                (create-static-collision-information object)))
         (slot-value other-object 'attached-objects))
   (push (cons (name other-object)
               (cons
-               (list (make-attachment :object (name other-object) :loose loose :attachment attachment-type))
+               (list (make-attachment :object (name other-object)
+                                      :loose loose :attachment attachment-type))
                (create-static-collision-information other-object)))
         (slot-value object 'attached-objects)))
+
+(defmethod attach-object ((other-objects list) (object item)
+                          &key attachment-type loose)
+  "Will be used if an attachment should be made from one item to more
+than one item. If `loose' T the other attachments have to be made with
+`skip-removing-loose' as T to prevent removing loose attachments between
+the element before in `other-objects' and `object'."
+  (attach-object (first other-objects) object :attachment-type attachment-type :loose loose)
+  (mapcar (lambda (obj)
+            (attach-object obj object
+                           :attachment-type attachment-type :loose loose
+                           :skip-removing-loose T))
+          (cdr other-objects)))
 
 (defmethod detach-object ((other-object item) (object item) &key)
   "Removes item names from the given arguments in the corresponding `attached-objects' lists
@@ -391,8 +403,11 @@ it is possible to change the pose of its attachments when its pose changes."
             (push (name object) already-moved)
             (call-next-method)
             (dolist (attachment (remove-if #'attachment-loose
-                                           (mapcar #'car (mapcar #'second (attached-objects object)))))
-              (let ((current-attachment-pose (pose (object *current-bullet-world* (attachment-object attachment)))))
+                                           (mapcar #'car
+                                                   (mapcar #'second
+                                                           (attached-objects object)))))
+              (let ((current-attachment-pose
+                      (pose (object *current-bullet-world* (attachment-object attachment)))))
                 (when (and carrier-transform current-attachment-pose)
                   (setf (pose (btr:object btr:*current-bullet-world*
                                           (attachment-object attachment)))

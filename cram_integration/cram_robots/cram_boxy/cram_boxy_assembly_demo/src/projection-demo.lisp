@@ -227,23 +227,29 @@
   (spawn-objects-on-plate)
   (initialize-attachments)
   (urdf-proj:with-projected-robot
-      
+
     ;; 1
     (go-connect :chassis *base-very-left-side-left-hand-pose*
                 :holder-plane-horizontal *base-middle-side-left-hand-pose*
-                :horizontal-attachment)   
+                :horizontal-attachment)
     ;; 2
     (go-connect :bottom-wing *base-very-right-side-left-hand-pose*
                 :chassis *base-left-side-left-hand-pose*
                 :wing-attachment)
-    
+
     ;; 3
     (go-connect :underbody *base-middle-side-left-hand-pose*
                 :bottom-wing *base-middle-side-left-hand-pose*
                 :body-attachment)
 
+    ;; we put the underbody on the bottom-wing but by doing that
+    ;; we also put it on the rear-wing.
+    ;; as there is no explicit placing action, the two will not be
+    ;; attached automatically.
+    ;; so we have to attach them manually unfortunately.
+    ;; this is required for later moving the whole plane onto another holder
     (btr:attach-object 'underbody 'rear-wing)
-    
+
     ;; 4
     (go-connect :upper-body *base-right-side-left-hand-pose*
                 :underbody *base-left-side-left-hand-pose*
@@ -271,23 +277,26 @@
 
     ;; 10
     (go-connect :top-wing  *base-somewhat-left-side-left-hand-pose*
-                :holder-plane-vertical *base-left-side-left-hand-pose*; or `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
+                :holder-plane-vertical *base-left-side-left-hand-pose*
+                ;; or `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
                 :vertical-attachment)
 
     ;; 11
     (go-connect :propeller `((,(- *base-x* 0.15) 2 0) (0 0 0 1))
-                :motor-grill *base-left-side-left-hand-pose*; or `((,(- *base-x* 0.15) 1.8 0) (0 0 0 1))
+                :motor-grill *base-left-side-left-hand-pose*
+                ;; or `((,(- *base-x* 0.15) 1.8 0) (0 0 0 1))
                 :propeller-attachment)
-    
+
     ;; 12
     (go-connect :bolt *base-right-side-left-hand-pose*
-                :propeller *base-left-side-left-hand-pose*; or `((,*base-x* 1.85 0) (0 0 0 1))
+                :propeller *base-left-side-left-hand-pose*
+                ;; or `((,*base-x* 1.85 0) (0 0 0 1))
                 :propeller-thread)
-    
+
     ;;(go-connect :top-wing  *base-left-side-left-hand-pose*
     ;;            :holder-plane-horizontal *base-middle-side-left-hand-pose*
     ;;            :horizontal-attachment)
-    
+
     (exe:perform
      (desig:an action
                (type positioning-arm)
@@ -366,6 +375,8 @@
                  (type placing)
                  (arm left)
                  (object ?object)
+                 ;; this location designator is resolved in
+                 ;; cram_boxy_plans/src/action-designators.lisp
                  (target (desig:a location
                                   (on ?other-object)
                                   (for ?object)
