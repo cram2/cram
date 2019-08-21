@@ -26,16 +26,31 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem bullet-reasoning-test
-  :author "Lorenz Moesenlechner"
-  :license "BSD"
+(in-package :btr-tests)
 
-  :depends-on (cram-bullet-reasoning lisp-unit)
-  :components
-  ((:module "test"
-    :components
-    ((:file "package")
-     (:file "bounding-box-tests" :depends-on ("package"))
-     (:file "timeline" :depends-on ("package"))
-     (:file "copy-world-tests" :depends-on ("package"))
-     (:file "moveit-test" :depends-on ("package"))))))
+(define-test timeline-correct-last-element
+  (let ((timeline (make-instance 'timeline)))
+    (timeline-advance timeline (make-instance 'event :timestamp 0.0))
+    (assert-eq (btr::events timeline) (btr::last-event timeline))
+    (timeline-advance timeline (make-instance 'event :timestamp 1.0))
+    (assert-false (eq (btr::events timeline) (btr::last-event timeline)))
+    (assert-eq (last (btr::events timeline)) (btr::last-event timeline))))
+
+(define-test timeline-correct-front-insert
+  (let ((timeline (make-instance 'timeline))
+        (event-1 (make-instance 'event :timestamp 1.0))
+        (event-2 (make-instance 'event :timestamp 0.0)))
+    (timeline-advance timeline event-1)
+    (timeline-advance timeline event-2)
+    (assert-eq (first (btr::events timeline)) event-2)
+    (assert-eq (second (btr::events timeline)) event-1)))
+
+(define-test timeline-correct-order
+  (let* ((timeline (make-instance 'timeline))
+         (unordered-timestamps '(0.0 1.0 2.0 1.5 3.0 2.5))
+         (ordered-timestamps (sort (mapcar #'identity unordered-timestamps) #'<)))
+    (dolist (stamp unordered-timestamps)
+      (timeline-advance timeline (make-instance 'event :timestamp stamp)))
+    (loop for event in (btr::events timeline)
+          for stamp in ordered-timestamps
+          do (assert-eq stamp (btr::timestamp event)))))

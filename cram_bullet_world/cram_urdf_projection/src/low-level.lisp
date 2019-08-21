@@ -696,15 +696,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
      ;; avoid-all means the robot is not colliding with anything except the
      ;; objects it is holding, and the objects it is holding only collides with robot
      (when (or (btr:robot-colliding-objects-without-attached)
-               (some #'identity
-                     (mapcar (lambda (attachment)
-                               (remove (btr:get-robot-object)
-                                       (btr:find-objects-in-contact
-                                        btr:*current-bullet-world*
-                                        (btr:object
-                                         btr:*current-bullet-world*
-                                         (car attachment)))))
-                             (btr:attached-objects (btr:get-robot-object)))))
+               (btr:objects-colliding-robot-or-objects-without-attached))
        (cpl:fail 'common-fail:manipulation-goal-not-reached
                  :description "Robot is in collision with environment.")))))
 

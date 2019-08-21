@@ -185,3 +185,15 @@ Should it be taken out and made PR2-specific?"
     (reduce #'set-difference
             (list colliding-object-names attached-object-names
                   robot-object-name-list other-objects-to-discard))))
+
+(defmethod objects-colliding-robot-or-objects-without-attached ()
+  (some #'identity
+        (mapcar (lambda (attachment)                                
+                  (remove-if #'attached-objects ;; remove if object has attachments, which are then colliding
+                             (remove (get-robot-object) ;; remove if robot is colliding
+                                     (find-objects-in-contact
+                                      *current-bullet-world*
+                                      (object
+                                       *current-bullet-world*
+                                       (car attachment))))))
+                (attached-objects (get-robot-object)))))
