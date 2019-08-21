@@ -83,7 +83,7 @@
   #.`(:import-from :sb-thread             #:thread ,@+semaphore-symbols+)
   #.`(:import-from :sb-concurrency        ,@+queue-symbols+)
   #.`(:import-from :sb-concurrency        ,@+mailbox-symbols+)
-  #.`(:import-from :synchronization-tools ,@+barrier-symbols+)
+  ;; #.`(:import-from :synchronization-tools ,@+barrier-symbols+)
   #.`(:export
       ;; clos
       #:hooks
