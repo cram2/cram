@@ -4,6 +4,7 @@
                lisp-unit
                cl-transforms
                cram-pr2-description
+               cram-robot-interfaces ; for (robot ?robot)
                ;;cram-boxy-description
                roslisp)
   :components ((:module "tests"

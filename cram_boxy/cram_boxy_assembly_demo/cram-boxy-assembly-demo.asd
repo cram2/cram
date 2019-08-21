@@ -70,7 +70,7 @@
                ;; cram-boxy-low-level
                cram-process-modules
                ;; cram-boxy-process-modules
-               cram-boxy-plans
+               cram-boxy-plans   ; for (a location (on ?obj) (attachment ?att) ...)
 
                ;; real robot
                )

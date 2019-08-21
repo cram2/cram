@@ -120,12 +120,13 @@ If there is no other method with 1 as qualifier, this method will be executed al
                 cram-tf:*fixed-frame*
                 ros-object-name
                 map-to-other-object-transform
-                other-object-to-object-transform)))
-        ;; (setf (btr:pose btr-object) map-to-object-transform)
-        )
-      (if (and
-           attachment-type
-           (prolog `(man-int:unidirectional-attachment ,attachment-type)))
+                other-object-to-object-transform))
+             (object-in-map-pose
+               (cram-tf:strip-transform-stamped
+                map-to-object-transform)))
+        (setf (btr:pose btr-object) object-in-map-pose))
+      (if (and attachment-type
+               (prolog `(man-int:unidirectional-attachment ,attachment-type)))
           (btr:attach-object btr-other-object btr-object :loose T)
           (btr:attach-object btr-other-object btr-object)))))
 

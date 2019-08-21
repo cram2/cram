@@ -2,10 +2,10 @@
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -15,7 +15,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -144,6 +144,7 @@
 (defgeneric (setf link-pose) (new-value robot-object name)
   (:documentation "Sets the pose of a link and all its children"))
 
+
 (defgeneric object-attached (robot-object object)
   (:documentation "Returns the list of links `object' has been
   attached to.")
@@ -154,13 +155,13 @@
               (mapcar #'attachment-grasp (car (cdr (assoc (name object) attached-objects
                                                           :test #'equal))))))))
 
-(defmethod attach-object ((robot-object robot-object) (obj object) &key link loose grasp attachment-type skip-removing-loose)
+(defmethod attach-object ((robot-object robot-object) (obj object)
+                          &key link loose grasp &allow-other-keys)
   "Adds `obj' to the set of attached objects of `robot-object'.
 `link' specifies to which link of `robot-object' to attach the `obj'.
 If `loose' is set to NIL and the link the object is attached to is moved,
 the object moves accordingly.
 Otherwise, the attachment is only used as information but does not affect the world."
-  (declare (ignore attachment-type skip-removing-loose)) ;; used in items.lisp
   (unless (gethash link (links robot-object))
     (error 'simple-error :format-control "Link ~a unknown"
                          :format-arguments (list link)))
@@ -349,7 +350,7 @@ Otherwise, the attachment is only used as information but does not affect the wo
 
 (defvar *updated-attachments* (make-hash-table)
   "Saves the already updated attached objects and the traversed links of it")
-  
+
 (defun updated-link-in-attachment (link attachment)
   "Returns if the pose of the attached object behind the `attachment'
 was updated by checking if `link' was already updated. The already

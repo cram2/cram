@@ -696,7 +696,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
      ;; avoid-all means the robot is not colliding with anything except the
      ;; objects it is holding, and the objects it is holding only collides with robot
      (when (or (btr:robot-colliding-objects-without-attached)
-               (btr:objects-colliding-robot-or-objects-without-attached))
+               (btr:robot-attached-objects-in-collision))
        (cpl:fail 'common-fail:manipulation-goal-not-reached
                  :description "Robot is in collision with environment.")))))
 
