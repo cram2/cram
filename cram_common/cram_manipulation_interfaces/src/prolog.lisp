@@ -53,6 +53,12 @@
     (object-type-direct-subtype ?type ?type-s-child)
     (object-type-subtype ?type-s-child ?subtype)))
 
+(def-fact-group assembly-attachment-type-attachment (man-int:unidirectional-attachment)
+
+  ;; The predicate UNIDIRECTIONAL-ATTACHMENTS holds attachments which
+  ;; are only used for unidirectional/loose attachments.
+  (<- (man-int:unidirectional-attachment ?attachment-type)
+    (fail)))
 
 (def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters)
 
