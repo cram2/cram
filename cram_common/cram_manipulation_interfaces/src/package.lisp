@@ -42,6 +42,7 @@
    #:object-type-subtype
    #:object-type-direct-subtype
    #:robot-free-hand
+   #:unidirectional-attachment
    ;; utils
    #:reasoning-engine-for-method
    ;; manipulation-interfaces
@@ -96,6 +97,8 @@
    ;; standard-rotations
    #:*rotation-around-z-90-matrix*
    #:*rotation-around-z+90-matrix*
+   #:*rotation-around-x+90-matrix*
+   #:*rotation-around-z-180-and-x+90-matrix*
    #:*identity-matrix*
    #:*rotation-around-x+90-list*
    #:*rotation-around-x-90-list*
