@@ -75,3 +75,24 @@
 
 (defun list-defined-grasps (object-type)
   (cut:force-ll (cram-object-interfaces::get-object-type-grasps object-type nil nil nil nil)))
+
+
+(defun visualize-coordinates (object-or-pose &optional (size 0.3))
+  (flet ((find-object-of-type (type)
+           (find type
+                 (remove-if-not (lambda (obj) (typep obj 'btr:item))
+                                (btr:objects btr:*current-bullet-world*))
+                 :test (lambda (type item) (eql type (car (slot-value item 'btr::types)))))))
+    (etypecase object-or-pose
+      (symbol
+       (if (btr:object btr:*current-bullet-world* object-or-pose)
+           (btr:add-vis-axis-object object-or-pose size)
+           (if (find-object-of-type object-or-pose)
+               (btr:add-vis-axis-object (btr:name (find-object-of-type object-or-pose)) size)
+               (warn "Unknown object, please either give an object name or object type."))))
+      (cl-transforms-stamped:pose-stamped
+       (when (equalp (cl-transforms-stamped:frame-id object-or-pose) "base_footprint")
+         (warn "Pose is not in MAP frame. It is visualized with respect to the MAP though."))
+       (btr:add-vis-axis-object object-or-pose size))
+      (cl-transforms:pose
+       (btr:add-vis-axis-object object-or-pose size)))))
