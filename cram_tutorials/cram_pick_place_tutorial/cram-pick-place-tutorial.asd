@@ -1,4 +1,7 @@
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Arthur Niedzwiecki <niedzwiecki@uni-bremen.de>
+;;;                     Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,43 +29,45 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-pr2-projection
-  :author "Gayane Kazhoyan"
-  :license "BSD"
+(defsystem cram-pick-place-tutorial
+  :depends-on (roslisp-utilities ; for ros-init-function
 
-  :depends-on (cram-projection
-               cram-prolog
-               cram-designators
-               cram-utilities
-               cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state ; for event updating before ik requests
-               cram-tf
-               cram-robot-interfaces    ; for ROBOT predicate and COMPUTE-IKS
                cl-transforms
                cl-transforms-stamped
                cl-tf
+               cram-tf
+
+               cram-language
+               cram-executive
+               cram-designators
+               cram-prolog
+               cram-projection
                cram-occasions-events
-               cram-plan-occasions-events
-               cram-pr2-description ; to get kinematic structure names
-               cram-common-designators
+               cram-utilities ; for force-ll etc
+
                cram-common-failures
-               cram-process-modules
-               alexandria ; for CURRY in low-level perception
-               roslisp-utilities ; for rosify-lisp-name
-               moveit_msgs-msg
-               moveit_msgs-srv
-               pr2_arm_kinematics-msg
-               pr2_arm_kinematics-srv
-               cram-semantic-map ; for special projection variable definition
-               )
+
+               cram-physics-utils ; for reading "package://" paths
+               cl-bullet ; for handling BOUNDING-BOX datastructures
+               cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-utilities
+
+               cram-location-costmap
+               cram-btr-visibility-costmap
+               ;; cram-semantic-map-costmap
+               cram-robot-pose-gaussian-costmap
+               cram-occupancy-grid-costmap
+               cram-btr-spatial-relations-costmap
+
+               cram-pr2-projection ; for projection process modules
+               cram-mobile-pick-place-plans
+               cram-pr2-description
+               cram-knowrob-pick-place)
+
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "projection-clock" :depends-on ("package"))
-     (:file "tf" :depends-on ("package"))
-     (:file "ik" :depends-on ("package"))
-     (:file "low-level" :depends-on ("package" "tf" "ik"))
-     (:file "process-modules" :depends-on ("package" "low-level"))
-     (:file "projection-environment" :depends-on ("package" "projection-clock" "tf"
-                                                            "process-modules"))))))
+     (:file "setup" :depends-on ("package"))
+     (:file "tutorial" :depends-on ("package"))))))
