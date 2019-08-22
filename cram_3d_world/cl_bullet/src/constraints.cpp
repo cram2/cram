@@ -125,7 +125,7 @@ extern "C"
 
   double getMotorTargetVelocity(/*const*/ btHingeConstraint *hinge)
   {
-    return hinge->getMotorTargetVelocity() / bulletWorldScalingFactor;
+    return hinge->getMotorTargetVelosity() / bulletWorldScalingFactor;
   }
 
   void setMotorTarget(btHingeConstraint *hinge, double targetAngle, double dt)
