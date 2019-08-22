@@ -34,6 +34,6 @@
 (defpackage cram-pick-place-tutorial
   (:nicknames #:pp-tut)
   (:use #:common-lisp #:cram-prolog
-        #:desig #:exe #:cram-pr2-projection)
+        #:desig #:exe #:cram-pr2-projection #:cram-common-failures)
   (:export))
 

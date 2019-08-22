@@ -71,3 +71,7 @@
            (print e)
            ,@error-handler-body))
     ,@program-body)))
+
+
+(defun list-defined-grasps (object-type)
+  (cut:force-ll (cram-object-interfaces::get-object-type-grasps object-type nil nil nil nil)))

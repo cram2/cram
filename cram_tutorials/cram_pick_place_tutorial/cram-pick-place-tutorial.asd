@@ -43,6 +43,7 @@
                cram-prolog
                cram-projection
                cram-occasions-events
+               cram-utilities ; for force-ll etc
 
                cram-common-failures
 
