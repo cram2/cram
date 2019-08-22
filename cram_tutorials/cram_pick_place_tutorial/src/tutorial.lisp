@@ -48,6 +48,9 @@
   (btr-utils:spawn-object obj-name obj-type :color obj-color :pose spawn-pose)
   (btr:simulate btr:*current-bullet-world* 10))
 
+(defun list-available-objects ()
+  (mapcar #'car btr::*mesh-files*))
+
 
 (defun make-pose (reference-frame pose)
   (cl-transforms-stamped:make-pose-stamped
