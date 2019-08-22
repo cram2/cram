@@ -22,6 +22,7 @@
   <depend>cram_designators</depend>
   <depend>cram_prolog</depend>
   <depend>cram_projection</depend>
+  <depend>cram_utilities</depend>
   <depend>cram_occasions_events</depend>
   <depend>cram_common_failures</depend>
   <depend>cram_physics_utils</depend>
