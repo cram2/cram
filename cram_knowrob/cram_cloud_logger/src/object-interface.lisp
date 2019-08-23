@@ -3,32 +3,32 @@
 (defmethod cram-manipulation-interfaces:get-action-gripping-effort :around (object-type)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "cram-manipulation-interfaces:get-action-gripping-effort" (write-to-string object-type) (write-to-string query-result))
+          ;;(log-reasoning-task "cram-manipulation-interfaces:get-action-gripping-effort" (write-to-string object-type) (write-to-string query-result))
           query-result)
         (call-next-method)))
 
 (defmethod cram-manipulation-interfaces:get-action-gripper-opening :around (object-type)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "cram-manipulation-interfaces:get-action-gripper-opening" (write-to-string object-type) (write-to-string query-result))
+          ;;(log-reasoning-task "cram-manipulation-interfaces:get-action-gripper-opening" (write-to-string object-type) (write-to-string query-result))
           query-result)
         (call-next-method)))
 
-(defmethod cram-manipulation-interfaces:get-action-grasps :around  (object-type arm object-transform-in-base)
-    (if *is-logging-enabled*
-        (let* ((query-result (call-next-method))
-               (query-id (log-reasoning-task "cram-manipulation-interfaces:get-action-grasps" (write-to-string object-type) (write-to-string query-result)))
-               (pose-id (send-create-transform-pose-stamped object-transform-in-base)))
-          (send-rdf-query query-id
-                          "knowrob:parameter2"
-                          (convert-to-prolog-str pose-id))
-          query-result)
-        (call-next-method)))
+;;(defmethod cram-manipulation-interfaces:get-action-grasps :around  (object-type arm object-transform-in-base)
+;;    (if *is-logging-enabled*
+;;        (let* ((query-result (call-next-method))
+;;               (query-id (log-reasoning-task "cram-manipulation-interfaces:get-action-grasps" (write-to-string object-type) (write-to-string query-result)))
+;;               (pose-id (send-create-transform-pose-stamped object-transform-in-base)))
+;;          (send-rdf-query query-id
+;;                          "knowrob:parameter2"
+;;                          (convert-to-prolog-str pose-id))
+;;          query-result)
+;;        (call-next-method)))
 
 (defmethod cram-manipulation-interfaces:get-action-trajectory :around  (action-type arm grasp objects-acted-on  &key &allow-other-keys)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "cram-manipulation-interfaces:get-action-trajectory" (write-to-string grasp) "result")
+          ;;(log-reasoning-task "cram-manipulation-interfaces:get-action-trajectory" (write-to-string grasp) "result")
           query-result)
         (call-next-method)))
 
