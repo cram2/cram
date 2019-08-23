@@ -3,7 +3,7 @@
 
 (defparameter *cloud-logger-client* nil)
 (defparameter *is-client-connected* nil)
-(defparameter *is-logging-enabled* nil)
+;;(defparameter *is-logging-enabled* nil)
 (defvar *my-mutex* (sb-thread:make-mutex))
 
 ;; Sebastian's setup on his PC
