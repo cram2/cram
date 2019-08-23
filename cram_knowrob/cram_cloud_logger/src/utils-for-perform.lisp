@@ -68,9 +68,9 @@
 
           ;;(log-cram-sibling-action
           ;; (car *action-parents*) action-id (get-knowrob-action-name cram-action-name designator))
-          (print "LAAAAAAAAAAAAAAAAAAAAAAAAAA")
           (push action-id *action-parents*)
-          
+
+          (ccl::start-situation action-id)
           (multiple-value-bind (perform-result action-desig)
               (call-next-method)
             ;;(let ((referenced-action-id (log-perform-call action-desig)))
@@ -82,6 +82,7 @@
               ;;    (when name
               ;;      (send-object-action-parameter action-id perform-result))))
               ;;(send-task-success action-id "true")
+              (ccl::stop-situation action-id)
               perform-result))))
       (call-next-method)))
 
@@ -94,7 +95,6 @@
   (if *is-logging-enabled*
       (let ((cram-action-name (get-knowrob-action-name-uri (get-designator-property-value-str designator :TYPE) designator))
             (action-designator-parameters (desig:properties designator)))
-        (print cram-action-name)
         (attach-event-to-situation cram-action-name (get-parent-uri))
         ;;LOG THE ACTION PARAMETERS
         ;;(log-action-designator-parameters-for-logged-action-designator
