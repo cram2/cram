@@ -96,3 +96,14 @@
        (btr:add-vis-axis-object object-or-pose size))
       (cl-transforms:pose
        (btr:add-vis-axis-object object-or-pose size)))))
+
+
+(defun print-pose (pose)
+  (format t "\"~a\" ~a~%" (cl-transforms-stamped:frame-id pose)
+          `((,(cl-transforms:x (cl-transforms:origin pose))
+             ,(cl-transforms:y (cl-transforms:origin pose))
+             ,(cl-transforms:z (cl-transforms:origin pose)))
+            (,(cl-transforms:x (cl-transforms:orientation pose))
+             ,(cl-transforms:y (cl-transforms:orientation pose))
+             ,(cl-transforms:z (cl-transforms:orientation pose))
+             ,(cl-transforms:w (cl-transforms:orientation pose))))))
