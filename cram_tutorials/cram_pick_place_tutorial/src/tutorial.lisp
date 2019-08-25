@@ -96,3 +96,31 @@
        (btr:add-vis-axis-object object-or-pose size))
       (cl-transforms:pose
        (btr:add-vis-axis-object object-or-pose size)))))
+
+
+(defmethod print-object ((pose cl-transforms-stamped:pose-stamped) stream)
+  (print-unreadable-object (pose stream :type nil :identity nil)
+    (let ((origin (cl-transforms:origin pose))
+          (orientation (cl-transforms:orientation pose)))
+     (format stream
+             "~s ((~,5f ~,5f ~,5f) (~,5f ~,5f ~,5f ~,5f))"
+             (cl-transforms-stamped:frame-id pose)
+             (cl-transforms:x origin) (cl-transforms:y origin) (cl-transforms:z origin)
+             (cl-transforms:x orientation)
+             (cl-transforms:y orientation)
+             (cl-transforms:z orientation)
+             (cl-transforms:w orientation)))))
+
+(defmethod print-object ((pose cl-transforms-stamped:transform-stamped) stream)
+  (print-unreadable-object (pose stream :type nil :identity nil)
+    (let ((origin (cl-transforms:translation pose))
+          (orientation (cl-transforms:rotation pose)))
+     (format stream
+             "~s ~s ((~,5f ~,5f ~,5f) (~,5f ~,5f ~,5f ~,5f))"
+             (cl-transforms-stamped:frame-id pose)
+             (cl-transforms-stamped:child-frame-id pose)
+             (cl-transforms:x origin) (cl-transforms:y origin) (cl-transforms:z origin)
+             (cl-transforms:x orientation)
+             (cl-transforms:y orientation)
+             (cl-transforms:z orientation)
+             (cl-transforms:w orientation)))))
