@@ -114,10 +114,11 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 `type' is a simple symbol such as 'milk."
   (let ((name-and-surface-T-object-ll
-          (query-object-and-camera-t-camera-by-object-object-type
+          (query-object-and-camera-T-camera-by-object-type
            (object-type-filter-prolog type)
            start-or-end
-           :table-setting)))
+           :table-setting))
+        (umap-T-ucamera-final))
     
     (cut:lazy-mapcar
      (progn
@@ -143,11 +144,15 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
             (cl-transforms:translation umap-T-uobj)
             (cl-transforms:rotation umap-T-uobj))))      
        
+       
        (lambda (umap-T-ucamera)
          (format t "TRANSFORM ~a" umap-T-ucamera)
-         (map-T-camera->map-P-base (cdadr umap-T-ucamera))))
+         (setq umap-T-ucamera-final (map-T-camera->map-P-base (cdadr umap-T-ucamera)))))
      
-     name-and-surface-T-object-ll)))
+     
+     name-and-surface-T-object-ll)
+    (list name-and-surface-T-object-ll
+          umap-T-ucamera-final)))
 
 
 
