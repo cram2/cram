@@ -64,5 +64,5 @@
     :components
     ((:file "package")
      (:file "grasping" :depends-on ("package"))
-     (:file "utils" :depends-on ("package"))
-     (:file "plans" :depends-on ("package" "utils" "grasping"))))))
+     (:file "setup" :depends-on ("package"))
+     (:file "plans" :depends-on ("package" "setup" "grasping"))))))

@@ -29,6 +29,8 @@
 
 (in-package :cram-pr2-shopping-demo)
 
+
+
 (defun spawn-shelf ()
   (let ((shelve-urdf
           (cl-urdf:parse-urdf
@@ -122,7 +124,7 @@
   (<- (location-costmap:orientation-sample-step 0.1)))
 
 (defun init ()
-  (roslisp:start-ros-node "shopping_demo")
+  ;; (roslisp:start-ros-node "shopping_demo")
 
   (cram-bullet-reasoning-belief-state::ros-time-init)
   (cram-location-costmap::location-costmap-vis-init)
@@ -138,3 +140,7 @@
                                                             :normal (0 0 1) :constant 0))))
   (btr:add-objects-to-mesh-list "cram_pr2_shopping_demo"))
 
+(roslisp-utilities:register-ros-init-function init)
+(roslisp-utilities:register-ros-init-function spawn-robot)
+(roslisp-utilities:register-ros-init-function spawn-shelf)
+(roslisp-utilities:register-ros-init-function spawn-and-place-objects)
