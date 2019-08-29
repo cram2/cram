@@ -97,7 +97,6 @@
       (cl-transforms:pose
        (btr:add-vis-axis-object object-or-pose size)))))
 
-
 (defmethod print-object ((pose cl-transforms-stamped:pose-stamped) stream)
   (print-unreadable-object (pose stream :type nil :identity nil)
     (let ((origin (cl-transforms:origin pose))
