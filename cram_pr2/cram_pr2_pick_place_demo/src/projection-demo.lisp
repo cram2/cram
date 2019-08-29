@@ -78,12 +78,12 @@
 
 (defun make-poses-relative (&optional (spawning-poses *object-spawning-poses*))
   (let* ((object-types '(:breakfast-cereal :cup :bowl :spoon :milk))
-         (map-T-surface (cl-transforms:pose->transform
+         (map-T->surface (cl-transforms:pose->transform
                        (btr:pose
                         (btr:rigid-body
                          (btr:object btr::*current-bullet-world* :kitchen) :|KITCHEN.sink_area_surface|))))
          
-         (surface-T->objects (mapcar (lambda (type)
+oo         (surface-T->objects (mapcar (lambda (type)
                                      (let (( coordinates (car (cdr (assoc type spawning-poses)))))
                                      (cl-transforms:make-transform
                                       (cl-transforms:make-3d-vector
@@ -93,9 +93,9 @@
                                       (cl-transforms:make-identity-rotation))))
                                    object-types))
          
-         (map->objects (mapcar (lambda (surface->object)
-                            (cl-transforms:transform* map->surface surface->object))
-                          surface->objects)))
+         (map->objects (mapcar (lambda (surface-T->object)
+                            (cl-transforms:transform* map-T->surface surface-T->object))
+                          surface-T->objects)))
 
     (mapcar (lambda (transform type)
               (let ((tr (cl-transforms:translation transform)))
