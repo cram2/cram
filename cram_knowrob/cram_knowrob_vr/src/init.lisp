@@ -86,7 +86,7 @@ The path is individual and therefore hardcoded one"
 ;;;;;;;;;;;;;;;;;;;;;;;; BULLET WORLD INITIALIZATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun spawn-semantic-map ()
-  (setf btr:*mesh-path-whitelist* *mesh-path-whitelist-unreal-kitchen*)
+  (setf btr::*mesh-path-whitelist* *mesh-path-whitelist-unreal-kitchen*)
   (prolog:prolog
    `(and (btr:bullet-world ?world)
          (assert (btr:object ?world :semantic-map :semantic-map-kitchen

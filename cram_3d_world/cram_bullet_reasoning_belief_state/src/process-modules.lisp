@@ -60,7 +60,7 @@ the old object-designator description is enough to create a new one."
   (let* ((object-name
            (desig:desig-prop-value old-object :name))
          (object-type
-           (first (btr:item-types
+           (first (btr::item-types
                    (btr:object btr:*current-bullet-world* object-name))))
          (map-T-obj
            (cram-tf:pose->transform-stamped
