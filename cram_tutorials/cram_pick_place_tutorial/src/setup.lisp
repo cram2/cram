@@ -1,6 +1,7 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;;                     Arthur Niedzwiecki <niedzwiecki@uni-bremen.de>
+;;;                     Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -12,8 +13,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -28,44 +29,30 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-bullet-world-tutorial
-  :depends-on (roslisp-utilities ; for ros-init-function
+(in-package :pp-tut)
 
-               cl-transforms
-               cl-transforms-stamped
-               cl-tf
-               cram-tf
+;; roslaunch cram_pick_place_tutorial world.launch
 
-               cram-language
-               cram-executive
-               cram-designators
-               cram-prolog
-               cram-projection
-               cram-occasions-events
+(defun init-projection ()
+  (def-fact-group costmap-metadata ()
+    (<- (location-costmap:costmap-size 12 12))
+    (<- (location-costmap:costmap-origin -6 -6))
+    (<- (location-costmap:costmap-resolution 0.05))
 
-               cram-common-failures
+    (<- (location-costmap:costmap-padding 0.2))
+    (<- (location-costmap:costmap-manipulation-padding 0.2))
+    (<- (location-costmap:costmap-in-reach-distance 0.6))
+    (<- (location-costmap:costmap-reach-minimal-distance 0.2)))
 
-               cram-physics-utils ; for reading "package://" paths
-               cl-bullet ; for handling BOUNDING-BOX datastructures
-               cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state
-               cram-bullet-reasoning-utilities
+  (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
+  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
 
-               cram-location-costmap
-               cram-btr-visibility-costmap
-               ;; cram-semantic-map-costmap
-               cram-robot-pose-gaussian-costmap
-               cram-occupancy-grid-costmap
-               cram-btr-spatial-relations-costmap
+  ;; (sem-map:get-semantic-map)
 
-               cram-urdf-projection ; for projection process modules
-               cram-mobile-pick-place-plans
-               cram-pr2-description
-               cram-object-knowledge)
+  (cram-occasions-events:clear-belief)
 
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "setup" :depends-on ("package"))
-     (:file "tutorial" :depends-on ("package"))))))
+  (setf cram-tf:*tf-default-timeout* 2.0)
+
+  (setf prolog:*break-on-lisp-errors* t))
+
+(roslisp-utilities:register-ros-init-function init-projection)

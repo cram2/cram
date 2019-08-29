@@ -35,7 +35,6 @@
                cram-designators
                cram-utilities
                cram-bullet-reasoning
-               cram-bullet-reasoning-belief-state ; for event updating before ik requests
                cram-tf
                cram-robot-interfaces    ; for ROBOT predicate and COMPUTE-IKS
                cl-transforms
@@ -52,7 +51,9 @@
                moveit_msgs-msg
                moveit_msgs-srv
                pr2_arm_kinematics-msg
-               pr2_arm_kinematics-srv)
+               pr2_arm_kinematics-srv
+               cram-semantic-map ; for special projection variable definition
+               )
   :components
   ((:module "src"
     :components
@@ -63,4 +64,7 @@
      (:file "low-level" :depends-on ("package" "tf" "ik"))
      (:file "process-modules" :depends-on ("package" "low-level"))
      (:file "projection-environment" :depends-on ("package" "projection-clock" "tf"
-                                                            "process-modules"))))))
+                                                            "process-modules"))
+     ;; (:file "action-designators" :depends-on ("package"))
+     ;; (:file "resources" :depends-on ("package"))
+     ))))

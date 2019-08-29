@@ -1,6 +1,7 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;;                     Arthur Niedzwiecki <niedzwiecki@uni-bremen.de>
+;;;                     Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,7 +29,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-bullet-world-tutorial
+(defsystem cram-pick-place-tutorial
   :depends-on (roslisp-utilities ; for ros-init-function
 
                cl-transforms
@@ -42,6 +43,7 @@
                cram-prolog
                cram-projection
                cram-occasions-events
+               cram-utilities ; for force-ll etc
 
                cram-common-failures
 
@@ -58,10 +60,10 @@
                cram-occupancy-grid-costmap
                cram-btr-spatial-relations-costmap
 
-               cram-urdf-projection ; for projection process modules
+               cram-pr2-projection ; for projection process modules
                cram-mobile-pick-place-plans
                cram-pr2-description
-               cram-object-knowledge)
+               cram-knowrob-pick-place)
 
   :components
   ((:module "src"
