@@ -124,3 +124,26 @@
              (cl-transforms:y orientation)
              (cl-transforms:z orientation)
              (cl-transforms:w orientation)))))
+
+(defun inverse-transformation (transformation-matrix)
+  (cl-transforms-stamped:transform-inv transformation-matrix))
+
+(defun get-current-pose-of-object (?obj-name)
+  (let ((?obj-pose (btr:pose
+                    (btr:object btr:*current-bullet-world* ?obj-name))))
+    (cl-transforms-stamped:make-pose-stamped
+     "map" 0.0
+     (cl-transforms:origin ?obj-pose)
+     (cl-transforms:orientation ?obj-pose))))
+
+(defun get-robot-transformation-matrix ()
+  (cl-transforms-stamped:lookup-transform cram-tf:*transformer* "base_footprint" "map"))
+
+(defun get-obj-name (?perceived-object)
+  (second (assoc :name (description ?perceived-object))))
+
+(defun transform-pose (transformation pose)
+  (cl-transforms-stamped:transform transformation pose))
+
+(defun look-up-transformation (target reference)
+  (cl-transforms-stamped:lookup-transform cram-tf:*transformer* target reference))
