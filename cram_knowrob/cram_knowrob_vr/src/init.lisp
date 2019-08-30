@@ -40,8 +40,14 @@
 (in-package :kvr)
 
 (defvar *episode-path*
-  "/media/thomas/LEXAR/episodes/bachelor-thesis/"
+  "/media/thomas/C53E-7039/episodes/bachelor-thesis/"
   "path of where the episode data is located")
+
+(defvar *episode-names*
+  (list "human-muesli-1" "human-muesli-5" "rob-muesli-10" "rob-muesli-4" "rob-muesli-8"
+        "human-muesli-2" "rob-muesli-11" "rob-muesli-5" "rob-muesli-9"
+        "human-muesli-3" "rob-muesli-2" "rob-muesli-6"
+        "human-muesli-4" "rob-muesli-1" "rob-muesli-3" "rob-muesli-7"))
 
 (defun load-multiple-episodes (&optional namedir-list)
   ;;make a list of all directories of episodes and load them
@@ -161,8 +167,7 @@ scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
   (roslisp-utilities:startup-ros)
   (coe:clear-belief)
-  (init-episode (or namedir
-                    (loop for i from 1 to 20 collecting (format nil "ep~a/" i))))
+  (init-episode *episode-names*)
   (spawn-semantic-map)
   (spawn-urdf-items)
   (spawn-semantic-items)
