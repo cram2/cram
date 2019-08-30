@@ -1,0 +1,170 @@
+digraph CRAM {
+  graph [rankdir="LR", splines=ortho, concentrate=true,
+         nodesep=0.02, ranksep=1.0];
+  node [shape=box, labelloc=t, height=0.2, margin="0.01, 0.01"];
+  edge [splines=none];
+
+  //////////////////////////////////////////////////////////////
+
+  transporting [label="transporting\l(object, fetch-loc, target-loc)",height=16];
+
+  node [width=1.6];
+
+  accessing_f [label="accessing\l(fetch-loc)",height=3.2];
+  searching_o [label="searching\l(object)",height=2.2];
+  searching_t [label="searching\l(target-loc)"];
+  accessing_t [label="accessing\l(target-loc)"];
+  fetching    [label="fetching\l(object, fetch-loc)",height=3.4];
+  delivering  [label="delivering\l(object, target-loc)",height=2.4];
+  resetting_t [label="resetting\l(target-loc)",height=2.4];
+  resetting_f [label="resetting\l(fetch-loc)"];
+
+  // invisible nodes to make joint elbow connections
+  // transporting_1 [style=invisible,fixedsize=true,width=0,height=0,label=""];
+  // transporting_2 [style=invisible,fixedsize=true,width=0,height=0,label=""];
+  // transporting_3 [style=invisible,fixedsize=true,width=0,height=0,label=""];
+  // transporting -> transporting_1 [arrowhead=none];
+  // transporting_1 -> transporting_2 [arrowhead=none];
+  // transporting_1 -> transporting_3 [arrowhead=none];
+  // { rank = same; transporting_1; transporting_2; transporting_3 }
+
+  transporting -> accessing_f;
+  transporting -> searching_o;
+  transporting -> searching_t;
+  transporting -> accessing_t;
+  transporting -> fetching;
+  transporting -> delivering;
+  transporting -> resetting_t;
+  transporting -> resetting_f;
+
+  { rank = same;
+    accessing_f; searching_o; searching_t; accessing_t; fetching;
+    delivering; resetting_t; resetting_f;
+  }
+
+  ////////////////////////////////////////////////////////
+
+  node [width=1.9];
+
+  opening_gr_fail [label="opening-gripper", color=Green];
+  navigating_acc  [label="navigating\l(reachable-access-loc)", height=0.6];
+  opening_cont    [label="opening-container", height=2];
+
+  accessing_f -> opening_gr_fail [weight=1, color=Red];
+  accessing_f -> navigating_acc;
+  accessing_f -> opening_cont [weight=2]
+
+  navigating_vis_obj [label="navigating\l(visible-obj)"]
+  moving_torso       [label="moving-torso\l(diff pos)", color=Green];
+  turning            [label="turning-towards", height=0.8];
+  detecting          [color=Green];
+
+  searching_o -> navigating_vis_obj;
+  searching_o -> moving_torso [color=Red];
+  searching_o -> turning;
+  searching_o -> detecting [weight=1];
+
+  navigating_rch_obj [label="navigating\l(reachable-obj)"];
+  turning_2          [label="turning-towards"];
+  parking_arms_fail  [label="parking-arms", color=Green];
+  detecting_2        [color=Green];
+  picking_up         [label="picking-up", height=1.4];
+  parking_arms       [label="parking-arms", color=Green];
+
+  fetching -> navigating_rch_obj [weight=1];
+  fetching -> turning_2;
+  fetching -> parking_arms_fail [color=Red];
+  fetching -> detecting_2;
+  fetching -> picking_up;
+  fetching -> parking_arms [weight=3];
+
+  navigating_rch_tar [label="navigating\l(reachable-target)"];
+  turning_3          [label="turning-towards"];
+  placing            [label="placing", height=1.2];
+
+  delivering -> navigating_rch_tar;
+  delivering -> turning_3;
+  delivering -> placing [weight=2];
+
+  opening_gr_fail_2 [label="opening-gripper", color=Green];
+  navigating_res    [label="navigating\l(reachable-reset-loc)"];
+  closing_cont      [label="closing-container", height=1.4];
+
+  resetting_t -> opening_gr_fail_2 [color=Red];
+  resetting_t -> navigating_res;
+  resetting_t -> closing_cont [weight=2];
+
+  { rank = same;
+    opening_gr_fail navigating_acc opening_cont
+    navigating_vis_obj moving_torso turning detecting
+    navigating_rch_obj turning_2 parking_arms_fail detecting_2 picking_up parking_arms
+    navigating_rch_tar turning_3 placing
+    opening_gr_fail_2 navigating_res closing_cont
+  }
+
+  ///////////////////////////////////////////////////
+
+  node [width=1.6];
+
+  parking_arms_2     [label="parking-arms", color=Green];
+  going              [color=Green];
+
+  navigating_acc -> parking_arms_2;
+  navigating_acc -> going;
+
+  setting_gripper  [label="setting-gripper-pos", color=Green];
+  reaching         [label="reaching", color=Green];
+  grasping         [label="grasping", color=Green];
+  gripping         [label="gripping", color=Green];
+  pulling          [label="pulling", color=Green];
+  releasing        [label="releasing", color=Green];
+  retracting       [label="retracting", color=Green];
+
+  opening_cont -> setting_gripper;
+  opening_cont -> reaching;
+  opening_cont -> grasping;
+  opening_cont -> gripping;
+  opening_cont -> pulling;
+  opening_cont -> releasing;
+  opening_cont -> retracting;
+
+  navigating_fail  [label="navigating\l(towards-loc)"];
+  looking          [color=Green];
+
+  turning -> navigating_fail [color=Red]
+  turning -> looking
+
+  setting_gripper_2 [label="setting-gripper-pos", color=Green]
+  reaching_2        [label="reaching", color=Green]
+  grasping_2        [label="grasping", color=Green]
+  gripping_2        [label="gripping", color=Green]
+  lifting           [label="lifting", color=Green]
+
+  picking_up -> setting_gripper_2
+  picking_up -> reaching_2
+  picking_up -> grasping_2
+  picking_up -> gripping_2
+  picking_up -> lifting
+
+  reaching_3      [label="reaching", color=Green]
+  putting         [label="putting", color=Green]
+  releasing_3     [label="releasing", color=Green]
+  retracting_3    [label="retracting", color=Green]
+
+  placing -> reaching_3
+  placing -> putting
+  placing -> releasing_3
+  placing -> retracting_3
+
+  setting_gripper_4 [label="setting-gripper-pos", color=Green]
+  reaching_4        [label="reaching", color=Green]
+  grasping_4        [label="grasping", color=Green]
+  pushing_4         [label="pushing", color=Green]
+  retracting_4      [label="retracting", color=Green]
+
+  closing_cont -> setting_gripper_4
+  closing_cont -> reaching_4
+  closing_cont -> grasping_4
+  closing_cont -> pushing_4
+  closing_cont -> retracting_4
+}

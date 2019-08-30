@@ -42,7 +42,7 @@
 
 (defmacro with-simulated-robot (&body body)
   `(let ((results
-           (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+           (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
              (cpl:top-level
                ,@body))))
      (car (cram-projection::projection-environment-result-result results))))
@@ -100,7 +100,7 @@
 
 
 (defun move-in-projection-to-fridge ()
-  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+  (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
     (cpl:top-level
       (exe:perform
        (let ((?pose (cl-transforms-stamped:make-pose-stamped
@@ -114,7 +114,7 @@
 (defun execute-trajectory-in-projection ()
   (move-in-projection-to-fridge)
   (let ((trajectory-in-base (local-gripper-trajectory-in-base-from-radius)))
-    (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
+    (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
       (cpl:top-level
         (mapc (lambda (via-point-transform)
                 (let ((?pose (strip-transform-stamped via-point-transform)))

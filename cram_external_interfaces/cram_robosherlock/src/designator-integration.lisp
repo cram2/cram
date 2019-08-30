@@ -35,9 +35,10 @@
       (cram-common-designators:detect
        (handler-case
            (perceive :detect argument-1)))
-      (cram-common-designators:inspect
-       (handler-case
-           (perceive :inspect argument-1))))))
+      ;; (cram-common-designators:inspect
+      ;;  (handler-case
+      ;;      (perceive :inspect argument-1)))
+      )))
 
 
 (prolog:def-fact-group rs-pm (cpm:matching-process-module

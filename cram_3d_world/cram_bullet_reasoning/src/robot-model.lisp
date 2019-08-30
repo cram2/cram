@@ -1,10 +1,11 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +15,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -143,6 +144,7 @@
 (defgeneric (setf link-pose) (new-value robot-object name)
   (:documentation "Sets the pose of a link and all its children"))
 
+
 (defgeneric object-attached (robot-object object)
   (:documentation "Returns the list of links `object' has been
   attached to.")
@@ -153,7 +155,8 @@
               (mapcar #'attachment-grasp (car (cdr (assoc (name object) attached-objects
                                                           :test #'equal))))))))
 
-(defmethod attach-object ((robot-object robot-object) (obj object) &key link loose grasp)
+(defmethod attach-object ((robot-object robot-object) (obj object)
+                          &key link loose grasp &allow-other-keys)
   "Adds `obj' to the set of attached objects of `robot-object'.
 `link' specifies to which link of `robot-object' to attach the `obj'.
 If `loose' is set to NIL and the link the object is attached to is moved,
@@ -175,37 +178,26 @@ Otherwise, the attachment is only used as information but does not affect the wo
              (push (cons (name obj)
                          (cons
                           (list new-attachment)
-                          (loop for body in (rigid-bodies obj)
-                                collecting (make-collision-information
-                                            :rigid-body-name (name body)
-                                            :flags (collision-flags body))
-                                do (setf (collision-flags body) :cf-static-object))))
+                          (create-static-collision-information obj)))
                    attached-objects))))))
 
 (defmethod detach-object ((robot-object robot-object) (object object) &key link)
-  "Detaches `detach-obj' from the set of attached objects.
-If `link' is specified, detaches `object' only from
-  `link'. Otherwise, detaches `object' from all links."
-  (flet ((reset-collision-information (object collision-information)
-           (loop for collision-data in collision-information
-                 for body = (rigid-body
-                             object (collision-information-rigid-body-name
-                                     collision-data))
-                 do (setf (collision-flags body)
-                          (collision-information-flags collision-data)))))
-    (with-slots (attached-objects) robot-object
-      (let ((attachment (assoc (name object) attached-objects)))
-        (cond (link
-               (setf (second attachment)
-                     (remove link (second attachment)
-                             :test #'equal :key #'attachment-link))
-               (unless (second attachment)
-                 (setf attached-objects (remove (name object) attached-objects
-                                                :key #'car))
-                 (reset-collision-information object (cdr (cdr attachment)))))
-              (t (setf attached-objects (remove (name object) attached-objects
-                                                :key #'car))
-                 (reset-collision-information object (cdr (cdr attachment)))))))))
+  "Detaches `object' from the set of attached objects.
+ If `link' is specified, detaches `object' only from
+ `link'. Otherwise, detaches `object' from all links."
+  (with-slots (attached-objects) robot-object
+    (let ((attachment (assoc (name object) attached-objects)))
+      (cond (link
+             (setf (second attachment)
+                   (remove link (second attachment)
+                           :test #'equal :key #'attachment-link))
+             (unless (second attachment)
+               (setf attached-objects (remove (name object) attached-objects
+                                              :key #'car))
+               (reset-collision-information object (cdr (cdr attachment)))))
+            (t (setf attached-objects (remove (name object) attached-objects
+                                              :key #'car))
+               (reset-collision-information object (cdr (cdr attachment))))))))
 
 (defmethod detach-all-objects ((robot-object robot-object))
   "Removes all objects form the list of attached objects."
@@ -356,6 +348,33 @@ If `link' is specified, detaches `object' only from
     :collision-mask collision-mask
     :compound compound))
 
+(defvar *updated-attachments* (make-hash-table)
+  "Saves the already updated attached objects and the traversed links of it")
+
+(defun updated-link-in-attachment (link attachment)
+  "Returns if the pose of the attached object behind the `attachment'
+was updated by checking if `link' was already updated. The already
+updated links are saved under the attachment name in `*updated-attachments*'.
+If all links of an attachment were updated the entry under the attachment
+name in `*updated-attachments*' gets deleted."
+  (let ((links-attached-to (mapcar #'btr::attachment-link (car (cdr attachment))))
+        (ret T))
+    (when (and link (member (cl-urdf:name link) links-attached-to :test #'string-equal))
+      (if (gethash (car attachment) *updated-attachments*)
+          (setf (gethash (car attachment) *updated-attachments*)
+                (push (cl-urdf:name link) (gethash (car attachment) *updated-attachments*)))
+          (progn
+            (setf (gethash (car attachment) *updated-attachments*) (list (cl-urdf:name link)))
+            (setf ret NIL)))
+      (when (equal ;; checks if the list of links in attachment and the already visited links are equal
+             (length links-attached-to)
+             (length
+              (intersection
+               (gethash (car attachment) *updated-attachments*)
+               links-attached-to :test #'string-equal)))
+        (remhash (car attachment) *updated-attachments*))
+      (return-from updated-link-in-attachment ret))))
+
 (defun update-attached-object-poses (robot-object link pose)
   "Updates the poses of all objects that are attached to
 `link'. `pose' is the new pose of `link'"
@@ -371,7 +390,8 @@ If `link' is specified, detaches `object' only from
                              (find (cl-urdf:name link) (car (cdr attachment))
                                    :key #'attachment-link :test #'equal)))
                        (and link-attachment
-                            (not (attachment-loose link-attachment)))))
+                            (not (attachment-loose link-attachment))
+                            (not (updated-link-in-attachment link attachment)))))
                    attached-objects)))
                (body-transform (cl-transforms:reference-transform (pose body)))
                (pose-transform (cl-transforms:reference-transform pose))
@@ -549,7 +569,22 @@ current joint states"
                (cl-transforms:reference-transform
                 (cl-urdf:origin (cl-urdf:collision parent))))
               (cl-transforms:make-identity-transform))
-          joint-transform))))))
+          joint-transform)))
+      ;; also update state of joints that mimic the joint called `name'
+      (loop for joint being the hash-values of (cl-urdf:joints urdf)
+            ;; store the mimic slot of JOINT into a variable if it is bound
+            for joints-mimic-slot = (and (slot-boundp joint 'cl-urdf:mimics)
+                                         (cl-urdf:mimics joint))
+            ;; if the joint mimics some other joint (i.e. mimics slot is bound)
+            when (and joints-mimic-slot
+                      ;; and that other joint happens to be our `name' joint
+                      (string-equal (cl-urdf:joint joints-mimic-slot)
+                                    name))
+              do (let ((multiplier (cl-urdf:multiplier joints-mimic-slot))
+                       (offset (cl-urdf:offset joints-mimic-slot)))
+                   ;; from ROS wiki: value = multiplier * other_joint_value + offset
+                   (setf (joint-state obj (cl-urdf:name joint))
+                         (+ (* multiplier new-value) offset)))))))
 
 (defun set-joint-state (robot name new-state)
   (setf (joint-state robot name) new-state))

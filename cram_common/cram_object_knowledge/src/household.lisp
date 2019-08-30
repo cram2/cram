@@ -55,9 +55,9 @@
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :household-item)))
   50)
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :milk)))
-  15)
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :cereal)))
   20)
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :cereal)))
+  30)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -84,7 +84,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CUTLERY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *cutlery-grasp-z-offset* -0.0 "in meters") ; because TCP is not at the edge
+(defparameter *cutlery-grasp-z-offset* -0.015 ;; 0.015
+              "in meters") ; because TCP is not at the edge
 (defparameter *cutlery-pregrasp-z-offset* 0.20 "in meters")
 (defparameter *cutlery-pregrasp-xy-offset* 0.10 "in meters")
 
@@ -99,14 +100,16 @@
   :2nd-lift-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
 
 ;; BOTTOM grasp
-(man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
-    '(:left :right) :bottom
-  :grasp-translation `(0.0 0.0 ,(- *cutlery-grasp-z-offset*))
-  :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
-  :2nd-pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
-  :lift-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
-  :2nd-lift-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*)))
+;; Bottom grasp is commented out because the robot grasps the spoon through the
+;; drawer, as in the last part of the grasping trajectory collisions are turned off
+;; (man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
+;;     '(:left :right) :bottom
+;;   :grasp-translation `(0.0 0.0 ,(- *cutlery-grasp-z-offset*))
+;;   :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
+;;   :pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
+;;   :2nd-pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
+;;   :lift-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
+;;   :2nd-lift-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -235,22 +238,7 @@
 (defparameter *milk-grasp-xy-offset* 0.01 "in meters")
 (defparameter *milk-grasp-z-offset* 0.0 "in meters")
 (defparameter *milk-pregrasp-xy-offset* 0.15 "in meters")
-
-;; SIDE grasp
-(man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :left-side
-  :grasp-translation `(0.0d0 ,(- *milk-grasp-xy-offset*) ,*milk-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
-  :pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* 0.0)
-  :lift-offsets *lift-offset*
-  :2nd-lift-offsets *lift-offset*)
-(man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :right-side
-  :grasp-translation `(0.0d0 ,*milk-grasp-xy-offset* ,*milk-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
-  :pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) 0.0)
-  :lift-offsets *lift-offset*
-  :2nd-lift-offsets *lift-offset*)
+(defparameter *milk-lift-z-offset* 0.05 "in meters")
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :back
@@ -270,11 +258,39 @@
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 
+;; SIDE grasp
+(man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :left-side
+  :grasp-translation `(0.0d0 ,(- *milk-grasp-xy-offset*) ,*milk-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* 0.0)
+  :lift-offsets `(0.0 ,(- *milk-grasp-xy-offset*) ,*milk-lift-z-offset*)
+  :2nd-lift-offsets `(0.0 ,(- *milk-grasp-xy-offset*) ,*milk-lift-z-offset*))
+(man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :right-side
+  :grasp-translation `(0.0d0 ,*milk-grasp-xy-offset* ,*milk-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) 0.0)
+  :lift-offsets `(0.0 ,*milk-grasp-xy-offset* ,*milk-lift-z-offset*)
+  :2nd-lift-offsets `(0.0 ,*milk-grasp-xy-offset* ,*milk-lift-z-offset*))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *cereal-grasp-z-offset* 0.04 "in meters")
 (defparameter *cereal-grasp-xy-offset* 0.03 "in meters")
+(defparameter *cereal-pregrasp-z-offset* 0.05 "in meters")
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
+(defparameter *cereal-postgrasp-xy-offset* 0.40 "in meters")
+(defparameter *cereal-lift-z-offset* 0.1 "in meters")
+
+;; FRONT grasp
+(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :front
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
+  :lift-offsets `(,*cereal-grasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-offsets `(,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-lift-z-offset*))
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :top
@@ -289,25 +305,17 @@
 (man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :back
   :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
-  :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
+  :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
-  :lift-offsets *lift-offset*
-  :2nd-lift-offsets *lift-offset*)
+  :lift-offsets `(,(- *cereal-grasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-offsets `(,(- *cereal-postgrasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*))
 
-;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :front
-  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
-  :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
-  :lift-offsets *lift-offset*
-  :2nd-lift-offsets *lift-offset*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *bowl-grasp-x-offset* 0.07 "in meters")
-(defparameter *bowl-grasp-z-offset* 0.01 "in meters")
-(defparameter *bowl-pregrasp-z-offset* 0.20 "in meters")
+(defparameter *bowl-grasp-z-offset* 0.0 "in meters")
+(defparameter *bowl-pregrasp-z-offset* 0.30 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top

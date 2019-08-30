@@ -1,19 +1,19 @@
 ;;; Copyright (c) 2019, Jonas Dech <jdech[at]uni-bremen.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;     * Neither the name of the Intelligent Institute for Artificial Intelligence/
+;;;       University of Bremen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -26,120 +26,100 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-bullet-reasoning-belief-state)
+(in-package :btr-belief)
 
-(cpm:def-process-module world-state-detecting (motion-designator)
-  ;;(roslisp:ros-info (world-state-sensing) "Tries to sense the new position of the object")
-  (destructuring-bind (command object) (desig:reference motion-designator)
-    (ecase command
-      (cram-common-designators::sense-pose-object
-       (sense-new-object-pose-from-object object))
-      (cram-common-designators::sense-pose-name
-       (sense-new-object-pose-from-name object)))))
-
-(def-fact-group pr2-matching-pms (cpm:matching-process-module)
-  (<- (cpm:matching-process-module ?motion-designator world-state-detecting)
+(def-fact-group world-state-matching-pms (cpm:matching-process-module)
+  (<- (cpm:matching-process-module ?motion-designator world-state-detecting-pm)
     (desig:desig-prop ?motion-designator (:type :world-state-detecting))))
 
-(defun sense-new-object-pose-from-name (?old-object)
-  (let (map->base
-        map->obj
-        trans
-        ?new-pose
-        ?new-transform
-        ?new-pose-in-map
-        ?new-transform-in-map
-        new-object
-        ?type)
-   
-    (setf map->base (cl-tf:pose->transform (cram-tf:robot-current-pose)))
-    (setf map->obj (setf map->obj (cl-transforms-stamped:pose->transform
-                        (btr:pose (btr:object btr:*current-bullet-world*
-                                              (desig:desig-prop-value ?old-object :name))))))
+(cpm:def-process-module world-state-detecting-pm (motion-designator)
+  (destructuring-bind (command object-designator)
+      (desig:reference motion-designator)
+    (ecase command
+      (cram-common-designators:world-state-detect
+       (world-state-detecting object-designator)))))
 
-    (setf trans (cl-transforms:transform* (cl-transforms:transform-inv map->base) map->obj))
+(defun world-state-detecting (object-designator)
+  (declare (type desig:object-designator object-designator))
+  "Creates a new object designator with pose corresponding to current robot pose.
+The `object-designator' has to have at least a :name key, then detecting happens
+through btr, otherwise, if the designator has :pose and :type and :name,
+the old object-designator description is enough to create a new one."
+  (if (and (desig:desig-prop-value object-designator :pose)
+           (desig:desig-prop-value object-designator :type)
+           (desig:desig-prop-value object-designator :name))
+      (detect-new-object-pose-from-old-pose object-designator)
+      (if (desig:desig-prop-value object-designator :name)
+          (detect-new-object-pose-from-btr object-designator)
+          (cpl:fail 'common-fail:perception-object-not-in-world
+                    :object object-designator
+                    :description (format nil "Object designator ~a has to have a name ~
+                                              or an old pose." object-designator)))))
 
-     (setf ?new-pose (cl-transforms-stamped:make-pose-stamped
-                    "base_footprint"
-                    0.0
-                    (cl-transforms:translation trans)
-                    (cl-transforms:rotation trans)))
-        
-    (setf ?new-transform (cl-transforms-stamped:make-transform-stamped
-                         "base_footprint"
-                         (desig:desig-prop-value ?old-object :name)
-                         0.0
-                         (cl-transforms:translation trans)
-                         (cl-transforms:rotation trans)))
+(defun detect-new-object-pose-from-btr (old-object)
+  (let* ((object-name
+           (desig:desig-prop-value old-object :name))
+         (object-type
+           (first (btr:item-types
+                   (btr:object btr:*current-bullet-world* object-name))))
+         (map-T-obj
+           (cram-tf:pose->transform-stamped
+            cram-tf:*fixed-frame*
+            (roslisp-utilities:rosify-underscores-lisp-name object-name)
+            0.0
+            (btr:pose
+             (btr:object btr:*current-bullet-world* object-name))))
+         (map-P-obj
+           (cram-tf:strip-transform-stamped map-T-obj)))
 
-    (setf ?new-pose-in-map (cl-transforms-stamped:pose->pose-stamped
-                            "map"
-                            0
-                            (btr:pose (btr:object btr:*current-bullet-world*
-                                                  (desig:desig-prop-value ?old-object :name)))))
-
-    (setf ?new-transform-in-map (cl-transforms-stamped:transform->transform-stamped
-                                 "map"
-                                 (desig:desig-prop-value ?old-object :name)
-                                 0
-                                 map->obj 
-                                 ))
-
-    (setf ?type (first (cram-bullet-reasoning::item-types
-                        (btr:object btr:*current-bullet-world* (desig:desig-prop-value ?old-object :name)))))
-    
-    (setf new-object (desig:an object (name (desig:desig-prop-value ?old-object :name))))
-
-    (desig:copy-designator ?old-object
-                           :new-description
-                           `((:name ,(desig:desig-prop-value ?old-object :name))
-                             (:type ,?type)
-                             (:pose ((:pose ,?new-pose)
-                                     (:transform ,?new-transform)
-                                     (:pose-in-map ,?new-pose-in-map)
-                                     (:transform-in-map ,?new-transform-in-map)))))
-                            
-  ))
+    (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
 
 
-(defun sense-new-object-pose-from-object (?old-object)
-  (let (map->base
-        map->obj
-        trans
-        ?new-pose
-        ?new-transform
-        new-object)
+(defun detect-new-object-pose-from-old-pose (old-object)
+  (let ((object-name
+          (desig:desig-prop-value old-object :name))
+        (object-type
+          (desig:desig-prop-value old-object :type))
+        (map-T-obj
+          (man-int:get-object-transform-in-map old-object))
+        (map-P-obj
+          (man-int:get-object-pose-in-map old-object)))
 
-    (setf map->base (cl-tf:pose->transform (cram-tf:robot-current-pose)))
+    (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
 
-    (setf map->obj (man-int:get-object-transform-in-map ?old-object))
-       
 
-  
-    (setf trans (cl-transforms:transform* (cl-transforms:transform-inv map->base) map->obj))
-    
-    (setf ?new-pose (cl-transforms-stamped:make-pose-stamped
-                    "base_footprint"
-                    0.0
-                    (cl-transforms:translation trans)
-                    (cl-transforms:rotation trans)))
-        
-    (setf ?new-transform (cl-transforms-stamped:make-transform-stamped
-                         "base_footprint"
-                         (desig:desig-prop-value ?old-object :name)
-                         0.0
-                         (cl-transforms:translation trans)
-                         (cl-transforms:rotation trans)))
+(defun detect-new-object-pose (old-object object-name object-type map-P-obj map-T-obj)
+  (declare (type desig:object-designator old-object)
+           (type symbol object-name object-type)
+           (type cl-transforms-stamped:pose-stamped map-P-obj)
+           (type cl-transforms-stamped:transform-stamped map-T-obj))
+  "Returns a new object designator with new pose."
+  (let* ((map-T-base
+           (cram-tf:pose->transform-stamped
+            cram-tf:*fixed-frame* cram-tf:*robot-base-frame* 0.0
+            (cram-tf:robot-current-pose)))
+         (base-T-map
+           (cram-tf:transform-stamped-inv map-T-base))
+         (base-T-obj
+           (cram-tf:multiply-transform-stampeds
+            cram-tf:*robot-base-frame*
+            (roslisp-utilities:rosify-underscores-lisp-name object-name)
+            base-T-map map-T-obj))
+         (base-P-obj
+           (cram-tf:strip-transform-stamped base-T-obj)))
 
-    ;; constructing the new Object designator with the new pose and transformation
-    (setf new-object (desig:copy-designator ?old-object
-                                            :new-description
-                                            `((:type ,(desig:desig-prop-value ?old-object :type))
-                                              (:name ,(desig:desig-prop-value ?old-object :name))
-                                              (:pose ((:pose ,?new-pose)
-                                                      (:transform ,?new-transform)
-                                                      (:pose-in-map
-                                                       ,(man-int:get-object-pose-in-map ?old-object))
-                                                       
-                                                      (:transform-in-map
-                                                       ,(man-int:get-object-transform-in-map ?old-object)))))))))
+    (let ((new-object-designator
+            (desig:copy-designator
+             old-object
+             :new-description
+             `((:type ,object-type)
+               (:name ,object-name)
+               (:pose ((:pose ,base-P-obj)
+                       (:transform ,base-T-obj)
+                       (:pose-in-map ,map-P-obj)
+                       (:transform-in-map ,map-T-obj)))))))
+      (setf (slot-value new-object-designator 'desig:data)
+            (make-instance 'desig:object-designator-data
+              :object-identifier object-name
+              :pose map-P-obj))
+      new-object-designator)))

@@ -76,7 +76,6 @@
         (?grasp-pose-left *pose-grasping-left*)
         (?grasp-pose-right *pose-grasping-right*)
         (?pose-near-table *pose-near-table*)
-        (?table *table*)
         ?newobject
         ?newtransform)
 
@@ -150,21 +149,20 @@
                            (target (desig:a location
                                             (pose ?destination)))))))
 (defun collect-article ()
-  (pr2-proj:with-simulated-robot
+  (urdf-proj:with-simulated-robot
     (let ((objects '(:heitmann :dove :denkmit))
           (y 0.2)
           object-desigs
           destination)
       (setf object-desigs (try-detecting objects))
       (loop for ?object in object-desigs
-            do (setf destination (cl-tf:make-pose-stamped
+            do (setf destination (cl-transforms-stamped:make-pose-stamped
                                   "map" 0
-                                  (cl-tf:make-3d-vector -3.1 y 0.75)
-                                  (cl-tf:make-identity-rotation)))
+                                  (cl-transforms:make-3d-vector -3.1 y 0.75)
+                                  (cl-transforms:make-identity-rotation)))
                (move-object ?object destination)
                (btr:simulate btr:*current-bullet-world* 100)
-               (setf y (+ y 0.15)))
-      )))
+               (setf y (+ y 0.15))))))
 
 (defun try-detecting (articles)
   (let ((?pose-detecting *pose-detecting*)

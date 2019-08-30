@@ -68,4 +68,5 @@
            #:object-put
            #:loc
            #:looking-at
-           #:arms-parked))
+           #:arms-parked
+           #:container-state))

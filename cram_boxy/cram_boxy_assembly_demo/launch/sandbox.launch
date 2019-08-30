@@ -11,6 +11,9 @@
     <param name="rate" value="25"/>
     <param name="use_gui" value="False"/>
     <remap from="joint_states" to="kitchen/joint_states" />
+    <rosparam param="source_list">
+      - /kitchen/cram_joint_states
+    </rosparam>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
         args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
@@ -25,15 +28,18 @@
 
   <!-- Boxy URDF -->
   <include file="$(find iai_boxy_description)/launch/upload_boxy.launch" />
-  <!-- <node pkg="joint_state_publisher" type="joint_state_publisher" -->
-  <!--       name="robot_joint_state_publisher" output="screen"> -->
-  <!--   <param name="rate" value="25"/> -->
-  <!--   <param name="use_gui" value="False"/> -->
-  <!-- </node> -->
-  <!-- <node pkg="robot_state_publisher" type="robot_state_publisher" -->
-  <!--   name="robot_state_publisher" output="screen"> -->
-  <!--   <param name="publish_frequency" value="25"/> -->
-  <!-- </node> -->
+  <arg name="publish_joint_state" default="false" />
+  <group if="$(arg publish_joint_state)">
+    <node pkg="joint_state_publisher" type="joint_state_publisher"
+          name="robot_joint_state_publisher" output="screen">
+      <param name="rate" value="25"/>
+      <param name="use_gui" value="False"/>
+    </node>
+    <node pkg="robot_state_publisher" type="robot_state_publisher"
+          name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" value="25"/>
+    </node>
+  </group>
 
   <!-- boxy naive kinematics simulator -->
   <!-- <arg name="sim" default="true" /> -->
@@ -46,9 +52,6 @@
   <!-- </include> -->
   <!-- <include file="$(find wsg_50_simulation)/launch/wsg_50_for_kinematic_sim.launch" /> -->
 
-  <!-- TF buffer server -->
-  <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" />
-
   <!-- Boxy IK solver -->
-  <include file="$(find boxy_arm_kinematics)/launch/boxy_ik.launch" />
+  <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
 </launch>

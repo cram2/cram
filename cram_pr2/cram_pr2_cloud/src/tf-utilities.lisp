@@ -31,7 +31,7 @@
 
 (defun current-robot-transform ()
   (if (eql cram-projection:*projection-environment*
-           'cram-pr2-projection::pr2-bullet-projection-environment)
+           'urdf-proj:urdf-bullet-projection-environment)
       (cram-tf:pose->transform-stamped
        cram-tf:*fixed-frame*
        cram-tf:*robot-base-frame*
