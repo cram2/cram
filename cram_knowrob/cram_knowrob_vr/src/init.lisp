@@ -154,5 +154,6 @@ objects for debugging."
   (spawn-semantic-map)
   (spawn-urdf-items)
   (spawn-semantic-items)
-  (init-location-costmap-parameters))
+  ;;(init-location-costmap-parameters)
+  )
 
