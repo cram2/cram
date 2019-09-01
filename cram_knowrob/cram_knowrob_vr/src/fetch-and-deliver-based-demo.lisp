@@ -189,17 +189,24 @@
         ((common-fail:high-level-failure (e)
            (declare (ignore e))
            (return)))
-      (let ((?bullet-type
-              (object-type-filter-bullet type))
+      (let* ((?bullet-type
+               (object-type-filter-bullet type))
+             (poses-list
+               (alexandria:shuffle
+                (cut:force-ll (umap-P-uobj-through-surface-from-list-ll type "Start"))))
+             
             (?search-poses
-              (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
+              ;;(alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type)))
+              (cadaar poses-list))
             (?search-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
+              ;;(alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type)))
+              (cdadar poses-list))
             (?fetch-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type)))
+              ;;(alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))
+              (cdadar poses-list))
               ;; (base-poses-ll-for-fetching-based-on-object-desig
               ;;  object-designator)
-              )
+              
             (?grasps
               (alexandria:shuffle (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
             (?arms
