@@ -514,8 +514,8 @@ and the transform surface-T-camera as a lazy list of pairs:
             (surface-T-camera
               (cl-transforms:transform*
                surface-T-map map-T-camera)))
-       (list (cons surface-name surface-T-camera)
-             (cons object-type surface-T-object))))
+       (list (cons surface-name surface-T-object)
+             (cons object-type surface-T-camera))))
    (json-prolog:prolog-simple
     (concatenate
      'string
