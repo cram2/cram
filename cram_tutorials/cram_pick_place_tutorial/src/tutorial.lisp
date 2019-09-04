@@ -125,6 +125,7 @@
              (cl-transforms:z orientation)
              (cl-transforms:w orientation)))))
 
+
 (defun inverse-transformation (transformation-matrix)
   (cl-transforms-stamped:transform-inv transformation-matrix))
 
@@ -136,14 +137,25 @@
      (cl-transforms:origin ?obj-pose)
      (cl-transforms:orientation ?obj-pose))))
 
-(defun get-robot-transformation-matrix ()
-  (cl-transforms-stamped:lookup-transform cram-tf:*transformer* "base_footprint" "map"))
+(defun get-robot-transformation ()
+  (let ((?robot-pose (btr:pose (btr:get-robot-object))))
+    (cl-transforms-stamped:make-transform-stamped
+     "map" "base_footprint" 0.0
+     (cl-transforms:origin ?robot-pose)
+     (cl-transforms:orientation ?robot-pose))))
 
-(defun get-obj-name (?perceived-object)
-  (second (assoc :name (description ?perceived-object))))
+(defun get-obj-name (perceived-object)
+  (desig:desig-prop-value perceived-object :name))
 
-(defun transform-pose (transformation pose)
+(defun apply-transformation (transformation pose)
   (cl-transforms-stamped:transform transformation pose))
 
-(defun look-up-transformation (target reference)
-  (cl-transforms-stamped:lookup-transform cram-tf:*transformer* target reference))
+(defun get-x-of-pose (pose-stamped)
+  (cl-transforms:x (cl-transforms:origin pose-stamped)))
+
+(defun get-y-of-pose (pose-stamped)
+  (cl-transforms:y (cl-transforms:origin pose-stamped)))
+
+
+(defun look-up-transformation (parent child)
+  (cl-transforms-stamped:lookup-transform cram-tf:*transformer* parent child :timeout 2.0))
