@@ -85,30 +85,30 @@
 
 (defun place-objects ()
   (btr-utils:move-object :dove '((-1 -1.06 0.7) (0 0 0 1)))
-  (btr-utils:move-object :heitmann '((-1.3 -1.1 1) (0 0 0 1)))
-  (btr-utils:move-object :denkmit '((-2 -1.1 1.3) (0 0 0 1)))
+  (btr-utils:move-object :heitmann '((-1.3 -1.04 1) (0 0 0 1)))
+  (btr-utils:move-object :denkmit '((-2 -1.04 1.3) (0 0 0 1)))
   (btr:simulate btr:*current-bullet-world* 10))
 
 (defun replace-denkmit ()
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
      :arm :right
-     :object-name 'denkmit))
-  (btr-utils:move-object 'denkmit '((-2 -1.1 1.3) (0 0 0 1))))
+     :object-name :denkmit))
+  (btr-utils:move-object :denkmit '((-2 -1.1 1.3) (0 0 0 1))))
 
 (defun replace-dove ()
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
      :arm :left
-     :object-name 'dove))
-  (btr-utils:move-object 'dove '((-1 -1.1 0.7) (0 0 0 1))))
+     :object-name :dove))
+  (btr-utils:move-object :dove '((-1 -1.1 0.7) (0 0 0 1))))
 
 (defun replace-heitmann ()
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
      :arm :left
-     :object-name 'heitmann))
-  (btr-utils:move-object 'heitmann '((-1.3 -1.1 1) (0 0 0 1))))
+     :object-name :heitmann))
+  (btr-utils:move-object :heitmann '((-1.3 -1.1 1) (0 0 0 1))))
 
 (defun init ()
   ;; (roslisp:start-ros-node "shopping_demo")

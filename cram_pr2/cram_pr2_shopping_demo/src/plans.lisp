@@ -70,99 +70,51 @@
                                 (cl-transforms:axis-angle->quaternion
                                  (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
 
+(defparameter *pose-searching* (cl-transforms-stamped:make-pose-stamped
+                                "map" 0
+                                (cl-transforms:make-3d-vector -1.5 -1 1)
+                                (cl-transforms:make-identity-rotation)))
+
 (defun move-object (?object ?destination)
-  (let ((?grasping-arm :right)
-        (?grasp-pose *pose-grasping*)
-        (?grasp-pose-left *pose-grasping-left*)
-        (?grasp-pose-right *pose-grasping-right*)
-        (?pose-near-table *pose-near-table*)
-        ?newobject
-        ?newtransform)
-
-    (exe:perform
-     (desig:a motion
-              (type moving-torso)
-              (joint-angle 0)))
-
-    (exe:perform
-     (desig:an action
-               (type going)
-               (target (desig:a location
-                                (pose ?grasp-pose)))))
+  (let ((?pose-near-table *pose-near-table*)
+        (?table *table*)
+        (?search-pose *pose-searching*)
+        (?newobject (desig:an object (type ?object) (name ?object))))
 
     (exe:perform
      (desig:an action
                (type positioning-arm)
                (left-configuration park)
                (right-configuration park)))
-
-    (setf ?newobject (exe:perform
-                      (desig:a motion
-                               (type world-state-detecting)
-                               (object ?object))))
-
     
-    (setf ?newtransform (man-int:get-object-transform ?newobject))
-    
-    ;; selecting the grasping arm
-    (if (< (cl-transforms:y (cl-transforms:translation ?newtransform)) 0)
-        (setf ?grasping-arm :right)
-        (setf ?grasping-arm :left))
+    (exe:perform
+     (desig:an action
+               (type transporting)
+               (object ?newobject)
+               (location (desig:a location
+                                  (pose ?search-pose)))
+               (target (desig:a location
+                                (pose ?table)))))
 
-    ;; if the object is to far left move to the left
-    (when (> (cl-transforms:y (cl-transforms:translation ?newtransform)) 0.8)
-      (setf ?grasping-arm :left)
-      (exe:perform (desig:a action
-                            (type going)
-                            (target (desig:a location
-                                             (pose ?grasp-pose-left))))))
-    ;; if it is to far on the right move to the right
-    (when (< (cl-transforms:y (cl-transforms:translation ?newtransform)) -0.8)
-      (setf ?grasping-arm :right)
-      (exe:perform (desig:a action
-                            (type going)
-                            (target (desig:a location
-                                             (pose ?grasp-pose-right))))))
+    ))
 
-    (print ?grasping-arm)
 
-    (exe:perform (desig:an action
-                           (type picking-up)
-                           (arm ?grasping-arm)
-                           (grasp left-side)
-                           (object ?newobject)))
-
-    (exe:perform (desig:an action
-                           (type going)
-                           (target (desig:a location
-                                            (pose ?pose-near-table)))))
-
-    ;; If the object was on the top shelf and the torso was lifted
-    (exe:perform (desig:a motion
-                          (type moving-torso)
-                          (joint-angle 0)))
-
-    (exe:perform (desig:an action
-                           (type placing)
-                           (arm ?grasping-arm)
-                           (object ?object)
-                           (target (desig:a location
-                                            (pose ?destination)))))))
 (defun collect-article ()
   (urdf-proj:with-simulated-robot
-    (let ((objects '(:heitmann :dove :denkmit))
+    (let ((objects '(:denkmit :dove))
           (y 0.2)
           object-desigs
           destination)
-      (setf object-desigs (try-detecting objects))
-      (loop for ?object in object-desigs
+     ;; (setf object-desigs (try-detecting objects))
+      (loop for ?object in objects
             do (setf destination (cl-transforms-stamped:make-pose-stamped
                                   "map" 0
                                   (cl-transforms:make-3d-vector -3.1 y 0.75)
                                   (cl-transforms:make-identity-rotation)))
                (move-object ?object destination)
-               (btr:simulate btr:*current-bullet-world* 100)
-               (setf y (+ y 0.15))))))
+               ;;(btr:simulate btr:*current-bullet-world* 100)
+               (setf y (+ y 0.15)))
+      )))
 
 (defun try-detecting (articles)
   (let ((?pose-detecting *pose-detecting*)

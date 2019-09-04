@@ -57,7 +57,8 @@
                cram-urdf-projection
                cram-mobile-pick-place-plans
                cram-pr2-description
-               cram-object-knowledge)
+               cram-object-knowledge
+               cram-fetch-deliver-plans)
 
   :components
   ((:module "src"
