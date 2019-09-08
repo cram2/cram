@@ -114,17 +114,16 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
   "Calculates the pose of the object in map relative to its supporting surface.
 Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 `type' is a simple symbol such as 'milk."
-  (let ((camera-object-poses-ll
+  (let* ((camera-object-poses-ll
           ;;;query for poses
           (query-object-and-camera-T-camera-by-object-type
            (object-type-filter-prolog type)
            start-or-end
            :table-setting))
-        (poses-ll)
-        (final-ll))
+        (look-poses '())
+        (base-poses '()))
     
-    (setq final-ll
-          (cut:lazy-mapcar 
+    (mapcar
            (lambda (camera-object-poses)
              (let* ((surface-name ; both poses need surface name
                       (caar camera-object-poses))
@@ -163,14 +162,13 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
                (setq result-base-pose (map-T-camera->map-P-base
                                        umap-T-ucamera))
                ;; save the results in a list
-               (setq poses-ll (append (list (list "look"
-                                                  result-look-pose)
-                                            (list "base"
-                                                  result-base-pose))
-                                      poses-ll))))
+               (push result-look-pose look-poses)
+               (push result-base-pose base-poses)))
+
      ;;list for mapcar
-           camera-object-poses-ll))
-    final-ll))
+           (cut:force-ll camera-object-poses-ll))
+    
+    (list look-poses base-poses)))
 
 
 

@@ -174,9 +174,9 @@
 
 (cpl:def-cram-function demo (&optional
                              (list-of-objects
-                              '(bowl
-                                spoon
-                                cup)))
+                              '(cup
+                                bowl
+                                spoon)))
 
   (initialize)
   (when cram-projection:*projection-environment*
@@ -192,18 +192,17 @@
       (let* ((?bullet-type
                (object-type-filter-bullet type))
              (poses-list
-               (alexandria:shuffle
-                (cut:force-ll (umap-P-uobj-through-surface-from-list-ll type "Start"))))
+               (umap-P-uobj-through-surface-from-list-ll type "Start"))
              
             (?search-poses
               ;;(alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
-              (cadaar poses-list))
+              (car poses-list))
             (?search-base-poses
               ;;(alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
-              (car (cdadar poses-list)))
+              (cadr poses-list))
             (?fetch-base-poses
               ;;(alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
-              (car (cdadar poses-list)))
+              (cadr poses-list))
               ;; (base-poses-ll-for-fetching-based-on-object-desig
               ;;  object-designator)
               
@@ -225,11 +224,7 @@
                          (when (> (cl-transforms:x (cl-transforms:origin pose)) -1)
                            pose))
                        (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))))
-        (print "-----------------------_")
-        (format t "search-poses ~a" ?search-poses)
-        (format t "search-base-poses ~a" ?search-base-poses)
-        (format t "fetch-base-poses ~a" ?fetch-base-poses)
-        (print "------------------------")
+        (format t "base-poses: ~a" ?search-base-poses)
         (exe:perform
          (desig:an action
                    (type transporting)
