@@ -114,7 +114,7 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
   "Calculates the pose of the object in map relative to its supporting surface.
 Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 `type' is a simple symbol such as 'milk."
-  (let ((name-and-surface-T-object-ll
+  (let ((camera-object-poses-ll
           ;;;query for poses
           (query-object-and-camera-T-camera-by-object-type
            (object-type-filter-prolog type)
@@ -125,33 +125,43 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
     
     (setq final-ll
           (cut:lazy-mapcar 
-           (lambda (name-and-surface-T-object)
-             (let* ((surface-name
-                      (caar name-and-surface-T-object))
-                    (ssurface-T-sobject
-                      (cdar name-and-surface-T-object))
+           (lambda (camera-object-poses)
+             (let* ((surface-name ; both poses need surface name
+                      (caar camera-object-poses))
+                    (ssurface-T-sobject ; for look pose
+                      (cdar camera-object-poses))
                     (umap-T-usurface
                       (cl-transforms:pose->transform
                        (btr:pose
                         (btr:rigid-body
                          (btr:get-environment-object)
                          (match-kitchens surface-name)))))
-              
-                    (umap-T-uobj
+
+                    (ssurface-T-scamera ;base
+                      (cdadr camera-object-poses)) 
+                    
+                    (umap-T-uobj ;look
                       (cl-transforms:transform*
                        umap-T-usurface ssurface-T-sobject))
+                    
+                    (umap-T-ucamera ;base
+                      (cl-transforms:transform*
+                       umap-T-usurface ssurface-T-scamera))
+
                     (result-look-pose)
                     (result-base-pose))
                
-               (setq result-look-pose (cl-transforms-stamped:make-pose-stamped
-                                       cram-tf:*fixed-frame*
-                                       0.0
-                                       (cl-transforms:translation umap-T-uobj)
-                                       (cl-transforms:rotation umap-T-uobj)))      
+               
+               (setq result-look-pose
+                     (cl-transforms-stamped:make-pose-stamped
+                      cram-tf:*fixed-frame*
+                      0.0
+                      (cl-transforms:translation umap-T-uobj)
+                      (cl-transforms:rotation umap-T-uobj)))      
        
                ;;second part for base pose
                (setq result-base-pose (map-T-camera->map-P-base
-                                       (cdadr name-and-surface-T-object)))
+                                       umap-T-ucamera))
                ;; save the results in a list
                (setq poses-ll (append (list (list "look"
                                                   result-look-pose)
@@ -159,7 +169,7 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
                                                   result-base-pose))
                                       poses-ll))))
      ;;list for mapcar
-           name-and-surface-T-object-ll))
+           camera-object-poses-ll))
     final-ll))
 
 
