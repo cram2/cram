@@ -43,6 +43,7 @@
                cram-prolog
                cram-projection
                cram-occasions-events
+               cram-utilities ; for force-ll etc
 
                cram-common-failures
 
@@ -69,4 +70,5 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "tutorial" :depends-on ("package"))))))
+     (:file "tutorial" :depends-on ("package"))
+     (:file "pick-and-place" :depends-on ("package" "tutorial" "setup"))))))
