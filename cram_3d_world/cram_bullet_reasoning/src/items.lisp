@@ -291,21 +291,22 @@ where ATTACHMENTs have the keyword LOOSE as not NIL."
 
 (let ((already-visited '()))
   (defmethod remove-loose-attachment-for ((object item))
-    "Searches if the `object' was connected unidirectional/loosly to other
+    "Searches if the `object' was connected loosely to other
 objects and removes ALL corresponding attachments if so.
-To search through the attached objects ALREADY-VISITED will help to check
-if we already checked this object, as this is a recursive function.
-In bidirectional attachments both objects are attached to each other.
-In unidirectional attachments, one object is properly attached,
-and the other one is loosly attached. "
+To search through the attached objects of `object' the variable
+ALREADY-VISITED will help to prevent loop holes, as this is a
+recursive  function. "
     (let ((loose-attached-objects (get-loose-attached-objects object)))
       (when loose-attached-objects
-        ;; Map the following: (detach-object object loosly-attached-object)
+        ;; Map the following: (detach-object object loosely-attached-object)
         (mapcar (alexandria:curry #'detach-object object)
                 (mapcar (alexandria:curry #'object *current-bullet-world*)
                         loose-attached-objects))))
-    ;; searching recrusivly, if an object with attachments was attached to something
-    ;; to remove unidirectional/loose objects attachments if they were attached too
+    ;; searching recursivly:
+    ;; if `object' has attachments, `remove-loose-attachment-for'
+    ;; gets called with these to remove every indirect loose
+    ;; attachment: e. g. `object' is not loosely attached but one of
+    ;; its attached objects is connected loosely to something
     (when (and (slot-boundp object 'attached-objects)
                (> (length (attached-objects object)) 0))
       (push (name object) already-visited)
@@ -322,9 +323,11 @@ and the other one is loosly attached. "
   "Attaches `object' to `other-object': adds an attachment to the
 attached-objects lists of each other. `attachment-type' is a keyword
 that specifies the type of attachment. `loose' specifies if the attachment
-is bidirectional (nil) or unidirectional (t). `skip-removing-loose' is for
-attaching more objects unidirectional and should be for this T. See
-`attach-object' above."
+is bidirectional (nil) or unidirectional (t). In bidirectional
+attachments both objects are attached to each other. In unidirectional/loose 
+attachments, one object is properly attached, and the other one is
+loosely attached. `skip-removing-loose' should be T for attaching more objects
+unidirectional. See `attach-object' above."
   (declare (ignore link grasp)) ;; used in robot-model.lisp
   (when (equal (name object) (name other-object))
     (warn "Cannot attach an object to itself: ~a" (name object))
@@ -389,7 +392,8 @@ the element before in `other-objects' and `object'."
 
 (let ((already-moved '()))
   (defmethod (setf pose) :around (new-value (object item))
-    "Since we save the original pose of the object at the time of attaching,
+    "Updates the pose of the object and its attached objects: since
+the original pose of the object is saved at the time of attaching,
 it is possible to change the pose of its attachments when its pose changes."
     (if (and (slot-boundp object 'attached-objects)
              (> (length (attached-objects object)) 0))
