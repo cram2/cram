@@ -70,4 +70,5 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "tutorial" :depends-on ("package"))))))
+     (:file "tutorial" :depends-on ("package"))
+     (:file "pick-and-place" :depends-on ("package" "tutorial" "setup"))))))
