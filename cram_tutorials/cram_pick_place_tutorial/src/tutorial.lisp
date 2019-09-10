@@ -71,3 +71,91 @@
            (print e)
            ,@error-handler-body))
     ,@program-body)))
+
+
+(defun list-defined-grasps (object-type)
+  (cut:force-ll (cram-object-interfaces::get-object-type-grasps object-type nil nil nil nil)))
+
+
+(defun visualize-coordinates (object-or-pose &optional (size 0.3))
+  (flet ((find-object-of-type (type)
+           (find type
+                 (remove-if-not (lambda (obj) (typep obj 'btr:item))
+                                (btr:objects btr:*current-bullet-world*))
+                 :test (lambda (type item) (eql type (car (slot-value item 'btr::types)))))))
+    (etypecase object-or-pose
+      (symbol
+       (if (btr:object btr:*current-bullet-world* object-or-pose)
+           (btr:add-vis-axis-object object-or-pose size)
+           (if (find-object-of-type object-or-pose)
+               (btr:add-vis-axis-object (btr:name (find-object-of-type object-or-pose)) size)
+               (warn "Unknown object, please either give an object name or object type."))))
+      (cl-transforms-stamped:pose-stamped
+       (when (equalp (cl-transforms-stamped:frame-id object-or-pose) "base_footprint")
+         (warn "Pose is not in MAP frame. It is visualized with respect to the MAP though."))
+       (btr:add-vis-axis-object object-or-pose size))
+      (cl-transforms:pose
+       (btr:add-vis-axis-object object-or-pose size)))))
+
+
+(defmethod print-object ((pose cl-transforms-stamped:pose-stamped) stream)
+  (print-unreadable-object (pose stream :type nil :identity nil)
+    (let ((origin (cl-transforms:origin pose))
+          (orientation (cl-transforms:orientation pose)))
+     (format stream
+             "~s ((~,5f ~,5f ~,5f) (~,5f ~,5f ~,5f ~,5f))"
+             (cl-transforms-stamped:frame-id pose)
+             (cl-transforms:x origin) (cl-transforms:y origin) (cl-transforms:z origin)
+             (cl-transforms:x orientation)
+             (cl-transforms:y orientation)
+             (cl-transforms:z orientation)
+             (cl-transforms:w orientation)))))
+
+(defmethod print-object ((pose cl-transforms-stamped:transform-stamped) stream)
+  (print-unreadable-object (pose stream :type nil :identity nil)
+    (let ((origin (cl-transforms:translation pose))
+          (orientation (cl-transforms:rotation pose)))
+     (format stream
+             "~s ~s ((~,5f ~,5f ~,5f) (~,5f ~,5f ~,5f ~,5f))"
+             (cl-transforms-stamped:frame-id pose)
+             (cl-transforms-stamped:child-frame-id pose)
+             (cl-transforms:x origin) (cl-transforms:y origin) (cl-transforms:z origin)
+             (cl-transforms:x orientation)
+             (cl-transforms:y orientation)
+             (cl-transforms:z orientation)
+             (cl-transforms:w orientation)))))
+
+
+(defun inverse-transformation (transformation-matrix)
+  (cl-transforms-stamped:transform-inv transformation-matrix))
+
+(defun get-current-pose-of-object (?obj-name)
+  (let ((?obj-pose (btr:pose
+                    (btr:object btr:*current-bullet-world* ?obj-name))))
+    (cl-transforms-stamped:make-pose-stamped
+     "map" 0.0
+     (cl-transforms:origin ?obj-pose)
+     (cl-transforms:orientation ?obj-pose))))
+
+(defun get-robot-transformation ()
+  (let ((?robot-pose (btr:pose (btr:get-robot-object))))
+    (cl-transforms-stamped:make-transform-stamped
+     "map" "base_footprint" 0.0
+     (cl-transforms:origin ?robot-pose)
+     (cl-transforms:orientation ?robot-pose))))
+
+(defun get-obj-name (perceived-object)
+  (desig:desig-prop-value perceived-object :name))
+
+(defun apply-transformation (transformation pose)
+  (cl-transforms-stamped:transform transformation pose))
+
+(defun get-x-of-pose (pose-stamped)
+  (cl-transforms:x (cl-transforms:origin pose-stamped)))
+
+(defun get-y-of-pose (pose-stamped)
+  (cl-transforms:y (cl-transforms:origin pose-stamped)))
+
+
+(defun look-up-transformation (parent child)
+  (cl-transforms-stamped:lookup-transform cram-tf:*transformer* parent child :timeout 2.0))
