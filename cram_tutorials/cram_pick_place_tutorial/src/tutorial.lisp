@@ -98,12 +98,64 @@
        (btr:add-vis-axis-object object-or-pose size)))))
 
 
-(defun print-pose (pose)
-  (format t "\"~a\" ~a~%" (cl-transforms-stamped:frame-id pose)
-          `((,(cl-transforms:x (cl-transforms:origin pose))
-             ,(cl-transforms:y (cl-transforms:origin pose))
-             ,(cl-transforms:z (cl-transforms:origin pose)))
-            (,(cl-transforms:x (cl-transforms:orientation pose))
-             ,(cl-transforms:y (cl-transforms:orientation pose))
-             ,(cl-transforms:z (cl-transforms:orientation pose))
-             ,(cl-transforms:w (cl-transforms:orientation pose))))))
+(defmethod print-object ((pose cl-transforms-stamped:pose-stamped) stream)
+  (print-unreadable-object (pose stream :type nil :identity nil)
+    (let ((origin (cl-transforms:origin pose))
+          (orientation (cl-transforms:orientation pose)))
+     (format stream
+             "~s ((~,5f ~,5f ~,5f) (~,5f ~,5f ~,5f ~,5f))"
+             (cl-transforms-stamped:frame-id pose)
+             (cl-transforms:x origin) (cl-transforms:y origin) (cl-transforms:z origin)
+             (cl-transforms:x orientation)
+             (cl-transforms:y orientation)
+             (cl-transforms:z orientation)
+             (cl-transforms:w orientation)))))
+
+(defmethod print-object ((pose cl-transforms-stamped:transform-stamped) stream)
+  (print-unreadable-object (pose stream :type nil :identity nil)
+    (let ((origin (cl-transforms:translation pose))
+          (orientation (cl-transforms:rotation pose)))
+     (format stream
+             "~s ~s ((~,5f ~,5f ~,5f) (~,5f ~,5f ~,5f ~,5f))"
+             (cl-transforms-stamped:frame-id pose)
+             (cl-transforms-stamped:child-frame-id pose)
+             (cl-transforms:x origin) (cl-transforms:y origin) (cl-transforms:z origin)
+             (cl-transforms:x orientation)
+             (cl-transforms:y orientation)
+             (cl-transforms:z orientation)
+             (cl-transforms:w orientation)))))
+
+
+(defun inverse-transformation (transformation-matrix)
+  (cl-transforms-stamped:transform-inv transformation-matrix))
+
+(defun get-current-pose-of-object (?obj-name)
+  (let ((?obj-pose (btr:pose
+                    (btr:object btr:*current-bullet-world* ?obj-name))))
+    (cl-transforms-stamped:make-pose-stamped
+     "map" 0.0
+     (cl-transforms:origin ?obj-pose)
+     (cl-transforms:orientation ?obj-pose))))
+
+(defun get-robot-transformation ()
+  (let ((?robot-pose (btr:pose (btr:get-robot-object))))
+    (cl-transforms-stamped:make-transform-stamped
+     "map" "base_footprint" 0.0
+     (cl-transforms:origin ?robot-pose)
+     (cl-transforms:orientation ?robot-pose))))
+
+(defun get-obj-name (perceived-object)
+  (desig:desig-prop-value perceived-object :name))
+
+(defun apply-transformation (transformation pose)
+  (cl-transforms-stamped:transform transformation pose))
+
+(defun get-x-of-pose (pose-stamped)
+  (cl-transforms:x (cl-transforms:origin pose-stamped)))
+
+(defun get-y-of-pose (pose-stamped)
+  (cl-transforms:y (cl-transforms:origin pose-stamped)))
+
+
+(defun look-up-transformation (parent child)
+  (cl-transforms-stamped:lookup-transform cram-tf:*transformer* parent child :timeout 2.0))
