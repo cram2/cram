@@ -53,14 +53,10 @@
     (object-type-direct-subtype ?type ?type-s-child)
     (object-type-subtype ?type-s-child ?subtype)))
 
-(def-fact-group assembly-attachment-type-attachment (man-int:unidirectional-attachment)
 
-  ;; The predicate UNIDIRECTIONAL-ATTACHMENTS holds attachments which
-  ;; are only used for unidirectional/loose attachments.
-  (<- (man-int:unidirectional-attachment ?attachment-type)
-    (fail)))
-
-(def-fact-group object-knowledge (object-rotationally-symmetric orientation-matters)
+(def-fact-group object-knowledge (object-rotationally-symmetric
+                                  orientation-matters
+                                  unidirectional-attachment)
 
   ;; TODO: specify rotational symmetry axis
   (<- (object-rotationally-symmetric ?object-type)
@@ -71,6 +67,14 @@
   ;; knives, forks, etc, the orientation is important while for plates
   ;; the orientation doesn't matter at all.
   (<- (orientation-matters ?object-type-symbol)
+      (fail))
+
+  ;; The predicate UNIDIRECTIONAL-ATTACHMENTS holds attachments which
+  ;; are only used for unidirectional/loose attachments.
+  ;; For example, if an object is standing on a tray,
+  ;; the object is attached to the tray but the tray is not attached
+  ;; to the object, such that when you move the object the tray would not follow.
+  (<- (unidirectional-attachment ?attachment-type)
     (fail)))
 
 

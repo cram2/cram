@@ -58,7 +58,7 @@
            bt-reasoning-world invalidate-object objects object %object
            bt-reasoning-world-state robot-object links joint-states
            assert joint-state urdf joint-names joint-state link-names
-           link-pose set-robot-state-from-tf
+           link-pose
            semantic-map-object ensure-pose ensure-vector object-visibility
            semantic-map container semantic-map-part semantic-map-part-type
            semantic-map-part-pose object-visibility-percentage
@@ -81,24 +81,27 @@
            ;; reach-pose-ik reach-object-ik point-reachable-p reach-point-ik
            ;; object-reachable-p pose-reachable-p calculate-orientation-in-robot
            ;; calculate-object-tool-length
-           set-robot-state-from-joints
-           calculate-pan-tilt
            init-ros-object-database clear-bullet-world
            ros-household-object execute open close ;; reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects
-           objects-colliding-robot-or-objects-without-attached
            item-dimensions
            add-objects-to-mesh-list
-           make-joint-state-message open-object close-object
+           open-object close-object
            set-articulated-object-joint-position
            with-world copied-world with-copied-world
            obj-pose-on obj-poses-on flat-color-object-proxy drawable-list
            drawable-list-drawables make-drawable-list
            ;; robot-model-utils
+           #:set-robot-state-from-tf
+           #:set-robot-state-from-joints
+           #:make-robot-joint-state-msg
+           #:make-joint-state-message
+           #:calculate-pan-tilt
            #:get-robot-object #:get-robot-name
            #:get-environment-object
            #:robot-colliding-objects-without-attached
+           #:robot-attached-objects-in-collision
            ;; temporal-reasoning
            event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup

@@ -53,8 +53,11 @@
   ((:module "src"
     :components
     ((:file "package")
+     (:file "collision-scene" :depends-on ("package"))
      (:file "action-client" :depends-on ("package"))
      (:file "cartesian-interface" :depends-on ("package" "action-client"))
      (:file "joint-interface" :depends-on ("package" "action-client"))
-     (:file "collision-scene" :depends-on ("package"))
-     (:file "process-module" :depends-on ("package" "cartesian-interface" "joint-interface"))))))
+     (:file "base-goals" :depends-on ("package" "action-client" "joint-interface"))
+     (:file "torso-goals" :depends-on ("package" "action-client"))
+     (:file "process-module" :depends-on ("package" "cartesian-interface" "joint-interface"
+                                                    "base-goals" "torso-goals"))))))

@@ -97,7 +97,8 @@
                           joint-angle))
                (ecase joint-angle
                  (:upper-limit upper-limit)
-                 (:lower-limit lower-limit)))))
+                 (:lower-limit lower-limit)
+                 (:middle (/ (- upper-limit lower-limit) 2))))))
     (prolog:prolog
      `(btr:assert (btr:joint-state ?w ?robot ((?joint ,cropped-joint-angle))))
      bindings)
@@ -520,6 +521,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
 ;;; cartesian movement
 
 (defun tcp-pose->ee-pose (tcp-pose tool-frame end-effector-frame)
+  "TCP-POSE is in map frame"
   (when tcp-pose
     (let* ((ee-P-tcp
              (cut:var-value
@@ -528,9 +530,9 @@ with the object, calculates similar angle around Y axis and applies the rotation
                (prolog:prolog
                 `(and (rob-int:robot ?robot)
                       (rob-int:tcp-in-ee-pose ?robot ?tcp-in-ee-pose))))))
-           (base-T-tcp
+           (map-T-tcp
              (cram-tf:pose->transform-stamped
-              cram-tf:*robot-base-frame*
+              cram-tf:*fixed-frame*
               tool-frame
               0.0
               tcp-pose))
@@ -541,13 +543,13 @@ with the object, calculates similar angle around Y axis and applies the rotation
                tool-frame
                0.0
                ee-P-tcp)))
-           (base-T-ee
+           (map-T-ee
              (cram-tf:multiply-transform-stampeds
-              cram-tf:*robot-base-frame*
+              cram-tf:*fixed-frame*
               end-effector-frame
-              base-T-tcp
+              map-T-tcp
               tcp-T-ee)))
-      (cram-tf:strip-transform-stamped base-T-ee))))
+      (cram-tf:strip-transform-stamped map-T-ee))))
 
 (defun ee-pose-in-base->ee-pose-in-torso (ee-pose-in-base)
   (when ee-pose-in-base
@@ -589,6 +591,33 @@ with the object, calculates similar angle around Y axis and applies the rotation
            base-ee-transform
            :result-as-pose-or-transform :pose))
         (error "Arm movement goals should be given in robot base frame"))))
+
+(defun ee-pose-in-map->ee-pose-in-torso (ee-pose-in-map)
+  (when ee-pose-in-map
+    (if (string-equal
+         (cl-transforms-stamped:frame-id ee-pose-in-map)
+         cram-tf:*fixed-frame*)
+        ;; tPe: tTe = tTb * bTe = tTm * mTb * bTe = (mTt)-1 * mTb * bTe
+        (let* ((map-T-base
+                 (cram-tf:pose->transform-stamped
+                  cram-tf:*fixed-frame*
+                  cram-tf:*robot-base-frame*
+                  0.0
+                  (btr:pose (btr:get-robot-object))))
+               (base-T-map
+                 (cram-tf:transform-stamped-inv map-T-base))
+               (map-T-ee
+                 (cram-tf:pose-stamped->transform-stamped
+                  ee-pose-in-map
+                  "end_effector_link")))
+          (ee-pose-in-base->ee-pose-in-torso
+           (cram-tf:multiply-transform-stampeds
+            cram-tf:*robot-base-frame*
+            "end_effector_link"
+            base-T-map
+            map-T-ee
+            :result-as-pose-or-transform :pose)))
+        (error "Arm movement goals should be given in map frame"))))
 
 (defparameter *torso-resampling-step* 0.1)
 
@@ -667,7 +696,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
      ;; avoid-all means the robot is not colliding with anything except the
      ;; objects it is holding, and the objects it is holding only collides with robot
      (when (or (btr:robot-colliding-objects-without-attached)
-               (btr:objects-colliding-robot-or-objects-without-attached))
+               (btr:robot-attached-objects-in-collision))
        (cpl:fail 'common-fail:manipulation-goal-not-reached
                  :description "Robot is in collision with environment.")))))
 
@@ -676,6 +705,8 @@ with the object, calculates similar angle around Y axis and applies the rotation
                    collision-object-b collision-object-b-link collision-object-a)
   (declare (type (or cl-transforms-stamped:pose-stamped null) left-tcp-pose right-tcp-pose))
   (declare (ignore collision-object-b collision-object-b-link collision-object-a))
+
+  (cram-tf:visualize-marker (list left-tcp-pose right-tcp-pose) :r-g-b-list '(1 0 1))
 
   (cut:with-vars-strictly-bound (?robot
                                  ?left-tool-frame ?right-tool-frame
@@ -702,7 +733,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 (if (string-equal (symbol-name ?robot) "PR2")
                     "pr2_left_arm_kinematics/get_ik"
                     "kdl_ik_service/get_ik")))
-          (get-ik-joint-positions (ee-pose-in-base->ee-pose-in-torso
+          (get-ik-joint-positions (ee-pose-in-map->ee-pose-in-torso
                                    (tcp-pose->ee-pose left-tcp-pose
                                                       ?left-tool-frame ?left-ee-frame))
                                   ?torso-link ?left-ee-frame ?left-arm-joints
@@ -712,7 +743,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                   (if (string-equal (symbol-name ?robot) "PR2")
                       "pr2_right_arm_kinematics/get_ik"
                       "kdl_ik_service/get_ik")))
-            (get-ik-joint-positions (ee-pose-in-base->ee-pose-in-torso
+            (get-ik-joint-positions (ee-pose-in-map->ee-pose-in-torso
                                      (tcp-pose->ee-pose right-tcp-pose
                                                         ?right-tool-frame ?right-ee-frame))
                                     ?torso-link ?right-ee-frame ?right-arm-joints
