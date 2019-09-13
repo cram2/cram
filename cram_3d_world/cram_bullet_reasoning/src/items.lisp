@@ -279,6 +279,19 @@ The name in the list is a keyword that is created by lispifying the filename."
                                    :half-extents (ensure-vector size)
                                    :color color)))))
 
+(defmethod btr:add-object ((world bullet:bt-world) (type (eql :box-item)) name pose
+                           &key mass (color '(1.0 0.0 0.0 1.0)) size item-type)
+  (assert size)
+  (assert item-type)
+  (unless (find name (objects *current-bullet-world*) :key #'name)
+    (make-item world name (list item-type)
+               (list
+                (make-instance 'rigid-body
+                  :name name :mass mass :pose (btr:ensure-pose pose)
+                  :collision-shape (make-instance 'bt-vis:colored-box-shape
+                                     :half-extents (btr:ensure-vector size)
+                                     :color color))))))
+
 
 
 (defmethod get-loose-attached-objects ((object item))
