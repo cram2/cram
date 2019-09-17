@@ -41,6 +41,9 @@
           labels))
 
 (defun get-traj-poses-by-label (trajectory label)
+  (print "_______________________________________________")
+  (print trajectory)
+  (print label)
   (traj-segment-poses
    (find label
          trajectory
@@ -115,6 +118,13 @@ Gripper is defined by a convention where Z is pointing towards the object.")
     (call-with-specific-type #'get-object-type-to-gripper-pregrasp-transform
                              object-type object-name arm grasp grasp-transform)))
 
+(defgeneric get-object-type-to-gripper-cut-lift-transform (object-type object-name
+                                                           arm grasp grasp-transform)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type object-name arm grasp grasp-transform)
+    (call-with-specific-type #'get-object-type-to-gripper-cut-lift-transform
+                             object-type object-name arm grasp grasp-transform)))
+
 (defgeneric get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name
                                                                arm grasp grasp-transform)
   (:documentation "Returns a transform stamped. Default value is NIL.")
@@ -144,6 +154,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                                                                         (0.0 1.0 0.0)
                                                                         (0.0 0.0 1.0)))
                                                    (pregrasp-offsets ''(0.0 0.0 0.0))
+                                                   (cut-lift-offsets ''(0.0 0.0 0.0))
                                                    (2nd-pregrasp-offsets ''(0.0 0.0 0.0))
                                                    (lift-offsets ''(0.0 0.0 0.0))
                                                    (2nd-lift-offsets ''(0.0 0.0 0.0)))
@@ -153,6 +164,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
          (evaled-grasp-translation ,grasp-translation)
          (evaled-grasp-rot-matrix ,grasp-rot-matrix)
          (evaled-pregrasp-offsets ,pregrasp-offsets)
+         (evaled-cut-lift-offsets ,cut-lift-offsets)
          (evaled-2nd-pregrasp-offsets ,2nd-pregrasp-offsets)
          (evaled-lift-offsets ,lift-offsets)
          (evaled-2nd-lift-offsets ,2nd-lift-offsets))
@@ -208,6 +220,20 @@ Gripper is defined by a convention where Z is pointing towards the object.")
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
           (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+                 object-type arm grasp))))
+
+  (defmethod get-object-type-to-gripper-cut-lift-transform ((object-type (eql object))
+                                                            object-name
+                                                            (arm (eql arm))
+                                                            (grasp (eql evaled-grasp-type))
+                                                            grasp-transform)
+    (let ((pregrasp-offsets evaled-cut-lift-offsets))
+      (if pregrasp-offsets
+          (destructuring-bind (x y z) pregrasp-offsets
+            (cram-tf:translate-transform-stamped
+             grasp-transform
+             :x-offset x :y-offset y :z-offset z))
+          (error "Cut-lift transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
   (defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql object))
@@ -327,6 +353,115 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                ,(man-int:get-object-type-to-gripper-pregrasp-transform
                  object-type object-name arm grasp oTg-std))))))
 
+(defparameter *lift-z-offset* 0.4 "in meters")
+(defparameter *bottle-grasp-z-offset* 0.095 "in meters") ; 0.105?
+(defparameter *pour-xy-offset* 0.10 "in meters")
+(defparameter *pour-z-offset* -0.04 "in meters")
+
+(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :pouring))
+                                                 arm
+                                                 grasp
+                                                 objects-acted-on
+                                                 &key grasp-poses)
+  (let* ((angle (cram-math:degrees->radians 100))
+         (?approach-pose
+           (translate-pose (car grasp-poses)
+                           :x-offset (case grasp
+                                       (:front (+ *pour-xy-offset*))
+                                       (:left-side 0.0)
+                                       (:right-side 0.0)
+                                       (error "can only pour from :side or :front"))
+                           :y-offset (case grasp
+                                       (:front 0.0)
+                                       (:left-side (- *pour-xy-offset*))
+                                       (:right-side (+ *pour-xy-offset*))
+                                       (error "can only pour from :side or :front"))
+                           :z-offset (+ *bottle-grasp-z-offset*
+                                        *pour-z-offset*)))
+    (?tilt-pose
+     (case grasp
+       (:front (rotate-once-pose ?approach-pose (- angle) :y))
+       (:left-side (rotate-once-pose ?approach-pose (- angle) :x))
+       (:right-side (rotate-once-pose ?approach-pose angle :x))
+       (t (error "can only pour from :side or :front")))))
+
+  (mapcar (lambda (label transforms)
+            (make-traj-segment
+             :label label
+             :poses transforms))
+
+          '(:approaching
+            :tilting)
+          `((,?approach-pose)
+            (,?tilt-pose)))))
+
+
+(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :cutting))
+                                                 arm
+                                                 grasp
+                                                 objects-acted-on
+                                                 &key )
+   (let* ((object
+           (car objects-acted-on))
+         (object-name
+           (desig:desig-prop-value object :name))
+         (object-type
+           (desig:desig-prop-value object :type))
+         (bTo
+           (man-int:get-object-transform object))
+         (oTg-std
+           (man-int:get-object-type-to-gripper-transform
+            object-type object-name arm grasp)))
+    (mapcar (lambda (label transforms)
+              (make-traj-segment
+               :label label
+               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map bTo arm)
+                              transforms)))
+            '(:reaching
+              :grasping
+              :lifting
+              :cutting-lift)
+            `((,(man-int:get-object-type-to-gripper-pregrasp-transform
+                 object-type object-name arm grasp oTg-std)
+               ,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
+                 object-type object-name arm grasp oTg-std))
+              (,oTg-std)
+              (,(man-int:get-object-type-to-gripper-lift-transform
+                 object-type object-name arm grasp oTg-std)
+               ,(man-int:get-object-type-to-gripper-2nd-lift-transform
+                 object-type object-name arm grasp oTg-std))
+              (,(man-int::get-object-type-to-gripper-cut-lift-transform
+                 object-type object-name arm grasp oTg-std))))))
+
+
+;;;;;;;;;;;;;;;;;;; HELPER FUNCTION FOR POURING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :origin (let ((pose-origin (cl-transforms:origin pose)))
+             (cl-transforms:copy-3d-vector
+              pose-origin
+              :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
+                   (+ x-pose-origin x-offset))
+              :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
+                   (+ y-pose-origin y-offset))
+              :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
+                   (+ z-pose-origin z-offset))))))
+
+
+(defun rotate-once-pose (pose angle axis)
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
+                  (cl-transforms:q*
+                   (cl-transforms:axis-angle->quaternion
+                    (case axis
+                      (:x (cl-transforms:make-3d-vector 1 0 0))
+                      (:y (cl-transforms:make-3d-vector 0 1 0))
+                      (:z (cl-transforms:make-3d-vector 0 0 1))
+                      (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
+                    angle)
+                   pose-orientation))))
 
 
 ;;;;;;;;;;;;;;;;;;; OBJECT TO OTHER OBJECT TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;
