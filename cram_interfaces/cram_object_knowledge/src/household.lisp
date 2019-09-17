@@ -358,13 +358,8 @@
 ;; Right-TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
     '(:left :right) :right-top
-  :grasp-translation `(-0.04 0.0 ,*weisswurst-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 0.0 ,*weisswurst-pregrasp-z-offset*)
-  :lift-offsets `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
-  :2nd-lift-offsets `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
-  :cut-lift-offsets `(0.0 0.0 0.7))
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :cut-lift-offsets `(-0.04 0.0 0.037))
 
 
 ;; BOTTOM grasp
