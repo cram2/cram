@@ -28,6 +28,31 @@
 
 (in-package :env-man-tests)
 
+(defun get-revolute-traj-poses-generic-angle-test (angle rot-pos)
+  (let* ((joint-to-gripper
+           (cl-transforms-stamped:make-transform-stamped
+            "joint"
+            "gripper"
+            0.0
+            (cl-transforms:make-3d-vector 1 0 0)
+            (cl-transforms:make-identity-rotation)))
+         (axis (cl-transforms:make-3d-vector 0 0 1))
+         (traj-poses (env-man::get-revolute-traj-poses
+                      joint-to-gripper
+                      :axis axis
+                      :angle-max angle))
+         (rotated-pos (cl-transforms:normalize-vector rot-pos))
+         (rotated-rot (cl-transforms:euler->quaternion :az angle)))
+    (assert-true (= (ceiling (abs (/ angle 0.1))) (length traj-poses)))
+    (assert-true (> 0.1 (acos (cl-transforms:dot-product
+                               rotated-pos
+                               (cl-transforms:translation
+                                (car (last traj-poses)))))))
+    (assert-true (> 0.1 (cl-transforms:angle-between-quaternions
+                         rotated-rot
+                         (cl-transforms:rotation
+                          (car (last traj-poses))))))))
+
 (define-test get-revolute-traj-poses-0-angle
   (let* ((joint-to-gripper
            (cl-transforms-stamped:make-transform-stamped
@@ -44,224 +69,41 @@
     (assert-number-equal 0 (length traj-poses))))
 
 (define-test get-revolute-traj-poses-45-angle
-  (let* ((joint-to-gripper
-           (cl-transforms-stamped:make-transform-stamped
-            "joint"
-            "gripper"
-            0.0
-            (cl-transforms:make-3d-vector 1 0 0)
-            (cl-transforms:make-identity-rotation)))
-         (axis (cl-transforms:make-3d-vector 0 0 1))
-         (angle (cram-math:degrees->radians 45))
-         (traj-poses (env-man::get-revolute-traj-poses
-                      joint-to-gripper
-                      :axis axis
-                      :angle-max angle))
-         (rotated-pos (cl-transforms:normalize-vector
-                       (cl-transforms:make-3d-vector 1 1 0)))
-         (rotated-rot (cl-transforms:euler->quaternion :az angle)))
-    (assert-true (= (ceiling (/ angle 0.1)) (length traj-poses)))
-    (assert-true (> 0.1 (acos (cl-transforms:dot-product
-                               rotated-pos
-                               (cl-transforms:translation
-                                (car (last traj-poses)))))))
-    (assert-true (> 0.1 (cl-transforms:angle-between-quaternions
-                         rotated-rot
-                         (cl-transforms:rotation
-                          (car (last traj-poses))))))))
+  (get-revolute-traj-poses-generic-angle-test
+   (cram-math:degrees->radians 45)
+   (cl-transforms:make-3d-vector 1 1 0)))
 
 (define-test get-revolute-traj-poses-90-angle
-  (let* ((joint-to-gripper
-           (cl-transforms-stamped:make-transform-stamped
-            "joint"
-            "gripper"
-            0.0
-            (cl-transforms:make-3d-vector 1 0 0)
-            (cl-transforms:make-identity-rotation)))
-         (axis (cl-transforms:make-3d-vector 0 0 1))
-         (angle (cram-math:degrees->radians 90))
-         (traj-poses (env-man::get-revolute-traj-poses
-                      joint-to-gripper
-                      :axis axis
-                      :angle-max angle))
-         (rotated-pos (cl-transforms:make-3d-vector 0 1 0))
-         (rotated-rot (cl-transforms:euler->quaternion :az angle)))
-    (assert-true (= (ceiling (/ angle 0.1)) (length traj-poses)))
-    (assert-true (> 0.1 (acos (cl-transforms:dot-product
-                               rotated-pos
-                               (cl-transforms:translation
-                                (car (last traj-poses)))))))
-    (assert-true (> 0.1 (cl-transforms:angle-between-quaternions
-                         rotated-rot
-                         (cl-transforms:rotation
-                          (car (last traj-poses))))))))
+  (get-revolute-traj-poses-generic-angle-test
+   (cram-math:degrees->radians 90)
+   (cl-transforms:make-3d-vector 0 1 0)))
 
 (define-test get-revolute-traj-poses-135-angle
-  (let* ((joint-to-gripper
-           (cl-transforms-stamped:make-transform-stamped
-            "joint"
-            "gripper"
-            0.0
-            (cl-transforms:make-3d-vector 1 0 0)
-            (cl-transforms:make-identity-rotation)))
-         (axis (cl-transforms:make-3d-vector 0 0 1))
-         (angle (cram-math:degrees->radians 135))
-         (traj-poses (env-man::get-revolute-traj-poses
-                      joint-to-gripper
-                      :axis axis
-                      :angle-max angle))
-         (rotated-pos (cl-transforms:normalize-vector
-                       (cl-transforms:make-3d-vector -1 1 0)))
-         (rotated-rot (cl-transforms:euler->quaternion :az angle))
-         )
-    (assert-true (= (ceiling (/ angle 0.1)) (length traj-poses)))
-    (assert-true (> 0.1 (acos (cl-transforms:dot-product
-                               rotated-pos
-                               (cl-transforms:translation
-                                (car (last traj-poses)))))))
-    (assert-true (> 0.1 (cl-transforms:angle-between-quaternions
-                         rotated-rot
-                         (cl-transforms:rotation
-                          (car (last traj-poses))))))
-    ))
+  (get-revolute-traj-poses-generic-angle-test
+   (cram-math:degrees->radians 135)
+   (cl-transforms:make-3d-vector -1 1 0)))
 
 (define-test get-revolute-traj-poses-180-angle
-  (let* ((joint-to-gripper
-           (cl-transforms-stamped:make-transform-stamped
-            "joint"
-            "gripper"
-            0.0
-            (cl-transforms:make-3d-vector 1 0 0)
-            (cl-transforms:make-identity-rotation)))
-         (axis (cl-transforms:make-3d-vector 0 0 1))
-         (angle (cram-math:degrees->radians 180))
-         (traj-poses (env-man::get-revolute-traj-poses
-                      joint-to-gripper
-                      :axis axis
-                      :angle-max angle))
-         (rotated-pos (cl-transforms:normalize-vector
-                       (cl-transforms:make-3d-vector -1 0 0)))
-         (rotated-rot (cl-transforms:euler->quaternion :az angle))
-         )
-    (assert-true (= (ceiling (/ angle 0.1)) (length traj-poses)))
-    (assert-true (> 0.1 (acos (cl-transforms:dot-product
-                               rotated-pos
-                               (cl-transforms:translation
-                                (car (last traj-poses)))))))
-    (assert-true (> 0.1 (cl-transforms:angle-between-quaternions
-                         rotated-rot
-                         (cl-transforms:rotation
-                          (car (last traj-poses))))))
-    ))
-
+  (get-revolute-traj-poses-generic-angle-test
+   (cram-math:degrees->radians 180)
+   (cl-transforms:make-3d-vector -1 0 0)))
 
 (define-test get-revolute-traj-poses-negative-45-angle
-  (let* ((joint-to-gripper
-           (cl-transforms-stamped:make-transform-stamped
-            "joint"
-            "gripper"
-            0.0
-            (cl-transforms:make-3d-vector 1 0 0)
-            (cl-transforms:make-identity-rotation)))
-         (axis (cl-transforms:make-3d-vector 0 0 1))
-         (angle (cram-math:degrees->radians -45))
-         (traj-poses (env-man::get-revolute-traj-poses
-                      joint-to-gripper
-                      :axis axis
-                      :angle-max angle))
-         (rotated-pos (cl-transforms:normalize-vector
-                       (cl-transforms:make-3d-vector 1 -1 0)))
-         (rotated-rot (cl-transforms:euler->quaternion :az angle)))
-    (assert-true (= (ceiling (abs (/ angle 0.1))) (length traj-poses)))
-    (assert-true (> 0.1 (acos (cl-transforms:dot-product
-                               rotated-pos
-                               (cl-transforms:translation
-                                (car (last traj-poses)))))))
-    (assert-true (> 0.1 (cl-transforms:angle-between-quaternions
-                         rotated-rot
-                         (cl-transforms:rotation
-                          (car (last traj-poses))))))))
+  (get-revolute-traj-poses-generic-angle-test
+   (cram-math:degrees->radians -45)
+   (cl-transforms:make-3d-vector 1 -1 0)))
 
 (define-test get-revolute-traj-poses-negative-90-angle
-  (let* ((joint-to-gripper
-           (cl-transforms-stamped:make-transform-stamped
-            "joint"
-            "gripper"
-            0.0
-            (cl-transforms:make-3d-vector 1 0 0)
-            (cl-transforms:make-identity-rotation)))
-         (axis (cl-transforms:make-3d-vector 0 0 1))
-         (angle (cram-math:degrees->radians -90))
-         (traj-poses (env-man::get-revolute-traj-poses
-                      joint-to-gripper
-                      :axis axis
-                      :angle-max angle))
-         (rotated-pos (cl-transforms:make-3d-vector 0 -1 0))
-         (rotated-rot (cl-transforms:euler->quaternion :az angle)))
-    (assert-true (= (ceiling (abs (/ angle 0.1))) (length traj-poses)))
-    (assert-true (> 0.1 (acos (cl-transforms:dot-product
-                               rotated-pos
-                               (cl-transforms:translation
-                                (car (last traj-poses)))))))
-    (assert-true (> 0.1 (cl-transforms:angle-between-quaternions
-                         rotated-rot
-                         (cl-transforms:rotation
-                          (car (last traj-poses))))))))
+  (get-revolute-traj-poses-generic-angle-test
+   (cram-math:degrees->radians -90)
+   (cl-transforms:make-3d-vector 0 -1 0)))
 
 (define-test get-revolute-traj-poses-negative-135-angle
-  (let* ((joint-to-gripper
-           (cl-transforms-stamped:make-transform-stamped
-            "joint"
-            "gripper"
-            0.0
-            (cl-transforms:make-3d-vector 1 0 0)
-            (cl-transforms:make-identity-rotation)))
-         (axis (cl-transforms:make-3d-vector 0 0 1))
-         (angle (cram-math:degrees->radians -135))
-         (traj-poses (env-man::get-revolute-traj-poses
-                      joint-to-gripper
-                      :axis axis
-                      :angle-max angle))
-         (rotated-pos (cl-transforms:normalize-vector
-                       (cl-transforms:make-3d-vector -1 -1 0)))
-         (rotated-rot (cl-transforms:euler->quaternion :az angle))
-         )
-    (assert-true (= (ceiling (abs (/ angle 0.1))) (length traj-poses)))
-    (assert-true (> 0.1 (acos (cl-transforms:dot-product
-                               rotated-pos
-                               (cl-transforms:translation
-                                (car (last traj-poses)))))))
-    (assert-true (> 0.1 (cl-transforms:angle-between-quaternions
-                         rotated-rot
-                         (cl-transforms:rotation
-                          (car (last traj-poses))))))
-    ))
+  (get-revolute-traj-poses-generic-angle-test
+   (cram-math:degrees->radians -135)
+   (cl-transforms:make-3d-vector -1 -1 0)))
 
 (define-test get-revolute-traj-poses-negative-180-angle
-  (let* ((joint-to-gripper
-           (cl-transforms-stamped:make-transform-stamped
-            "joint"
-            "gripper"
-            0.0
-            (cl-transforms:make-3d-vector 1 0 0)
-            (cl-transforms:make-identity-rotation)))
-         (axis (cl-transforms:make-3d-vector 0 0 1))
-         (angle (cram-math:degrees->radians -180))
-         (traj-poses (env-man::get-revolute-traj-poses
-                      joint-to-gripper
-                      :axis axis
-                      :angle-max angle))
-         (rotated-pos (cl-transforms:normalize-vector
-                       (cl-transforms:make-3d-vector -1 0 0)))
-         (rotated-rot (cl-transforms:euler->quaternion :az angle))
-         )
-    (assert-true (= (ceiling (abs (/ angle 0.1))) (length traj-poses)))
-    (assert-true (> 0.1 (acos (cl-transforms:dot-product
-                               rotated-pos
-                               (cl-transforms:translation
-                                (car (last traj-poses)))))))
-    (assert-true (> 0.1 (cl-transforms:angle-between-quaternions
-                         rotated-rot
-                         (cl-transforms:rotation
-                          (car (last traj-poses))))))
-    ))
+  (get-revolute-traj-poses-generic-angle-test
+   (cram-math:degrees->radians -180)
+   (cl-transforms:make-3d-vector -1 0 0)))
