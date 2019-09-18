@@ -29,9 +29,12 @@
 (defsystem cram-urdf-environment-manipulation-tests
   :author "Christopher Pollok"
   :license "BSD"
-  
+
   :depends-on (cram-urdf-environment-manipulation
-               lisp-unit)
+               lisp-unit
+               cram-math
+               cl-transforms
+               cl-transforms-stamped)
   :components ((:module "tests"
                 :components
                 ((:file "package")
