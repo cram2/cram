@@ -131,7 +131,6 @@ container with prismatic joints."
                                  grasp-pose opening-angle)
   "Return a list of `man-int::traj-segment' representing a trajectory to open a
 container with revolute joints."
-  (format T "Opening angle: ~a~%" opening-angle)
   (let* ((traj-poses (get-revolute-traj-poses grasp-pose :angle-max opening-angle))
          (last-traj-pose (car (last traj-poses))))
     (mapcar
