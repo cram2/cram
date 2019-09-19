@@ -125,6 +125,8 @@ This is where the result of YASON:PARSE lands."
   (cons name node))
 (defmethod parse-json-node ((name (eql :position)) node)
   (cons name node))
+(defmethod parse-json-node ((name (eql :joint-angle)) node)
+  (cons name node))
 
 (defmethod parse-json-node ((name (eql :goal)) node)
   (list name (parse-designator-description (car node))))
