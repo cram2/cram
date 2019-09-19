@@ -62,6 +62,20 @@
         (format stream "[[~,6f,~,6f,~,6f],[~,6f,~,6f,~,6f,~,6f]]"
                 x y z q1 q2 q3 w)))))
 
+(defmethod yason:encode ((pose cl-transforms-stamped:pose-stamped)
+                         &optional (stream *standard-output*))
+  (let ((origin (cl-transforms:origin pose))
+        (orientation (cl-transforms:orientation pose))
+        (frame-id (cl-transforms-stamped:frame-id pose))
+        (stamp (cl-transforms-stamped:stamp pose)))
+    (with-slots ((x cl-transforms:x) (y cl-transforms:y) (z cl-transforms:z))
+        origin
+      (with-slots ((q1 cl-transforms:x) (q2 cl-transforms:y) (q3 cl-transforms:z)
+                   (w cl-transforms:w))
+          orientation
+        (format stream "[~s,~,6f,[~,6f,~,6f,~,6f],[~,6f,~,6f,~,6f,~,6f]]"
+                frame-id stamp x y z q1 q2 q3 w)))))
+
 (defun action-designator->json (action-designator)
   (let ((stream (make-string-output-stream)))
     (yason:encode action-designator stream)
