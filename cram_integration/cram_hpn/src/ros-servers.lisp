@@ -60,4 +60,23 @@
 
 (defun run-servers (&optional (namespace *default-namespace*))
   (run-spawn-world-server namespace)
-  (run-set-world-state-server namespace))
+  (run-set-world-state-server namespace)
+  (commander:run-perform-server namespace))
+
+;; (defun main ()
+;;   (cram-process-modules:with-process-modules-running
+;;       (rs:robosherlock-perception-pm giskard:giskard-pm ;; navp:navp-pm
+;;        pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
+;;     (roslisp:spin-until nil 100)))
+;;
+;; (defun commander:perform-with-pms-running (designator)
+;;    (cpl-impl::named-top-level (:name :top-level)
+;;        (exe:perform designator))
+;;   ;; (sleep 0.5)
+;;   )
+
+(defun commander:perform-with-pms-running (designator)
+  (urdf-proj:with-simulated-robot
+    (exe:perform designator))
+  ;; (sleep 0.5)
+  )
