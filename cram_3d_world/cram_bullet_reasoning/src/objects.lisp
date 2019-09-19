@@ -327,6 +327,9 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
 (defgeneric detach-object (object-to-detach-from object &key &allow-other-keys)
   (:documentation "Removes `object' from the attached objects of `object-to-detach-from'."))
 
+(defgeneric detach-all-from-link (object link)
+  (:documentation "Removes all attachments form the given `link' of `object'."))
+
 (defgeneric detach-all-objects (object)
   (:documentation "Removes all attachments form the list of attached objects of `object'."))
 
@@ -368,6 +371,13 @@ the names of which are in `object-to-attach-names'."
         (btr:object *current-bullet-world* object-to-detach-from-name)
       (when (and obj-found other-obj-found)
         (detach-object obj other-obj)))))
+
+(defmethod detach-all-from-link ((object-to-detach-from-name symbol) link)
+  "Detaches objects from object named `object-to-detach-from-name'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-to-detach-from-name)
+    (when obj-found
+      (detach-all-from-link obj link))))
 
 (defmethod detach-all-objects ((object-to-detach-from-name symbol))
   "Detaches objects from object named `object-to-detach-from-name'."

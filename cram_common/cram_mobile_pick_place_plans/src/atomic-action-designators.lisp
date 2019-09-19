@@ -180,11 +180,20 @@
 
   (<- (desig:action-grounding ?action-designator (release ?action-designator))
     (spec:property ?action-designator (:type :releasing))
-    (spec:property ?action-designator (:gripper ?_)))
+    (spec:property ?action-designator (:gripper ?_))
+    (once (or (spec:property ?action-designator (:object ?_))
+              (true))))
 
   (<- (desig:action-grounding ?action-designator (grip ?action-designator))
     (spec:property ?action-designator (:type :gripping))
     (spec:property ?action-designator (:gripper ?_))
+    (once (or (spec:property ?action-designator (:object ?_))
+              (true)))
+    ;; TODO: if grasp is not given, calculate it from relative offset
+    ;; something like
+    ;; (lisp-fun man-int:calculate-grasp ?object-desig-name ?gripper)
+    (once (or (spec:property ?action-designator (:grasp ?_))
+              (true)))
     (once (or (spec:property ?action-designator (:effort ?_))
               (true))))
 

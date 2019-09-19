@@ -100,13 +100,8 @@
              (type gripping)
              (gripper ?arm)
              (effort ?grip-effort)
-             (object ?object-designator)))
-  (roslisp:ros-info (pick-place pick-up) "Assert grasp into knowledge base")
-  (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-attached-robot
-     :object-name (desig:desig-prop-value ?object-designator :name)
-     :arm ?arm
-     :grasp ?grasp))
+             (object ?object-designator)
+             (grasp ?grasp)))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)

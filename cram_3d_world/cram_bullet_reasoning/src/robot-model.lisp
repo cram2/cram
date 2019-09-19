@@ -199,14 +199,26 @@ Otherwise, the attachment is only used as information but does not affect the wo
                                               :key #'car))
                (reset-collision-information object (cdr (cdr attachment))))))))
 
+(defmethod detach-all-from-link ((robot-object robot-object) link)
+  "Removes all objects form the given `link' of `robot-object'."
+  (with-slots (attached-objects) robot-object
+       (dolist (attachment attached-objects)
+         (let* ((object-name (car attachment))
+                (object-instance (object btr:*current-bullet-world* object-name)))
+           (if object-instance
+               (let ((attached-to-links (object-attached robot-object object-instance)))
+                 (when (find link attached-to-links :test #'equalp)
+                   (btr:detach-object robot-object object-instance :link link)))
+               (setf attached-objects (remove object-name attached-objects :key #'car)))))))
+
 (defmethod detach-all-objects ((robot-object robot-object))
   "Removes all objects form the list of attached objects."
-    (with-slots (attached-objects) robot-object
-      (dolist (attached-object attached-objects)
-        (let ((object-name (car attached-object)))
-          (if (object *current-bullet-world* object-name)
-              (detach-object robot-object (object *current-bullet-world* object-name))
-              (setf attached-objects (remove object-name attached-objects :key #'car)))))))
+  (with-slots (attached-objects) robot-object
+    (dolist (attached-object attached-objects)
+      (let ((object-name (car attached-object)))
+        (if (object *current-bullet-world* object-name)
+            (detach-object robot-object (object *current-bullet-world* object-name))
+            (setf attached-objects (remove object-name attached-objects :key #'car)))))))
 
 (defgeneric gc-attached-objects (robot-object)
   (:documentation "Removes all attached objects with an invalid world

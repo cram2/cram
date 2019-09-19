@@ -84,7 +84,7 @@
            init-ros-object-database clear-bullet-world
            ros-household-object execute open close ;; reach-ik-solution
            attached attached-objects object-attached
-           attach-object detach-object detach-all-objects
+           attach-object detach-object detach-all-objects detach-all-from-link
            item-dimensions
            add-objects-to-mesh-list
            open-object close-object

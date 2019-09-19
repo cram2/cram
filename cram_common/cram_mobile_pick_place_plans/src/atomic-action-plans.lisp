@@ -235,6 +235,7 @@ while ignoring failures; and execute the last pose with propagating the failures
 
 (defun release (&key
                   ((:gripper ?left-or-right))
+                  ((:object ?object-designator))
                 &allow-other-keys)
   (declare (type (or keyword list) ?left-or-right))
   "Call OPENING-GRIPPER motion while ignoring failures and issue robot-state-changed event"
@@ -249,11 +250,20 @@ while ignoring failures; and execute the last pose with propagating the failures
                    (type opening-gripper)
                    (gripper ?left-or-right))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))
+    (roslisp:ros-info (pick-place release) "Retract grasp in knowledge base")
+    (cram-occasions-events:on-event
+     (make-instance 'cpoe:object-detached-robot
+       :arm ?left-or-right
+       :object-name (if ?object-designator
+                        (desig:desig-prop-value ?object-designator :name)
+                        NIL)))))
 
 (defun grip (&key
                ((:gripper ?left-or-right))
                ((:effort ?effort))
+               ((:object ?object-designator))
+               ((:grasp ?grasp))
              &allow-other-keys)
   (declare (type (or keyword list) ?left-or-right)
            (type (or number null) ?effort))
@@ -275,7 +285,14 @@ In any case, issue ROBOT-STATE-CHANGED event."
                      (desig:when ?effort
                        (effort ?effort))))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))
+    (when ?object-designator
+      (roslisp:ros-info (pick-place grip) "Assert grasp into knowledge base")
+      (cram-occasions-events:on-event
+       (make-instance 'cpoe:object-attached-robot
+         :arm ?left-or-right
+         :object-name (desig:desig-prop-value ?object-designator :name)
+         :grasp ?grasp)))))
 
 (defun open-or-close-gripper (&key
                                 ((:type ?action-type))
