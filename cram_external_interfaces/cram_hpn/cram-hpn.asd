@@ -51,6 +51,8 @@
                cram-mobile-pick-place-plans
                cram-object-knowledge
 
+               cram-commander
+
                cram-physics-utils     ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
                cram-bullet-reasoning
