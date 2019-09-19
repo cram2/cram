@@ -77,6 +77,9 @@
 
 (defun commander:perform-with-pms-running (designator)
   (urdf-proj:with-simulated-robot
-    (exe:perform designator))
+    (handler-case
+        (exe:perform designator)
+      (cpl:plan-failure (f)
+        (warn "[commander] Failure happened ~a~%" f))))
   ;; (sleep 0.5)
   )
