@@ -93,6 +93,60 @@
 (roslisp-utilities:register-ros-init-function init-projection)
 
 
+(defun spawn-kitchen ()
+  (let ((kitchen (or btr-belief:*kitchen-urdf*
+                     (let ((kitchen-urdf-string
+                             (roslisp:get-param btr-belief:*kitchen-parameter* nil)))
+                       (when kitchen-urdf-string
+                         (setf btr-belief:*kitchen-urdf*
+                               (cl-urdf:parse-urdf kitchen-urdf-string)))))))
+    (assert
+     (cut:force-ll
+      (prolog `(and
+                (btr:bullet-world ?w)
+                (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
+                                                 :collision-group :static-filter
+                                                 :collision-mask (:default-filter
+                                                                  :character-filter)
+                                           ,@(when kitchen
+                                               `(:urdf ,kitchen))
+                                           :compound T))))))))
+
+(defun spawn-kitchen-bounding-box (name)
+  (let ((aabb (btr:aabb
+               (btr:rigid-body
+                (btr:get-environment-object)
+                (intern (format nil "KITCHEN.~(~a~)" name) :keyword)))))
+    (btr:add-object btr:*current-bullet-world*
+                    :box-item
+                    name
+                    (cram-tf:pose->list
+                     (cl-transforms:make-pose
+                      (cl-bullet:bounding-box-center aabb)
+                      (cl-transforms:make-identity-rotation)))
+                    :mass 0.1
+                    :size `(,(/ (cl-transforms:x (cl-bullet:bounding-box-dimensions aabb)) 2)
+                            ,(/ (cl-transforms:y (cl-bullet:bounding-box-dimensions aabb)) 2)
+                            ,(/ (cl-transforms:z (cl-bullet:bounding-box-dimensions aabb)) 2))
+                    :color '(0 0 1)
+                    :item-type :kitchen)))
+
+(defun spawn-item-bounding-box (name)
+  (let* ((object (btr:object btr:*current-bullet-world* name))
+         (aabb-dims (btr:calculate-bb-dims object))
+         (pose (btr:pose object)))
+    (btr:add-object btr:*current-bullet-world*
+                    :box-item
+                    (intern (format nil "~a-B-B" name) :keyword)
+                    (cram-tf:pose->list pose)
+                    :mass 0.1
+                    :size `(,(/ (cl-transforms:x aabb-dims) 2)
+                            ,(/ (cl-transforms:y aabb-dims) 2)
+                            ,(/ (cl-transforms:z aabb-dims) 2))
+                    :color '(1 0 0)
+                    :item-type :kitchen)))
+
+
 (defun initialize ()
   (sb-ext:gc :full t)
 
