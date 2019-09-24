@@ -111,7 +111,21 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
      name-and-surface-T-object-ll)))
 
 (defun export-for-csv-data (&optional (kitchen "kitchen_description") (name "Thomas") (context :table-setting))
-  (let* ((muesli (list "SpoonSoup" "JaNougatBits" "BaerenMarkeFrischeAlpenmilch38" "BowlLarge"))
+  (let* ((muesli (list
+                  ;; cuterly
+                  "SpoonSoup" "SpoonDessert"
+                  ;;"KnifeButter" "KnifeTable" <- dont find any
+                  ;; Bowls and Plates
+                  "BowlLarge"
+                  ;; "PlateClassic"  <- dont find any
+                  ;; Cups and glasses
+                  "GlassTall" "GlassRound" "Cup"
+                  ;; food     
+                  "KoellnMuesliKnusperHonigNuss" "JaNougatBits"
+                  "KoellnMuesliCranberry"
+                  ;; "KellogsCornFlakesOriginal"  <- dont find any
+                  ;; drinks
+                  "BaerenMarkeFrischeAlpenmilch38" "HohesCOrange"))
          (samples (format-samples
                    (mapcar (alexandria:curry #'append (list kitchen name context)) ;; addr more features
                            (apply #'append ;; objects types in one list
