@@ -145,7 +145,7 @@ Should it be taken out and made PR2-specific?"
             0.0
             (atan (cl-transforms:y (cl-transforms:translation pose-in-pan))
                   (cl-transforms:x (cl-transforms:translation pose-in-pan)))))
-     (+ (joint-state robot tilt-joint-name)
+     (- (joint-state robot tilt-joint-name)
         (if (= (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 0)
             0.0
             (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))

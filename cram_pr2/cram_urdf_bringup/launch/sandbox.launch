@@ -40,7 +40,7 @@
            command="$(find xacro)/xacro.py
                     '$(find hsr_description)/robots/hsrb4s.urdf.xacro'"/>
  	<!-- HSR IK solver -->
- 	 <include file="$(find hsrb_arm_kinematics)/launch/hsrb_ik.launch" />
+ 	<include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
    </group>
 
  <group if="$(arg boxy)">
