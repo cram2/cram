@@ -101,13 +101,17 @@ equate resulting designator to the original one."
                         (cram-occasions-events:on-event
                          (make-instance 'cram-plan-occasions-events:object-perceived-event
                            :object-designator desig
-                           :perception-source :whatever)))
+                           :perception-source :whatever))
+                        ;; doesn't make sense to equate all these desigs together
+                        ;; (desig:equate ?object-designator desig)
+                        )
                       resulting-designators)
-              (cram-occasions-events:on-event
-               (make-instance 'cram-plan-occasions-events:object-perceived-event
-                 :object-designator resulting-designators
-                 :perception-source :whatever)))
-          (desig:equate ?object-designator resulting-designator)
+              (progn
+                (cram-occasions-events:on-event
+                 (make-instance 'cram-plan-occasions-events:object-perceived-event
+                   :object-designator resulting-designators
+                   :perception-source :whatever))
+                (desig:equate ?object-designator resulting-designator)))
           resulting-designator)))))
 
 
