@@ -76,9 +76,24 @@
         (format stream "[~s,~,6f,[~,6f,~,6f,~,6f],[~,6f,~,6f,~,6f,~,6f]]"
                 frame-id stamp x y z q1 q2 q3 w)))))
 
-(defun action-designator->json (action-designator)
+(defmethod yason:encode ((pose cl-transforms-stamped:transform-stamped)
+                         &optional (stream *standard-output*))
+  (let ((origin (cl-transforms:translation pose))
+        (orientation (cl-transforms:rotation pose))
+        (frame-id (cl-transforms-stamped:frame-id pose))
+        (child-frame-id (cl-transforms-stamped:child-frame-id pose))
+        (stamp (cl-transforms-stamped:stamp pose)))
+    (with-slots ((x cl-transforms:x) (y cl-transforms:y) (z cl-transforms:z))
+        origin
+      (with-slots ((q1 cl-transforms:x) (q2 cl-transforms:y) (q3 cl-transforms:z)
+                   (w cl-transforms:w))
+          orientation
+        (format stream "[~s,~s,~,6f,[~,6f,~,6f,~,6f],[~,6f,~,6f,~,6f,~,6f]]"
+                frame-id child-frame-id stamp x y z q1 q2 q3 w)))))
+
+(defun designator->json (designator)
   (let ((stream (make-string-output-stream)))
-    (yason:encode action-designator stream)
+    (yason:encode designator stream)
     (get-output-stream-string stream)))
 
 (defun call-reference (action-designator agent-namespace)
@@ -86,7 +101,7 @@
   (roslisp:call-service
    (concatenate 'string agent-namespace *reference-service-name*)
    *reference-service-type*
-   :designator (action-designator->json action-designator)))
+   :designator (designator->json action-designator)))
 
 (defun call-perform (action-designator agent-namespace)
   (declare (type desig:designator action-designator)
@@ -94,24 +109,10 @@
   "Calls the action performing ROS service.
 It has to come back immediately for the HMI interface not to be blocked
 If the action is of type STOPPING it will stop all the goals of the agent."
+  (unless agent-namespace
+    (setf agent-namespace (choose-agent action-designator)))
 
-
-  (labels ((commander-perform (action-designator ?agent-namespace)
-             (declare (ignore action-designator ?agent-namespace))
-             ;; (if (or (eq :charge (desig:desig-prop-value action-designator :to))
-             ;;         (eq :charging (desig:desig-prop-value action-designator :type)))
-             ;;     (call-perform (desig:an action (to mount) (agent ?agent-namespace))
-             ;;                     "donkey")
-             ;;     nil)
-             ))
-
-
-    (unless agent-namespace
-      (setf agent-namespace (choose-agent action-designator)))
-
-    (unless (commander-perform action-designator agent-namespace)
-
-      (roslisp:call-service
-       (concatenate 'string agent-namespace *perform-service-name*)
-       *perform-service-type*
-       :designator (action-designator->json action-designator)))))
+  (roslisp:call-service
+   (concatenate 'string agent-namespace *perform-service-name*)
+   *perform-service-type*
+   :designator (designator->json action-designator)))

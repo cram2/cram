@@ -67,10 +67,13 @@ This is where the result of YASON:PARSE lands."
   "A general function to parse things like (a location ((prop1 val1)))"
   (destructuring-bind (article designator-type designator-properties)
       the-list
-    (declare (ignore article))
-    (desig:make-designator
-     (intern (string-upcase designator-type) :keyword)
-     (parse-property-list designator-properties))))
+    (let ((designator
+            (desig:make-designator
+             (intern (string-upcase designator-type) :keyword)
+             (parse-property-list designator-properties))))
+      (setf (slot-value designator 'desig:quantifier)
+            (intern (string-upcase article) :keyword))
+      designator)))
 
 (defun parse-action-json (json-string)
   (handler-case
@@ -165,7 +168,8 @@ This is where the result of YASON:PARSE lands."
           (if (= 2 (length (car node)))
               (list name (pose-from-list (car node)))
               (list name (car node))))
-      (list name (intern (string-upcase (car node)) :keyword))))
+      ;; (list name (intern (string-upcase (car node)) :keyword))
+      (list name node)))
 
 
 (defmethod parse-json-node ((name (eql :object)) node)
@@ -175,7 +179,27 @@ This is where the result of YASON:PARSE lands."
           ;; (list name (car node))
           )
       ;; (list name (intern (string-upcase (car node)) :keyword))
-      ))
+      (list name node)))
+
+
+(defmethod parse-json-node ((name (eql :on)) node)
+  (if (listp (car node))
+      (if (= 3 (length (car node)))
+          (list name (parse-designator-description (car node)))
+          ;; (list name (car node))
+          )
+      ;; (list name (intern (string-upcase (car node)) :keyword))
+      (list name node)))
+
+
+(defmethod parse-json-node ((name (eql :location)) node)
+  (if (listp (car node))
+      (if (= 3 (length (car node)))
+          (list name (parse-designator-description (car node)))
+          ;; (list name (car node))
+          )
+      ;; (list name (intern (string-upcase (car node)) :keyword))
+      (list name node)))
 
 ;;; LOCATION PROPERTIES
 
@@ -194,6 +218,10 @@ This is where the result of YASON:PARSE lands."
 (defmethod parse-json-node ((name (eql :in-front-of)) node)
   (cons name node))
 (defmethod parse-json-node ((name (eql :behind)) node)
+  (cons name node))
+(defmethod parse-json-node ((name (eql :urdf-name)) node)
+  (list name (intern (string-upcase (car node)) :keyword)))
+(defmethod parse-json-node ((name (eql :owl-name)) node)
   (cons name node))
 
 (defmethod parse-json-node ((name (eql :pose)) node)

@@ -142,10 +142,11 @@
               ;;   (roslisp:make-response :result
               ;;                          (format nil "Performing designator ~a."
               ;;                                  parsed-designator)))))
-              (perform-with-pms-running parsed-designator)
-              (roslisp:make-response :result
-                                     (format nil "Performing designator ~a."
-                                             parsed-designator))))
+              (let ((result (perform-with-pms-running parsed-designator)))
+                (roslisp:ros-info (commander perform-server)
+                                   "Got result: ~%."result)
+                (roslisp:make-response :result
+                                       (if result (designator->json result) NIL)))))
         (roslisp:make-response :result
                                (format nil
                                        "Designator ~a could not be referenced."
