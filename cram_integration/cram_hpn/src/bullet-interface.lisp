@@ -59,7 +59,8 @@
                              :size dimensions
                              :color color
                              :item-type type-keyword
-                             :mass mass))))
+                             :mass mass
+                             :pose '((10 10 0) (0 0 0 1))))))
        item-geometry-vector))
 
 (defun set-world-state (robot-pose-msg robot-joint-state-msg item-in-space-vector)
