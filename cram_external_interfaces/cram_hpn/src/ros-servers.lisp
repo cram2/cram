@@ -63,6 +63,8 @@
   (run-set-world-state-server namespace)
   (commander:run-perform-server namespace))
 
+(roslisp-utilities:register-ros-init-function run-servers)
+
 ;; (defun main ()
 ;;   (cram-process-modules:with-process-modules-running
 ;;       (rs:robosherlock-perception-pm giskard:giskard-pm ;; navp:navp-pm
