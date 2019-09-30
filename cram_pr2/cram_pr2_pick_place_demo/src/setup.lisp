@@ -54,7 +54,7 @@
 
   (cram-bullet-reasoning:clear-costmap-vis-object)
 
-  (setf cram-tf:*tf-broadcasting-enabled* t)
+  ;; (setf cram-tf:*tf-broadcasting-enabled* t)
 
   (setf proj-reasoning::*projection-reasoning-enabled* nil)
 
