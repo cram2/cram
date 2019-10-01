@@ -101,7 +101,7 @@
     (<- (costmap:orientation-samples 2))
     (<- (costmap:orientation-sample-step 0.1)))
 
-  (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
+  ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
   (setup-bullet-world)
 
