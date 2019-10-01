@@ -84,13 +84,3 @@ from which the distance to the point (x,y) is minimal."
   (/ (cl-transforms:dot-product v1 v2)
      (* (cl-transforms:v-norm v1)
         (cl-transforms:v-norm v2))))
-
-(defun v-which-side (v1 v2)
-  "Return either :left or :right depending on which side of v1 v2 is."
-  (let ((v2-rot90ccw (cl-transforms:make-3d-vector
-                      (- (cl-transforms:y v2))
-                      (cl-transforms:x v2)
-                      0)))
-    (if (> (cl-transforms:dot-product v1 v2-rot90ccw) 0)
-        :right
-        :left)))

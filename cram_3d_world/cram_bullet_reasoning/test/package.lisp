@@ -28,7 +28,7 @@
 
 (in-package :cl-user)
 
-(defpackage :cram-bullet-reasoning-tests
-  (:nicknames :btr-tests)
+(defpackage bullet-reasoning-tests
+    (:documentation "")
   (:use #:common-lisp #:lisp-unit #:btr #:cl-bullet)
   (:export))

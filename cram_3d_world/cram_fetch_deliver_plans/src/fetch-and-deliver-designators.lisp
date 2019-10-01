@@ -100,12 +100,8 @@ the `look-pose-stamped'."
     ;; arm
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
-        (man-int:robot-free-hand ?robot ?arm)
-        ;; (and (man-int:robot-free-hand ?robot ?arm)
-        ;;      (-> (spec:property ?object-designator (:type :fridge))
-        ;;          (equal ?arm :right)
-        ;;          (equal ?arm :left)))
-        )
+        (and (cram-robot-interfaces:arm ?robot ?arm)
+             (equal ?arm :left)))
     ;; distance
     (once (or (spec:property ?action-designator (:distance ?distance))
               (equal ?distance NIL)))

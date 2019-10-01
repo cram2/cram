@@ -42,7 +42,6 @@
    #:object-type-subtype
    #:object-type-direct-subtype
    #:robot-free-hand
-   #:unidirectional-attachment
    ;; utils
    #:reasoning-engine-for-method
    ;; manipulation-interfaces
@@ -51,8 +50,6 @@
    #:get-action-trajectory
    #:get-action-grasps
    #:get-location-poses
-   #:get-container-opening-distance
-   #:get-container-closing-distance
    ;; grasps
    #:calculate-object-faces
    #:calculate-face-vector
@@ -67,7 +64,6 @@
    #:make-empty-trajectory
    #:get-traj-poses-by-label
    #:calculate-gripper-pose-in-base
-   #:calculate-gripper-pose-in-map
    ;;
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform
@@ -97,8 +93,6 @@
    ;; standard-rotations
    #:*rotation-around-z-90-matrix*
    #:*rotation-around-z+90-matrix*
-   #:*rotation-around-x+90-matrix*
-   #:*rotation-around-z-180-and-x+90-matrix*
    #:*identity-matrix*
    #:*rotation-around-x+90-list*
    #:*rotation-around-x-90-list*

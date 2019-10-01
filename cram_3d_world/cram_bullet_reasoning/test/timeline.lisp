@@ -26,32 +26,31 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :btr-tests)
+(in-package :bullet-reasoning-tests)
 
-#+outdated-and-execution-error
-(
-(defun compute-ik-client (position-ik-request)
-  (roslisp:with-ros-node ("moveit-test-client")
-    (if (not (roslisp:wait-for-service "compute_ik" 10))
-        (roslisp:ros-warn (bullet-reasoning-tests)
-                          "Timed out waiting for service moveit/compute_ik")
-        (roslisp:call-service "compute_ik"
-                              "moveit_msgs/GetPositionIK"
-                              :ik_request position-ik-request))))
+(define-test timeline-correct-last-element
+  (let ((timeline (make-instance 'timeline)))
+    (timeline-advance timeline (make-instance 'event :timestamp 0.0))
+    (assert-eq (btr::events timeline) (btr::last-event timeline))
+    (timeline-advance timeline (make-instance 'event :timestamp 1.0))
+    (assert-false (eq (btr::events timeline) (btr::last-event timeline)))
+    (assert-eq (last (btr::events timeline)) (btr::last-event timeline))))
 
-(define-test test-moveit-service-setup
-  (let* ((request (roslisp:make-message
-                   "moveit_msgs/PositionIKRequest"
-                   :pose_stamped (cl-transforms-stamped:to-msg
-                                  (cl-transforms-stamped:make-pose-stamped
-                                   "torso_lift_link"
-                                   (roslisp:ros-time)
-                                   (cl-transforms:make-3d-vector 0.45 0.2 0.31)
-                                   (cl-transforms:make-identity-rotation)))
-                   :group_name "right_arm"
-                   :timeout 1.0))
-         (result (compute-ik-client request)))
-    (assert-eql (roslisp-msg-protocol:symbol-code 'moveit_msgs-msg:moveiterrorcodes
-                                                  :success)
-                (moveit_msgs-msg:val (moveit_msgs-srv:error_code result)))))
-)
+(define-test timeline-correct-front-insert
+  (let ((timeline (make-instance 'timeline))
+        (event-1 (make-instance 'event :timestamp 1.0))
+        (event-2 (make-instance 'event :timestamp 0.0)))
+    (timeline-advance timeline event-1)
+    (timeline-advance timeline event-2)
+    (assert-eq (first (btr::events timeline)) event-2)
+    (assert-eq (second (btr::events timeline)) event-1)))
+
+(define-test timeline-correct-order
+  (let* ((timeline (make-instance 'timeline))
+         (unordered-timestamps '(0.0 1.0 2.0 1.5 3.0 2.5))
+         (ordered-timestamps (sort (mapcar #'identity unordered-timestamps) #'<)))
+    (dolist (stamp unordered-timestamps)
+      (timeline-advance timeline (make-instance 'event :timestamp stamp)))
+    (loop for event in (btr::events timeline)
+          for stamp in ordered-timestamps
+          do (assert-eq stamp (btr::timestamp event)))))

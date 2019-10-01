@@ -35,6 +35,8 @@
                yason
                roslisp
                roslisp-utilities
+               robosherlock_msgs-srv
+               robosherlock_msgs-msg
                cl-transforms
                cl-transforms-stamped
                cram-tf
@@ -43,15 +45,12 @@
                cram-process-modules
                cram-prolog
                cram-manipulation-interfaces
-               cram-common-designators
-               cram-simple-actionlib-client
-               ;; robosherlock_msgs-srv
-               robosherlock_msgs-msg)
+               cram-common-designators)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     ;; (:file "json-parser" :depends-on ("package"))
-     (:file "robosherlock-ros" :depends-on ("package"))
+     (:file "json-parser" :depends-on ("package"))
+     (:file "robosherlock-ros" :depends-on ("package" "json-parser"))
      (:file "api" :depends-on ("package" "robosherlock-ros"))
      (:file "designator-integration" :depends-on ("package" "api"))))))

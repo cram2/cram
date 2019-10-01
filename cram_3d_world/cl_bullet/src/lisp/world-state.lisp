@@ -195,28 +195,10 @@ world."
               :mass mass
               :collision-shape collision-shape
               :activation-state activation-state
-              :collision-flags nil ; collision-flags
+              :collision-flags collision-flags
               :group collision-group
               :mask collision-mask)))
       (add-rigid-body world body)
-      ;; In order to simulate rigid attachments, we set the collision flags
-      ;; of the grasped objects to :CF-STATIC-OBJECT.
-      ;; This introduces a slight problem when restoring the world,
-      ;; where if an object has been originally spawned as CF-STATIC-OBJECT,
-      ;; it cannot become dynamic anymore, so even if the COLLISION-FLAGS
-      ;; will be set to NIL or one of the dynamic collision flags,
-      ;; it will not have any effect.
-      ;; Thus, we always create our objects first as dynamic ones,
-      ;; and if in this moment they have a static flag, we apply it afterwards,
-      ;; such that it is always possible to make it dynamic again.
-      ;; As in our world we do not really have objects that are always static,
-      ;; we hereby consciously neglect the physics engine optimization on
-      ;; static objects and consider them all per default dynamic.
-      ;; Please note, that the collision flag can only be set to static after
-      ;; the body  has been added to the world.
-      ;; If the flag is static when the body is added to the world,
-      ;; it will remain static forever.
-      (setf (collision-flags body) collision-flags)
       (clear-forces body)
       (apply-central-force body force)
       (apply-torque body torque)

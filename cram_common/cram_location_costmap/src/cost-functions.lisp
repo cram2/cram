@@ -269,9 +269,6 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                                                 (>= x-coordinate-maybe-rotated destination-end-x))
                                         (continue))))
 
-                                   ;; Get the indices from the input matrix to get the value
-                                   ;; Get the corresponding indices from the maybe rotated point
-                                   ;; in the output-matrix to put the value from the input matrix in
                                    (let ((y-input-index
                                            (map-coordinate->array-index
                                             y-coordinate resolution origin-y))
@@ -287,8 +284,6 @@ Optionally an angle `theta' can be given in radiant, if the input `matrix' needs
                                             x-coordinate-maybe-rotated
                                             (resolution costmap-metadata) destination-origin-x)))
 
-                                     ;; Save the value from the rotated input-matrix in the
-                                     ;; corresponding field in the output-matrix.
                                      (setf (aref empty-output-matrix
                                                  y-destination-index x-destination-index)
                                            (aref matrix

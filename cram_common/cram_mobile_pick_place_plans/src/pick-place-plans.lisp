@@ -42,7 +42,7 @@
                   ((:effort ?grip-effort))
                   ((:grasp ?grasp))
                   ((:left-reach-poses ?left-reach-poses))
-                  ((:right-reach-poses ?right-reach-poses))
+                  ((:right-reach-posees ?right-reach-poses))
                   ((:left-grasp-poses ?left-grasp-poses))
                   ((:right-grasp-poses ?right-grasp-poses))
                   ((:left-lift-poses ?left-lift-poses))

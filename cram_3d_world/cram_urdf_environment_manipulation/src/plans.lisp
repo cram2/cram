@@ -45,7 +45,6 @@
                          ((:link-name ?link-name))
                          environment
                          ((:environment-name ?environment-name))
-                         ((:container-object ?container-designator))
                        &allow-other-keys)
   (declare (type keyword ?arm)
            (type number ?gripper-opening distance)
@@ -56,8 +55,7 @@
                  ?left-retract-pose ?right-retract-pose)
            (type (or string symbol null) joint-name ?link-name)
            (type (or btr:object null) environment)
-           (type (or symbol null) ?environment-name)
-           (type desig:object-designator ?container-designator))
+           (type (or symbol null) ?environment-name))
 
   (cpl:par
     (roslisp:ros-info (environment-manipulation open-container) "Opening gripper")
@@ -121,7 +119,6 @@
                (type pulling)
                (object (desig:an object
                                  (name ?environment-name)))
-               (container-object ?container-designator)
                (link ?link-name)
                (left-poses ?left-open-pose)
                (right-poses ?right-open-pose))))
@@ -170,7 +167,6 @@
                           ((:link-name ?link-name))
                           environment
                           ((:environment-name ?environment-name))
-                          ((:container-object ?container-designator))
                         &allow-other-keys)
   (declare (type keyword ?arm)
            (type number ?gripper-opening distance)
@@ -181,8 +177,7 @@
                  ?left-retract-pose ?right-retract-pose)
            (type (or string symbol null) joint-name ?link-name)
            (type (or btr:object null) environment)
-           (type (or symbol null) ?environment-name)
-           (type desig:object-designator ?container-designator))
+           (type (or symbol null) ?environment-name))
 
   (roslisp:ros-info (environment-manipulation close-container) "Opening gripper")
   (exe:perform
@@ -242,7 +237,6 @@
     (exe:perform
      (desig:an action
                (type pushing)
-               (container-object ?container-designator)
                (left-poses ?left-close-pose)
                (right-poses ?right-close-pose))))
 

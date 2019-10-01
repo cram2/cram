@@ -44,7 +44,6 @@
 
                cram-common-failures
                cram-mobile-pick-place-plans
-               cram-manipulation-interfaces
 
                cram-urdf-projection-reasoning ; for projection-based reasoning
                cram-urdf-environment-manipulation)

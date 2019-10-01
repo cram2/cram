@@ -14,6 +14,7 @@
   <depend>yason</depend>
   <depend>roslisp</depend>
   <depend>roslisp_utilities</depend>
+  <depend>robosherlock_msgs</depend>
   <depend>cl_transforms</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cram_tf</depend>
@@ -23,6 +24,4 @@
   <depend>cram_prolog</depend>
   <depend>cram_common_designators</depend>
   <depend>cram_manipulation_interfaces</depend>
-  <depend>cram_simple_actionlib_client</depend>
-  <depend>robosherlock_msgs</depend>
 </package>

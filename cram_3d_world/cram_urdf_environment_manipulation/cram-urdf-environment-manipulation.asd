@@ -44,7 +44,6 @@
                cram-occasions-events
                cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
 
-               cram-plan-occasions-events ; for CONTAINER-STATE occasion
                cram-common-failures
                cram-mobile-pick-place-plans
                cram-robot-interfaces ; for REACHABILITY-DESIGNATOR predicate
@@ -65,8 +64,7 @@
     ((:file "package")
      (:file "math" :depends-on ("package"))
      (:file "environment" :depends-on ("package"))
-     (:file "environment-occasions" :depends-on ("package" "environment"))
      (:file "costmaps" :depends-on ("package" "math" "environment"))
-     (:file "trajectories" :depends-on ("package" "environment"))
+     (:file "trajectories" :depends-on ("package"))
      (:file "action-designators" :depends-on ("package" "trajectories"))
      (:file "plans" :depends-on ("package" "environment"))))))
