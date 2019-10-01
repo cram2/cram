@@ -100,10 +100,11 @@
                (link ?link-name)
                (left-poses ?left-grasp-poses)
                (right-poses ?right-grasp-poses))))
-  (exe:perform
-   (desig:an action
-             (type gripping)
-             (gripper ?arm)))
+  (when (eq ?type :opening)
+    (exe:perform
+     (desig:an action
+               (type gripping)
+               (gripper ?arm))))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
