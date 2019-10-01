@@ -128,3 +128,21 @@ NAME-OF-OBJECT: The name of the object instance, for which it should be checked 
   (prolog:prolog `(and (btr:bullet-world ?world)
                               (cram-robot-interfaces:robot ?robot)
                               (btr:visible ?world ?robot ,name-of-object))))
+
+
+(defun spawn-cubes-on-all-poses (transform-list)
+  ;;make poses out of transforms
+  (let ((poses-list (mapcar
+                     (lambda (transform)
+                       (cl-tf:transform->pose transform))
+                     transform-list)))
+    ;;iterate over list, creating names of objects and spawning them
+    (let ((num 1))
+       (loop for pose in poses-list
+      do  (let ((name (format nil "cube~a" (incf num 1))))
+            (btr-utils:spawn-object (intern name) :cube
+                            :world btr:*current-bullet-world*
+                            :mass 1.0
+                            :color '(1 0 1)
+                            :pose pose))))))
+

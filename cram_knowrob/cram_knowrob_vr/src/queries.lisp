@@ -420,6 +420,7 @@ and the transform surface-T-object as a lazy list of pairs:
   "Returns the name of the supporting surface an object is picked up from
 and the transform surface-T-camera as a lazy list of pairs:
  '((name-1 . surface-T-camera-1) . rest-of-lazy-list)."
+  (print "ASK")
   (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
   (cut:lazy-mapcar
    (lambda (binding-set)
@@ -488,6 +489,7 @@ and the transform surface-T-camera as a lazy list of pairs:
   "Returns the name of the supporting surface an object is picked up from
 and the transform surface-T-camera as a lazy list of pairs:
  '((name-1 . surface-T-camera-1) . rest-of-lazy-list)."
+  (print "ASK")
   (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
   (cut:lazy-mapcar
    (lambda (binding-set)

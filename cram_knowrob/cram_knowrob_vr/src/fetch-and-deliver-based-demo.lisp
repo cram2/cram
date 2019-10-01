@@ -174,9 +174,9 @@
 
 (cpl:def-cram-function demo (&optional
                              (list-of-objects
-                              '(cup
-                                bowl
-                                spoon)))
+                              '(spoon
+                                cup
+                                bowl)))
 
   (initialize)
   (when cram-projection:*projection-environment*
