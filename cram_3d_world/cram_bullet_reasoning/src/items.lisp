@@ -44,7 +44,9 @@
     (:cap "package://cram_bullet_reasoning/resource/cap.stl" t)
     (:glasses "package://cram_bullet_reasoning/resource/glasses.stl" nil)
     (:glove "package://cram_bullet_reasoning/resource/glove.stl" nil)
-    (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil)))
+    (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil)
+    (:arrow "package://cram_bullet_reasoning/resource/arrow.stl" nil)
+    ))
 
 (defun add-objects-to-mesh-list (ros-package &key (directory "resource") extension)
   "Adds all meshes from `ros-package' resource directory into *mesh-files* list.
