@@ -31,6 +31,59 @@
 
 ;; roslaunch cram_pr2_pick_place_demo sandbox.launch
 
+(defparameter *initial-item-poses*
+  '((:breakfast-cereal ((1.4 0.35 0.97) (0 0 0 1)))
+    (:cup ((1.33 0.6 0.9) (0 0 0 1)))
+    (:bowl ((1.4 0.8 0.89) (0 0 0 1)))
+    (:spoon ((1.34 1.05 0.87) (0 0 0 1)))
+    (:milk ((1.45 0.62 0.96) (0 0 1 0)))))
+
+(defun spawn-items (&optional (name-to-pose-list *initial-item-poses*))
+  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
+  (mapcar (lambda (name-to-pose)
+            (destructuring-bind (name pose-list)
+                name-to-pose
+              (let ((object
+                      (or (btr:object btr:*current-bullet-world* name)
+                          (btr-utils:spawn-object name name :pose pose-list))))
+               (btr-utils:move-object
+                (btr:name object)
+                (cram-tf:rotate-pose
+                 (cram-tf:list->pose pose-list) :z (/ (* 2 pi) (random 10.0))))
+               object)))
+          name-to-pose-list)
+  (btr:simulate btr:*current-bullet-world* 100))
+
+(defun move-objects-to-sink ()
+  (let ((name-to-pose
+          `((:milk ((1.5 0.61 0.965960623d0) (0 0 0.9655355d0 -0.2602712)))
+            (:breakfast_cereal ((1.48 0.32 0.9874508603d0) (0.0 0.0 0.074826 0.99719655))))))
+    (mapcar (lambda (name-to-pose-entry)
+              (destructuring-bind (name pose)
+                  name-to-pose-entry
+                (setf (btr:pose (btr:object btr:*current-bullet-world* name))
+                      (cram-tf:list->pose pose))))
+            name-to-pose)))
+
+(defun spawn-kitchen ()
+  (let ((kitchen (or btr-belief:*kitchen-urdf*
+                     (let ((kitchen-urdf-string
+                             (roslisp:get-param btr-belief:*kitchen-parameter* nil)))
+                       (when kitchen-urdf-string
+                         (setf btr-belief:*kitchen-urdf*
+                               (cl-urdf:parse-urdf kitchen-urdf-string)))))))
+    (assert
+     (cut:force-ll
+      (prolog `(and
+                (btr:bullet-world ?w)
+                (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
+                                                 :collision-group :static-filter
+                                                 :collision-mask (:default-filter
+                                                                  :character-filter)
+                                           ,@(when kitchen
+                                               `(:urdf ,kitchen))
+                                           :compound T))))))))
+
 (defun init-projection ()
   (def-fact-group costmap-metadata (costmap:costmap-size
                                     costmap:costmap-origin
@@ -80,6 +133,9 @@
                          (assert (btr:joint-state ?world ?robot ((?torso-joint ?upper-limit)))))
                     (warn "ROBOT was not defined. Have you loaded a robot package?")))))))
 
+  (spawn-kitchen)
+  (spawn-items)
+
   (setf cram-tf:*tf-default-timeout* 2.0)
 
   (setf prolog:*break-on-lisp-errors* t)
@@ -92,25 +148,6 @@
 
 (roslisp-utilities:register-ros-init-function init-projection)
 
-
-(defun spawn-kitchen ()
-  (let ((kitchen (or btr-belief:*kitchen-urdf*
-                     (let ((kitchen-urdf-string
-                             (roslisp:get-param btr-belief:*kitchen-parameter* nil)))
-                       (when kitchen-urdf-string
-                         (setf btr-belief:*kitchen-urdf*
-                               (cl-urdf:parse-urdf kitchen-urdf-string)))))))
-    (assert
-     (cut:force-ll
-      (prolog `(and
-                (btr:bullet-world ?w)
-                (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                                 :collision-group :static-filter
-                                                 :collision-mask (:default-filter
-                                                                  :character-filter)
-                                           ,@(when kitchen
-                                               `(:urdf ,kitchen))
-                                           :compound T))))))))
 
 (defun spawn-kitchen-bounding-box (name)
   (let ((aabb (btr:aabb

@@ -55,12 +55,11 @@
              (unless (eq shape-symbol :box)
                (error "This interface currently only supports BOX shapes"))
              (btr:add-object btr:*current-bullet-world*
-                             :box-item name-keyword '((0 0 0) (0 0 0 1))
+                             :box-item name-keyword '((10 10 0) (0 0 0 1))
                              :size dimensions
                              :color color
                              :item-type type-keyword
-                             :mass mass
-                             :pose '((10 10 0) (0 0 0 1))))))
+                             :mass mass))))
        item-geometry-vector))
 
 (defun set-world-state (robot-pose-msg robot-joint-state-msg item-in-space-vector)
