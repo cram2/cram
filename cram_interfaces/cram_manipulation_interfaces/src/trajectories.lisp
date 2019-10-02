@@ -118,12 +118,20 @@ Gripper is defined by a convention where Z is pointing towards the object.")
     (call-with-specific-type #'get-object-type-to-gripper-pregrasp-transform
                              object-type object-name arm grasp grasp-transform)))
 
-(defgeneric get-object-type-to-gripper-cut-lift-transform (object-type object-name
+(defgeneric get-object-type-to-gripper-slice-up-transform (object-type object-name
                                                            arm grasp grasp-transform)
   (:documentation "Returns a transform stamped")
   (:method (object-type object-name arm grasp grasp-transform)
-    (call-with-specific-type #'get-object-type-to-gripper-cut-lift-transform
+    (call-with-specific-type #'get-object-type-to-gripper-slice-up-transform
                              object-type object-name arm grasp grasp-transform)))
+
+(defgeneric get-object-type-to-gripper-slice-down-transform (object-type object-name
+                                                           arm grasp grasp-transform)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type object-name arm grasp grasp-transform)
+    (call-with-specific-type #'get-object-type-to-gripper-slice-down-transform
+                             object-type object-name arm grasp grasp-transform)))
+
 
 (defgeneric get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name
                                                                arm grasp grasp-transform)
@@ -154,7 +162,8 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                                                                         (0.0 1.0 0.0)
                                                                         (0.0 0.0 1.0)))
                                                    (pregrasp-offsets ''(0.0 0.0 0.0))
-                                                   (cut-lift-offsets ''(0.0 0.0 0.0))
+                                                   (slice-up-offsets ''(0.0 0.0 0.0))
+                                                   (slice-down-offsets ''(0.0 0.0 0.0))
                                                    (2nd-pregrasp-offsets ''(0.0 0.0 0.0))
                                                    (lift-offsets ''(0.0 0.0 0.0))
                                                    (2nd-lift-offsets ''(0.0 0.0 0.0)))
@@ -164,7 +173,8 @@ Gripper is defined by a convention where Z is pointing towards the object.")
          (evaled-grasp-translation ,grasp-translation)
          (evaled-grasp-rot-matrix ,grasp-rot-matrix)
          (evaled-pregrasp-offsets ,pregrasp-offsets)
-         (evaled-cut-lift-offsets ,cut-lift-offsets)
+         (evaled-slice-up-offsets ,slice-up-offsets)
+         (evaled-slice-down-offsets ,slice-down-offsets)
          (evaled-2nd-pregrasp-offsets ,2nd-pregrasp-offsets)
          (evaled-lift-offsets ,lift-offsets)
          (evaled-2nd-lift-offsets ,2nd-lift-offsets))
@@ -222,18 +232,32 @@ Gripper is defined by a convention where Z is pointing towards the object.")
           (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
-  (defmethod get-object-type-to-gripper-cut-lift-transform ((object-type (eql object))
+  (defmethod get-object-type-to-gripper-slice-up-transform ((object-type (eql object))
                                                             object-name
                                                             (arm (eql arm))
                                                             (grasp (eql evaled-grasp-type))
                                                             grasp-transform)
-    (let ((pregrasp-offsets evaled-cut-lift-offsets))
+    (let ((pregrasp-offsets evaled-slice-up-offsets))
       (if pregrasp-offsets
           (destructuring-bind (x y z) pregrasp-offsets
             (cram-tf:translate-transform-stamped
              grasp-transform
              :x-offset x :y-offset y :z-offset z))
-          (error "Cut-lift transform not defined for object type ~a with arm ~a and grasp ~a~%"
+          (error "slice-up transform not defined for object type ~a with arm ~a and grasp ~a~%"
+                 object-type arm grasp))))
+
+   (defmethod get-object-type-to-gripper-slice-down-transform ((object-type (eql object))
+                                                            object-name
+                                                            (arm (eql arm))
+                                                            (grasp (eql evaled-grasp-type))
+                                                            grasp-transform)
+    (let ((pregrasp-offsets evaled-slice-down-offsets))
+      (if pregrasp-offsets
+          (destructuring-bind (x y z) pregrasp-offsets
+            (cram-tf:translate-transform-stamped
+             grasp-transform
+             :x-offset x :y-offset y :z-offset z))
+          (error "slice-down transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
   (defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql object))
@@ -396,7 +420,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
             (,?tilt-pose)))))
 
 
-(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :cutting))
+(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :slicing))
                                                  arm
                                                  grasp
                                                  objects-acted-on
@@ -420,7 +444,8 @@ Gripper is defined by a convention where Z is pointing towards the object.")
             '(:reaching
               :grasping
               :lifting
-              :cutting-lift)
+              :slice-up
+              :slice-down)
             `((,(man-int:get-object-type-to-gripper-pregrasp-transform
                  object-type object-name arm grasp oTg-std)
                ,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
@@ -430,7 +455,9 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                  object-type object-name arm grasp oTg-std)
                ,(man-int:get-object-type-to-gripper-2nd-lift-transform
                  object-type object-name arm grasp oTg-std))
-              (,(man-int::get-object-type-to-gripper-cut-lift-transform
+              (,(man-int::get-object-type-to-gripper-slice-up-transform
+                 object-type object-name arm grasp oTg-std))
+              (,(man-int::get-object-type-to-gripper-slice-down-transform
                  object-type object-name arm grasp oTg-std))))))
 
 
