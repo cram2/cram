@@ -348,28 +348,14 @@
 ;; Left-TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
     '(:left :right) :left-top
-  :grasp-translation `(0.04 0.0 ,*weisswurst-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.03 0.0 ,*weisswurst-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 0.0 ,*weisswurst-pregrasp-z-offset*)
-  :lift-offsets `(0.03 0.0 ,*weisswurst-pregrasp-z-offset*)
-  :2nd-lift-offsets `(0.03 0.0 ,*weisswurst-pregrasp-z-offset*))
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :slice-up-offsets `(0.04 0.0 0.037)
+  :slice-down-offsets `(0.04 0.0 0.001))
 
 ;; Right-TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
     '(:left :right) :right-top
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
-  :cut-lift-offsets `(-0.04 0.0 0.037))
+  :slice-up-offsets `(-0.04 0.0 0.037)
+  :slice-down-offsets `(0.04 0.0 0.001))
 
-
-;; BOTTOM grasp
-;; Bottom grasp is commented out because the robot grasps the spoon through the
-;; drawer, as in the last part of the grasping trajectory collisions are turned off
-;; (man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
-;;     '(:left :right) :bottom
-;;   :grasp-translation `(0.0 0.0 ,(- *cutlery-grasp-z-offset*))
-;;   :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
-;;   :pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
-;;   :2nd-pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
-;;   :lift-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
-;;   :2nd-lift-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*)))
