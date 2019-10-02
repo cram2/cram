@@ -117,6 +117,8 @@ This is where the result of YASON:PARSE lands."
 ;;   (list name (intern (string-upcase (car node)) :keyword)))
 (defmethod parse-json-node ((name (eql :gripper)) node)
   (list name (intern (string-upcase (car node)) :keyword)))
+(defmethod parse-json-node ((name (eql :collision-mode)) node)
+  (list name (intern (string-upcase (car node)) :keyword)))
 
 (defmethod parse-json-node ((name (eql :area)) node)
   (cons name node))
@@ -232,6 +234,22 @@ This is where the result of YASON:PARSE lands."
               (list name (pose-stamped-from-list (car node)))
               (list name (car node))))
       (list name (intern (string-upcase (car node)) :keyword))))
+(defmethod parse-json-node ((name (eql :left-pose)) node)
+  (if (listp (car node))
+      (if (= 2 (length (car node)))
+          (list name (pose-from-list (car node)))
+          (if (= 4 (length (car node)))
+              (list name (pose-stamped-from-list (car node)))
+              (list name (car node))))
+      (list name (intern (string-upcase (car node)) :keyword))))
+(defmethod parse-json-node ((name (eql :right-pose)) node)
+  (if (listp (car node))
+      (if (= 2 (length (car node)))
+          (list name (pose-from-list (car node)))
+          (if (= 4 (length (car node)))
+              (list name (pose-stamped-from-list (car node)))
+              (list name (car node))))
+      (list name (intern (string-upcase (car node)) :keyword))))
 
 (defmethod parse-json-node ((name (eql :left-joint-states)) node)
   (cons name node))
@@ -242,7 +260,7 @@ This is where the result of YASON:PARSE lands."
 ;;; OBJECT PROPERTIES
 
 (defmethod parse-json-node ((name (eql :name)) node)
-  (list name (intern (string-upcase (car node)) :keyword)))
+  (list name (roslisp-utilities:lispify-ros-underscore-name (car node) :keyword)))
 
 ;; (defmacro getassoc (key alist)
 ;;   `(cdr (assoc ,key ,alist :test #'equal)))
