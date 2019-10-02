@@ -130,7 +130,7 @@ NAME-OF-OBJECT: The name of the object instance, for which it should be checked 
                               (btr:visible ?world ?robot ,name-of-object))))
 
 
-(defun spawn-cubes-on-all-poses (transform-list)
+(defun spawn-arrows-on-all-poses (transform-list)
   ;;make poses out of transforms
   (let ((poses-list (mapcar
                      (lambda (transform)
@@ -139,10 +139,20 @@ NAME-OF-OBJECT: The name of the object instance, for which it should be checked 
     ;;iterate over list, creating names of objects and spawning them
     (let ((num 1))
        (loop for pose in poses-list
-      do  (let ((name (format nil "cube~a" (incf num 1))))
-            (btr-utils:spawn-object (intern name) :cube
+      do  (let ((name (format nil "arrow~a" (incf num 1))))
+            (btr-utils:spawn-object (intern name) :arrow
                             :world btr:*current-bullet-world*
                             :mass 1.0
                             :color '(1 0 1)
                             :pose pose))))))
+
+(defun spawn-arrows-obj-location (obj-type start-end)
+  (let* ((poses-list (mapcar
+                      (lambda (pose)
+                        (cl-tf:pose->transform
+                         (cl-tf:pose-stamped->pose pose)))
+                      (car ;; or cadr
+                       (cut:force-ll
+                        (umap-P-uobj-through-surface-from-list-ll obj-type start-end))))))
+    (spawn-arrows-on-all-poses  poses-list)))
 
