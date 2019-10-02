@@ -53,7 +53,8 @@
     (:cap "package://cram_bullet_reasoning/resource/cap.stl" t)
     (:glasses "package://cram_bullet_reasoning/resource/glasses.stl" nil)
     (:glove "package://cram_bullet_reasoning/resource/glove.stl" nil)
-    (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil))
+    (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil)
+    (:arrow "package://cram_bullet_reasoning/resource/arrow.stl" nil))
   "(mesh-name-in-CRAM  mesh-ROS-uri-path  flip-winding-order-of-the-mesh")
 
 
