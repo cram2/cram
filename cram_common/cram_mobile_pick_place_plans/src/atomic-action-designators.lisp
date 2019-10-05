@@ -48,11 +48,6 @@
 
 
 
-  (<- (desig:action-grounding ?action-designator (perceive ?action-designator))
-    (spec:property ?action-designator (:type :detecting))
-    (spec:property ?action-designator (:object ?_)))
-
-
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))

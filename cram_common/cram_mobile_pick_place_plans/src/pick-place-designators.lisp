@@ -40,6 +40,11 @@
 
 (def-fact-group pick-and-place-plans (desig:action-grounding)
 
+  (<- (desig:action-grounding ?action-designator (perceive ?action-designator))
+    (spec:property ?action-designator (:type :detecting))
+    (spec:property ?action-designator (:object ?_)))
+
+
   (<- (desig:action-grounding ?action-designator (pick-up ?resolved-action-designator))
     (spec:property ?action-designator (:type :picking-up))
 
