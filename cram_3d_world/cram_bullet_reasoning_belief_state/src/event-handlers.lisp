@@ -242,28 +242,39 @@ and setting it to zero will disable this method."
         `(assert (btr:object-pose ?w ,?obj-name ,?new-pose))))))
 
 (defun check-and-correct-perception-instability (obj-name obj-pose)
-  (btr:simulate btr:*current-bullet-world* 100)
-  (let* ((obj-curr-pose (btr:pose (btr:object btr:*current-bullet-world* obj-name)))
-         (distance-new-pose-perceived-pose (cl-tf:v-dist
-                                            (cl-transforms:origin obj-curr-pose)
-                                            (cl-transforms:origin obj-pose))))
-    (when (> distance-new-pose-perceived-pose *perception-instability-threshold*)
-      ;; Retry by spawning the object a corrected distance from the original pose
-      (multiple-value-bind (x-corr y-corr z-corr)
-          (get-perception-noise-correction obj-pose obj-curr-pose)
-        (btr:prolog-?w
-        `(assert (btr:object-pose ?w ,obj-name ,(cram-tf:translate-pose
-                                                 obj-pose
-                                                 :x-offset x-corr
-                                                 :y-offset y-corr
-                                                 :z-offset z-corr)))))
-      (btr:simulate btr:*current-bullet-world* 100)
-      (setf obj-curr-pose (btr:pose (btr:object btr:*current-bullet-world* obj-name)))
-      (setf distance-new-pose-perceived-pose (cl-tf:v-dist
+  (let ((world-copy (bullet:copy-world btr:*current-bullet-world*)))
+    (btr:simulate world-copy 100)
+    (let* ((obj-curr-pose (btr:pose (btr:object world-copy obj-name)))
+           (distance-new-pose-perceived-pose (cl-tf:v-dist
                                               (cl-transforms:origin obj-curr-pose)
-                                              (cl-transforms:origin obj-pose)))
+                                              (cl-transforms:origin obj-pose))))
       (when (> distance-new-pose-perceived-pose *perception-instability-threshold*)
-        (error "[BTR-BELIEF OBJECT-PERCEIVED] Perceived pose is not stable")))))
+        ;; Retry by spawning the object a corrected distance from the original pose
+        (multiple-value-bind (x-corr y-corr z-corr)
+            (get-perception-noise-correction obj-pose obj-curr-pose)
+          (flet ((apply-correction (world)
+                   (prolog `(assert (btr:object-pose ,world ,obj-name
+                                                     ,(cram-tf:translate-pose
+                                                       obj-pose
+                                                       :x-offset x-corr
+                                                       :y-offset y-corr
+                                                       :z-offset z-corr))))
+                   ;; Erase object velocity from previous simulation.
+                   (mapcar (lambda (body)
+                             (setf (cl-bullet:linear-velocity body) (cl-tf:make-identity-vector))
+                             (setf (cl-bullet:angular-velocity body) (cl-tf:make-identity-vector)))
+                           (btr:rigid-bodies (btr:object world obj-name)))))
+            ;; Check if the correction is useful in the copied world.
+            (apply-correction world-copy)
+            (btr:simulate world-copy 100)
+            (setf obj-curr-pose (btr:pose (btr:object world-copy obj-name)))
+            (setf distance-new-pose-perceived-pose (cl-tf:v-dist
+                                                    (cl-transforms:origin obj-curr-pose)
+                                                    (cl-transforms:origin obj-pose)))
+            ;; If correction is useful, apply in the current bullet world.
+            (if (< distance-new-pose-perceived-pose *perception-instability-threshold*)
+                (apply-correction btr:*current-bullet-world*)
+                (roslisp:ros-warn (btr-belief correct-perception-instability) "Perceived pose is not stable"))))))))
 
 
 (defun get-perception-noise-correction (initial-pose final-pose)
