@@ -139,7 +139,7 @@ NAME-OF-OBJECT: The name of the object instance, for which it should be checked 
     ;;iterate over list, creating names of objects and spawning them
     (let ((num 1))
        (loop for pose in poses-list
-      do  (let ((name (format nil "arrow~a" (incf num 1))))
+      do  (let ((name (format nil "arrow~a" (incf num 2))))
             (btr-utils:spawn-object (intern name) :arrow
                             :world btr:*current-bullet-world*
                             :mass 1.0
@@ -156,3 +156,25 @@ NAME-OF-OBJECT: The name of the object instance, for which it should be checked 
                         (umap-P-uobj-through-surface-from-list-ll obj-type start-end))))))
     (spawn-arrows-on-all-poses  poses-list)))
 
+(defun test (poses-list)
+  (spawn-arrows-on-all-poses
+   (mapcar (lambda (pose)
+             (cl-tf:pose->transform pose))
+           (car poses-list))))
+
+;; query for a pose, CAR the resulting list, pass the transform to this function 
+(defun spawn-unreal-arrow (transform arrow-name)
+  (let ((transform-with-offset
+          (cl-tf:make-pose
+           (cl-tf:make-3d-vector
+            ;; Add the offset used to offset the semantic map also onto the pose
+            (+ (cl-tf:x (cl-tf:translation transform)) *semantic-map-offset-x*)
+            (+ (cl-tf:y (cl-tf:translation transform)) *semantic-map-offset-y*)
+            (cl-tf:z (cl-tf:translation transform)))
+           (cl-tf:rotation transform))))
+    ;; spawn arrow
+    (btr-utils:spawn-object (intern arrow-name) :arrow
+                            :world btr:*current-bullet-world*
+                            :mass 1.0
+                            :color '(1 0 1)
+                            :pose transform-with-offset)))

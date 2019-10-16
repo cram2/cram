@@ -75,6 +75,7 @@
      (:file "fetch-and-deliver-based-demo" :depends-on ("package"
                                                         "query-based-calculations"
                                                         "designator-integration"))
-    ;; (:file "plan-execution" :depends-on ("package"))
-    ;; (:file "demo-plans" :depends-on ("package"))
+     ;; (:file "plan-execution" :depends-on ("package"))
+     ;; (:file "demo-plans" :depends-on ("package"))
+     (:file "debugging-utils" :depends-on ("package"))
      ))))
