@@ -359,3 +359,26 @@
   :slice-up-offsets `(-0.04 0.0 0.037)
   :slice-down-offsets `(0.04 0.0 0.001))
 
+;; left hold-hold
+(man-int:def-object-type-to-gripper-transforms '(:weisswurst)
+    '(:left :right) :left-hold
+  :grasp-translation `(0.04 0.0 ,*weisswurst-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :lift-offsets `(0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :2nd-lift-offsets `(0.04 0.0 ,*weisswurst-pregrasp-z-offset*))
+
+
+;; right-holdy
+(man-int:def-object-type-to-gripper-transforms '(:weisswurst)
+    '(:left :right) :right-hold
+  :grasp-translation `(-0.04 0.0 ,*weisswurst-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :lift-offsets `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*)
+  :2nd-lift-offsets `(-0.04 0.0 ,*weisswurst-pregrasp-z-offset*))
+
+
+
