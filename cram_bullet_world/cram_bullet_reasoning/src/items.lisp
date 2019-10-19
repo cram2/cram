@@ -39,6 +39,7 @@
     (:pot "package://cram_bullet_reasoning/resource/pot-ww.stl" nil)
     (:weisswurst "package://cram_bullet_reasoning/resource/ww.stl" nil)
     (:bowl "package://cram_bullet_reasoning/resource/bowl.stl" nil)
+    (:bread "package://cram_bullet_reasoning/resource/Bread.stl" nil)
     (:fork "package://cram_bullet_reasoning/resource/fork.stl" nil)
     (:knife "package://cram_bullet_reasoning/resource/knife.stl" nil)
     (:spatula "package://cram_bullet_reasoning/resource/spatula.stl" nil)
@@ -278,6 +279,19 @@ The name in the list is a keyword that is created by lispifying the filename."
                 :collision-shape (make-instance 'colored-box-shape
                                    :half-extents (ensure-vector size)
                                    :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql :bread)) name pose
+                       &key mass (color '(0 0.5 0.5 1.0)) (scale 0.2))
+  (let ((size1 (cl-transforms:make-3d-vector 0.2 0.03 0.01)))
+  (assert size1)
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-box-shape
+                                   :half-extents (ensure-vector size1)
+                                   :color color))))))
+
 
 
 
