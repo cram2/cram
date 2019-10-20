@@ -41,9 +41,6 @@
           labels))
 
 (defun get-traj-poses-by-label (trajectory label)
-  (print "_______________________________________________")
-  (print trajectory)
-  (print label)
   (traj-segment-poses
    (find label
          trajectory
