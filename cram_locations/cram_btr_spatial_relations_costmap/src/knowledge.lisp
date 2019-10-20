@@ -49,6 +49,7 @@
   (<- (%item-type-shape :plate :circle))
   (<- (%item-type-shape :fork :rectangle))
   (<- (%item-type-shape :knife :rectangle))
+  (<- (%item-type-shape :big-knife :rectangle))
   (<- (%item-type-shape :weisswurst :rectangle))
   (<- (%item-type-shape :bread :rectangle))
   (<- (%item-type-shape :pancake-maker :circle))
@@ -83,6 +84,7 @@
   (<- (object-type-padding-size :plate 0.005d0))
   ;; (<- (object-type-padding-size :fork 0.005d0))
   (<- (object-type-padding-size :knife 0.005d0))
+  (<- (object-type-padding-size :big-knife 0.005d0))
   (<- (object-type-padding-size :pancake-maker 0.018d0))
   (<- (object-type-padding-size :spatula 0.01d0))
   (<- (object-type-padding-size :cup 0.1d0))
@@ -108,6 +110,7 @@
   (<- (object-type-costmap-threshold :bread 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold :spoon 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold :knife 0.8d0)) ; 0.99d0))
+  (<- (object-type-costmap-threshold :big-knife 0.8d0)) ; 0.99d0))
   (<- (object-type-costmap-threshold :cup 0.8d0)) ; 0.99d0))
   ;;
   (<- (object-costmap-threshold ?world ?object-name ?threshold)
