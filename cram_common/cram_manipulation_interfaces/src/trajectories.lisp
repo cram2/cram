@@ -130,6 +130,14 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                              object-type object-name arm grasp grasp-transform)))
 
 
+(defgeneric get-object-type-to-gripper-tilt-approach-transform (object-type object-name
+                                                           arm grasp grasp-transform)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type object-name arm grasp grasp-transform)
+    (call-with-specific-type #'get-object-type-to-gripper-tilt-approach-transform
+                             object-type object-name arm grasp grasp-transform)))
+
+
 (defgeneric get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name
                                                                arm grasp grasp-transform)
   (:documentation "Returns a transform stamped. Default value is NIL.")
@@ -163,7 +171,8 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                                                    (slice-down-offsets ''(0.0 0.0 0.0))
                                                    (2nd-pregrasp-offsets ''(0.0 0.0 0.0))
                                                    (lift-offsets ''(0.0 0.0 0.0))
-                                                   (2nd-lift-offsets ''(0.0 0.0 0.0)))
+                                                   (2nd-lift-offsets ''(0.0 0.0 0.0))
+                                                   (tilt-approach-offsets ''(0.0 0.0 0.0)))
   `(let ((evaled-object-type ,object-type)
          (evaled-arm ,arm)
          (evaled-grasp-type ,grasp-type)
@@ -174,7 +183,8 @@ Gripper is defined by a convention where Z is pointing towards the object.")
          (evaled-slice-down-offsets ,slice-down-offsets)
          (evaled-2nd-pregrasp-offsets ,2nd-pregrasp-offsets)
          (evaled-lift-offsets ,lift-offsets)
-         (evaled-2nd-lift-offsets ,2nd-lift-offsets))
+         (evaled-2nd-lift-offsets ,2nd-lift-offsets)
+         (evaled-tilt-approach-offsets ,tilt-approach-offsets))
      (let ((object-list
              (if (listp evaled-object-type)
                  evaled-object-type
@@ -249,6 +259,20 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                                                             (grasp (eql evaled-grasp-type))
                                                             grasp-transform)
     (let ((pregrasp-offsets evaled-slice-down-offsets))
+      (if pregrasp-offsets
+          (destructuring-bind (x y z) pregrasp-offsets
+            (cram-tf:translate-transform-stamped
+             grasp-transform
+             :x-offset x :y-offset y :z-offset z))
+          (error "slice-down transform not defined for object type ~a with arm ~a and grasp ~a~%"
+                 object-type arm grasp))))
+
+   (defmethod get-object-type-to-gripper-tilt-approach-transform ((object-type (eql object))
+                                                                  object-name
+                                                                  (arm (eql arm))
+                                                                  (grasp (eql evaled-grasp-type))
+                                                                  grasp-transform)
+    (let ((pregrasp-offsets evaled-tilt-approach-offsets))
       (if pregrasp-offsets
           (destructuring-bind (x y z) pregrasp-offsets
             (cram-tf:translate-transform-stamped
@@ -416,6 +440,42 @@ Gripper is defined by a convention where Z is pointing towards the object.")
           `((,?approach-pose)
             (,?tilt-pose)))))
 
+;; (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :pouring))
+;;                                                  arm
+;;                                                  grasp
+;;                                                  objects-acted-on
+;;                                                  &key )
+;;    (let* ((object
+;;            (car objects-acted-on))
+;;          (object-name
+;;            (desig:desig-prop-value object :name))
+;;          (object-type
+;;            (desig:desig-prop-value object :type))
+;;          (bTo
+;;            (man-int:get-object-transform object))
+;;          (oTg-std
+;;            (man-int:get-object-type-to-gripper-transform
+;;             object-type object-name arm grasp)))
+;;     (mapcar (lambda (label transforms)
+;;               (make-traj-segment
+;;                :label label
+;;                :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map bTo arm)
+;;                               transforms)))
+;;             '(:reaching
+;;               :grasping
+;;               :lifting
+;;               :tilt-approach)
+;;             `((,(man-int:get-object-type-to-gripper-pregrasp-transform
+;;                  object-type object-name arm grasp oTg-std)
+;;                ,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
+;;                  object-type object-name arm grasp oTg-std))
+;;               (,oTg-std)
+;;               (,(man-int:get-object-type-to-gripper-lift-transform
+;;                  object-type object-name arm grasp oTg-std)
+;;                ,(man-int:get-object-type-to-gripper-2nd-lift-transform
+;;                  object-type object-name arm grasp oTg-std))
+;;               (,(man-int::get-object-type-to-gripper-tilt-approach-transform
+;;                  object-type object-name arm grasp oTg-std))))))
 
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :slicing))
                                                  arm
