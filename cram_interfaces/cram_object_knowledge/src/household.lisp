@@ -238,13 +238,14 @@
   :2nd-lift-offsets *lift-offset*)
 
 ;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :front
+(man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :left-side
   :grasp-translation `(,(- *cup-grasp-xy-offset*) 0.0d0 ,*cup-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-offsets *lift-offset*
-  :2nd-lift-offsets *lift-offset*)
+  :2nd-lift-offsets *lift-offset*
+  :tilt-approach-offsets '(0.0 -0.10 0.055))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
