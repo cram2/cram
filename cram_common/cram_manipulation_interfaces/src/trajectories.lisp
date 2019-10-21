@@ -412,10 +412,10 @@ Gripper is defined by a convention where Z is pointing towards the object.")
          (angle (cram-math:degrees->radians 100))
          (?tilt-pose
            (case grasp
-               (:front (rotate-once-pose ?approach-pose (+ angle) :y))
+               (:front (rotate-once-pose ?approach-pose (- angle) :y))
                (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
                (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
-               (:back (rotate-once-pose ?approach-pose (- angle) :y))
+               (:back (rotate-once-pose ?approach-pose (+ angle) :y))
                (t (error "can only pour from :side, back or :front")))))
     `(,?tilt-pose)))
 

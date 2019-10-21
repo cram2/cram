@@ -220,7 +220,7 @@
   :2nd-pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*
-  :tilt-approach-offsets '(0.0 0.10 0.065))
+  :tilt-approach-offsets '(0.0 0.08 0.065))
 
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*cup-grasp-xy-offset* ,*cup-grasp-z-offset*)
@@ -229,7 +229,7 @@
   :2nd-pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*
-  :tilt-approach-offsets '(0.0 -10.0 0.065))
+  :tilt-approach-offsets '(0.0 -0.08 0.65))
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :back
@@ -239,7 +239,7 @@
   :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*
-  :tilt-approach-offsets '(-0.10 0.0 0.065))
+  :tilt-approach-offsets '(-0.10 0.008 0.065))
 
 ;; FRONT grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :left-side
@@ -249,7 +249,7 @@
   :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*
-  :tilt-approach-offsets '(0.10 0.0 0.065))
+  :tilt-approach-offsets '(0.08 0.0 0.065))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
