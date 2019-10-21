@@ -403,79 +403,61 @@ Gripper is defined by a convention where Z is pointing towards the object.")
 (defparameter *pour-xy-offset* 0.10 "in meters")
 (defparameter *pour-z-offset* -0.04 "in meters")
 
+(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :tilting))
+                                                 arm
+                                                 grasp
+                                                 objects-acted-on
+                                                 &key tilt-approach-poses)
+  (let* ((?approach-pose (car tilt-approach-poses))
+         (angle (cram-math:degrees->radians 100))
+         (?tilt-pose
+           (case grasp
+               (:front (rotate-once-pose ?approach-pose (+ angle) :y))
+               (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
+               (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
+               (:back (rotate-once-pose ?approach-pose (- angle) :y))
+               (t (error "can only pour from :side, back or :front")))))
+    `(,?tilt-pose)))
+
+;;helper function for tilting
+(defun rotate-once-pose (pose angle axis)
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
+                  (cl-transforms:q*
+                   (cl-transforms:axis-angle->quaternion
+                    (case axis
+                      (:x (cl-transforms:make-3d-vector 1 0 0))
+                      (:y (cl-transforms:make-3d-vector 0 1 0))
+                      (:z (cl-transforms:make-3d-vector 0 0 1))
+                      (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
+                    angle)
+                   pose-orientation))))
+
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :pouring))
                                                  arm
                                                  grasp
                                                  objects-acted-on
-                                                 &key grasp-poses)
-  (let* ((angle (cram-math:degrees->radians 100))
-         (?approach-pose
-           (translate-pose (car grasp-poses)
-                           :x-offset (case grasp
-                                       (:front (+ *pour-xy-offset*))
-                                       (:left-side 0.0)
-                                       (:right-side 0.0)
-                                       (error "can only pour from :side or :front"))
-                           :y-offset (case grasp
-                                       (:front 0.0)
-                                       (:left-side (- *pour-xy-offset*))
-                                       (:right-side (+ *pour-xy-offset*))
-                                       (error "can only pour from :side or :front"))
-                           :z-offset (+ *bottle-grasp-z-offset*
-                                        *pour-z-offset*)))
-    (?tilt-pose
-     (case grasp
-       (:front (rotate-once-pose ?approach-pose (- angle) :y))
-       (:left-side (rotate-once-pose ?approach-pose (- angle) :x))
-       (:right-side (rotate-once-pose ?approach-pose angle :x))
-       (t (error "can only pour from :side or :front")))))
-
-  (mapcar (lambda (label transforms)
-            (make-traj-segment
-             :label label
-             :poses transforms))
-
-          '(:approaching
-            :tilting)
-          `((,?approach-pose)
-            (,?tilt-pose)))))
-
-;; (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :pouring))
-;;                                                  arm
-;;                                                  grasp
-;;                                                  objects-acted-on
-;;                                                  &key )
-;;    (let* ((object
-;;            (car objects-acted-on))
-;;          (object-name
-;;            (desig:desig-prop-value object :name))
-;;          (object-type
-;;            (desig:desig-prop-value object :type))
-;;          (bTo
-;;            (man-int:get-object-transform object))
-;;          (oTg-std
-;;            (man-int:get-object-type-to-gripper-transform
-;;             object-type object-name arm grasp)))
-;;     (mapcar (lambda (label transforms)
-;;               (make-traj-segment
-;;                :label label
-;;                :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map bTo arm)
-;;                               transforms)))
-;;             '(:reaching
-;;               :grasping
-;;               :lifting
-;;               :tilt-approach)
-;;             `((,(man-int:get-object-type-to-gripper-pregrasp-transform
-;;                  object-type object-name arm grasp oTg-std)
-;;                ,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
-;;                  object-type object-name arm grasp oTg-std))
-;;               (,oTg-std)
-;;               (,(man-int:get-object-type-to-gripper-lift-transform
-;;                  object-type object-name arm grasp oTg-std)
-;;                ,(man-int:get-object-type-to-gripper-2nd-lift-transform
-;;                  object-type object-name arm grasp oTg-std))
-;;               (,(man-int::get-object-type-to-gripper-tilt-approach-transform
-;;                  object-type object-name arm grasp oTg-std))))))
+                                                 &key )
+   (let* ((object
+           (car objects-acted-on))
+         (object-name
+           (desig:desig-prop-value object :name))
+         (object-type
+           (desig:desig-prop-value object :type))
+         (bTo
+           (man-int:get-object-transform object))
+         (oTg-std
+           (man-int:get-object-type-to-gripper-transform
+            object-type object-name arm grasp)))
+    (mapcar (lambda (label transforms)
+              (make-traj-segment
+               :label label
+               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map bTo arm)
+                              transforms)))
+            '(:approach)
+            `((,(man-int::get-object-type-to-gripper-tilt-approach-transform
+                 object-type object-name arm grasp oTg-std))))))
 
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :slicing))
                                                  arm
@@ -518,34 +500,6 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                  object-type object-name arm grasp oTg-std))))))
 
 
-;;;;;;;;;;;;;;;;;;; HELPER FUNCTION FOR POURING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :origin (let ((pose-origin (cl-transforms:origin pose)))
-             (cl-transforms:copy-3d-vector
-              pose-origin
-              :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
-                   (+ x-pose-origin x-offset))
-              :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
-                   (+ y-pose-origin y-offset))
-              :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
-                   (+ z-pose-origin z-offset))))))
-
-
-(defun rotate-once-pose (pose angle axis)
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
-                  (cl-transforms:q*
-                   (cl-transforms:axis-angle->quaternion
-                    (case axis
-                      (:x (cl-transforms:make-3d-vector 1 0 0))
-                      (:y (cl-transforms:make-3d-vector 0 1 0))
-                      (:z (cl-transforms:make-3d-vector 0 0 1))
-                      (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
-                    angle)
-                   pose-orientation))))
 
 
 ;;;;;;;;;;;;;;;;;;; OBJECT TO OTHER OBJECT TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;
