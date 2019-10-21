@@ -33,7 +33,6 @@
   :license "BSD"
   :depends-on (cram-plan-transformation 
                lisp-unit
-               cram-pr2-pick-place-demo
                ;; cram-pr2-description
                ;; cram-boxy-description
                )
@@ -41,8 +40,9 @@
   ((:module "tests"
     :components
     ((:file "package")
-     (:file "functions" :depends-on ("package"))
-     (:file "transformation-tests" :depends-on ("package" "functions")))))
+     
+     (:file "demo" :depends-on ("package"))
+     (:file "transformation-tests" :depends-on ("package" "demo")))))
   :perform
   (test-op (operation component)
            (symbol-call :lisp-unit '#:run-tests :all :cram-plan-transformation-tests)))
