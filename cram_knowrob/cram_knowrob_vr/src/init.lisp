@@ -49,16 +49,15 @@
         "human-muesli-2" "rob-muesli-11" "rob-muesli-5" "rob-muesli-9"
         "human-muesli-3" "rob-muesli-2" "rob-muesli-6"
         "human-muesli-4" "rob-muesli-1" "rob-muesli-3" "rob-muesli-7"
-        "middle_side_table_muesli_1" "middle_side_table_muesli_2"
-        "middle_side_table_muesli_3" "middle_side_table_muesli_4"
-        "middle_side_table_muesli_5" "middle_side_table_muesli_6"
-        "middle_side_table_muesli_7" "middle_side_table_muesli_8"
-        "middle_side_table_muesli_9"
         "right_side_table_muesli_1"
         "right_side_table_muesli_2" "right_side_table_muesli_3"
         "right_side_table_muesli_4" "right_side_table_muesli_5"
         "right_side_table_muesli_6" "right_side_table_muesli_7"
-        "right_side_table_muesli_8" "right_side_table_muesli_9"))
+        "right_side_table_muesli_8" "right_side_table_muesli_9"
+        "full_breakfast_setup_2" "full_breakfast_setup_3"
+        "full_breakfast_setup_4" "full_breakfast_setup_5"
+        "full_breakfast_setup_6" "full_breakfast_setup_7"
+        "full_breakfast_setup_1"))
 
 (defun load-multiple-episodes (&optional namedir-list)
   ;;make a list of all directories of episodes and load them
