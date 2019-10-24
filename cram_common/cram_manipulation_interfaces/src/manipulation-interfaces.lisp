@@ -59,6 +59,18 @@ according to the reasoning engine, correspond to the given `location-designator'
   (:method :heuristics 20 (location-designator)
     (desig:resolve-location-designator-through-generators-and-validators location-designator)))
 
+(defgeneric get-object-likely-location (location-designator)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns a (lazy) list of cl-transforms-pose-stamped that,
+according to the reasoning engine and collected VR data, correspond to
+the given `location-designator'."))
+
+(defgeneric get-object-likely-destination (location-designator)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns a (lazy) list of cl-transforms-pose-stamped that,
+according type-of the reasoning engine and collected VR data,
+correspond to  the given `location-designator'."))
+
 (defmethod desig:resolve-designator :around ((desig desig:location-designator) role)
   "We have to hijack DESIG:RESOLVE-DESIGNATOR because otherwise we would have to
 make CRAM_DESIGNATORS package depend on CRAM_MANIPULATION_INTERFACES,
