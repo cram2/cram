@@ -4,6 +4,10 @@
     <!-- uploading the shelf to the param server -->
     <param name="shelf_description" command="$(find xacro)/xacro.py
         '$(find cram_pr2_shopping_demo)/resource/shelf.urdf'"/>
+    <!-- uploading basket urdf to param server -->
+    <param name="basket_description" command="$(find xacro)/xacro.py
+        '$(find cram_pr2_shopping_demo)/resource/basket_urdf.urdf'"/>
+
     <node pkg="tf" type="static_transform_publisher" name="shelf_link_broadcaster"
         args="0 0 0 0 0 0 /map /shelf_origin 25"></node>
     <node pkg="joint_state_publisher" type="joint_state_publisher"

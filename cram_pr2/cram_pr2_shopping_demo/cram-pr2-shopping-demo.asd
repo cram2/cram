@@ -47,13 +47,17 @@
                cram-common-failures
                cram-manipulation-interfaces
                cram-physics-utils
+
                cl-bullet
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
+
                cram-btr-visibility-costmap
+               cram-btr-spatial-relations-costmap 
                cram-robot-pose-gaussian-costmap
                cram-location-costmap
+
                cram-urdf-projection
                cram-mobile-pick-place-plans
                cram-pr2-description

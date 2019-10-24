@@ -42,9 +42,9 @@
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :heitmann))) 0.1)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :somat))) 0.1)
 
-(defparameter *denkmit-pregrasp-xy-offste* 0.00 "in meters")
-(defparameter *denkmit-grasp-xy-offset* 0.00 "in meters")
-(defparameter *denkmit-grasp-z-offset* 0.00 "in meters")
+(defparameter *denkmit-pregrasp-xy-offste* 0.03 "in meters")
+(defparameter *denkmit-grasp-xy-offset* 0.03 "in meters")
+(defparameter *denkmit-grasp-z-offset* 0.03 "in meters")
 
 (man-int:def-object-type-to-gripper-transforms :denkmit '(:left :right) :left-side
   :grasp-translation `(0.0d0 ,*denkmit-grasp-xy-offset* ,*denkmit-grasp-z-offset*)

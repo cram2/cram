@@ -79,7 +79,7 @@
   (let ((?pose-near-table *pose-near-table*)
         (?table *table*)
         (?search-pose *pose-searching*)
-        (?newobject (desig:an object (type ?object) (name ?object))))
+        (?newobject (desig:an object (type ?object))))
 
     (exe:perform
      (desig:an action
@@ -87,21 +87,26 @@
                (left-configuration park)
                (right-configuration park)))
     
-    (exe:perform
-     (desig:an action
-               (type transporting)
-               (object ?newobject)
-               (location (desig:a location
-                                  (pose ?search-pose)))
-               (target (desig:a location
-                                (pose ?table)))))
+    (exe:perform (desig:an action
+                           (type fetching)
+                           (object ?newobject)
+                           (robot-location (btr:pose (btr:robot-object)))))
+    
+    ;; (exe:perform
+    ;;  (desig:an action
+    ;;            (type transporting)
+    ;;            (object ?newobject)
+    ;;            (location (desig:a location
+    ;;                               (pose ?search-pose)))
+    ;;            (target (desig:a location
+    ;;                             (pose ?table)))))
 
     ))
 
 
-(defun collect-article ()
+(defun collect-article (article)
   (urdf-proj:with-simulated-robot
-    (let ((objects '(:denkmit :dove))
+    (let ((objects article)
           (y 0.2)
           object-desigs
           destination)
