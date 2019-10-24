@@ -178,3 +178,26 @@ NAME-OF-OBJECT: The name of the object instance, for which it should be checked 
                             :mass 1.0
                             :color '(1 0 1)
                             :pose transform-with-offset)))
+
+(defun convert-into-poses-list (lazy-poses-list)
+  "converts a given list of transforms or pose-stamped's into a list of poses.
+Can be used directly on query results.
+Accepts a  `lazy-poses-list' of cl-tf:transform or cl-tf:pose-stamped,
+Returns: list of cl-tf:pose."
+  (let* ((poses-list)
+          ;; convert lazy list into normal list
+         (temp-list (cut:force-ll lazy-poses-list)))
+    
+    ;; check what type the given list is
+    (case (cl-tf::type-of (car temp-list))
+      ;; convert transforms -> poses
+      ('cl-tf::transform (setq poses-list (mapcar (lambda (transform)
+                                                    (cl-tf:transform->pose transform))
+                                                  temp-list)))
+      ;; convert poses-stamped -> poses
+      ('cl-tf::pose-stamped (setq poses-list (mapcar (lambda (pose-stamped)
+                                                       (cl-tf:pose-stamped->pose pose-stamped))
+                                                     temp-list)))
+      ('t (print "invalid type")))
+    ;; return poses list
+    poses-list))
