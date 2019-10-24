@@ -213,3 +213,35 @@ Returns: list of cl-tf:pose."
       ('t (print "invalid type")))
     ;; return poses list
     poses-list))
+
+
+(defun spawn-one-arrow (obj-type time)
+  "spawn arrow of only one episode.
+`obj-type' type of object as string.
+`time' start or end of episode as string."
+  ;;spawn unreal arrow. without pose modificiations.
+  ;; at object location unreal (object-pose)
+  (spawn-unreal-arrow (car
+                       (convert-into-poses-list
+                        (query-object-location-by-object-type obj-type time)))
+                      "unreal-arrow-object")
+
+  ;; at object location btr (look-pose)
+  (spawn-btr-arrow (car
+                    (convert-into-poses-list
+                     (umap-P-uobj-through-surface-ll obj-type time)))
+                   "btr-arrow-object")
+
+  ;; at camera location unreal (original camera pose)
+  (spawn-unreal-arrow (car
+                       (convert-into-poses-list
+                        (query-camera-location-by-object-type obj-type time)))
+                      "unreal-arrow-camera")
+
+  ;; at base location btr (unreal camera with transformations)
+  ;; TODO this should also work for END
+  (spawn-btr-arrow (car
+                    (convert-into-poses-list
+                     (base-poses-ll-for-searching obj-type)))
+                   "btr-arrow-base")
+  )
