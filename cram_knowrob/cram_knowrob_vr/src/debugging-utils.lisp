@@ -163,21 +163,33 @@ NAME-OF-OBJECT: The name of the object instance, for which it should be checked 
            (car poses-list))))
 
 ;; query for a pose, CAR the resulting list, pass the transform to this function 
-(defun spawn-unreal-arrow (transform arrow-name)
-  (let ((transform-with-offset
+(defun spawn-unreal-arrow (pose arrow-name)
+  "spawns an arrow object at the given `pose' with the given `name'.
+Applies the unreal world/semantic map offset to the pose."
+  (let ((pose-with-offset
           (cl-tf:make-pose
            (cl-tf:make-3d-vector
             ;; Add the offset used to offset the semantic map also onto the pose
-            (+ (cl-tf:x (cl-tf:translation transform)) *semantic-map-offset-x*)
-            (+ (cl-tf:y (cl-tf:translation transform)) *semantic-map-offset-y*)
-            (cl-tf:z (cl-tf:translation transform)))
-           (cl-tf:rotation transform))))
+            (+ (cl-tf:x (cl-tf:origin pose)) *semantic-map-offset-x*)
+            (+ (cl-tf:y (cl-tf:origin pose)) *semantic-map-offset-y*)
+            (cl-tf:z (cl-tf:origin pose)))
+           (cl-tf:orientation pose))))
     ;; spawn arrow
     (btr-utils:spawn-object (intern arrow-name) :arrow
                             :world btr:*current-bullet-world*
                             :mass 1.0
                             :color '(1 0 1)
-                            :pose transform-with-offset)))
+                            :pose pose-with-offset)))
+
+(defun spawn-btr-arrow (pose arrow-name)
+  "spawns an arrow object at the given `pose' with the given `name'"
+    ;; spawn arrow
+  (btr-utils:spawn-object (intern arrow-name) :arrow
+                          :world btr:*current-bullet-world*
+                          :mass 1.0
+                          :color '(1 0 1)
+                          :pose pose))
+
 
 (defun convert-into-poses-list (lazy-poses-list)
   "converts a given list of transforms or pose-stamped's into a list of poses.
