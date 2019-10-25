@@ -102,15 +102,15 @@
   :lift-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
   :2nd-lift-offsets `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
 
-;; TOP grasp
+;; front grasp
 (man-int:def-object-type-to-gripper-transforms '(:cutlery :fork :knife :spoon)
     '(:left :right) :front
-  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-translation `(-0.03 0.0 0.0)
   :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.0)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.0)
-  :lift-offsets `(0.0 0.0 0.0)
-  :2nd-lift-offsets `(0.0 0.0 0.0))
+  :pregrasp-offsets `(-0.03 0.0 0.0)
+  :2nd-pregrasp-offsets `(-0.03 0.0 0.0)
+  :lift-offsets `(-0.03 0.0 0.0)
+  :2nd-lift-offsets `(-0.03 0.0 0.0))
 
 ;; BOTTOM grasp
 ;; Bottom grasp is commented out because the robot grasps the spoon through the
@@ -220,7 +220,7 @@
   :2nd-pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*
-  :tilt-approach-offsets '(0.0 0.08 0.065))
+  :tilt-approach-offsets '(0.0 0.085 0.065))
 
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*cup-grasp-xy-offset* ,*cup-grasp-z-offset*)
@@ -229,7 +229,7 @@
   :2nd-pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*
-  :tilt-approach-offsets '(0.0 -0.08 0.65))
+  :tilt-approach-offsets '(0.0 -0.085 0.065))
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :back
@@ -239,7 +239,7 @@
   :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*
-  :tilt-approach-offsets '(-0.10 0.008 0.065))
+  :tilt-approach-offsets '(-0.085 0.0 0.065))
 
 ;; FRONT grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :left-side
@@ -249,7 +249,7 @@
   :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*
-  :tilt-approach-offsets '(0.08 0.0 0.065))
+  :tilt-approach-offsets '(0.085 0.0 0.065))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -452,11 +452,11 @@
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:big-knife)
     '(:left :right) :front
-  :grasp-translation `(0.0 0.05 ,*cutlery-grasp-z-offset*)
+  :grasp-translation `(0.0 0.06 ,*cutlery-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.05 ,*cutlery-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(0.0 0.05 ,*cutlery-pregrasp-z-offset*)
-  :lift-offsets `(0.0 0.05 ,*cutlery-pregrasp-z-offset*)
-  :2nd-lift-offsets `(0.0 0.05 ,*cutlery-pregrasp-z-offset*))
+  :pregrasp-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
+  :lift-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
+  :2nd-lift-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*))
 
 
