@@ -282,7 +282,7 @@ The name in the list is a keyword that is created by lispifying the filename."
                                    :color color)))))
 
 (defmethod add-object ((world bt-world) (type (eql :bread)) name pose
-                       &key mass (color '(0 0.5 0.5 1.0)) size)
+                       &key mass (color '(0 1 0 0.5)) size)
   (assert size)
   (make-item world name (list type)
              (list
