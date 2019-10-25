@@ -174,32 +174,22 @@ The name in the list is a keyword that is created by lispifying the filename."
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
                        &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
                          disable-face-culling)
-  (let ((mesh-model
-          (physics-utils:scale-3d-model
-           (etypecase mesh
-             (symbol (let ((uri (cadr (assoc mesh *mesh-files*))))
-                       (unless uri (error "(btr add-object) Item of type ~a is unknown." mesh))
-                       (let ((uri-path (physics-utils:parse-uri uri)))
-                         (with-file-cache model uri-path
-                             (physics-utils:load-3d-model
-                              uri-path :flip-winding-order (caddr (assoc mesh *mesh-files*)))
-                           model))))
-             (string (let ((uri-path (physics-utils:parse-uri mesh)))
-                       (with-file-cache model uri-path
-                           (physics-utils:load-3d-model uri-path)
-                         model)))
-             (physics-utils:3d-model mesh))
-           scale)))
+  (let* ((mesh-desc (if (typep mesh 'symbol)
+                      (assoc mesh *mesh-files*)
+                      (if (typep mesh 'string)
+                        (list mesh mesh nil nil nil)
+                        (list nil nil nil nil (physics-utils:scale-3d-model mesh scale)))))
+         (mesh-uri (second mesh-desc))
+         (flip-winding-order (third mesh-desc))
+         (compound (if (fourth mesh-desc) T nil))
+         (collision-shape-file (or (fourth mesh-desc) mesh-uri))
+         (collision-shape (make-collision-shape-from-mesh collision-shape-file :scale scale :compound compound :color color :disable-face-culling disable-face-culling :flip-winding-order flip-winding-order)))
     (make-item world name (or types (list mesh))
                (list
                 (make-instance 'rigid-body
                   :name name :mass mass :pose (ensure-pose pose)
                   :collision-shape
-                  (make-instance 'convex-hull-mesh-shape
-                    :points (physics-utils:3d-model-vertices mesh-model)
-                    :faces (physics-utils:3d-model-faces mesh-model)
-                    :color color
-                    :disable-face-culling disable-face-culling))))))
+                  collision-shape)))))
 
 (defmethod add-object ((world bt-world) (type (eql :cutlery)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) cutlery-type)
