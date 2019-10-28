@@ -130,42 +130,11 @@ NAME-OF-OBJECT: The name of the object instance, for which it should be checked 
                               (btr:visible ?world ?robot ,name-of-object))))
 
 
-(defun spawn-arrows-on-all-poses (transform-list)
-  ;;make poses out of transforms
-  (let ((poses-list (mapcar
-                     (lambda (transform)
-                       (cl-tf:transform->pose transform))
-                     transform-list)))
-    ;;iterate over list, creating names of objects and spawning them
-    (let ((num 1))
-       (loop for pose in poses-list
-      do  (let ((name (format nil "arrow~a" (incf num 2))))
-            (btr-utils:spawn-object (intern name) :arrow
-                            :world btr:*current-bullet-world*
-                            :mass 1.0
-                            :color '(1 0 1)
-                            :pose pose))))))
-
-(defun spawn-arrows-obj-location (obj-type start-end)
-  (let* ((poses-list (mapcar
-                      (lambda (pose)
-                        (cl-tf:pose->transform
-                         (cl-tf:pose-stamped->pose pose)))
-                      (car ;; or cadr
-                       (cut:force-ll
-                        (umap-P-uobj-through-surface-from-list-ll obj-type start-end))))))
-    (spawn-arrows-on-all-poses  poses-list)))
-
-(defun test (poses-list)
-  (spawn-arrows-on-all-poses
-   (mapcar (lambda (pose)
-             (cl-tf:pose->transform pose))
-           (car poses-list))))
-
 ;; query for a pose, CAR the resulting list, pass the transform to this function 
-(defun spawn-unreal-arrow (pose arrow-name)
+(defun spawn-unreal-arrow (pose arrow-name &optional (color '(1 0 1)))
   "spawns an arrow object at the given `pose' with the given `name'.
-Applies the unreal world/semantic map offset to the pose."
+Applies the unreal world/semantic map offset to the pose.
+`color' is optionaly a list of r g b values. Default is pink '(1 0 1)."
   (let ((pose-with-offset
           (cl-tf:make-pose
            (cl-tf:make-3d-vector
@@ -178,16 +147,17 @@ Applies the unreal world/semantic map offset to the pose."
     (btr-utils:spawn-object (intern arrow-name) :arrow
                             :world btr:*current-bullet-world*
                             :mass 1.0
-                            :color '(1 0 1)
+                            :color color
                             :pose pose-with-offset)))
 
-(defun spawn-btr-arrow (pose arrow-name)
-  "spawns an arrow object at the given `pose' with the given `name'"
+(defun spawn-btr-arrow (pose arrow-name &optional (color '(1 0 1)))
+  "spawns an arrow object at the given `pose' with the given `name'.
+`color' is optionaly a list of r g b values. Default is pink '(1 0 1)."
     ;; spawn arrow
   (btr-utils:spawn-object (intern arrow-name) :arrow
                           :world btr:*current-bullet-world*
                           :mass 1.0
-                          :color '(1 0 1)
+                          :color color
                           :pose pose))
 
 
@@ -203,13 +173,15 @@ Returns: list of cl-tf:pose."
     ;; check what type the given list is
     (case (cl-tf::type-of (car temp-list))
       ;; convert transforms -> poses
-      ('cl-tf::transform (setq poses-list (mapcar (lambda (transform)
-                                                    (cl-tf:transform->pose transform))
-                                                  temp-list)))
+      ('cl-tf::transform (setq poses-list
+                               (mapcar (lambda (transform)
+                                         (cl-tf:transform->pose transform))
+                                       temp-list)))
       ;; convert poses-stamped -> poses
-      ('cl-tf::pose-stamped (setq poses-list (mapcar (lambda (pose-stamped)
-                                                       (cl-tf:pose-stamped->pose pose-stamped))
-                                                     temp-list)))
+      ('cl-tf::pose-stamped (setq poses-list
+                                  (mapcar (lambda (pose-stamped)
+                                            (cl-tf:pose-stamped->pose pose-stamped))
+                                          temp-list)))
       ('t (print "invalid type")))
     ;; return poses list
     poses-list))
@@ -224,24 +196,80 @@ Returns: list of cl-tf:pose."
   (spawn-unreal-arrow (car
                        (convert-into-poses-list
                         (query-object-location-by-object-type obj-type time)))
-                      "unreal-arrow-object")
+                      "unreal-arrow-object" '(1 0 1))
 
   ;; at object location btr (look-pose)
   (spawn-btr-arrow (car
                     (convert-into-poses-list
                      (umap-P-uobj-through-surface-ll obj-type time)))
-                   "btr-arrow-object")
+                   "btr-arrow-object" '(1 0 1))
 
   ;; at camera location unreal (original camera pose)
   (spawn-unreal-arrow (car
                        (convert-into-poses-list
                         (query-camera-location-by-object-type obj-type time)))
-                      "unreal-arrow-camera")
+                      "unreal-arrow-camera" '(1 0 0))
 
   ;; at base location btr (unreal camera with transformations)
   ;; TODO this should also work for END
   (spawn-btr-arrow (car
                     (convert-into-poses-list
                      (base-poses-ll-for-searching obj-type)))
-                   "btr-arrow-base")
+                   "btr-arrow-base" '(1 0 0))
   )
+
+(defvar *prefix-counter* 0)
+
+(defun arrow-prefix ()
+  "creates a prefix for an arrow name so that they remain unique"
+  (let ((name (format nil "~a" (incf *prefix-counter* 1))))
+    name))
+
+
+(defun spawn-multiple-arrows (obj-type time)
+  "spawn as many arrows as there are poses.
+`obj-type' type of object as string.
+`time' start or end of episode as string."
+  ;; get all the lists
+  (let ((unreal-object-poses (convert-into-poses-list
+                              (query-object-location-by-object-type obj-type time)))
+        
+        (btr-object-poses (convert-into-poses-list
+                           (umap-P-uobj-through-surface-ll obj-type time)))
+        
+        (unreal-camera-poses (convert-into-poses-list
+                              (query-camera-location-by-object-type obj-type time)))
+
+        (btr-base-poses (convert-into-poses-list
+                         (base-poses-ll-for-searching obj-type))))
+
+  
+  ;;spawn unreal arrow. without pose modificiations.
+  ;; at object location unreal (object-pose)
+    (loop for pose in unreal-object-poses
+          do (spawn-unreal-arrow pose
+                                 (format nil "ur-arrow-object-~a" (arrow-prefix))
+                                 '(1 0 1)))
+     
+    ;; at object location btr (look-pose)
+    (loop for pose in btr-object-poses
+          do (spawn-btr-arrow pose
+                              (format nil "btr-arrow-object-~a" (arrow-prefix))
+                              '(1 0 1)))
+
+    ;; at camera location unreal (original camera pose)
+    (loop for pose in unreal-camera-poses
+          do (spawn-unreal-arrow pose
+                                 (format nil "ur-arrow-camera-~a" (arrow-prefix))
+                                 '(1 0 0)))
+    
+    ;; at base location btr (unreal camera with transformations)
+    ;; TODO this should also work for END
+    (loop for pose in btr-base-poses
+          do (spawn-btr-arrow pose
+                              (format nil "btr-arrow-base-~a" (arrow-prefix))
+                              '(1 0 0)))))
+
+
+
+
