@@ -94,7 +94,7 @@
 (defun place-objects ()
   (btr-utils:move-object :denkmit '((-1 -1.06 0.7) (0 0 0 1)))
   (btr-utils:move-object :heitmann '((-1.3 -1.04 1) (0 0 0 1)))
-  (btr-utils:move-object :dove '((-2 -1.04 1.3) (0 0 0 1)))
+  (btr-utils:move-object :dove '((-0.5 -1.04 1.3) (0 0 0 1)))
   (btr:simulate btr:*current-bullet-world* 10))
 
 (defun place-test ()
@@ -106,7 +106,7 @@
 (defun replace-denkmit ()
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
-     :arm :right
+     :arm :left
      :object-name :denkmit))
   (btr-utils:move-object :denkmit '((-2 -1.1 1.3) (0 0 0 1))))
 
@@ -140,32 +140,6 @@
                    (assert (btr:object ?world :static-plane :floor ((0 0 0) (0 0 0 1))
                                                             :normal (0 0 1) :constant 0))))
   (btr:add-objects-to-mesh-list "cram_pr2_shopping_demo"))
-
-;; (defun make-behind-cost-function (ref-x ref-y)
-;;            "`ref-x' and `ref-y' are the coordinates of the reference point according to which the behind-relation is resolved."
-;;            (let* ((supp-tf (cl-transforms:make-transform
-;;                                (cl-transforms:make-3d-vector ref-x ref-y 0)
-;;                                (cl-transforms:make-identity-rotation)))
-;;                   (world->supp-tf (cl-transforms:transform-inv supp-tf)))
-;;              (lambda (x y)
-;;                (let* ((point (cl-transforms:transform-point world->supp-tf
-;;                                                             (cl-transforms:make-3d-vector x y 0)))
-;;                       (vector-length (cl-transforms:dot-product point point)))
-;;                  (if (and (> (cl-transforms:y point) 0.0d0)
-;;                           (> (abs (/ (cl-transforms:x point) vector-length)) 0))
-;;                      1
-;;                      0.0d0)))))
-
-;; (defmethod location-costmap:costmap-generator-name->score ((name (eql 'behind-cost-function))) 10)
-
-;; (def-fact-group tutorial-rules (location-costmap:desig-costmap)
-;;   (<- (location-costmap:desig-costmap ?designator ?costmap)
-;;     (location-costmap:costmap ?costmap)
-;;     ;;(desig:desig-prop ?designator (:behind ?pose))
-;;     (location-costmap:costmap-add-function
-;;      behind-cost-function
-;;      (make-behind-cost-function -1.5 -1)
-;;      ?costmap)))
 
 
 (roslisp-utilities:register-ros-init-function init)

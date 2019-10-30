@@ -72,7 +72,7 @@
 
 (defparameter *pose-searching* (cl-transforms-stamped:make-pose-stamped
                                 "map" 0
-                                (cl-transforms:make-3d-vector -1.5 -1 1)
+                                (cl-transforms:make-3d-vector -1 -1 1)
                                 (cl-transforms:make-identity-rotation)))
 
 (defun move-object (?object ?destination)
@@ -87,38 +87,32 @@
                (left-configuration park)
                (right-configuration park)))
     
-    (exe:perform (desig:an action
-                           (type fetching)
-                           (object ?newobject)
-                           (robot-location (btr:pose (btr:robot-object)))))
-    
-    ;; (exe:perform
-    ;;  (desig:an action
-    ;;            (type transporting)
-    ;;            (object ?newobject)
-    ;;            (location (desig:a location
-    ;;                               (pose ?search-pose)))
-    ;;            (target (desig:a location
-    ;;                             (pose ?table)))))
+    (exe:perform
+     (desig:an action
+               (type transporting)
+               (object ?newobject)
+               (location (desig:a location
+                                  (pose ?search-pose)))
+               (target (desig:a location
+                                (pose ?table)))))
 
     ))
 
 
-(defun collect-article (article)
+(defun collect-article (articles)
   (urdf-proj:with-simulated-robot
-    (let ((objects article)
-          (y 0.2)
+    (let ((objects articles)
+          (y 0.1)
           object-desigs
           destination)
-     ;; (setf object-desigs (try-detecting objects))
       (loop for ?object in objects
             do (setf destination (cl-transforms-stamped:make-pose-stamped
                                   "map" 0
-                                  (cl-transforms:make-3d-vector -3.1 y 0.75)
+                                  (cl-transforms:make-3d-vector 0 0.5 1)
+                                 ;; (cl-transforms:make-3d-vector -3.1 y 1)
                                   (cl-transforms:make-identity-rotation)))
                (move-object ?object destination)
-               ;;(btr:simulate btr:*current-bullet-world* 100)
-               (setf y (+ y 0.15)))
+               (setf y (+ y 0.2)))
       )))
 
 (defun try-detecting (articles)

@@ -37,12 +37,13 @@
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :heitmann))) 50)
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :somat))) 50)
 
+
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :denkmit))) 0.1)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :dove))) 0.1)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :heitmann))) 0.1)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :somat))) 0.1)
 
-(defparameter *denkmit-pregrasp-xy-offste* 0.03 "in meters")
+(defparameter *denkmit-pregrasp-xy-offste* 0.3 "in meters")
 (defparameter *denkmit-grasp-xy-offset* 0.03 "in meters")
 (defparameter *denkmit-grasp-z-offset* 0.03 "in meters")
 
