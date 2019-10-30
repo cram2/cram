@@ -57,7 +57,9 @@
         "full_breakfast_setup_2" "full_breakfast_setup_3"
         "full_breakfast_setup_4" "full_breakfast_setup_5"
         "full_breakfast_setup_6" "full_breakfast_setup_7"
-        "full_breakfast_setup_1"))
+        "full_breakfast_setup_1" "full_breakfast_setup_8"
+        "full_breakfast_setup_9" "full_breakfast_setup_10"
+        "full_breakfast_setup_11"))
 
 (defun load-multiple-episodes (&optional namedir-list)
   ;;make a list of all directories of episodes and load them
