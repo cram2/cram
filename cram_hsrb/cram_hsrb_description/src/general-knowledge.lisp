@@ -1,3 +1,4 @@
+
 ;;;
 ;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
@@ -30,12 +31,15 @@
 
 (in-package :hsrb-descr)
 
+(defparameter *robot-head-tilt-rotation-sign* '- )
+
 (def-fact-group hsrb-metadata (robot
                                robot-odom-frame
                                robot-base-frame robot-torso-link-joint
                                arm
                                camera-frame
-                               robot-neck-links robot-neck-joints)
+                               robot-neck-links robot-neck-joints
+                               robot-head-tilt-rotation-sign)
   (<- (robot hsrb))
 
   (<- (robot-odom-frame hsrb "odom"))
@@ -46,15 +50,17 @@
   (<- (arm hsrb :left))
   (<- (camera-frame hsrb "head_center_camera_frame"))
   (<- (robot-neck-links hsrb "head_pan_link" "head_tilt_link"))
-  (<- (robot-neck-joints hsrb "head_pan_joint" "head_tilt_joint")))
+  (<- (robot-neck-joints hsrb "head_pan_joint" "head_tilt_joint"))
+  (<- (robot-head-tilt-rotation-sign hsrb ?transform)
+    (symbol-value *robot-head-tilt-rotation-sign* ?transform)))
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding
                                            costmap:costmap-manipulation-padding
                                            costmap:costmap-in-reach-distance
                                            costmap:costmap-reach-minimal-distance
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding 0.3))
-  (<- (costmap:costmap-manipulation-padding 0.4))
-  (<- (costmap:costmap-in-reach-distance 0.9))
+  (<- (costmap:costmap-padding 0.5))
+  (<- (costmap:costmap-manipulation-padding 0.5))
+  (<- (costmap:costmap-in-reach-distance 1.2))
   (<- (costmap:costmap-reach-minimal-distance 0.2))
   (<- (costmap:visibility-costmap-size 2)))

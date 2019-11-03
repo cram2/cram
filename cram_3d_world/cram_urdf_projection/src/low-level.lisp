@@ -135,7 +135,8 @@
                                  ?tilt-link
                                  ?pan-joint ?tilt-joint
                                  ?pan-lower-limit ?pan-upper-limit
-                                 ?tilt-lower-limit ?tilt-upper-limit)
+                                 ?tilt-lower-limit ?tilt-upper-limit
+                                 ?robot-head-tilt-rotation-sign)
       (car
        (prolog:prolog
         '(and
@@ -145,7 +146,8 @@
           (rob-int:joint-lower-limit ?robot ?pan-joint ?pan-lower-limit)
           (rob-int:joint-upper-limit ?robot ?pan-joint ?pan-upper-limit)
           (rob-int:joint-lower-limit ?robot ?tilt-joint ?tilt-lower-limit)
-          (rob-int:joint-upper-limit ?robot ?tilt-joint ?tilt-upper-limit))))
+          (rob-int:joint-upper-limit ?robot ?tilt-joint ?tilt-upper-limit)
+          (rob-int:robot-head-tilt-rotation-sign ?robot ?robot-head-tilt-rotation-sign))))
 
     (let* ((pose-in-world
              (cram-tf:ensure-pose-in-frame
@@ -153,7 +155,8 @@
               cram-tf:*fixed-frame*
               :use-zero-time t))
            (pan-tilt-angles
-             (btr:calculate-pan-tilt (btr:get-robot-object) ?pan-link ?tilt-link pose-in-world))
+             (btr:calculate-pan-tilt (btr:get-robot-object) ?pan-link ?tilt-link
+                                     pose-in-world ?robot-head-tilt-rotation-sign))
            (pan-angle
              (first pan-tilt-angles))
            (tilt-angle

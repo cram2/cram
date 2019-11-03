@@ -49,6 +49,7 @@
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
    #:robot-neck-links #:robot-neck-joints #:robot-neck-base-link
    #:camera-in-neck-ee-pose
+   #:robot-head-tilt-rotation-sign
    ;; robot
    #:robot #:robot-base-frame #:robot-odom-frame #:robot-torso-link-joint
    #:current-robot-symbol #:current-robot-package #:current-robot-name

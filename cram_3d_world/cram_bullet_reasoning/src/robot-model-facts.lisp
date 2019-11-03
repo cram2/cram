@@ -71,10 +71,11 @@
     (cram-robot-interfaces:robot ?robot-name)
     (cram-robot-interfaces:robot-neck-links ?robot-name ?pan-link ?tilt-link)
     (cram-robot-interfaces:robot-neck-joints ?robot-name ?pan-joint ?tilt-joint)
+    (cram-robot-interfaces:robot-head-tilt-rotation-sign ?robot-name ?robot-pan-tilt-rotation-sign)
     (bullet-world ?w)
     (%object ?w ?robot-name ?robot)
     (lisp-fun calculate-pan-tilt
-              ?robot ?pan-link ?tilt-link ?pose
+              ?robot ?pan-link ?tilt-link ?pose ?robot-head-tilt-rotation-sign
               (?pan-pos ?tilt-pos))
     (lisp-fun set-joint-state ?robot ?pan-joint ?pan-pos ?_)
     (lisp-fun set-joint-state ?robot ?tilt-joint ?tilt-pos ?_))

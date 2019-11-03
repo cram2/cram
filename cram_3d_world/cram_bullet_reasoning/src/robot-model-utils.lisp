@@ -112,7 +112,7 @@ sensor_msgs/JointStates message."
                                        :element-type 'float
                                        :initial-element 0.0)))
 
-(defun calculate-pan-tilt (robot pan-link tilt-link pose)
+(defun calculate-pan-tilt (robot pan-link tilt-link pose rotation-sign)
   "Calculates values for the pan and tilt joints so that they pose on
   `pose'. Returns (LIST PAN-VALUE TILT-VALUE)
 Used in desig-check-to-see of btr-visibility-costmap.
@@ -145,12 +145,19 @@ Should it be taken out and made PR2-specific?"
             0.0
             (atan (cl-transforms:y (cl-transforms:translation pose-in-pan))
                   (cl-transforms:x (cl-transforms:translation pose-in-pan)))))
-     (- (joint-state robot tilt-joint-name)
-        (if (= (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 0)
-            0.0
-            (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
-                  (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
-                     (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2))))))))
+     (if (eq rotation-sign +)
+         (+ (joint-state robot tilt-joint-name)
+            (if (= (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 0)
+                0.0
+                (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
+                      (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
+                         (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2)))))
+         (- (joint-state robot tilt-joint-name)
+            (if (= (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 0)
+                0.0
+                (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
+                      (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
+                         (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2)))))))))
 
 
 

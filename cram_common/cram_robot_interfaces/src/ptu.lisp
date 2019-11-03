@@ -30,7 +30,7 @@
 
 (def-fact-group ptu (camera-frame camera-minimal-height camera-maximal-height
                                   robot-neck-links robot-neck-joints robot-neck-base-link
-                                  camera-in-neck-ee-pose)
+                                  camera-in-neck-ee-pose robot-head-tilt-rotation-sign)
   ;; Unifies ?frame with the name of the camera frame present on the ?robot
   (<- (camera-frame ?robot ?frame)
     (fail))
@@ -55,4 +55,8 @@
     (fail))
 
   (<- (camera-in-neck-ee-pose ?robot ?pose)
+    (fail))
+  
+  (<- (robot-hed-tilt-rotation-sign ?robot ?pose)
     (fail)))
+  

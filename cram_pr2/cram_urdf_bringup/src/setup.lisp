@@ -1,3 +1,5 @@
+
+
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
@@ -76,6 +78,16 @@
         (warn "ROBOT was not defined. Have you loaded a robot package?"))))
 
 (defun init-projection ()
+    (def-fact-group costmap-metadata (costmap:costmap-size
+                                    costmap:costmap-origin
+                                    costmap:costmap-resolution
+                                    costmap:orientation-samples
+                                    costmap:orientation-sample-step)
+    (<- (costmap:costmap-size 12 12))
+    (<- (costmap:costmap-origin -6 -6))
+    (<- (costmap:costmap-resolution 0.04))
+    (<- (costmap:orientation-samples 2))
+    (<- (costmap:orientation-sample-step 0.3)))
   
   (setf cram-tf:*tf-broadcasting-enabled* t)	
 
