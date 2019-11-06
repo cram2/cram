@@ -30,6 +30,8 @@
 
 (in-package :btr)
 
+(defparameter *all-meshes-as-compound* T)
+
 (defclass object ()
   ((name :initarg :name :reader name)
    (rigid-bodies :initform (make-hash-table :test 'equal))
@@ -286,7 +288,7 @@
                   :name name :mass 0.0 :pose (ensure-pose pose)
                   :collision-shape (make-instance 'convex-hull-shape :points points)))))
 
-(defun load-mesh (mesh-filename &key (scale nil) (size nil) (compound nil) (flip-winding-order nil))
+(defun load-mesh (mesh-filename &key (scale nil) (size nil) (compound *all-meshes-as-compound*) (flip-winding-order nil))
   "Loads and resizes the 3d-model. If `compound' is T we have a list of meshes, instead of one."
   (let ((model (multiple-value-list
                 (physics-utils:load-3d-model (physics-utils:parse-uri mesh-filename)
@@ -304,21 +306,23 @@
 
 (defun make-collision-shape-from-mesh (mesh-filename &key (color '(0.8 0.8 0.8 1.0))
                                                        (scale nil) (size nil)
-                                                       (compound nil) (disable-face-culling nil)
+                                                       (compound *all-meshes-as-compound*)
+                                                       (disable-face-culling nil)
                                                        (flip-winding-order nil))
   "Loads the meshes from the specified filename and creates either:
       a `convex-hull-shape' if `compound' is NIL or
       a `compound-shape' if compound it T.
   The former combines all meshes and faces into one convex-hull-shape, while the latter
   contains every single mesh as a seperate convex-hull-shape as children in a compound-shape."
-  (let* ((model (load-mesh mesh-filename :scale scale :size size :compound compound :flip-winding-order flip-winding-order)))
+  (let* ((model (load-mesh mesh-filename :scale scale :size size :compound compound :flip-winding-order flip-winding-order))
+         (model-has-multiple-components (< 1 (length model))))
     (flet ((make-ch-mesh-shape (model-part)
              (make-instance 'convex-hull-mesh-shape
                             :color color
                             :disable-face-culling disable-face-culling
                             :faces (physics-utils:3d-model-faces model-part)
                             :points (physics-utils:3d-model-vertices model-part))))
-      (if compound
+      (if (and compound model-has-multiple-components)
           (let ((compound-shape (make-instance 'compound-shape))
                 (id-pose (cl-transforms:make-pose
                           (cl-transforms:make-3d-vector 0 0 0)
