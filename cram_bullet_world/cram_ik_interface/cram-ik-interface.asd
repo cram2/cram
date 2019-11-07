@@ -41,9 +41,4 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "ik" :depends-on ("package"))
-     (:file "bounding-box-tests" :depends-on ("package"))
-     (:file "timeline" :depends-on ("package"))
-     (:file "copy-world-tests" :depends-on ("package"))
-     (:file "moveit-test" :depends-on ("package"))
-     (:file "plate-pile" :depends-on ("package"))))))
+     (:file "ik" :depends-on ("package"))))))
