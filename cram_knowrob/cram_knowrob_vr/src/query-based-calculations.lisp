@@ -110,6 +110,17 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 
 
 ;;; --- NEW ---
+;; make an object to contain the poses and some keys to find the poses easier later
+(defclass poses-pairs  ()
+  ((obj-pose
+    :initarg :obj-pose
+    :accessor obj-pose)
+
+   (base-pose
+    :initarg :base-pose
+    :accessor base-pose)))
+
+
 (defun umap-P-uobj-through-surface-from-list-ll (type start-or-end)
   "Calculates the pose of the object in map relative to its supporting surface.
 Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
@@ -120,55 +131,59 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
            (object-type-filter-prolog type)
            start-or-end
            :table-setting))
-        (look-poses '())
-        (base-poses '()))
+         (result-poses '()))
     
     (mapcar
-           (lambda (camera-object-poses)
-             (let* ((surface-name ; both poses need surface name
-                      (caar camera-object-poses))
-                    (ssurface-T-sobject ; for look pose
-                      (cdar camera-object-poses))
-                    (umap-T-usurface
-                      (cl-transforms:pose->transform
-                       (btr:pose
-                        (btr:rigid-body
-                         (btr:get-environment-object)
-                         (match-kitchens surface-name)))))
-
-                    (ssurface-T-scamera ;base
-                      (cdadr camera-object-poses)) 
-                    
-                    (umap-T-uobj ;look
-                      (cl-transforms:transform*
-                       umap-T-usurface ssurface-T-sobject))
-                    
-                    (umap-T-ucamera ;base
-                      (cl-transforms:transform*
-                       umap-T-usurface ssurface-T-scamera))
-
-                    (result-look-pose)
-                    (result-base-pose))
+     (lambda (camera-object-poses)
+       (let* ((surface-name ; both poses need surface name
+                (caar camera-object-poses))
+              (ssurface-T-sobject ; for look pose
+                (cdar camera-object-poses))
+              (umap-T-usurface
+                (cl-transforms:pose->transform
+                 (btr:pose
+                  (btr:rigid-body
+                   (btr:get-environment-object)
+                   (match-kitchens surface-name)))))
+              
+              (ssurface-T-scamera ;base
+                (cdadr camera-object-poses)) 
+              
+              (umap-T-uobj ;look
+                (cl-transforms:transform*
+                 umap-T-usurface ssurface-T-sobject))
+              
+              (umap-T-ucamera ;base
+                (cl-transforms:transform*
+                 umap-T-usurface ssurface-T-scamera))
+              
+              (result-look-pose)
+              (result-base-pose))
+         
                
-               
-               (setq result-look-pose
-                     (cl-transforms-stamped:make-pose-stamped
-                      cram-tf:*fixed-frame*
-                      0.0
-                      (cl-transforms:translation umap-T-uobj)
-                      (cl-transforms:rotation umap-T-uobj)))      
+         (setq result-look-pose
+               (cl-transforms-stamped:make-pose-stamped
+                cram-tf:*fixed-frame*
+                0.0
+                (cl-transforms:translation umap-T-uobj)
+                (cl-transforms:rotation umap-T-uobj)))      
        
-               ;;second part for base pose
-               (setq result-base-pose (map-T-camera->map-P-base
-                                       umap-T-ucamera))
-               ;; save the results in a list
-               (push result-look-pose look-poses)
-               (push result-base-pose base-poses)))
+         ;;second part for base pose
+         (setq result-base-pose (map-T-camera->map-P-base
+                                 umap-T-ucamera))
+         ;; save the results in a list
+         ;;(push result-look-pose look-poses)
+         ;;(push result-base-pose base-poses)
+         (push (make-instance 'poses-pairs
+                 :obj-pose result-look-pose
+                 :base-pose result-base-pose)
+               result-poses)
+         ))
 
      ;;list for mapcar
-           (cut:force-ll camera-object-poses-ll))
+     (cut:force-ll camera-object-poses-ll))
     
-    (list look-poses base-poses)))
+    result-poses))
 
 
 
