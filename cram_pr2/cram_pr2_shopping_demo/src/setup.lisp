@@ -108,14 +108,15 @@
    (make-instance 'cpoe:object-detached-robot
      :arm :left
      :object-name :denkmit))
-  (btr-utils:move-object :denkmit '((-2 -1.1 1.3) (0 0 0 1))))
+  (btr-utils:move-object :denkmit '((-1 -1.1 0.7) (0 0 0 1))))
 
 (defun replace-dove ()
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
      :arm :left
      :object-name :dove))
-  (btr-utils:move-object :dove '((-1 -1.1 0.7) (0 0 0 1))))
+  (btr-utils:move-object :dove '((-1 -1.1 0.7) (0 0 0 1)))
+  (place-objects))
 
 (defun replace-heitmann ()
   (cram-occasions-events:on-event
@@ -141,6 +142,78 @@
                                                             :normal (0 0 1) :constant 0))))
   (btr:add-objects-to-mesh-list "cram_pr2_shopping_demo"))
 
+
+(defun make-rectangle-shape (lenght width height)
+  (let ((compound-shape (make-instance 'cl-bullet:compound-shape)))
+    (print lenght)
+    (print width)
+    (dotimes (i 2)
+      (cl-bullet:add-child-shape compound-shape
+                       (cl-transforms:make-pose
+                        (cl-transforms:make-3d-vector (* i width) 0 0)
+                        (cl-transforms:make-quaternion 0 0 0 1))
+                       (make-instance 'cl-bullet:box-shape
+                                      :half-extents (cl-transforms:v* (cl-transforms:make-3d-vector
+                                                     0.005 lenght height) 0.5))))
+    (dotimes (i 2)
+      (cl-bullet:add-child-shape compound-shape
+                       (cl-transforms:make-pose
+                        (cl-transforms:make-3d-vector (/ width 2)
+                                                      (* (+ (* (+ i 1) -2) 3) (/ lenght 2))
+                                                      0)
+                        (cl-transforms:make-quaternion 0 0 1 0.00001))
+                       (make-instance 'cl-bullet:box-shape
+                                      :half-extents (cl-transforms:v* (cl-transforms:make-3d-vector
+                                                     width 0.005 height) 0.5 ))))
+    compound-shape))
+                        
+
+(defun make-basket-shape (lenght width height handle-height)
+  (let ((collision-shape (make-rectangle-shape lenght width height))
+        (handle-shape (make-handle-shape width handle-height)))
+    (cl-bullet:add-child-shape collision-shape
+                     (cl-transforms:make-pose
+                      (cl-transforms:make-3d-vector 0 0 (+ (/ height 2) 0.045))
+                      (cl-transforms:make-quaternion 0 0 0 1))
+                     handle-shape)
+    (cl-bullet:add-child-shape collision-shape
+                               (cl-transforms:make-pose
+                                (cl-transforms:make-3d-vector (/ width 2) 0 (- (/ height 2)))
+                                (cl-transforms:make-quaternion 0 0 0 1))
+                               (make-instance 'cl-bullet:box-shape
+                                              :half-extents (cl-transforms:v*
+                                                             (cl-transforms:make-3d-vector width lenght 0.005) 0.5)))
+    collision-shape))
+
+(defun make-handle-shape (width handle-height)
+  (let ((compound-shape (make-instance 'cl-bullet:compound-shape)))
+    (dotimes (i 2)
+      (cl-bullet:add-child-shape compound-shape
+                                 (cl-transforms:make-pose
+                                  (cl-transforms:make-3d-vector (* i width) 0 0)
+                                  (cl-transforms:make-quaternion 0 0 0 1))
+                                 (make-instance 'cl-bullet:box-shape
+                                                :half-extents (cl-transforms:v*
+                                                               (cl-transforms:make-3d-vector 0.005 0.005 handle-height) 0.5))))
+    (cl-bullet:add-child-shape compound-shape
+                               (cl-transforms:make-pose
+                                (cl-transforms:make-3d-vector (/ width 2) 0 (/ handle-height 2))
+                                (cl-transforms:make-quaternion 0 0 0 1))
+                               (make-instance 'cl-bullet:box-shape
+                                              :half-extents (cl-transforms:v*
+                                                             (cl-transforms:make-3d-vector width 0.005 0.005) 0.5)))
+  compound-shape))
+
+
+(defmethod add-object ((world cl-bullet:bt-world) (type (eql :basket)) name pose
+                       &key length width height mass
+                       (handle-height 0.09))
+  (btr::make-item world name 'basket
+                  (list
+                   (make-instance
+                    'cl-bullet:rigid-body
+                    :name name :mass mass :pose (btr:ensure-pose pose)
+                    :collision-shape (make-basket-shape length width height handle-height)))))
 
 (roslisp-utilities:register-ros-init-function init)
 (roslisp-utilities:register-ros-init-function spawn-robot)
