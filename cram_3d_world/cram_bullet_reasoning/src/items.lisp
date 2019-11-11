@@ -171,6 +171,85 @@ The name in the list is a keyword that is created by lispifying the filename."
                                                                       mass)
   (add-object world :mesh name pose :mass mass :mesh :mug))
 
+(defun make-rectangle-shape (lenght width height)
+  "Returns a collision shape, that is a rectangle. The dimensions are according to the paraneter.
+The rectangle only consits of the side so no top or bottom is provided. "
+  (let ((compound-shape (make-instance 'compound-shape)))
+    (dotimes (i 2)
+      (add-child-shape compound-shape
+                       (cl-transforms:make-pose
+                        (cl-transforms:make-3d-vector (* i width) 0 0)
+                        (cl-transforms:make-quaternion 0 0 0 1))
+                       (make-instance 'box-shape
+                                      :half-extents (cl-transforms:v* (cl-transforms:make-3d-vector
+                                                     0.005 lenght height) 0.5))))
+    (dotimes (i 2)
+      (add-child-shape compound-shape
+                       (cl-transforms:make-pose
+                        (cl-transforms:make-3d-vector (/ width 2)
+                                                      ;; ((i + 1) * -2 + 3) * (width / 2)
+                                                      (* (+ (* (+ i 1) -2) 3) (/ lenght 2))
+                                                      0)
+                        (cl-transforms:make-quaternion 0 0 1 0.00001))
+                       (make-instance 'box-shape
+                                      :half-extents (cl-transforms:v* (cl-transforms:make-3d-vector
+                                                     width 0.005 height) 0.5 ))))
+    compound-shape))
+
+(defun make-handle-shape (width handle-height)
+  "Returns a handle collision shape that consists of three box shapes.
+  The shape looks somthing like this:
+      ----------
+      |        |
+      |        |" 
+  (let ((compound-shape (make-instance 'compound-shape)))
+    (dotimes (i 2)
+      (add-child-shape compound-shape
+                                 (cl-transforms:make-pose
+                                  (cl-transforms:make-3d-vector (* i width) 0 0)
+                                  (cl-transforms:make-quaternion 0 0 0 1))
+                                 (make-instance 'box-shape
+                                                :half-extents (cl-transforms:v*
+                                                               (cl-transforms:make-3d-vector 0.005 0.005 handle-height) 0.5))))
+    (add-child-shape compound-shape
+                               (cl-transforms:make-pose
+                                (cl-transforms:make-3d-vector (/ width 2) 0 (/ handle-height 2))
+                                (cl-transforms:make-quaternion 0 0 0 1))
+                               (make-instance 'box-shape
+                                              :half-extents (cl-transforms:v*
+                                                             (cl-transforms:make-3d-vector width 0.005 0.005) 0.5)))
+  compound-shape))
+
+(defun make-basket-shape (lenght width height handle-height)
+  "Creates a basekt collision shape out of a rectangle, a handle and a box as bottom. "
+  (let ((collision-shape (make-rectangle-shape lenght width height))
+        (handle-shape (make-handle-shape width handle-height)))
+    (add-child-shape collision-shape
+                     (cl-transforms:make-pose
+                      (cl-transforms:make-3d-vector 0 0 (+ (/ height 2) 0.045))
+                      (cl-transforms:make-quaternion 0 0 0 1))
+                     handle-shape)
+    (add-child-shape collision-shape
+                               (cl-transforms:make-pose
+                                (cl-transforms:make-3d-vector (/ width 2) 0 (- (/ height 2)))
+                                (cl-transforms:make-quaternion 0 0 0 1))
+                               (make-instance 'box-shape
+                                              :half-extents (cl-transforms:v*
+                                                             (cl-transforms:make-3d-vector width lenght 0.005) 0.5)))
+    collision-shape))
+
+
+(defmethod add-object ((world cl-bullet:bt-world) (type (eql :basket)) name pose
+                       &key length width height mass
+                         (handle-height 0.09))
+  "Creates a collision shape in the form of a basket and adds it to the world."
+  (make-item world name 'basket
+                  (list
+                   (make-instance
+                    'rigid-body
+                    :name name :mass mass :pose (ensure-pose pose)
+                    :collision-shape (make-basket-shape length width height handle-height)))))
+
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
                        &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
                          disable-face-culling)
