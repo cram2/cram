@@ -33,7 +33,6 @@
 
   (<- (desig:location-grounding ?designator ?pose-stamped)
     (desig:loc-desig? ?designator)
-    ;; TODO
     (rob-int:reachability-designator ?designator)
     (desig:desig-prop ?designator (:object ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
@@ -41,27 +40,53 @@
               ?current-object-designator
               ?base-poses-ll)
     (member ?pose-stamped ?base-poses-ll)
-    (format "Reachability VR POSE!~%"))
+    (format "++Reachability VR POSE!~%++"))
 
   (<- (desig:location-grounding ?designator ?pose-stamped)
     (desig:loc-desig? ?designator)
-    ;; TODO
     (rob-int:visibility-designator ?designator)
     (desig:desig-prop ?designator (:object ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
     (desig:desig-prop ?object-designator (:type ?object-type))
     (desig:desig-prop ?designator (:location ?location-designator))
     (desig:current-designator ?location-designator ?location-object-designator)
-    (desig:location-grounding ?location-designator ?pose)
-    ;; input obj-pose  TODO
+    (desig:location-grounding ?location-designator ?pose)DO
     (lisp-fun base-poses-ll-for-fetching-based-on-object-pose ?object-type ?pose ?base-poses-ll)
     (member ?pose-stamped ?base-poses-ll)
-    (format "Visibility VR POSE!~%")))
+    (format "++Visibility VR POSE!~%++")))
 
 ;;TODO designator integration
+(defvar ?test '())
+
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
   (print "+++ NEW AMAZING INTERFACE +++")
-  (desig:resolve-location-designator-through-generators-and-validators location-designator))
+  (format t "~%~% +Location desig:+ ~% ~a" location-designator)
+  ;;get object type out of the object designator that comes with the location desig
+  (let ((obj-type (object-type-filter-prolog
+                   (intern (symbol-name
+                            (car (desig:desig-prop-values
+                                  (car (desig:desig-prop-values location-designator :object))
+                                  :type))))))
+        (poses-list '()))
+
+    
+    (format t "~%~% ++ OBJ-Type: ~a ~%~%" obj-type)
+    ;; check if this designator has an obj type. if not resolve to default resolution
+    (if (stringp obj-type)
+        (progn
+          (setq poses-list (alexandria:shuffle
+                            (cut:force-ll
+                             (base-poses-ll-for-searching obj-type))))
+          (push location-designator ?test)) ;; just for debugging purposes
+        
+        ;;if type is unknown or not given in the designator
+        (desig:resolve-location-designator-through-generators-and-validators location-designator)
+        )
+    
+    
+    (format t "~%~% + Poses list: for type ~a + ~% ~a" obj-type  poses-list)   
+    poses-list   
+    ))
 
 ;; will replace ?grasps-list
 
