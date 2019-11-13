@@ -193,6 +193,7 @@ either :ACCEPT, :REJECT, :MAYBE-REJECT or :UNKNOWN."
          (solutions (lazy-mapcan (lambda (fun)
                                    (funcall fun desig))
                                  generators)))
+    (print "++++++++Called heuristics resolution+++++++")
     (lazy-mapcan (let ((retries *location-generator-max-retries*))
                    (lambda (solution)
                      (cond ((validate-location-designator-solution desig solution)

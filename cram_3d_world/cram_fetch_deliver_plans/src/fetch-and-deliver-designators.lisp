@@ -133,6 +133,7 @@ the `look-pose-stamped'."
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-location-to-stand))
                    (desig:current-designator ?some-location-to-stand ?location-to-stand))
+              ;;NOTE if base-pose is nil, do this instead:
               (desig:designator :location ((:visible-for ?robot)
                                            (:location ?location-designator)
                                            (:object ?object-designator)) ;;this is the current one

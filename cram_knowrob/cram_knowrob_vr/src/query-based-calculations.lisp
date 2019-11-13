@@ -120,6 +120,7 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
     :initarg :base-pose
     :accessor base-pose)))
 
+(defvar *call-counter* 0)
 
 (defun umap-P-uobj-through-surface-from-list-ll (type start-or-end)
   "Calculates the pose of the object in map relative to its supporting surface.
@@ -182,9 +183,16 @@ Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 
      ;;list for mapcar
      (cut:force-ll camera-object-poses-ll))
-    
-    result-poses))
 
+    (incf *call-counter*)
+    (if (equalp result-poses NIL)
+        (progn
+          (format t "List of search poses is empty (NIL). Counter: ~a" *call-counter*)
+          (push (make-instance 'poses-pairs
+                  :obj-pose NIL
+                  :base-pose NIL) result-poses)))
+        result-poses))
+  
 
 
 
@@ -433,6 +441,7 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
          (umap-T-ucamera-end-ll
            (umap-T-ucamera-through-object-ll-based-on-object-pose
             prolog-type "End" umap-P-uobj)))
+    (print "***calling base poses on poses***")
     (cut:lazy-mapcar
      (lambda (umap-T-ucamera)
        (map-T-camera->map-P-base umap-T-ucamera))
@@ -442,6 +451,7 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
 (defun base-poses-ll-for-fetching-based-on-object-desig (object-designator)
   (let ((bullet-type (desig:desig-prop-value object-designator :type))
         (umap-P-uobj (man-int:get-object-pose-in-map object-designator)))
+    (print "***calling base-poses-on-desigs***")
     (base-poses-ll-for-fetching-based-on-object-pose bullet-type umap-P-uobj)))
 
 (defun base-poses-ll-for-placing (type)

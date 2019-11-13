@@ -481,6 +481,7 @@ and the transform surface-T-camera as a lazy list of pairs:
     :package :kvr)))
 
 ;;; --- NEW QUERIES ---
+;;; TODO DEBUG
 (defun query-object-and-camera-T-camera-by-object-type (object-type
                                                        start-or-end
                                                        &optional context)

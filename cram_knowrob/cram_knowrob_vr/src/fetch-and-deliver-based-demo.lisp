@@ -174,9 +174,10 @@
 
 (cpl:def-cram-function demo (&optional
                              (list-of-objects
-                              '(spoon
-                                cup
-                                bowl)))
+                              '(cup
+                                bowl
+                                ;;spoon ;;add it back in later
+                                )))
 
   (initialize)
   (when cram-projection:*projection-environment*
@@ -192,17 +193,18 @@
       (let* ((?bullet-type
                (object-type-filter-bullet type))
              (poses-list
-               (umap-P-uobj-through-surface-from-list-ll type "Start"))
+               (alexandria:shuffle
+                (umap-P-uobj-through-surface-from-list-ll type "Start")))
              
             (?search-poses
-              ;;(alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
-              (car poses-list))
+              (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
+              ;;(slot-value (car poses-list) 'obj-pose))
             (?search-base-poses
-              ;;(alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
-              (cadr poses-list))
+              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
+              ;;(slot-value (car poses-list) 'base-pose))
             (?fetch-base-poses
-              ;;(alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
-              (cadr poses-list))
+              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
+             ;; (slot-value (car poses-list) 'base-pose))
               ;; (base-poses-ll-for-fetching-based-on-object-desig
               ;;  object-designator)
               
@@ -217,6 +219,7 @@
                      (cram-tf:list->pose (cdr (assoc type *object-delivering-poses*)))))
               ;; (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type)))
               )
+             ;; TODO matching poses for delivering were not touched yet.
             (?delivering-base-poses
               (remove
                NIL
@@ -224,13 +227,13 @@
                          (when (> (cl-transforms:x (cl-transforms:origin pose)) -1)
                            pose))
                        (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))))
-        (format t "base-poses: ~a" ?search-base-poses)
+        ;;(format t "base-poses: ~a" ?search-base-poses)
         (exe:perform
          (desig:an action
                    (type transporting)
                    (object (desig:an object (type ?bullet-type)))
                    (location (desig:a location (poses ?search-poses)))
-                   (search-robot-location (desig:a location (poses ?search-base-poses)))
+                   ;;(search-robot-location (desig:a location (poses ?search-base-poses)))
                    (fetch-robot-location (desig:a location (poses ?fetch-base-poses)))
                    (arms ?arms)
                    (grasps ?grasps)

@@ -272,4 +272,12 @@ Returns: list of cl-tf:pose."
 
 
 
-
+(defun spawn-arrows-to-test-objects (type)
+  (let* ((poses-list (umap-P-uobj-through-surface-from-list-ll type "Start"))
+        (obj-pose (convert-into-poses-list
+                   (list (slot-value (car poses-list) 'obj-pose))))
+        (base-pose (convert-into-poses-list
+                    (list (slot-value (car poses-list) 'base-pose)))))
+    
+    (spawn-btr-arrow (car obj-pose) "btr-arrow-object-pose" '(1 0 0))
+    (spawn-btr-arrow (car base-pose) "btr-arrow-base-pose" '(0 1 0))))
