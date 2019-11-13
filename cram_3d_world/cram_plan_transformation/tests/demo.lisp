@@ -57,7 +57,7 @@
 
   (setf proj-reasoning::*projection-reasoning-enabled* nil)
 
-  (btr:add-objects-to-mesh-list "cram_plan_transformation"))
+  (btr:add-objects-to-mesh-list "cram_bullet_reasoning"))
 
 (roslisp-utilities:register-ros-init-function init-projection)
 
@@ -308,7 +308,7 @@ This is a workaround until PR #120 is merged."
 
 (defun spawn-objects-on-sink-counter (&optional (spawning-poses *object-spawning-poses*))
   (btr-utils:kill-all-objects)
-  (btr:add-objects-to-mesh-list "cram_plan_transformation")
+  (btr:add-objects-to-mesh-list "cram_bullet_reasoning")
   (btr:detach-all-objects (btr:get-robot-object))
   (let ((object-types '(:breakfast-cereal :cup :bowl :spoon :fork)))
     ;; spawn objects at default poses

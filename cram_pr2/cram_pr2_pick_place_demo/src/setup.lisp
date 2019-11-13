@@ -67,7 +67,7 @@
   (ccl::reset-logged-owl)
 
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
-
+  (btr:add-objects-to-mesh-list "cram_bullet_reasoning")
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo"))
 
 (roslisp-utilities:register-ros-init-function init-projection)
