@@ -30,21 +30,6 @@
 
 (in-package :cram-manipulation-interfaces)
 
-(defun probe-sbcl (generic object-type)
-  #+sbcl
-  (let ((methods (sb-pcl:generic-function-methods generic)))
-    (find object-type
-          methods
-          :key (lambda (x)
-                 (car (sb-pcl:method-specializers x)))
-          :test (lambda (x y)
-                  (when (eql (type-of y) 'sb-mop:eql-specializer)
-                    (eql
-                     (sb-mop:eql-specializer-object y)
-                     x)))))
-  #-sbcl
-  (error "Function PROBE-SBCL requires the SBCL compiler."))
-
 (defun get-direct-supertypes (object-type)
   (mapcar (lambda (bindings)
             (cut:var-value '?super bindings))
@@ -52,10 +37,32 @@
            (prolog
             `(object-type-direct-subtype ?super ,object-type)))))
 
-(defun find-most-specific-object-type-for-generic (generic object-type)
-  "Find the most specific method of `generic' based on `object-type'."
-  (if (probe-sbcl generic object-type)
+(defun compute-applicable-methods-for-specific-type (generic object-type args)
+  "Wrapper around `compute-applicable-methods' removing all results that don't
+have a eql-specializer at the first position of their specializer list."
+  (declare (type function generic)
+           (type keyword object-type)
+           (type (or list null) args))
+  #+sbcl
+  (remove-if-not
+   (lambda (x) (eql (type-of x) 'sb-mop:eql-specializer))
+   (compute-applicable-methods generic (cons object-type args))
+   :key (lambda (x) (car (sb-pcl:method-specializers x))))
+  #-sbcl
+  (error "Function compute-applicable-methods-for-specific-type requires the SBCL compiler."))
+
+;; TODO: Check each supertype, if there are multiple.
+(defun find-most-specific-object-type-for-generic (generic object-type &rest args)
+  "Find the most specific method of `generic' based on `object-type' while
+making sure that the method specializers match with the `args'."
+  (declare (type function generic)
+           (type keyword object-type))
+  (if (compute-applicable-methods-for-specific-type generic object-type args)
       object-type
       (car (mapcar
-            (alexandria:curry #'find-most-specific-object-type-for-generic generic)
+            (lambda (object-type)
+              (apply #'find-most-specific-object-type-for-generic
+                     generic
+                     object-type
+                     args))
             (get-direct-supertypes object-type)))))
