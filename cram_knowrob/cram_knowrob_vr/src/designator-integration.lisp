@@ -33,6 +33,7 @@
 
   (<- (desig:location-grounding ?designator ?pose-stamped)
     (desig:loc-desig? ?designator)
+    ;; TODO
     (rob-int:reachability-designator ?designator)
     (desig:desig-prop ?designator (:object ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
@@ -44,6 +45,7 @@
 
   (<- (desig:location-grounding ?designator ?pose-stamped)
     (desig:loc-desig? ?designator)
+    ;; TODO
     (rob-int:visibility-designator ?designator)
     (desig:desig-prop ?designator (:object ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
@@ -51,10 +53,17 @@
     (desig:desig-prop ?designator (:location ?location-designator))
     (desig:current-designator ?location-designator ?location-object-designator)
     (desig:location-grounding ?location-designator ?pose)
+    ;; input obj-pose  TODO
     (lisp-fun base-poses-ll-for-fetching-based-on-object-pose ?object-type ?pose ?base-poses-ll)
     (member ?pose-stamped ?base-poses-ll)
     (format "Visibility VR POSE!~%")))
 
+;;TODO designator integration
+(defmethod man-int:get-location-poses :vr 10 (location-designator)
+  (print "+++ NEW AMAZING INTERFACE +++")
+  (desig:resolve-location-designator-through-generators-and-validators location-designator))
+
+;; will replace ?grasps-list
 
 ;; (defmethod man-int:get-action-grasps :vr 40 (object-type arm object-transform-in-base)
 ;;   (remove-duplicates (cut:force-ll (object-grasped-faces-ll object-type))))
