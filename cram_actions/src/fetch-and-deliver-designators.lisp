@@ -138,7 +138,8 @@ the `look-pose-stamped'."
     (once (or (and (spec:property ?action-designator (:robot-location ?some-location-to-stand))
                    (desig:current-designator ?some-location-to-stand ?location-to-stand))
               (desig:designator :location ((:visible-for ?robot)
-                                           (:location ?location-designator))
+                                           (:location ?location-designator)
+                                           (:object ?object-designator)) ;;this is the current one
                                 ?location-to-stand)))
     (desig:designator :action ((:type :searching)
                                (:object ?object-designator)
