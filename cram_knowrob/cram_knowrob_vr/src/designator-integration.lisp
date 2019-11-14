@@ -64,11 +64,11 @@
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
   (print "+++ NEW AMAZING INTERFACE +++")
   ;;(format t "~%~% +Location desig:+ ~% ~a" location-designator)
-  (let ((obj-type (object-type-filter-prolog
-                   (intern (symbol-name
+  (let* ((obj-type-raw (intern (symbol-name
                             (car (desig:desig-prop-values
                                   (car (desig:desig-prop-values location-designator :object))
-                                  :type))))))
+                                  :type)))))
+        (obj-type (object-type-filter-prolog obj-type-raw))
         (poses-list '()))
     
     ;;get object type out of the object designator that comes with the location desig
@@ -84,7 +84,17 @@
                (if (rob-int:visibility-designator-p location-designator)
                    (progn
                      (format t "~% Visibility? ~a" (rob-int:visibility-designator-p location-designator))
-                     (setq poses-list (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching obj-type))))))
+                     ;;NOTE this works. old implementation
+                     ;;(setq poses-list (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching obj-type))))
+                     ;;NOTE New implementation:
+                     (setq poses-list
+                           (base-poses-ll-for-fetching-based-on-object-pose
+                            (object-type-filter-bullet obj-type-raw) ;; obj-type
+                            (desig:reference
+                             (desig:desig-prop-value
+                              (desig:current-desig location-designator) :location)))) ;;current search loc. 
+                     (push poses-list ?test)
+                     ))
 
 ;;; REACHABILITY
                ;;TODO make this it's own beautiful function?
