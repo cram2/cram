@@ -66,3 +66,21 @@ making sure that the method specializers match with the `args'."
                      object-type
                      args))
             (get-direct-supertypes object-type)))))
+
+(defun call-with-specific-type (fun object-type &rest args)
+  "Call generic function `fun' with the most specific type for `object-type'. Have
+to provide all arguments for `fun' after `object-type' in the correct order."
+  (let ((specific-type
+          (apply
+           #'find-most-specific-object-type-for-generic
+           fun
+           object-type
+           args)))
+    (if specific-type
+        (apply (alexandria:curry fun specific-type) args)
+        (error "There is no applicable method for the generic function ~%~a~%~
+                  with object-type ~a and arguments ~a.~%To fix this either: ~
+                  ~%- Add a method with (object-type (eql ~a)) and corresponding args or ~
+                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
+               fun
+               object-type args object-type object-type))))

@@ -48,21 +48,3 @@ Example usage: (man-int:reasoning-engine-for-method #'man-int:get-action-grasps)
     :key #'second))
   #-sbcl
   (error "Sorry, MAN-INT:REASONING-ENGINE-FOR-METHOD is only supported under SBCL..."))
-
-(defun call-with-specific-type (fun object-type &rest args)
-  "Call generic function `fun' with the most specific type for `object-type'. Have
-to provide all arguments for `fun' after `object-type' in the correct order."
-  (let ((specific-type
-          (apply
-           #'find-most-specific-object-type-for-generic
-           fun
-           object-type
-           args)))
-    (if specific-type
-        (apply (alexandria:curry fun specific-type) args)
-        (error "There is no applicable method for the generic function ~%~a~%~
-                  with object-type ~a.~%To fix this either: ~
-                  ~%- Add a method with (object-type (eql ~a)) as the first specializer or ~
-                  ~%- Add ~a into the type hierarchy in the cram_object_knowledge package."
-               fun
-               object-type object-type object-type))))
