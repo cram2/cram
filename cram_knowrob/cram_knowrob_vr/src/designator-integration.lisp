@@ -32,6 +32,7 @@
 (def-fact-group location-designators (desig:location-grounding)
 
   (<- (desig:location-grounding ?designator ?pose-stamped)
+    (format "++Reachability VR POSE!~%++")
     (desig:loc-desig? ?designator)
     (rob-int:reachability-designator ?designator)
     (desig:desig-prop ?designator (:object ?object-designator))
@@ -43,61 +44,73 @@
     (format "++Reachability VR POSE!~%++"))
 
   (<- (desig:location-grounding ?designator ?pose-stamped)
+    (format "++Visibility VR POSE!~%++")
     (desig:loc-desig? ?designator)
     (rob-int:visibility-designator ?designator)
-    (format "++Visibility VR POSE!~%++")
     (desig:desig-prop ?designator (:object ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
     (desig:desig-prop ?current-object-designator (:type ?object-type))
     (desig:desig-prop ?designator (:location ?location-designator))
     (desig:current-designator ?location-designator ?location-object-designator)
     (desig:location-grounding ?location-object-designator ?pose)
-    (lisp-fun base-poses-ll-for-fetching-based-on-object-pose ?object-type ?pose ?base-poses-ll)
+    (lisp-fun base-poses-ll-for-fetchincg-based-on-object-pose ?object-type ?pose ?base-poses-ll)
     (member ?pose-stamped ?base-poses-ll)
     (format "++Visibility VR POSE!~%++")))
 
 ;;TODO designator integration
 (defvar ?test '())
 
+
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
-  ;; VISIBILITY
-  (if (rob-int:visibility-designator-p location-designator)
-       (let ((obj-type (object-type-filter-prolog
+  (print "+++ NEW AMAZING INTERFACE +++")
+  ;;(format t "~%~% +Location desig:+ ~% ~a" location-designator)
+  (let ((obj-type (object-type-filter-prolog
                    (intern (symbol-name
                             (car (desig:desig-prop-values
                                   (car (desig:desig-prop-values location-designator :object))
                                   :type))))))
-             (poses-list '()))
-         
-         (format t "~% Visibility? ~a" (rob-int:visibility-designator-p location-designator))
-         (print "+++ NEW AMAZING INTERFACE +++")
-         (format t "~%~% +Location desig:+ ~% ~a" location-designator)
-         ;;get object type out of the object designator that comes with the location desig
- 
-   
-         (format t "~%~% ++ OBJ-Type: ~a ~%~%" obj-type)
-         ;; check if this designator has an obj type. if not resolve to default resolution
-         (if (stringp obj-type)
-             (progn
-               (setq poses-list (alexandria:shuffle
-                                 (cut:force-ll
-                                  (base-poses-ll-for-searching obj-type))))
-               ;;(push location-designator ?test)
-               ) ;; just for debugging purposes
+        (poses-list '()))
+    
+    ;;get object type out of the object designator that comes with the location desig
+    
+    
+    ;;check if desig contains an object type
+    (if (stringp obj-type)
+        (progn (format t "~%~% ++ OBJ-Type: ~a ~%~%" obj-type)
         
-             ;;if type is unknown or not given in the designator
-             (desig:resolve-location-designator-through-generators-and-validators location-designator))
-         
-         (format t "~%~% + Poses list: for type ~a + ~% " obj-type)   
-         poses-list   
-         ))
 
-  ;; REACHABILITY
-  (if (rob-int:reachability-designator-p location-designator)
-      (progn (print "++ TODO ++ ")
-             (format t "~% Reachability? ~a" (rob-int:reachability-designator-p location-designator)))
+    
+               ;; VISIBILITY
+               (if (rob-int:visibility-designator-p location-designator)
+                   (progn
+                     (format t "~% Visibility? ~a" (rob-int:visibility-designator-p location-designator))
+                     
+                     ;; check init-full-simulation this designator has an obj type. if not resolve to default resolution
+                     (if (stringp obj-type)
+                         (progn
+                           (setq poses-list (alexandria:shuffle
+                                             (cut:force-ll
+                                              (base-poses-ll-for-searching obj-type))))))));)
 
-      ))
+;;; REACHABILITY
+               ;;TODO make this it's own beautiful function?
+               ;;(defmethod man-int:get-location-poses :vr 10 (location-designator)
+               (if (rob-int:reachability-designator-p location-designator)
+                   (progn (print "++ TODO ++ ")
+                          (format t "~% Reachability? ~a" (rob-int:reachability-designator-p location-designator))
+                          
+                          ;; check if this designator has an obj type. if not resolve to default resolution
+                          (if (stringp obj-type)
+                              (progn
+                                (setq poses-list (alexandria:shuffle
+                                                  (cut:force-ll
+                                                   (base-poses-ll-for-searching obj-type)))))))))
+        
+        (setq poses-list
+              (desig:resolve-location-designator-through-generators-and-validators location-designator))
+      
+        )
+    poses-list))
 
 ;; will replace ?grasps-list
 
