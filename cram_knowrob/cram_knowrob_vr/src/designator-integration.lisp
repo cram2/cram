@@ -80,17 +80,11 @@
         
 
     
-               ;; VISIBILITY
+;;; VISIBILITY
                (if (rob-int:visibility-designator-p location-designator)
                    (progn
                      (format t "~% Visibility? ~a" (rob-int:visibility-designator-p location-designator))
-                     
-                     ;; check init-full-simulation this designator has an obj type. if not resolve to default resolution
-                     (if (stringp obj-type)
-                         (progn
-                           (setq poses-list (alexandria:shuffle
-                                             (cut:force-ll
-                                              (base-poses-ll-for-searching obj-type))))))));)
+                     (setq poses-list (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching obj-type))))))
 
 ;;; REACHABILITY
                ;;TODO make this it's own beautiful function?
@@ -98,18 +92,10 @@
                (if (rob-int:reachability-designator-p location-designator)
                    (progn (print "++ TODO ++ ")
                           (format t "~% Reachability? ~a" (rob-int:reachability-designator-p location-designator))
-                          
-                          ;; check if this designator has an obj type. if not resolve to default resolution
-                          (if (stringp obj-type)
-                              (progn
-                                (setq poses-list (alexandria:shuffle
-                                                  (cut:force-ll
-                                                   (base-poses-ll-for-searching obj-type)))))))))
+                          (setq poses-list (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching obj-type)))))))
         
         (setq poses-list
-              (desig:resolve-location-designator-through-generators-and-validators location-designator))
-      
-        )
+              (desig:resolve-location-designator-through-generators-and-validators location-designator)))
     poses-list))
 
 ;; will replace ?grasps-list
