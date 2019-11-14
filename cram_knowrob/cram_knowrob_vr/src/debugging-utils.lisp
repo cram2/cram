@@ -153,12 +153,21 @@ Applies the unreal world/semantic map offset to the pose.
 (defun spawn-btr-arrow (pose arrow-name &optional (color '(1 0 1)))
   "spawns an arrow object at the given `pose' with the given `name'.
 `color' is optionaly a list of r g b values. Default is pink '(1 0 1)."
-    ;; spawn arrow
-  (btr-utils:spawn-object (intern arrow-name) :arrow
-                          :world btr:*current-bullet-world*
-                          :mass 1.0
-                          :color color
-                          :pose pose))
+  ;; spawn arrow
+  (let* ((arrow-offset 0.2) ;; Z offset so that arrow won't spawn in the floor
+         (final-arrow-pose
+           (cl-tf:make-pose
+            (cl-tf:make-3d-vector
+             (cl-tf:x (cl-tf:origin pose))
+             (cl-tf:y (cl-tf:origin pose))
+             (+ (cl-tf:z (cl-tf:origin pose)) arrow-offset))
+            (cl-tf:orientation pose))))
+    
+    (btr-utils:spawn-object (intern arrow-name) :arrow
+                            :world btr:*current-bullet-world*
+                            :mass 1.0
+                            :color color
+                            :pose final-arrow-pose)))
 
 
 (defun convert-into-poses-list (lazy-poses-list)
@@ -202,7 +211,7 @@ Returns: list of cl-tf:pose."
   (spawn-btr-arrow (car
                     (convert-into-poses-list
                      (umap-P-uobj-through-surface-ll obj-type time)))
-                   "btr-arrow-object" '(1 0 1))
+                   "btr-arrow-object" '(0 1 0))
 
   ;; at camera location unreal (original camera pose)
   (spawn-unreal-arrow (car
@@ -214,7 +223,7 @@ Returns: list of cl-tf:pose."
   ;; TODO this should also work for END
   (spawn-btr-arrow (car
                     (convert-into-poses-list
-                     (base-poses-ll-for-searching obj-type)))
+                     (umap-T-ucamera-through-surface-ll obj-type time)))
                    "btr-arrow-base" '(1 0 0))
   )
 
@@ -241,7 +250,7 @@ Returns: list of cl-tf:pose."
                               (query-camera-location-by-object-type obj-type time)))
 
         (btr-base-poses (convert-into-poses-list
-                         (base-poses-ll-for-searching obj-type))))
+                         (umap-T-ucamera-through-surface-ll obj-type time))))
 
   
   ;;spawn unreal arrow. without pose modificiations.

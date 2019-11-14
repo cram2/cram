@@ -58,8 +58,8 @@
     (format "++Visibility VR POSE!~%++")))
 
 ;;TODO designator integration
-(defvar ?test '())
-
+(defvar ?visibility '())
+(defvar ?reachability '())
 
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
   (print "+++ NEW AMAZING INTERFACE +++")
@@ -92,8 +92,23 @@
                             (object-type-filter-bullet obj-type-raw) ;; obj-type
                             (desig:reference
                              (desig:desig-prop-value
-                              (desig:current-desig location-designator) :location)))) ;;current search loc. 
-                     (push poses-list ?test)
+                              (desig:current-desig location-designator) :location)))) ;;current search loc.
+                     (format t "~% ~% ++ spawn arrow at location: ~a ~% ~%" (cl-tf:pose-stamped->pose (car poses-list)))
+                     ;;(break)
+                     (let* ((arrow-pose (cl-tf:pose-stamped->pose (car poses-list)))
+                            (arrow-offset 0.2)
+                            (final-arrow-pose
+                              (cl-tf:make-pose
+                               (cl-tf:make-3d-vector
+                                (cl-tf:x (cl-tf:origin arrow-pose))
+                                (cl-tf:y (cl-tf:origin arrow-pose))
+                                (+ (cl-tf:z (cl-tf:origin arrow-pose)) arrow-offset))
+                              (cl-tf:orientation arrow-pose))))
+                       
+                       (spawn-btr-arrow final-arrow-pose (arrow-prefix))
+                       (push final-arrow-pose ?visibility))
+                     ;;(break)
+                     ;;(push (cl-tf:pose-stamped->pose (car poses-list)) ?test)
                      ))
 
 ;;; REACHABILITY
@@ -107,7 +122,21 @@
                                 (base-poses-ll-for-fetching-based-on-object-desig
                                  (desig:desig-prop-value
                                   (desig:current-desig location-designator) :object)))
-                          (push poses-list ?test)
+                          ;;(break)
+                          (let* ((arrow-pose (cl-tf:pose-stamped->pose (car poses-list)))
+                                 (arrow-offset 0.2)
+                                 (final-arrow-pose
+                                   (cl-tf:make-pose
+                                    (cl-tf:make-3d-vector
+                                     (cl-tf:x (cl-tf:origin arrow-pose))
+                                     (cl-tf:y (cl-tf:origin arrow-pose))
+                                     (+ (cl-tf:z (cl-tf:origin arrow-pose)) arrow-offset))
+                                    (cl-tf:orientation arrow-pose))))
+                       
+                            (spawn-btr-arrow final-arrow-pose (arrow-prefix))
+                            (push final-arrow-pose ?reachability))
+                          
+                          ;;(break)
                           )))
         
         (setq poses-list
