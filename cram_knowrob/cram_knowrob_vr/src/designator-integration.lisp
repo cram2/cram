@@ -100,9 +100,15 @@
                ;;TODO make this it's own beautiful function?
                ;;(defmethod man-int:get-location-poses :vr 10 (location-designator)
                (if (rob-int:reachability-designator-p location-designator)
-                   (progn (print "++ TODO ++ ")
-                          (format t "~% Reachability? ~a" (rob-int:reachability-designator-p location-designator))
-                          (setq poses-list (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching obj-type)))))))
+                   (progn (format t "~% Reachability? ~a" (rob-int:reachability-designator-p location-designator))
+                          ;;NOTE this works. old implementation
+                          ;;(setq poses-list (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching obj-type))))
+                          (setq poses-list
+                                (base-poses-ll-for-fetching-based-on-object-desig
+                                 (desig:desig-prop-value
+                                  (desig:current-desig location-designator) :object)))
+                          (push poses-list ?test)
+                          )))
         
         (setq poses-list
               (desig:resolve-location-designator-through-generators-and-validators location-designator)))
