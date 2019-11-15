@@ -66,14 +66,15 @@
   a `compound-shape' if compound it T.
   The former combines all meshes and faces into one convex-hull-shape, while the latter
   contains every single mesh as a seperate convex-hull-shape as children in a compound-shape."
-  (let* ((mesh-filename (cl-urdf:filename mesh))
-         (scale (cl-urdf:scale mesh))
-         (size (cl-urdf:size mesh))
-         (collision-shape (make-collision-shape-from-mesh mesh-filename
-                                                          :color color
-                                                          :scale scale
-                                                          :size size
-                                                          :compound compound)))
+  (let* ((mesh-filename
+           (cl-urdf:filename mesh))
+         (scale
+           (cl-urdf:scale mesh))
+         (size
+           (cl-urdf:size mesh))
+         (collision-shape
+           (make-collision-shape-from-mesh
+            mesh-filename :color color :scale scale :size size :compound compound)))
     collision-shape))
 
 (defclass robot-object (object)

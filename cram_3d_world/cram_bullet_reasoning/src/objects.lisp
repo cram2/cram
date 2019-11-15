@@ -190,6 +190,9 @@
     (when disable-collisions-with
       (disable-collisions world name disable-collisions-with))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;; SPAWNING PRIMITIVE-SHAPED OBJECTS ;;;;;;;;;;;;;;;
+
 (defmethod add-object ((world bt-world) (type (eql :box)) name pose &key mass size)
   (destructuring-bind (size-x size-y size-z) size
     (make-object world name
@@ -288,7 +291,12 @@
                   :name name :mass 0.0 :pose (ensure-pose pose)
                   :collision-shape (make-instance 'convex-hull-shape :points points)))))
 
-(defun load-mesh (mesh-filename &key (scale nil) (size nil) (compound *all-meshes-as-compound*) (flip-winding-order nil))
+
+;;;;;;;;;;;;;;;;;;;;;;; MESH LOADING UTILS ;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun load-mesh (mesh-filename &key (scale nil) (size nil)
+                                  (compound *all-meshes-as-compound*)
+                                  (flip-winding-order nil))
   "Loads and resizes the 3d-model. If `compound' is T we have a list of meshes, instead of one."
   (let ((model (multiple-value-list
                 (physics-utils:load-3d-model (physics-utils:parse-uri mesh-filename)
@@ -314,15 +322,19 @@
       a `compound-shape' if compound it T.
   The former combines all meshes and faces into one convex-hull-shape, while the latter
   contains every single mesh as a seperate convex-hull-shape as children in a compound-shape."
-  (let* ((model (load-mesh mesh-filename :scale scale :size size :compound compound :flip-winding-order flip-winding-order))
-         (model-has-multiple-components (< 1 (length model))))
-    (flet ((make-ch-mesh-shape (model-part)
-             (make-instance 'convex-hull-mesh-shape
-                            :color color
-                            :disable-face-culling disable-face-culling
-                            :faces (physics-utils:3d-model-faces model-part)
-                            :points (physics-utils:3d-model-vertices model-part))))
-      (if (and compound model-has-multiple-components)
+  (flet ((make-ch-mesh-shape (model-part)
+           (make-instance 'convex-hull-mesh-shape
+             :color color
+             :disable-face-culling disable-face-culling
+             :faces (physics-utils:3d-model-faces model-part)
+             :points (physics-utils:3d-model-vertices model-part))))
+    (let ((model (load-mesh mesh-filename
+                            :scale scale
+                            :size size
+                            :compound compound
+                            :flip-winding-order flip-winding-order)))
+      ;; model has multiple components, such that it makes sense to make a compound shape
+      (if (and compound (> (length model) 1))
           (let ((compound-shape (make-instance 'compound-shape))
                 (id-pose (cl-transforms:make-pose
                           (cl-transforms:make-3d-vector 0 0 0)
@@ -333,6 +345,9 @@
                     model)
             compound-shape)
           (make-ch-mesh-shape (car model))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;; OBJECT ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;
 
 (defstruct collision-information
   rigid-body-name flags)

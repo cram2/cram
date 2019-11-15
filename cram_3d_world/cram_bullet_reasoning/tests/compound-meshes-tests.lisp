@@ -30,36 +30,48 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :btr-tests) 
+(in-package :btr-tests)
 
-(define-test pile-of-plates 
-  (let ((plate-num 5) (simulation-interval 10))
-    (prolog:prolog '(btr:clear-bullet-world))
-    (prolog:prolog '(and (btr:bullet-world ?world)
-                     (btr:debug-window ?world)))
-    (prolog:prolog '(and (btr:bullet-world ?world)
-                     (assert (btr:object ?world :static-plane :floor ((0 0 0) (0 0 0 1))
-                                                              :normal (0 0 1) :constant 0))))
-    (loop until (object btr:*current-bullet-world* :floor))
-    (labels ((spawn-stack (y-offset name-prefix mesh)
-                       (loop for id below plate-num
-                             for plate-id = (intern (format nil "~a~a" name-prefix id) :keyword)
-                             do (prolog:prolog
-                                 `(and (btr:bullet-world ?world)
-                                       (assert (btr:object ?world :mesh ,plate-id
-                                                           ((0 ,y-offset ,(+ 0.1 (* (coerce id 'float) 0.1)))
-                                                            (0 0 0 1))
-                                                           :mass 0.2
-                                                           :color (1 0 0)
-                                                           :scale 5
-                                                           :mesh ,mesh))))
-                                (prolog:prolog `(and (btr:bullet-world ?world)
-                                                     (btr:simulate ?world ,simulation-interval)))
-                                (format t "Added ~a~%" plate-id)))
-           (z-coord (obj-name)
-             (cl-tf:z (cl-tf:origin (pose (object btr:*current-bullet-world* obj-name))))))
-      (spawn-stack 0.0 "PLATE-COMPOUND-" :plate-compound)
-      (spawn-stack 2.0 "PLATE-" :plate)
-      (btr:simulate btr:*current-bullet-world* 100)
-      (lisp-unit:assert-true (< (z-coord :plate-compound-4)
-                                (z-coord :plate-4))))))
+(define-test pile-of-plates
+  (let ((old-all-meshes-as-compound btr:*all-meshes-as-compound*))
+    (setf btr:*all-meshes-as-compound* t)
+    (unwind-protect
+         (let ((plate-num 5)
+               (simulation-interval 10))
+           (prolog:prolog '(and
+                            (btr:clear-bullet-world)
+                            (btr:bullet-world ?world)
+                            (btr:debug-window ?world)
+                            (assert (btr:object ?world :static-plane
+                                     :floor
+                                     ((0 0 0) (0 0 0 1))
+                                     :normal (0 0 1)
+                                     :constant 0))))
+           (loop until (object btr:*current-bullet-world* :floor))
+           (labels ((spawn-stack (y-offset name-prefix mesh)
+                      (loop for id below plate-num
+                            for plate-id = (intern (format nil "~a~a" name-prefix id) :keyword)
+                            do (prolog:prolog
+                                `(and
+                                  (btr:bullet-world ?world)
+                                  (assert (btr:object ?world :mesh
+                                                      ,plate-id
+                                                      ((0
+                                                        ,y-offset
+                                                        ,(+ 0.1 (* (coerce id 'float) 0.1)))
+                                                       (0 0 0 1))
+                                                      :mass 0.2
+                                                      :color (1 0 0)
+                                                      :scale 5
+                                                      :mesh ,mesh))
+                                  (btr:simulate ?world ,simulation-interval)))))
+                    (z-coord (obj-name)
+                      (cl-transforms:z
+                       (cl-transforms:origin
+                        (btr:pose (btr:object btr:*current-bullet-world* obj-name))))))
+             (spawn-stack 0.0 "PLATE-COMPOUND-" :plate-compound)
+             (spawn-stack 2.0 "PLATE-" :plate)
+             (btr:simulate btr:*current-bullet-world* 100)
+             (lisp-unit:assert-true (< (z-coord :plate-compound-4)
+                                       (z-coord :plate-4)))))
+      (setf btr:*all-meshes-as-compound* old-all-meshes-as-compound))))

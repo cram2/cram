@@ -39,11 +39,12 @@
     (:plate-compound "package://cram_bullet_reasoning/resource/plate_compound.dae" nil)
     (:tray "package://cram_bullet_reasoning/resource/tray.stl" nil)
     (:tray-compound "package://cram_bullet_reasoning/resource/tray_compound.dae" nil)
-    (:cup "package://cram_bullet_reasoning/resource/cup.stl" nil)
-    (:cup-compound "package://cram_bullet_reasoning/resource/cup_compound.dae" nil)
+    (:cup-non-compound "package://cram_bullet_reasoning/resource/cup_non_compound.stl" nil)
+    (:cup "package://cram_bullet_reasoning/resource/cup.dae" nil)
     (:mondamin "package://cram_bullet_reasoning/resource/mondamin.stl" nil)
     (:pot "package://cram_bullet_reasoning/resource/pot-ww.stl" nil)
     (:weisswurst "package://cram_bullet_reasoning/resource/ww.stl" nil)
+    (:bowl-original "package://cram_bullet_reasoning/resource/bowl_original.stl" t)
     (:bowl "package://cram_bullet_reasoning/resource/bowl.stl" nil)
     (:bowl-compound "package://cram_bullet_reasoning/resource/bowl_compound.dae" nil)
     (:fork "package://cram_bullet_reasoning/resource/fork.stl" nil)
@@ -52,7 +53,8 @@
     (:cap "package://cram_bullet_reasoning/resource/cap.stl" t)
     (:glasses "package://cram_bullet_reasoning/resource/glasses.stl" nil)
     (:glove "package://cram_bullet_reasoning/resource/glove.stl" nil)
-    (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil)))
+    (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil))
+  "(mesh-name-in-CRAM  mesh-ROS-uri-path  flip-winding-order-of-the-mesh")
 
 
 (defun add-objects-to-mesh-list (ros-package &key (directory "resource") extension)
@@ -163,6 +165,9 @@ The name in the list is a keyword that is created by lispifying the filename."
                        :half-extents (cl-transforms:v* handle-size 0.5)))
     collision-shape))
 
+
+;;;;;;;;;;;;;;;;;;;;; SPAWNING MESH AND PRIMITIVE-SHAPED ITEMS ;;;;;;;;;;;;
+
 (defmethod add-object ((world bt-world) (type (eql :generic-cup)) name pose
                        &key
                          mass radius height
@@ -175,38 +180,48 @@ The name in the list is a keyword that is created by lispifying the filename."
                 :name name :mass mass :pose (ensure-pose pose)
                 :collision-shape (make-cup-shape radius height handle-size)))))
 
-(defmethod add-object ((world bt-world) (type (eql :mug)) name pose &key
-                                                                      mass)
+(defmethod add-object ((world bt-world) (type (eql :mug)) name pose &key mass)
   (add-object world :mesh name pose :mass mass :mesh :mug))
 
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
                        &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
                          disable-face-culling (compound *all-meshes-as-compound*))
-  (let ((mesh-desc
-           (etypecase mesh
-             (symbol (if (assoc mesh *mesh-files*)
-                         (cdr (assoc mesh *mesh-files*))
-                         (error "(btr add-object) Item of type ~a is unknown." mesh)))
-             (string (list mesh nil))
-             (physics-utils:3d-model (physics-utils:scale-3d-model mesh scale)))))
-    (let ((collision-shape (if (listp mesh-desc)
-                               (make-collision-shape-from-mesh (car mesh-desc)
-                                                               :scale scale
-                                                               :compound compound
-                                                               :color color
-                                                               :disable-face-culling disable-face-culling
-                                                               :flip-winding-order (cadr mesh-desc))
-                               (make-instance 'convex-hull-mesh-shape
-                                              :points (physics-utils:3d-model-vertices mesh-desc)
-                                              :faces (physics-utils:3d-model-faces mesh-desc)
-                                              :color color
-                                              :disable-face-culling disable-face-culling))))
-          (make-item world name (or types (list mesh))
-                     (list
-                      (make-instance 'rigid-body
-                                     :name name :mass mass :pose (ensure-pose pose)
-                                     :collision-shape
-                                     collision-shape))))))
+  (let ((collision-shape
+          (etypecase mesh
+
+            (physics-utils:3d-model
+             (let ((scaled-mesh (physics-utils:scale-3d-model mesh scale)))
+               (make-instance 'convex-hull-mesh-shape
+                 :points (physics-utils:3d-model-vertices scaled-mesh)
+                 :faces (physics-utils:3d-model-faces scaled-mesh)
+                 :color color
+                 :disable-face-culling disable-face-culling)))
+
+            ((or string symbol)
+             (let (path flip-winding-order)
+               (etypecase mesh
+                 (string
+                  (setf path mesh
+                        flip-winding-order nil))
+                 (symbol
+                  (let ((mesh-files-entry (assoc mesh *mesh-files*)))
+                    (if mesh-files-entry
+                        (setf path (second mesh-files-entry)
+                              flip-winding-order (third mesh-files-entry))
+                        (error "[btr add-object] Item ~a is unknown in btr:*mesh-files*." mesh)))))
+               (make-collision-shape-from-mesh
+                path
+                :scale scale
+                :compound compound
+                :color color
+                :disable-face-culling disable-face-culling
+                :flip-winding-order flip-winding-order))))))
+
+    (make-item world name (or types (list mesh))
+               (list
+                (make-instance 'rigid-body
+                  :name name :mass mass :pose (ensure-pose pose)
+                  :collision-shape collision-shape)))))
 
 (defmethod add-object ((world bt-world) (type (eql :cutlery)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) cutlery-type)
@@ -287,6 +302,7 @@ The name in the list is a keyword that is created by lispifying the filename."
                                    :color color)))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;; ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod get-loose-attached-objects ((object item))
   "Returns all objects attached to `object',
