@@ -34,11 +34,18 @@
 
 (defparameter *mesh-files*
   '((:mug "package://cram_bullet_reasoning/resource/mug.stl" t)
+    (:mug-compound "package://cram_bullet_reasoning/resource/mug_compound.dae" t)
     (:plate "package://cram_bullet_reasoning/resource/plate.stl" nil)
+    (:plate-compound "package://cram_bullet_reasoning/resource/plate_compound.dae" nil)
+    (:tray "package://cram_bullet_reasoning/resource/tray.stl" nil)
+    (:tray-compound "package://cram_bullet_reasoning/resource/tray_compound.dae" nil)
+    (:cup "package://cram_bullet_reasoning/resource/cup.stl" nil)
+    (:cup-compound "package://cram_bullet_reasoning/resource/cup_compound.dae" nil)
     (:mondamin "package://cram_bullet_reasoning/resource/mondamin.stl" nil)
     (:pot "package://cram_bullet_reasoning/resource/pot-ww.stl" nil)
     (:weisswurst "package://cram_bullet_reasoning/resource/ww.stl" nil)
     (:bowl "package://cram_bullet_reasoning/resource/bowl.stl" nil)
+    (:bowl-compound "package://cram_bullet_reasoning/resource/bowl_compound.dae" nil)
     (:fork "package://cram_bullet_reasoning/resource/fork.stl" nil)
     (:knife "package://cram_bullet_reasoning/resource/knife.stl" nil)
     (:spatula "package://cram_bullet_reasoning/resource/spatula.stl" nil)
@@ -46,6 +53,7 @@
     (:glasses "package://cram_bullet_reasoning/resource/glasses.stl" nil)
     (:glove "package://cram_bullet_reasoning/resource/glove.stl" nil)
     (:shoe "package://cram_bullet_reasoning/resource/shoe.stl" nil)))
+
 
 (defun add-objects-to-mesh-list (ros-package &key (directory "resource") extension)
   "Adds all meshes from `ros-package' resource directory into *mesh-files* list.
@@ -173,33 +181,32 @@ The name in the list is a keyword that is created by lispifying the filename."
 
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
                        &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
-                         disable-face-culling)
-  (let ((mesh-model
-          (physics-utils:scale-3d-model
+                         disable-face-culling (compound *all-meshes-as-compound*))
+  (let ((mesh-desc
            (etypecase mesh
-             (symbol (let ((uri (cadr (assoc mesh *mesh-files*))))
-                       (unless uri (error "(btr add-object) Item of type ~a is unknown." mesh))
-                       (let ((uri-path (physics-utils:parse-uri uri)))
-                         (with-file-cache model uri-path
-                             (physics-utils:load-3d-model
-                              uri-path :flip-winding-order (caddr (assoc mesh *mesh-files*)))
-                           model))))
-             (string (let ((uri-path (physics-utils:parse-uri mesh)))
-                       (with-file-cache model uri-path
-                           (physics-utils:load-3d-model uri-path)
-                         model)))
-             (physics-utils:3d-model mesh))
-           scale)))
-    (make-item world name (or types (list mesh))
-               (list
-                (make-instance 'rigid-body
-                  :name name :mass mass :pose (ensure-pose pose)
-                  :collision-shape
-                  (make-instance 'convex-hull-mesh-shape
-                    :points (physics-utils:3d-model-vertices mesh-model)
-                    :faces (physics-utils:3d-model-faces mesh-model)
-                    :color color
-                    :disable-face-culling disable-face-culling))))))
+             (symbol (if (assoc mesh *mesh-files*)
+                         (cdr (assoc mesh *mesh-files*))
+                         (error "(btr add-object) Item of type ~a is unknown." mesh)))
+             (string (list mesh nil))
+             (physics-utils:3d-model (physics-utils:scale-3d-model mesh scale)))))
+    (let ((collision-shape (if (listp mesh-desc)
+                               (make-collision-shape-from-mesh (car mesh-desc)
+                                                               :scale scale
+                                                               :compound compound
+                                                               :color color
+                                                               :disable-face-culling disable-face-culling
+                                                               :flip-winding-order (cadr mesh-desc))
+                               (make-instance 'convex-hull-mesh-shape
+                                              :points (physics-utils:3d-model-vertices mesh-desc)
+                                              :faces (physics-utils:3d-model-faces mesh-desc)
+                                              :color color
+                                              :disable-face-culling disable-face-culling))))
+          (make-item world name (or types (list mesh))
+                     (list
+                      (make-instance 'rigid-body
+                                     :name name :mass mass :pose (ensure-pose pose)
+                                     :collision-shape
+                                     collision-shape))))))
 
 (defmethod add-object ((world bt-world) (type (eql :cutlery)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) cutlery-type)

@@ -39,6 +39,7 @@
   (:shadowing-import-from #:cl-bullet points pose)
   (:shadow copy-object)
   (:export *current-bullet-world* *current-timeline* *visibility-threshold*
+           *all-meshes-as-compound*
            merge-bounding-boxes aabb calculate-bb-dims
            with-stored-world *debug-window*
            add-debug-window add-costmap-function-object add-vis-axis-object
