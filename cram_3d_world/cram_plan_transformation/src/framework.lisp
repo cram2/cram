@@ -30,23 +30,20 @@
 
 (in-package :plt)
 
+(defvar *transformation-rules* (make-hash-table :test 'eq))
+(defvar *disabled-transformation-rules* '())
+(defvar *rule-priority* '())
 
 (defparameter *top-level-name* :top-level
   "The default task tree name.")
 
 (defun get-top-level-name ()
   (let* ((task-trees (alexandria:hash-table-keys cpl-impl::*top-level-task-trees*)))
-    (case (length task-trees)
-      (1
-       (car task-trees))
-      (otherwise
-       (roslisp:ros-warn (plt) "There are ~a task trees. Returning default: ~a."
-                         (length task-trees) *top-level-name*)
-       *top-level-name*))))
-
-(defvar *transformation-rules* (make-hash-table :test 'eq))
-(defvar *disabled-transformation-rules* '())
-(defvar *rule-priority* '())
+    (if (equal 1 (length task-trees))
+      (car task-trees)
+      (progn (roslisp:ros-warn (plt) "There are ~a task trees. Returning default: ~a."
+                               (length task-trees) *top-level-name*)
+             *top-level-name*))))
 
 (defmacro register-transformation-rule (name predicate)
   `(setf (gethash ',name *transformation-rules*)
