@@ -33,44 +33,13 @@
   :license "BSD"
   
   :depends-on (roslisp-utilities ; for ros-init-function
-
-               cl-transforms
-               cl-transforms-stamped
                cl-tf
-               cram-tf
-
-               cram-language ; obsolete
                cram-executive
                cram-designators ; obsolete
                cram-prolog
-               cram-projection
-               cram-occasions-events
-               cram-utilities ; obsolete
-
-               cram-common-failures
+               cram-plan-occasions-events
                cram-mobile-pick-place-plans
-               cram-object-knowledge
-
-               cram-cloud-logger
-
-               cram-physics-utils     ; for reading "package://" paths
-               cl-bullet ; for handling BOUNDING-BOX datastructures
-               cram-bullet-reasoning ; obsolete
-               cram-bullet-reasoning-belief-state ;; using cram-bullet-reasoning
-               cram-bullet-reasoning-utilities
-               cram-btr-visibility-costmap ;
-               cram-btr-spatial-relations-costmap ;
-
-               ;; cram-semantic-map-costmap
-               cram-robot-pose-gaussian-costmap ;; contains cram-location-costmap
-               cram-occupancy-grid-costmap ;; contains cram-location-costmap
-               cram-location-costmap
-
-               cram-urdf-projection      ; for with-simulated-robot, depends on bullet-resoning
-               cram-urdf-projection-reasoning ; for projection-based reasoning
-               cram-fetch-deliver-plans
-               cram-urdf-environment-manipulation ;
-               )
+               cram-fetch-deliver-plans)
   :components
   ((:module "src"
     :components

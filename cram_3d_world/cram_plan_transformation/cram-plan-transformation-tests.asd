@@ -33,6 +33,15 @@
   :license "BSD"
   :depends-on (cram-plan-transformation 
                lisp-unit
+               cram-common-failures
+               cram-object-knowledge
+               cram-physics-utils     ; for reading "package://" paths
+               cram-bullet-reasoning-belief-state ;; using cram-bullet-reasoning
+               cram-btr-spatial-relations-costmap ;; things like (on kitchen_island)
+               cram-robot-pose-gaussian-costmap ;; estimate feasible robot position
+               cram-occupancy-grid-costmap ;; calculate occluded areas
+               cram-urdf-projection-reasoning ; for projection-based reasoning
+
                ;; cram-pr2-description
                ;; cram-boxy-description
                )
