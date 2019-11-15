@@ -44,7 +44,7 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "plan-transformation" :depends-on ("package"))
+     (:file "framework" :depends-on ("package"))
      (:file "predicates" :depends-on ("package"))
-     (:file "demo-transformation-rules" :depends-on ("package" "plan-transformation" "predicates"))
-     (:file "task-tree-functions" :depends-on ("package" "plan-transformation" "predicates"))))))
+     (:file "demo-transformation-rules" :depends-on ("package" "framework" "predicates"))
+     (:file "task-tree-functions" :depends-on ("package" "framework" "predicates"))))))

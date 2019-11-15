@@ -37,14 +37,14 @@
         #:desig
         #:exe)
   (:import-from #:cpl
-                #:def-cram-function #:def-top-level-cram-function #:plan-failure)
-  (:import-from #:cpl-impl
-                #:replace-task-code)
+                #:def-cram-function #:def-top-level-cram-function #:plan-failure #:replace-task-code)
+  ;; (:import-from #:cpl-impl
+  ;;               #:replace-task-code)
   (:export
    ;; task-tree-functions.lisp
    #:reset-task-tree
 
-   ;; plan-transformation.lisp
+   ;; framework.lisp
    #:get-top-level-name
    #:register-transformation-rule
    #:disable-transformation-rule
