@@ -45,6 +45,7 @@
                                joint-name
                                ((:link-name ?link-name))
                                ((:environment-name ?environment-name))
+                               ((:environment-object ?environment-object))
                                ((:container-object ?container-designator))
                              &allow-other-keys)
   (declare (type keyword ?arm)
@@ -136,7 +137,7 @@
                         'cpoe:container-closing-event)
        :joint-name joint-name
        :side ?arm
-       :environment (btr:object btr:*current-bullet-world* ?environment-name)
+       :environment ?environment-object
        :distance distance)))
 
   ;;;;;;;;;;;;;;;;;;;; RETRACTING ;;;;;;;;;;;;;;;;;;;;;;;;;;;

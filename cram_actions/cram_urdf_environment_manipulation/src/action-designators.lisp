@@ -83,8 +83,8 @@
 
     ;; environment
     (btr:bullet-world ?world)
-    (lisp-fun btr:object ?world ?btr-environment ?environment-obj)
-    (lisp-fun btr:name ?environment-obj ?environment-name)
+    (lisp-fun btr:object ?world ?btr-environment ?environment-object)
+    (lisp-fun btr:name ?environment-object ?environment-name)
 
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun man-int:get-action-gripper-opening ?container-type
@@ -168,5 +168,6 @@
                                (:joint-name ?joint-name)
                                (:link-name ?handle-link)
                                (:environment-name ?environment-name)
+                               (:environment-object ?environment-object)
                                (:container-object ?container-designator))
                       ?referenced-action-designator)))
