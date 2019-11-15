@@ -30,10 +30,10 @@
 
 (in-package :plt)
 
-(register-transformation-rule both-hands-transporting-rule
-                              '(task-transporting-siblings ?first-transport ?second-transport))
-(register-transformation-rule environment-rule
-                              '(task-transporting-from-container ?first-transport ?second-transport))
+(register-transformation-rule
+ both-hands-transporting-rule '(task-transporting-siblings ?first-transport ?second-transport))
+(register-transformation-rule
+ environment-rule '(task-transporting-from-container ?first-transport ?second-transport))
 
 (defun both-hands-transporting-rule (lazy-bindings &optional (top-level-name (get-top-level-name)))
   (roslisp:ros-info (plt) "Applying BOTH-HANDS-TRANSPORTING-RULE to top-level-plan ~a." top-level-name)
