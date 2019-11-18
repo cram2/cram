@@ -239,6 +239,7 @@ be given for the function to work."
                  :name name :mass mass :pose (ensure-pose pose)
                  :collision-shape compound-shape)))))
 
+
 (defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
                        &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
                          disable-face-culling)
