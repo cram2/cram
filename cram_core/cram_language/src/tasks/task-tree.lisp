@@ -335,7 +335,7 @@
                 (task-tree-node-children task-tree))))
 
 (defun flatten-task-tree-broad (task &optional (tree '()) (children '()))
-  "Arthur: Recursively calculates the task tree as list of all tasks like `cpl:flatten-task-tree'
+  "Recursively calculates the task tree as list of all tasks like `cpl:flatten-task-tree'
 but sorted in breadth first instead of depth. Makes search for nearby tasks much faster."
   (if (and task (not tree) (not children))
       (flatten-task-tree-broad nil (list task) (list task))
