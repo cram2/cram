@@ -224,8 +224,7 @@ Returns: list of cl-tf:pose."
   (spawn-btr-arrow (car
                     (convert-into-poses-list
                      (umap-T-ucamera-through-surface-ll obj-type time)))
-                   "btr-arrow-base" '(1 0 0))
-  )
+                   "btr-arrow-base" '(1 0 0)))
 
 (defvar *prefix-counter* 0)
 
@@ -290,3 +289,8 @@ Returns: list of cl-tf:pose."
     
     (spawn-btr-arrow (car obj-pose) "btr-arrow-object-pose" '(1 0 0))
     (spawn-btr-arrow (car base-pose) "btr-arrow-base-pose" '(0 1 0))))
+
+(defun spawn-arrows-from-list (list)
+  ;; eg for ?visibility and such. list of poses
+  (dolist (pose list)
+    (spawn-btr-arrow pose (arrow-prefix) '(0 0 1))))

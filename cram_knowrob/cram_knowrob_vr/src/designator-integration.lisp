@@ -96,7 +96,7 @@
                      (format t "~% ~% ++ spawn arrow at location: ~a ~% ~%" (cl-tf:pose-stamped->pose (car poses-list)))
                      ;;(break)
                      (let* ((arrow-pose (cl-tf:pose-stamped->pose (car poses-list)))
-                            (arrow-offset 0.2)
+                            (arrow-offset 0.0) ;Z offset so that arrow won't be spawned in the floor
                             (final-arrow-pose
                               (cl-tf:make-pose
                                (cl-tf:make-3d-vector
@@ -105,7 +105,9 @@
                                 (+ (cl-tf:z (cl-tf:origin arrow-pose)) arrow-offset))
                               (cl-tf:orientation arrow-pose))))
                        
-                       (spawn-btr-arrow final-arrow-pose (arrow-prefix))
+                       ;;(spawn-btr-arrow final-arrow-pose (arrow-prefix))
+                       ;;NOTE arrows are rigid-bodies and therefore cause collisions when spawned.
+                       ;(btr::add-vis-axis-object final-arrow-pose)
                        (push final-arrow-pose ?visibility))
                      ;;(break)
                      ;;(push (cl-tf:pose-stamped->pose (car poses-list)) ?test)
@@ -124,7 +126,7 @@
                                   (desig:current-desig location-designator) :object)))
                           ;;(break)
                           (let* ((arrow-pose (cl-tf:pose-stamped->pose (car poses-list)))
-                                 (arrow-offset 0.2)
+                                 (arrow-offset 0.0)
                                  (final-arrow-pose
                                    (cl-tf:make-pose
                                     (cl-tf:make-3d-vector
@@ -133,14 +135,18 @@
                                      (+ (cl-tf:z (cl-tf:origin arrow-pose)) arrow-offset))
                                     (cl-tf:orientation arrow-pose))))
                        
-                            (spawn-btr-arrow final-arrow-pose (arrow-prefix))
+                            ;;(spawn-btr-arrow final-arrow-pose (arrow-prefix))
+                            ;;NOTE arrows are rigid-bodies and therefore cause collisions when spawned.
+                            ;(btr::add-vis-axis-object final-arrow-pose)
+                            
                             (push final-arrow-pose ?reachability))
                           
                           ;;(break)
                           )))
         
-        (setq poses-list
-              (desig:resolve-location-designator-through-generators-and-validators location-designator)))
+;;;        (setq poses-list
+;;;              (desig:resolve-location-designator-through-generators-and-validators location-designator)))
+        )
     poses-list))
 
 ;; will replace ?grasps-list
