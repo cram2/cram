@@ -18,6 +18,8 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>cram_occasions_events</build_depend>
   <build_depend>cram_prolog</build_depend>
+  <build_depend>cram_designators</build_depend>
   <run_depend>cram_occasions_events</run_depend>
   <run_depend>cram_prolog</run_depend>
+  <run_depend>cram_designators</run_depend>
 </package>

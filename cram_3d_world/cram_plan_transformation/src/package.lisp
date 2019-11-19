@@ -38,14 +38,10 @@
         #:exe)
   (:import-from #:cpl
                 #:def-cram-function #:def-top-level-cram-function #:plan-failure #:replace-task-code)
-  ;; (:import-from #:cpl-impl
-  ;;               #:replace-task-code)
   (:export
-   ;; task-tree-functions.lisp
-   #:reset-task-tree
-
    ;; framework.lisp
    #:get-top-level-name
+   #:reset-task-tree
    #:register-transformation-rule
    #:disable-transformation-rule
    #:enable-transformation-rule
@@ -55,13 +51,8 @@
    ;; predicates.lisp
    :top-level-name
    :top-level-path
-   :location-distance-threshold
    :without-replacement
-   :task-location-description-equal
-   :task-nearby
-   :task-targets-nearby
    :task-specific-motion
    :task-transporting
    :task-transporting-siblings
-   :task-transporting-from-container
-   ))
+   :task-transporting-from-container))

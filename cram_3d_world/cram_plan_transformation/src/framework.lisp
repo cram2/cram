@@ -45,6 +45,9 @@
                                (length task-trees) *top-level-name*)
              *top-level-name*))))
 
+(defun reset-task-tree ()
+  (cpl-impl::remove-top-level-task-tree (get-top-level-name)))
+
 (defmacro register-transformation-rule (name predicate)
   `(setf (gethash ',name *transformation-rules*)
          ,predicate))

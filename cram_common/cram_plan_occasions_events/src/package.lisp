@@ -70,7 +70,7 @@
            #:looking-at
            #:arms-parked
 
-           ;; task-declarations
+           ;; prolog
            ;; Predicates used in searching for tasks.
            #:task-transporting-action
            #:task-fetching-action
@@ -79,6 +79,11 @@
            #:task-navigating-action
            #:task-specific-action
            #:task-previous-action-sibling
+           #:location-distance-threshold
+           #:task-location-description-equal
+           #:task-nearby
+           #:task-targets-nearby
+           #:subtasks-of-type
 
            ;; #:task-parameter
            #:container-state))

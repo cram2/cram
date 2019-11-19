@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Arthur Niedzwiecki <niedzwiecki@uni-bremen.de>
+;;; Copyright (c) 2019, Arthur Niedzwiecki <niedzwiecki@uni-bremen.de>
 ;;;                    
 ;;; All rights reserved.
 ;;;
@@ -28,50 +28,24 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :plt)
+(in-package :cpoe)
 
 (defparameter *location-distance-threshold* 0.5)
 (defun  get-location-distance-threshold ()
   "For prolog predicates."
   *location-distance-threshold*)
 
-(defun reset-task-tree ()
-  (cpl-impl::remove-top-level-task-tree (get-top-level-name)))
-
 (defun location-desig-dist (desig-1 desig-2)
-  (cl-tf:v-dist (cl-tf:origin (desig-prop-value desig-1 :pose))
-                (cl-tf:origin (desig-prop-value desig-2 :pose))))
+  (cl-tf:v-dist (cl-tf:origin (desig:desig-prop-value desig-1 :pose))
+                (cl-tf:origin (desig:desig-prop-value desig-2 :pose))))
 
-(defgeneric direct-child (node)
-  (:documentation "Returns only the direct children of the node")
-  (:method ((node cpl:task-tree-node))
-    (cpl:task-tree-node-children node)))
-
-(defun flatten-task-tree-broad (task &optional (tree '()) (children '()))
-  "Retruns the task tree as list of all tasks like `cpl:flatten-task-tree'
-but sorted in broad first, not depth first."
-  (if (and task (not tree) (not children))
-      (flatten-task-tree-broad nil (list task) (list task))
-      (let ((childs (mapcar #'cdr (reduce #'append (mapcar #'cpl:task-tree-node-children children)))))
-        (if childs
-            (flatten-task-tree-broad nil (append tree childs) childs)
-            tree))))
-
-(defun failed-tasks (top-task)
-  (let ((predicate
-          (lambda (node)
-            (and (cpl:task-tree-node-code node)
-                 (cpl:code-task (cpl:task-tree-node-code node))
-                 (cpl:task-failed-p (cpl:code-task (cpl:task-tree-node-code node))))))
-        (all-tasks (flatten-task-tree-broad top-task)))
-    (loop for node in all-tasks
-           when (funcall predicate node)
-             collect node)))
-
-(defun tasks-of-type (task type desig-class)
+(defun subtasks-of-type (task type desig-class)
+  "A very fast way to find all subtask from root `task' of a specfic `type'.
+`desig-class' = action-designator -> breadth-first task-tree
+              = motion-designator -> depth-first task-tree"
   (let* ((subtasks (case desig-class
-                     (action-designator (flatten-task-tree-broad task))
-                     (motion-designator (cpl:flatten-task-tree task))))
+                     (desig:action-designator (cpl:flatten-task-tree-broad task))
+                     (desig:motion-designator (cpl:flatten-task-tree task))))
          (filter-predicate
            (lambda (node)
              (and (cpl:task-tree-node-code node)
@@ -80,8 +54,8 @@ but sorted in broad first, not depth first."
                   (cpl:code-sexp
                    (cpl:task-tree-node-code node))
                   (eq (car (cpl:code-sexp (cpl:task-tree-node-code node)))
-                      'perform)
-                  (eq (desig-prop-value
+                      'exe:perform)
+                  (eq (desig:desig-prop-value
                        (car (cpl:code-parameters (cpl:task-tree-node-code node)))
                        :type)
                       type)

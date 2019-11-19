@@ -113,4 +113,46 @@
     ;;          (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
     ;;          (>= ?created-time-task ?created-time-other-next-task))
     ;;         (>= ?created-time-next-task ?created-time-other-next-task))
-    ))
+    )
+
+  (<- (location-distance-threshold ?threshold)
+    (lisp-fun get-location-distance-threshold ?threshold))
+
+  (<- (task-nearby ?task ?sibling ?threshold ?location-key)
+    (coe:task-parameter ?task ?desig)
+    (coe:task-parameter ?sibling ?sibling-desig)
+    (desig:desig-prop ?desig (?location-key ?loc))
+    (desig:desig-prop ?sibling-desig (?location-key ?sibling-loc))
+    (lisp-fun location-desig-dist ?loc ?sibling-loc ?dist)
+    (< ?dist ?threshold))
+  
+  (<- (task-targets-nearby ?task ?sibling ?threshold)
+    (task-nearby ?task ?sibling ?threshold :target))
+
+  (<- (subtasks-of-type ?root-task ?type ?desig-class ?tasks)
+    (bound ?root-task)
+    (bound ?type)
+    (member ?desig-class (desig:action-designator desig:motion-designator))
+    (lisp-fun subtasks-of-type ?root-task ?type ?desig-class ?tasks))
+
+  (<- (task-location-description-equal ?task ?sibling)
+    (coe:task-parameter ?task ?desig1)
+    (coe:task-parameter ?sibling ?desig2)
+    (lisp-type ?desig1 desig:action-designator)
+    (lisp-type ?desig2 desig:action-designator)
+    (desig:desig-prop ?desig1 (:location ?loc1))
+    (desig:desig-prop ?desig2 (:location ?loc2))
+    (or (and
+         (desig:desig-prop ?loc1 (:on ?on1))
+         (desig:desig-prop ?on1 (:urdf-name ?urdf-name1))
+         (desig:desig-prop ?loc2 (:on ?on2))
+         (desig:desig-prop ?on2 (:urdf-name ?urdf-name2))
+         (equal ?urdf-name1 ?urdf-name2))
+        (and
+         (desig:desig-prop ?loc1 (:in ?in1))
+         (desig:desig-prop ?in1 (:urdf-name ?urdf-name1))
+         (desig:desig-prop ?loc2 (:in ?in2))
+         (desig:desig-prop ?in2 (:urdf-name ?urdf-name2))
+         (equal ?urdf-name1 ?urdf-name2))))
+
+)

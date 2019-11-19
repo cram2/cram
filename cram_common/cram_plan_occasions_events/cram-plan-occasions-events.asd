@@ -32,11 +32,12 @@
   :license "BSD"
   :description "Events for plan library, belief state managements, actual PMs"
 
-  :depends-on (cram-occasions-events cram-prolog cram-executive)
+  :depends-on (cram-occasions-events cram-prolog cram-executive cram-designators)
   :components
   ((:module "src"
             :components
             ((:file "package")
              (:file "default-plan-events" :depends-on ("package"))
              (:file "occasion-declarations" :depends-on ("package"))
-             (:file "prolog" :depends-on ("package"))))))
+             (:file "task-tree-functions" :depends-on ("package"))
+             (:file "prolog" :depends-on ("package" "task-tree-functions"))))))
