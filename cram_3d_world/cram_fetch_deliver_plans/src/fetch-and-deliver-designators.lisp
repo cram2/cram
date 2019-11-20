@@ -204,6 +204,7 @@ the `look-pose-stamped'."
     (once (or (and (spec:property ?action-designator (:robot-location ?some-robot-loc-desig))
                    (desig:current-designator ?some-robot-loc-desig ?robot-location-designator))
               (desig:designator :location ((:reachable-for ?robot)
+                                           (:object ?object-designator)
                                            (:location ?location-designator))
                                 ?robot-location-designator)))
     ;; place-action
