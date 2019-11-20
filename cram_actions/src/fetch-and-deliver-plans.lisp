@@ -569,25 +569,26 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                       (location ?search-location)
                                       (desig:when ?search-base-location
                                         (robot-location ?search-base-location)))))
-             (?robot-name
-               (cut:var-value '?robot-name
-                              (car (prolog:prolog '(rob-int:robot ?robot-name))))))
+             ;; (?robot-name
+             ;;   (cut:var-value '?robot-name
+             ;;                  (car (prolog:prolog '(rob-int:robot ?robot-name)))))
+             )
          (roslisp:ros-info (pp-plans transport)
                            "Found object of type ~a."
                            (desig:desig-prop-value ?perceived-object-designator :type))
 
-         (unless ?fetch-robot-location
-           (setf ?fetch-robot-location
-                 (desig:a location
-                          (reachable-for ?robot-name)
-                          (desig:when ?arm
-                            (arm ?arm))
-                          (object ?perceived-object-designator))))
-         (unless ?deliver-robot-location
-           (setf ?deliver-robot-location
-                 (desig:a location
-                          (reachable-for ?robot-name)
-                          (location ?delivering-location))))
+         ;; (unless ?fetch-robot-location
+         ;;   (setf ?fetch-robot-location
+         ;;         (desig:a location
+         ;;                  (reachable-for ?robot-name)
+         ;;                  (desig:when ?arm
+         ;;                    (arm ?arm))
+         ;;                  (object ?perceived-object-designator))))
+         ;; (unless ?deliver-robot-location
+         ;;   (setf ?deliver-robot-location
+         ;;         (desig:a location
+         ;;                  (reachable-for ?robot-name)
+         ;;                  (location ?delivering-location))))
 
          ;; If running on the real robot, execute below task tree in projection
          ;; N times first, then pick the best parameterization
@@ -612,7 +613,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                             (desig:when ?grasps
                                               (grasps ?grasps))
                                             (object ?perceived-object-designator)
-                                            (robot-location ?fetch-robot-location)
+                                            (desig:when ?fetch-robot-location
+                                              (robot-location ?fetch-robot-location))
                                             (pick-up-action ?fetch-pick-up-action)))))
                (roslisp:ros-info (pp-plans transport) "Fetched the object.")
 
@@ -633,7 +635,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                                (arm ?arm))
                                              (object ?fetched-object)
                                              (target ?delivering-location)
-                                             (robot-location ?deliver-robot-location)
+                                             (desig:when ?deliver-robot-location
+                                               (robot-location ?deliver-robot-location))
                                              (place-action ?deliver-place-action)))
                    (unless delivery-location-accessible
                      (exe:perform (desig:an action
