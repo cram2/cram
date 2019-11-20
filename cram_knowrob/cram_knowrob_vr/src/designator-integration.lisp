@@ -61,6 +61,7 @@
 (defvar ?visibility '())
 (defvar ?reachability '())
 (defvar ?heuristics '())
+(defvar ?deliver-reachability '())
 
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
   (print "+++ NEW AMAZING INTERFACE +++")
@@ -74,7 +75,6 @@
          (poses-list '()))
     
     ;;get object type out of the object designator that comes with the location desig
-
     (format t "~%~% ++ OBJ-Type: ~a ~%~%" obj-type)
     
 ;;; VISIBILITY
@@ -87,23 +87,43 @@
                   (desig:reference
                    (desig:desig-prop-value
                     (desig:current-desig location-designator) :location)))) ;;current search loc.
-           (push poses-list ?visibility)
-           )
+           (push poses-list ?visibility))
 
 ;;; REACHABILITY
           ((rob-int:reachability-designator-p location-designator)
            (format t "~% Reachability? ~a" (rob-int:reachability-designator-p location-designator))
-           (setq poses-list
-                 (base-poses-ll-for-fetching-based-on-object-desig
-                  (desig:desig-prop-value
-                   (desig:current-desig location-designator) :object)))
-           (push poses-list ?reachability))
+           ;; differenticate between a loc desig with an obj desig (fetch) or a loc desig (deliver)
+           
+           ;;location-desig -> deliver
+           (cond ((desig:desig-prop-value
+                   (desig:current-desig location-designator) :location)
+                  ;;has location desig -> deliver
+                  (let ((pose (desig:reference
+                               (desig:desig-prop-value
+                                (desig:current-desig location-designator) :location))))
+                    (setq poses-list
+                          (base-poses-ll-for-fetching-based-on-object-pose
+                           (object-type-filter-bullet obj-type-raw)
+                           pose))
+
+                    (push poses-list ?deliver-reachability)))
+
+                 ;;obj-desig -> fetch
+                 ((desig:desig-prop-value
+                   (desig:current-desig location-designator) :object)
+
+                  (setq poses-list
+                        (base-poses-ll-for-fetching-based-on-object-desig
+                         (desig:desig-prop-value
+                          (desig:current-desig location-designator) :object)))
+
+                  (push poses-list ?reachability))))
           
 ;;; HEURISTICS default-response if it's not an vis or reach desig
           (t (setq poses-list
                    (desig:resolve-location-designator-through-generators-and-validators location-designator))
              (push poses-list ?heuristics)))
-
+    
     ;;return
     poses-list))
 
