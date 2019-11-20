@@ -31,6 +31,7 @@
 
 (in-package :kvr)
 
+;;NOTE deprecated. Doesn't work anymore
 (defun reset-simulation ()
   "Resets the simulation and belief state. Re-spawns the objects at their
 initial position."
@@ -150,17 +151,17 @@ Applies the unreal world/semantic map offset to the pose.
                             :color color
                             :pose pose-with-offset)))
 
+(defvar *arrow-z-offset* 0.2) ;; Z offset so that arrow won't spawn in the floor
 (defun spawn-btr-arrow (pose arrow-name &optional (color '(1 0 1)))
   "spawns an arrow object at the given `pose' with the given `name'.
 `color' is optionaly a list of r g b values. Default is pink '(1 0 1)."
   ;; spawn arrow
-  (let* ((arrow-offset 0.2) ;; Z offset so that arrow won't spawn in the floor
-         (final-arrow-pose
+  (let* ((final-arrow-pose
            (cl-tf:make-pose
             (cl-tf:make-3d-vector
              (cl-tf:x (cl-tf:origin pose))
              (cl-tf:y (cl-tf:origin pose))
-             (+ (cl-tf:z (cl-tf:origin pose)) arrow-offset))
+             (+ (cl-tf:z (cl-tf:origin pose)) *arrow-z-offset*))
             (cl-tf:orientation pose))))
     
     (btr-utils:spawn-object (intern arrow-name) :arrow
@@ -257,26 +258,34 @@ Returns: list of cl-tf:pose."
     (loop for pose in unreal-object-poses
           do (spawn-unreal-arrow pose
                                  (format nil "ur-arrow-object-~a" (arrow-prefix))
-                                 '(1 0 1)))
+                                 '(0.5 0 0.5)))
      
     ;; at object location btr (look-pose)
     (loop for pose in btr-object-poses
           do (spawn-btr-arrow pose
                               (format nil "btr-arrow-object-~a" (arrow-prefix))
-                              '(1 0 1)))
+                              '(0.5 0 0.5)))
 
     ;; at camera location unreal (original camera pose)
     (loop for pose in unreal-camera-poses
           do (spawn-unreal-arrow pose
                                  (format nil "ur-arrow-camera-~a" (arrow-prefix))
-                                 '(1 0 0)))
+                                 '(0.7 0 0)))
     
     ;; at base location btr (unreal camera with transformations)
     ;; TODO this should also work for END
     (loop for pose in btr-base-poses
           do (spawn-btr-arrow pose
                               (format nil "btr-arrow-base-~a" (arrow-prefix))
-                              '(1 0 0)))))
+                              '(0.7 0 0)))
+    
+    (loop for pose in btr-base-poses
+          do (spawn-btr-arrow (cl-tf:pose-stamped->pose
+                               (map-T-camera->map-P-base
+                                (cl-tf:pose->transform pose)))
+                              (format nil "btr-robot-base-~a" (arrow-prefix))
+                              '(0 0.7 0)))
+    ))
 
 
 
@@ -294,3 +303,31 @@ Returns: list of cl-tf:pose."
   ;; eg for ?visibility and such. list of poses
   (dolist (pose list)
     (spawn-btr-arrow pose (arrow-prefix) '(0 0 1))))
+
+(defun spawn-visibility-arrows (pose-stamped-list &optional desig-color)
+  "spawns arrows according to the ?visibility or ?reachability lists.
+`pose-stamped-list' is the given ?visibility or ?reachability list.
+`desig-color' can be set to 'vis or 'reach depending on which list it is.
+'vis arrows = dark green
+'reach arrows = dark blue"
+  (let ((poses-list (convert-into-poses-list (car pose-stamped-list)))
+        (color (cond ((eq desig-color 'vis)
+                      '(1.0 0.6 0.0))
+                     ((eq desig-color 'reach)
+                      '(0 0 0.5))
+                     ((eq desig-color 'heu)
+                      '(0 0.5 0.7)))))
+    (dolist (pose poses-list)
+      (spawn-btr-arrow pose (arrow-prefix) color))))
+
+(defun reset-temp-lists ()
+  (setq ?visibility '())
+  (setq ?reachability '())
+  (setq ?heuristics '()))
+
+(defun spawn-everything ()
+  (spawn-visibility-arrows ?visibility 'vis)
+  (setq *arrow-z-offset* 3.0)
+  (spawn-visibility-arrows ?reachability 'reach)
+  (setq *arrow-z-offset* 0.2)
+  (spawn-multiple-arrows "CupEcoOrange" "Start"))
