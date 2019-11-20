@@ -74,82 +74,37 @@
          (poses-list '()))
     
     ;;get object type out of the object designator that comes with the location desig
+
+    (format t "~%~% ++ OBJ-Type: ~a ~%~%" obj-type)
     
-    
-    ;;check if desig contains an object type
-    ;; (if (stringp obj-type)
-        ;; get rid of this.  differentiate b
-        ;; (progn 
-          (format t "~%~% ++ OBJ-Type: ~a ~%~%" obj-type)
-               
 ;;; VISIBILITY
-               (cond ((rob-int:visibility-designator-p location-designator)
-                   (progn
-                     (format t "~% Visibility? ~a" (rob-int:visibility-designator-p location-designator))
-                     ;;NOTE this works. old implementation
-                     ;;(setq poses-list (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching obj-type))))
-                     ;;NOTE New implementation:
-                     (setq poses-list
-                           (base-poses-ll-for-fetching-based-on-object-pose
-                            (object-type-filter-bullet obj-type-raw) ;; obj-type
-                            (desig:reference
-                             (desig:desig-prop-value
-                              (desig:current-desig location-designator) :location)))) ;;current search loc.
-                     (format t "~% ~% ++ spawn arrow at location: ~a ~% ~%" (cl-tf:pose-stamped->pose (car poses-list)))
-                     ;;(break)
-                     ;; (let* ((arrow-pose (cl-tf:pose-stamped->pose (car poses-list)));;TODO spawn all the poses I'm getting
-                     ;;        (arrow-offset 0.0) ;Z offset so that arrow won't be spawned in the floor
-                     ;;        (final-arrow-pose
-                     ;;          (cl-tf:make-pose
-                     ;;           (cl-tf:make-3d-vector
-                     ;;            (cl-tf:x (cl-tf:origin arrow-pose))
-                     ;;            (cl-tf:y (cl-tf:origin arrow-pose))
-                     ;;            (+ (cl-tf:z (cl-tf:origin arrow-pose)) arrow-offset))
-                     ;;           (cl-tf:orientation arrow-pose))))
-                       
-                       ;;(spawn-btr-arrow final-arrow-pose (arrow-prefix))
-                       ;;NOTE arrows are rigid-bodies and therefore cause collisions when spawned.
-                                        ;(btr::add-vis-axis-object final-arrow-pose)
-                       (push poses-list ?visibility))
-                     ;;(break)
-                     ;;(push (cl-tf:pose-stamped->pose (car poses-list)) ?test)
-                     )
+    (cond ((rob-int:visibility-designator-p location-designator)
+           (format t "~% Visibility? ~a" (rob-int:visibility-designator-p location-designator))
+           ;;NOTE New implementation:
+           (setq poses-list
+                 (base-poses-ll-for-fetching-based-on-object-pose
+                  (object-type-filter-bullet obj-type-raw) ;; obj-type
+                  (desig:reference
+                   (desig:desig-prop-value
+                    (desig:current-desig location-designator) :location)))) ;;current search loc.
+           (push poses-list ?visibility)
+           )
 
 ;;; REACHABILITY
-               ;;TODO make this it's own beautiful function?
-               ;;(defmethod man-int:get-location-poses :vr 10 (location-designator)
-               ((rob-int:reachability-designator-p location-designator)
-                   (progn (format t "~% Reachability? ~a" (rob-int:reachability-designator-p location-designator))
-                          ;;NOTE this works. old implementation
-                          ;;(setq poses-list (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching obj-type))))
-                          (setq poses-list
-                                (base-poses-ll-for-fetching-based-on-object-desig
-                                 (desig:desig-prop-value
-                                  (desig:current-desig location-designator) :object)))
-                          ;;(break)
-                          ;; (let* ((arrow-pose (cl-tf:pose-stamped->pose (car poses-list)))
-                          ;;        (arrow-offset 0.0)
-                          ;;        (final-arrow-pose
-                          ;;          (cl-tf:make-pose
-                          ;;           (cl-tf:make-3d-vector
-                          ;;            (cl-tf:x (cl-tf:origin arrow-pose))
-                          ;;            (cl-tf:y (cl-tf:origin arrow-pose))
-                          ;;            (+ (cl-tf:z (cl-tf:origin arrow-pose)) arrow-offset))
-                          ;;           (cl-tf:orientation arrow-pose))))
-                            
-                            ;;(spawn-btr-arrow final-arrow-pose (arrow-prefix))
-                            ;;NOTE arrows are rigid-bodies and therefore cause collisions when spawned.
-                                        ;(btr::add-vis-axis-object final-arrow-pose)
-                            
-                            (push poses-list ?reachability))
-                          
-                          ;;(break)
-                          )
-        
-               (t (setq poses-list
-                        (desig:resolve-location-designator-through-generators-and-validators location-designator))
-                  (push poses-list ?heuristics))
-        )
+          ((rob-int:reachability-designator-p location-designator)
+           (format t "~% Reachability? ~a" (rob-int:reachability-designator-p location-designator))
+           (setq poses-list
+                 (base-poses-ll-for-fetching-based-on-object-desig
+                  (desig:desig-prop-value
+                   (desig:current-desig location-designator) :object)))
+           (push poses-list ?reachability))
+          
+;;; HEURISTICS default-response if it's not an vis or reach desig
+          (t (setq poses-list
+                   (desig:resolve-location-designator-through-generators-and-validators location-designator))
+             (push poses-list ?heuristics)))
+
+    ;;return
     poses-list))
 
 ;; will replace ?grasps-list
