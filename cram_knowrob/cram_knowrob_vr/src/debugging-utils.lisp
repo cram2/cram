@@ -161,7 +161,8 @@ Applies the unreal world/semantic map offset to the pose.
             (cl-tf:make-3d-vector
              (cl-tf:x (cl-tf:origin pose))
              (cl-tf:y (cl-tf:origin pose))
-             (+ (cl-tf:z (cl-tf:origin pose)) *arrow-z-offset*))
+             ;; (+ (cl-tf:z (cl-tf:origin pose)) *arrow-z-offset*
+                1.0)
             (cl-tf:orientation pose))))
     
     (btr-utils:spawn-object (intern arrow-name) :arrow
@@ -315,7 +316,7 @@ Returns: list of cl-tf:pose."
                       '(1.0 0.6 0.0))
                      ((eq desig-color 'reach)
                       '(0 0 0.5))
-                     ((eq desig-color 'heu)
+                     ((eq desig-color 'del)
                       '(0 0.5 0.7)))))
     (dolist (pose poses-list)
       (spawn-btr-arrow pose (arrow-prefix) color))))
@@ -323,11 +324,17 @@ Returns: list of cl-tf:pose."
 (defun reset-temp-lists ()
   (setq ?visibility '())
   (setq ?reachability '())
-  (setq ?heuristics '()))
+  (setq ?heuristics '())
+  (setq ?deliver-reachability '()))
 
 (defun spawn-everything ()
+  (btr-utils:kill-all-objects)
+  (spawn-multiple-arrows "CupEcoOrange" "Start")
+  (sleep 1)
   (spawn-visibility-arrows ?visibility 'vis)
   (setq *arrow-z-offset* 3.0)
+  (spawn-visibility-arrows ?deliver-reachability 'del)
   (spawn-visibility-arrows ?reachability 'reach)
   (setq *arrow-z-offset* 0.2)
-  (spawn-multiple-arrows "CupEcoOrange" "Start"))
+  
+  )

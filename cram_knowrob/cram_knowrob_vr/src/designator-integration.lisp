@@ -62,11 +62,12 @@
 (defvar ?reachability '())
 (defvar ?heuristics '())
 (defvar ?deliver-reachability '())
+(defvar ?search-poses '())
 
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
   (print "+++ NEW AMAZING INTERFACE +++")
   (format t "~%~% +Location desig:+ ~% ~a" location-designator)
-  (break)
+ ;; (break)
   (let* ((obj-type-raw (intern (symbol-name
                                 (car (desig:desig-prop-values
                                       (car (desig:desig-prop-values location-designator :object))
@@ -81,6 +82,10 @@
     (cond ((rob-int:visibility-designator-p location-designator)
            (format t "~% Visibility? ~a" (rob-int:visibility-designator-p location-designator))
            ;;NOTE New implementation:
+           (push (desig:reference
+                   (desig:desig-prop-value
+                    (desig:current-desig location-designator) :location)) ?search-poses)
+           
            (setq poses-list
                  (base-poses-ll-for-fetching-based-on-object-pose
                   (object-type-filter-bullet obj-type-raw) ;; obj-type

@@ -71,9 +71,9 @@
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
   (let ((object-types '(;; :breakfast-cereal
-                       ;; :cup
-                        :bowl ;; :milk
-                       ;; :spoon
+                        :cup
+                        ;;:bowl ;; :milk
+                        ;;:spoon
                         )))
     ;; spawn objects at default poses
     (let ((objects (mapcar (lambda (object-type)
@@ -86,6 +86,7 @@
                                            ;; (pi-number (- (random 2.0) 1.0))
                                            (pi-other (- 1.0 (abs pi-number)))
                                            (pose `((,x ,y 0.87) (0 0 ,pi-number ,pi-other))))
+                                           ;;(pose `((,x ,y 0.87) (0 0 1 0))))
                                       ;;TODO remove this after debugging
                                       (btr:add-vis-axis-object (cl-tf:make-pose
                                                                 (cl-tf:make-3d-vector x y 0.87)
@@ -178,9 +179,9 @@
 
 (cpl:def-cram-function demo (&optional
                              (list-of-objects
-                              '(;;cup
-                                bowl
-                                ;;spoon ;;add it back in later
+                              '(cup
+                               ;; bowl
+                               ;; spoon ;;add it back in later
                                 )))
 
   (initialize)
@@ -221,7 +222,7 @@
               (list (cl-transforms-stamped:pose->pose-stamped
                      cram-tf:*fixed-frame* 0.0
                      (cram-tf:list->pose (cdr (assoc type *object-delivering-poses*)))))
-              ;; (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type)))
+              ;; (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type))) ;; TODO
               )
              ;; TODO matching poses for delivering were not touched yet.
             (?delivering-base-poses
@@ -232,6 +233,8 @@
                            pose))
                        (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))))
         ;;(format t "base-poses: ~a" ?search-base-poses)
+        (format t "~% +++ ?search-poses ~a +++~%" ?search-poses)
+        
         (exe:perform
          (desig:an action
                    (type transporting)
@@ -242,7 +245,8 @@
                    (arms ?arms)
                    (grasps ?grasps)
                    (target (desig:a location (poses ?delivering-poses)))
-                   (deliver-robot-location (desig:a location (poses ?delivering-base-poses))))))))
+                   ;;(deliver-robot-location (desig:a location (poses ?delivering-base-poses)))
+                   )))))
 
   (park-robot)
 

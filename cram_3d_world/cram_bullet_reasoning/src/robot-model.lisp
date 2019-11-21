@@ -69,7 +69,7 @@
   (let* ((model (load-mesh mesh compound)))
     (flet ((make-ch-mesh-shape (model-part)
              (make-instance 'convex-hull-mesh-shape
-               :color (apply-alpha-value color)
+               :color (apply-alpha-value color) ;TODO setf alpha value. check what the color value is and change the alpha
                :faces (physics-utils:3d-model-faces model-part)
                :points (physics-utils:3d-model-vertices model-part))))
       (if compound
