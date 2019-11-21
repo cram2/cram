@@ -29,20 +29,318 @@
 
 (in-package :objects)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-likely-location :heuristics 20 ((location-designator desig:location-designator))
-  (let ((object-type (desig:desig-prop-value location-designator :object)))
-    (cond
-      ((equal object-type 'BowlLarge)
-       'someplace-where-it-should-be-duh))))
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting))
+     (object-type (eql :BowlLarge)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type bowl)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :BowlLarge)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sibnk)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type bowl)))))
 
-(defmethod man-int:get-object-likely-destination :heuristics  20 ((location-designator desig:location-designator))
-  (let ((object-type (desig:desig-prop-value location-designator :object)))
-    (cond
-      ((equal object-type 'BowlLarge)
-       'on-the-table-i-guess))))
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting))
+     (object-type (eql :SpoonSoup)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type spoon)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :SpoonSoup)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type spoon)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting)) 
+     (object-type (eql :SpoonDessert)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type spoon)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :SpoonDessert)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type spoon)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting))
+     (object-type (eql :KnifeTable)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type knife)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :KnifeTable)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type knife)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting))
+     (object-type (eql :PlateClassic28)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type plate)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :PlateClassic28)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type plate)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting)) 
+     (object-type (eql :GlassRound)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type cup)))))
+
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :GlassRound)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type cup)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting))
+     (object-type (eql :GlassTall)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type cup)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :GlassTall)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type cup)))))
+
+;;merging of cups!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting))
+     (object-type (eql :KoellnMuesliKnusperHonigNuss)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type breakfast-cereal)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :KoellnMuesliKnusperHonigNuss)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type breakfast-cereal)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting))
+     (object-type (eql :JaNougatBits)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type breakfast-cereal)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :JaNougatBits)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type breakfast-cereal)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting)) 
+     (object-type (eql :KoellnMuesliCranberry)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type breakfast-cereal)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :KoellnMuesliCranberry)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type breakfast-cereal)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting))
+     (object-type (eql :BaerenMarkeFrischeAlpenmilch38)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type milk)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :BaerenMarkeFrischeAlpenmilch38)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type milk)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-setting))
+     (object-type (eql :HohesCOrange)))
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type bottle)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((kitchen-name (eql :kitchen))
+     human-name 
+     (context (eql :table-cleaning))
+     (object-type (eql :HohesCOrange)))
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of kitchen-name)))
+           (object (desig:an object (type bottle)))))
