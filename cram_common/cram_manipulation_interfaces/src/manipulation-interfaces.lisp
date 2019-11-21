@@ -57,19 +57,26 @@ grasp orientations for `object-type' given `arm' and `object-transform-in-base'.
   (:documentation "Returns a (lazy) list of cl-transforms-pose-stamped that,
 according to the reasoning engine, correspond to the given `location-designator'.")
   (:method :heuristics 20 (location-designator)
+    (print "get-location-poses w/ heuristics called")
     (desig:resolve-location-designator-through-generators-and-validators location-designator)))
 
-(defgeneric get-object-likely-location (location-designator)
+(defgeneric get-object-likely-location (kitchen-name human-name context object-type)
   (:method-combination cut:first-in-order-and-around)
-  (:documentation "Returns a (lazy) list of cl-transforms-pose-stamped that,
-according to the reasoning engine and collected VR data, correspond to
-the given `location-designator'."))
+  (:documentation "Returns a matrix of doubles representing the
+storage places of objects with given type `object-type' that,
+according to the collected VR data, correspond to the given
+`kitchen-name' representing the name of the kitchen as a string,
+`human-name' representing the name of the human as a string and
+`context' representing the name of the context as a string."))
 
-(defgeneric get-object-likely-destination (location-designator)
+(defgeneric get-object-likely-destination (kitchen-name human-name context object-type)
   (:method-combination cut:first-in-order-and-around)
-  (:documentation "Returns a (lazy) list of cl-transforms-pose-stamped that,
-according type-of the reasoning engine and collected VR data,
-correspond to  the given `location-designator'."))
+  (:documentation "Returns a matrix of doubles representing the
+storage places of objects with given type `object-type' that,
+according to the collected VR data, correspond to the given
+`kitchen-name' representing the name of the kitchen as a string,
+`human-name' representing the name of the human as a string and
+`context' representing the name of the context as a string."))
 
 (defmethod desig:resolve-designator :around ((desig desig:location-designator) role)
   "We have to hijack DESIG:RESOLVE-DESIGNATOR because otherwise we would have to
