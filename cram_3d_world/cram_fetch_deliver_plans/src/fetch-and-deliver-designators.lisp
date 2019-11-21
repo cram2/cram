@@ -207,9 +207,9 @@ the `look-pose-stamped'."
              (not (equal ?some-location-designator NIL)))
         (desig:current-designator ?some-location-designator ?location-designator)
         (and (spec:property ?object-designator (:type ?type))
-             (once (or (and (not (equal ?context NIL))
-                            (lisp-fun man-int:get-object-likely-destination :kitchen :thomas :table-setting ?type ?location-designator))
-                       (lisp-fun man-int:get-object-likely-destination :kitchen :Thomas ?context ?type ?location-designator)))))
+             (-> (equal ?context NIL)
+                 (lisp-fun man-int:get-object-likely-destination :kitchen :thomas :table-setting ?type ?location-designator)
+                 (lisp-fun man-int:get-object-likely-destination :kitchen :Thomas ?context ?type ?location-designator))))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-robot-loc-desig))
                    (desig:current-designator ?some-robot-loc-desig ?robot-location-designator))
@@ -240,10 +240,20 @@ the `look-pose-stamped'."
     ;; context
     (once (or (spec:property ?action-designator (:context ?context))
               (equal ?context NIL)))
-    ;;(equal ?context NIL)))
     ;; search location
-    (spec:property ?action-designator (:location ?some-search-loc-desig))
-    (desig:current-designator ?some-search-loc-desig ?search-location-designator)
+    (-> (and (desig:desig-prop ?action-designator
+                               (:location ?some-search-loc-desig))
+             (not (equal ?some-search-loc-desig NIL)))
+        (desig:current-designator ?some-search-loc-desig
+                                  ?search-location-designator)
+        (or 
+         (and (equal ?context nil)
+              (spec:property ?object-designator (:type ?type))
+              (lisp-fun man-int:get-object-likely-location :kitchen
+                        :thomas :table-setting ?type ?search-location-designator))
+         (and (spec:property ?object-designator (:type ?type))
+              (lisp-fun man-int:get-object-likely-location :kitchen :thomas
+                        ?context ?type ?search-location-designator))))
     (-> (desig:desig-prop ?search-location-designator (:in ?_))
         (equal ?fetching-location-accessible NIL)
         (equal ?fetching-location-accessible T))
