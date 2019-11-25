@@ -67,7 +67,7 @@
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
   (print "+++ NEW AMAZING INTERFACE +++")
   (format t "~%~% +Location desig:+ ~% ~a" location-designator)
- ;; (break)
+  (break)
   (let* ((obj-type-raw (intern (symbol-name
                                 (car (desig:desig-prop-values
                                       (car (desig:desig-prop-values location-designator :object))

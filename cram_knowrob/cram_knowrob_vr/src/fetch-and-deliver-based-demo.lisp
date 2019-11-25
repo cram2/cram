@@ -196,11 +196,7 @@
            (declare (ignore e))
            (return)))
       (let* ((?bullet-type
-               (object-type-filter-bullet type))
-             (poses-list
-               (alexandria:shuffle
-                (umap-P-uobj-through-surface-from-list-ll type "Start")))
-             
+               (object-type-filter-bullet type))             
             (?search-poses
               (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
               ;;(slot-value (car poses-list) 'obj-pose))
@@ -233,8 +229,21 @@
                            pose))
                        (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))))
         ;;(format t "base-poses: ~a" ?search-base-poses)
-        (format t "~% +++ ?search-poses ~a +++~%" ?search-poses)
-        
+        (format t "~% +++ ?search-poses-desig ~a +++~%" (desig:a location (poses ?search-poses)))
+        (sleep 5)
+        (let ((action-desig (desig:an action
+                   (type transporting)
+                   (object (desig:an object (type ?bullet-type)))
+                   (location (desig:a location (poses ?search-poses)))
+                   ;;(search-robot-location (desig:a location (poses ?search-base-poses)))
+                   ;;(fetch-robot-location (desig:a location (poses ?fetch-base-poses)))
+                   (arms ?arms)
+                   (grasps ?grasps)
+                   (target (desig:a location (poses ?delivering-poses)))
+                   ;;(deliver-robot-location (desig:a location (poses ?delivering-base-poses)))
+                   )))
+          (format t "~% action desig: ~% ~a ~%" action-desig))
+        (sleep 5)
         (exe:perform
          (desig:an action
                    (type transporting)

@@ -1,4 +1,3 @@
-
 ;;;
 ;;; Copyright (c) 2018, Alina Hawkin <hawkin@cs.uni-bremen.de>
 ;;;                      Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
@@ -41,7 +40,7 @@
 (in-package :kvr)
 
 (defvar *episode-path*
-  "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/"
+  "/home/cram/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/"
   "path of where the episode data is located")
 
 (defun load-multiple-episodes (&optional namedir-list)

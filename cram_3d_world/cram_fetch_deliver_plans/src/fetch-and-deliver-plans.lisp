@@ -171,6 +171,8 @@ if yes, relocate and retry, if no collisions, open or close container."
 If the object is not there or navigation location is unreachable,
 retries with different search location or robot base location."
 
+  (format t "~%~% ?search-location in SEARCH plan ~a ~%" ?search-location)
+  (sleep 5);;TODO REMOVE
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans search-for-object)
@@ -546,6 +548,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     search-location-accessible
                     delivery-location-accessible
                   &allow-other-keys)
+  (format t "~% TRANSPORT PLAN ~% ?search-pose: ~a ~%" ?search-location)
+  (sleep 5)
   (unless search-location-accessible
     (exe:perform (desig:an action
                            (type accessing)
