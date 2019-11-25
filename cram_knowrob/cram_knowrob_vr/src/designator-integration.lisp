@@ -62,7 +62,7 @@
 (defvar ?reachability '())
 (defvar ?heuristics '())
 (defvar ?deliver-reachability '())
-(defvar ?search-poses '())
+(defvar ?fancy'())
 
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
   (print "+++ NEW AMAZING INTERFACE +++")
@@ -84,7 +84,7 @@
            ;;NOTE New implementation:
            (push (desig:reference
                    (desig:desig-prop-value
-                    (desig:current-desig location-designator) :location)) ?search-poses)
+                    (desig:current-desig location-designator) :location)) ?fancy)
            
            (setq poses-list
                  (base-poses-ll-for-fetching-based-on-object-pose
