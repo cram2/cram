@@ -80,37 +80,6 @@ initial position."
                    (btr:simulate ?world 100))))
 
 
-(defun set-axes (object)
-  "Sets the axes to the robots hands and to the position of the grasping pose of the human. "
-  (let* ((transf_r)
-         (transf_l))
-    (setq transf_r (car
-                    (cram-projection::projection-environment-result-result
-                     (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
-                       (cram-tf::lookup-transform cram-tf::*transformer* "map" "r_gripper_r_finger_tip_link" )))))
-    (setq transf_l (car
-                    (cram-projection::projection-environment-result-result
-                     (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
-                       (cram-tf::lookup-transform cram-tf::*transformer* "map" "l_gripper_l_finger_tip_link" )))))
-    
-    (setq transf_r
-          (cl-tf:make-transform
-           (cl-tf:translation transf_r)
-           (cl-tf:rotation transf_r)))
-    (move-object transf_r 'axes)
-    (setq transf_l
-          (cl-tf:make-transform
-           (cl-tf:translation transf_l)
-           (cl-tf:rotation transf_l)))
-    
-    (move-object transf_r 'axes)
-    (move-object transf_l 'axes2)
-    (move-object
-     (query-hand-location-by-object-type
-      (object-type-filter-prolog object) "Start")
-     'axes3)))
-
-
 (defun reset-robot ()
   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
     (cpl:top-level
@@ -253,14 +222,14 @@ Returns: list of cl-tf:pose."
         (btr-base-poses (convert-into-poses-list
                          (umap-T-ucamera-through-surface-ll obj-type time))))
 
-  
-  ;;spawn unreal arrow. without pose modificiations.
-  ;; at object location unreal (object-pose)
+    
+    ;;spawn unreal arrow. without pose modificiations.
+    ;; at object location unreal (object-pose)
     (loop for pose in unreal-object-poses
           do (spawn-unreal-arrow pose
                                  (format nil "ur-arrow-object-~a" (arrow-prefix))
                                  '(0.5 0 0.5)))
-     
+    
     ;; at object location btr (look-pose)
     (loop for pose in btr-object-poses
           do (spawn-btr-arrow pose
@@ -285,8 +254,7 @@ Returns: list of cl-tf:pose."
                                (map-T-camera->map-P-base
                                 (cl-tf:pose->transform pose)))
                               (format nil "btr-robot-base-~a" (arrow-prefix))
-                              '(0 0.7 0)))
-    ))
+                              '(0 0.7 0)))))
 
 
 
@@ -320,21 +288,3 @@ Returns: list of cl-tf:pose."
                       '(0 0.5 0.7)))))
     (dolist (pose poses-list)
       (spawn-btr-arrow pose (arrow-prefix) color))))
-
-(defun reset-temp-lists ()
-  (setq ?visibility '())
-  (setq ?reachability '())
-  (setq ?heuristics '())
-  (setq ?deliver-reachability '()))
-
-(defun spawn-everything ()
-  (btr-utils:kill-all-objects)
-  (spawn-multiple-arrows "CupEcoOrange" "Start")
-  (sleep 1)
-  (spawn-visibility-arrows ?visibility 'vis)
-  (setq *arrow-z-offset* 3.0)
-  (spawn-visibility-arrows ?deliver-reachability 'del)
-  (spawn-visibility-arrows ?reachability 'reach)
-  (setq *arrow-z-offset* 0.2)
-  
-  )

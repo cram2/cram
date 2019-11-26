@@ -72,8 +72,8 @@
   (btr:detach-all-objects (btr:get-robot-object))
   (let ((object-types '(;; :breakfast-cereal
                         :cup
-                        ;;:bowl ;; :milk
-                        ;;:spoon
+                        :bowl ;; :milk
+                        :spoon
                         )))
     ;; spawn objects at default poses
     (let ((objects (mapcar (lambda (object-type)
@@ -180,8 +180,8 @@
 (cpl:def-cram-function demo (&optional
                              (list-of-objects
                               '(cup
-                               ;; bowl
-                               ;; spoon ;;add it back in later
+                                bowl
+                                spoon ;;add it back in later
                                 )))
 
   (initialize)
@@ -196,65 +196,31 @@
            (declare (ignore e))
            (return)))
       (let* ((?bullet-type
-               (object-type-filter-bullet type))             
-            (?search-poses
-              (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
-              ;;(slot-value (car poses-list) 'obj-pose))
-            (?search-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
-              ;;(slot-value (car poses-list) 'base-pose))
-            (?fetch-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
-             ;; (slot-value (car poses-list) 'base-pose))
-              ;; (base-poses-ll-for-fetching-based-on-object-desig
-              ;;  object-designator)
-              
-            (?grasps
-              (alexandria:shuffle (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
-            (?arms
-              (alexandria:shuffle '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
-                                  ))
-            (?delivering-poses
-              (list (cl-transforms-stamped:pose->pose-stamped
-                     cram-tf:*fixed-frame* 0.0
-                     (cram-tf:list->pose (cdr (assoc type *object-delivering-poses*)))))
-              ;; (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type))) ;; TODO
-              )
-             ;; TODO matching poses for delivering were not touched yet.
-            (?delivering-base-poses
-              (remove
-               NIL
-               (mapcar (lambda (pose)
-                         (when (> (cl-transforms:x (cl-transforms:origin pose)) -1)
-                           pose))
-                       (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))))
-        ;;(format t "base-poses: ~a" ?search-base-poses)
-        (format t "~% +++ ?search-poses-desig ~a +++~%" (desig:a location (poses ?search-poses)))
-        (sleep 5)
-        (let ((action-desig (desig:an action
-                   (type transporting)
-                   (object (desig:an object (type ?bullet-type)))
-                   (location (desig:a location (poses ?search-poses)))
-                   ;;(search-robot-location (desig:a location (poses ?search-base-poses)))
-                   ;;(fetch-robot-location (desig:a location (poses ?fetch-base-poses)))
-                   (arms ?arms)
-                   (grasps ?grasps)
-                   (target (desig:a location (poses ?delivering-poses)))
-                   ;;(deliver-robot-location (desig:a location (poses ?delivering-base-poses)))
-                   )))
-          (format t "~% action desig: ~% ~a ~%" action-desig))
-        (sleep 5)
+               (object-type-filter-bullet type))
+             
+             (?search-poses
+               (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
+             
+             (?grasps
+               (alexandria:shuffle (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
+             (?arms
+               (alexandria:shuffle '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
+                                   ))
+             (?delivering-poses
+               (list (cl-transforms-stamped:pose->pose-stamped
+                      cram-tf:*fixed-frame* 0.0
+                      (cram-tf:list->pose (cdr (assoc type *object-delivering-poses*)))))
+               ;; (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type))) ;; TODO
+               ))
+        
         (exe:perform
          (desig:an action
                    (type transporting)
                    (object (desig:an object (type ?bullet-type)))
                    (location (desig:a location (poses ?search-poses)))
-                   ;;(search-robot-location (desig:a location (poses ?search-base-poses)))
-                   ;;(fetch-robot-location (desig:a location (poses ?fetch-base-poses)))
                    (arms ?arms)
                    (grasps ?grasps)
                    (target (desig:a location (poses ?delivering-poses)))
-                   ;;(deliver-robot-location (desig:a location (poses ?delivering-base-poses)))
                    )))))
 
   (park-robot)
