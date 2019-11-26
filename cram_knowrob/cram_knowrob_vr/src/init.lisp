@@ -148,6 +148,8 @@ semantic map kitchen."
    "Spawns all the objects which are necessary for the current
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
+  ;;set the "unreal" prefix for the json_prolog node if you are using the simulation.launch
+  (setq json-prolog:*service-namespace* "/unreal/json_prolog")
   (roslisp-utilities:startup-ros)
   (coe:clear-belief)
   (init-episode (or namedir

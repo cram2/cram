@@ -75,8 +75,7 @@
           
           ;; HEURISTICS default-response if it's not an vis or reach desig
           (t (setq poses-list
-                   (desig:resolve-location-designator-through-generators-and-validators location-designator))
-             (push poses-list ?heuristics)))
+                   (desig:resolve-location-designator-through-generators-and-validators location-designator))))
     
     poses-list))
 
