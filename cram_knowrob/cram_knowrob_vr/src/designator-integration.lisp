@@ -55,6 +55,7 @@
     (member ?pose-stamped ?base-poses-ll)
     (format "++Visibility VR POSE!~%++")))
 
+<<<<<<< HEAD
 ;;TODO designator integration
 (defvar ?test '())
 
@@ -83,6 +84,16 @@
         (desig:resolve-location-designator-through-generators-and-validators location-designator)
         )
     
+=======
+                  (setq poses-list
+                        (base-poses-ll-for-fetching-based-on-object-desig
+                         (desig:desig-prop-value
+                          (desig:current-desig location-designator) :object))))))
+          
+          ;; HEURISTICS default-response if it's not an vis or reach desig
+          (t (setq poses-list
+                   (desig:resolve-location-designator-through-generators-and-validators location-designator))))
+>>>>>>> 40db9d74... [kvr] added UNREAL prefix to json-prolog:*service-namespace* into the init function. Also minor bug removal from desig-integr.
     
     (format t "~%~% + Poses list: for type ~a + ~% ~a" obj-type  poses-list)   
     poses-list   
