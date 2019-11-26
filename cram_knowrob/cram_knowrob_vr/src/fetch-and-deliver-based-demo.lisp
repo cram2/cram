@@ -72,8 +72,8 @@
   (btr:detach-all-objects (btr:get-robot-object))
   (let ((object-types '(;; :breakfast-cereal
                         :cup
-                        ;;:bowl ;; :milk
-                        ;;:spoon
+                        :bowl ;; :milk
+                        :spoon
                         )))
     ;; spawn objects at default poses
     (let ((objects (mapcar (lambda (object-type)
@@ -180,8 +180,8 @@
 (cpl:def-cram-function demo (&optional
                              (list-of-objects
                               '(cup
-                               ;; bowl
-                               ;; spoon ;;add it back in later
+                                bowl
+                                spoon ;;add it back in later
                                 )))
 
   (initialize)

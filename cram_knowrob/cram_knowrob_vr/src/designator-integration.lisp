@@ -29,45 +29,7 @@
 
 (in-package :kvr)
 
-(def-fact-group location-designators (desig:location-grounding)
-
-  (<- (desig:location-grounding ?designator ?pose-stamped)
-    (format "++Reachability VR POSE!~%++")
-    (desig:loc-desig? ?designator)
-    (rob-int:reachability-designator ?designator)
-    (desig:desig-prop ?designator (:object ?object-designator))
-    (desig:current-designator ?object-designator ?current-object-designator)
-    (lisp-fun base-poses-ll-for-fetching-based-on-object-desig
-              ?current-object-designator
-              ?base-poses-ll)
-    (member ?pose-stamped ?base-poses-ll)
-    (format "++Reachability VR POSE!~%++"))
-
-  (<- (desig:location-grounding ?designator ?pose-stamped)
-    (format "++Visibility VR POSE!~%++")
-    (desig:loc-desig? ?designator)
-    (rob-int:visibility-designator ?designator)
-    (desig:desig-prop ?designator (:object ?object-designator))
-    (desig:current-designator ?object-designator ?current-object-designator)
-    (desig:desig-prop ?current-object-designator (:type ?object-type))
-    (desig:desig-prop ?designator (:location ?location-designator))
-    (desig:current-designator ?location-designator ?location-object-designator)
-    (desig:location-grounding ?location-object-designator ?pose)
-    (lisp-fun base-poses-ll-for-fetchincg-based-on-object-pose ?object-type ?pose ?base-poses-ll)
-    (member ?pose-stamped ?base-poses-ll)
-    (format "++Visibility VR POSE!~%++")))
-
-;;TODO designator integration
-(defvar ?visibility '())
-(defvar ?reachability '())
-(defvar ?heuristics '())
-(defvar ?deliver-reachability '())
-(defvar ?fancy'())
-
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
-  (print "+++ NEW AMAZING INTERFACE +++")
-  (format t "~%~% +Location desig:+ ~% ~a" location-designator)
- ;; (break)
   (let* ((obj-type-raw (intern (symbol-name
                                 (car (desig:desig-prop-values
                                       (car (desig:desig-prop-values location-designator :object))
@@ -75,26 +37,17 @@
          (obj-type (object-type-filter-prolog obj-type-raw))
          (poses-list '()))
     
-    ;;get object type out of the object designator that comes with the location desig
-    (format t "~%~% ++ OBJ-Type: ~a ~%~%" obj-type)
-    
-;;; VISIBILITY
+    ;; VISIBILITY
     (cond ((rob-int:visibility-designator-p location-designator)
-           (format t "~% Visibility? ~a" (rob-int:visibility-designator-p location-designator))
-           ;;NOTE New implementation:
-           (push (desig:reference
-                   (desig:desig-prop-value
-                    (desig:current-desig location-designator) :location)) ?fancy)
-           
+           ;; based on location of obj
            (setq poses-list
                  (base-poses-ll-for-fetching-based-on-object-pose
                   (object-type-filter-bullet obj-type-raw) ;; obj-type
                   (desig:reference
                    (desig:desig-prop-value
-                    (desig:current-desig location-designator) :location)))) ;;current search loc.
-           (push poses-list ?visibility))
+                    (desig:current-desig location-designator) :location))))) ;;current search loc.
 
-;;; REACHABILITY
+          ;; REACHABILITY
           ((rob-int:reachability-designator-p location-designator)
            (format t "~% Reachability? ~a" (rob-int:reachability-designator-p location-designator))
            ;; differenticate between a loc desig with an obj desig (fetch) or a loc desig (deliver)
@@ -109,9 +62,7 @@
                     (setq poses-list
                           (base-poses-ll-for-fetching-based-on-object-pose
                            (object-type-filter-bullet obj-type-raw)
-                           pose))
-
-                    (push poses-list ?deliver-reachability)))
+                           pose))))
 
                  ;;obj-desig -> fetch
                  ((desig:desig-prop-value
@@ -120,16 +71,13 @@
                   (setq poses-list
                         (base-poses-ll-for-fetching-based-on-object-desig
                          (desig:desig-prop-value
-                          (desig:current-desig location-designator) :object)))
-
-                  (push poses-list ?reachability))))
+                          (desig:current-desig location-designator) :object))))))
           
-;;; HEURISTICS default-response if it's not an vis or reach desig
+          ;; HEURISTICS default-response if it's not an vis or reach desig
           (t (setq poses-list
                    (desig:resolve-location-designator-through-generators-and-validators location-designator))
              (push poses-list ?heuristics)))
     
-    ;;return
     poses-list))
 
 ;; will replace ?grasps-list
