@@ -1,0 +1,62 @@
+<launch>
+  <!-- upload or not upload the pr2 description, in case one is already uploaded -->
+  <arg name="upload" default="true" />
+
+  <!-- occupancy map -->
+  <include file="$(find iai_maps)/launch/map.launch" />
+
+  <!-- kitchen URDF -->
+  <!-- <param name="kitchen_description" -->
+  <!--        command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf/IAI_kitchen.urdf.xacro'"/> -->
+  <param name="kitchen_description"
+         command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
+  <node pkg="joint_state_publisher" type="joint_state_publisher"
+        name="kitchen_joint_state_publisher" output="screen">
+    <remap from="robot_description" to="kitchen_description"/>
+    <param name="rate" value="25"/>
+    <param name="use_gui" value="False"/>
+    <remap from="joint_states" to="kitchen/joint_states" />
+    <rosparam param="source_list">
+      - /kitchen/cram_joint_states
+    </rosparam>
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+        args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
+  </node>
+  <node pkg="robot_state_publisher" type="robot_state_publisher"
+    name="kitchen_state_publisher" output="screen">
+    <param name="tf_prefix" value="iai_kitchen"/>
+    <param name="publish_frequency" value="25"/>
+    <remap from="robot_description" to="kitchen_description" />
+    <remap from="joint_states" to="kitchen/joint_states" />
+  </node>
+
+  <!-- kitchen (new) semantic map -->
+  <!-- <param name="initial_package" type="string" value="knowrob_map_data" /> -->
+  <!-- <param name="initial_goal" type="string" value="owl_parse('package://iai_semantic_maps/owl/kitchen.owl')" /> -->
+  <!-- <node name="json_prolog" pkg="json_prolog" type="json_prolog_node" cwd="node" output="screen" /> -->
+
+  <!-- PR2 URDF -->
+  <group if="$(arg upload)">
+    <param name="robot_description"
+           command="$(find xacro)/xacro.py
+                    '$(find pr2_description)/robots/pr2.urdf.xacro'"/>
+  </group>
+  <!-- <node pkg="joint_state_publisher" type="joint_state_publisher" -->
+  <!--       name="robot_joint_state_publisher" output="screen"> -->
+  <!--   <param name="rate" value="25"/> -->
+  <!--   <param name="use_gui" value="False"/> -->
+  <!-- </node> -->
+  <!-- <node pkg="robot_state_publisher" type="robot_state_publisher" -->
+  <!--   name="robot_state_publisher" output="screen"> -->
+  <!--   <param name="publish_frequency" value="25"/> -->
+  <!-- </node> -->
+
+  <!-- PR2 IK solver -->
+  <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_larm_node.launch" />
+  <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_rarm_node.launch" />
+  
+  <!-- launch knowrob with namespace -->
+  <include file="$(find cram_knowrob_vr)/launch/knowrob.launch" />
+  
+</launch>
