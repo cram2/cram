@@ -49,8 +49,7 @@
                cram-urdf-projection
                cram-pr2-description
                cram-robot-interfaces
-               cram-fetch-deliver-plans
-               costmap_learning-srv)
+               cram-fetch-deliver-plans)
 	:components
 	((:module "src"
 	  :components
@@ -78,8 +77,6 @@
      ;; json queries and lisp code for exporting saved vr data 
      (:file "csv-queries" :depends-on ("package" "queries"))
      (:file "csv-export" :depends-on ("package" "csv-queries"))
-     ;; get learned data from vr data
-     (:file "costmap-client" :depends-on ("package"))
 
      ;; integration with grasping interface from cram_manipulation_interfaces
      ;; (:file "grasping" :depends-on ("package" "query-based-calculations"))
