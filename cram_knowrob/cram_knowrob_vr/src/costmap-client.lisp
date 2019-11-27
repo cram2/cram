@@ -28,145 +28,134 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :kvr)
+;; (in-package :kvr)
 
-(defvar *human-name* "Thomas")
-(defvar *table-id* "rectangular_table")
+;; (defvar *human-name* "Thomas")
+;; (defvar *table-id* "rectangular_table")
+          
 
-(defmethod man-int:get-location-poses :learning 8 (location-designator)
-  (print "get-location-poses w/ vr-learning called")
-  (if T ;;(and *learning-framework-on* (rob-int:reachability-designator-p location-designator))
-      (let (object-type kitchen-name context)
-        (if (and (desig:desig-prop-value location-designator :for) ;; (for (desig:an object (type ...)))
-                 (desig:desig-prop-value location-designator :on) ;; (on (desig:an object (part-of kitchen ...)))
-                 (desig:desig-prop-value location-designator :context))
+;; (defmethod man-int:get-location-poses :learning 8 (location-designator)
+;;   (print "get-location-poses w/ vr-learning called")
+;;   (if T ;;(and *learning-framework-on* (rob-int:reachability-designator-p location-designator))
+;;       (let (object-type kitchen-name context)
+;;         (if (and (desig:desig-prop-value location-designator :for) ;; (for (desig:an object (type ...)))
+;;                  (desig:desig-prop-value location-designator :on) ;; (on (desig:an object (part-of kitchen ...)))
+;;                  (desig:desig-prop-value location-designator :context))
             
-            (let* ((object-designator
-                     (desig:current-desig
-                      (desig:desig-prop-value location-designator :for)))
-                   (kitchen-object-designator
-                     (desig:current-desig
-                      (desig:desig-prop-value location-designator :on))))
+;;             (let* ((object-designator
+;;                      (desig:current-desig
+;;                       (desig:desig-prop-value location-designator :for)))
+;;                    (kitchen-object-designator
+;;                      (desig:current-desig
+;;                       (desig:desig-prop-value location-designator :on))))
 
-              (when (desig:desig-prop-value object-designator :type)
-                (setf object-type
-                      (desig:desig-prop-value object-designator :type)))
-              (when (desig:desig-prop-value kitchen-object-designator :part-of)
-                (setf kitchen-name
-                      (desig:desig-prop-value kitchen-object-designator :part-of)))
-              (setf context
-                    (desig:desig-prop-value location-designator :context))
-              (print object-type)
-              (print kitchen-name)
-              (print context))
-            (when (desig:desig-prop-value location-designator :location)
-              ;; any other location designator
-              (print "fuck")
-              (return-from man-int:get-location-poses
-                (desig:resolve-location-designator-through-generators-and-validators
-                 location-designator))))
-        (let* ((learned-costmap
-                 (get-costmap-for
-                  object-type context *human-name* kitchen-name *table-id*))
-               (heuristics-costmaps
-                 (mapcar (lambda (bindings)
-                           (cut:var-value '?cm bindings))
-                         (cut:force-ll
-                          (prolog:prolog
-                           `(costmap:desig-costmap ,location-designator ?cm)))))
-               (merged-costmap
-                 (apply #'costmap:merge-costmaps (cons learned-costmap
-                                                       heuristics-costmaps))))
-          (print "test")
-          ;; TODO: check for invalid-probability-distribution
-          (costmap:costmap-samples learned-costmap)
-          (roslisp:ros-info (kvr costmap) "Visualizing learned costmap.")
-          (cpl:sleep 1.0)
-          (costmap:costmap-samples learned-costmap)))
+;;               (when (desig:desig-prop-value object-designator :type)
+;;                 (setf object-type
+;;                       (desig:desig-prop-value object-designator :type)))
+;;               (when (desig:desig-prop-value kitchen-object-designator :part-of)
+;;                 (setf kitchen-name
+;;                       (desig:desig-prop-value kitchen-object-designator :part-of)))
+;;               (setf context
+;;                     (desig:desig-prop-value location-designator :context))
+;;               (print object-type)
+;;               (print kitchen-name)
+;;               (print context))
+;;             (when (desig:desig-prop-value location-designator :location)
+;;               ;; any other location designator
+;;               (print "fuck")
+;;               (return-from man-int:get-location-poses
+;;                 (desig:resolve-location-designator-through-generators-and-validators
+;;                  location-designator))))
+;;         (let* ((learned-costmap
+;;                  (get-costmap-for
+;;                   object-type context *human-name* kitchen-name *table-id*))
+;;                (heuristics-costmaps
+;;                  (mapcar (lambda (bindings)
+;;                            (cut:var-value '?cm bindings))
+;;                          (cut:force-ll
+;;                           (prolog:prolog
+;;                            `(costmap:desig-costmap ,location-designator ?cm)))))
+;;                (merged-costmap
+;;                  (apply #'costmap:merge-costmaps (cons learned-costmap
+;;                                                        heuristics-costmaps))))
+;;           (print "test")
+;;           ;; TODO: check for invalid-probability-distribution
+;;           (costmap:costmap-samples learned-costmap)
+;;           (roslisp:ros-info (cvr costmap) "Visualizing learned costmap.")
+;;           (cpl:sleep 1.0)
+;;           (costmap:costmap-samples learned-costmap)))
 
-        ;;(desig:resolve-location-designator-through-generators-and-validators
-        ;;location-designator)
-))
+;;         ;;(desig:resolve-location-designator-through-generators-and-validators
+;;         ;;location-designator)
+;; ))
 
-(defmethod costmap:costmap-generator-name->score ((name (eql 'vr-learned-grid)))
-  8)
+;; (defmethod costmap:costmap-generator-name->score ((name (eql 'vr-learned-grid)))
+;;   8)
 
-(defun get-row (vec elem_i end)
-  (when (< elem_i end)
-    (cons (float (aref vec elem_i)) (get-row vec (1+ elem_i) end))))
+;; (defun get-row (vec elem_i end)
+;;   (when (< elem_i end)
+;;     (cons (float (aref vec elem_i)) (get-row vec (1+ elem_i) end))))
 
 
-(defun get-costmap-for (object-type context name kitchen table-id)
-  (when (eql roslisp::*node-status* :running)
-    (if (not (roslisp:wait-for-service "get_costmap" 10))
-        (roslisp:ros-warn (kvr costmap) "Timed out waiting for service get_costmap")
-        (let ((response (roslisp:call-service "get_costmap" "costmap_learning/GetCostmap"
-                                              :object_type
-                                              (if (stringp object-type)
-                                                  object-type
-                                                  (remove-chars-in-given-string
-                                                   (write-to-string object-type)))
-                                              :context 
-                                              (if (stringp context)
-                                                  context
-                                                  (remove-chars-in-given-string
-                                                   (write-to-string context)))
-                                              :name 
-                                              (if (stringp name)
-                                                  name
-                                                  (remove-chars-in-given-string
-                                                   (write-to-string name)))
-                                              :kitchen 
-                                              (if (stringp kitchen)
-                                                  kitchen
-                                                  (remove-chars-in-given-string
-                                                   (write-to-string kitchen)))
-                                              :table_id 
-                                              (if (stringp table-id)
-                                                  table-id
-                                                  (remove-chars-in-given-string
-                                                   (write-to-string table-id))))))
-          (roslisp:with-fields (bottem_left
-                                z_coordinate
-                                resolution
-                                width height
-                                x_y_vecs angles) response
-            (let ((m '())
-                  (rows (truncate (/ height resolution)))
-                  (columns (truncate (/ width resolution))))
-              (dotimes (row-i (truncate (/ height resolution)))
-                (push (get-row x_y_vecs
-                               (* row-i columns)
-                               (+ (* row-i columns)
-                                  columns))
-                      m))
-              (let ((array (make-array (list rows columns)
-                                       :element-type 'double-float
-                                       :initial-contents m))
-                    (costmap
-                      (apply #'make-instance 'costmap:location-costmap (costmap:costmap-metadata))))
-                (costmap:register-cost-function
-                 costmap
-                 (costmap:make-matrix-cost-function
-                  (- (geometry_msgs-msg:x bottem_left) 0.11)
-                  (geometry_msgs-msg:y bottem_left)
-                  resolution array
-                  ;; Sebastian's X axis looks to the right,
-                  ;; after transposing, which happened above, see the comment,
-                  ;; his axis now looks to the left.
-                  ;; Our X axis looks up, so we need to rotate the transposed array with 90 degrees
-                  ;;(- (calculate-rotation-angle object-transform-in-map) (/ pi 2)))
-                  )
-                 'vr-learned-grid)
-                (costmap:register-height-generator
-                 costmap
-                 (lambda (x y)
-                   (cut::lazy-list ()
-                     (list (+ btr::*costmap-z*
-                              (costmap:get-map-value costmap x y))))))
-                costmap)))))))
-                  
-                          
+;; (defun get-costmap-for (object-type context name kitchen table-id)
+;;   (when (every #'identity (mapcar #'keywordp (list object-type context
+;;                                                    name kitchen table-id)))
+;;     (if (not (eql roslisp::*node-status* :running))
+;;         (roslisp:ros-info (cvr costmap) "Please start a ros node.")
+;;         (if (not (roslisp:wait-for-service "get_costmap" 10))
+;;             (roslisp:ros-warn (cvr costmap) "Timed out waiting for service get_costmap")
+;;             (let ((response (roslisp:call-service "get_costmap" "costmap_learning/GetCostmap"
+;;                                                   :object_type
+;;                                                   (write-to-string object-type)
+;;                                                   :context 
+;;                                                   (write-to-string context)
+;;                                                   :name 
+;;                                                   (write-to-string name)
+;;                                                   :kitchen 
+;;                                                   (write-to-string kitchen)
+;;                                                   :table_id 
+;;                                                   (write-to-string table-id))))
+;;               (roslisp:with-fields (bottem_left
+;;                                     z_coordinate
+;;                                     resolution
+;;                                     width height
+;;                                     x_y_vecs angles) response
+;;                 (let ((m '())
+;;                       (rows (truncate (/ height resolution)))
+;;                       (columns (truncate (/ width resolution))))
+;;                   (dotimes (row-i (truncate (/ height resolution)))
+;;                     (push (get-row x_y_vecs
+;;                                    (* row-i columns)
+;;                                    (+ (* row-i columns)
+;;                                       columns))
+;;                           m))
+;;                   (let ((array (make-array (list rows columns)
+;;                                            :element-type 'double-float
+;;                                            :initial-contents m))
+;;                         (costmap
+;;                           (apply #'make-instance 'costmap:location-costmap (costmap:costmap-metadata))))
+;;                     (costmap:register-cost-function
+;;                      costmap
+;;                      (costmap:make-matrix-cost-function
+;;                       (- (geometry_msgs-msg:x bottem_left) 0.11)
+;;                       (geometry_msgs-msg:y bottem_left)
+;;                       resolution array
+;;                       ;; Sebastian's X axis looks to the right,
+;;                       ;; after transposing, which happened above, see the comment,
+;;                       ;; his axis now looks to the left.
+;;                       ;; Our X axis looks up, so we need to rotate the transposed array with 90 degrees
+;;                       ;;(- (calculate-rotation-angle object-transform-in-map) (/ pi 2)))
+;;                       )
+;;                      'vr-learned-grid)
+;;                     (costmap:register-height-generator
+;;                      costmap
+;;                      (lambda (x y)
+;;                        (cut::lazy-list ()
+;;                          (list (+ btr::*costmap-z*
+;;                                   (costmap:get-map-value costmap x y))))))
+;;                     costmap))))))))
+  
+  
   ;; (let* ((bindings
   ;;          (car (json-prolog-simple-ralf
   ;;                (format nil
