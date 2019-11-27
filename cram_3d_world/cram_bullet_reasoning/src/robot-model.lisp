@@ -348,32 +348,37 @@ Otherwise, the attachment is only used as information but does not affect the wo
     :collision-mask collision-mask
     :compound compound))
 
-(defvar *updated-attachments* (make-hash-table)
-  "Saves the already updated attached objects and the traversed links of it")
+(let ((updated-attachments (make-hash-table))) ;; Saves the already
+  ;; updated attached objects and the traversed links of it
 
-(defun updated-link-in-attachment (link attachment)
-  "Returns if the pose of the attached object behind the `attachment'
+  (defun get-updated-attachments ()
+    "This getter exists only so testing of the function
+`updated-link-in-attachment' is properly possible."
+    updated-attachments)
+  
+  (defun updated-link-in-attachment (link attachment)
+    "Returns if the pose of the attached object behind the `attachment'
 was updated by checking if `link' was already updated. The already
-updated links are saved under the attachment name in `*updated-attachments*'.
+updated links are saved under the attachment name in `updated-attachments'.
 If all links of an attachment were updated the entry under the attachment
-name in `*updated-attachments*' gets deleted."
-  (let ((links-attached-to (mapcar #'btr::attachment-link (car (cdr attachment))))
-        (ret T))
-    (when (and link (member (cl-urdf:name link) links-attached-to :test #'string-equal))
-      (if (gethash (car attachment) *updated-attachments*)
-          (setf (gethash (car attachment) *updated-attachments*)
-                (push (cl-urdf:name link) (gethash (car attachment) *updated-attachments*)))
-          (progn
-            (setf (gethash (car attachment) *updated-attachments*) (list (cl-urdf:name link)))
-            (setf ret NIL)))
-      (when (equal ;; checks if the list of links in attachment and the already visited links are equal
-             (length links-attached-to)
-             (length
-              (intersection
-               (gethash (car attachment) *updated-attachments*)
-               links-attached-to :test #'string-equal)))
-        (remhash (car attachment) *updated-attachments*))
-      (return-from updated-link-in-attachment ret))))
+name in `updated-attachments' gets deleted."
+    (let ((links-attached-to (mapcar #'btr::attachment-link (car (cdr attachment))))
+          (ret T))
+      (when (and link (member (cl-urdf:name link) links-attached-to :test #'string-equal))
+        (if (gethash (car attachment) updated-attachments)
+            (setf (gethash (car attachment) updated-attachments)
+                  (push (cl-urdf:name link) (gethash (car attachment) updated-attachments)))
+            (progn
+              (setf (gethash (car attachment) updated-attachments) (list (cl-urdf:name link)))
+              (setf ret NIL)))
+        (when (equal ;; checks if the list of links in attachment and the already visited links are equal
+               (length links-attached-to)
+               (length
+                (intersection
+                 (gethash (car attachment) updated-attachments)
+                 links-attached-to :test #'string-equal)))
+          (remhash (car attachment) updated-attachments))
+        (return-from updated-link-in-attachment ret)))))
 
 (defun update-attached-object-poses (robot-object link pose)
   "Updates the poses of all objects that are attached to
