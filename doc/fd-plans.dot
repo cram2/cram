@@ -6,12 +6,12 @@ digraph CRAM {
 
   //////////////////////////////////////////////////////////////
 
-  transporting [label="transporting\l(object, fetch-loc, target-loc)",height=16];
+  transporting [label="transporting\l(object, fetch-loc, target-loc)",height=16.4];
 
   node [width=1.6];
 
-  accessing_f [label="accessing\l(fetch-loc)",height=3.2];
-  searching_o [label="searching\l(object)",height=2.2];
+  accessing_f [label="accessing\l(fetch-loc)",height=3.7];
+  searching_o [label="searching\l(object)",height=2.8];
   searching_t [label="searching\l(target-loc)"];
   accessing_t [label="accessing\l(target-loc)"];
   fetching    [label="fetching\l(object, fetch-loc)",height=3.4];
@@ -52,35 +52,31 @@ digraph CRAM {
 
   accessing_f -> opening_gr_fail [weight=1, color=Red];
   accessing_f -> navigating_acc;
-  accessing_f -> opening_cont [weight=2]
+  accessing_f -> opening_cont [weight=3]
 
   navigating_vis_obj [label="navigating\l(visible-obj)"]
   moving_torso       [label="moving-torso\l(diff pos)", color=Green];
   turning            [label="turning-towards", height=0.8];
-  detecting          [color=Green];
+  perceiving         [label="perceiving", height=0.6];
 
   searching_o -> navigating_vis_obj;
   searching_o -> moving_torso [color=Red];
   searching_o -> turning;
-  searching_o -> detecting [weight=1];
+  searching_o -> perceiving [weight=1];
 
   navigating_rch_obj [label="navigating\l(reachable-obj)"];
   turning_2          [label="turning-towards"];
-  parking_arms_fail  [label="parking-arms", color=Green];
-  detecting_2        [color=Green];
-  picking_up         [label="picking-up", height=1.4];
-  parking_arms       [label="parking-arms", color=Green];
+  perceiving_2       [label="perceiving"];
+  picking_up         [label="picking-up", height=1.6];
 
   fetching -> navigating_rch_obj [weight=1];
   fetching -> turning_2;
-  fetching -> parking_arms_fail [color=Red];
-  fetching -> detecting_2;
-  fetching -> picking_up;
-  fetching -> parking_arms [weight=3];
+  fetching -> perceiving_2;
+  fetching -> picking_up [weight=3];
 
   navigating_rch_tar [label="navigating\l(reachable-target)"];
   turning_3          [label="turning-towards"];
-  placing            [label="placing", height=1.2];
+  placing            [label="placing", height=1.4];
 
   delivering -> navigating_rch_tar;
   delivering -> turning_3;
@@ -96,8 +92,8 @@ digraph CRAM {
 
   { rank = same;
     opening_gr_fail navigating_acc opening_cont
-    navigating_vis_obj moving_torso turning detecting
-    navigating_rch_obj turning_2 parking_arms_fail detecting_2 picking_up parking_arms
+    navigating_vis_obj moving_torso turning perceiving
+    navigating_rch_obj turning_2 perceiving_2 picking_up
     navigating_rch_tar turning_3 placing
     opening_gr_fail_2 navigating_res closing_cont
   }
@@ -134,27 +130,37 @@ digraph CRAM {
   turning -> navigating_fail [color=Red]
   turning -> looking
 
+  parking_arms_3   [label="parking-arms", color=Green];
+  detecting        [label="detecting", color=Green];
+
+  perceiving -> parking_arms_3
+  perceiving -> detecting
+
   setting_gripper_2 [label="setting-gripper-pos", color=Green]
   reaching_2        [label="reaching", color=Green]
   grasping_2        [label="grasping", color=Green]
   gripping_2        [label="gripping", color=Green]
   lifting           [label="lifting", color=Green]
+  parking_arms_4    [label="parking-arms", color=Green];
 
   picking_up -> setting_gripper_2
   picking_up -> reaching_2
   picking_up -> grasping_2
   picking_up -> gripping_2
   picking_up -> lifting
+  picking_up -> parking_arms_4
 
   reaching_3      [label="reaching", color=Green]
   putting         [label="putting", color=Green]
   releasing_3     [label="releasing", color=Green]
   retracting_3    [label="retracting", color=Green]
+  parking_arms_5  [label="parking-arms", color=Green];
 
   placing -> reaching_3
   placing -> putting
   placing -> releasing_3
   placing -> retracting_3
+  placing -> parking_arms_5
 
   setting_gripper_4 [label="setting-gripper-pos", color=Green]
   reaching_4        [label="reaching", color=Green]
