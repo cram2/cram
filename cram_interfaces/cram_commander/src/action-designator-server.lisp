@@ -144,7 +144,7 @@
               ;;                                  parsed-designator)))))
               (let ((result (perform-with-pms-running parsed-designator)))
                 (roslisp:ros-info (commander perform-server)
-                                   "Got result: ~%."result)
+                                  "Got result: ~a~%" result)
                 (roslisp:make-response :result
                                        (if result (designator->json result) NIL)))))
         (roslisp:make-response :result
