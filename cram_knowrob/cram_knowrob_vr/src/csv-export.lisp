@@ -48,7 +48,7 @@
         "full_breakfast_setup_9" "full_breakfast_setup_10"
         "full_breakfast_setup_11"))
 
-(defun export-vr-data-in-csv (&optional (kitchen :kitchen) (name :thomas) (context :breakfast))
+(defun export-vr-data-in-csv (&optional (kitchen :kitchen) (name :thomas) (context :table-setting))
   (let* ((muesli (list
                   ;; cuterly
                   "SpoonSoup" "SpoonDessert"

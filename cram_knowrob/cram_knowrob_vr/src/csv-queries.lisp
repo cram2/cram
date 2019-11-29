@@ -65,7 +65,7 @@
                    (cl-transforms:rotation umap-T-uobj)))))
           (list
            type
-           (string-upcase (car object-from))
+           (car object-from)
            (nth 0 sample-for-object-type)
            (cl-transforms:x obj-position)
            (cl-transforms:y obj-position)
