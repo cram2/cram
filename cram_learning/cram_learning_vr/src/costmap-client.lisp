@@ -33,65 +33,6 @@
 (defvar *human-name* :Thomas)
 (defvar *table-id* "rectangular_table")
           
-
-(defmethod man-int:get-location-poses :learning 8 (location-designator)
-  (print "get-location-poses w/ vr-learning called")
-  (if T ;;(and *learning-framework-on* (rob-int:reachability-designator-p location-designator))
-      (let (object-type kitchen-name context)
-        (if (and (desig:desig-prop-value location-designator :for) ;; (for (desig:an object (type ...)))
-                 (desig:desig-prop-value location-designator :on) ;; (on (desig:an object (part-of kitchen ...)))
-                 (desig:desig-prop-value location-designator :context))
-            
-            (let* ((object-designator
-                     (desig:current-desig
-                      (desig:desig-prop-value location-designator :for)))
-                   (kitchen-object-designator
-                     (desig:current-desig
-                      (desig:desig-prop-value location-designator :on))))
-
-              (when (desig:desig-prop-value object-designator :type)
-                (setf object-type
-                      (desig:desig-prop-value object-designator :type)))
-              (when (desig:desig-prop-value kitchen-object-designator :part-of)
-                (setf kitchen-name
-                      (desig:desig-prop-value kitchen-object-designator :part-of)))
-              (setf context
-                    (desig:desig-prop-value location-designator :context))
-              (print object-type)
-              (print kitchen-name)
-              (print context))
-            (when (desig:desig-prop-value location-designator :location)
-              ;; any other location designator
-              (print "fuck")
-              (return-from man-int:get-location-poses
-                (desig:resolve-location-designator-through-generators-and-validators
-                 location-designator))))
-        (let* ((learned-costmap
-                 (get-costmap-for
-                  object-type context *human-name* kitchen-name *table-id*))
-               (heuristics-costmaps
-                 (mapcar (lambda (bindings)
-                           (cut:var-value '?cm bindings))
-                         (cut:force-ll
-                          (prolog:prolog
-                           `(costmap:desig-costmap ,location-designator ?cm)))))
-               (merged-costmap
-                 (apply #'costmap:merge-costmaps (cons learned-costmap
-                                                       heuristics-costmaps))))
-          (print "test")
-          ;; TODO: check for invalid-probability-distribution
-          (costmap:costmap-samples learned-costmap)
-          (roslisp:ros-info (cvr costmap) "Visualizing learned costmap.")
-          (cpl:sleep 1.0)
-          (costmap:costmap-samples learned-costmap)))
-
-        ;;(desig:resolve-location-designator-through-generators-and-validators
-        ;;location-designator)
-))
-
-(defmethod costmap:costmap-generator-name->score ((name (eql 'vr-learned-grid)))
-  8)
-
 (defun get-row (vec elem_i end)
   (when (< elem_i end)
     (cons (float (aref vec elem_i)) (get-row vec (1+ elem_i) end))))
@@ -100,6 +41,38 @@
   (unless (stringp kw)
     (remove ":" (write-to-string kw) :test #'string=)))
 
+(defun get-object-location (object-type context name kitchen table-id storage-location-p)
+  (if (not (eql roslisp::*node-status* :running))
+      (roslisp:ros-info (cvr costmap) "Please start a ros node.")
+      (if (not (roslisp:wait-for-service "get_symbolic_location" 10))
+          (roslisp:ros-warn (cvr costmap) "Timed out waiting for service get_costmap")
+          (let ((response (roslisp:call-service "get_symbolic_location" "costmap_learning/GetSymbolicLocation"
+                                                :object_type
+                                                (keyword-to-string
+                                                 object-type) ;; e.g. :bowl
+                                                :context 
+                                                (keyword-to-string
+                                                 context) ;; e.g. :breakfast
+                                                :name 
+                                                (keyword-to-string
+                                                 name) ;; e.g. :thomas
+                                                :kitchen 
+                                                (keyword-to-string
+                                                 kitchen) ;; e.g. 'kitchen
+                                                :table_id 
+                                                table-id ;; e.g. "rectangular_table"
+                                                :storage
+                                                storage-location-p ;; e.g. T
+                                                )))
+            (with-fields (location) response
+              (when location 
+                (first (split-sequence:split-sequence #\_ location))))))))
+
+(defun get-object-storage-location (object-type context name kitchen table-id)
+  (get-object-location object-type context name kitchen table-id T))
+
+(defun get-object-destination-location (object-type context name kitchen table-id)
+  (get-object-location object-type context name kitchen table-id NIL))
 
 (defun get-costmap-for (object-type context name kitchen table-id)
   (when T ;;(every #'identity (mapcar #'keywordp (list object-type context
@@ -160,8 +133,9 @@
                      costmap
                      (lambda (x y)
                        (cut::lazy-list ()
-                         (list (+ btr::*costmap-z*
-                                  (costmap:get-map-value costmap x y))))))
+                         (list (+ 0.00 ;; btr::*costmap-z*
+                                  1.15 ;; (costmap:get-map-value costmap x y)
+                                  )))))
                     ;; (costmap:register-orientation-generator 
                     ;; costmap
                     ;; (lambda (x y)
