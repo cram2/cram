@@ -54,5 +54,8 @@
 	((:module "src"
 	  :components
 	  ((:file "package")
-	   ;; get learned data from vr data
-	   (:file "costmap-client" :depends-on ("package"))))))
+	   ;; get information from the costmap_learning node through its
+     ;; messages and services
+	   (:file "costmap-client" :depends-on ("package"))
+     ;; implemented methods from the man-int package
+     (:file "manipulation-interfaces" :depends-on ("package" "costmap-client"))))))
