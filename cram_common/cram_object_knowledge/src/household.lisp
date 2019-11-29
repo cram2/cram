@@ -492,6 +492,7 @@
            (for (desig:an object (type ?object-type))) ;; 'for' keyword
            ;; instead 'object' since we want that the bowl should be
            ;; placed on surface of the kitchen island
+           (context ?context)
            (object-count 3)
            (side back)
            (side right)
