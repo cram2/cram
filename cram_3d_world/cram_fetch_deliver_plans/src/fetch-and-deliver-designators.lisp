@@ -153,29 +153,27 @@ the `look-pose-stamped'."
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
-    ;; arm
-    (-> (spec:property ?action-designator (:arm ?arm))
-        (equal ?arms (?arm))
-        (-> (desig:desig-prop ?action-designator (:arms ?arms))
-            (true)
-            (equal ?arms NIL)))
-    ;; grasp
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (equal ?grasps (?grasp))
-        (-> (desig:desig-prop ?action-designator (:grasps ?grasps))
-            (true)
-            (equal ?grasps NIL)))
+    ;; arms
+    (-> (desig:desig-prop ?action-designator (:arms ?arms))
+        (true)
+        (equal ?arms NIL))
+    ;; grasps
+    (-> (desig:desig-prop ?action-designator (:grasps ?grasps))
+        (true)
+        (equal ?grasps NIL))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-location-designator))
                    (desig:current-designator ?some-location-designator ?robot-location-designator))
-              (-> (spec:property ?action-designator (:arm ?arm))
-                  (desig:designator :location ((:reachable-for ?robot)
-                                               (:arm ?arm)
-                                               (:object ?object-designator))
-                                    ?robot-location-designator)
-                  (desig:designator :location ((:reachable-for ?robot)
-                                               (:object ?object-designator))
-                                    ?robot-location-designator))))
+              (desig:designator :location ((:reachable-for ?robot)
+                                           ;; ?arm is not available because we're sampling
+                                           ;; (:arm ?arm)
+                                           (:object ?object-designator))
+                                ?robot-location-designator)))
+    ;; look-location
+    (once (or (and (spec:property ?action-designator (:look-location ?some-look-loc-desig))
+                   (desig:current-designator ?some-look-loc-desig ?look-location-designator))
+              (desig:designator :location ((:of ?object-designator))
+                                ?look-location-designator)))
     ;; pick-up-action
     (once (or (desig:desig-prop ;; spec:property
                ?action-designator (:pick-up-action ?some-pick-up-action-designator))
@@ -186,6 +184,7 @@ the `look-pose-stamped'."
                                (:arms ?arms)
                                (:grasps ?grasps)
                                (:robot-location ?robot-location-designator)
+                               (:look-location ?look-location-designator)
                                (:pick-up-action ?pick-up-action-designator))
                       ?resolved-action-designator))
 
