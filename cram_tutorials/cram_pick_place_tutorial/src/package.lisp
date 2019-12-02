@@ -1,5 +1,7 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Arthur Niedzwiecki <niedzwiecki@uni-bremen.de>
+;;;                     Amar <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -11,8 +13,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,28 +29,11 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :demo)
+(in-package :cl-user)
 
-(defun make-restricted-area-cost-function ()
-  (lambda (x y)
-    (if (> x 1.2)
-        0.0
-        (if (and (> x 0.5) (> y -1.5) (< y 2.0))
-            1.0
-            (if (and (> x 0.0) (> y -1.5) (< y 1.0))
-                1.0
-                (if (and (< x 0.0) (> x -1.5) (> y -1.5) (< y 2.5))
-                    1.0
-                    0.0))))))
+(defpackage cram-pick-place-tutorial
+  (:nicknames #:pp-tut)
+  (:use #:common-lisp #:cram-prolog
+        #:desig #:exe #:cram-pr2-projection #:cram-common-failures)
+  (:export))
 
-(defmethod location-costmap:costmap-generator-name->score ((name (eql 'restricted-area))) 5)
-
-(def-fact-group demo-costmap (location-costmap:desig-costmap)
-  (<- (location-costmap:desig-costmap ?designator ?costmap)
-    (or (cram-robot-interfaces:visibility-designator ?designator)
-        (cram-robot-interfaces:reachability-designator ?designator))
-    (location-costmap:costmap ?costmap)
-    (location-costmap:costmap-add-function
-     restricted-area
-     (make-restricted-area-cost-function)
-     ?costmap)))

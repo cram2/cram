@@ -45,15 +45,18 @@
   ((:module "src"
     :components
     ((:file "package")
+
      (:file "object-designator-interfaces" :depends-on ("package"))
      (:file "prolog" :depends-on ("package" "object-designator-interfaces"))
 
-     (:file "utils" :depends-on ("package"))
-     (:file "manipulation-interfaces" :depends-on ("package"))
-     (:file "gripper" :depends-on ("package" "manipulation-interfaces" "utils"))
-     (:file "grasps" :depends-on ("package" "manipulation-interfaces"))
-     (:file "trajectories" :depends-on ("package" "prolog" "manipulation-interfaces" "utils"))
-
      (:file "object-hierarchy" :depends-on ("package" "prolog"))
+     (:file "manipulation-interfaces" :depends-on ("package"))
+     (:file "gripper" :depends-on ("package" "manipulation-interfaces" "object-hierarchy"))
+     (:file "grasps" :depends-on ("package" "manipulation-interfaces"))
+     (:file "trajectories" :depends-on ("package"
+                                        "prolog" "manipulation-interfaces" "object-hierarchy"))
+
      (:file "standard-grasps" :depends-on ("package"))
-     (:file "standard-rotations" :depends-on ("package"))))))
+     (:file "standard-rotations" :depends-on ("package"))
+
+     (:file "utils" :depends-on ("package"))))))

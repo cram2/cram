@@ -125,9 +125,7 @@
 
   (initialize)
   (when cram-projection:*projection-environment*
-    (if random
-        (spawn-objects-on-sink-counter-randomly)
-        (spawn-objects-on-sink-counter)))
+    (spawn-objects-on-sink-counter :random random))
 
   (park-robot)
 

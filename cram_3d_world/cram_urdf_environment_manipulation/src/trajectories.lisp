@@ -94,15 +94,15 @@ This should only be used by get-action-trajectory for action-types :opening and 
     ;; checks if `object-type' is a subtype of :container-prismatic or :container-revolute
     ;; and executes the corresponding MAKE-PRISMATIC-TRAJECTORY or MAKE-REVOLUTE-TRAJECTORY.
     (alexandria:switch
-     (object-type :test (lambda (?type ?super-type)
-                          (prolog:prolog
-                           `(man-int:object-type-subtype
-                             ,?super-type ,?type))))
-     (:container-prismatic
-      (make-prismatic-trajectory object-transform arm action-type grasp-pose opening-distance))
-     (:container-revolute
-      (make-revolute-trajectory object-transform arm action-type grasp-pose opening-distance))
-     (T (error "Unsupported container-type: ~a." object-type)))))
+        (object-type :test (lambda (?type ?super-type)
+                             (prolog:prolog
+                              `(man-int:object-type-subtype
+                                ,?super-type ,?type))))
+      (:container-prismatic
+       (make-prismatic-trajectory object-transform arm action-type grasp-pose opening-distance))
+      (:container-revolute
+       (make-revolute-trajectory object-transform arm action-type grasp-pose opening-distance))
+      (T (error "Unsupported container-type: ~a." object-type)))))
 
 
 (defun make-prismatic-trajectory (object-transform arm action-type

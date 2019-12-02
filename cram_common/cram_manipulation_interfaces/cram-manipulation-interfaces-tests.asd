@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Christopher Pollok <cpollok@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
-;;;       without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,28 +27,17 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :demo)
+(defsystem cram-manipulation-interfaces-tests
+  :author "Christopher Pollok"
+  :license "BSD"
 
-(defun make-restricted-area-cost-function ()
-  (lambda (x y)
-    (if (> x 1.2)
-        0.0
-        (if (and (> x 0.5) (> y -1.5) (< y 2.0))
-            1.0
-            (if (and (> x 0.0) (> y -1.5) (< y 1.0))
-                1.0
-                (if (and (< x 0.0) (> x -1.5) (> y -1.5) (< y 2.5))
-                    1.0
-                    0.0))))))
-
-(defmethod location-costmap:costmap-generator-name->score ((name (eql 'restricted-area))) 5)
-
-(def-fact-group demo-costmap (location-costmap:desig-costmap)
-  (<- (location-costmap:desig-costmap ?designator ?costmap)
-    (or (cram-robot-interfaces:visibility-designator ?designator)
-        (cram-robot-interfaces:reachability-designator ?designator))
-    (location-costmap:costmap ?costmap)
-    (location-costmap:costmap-add-function
-     restricted-area
-     (make-restricted-area-cost-function)
-     ?costmap)))
+  :depends-on (cram-manipulation-interfaces
+               lisp-unit
+               cram-prolog
+               )
+  :components ((:module "tests"
+                :components
+                ((:file "package")
+                 (:file "object-hierarchy-tests" :depends-on ("package")))))
+  :perform (test-op (operation component)
+                    (symbol-call :lisp-unit '#:run-tests :all :cram-manipulation-interfaces-tests)))
