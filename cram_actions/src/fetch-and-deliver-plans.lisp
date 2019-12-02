@@ -245,7 +245,7 @@ retries with different search location or robot base location."
                                            (type turning-towards)
                                            (target ?search-location)))
                     (exe:perform (desig:an action
-                                           (type detecting)
+                                           (type perceiving)
                                            (object ?object-designator)))))))))))))
 
 
@@ -255,6 +255,7 @@ retries with different search location or robot base location."
                 ((:arms ?arms))
                 ((:grasps ?grasps))
                 ((:robot-location ?pick-up-robot-location))
+                ((:look-location ?look-location))
                 pick-up-action
               &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
@@ -298,7 +299,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                (location ?pick-up-robot-location)))
         (exe:perform (desig:an action
                                (type turning-towards)
-                               (target (desig:a location (of ?object-designator)))))
+                               (target ?look-location)))
 
         (cpl:with-retry-counters ((regrasping-retries 1))
           (cpl:with-failure-handling
@@ -306,10 +307,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                  (roslisp:ros-warn (fd-plans fetch) "Misgrasp happened: ~a~%" e)
                  (cpl:do-retry regrasping-retries
                    (roslisp:ros-info (fd-plans fetch) "Reperceiving and repicking...")
-                   (exe:perform (desig:an action
-                                          (type positioning-arm)
-                                          (left-configuration park)
-                                          (right-configuration park)))
                    (cpl:retry))
                  (roslisp:ros-warn (fd-plans fetch) "No more regrasping retries left :'(")
                  (cpl:fail 'common-fail:object-unreachable
@@ -317,7 +314,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
             (let ((?more-precise-perceived-object-desig
                     (exe:perform (desig:an action
-                                           (type detecting)
+                                           (type perceiving)
                                            (object ?object-designator)))))
 
 
@@ -387,10 +384,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
                             (exe:perform pick-up-action)
 
-                            (exe:perform (desig:an action
-                                                   (type positioning-arm)
-                                                   (left-configuration park)
-                                                   (right-configuration park)))
                             (desig:current-desig ?object-designator)))))))))))))))
 
 
