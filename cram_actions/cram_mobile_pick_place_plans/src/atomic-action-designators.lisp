@@ -48,7 +48,6 @@
 
 
 
-
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
     (or (spec:property ?action-designator (:type :reaching))
@@ -265,4 +264,10 @@
                                (:pose ?pose-stamped)
                                (:joint-states ?joint-states)
                                (:camera :head))
-                      ?resolved-action-designator)))
+                      ?resolved-action-designator))
+
+
+
+  (<- (desig:action-grounding ?action-designator (detect ?action-designator))
+    (spec:property ?action-designator (:type :detecting))
+    (spec:property ?action-designator (:object ?_))))

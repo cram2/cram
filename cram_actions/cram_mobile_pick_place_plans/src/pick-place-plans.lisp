@@ -35,57 +35,6 @@
 ;; As we would really like to have declare statements, our plans are simple defuns.
 ;; If in the future one would want to use def-cram-function for plan transformations,
 ;; one can always def-cram-function that calls a normal function.
-
-(defun perceive (&key
-                   ((:object ?object-designator))
-                   (object-chosing-function #'identity)
-                 &allow-other-keys)
-  (declare (type desig:object-designator ?object-designator))
-  "Call detecting motion on `?object-designator', retry on failure, issue perceived event,
-equate resulting designator to the original one."
-
-  (exe:perform
-   (desig:an action
-             (type positioning-arm)
-             (left-configuration park)
-             (right-configuration park)))
-
-  (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
-                     1
-                     4)))
-    (cpl:with-retry-counters ((perceive-retries retries))
-      (cpl:with-failure-handling
-          ((common-fail:perception-low-level-failure (e)
-             (cpl:do-retry perceive-retries
-               (roslisp:ros-warn (pick-and-place perceive) "~a" e)
-               (cpl:retry))))
-
-        (let* ((resulting-designators
-                 (exe:perform
-                  (desig:a motion
-                           (type detecting)
-                           (object ?object-designator))))
-               (resulting-designator
-                 (funcall object-chosing-function resulting-designators)))
-          (if (listp resulting-designators)
-              (mapcar (lambda (desig)
-                        (cram-occasions-events:on-event
-                         (make-instance 'cram-plan-occasions-events:object-perceived-event
-                           :object-designator desig
-                           :perception-source :whatever))
-                        ;; doesn't make sense to equate all these desigs together
-                        ;; (desig:equate ?object-designator desig)
-                        )
-                      resulting-designators)
-              (progn
-                (cram-occasions-events:on-event
-                 (make-instance 'cram-plan-occasions-events:object-perceived-event
-                   :object-designator resulting-designators
-                   :perception-source :whatever))
-                (desig:equate ?object-designator resulting-designator)))
-          resulting-designator)))))
-
-
 (defun pick-up (&key
                   ((:object ?object-designator))
                   ((:arm ?arm))
@@ -102,7 +51,7 @@ equate resulting designator to the original one."
   (declare (type desig:object-designator ?object-designator)
            (type keyword ?arm ?grasp)
            (type number ?gripper-opening ?grip-effort)
-           (type (or null list) ; yes, null is also list, but this is better reachability
+           (type (or null list) ; yes, null is also list, but this is more readable
                  ?left-reach-poses ?right-reach-poses
                  ?left-grasp-poses ?right-grasp-poses
                  ?left-lift-poses ?right-lift-poses))
@@ -164,7 +113,18 @@ equate resulting designator to the original one."
      (desig:an action
                (type lifting)
                (left-poses ?left-lift-poses)
-               (right-poses ?right-lift-poses)))))
+               (right-poses ?right-lift-poses))))
+  (roslisp:ros-info (pick-place place) "Parking")
+  (exe:perform
+   (desig:an action
+             (type positioning-arm)
+             ;; TODO: this will not work with dual-arm grasping
+             ;; but as our ?arm is declared as a keyword,
+             ;; for now this code is the right code
+             (desig:when (eql ?arm :left)
+               (left-configuration park))
+             (desig:when (eql ?arm :right)
+               (right-configuration park)))))
 
 
 
@@ -249,7 +209,32 @@ equate resulting designator to the original one."
      (desig:an action
                (type retracting)
                (left-poses ?left-retract-poses)
-               (right-poses ?right-retract-poses)))))
+               (right-poses ?right-retract-poses))))
+  (roslisp:ros-info (pick-place place) "Parking")
+  (exe:perform
+   (desig:an action
+             (type positioning-arm)
+             (desig:when (eql ?arm :left)
+               (left-configuration park))
+             (desig:when (eql ?arm :right)
+               (right-configuration park)))))
+
+
+(defun perceive (&key
+                   ((:object ?object-designator))
+                   (object-chosing-function #'identity)
+                 &allow-other-keys)
+  (declare (type desig:object-designator ?object-designator))
+  "Park arms and call DETECTING action."
+  (exe:perform
+   (desig:an action
+             (type positioning-arm)
+             (left-configuration park)
+             (right-configuration park)))
+  (exe:perform
+   (desig:an action
+             (type detecting)
+             (object ?object-designator))))
 
 
 ;; (defun perform-phases-in-sequence (action-designator)
