@@ -21,7 +21,4 @@
   <depend>cram_bullet_reasoning</depend>
 
   <depend>hpn_cram_msgs</depend>
-
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
 </package>

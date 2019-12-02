@@ -77,11 +77,18 @@
 ;;   ;; (sleep 0.5)
 ;;   )
 
+(defparameter *real-otherwise-simulation* nil)
 (defun commander:perform-with-pms-running (designator)
-  (urdf-proj:with-simulated-robot
-    (handler-case
-        (exe:perform designator)
-      (cpl:plan-failure (f)
-        (warn "[commander] Failure happened ~a~%" f))))
-  ;; (sleep 0.5)
-  )
+  (if *real-otherwise-simulation*
+      (pr2-pms:with-real-robot
+        (handler-case
+            (exe:perform designator)
+          (cpl:plan-failure (f)
+            (warn "[commander] Failure happened ~a~%" f))))
+      (urdf-proj:with-simulated-robot
+        (handler-case
+            (exe:perform designator)
+          (cpl:plan-failure (f)
+            (warn "[commander] Failure happened ~a~%" f))))
+      ;; (sleep 0.5)
+      ))

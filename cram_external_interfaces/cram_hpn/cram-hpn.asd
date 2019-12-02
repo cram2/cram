@@ -74,7 +74,9 @@
                cram-pr2-description
 
                hpn_cram_msgs-msg
-               hpn_cram_msgs-srv)
+               hpn_cram_msgs-srv
+
+               cram-pr2-process-modules)
   :components
   ((:module "src"
     :components
