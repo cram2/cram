@@ -438,7 +438,15 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                   ,@(when object-name
                                       `((prolog:== ?object-name ,object-name)))
                                   (btr:object ?world ?object-name)
-                                  ,@(when object-type
+                                  ;; it is possible to ask RoboSherlock for
+                                  ;; (all object (type kitchen-object))
+                                  ;; which returns a list of all the objects RS sees
+                                  ;; to support that in projection, we should allow
+                                  ;; an object-type :kitchen-object.
+                                  ;; for asking objects of specific type, the part
+                                  ;; with :kitchen-object is irrelevant
+                                  ,@(when (and object-type
+                                               (not (eq object-type :kitchen-object)))
                                       `((prolog:== ?object-type ,object-type)))
                                   (btr:item-type ?world ?object-name ?object-type)
                                   (btr:visible ?world ?robot ?object-name)
