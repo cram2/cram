@@ -231,6 +231,13 @@ Using a default (1 0 0)."
                                          container-designator)
                (cl-transforms:make-3d-vector 1 0 0)))))))
 
+(defun get-positive-joint-state (joint btr-environment)
+  (mod (btr:joint-state
+        (btr:object btr:*current-bullet-world*
+                    btr-environment)
+        (cl-urdf:name joint))
+       (* 2 pi)))
+
 (defun clip-distance (container-name btr-environment distance action-type)
   "Return a distance that stays inside the joint's limits."
   (let ((joint (get-connecting-joint
@@ -238,10 +245,7 @@ Using a default (1 0 0)."
                                     btr-environment))))
     (let ((upper-limit (cl-urdf:upper (cl-urdf:limits joint)))
           (lower-limit (cl-urdf:lower (cl-urdf:limits joint)))
-          (state (btr:joint-state
-                  (btr:object btr:*current-bullet-world*
-                              btr-environment)
-                  (cl-urdf:name joint))))
+          (state (get-positive-joint-state joint btr-environment)))
       (if (eq action-type :opening)
           (if (> (+ state distance) upper-limit)
               (- upper-limit state)
@@ -254,10 +258,7 @@ Using a default (1 0 0)."
   (let* ((joint (get-connecting-joint
                 (get-container-link container-name
                                     btr-environment)))
-         (state (btr:joint-state
-                 (btr:object btr:*current-bullet-world*
-                             btr-environment)
-                 (cl-urdf:name joint))))
+         (state (get-positive-joint-state joint btr-environment)))
     (if (eq action-type :opening)
         (- distance state)
         (- (- distance state)))))
