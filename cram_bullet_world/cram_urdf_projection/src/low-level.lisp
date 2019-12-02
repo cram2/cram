@@ -53,6 +53,25 @@
      (cut:current-timestamp)
      pose-in-map)))
 
+(defun robot-joint-states-with-odom-joints-as-hash-table ()
+  (let* ((observed-joint-states
+           (btr:joint-states (btr:get-robot-object)))
+         (robot-pose
+           (btr:pose (btr:get-robot-object)))
+         (robot-x
+           (cl-transforms:x (cl-transforms:origin robot-pose)))
+         (robot-y
+           (cl-transforms:y (cl-transforms:origin robot-pose))))
+    (multiple-value-bind (axis angle)
+        (cl-transforms:quaternion->axis-angle
+         (cl-transforms:orientation robot-pose))
+      (when (< (cl-transforms:z axis) 0)
+        (setf angle (- angle)))
+      (setf (gethash "odom_x_joint" observed-joint-states) robot-x)
+      (setf (gethash "odom_y_joint" observed-joint-states) robot-y)
+      (setf (gethash "odom_z_joint" observed-joint-states) angle)
+      observed-joint-states)))
+
 ;;;;;;;;;;;;;;;;; NAVIGATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun drive (target)
@@ -60,11 +79,16 @@
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
     (unwind-protect
-         (assert
-          (prolog:prolog
-           `(and (rob-int:robot ?robot)
-                 (btr:bullet-world ?w)
-                 (btr:assert ?w (btr:object-pose ?robot ,target)))))
+         (progn
+           ;; assert new robot pose
+           (assert
+            (prolog:prolog
+             `(and (rob-int:robot ?robot)
+                   (btr:bullet-world ?w)
+                   (btr:assert ?w (btr:object-pose ?robot ,target)))))
+           ;; return joint state. this will be our observation
+           ;; currently only used by HPN
+           (robot-joint-states-with-odom-joints-as-hash-table))
       (when (btr:robot-colliding-objects-without-attached '(:floor))
         (unless (< (abs *debug-short-sleep-duration*) 0.0001)
           (cpl:sleep *debug-short-sleep-duration*))
@@ -131,6 +155,10 @@
 
 (defun look-at-pose-stamped-two-joints (pose-stamped)
   (declare (type cl-transforms-stamped:pose-stamped pose-stamped))
+
+  ;; first look forward, because our IK with 2 joints is buggy...
+  (look-at-joint-angles '(0 0))
+
   (cut:with-vars-strictly-bound (?pan-link
                                  ?tilt-link
                                  ?pan-joint ?tilt-joint
@@ -707,6 +735,10 @@ with the object, calculates similar angle around Y axis and applies the rotation
   (declare (ignore collision-object-b collision-object-b-link collision-object-a))
 
   (cram-tf:visualize-marker (list left-tcp-pose right-tcp-pose) :r-g-b-list '(1 0 1))
+  (when right-tcp-pose
+    (btr:add-vis-axis-object right-tcp-pose))
+  (when left-tcp-pose
+    (btr:add-vis-axis-object left-tcp-pose))
 
   (cut:with-vars-strictly-bound (?robot
                                  ?left-tool-frame ?right-tool-frame
