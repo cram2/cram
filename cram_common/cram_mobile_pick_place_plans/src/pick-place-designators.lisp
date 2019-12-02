@@ -41,7 +41,7 @@
 (def-fact-group pick-and-place-plans (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (perceive ?action-designator))
-    (spec:property ?action-designator (:type :detecting))
+    (spec:property ?action-designator (:type :perceiving))
     (spec:property ?action-designator (:object ?_)))
 
 
