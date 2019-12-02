@@ -167,7 +167,9 @@ goal: ~a, current: ~a, delta: ~a." goal-position current-position convergence-de
                           (make-gripper-action-goal action-client goal-position max-effort)
                           :timeout action-timeout))))
                (ensure-gripper-goal-reached result status position goal-position delta)
-               (values result status))))
+               (values result status)
+               ;; return the joint state, which is our observation
+               (joints:full-joint-states-as-hash-table))))
       (if (and left-or-right (listp left-or-right))
           (cpl:par
             (move-the-hand-yo (first left-or-right))

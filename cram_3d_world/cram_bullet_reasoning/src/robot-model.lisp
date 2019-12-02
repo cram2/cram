@@ -564,7 +564,7 @@ current joint states"
                      (>= new-value (cl-urdf:lower limits)))
           ;; (setf new-value (min (max new-value (cl-urdf:lower limits))
           ;;                      (cl-urdf:upper limits)))
-          (error "Trying to assert joint value for ~a to ~a but limits are (~a; ~a)"
+          (warn "Trying to assert joint value for ~a to ~a but limits are (~a; ~a)"
                  name new-value (cl-urdf:lower limits) (cl-urdf:upper limits))))
       (let ((joint-transform
               (cl-transforms:transform*

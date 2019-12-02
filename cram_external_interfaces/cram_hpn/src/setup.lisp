@@ -32,11 +32,11 @@
 ;; roslaunch cram_pr2_pick_place_demo sandbox.launch
 
 (defparameter *initial-item-poses*
-  '((:breakfast-cereal ((1.4 0.35 0.97) (0 0 0 1)))
-    (:cup ((1.33 0.6 0.9) (0 0 0 1)))
-    (:bowl ((1.4 0.8 0.89) (0 0 0 1)))
-    (:spoon ((1.34 1.05 0.87) (0 0 0 1)))
-    (:milk ((1.45 0.62 0.96) (0 0 1 0)))))
+  '((:breakfast-cereal ((1.4 0.15 0.997) (0 0 0 1)))
+    (:milk ((1.33 0.6 0.92) (0 0 0 1)))
+    (:bowl ((1.6 0.8 0.9189) (0 0 0 1)))
+    (:spoon ((1.34 1.05 0.897) (0 0 0 1)))
+    (:cup ((1.45 0.62 0.976) (0 0 1 0)))))
 
 (defun spawn-items (&optional (name-to-pose-list *initial-item-poses*))
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
@@ -134,7 +134,7 @@
                     (warn "ROBOT was not defined. Have you loaded a robot package?")))))))
 
   (spawn-kitchen)
-  (spawn-items)
+  ;; (spawn-items)
 
   (setf cram-tf:*tf-default-timeout* 2.0)
 
