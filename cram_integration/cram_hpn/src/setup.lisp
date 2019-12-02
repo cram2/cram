@@ -134,7 +134,8 @@
                     (warn "ROBOT was not defined. Have you loaded a robot package?")))))))
 
   (spawn-kitchen)
-  (spawn-items)
+  ;; not spawning items per default as on the real robot they should not exist from the start
+  ;; (spawn-items)
 
   (setf cram-tf:*tf-default-timeout* 2.0)
 
