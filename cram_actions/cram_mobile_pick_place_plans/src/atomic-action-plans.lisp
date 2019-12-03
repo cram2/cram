@@ -223,7 +223,8 @@ while ignoring failures; and execute the last pose with propagating the failures
 (defun grip (&key
                ((:gripper ?left-or-right))
                ((:effort ?effort))
-               ((:object ?object-designator))
+               ((:object object-designator))
+               ((:grasped-object new-object-designator))
                ((:grasp ?grasp))
              &allow-other-keys)
   (declare (type (or keyword list) ?left-or-right)
@@ -245,14 +246,14 @@ In any case, issue ROBOT-STATE-CHANGED event."
                      (gripper ?left-or-right)
                      (desig:when ?effort
                        (effort ?effort))))
-           (when ?object-designator
-             (roslisp:ros-info (pick-place grip) "Assert grasp into knowledge base")
-             (cram-occasions-events:on-event
-              (make-instance 'cpoe:object-attached-robot
-                :arm ?left-or-right
-                :object-name (desig:desig-prop-value ?object-designator :name)
-                :grasp ?grasp)))
-           ?object-designator))
+           (roslisp:ros-info (pick-place grip) "Assert grasp into knowledge base")
+           (cram-occasions-events:on-event
+            (make-instance 'cpoe:object-attached-robot
+              :arm ?left-or-right
+              :object-name (desig:desig-prop-value object-designator :name)
+              :grasp ?grasp))
+           (desig:equate object-designator new-object-designator)
+           new-object-designator))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 

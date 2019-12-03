@@ -178,18 +178,26 @@
     (once (or (spec:property ?action-designator (:object ?_))
               (true))))
 
-  (<- (desig:action-grounding ?action-designator (grip ?action-designator))
+  (<- (desig:action-grounding ?action-designator (grip ?augmented-action-designator))
     (spec:property ?action-designator (:type :gripping))
     (spec:property ?action-designator (:gripper ?_))
-    (once (or (spec:property ?action-designator (:object ?_))
-              (true)))
+    (spec:property ?action-designator (:object ?object-designator))
     ;; TODO: if grasp is not given, calculate it from relative offset
     ;; something like
     ;; (lisp-fun man-int:calculate-grasp ?object-desig-name ?gripper)
     (once (or (spec:property ?action-designator (:grasp ?_))
               (true)))
     (once (or (spec:property ?action-designator (:effort ?_))
-              (true))))
+              (true)))
+    ;; make a new object designator that will be equated to the old one
+    ;; after the successful grasp
+    (desig:current-designator ?object-designator ?current-object-desig)
+    (lisp-fun desig:rename-designator-property-key ?current-object-desig
+              :pose :old-pose ?new-object-desig)
+    ;; extend the old action designator with a new OBJECT property
+    (equal ?new-description ((:grasped-object ?new-object-desig)))
+    (lisp-fun desig:copy-designator ?action-designator :new-description ?new-description
+              ?augmented-action-designator))
 
   (<- (desig:action-grounding ?action-designator (set-gripper-to-position ?action-designator))
     (spec:property ?action-designator (:type :setting-gripper))
