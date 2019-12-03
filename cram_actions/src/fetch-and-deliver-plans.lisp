@@ -547,8 +547,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     ((:search-location ?search-location))
                     ((:search-robot-location ?search-base-location))
                     ((:fetch-robot-location ?fetch-robot-location))
-                    ((:arm ?arm))
-                    ((:grasp ?grasp))
                     ((:arms ?arms))
                     ((:grasps ?grasps))
                     ((:deliver-location ?delivering-location))
@@ -604,10 +602,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
              (let ((?fetched-object
                      (exe:perform (desig:an action
                                             (type fetching)
-                                            (desig:when ?arm
-                                              (arm ?arm))
-                                            (desig:when ?grasp
-                                              (grasp ?grasp))
                                             (desig:when ?arms
                                               (arms ?arms))
                                             (desig:when ?grasps
@@ -631,8 +625,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                  (unwind-protect
                       (exe:perform (desig:an action
                                              (type delivering)
-                                             (desig:when ?arm
-                                               (arm ?arm))
+                                             ;; (desig:when ?arm
+                                             ;;   (arm ?arm))
                                              (object ?fetched-object)
                                              (target ?delivering-location)
                                              (desig:when ?deliver-robot-location
