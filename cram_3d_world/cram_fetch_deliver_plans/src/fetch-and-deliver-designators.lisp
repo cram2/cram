@@ -246,20 +246,14 @@ the `look-pose-stamped'."
         (desig:current-designator ?some-f-robot-loc-desig
                                   ?fetch-robot-location-designator)
         (equal ?fetch-robot-location-designator NIL))
-    ;; arm
-    (-> (spec:property ?action-designator (:arm ?arm))
-        (equal ?arms (?arm))
-        (and (equal ?arm NIL)
-             (-> (desig:desig-prop ?action-designator (:arms ?arms))
-                 (true)
-                 (equal ?arms NIL))))
-    ;; grasp
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (equal ?grasps (?grasp))
-        (and (equal ?grasp NIL)
-             (-> (desig:desig-prop ?action-designator (:grasps ?grasps))
-                 (true)
-                 (equal ?grasps NIL))))
+    ;; arms
+    (-> (desig:desig-prop ?action-designator (:arms ?arms))
+        (true)
+        (equal ?arms NIL))
+    ;; grasps
+    (-> (desig:desig-prop ?action-designator (:grasps ?grasps))
+        (true)
+        (equal ?grasps NIL))
     ;; target location
     (spec:property ?action-designator
                    (:target ?some-delivering-location-designator))
@@ -280,8 +274,6 @@ the `look-pose-stamped'."
                                (:search-location ?search-location-designator)
                                (:search-robot-location ?search-robot-location-designator)
                                (:fetch-robot-location ?fetch-robot-location-designator)
-                               (:arm ?arm)
-                               (:grasp ?grasp)
                                (:arms ?arms)
                                (:grasps ?grasps)
                                (:deliver-location ?delivering-location-designator)
