@@ -566,27 +566,10 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                       (object ?object-designator)
                                       (location ?search-location)
                                       (desig:when ?search-base-location
-                                        (robot-location ?search-base-location)))))
-             ;; (?robot-name
-             ;;   (cut:var-value '?robot-name
-             ;;                  (car (prolog:prolog '(rob-int:robot ?robot-name)))))
-             )
+                                        (robot-location ?search-base-location))))))
          (roslisp:ros-info (pp-plans transport)
                            "Found object of type ~a."
                            (desig:desig-prop-value ?perceived-object-designator :type))
-
-         ;; (unless ?fetch-robot-location
-         ;;   (setf ?fetch-robot-location
-         ;;         (desig:a location
-         ;;                  (reachable-for ?robot-name)
-         ;;                  (desig:when ?arm
-         ;;                    (arm ?arm))
-         ;;                  (object ?perceived-object-designator))))
-         ;; (unless ?deliver-robot-location
-         ;;   (setf ?deliver-robot-location
-         ;;         (desig:a location
-         ;;                  (reachable-for ?robot-name)
-         ;;                  (location ?delivering-location))))
 
          ;; If running on the real robot, execute below task tree in projection
          ;; N times first, then pick the best parameterization
