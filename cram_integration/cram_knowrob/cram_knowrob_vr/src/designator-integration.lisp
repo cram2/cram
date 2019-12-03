@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Alina Hawkin <hawkin@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,75 +29,55 @@
 
 (in-package :kvr)
 
-(def-fact-group location-designators (desig:location-grounding)
-
-  (<- (desig:location-grounding ?designator ?pose-stamped)
-    (desig:loc-desig? ?designator)
-    (rob-int:reachability-designator ?designator)
-    (desig:desig-prop ?designator (:object ?object-designator))
-    (desig:current-designator ?object-designator ?current-object-designator)
-    (lisp-fun base-poses-ll-for-fetching-based-on-object-desig
-              ?current-object-designator
-              ?base-poses-ll)
-    (member ?pose-stamped ?base-poses-ll)
-    (format "++Reachability VR POSE!~%++"))
-
-  (<- (desig:location-grounding ?designator ?pose-stamped)
-    (desig:loc-desig? ?designator)
-    (rob-int:visibility-designator ?designator)
-    (desig:desig-prop ?designator (:object ?object-designator))
-    (desig:current-designator ?object-designator ?current-object-designator)
-    (desig:desig-prop ?object-designator (:type ?object-type))
-    (desig:desig-prop ?designator (:location ?location-designator))
-    (desig:current-designator ?location-designator ?location-object-designator)
-    (desig:location-grounding ?location-designator ?pose)DO
-    (lisp-fun base-poses-ll-for-fetching-based-on-object-pose ?object-type ?pose ?base-poses-ll)
-    (member ?pose-stamped ?base-poses-ll)
-    (format "++Visibility VR POSE!~%++")))
-
-<<<<<<< HEAD
-;;TODO designator integration
-(defvar ?test '())
-
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
-  (print "+++ NEW AMAZING INTERFACE +++")
-  (format t "~%~% +Location desig:+ ~% ~a" location-designator)
-  ;;get object type out of the object designator that comes with the location desig
-  (let ((obj-type (object-type-filter-prolog
-                   (intern (symbol-name
-                            (car (desig:desig-prop-values
-                                  (car (desig:desig-prop-values location-designator :object))
-                                  :type))))))
-        (poses-list '()))
+  (let* ((obj-type-raw (intern (symbol-name
+                                (car (desig:desig-prop-values
+                                      (car (desig:desig-prop-values location-designator :object))
+                                      :type)))))
+         (obj-type (object-type-filter-prolog obj-type-raw))
+         (poses-list '()))
 
-    
-    (format t "~%~% ++ OBJ-Type: ~a ~%~%" obj-type)
-    ;; check if this designator has an obj type. if not resolve to default resolution
-    (if (stringp obj-type)
-        (progn
-          (setq poses-list (alexandria:shuffle
-                            (cut:force-ll
-                             (base-poses-ll-for-searching obj-type))))
-          (push location-designator ?test)) ;; just for debugging purposes
-        
-        ;;if type is unknown or not given in the designator
-        (desig:resolve-location-designator-through-generators-and-validators location-designator)
-        )
-    
-=======
+    ;; VISIBILITY
+    (cond ((rob-int:visibility-designator-p location-designator)
+           ;; based on location of obj
+           (setq poses-list
+                 (base-poses-ll-for-fetching-based-on-object-pose
+                  (object-type-filter-bullet obj-type-raw) ; obj-type
+                  (desig:reference
+                   (desig:desig-prop-value
+                    (desig:current-desig location-designator) :location))))) ;;current search loc.
+
+          ;; REACHABILITY
+          ((rob-int:reachability-designator-p location-designator)
+           (format t "~% Reachability? ~a" (rob-int:reachability-designator-p location-designator))
+           ;; differenticate between a loc desig with an obj desig (fetch) or a loc desig (deliver)
+
+           ;; location-desig -> deliver
+           (cond ((desig:desig-prop-value
+                   (desig:current-desig location-designator) :location)
+                  ;; has location desig -> deliver
+                  (let ((pose (desig:reference
+                               (desig:desig-prop-value
+                                (desig:current-desig location-designator) :location))))
+                    (setq poses-list
+                          (base-poses-ll-for-fetching-based-on-object-pose
+                           (object-type-filter-bullet obj-type-raw)
+                           pose))))
+
+                 ;; obj-desig -> fetch
+                 ((desig:desig-prop-value
+                   (desig:current-desig location-designator) :object)
+
                   (setq poses-list
                         (base-poses-ll-for-fetching-based-on-object-desig
                          (desig:desig-prop-value
                           (desig:current-desig location-designator) :object))))))
-          
+
           ;; HEURISTICS default-response if it's not an vis or reach desig
           (t (setq poses-list
                    (desig:resolve-location-designator-through-generators-and-validators location-designator))))
->>>>>>> 40db9d74... [kvr] added UNREAL prefix to json-prolog:*service-namespace* into the init function. Also minor bug removal from desig-integr.
-    
-    (format t "~%~% + Poses list: for type ~a + ~% ~a" obj-type  poses-list)   
-    poses-list   
-    ))
+
+    poses-list))
 
 ;; will replace ?grasps-list
 

@@ -86,6 +86,11 @@
                                            ;; (pi-number (- (random 2.0) 1.0))
                                            (pi-other (- 1.0 (abs pi-number)))
                                            (pose `((,x ,y 0.87) (0 0 ,pi-number ,pi-other))))
+                                           ;;(pose `((,x ,y 0.87) (0 0 1 0))))
+                                      ;;TODO remove this after debugging
+                                      (btr:add-vis-axis-object (cl-tf:make-pose
+                                                                (cl-tf:make-3d-vector x y 0.87)
+                                                                (cl-tf:make-quaternion 0.0 0.0 pi-number pi-other)))
                                       pose)))
                            object-types)))
       ;; stabilize world
@@ -175,8 +180,8 @@
 (cpl:def-cram-function demo (&optional
                              (list-of-objects
                               '(bowl
-                                spoon
-                                cup)))
+                                cup
+                                spoon)))
 
   (initialize)
   (when cram-projection:*projection-environment*
@@ -189,46 +194,30 @@
         ((common-fail:high-level-failure (e)
            (declare (ignore e))
            (return)))
-      (let ((?bullet-type
-              (object-type-filter-bullet type))
-            (?search-poses
-              (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
-            (?search-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
-            (?fetch-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type)))
-              ;; (base-poses-ll-for-fetching-based-on-object-desig
-              ;;  object-designator)
-              )
-            (?grasps
-              (alexandria:shuffle (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
-            (?arms
-              (alexandria:shuffle '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
-                                  ))
-            (?delivering-poses
-              (list (cl-transforms-stamped:pose->pose-stamped
-                     cram-tf:*fixed-frame* 0.0
-                     (cram-tf:list->pose (cdr (assoc type *object-delivering-poses*)))))
-              ;; (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type)))
-              )
-            (?delivering-base-poses
-              (remove
-               NIL
-               (mapcar (lambda (pose)
-                         (when (> (cl-transforms:x (cl-transforms:origin pose)) -1)
-                           pose))
-                       (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))))
+      (let* ((?bullet-type
+               (object-type-filter-bullet type))
+             (?search-poses
+               (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
+             (?grasps
+               (alexandria:shuffle (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
+             (?arms
+               (alexandria:shuffle '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
+                                   ))
+             (?delivering-poses
+               (list (cl-transforms-stamped:pose->pose-stamped
+                      cram-tf:*fixed-frame* 0.0
+                      (cram-tf:list->pose (cdr (assoc type *object-delivering-poses*)))))
+               ;; (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type))) ;; TODO
+               ))
+
         (exe:perform
          (desig:an action
                    (type transporting)
                    (object (desig:an object (type ?bullet-type)))
                    (location (desig:a location (poses ?search-poses)))
-                   (search-robot-location (desig:a location (poses ?search-base-poses)))
-                   (fetch-robot-location (desig:a location (poses ?fetch-base-poses)))
                    (arms ?arms)
                    (grasps ?grasps)
-                   (target (desig:a location (poses ?delivering-poses)))
-                   (deliver-robot-location (desig:a location (poses ?delivering-base-poses))))))))
+                   (target (desig:a location (poses ?delivering-poses))))))))
 
   (park-robot)
 
