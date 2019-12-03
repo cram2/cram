@@ -1,6 +1,8 @@
 <launch>
   <!-- upload or not upload the pr2 description, in case one is already uploaded -->
   <arg name="upload" default="true" />
+  <!-- launch knowrob or not -->
+  <arg name="knowrob" default="false" />
 
   <!-- occupancy map -->
   <include file="$(find iai_maps)/launch/map.launch" />
@@ -31,11 +33,6 @@
     <remap from="joint_states" to="kitchen/joint_states" />
   </node>
 
-  <!-- kitchen (new) semantic map -->
-  <!-- <param name="initial_package" type="string" value="knowrob_map_data" /> -->
-  <!-- <param name="initial_goal" type="string" value="owl_parse('package://iai_semantic_maps/owl/kitchen.owl')" /> -->
-  <!-- <node name="json_prolog" pkg="json_prolog" type="json_prolog_node" cwd="node" output="screen" /> -->
-
   <!-- PR2 URDF -->
   <group if="$(arg upload)">
     <param name="robot_description"
@@ -55,8 +52,9 @@
   <!-- PR2 IK solver -->
   <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_larm_node.launch" />
   <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_rarm_node.launch" />
-  
+
   <!-- launch knowrob with namespace -->
-  <include file="$(find cram_knowrob_vr)/launch/knowrob.launch" />
-  
+  <group if="$(arg knowrob)">
+    <include file="$(find cram_knowrob_vr)/launch/knowrob.launch" />
+  </group>
 </launch>
