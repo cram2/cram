@@ -74,7 +74,8 @@
 (defun get-object-destination-location (object-type context name kitchen table-id)
   (get-object-location object-type context name kitchen table-id NIL))
 
-(defun get-costmap-for (object-type context name kitchen table-id)
+(defun get-costmap-for (object-type context name kitchen 
+                        table-id urdf-name on-p)
   (when T ;;(every #'identity (mapcar #'keywordp (list object-type context
           ;;                                         name kitchen table-id)))
     (if (not (eql roslisp::*node-status* :running))
@@ -129,13 +130,23 @@
                       ;;(- (calculate-rotation-angle object-transform-in-map) (/ pi 2)))
                       )
                      'vr-learned-grid)
-                    (costmap:register-height-generator
-                     costmap
-                     (lambda (x y)
-                       (cut::lazy-list ()
-                         (list (+ 0.00 ;; btr::*costmap-z*
-                                  1.15 ;; (costmap:get-map-value costmap x y)
-                                  )))))
+                    (flet ((get-urdfs-rigid-body (urdf-name)
+                             (when (keywordp urdf-name)
+                               (cdr (car (member (write-to-string urdf-name)
+                                                 (alexandria:hash-table-alist
+                                                  (btr:links (btr:get-environment-object)))
+                                                 :key (lambda (name-and-rigid-body)
+                                                        (substitute #\- #\_
+                                                                    (concatenate 'string
+                                                                                 ":"
+                                                                                 (car name-and-rigid-body))))
+                                                 :test #'equalp))))))
+                      (costmap:register-height-generator
+                       costmap
+                       (btr-spatial-cm::make-object-on/in-object-bb-height-generator
+                        (get-urdfs-rigid-body urdf-name)
+                        (btr:object btr:*current-bullet-world* :bowl-1)
+                        (if on-p :on :in))))
                     ;; (costmap:register-orientation-generator 
                     ;; costmap
                     ;; (lambda (x y)

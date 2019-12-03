@@ -30,21 +30,29 @@
 
 (in-package :learning-vr)
 
+(defun location-on-p (urdf-name)
+  (or (equal urdf-name :kitchen-island-surface)
+      (equal urdf-name :kitchen-island)
+      (equal urdf-name :sink-area)
+      (equal urdf-name :oven-area-area)))
+
 (let ((owl->urdf-table (make-hash-table :test 'equalp)))
   (setf (gethash "SinkDrawerLeftTop" owl->urdf-table)
-          :sink-area-left-upper-drawer-main
-          (gethash "IslandDrawerBottomLeft" owl->urdf-table)
-          :kitchen-island-left-lower-drawer-main
-          (gethash "IslandDrawerBottomMiddle" owl->urdf-table)
-          :kitchen-island-middle-lower-drawer-main
-          (gethash "SinkDrawerLeftMiddle" owl->urdf-table)
-          :sink-area-left-bottom-drawer-main
-          (gethash "OvenDrawerRight" owl->urdf-table)
-          :oven-area-area-right-drawer-main
-          (gethash "FridgeDoorBottomShelf" owl->urdf-table)
-          :iai-fridge-main
-          (gethash "FridgeGlassShelf" owl->urdf-table)
-          :iai-fridge-main)
+        :sink-area-left-upper-drawer-main
+        (gethash "IslandDrawerBottomLeft" owl->urdf-table)
+        :kitchen-island-left-lower-drawer-main
+        (gethash "IslandDrawerBottomMiddle" owl->urdf-table)
+        :kitchen-island-middle-lower-drawer-main
+        (gethash "SinkDrawerLeftMiddle" owl->urdf-table)
+        :sink-area-left-bottom-drawer-main
+        (gethash "OvenDrawerRight" owl->urdf-table)
+        :oven-area-area-right-drawer-main
+        (gethash "FridgeDoorBottomShelf" owl->urdf-table)
+        :iai-fridge-main
+        (gethash "FridgeGlassShelf" owl->urdf-table)
+        :iai-fridge-main
+        (gethash "IslandArea" owl->urdf-table)
+        :kitchen-island-surface)
         
   (defun owl->urdf (owl-name)
     (gethash owl-name owl->urdf-table)))
@@ -82,10 +90,10 @@
  (defun owl->type (owl-name)
    (gethash owl-name owl->type-table)))
 
-(defmethod man-int:get-location-poses :learning 8 (location-designator)
+(defmethod man-int:get-location-poses :learning 10 (location-designator)
   (print "get-location-poses w/ vr-learning called")
   (if T ;;(and *learning-framework-on* (rob-int:reachability-designator-p location-designator))
-      (let (object-type kitchen-name context)
+      (let (object-type kitchen-name context urdf-name on-p)
         (if (and (desig:desig-prop-value location-designator :for) ;; (for (desig:an object (type ...)))
                  (desig:desig-prop-value location-designator :on) ;; (on (desig:an object (part-of kitchen ...)))
                  (desig:desig-prop-value location-designator :context))
@@ -94,8 +102,12 @@
                      (desig:current-desig
                       (desig:desig-prop-value location-designator :for)))
                    (kitchen-object-designator
-                     (desig:current-desig
-                      (desig:desig-prop-value location-designator :on))))
+                     (if (desig:current-desig
+                          (desig:desig-prop-value location-designator :on))
+                         (desig:current-desig
+                          (desig:desig-prop-value location-designator :on))
+                         (desig:current-desig
+                          (desig:desig-prop-value location-designator :in)))))
 
               (when (desig:desig-prop-value object-designator :type)
                 (setf object-type
@@ -105,6 +117,12 @@
                       (desig:desig-prop-value kitchen-object-designator :part-of)))
               (setf context
                     (desig:desig-prop-value location-designator :context))
+              (setf urdf-name
+                    (desig:desig-prop-value kitchen-object-designator :urdf-name))
+              (setf on-p
+                    (member :on (desig:properties location-designator)
+                            :key #'first
+                            :test #'equal))
               (print object-type)
               (print kitchen-name)
               (print context))
@@ -117,7 +135,8 @@
                  location-designator))))
         (let* ((learned-costmap
                  (get-costmap-for
-                  object-type context *human-name* kitchen-name *table-id*))
+                  object-type context *human-name* kitchen-name
+                  *table-id* urdf-name on-p))
                (heuristics-costmaps
                  (mapcar (lambda (bindings)
                            (cut:var-value '?cm bindings))
@@ -139,7 +158,7 @@
       ))
 
 (defmethod costmap:costmap-generator-name->score ((name (eql 'vr-learned-grid)))
-  8)
+  10)
 
 (defmethod man-int:get-object-likely-location :vr-owl 30 (?kitchen-name ?human-name ?context ?object-type)
   (let* ((?vr-owl (get-object-storage-location ?object-type
@@ -148,14 +167,21 @@
                                                ?kitchen-name
                                                "rectangular_table"))
          (?pseudo-urdf (owl->urdf ?vr-owl)))
-    (desig:a location
-             (on (desig:an object
-                           ;; (type ?pseudo-type)
-                           (urdf-name ?pseudo-urdf)
-                           (owl-name ?vr-owl)
-                           (part-of ?kitchen-name))))))
+    (if (location-on-p ?pseudo-urdf)
+        (desig:a location
+                 (on (desig:an object
+                               ;; (type ?pseudo-type)
+                               (urdf-name ?pseudo-urdf)
+                               (owl-name ?vr-owl)
+                               (part-of ?kitchen-name))))
+        (desig:a location
+                 (in (desig:an object
+                               ;; (type ?pseudo-type)
+                               (urdf-name ?pseudo-urdf)
+                               (owl-name ?vr-owl)
+                               (part-of ?kitchen-name)))))))
 
-(defmethod man-int:get-object-likely-destination :vr-owl 7 (?kitchen-name ?human-name ?context ?object-type)
+(defmethod man-int:get-object-likely-destination :vr-owl 30 (?kitchen-name ?human-name ?context ?object-type)
   (let* ((?vr-owl (get-object-destination-location ?object-type
                                                    ?context
                                                    ?human-name
@@ -164,11 +190,20 @@
          (?pseudo-urdf (owl->urdf ?vr-owl))
          ;;(?pseudo-btr-type (owl->type ?object-type)
          )
-    (desig:a location
-             (on (desig:an object
-                           ;; (type counter-top)
-                           (urdf-name ?pseudo-urdf)
-                           (owl-name ?vr-owl)
-                           (part-of ?kitchen-name)))
-             (context ?context)
-             (for (desig:an object (type ?object-type))))))
+    (if (location-on-p ?pseudo-urdf)
+        (desig:a location
+                 (on (desig:an object
+                               ;; (type counter-top)
+                               (urdf-name ?pseudo-urdf)
+                               (owl-name ?vr-owl)
+                               (part-of ?kitchen-name)))
+                 (context ?context)
+                 (for (desig:an object (type ?object-type))))
+        (desig:a location
+                 (in (desig:an object
+                               ;; (type counter-top)
+                               (urdf-name ?pseudo-urdf)
+                               (owl-name ?vr-owl)
+                               (part-of ?kitchen-name)))
+                 (context ?context)
+                 (for (desig:an object (type ?object-type)))))))
