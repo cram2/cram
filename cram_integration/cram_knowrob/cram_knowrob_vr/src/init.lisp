@@ -147,7 +147,7 @@ objects for debugging."
   (roslisp-utilities:startup-ros)
   (coe:clear-belief)
   (init-episode (or namedir
-                    (loop for i from 1 to 20 collecting (format nil "/ep~a" i))))
+                    (loop for i from 1 to 18 collecting (format nil "ep~a" i))))
   (spawn-semantic-map)
   (spawn-urdf-items)
   (spawn-semantic-items)

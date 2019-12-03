@@ -62,26 +62,24 @@
 for that object, e.g. CupEcoOrange."
   (if (stringp object-type)
       object-type
-      (case object-type
+      (ecase object-type
         (muesli "KoellnMuesliKnusperHonigNuss")
         (cup "CupEcoOrange")
         (bowl "IkeaBowl")
         (milk "MilramButtermilchErdbeere")
         (fork "PlasticBlueFork")
-        (spoon "PlasticBlueSpoon")
-        (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon")))))
+        (spoon "PlasticBlueSpoon"))))
 
 (defun object-type-filter-bullet (object-type)
   "Maps the simple name of an object, e.g. cup to the one known in the database
 for that object, e.g. CupEcoOrange."
-  (case object-type
+  (ecase object-type
     (muesli :breakfast-cereal)
     (cup :cup)
     (bowl :bowl)
     (milk :milk)
     (fork :fork)
-    (spoon :spoon)
-    (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon"))))
+    (spoon :spoon)))
 
 (defun object-type-fixer (object-type)
   "Takes care of the few cases where the name of the object within the recorded

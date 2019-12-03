@@ -1,4 +1,4 @@
-;;;
+;;
 ;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -80,7 +80,7 @@
                              (btr-utils:spawn-object
                               (intern (format nil "~a" object-type) :keyword)
                               object-type
-                              :pose (let* ((x (+ 1.5 (- (random 0.4) 0.2)))
+                              :pose (let* ((x (+ 1.4 (- (random 0.2) 0.1)))
                                            (y (+ 0.5 (- (random 1.0) 0.5)))
                                            (pi-number (- (random 0.5) 0.2))
                                            ;; (pi-number (- (random 2.0) 1.0))
@@ -88,17 +88,19 @@
                                            (pose `((,x ,y 0.87) (0 0 ,pi-number ,pi-other))))
                                            ;;(pose `((,x ,y 0.87) (0 0 1 0))))
                                       ;;TODO remove this after debugging
-                                      (btr:add-vis-axis-object (cl-tf:make-pose
-                                                                (cl-tf:make-3d-vector x y 0.87)
-                                                                (cl-tf:make-quaternion 0.0 0.0 pi-number pi-other)))
+                                      (btr:add-vis-axis-object
+                                       (cl-transforms:make-pose
+                                        (cl-transforms:make-3d-vector x y 0.87)
+                                        (cl-transforms:make-quaternion
+                                         0.0 0.0 pi-number pi-other)))
                                       pose)))
                            object-types)))
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
       objects)))
 
-(defmethod exe:generic-perform :before (designator)
-  (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
+;; (defmethod exe:generic-perform :before (designator)
+;;   (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
 
 (cpl:def-cram-function park-robot ()
   (cpl:with-failure-handling
@@ -149,15 +151,8 @@
 
   (unless cram-projection:*projection-environment*
     (json-prolog:prolog-simple "rdf_retractall(A,B,C,belief_state).")
-    (btr-belief::call-giskard-environment-service :kill-all "attached")
-    (cram-bullet-reasoning-belief-state::call-giskard-environment-service
-     :add-kitchen
-     "kitchen"
-     (cl-transforms-stamped:make-pose-stamped
-      "map"
-      0.0
-      (cl-transforms:make-identity-vector)
-      (cl-transforms:make-identity-rotation))))
+    ;; (cram-occasions-events:clear-belief) ; to clear giskard environment
+    )
 
   ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
   )
@@ -177,16 +172,15 @@
 ;;   (ccl::connect-to-cloud-logger)
 ;;   (ccl::reset-logged-owl))
 
-(cpl:def-cram-function demo (&optional
-                             (list-of-objects
-                              '(bowl
-                                cup
-                                spoon)))
+(defun demo (&optional
+               (list-of-objects
+                '(bowl
+                  cup
+                  spoon)))
 
   (initialize)
   (when cram-projection:*projection-environment*
     (spawn-objects-on-sink-counter))
-
   (park-robot)
 
   (dolist (type list-of-objects)
@@ -194,6 +188,7 @@
         ((common-fail:high-level-failure (e)
            (declare (ignore e))
            (return)))
+
       (let* ((?bullet-type
                (object-type-filter-bullet type))
              (?search-poses
