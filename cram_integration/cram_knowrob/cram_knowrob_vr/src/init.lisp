@@ -40,7 +40,7 @@
 (in-package :kvr)
 
 (defvar *episode-path*
-  "/home/hasu/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/"
+  "/home/cram/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/"
   "path of where the episode data is located")
 
 (defun load-multiple-episodes (&optional namedir-list)
