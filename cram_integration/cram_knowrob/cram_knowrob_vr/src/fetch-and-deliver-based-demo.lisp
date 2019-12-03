@@ -70,24 +70,17 @@
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
-  (let ((object-types '(;; :breakfast-cereal
-                        :cup
-                        :bowl ;; :milk
-                        :spoon
-                        )))
-    ;; spawn objects at default poses
+  (let ((object-types '(:cup :bowl :spoon)))
+    ;; spawn objects at random poses
     (let ((objects (mapcar (lambda (object-type)
                              (btr-utils:spawn-object
                               (intern (format nil "~a" object-type) :keyword)
                               object-type
                               :pose (let* ((x (+ 1.4 (- (random 0.2) 0.1)))
                                            (y (+ 0.5 (- (random 1.0) 0.5)))
-                                           (pi-number (- (random 0.5) 0.2))
-                                           ;; (pi-number (- (random 2.0) 1.0))
+                                           (pi-number (- (random 2.0) 1.0))
                                            (pi-other (- 1.0 (abs pi-number)))
                                            (pose `((,x ,y 0.87) (0 0 ,pi-number ,pi-other))))
-                                           ;;(pose `((,x ,y 0.87) (0 0 1 0))))
-                                      ;;TODO remove this after debugging
                                       (btr:add-vis-axis-object
                                        (cl-transforms:make-pose
                                         (cl-transforms:make-3d-vector x y 0.87)
