@@ -73,20 +73,21 @@ If there is no other method with 1 as qualifier, this method will be executed al
       (btr:detach-object robot-object btr-object :link link)
       (btr:simulate btr:*current-bullet-world* 10)
       ;; finding the link that supports the object now
-      ;; TODO: This part seems to be buggy, needs more testing.
-      ;;       The part that fails is the environment link, sometimes it gets weird values.
-      ;; (let ((environment-object (btr:get-environment-object))
-      ;;       (environment-link (cut:var-value
-      ;;                          '?env-link
-      ;;                          (car (prolog:prolog
-      ;;                                `(and (btr:bullet-world ?world)
-      ;;                                      (btr:supported-by
-      ;;                                       ?world ,btr-object-name ?env-name ?env-link)))))))
-      ;;   ;; attaching the link to the object if it finds one.
-      ;;   (unless (cut:is-var environment-link)
-      ;;     (btr:attach-object environment-object btr-object
-      ;;                        :link environment-link)))
-      )))
+      (flet ((get-contacting-link (obj-name)
+               (cdr (first (member obj-name
+                                   ;; get all links contacting items
+                                   ;; in the environment
+                                   (btr:link-contacts
+                                    (btr:get-environment-object))
+                                   :key (lambda (item-and-link-name-cons)
+                                          (btr:name (car item-and-link-name-cons)))
+                                   :test #'equal)))))
+        (let ((environment-object (btr:get-environment-object))
+              (environment-link (get-contacting-link btr-object-name)))
+          ;; attaching the link to the object if it finds one.
+          (unless (cut:is-var environment-link)
+            (btr:attach-object environment-object btr-object
+                               :link environment-link)))))))
 
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
   (let* ((btr-object-name (cpoe:event-object-name event))
