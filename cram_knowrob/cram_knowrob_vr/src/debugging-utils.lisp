@@ -43,12 +43,6 @@ initial position."
   "Removes an object from the bullet world."
   (btr-utils:kill-object object))
 
-(defun make-transform-hand-std-pr2 (object)
-  "Make a transform from human hand to the standart pr2"
-  (cl-tf:transform* (query-hand-location-by-object-type object "Start")
-                    (human-to-robot-hand-transform)
-                    cram-pr2-description::*standard-to-pr2-gripper-transform*))
-
 (defun get-robot-in-map-pose ()
   "Get the position of the robot within the map frame."
   (cl-tf:transform->transform-stamped "map" "base_footprint" 0.0
@@ -153,18 +147,18 @@ Returns: list of cl-tf:pose."
          (temp-list (cut:force-ll lazy-poses-list)))
 
     ;; check what type the given list is
-    (case (cl-tf::type-of (car temp-list))
+    (typecase (car temp-list)
       ;; convert transforms -> poses
-      ('cl-tf::transform (setq poses-list
+      (cl-tf::transform (setq poses-list
                                (mapcar (lambda (transform)
                                          (cl-tf:transform->pose transform))
                                        temp-list)))
       ;; convert poses-stamped -> poses
-      ('cl-tf::pose-stamped (setq poses-list
+      (cl-tf::pose-stamped (setq poses-list
                                   (mapcar (lambda (pose-stamped)
                                             (cl-tf:pose-stamped->pose pose-stamped))
                                           temp-list)))
-      ('t (print "invalid type")))
+      (t (print "invalid type")))
     ;; return poses list
     poses-list))
 
@@ -256,6 +250,7 @@ Returns: list of cl-tf:pose."
 
 
 
+#+umap-P-uobj-...-is-not-defined-so-commenting-this-out
 (defun spawn-arrows-to-test-objects (type)
   (let* ((poses-list (umap-P-uobj-through-surface-from-list-ll type "Start"))
          (obj-pose (convert-into-poses-list
