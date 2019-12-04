@@ -132,20 +132,27 @@
                      'vr-learned-grid)
                     (flet ((get-urdfs-rigid-body (urdf-name)
                              (when (keywordp urdf-name)
-                               (cdr (car (member (write-to-string urdf-name)
-                                                 (alexandria:hash-table-alist
-                                                  (btr:links (btr:get-environment-object)))
-                                                 :key (lambda (name-and-rigid-body)
-                                                        (substitute #\- #\_
-                                                                    (concatenate 'string
-                                                                                 ":"
-                                                                                 (car name-and-rigid-body))))
-                                                 :test #'equalp))))))
+                               (cdr (find (write-to-string urdf-name)
+                                          (alexandria:hash-table-alist
+                                           (btr:links (btr:get-environment-object)))
+                                          :key (lambda (name-and-rigid-body)
+                                                 (substitute #\- #\_
+                                                             (concatenate 'string
+                                                                          ":"
+                                                                          (car name-and-rigid-body))))
+                                          :test #'equalp))))
+                           (get-obj-instance-from-type (obj-type)
+                             (find obj-type 
+                                   (btr:objects btr::*current-bullet-world*)
+                                   :key (lambda (obj)
+                                          (when (typep obj 'cram-bullet-reasoning:item)
+                                            (first (btr:item-types obj))))
+                                   :test #'equal)))
                       (costmap:register-height-generator
                        costmap
                        (btr-spatial-cm::make-object-on/in-object-bb-height-generator
                         (get-urdfs-rigid-body urdf-name)
-                        (btr:object btr:*current-bullet-world* :bowl-1)
+                        (get-obj-instance-from-type object-type)
                         (if on-p :on :in))))
                     ;; (costmap:register-orientation-generator 
                     ;; costmap

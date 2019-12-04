@@ -95,7 +95,8 @@
   (if T ;;(and *learning-framework-on* (rob-int:reachability-designator-p location-designator))
       (let (object-type kitchen-name context urdf-name on-p)
         (if (and (desig:desig-prop-value location-designator :for) ;; (for (desig:an object (type ...)))
-                 (desig:desig-prop-value location-designator :on) ;; (on (desig:an object (part-of kitchen ...)))
+                 (or (desig:desig-prop-value location-designator :on)
+                     (desig:desig-prop-value location-designator :in));; (on (desig:an object (part-of kitchen ...)))
                  (desig:desig-prop-value location-designator :context))
             
             (let* ((object-designator
@@ -161,11 +162,14 @@
   10)
 
 (defmethod man-int:get-object-likely-location :vr-owl 30 (?kitchen-name ?human-name ?context ?object-type)
+  "Returns a designator representing the location of given object in
+the vr-data. For more information see the defgeneric. The priority of
+  this function should be lower than the priority of the :heuristics functions."
   (let* ((?vr-owl (get-object-storage-location ?object-type
                                                ?context
                                                ?human-name
                                                ?kitchen-name
-                                               "rectangular_table"))
+                                               *table-id*))
          (?pseudo-urdf (owl->urdf ?vr-owl)))
     (if (location-on-p ?pseudo-urdf)
         (desig:a location
@@ -181,12 +185,15 @@
                                (owl-name ?vr-owl)
                                (part-of ?kitchen-name)))))))
 
-(defmethod man-int:get-object-likely-destination :vr-owl 30 (?kitchen-name ?human-name ?context ?object-type)
+(defmethod man-int:get-object-likely-destination :vr-owl 10 (?kitchen-name ?human-name ?context ?object-type)
+  "Returns a designator representing the location of given object in
+vr-data. For more information see the defgeneric. The priority of
+  this function should be higher than the priority of the :heuristics functions."
   (let* ((?vr-owl (get-object-destination-location ?object-type
                                                    ?context
                                                    ?human-name
                                                    ?kitchen-name
-                                                   "rectangular_table"))
+                                                   *table-id*))
          (?pseudo-urdf (owl->urdf ?vr-owl))
          ;;(?pseudo-btr-type (owl->type ?object-type)
          )
