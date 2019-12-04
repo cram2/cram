@@ -28,7 +28,8 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (asdf:defsystem cram-knowrob-vr
-	:depends-on (cram-tf
+	:depends-on (alexandria ; for shuffle
+               cram-tf
                roslisp
                cram-language
                cram-json-prolog
