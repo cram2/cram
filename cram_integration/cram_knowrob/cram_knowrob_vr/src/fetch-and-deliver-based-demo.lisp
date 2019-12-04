@@ -70,23 +70,43 @@
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
-  (let ((object-types '(:cup :bowl :spoon)))
+  (let ((object-types '(:cup :bowl :spoon))
+        (delta-alpha (* 2 pi))
+        (delta-y 0.3)
+        (x0 1.35)
+        (y0 (- 0.2))
+        (y-bucket-padding 0.2)
+        (y-bucket-length 0.3)
+        (y-buckets (alexandria:shuffle '(0 1 2))))
     ;; spawn objects at random poses
     (let ((objects (mapcar (lambda (object-type)
-                             (btr-utils:spawn-object
-                              (intern (format nil "~a" object-type) :keyword)
-                              object-type
-                              :pose (let* ((x (+ 1.4 (- (random 0.2) 0.1)))
-                                           (y (+ 0.5 (- (random 1.0) 0.5)))
-                                           (pi-number (- (random 2.0) 1.0))
-                                           (pi-other (- 1.0 (abs pi-number)))
-                                           (pose `((,x ,y 0.87) (0 0 ,pi-number ,pi-other))))
-                                      (btr:add-vis-axis-object
-                                       (cl-transforms:make-pose
-                                        (cl-transforms:make-3d-vector x y 0.87)
-                                        (cl-transforms:make-quaternion
-                                         0.0 0.0 pi-number pi-other)))
-                                      pose)))
+                             (let* ((delta-x (ecase object-type
+                                               (:spoon 0.2)
+                                               (:bowl 0.15)
+                                               (:cup 0.1)))
+                                    (x (+ x0 (random delta-x)))
+                                    (y-bucket (ecase object-type
+                                                (:spoon (first y-buckets))
+                                                (:bowl (second y-buckets))
+                                                (:cup (third y-buckets))))
+                                    (y (+ y0
+                                          (* (+ y-bucket-padding y-bucket-length) y-bucket)
+                                          (random delta-y)))
+                                    (z (ecase object-type
+                                         (:spoon 0.87)
+                                         (:bowl 0.89)
+                                         (:cup 0.9)))
+                                    (alpha (cl-transforms:normalize-angle (random delta-alpha)))
+                                    (pose (cl-transforms:make-pose
+                                           (cl-transforms:make-3d-vector x y z)
+                                           (cl-transforms:axis-angle->quaternion
+                                            (cl-transforms:make-3d-vector 0 0 1)
+                                            alpha))))
+                               (btr:add-vis-axis-object pose)
+                               (btr-utils:spawn-object
+                                (intern (format nil "~a" object-type) :keyword)
+                                object-type
+                                :pose (cram-tf:pose->list pose))))
                            object-types)))
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
