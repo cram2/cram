@@ -39,6 +39,8 @@
 ;;; rcg_d different grasps
 (in-package :kvr)
 
+(defvar *kvr-enabled* t)
+
 (defvar *episode-path*
   "/home/cram/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/"
   "path of where the episode data is located")
@@ -129,9 +131,12 @@ semantic map kitchen."
                            object-types)))
       objects)))
 
-#+do-not-need-this-because-we-do-not-use-costmaps-here
 (defun init-location-costmap-parameters ()
-  (def-fact-group costmap-metadata ()
+  (def-fact-group costmap-metadata (costmap:costmap-size
+                                    costmap:costmap-origin
+                                    costmap:costmap-resolution
+                                    costmap:orientation-samples
+                                    costmap:orientation-sample-step)
     (<- (location-costmap:costmap-size 12 12))
     (<- (location-costmap:costmap-origin -6 -6))
     (<- (location-costmap:costmap-resolution 0.04))
@@ -145,12 +150,14 @@ objects for debugging."
   ;;set the "unreal" prefix for the json_prolog node if you are using the simulation.launch
   (setq json-prolog:*service-namespace* "/unreal/json_prolog")
   (roslisp-utilities:startup-ros)
+
   (coe:clear-belief)
+  (spawn-urdf-items)
+
   (init-episode (or namedir
                     (loop for i from 1 to 18 collecting (format nil "ep~a" i))))
-  (spawn-semantic-map)
-  (spawn-urdf-items)
-  (spawn-semantic-items)
-  ;;(init-location-costmap-parameters)
-  )
+  ;; (spawn-semantic-map)
+  ;; (spawn-semantic-items)
+
+  (init-location-costmap-parameters))
 

@@ -30,52 +30,55 @@
 (in-package :kvr)
 
 (defmethod man-int:get-location-poses :vr 10 (location-designator)
-  (if (or (rob-int:visibility-designator-p location-designator)
-          (rob-int:reachability-designator-p location-designator))
-      (let* ((obj-type-raw (intern (symbol-name
-                                    (car (desig:desig-prop-values
-                                          (car (desig:desig-prop-values location-designator
-                                                                        :object))
-                                          :type)))))
-             (obj-type (object-type-filter-prolog obj-type-raw)))
+  (if *kvr-enabled*
+      (if (or (rob-int:visibility-designator-p location-designator)
+              (rob-int:reachability-designator-p location-designator))
+          (let* ((obj-type-raw (intern (symbol-name
+                                        (car (desig:desig-prop-values
+                                              (car (desig:desig-prop-values location-designator
+                                                                            :object))
+                                              :type)))))
+                 ;; (obj-type (object-type-filter-prolog obj-type-raw))
+                 )
 
-        (cond
-          ;; VISIBILITY
-          ((rob-int:visibility-designator-p location-designator)
-           ;; based on location of obj
-           (base-poses-ll-for-fetching-based-on-object-pose
-            (object-type-filter-bullet obj-type-raw) ; obj-type
-            (desig:reference
-             (desig:desig-prop-value
-              ;;current search loc.
-              (desig:current-desig location-designator) :location))))
+            (cond
+              ;; VISIBILITY
+              ((rob-int:visibility-designator-p location-designator)
+               ;; based on location of obj
+               (base-poses-ll-for-fetching-based-on-object-pose
+                (object-type-filter-bullet obj-type-raw) ; obj-type
+                (desig:reference
+                 (desig:desig-prop-value
+                  ;;current search loc.
+                  (desig:current-desig location-designator) :location))))
 
-          ;; REACHABILITY
-          ((rob-int:reachability-designator-p location-designator)
-           ;; differenticate between a loc desig with an obj desig with a valid POSE (fetch)
-           ;; or a loc desig (deliver) (who has an object desig with OLD-POSE not POSE
-           (cond
-             ;; obj-desig with a valid pose -> fetch
-             ((and (desig:desig-prop-value
-                    (desig:current-desig location-designator) :object)
-                   (man-int:get-object-pose
-                    (desig:current-desig
-                     (desig:desig-prop-value
-                      (desig:current-desig location-designator) :object))))
-              (base-poses-ll-for-fetching-based-on-object-desig
-                     (desig:desig-prop-value
-                      (desig:current-desig location-designator) :object)))
+              ;; REACHABILITY
+              ((rob-int:reachability-designator-p location-designator)
+               ;; differenticate between a loc desig with an obj desig with a valid POSE (fetch)
+               ;; or a loc desig (deliver) (who has an object desig with OLD-POSE not POSE
+               (cond
+                 ;; obj-desig with a valid pose -> fetch
+                 ((and (desig:desig-prop-value
+                        (desig:current-desig location-designator) :object)
+                       (man-int:get-object-pose
+                        (desig:current-desig
+                         (desig:desig-prop-value
+                          (desig:current-desig location-designator) :object))))
+                  (base-poses-ll-for-fetching-based-on-object-desig
+                   (desig:desig-prop-value
+                    (desig:current-desig location-designator) :object)))
 
-             ;; location-desig -> deliver
-             ((desig:desig-prop-value
-               (desig:current-desig location-designator) :location)
-              (let ((pose (desig:reference
-                           (desig:desig-prop-value
-                            (desig:current-desig location-designator) :location))))
-                (base-poses-ll-for-fetching-based-on-object-pose
-                       (object-type-filter-bullet obj-type-raw)
-                       pose)))))))
+                 ;; location-desig -> deliver
+                 ((desig:desig-prop-value
+                   (desig:current-desig location-designator) :location)
+                  (let ((pose (desig:reference
+                               (desig:desig-prop-value
+                                (desig:current-desig location-designator) :location))))
+                    (base-poses-ll-for-fetching-based-on-object-pose
+                     (object-type-filter-bullet obj-type-raw)
+                     pose)))))))
 
+          (desig:resolve-location-designator-through-generators-and-validators location-designator))
       (desig:resolve-location-designator-through-generators-and-validators location-designator)))
 
 ;; will replace ?grasps-list

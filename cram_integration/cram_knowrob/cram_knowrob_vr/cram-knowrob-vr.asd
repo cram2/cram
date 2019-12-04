@@ -50,7 +50,13 @@
                cram-urdf-projection
                cram-pr2-description
                cram-robot-interfaces
-               cram-fetch-deliver-plans)
+               cram-fetch-deliver-plans
+               ;; costmaps are loaded for comparison with heuristics experiments
+               cram-location-costmap
+               cram-btr-visibility-costmap
+               cram-btr-spatial-relations-costmap
+               cram-robot-pose-gaussian-costmap
+               cram-occupancy-grid-costmap)
 	:components
 
 	((:module "src"
@@ -71,9 +77,11 @@
 
      ;; visibility and reachability location resolution through VR
      (:file "designator-integration" :depends-on ("package"
+                                                  "init" ; for *kvr-enabled*
                                                   "query-based-calculations"))
      ;; plans that call fetch and deliver actions
      (:file "fetch-and-deliver-based-demo" :depends-on ("package"
+                                                        "init" ; for *kvr-enabled*
                                                         "query-based-calculations"
                                                         "designator-integration"))
      ;; (:file "plan-execution" :depends-on ("package"))
