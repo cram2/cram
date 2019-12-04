@@ -76,6 +76,9 @@
 
 (defun drive (target)
   (declare (type cl-transforms-stamped:pose-stamped target))
+
+  (btr:add-vis-axis-object target)
+
   (let* ((world btr:*current-bullet-world*)
          (world-state (btr::get-state world)))
     (unwind-protect
