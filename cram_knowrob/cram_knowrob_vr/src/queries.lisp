@@ -56,8 +56,8 @@
 (defun base-query-string (object-type)
   (concatenate
    'string
-   "obj_type(ObjInst, knowrob:'" object-type "'),
-    ep_inst(EpInst),
+   "ep_inst(EpInst),
+    obj_type(ObjInst, knowrob:'" object-type "'),
     u_occurs(EpInst, EventInst, Start, End),
     obj_type(EventInst, knowrob:'GraspingSomething'),
     rdf_has(EventInst, knowrob:'objectActedOn', ObjInst)"))
@@ -87,6 +87,7 @@
     (concatenate
      'string
      (base-query-string object-type)",
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
       iri_xml_namespace(ObjInst, _, ObjShortName),
       actor_pose(EpInst, ObjShortName, " start-or-end ", POSE).")
     :package :kvr)))
@@ -103,7 +104,9 @@
     (concatenate
      'string
      (base-query-string object-type) ",
-      obj_type(CameraInst, knowrob:'CharacterCamera'),
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
+      rdf_has(CameraInst, rdf:type, knowrob:'CharacterCamera'),
+      rdf_has(CameraInst, knowrob:'describedInMap', MapInst),
       iri_xml_namespace(CameraInst, _, CameraShortName),
       actor_pose(EpInst, CameraShortName, " start-or-end ", PoseCameraStart).")
     :package :kvr)))
@@ -132,9 +135,12 @@
     (concatenate
      'string
      (base-query-string object-type)",
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
       iri_xml_namespace(ObjInst, _, ObjShortName),
       actor_pose(EpInst, ObjShortName, " start-or-end ", ObjPose),
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
       obj_type(CameraInst, knowrob:'CharacterCamera'),
+      rdf_has(CameraInst, knowrob:'describedInMap', MapInst),
       iri_xml_namespace(CameraInst, _, CameraShortName),
       actor_pose(EpInst, CameraShortName, " start-or-end ", CameraPose).")
     :package :kvr)))
@@ -176,6 +182,8 @@ in the currently loaded episode."
      (base-query-string object-type) ",
       performed_by(EventInst, HandInst),
       iri_xml_namespace(HandInst,_, HandInstShortName),
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
+      rdf_has(HandInst, knowrob:'describedInMap', MapInst),
       actor_pose(EpInst, HandInstShortName, " start-or-end ", PoseHandStart).")
     :package :kvr)))
 
@@ -203,10 +211,12 @@ in the currently loaded episode."
     (concatenate
      'string
      (base-query-string object-type)",
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
       iri_xml_namespace(ObjInst, _, ObjShortName),
       actor_pose(EpInst, ObjShortName, " start-or-end ", ObjPose),
       performed_by(EventInst, HandInst),
       iri_xml_namespace(HandInst, _, HandInstShortName),
+      rdf_has(HandInst, knowrob:'describedInMap', MapInst),
       actor_pose(EpInst, HandInstShortName, " start-or-end ", HandPose).")
     :package :kvr)))
 
@@ -259,6 +269,8 @@ in the currently loaded episode."
       time_term(End, EndSeconds),
       EndWithOffset is EndSeconds + 1,
       time_between(" start-or-end "WithOffset, TouchStart, TouchEnd),
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
+      rdf_has(Surface, knowrob:'describedInMap', MapInst),
       iri_xml_namespace(Surface, _, SurfaceShortName),
       actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", PoseSurface).")
     :package :kvr)))
@@ -303,6 +315,8 @@ and the transform surface-T-object as a lazy list of pairs:
       time_term(End, EndSeconds),
       EndWithOffset is EndSeconds + 1,
       time_between(" start-or-end "WithOffset, TouchStart, TouchEnd),
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
+      rdf_has(Surface, knowrob:'describedInMap', MapInst),
       iri_xml_namespace(Surface, _, SurfaceShortName),
       actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", SurfacePose),
       iri_xml_namespace(ObjInst, _, ObjShortName),
@@ -371,6 +385,8 @@ and the transform surface-T-object as a lazy list of pairs:
       time_term(End, EndSeconds),
       EndWithOffset is EndSeconds + 1,
       time_between(" start-or-end "WithOffset, TouchStart, TouchEnd),
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
+      rdf_has(Surface, knowrob:'describedInMap', MapInst),
       iri_xml_namespace(Surface, _, SurfaceShortName),
       actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", SurfacePose),
       object_dimensions(Surface, SurfaceDimX, SurfaceDimY, SurfaceDimZ),
@@ -427,6 +443,7 @@ and the transform surface-T-camera as a lazy list of pairs:
      'string
      (base-query-string object-type) ",
       event_type(TouchingEventInst, knowrob_u:'TouchingSituation'),
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
       rdf_has(TouchingEventInst, knowrob_u:'inContact', ObjInst),
       rdf_has(TouchingEventInst, knowrob_u:'inContact', Surface),
       not(ObjInst==Surface),
@@ -436,8 +453,11 @@ and the transform surface-T-camera as a lazy list of pairs:
       EndWithOffset is EndSeconds + 1,
       time_between(" start-or-end "WithOffset, TouchStart, TouchEnd),
       iri_xml_namespace(Surface, _, SurfaceShortName),
+      rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
+      rdf_has(Surface, knowrob:'describedInMap', MapInst),
       actor_pose(EpInst, SurfaceShortName, Touch" start-or-end ", SurfacePose),
       obj_type(CameraInst, knowrob:'CharacterCamera'),
+      rdf_has(CameraInst, knowrob:'describedInMap', MapInst),
       iri_xml_namespace(CameraInst, _, CameraShortName),
       actor_pose(EpInst, CameraShortName, " start-or-end ", CameraPose),
       obj_type(Surface, SurfaceType),
