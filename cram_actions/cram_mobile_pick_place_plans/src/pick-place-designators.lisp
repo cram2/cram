@@ -144,9 +144,10 @@
              (member ?target-object-pose ?poses)
              (lisp-fun pose->transform-stamped-in-base ?target-object-pose ?object-name
                        ?target-object-transform))
-        (and (lisp-fun man-int:get-object-transform ?current-object-designator
+        (and (lisp-fun man-int:get-object-old-transform ?current-object-designator
                        ?target-object-transform)
-             (lisp-fun man-int:get-object-pose ?current-object-designator ?target-object-pose)
+             (lisp-fun man-int:get-object-old-pose ?current-object-designator
+                       ?target-object-pose)
              (desig:designator :location ((:pose ?target-object-pose))
                                ?current-location-designator)))
 

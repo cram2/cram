@@ -38,6 +38,8 @@
    #:get-object-pose
    #:get-object-transform-in-map
    #:get-object-pose-in-map
+   #:get-object-old-transform
+   #:get-object-old-pose
    ;; prolog
    #:object-type-subtype
    #:object-type-direct-subtype
