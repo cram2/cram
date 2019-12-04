@@ -179,11 +179,11 @@ retries with different search location or robot base location."
          (roslisp:ros-warn (fd-plans search-for-object)
                            "Desig ~a could not be resolved: ~a~%Propagating up."
                            ?search-location e)
-         (cpl:fail 'common-fail:object-nowhere-to-be-found
+         (cpl:fail 'common-fail:searching-failed
                    :description "Search location designator could not be resolved.")))
 
     ;; take new `?search-location' sample if a failure happens and retry
-    (cpl:with-retry-counters ((outer-search-location-retries 10))
+    (cpl:with-retry-counters ((outer-search-location-retries 3))
       (cpl:with-failure-handling
           ((common-fail:object-nowhere-to-be-found (e)
              (common-fail:retry-with-loc-designator-solutions
@@ -192,7 +192,7 @@ retries with different search location or robot base location."
                  (:error-object-or-string e
                   :warning-namespace (fd-plans search-for-object)
                   :reset-designators (list ?robot-location)
-                  :rethrow-failure 'common-fail:object-nowhere-to-be-found
+                  :rethrow-failure 'common-fail:searching-failed
                   :distance-threshold 0.1)
                (roslisp:ros-warn (fd-plans search-for-object)
                                  "Search is about to give up. Retrying~%"))))
@@ -272,7 +272,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans fetch) "~a~%Propagating up." e)
-         (cpl:fail 'common-fail:object-unfetchable
+         (cpl:fail 'common-fail:fetching-failed
                    :object ?object-designator
                    :description "Some designator could not be resolved.")))
 
@@ -291,7 +291,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                   (format NIL "Object of type ~a is unreachable: ~a"
                           (desig:desig-prop-value ?object-designator :type) e)
                   :warning-namespace (fd-plans fetch)
-                  :rethrow-failure 'common-fail:object-unfetchable))))
+                  :rethrow-failure 'common-fail:fetching-failed))))
 
         ;; navigate, look, detect and pick-up
         (exe:perform (desig:an action
@@ -412,7 +412,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans deliver) "~a~%Propagating up." e)
-         (cpl:fail 'common-fail:object-undeliverable
+         (cpl:fail 'common-fail:delivering-failed
                    :description "Some designator could not be resolved.")))
 
     (cpl:with-retry-counters ((outer-target-location-retries 2))
@@ -426,7 +426,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   (format NIL "Undeliverable. Trying another target location.~%~a" e)
                   :warning-namespace (fd-plans deliver)
                   :reset-designators (list ?target-robot-location)
-                  :rethrow-failure 'common-fail:object-undeliverable))))
+                  :rethrow-failure 'common-fail:delivering-failed))))
 
         ;; take a new `?target-robot-location' sample if a failure happens
         (cpl:with-retry-counters ((relocation-for-ik-retries 10))
@@ -596,7 +596,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                (roslisp:ros-info (pp-plans transport) "Fetched the object.")
 
                (cpl:with-failure-handling
-                   ((common-fail:object-undeliverable (e)
+                   ((common-fail:delivering-failed (e)
                       (declare (ignore e))
                       (drop-at-sink)
                       ;; (return)
