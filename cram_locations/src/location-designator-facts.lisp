@@ -45,8 +45,9 @@
 
   (<- (object-visibility-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:object ?object))
-    (btr:bullet-world ?world)
-    (btr-belief:object-designator-name ?object ?object-name)
+    (desig:desig-prop ?object (:name ?object-name))
+    ;; (btr:bullet-world ?world)
+    ;; (btr-belief:object-designator-name ?object ?object-name)
     (cram-robot-interfaces:robot ?robot)
     (costmap:costmap ?costmap)
     (visibility-costmap-metadata ?minimal-height ?maximal-height ?resolution ?size)
@@ -57,21 +58,21 @@
       ?minimal-height ?maximal-height ?size ?resolution)
      ?costmap))
 
-  (<- (unknown-object-visibility-costmap ?designator ?costmap)
-    ;; object hasn't been perceived yet and
-    ;; (OBJECT-VISIBILITY-COSTMAP ?des ?cm) failed
-    (desig:desig-prop ?designator (:object ?object))
-    (desig:desig-prop ?object (:at ?location))
-    (btr:bullet-world ?world)
-    (cram-robot-interfaces:robot ?robot)
-    (costmap:costmap ?costmap)
-    (visibility-costmap-metadata ?minimal-height ?maximal-height ?resolution ?size)
-    (costmap:costmap-add-function
-     visible
-     (make-location-visibility-costmap
-      ?world ?location ?robot
-      ?minimal-height ?maximal-height ?size ?resolution)
-     ?costmap))
+  ;; (<- (unknown-object-visibility-costmap ?designator ?costmap)
+  ;;   ;; object hasn't been perceived yet and
+  ;;   ;; (OBJECT-VISIBILITY-COSTMAP ?des ?cm) failed
+  ;;   (desig:desig-prop ?designator (:object ?object))
+  ;;   (desig:desig-prop ?object (:at ?location))
+  ;;   (btr:bullet-world ?world)
+  ;;   (cram-robot-interfaces:robot ?robot)
+  ;;   (costmap:costmap ?costmap)
+  ;;   (visibility-costmap-metadata ?minimal-height ?maximal-height ?resolution ?size)
+  ;;   (costmap:costmap-add-function
+  ;;    visible
+  ;;    (make-location-visibility-costmap
+  ;;     ?world ?location ?robot
+  ;;     ?minimal-height ?maximal-height ?size ?resolution)
+  ;;    ?costmap))
 
   (<- (location-visibility-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:location ?location))
@@ -89,7 +90,7 @@
   (<- (costmap:desig-costmap ?designator ?costmap)
     (cram-robot-interfaces:visibility-designator ?designator)
     (once (or (object-visibility-costmap ?designator ?costmap)
-              (unknown-object-visibility-costmap ?designator ?costmap)
+              ;; (unknown-object-visibility-costmap ?designator ?costmap)
               (location-visibility-costmap ?designator ?costmap))))
 
   (<- (desig-check-to-see ?desig ?robot-pose)
