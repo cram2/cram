@@ -72,22 +72,38 @@ If there is no other method with 1 as qualifier, this method will be executed al
     (when btr-object
       (btr:detach-object robot-object btr-object :link link)
       (btr:simulate btr:*current-bullet-world* 10)
-      ;; finding the link that supports the object now
+      ;; Finding the link or item that supports the object now:
+      ;; if btr-object is in contact with the environment and a item,
+      ;; the environment will be prefered.
       (flet ((get-contacting-link (obj-name)
-               (cdr (first (member obj-name
-                                   ;; get all links contacting items
-                                   ;; in the environment
-                                   (btr:link-contacts
-                                    (btr:get-environment-object))
-                                   :key (lambda (item-and-link-name-cons)
-                                          (btr:name (car item-and-link-name-cons)))
-                                   :test #'equal)))))
+               (cdr (find obj-name
+                          ;; get all links contacting items
+                          ;; in the environment
+                          (btr:link-contacts
+                           (btr:get-environment-object))
+                          :key (lambda (item-and-link-name-cons)
+                                 (btr:name (car item-and-link-name-cons)))
+                          :test #'equal)))
+             (get-contacting-item (obj-name)
+               (car (remove-if-not
+                     (lambda (c)
+                       (typep c 'btr:item))
+                     (btr:find-objects-in-contact btr:*current-bullet-world*
+                                                  (btr:object
+                                                   btr:*current-bullet-world* 
+                                                   obj-name))))))
         (let ((environment-object (btr:get-environment-object))
               (environment-link (get-contacting-link btr-object-name)))
-          ;; attaching the link to the object if it finds one.
-          (unless (cut:is-var environment-link)
-            (btr:attach-object environment-object btr-object
-                               :link environment-link)))))))
+          ;; If a link contacting btr-object was found, btr-object
+          ;; will be attached to it, else it will be tested, if
+          ;; btr-object is in contact with an item. If it is the
+          ;; btr-object will be attached loose.
+          (if environment-link
+              (btr:attach-object environment-object btr-object
+                                 :link environment-link)
+              (let ((item-object (get-contacting-item btr-object-name)))
+                (when item-object
+                  (btr:attach-object item-object btr-object :loose T)))))))))
 
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
   (let* ((btr-object-name (cpoe:event-object-name event))
