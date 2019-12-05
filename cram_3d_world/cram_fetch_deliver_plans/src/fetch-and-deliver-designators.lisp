@@ -199,12 +199,22 @@ the `look-pose-stamped'."
     ;; arm
     (once (or (spec:property ?action-designator (:arm ?arm))
               (equal ?arm NIL)))
+    ;; context
+    (once (or (spec:property ?action-designator (:context ?context))
+              (equal ?context NIL)))
     ;; target
-    (spec:property ?action-designator (:target ?some-location-designator))
-    (desig:current-designator ?some-location-designator ?location-designator)
+    (-> (and (desig:desig-prop ?action-designator (:target ?some-location-designator))
+             (not (equal ?some-location-designator NIL)))
+        (desig:current-designator ?some-location-designator ?location-designator)
+        (and (spec:property ?object-designator (:type ?type))
+             (-> (equal ?context NIL)
+                 (lisp-fun man-int:get-object-likely-destination :kitchen :thomas :table-setting ?type ?location-designator)
+                 (lisp-fun man-int:get-object-likely-destination :kitchen :Thomas ?context ?type ?location-designator))))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-robot-loc-desig))
                    (desig:current-designator ?some-robot-loc-desig ?robot-location-designator))
+                   ;; (spec:property ?robot-location-designator (:location ?some-loc-desig-in-rob-loc-desig))
+                   ;;  (not (equal ?some-loc-desig-in-rob-loc-desig NIL)))
               (desig:designator :location ((:reachable-for ?robot)
                                            (:object ?object-designator)
                                            (:location ?location-designator))
@@ -228,9 +238,23 @@ the `look-pose-stamped'."
     ;; object
     (spec:property ?action-designator (:object ?some-object-designator))
     (desig:current-designator ?some-object-designator ?object-designator)
+    ;; context
+    (once (or (spec:property ?action-designator (:context ?context))
+              (equal ?context NIL)))
     ;; search location
-    (spec:property ?action-designator (:location ?some-search-loc-desig))
-    (desig:current-designator ?some-search-loc-desig ?search-location-designator)
+    (-> (and (desig:desig-prop ?action-designator
+                               (:location ?some-search-loc-desig))
+             (not (equal ?some-search-loc-desig NIL)))
+        (desig:current-designator ?some-search-loc-desig
+                                  ?search-location-designator)
+        (or 
+         (and (equal ?context nil)
+              (spec:property ?object-designator (:type ?type))
+              (lisp-fun man-int:get-object-likely-location :kitchen
+                        :thomas :table-setting ?type ?search-location-designator))
+         (and (spec:property ?object-designator (:type ?type))
+              (lisp-fun man-int:get-object-likely-location :kitchen :thomas
+                        ?context ?type ?search-location-designator))))
     (-> (desig:desig-prop ?search-location-designator (:in ?_))
         (equal ?fetching-location-accessible NIL)
         (equal ?fetching-location-accessible T))
@@ -255,11 +279,14 @@ the `look-pose-stamped'."
         (true)
         (equal ?grasps NIL))
     ;; target location
-    (spec:property ?action-designator
-                   (:target ?some-delivering-location-designator))
-    (desig:current-designator ?some-delivering-location-designator
-                              ?delivering-location-designator)
-    (-> (desig:desig-prop ?delivering-location-designator (:in ?_))
+    (-> (spec:property ?action-designator
+                       (:target ?some-delivering-location-designator))
+        (desig:current-designator ?some-delivering-location-designator
+                                  ?delivering-location-designator)
+        (equal ?delivering-location-designator NIL))
+    (-> (and
+         (not (equal ?delivering-location-designator NIL))
+         (desig:desig-prop ?delivering-location-designator (:in ?_)))
         (equal ?delivering-location-accessible NIL)
         (equal ?delivering-location-accessible T))
     ;; deliver location robot base
@@ -271,6 +298,7 @@ the `look-pose-stamped'."
     ;; resulting action desig
     (desig:designator :action ((:type :transporting)
                                (:object ?object-designator)
+                               (:context ?context)
                                (:search-location ?search-location-designator)
                                (:search-robot-location ?search-robot-location-designator)
                                (:fetch-robot-location ?fetch-robot-location-designator)
