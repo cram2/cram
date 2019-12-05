@@ -57,7 +57,6 @@ grasp orientations for `object-type' given `arm' and `object-transform-in-base'.
   (:documentation "Returns a (lazy) list of cl-transforms-pose-stamped that,
 according to the reasoning engine, correspond to the given `location-designator'.")
   (:method :heuristics 20 (location-designator)
-    (print "get-location-poses w/ heuristics called")
     (desig:resolve-location-designator-through-generators-and-validators location-designator)))
 
 (defgeneric get-object-likely-location (kitchen-name human-name context object-type)
