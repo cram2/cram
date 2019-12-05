@@ -1,0 +1,20 @@
+
+Need to change:
+
+- cram_external_interfaces/cram_robosherlock/src/robosherlock-ros.lisp
+
+Line 203: (defun make-robosherlock-designator (rs-answer keyword-key-value-pairs-list)
+Comment back out:
+;; REPLACE NAME WITH TYPE FOR HPN
+;; (setf rs-answer
+;;       (subst-if `(:name ,cram-type)
+;;                 (lambda (x)
+;;                   (and (listp x) (eq (car x) :name)))
+;;                 rs-answer))
+
+
+- cram_3d_world/cram_bullet_reasoning/src/robot-model.lisp
+
+Line 567: (defmethod (setf joint-state) (new-value (obj robot-object) name)
+Change  (error "Trying to assert joint value for ~a to ~a but limits are (~a; ~a)"
+Into    (warn "Trying to assert joint value for ~a to ~a but limits are (~a; ~a)"

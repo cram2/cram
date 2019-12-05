@@ -75,7 +75,8 @@
                              position)))
              (keyword (ecase position
                         (:upper-limit upper-limit)
-                        (:lower-limit lower-limit))))))
+                        (:lower-limit lower-limit)
+                        (:middle (/ (- upper-limit lower-limit) 2)))))))
     cropped-joint-angle))
 
 
@@ -111,7 +112,9 @@
            :action-goal goal
            :action-timeout action-timeout))
       (ensure-giskard-torso-goal-reached result status goal-joint-state convergence-delta)
-      (values result status))))
+      (values result status)
+      ;; return the joint state, which is our observation
+      (joints:full-joint-states-as-hash-table))))
 
 
 

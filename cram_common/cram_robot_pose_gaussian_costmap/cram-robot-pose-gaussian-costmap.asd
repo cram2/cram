@@ -34,6 +34,7 @@
                cram-designators
                cram-location-costmap
                cram-robot-interfaces
+               cram-manipulation-interfaces ; for GET-OBJECT-POSE
                cram-tf
                cl-transforms
                cl-transforms-stamped)

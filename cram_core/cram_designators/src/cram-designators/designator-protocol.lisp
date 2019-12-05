@@ -321,3 +321,11 @@ by `property-extension' and returns a new (unequated) designator."
   (make-designator
    (class-of designator)
    (append (properties designator) property-extension)))
+
+(defun rename-designator-property-key (designator old-property new-property)
+  "Non-destructively renames a KEY in a designator description"
+  (let ((old-property-pair (find old-property (description designator) :key #'car)))
+    (make-designator
+     (class-of designator)
+     (append (remove old-property-pair (description designator))
+             `((,new-property ,@(rest old-property-pair)))))))

@@ -42,9 +42,9 @@
 
 
 
-  (<- (desig:action-grounding ?action-designator (perceive ?action-designator))
-    (spec:property ?action-designator (:type :detecting))
-    (spec:property ?action-designator (:object ?_)))
+  (<- (desig:action-grounding ?action-designator (go-with-torso ?action-designator))
+    (spec:property ?action-designator (:type :moving-torso))
+    (spec:property ?action-designator (:joint-angle ?_)))
 
 
 
@@ -86,14 +86,25 @@
                                         (:collision-object-b-link ?object-link))
                                ?resolved-action-designator))
         (and (spec:property ?action-designator (:type :pulling))
-             (desig:designator :action ((:type ?action-type)
-                                        (:left-poses ?left-poses)
-                                        (:right-poses ?right-poses)
-                                        (:collision-mode :allow-hand)
-                                        (:collision-object-b ?object-name)
-                                        (:collision-object-b-link ?object-link)
-                                        (:move-the-ass t))
-                               ?resolved-action-designator))))
+             (spec:property ?action-designator (:container-object ?container-designator))
+             (spec:property ?container-designator (:type ?container-type))
+             (or (and (man-int:object-type-subtype :container-prismatic ?container-type)
+                      (desig:designator :action ((:type ?action-type)
+                                                 (:left-poses ?left-poses)
+                                                 (:right-poses ?right-poses)
+                                                 (:collision-mode :allow-hand)
+                                                 (:collision-object-b ?object-name)
+                                                 (:collision-object-b-link ?object-link)
+                                                 (:move-the-ass t))
+                                        ?resolved-action-designator))
+                 (desig:designator :action ((:type ?action-type)
+                                            (:left-poses ?left-poses)
+                                            (:right-poses ?right-poses)
+                                            (:collision-mode :allow-hand)
+                                            (:collision-object-b ?object-name)
+                                            (:collision-object-b-link ?object-link)
+                                            (:move-the-ass nil))
+                                   ?resolved-action-designator)))))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
@@ -116,7 +127,8 @@
     (desig:designator :action ((:type :putting)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :allow-attached)
+                               (:collision-mode :allow-all;; :allow-attached
+                                                )
                                (:collision-object-b ?other-object-name)
                                (:collision-object-b-link ?object-link)
                                (:collision-object-a ?object-name))
@@ -162,13 +174,30 @@
 
   (<- (desig:action-grounding ?action-designator (release ?action-designator))
     (spec:property ?action-designator (:type :releasing))
-    (spec:property ?action-designator (:gripper ?_)))
+    (spec:property ?action-designator (:gripper ?_))
+    (once (or (spec:property ?action-designator (:object ?_))
+              (true))))
 
-  (<- (desig:action-grounding ?action-designator (grip ?action-designator))
+  (<- (desig:action-grounding ?action-designator (grip ?augmented-action-designator))
     (spec:property ?action-designator (:type :gripping))
     (spec:property ?action-designator (:gripper ?_))
+    (spec:property ?action-designator (:object ?object-designator))
+    ;; TODO: if grasp is not given, calculate it from relative offset
+    ;; something like
+    ;; (lisp-fun man-int:calculate-grasp ?object-desig-name ?gripper)
+    (once (or (spec:property ?action-designator (:grasp ?_))
+              (true)))
     (once (or (spec:property ?action-designator (:effort ?_))
-              (true))))
+              (true)))
+    ;; make a new object designator that will be equated to the old one
+    ;; after the successful grasp
+    (desig:current-designator ?object-designator ?current-object-desig)
+    (lisp-fun desig:rename-designator-property-key ?current-object-desig
+              :pose :old-pose ?new-object-desig)
+    ;; extend the old action designator with a new OBJECT property
+    (equal ?new-description ((:grasped-object ?new-object-desig)))
+    (lisp-fun desig:copy-designator ?action-designator :new-description ?new-description
+              ?augmented-action-designator))
 
   (<- (desig:action-grounding ?action-designator (set-gripper-to-position ?action-designator))
     (spec:property ?action-designator (:type :setting-gripper))
@@ -243,4 +272,10 @@
                                (:pose ?pose-stamped)
                                (:joint-states ?joint-states)
                                (:camera :head))
-                      ?resolved-action-designator)))
+                      ?resolved-action-designator))
+
+
+
+  (<- (desig:action-grounding ?action-designator (detect ?action-designator))
+    (spec:property ?action-designator (:type :detecting))
+    (spec:property ?action-designator (:object ?_))))
