@@ -48,7 +48,7 @@
                cram-prolog
                cram-common-failures
                cram-urdf-projection
-               cram-pr2-description
+               ;; cram-pr2-description
                cram-robot-interfaces
                cram-fetch-deliver-plans
                ;; costmaps are loaded for comparison with heuristics experiments
