@@ -120,182 +120,81 @@
 
 
 (cpl:def-cram-function demo-random (&optional
-                                    (random t)
-                                    (list-of-objects '(:bowl :spoon :cup :milk :breakfast-cereal)))
+                                    (random
+                                     t)
+                                    (list-of-objects
+                                     '(:bowl :spoon :cup :milk :breakfast-cereal)))
 
   (initialize)
   (when cram-projection:*projection-environment*
-    (spawn-objects-on-sink-counter :random random))
+    (if random
+        (spawn-objects-on-sink-counter-randomly)
+        (spawn-objects-on-sink-counter)))
 
   (park-robot)
 
-  (let ((object-fetching-locations
-          `((:breakfast-cereal . ,(desig:a location
-                                           (on (desig:an object
-                                                         (type counter-top)
-                                                         (urdf-name sink-area-surface)
-                                                         (owl-name "kitchen_sink_block_counter_top")
-                                                         (part-of kitchen)))
-                                           (side left)
-                                           (side front)
-                                           (range 0.5)))
-            (:cup . ,(desig:a location
-                              (side left)
-                              (on (desig:an object
-                                            (type counter-top)
-                                            (urdf-name sink-area-surface)
-                                            (owl-name "kitchen_sink_block_counter_top")
-                                            (part-of kitchen)))))
-            (:bowl . ,(desig:a location
-                               (on (desig:an object
-                                             (type counter-top)
-                                             (urdf-name sink-area-surface)
-                                             (owl-name "kitchen_sink_block_counter_top")
-                                             (part-of kitchen)))
-                               (side left)
-                               (side front)
-                               (range-invert 0.5)))
-            (:spoon . ,(desig:a location
-                                (in (desig:an object
-                                              (type drawer)
-                                              (urdf-name sink-area-left-upper-drawer-main)
-                                              (owl-name "drawer_sinkblock_upper_open")
-                                              (part-of kitchen)))
-                                (side front)))
-            (:milk . ,(desig:a location
-                               (side left)
-                               (side front)
-                               (range 0.5)
-                               (on;; in
-                                   (desig:an object
-                                             (type counter-top)
-                                             (urdf-name sink-area-surface ;; iai-fridge-main
-                                                        )
-                                             (owl-name "kitchen_sink_block_counter_top"
-                                                       ;; "drawer_fridge_upper_interior"
-                                                       )
-                                             (part-of kitchen)))))))
-        (object-placing-locations
-          (let ((?pose
-                  (cl-transforms-stamped:make-pose-stamped
-                   "map"
-                   0.0
-                   (cl-transforms:make-3d-vector -0.78 0.8 0.95)
-                   (cl-transforms:make-quaternion 0 0 0.6 0.4))))
-            `((:breakfast-cereal . ,(desig:a location
-                                             (pose ?pose)
-                                             ;; (left-of (an object (type bowl)))
-                                             ;; (far-from (an object (type bowl)))
-                                             ;; (for (an object (type breakfast-cereal)))
-                                             ;; (on (desig:an object
-                                             ;;               (type counter-top)
-                                             ;;               (urdf-name kitchen-island-surface)
-                                             ;;               (owl-name "kitchen_island_counter_top")
-                                             ;;               (part-of kitchen)))
-                                             ;; (side back)
-                                             ))
-              (:cup . ,(desig:a location
-                                (right-of (an object (type bowl)))
-                                (behind (an object (type bowl)))
-                                (near (an object (type bowl)))
-                                (for (an object (type cup)))))
-              (:bowl . ,(desig:a location
-                                 (on (desig:an object
-                                               (type counter-top)
-                                               (urdf-name kitchen-island-surface)
-                                               (owl-name "kitchen_island_counter_top")
-                                               (part-of kitchen)))
-                                 (context table-setting)
-                                 (for (an object (type bowl)))
-                                 (object-count 3)
-                                 (side back)
-                                 (side right)
-                                 (range-invert 0.5)))
-              (:spoon . ,(desig:a location
-                                  (right-of (an object (type bowl)))
-                                  (near (an object (type bowl)))
-                                  (for (an object (type spoon)))
-                                  (orientation support-aligned)))
-              (:milk . ,(desig:a location
-                                 (left-of (an object (type bowl)))
-                                 (far-from (an object (type bowl)))
-                                 (for (an object (type milk)))))))))
+  ;; (an object
+  ;;     (obj-part "drawer_sinkblock_upper_handle"))
 
-    ;; (an object
-    ;;     (obj-part "drawer_sinkblock_upper_handle"))
+  (dolist (?object-type list-of-objects)
+    (let* ((?arm-to-use
+             (cdr (assoc ?object-type *object-grasping-arms*)))
+           (?cad-model
+             (cdr (assoc ?object-type *object-cad-models*)))
+           (?color
+             (cdr (assoc ?object-type *object-colors*)))
+           (?object-to-fetch
+             (desig:an object
+                       (type ?object-type)
+                       (desig:when ?cad-model
+                         (cad-model ?cad-model))
+                       (desig:when ?color
+                         (color ?color)))))
 
-    (dolist (?object-type list-of-objects)
-      (let* ((?fetching-location
-               (cdr (assoc ?object-type object-fetching-locations)))
-             (?delivering-location
-               (cdr (assoc ?object-type object-placing-locations)))
-             (?arm-to-use
-               (cdr (assoc ?object-type *object-grasping-arms*)))
-             (?cad-model
-               (cdr (assoc ?object-type *object-cad-models*)))
-             (?color
-               (cdr (assoc ?object-type *object-colors*)))
-             (?object-to-fetch
-               (desig:an object
-                         (type ?object-type)
-                         (location ?fetching-location)
-                         (desig:when ?cad-model
-                           (cad-model ?cad-model))
-                         (desig:when ?color
-                           (color ?color)))))
+      ;; (when (eq ?object-type :bowl)
+      ;;   (cpl:with-failure-handling
+      ;;       ((common-fail:high-level-failure (e)
+      ;;          (roslisp:ros-warn (pp-plans demo)
+      ;;                            "Failure happened: ~a~%Skipping the search" e)
+      ;;          (return)))
+      ;;     (let ((?loc (man-int:get-object-likely-location
+      ;;                  :kitchen :thomas :table-setting :breakfast-cereal)))
+      ;;       (exe:perform
+      ;;        (desig:an action
+      ;;                  (type searching)
+      ;;                  (object (desig:an object (type breakfast-cereal)))
+      ;;                  (location ?loc))))))
 
-        ;; (when (eq ?object-type :bowl)
-        ;;   (cpl:with-failure-handling
-        ;;       ((common-fail:high-level-failure (e)
-        ;;          (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping the search" e)
-        ;;          (return)))
-        ;;     (let ((?loc (cdr (assoc :breakfast-cereal object-fetching-locations))))
-        ;;       (exe:perform
-        ;;        (desig:an action
-        ;;                  (type searching)
-        ;;                  (object (desig:an object (type breakfast-cereal)))
-        ;;                  (location ?loc))))))
+      (cpl:with-failure-handling
+          ((common-fail:high-level-failure (e)
+             (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
+             (return)))
 
-        (cpl:with-failure-handling
-            ((common-fail:high-level-failure (e)
-               (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
-               (return)))
-          (exe:perform
-           (desig:an action
-                     (type transporting)
-                     (object ?object-to-fetch)
-                     (location ?fetching-location)
-                     (target ?delivering-location)
-                     (desig:when ?arm-to-use
-                       (arms (?arm-to-use)))))
-          ;; (if (eq ?object-type :bowl)
-          ;;     (exe:perform
-          ;;      (desig:an action
-          ;;                (type transporting)
-          ;;                (object ?object-to-fetch)
-          ;;                ;; (arm right)
-          ;;                (location ?fetching-location)
-          ;;                (target ?delivering-location)))
-          ;;     (if (eq ?object-type :breakfast-cereal)
-          ;;         (exe:perform
-          ;;          (desig:an action
-          ;;                    (type transporting)
-          ;;                    (object ?object-to-fetch)
-          ;;                    ;; (arm right)
-          ;;                    (location ?fetching-location)
-          ;;                    (target ?delivering-location)))
-          ;;         (exe:perform
-          ;;          (desig:an action
-          ;;                    (type transporting)
-          ;;                    (object ?object-to-fetch)
-          ;;                    (desig:when ?arm-to-use
-          ;;                      (arm ?arm-to-use))
-          ;;                    (location ?fetching-location)
-          ;;                    (target ?delivering-location)))))
-          )
+        (exe:perform
+         (desig:an action
+                   (type transporting)
+                   (object ?object-to-fetch)
+                   (desig:when ?arm-to-use
+                     (arms (?arm-to-use)))))
 
-        ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
-        )))
+        ;; (if (or (eq ?object-type :bowl)
+        ;;          (eq ?object-type :breakfast-cereal))
+        ;;      (exe:perform
+        ;;       (desig:an action
+        ;;                 (type transporting)
+        ;;                 (object ?object-to-fetch)
+        ;;                 ;; (arm right)
+        ;;                 ))
+        ;;      (exe:perform
+        ;;       (desig:an action
+        ;;                 (type transporting)
+        ;;                 (object ?object-to-fetch)
+        ;;                 (desig:when ?arm-to-use
+        ;;                   (arm ?arm-to-use)))))
+        )
+
+      ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
+      ))
 
   ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
 

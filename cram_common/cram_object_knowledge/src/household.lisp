@@ -332,3 +332,439 @@
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;; location ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-likely-location :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :bowl)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name sink-area-surface)
+                         (owl-name "kitchen_sink_block_counter_top")
+                         (part-of ?kitchen-name)))
+           (side left)
+           (side front)
+           (range-invert 0.5)))
+
+(defmethod man-int:get-object-likely-location :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :spoon)))
+  
+  (desig:a location
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name sink-area-left-upper-drawer-main)
+                         (owl-name "drawer_sinkblock_upper_open")
+                         (part-of ?kitchen-name)))
+           (side front)))
+
+(defmethod man-int:get-object-likely-location :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :knife)))
+  
+  (desig:a location
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name sink-area-left-upper-drawer-main)
+                         (owl-name "drawer_sinkblock_upper_open")
+                         (part-of ?kitchen-name)))
+           (side front)))
+
+(defmethod man-int:get-object-likely-location :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :plate)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name sink-area-surface)
+                         (owl-name "kitchen_sink_block_counter_top")
+                         (part-of ?kitchen-name)))
+           (side left)
+           (side front)
+           (range-invert 0.5)))
+
+(defmethod man-int:get-object-likely-location :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :mug)))
+
+  (desig:a location
+           (side left)
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name sink-area-surface)
+                         (owl-name "kitchen_sink_block_counter_top")
+                         (part-of ?kitchen-name)))))
+
+(defmethod man-int:get-object-likely-location :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :cup)))
+  
+  (desig:a location
+           (side left)
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name sink-area-surface)
+                         (owl-name "kitchen_sink_block_counter_top")
+                         (part-of ?kitchen-name)))))
+
+(defmethod man-int:get-object-likely-location :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :breakfast-cereal)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name sink-area-surface)
+                         (owl-name "kitchen_sink_block_counter_top")
+                         (part-of ?kitchen-name)))
+           (side left)
+           (side front)
+           (range 0.5)))
+
+(defmethod man-int:get-object-likely-location :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :milk)))
+
+  (desig:a location
+           (side left)
+           (side front)
+           (range 0.5)
+           (on;; in
+            (desig:an object
+                      (type counter-top)
+                      (urdf-name sink-area-surface ;; iai-fridge-main
+                                 )
+                      (owl-name "kitchen_sink_block_counter_top"
+                                ;; "drawer_fridge_upper_interior"
+                                )
+                      (part-of ?kitchen-name)))))
+
+(defmethod man-int:get-object-likely-location :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :bottle)))
+
+  (desig:a location
+           (side left)
+           (side front)
+           (range 0.5)
+           (on;; in
+            (desig:an object
+                      (type counter-top)
+                      (urdf-name sink-area-surface ;; iai-fridge-main
+                                 )
+                      (owl-name "kitchen_sink_block_counter_top"
+                                ;; "drawer_fridge_upper_interior"
+                                )
+                      (part-of ?kitchen-name)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;; destination ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :bowl)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type))) ;; 'for' keyword
+           ;; instead 'object' since we want that the bowl should be
+           ;; placed on surface of the kitchen island
+           (context ?context)
+           (object-count 3)
+           (side back)
+           (side right)
+           (range-invert 0.5)))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-cleaning))
+     (?object-type (eql :bowl)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; spoon ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting)) 
+     (?object-type (eql :spoon)))
+
+  (let ((?other-object :bowl))
+    (desig:a location
+             (right-of (desig:an object (type ?other-object)))
+             (near (desig:an object (type ?other-object)))
+             (for (desig:an object (type ?object-type)))
+             (orientation support-aligned))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-cleaning))
+     (?object-type (eql :spoon)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; knife ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :knife)))
+  
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-cleaning))
+     (?object-type (eql :knife)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; plate ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :plate)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-cleaning))
+     (?object-type (eql :plate)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; mug ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting)) 
+     (?object-type (eql :mug)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-cleaning))
+     (?object-type (eql :mug)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cup ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :cup)))
+
+  (let ((?other-object :bowl))
+    (desig:a location
+             (right-of (desig:an object (type ?other-object)))
+             (behind (desig:an object (type ?other-object)))
+             (near (desig:an object (type ?other-object)))
+             (for (desig:an object (type ?object-type))))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-cleaning))
+     (?object-type (eql :cup)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+;;;;;;;;;;;;;;;;;;;;;;; breakfast-cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting)) 
+     (?object-type (eql :breakfast-cereal)))
+
+  (let ((?pose
+          (cl-transforms-stamped:make-pose-stamped
+           "map"
+           0.0
+           (cl-transforms:make-3d-vector -0.78 0.8 0.95)
+           (cl-transforms:make-quaternion 0 0 0.6 0.4)))
+        ;; (?other-object :bowl)
+        )
+    (desig:a location
+             (pose ?pose)
+             ;; (left-of (desig:an object (type ?other-object)))
+             ;; (far-from (desig:an object (type ?other-object)))
+             ;; (for (desig:an object (type ?object-type)))
+             ;; (on (desig:an object
+             ;;               (type counter-top)
+             ;;               (urdf-name kitchen-island-surface)
+             ;;               (owl-name "kitchen_island_counter_top")
+             ;;               (part-of ?kitchen-name)))
+             ;; (side back)
+             )))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-cleaning))
+     (?object-type (eql :breakfast-cereal)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :milk)))
+
+  (let ((?other-object :bowl))
+    (desig:a location
+             (left-of (desig:an object (type ?other-object)))
+             (far-from (desig:an object (type ?other-object)))
+             (for (desig:an object (type ?object-type))))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-cleaning))
+     (?object-type (eql :milk)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;; bottle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-likely-destination :heuristics 20 
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-setting))
+     (?object-type (eql :bottle)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
+
+(defmethod man-int:get-object-likely-destination :heuristics 20
+    ((?kitchen-name (eql :kitchen))
+     ?human-name 
+     (?context (eql :table-cleaning))
+     (?object-type (eql :bottle)))
+
+  (desig:a location
+           (on (desig:an object
+                         (type area-sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of ?kitchen-name)))
+           (for (desig:an object (type ?object-type)))))
