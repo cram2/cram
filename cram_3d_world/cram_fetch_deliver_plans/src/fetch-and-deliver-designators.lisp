@@ -203,6 +203,9 @@ the `look-pose-stamped'."
     (once (or (spec:property ?action-designator (:context ?context))
               (equal ?context NIL)))
     ;; target
+    ;; If the location-desig with keyword :target is not nil, get the
+    ;; current desig of it, else call man-int:get-object-likely-destination
+    ;; to infer the location desig.
     (-> (and (desig:desig-prop ?action-designator (:target ?some-location-designator))
              (not (equal ?some-location-designator NIL)))
         (desig:current-designator ?some-location-designator ?location-designator)
@@ -213,8 +216,6 @@ the `look-pose-stamped'."
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location ?some-robot-loc-desig))
                    (desig:current-designator ?some-robot-loc-desig ?robot-location-designator))
-                   ;; (spec:property ?robot-location-designator (:location ?some-loc-desig-in-rob-loc-desig))
-                   ;;  (not (equal ?some-loc-desig-in-rob-loc-desig NIL)))
               (desig:designator :location ((:reachable-for ?robot)
                                            (:location ?location-designator))
                                 ?robot-location-designator)))
@@ -241,6 +242,9 @@ the `look-pose-stamped'."
     (once (or (spec:property ?action-designator (:context ?context))
               (equal ?context NIL)))
     ;; search location
+    ;; If location designator with keyword :location was given, get
+    ;; the current desig, else call man-int:get-object-likely-location 
+    ;; with given object-type and maybe context to get a location desig
     (-> (and (desig:desig-prop ?action-designator
                                (:location ?some-search-loc-desig))
              (not (equal ?some-search-loc-desig NIL)))
