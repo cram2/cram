@@ -544,6 +544,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
 (defun transport (&key
                     ((:object ?object-designator))
+                    ((:context ?context))
                     ((:search-location ?search-location))
                     ((:search-robot-location ?search-base-location))
                     ((:fetch-robot-location ?fetch-robot-location))
@@ -611,6 +612,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                              ;; (desig:when ?arm
                                              ;;   (arm ?arm))
                                              (object ?fetched-object)
+                                             (context ?context)
                                              (target ?delivering-location)
                                              (desig:when ?deliver-robot-location
                                                (robot-location ?deliver-robot-location))
