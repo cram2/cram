@@ -39,8 +39,10 @@
 ;;; rcg_d different grasps
 (in-package :kvr)
 
+(defvar *kvr-enabled* t)
+
 (defvar *episode-path*
-  "/home/cram/ros/episode_data/episodes/Own-Episodes/set-clean-table/"
+  "/home/cram/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/"
   "path of where the episode data is located")
 
 (defun load-multiple-episodes (&optional namedir-list)
@@ -51,9 +53,9 @@
                   (uiop:subdirectories *episode-path*))))
   (mapcar #'(lambda (namedir)
               (u-load-episodes (concatenate 'string
-                                            *episode-path* namedir "Episodes/"))
+                                            *episode-path* namedir "/Episodes/"))
               (owl-parse (concatenate 'string
-                                      *episode-path* namedir "SemanticMap.owl"))
+                                      *episode-path* namedir "/SemanticMap.owl"))
               (connect-to-db "Own-Episodes_set-clean-table"))
           namedir-list))
 
@@ -130,16 +132,14 @@ semantic map kitchen."
       objects)))
 
 (defun init-location-costmap-parameters ()
-  (def-fact-group costmap-metadata ()
+  (def-fact-group costmap-metadata (costmap:costmap-size
+                                    costmap:costmap-origin
+                                    costmap:costmap-resolution
+                                    costmap:orientation-samples
+                                    costmap:orientation-sample-step)
     (<- (location-costmap:costmap-size 12 12))
     (<- (location-costmap:costmap-origin -6 -6))
     (<- (location-costmap:costmap-resolution 0.04))
-
-    (<- (location-costmap:costmap-padding 0.3))
-    (<- (location-costmap:costmap-manipulation-padding 0.4))
-    (<- (location-costmap:costmap-in-reach-distance 0.9))
-    (<- (location-costmap:costmap-reach-minimal-distance 0.2))
-    (<- (location-costmap:visibility-costmap-size 2))
     (<- (location-costmap:orientation-samples 2))
     (<- (location-costmap:orientation-sample-step 0.1))))
 
@@ -147,97 +147,17 @@ semantic map kitchen."
    "Spawns all the objects which are necessary for the current
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
+  ;;set the "unreal" prefix for the json_prolog node if you are using the simulation.launch
+  (setq json-prolog:*service-namespace* "/unreal/json_prolog")
   (roslisp-utilities:startup-ros)
+
   (coe:clear-belief)
-  (init-episode (or namedir
-                    (loop for i from 1 to 20 collecting (format nil "ep~a/" i))))
-  (spawn-semantic-map)
   (spawn-urdf-items)
-  (spawn-semantic-items)
+
+  (init-episode (or namedir
+                    (loop for i from 1 to 18 collecting (format nil "ep~a" i))))
+  ;; (spawn-semantic-map)
+  ;; (spawn-semantic-items)
+
   (init-location-costmap-parameters))
 
-
-#+currently-using-pr2-pick-place-demo-to-initialize-world
-(
- (defun init-bullet-world ()
-   "Initializes the bullet world. The robot spawns in the white urdf kitchen,
-while the semantic map kitchen is spawned right next to the urdf kitchen,
-representing the Virtual Reality world, and how the kitchen was set up there."
-   ;; reset bullet world
-   (setq btr:*current-bullet-world* nil)
-
-   ;; append own meshes to meshes list so that they can be loaded.
-   (btr:add-objects-to-mesh-list "cram_knowrob_vr")
-
-   (setf btr:*mesh-path-whitelist* *mesh-path-whitelist-unreal-kitchen*)
-
-   ;; init tf early. Otherwise there will be exceptions.
-   (cram-tf::init-tf)
-   (setf cram-tf:*tf-default-timeout* 2.0)
-   (setf prolog:*break-on-lisp-errors* t)
-
-   (cram-occupancy-grid-costmap::init-occupancy-grid-costmap)
-   (cram-bullet-reasoning-belief-state::ros-time-init)
-   (cram-location-costmap::location-costmap-vis-init)
-
-   ;; set costmap parameters
-   (prolog:def-fact-group costmap-metadata ()
-     (prolog:<- (location-costmap:costmap-size 12 12))
-     (prolog:<- (location-costmap:costmap-origin -6 -6))
-     (prolog:<- (location-costmap:costmap-resolution 0.05))
-
-     (prolog:<- (location-costmap:costmap-padding 0.2))
-     (prolog:<- (location-costmap:costmap-manipulation-padding 0.2))
-     (prolog:<- (location-costmap:costmap-in-reach-distance 0.6))
-     (prolog:<- (location-costmap:costmap-reach-minimal-distance 0.2)))
-
-;;; initialization from the tutorial
-   (prolog:prolog '(and (btr:bullet-world ?world)
-                    (assert
-                     (btr:object ?world :static-plane :floor ((0 0 0) (0 0 0 1))
-                                                      :normal (0 0 1) :constant 0))))
-   (prolog:prolog '(and (btr:bullet-world ?world)
-                    (btr:debug-window ?world)))
-
-;;; load robot description
-   (setf rob-int:*robot-urdf*
-         (cl-urdf:parse-urdf
-          (roslisp:get-param btr-belief:*robot-parameter*)))
-   (prolog:prolog
-    `(and (btr:bullet-world ?world)
-          (cram-robot-interfaces:robot ?robot)
-          (assert (btr:object ?world :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,rob-int:*robot-urdf*))
-          (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
-          (assert (btr:joint-state ?world ?robot ?left-joint-states))
-          (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
-          (assert (btr:joint-state ?world ?robot ?right-joint-states))
-          (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
-          (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
-          (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit)
-          (prolog:lisp-fun + ?lower-limit ?upper-limit ?sum)
-          (prolog:lisp-fun / ?sum 2.0 ?average-joint-value)
-          (assert (btr:joint-state ?world ?robot
-                                   ((?torso-joint ?average-joint-value))))))
-
-   (ros-info (kvr) "spawning semantic-map kitchen...")
-
-   (sem-map:get-semantic-map)
-
-   ;; spawning semantic map kitchen
-   (prolog:prolog
-    `(and (btr:bullet-world ?world)
-          (assert (btr:object ?world :semantic-map :semantic-map-kitchen
-                              ((0 -3 0) (0 0 0 1))))))
-
-   ;; spawning urdf kitchen
-   (prolog:prolog
-    `(and (btr:bullet-world ?world)
-          (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                           :collision-group :static-filter
-                                           :collision-mask (:default-filter
-                                                            :character-filter)
-                                           :compound t
-                                           :urdf ,(cl-urdf:parse-urdf
-                                                   (roslisp:get-param
-                                                    "kitchen_description")))))))
- )

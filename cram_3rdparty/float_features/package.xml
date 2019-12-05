@@ -1,0 +1,21 @@
+<package>
+  <name>float_features</name>
+  <version>0.7.0</version>
+  <description>
+      3rd party library: float-features
+  </description>
+
+  <author>Nicolas Hafner</author>
+
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+
+  <license>zlib</license>
+
+  <url type="website">https://shinmera.github.io/float-features/</url>
+  <url type="bugtracker">https://github.com/Shinmera/float-features/issues</url>
+  <url type="repository">https://github.com/Shinmera/float-features</url>
+  <url type="repository">https://github.com/cram2/cram_3rdparty</url>
+  <!--external-version>8187b2f544ab129f69789d120d47c5f10e5f5195</external-version-->
+
+  <buildtool_depend>catkin</buildtool_depend>
+</package>

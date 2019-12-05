@@ -42,6 +42,32 @@
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
+              ;; THIS STUFF HAS A STATE
+              ;; RESET THE STATE EXPLICITLY IF YOU WANT A NON CART MOVEMENT AFTER THIS
+              :constraints
+              (vector (roslisp:make-message
+                       'giskard_msgs-msg:constraint
+                       :type
+                       "UpdateGodMap"
+                       :parameter_value_pair
+                       (let ((stream (make-string-output-stream)))
+                         (yason:encode
+                          (alexandria:alist-hash-table
+                           `(("updates"
+                              .
+                              ,(alexandria:alist-hash-table
+                                `(("rosparam"
+                                   .
+                                   ,(alexandria:alist-hash-table
+                                     `(("joint_weights"
+                                        .
+                                        ,(alexandria:alist-hash-table
+                                          `(("odom_x_joint" . 0.0001)
+                                            ("odom_y_joint" . 0.0001)
+                                            ("odom_z_joint" . 0.0001))))))))
+                                :test #'equal))))
+                          stream)
+                         (get-output-stream-string stream))))
               :cartesian_constraints
               (vector (roslisp:make-message
                        'giskard_msgs-msg:cartesianconstraint
@@ -59,6 +85,24 @@
                        :root_link cram-tf:*odom-frame*
                        :tip_link cram-tf:*robot-base-frame*
                        :goal (cl-transforms-stamped:to-msg pose)))
+              :joint_constraints
+              (let ((left-names-and-positions
+                      (get-arm-joint-names-and-positions-list :left))
+                    (right-names-and-positions
+                      (get-arm-joint-names-and-positions-list :right)))
+                (vector (roslisp:make-message
+                         'giskard_msgs-msg:jointconstraint
+                         :type (roslisp:symbol-code
+                                'giskard_msgs-msg:jointconstraint
+                                :joint)
+                         :goal_state (roslisp:make-message
+                                      'sensor_msgs-msg:jointstate
+                                      :name (apply #'vector
+                                                   (append (first left-names-and-positions)
+                                                           (first right-names-and-positions)))
+                                      :position (apply #'vector
+                                                       (append (second left-names-and-positions)
+                                                               (second right-names-and-positions)))))))
               :collisions
               (vector (roslisp:make-message
                          'giskard_msgs-msg:collisionentry
@@ -107,7 +151,7 @@
            :action-timeout action-timeout))
       (ensure-giskard-base-goal-reached result status goal-pose
                                         convergence-delta-xy convergence-delta-theta)
-      (values result status))))
+      (joints:full-joint-states-as-hash-table))))
 
 
 

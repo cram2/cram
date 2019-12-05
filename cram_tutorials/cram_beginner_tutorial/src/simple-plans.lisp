@@ -42,7 +42,7 @@ given by x, y, and theta of `msg'."
       theta))))
  
 (defun relative-angle-to (goal pose-msg)
-  "Given a `pose-msg' as a geometry_msgs/Pose and a `goal' as cl-transforms:3d-vector,
+  "Given a `pose-msg' as a turtlesim-msg:pose and a `goal' as cl-transforms:3d-vector,
 calculate the angle by which the pose has to be turned to point toward the goal."
   (let ((diff-pose (cl-transforms:transform-point
                      (cl-transforms:transform-inv

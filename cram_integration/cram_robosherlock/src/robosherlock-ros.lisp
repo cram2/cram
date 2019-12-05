@@ -83,7 +83,7 @@
                              (list key
                                    (etypecase value ; RS is only case-sensitive on "TYPE"s
                                      (keyword (remove #\-
-                                                      (if (or (eql key :type))
+                                                      (if (eql key :type)
                                                           (string-capitalize (symbol-name value))
                                                           (string-downcase (symbol-name value)))))
                                      (string value)
@@ -200,9 +200,36 @@
     (second pose-description-we-want)))
 
 (defun make-robosherlock-designator (rs-answer keyword-key-value-pairs-list)
-  (when (and (find :type rs-answer :key #'car) ; <- TYPE comes from original query
+  (when (and (find :type rs-answer :key #'car)
              (find :type keyword-key-value-pairs-list :key #'car))
-    (setf rs-answer (remove :type rs-answer :key #'car)))
+    ;; TYPE comes from original query
+    ;; (setf rs-answer (remove :type rs-answer :key #'car))
+    ;;
+    ;; Actually not, because if we want to perceive "type KitchenObject",
+    ;; we get KitchenObject back and that's not nice.
+    ;; so for now we'll have a mapping...
+    (let ((cram-type
+            (ecase (second (find :type rs-answer :key #'car))
+              (:KoellnMuesliKnusperHonigNuss
+               :breakfast-cereal)
+              (:CupEcoOrange
+               :cup)
+              (:EdekaRedBowl
+               :bowl)
+              (:WeideMilchSmall
+               :milk))))
+      (setf rs-answer
+            (subst-if `(:type ,cram-type)
+                      (lambda (x)
+                        (and (listp x) (eq (car x) :type)))
+                      rs-answer))
+      ;; REPLACE NAME WITH TYPE FOR HPN
+      ;; (setf rs-answer
+      ;;       (subst-if `(:name ,cram-type)
+      ;;                 (lambda (x)
+      ;;                   (and (listp x) (eq (car x) :name)))
+      ;;                 rs-answer))
+      ))
   ;; (when (and (find :location rs-answer :key #'car) ; <- LOCATION comes from original query
   ;;            (find :location keyword-key-value-pairs-list :key #'car))
   ;;   (setf rs-answer (remove :location rs-answer :key #'car)))
@@ -210,6 +237,8 @@
   ;; (when (and (find :color rs-answer :key #'car) ; <- COLOR comes from original query
   ;;            (find :color keyword-key-value-pairs-list :key #'car))
   ;;   (setf rs-answer (remove :color rs-answer :key #'car)))
+  (setf rs-answer (remove :color rs-answer :key #'car)) ; <- if we don't do this
+                                                        ; might end up asking about mutliple colors
   (setf rs-answer (remove :shape rs-answer :key #'car)); <- SHAPE comes from original query
   ;; (when (and (find :pose rs-answer :key #'car)
   ;;            (find :pose keyword-key-value-pairs-list :key #'car))

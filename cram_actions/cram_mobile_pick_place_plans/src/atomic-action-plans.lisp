@@ -51,46 +51,25 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
-(defun perceive (&key
-                   ((:object ?object-designator))
-                   (object-chosing-function #'identity)
-                 &allow-other-keys)
-  (declare (type desig:object-designator ?object-designator))
-  "Call detecting motion on `?object-designator', retry on failure, issue perceived event,
-equate resulting designator to the original one."
-
-  (exe:perform
-   (desig:a motion (type moving-torso) (joint-angle upper-limit)))
-
-  (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
-                     1
-                     4)))
-    (cpl:with-retry-counters ((perceive-retries retries))
-      (cpl:with-failure-handling
-          ((common-fail:perception-low-level-failure (e)
-             (cpl:do-retry perceive-retries
-               (roslisp:ros-warn (pick-and-place perceive) "~a" e)
-               (cpl:retry))))
-        (let* ((resulting-designators
-                 (exe:perform
-                  (desig:a motion
-                           (type detecting)
-                           (object ?object-designator))))
-               (resulting-designator
-                 (funcall object-chosing-function resulting-designators)))
-          (if (listp resulting-designators)
-              (mapcar (lambda (desig)
-                        (cram-occasions-events:on-event
-                         (make-instance 'cram-plan-occasions-events:object-perceived-event
-                           :object-designator desig
-                           :perception-source :whatever)))
-                      resulting-designators)
-              (cram-occasions-events:on-event
-               (make-instance 'cram-plan-occasions-events:object-perceived-event
-                 :object-designator resulting-designators
-                 :perception-source :whatever)))
-          (desig:equate ?object-designator resulting-designator)
-          resulting-designator)))))
+(defun go-with-torso (&key
+                     ((:joint-angle ?joint-angle))
+                     &allow-other-keys)
+  (declare (type (or number keyword) ?joint-angle))
+  "Go to `?joint-angle' with torso, if a failure happens propagate it up, robot-state-changed event."
+  (unwind-protect
+       (cpl:with-retry-counters ((torso-retries 1))
+         (cpl:with-failure-handling
+             ((common-fail:torso-low-level-failure (e)
+                (roslisp:ros-warn (pick-and-place move-torso)
+                                  "Some low-level failure happened: ~a"
+                                  e)
+                (cpl:do-retry torso-retries
+                  (roslisp:ros-warn (pick-and-place move-torso) "Retrying...")
+                  (cpl:retry))))
+           (exe:perform
+            (desig:a motion (type moving-torso) (joint-angle ?joint-angle)))))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
 (defun move-arms-in-sequence (&key
@@ -115,7 +94,7 @@ while ignoring failures; and execute the last pose with propagating the failures
   (unless (listp right-poses)
     (setf right-poses (list right-poses)))
   (multiple-value-bind (left-poses right-poses)
-      (cut:equalize-two-list-lengths left-poses right-poses)
+      (cut:equalize-two-list-lengths (butlast left-poses) (butlast right-poses))
 
     ;; Move arms through all but last poses of `?left-poses' and `?right-poses'
     ;; while ignoring failures: accuracy is not so important in intermediate poses.
@@ -217,6 +196,7 @@ while ignoring failures; and execute the last pose with propagating the failures
 
 (defun release (&key
                   ((:gripper ?left-or-right))
+                  ((:object ?object-designator))
                 &allow-other-keys)
   (declare (type (or keyword list) ?left-or-right))
   "Call OPENING-GRIPPER motion while ignoring failures and issue robot-state-changed event"
@@ -231,11 +211,21 @@ while ignoring failures; and execute the last pose with propagating the failures
                    (type opening-gripper)
                    (gripper ?left-or-right))))
     (cram-occasions-events:on-event
-     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))
+    (roslisp:ros-info (pick-place release) "Retract grasp in knowledge base")
+    (cram-occasions-events:on-event
+     (make-instance 'cpoe:object-detached-robot
+       :arm ?left-or-right
+       :object-name (if ?object-designator
+                        (desig:desig-prop-value ?object-designator :name)
+                        NIL)))))
 
 (defun grip (&key
                ((:gripper ?left-or-right))
                ((:effort ?effort))
+               ((:object object-designator))
+               ((:grasped-object new-object-designator))
+               ((:grasp ?grasp))
              &allow-other-keys)
   (declare (type (or keyword list) ?left-or-right)
            (type (or number null) ?effort))
@@ -255,7 +245,15 @@ In any case, issue ROBOT-STATE-CHANGED event."
                      (type gripping)
                      (gripper ?left-or-right)
                      (desig:when ?effort
-                       (effort ?effort))))))
+                       (effort ?effort))))
+           (roslisp:ros-info (pick-place grip) "Assert grasp into knowledge base")
+           (cram-occasions-events:on-event
+            (make-instance 'cpoe:object-attached-robot
+              :arm ?left-or-right
+              :object-name (desig:desig-prop-value object-designator :name)
+              :grasp ?grasp))
+           (desig:equate object-designator new-object-designator)
+           new-object-designator))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
@@ -330,3 +328,46 @@ In any case, issue ROBOT-STATE-CHANGED event."
 
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
+
+(defun detect (&key
+                 ((:object ?object-designator))
+                 (object-chosing-function #'identity)
+               &allow-other-keys)
+  (declare (type desig:object-designator ?object-designator))
+  "Call detecting motion on `?object-designator', retry on failure, issue perceived event,
+equate resulting designator to the original one."
+  (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
+                     1
+                     4)))
+    (cpl:with-retry-counters ((perceive-retries retries))
+      (cpl:with-failure-handling
+          ((common-fail:perception-low-level-failure (e)
+             (cpl:do-retry perceive-retries
+               (roslisp:ros-warn (pick-and-place perceive) "~a" e)
+               (cpl:retry))))
+
+        (let* ((resulting-designators
+                 (exe:perform
+                  (desig:a motion
+                           (type detecting)
+                           (object ?object-designator))))
+               (resulting-designator
+                 (funcall object-chosing-function resulting-designators)))
+          (if (listp resulting-designators)
+              (mapcar (lambda (desig)
+                        (cram-occasions-events:on-event
+                         (make-instance 'cram-plan-occasions-events:object-perceived-event
+                           :object-designator desig
+                           :perception-source :whatever))
+                        ;; doesn't make sense to equate all these desigs together
+                        ;; (desig:equate ?object-designator desig)
+                        )
+                      resulting-designators)
+              (progn
+                (cram-occasions-events:on-event
+                 (make-instance 'cram-plan-occasions-events:object-perceived-event
+                   :object-designator resulting-designators
+                   :perception-source :whatever))
+                (desig:equate ?object-designator resulting-designator)))
+          resulting-designator)))))

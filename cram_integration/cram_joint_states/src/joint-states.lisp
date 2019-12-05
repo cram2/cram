@@ -134,3 +134,28 @@ as multiple values."
 
 (defun normalize-joint-angles (list-of-angles)
   (mapcar #'cl-transforms:normalize-angle list-of-angles))
+
+
+(defun full-joint-states-as-hash-table (&optional state-fluent)
+  (let ((last-joint-state-msg (cpl:value (or state-fluent *robot-joint-states-msg*))))
+    (when last-joint-state-msg
+      (let ((result-hash-table (make-hash-table :test 'equal)))
+        (map 'list
+             (lambda (name position)
+               (setf (gethash name result-hash-table) position))
+             (roslisp:msg-slot-value last-joint-state-msg :name)
+             (roslisp:msg-slot-value last-joint-state-msg :position))
+        ;; hpn needs the odom joints
+        ;; perhaps CRAM will work with odom joints as well one day
+        (let* ((robot-pose (cram-tf:robot-current-pose))
+               (robot-x (cl-transforms:x (cl-transforms:origin robot-pose)))
+               (robot-y (cl-transforms:y (cl-transforms:origin robot-pose))))
+             (multiple-value-bind (axis angle)
+                 (cl-transforms:quaternion->axis-angle
+                  (cl-transforms:orientation robot-pose))
+               (when (< (cl-transforms:z axis) 0)
+                 (setf angle (- angle)))
+               (setf (gethash "odom_x_joint" result-hash-table) robot-x)
+               (setf (gethash "odom_y_joint" result-hash-table) robot-y)
+               (setf (gethash "odom_z_joint" result-hash-table) angle)
+               result-hash-table))))))

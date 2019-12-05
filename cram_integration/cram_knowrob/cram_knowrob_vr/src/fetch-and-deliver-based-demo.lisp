@@ -1,4 +1,4 @@
-;;;
+;;
 ;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -30,18 +30,20 @@
 (in-package :kvr)
 
 (defparameter *object-spawning-poses*
-  '((:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
+  '((:bowl . ((1.6 0.5 0.87) (0 0 0.4 0.6)))
     (:cup . ((1.3 0.1 0.9) (0 0 -0.7 0.7)))
-    (:bowl . ((1.6 0.5 0.87) (0 0 0.4 0.6)))
     (:spoon . ((1.43 0.4 0.85) (0 0 0.3 0.7)))
-    (:milk . ((1.4 0.62 0.95) (0 0 1 0)))))
+    ;; (:breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
+    ;; (:milk . ((1.4 0.62 0.95) (0 0 1 0)))
+    ))
 
 (defparameter *object-delivering-poses*
-  '((breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
-    (cup . ((-0.888 1.207885 0.9) (0 0 0.99 0.07213)))
-    (bowl . ((-0.7846 1.38127 0.89953) (0.09 0.038 0.995 -0.02)))
-    (spoon . ((-0.7573 1.587 0.86835) (0.0 -0.0 0.999 0.036)))
-    (milk . ((1.4 0.62 0.95) (0 0 1 0)))))
+  '((bowl . ((-0.7846 1.38127 0.89953) (0.09 0.038 0.995 -0.02)))
+    (cup . ((-0.888 1.60885 0.9) (0 0 0.99 0.07213)))
+    (spoon . ((-0.7573 1.787 0.86835) (0.0 -0.0 0.999 0.036)))
+    ;; (breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
+    ;; (milk . ((1.4 0.62 0.95) (0 0 1 0)))
+    ))
 
 ;; (defparameter *object-delivering-poses*
 ;;   '((breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
@@ -70,30 +72,50 @@
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
-  (let ((object-types '(;; :breakfast-cereal
-                        :cup
-                        :bowl ;; :milk
-                        :spoon
-                        )))
-    ;; spawn objects at default poses
+  (let ((object-types '(:cup :bowl :spoon))
+        (delta-alpha (* 2 pi))
+        (delta-y 0.3)
+        (x0 1.35)
+        (y0 (- 0.2))
+        (y-bucket-padding 0.2)
+        (y-bucket-length 0.3)
+        (y-buckets (alexandria:shuffle '(0 1 2))))
+    ;; spawn objects at random poses
     (let ((objects (mapcar (lambda (object-type)
-                             (btr-utils:spawn-object
-                              (intern (format nil "~a" object-type) :keyword)
-                              object-type
-                              :pose (let* ((x (+ 1.5 (- (random 0.4) 0.2)))
-                                           (y (+ 0.5 (- (random 1.0) 0.5)))
-                                           (pi-number (- (random 0.5) 0.2))
-                                           ;; (pi-number (- (random 2.0) 1.0))
-                                           (pi-other (- 1.0 (abs pi-number)))
-                                           (pose `((,x ,y 0.87) (0 0 ,pi-number ,pi-other))))
-                                      pose)))
+                             (let* ((delta-x (ecase object-type
+                                               (:spoon 0.2)
+                                               (:bowl 0.15)
+                                               (:cup 0.1)))
+                                    (x (+ x0 (random delta-x)))
+                                    (y-bucket (ecase object-type
+                                                (:spoon (first y-buckets))
+                                                (:bowl (second y-buckets))
+                                                (:cup (third y-buckets))))
+                                    (y (+ y0
+                                          (* (+ y-bucket-padding y-bucket-length) y-bucket)
+                                          (random delta-y)))
+                                    (z (ecase object-type
+                                         (:spoon 0.87)
+                                         (:bowl 0.89)
+                                         (:cup 0.9)))
+                                    (alpha (cl-transforms:normalize-angle (random delta-alpha)))
+                                    (pose (cl-transforms:make-pose
+                                           (cl-transforms:make-3d-vector x y z)
+                                           (cl-transforms:axis-angle->quaternion
+                                            (cl-transforms:make-3d-vector 0 0 1)
+                                            alpha))))
+                               (btr:add-vis-axis-object pose)
+                               (btr-utils:spawn-object
+                                (intern (format nil "~a" object-type) :keyword)
+                                object-type
+                                :pose (cram-tf:pose->list pose))))
                            object-types)))
       ;; stabilize world
       (btr:simulate btr:*current-bullet-world* 100)
       objects)))
 
-(defmethod exe:generic-perform :before (designator)
-  (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
+;; (defmethod exe:generic-perform :before (designator)
+;;   (roslisp:ros-info (demo perform) "~%~A~%~%" designator))
 
 (cpl:def-cram-function park-robot ()
   (cpl:with-failure-handling
@@ -144,15 +166,8 @@
 
   (unless cram-projection:*projection-environment*
     (json-prolog:prolog-simple "rdf_retractall(A,B,C,belief_state).")
-    (btr-belief::call-giskard-environment-service :kill-all "attached")
-    (cram-bullet-reasoning-belief-state::call-giskard-environment-service
-     :add-kitchen
-     "kitchen"
-     (cl-transforms-stamped:make-pose-stamped
-      "map"
-      0.0
-      (cl-transforms:make-identity-vector)
-      (cl-transforms:make-identity-rotation))))
+    ;; (cram-occasions-events:clear-belief) ; to clear giskard environment
+    )
 
   ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
   )
@@ -172,66 +187,226 @@
 ;;   (ccl::connect-to-cloud-logger)
 ;;   (ccl::reset-logged-owl))
 
-(cpl:def-cram-function demo (&optional
-                             (list-of-objects
-                              '(bowl
-                                spoon
-                                cup)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; EXPERIMENT LOG STUFF ;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *experiment-log-filename* "package://cram_knowrob_vr/experiments/failures")
+(defparameter *experiment-log-extension* ".csv")
+
+(defvar *experiment-log-current-object* "")
+
+(defvar *experiment-log-current-demo-run-vr* -1)
+(defvar *experiment-log-current-demo-run-heur* -1)
+
+(defparameter *experiment-log-failures-to-count*
+  '(common-fail:searching-failed common-fail:fetching-failed common-fail:delivering-failed
+    common-fail:navigation-low-level-failure common-fail:manipulation-low-level-failure
+    common-fail:perception-low-level-failure common-fail:ptu-low-level-failure))
+(defvar *experiment-log-current-demo-run-object-failures* nil)
+
+
+(defun experiment-log (string &key
+                                (object-type *experiment-log-current-object*)
+                                (demo-run (if *kvr-enabled*
+                                              *experiment-log-current-demo-run-vr*
+                                              *experiment-log-current-demo-run-heur*)))
+  (with-open-file (stream (physics-utils:parse-uri
+                           (format nil
+                                   "~a_~a~a"
+                                   *experiment-log-filename*
+                                   (if *kvr-enabled* "VR" "HEUR")
+                                   *experiment-log-extension*))
+                          :direction :output
+                          :if-exists :append
+                          :if-does-not-exist :create)
+    (format stream "~a,~a,~a~%" demo-run object-type string)))
+
+(defun read-last-line (file-uri)
+  (with-open-file (stream (physics-utils:parse-uri file-uri)
+                          :direction :input
+                          :if-does-not-exist nil)
+    (when stream
+      (let (last-non-empty-line)
+        (do ((line (read-line stream nil 'eof)
+                   (read-line stream nil 'eof)))
+            ((eql line 'eof))
+          (unless (string-equal
+                   (string-trim
+                    '(#\Space #\Newline #\Backspace #\Tab #\Linefeed #\Page #\Return #\Rubout)
+                    (remove #\Space (remove #\, line)))
+                   "")
+            (setf last-non-empty-line line)))
+        last-non-empty-line))))
+
+(defun find-experiment-log-last-current-demo-run (&key vr?)
+  (let ((last-line
+           (read-last-line
+            (format nil "~a_~a~a"
+                    *experiment-log-filename*
+                    (if vr?
+                        "VR"
+                        "HEUR")
+                    *experiment-log-extension*))))
+    (if last-line
+        (let ((last-current-demo-run
+                (read-from-string (first (split-sequence:split-sequence #\, last-line)))))
+          (if (or (not (numberp last-current-demo-run)) (< last-current-demo-run 0))
+              (error "YOUR LOG FILE IS CORRUPTED!")
+              last-current-demo-run))
+        -1)))
+
+(defun set-experiment-log-current-demo-run ()
+  (if *kvr-enabled*
+      (when (< *experiment-log-current-demo-run-vr* 0)
+        (setf *experiment-log-current-demo-run-vr*
+              (1+ (find-experiment-log-last-current-demo-run :vr? t))))
+      (when (< *experiment-log-current-demo-run-heur* 0)
+        (setf *experiment-log-current-demo-run-heur*
+              (1+ (find-experiment-log-last-current-demo-run :vr? nil))))))
+
+(defmethod cpl:fail :before (&rest args)
+  (let ((failure-symbol
+          (typecase (first args)
+            (symbol (first args))
+            (string 'cpl:simple-plan-failure)
+            (cpl:plan-failure (type-of (first args)))
+            (t 'unknown-failure---------------------))))
+   (experiment-log
+    (btr-belief::replace-all
+     (format nil "~a" failure-symbol)
+     '(#\Newline) " "))
+    (mapc (lambda (tracked-failure-symbol)
+            (when (subtypep failure-symbol tracked-failure-symbol)
+              (incf (getf (getf *experiment-log-current-demo-run-object-failures*
+                                *experiment-log-current-object*)
+                          tracked-failure-symbol))))
+          *experiment-log-failures-to-count*)))
+
+(defun experiment-log-current-object-failures ()
+  (experiment-log (format nil "SUM CURRENT OBJECT FAILURES~%")))
+
+(defun experiment-log-current-demo-run-failures ()
+  (experiment-log (format nil "SUM CURRENT DEMO RUN FAILURES~%")))
+
+(defun generate-empty-failure-property-list ()
+  (let (new-prop-list)
+    (mapc (lambda (failure-symbol)
+            (setf (getf new-prop-list failure-symbol) 0))
+          *experiment-log-failures-to-count*)
+    new-prop-list))
+
+(defun experiment-log-start-demo-run ()
+  (set-experiment-log-current-demo-run)
+  (setf *experiment-log-current-object* "")
+  (experiment-log (format nil "~%~%"))
+
+  (setf (getf *experiment-log-current-demo-run-object-failures* 'bowl)
+        (generate-empty-failure-property-list))
+  (setf (getf *experiment-log-current-demo-run-object-failures* 'cup)
+        (generate-empty-failure-property-list))
+  (setf (getf *experiment-log-current-demo-run-object-failures* 'spoon)
+        (generate-empty-failure-property-list)))
+
+(defun experiment-log-finish-demo-run ()
+  (setf *experiment-log-current-object* "")
+  (experiment-log-current-demo-run-failures)
+  (experiment-log (format nil "~%~%"))
+  (if *kvr-enabled*
+      (incf *experiment-log-current-demo-run-vr*)
+      (incf *experiment-log-current-demo-run-heur*)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; END OF EXPERIMENT LOG STUFF ;;;;;;;;;;;;;;;
+
+
+(defun demo (&optional
+               (list-of-objects
+                '(bowl
+                  cup
+                  spoon)))
+
+  (experiment-log-start-demo-run)
 
   (initialize)
   (when cram-projection:*projection-environment*
     (spawn-objects-on-sink-counter))
-
   (park-robot)
 
-  (dolist (type list-of-objects)
-    (cpl:with-failure-handling
-        ((common-fail:high-level-failure (e)
-           (declare (ignore e))
-           (return)))
-      (let ((?bullet-type
-              (object-type-filter-bullet type))
-            (?search-poses
-              (alexandria:shuffle (cut:force-ll (look-poses-ll-for-searching type))))
-            (?search-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type))))
-            (?fetch-base-poses
-              (alexandria:shuffle (cut:force-ll (base-poses-ll-for-searching type)))
-              ;; (base-poses-ll-for-fetching-based-on-object-desig
-              ;;  object-designator)
-              )
-            (?grasps
-              (alexandria:shuffle (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
-            (?arms
-              (alexandria:shuffle '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
-                                  ))
-            (?delivering-poses
-              (list (cl-transforms-stamped:pose->pose-stamped
-                     cram-tf:*fixed-frame* 0.0
-                     (cram-tf:list->pose (cdr (assoc type *object-delivering-poses*)))))
-              ;; (alexandria:shuffle (cut:force-ll (object-poses-ll-for-placing type)))
-              )
-            (?delivering-base-poses
-              (remove
-               NIL
-               (mapcar (lambda (pose)
-                         (when (> (cl-transforms:x (cl-transforms:origin pose)) -1)
-                           pose))
-                       (alexandria:shuffle (cut:force-ll (base-poses-ll-for-placing type)))))))
-        (exe:perform
-         (desig:an action
-                   (type transporting)
-                   (object (desig:an object (type ?bullet-type)))
-                   (location (desig:a location (poses ?search-poses)))
-                   (search-robot-location (desig:a location (poses ?search-base-poses)))
-                   (fetch-robot-location (desig:a location (poses ?fetch-base-poses)))
-                   (arms ?arms)
-                   (grasps ?grasps)
-                   (target (desig:a location (poses ?delivering-poses)))
-                   (deliver-robot-location (desig:a location (poses ?delivering-base-poses))))))))
+  (unwind-protect
+       (dolist (type list-of-objects)
+
+         (setf *experiment-log-current-object* type)
+
+         (cpl:with-failure-handling
+             ((common-fail:high-level-failure (e)
+                (declare (ignore e))
+                (experiment-log (format nil "TRANSPORTING FAILED~%"))
+                (return)))
+
+           (if *kvr-enabled*
+
+               (let* ((?bullet-type
+                        (object-type-filter-bullet type))
+                      (?search-poses
+                        (alexandria:shuffle
+                         (cut:force-ll (look-poses-ll-for-searching type))))
+                      (?grasps
+                        (alexandria:shuffle
+                         (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
+                      (?arms
+                        (alexandria:shuffle
+                         '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
+                         ))
+                      (?delivering-poses
+                        (list (cl-transforms-stamped:pose->pose-stamped
+                               cram-tf:*fixed-frame* 0.0
+                               (cram-tf:list->pose
+                                (cdr (assoc type *object-delivering-poses*)))))
+                        ;; (alexandria:shuffle
+                        ;; (cut:force-ll (object-poses-ll-for-placing type))) ;; TODO
+                        ))
+
+                 (exe:perform
+                  (desig:an action
+                            (type transporting)
+                            (object (desig:an object (type ?bullet-type)))
+                            (location (desig:a location (poses ?search-poses)))
+                            (arms ?arms)
+                            (grasps ?grasps)
+                            (target (desig:a location (poses ?delivering-poses))))))
+
+               (let ((?bullet-type
+                       (object-type-filter-bullet type))
+                     (?arms
+                       (alexandria:shuffle '(:left :right)))
+                     (?delivering-poses
+                       (list (cl-transforms-stamped:pose->pose-stamped
+                              cram-tf:*fixed-frame* 0.0
+                              (cram-tf:list->pose
+                               (cdr (assoc type *object-delivering-poses*)))))))
+
+                 (exe:perform
+                  (desig:an action
+                            (type transporting)
+                            (object (desig:an object (type ?bullet-type)))
+                            (location (desig:a location
+                                               (on (desig:an object
+                                                             (type counter-top)
+                                                             (urdf-name sink-area-surface)
+                                                             (part-of kitchen)))
+                                               (side front)))
+                            (target (desig:a location (poses ?delivering-poses)))))))
+
+           (experiment-log (format nil "TRANSPORTING SUCCEEDED~%")))
+
+         (experiment-log-current-object-failures))
+
+    (experiment-log-finish-demo-run))
 
   (park-robot)
 
   (finalize)
 
   cpl:*current-path*)
+
+
