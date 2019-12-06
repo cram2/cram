@@ -129,9 +129,9 @@ is replaced with replacement.
                                        ("oven_area_footprint_joint"
                                         ((-0.155d0 2.97d0 0.0d0) (0 0 -0.5 0.5)))
                                        ("kitchen_island_footprint_joint"
-                                        ((-0.10d0 0.0d0 0.0d0) (0 0 0.5 0.5)))
+                                        ((-0.60d0 -0.2d0 0.0d0) (0 0 0.5 0.5)))
                                        ("fridge_area_footprint_joint"
-                                        ((-1.845d0 0.73d0 0.0d0) (0 0 0.5 0.5)))
+                                        ((-2.30d0 0.5d0 0.0d0) (0 0 0.5 0.5)))
                                        ("table_area_main_joint"
                                         ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5))))))
   (let ((kitchen-urdf-joints (cl-urdf:joints *kitchen-urdf*)))
@@ -140,5 +140,5 @@ is replaced with replacement.
                joint-name-poses-list-pair
              (let ((joint (gethash joint-name kitchen-urdf-joints)))
                (setf (slot-value joint 'cl-urdf:origin)
-                     (cram-tf:list->pose poses-list)))))
+                     (cram-tf:list->transform poses-list)))))
          new-joint-states)))
