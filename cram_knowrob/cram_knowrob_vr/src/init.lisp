@@ -137,13 +137,13 @@ semantic map kitchen."
                                     costmap:costmap-resolution
                                     costmap:orientation-samples
                                     costmap:orientation-sample-step)
-    (<- (location-costmap:costmap-size 12 12))
-    (<- (location-costmap:costmap-origin -6 -6))
+    (<- (location-costmap:costmap-size 5 5))
+    (<- (location-costmap:costmap-origin -2.5 -2.5))
     (<- (location-costmap:costmap-resolution 0.04))
     (<- (location-costmap:orientation-samples 2))
     (<- (location-costmap:orientation-sample-step 0.1))))
 
-(defun init-full-simulation (&optional namedir)
+(defun init-full-simulation (&key namedir urdf-new-kitchen?)
    "Spawns all the objects which are necessary for the current
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
@@ -154,7 +154,20 @@ objects for debugging."
 
   (roslisp-utilities:startup-ros)
 
+  (when urdf-new-kitchen?
+    (unless btr-belief:*kitchen-urdf*
+      (let ((kitchen-urdf-string
+              (roslisp:get-param btr-belief:*kitchen-parameter* nil)))
+        (when kitchen-urdf-string
+          (setf btr-belief:*kitchen-urdf*
+                (cl-urdf:parse-urdf kitchen-urdf-string)))))
+    (btr-belief:vary-kitchen-urdf))
+
   (coe:clear-belief)
+
+  (when urdf-new-kitchen?
+    (setf (btr:pose (btr:object btr:*current-bullet-world* (btr:get-robot-name)))
+           (cram-tf:list->pose  '((-1 1.5 0) (0 0 0 1)))))
 
   (cram-bullet-reasoning:clear-costmap-vis-object)
 
