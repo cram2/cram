@@ -266,18 +266,40 @@ Returns: list of cl-tf:pose."
   (dolist (pose list)
     (spawn-btr-arrow pose (arrow-prefix) '(0 0 1))))
 
-(defun spawn-visibility-arrows (pose-stamped-list &optional desig-color)
-  "spawns arrows according to the ?visibility or ?reachability lists.
+(defun spawn-arrows (pose-stamped-list &optional (desig-color 'vis))
+   "spawns arrows according to the ?visibility or ?reachability lists.
 `pose-stamped-list' is the given ?visibility or ?reachability list.
 `desig-color' can be set to 'vis or 'reach depending on which list it is.
 'vis arrows = dark green
 'reach arrows = dark blue"
-  (let ((poses-list (convert-into-poses-list (car pose-stamped-list)))
-        (color (cond ((eq desig-color 'vis)
-                      '(1.0 0.6 0.0))
-                     ((eq desig-color 'reach)
-                      '(0 0 0.5))
-                     ((eq desig-color 'del)
-                      '(0 0.5 0.7)))))
-    (dolist (pose poses-list)
-      (spawn-btr-arrow pose (arrow-prefix) color))))
+   (let ((poses-list (convert-into-poses-list (cut:force-ll
+pose-stamped-list)))
+         (color (cond ((eq desig-color 'vis)
+                       '(1.0 0.6 0.0))
+                      ((eq desig-color 'reach)
+                       '(0 0 0.5))
+                      ((eq desig-color 'del)
+                       '(0 0.5 0.7)))))
+     (dolist (pose poses-list)
+       (spawn-btr-arrow pose (arrow-prefix) color))))
+
+(defun spawn-all-arrows (type &optional (obj-pose (cl-transforms:make-identity-pose)))
+  "type should be 'cup 'bowl or 'spoon"
+  ;; kill all possibly existing objects/arrows
+  (btr-utils:kill-all-objects)
+  ;; search poses
+  (spawn-arrows
+   (look-poses-ll-for-searching type))
+  ;; search base poses
+  (spawn-arrows
+   (base-poses-ll-for-searching (object-type-filter-prolog type)) 'vis)
+  ;; fetch base poses
+  (spawn-arrows
+   (base-poses-ll-for-fetching-based-on-object-pose
+    (object-type-filter-bullet type) obj-pose) 'reach)
+  ;; target poses on table
+  (spawn-arrows
+   (object-poses-ll-for-placing (object-type-filter-prolog type)) 'reach)
+  ;; deliver base poses
+  (spawn-arrows
+   (base-poses-ll-for-placing type) 'del ))
