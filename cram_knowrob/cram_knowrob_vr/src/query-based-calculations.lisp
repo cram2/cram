@@ -80,37 +80,45 @@ RETURNS: A pose stamped for the robot base."
   "Calculates the pose of the object in map relative to its supporting surface.
 Formula: umap-T-uobj = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 `type' is a simple symbol such as 'milk."
-  (let ((name-and-surface-T-object-ll
-           (query-name-and-surface-T-object-by-object-type
-            (object-type-filter-prolog type)
-            start-or-end
-            :table-setting)))
+  (let ((name-dim-and-surface-T-object-ll
+          (query-surface-name-dim-and-surface-T-object-by-object-type
+           (object-type-filter-prolog type)
+           start-or-end
+           :table-setting)))
     (cut:lazy-mapcar
-     (lambda (name-and-surface-T-object)
-       (let* ((surface-name
-                (car name-and-surface-T-object))
-              (ssurface-T-sobject
-                (cdr name-and-surface-T-object))
-              (umap-T-usurface
-                (cl-transforms:pose->transform
-                 (btr:pose
+     (lambda (name-dim-and-surface-T-object)
+       (print name-dim-and-surface-T-object)
+       (destructuring-bind (surface-name ssurface-dimensions ssurface-T-sobject)
+           name-dim-and-surface-T-object
+         (let* ((usurface-object
                   (btr:rigid-body
                    (btr:get-environment-object)
-                   (match-kitchens surface-name)))))
-              (umap-T-uobj
-                (cl-transforms:transform*
-                 umap-T-usurface ssurface-T-sobject)))
-         (cl-transforms-stamped:make-pose-stamped
-          cram-tf:*fixed-frame*
-          0.0
-          (cl-transforms:translation umap-T-uobj)
-          (cl-transforms:rotation umap-T-uobj))))
-     name-and-surface-T-object-ll)))
-
-
-
-
-
+                   (match-kitchens surface-name)))
+                (usurface-dimensions
+                  (btr:calculate-bb-dims usurface-object))
+                (scale-vector
+                  ;; uncomment this instead if you want to turn off scaling
+                  ;; (cl-transforms:make-3d-vector 1 1 1)
+                  (cl-transforms:v/-pairwise
+                   usurface-dimensions ssurface-dimensions))
+                (scaled-ssurface-T-sobject
+                  (cl-transforms:copy-transform
+                   ssurface-T-sobject
+                   :translation (cl-transforms:v*-pairwise
+                                 (cl-transforms:translation ssurface-T-sobject)
+                                 scale-vector)))
+                (umap-T-usurface
+                  (cl-transforms:pose->transform
+                   (btr:pose usurface-object)))
+                (umap-T-uobj
+                  (cl-transforms:transform*
+                   umap-T-usurface scaled-ssurface-T-sobject)))
+           (cl-transforms-stamped:make-pose-stamped
+            cram-tf:*fixed-frame*
+            0.0
+            (cl-transforms:translation umap-T-uobj)
+            (cl-transforms:rotation umap-T-uobj)))))
+     name-dim-and-surface-T-object-ll)))
 
 
 
@@ -177,16 +185,16 @@ The function returns one of the following keys: :front, :back, :left, :right."
       ;; first find in which quarter of supp obj it is and then compare the 2 edges
       (let (pred-x pred-y)
         (ecase quarter
-          (:back-left ; obj.x > 0, obj.y > 0
+          (:back-left                  ; obj.x > 0, obj.y > 0
            (setf pred-x #'-
                  pred-y #'-))
-          (:back-right ; obj.y < 0
+          (:back-right                 ; obj.y < 0
            (setf pred-x #'-
                  pred-y #'+))
-          (:front-left ; obj.x < 0
+          (:front-left                 ; obj.x < 0
            (setf pred-x #'+
                  pred-y #'-))
-          (:front-right ; obj.x < 0 and obj.y < 0
+          (:front-right                ; obj.x < 0 and obj.y < 0
            (setf pred-x #'+
                  pred-y #'+)))
         (multiple-value-bind (condition distance)
@@ -211,7 +219,7 @@ Formula: umap-T-uobj = umap-T-usurface * ssurface-T-obj
                      = umap-T-usurface * inv(smap-T-ssurface) * smap-T-sobj.
 `type' is a simple symbol such as 'milk."
   (let ((surface-name-dim-transform-and-object-transform-ll
-          (query-surface-name-dim-transform-and-object-transform-by-object-type
+          (query-surface-name-dim-and-surface-T-object-by-object-type
            (object-type-filter-prolog type)
            start-or-end
            :table-setting)))
@@ -384,7 +392,9 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
 
 
 (defun object-poses-ll-for-placing (type)
-  (umap-P-uobj-through-surface-edge-ll type "End"))
+  (umap-P-uobj-through-surface-ll type "End")
+  ;; (umap-P-uobj-through-surface-edge-ll type "End")
+  )
 
 
 (defun arms-for-fetching-ll (type)
