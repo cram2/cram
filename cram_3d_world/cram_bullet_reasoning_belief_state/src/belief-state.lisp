@@ -110,3 +110,35 @@ is replaced with replacement.
     (if robot-object
         (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
         (warn "ROBOT was not defined. Have you loaded a robot package?"))))
+
+
+
+(defun vary-kitchen-urdf (&optional (new-joint-states
+                                     ;; '(("sink_area_footprint_joint"
+                                     ;;    ((1.855d0 1.3d0 0.0d0) (0 0 1 0)))
+                                     ;;   ("oven_area_footprint_joint"
+                                     ;;    ((1.855d0 2.47d0 0.0d0) (0 0 1 0)))
+                                     ;;   ("kitchen_island_footprint_joint"
+                                     ;;    ((-1.365d0 0.59d0 0.0d0) (0 0 0 1)))
+                                     ;;   ("fridge_area_footprint_joint"
+                                     ;;    ((1.845d0 -0.73d0 0.0d0) (0 0 1 0)))
+                                     ;;   ("table_area_main_joint"
+                                     ;;    ((-2.4d0 -1.5d0 0.0d0) (0 0 1 0))))
+                                     '(("sink_area_footprint_joint"
+                                        ((1.155d0 0.9d0 0.0d0) (0 0 0 1)))
+                                       ("oven_area_footprint_joint"
+                                        ((-0.155d0 2.97d0 0.0d0) (0 0 -0.5 0.5)))
+                                       ("kitchen_island_footprint_joint"
+                                        ((-0.10d0 0.0d0 0.0d0) (0 0 0.5 0.5)))
+                                       ("fridge_area_footprint_joint"
+                                        ((-1.845d0 0.73d0 0.0d0) (0 0 0.5 0.5)))
+                                       ("table_area_main_joint"
+                                        ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5))))))
+  (let ((kitchen-urdf-joints (cl-urdf:joints *kitchen-urdf*)))
+   (mapc (lambda (joint-name-poses-list-pair)
+           (destructuring-bind (joint-name poses-list)
+               joint-name-poses-list-pair
+             (let ((joint (gethash joint-name kitchen-urdf-joints)))
+               (setf (slot-value joint 'cl-urdf:origin)
+                     (cram-tf:list->pose poses-list)))))
+         new-joint-states)))
