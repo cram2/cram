@@ -328,7 +328,7 @@ and the transform surface-T-object as a lazy list of pairs:
 
 
 
-(defun query-surface-name-dim-transform-and-object-transform-by-object-type
+(defun query-surface-name-dim-and-surface-T-object-by-object-type
     (object-type start-or-end &optional context)
   (declare (type string object-type start-or-end)
            (type (or null keyword) context))
@@ -338,20 +338,26 @@ and the transform surface-T-object as a lazy list of pairs:
   (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
   (cut:lazy-mapcar
    (lambda (binding-set)
-     (let ((surface-name
-             (cut:var-value '|?SurfaceTypeShortName| binding-set))
-           (surface-dim
-             (cl-transforms:make-3d-vector
-              (cut:var-value '|?SurfaceDimX| binding-set)
-              (cut:var-value '|?SurfaceDimY| binding-set)
-              (cut:var-value '|?SurfaceDimZ| binding-set)))
-           (map-T-surface
-             (cram-tf:flat-list->transform
-              (cut:var-value '|?SurfacePose| binding-set)))
-           (map-T-object
-             (cram-tf:flat-list->transform
-              (cut:var-value '|?ObjectPose| binding-set))))
-       (list surface-name surface-dim map-T-surface map-T-object)))
+     (let* ((surface-name
+              (cut:var-value '|?SurfaceTypeShortName| binding-set))
+            (surface-dim
+              (cl-transforms:make-3d-vector
+               (cut:var-value '|?SurfaceDimX| binding-set)
+               (cut:var-value '|?SurfaceDimY| binding-set)
+               (cut:var-value '|?SurfaceDimZ| binding-set)))
+            (map-T-object
+              (cram-tf:flat-list->transform
+               (cut:var-value '|?ObjectPose| binding-set)))
+            (map-T-surface
+              (cram-tf:flat-list->transform
+               (cut:var-value '|?SurfacePose| binding-set)))
+            (surface-T-map
+              (cl-transforms:transform-inv
+               map-T-surface))
+            (surface-T-object
+              (cl-transforms:transform*
+               surface-T-map map-T-object)))
+       (list surface-name surface-dim surface-T-object)))
    (json-prolog:prolog-simple
     (concatenate
      'string
