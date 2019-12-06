@@ -147,15 +147,25 @@ semantic map kitchen."
    "Spawns all the objects which are necessary for the current
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
-  ;;set the "unreal" prefix for the json_prolog node if you are using the simulation.launch
+  ;; set the "unreal" prefix for the json_prolog node if we are running on a robot
+  ;; and don't want to interfere with its KnowRob
+  ;; we'll have our own KnowRob, with blackjack
   (setq json-prolog:*service-namespace* "/unreal/json_prolog")
+
   (roslisp-utilities:startup-ros)
 
   (coe:clear-belief)
+
+  (cram-bullet-reasoning:clear-costmap-vis-object)
+
   (spawn-urdf-items)
 
   (init-episode (or namedir
-                    (loop for i from 1 to 18 collecting (format nil "ep~a" i))))
+                    ;; (loop for i from 1 to 18 collecting (format nil "ep~a" i))
+                    '("exp1_t_1" "exp1_t_2" "exp1_t_3" "exp1_t_4" "exp1_t_5"
+                      ;; "exp1_tc_1" "exp1_tc_2" "exp1_tc_3" "exp1_tc_4" "exp1_tc_5"
+                      ;; "exp1_tr_1" "exp1_tr_2" "exp1_tr_3" "exp1_tr_4" "exp1_tr_5"
+                      )))
   ;; (spawn-semantic-map)
   ;; (spawn-semantic-items)
 
