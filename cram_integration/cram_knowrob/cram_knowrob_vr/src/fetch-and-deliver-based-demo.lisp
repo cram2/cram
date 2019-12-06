@@ -45,6 +45,11 @@
     ;; (milk . ((1.4 0.62 0.95) (0 0 1 0)))
     ))
 
+(defparameter *object-delivering-poses-varied-kitchen*
+  '((bowl . ((-0.7846 0.3 0.89953) (0 0 0.1 0.9)))
+    (cup . ((-0.95 0.2 0.9) (0 0 0.99 0.07213)))
+    (spoon . ((-1.0573 0.35 0.86835) (0.0 -0.0 -0.5 0.5)))))
+
 ;; (defparameter *object-delivering-poses*
 ;;   '((breakfast-cereal . ((1.4 0.4 0.85) (0 0 0 1)))
 ;;     (cup . ((-0.888 1.207885 0.9) (0 0 0.99 0.07213)))
@@ -68,18 +73,25 @@
 (defparameter *object-colors*
   '((:spoon . "blue")))
 
-(defun spawn-objects-on-sink-counter (&optional (spawning-poses *object-spawning-poses*))
+(defun spawn-objects-on-sink-counter ()
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
-  (let ((object-types '(:cup :bowl :spoon))
-        (delta-alpha (* 2 pi))
-        (delta-y 0.3)
-        (x0 1.35)
-        (y0 (- 0.2))
-        (y-bucket-padding 0.2)
-        (y-bucket-length 0.3)
-        (y-buckets (alexandria:shuffle '(0 1 2))))
+  (let* ((varied-kitchen? (> (cl-transforms:y
+                              (cl-transforms:origin
+                               (btr:pose
+                                (btr:rigid-body
+                                 (btr:get-environment-object)
+                                 :|KITCHEN.sink_area|))))
+                             1.0))
+         (object-types '(:cup :bowl :spoon))
+         (delta-alpha (* 2 pi))
+         (delta-y 0.3)
+         (x0 (if varied-kitchen? 1.25 1.35))
+         (y0 (if varied-kitchen? 1.0 (- 0.2)))
+         (y-bucket-padding 0.2)
+         (y-bucket-length 0.3)
+         (y-buckets (alexandria:shuffle '(0 1 2))))
     ;; spawn objects at random poses
     (let ((objects (mapcar (lambda (object-type)
                              (let* ((delta-x (ecase object-type
@@ -472,7 +484,16 @@
                    (list (cl-transforms-stamped:pose->pose-stamped
                           cram-tf:*fixed-frame* 0.0
                           (cram-tf:list->pose
-                           (cdr (assoc type *object-delivering-poses*)))))
+                           (cdr (assoc type
+                                       (if (> (cl-transforms:y
+                                               (cl-transforms:origin
+                                                (btr:pose
+                                                 (btr:rigid-body
+                                                  (btr:get-environment-object)
+                                                  :|KITCHEN.sink_area|))))
+                                              1.0)
+                                           *object-delivering-poses-varied-kitchen*
+                                           *object-delivering-poses*))))))
                    ;; (alexandria:shuffle
                    ;; (cut:force-ll (object-poses-ll-for-placing type))) ;; TODO
                    ))
@@ -491,10 +512,22 @@
                 (?arms
                   (alexandria:shuffle '(:left :right)))
                 (?delivering-poses
-                  (list (cl-transforms-stamped:pose->pose-stamped
-                         cram-tf:*fixed-frame* 0.0
-                         (cram-tf:list->pose
-                          (cdr (assoc type *object-delivering-poses*)))))))
+                   (list (cl-transforms-stamped:pose->pose-stamped
+                          cram-tf:*fixed-frame* 0.0
+                          (cram-tf:list->pose
+                           (cdr (assoc type
+                                       (if (> (cl-transforms:y
+                                               (cl-transforms:origin
+                                                (btr:pose
+                                                 (btr:rigid-body
+                                                  (btr:get-environment-object)
+                                                  :|KITCHEN.sink_area|))))
+                                              1.0)
+                                           *object-delivering-poses-varied-kitchen*
+                                           *object-delivering-poses*))))))
+                   ;; (alexandria:shuffle
+                   ;; (cut:force-ll (object-poses-ll-for-placing type))) ;; TODO
+                   ))
 
             (exe:perform
              (desig:an action
