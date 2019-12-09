@@ -303,3 +303,21 @@ pose-stamped-list)))
   ;; deliver base poses
   (spawn-arrows
    (base-poses-ll-for-placing type) 'del ))
+
+
+(defun test-relative-position--query (poses)
+  (btr-utils:kill-all-objects)
+  (spawn-unreal-arrow (cl-tf:transform->pose
+                       (cdr (assoc 'camera poses)))
+                      (format nil "ur-camera-~a" (arrow-prefix))
+                      '(1 1 0))
+
+  (spawn-unreal-arrow (cl-tf:transform->pose
+                       (cdr (assoc 'bowl poses)))
+                      (format nil "ur-bowl-~a" (arrow-prefix))
+                      '(1 0 0))
+
+  (spawn-unreal-arrow (cl-tf:transform->pose
+                       (cdr (assoc 'object poses)))
+                      (format nil "ur-object-~a" (arrow-prefix))
+                      '(0 0 1)))
