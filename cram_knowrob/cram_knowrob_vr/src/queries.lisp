@@ -480,7 +480,53 @@ and the transform surface-T-camera as a lazy list of pairs:
     :package :kvr)))
 
 
+(defun query-obj-and-camera-pose-depending-on-bowl (obj-type)
+  (cut:lazy-mapcar
+   (lambda (binding-set)
+     (let* ((cam-pose  (cram-tf:flat-list->transform
+                        (cut:var-value '|?CameraPose| binding-set)))
 
+            (bowl-pose (cram-tf:flat-list->transform
+                        (cut:var-value '|?BowlPose| binding-set)))
+
+            (obj-pose (cram-tf:flat-list->transform
+                       (cut:var-value '|?ObjPose| binding-set))))
+      (list (cons 'camera cam-pose)
+            (cons 'bowl bowl-pose)
+            (cons 'object obj-pose))))
+     
+   (json-prolog:prolog-simple
+    (concatenate 'string
+                 "ep_inst(EpInst),
+    obj_type(ObjInst, knowrob:'" obj-type "'),
+    u_occurs(EpInst, EventInst, Start, End),
+    obj_type(EventInst, knowrob:'GraspingSomething'),
+    rdf_has(EventInst, knowrob:'objectActedOn', ObjInst),
+    rdf_has(ObjInst, knowrob:'describedInMap', MapInst),
+    iri_xml_namespace(ObjInst, _, ObjShortName),
+    rdf_has(CameraInst, rdf:type, knowrob:'CharacterCamera'),
+    rdf_has(CameraInst, knowrob:'describedInMap', MapInst),
+    iri_xml_namespace(CameraInst, _, CameraShortName),
+    obj_type(BowlInst, knowrob:'IkeaBowl'),
+    rdf_has(BowlInst, knowrob:'describedInMap', MapInst),
+    rdf_has(TouchingEventInst, knowrob_u:'inContact', ObjInst),
+    rdf_has(TouchingEventInst, knowrob_u:'inContact', Surface),
+    u_occurs(EpInst, TouchingEventInst, TouchStart, TouchEnd),
+    not(ObjInst==Surface),
+    obj_type(Surface, SurfaceType),
+    owl_subclass_of(SurfaceType, knowrob:'IslandArea'),
+    iri_xml_namespace(BowlInst, _, BowlShortName),
+    actor_pose(EpInst, ObjShortName, End, ObjPose),
+    actor_pose(EpInst, CameraShortName, End, CameraPose),
+    actor_pose(EpInst, BowlShortName, TouchStart, BowlPose),
+    actor_pose(EpInst, BowlShortName, End, BowlPose).")
+                 :package :kvr)))
+
+
+
+
+
+  
 #+this-is-not-used
 (defun query-table-location (object-type)
   (car
