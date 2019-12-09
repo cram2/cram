@@ -178,9 +178,13 @@ objects for debugging."
                     '(
                       "original1" "original2" "original3" "original4" "original5"
                       "original6" "original7" "original8" "original9" "original10"
-                      ;; "exp1_t_1" "exp1_t_2" "exp1_t_3" "exp1_t_4" "exp1_t_5"
-                      ;; "exp1_tc_1" "exp1_tc_2" "exp1_tc_3" "exp1_tc_4" "exp1_tc_5"
-                      ;; "exp1_tr_1" "exp1_tr_2" "exp1_tr_3" "exp1_tr_4" "exp1_tr_5"
+                      "original11" "original12" "original13" "original14" "original15"
+                      "original16" "original17" "original18" "original19" "original20"
+                      "original21" "original22" "original23" "original24" "original25"
+                      "original26" "original27"
+                       ;; "exp1_t_1" "exp1_t_2" "exp1_t_3" "exp1_t_4" "exp1_t_5"
+                       ;; "exp1_tc_1" "exp1_tc_2" "exp1_tc_3" "exp1_tc_4" "exp1_tc_5"
+                       ;; "exp1_tr_1" "exp1_tr_2" "exp1_tr_3" "exp1_tr_4" "exp1_tr_5"
                       )))
   ;; (spawn-semantic-map)
   ;; (spawn-semantic-items)
