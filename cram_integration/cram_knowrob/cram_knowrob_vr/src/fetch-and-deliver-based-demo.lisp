@@ -475,7 +475,12 @@
                     (cut:force-ll (look-poses-ll-for-searching type))))
                  (?grasps
                    (alexandria:shuffle
-                    (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))))
+                    (ecase ?bullet-type
+                      (:bowl '(:top))
+                      (:cup '(::RIGHT-SIDE :FRONT :LEFT-SIDE :TOP :BACK))
+                      (:spoon '(:top)))
+                    ;; (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))
+                    ))
                  (?arms
                    (alexandria:shuffle
                     '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
@@ -499,8 +504,23 @@
                  (?delivering-poses
                    (case ?bullet-type
                      (:bowl (list bowl-pose))
-                     (t (alexandria:shuffle
-                         (cut:force-ll (object-poses-ll-for-placing type bowl-transform)))))))
+                     (t
+                      (list (cl-transforms-stamped:pose->pose-stamped
+                          cram-tf:*fixed-frame* 0.0
+                          (cram-tf:list->pose
+                           (cdr (assoc type
+                                       (if (> (cl-transforms:y
+                                               (cl-transforms:origin
+                                                (btr:pose
+                                                 (btr:rigid-body
+                                                  (btr:get-environment-object)
+                                                  :|KITCHEN.sink_area|))))
+                                              1.0)
+                                           *object-delivering-poses-varied-kitchen*
+                                           *object-delivering-poses*))))))
+                      ;; (alexandria:shuffle
+                      ;;  (cut:force-ll (object-poses-ll-for-placing type bowl-transform)))
+                      ))))
 
             (exe:perform
              (desig:an action
