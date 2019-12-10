@@ -480,23 +480,27 @@
                    (alexandria:shuffle
                     '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
                     ))
+                 (bowl-pose
+                   (cl-transforms-stamped:pose->pose-stamped
+                    cram-tf:*fixed-frame* 0.0
+                    (cram-tf:list->pose
+                     (cdr (assoc 'bowl
+                                 (if (> (cl-transforms:y
+                                         (cl-transforms:origin
+                                          (btr:pose
+                                           (btr:rigid-body
+                                            (btr:get-environment-object)
+                                            :|KITCHEN.sink_area|))))
+                                        1.0)
+                                     *object-delivering-poses-varied-kitchen*
+                                     *object-delivering-poses*))))))
+                 (bowl-transform
+                   (cram-tf:pose-stamped->transform-stamped bowl-pose "bowl"))
                  (?delivering-poses
-                   (list (cl-transforms-stamped:pose->pose-stamped
-                          cram-tf:*fixed-frame* 0.0
-                          (cram-tf:list->pose
-                           (cdr (assoc type
-                                       (if (> (cl-transforms:y
-                                               (cl-transforms:origin
-                                                (btr:pose
-                                                 (btr:rigid-body
-                                                  (btr:get-environment-object)
-                                                  :|KITCHEN.sink_area|))))
-                                              1.0)
-                                           *object-delivering-poses-varied-kitchen*
-                                           *object-delivering-poses*))))))
-                   ;; (alexandria:shuffle
-                   ;; (cut:force-ll (object-poses-ll-for-placing type))) ;; TODO
-                   ))
+                   (case ?bullet-type
+                     (:bowl (list bowl-pose))
+                     (t (alexandria:shuffle
+                         (cut:force-ll (object-poses-ll-for-placing type bowl-transform)))))))
 
             (exe:perform
              (desig:an action
@@ -509,8 +513,8 @@
 
           (let ((?bullet-type
                   (object-type-filter-bullet type))
-                (?arms
-                  (alexandria:shuffle '(:left :right)))
+                ;; (?arms
+                ;;   (alexandria:shuffle '(:left :right)))
                 (?delivering-poses
                    (list (cl-transforms-stamped:pose->pose-stamped
                           cram-tf:*fixed-frame* 0.0
@@ -524,10 +528,7 @@
                                                   :|KITCHEN.sink_area|))))
                                               1.0)
                                            *object-delivering-poses-varied-kitchen*
-                                           *object-delivering-poses*))))))
-                   ;; (alexandria:shuffle
-                   ;; (cut:force-ll (object-poses-ll-for-placing type))) ;; TODO
-                   ))
+                                           *object-delivering-poses*))))))))
 
             (exe:perform
              (desig:an action
