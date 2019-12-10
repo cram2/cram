@@ -158,6 +158,8 @@ Returns: list of cl-tf:pose."
                                   (mapcar (lambda (pose-stamped)
                                             (cl-tf:pose-stamped->pose pose-stamped))
                                           temp-list)))
+      ;; if already pose, don't do anything
+      (cl-transforms:pose (setf poses-list temp-list))
       (t (print "invalid type")))
     ;; return poses list
     poses-list))
@@ -272,8 +274,7 @@ Returns: list of cl-tf:pose."
 `desig-color' can be set to 'vis or 'reach depending on which list it is.
 'vis arrows = dark green
 'reach arrows = dark blue"
-   (let ((poses-list (convert-into-poses-list (cut:force-ll
-pose-stamped-list)))
+   (let ((poses-list (convert-into-poses-list (cut:force-ll pose-stamped-list)))
          (color (cond ((eq desig-color 'vis)
                        '(1.0 0.6 0.0))
                       ((eq desig-color 'reach)
@@ -299,7 +300,7 @@ pose-stamped-list)))
     (object-type-filter-bullet type) obj-pose) 'reach)
   ;; target poses on table
   (spawn-arrows
-   (object-poses-ll-for-placing (object-type-filter-prolog type)) 'reach)
+   (object-poses-ll-for-placing type (cl-transforms:pose->transform obj-pose)) 'del)
   ;; deliver base poses
   (spawn-arrows
    (base-poses-ll-for-placing type) 'del ))

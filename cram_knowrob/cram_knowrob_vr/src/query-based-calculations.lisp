@@ -339,6 +339,104 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
     (umap-T-ucamera-through-object-ll-based-on-object-pose
      type time umap-P-uobj)))
 
+(defun umap-P-object-through-other-object-ll (type umap-T-uother-object)
+  "Calculates the pose for an object to be placed at a surface,
+relative to another object (in our case bowl) and the human actor.
+Formula:
+  part 1
+  umap-T-uobject = umap-T'-ubowl * ubowl-T'-uobject =
+                   [umap-R-urobot | umap-t-ubowl] * [I | sbowl-t'-sobject],
+  part 2
+  where sbowl-t'-sobject = translation(inv(smap-T'-sbowl) * smap-T'-sobject) =
+                           translation(inv([smap-R-scamera-projected | smap-t-sbowl]) *
+                                       [smap-R-scamera-projected | smap-t-sobject]))
+  part 3
+  and umap-R-urobot = rotation(umap-T-usurface * usurface-T-urobot),
+      where usurface-T-urobot = [usurface-R-urobot | 0 0 0 ],
+            where usurface-R-urobot = axis-angle->quaternion
+                                         axis = (0 0 1)
+                                         angle = (ecase closest-edge
+                                                    (:front 0)
+                                                    (:back pi)
+                                                    (:left -pi/2)
+                                                    (:right pi/2))"
+  ;; part 2
+  (let ((camera-bowl-object-transforms-ll
+          (query-obj-and-camera-pose-depending-on-bowl
+           (object-type-filter-prolog type))))
+    (cut:lazy-mapcar
+     (lambda (camera-bowl-object-transforms)
+       (destructuring-bind (smap-T-scamera smap-T-sbowl smap-T-sobject ssurface-name)
+           camera-bowl-object-transforms
+         (let* ((smap-T-scamera-projected
+                  (map-T-camera->map-P-base smap-T-scamera))
+                (smap-R-scamera-projected
+                  (cl-transforms:orientation smap-T-scamera-projected))
+                (smap-tt-sobject
+                  (cl-transforms:translation smap-T-sobject))
+                (smap-T-prime-sobject
+                  (cl-transforms:make-transform
+                   smap-tt-sobject smap-R-scamera-projected))
+                (smap-tt-sbowl
+                  (cl-transforms:translation smap-T-sbowl))
+                (smap-T-prime-sbowl
+                  (cl-transforms:make-transform
+                   smap-tt-sbowl smap-R-scamera-projected))
+                (sbowl-T-prime-sobject
+                  (cl-transforms:transform*
+                   (cl-transforms:transform-inv smap-T-prime-sbowl)
+                   smap-T-prime-sobject))
+                (sbowl-tt-prime-sobject
+                  (cl-transforms:translation sbowl-T-prime-sobject)))
+           ;; part 3
+           (let* ((umap-T-ubowl
+                    umap-T-uother-object)
+                  (usurface-obj
+                    (btr:rigid-body
+                     (btr:get-environment-object)
+                     (match-kitchens ssurface-name)))
+                  (umap-T-usurface
+                    (cl-transforms:pose->transform
+                     (btr:pose usurface-obj)))
+                  (usurface-dimensions
+                    (btr:calculate-bb-dims usurface-obj))
+                  (uclosest-edge-and-distance
+                    (get-closest-edge-and-distance
+                     umap-T-ubowl umap-T-usurface usurface-dimensions))
+                  (closest-edge
+                    (first uclosest-edge-and-distance))
+                  (usurface-R-urobot
+                    (cl-transforms:axis-angle->quaternion
+                     (cl-transforms:make-3d-vector 0 0 1)
+                     (ecase closest-edge
+                       (:front 0)
+                       (:back pi)
+                       (:left (/ pi -2))
+                       (:right (/ pi 2)))))
+                  (usurface-T-urobot
+                    (cl-transforms:make-transform
+                     (cl-transforms:make-identity-vector)
+                     usurface-R-urobot))
+                  (umap-T-urobot
+                    (cl-transforms:transform* umap-T-usurface usurface-T-urobot))
+                  (umap-R-urobot
+                    (cl-transforms:rotation umap-T-urobot)))
+             ;; part 1
+             (let* ((umap-tt-ubowl
+                      (cl-transforms:translation umap-T-ubowl))
+                    (umap-T-prime-ubowl
+                      (cl-transforms:make-transform
+                       umap-tt-ubowl umap-R-urobot))
+                    (ubowl-T-prime-uobject
+                      (cl-transforms:make-transform
+                       sbowl-tt-prime-sobject (cl-transforms:make-identity-rotation)))
+                    (umap-T-uobject
+                      (cl-transforms:transform* umap-T-prime-ubowl ubowl-T-prime-uobject)))
+               (cl-transforms:transform->pose umap-T-uobject))))))
+     camera-bowl-object-transforms-ll)))
+
+
+
 
 (defun base-poses-ll-for-searching (type)
   (let ((umap-T-ucamera-ll
@@ -391,8 +489,10 @@ Formula: umap-T-ucamera = umap-T-uobj * inv(smap-T-sobj) * smap-T-scamera
 
 
 
-(defun object-poses-ll-for-placing (type)
-  (umap-P-uobj-through-surface-ll type "End")
+(defun object-poses-ll-for-placing (type umap-T-uother-object)
+  (print umap-T-uother-object)
+  (umap-P-object-through-other-object-ll type umap-T-uother-object)
+  ;; (umap-P-uobj-through-surface-ll type "End")
   ;; (umap-P-uobj-through-surface-edge-ll type "End")
   )
 
