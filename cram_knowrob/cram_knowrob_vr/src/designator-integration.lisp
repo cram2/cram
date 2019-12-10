@@ -45,12 +45,14 @@
               ;; VISIBILITY
               ((rob-int:visibility-designator-p location-designator)
                ;; based on location of obj
-               (base-poses-ll-for-fetching-based-on-object-pose
-                (object-type-filter-bullet obj-type-raw) ; obj-type
-                (desig:reference
-                 (desig:desig-prop-value
-                  ;;current search loc.
-                  (desig:current-desig location-designator) :location))))
+               (alexandria:shuffle
+                (cut:force-ll
+                 (base-poses-ll-for-fetching-based-on-object-pose
+                  (object-type-filter-bullet obj-type-raw) ; obj-type
+                  (desig:reference
+                   (desig:desig-prop-value
+                    ;;current search loc.
+                    (desig:current-desig location-designator) :location))))))
 
               ;; REACHABILITY
               ((rob-int:reachability-designator-p location-designator)
@@ -64,9 +66,11 @@
                         (desig:current-desig
                          (desig:desig-prop-value
                           (desig:current-desig location-designator) :object))))
-                  (base-poses-ll-for-fetching-based-on-object-desig
-                   (desig:desig-prop-value
-                    (desig:current-desig location-designator) :object)))
+                  (alexandria:shuffle
+                   (cut:force-ll
+                    (base-poses-ll-for-fetching-based-on-object-desig
+                     (desig:desig-prop-value
+                      (desig:current-desig location-designator) :object)))))
 
                  ;; location-desig -> deliver
                  ((desig:desig-prop-value
@@ -74,9 +78,11 @@
                   (let ((pose (desig:reference
                                (desig:desig-prop-value
                                 (desig:current-desig location-designator) :location))))
-                    (base-poses-ll-for-fetching-based-on-object-pose
-                     (object-type-filter-bullet obj-type-raw)
-                     pose)))))))
+                    (alexandria:shuffle
+                     (cut:force-ll
+                      (base-poses-ll-for-fetching-based-on-object-pose
+                       (object-type-filter-bullet obj-type-raw)
+                       pose)))))))))
 
           (desig:resolve-location-designator-through-generators-and-validators location-designator))
       (desig:resolve-location-designator-through-generators-and-validators location-designator)))
