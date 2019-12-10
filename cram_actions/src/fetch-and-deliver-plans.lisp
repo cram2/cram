@@ -198,11 +198,12 @@ retries with different search location or robot base location."
                                  "Search is about to give up. Retrying~%"))))
 
         ;; if the going action fails, pick another `?robot-location' sample and retry
-        (cpl:with-retry-counters ((robot-location-retries 2))
+        (cpl:with-retry-counters ((robot-location-retries 4))
           (cpl:with-failure-handling
               (((or common-fail:navigation-goal-in-collision
                     common-fail:looking-high-level-failure
                     common-fail:perception-low-level-failure) (e)
+                 (setf ?robot-location (desig:copy-designator ?robot-location))
                  (common-fail:retry-with-loc-designator-solutions
                      ?robot-location
                      robot-location-retries
@@ -277,13 +278,14 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                    :description "Some designator could not be resolved.")))
 
     ;; take a new `?pick-up-robot-location' sample if a failure happens
-    (cpl:with-retry-counters ((relocation-for-ik-retries 10))
+    (cpl:with-retry-counters ((relocation-for-ik-retries 50))
       (cpl:with-failure-handling
           (((or common-fail:navigation-goal-in-collision
                 common-fail:looking-high-level-failure
                 common-fail:perception-low-level-failure
                 common-fail:object-unreachable
                 common-fail:manipulation-low-level-failure) (e)
+             (setf ?pick-up-robot-location (desig:copy-designator ?pick-up-robot-location))
              (common-fail:retry-with-loc-designator-solutions
                  ?pick-up-robot-location
                  relocation-for-ik-retries
@@ -434,6 +436,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
               (((or common-fail:navigation-goal-in-collision
                     common-fail:object-undeliverable
                     common-fail:manipulation-low-level-failure) (e)
+                 (setf ?target-robot-location (desig:copy-designator ?target-robot-location))
                  (common-fail:retry-with-loc-designator-solutions
                      ?target-robot-location
                      relocation-for-ik-retries
