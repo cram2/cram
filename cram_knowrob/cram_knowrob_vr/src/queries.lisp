@@ -480,25 +480,27 @@ and the transform surface-T-camera as a lazy list of pairs:
     :package :kvr)))
 
 
-(defun query-obj-and-camera-pose-depending-on-bowl (obj-type)
+(defun query-obj-and-camera-pose-depending-on-bowl (object-type)
   (cut:lazy-mapcar
    (lambda (binding-set)
-     (let* ((cam-pose  (cram-tf:flat-list->transform
-                        (cut:var-value '|?CameraPose| binding-set)))
+     (let ((map-T-camera
+             (cram-tf:flat-list->transform
+              (cut:var-value '|?CameraPose| binding-set)))
+           (map-T-bowl
+             (cram-tf:flat-list->transform
+              (cut:var-value '|?BowlPose| binding-set)))
+           (map-T-object
+             (cram-tf:flat-list->transform
+              (cut:var-value '|?ObjPose| binding-set)))
+           (surface-name
+             (cut:var-value '|?SurfaceTypeShortName| binding-set)))
+       (list map-T-camera map-T-bowl map-T-object surface-name)))
 
-            (bowl-pose (cram-tf:flat-list->transform
-                        (cut:var-value '|?BowlPose| binding-set)))
-
-            (obj-pose (cram-tf:flat-list->transform
-                       (cut:var-value '|?ObjPose| binding-set))))
-      (list (cons 'camera cam-pose)
-            (cons 'bowl bowl-pose)
-            (cons 'object obj-pose))))
-     
    (json-prolog:prolog-simple
-    (concatenate 'string
-                 "ep_inst(EpInst),
-    obj_type(ObjInst, knowrob:'" obj-type "'),
+    (concatenate
+     'string
+     "ep_inst(EpInst),
+    obj_type(ObjInst, knowrob:'" object-type "'),
     u_occurs(EpInst, EventInst, Start, End),
     obj_type(EventInst, knowrob:'GraspingSomething'),
     rdf_has(EventInst, knowrob:'objectActedOn', ObjInst),
@@ -514,19 +516,20 @@ and the transform surface-T-camera as a lazy list of pairs:
     u_occurs(EpInst, TouchingEventInst, TouchStart, TouchEnd),
     not(ObjInst==Surface),
     obj_type(Surface, SurfaceType),
+    iri_xml_namespace(SurfaceType, _, SurfaceTypeShortName),
     owl_subclass_of(SurfaceType, knowrob:'IslandArea'),
     iri_xml_namespace(BowlInst, _, BowlShortName),
     actor_pose(EpInst, ObjShortName, End, ObjPose),
     actor_pose(EpInst, CameraShortName, End, CameraPose),
     actor_pose(EpInst, BowlShortName, TouchStart, BowlPose),
     actor_pose(EpInst, BowlShortName, End, BowlPose).")
-                 :package :kvr)))
+    :package :kvr)))
 
 
 
 
 
-  
+
 #+this-is-not-used
 (defun query-table-location (object-type)
   (car
