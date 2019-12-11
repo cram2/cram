@@ -58,7 +58,7 @@ usage example: (move-object (pose-lists-parser '|?PoseObjEnd|))"
 (defun move-semantic-objects-to-start-pose ()
   (move-obj-with-offset
    *semantic-map-offset-x* *semantic-map-offset-y*
-   "IkeaBowl" :edeka-red-bowl2)
+   "BowlLarge" :edeka-red-bowl2)
   (move-obj-with-offset
    *semantic-map-offset-x* *semantic-map-offset-y*
    "KoellnMuesliKnusperHonigNuss" :koelln-muesli-knusper-honig-nuss2)
