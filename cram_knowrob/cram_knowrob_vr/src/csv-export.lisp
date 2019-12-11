@@ -77,7 +77,9 @@
 
 (defun create-csv (samples)
   (with-open-file (csv-stream "/home/thomas/nameisthiscsvname.csv" :direction :output :if-exists :supersede)
-    (write-string "kitchen_name,human_name,context,object-type,from-location,to-location,x,y,arm,object-orient-from-cam" csv-stream)
+    (write-string
+     "kitchen_name,human_name,context,object-type,from-location,from-x,from-y,from-orient,to-location,to-x,to-y,to-orient,arm"
+     csv-stream)
     (loop for sample in samples do
       (print sample)
       (fresh-line csv-stream)

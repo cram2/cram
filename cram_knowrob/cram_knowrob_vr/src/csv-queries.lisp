@@ -30,55 +30,153 @@
 
 (in-package :kvr)
 
+(defun get-umap-T-uobj (sample-for-object-type)
+  "Returns the transformation of given sample from map to obj for
+a given sample `sample-for-object-type'."
+  (when sample-for-object-type
+    (let* ((surface-name
+             (first sample-for-object-type))
+           (ssurface-T-sobject
+             (second sample-for-object-type))
+           (rigid-body 
+             (btr:rigid-body
+              (btr:get-environment-object)
+              (match-kitchens surface-name)))
+           (umap-T-usurface
+             (when rigid-body
+               (cl-transforms:pose->transform
+                (btr:pose rigid-body)))))
+      (when (and umap-T-usurface
+                 ssurface-T-sobject)
+        (cl-transforms:transform*
+         umap-T-usurface ssurface-T-sobject)))))
+       
+(defun umap-T-uobj->uobj-position (umap-T-uobj)
+  "Returns the position of object with given transformation `umap-to-uobj'"
+  (when umap-T-uobj
+    (cl-transforms:origin
+     (cl-transforms-stamped:make-pose-stamped
+      cram-tf:*fixed-frame*
+      0.0
+      (cl-transforms:translation umap-T-uobj)
+      (cl-transforms:rotation umap-T-uobj)))))
+
 (defun samples-for-object-type (type)
+  "Returns all valid samples recorded in the VR Kitchen with given
+  object type `type'"
   (let* ((sample-for-object-type-ll
            (kvr::query-for-csv-export
-            (object-type-filter-prolog type)
+            type
             "End"
-            :table-setting))
-         (epinst-name
-           (first (last (car sample-for-object-type-ll))))
-         (object-from
-           (query-contact-surface-name type "Start" epinst-name)))
-    (cut:force-ll
-     (cut:lazy-mapcar
-      (lambda (sample-for-object-type)
-        (let* ((surface-name
-                 (first sample-for-object-type))
-               (ssurface-T-sobject
-                 (second sample-for-object-type))
-               (umap-T-usurface
-                 (cl-transforms:pose->transform
-                  (btr:pose
-                   (btr:rigid-body
-                    (btr:get-environment-object)
-                    (match-kitchens surface-name)))))
-               (umap-T-uobj
-                 (cl-transforms:transform*
-                  umap-T-usurface ssurface-T-sobject))
-               (obj-position
-                 (cl-transforms:origin
-                  (cl-transforms-stamped:make-pose-stamped
-                   cram-tf:*fixed-frame*
-                   0.0
-                   (cl-transforms:translation umap-T-uobj)
-                   (cl-transforms:rotation umap-T-uobj)))))
-          (list
-           type
-           (car object-from)
-           (nth 0 sample-for-object-type)
-           (cl-transforms:x obj-position)
-           (cl-transforms:y obj-position)
-           (third sample-for-object-type)
-           (nth 3 sample-for-object-type))))
-      sample-for-object-type-ll))))
+            )))
+      
+      (remove-if-not (alexandria:curry #'every #'identity)
+       (cut:force-ll
+       (cut:lazy-mapcar
+        (lambda (sample-for-object-type)
+          (let* ((ep-inst-and-obj-short-and-inst-name
+                   (last sample-for-object-type 3))
+                 ;; the episode name from sample-for-object-type
+                 (ep-inst-name (car ep-inst-and-obj-short-and-inst-name))
+                 ;; the object short instance name from sample-for-object-type
+                 (obj-short-name (car (cdr ep-inst-and-obj-short-and-inst-name)))
+                 ;; the object instance name from sample-for-object-type
+                 (obj-inst-name (car (cdr (cdr ep-inst-and-obj-short-and-inst-name))))
+                 ;; the symbolic storage location from sample-for-object-type
+                 (object-from
+                   (cut:lazy-car (query-contact-surface-name type "Start" ep-inst-name)))
+                 ;; The Start sample with given object type, episode name
+                 ;; and object instance name
+                 (start-sample-for-object-instance (kvr::filter-query-for-csv-export
+                                                    type
+                                                    "Start"
+                                                    nil
+                                                    :obj-short-name
+                                                    obj-short-name
+                                                    :ep-inst 
+                                                    ep-inst-name
+                                                    ;; :obj-inst 
+                                                    ;; obj-inst-name
+                                                    ))
+                 ;; The subsymbolic destination and storage transformations
+                 ;; from map to object from sample-for-object-type
+                 (umap-T-uobj-dest (get-umap-T-uobj
+                                    sample-for-object-type))
+                 (umap-T-uobj-storage (get-umap-T-uobj
+                                       (cut:lazy-car start-sample-for-object-instance)))
+                 ;; The subsymbolic destination and storage location
+                 ;; from sample-for-object-type
+                 (obj-dest-position (umap-T-uobj->uobj-position
+                                     umap-T-uobj-dest))
+                 (obj-storage-position (umap-T-uobj->uobj-position
+                                        umap-T-uobj-storage))
+                 (obj-dest-orientation (fourth 
+                                        sample-for-object-type))
+                 (obj-storage-orientation (fourth
+                                           (cut:lazy-car start-sample-for-object-instance))))
+            (roslisp:ros-info (kvr export) "Got sample for ~A" obj-short-name)
+            (list
+             type
+             object-from
+             (if obj-storage-position
+                 (cl-transforms:x obj-storage-position)
+                 nil)
+             (if obj-storage-position
+                 (cl-transforms:y obj-storage-position)
+                 nil)
+             obj-storage-orientation
+             (nth 0 sample-for-object-type) ;; symbolic destination location
+             (if obj-dest-position
+                 (cl-transforms:x obj-dest-position)
+                 nil)
+             (if obj-dest-position
+                 (cl-transforms:y obj-dest-position)
+                 nil)
+             obj-dest-orientation
+             (third sample-for-object-type) ;; arm
+             )))
+        sample-for-object-type-ll)))))
+
+;; TODO Maybe save query-for-csv-exports in hash-table with keys being
+;; the object-type and cache these
+;; Hash-table cache should be deleteable with an init-cache
+(defun filter-query-for-csv-export (object-type start-or-end
+                                    &optional context 
+                                    &key obj-short-name
+                                      ep-inst obj-inst)
+  "Gets the output from `query-for-csv-export' with given
+`object-type', `start-or-end' and `context' and then filters this
+output with given `obj-short-name', `ep-inst' and
+`obj-inst'. `obj-type', `obj-short-name', `ep-inst' and `obj-inst'
+have to come from the semantic map representing semantically the VR
+Kitchen in OWL."
+
+  (let ((samples (cut:force-ll
+                  (query-for-csv-export object-type
+                                        start-or-end
+                                        context))))
+    (if  (and (or obj-short-name obj-inst)
+              ep-inst)
+         (remove-if-not (lambda (sample)
+                          (let ((ep-inst-obj-short-name-obj-inst-list (last
+                                                                       sample
+                                                                       3)))
+                            (and (or 
+                                  (search obj-inst (third ep-inst-obj-short-name-obj-inst-list))
+                                  (search obj-short-name (second ep-inst-obj-short-name-obj-inst-list)))
+                                 (search ep-inst (first ep-inst-obj-short-name-obj-inst-list)))))
+                        samples)
+         samples)))
 
 (defun query-for-csv-export (object-type start-or-end &optional context)
   (declare (type string object-type start-or-end)
            (type (or null keyword) context))
-  "Returns the OWL type of the supporting surface an object is picked up from or
-placed, the transform surface-T-object and the used hand of the robot as a lazy list
-of pairs: '((name-1 . surface-T-object-1 . hand-1) . rest-of-lazy-list)."
+  "Returns the OWL type of the supporting surface name an object with
+   type `object-type' is picked up from or placed. Moreover, it
+   returns the transform surface-T-object, the used robot arm, the
+   z angle of the object, the episode name and the short and long name
+   of the object instance. All these values are returned in the
+   described order in a lazy list."
   (assert (or (equal start-or-end "Start") (equal start-or-end "End")))
   (cut:lazy-mapcar
    (lambda (binding-set)
@@ -102,27 +200,12 @@ of pairs: '((name-1 . surface-T-object-1 . hand-1) . rest-of-lazy-list)."
             (obj-T-map
               (cl-transforms:transform-inv
                map-T-object))
-            (obj-T-cam-zeroed-x-y-orient
-              (let* ((obj-T-cam (cl-transforms:transform* obj-T-map map-T-camera))
-                     (obj-T-cam-q (cl-tf:rotation obj-T-cam)))
-                (cl-tf:make-transform
-                 (cl-tf:translation obj-T-cam)
-                 (cl-tf:make-quaternion 0
-                                        0
-                                        (cl-tf:z obj-T-cam-q)
-                                        (cl-tf:w obj-T-cam-q)))))
-            (angle-between-obj-and-cam
-              (* 180
-                 (/
-                  (cl-tf:angle-between-quaternions
-                   (cl-transforms:rotation (cl-transforms:transform-inv obj-T-cam-zeroed-x-y-orient))
-                   (cl-tf:make-identity-rotation)) pi)))
-            (discreted-angle-betw-obj-and-cam
-              (if (or
-                   (< 45 angle-between-obj-and-cam 135)
-                   (< 225 angle-between-obj-and-cam 315))
-                  "horizontal"
-                  "vertical"))
+            (obj-angle
+              (/
+               (cl-tf:angle-between-quaternions
+                (cl-transforms:rotation map-T-object)
+                (cl-tf:make-identity-rotation))
+               pi))
             (hand-string
               (string
                (cut:var-value '|?HandTypeName| binding-set)))
@@ -132,13 +215,31 @@ of pairs: '((name-1 . surface-T-object-1 . hand-1) . rest-of-lazy-list)."
                                      (lambda (c)
                                        (or (equal c #\')
                                            (equal c #\#)))
-                                     (string (cut:var-value '|?EpInst| binding-set)))))))
+                                     (string (cut:var-value '|?EpInst|
+                                                            binding-set))))))
+            (ObjInst-name
+              (string (cut:var-value '|?ObjInst|
+                                     binding-set)))
+            (ObjShort-name
+              (first (remove-if-not (lambda (e)
+                                      (and (search "_" e)
+                                           (not (search "http" e))))
+                                    (split-sequence:split-sequence-if
+                                     (lambda (c)
+                                       (or (equal c #\')
+                                           (equal c #\#)))
+                                     ObjInst-name)))))
        (if (search "Left" hand-string)
            (setf hand-string :left)
            (if (search "Right" hand-string)
                (setf hand-string :right)
                (setf hand-string NIL)))
-       (list surface-name surface-T-object hand-string discreted-angle-betw-obj-and-cam EpInst-name)))
+
+       (list surface-name surface-T-object hand-string obj-angle
+             EpInst-name ObjShort-name ObjInst-name)))
+
+
+
    (json-prolog:prolog-simple
     (concatenate
      'string
@@ -182,3 +283,4 @@ of pairs: '((name-1 . surface-T-object-1 . hand-1) . rest-of-lazy-list)."
         (t
          ".")))
     :package :kvr)))
+     
