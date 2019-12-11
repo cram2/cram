@@ -42,7 +42,14 @@
 
 (defparameter  *semantic-to-urdf*
   '((|''IslandArea''| . :|KITCHEN.kitchen_island|)
-    (|''SinkArea''| . :|KITCHEN.sink_area|))
+    (|''SinkArea''| . :|KITCHEN.sink_area|)
+    (|''SinkDrawerLeftTop''| . :|KITCHEN.sink_area_left_upper_drawer_main|)
+    (|''IslandDrawerBottomLeft''| . :|KITCHEN.kitchen_island_left_lower_drawer_main|)
+    (|''IslandDrawerBottomMiddle''| . :|KITCHEN.kitchen_island_middle_lower_drawer_main|)
+    (|''SinkDrawerLeftMiddle''| . :|KITCHEN.sink_area_left_bottom_drawer_main|)
+    (|''OvenDrawerRight''| . :|KITCHEN.oven_area_area_right_drawer_main|)
+    (|''FridgeDoorBottomShelf''| . :|KITCHEN.iai_fridge_main|)
+    (|''FridgeGlassShelf''| . :|KITCHEN.iai_fridge_main|))
   "semantic map . urdf")
 
 (defun match-kitchens (name)
@@ -65,10 +72,10 @@ for that object, e.g. CupEcoOrange."
       (case object-type
         (muesli "KoellnMuesliKnusperHonigNuss")
         (cup "CupEcoOrange")
-        (bowl "IkeaBowl")
+        (bowl "BowlLarge")
         (milk "MilramButtermilchErdbeere")
         (fork "PlasticBlueFork")
-        (spoon "PlasticBlueSpoon")
+        (spoon "SpoonSoup")
         (t (ros-warn nil "Unknown object type. Known types are: muesli, cup, bowl, milk, fork, spoon")))))
 
 (defun object-type-filter-bullet (object-type)
