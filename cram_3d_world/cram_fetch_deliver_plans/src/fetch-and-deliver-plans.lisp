@@ -198,7 +198,7 @@ retries with different search location or robot base location."
                                  "Search is about to give up. Retrying~%"))))
 
         ;; if the going action fails, pick another `?robot-location' sample and retry
-        (cpl:with-retry-counters ((robot-location-retries 2))
+        (cpl:with-retry-counters ((robot-location-retries 4))
           (cpl:with-failure-handling
               (((or common-fail:navigation-goal-in-collision
                     common-fail:looking-high-level-failure
@@ -277,7 +277,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                    :description "Some designator could not be resolved.")))
 
     ;; take a new `?pick-up-robot-location' sample if a failure happens
-    (cpl:with-retry-counters ((relocation-for-ik-retries 10))
+    (cpl:with-retry-counters ((relocation-for-ik-retries 50))
       (cpl:with-failure-handling
           (((or common-fail:navigation-goal-in-collision
                 common-fail:looking-high-level-failure

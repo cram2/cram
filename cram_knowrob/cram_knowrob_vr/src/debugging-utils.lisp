@@ -158,6 +158,8 @@ Returns: list of cl-tf:pose."
                                   (mapcar (lambda (pose-stamped)
                                             (cl-tf:pose-stamped->pose pose-stamped))
                                           temp-list)))
+      ;; if already pose, don't do anything
+      (cl-transforms:pose (setf poses-list temp-list))
       (t (print "invalid type")))
     ;; return poses list
     poses-list))
@@ -266,18 +268,57 @@ Returns: list of cl-tf:pose."
   (dolist (pose list)
     (spawn-btr-arrow pose (arrow-prefix) '(0 0 1))))
 
-(defun spawn-visibility-arrows (pose-stamped-list &optional desig-color)
-  "spawns arrows according to the ?visibility or ?reachability lists.
+(defun spawn-arrows (pose-stamped-list &optional (desig-color 'vis))
+   "spawns arrows according to the ?visibility or ?reachability lists.
 `pose-stamped-list' is the given ?visibility or ?reachability list.
 `desig-color' can be set to 'vis or 'reach depending on which list it is.
 'vis arrows = dark green
 'reach arrows = dark blue"
-  (let ((poses-list (convert-into-poses-list (car pose-stamped-list)))
-        (color (cond ((eq desig-color 'vis)
-                      '(1.0 0.6 0.0))
-                     ((eq desig-color 'reach)
-                      '(0 0 0.5))
-                     ((eq desig-color 'del)
-                      '(0 0.5 0.7)))))
-    (dolist (pose poses-list)
-      (spawn-btr-arrow pose (arrow-prefix) color))))
+   (let ((poses-list (convert-into-poses-list (cut:force-ll pose-stamped-list)))
+         (color (cond ((eq desig-color 'vis)
+                       '(1.0 0.6 0.0))
+                      ((eq desig-color 'reach)
+                       '(0 0 0.5))
+                      ((eq desig-color 'del)
+                       '(0 0.5 0.7)))))
+     (dolist (pose poses-list)
+       (spawn-btr-arrow pose (arrow-prefix) color))))
+
+(defun spawn-all-arrows (type &optional (obj-pose (cl-transforms:make-identity-pose)))
+  "type should be 'cup 'bowl or 'spoon"
+  ;; kill all possibly existing objects/arrows
+  (btr-utils:kill-all-objects)
+  ;; search poses
+  (spawn-arrows
+   (look-poses-ll-for-searching type))
+  ;; search base poses
+  (spawn-arrows
+   (base-poses-ll-for-searching (object-type-filter-prolog type)) 'vis)
+  ;; fetch base poses
+  (spawn-arrows
+   (base-poses-ll-for-fetching-based-on-object-pose
+    (object-type-filter-bullet type) obj-pose) 'reach)
+  ;; target poses on table
+  (spawn-arrows
+   (object-poses-ll-for-placing type (cl-transforms:pose->transform obj-pose)) 'del)
+  ;; deliver base poses
+  (spawn-arrows
+   (base-poses-ll-for-placing type) 'del ))
+
+
+(defun test-relative-position--query (poses)
+  (btr-utils:kill-all-objects)
+  (spawn-unreal-arrow (cl-tf:transform->pose
+                       (cdr (assoc 'camera poses)))
+                      (format nil "ur-camera-~a" (arrow-prefix))
+                      '(1 1 0))
+
+  (spawn-unreal-arrow (cl-tf:transform->pose
+                       (cdr (assoc 'bowl poses)))
+                      (format nil "ur-bowl-~a" (arrow-prefix))
+                      '(1 0 0))
+
+  (spawn-unreal-arrow (cl-tf:transform->pose
+                       (cdr (assoc 'object poses)))
+                      (format nil "ur-object-~a" (arrow-prefix))
+                      '(0 0 1)))
