@@ -335,8 +335,6 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
            (desig:desig-prop-value object :type))
          (maybe-other-object
            (car (cdr objects-acted-on)))
-         (maybe-other-object-name
-           (desig:desig-prop-value maybe-other-object :name))
          (maybe-other-object-type
            (desig:desig-prop-value maybe-other-object :type))
          (maybe-attachment
@@ -379,7 +377,8 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
             oTg-std
             'cl-tf:translation)
            'cl-tf:z)
-          (+ (cl-tf:z (cl-tf:translation oTg-std))
+          (+ (cl-tf:z (cl-tf:copy-3d-vector
+                       (cl-tf:translation oTg-std)))
              z-offset))
 
     (mapcar (lambda (label transforms)
