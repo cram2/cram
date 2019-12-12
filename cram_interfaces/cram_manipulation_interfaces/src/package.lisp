@@ -55,6 +55,7 @@
    #:get-location-poses
    #:get-container-opening-distance
    #:get-container-closing-distance
+   #:get-z-offset-for-placing-distance
    ;; grasps
    #:calculate-object-faces
    #:calculate-face-vector
