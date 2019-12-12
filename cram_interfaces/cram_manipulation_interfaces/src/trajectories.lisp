@@ -333,6 +333,18 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
            (desig:desig-prop-value object :name))
          (object-type
            (desig:desig-prop-value object :type))
+         (maybe-other-object
+           (car (cdr objects-acted-on)))
+         (maybe-other-object-name
+           (desig:desig-prop-value maybe-other-object :name))
+         (maybe-other-object-type
+           (desig:desig-prop-value maybe-other-object :type))
+         (maybe-attachment
+           (car (cdr (cdr objects-acted-on))))
+         (z-offset (get-z-offset-for-placing-distance
+                    maybe-other-object-type
+                    object-type
+                    maybe-attachment))
          (oTg-std
            (get-object-type-to-gripper-transform
             object-type object-name arm grasp))
@@ -360,6 +372,15 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
          (oTg-2ndpregrasp
            (second (get-object-type-to-gripper-pregrasp-transforms
                     object-type object-name arm grasp oTg-std))))
+
+    ;; Add z-offset for dropping items on other items
+    (setf (slot-value
+           (slot-value
+            oTg-std
+            'cl-tf:translation)
+           'cl-tf:z)
+          (+ (cl-tf:z (cl-tf:translation oTg-std))
+             z-offset))
 
     (mapcar (lambda (label transforms)
               (make-traj-segment
