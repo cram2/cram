@@ -203,7 +203,6 @@ retries with different search location or robot base location."
               (((or common-fail:navigation-goal-in-collision
                     common-fail:looking-high-level-failure
                     common-fail:perception-low-level-failure) (e)
-                 (setf ?robot-location (desig:copy-designator ?robot-location))
                  (common-fail:retry-with-loc-designator-solutions
                      ?robot-location
                      robot-location-retries
@@ -285,7 +284,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 common-fail:perception-low-level-failure
                 common-fail:object-unreachable
                 common-fail:manipulation-low-level-failure) (e)
-             (setf ?pick-up-robot-location (desig:copy-designator ?pick-up-robot-location))
              (common-fail:retry-with-loc-designator-solutions
                  ?pick-up-robot-location
                  relocation-for-ik-retries
@@ -436,7 +434,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
               (((or common-fail:navigation-goal-in-collision
                     common-fail:object-undeliverable
                     common-fail:manipulation-low-level-failure) (e)
-                 (setf ?target-robot-location (desig:copy-designator ?target-robot-location))
                  (common-fail:retry-with-loc-designator-solutions
                      ?target-robot-location
                      relocation-for-ik-retries
