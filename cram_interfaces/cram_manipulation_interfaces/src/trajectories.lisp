@@ -344,8 +344,20 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
                     object-type
                     maybe-attachment))
          (oTg-std
-           (get-object-type-to-gripper-transform
-            object-type object-name arm grasp))
+           (let ((tmp-oTg-std (get-object-type-to-gripper-transform
+                               object-type object-name arm grasp)))
+             (cl-tf:transform->stamped-transform
+              (cl-tf:frame-id tmp-oTg-std)
+              (cl-tf:child-frame-id tmp-oTg-std)
+              (cl-tf:stamp tmp-oTg-std)
+              (cl-tf:make-transform
+               (cl-tf:make-3d-vector
+                (cl-tf:x (cl-tf:translation tmp-oTg-std))
+                (cl-tf:y (cl-tf:translation tmp-oTg-std))
+                (+ (cl-tf:z (cl-tf:translation tmp-oTg-std))
+                   z-offset))
+               (cl-tf:copy-quaternion
+                (cl-tf:rotation tmp-oTg-std))))))
          (bTo
            target-object-transform-in-base)
          (oTb
@@ -370,16 +382,6 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
          (oTg-2ndpregrasp
            (second (get-object-type-to-gripper-pregrasp-transforms
                     object-type object-name arm grasp oTg-std))))
-
-    ;; Add z-offset for dropping items on other items
-    (setf (slot-value
-           (slot-value
-            oTg-std
-            'cl-tf:translation)
-           'cl-tf:z)
-          (+ (cl-tf:z (cl-tf:copy-3d-vector
-                       (cl-tf:translation oTg-std)))
-             z-offset))
 
     (mapcar (lambda (label transforms)
               (make-traj-segment
