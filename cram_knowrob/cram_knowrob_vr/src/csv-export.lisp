@@ -114,7 +114,43 @@
           (write-to-string feature))))
 
 (defun double-to-string (double)
-  (let ((start 0)
-        (end (if (> double 0) 6 7)))
-    (subseq (first
-             (split-sequence:split-sequence #\d (write-to-string double))) start end)))
+  (let* ((start 0)
+         (front-double-string 
+           (remove #\. 
+                   (first
+                    (split-sequence:split-sequence #\d
+                                                   (write-to-string
+                                                    double)))))
+         (back-double-string (second
+                              (split-sequence:split-sequence #\d
+                                                             (write-to-string
+                                                              double))))
+         (front-int (read-from-string front-double-string))
+         (back-int (read-from-string back-double-string))
+         (abs-back-int (abs back-int))
+         (zeros (make-sequence 'string (if (> double 0)
+                                           (if (< abs-back-int 6)
+                                               abs-back-int
+                                               6)
+                                           (if (< abs-back-int 7)
+                                               abs-back-int
+                                               7))
+                               :initial-element #\0))
+         (leng (+
+                abs-back-int
+                (length front-double-string)))
+         (end (if (> double 0)
+                  (if (< leng 6)
+                      leng
+                      6)
+                  (if (< leng 7)
+                      leng
+                      7)))
+         (double-string (if (< back-int 0)
+                            (concatenate 'string zeros front-double-string)
+                            (concatenate 'string front-double-string
+                                         zeros))))
+    (print back-int)
+    (print abs-back-int)
+    (print double-string)
+    (subseq double-string start end)))
