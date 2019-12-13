@@ -65,7 +65,8 @@
                   ;; drinks
                   "BaerenMarkeFrischeAlpenmilch38" "HohesCOrange"
                   ;; other
-                  "Tray"))
+                  "Tray"
+                  ))
          (kitchen-name-context (mapcar #'keyword-to-string
                                        (list kitchen name context)))
          (samples (format-samples
@@ -92,7 +93,7 @@
   "removes chars ' and | and : in samples"
   (mapcar (lambda (sample)
             (loop for feature in sample collect
-                                        (remove-chars-in-given-string feature)))
+                                        (remove-chars-in-given-string (feature-to-string feature))))
           samples))
 
 (defun keyword-to-string (kw)
@@ -101,7 +102,7 @@
       (remove-chars-in-given-string (write-to-string kw))))
 
 (defun remove-chars-in-given-string (string &optional (ugly-chars '(#\| #\' #\:)))
-  (let* ((splitted-string (split-sequence:split-sequence #\| (feature-to-string string))))
+  (let* ((splitted-string (split-sequence:split-sequence #\| string)))
     (reduce (alexandria:curry #'concatenate 'string)
             (loop for elem in splitted-string collect
                                                (string-trim ugly-chars elem)))))
@@ -113,44 +114,13 @@
           (double-to-string feature)
           (write-to-string feature))))
 
+(defun round-to (number precision &optional (what #'round))
+    (let ((div (expt 10 precision)))
+         (/ (funcall what (* number div)) div)))
+
 (defun double-to-string (double)
-  (let* ((start 0)
-         (front-double-string 
-           (remove #\. 
-                   (first
-                    (split-sequence:split-sequence #\d
-                                                   (write-to-string
-                                                    double)))))
-         (back-double-string (second
-                              (split-sequence:split-sequence #\d
-                                                             (write-to-string
-                                                              double))))
-         (front-int (read-from-string front-double-string))
-         (back-int (read-from-string back-double-string))
-         (abs-back-int (abs back-int))
-         (zeros (make-sequence 'string (if (> double 0)
-                                           (if (< abs-back-int 6)
-                                               abs-back-int
-                                               6)
-                                           (if (< abs-back-int 7)
-                                               abs-back-int
-                                               7))
-                               :initial-element #\0))
-         (leng (+
-                abs-back-int
-                (length front-double-string)))
-         (end (if (> double 0)
-                  (if (< leng 6)
-                      leng
-                      6)
-                  (if (< leng 7)
-                      leng
-                      7)))
-         (double-string (if (< back-int 0)
-                            (concatenate 'string zeros front-double-string)
-                            (concatenate 'string front-double-string
-                                         zeros))))
-    (print back-int)
-    (print abs-back-int)
-    (print double-string)
-    (subseq double-string start end)))
+  (when (< -100000 double 100000)
+    (if (< 0 (abs double) 0.001)
+        "0.0"
+        (write-to-string (float (round-to double 5))))))
+  
