@@ -246,7 +246,7 @@
                                 )
   :attachment-rot-matrix man-int:*identity-matrix*)
 
-(defmethod man-int::get-z-offset-for-placing-distance :heuristics 20
+(defmethod man-int:get-z-offset-for-placing-distance :heuristics 20
   ((other-object (eql :chassis))
    (object (eql :bottom-wing))
    (attachment (eql :wing-attachment)))
