@@ -35,88 +35,176 @@
   "in radiants, about 6 degrees")
 
 (defun make-giskard-cartesian-action-goal (left-pose right-pose
-                                           pose-base-frame left-tool-frame right-tool-frame
+                                           pose-base-frame
+                                           left-tool-frame right-tool-frame
                                            collision-mode
                                            &key
-                                             collision-object-b collision-object-b-link
+                                             collision-object-b
+                                             collision-object-b-link
                                              collision-object-a
-                                             move-the-ass)
+                                             prefer-base align-planes-left align-planes-right)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
-           (type string pose-base-frame left-tool-frame right-tool-frame))
+           (type (or null string) pose-base-frame left-tool-frame right-tool-frame)
+           (type boolean prefer-base align-planes-left align-planes-right))
   (roslisp:make-message
    'giskard_msgs-msg:MoveGoal
    :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal ;; :plan_only
-                              :plan_and_execute
-                              )
+                              :plan_and_execute)
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
               ;; THIS STUFF HAS A STATE
               ;; RESET THE STATE EXPLICITLY IF YOU WANT A NON CART MOVEMENT AFTER THIS
               :constraints
-              (vector (roslisp:make-message
-                       'giskard_msgs-msg:constraint
-                       :type
-                       "UpdateGodMap"
-                       :parameter_value_pair
-                       (let ((stream (make-string-output-stream)))
-                         (yason:encode
-                          (alexandria:alist-hash-table
-                           `(("updates"
-                              .
-                              ,(alexandria:alist-hash-table
-                                `(("rosparam"
-                                   .
-                                   ,(alexandria:alist-hash-table
-                                     `(("joint_weights"
-                                        .
-                                        ,(alexandria:alist-hash-table
-                                          `(("odom_x_joint" . ,(if move-the-ass 0.0001 1.0))
-                                            ("odom_y_joint" . ,(if move-the-ass 0.0001 1.0))
-                                            ("odom_z_joint" . ,(if move-the-ass 0.0001 1.0)))))))))
-                                :test #'equal))))
-                          stream)
-                         (get-output-stream-string stream))))
+              (map 'vector #'identity
+                   (remove
+                    NIL
+                    (list
+                     (when prefer-base
+                       (roslisp:make-message
+                        'giskard_msgs-msg:constraint
+                        :type
+                        "UpdateGodMap"
+                        :parameter_value_pair
+                        (let ((stream (make-string-output-stream)))
+                          (yason:encode
+                           (cram-tf:recursive-alist-hash-table
+                            `(("updates"
+                               . (("rosparam"
+                                   . (("general_options"
+                                       . (("joint_weights"
+                                           . (("odom_x_joint" . 0.0001)
+                                              ("odom_y_joint" . 0.0001)
+                                              ("odom_z_joint" . 0.0001))))))))))
+                            :test #'equal)
+                           stream)
+                          (get-output-stream-string stream))))
+                     ;; (unless prefer-base
+                     ;;   (roslisp:make-message
+                     ;;    'giskard_msgs-msg:constraint
+                     ;;    :type
+                     ;;    "UpdateGodMap"
+                     ;;    :parameter_value_pair
+                     ;;    (let ((stream (make-string-output-stream)))
+                     ;;      (yason:encode
+                     ;;       (cram-tf:recursive-alist-hash-table
+                     ;;        `(("updates"
+                     ;;           . (("rosparam"
+                     ;;               . (("general_options"
+                     ;;                   . (("joint_weights"
+                     ;;                       . (("odom_x_joint" . 1.0)
+                     ;;                          ("odom_y_joint" . 1.0)
+                     ;;                          ("odom_z_joint" . 1.0))))))))))
+                     ;;        :test #'equal)
+                     ;;       stream)
+                     ;;      (get-output-stream-string stream))))
+                     (when align-planes-left
+                       (roslisp:make-message
+                        'giskard_msgs-msg:constraint
+                        :type
+                        "AlignPlanes"
+                        :parameter_value_pair
+                        (let ((stream (make-string-output-stream)))
+                          (yason:encode
+                           (cram-tf:recursive-alist-hash-table
+                            `(("root" . "base_footprint")
+                              ("tip" . "refills_finger")
+                              ("tip_normal"
+                               . (("header"
+                                   . (("stamp" . (("secs" . 0.0)
+                                                  ("nsecs" . 0.0)))
+                                      ("frame_id" . "refills_finger")
+                                      ("seq" . 0)))
+                                  ("vector"
+                                   . (("x" . 0.0)
+                                      ("y" . 1.0)
+                                      ("z" . 0.0)))))
+                              ("root_normal"
+                               . (("header"
+                                   . (("stamp" . (("secs" . 0.0)
+                                                  ("nsecs" . 0.0)))
+                                      ("frame_id" . "base_footprint")
+                                      ("seq" . 0)))
+                                  ("vector" . (("x" . 0.0)
+                                               ("y" . 1.0)
+                                               ("z" . 0.0))))))
+                            :test #'equal)
+                           stream)
+                          (get-output-stream-string stream))))
+                     (when align-planes-right
+                       (roslisp:make-message
+                        'giskard_msgs-msg:constraint
+                        :type
+                        "AlignPlanes"
+                        :parameter_value_pair
+                        (let ((stream (make-string-output-stream)))
+                          (yason:encode
+                           (cram-tf:recursive-alist-hash-table
+                            `(("root" . "base_footprint")
+                              ("tip" . "refills_finger")
+                              ("tip_normal"
+                               . (("header"
+                                   . (("stamp" . (("secs" . 0.0)
+                                                  ("nsecs" . 0.0)))
+                                      ("frame_id" . "refills_finger")
+                                      ("seq" . 0)))
+                                  ("vector"
+                                   . (("x" . 0.0)
+                                      ("y" . 1.0)
+                                      ("z" . 0.0)))))
+                              ("root_normal"
+                               . (("header"
+                                   . (("stamp" . (("secs" . 0.0)
+                                                  ("nsecs" . 0.0)))
+                                      ("frame_id" . "base_footprint")
+                                      ("seq" . 0)))
+                                  ("vector" . (("x" . 0.0)
+                                               ("y" . 1.0)
+                                               ("z" . 0.0))))))
+                            :test #'equal)
+                           stream)
+                          (get-output-stream-string stream)))))))
               :cartesian_constraints
               (map 'vector #'identity
-                   (remove nil
-                           (list
-                            (when left-pose
-                              (roslisp:make-message
+                   (remove
+                    nil
+                    (list
+                     (when left-pose
+                       (roslisp:make-message
+                        'giskard_msgs-msg:cartesianconstraint
+                        :type (roslisp:symbol-code
                                'giskard_msgs-msg:cartesianconstraint
-                               :type (roslisp:symbol-code
-                                      'giskard_msgs-msg:cartesianconstraint
-                                      :translation_3d)
-                               :root_link pose-base-frame
-                               :tip_link left-tool-frame
-                               :goal (cl-transforms-stamped:to-msg left-pose)))
-                            (when left-pose
-                              (roslisp:make-message
+                               :translation_3d)
+                        :root_link pose-base-frame
+                        :tip_link left-tool-frame
+                        :goal (cl-transforms-stamped:to-msg left-pose)))
+                     (when left-pose
+                       (roslisp:make-message
+                        'giskard_msgs-msg:cartesianconstraint
+                        :type (roslisp:symbol-code
                                'giskard_msgs-msg:cartesianconstraint
-                               :type (roslisp:symbol-code
-                                      'giskard_msgs-msg:cartesianconstraint
-                                      :rotation_3d)
-                               :root_link pose-base-frame
-                               :tip_link left-tool-frame
-                               :goal (cl-transforms-stamped:to-msg left-pose)))
-                            (when right-pose
-                              (roslisp:make-message
+                               :rotation_3d)
+                        :root_link pose-base-frame
+                        :tip_link left-tool-frame
+                        :goal (cl-transforms-stamped:to-msg left-pose)))
+                     (when right-pose
+                       (roslisp:make-message
+                        'giskard_msgs-msg:cartesianconstraint
+                        :type (roslisp:symbol-code
                                'giskard_msgs-msg:cartesianconstraint
-                               :type (roslisp:symbol-code
-                                      'giskard_msgs-msg:cartesianconstraint
-                                      :translation_3d)
-                               :root_link pose-base-frame
-                               :tip_link right-tool-frame
-                               :goal (cl-transforms-stamped:to-msg right-pose)))
-                            (when right-pose
-                              (roslisp:make-message
+                               :translation_3d)
+                        :root_link pose-base-frame
+                        :tip_link right-tool-frame
+                        :goal (cl-transforms-stamped:to-msg right-pose)))
+                     (when right-pose
+                       (roslisp:make-message
+                        'giskard_msgs-msg:cartesianconstraint
+                        :type (roslisp:symbol-code
                                'giskard_msgs-msg:cartesianconstraint
-                               :type (roslisp:symbol-code
-                                      'giskard_msgs-msg:cartesianconstraint
-                                      :rotation_3d)
-                               :root_link pose-base-frame
-                               :tip_link right-tool-frame
-                               :goal (cl-transforms-stamped:to-msg right-pose))))))
+                               :rotation_3d)
+                        :root_link pose-base-frame
+                        :tip_link right-tool-frame
+                        :goal (cl-transforms-stamped:to-msg right-pose))))))
               :collisions
               (case collision-mode
                 (:allow-all
@@ -165,8 +253,8 @@
                                       (roslisp-utilities:rosify-underscores-lisp-name
                                        collision-object-b)
                                       (roslisp:symbol-code
-                                            'giskard_msgs-msg:collisionentry
-                                            :all))
+                                       'giskard_msgs-msg:collisionentry
+                                       :all))
                           :link_bs (vector (roslisp:symbol-code
                                             'giskard_msgs-msg:collisionentry
                                             :all))
@@ -279,19 +367,27 @@
                                         goal-pose-left goal-pose-right action-timeout
                                         collision-mode collision-object-b collision-object-b-link
                                         collision-object-a
-                                        move-the-ass
-                                        (pose-base-frame ;; cram-tf:*robot-base-frame*
-                                         cram-tf:*odom-frame*)
+                                        move-base prefer-base align-planes-left align-planes-right
+                                        pose-base-frame
                                         (left-tool-frame cram-tf:*robot-left-tool-frame*)
                                         (right-tool-frame cram-tf:*robot-right-tool-frame*)
                                         (convergence-delta-xy *giskard-convergence-delta-xy*)
                                         (convergence-delta-theta *giskard-convergence-delta-theta*))
   (declare (type (or null cl-transforms-stamped:pose-stamped) goal-pose-left goal-pose-right)
            (type (or null number) action-timeout convergence-delta-xy convergence-delta-theta)
-           (type (or null string) pose-base-frame left-tool-frame right-tool-frame))
+           (type (or null string) pose-base-frame left-tool-frame right-tool-frame)
+           (type boolean move-base prefer-base align-planes-left align-planes-right))
+
+  (when prefer-base
+    (setf move-base T))
+  (if (and move-base (not pose-base-frame))
+      (setf pose-base-frame cram-tf:*odom-frame*)
+      (setf pose-base-frame cram-tf:*robot-base-frame*))
+
   (if (or goal-pose-left goal-pose-right)
       (multiple-value-bind (goal-pose-left goal-pose-right)
           (ensure-giskard-cartesian-input-parameters pose-base-frame goal-pose-left goal-pose-right)
+
         (cram-tf:visualize-marker (list goal-pose-left goal-pose-right) :r-g-b-list '(1 0 1))
         (multiple-value-bind (result status)
             (let ((goal (make-giskard-cartesian-action-goal
@@ -301,93 +397,21 @@
                          :collision-object-b collision-object-b
                          :collision-object-b-link collision-object-b-link
                          :collision-object-a collision-object-a
-                         :move-the-ass move-the-ass)))
+                         :prefer-base prefer-base
+                         :align-planes-left align-planes-left
+                         :align-planes-right align-planes-right)))
               (actionlib-client:call-simple-action-client
                'giskard-action
                :action-goal goal
                :action-timeout action-timeout))
-          (ensure-giskard-cartesian-goal-reached result status goal-pose-left goal-pose-right
-                                                 left-tool-frame right-tool-frame
-                                                 convergence-delta-xy convergence-delta-theta)
+
+          (ensure-giskard-cartesian-goal-reached
+           result status goal-pose-left goal-pose-right
+           left-tool-frame right-tool-frame
+           convergence-delta-xy convergence-delta-theta)
           (values result status)
           ;; return the joint state, which is our observation
           (joints:full-joint-states-as-hash-table)))
       ;; return NIL as observation if the goal is empty
       (and (roslisp:ros-info (pr2-ll giskard-cart) "Got an empty goal...")
            NIL)))
-
-
-
-
-
-
-
-
-
-;; header: 
-;;   seq: 17
-;;   stamp: 
-;;     secs: 1560439219
-;;     nsecs: 637718915
-;;   frame_id: ''
-;; goal_id: 
-;;   stamp: 
-;;     secs: 1560439219
-;;     nsecs: 637681961
-;;   id: "/giskard_interactive_marker-17-1560439219.638"
-;; goal: 
-;;   type: 1
-;;   cmd_seq: 
-;;     - 
-;;       constraints: []
-;;       joint_constraints: []
-;;       cartesian_constraints: 
-;;         - 
-;;           type: "CartesianPosition"
-;;           root_link: "odom"
-;;           tip_link: "base_footprint"
-;;           goal: 
-;;             header: 
-;;               seq: 0
-;;               stamp: 
-;;                 secs: 0
-;;                 nsecs:         0
-;;               frame_id: "base_footprint"
-;;             pose: 
-;;               position: 
-;;                 x: 2.50292941928e-08
-;;                 y: 0.0
-;;                 z: 0.209769845009
-;;               orientation: 
-;;                 x: 0.0
-;;                 y: 0.0
-;;                 z: 0.0
-;;                 w: 1.0
-;;         - 
-;;           type: "CartesianOrientationSlerp"
-;;           root_link: "odom"
-;;           tip_link: "base_footprint"
-;;           goal: 
-;;             header: 
-;;               seq: 0
-;;               stamp: 
-;;                 secs: 0
-;;                 nsecs:         0
-;;               frame_id: "base_footprint"
-;;             pose: 
-;;               position: 
-;;                 x: 2.50292941928e-08
-;;                 y: 0.0
-;;                 z: 0.209769845009
-;;               orientation: 
-;;                 x: 0.0
-;;                 y: 0.0
-;;                 z: 0.0
-;;                 w: 1.0
-;;       collisions: 
-;;         - 
-;;           type: 1
-;;           min_dist: 0.0
-;;           robot_links: ['']
-;;           body_b: "pr2"
-;;           link_bs: ['']

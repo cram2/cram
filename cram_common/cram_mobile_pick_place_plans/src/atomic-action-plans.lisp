@@ -79,12 +79,16 @@
                                 ((:collision-object-b ?collision-object-b))
                                 ((:collision-object-b-link ?collision-object-b-link))
                                 ((:collision-object-a ?collision-object-a))
-                                ((:move-the-ass ?move-the-ass))
+                                ((:move-base ?move-base))
+                                ((:prefer-base ?prefer-base))
+                                ((:align-planes-left ?align-planes-left))
+                                ((:align-planes-right ?align-planes-right))
                               &allow-other-keys)
   (declare (type (or list cl-transforms-stamped:pose-stamped) left-poses right-poses)
            (type (or null keyword) ?collision-mode)
            (type (or null symbol) ?collision-object-b ?collision-object-a)
-           (type (or null string symbol) ?collision-object-b-link))
+           (type (or null string symbol) ?collision-object-b-link)
+           (type boolean ?move-base ?prefer-base ?align-planes-left ?align-planes-right))
   "Move arms through all but last poses of `left-poses' and `right-poses',
 while ignoring failures; and execute the last pose with propagating the failures."
 
@@ -120,8 +124,14 @@ while ignoring failures; and execute the last pose with propagating the failures
                           (collision-object-b-link ?collision-object-b-link))
                         (desig:when ?collision-object-a
                           (collision-object-a ?collision-object-a))
-                        (desig:when ?move-the-ass
-                          (move-the-ass ?move-the-ass))))
+                        (desig:when ?move-base
+                          (move-base ?move-base))
+                        (desig:when ?prefer-base
+                          (prefer-base ?prefer-base))
+                        (desig:when ?align-planes-left
+                          (align-planes-left ?align-planes-left))
+                        (desig:when ?align-planes-right
+                          (align-planes-right ?align-planes-right))))
 
               (cram-occasions-events:on-event
                (make-instance 'cram-plan-occasions-events:robot-state-changed))))
@@ -152,8 +162,14 @@ while ignoring failures; and execute the last pose with propagating the failures
                   (collision-object-b-link ?collision-object-b-link))
                 (desig:when ?collision-object-a
                   (collision-object-a ?collision-object-a))
-                (desig:when ?move-the-ass
-                  (move-the-ass ?move-the-ass))))
+                (desig:when ?move-base
+                  (move-base ?move-base))
+                (desig:when ?prefer-base
+                  (prefer-base ?prefer-base))
+                (desig:when ?align-planes-left
+                  (align-planes-left ?align-planes-left))
+                (desig:when ?align-planes-right
+                  (align-planes-right ?align-planes-right))))
 
       (cram-occasions-events:on-event
        (make-instance 'cram-plan-occasions-events:robot-state-changed)))))

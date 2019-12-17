@@ -33,7 +33,7 @@
   (actionlib-client:make-simple-action-client
    'robosherlock-action
    "RoboSherlock/query_action" "robosherlock_msgs/RSQueryAction"
-   5))
+   120))
 
 (roslisp-utilities:register-ros-init-function make-robosherlock-action-client)
 

@@ -153,9 +153,10 @@
     (property-member (:pose ?pose-stamped) ?designator)
     (assert-type ?pose-stamped cl-transforms-stamped:pose-stamped "LOCATION SPEC:PROPERTY"))
 
-  (<- (%property ?designator (:object ?value))
+  (<- (%property ?designator (?object-designator-key ?value))
     (lisp-pred typep ?designator desig:location-designator)
-    (property-member (:object ?value) ?designator)
+    (member ?object-designator-key (:object :on))
+    (property-member (?object-designator-key ?value) ?designator)
     (assert-type ?value desig:object-designator "LOCATION SPEC:PROPERTY"))
 
   (<- (%property ?designator (?keyword-key ?value))
@@ -170,7 +171,12 @@
   (<- (%property ?designator (:type ?type))
     (lisp-pred typep ?designator desig:object-designator)
     (property-member (:type ?type) ?designator)
-    (assert-type ?type keyword "OBJECT SPEC:PROPERTY"))
+    (assert-type ?type (or keyword symbol) "OBJECT SPEC:PROPERTY"))
+
+  (<- (%property ?designator (:location ?location))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:location ?location) ?designator)
+    (assert-type ?location desig:location-designator "OBJECT SPEC:PROPERTY"))
 
   (<- (%property ?designator (?keyword-key ?name))
     (lisp-pred typep ?designator desig:object-designator)

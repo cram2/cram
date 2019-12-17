@@ -60,6 +60,7 @@
    #:pose-stamped->transform-stamped
    #:apply-transform
    #:values-converged
+   #:recursive-alist-hash-table ; shitty place for this function i know :(
    ;; prolog facts
    #:pose #:pose-stamped #:position #:orientation #:poses-equal
    #:location-pose

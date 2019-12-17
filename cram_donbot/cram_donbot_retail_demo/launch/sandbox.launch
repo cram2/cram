@@ -1,0 +1,57 @@
+<launch>
+  <!-- occupancy map -->
+  <include file="$(find iai_maps)/launch/map.launch" />
+
+  <!-- kitchen URDF -->
+  <param name="kitchen_description"
+         command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
+  <node pkg="joint_state_publisher" type="joint_state_publisher"
+        name="kitchen_joint_state_publisher" output="screen">
+    <remap from="robot_description" to="kitchen_description"/>
+    <param name="rate" value="25"/>
+    <param name="use_gui" value="False"/>
+    <remap from="joint_states" to="kitchen/joint_states" />
+    <rosparam param="source_list">
+      - /kitchen/cram_joint_states
+    </rosparam>
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+        args="0 0 0 0 0 0 /map /iai_kitchen/world 25">
+  </node>
+  <node pkg="robot_state_publisher" type="robot_state_publisher"
+    name="kitchen_state_publisher" output="screen">
+    <param name="tf_prefix" value="iai_kitchen"/>
+    <param name="publish_frequency" value="25"/>
+    <remap from="robot_description" to="kitchen_description" />
+    <remap from="joint_states" to="kitchen/joint_states" />
+  </node>
+
+  <!-- Boxy URDF -->
+  <include file="$(find iai_boxy_description)/launch/upload_boxy.launch" />
+  <arg name="publish_joint_state" default="false" />
+  <group if="$(arg publish_joint_state)">
+    <node pkg="joint_state_publisher" type="joint_state_publisher"
+          name="robot_joint_state_publisher" output="screen">
+      <param name="rate" value="25"/>
+      <param name="use_gui" value="False"/>
+    </node>
+    <node pkg="robot_state_publisher" type="robot_state_publisher"
+          name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" value="25"/>
+    </node>
+  </group>
+
+  <!-- boxy naive kinematics simulator -->
+  <!-- <arg name="sim" default="true" /> -->
+  <!-- <arg name="plot" default="false" /> -->
+  <!-- <arg name="rviz" default="true" /> -->
+  <!-- <include file="$(find giskard_boxy)/launch/interactive_markers.launch" > -->
+  <!--   <arg name="sim" value="$(arg sim)" /> -->
+  <!--   <arg name="plot" value="$(arg plot)" /> -->
+  <!--   <arg name="rviz" value="$(arg rviz)" /> -->
+  <!-- </include> -->
+  <!-- <include file="$(find wsg_50_simulation)/launch/wsg_50_for_kinematic_sim.launch" /> -->
+
+  <!-- Boxy IK solver -->
+  <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
+</launch>

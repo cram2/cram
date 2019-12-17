@@ -364,9 +364,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                     (car
                      (prolog:prolog
                       `(and (rob-int:robot ?robot)
-                            (btr:bullet-world ?w)
-                            (rob-int:robot-neck-joints
-                             ?robot . ?joint-names))))))))
+                            (rob-int:robot-neck-joints ?robot . ?joint-names))))))))
     (if pose
         (if (= neck-joints-num 2)
             (look-at-pose-stamped-two-joints pose)
@@ -781,10 +779,14 @@ with the object, calculates similar angle around Y axis and applies the rotation
       (cut:lazy-car
        (prolog:prolog
         `(and (rob-int:robot ?robot)
-              (rob-int:robot-tool-frame ?robot :left ?left-tool-frame)
-              (rob-int:robot-tool-frame ?robot :right ?right-tool-frame)
-              (rob-int:end-effector-link ?robot :left ?left-ee-frame)
-              (rob-int:end-effector-link ?robot :right ?right-ee-frame)
+              (or (rob-int:robot-tool-frame ?robot :left ?left-tool-frame)
+                  (equal ?left-tool-frame nil))
+              (or (rob-int:robot-tool-frame ?robot :right ?right-tool-frame)
+                  (equal ?right-tool-frame nil))
+              (or (rob-int:end-effector-link ?robot :left ?left-ee-frame)
+                  (equal ?left-ee-frame nil))
+              (or (rob-int:end-effector-link ?robot :right ?right-ee-frame)
+                  (equal ?right-ee-frame nil))
               (rob-int:arm-joints ?robot :left ?left-arm-joints)
               (rob-int:arm-joints ?robot :right ?right-arm-joints)
               (rob-int:robot-torso-link-joint ?robot ?torso-link ?torso-joint)

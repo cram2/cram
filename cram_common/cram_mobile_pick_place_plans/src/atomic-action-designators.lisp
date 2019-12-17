@@ -48,6 +48,48 @@
 
 
 
+  (<- (infer-prefer-base ?action-designator ?prefer-base)
+        ;; infer if the robot should prefer to move the base more than arms
+    ;; prefer-base is only true when we're opening prismatic containers
+    (-> (and (spec:property ?action-designator (:type :pulling))
+             (spec:property ?action-designator (:container-object ?container-designator))
+             (spec:property ?container-designator (:type ?container-type))
+             (man-int:object-type-subtype :container-prismatic ?container-type))
+        (equal ?prefer-base t)
+        (equal ?prefer-base nil)))
+
+  (<- (infer-move-base ?action-designator ?move-base)
+    ;; infer if we should move the base at all or not
+    ;; we shouldn't move the base if we're getting something of our own back
+    (-> (and (or (spec:property ?action-designator (:type :reaching))
+                 (spec:property ?action-designator (:type :grasping)))
+             (spec:property ?action-designator (:object ?some-object-designator))
+             (desig:current-designator ?some-object-designator ?object-designator)
+             (spec:property ?object-designator (:location ?some-location-designator))
+             (desig:current-designator ?some-location-designator ?location-designator)
+             (spec:property ?location-designator (:on ?on-object-designator))
+             (spec:property ?on-object-designator (:type ?robot-name))
+             (rob-int:robot ?robot-name))
+        (equal ?move-base nil)
+        (equal ?move-base t)))
+
+  (<- (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
+    ;; infer if we should keep the object in hand upright
+    ;; that should currently always happen if we have an object in hand
+    (-> (cpoe:object-in-hand ?_ :left)
+        (equal ?align-planes-left t)
+        (equal ?align-planes-left nil))
+    (-> (cpoe:object-in-hand ?_ :right)
+        (equal ?align-planes-right t)
+        (equal ?align-planes-right nil)))
+
+  (<- (infer-cartesian-motion-flags ?action-designator
+                                    ?prefer-base ?move-base
+                                    ?align-planes-left ?align-planes-right)
+    (infer-prefer-base ?action-designator ?prefer-base)
+    (infer-move-base ?action-designator ?move-base)
+    (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right))
+
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
     (or (spec:property ?action-designator (:type :reaching))
@@ -58,10 +100,16 @@
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
+    (infer-cartesian-motion-flags ?action-designator
+                                  ?prefer-base ?move-base
+                                  ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :avoid-all))
+                               (:collision-mode :avoid-all)
+                               (:move-base ?move-base)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
@@ -77,34 +125,20 @@
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
-    (or (and (spec:property ?action-designator (:type :grasping))
-             (desig:designator :action ((:type ?action-type)
-                                        (:left-poses ?left-poses)
-                                        (:right-poses ?right-poses)
-                                        (:collision-mode :allow-hand)
-                                        (:collision-object-b ?object-name)
-                                        (:collision-object-b-link ?object-link))
-                               ?resolved-action-designator))
-        (and (spec:property ?action-designator (:type :pulling))
-             (spec:property ?action-designator (:container-object ?container-designator))
-             (spec:property ?container-designator (:type ?container-type))
-             (or (and (man-int:object-type-subtype :container-prismatic ?container-type)
-                      (desig:designator :action ((:type ?action-type)
-                                                 (:left-poses ?left-poses)
-                                                 (:right-poses ?right-poses)
-                                                 (:collision-mode :allow-hand)
-                                                 (:collision-object-b ?object-name)
-                                                 (:collision-object-b-link ?object-link)
-                                                 (:move-the-ass t))
-                                        ?resolved-action-designator))
-                 (desig:designator :action ((:type ?action-type)
-                                            (:left-poses ?left-poses)
-                                            (:right-poses ?right-poses)
-                                            (:collision-mode :allow-hand)
-                                            (:collision-object-b ?object-name)
-                                            (:collision-object-b-link ?object-link)
-                                            (:move-the-ass nil))
-                                   ?resolved-action-designator)))))
+    (infer-cartesian-motion-flags ?action-designator
+                                  ?prefer-base ?move-base
+                                  ?align-planes-left ?align-planes-right)
+    (desig:designator :action ((:type ?action-type)
+                               (:left-poses ?left-poses)
+                               (:right-poses ?right-poses)
+                               (:collision-mode :allow-hand)
+                               (:collision-object-b ?object-name)
+                               (:collision-object-b-link ?object-link)
+                               (:prefer-base ?prefer-base)
+                               (:move-base ?move-base)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
+                      ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
@@ -123,6 +157,9 @@
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
+    (infer-cartesian-motion-flags ?action-designator
+                                  ?prefer-base ?move-base
+                                  ?align-planes-left ?align-planes-right)
     ;; putting should actually allow hand and attached if grasping allows hand
     (desig:designator :action ((:type :putting)
                                (:left-poses ?left-poses)
@@ -131,7 +168,10 @@
                                                 )
                                (:collision-object-b ?other-object-name)
                                (:collision-object-b-link ?object-link)
-                               (:collision-object-a ?object-name))
+                               (:collision-object-a ?object-name)
+                               (:move-base ?move-base)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
@@ -141,10 +181,14 @@
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
+    (infer-cartesian-motion-flags ?action-designator
+                                  ?prefer-base ?move-base
+                                  ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type :pushing)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :allow-all))
+                               (:collision-mode :allow-all)
+                               (:move-base ?move-base))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-into-configuration

@@ -1,3 +1,4 @@
+;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -26,39 +27,15 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-giskard
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
-  :license "BSD"
+(in-package :cl-user)
 
-  :depends-on (roslisp
-               roslisp-utilities
-               cl-transforms
-               cl-transforms-stamped
-               cram-tf
-               cram-common-failures
-               cram-designators
-               cram-process-modules
-               cram-prolog
-               cram-common-designators
-               cram-occasions-events ; for updating giskard collision scene on events
-               cram-plan-occasions-events
-               cram-robot-interfaces
-               cram-bullet-reasoning ; also for updating giskard collision scene
-               cram-bullet-reasoning-belief-state ; for *kitchen-parameter*
-               cram-joint-states ; for joint-interface to send current joint state
-               cram-simple-actionlib-client
-               giskard_msgs-msg
-               giskard_msgs-srv)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "collision-scene" :depends-on ("package"))
-     (:file "action-client" :depends-on ("package"))
-     (:file "cartesian-interface" :depends-on ("package" "action-client"))
-     (:file "joint-interface" :depends-on ("package" "action-client"))
-     (:file "base-goals" :depends-on ("package" "action-client" "joint-interface"))
-     (:file "torso-goals" :depends-on ("package" "action-client"))
-     (:file "process-module" :depends-on ("package" "cartesian-interface" "joint-interface"
-                                                    "base-goals" "torso-goals"))))))
+(defpackage cram-donbot-retail-demo
+  (:nicknames #:demo)
+  (:use #:common-lisp #:cram-prolog
+        #:desig #:exe)
+  (:export
+   ;; setup
+   ;; #:bla
+   ;; demo
+   ))
+

@@ -1,4 +1,5 @@
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,39 +27,56 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-giskard
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
+(defsystem cram-donbot-retail-demo
+  :author "gaya"
   :license "BSD"
 
-  :depends-on (roslisp
-               roslisp-utilities
+  :depends-on (roslisp-utilities ; for ros-init-function
+
                cl-transforms
                cl-transforms-stamped
+               ;; cl-tf
+               ;; cl-tf2
                cram-tf
-               cram-common-failures
+
+               cram-language
+               cram-executive
                cram-designators
-               cram-process-modules
                cram-prolog
-               cram-common-designators
-               cram-occasions-events ; for updating giskard collision scene on events
-               cram-plan-occasions-events
-               cram-robot-interfaces
-               cram-bullet-reasoning ; also for updating giskard collision scene
-               cram-bullet-reasoning-belief-state ; for *kitchen-parameter*
-               cram-joint-states ; for joint-interface to send current joint state
-               cram-simple-actionlib-client
-               giskard_msgs-msg
-               giskard_msgs-srv)
+               cram-projection
+               cram-occasions-events
+               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
+               cram-process-modules
+
+               cram-common-failures
+               cram-mobile-pick-place-plans
+               cram-robot-interfaces ; for *robot-urdf*
+               cram-object-knowledge
+               cram-manipulation-interfaces ; for standard rotations
+
+               cram-physics-utils ; for reading "package://" paths
+               cl-bullet ; for handling BOUNDING-BOX datastructures
+               cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-utilities
+               cram-urdf-projection      ; for with-simulated-robot
+
+               ;; cram-location-costmap
+               ;; cram-btr-visibility-costmap
+               ;; cram-robot-pose-gaussian-costmap
+               ;; cram-occupancy-grid-costmap
+
+               cram-donbot-description
+
+               ;; real robot
+               cram-robosherlock
+               cram-giskard
+               cram-donbot-process-modules)
+
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "collision-scene" :depends-on ("package"))
-     (:file "action-client" :depends-on ("package"))
-     (:file "cartesian-interface" :depends-on ("package" "action-client"))
-     (:file "joint-interface" :depends-on ("package" "action-client"))
-     (:file "base-goals" :depends-on ("package" "action-client" "joint-interface"))
-     (:file "torso-goals" :depends-on ("package" "action-client"))
-     (:file "process-module" :depends-on ("package" "cartesian-interface" "joint-interface"
-                                                    "base-goals" "torso-goals"))))))
+     (:file "setup" :depends-on ("package"))
+     (:file "projection-demo" :depends-on ("package"))
+     (:file "demo" :depends-on ("package" "projection-demo"))))))

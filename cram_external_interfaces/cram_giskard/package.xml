@@ -22,6 +22,7 @@
   <depend>cram_common_designators</depend>
   <depend>cram_occasions_events</depend>
   <depend>cram_plan_occasions_events</depend>
+  <depend>cram_robot_interfaces</depend>
   <depend>cram_bullet_reasoning</depend>
   <depend>cram_bullet_reasoning_belief_state</depend>
   <depend>cram_joint_states</depend>

@@ -49,12 +49,16 @@
 
 (defun get-joint-lower-limit (joint-name)
   (let* ((joint-description (get-joint-description joint-name)))
-    (when (and joint-description (not (equal (get-joint-type joint-name) :continuous)))
+    (when (and joint-description
+               (not (equal (get-joint-type joint-name) :continuous))
+               (slot-boundp joint-description 'cl-urdf:limits))
       (cl-urdf:lower (cl-urdf:limits joint-description)))))
 
 (defun get-joint-upper-limit (joint-name)
   (let* ((joint-description (get-joint-description joint-name)))
-    (when (and joint-description (not (equal (get-joint-type joint-name) :continuous)))
+    (when (and joint-description
+               (not (equal (get-joint-type joint-name) :continuous))
+               (slot-boundp joint-description 'cl-urdf:limits))
       (cl-urdf:upper (cl-urdf:limits joint-description)))))
 
 (defun get-joint-axis (joint-name)

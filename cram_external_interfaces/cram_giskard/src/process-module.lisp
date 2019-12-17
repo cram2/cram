@@ -40,9 +40,15 @@
                                       :collision-object-b (third rest-arguments)
                                       :collision-object-b-link (fourth rest-arguments)
                                       :collision-object-a (fifth rest-arguments)
-                                      :move-the-ass (sixth rest-arguments)))
+                                      :move-base (sixth rest-arguments)
+                                      :prefer-base (seventh rest-arguments)
+                                      :align-planes-left (eighth rest-arguments)
+                                      :align-planes-right (ninth rest-arguments)))
       (cram-common-designators:move-joints
        (call-giskard-joint-action :goal-configuration-left argument-1
+                                  :goal-configuration-right (first rest-arguments)))
+      (cram-common-designators:move-head
+       (call-giskard-joint-action :goal-configuration-left (first rest-arguments)
                                   :goal-configuration-right (first rest-arguments)))
       (cram-common-designators:move-base
        (call-giskard-base-action :goal-pose argument-1))
@@ -56,7 +62,9 @@
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
         (desig:desig-prop ?motion-designator (:type :going))
-        (desig:desig-prop ?motion-designator (:type :moving-torso))))
+        (desig:desig-prop ?motion-designator (:type :moving-torso))
+        (and (desig:desig-prop ?motion-designator (:type :looking))
+             (desig:desig-prop ?motion-designator (:joint-states ?_)))))
 
   (prolog:<- (cpm:available-process-module giskard-pm)
     (prolog:not (cpm:projection-running ?_))))

@@ -80,14 +80,15 @@
               (cut:var-value '?joints
                              (cut:lazy-car
                               (prolog:prolog
-                               `(cram-robot-interfaces:arm-joints
-                                 ,(intern "PR2" :cram-pr2-description) ,arm ?joints))))))
-        (list joint-names
-              (joints:joint-positions joint-names)))))
+                               `(and (rob-int:robot ?robot)
+                                     (rob-int:arm-joints ?robot ,arm ?joints)))))))
+        (unless (cut:is-var joint-names)
+          (list joint-names
+                (joints:joint-positions joint-names))))))
 
 (defun ensure-giskard-joint-input-parameters (left-goal right-goal)
   (flet ((ensure-giskard-joint-goal (goal arm)
-           (if (and (listp goal) (= (length goal) 7))
+           (if (and (listp goal) (or (= (length goal) 7) (= (length goal) 6)))
                (get-arm-joint-names-and-positions-list arm goal)
                (and (roslisp:ros-warn (low-level giskard)
                                       "Joint goal ~a was not a list of 7. Ignoring."
@@ -128,19 +129,25 @@
       (ensure-giskard-joint-arm-goal-reached :right goal-configuration-right))))
 
 (defun call-giskard-joint-action (&key
-                                    goal-configuration-left goal-configuration-right action-timeout
-                                    (convergence-delta-joint *giskard-convergence-delta-joint*))
+                                    goal-configuration-left
+                                    goal-configuration-right
+                                    action-timeout
+                                    (convergence-delta-joint
+                                     *giskard-convergence-delta-joint*))
   (declare (type list goal-configuration-left goal-configuration-right)
            (type (or null number) action-timeout convergence-delta-joint))
   (multiple-value-bind (joint-state-left joint-state-right)
-      (ensure-giskard-joint-input-parameters goal-configuration-left goal-configuration-right)
+      (ensure-giskard-joint-input-parameters
+       goal-configuration-left goal-configuration-right)
     (multiple-value-bind (result status)
         (actionlib-client:call-simple-action-client
          'giskard-action
-         :action-goal (make-giskard-joint-action-goal joint-state-left joint-state-right)
+         :action-goal (make-giskard-joint-action-goal
+                       joint-state-left joint-state-right)
          :action-timeout action-timeout)
-      (ensure-giskard-joint-goal-reached status goal-configuration-left goal-configuration-right
-                                         convergence-delta-joint)
+      (ensure-giskard-joint-goal-reached
+       status goal-configuration-left goal-configuration-right
+       convergence-delta-joint)
       (values result status)
       ;; return the joint state, which is our observation
       (joints:full-joint-states-as-hash-table))))
