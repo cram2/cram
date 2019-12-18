@@ -38,28 +38,35 @@
   (cl-transforms-stamped:make-identity-transform))
 
 (defparameter *parking-joint-state*
-  '(("ur5_shoulder_pan_joint" 4.689001083374023d0)
-    ("ur5_shoulder_lift_joint" -1.4040430227862757d0)
-    ("ur5_elbow_joint" -1.5040324370013636d0)
-    ("ur5_wrist_1_joint" -1.856488052998678d0)
-    ("ur5_wrist_2_joint" 1.6369620561599731d0)
-    ("ur5_wrist_3_joint" -1.6462133566485804d0)))
+  '(("ur5_shoulder_pan_joint" 3.234022855758667d0)
+    ("ur5_shoulder_lift_joint" -1.5068710486041468d0)
+    ("ur5_elbow_joint" -0.7870314756976526d0)
+    ("ur5_wrist_1_joint" -2.337625328694479d0)
+    ("ur5_wrist_2_joint" 1.5699548721313477d0)
+    ("ur5_wrist_3_joint" -1.6504042784320276d0)))
+;; (defparameter *parking-joint-state*
+;;   '(("ur5_shoulder_pan_joint" 3.378162384033203d0)
+;;     ("ur5_shoulder_lift_joint" -1.5641868750201624d0)
+;;     ("ur5_elbow_joint" -0.9430778662310999d0)
+;;     ("ur5_wrist_1_joint" -2.2492716948138636d0)
+;;     ("ur5_wrist_2_joint" 1.5673996210098267d0)
+;;     ("ur5_wrist_3_joint" -3.5105767885791224d0)))
 
 (defparameter *looking-down-state*
-  '(("ur5_shoulder_pan_joint" 4.130825042724609d0)
-    ("ur5_shoulder_lift_joint" -0.8224027792560022d0)
-    ("ur5_elbow_joint" -1.6693022886859339d0)
-    ("ur5_wrist_1_joint" -1.8567875067340296d0)
-    ("ur5_wrist_2_joint" 1.6369500160217285d0)
-    ("ur5_wrist_3_joint" -1.6462371985064905d0)))
+  '(("ur5_shoulder_pan_joint" 4.130944728851318d0)
+    ("ur5_shoulder_lift_joint" 0.04936718940734863d0)
+    ("ur5_elbow_joint" -1.9734209219561976d0)
+    ("ur5_wrist_1_joint" -1.7624157110797327d0)
+    ("ur5_wrist_2_joint" 1.6369260549545288d0)
+    ("ur5_wrist_3_joint" -1.6503327528582972d0)))
 
-(defparameter *looking-forward-state*
-  '(("ur5_shoulder_pan_joint" 0.29503026604652405d0)
-    ("ur5_shoulder_lift_joint" -1.8346226851092737d0)
-    ("ur5_elbow_joint" 2.1440072059631348d0)
-    ("ur5_wrist_1_joint" -3.4500272909747522d0)
-    ("ur5_wrist_2_joint" -1.8935192267047327d0)
-    ("ur5_wrist_3_joint" -1.425162140523092d0)))
+;; (defparameter *looking-forward-state*
+;;   '(("ur5_shoulder_pan_joint" 0.29503026604652405d0)
+;;     ("ur5_shoulder_lift_joint" -1.8346226851092737d0)
+;;     ("ur5_elbow_joint" 2.1440072059631348d0)
+;;     ("ur5_wrist_1_joint" -3.4500272909747522d0)
+;;     ("ur5_wrist_2_joint" -1.8935192267047327d0)
+;;     ("ur5_wrist_3_joint" -1.425162140523092d0)))
 
 (defparameter *looking-right-state*
   '(("ur5_shoulder_pan_joint" 1.6281344890594482d0)
@@ -68,6 +75,14 @@
     ("ur5_wrist_1_joint" -0.9881671110736292d0)
     ("ur5_wrist_2_joint" 1.4996352195739746d0)
     ("ur5_wrist_3_joint" -1.4276765028582972d0)))
+
+(defparameter *looking-right-separators-state*
+  '(("ur5_shoulder_pan_joint" 1.4752850532531738d0)
+    ("ur5_shoulder_lift_joint" -1.4380276838885706d0)
+    ("ur5_elbow_joint" -1.9198325316058558d0)
+    ("ur5_wrist_1_joint" -0.0680769125567835d0)
+    ("ur5_wrist_2_joint" 1.704722285270691d0)
+    ("ur5_wrist_3_joint" -1.5686963240252894d0)))
 
 (defparameter *ee-p-camera*
   (cl-transforms:make-pose
@@ -142,7 +157,9 @@
     (symbol-value *standard-to-donbot-gripper-transform* ?transform))
 
   (<- (robot-joint-states donbot :arm :left :carry ?joint-states)
-    (symbol-value *looking-forward-state* ?joint-states))
+    (symbol-value ;; *looking-forward-state*
+     *parking-joint-state*
+     ?joint-states))
 
   (<- (robot-joint-states donbot :arm :left :park ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
@@ -176,14 +193,18 @@
   (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :away ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
 
-  (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :forward ?joint-states)
-    (symbol-value *looking-forward-state* ?joint-states))
+  ;; (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :forward ?joint-states)
+  ;;   (symbol-value *looking-forward-state* ?joint-states))
 
   (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :down ?joint-states)
     (symbol-value *looking-down-state* ?joint-states))
 
   (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :right ?joint-states)
     (symbol-value *looking-right-state* ?joint-states))
+
+  (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :right-separators
+                          ?joint-states)
+    (symbol-value *looking-right-separators-state* ?joint-states))
 
   (<- (camera-in-neck-ee-pose donbot ?pose)
     (symbol-value *ee-p-camera* ?pose)))

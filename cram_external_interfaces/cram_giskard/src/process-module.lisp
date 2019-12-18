@@ -48,8 +48,10 @@
        (call-giskard-joint-action :goal-configuration-left argument-1
                                   :goal-configuration-right (first rest-arguments)))
       (cram-common-designators:move-head
+       ;; for donbot, as his left arm is also his head
        (call-giskard-joint-action :goal-configuration-left (first rest-arguments)
-                                  :goal-configuration-right (first rest-arguments)))
+                                  ;; :goal-configuration-right (first rest-arguments)
+                                  ))
       (cram-common-designators:move-base
        (call-giskard-base-action :goal-pose argument-1))
       (cram-common-designators:move-torso

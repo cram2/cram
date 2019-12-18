@@ -49,7 +49,7 @@
 
 
   (<- (infer-prefer-base ?action-designator ?prefer-base)
-        ;; infer if the robot should prefer to move the base more than arms
+    ;; infer if the robot should prefer to move the base more than arms
     ;; prefer-base is only true when we're opening prismatic containers
     (-> (and (spec:property ?action-designator (:type :pulling))
              (spec:property ?action-designator (:container-object ?container-designator))
@@ -68,7 +68,7 @@
              (spec:property ?object-designator (:location ?some-location-designator))
              (desig:current-designator ?some-location-designator ?location-designator)
              (spec:property ?location-designator (:on ?on-object-designator))
-             (spec:property ?on-object-designator (:type ?robot-name))
+             (spec:property ?on-object-designator (:name ?robot-name))
              (rob-int:robot ?robot-name))
         (equal ?move-base nil)
         (equal ?move-base t)))

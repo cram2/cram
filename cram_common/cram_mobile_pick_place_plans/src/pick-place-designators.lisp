@@ -38,6 +38,7 @@
     (cram-tf:pose-stamped->transform-stamped target-pose-in-base child-frame-rosy)))
 
 
+
 (def-fact-group pick-and-place-plans (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (perceive ?action-designator))

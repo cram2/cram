@@ -42,29 +42,6 @@
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
-              ;; :constraints
-              ;; (vector (roslisp:make-message
-              ;;          'giskard_msgs-msg:constraint
-              ;;          :type
-              ;;          "UpdateGodMap"
-              ;;          :parameter_value_pair
-              ;;          (let ((stream (make-string-output-stream)))
-              ;;            (yason:encode
-              ;;             (cram-tf:recursive-alist-hash-table
-              ;;              `(("updates"
-              ;;                 .
-              ;;                 (("rosparam"
-              ;;                   .
-              ;;                   (("general_options"
-              ;;                     .
-              ;;                     (("joint_weights"
-              ;;                       .
-              ;;                       (("odom_x_joint" . 0.0001)
-              ;;                        ("odom_y_joint" . 0.0001)
-              ;;                        ("odom_z_joint" . 0.0001))))))))))
-              ;;              :test #'equal)
-              ;;             stream)
-              ;;            (get-output-stream-string stream))))
               :cartesian_constraints
               (vector (roslisp:make-message
                        'giskard_msgs-msg:cartesianconstraint

@@ -100,6 +100,8 @@
 (defun ensure-giskard-joint-goal-reached (status
                                           goal-configuration-left goal-configuration-right
                                           convergence-delta-joint)
+  (print goal-configuration-left)
+  (print goal-configuration-right)
   (when (eql status :preempted)
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
     (return-from ensure-giskard-joint-goal-reached))

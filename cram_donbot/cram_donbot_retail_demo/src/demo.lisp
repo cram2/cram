@@ -29,133 +29,141 @@
 
 (in-package :demo)
 
-   ;; perceive shelf system verhuetung base pose
-   ;; #<CL-TRANSFORMS-STAMPED:TRANSFORM-STAMPED
-   ;; FRAME-ID: "map", CHILD-FRAME-ID: "base_footprint", STAMP: 1.576594938305679d9
-   ;; #<3D-VECTOR (2.2660367329915365d0 -0.16621163686116536d0 3.814697266402156d-9)>
-   ;; #<QUATERNION (0.0d0 0.0d0 -0.020739689469337463d0 0.9997849464416504d0)>>
-
-
-   ;; place on other shelf
-   ;; #<CL-TRANSFORMS-STAMPED:TRANSFORM-STAMPED
-   ;; FRAME-ID: "map", CHILD-FRAME-ID: "base_footprint", STAMP: 1.576596110886719d9
-   ;; #<3D-VECTOR (2.6765769958496093d0 -0.13911641438802083d0 3.814697266402156d-9)>
-   ;; #<QUATERNION (0.0d0 0.0d0 0.6886594891548157d0 0.7250849008560181d0)>>
-
-
 (defun stuff-that-works ()
-
-  (setf rob-int:*robot-urdf*
-        (cl-urdf:parse-urdf
-         (btr-belief::replace-all (roslisp:get-param btr-belief:*robot-parameter*) "\\" "  ")))
-
-
   (cram-process-modules:with-process-modules-running
-      ( giskard:giskard-pm)
+      (giskard:giskard-pm)
     (cpl-impl::named-top-level (:name :top-level)
       (exe:perform
        (let ((?pose (cl-tf:make-pose-stamped
                      "base_footprint" 0.0
-                     (cl-transforms:make-3d-vector -0.27012088894844055d0 0.5643729567527771d0 1.25943687558174133d0)
-                     (cl-tf:make-quaternion -0.4310053586959839d0 0.24723316729068756d0 0.752766489982605d0 0.4318017065525055d0 ))))
+                     (cl-transforms:make-3d-vector
+                      -0.27012088894844055d0
+                      0.5643729567527771d0
+                      1.25943687558174133d0)
+                     (cl-tf:make-quaternion
+                      -0.4310053586959839d0
+                      0.24723316729068756d0
+                      0.752766489982605d0
+                      0.4318017065525055d0 ))))
          (desig:a motion
                   (type moving-tcp)
                   (left-pose ?pose)
                   (collision-mode :allow-all))))))
 
 
-  (cram-process-modules:with-process-modules-running
-      (giskard:giskard-pm)
-    (cpl-impl::named-top-level (:name :top-level)
-      (exe:perform
-       (desig:an action
-                 (type positioning-arm)
-                 (left-configuration park)))))
 
-  (cram-process-modules:with-process-modules-running
-      (giskard:giskard-pm)
-    (cpl-impl::named-top-level (:name :top-level)
-      (let ((?pose (cl-tf:pose->pose-stamped
-                    "base_footprint" 0.0
-                    (cl-transforms-stamped:make-identity-pose)
-                    )))
-        (exe:perform
-         (desig:an action
-                   (type going)
-                   (target (desig:a location (pose ?pose))))))))
+  (giskard::call-giskard-environment-service :remove-all)
+  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
 
-  (rs::call-robosherlock-service '((:shape :box) (:location "donbot_tray")) :quantifier :a)
-
-  (rs::call-robosherlock-service '((:shape :box) (:location "shelf_system_verhuetung")) :quantifier :a)
-
-
-  (cram-process-modules:with-process-modules-running
-      (rs:robosherlock-perception-pm)
-    (cpl-impl::named-top-level (:name :top-level)
-      (let ((?robot-name (btr:get-robot-name)))
-        (exe:perform
-         (desig:an action
-                   (type detecting)
-                   (object (desig:an object
-                                     (shape box)
-                                     (location (desig:a location
-                                                        (on (desig:an object
-                                                                      (type
-                                                                       ?robot-name)
-                                                                      (urdf-name
-                                                                       donbot-tray)
-                                                                      (owl-name
-                                                                       "shelf_system_verhuetung"))))))))))))
-
-
-
-
-
-  (urdf-proj:with-simulated-robot
+  ;; pick up from tray
+  (donbot-pm:with-real-robot
+    (giskard::call-giskard-environment-service :remove-all)
+    (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
+    (exe:perform
+     (desig:an action
+               (type looking)
+               (direction down)))
     (let* ((?robot-name (btr:get-robot-name))
            (?obj
-             (perform (an action
-                          (type detecting)
-                          (object (desig:an object
-                                            (type breakfast-cereal)
-                                            (location (desig:a location
-                                                               (on (desig:an object
-                                                                             (type ?robot-name)))))))))))
-      (sleep 0.4)
-      (exe:perform (desig:an action
-                             (type picking-up)
-                             (grasp top)
-                             (object ?obj)))))
-
-
-
-
-  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
-  (btr-utils:spawn-object :my-box :breakfast-cereal :pose '((2.3 -0.2 0.8) (0 0 0 1)))
-  (btr:simulate btr:*current-bullet-world* 50)
-  (urdf-proj:with-simulated-robot
-          (exe:perform
-           (desig:an action
-                     (type looking)
-                     (direction down))))
-
-  (let* ((?robot-name (btr:get-robot-name))
-         (?obj
-           (urdf-proj:with-simulated-robot
              (perform
               (an action
                   (type detecting)
                   (object (an object
-                              (type breakfast-cereal)
+                              (type dish-washer-tabs)
                               (location (a location
                                            (on (an object
-                                                   (type ?robot-name))))))))))))
-    (sleep 0.4)
-    (donbot-pm:with-real-robot
-      (exe:perform (desig:an action
-                             (type picking-up)
-                             (grasp top)
-                             (object ?obj))))))
+                                                   (type robot)
+                                                   (name ?robot-name)
+                                                   (urdf-name plate)
+                                                   (owl-name "donbot_tray")))))))))))
+
+      (exe:perform
+       (an action
+           (type picking-up)
+           (grasp top)
+           (object ?obj)))
+
+      (let* ((?robot-link-name "plate")
+             (?pose-in-map (cram-tf:frame-to-pose-in-fixed-frame ?robot-link-name))
+             (?transform-in-map (cram-tf:pose-stamped->transform-stamped
+                                 ?pose-in-map ?robot-link-name))
+             (?pose-in-base (cram-tf:ensure-pose-in-frame
+                             ?pose-in-map cram-tf:*robot-base-frame*
+                             :use-zero-time t))
+             (?transform-in-base (cram-tf:pose-stamped->transform-stamped
+                                  ?pose-in-base ?robot-link-name)))
+        (exe:perform
+         (an action
+             (type placing)
+             (object ?obj)
+             (target (a location
+                        (on (an object
+                                (type robot)
+                                (name ?robot-name)
+                                (urdf-name plate)
+                                (owl-name "donbot_tray")
+                                (pose ((pose ?pose-in-base)
+                                       (transform ?transform-in-base)
+                                       (pose-in-map ?pose-in-map)
+                                       (transform-in-map ?transform-in-map)))))
+                        (for ?obj)
+                        (attachment donbot-tray-left))))))))
+
+  (donbot-pm:with-real-robot
+    ;; park arm
+    (exe:perform
+     (desig:an action
+               (type positioning-arm)
+               (left-configuration park)))
+    ;; drive to pick up
+    (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                  "map" 0.0
+                  (cl-transforms-stamped:make-3d-vector
+                   2.6765769958496093d0
+                   -0.13911641438802083d0
+                   0.0)
+                  (cl-transforms:make-quaternion
+                   0.0d0
+                   0.0d0
+                   0.6886594891548157d0
+                   0.7250849008560181d0))))
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location (pose ?pose))))))
+    ;; look at the shelf
+    (exe:perform
+     (desig:an action
+               (type looking)
+               (direction right)))
+    ;; perceive
+    (exe:perform
+     (an action
+         (type detecting)
+         (object (an object
+                     (type balea-bottle)
+                     (location (a location
+                                  (on (an object
+                                          (type shelf)
+                                          (urdf-name shelf-system-verhuetung)
+                                          (owl-name "shelf_system_verhuetung"))))))))))
+
+  ;; drive to place
+  (donbot-pm:with-real-robot
+    (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                  "map" 0.0
+                  (cl-transforms-stamped:make-3d-vector
+                   2.6765769958496093d0 -0.13911641438802083d0 3.814697266402156d-9)
+                  (cl-transforms:make-quaternion
+                   0.0d0 0.0d0 0.6886594891548157d0 0.7250849008560181d0))))
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location (pose ?pose)))))))
+
+  )
+
+
 
 
 

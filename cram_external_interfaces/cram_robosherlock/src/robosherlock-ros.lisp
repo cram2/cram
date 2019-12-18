@@ -220,7 +220,15 @@
               (:WeideMilchSmall
                :milk)
               (:BLUEPLASTICSPOON
-               :spoon))))
+               :spoon)
+              (:BALEAREINIGUNGSMILCHVITAL
+               :balea-bottle)
+              (:DENKMITGESCHIRRREINIGERNATURE
+               :dish-washer-tabs)
+              (:GarnierMineralUltraDry
+               :deodorant)
+              (:DMRoteBeteSaftBio
+               :juice-box))))
       (setf rs-answer
             (subst-if `(:type ,cram-type)
                       (lambda (x)

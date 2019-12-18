@@ -107,24 +107,30 @@ just updated. Otherwise a new instance is created."))
                                        *object-identifier-to-instance-mappings*)
                               ;; (gensym (string (desig:object-identifier data)))
                               (desig:object-identifier data)))))
-    ;; below is a hack to deal with shitty identity resolution on RS / KnowRob side :P
-    (prolog `(and (btr:bullet-world ?world)
-                  (btr:item-type ?world ?name ,type)
-                  (btr:retract ?world (btr:object ?name))))
-    (prolog `(and (btr:bullet-world ?world)
-                  (-> (btr:object ?world ,instance-name)
-                      (btr:assert ?world
-                                  (btr:object-pose ,instance-name ,(desig:object-pose data)))
-                      (btr:assert ?world
-                                  (btr:object :mesh ,instance-name ,(desig:object-pose data)
-                                              :mesh ,type ;; ,(object-mesh data)
-                                              :mass 0.2 ;; ,(object-mass data)
-                                              ;; :types ,(list type)
-                                              ;; :disable-face-culling t
-                                              :color ,(if (slot-boundp data 'desig::color)
-                                                          (desig:object-color data)
-                                                          '(0.5 0.5 0.5)))))
-                  (btr:simulate ?world 10)))))
+    (let ((object-pose (desig:object-pose data)))
+      ;; put the object a bit down as RS always spawns it too high after
+      ;; cutting off the plane
+      (setf object-pose (cram-tf:translate-pose object-pose :z-offset -0.05))
+      ;; below is a hack to deal with shitty identity resolution on
+      ;; RS / KnowRob side :P
+      (prolog `(and (btr:bullet-world ?world)
+                    (btr:item-type ?world ?name ,type)
+                    (btr:retract ?world (btr:object ?name))))
+      ;; and spawn
+      (prolog `(and (btr:bullet-world ?world)
+                    (-> (btr:object ?world ,instance-name)
+                        (btr:assert ?world
+                                    (btr:object-pose ,instance-name ,object-pose))
+                        (btr:assert ?world
+                                    (btr:object :mesh ,instance-name ,object-pose
+                                                :mesh ,type ;; ,(object-mesh data)
+                                                :mass 0.2 ;; ,(object-mass data)
+                                                ;; :types ,(list type)
+                                                ;; :disable-face-culling t
+                                                :color ,(if (slot-boundp data 'desig::color)
+                                                            (desig:object-color data)
+                                                            '(0.5 0.5 0.5)))))
+                    (btr:simulate ?world 10))))))
 
 (defmethod register-object-designator-data
     ((data cram-physics-utils:object-point-data-mixin) &key type)

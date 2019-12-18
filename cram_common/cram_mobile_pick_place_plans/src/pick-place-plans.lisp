@@ -164,6 +164,7 @@
     (exe:perform
      (desig:an action
                (type reaching)
+               (object ?other-object-designator)
                (left-poses ?left-reach-poses)
                (right-poses ?right-reach-poses))))
   (roslisp:ros-info (pick-place place) "Putting")

@@ -117,3 +117,27 @@
         (lisp-fun symbol-to-prolog-rule ?link ?robot-name ?link-name))
     (lisp-fun frame-to-pose-in-fixed-frame ?link-name ?pose-stamped)))
 
+
+
+(def-fact-group location-designator-with-attachment (desig:location-grounding)
+  (<- (desig:location-grounding ?location-designator ?pose-stamped)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (desig:desig-prop ?current-location-designator (:for ?object-designator))
+    (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
+    (desig:desig-prop ?current-location-designator (:attachment ?attachment-type))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (spec:property ?current-object-designator (:type ?object-type))
+    (spec:property ?current-object-designator (:name ?object-name))
+    (desig:current-designator ?other-object-designator ?current-other-object-designator)
+    (spec:property ?current-other-object-designator (:type ?other-object-type))
+    (spec:property ?current-other-object-designator (:name ?other-object-name))
+
+    (lisp-fun man-int:get-object-transform ?current-other-object-designator
+              ?other-object-transform)
+
+    (lisp-fun man-int:get-object-placement-transform
+              ?object-name ?object-type
+              ?other-object-name ?other-object-type ?other-object-transform
+              ?attachment-type
+              ?attachment-transform)
+    (lisp-fun cram-tf:strip-transform-stamped ?attachment-transform ?pose-stamped)))

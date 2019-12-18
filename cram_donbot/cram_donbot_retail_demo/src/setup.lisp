@@ -101,7 +101,7 @@
 
   (cram-bullet-reasoning:clear-costmap-vis-object)
 
-  ;; (btr:add-objects-to-mesh-list "assembly_models" :directory "fixtures" :extension "stl")
+  (btr:add-objects-to-mesh-list "cram_donbot_retail_demo")
   ;; (btr:add-objects-to-mesh-list "assembly_models" :directory "battat/convention" :extension "stl")
   )
 
