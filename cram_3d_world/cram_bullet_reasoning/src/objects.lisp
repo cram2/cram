@@ -31,7 +31,7 @@
 (in-package :btr)
 
 (defclass object ()
-  ((name :initarg :name :reader name)
+  ((name :initarg :name :reader name :type (or symbol keyword))
    (rigid-bodies :initform (make-hash-table :test 'equal))
    (pose-reference-body :initarg :pose-reference-body
                         :documentation "The name of the rigid-body
