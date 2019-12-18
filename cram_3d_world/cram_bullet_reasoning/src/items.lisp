@@ -172,41 +172,40 @@ The name in the list is a keyword that is created by lispifying the filename."
   (add-object world :mesh name pose :mass mass :mesh :mug))
 
 
-(defmethod add-object ((world cl-bullet:bt-world) (type (eql :basket)) name pose
+(defmethod add-object ((world bt-world) (type (eql :basket)) name pose
                        &key length width height (mass 1)
                          (handle-height 0.09))
-  "Creates a collision shape in the form of a basket and adds it to the world. The length, width and height have to
-be given for the function to work."
+  "Creates a collision shape in the form of a basket and adds it to the world. The length, width and height have to be given for the function to work."
   (let* ((compound-shape (make-instance 'compound-shape)))
-          ;; Walls 
-          (dotimes (i 2)
-            (add-child-shape compound-shape
-                             (cl-transforms:make-pose
-                              (cl-transforms:make-3d-vector (* i width) 0 0)
-                              (cl-transforms:make-quaternion 0 0 0 1))
-                             (make-instance 'box-shape
-                                            :half-extents (cl-transforms:v* (cl-transforms:make-3d-vector
-                                                                             0.005 length height) 0.5))))
-          (dotimes (i 2)
-            (add-child-shape compound-shape
-                             (cl-transforms:make-pose
-                              (cl-transforms:make-3d-vector (/ width 2)
-                                                            ;; ((i + 1) * -2 + 3) * (width / 2)
-                                                            (* (+ (* (+ i 1) -2) 3) (/ length 2))
-                                                            0)
-                              (cl-transforms:make-quaternion 0 0 1 0.00001))
-                             (make-instance 'box-shape
-                                            :half-extents (cl-transforms:v* (cl-transforms:make-3d-vector
-                                                                             width 0.005 height) 0.5 ))))
-          ;; Bottom
-          (add-child-shape compound-shape
-                           (cl-transforms:make-pose
-                            (cl-transforms:make-3d-vector (/ width 2) 0 (- (/ height 2)))
-                            (cl-transforms:make-quaternion 0 0 0 1))
-                           (make-instance 'box-shape
-                                          :half-extents (cl-transforms:v*
-                                                         (cl-transforms:make-3d-vector width length 0.005) 0.5)))
-
+    ;; Walls 
+    (dotimes (i 2)
+      (add-child-shape compound-shape
+                       (cl-transforms:make-pose
+                        (cl-transforms:make-3d-vector (* i width) 0 0)
+                        (cl-transforms:make-quaternion 0 0 0 1))
+                       (make-instance 'box-shape
+                                      :half-extents (cl-transforms:v* (cl-transforms:make-3d-vector
+                                                                       0.01 length height) 0.5))))
+    (dotimes (i 2)
+      (add-child-shape compound-shape
+                       (cl-transforms:make-pose
+                        (cl-transforms:make-3d-vector (/ width 2)
+                                                      ;; ((i + 1) * -2 + 3) * (width / 2)
+                                                      (* (+ (* (+ i 1) -2) 3) (/ length 2))
+                                                      0)
+                        (cl-transforms:make-quaternion 0 0 1 0))
+                       (make-instance 'box-shape
+                                      :half-extents (cl-transforms:v* (cl-transforms:make-3d-vector
+                                                                       width 0.01 height) 0.5 ))))
+    ;; Bottom
+    (add-child-shape compound-shape
+                     (cl-transforms:make-pose
+                      (cl-transforms:make-3d-vector (/ width 2) 0 (- (/ height 2)))
+                      (cl-transforms:make-quaternion 0 0 0 1))
+                     (make-instance 'box-shape
+                                    :half-extents (cl-transforms:v*
+                                                   (cl-transforms:make-3d-vector width length 0.01) 0.5)))
+    
     ;; Handle,
     ;; the handle of the basket is formed like this:
     ;; ------------
@@ -215,24 +214,24 @@ be given for the function to work."
     ;; |          |
     
     ;; The sides
-          (dotimes (i 2)
-            (add-child-shape compound-shape
-                             (cl-transforms:make-pose
-                              (cl-transforms:make-3d-vector (* i width) 0 (/ (+ height handle-height) 2))
-                              (cl-transforms:make-quaternion 0 0 0 1))
-                             (make-instance 'box-shape
-                                            :half-extents (cl-transforms:v*
-                                                           (cl-transforms:make-3d-vector 0.005 0.005 handle-height) 0.5))))
+    (dotimes (i 2)
+      (add-child-shape compound-shape
+                       (cl-transforms:make-pose
+                        (cl-transforms:make-3d-vector (* i width) 0 (/ (+ height handle-height) 2))
+                        (cl-transforms:make-quaternion 0 0 0 1))
+                       (make-instance 'box-shape
+                                      :half-extents (cl-transforms:v*
+                                                     (cl-transforms:make-3d-vector 0.005 0.005 handle-height) 0.5))))
     ;; the top
-          (add-child-shape compound-shape
-                           (cl-transforms:make-pose
-                            (cl-transforms:make-3d-vector (/ width 2) 0 (+ handle-height (/ height 2)))
-                            (cl-transforms:make-quaternion 0 0 0 1))
-                           (make-instance 'box-shape
-                                          :half-extents (cl-transforms:v*
-                                                         (cl-transforms:make-3d-vector width 0.005 0.005) 0.5)))
+    (add-child-shape compound-shape
+                     (cl-transforms:make-pose
+                      (cl-transforms:make-3d-vector (/ width 2) 0 (+ handle-height (/ height 2)))
+                      (cl-transforms:make-quaternion 0 0 0 1))
+                     (make-instance 'box-shape
+                                    :half-extents (cl-transforms:v*
+                                                   (cl-transforms:make-3d-vector width 0.005 0.005) 0.5)))
     ;; Adds the basket to the specified world
-    (make-item world name 'basket
+    (make-item world name 'basket-shape
                (list
                 (make-instance
                  'rigid-body
