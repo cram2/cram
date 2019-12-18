@@ -112,6 +112,13 @@
      (cl-transforms:make-3d-vector x y z)
      (cl-transforms:make-quaternion q1 q2 q3 w))))
 
+(defun list->transform (pose-list)
+  (destructuring-bind ((x y z) (q1 q2 q3 w))
+      pose-list
+    (cl-transforms:make-transform
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
+
 (defun ensure-pose-in-frame (pose frame &key use-current-ros-time use-zero-time)
   (declare (type (or null cl-transforms:pose cl-transforms-stamped:pose-stamped)))
   (when pose

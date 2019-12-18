@@ -70,3 +70,23 @@
 
 (define-condition environment-manipulation-impossible (high-level-failure) ()
   (:documentation "Thrown when environment manipulation cannot be achieved."))
+
+
+
+(define-condition searching-failed (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader searching-failed-object))
+  (:documentation "Thrown when searching plan completely gives up."))
+
+(define-condition fetching-failed (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader fetching-failed-object))
+  (:documentation "Thrown when fetching plan completely gives up."))
+
+(define-condition delivering-failed (high-level-failure)
+  ((object :initarg :object
+           :initform NIL
+           :reader delivering-failed-object))
+  (:documentation "Thrown when delivering plan completely gives up."))

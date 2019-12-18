@@ -70,9 +70,7 @@
   ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
   (when (eql cram-projection:*projection-environment*
              'urdf-proj:urdf-bullet-projection-environment)
-    (if random
-        (spawn-objects-on-sink-counter-randomly)
-        (spawn-objects-on-sink-counter)))
+    (spawn-objects-on-sink-counter :random random))
 
   (setf cram-robot-pose-guassian-costmap::*orientation-samples* 1)
 
