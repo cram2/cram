@@ -39,12 +39,14 @@ If there is no other method with 1 as qualifier, this method will be executed al
          (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
          (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
-         (link (cut:var-value
-                '?ee-link
-                (car (prolog:prolog
-                      `(and (cram-robot-interfaces:robot ?robot)
-                            (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
-                                                                     ?ee-link))))))
+         (link (if (cpoe:event-arm event)
+                   (cut:var-value
+                    '?ee-link
+                    (car (prolog:prolog
+                          `(and (cram-robot-interfaces:robot ?robot)
+                                (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
+                                                                         ?ee-link)))))
+                   (cpoe:event-link event)))
          (grasp (cpoe:event-grasp event)))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
     ;; first detach from environment in case it is attached
@@ -53,9 +55,12 @@ If there is no other method with 1 as qualifier, this method will be executed al
       (btr:detach-object environment-object btr-object))
     ;; now attach to the robot-object
     (when btr-object
-      (if (btr:object-attached robot-object btr-object)
-          (btr:attach-object robot-object btr-object :link link :loose t :grasp grasp)
-          (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)))))
+      (let ((loose?
+              (if (and (btr:object-attached robot-object btr-object)
+                       (not (cpoe:event-not-loose event)))
+                  t
+                  nil)))
+        (btr:attach-object robot-object btr-object :link link :loose loose? :grasp grasp)))))
 
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))

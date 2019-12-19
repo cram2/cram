@@ -29,7 +29,7 @@
 
 (in-package :objects)
 
-(defparameter *default-retail-z-offset* 0.05 "in meters")
+(defparameter *default-retail-z-offset* 0.01 "in meters")
 (defparameter *default-retail-lift-offsets* `(0.0 0.0 ,*default-retail-z-offset*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -64,17 +64,31 @@
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;; DISH-WASHER-TABS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *dish-washer-tabs-grasp-x-offset* 0.01 "in meters")
-(defparameter *dish-washer-tabs-grasp-z-offset* 0.06 "in meters")
-(defparameter *dish-washer-tabs-pregrasp-x-offset* 0.1 "in meters")
+(defparameter *dish-washer-tabs-grasp-z-offset* 0.01 "in meters")
+(defparameter *dish-washer-tabs-pregrasp-x-offset* 0.2 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :top
-  :grasp-translation `(0.0 0.0 ,*dish-washer-tabs-grasp-z-offset*)
+  :grasp-translation `(0.0
+                       0.0
+                       ,*dish-washer-tabs-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets *default-retail-lift-offsets*
-  :2nd-pregrasp-offsets *default-retail-lift-offsets*
-  :lift-offsets *default-retail-lift-offsets*
-  :2nd-lift-offsets *default-retail-lift-offsets*)
+  :pregrasp-offsets `(0.0
+                      0.0
+                      ,(+ *dish-washer-tabs-grasp-z-offset*
+                          *default-retail-z-offset*))
+  :2nd-pregrasp-offsets `(0.0
+                          0.0
+                          ,(+ *dish-washer-tabs-grasp-z-offset*
+                              *default-retail-z-offset*))
+  :lift-offsets `(0.0
+                  0.0
+                  ,(+ *dish-washer-tabs-grasp-z-offset*
+                      *default-retail-z-offset*))
+  :2nd-lift-offsets `(0.0
+                      0.0
+                      ,(+ *dish-washer-tabs-grasp-z-offset*
+                          *default-retail-z-offset*)))
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :back
@@ -84,12 +98,19 @@
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
   :pregrasp-offsets `(,(- *dish-washer-tabs-pregrasp-x-offset*)
                        0.0
-                       ,*default-retail-z-offset*)
+                       ,(+ *dish-washer-tabs-grasp-z-offset*
+                           *default-retail-z-offset*))
   :2nd-pregrasp-offsets `(,(- *dish-washer-tabs-pregrasp-x-offset*)
                            0.0
                            ,*dish-washer-tabs-grasp-z-offset*)
-  :lift-offsets *default-retail-lift-offsets*
-  :2nd-lift-offsets *default-retail-lift-offsets*)
+  :lift-offsets `(0.0
+                  0.0
+                  ,(+ *dish-washer-tabs-grasp-z-offset*
+                      *default-retail-z-offset*))
+  :2nd-lift-offsets `(,(- *dish-washer-tabs-pregrasp-x-offset*)
+                       0.0
+                       ,(+ *dish-washer-tabs-grasp-z-offset*
+                           *default-retail-z-offset*)))
 
 ;; FRONT grasp
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :front
@@ -99,23 +120,32 @@
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation-2*
   :pregrasp-offsets `(,*dish-washer-tabs-pregrasp-x-offset*
                       0.0
-                      ,*default-retail-z-offset*)
+                      ,(+ *dish-washer-tabs-grasp-z-offset*
+                          *default-retail-z-offset*))
   :2nd-pregrasp-offsets `(,*dish-washer-tabs-pregrasp-x-offset*
                           0.0
                           ,*dish-washer-tabs-grasp-z-offset*)
-  :lift-offsets *default-retail-lift-offsets*
-  :2nd-lift-offsets *default-retail-lift-offsets*)
+  :lift-offsets `(0.0
+                  0.0
+                  ,(+ *dish-washer-tabs-grasp-z-offset*
+                      *default-retail-z-offset*))
+  :2nd-lift-offsets `(,*dish-washer-tabs-pregrasp-x-offset*
+                       0.0
+                       ,(+ *dish-washer-tabs-grasp-z-offset*
+                           *default-retail-z-offset*)))
 
 
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BALEA-BOTTLE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *balea-bottle-grasp-z-offset* 0.08 "in meters")
-(defparameter *balea-bottle-pregrasp-x-offset* 0.1 "in meters")
+(defparameter *balea-bottle-grasp-z-offset* 0.0 "in meters")
+(defparameter *balea-bottle-pregrasp-x-offset* 0.2 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :top
-  :grasp-translation `(0.0 0.0 ,*balea-bottle-grasp-z-offset*)
+  :grasp-translation `(0.0
+                       0.0
+                       ,*balea-bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-retail-lift-offsets*
   :2nd-pregrasp-offsets *default-retail-lift-offsets*
@@ -124,14 +154,16 @@
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :back
-  :grasp-translation `(0.0 0.0 ,*dish-washer-tabs-grasp-z-offset*)
+  :grasp-translation `(0.0
+                       0.0
+                       ,*balea-bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation-2*
-  :pregrasp-offsets `(,(- *dish-washer-tabs-pregrasp-x-offset*)
+  :pregrasp-offsets `(,(- *balea-bottle-pregrasp-x-offset*)
                        0.0
                        ,*default-retail-z-offset*)
   :2nd-pregrasp-offsets `(,(- *dish-washer-tabs-pregrasp-x-offset*)
                            0.0
-                           ,*dish-washer-tabs-grasp-z-offset*)
+                           ,*balea-bottle-grasp-z-offset*)
   :lift-offsets *default-retail-lift-offsets*
   :2nd-lift-offsets *default-retail-lift-offsets*)
 
@@ -139,14 +171,14 @@
 (man-int:def-object-type-to-gripper-transforms :balea-bottle '(:left :right) :front
   :grasp-translation `(0.0
                        0.0
-                       ,*dish-washer-tabs-grasp-z-offset*)
+                       ,*balea-bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation-2*
-  :pregrasp-offsets `(,*dish-washer-tabs-pregrasp-x-offset*
+  :pregrasp-offsets `(,*balea-bottle-pregrasp-x-offset*
                       0.0
                       ,*default-retail-z-offset*)
-  :2nd-pregrasp-offsets `(,*dish-washer-tabs-pregrasp-x-offset*
+  :2nd-pregrasp-offsets `(,*balea-bottle-pregrasp-x-offset*
                           0.0
-                          ,*dish-washer-tabs-grasp-z-offset*)
+                          ,*balea-bottle-grasp-z-offset*)
   :lift-offsets *default-retail-lift-offsets*
   :2nd-lift-offsets *default-retail-lift-offsets*)
 
@@ -156,14 +188,14 @@
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
   :donbot-tray-left
-  :attachment-translation `(0.02 0.05 0.086)
-  :attachment-rot-matrix '((0.43809 0.89892 0.005072)
-                           (-0.89879 0.43811461 -0.01522)
-                           (-0.0159 0.0021 0.999871)))
+  :attachment-translation `(0.1 0.05 0.12)
+  :attachment-rot-matrix '((0  0  1)
+                           (0 -1  0)
+                           (1  0  0)))
 
 (man-int:def-object-type-in-other-object-transform :balea-bottle :robot
   :donbot-tray-left
-  :attachment-translation `(0.1 0.1 0.1)
+  :attachment-translation `(0.2 0.1 0.1)
   :attachment-rot-matrix '((0.43809 0.89892 0.005072)
                            (-0.89879 0.43811461 -0.01522)
                            (-0.0159 0.0021 0.999871)))

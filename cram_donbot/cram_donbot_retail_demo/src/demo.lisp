@@ -30,25 +30,34 @@
 (in-package :demo)
 
 (defun spawn-objects-on-small-shelf ()
-  (btr-utils:spawn-object :balea-bottle-1 :balea-bottle :pose
-                          '((1.75 -1.42 1.05) (0 0 0.7 0.7)))
-  (btr-utils:spawn-object :dish-washer-tabs-1 :dish-washer-tabs
-                          :pose '((1.9 -1.45 1.05) (0 0 0.7 0.7)))
-  (btr:simulate btr:*current-bullet-world* 50))
+  (btr-utils:kill-all-objects)
+  (btr:detach-all-objects (btr:get-robot-object))
+  (btr:detach-all-objects (btr:get-environment-object))
+  (unless cram-projection:*projection-environment*
+    (giskard::call-giskard-environment-service :remove-all)
+    (giskard::call-giskard-environment-service :add-environment))
 
-(defun pick-objects-from-small-shelf (&optional (list-of-objects
-                                                 '(:balea-bottle :dish-washer-tabs)))
-  (dolist (?item-type list-of-objects)
+  (when cram-projection:*projection-environment*
+    (btr-utils:spawn-object :balea-bottle-1 :balea-bottle :pose
+                            '((1.75 -1.42 1.05) (0 0 0.7 0.7)))
+    (btr-utils:spawn-object :dish-washer-tabs-1 :dish-washer-tabs
+                            :pose '((1.9 -1.45 1.06) (0 0 0.7 0.7)))
+    (btr:simulate btr:*current-bullet-world* 50)))
 
-    (let ((?object
-            (an object
-                (type ?item-type)
-                (location (a location
-                             (on (an object
-                                     (type shelf)
-                                     (urdf-name shelf-2-level-3-link)
-                                     (owl-name "shelf_system_verhuetung"))))))))
+(defun pick-object-from-small-shelf (&optional (?item-type :dish-washer-tabs)
+                                       (park-drive-look? t))
+  (spawn-objects-on-small-shelf)
 
+  (let ((?object
+          (an object
+              (type ?item-type)
+              (location (a location
+                           (on (an object
+                                   (type shelf)
+                                   (urdf-name shelf-2-level-3-link)
+                                   (owl-name "shelf_system_verhuetung"))))))))
+
+    (when park-drive-look?
       ;; park arm
       (exe:perform
        (desig:an action
@@ -71,20 +80,117 @@
       (exe:perform
        (desig:an action
                  (type looking)
-                 (direction right)))
+                 (direction right))))
 
-      ;; perceive
-      (exe:perform
-       (an action
-           (type detecting)
-           (object ?object)))
+    ;; perceive
+    ;; TODO: make this using WITH-FAILURE-HANDLING and write about
+    ;; that in deliverable
+    (let (percept-believable
+          (?grasp :back))
+      (loop until percept-believable
+            do (let* ((perceived-object
+                        (exe:perform
+                         (an action
+                             (type detecting)
+                             (object ?object))))
+                      (perceived-object-pose
+                        (man-int:get-object-pose-in-map perceived-object))
+                      (perceived-object-pose-z
+                        (cl-transforms:z
+                         (cl-transforms:origin perceived-object-pose)))
+                      (perceived-object-orientation
+                        (cl-transforms:orientation perceived-object-pose))
+                      (perceived-object-orientation-axis
+                        (cl-transforms:quaternion->axis-angle
+                         perceived-object-orientation))
+                      (perceived-object-orientation-angle
+                        (* (nth-value
+                            1
+                            (cl-transforms:quaternion->axis-angle
+                             perceived-object-orientation))
+                           (if (> (cl-transforms:z perceived-object-orientation-axis)
+                                  0)
+                               (prog1
+                                   1
+                                 (setf ?grasp :front))
+                               (prog1
+                                   -1
+                                 (setf ?grasp :back))))))
+                 (setf percept-believable
+                       (and (> perceived-object-pose-z 1.02)
+                            (< perceived-object-pose-z 1.2)
+                            (> (abs (cl-transforms:z
+                                     perceived-object-orientation-axis))
+                               (abs (cl-transforms:x
+                                     perceived-object-orientation-axis)))
+                            (> (abs (cl-transforms:z
+                                     perceived-object-orientation-axis))
+                               (abs (cl-transforms:y
+                                     perceived-object-orientation-axis)))
+                            (> (abs perceived-object-orientation-angle) 1.0)
+                            (< (abs perceived-object-orientation-angle) 2.0)))))
 
-      ;; picking up
+      (let ((picking-up-action
+              (an action
+                  (type picking-up)
+                  (grasp ?grasp)
+                  (object ?object))))
+        ;; (proj-reasoning:check-picking-up-collisions picking-up-action)
+        ;; picking up
+        (exe:perform picking-up-action)))
+
+    ;; placing on the back
+    (let* ((?robot-name (btr:get-robot-name))
+           (?robot-link-name "plate")
+           (?pose-in-map (cram-tf:frame-to-pose-in-fixed-frame ?robot-link-name))
+           (?transform-in-map (cram-tf:pose-stamped->transform-stamped
+                               ?pose-in-map ?robot-link-name))
+           (?pose-in-base (cram-tf:ensure-pose-in-frame
+                           ?pose-in-map cram-tf:*robot-base-frame*
+                           :use-zero-time t))
+           (?transform-in-base (cram-tf:pose-stamped->transform-stamped
+                                ?pose-in-base ?robot-link-name)))
       (exe:perform
-       (an action
-           (type picking-up)
-           (grasp front)
-           (object ?object))))))
+       (desig:an action
+                 (type placing)
+                 (object ?object)
+                 (target (desig:a location
+                                  (on (desig:an object
+                                                (type robot)
+                                                (name ?robot-name)
+                                                (urdf-name plate)
+                                                (owl-name "donbot_tray")
+                                                (pose ((pose ?pose-in-base)
+                                                       (transform ?transform-in-base)
+                                                       (pose-in-map ?pose-in-map)
+                                                       (transform-in-map ?transform-in-map)))))
+                                  (for ?object)
+                                  (attachment donbot-tray-left))))))))
+
+
+(defun place-object-at-big-shelf ()
+  ;; park arm
+  (exe:perform
+   (desig:an action
+             (type positioning-arm)
+             (left-configuration park)))
+  ;; drive to place
+  (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                "map" 0.0
+                (cl-transforms-stamped:make-3d-vector
+                 2.6765769958496093d0
+                 -0.13911641438802083d0
+                 0.0)
+                (cl-transforms:make-quaternion
+                 0.0d0
+                 0.0d0
+                 0.6886594891548157d0
+                 0.7250849008560181d0))))
+    (exe:perform
+     (desig:an action
+               (type going)
+               (target (desig:a location (pose ?pose)))))))
+
 
 (defun stuff-that-works ()
   (cram-process-modules:with-process-modules-running
@@ -108,22 +214,7 @@
                   (collision-mode :allow-all))))))
 
 
-   ;; drive to place
-    (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                  "map" 0.0
-                  (cl-transforms-stamped:make-3d-vector
-                   2.6765769958496093d0
-                   -0.13911641438802083d0
-                   0.0)
-                  (cl-transforms:make-quaternion
-                   0.0d0
-                   0.0d0
-                   0.6886594891548157d0
-                   0.7250849008560181d0))))
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location (pose ?pose))))))
+   
 
   (giskard::call-giskard-environment-service :remove-all)
 

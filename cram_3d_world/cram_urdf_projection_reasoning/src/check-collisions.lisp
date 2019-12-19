@@ -116,7 +116,8 @@ Store found pose into designator or throw error if good pose not found."
                (cpl:with-failure-handling
                    (((or common-fail:manipulation-pose-unreachable
                          common-fail:manipulation-goal-in-collision) (e)
-                      (declare (ignore e))
+                      ;; (declare (ignore e))
+                      (print e)
                       (urdf-proj::move-torso :upper-limit)
                       (cpl:do-retry pick-up-configuration-retries
                         (setf pick-up-action-desig

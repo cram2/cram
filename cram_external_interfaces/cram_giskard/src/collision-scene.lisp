@@ -68,15 +68,20 @@
 (defun make-giskard-environment-request (add-or-remove-or-attach-or-detach
                                          &key
                                            name
-                                           (pose (cl-transforms-stamped:make-pose-stamped
-                                                  "map"
-                                                  0.0
-                                                  (cl-transforms:make-identity-vector)
-                                                  (cl-transforms:make-identity-rotation)))
-                                           (dimensions '(1.0 1.0 1.0))
+                                           pose
+                                           dimensions
                                            joint-state-topic)
   (declare (type keyword add-or-remove-or-attach-or-detach)
-           (type (or null string) name))
+           (type (or null string) name)
+           (type (or null cl-transforms-stamped:pose-stamped) pose))
+  (unless pose
+    (setf pose (cl-transforms-stamped:make-pose-stamped
+                "map"
+                0.0
+                (cl-transforms:make-identity-vector)
+                (cl-transforms:make-identity-rotation))))
+  (unless dimensions
+    (setf dimensions '(1.0 1.0 1.0)))
   (ecase add-or-remove-or-attach-or-detach
     (:add
      (roslisp:make-request
@@ -108,8 +113,9 @@
              :type (roslisp:symbol-code
                     'giskard_msgs-msg:worldbody
                     :urdf_body)
-             :name name
-             :urdf (roslisp:get-param cram-bullet-reasoning-belief-state::*kitchen-parameter* nil)
+             :name (roslisp-utilities:rosify-underscores-lisp-name
+                    (btr:name (btr:get-environment-object)))
+             :urdf (roslisp:get-param btr-belief:*kitchen-parameter* nil)
              :joint_state_topic joint-state-topic)
       :pose (cl-transforms-stamped:to-msg pose)))
     (:remove
@@ -197,13 +203,15 @@
              (roslisp-utilities:rosify-underscores-lisp-name object-name))
            (btr-object
              (btr:object btr:*current-bullet-world* object-name))
-           (link (cut:var-value
-                  '?ee-link
-                  (car (prolog:prolog
-                        `(and (cram-robot-interfaces:robot ?robot)
-                              (cram-robot-interfaces:end-effector-link
-                               ?robot ,(cpoe:event-arm event)
-                               ?ee-link)))))))
+           (link (if (cpoe:event-arm event)
+                     (cut:var-value
+                      '?ee-link
+                      (car (prolog:prolog
+                            `(and (cram-robot-interfaces:robot ?robot)
+                                  (cram-robot-interfaces:end-effector-link
+                                   ?robot ,(cpoe:event-arm event)
+                                   ?ee-link)))))
+                     (cpoe:event-link event))))
       (when (cut:is-var link)
         (error "[GISKARD OBJECT-ATTACHED] Couldn't find robot's EE link."))
       (unless btr-object
@@ -225,10 +233,10 @@
                                       link object-name-string
                                       ee-to-map-transform map-to-obj-transform))
              (ee-to-object-pose (cram-tf:strip-transform-stamped ee-to-object-transform)))
-
-        ;; (call-giskard-environment-service
-        ;;  :remove
-        ;;  :name object-name-string)
+        ;; remove the object first, maybe it was already attached to something
+        (call-giskard-environment-service
+         :remove
+         :name object-name-string)
         (call-giskard-environment-service
          :attach
          :name object-name-string

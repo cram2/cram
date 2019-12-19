@@ -770,6 +770,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
     (btr:add-vis-axis-object right-tcp-pose))
   (when left-tcp-pose
     (btr:add-vis-axis-object left-tcp-pose))
+  (cpl:sleep 2.0)
 
   (cut:with-vars-strictly-bound (?robot
                                  ?left-tool-frame ?right-tool-frame
@@ -779,16 +780,18 @@ with the object, calculates similar angle around Y axis and applies the rotation
       (cut:lazy-car
        (prolog:prolog
         `(and (rob-int:robot ?robot)
-              (or (rob-int:robot-tool-frame ?robot :left ?left-tool-frame)
-                  (equal ?left-tool-frame nil))
-              (or (rob-int:robot-tool-frame ?robot :right ?right-tool-frame)
-                  (equal ?right-tool-frame nil))
-              (or (rob-int:end-effector-link ?robot :left ?left-ee-frame)
-                  (equal ?left-ee-frame nil))
-              (or (rob-int:end-effector-link ?robot :right ?right-ee-frame)
-                  (equal ?right-ee-frame nil))
-              (rob-int:arm-joints ?robot :left ?left-arm-joints)
-              (rob-int:arm-joints ?robot :right ?right-arm-joints)
+              (once (or (rob-int:robot-tool-frame ?robot :left ?left-tool-frame)
+                        (equal ?left-tool-frame nil)))
+              (once (or (rob-int:robot-tool-frame ?robot :right ?right-tool-frame)
+                        (equal ?right-tool-frame nil)))
+              (once (or (rob-int:end-effector-link ?robot :left ?left-ee-frame)
+                        (equal ?left-ee-frame nil)))
+              (once (or (rob-int:end-effector-link ?robot :right ?right-ee-frame)
+                        (equal ?right-ee-frame nil)))
+              (once (or (rob-int:arm-joints ?robot :left ?left-arm-joints)
+                        (equal ?left-arm-joints nil)))
+              (once (or (rob-int:arm-joints ?robot :right ?right-arm-joints)
+                        (equal ?right-arm-joints nil)))
               (rob-int:robot-torso-link-joint ?robot ?torso-link ?torso-joint)
               (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
               (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit))))

@@ -75,16 +75,26 @@
   ((arm
     :initarg :arm
     :reader event-arm
-    :initform (error
-               'simple-error
-               :format-control "OBJECT-ATTACHED-ROBOT event requires an arm."))
+    :initform nil
+    ;; (error
+    ;; 'simple-error
+    ;; :format-control "OBJECT-ATTACHED-ROBOT event requires an arm.")
+    )
+   (link
+    :initarg :link
+    :reader event-link
+    :initform nil)
    (grasp
     :initarg :grasp
     :reader event-grasp
     :initform nil
     ;; (error 'simple-error
     ;;        :format-control "OBJECT-ATTACHED-ROBOT event requires GRASP.")
-    )))
+    )
+   (not-loose
+    :initarg :not-loose
+    :reader event-not-loose
+    :initform nil)))
 
 (defclass object-detached-robot (object-connection-event)
   ((arm

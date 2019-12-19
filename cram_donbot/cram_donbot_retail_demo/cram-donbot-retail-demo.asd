@@ -60,6 +60,7 @@
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
                cram-urdf-projection      ; for with-simulated-robot
+               cram-urdf-projection-reasoning
 
                ;; cram-location-costmap
                ;; cram-btr-visibility-costmap
