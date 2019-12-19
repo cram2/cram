@@ -29,9 +29,8 @@
 
 (in-package :demo)
 
-;; roslaunch ????
+;; roslaunch cram_donbot_retail_demo sandbox.launch
 
-(defvar *kitchen-urdf* nil) ; todo: rename to environment urdf
 (defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
 
@@ -42,13 +41,12 @@
                    (setf rob-int:*robot-urdf*
                          (cl-urdf:parse-urdf
                           (roslisp:get-param *robot-parameter*)))))
-        ;; (kitchen (or *kitchen-urdf*
-        ;;              (let ((kitchen-urdf-string
-        ;;                      (roslisp:get-param *kitchen-parameter* nil)))
-        ;;                (when kitchen-urdf-string
-        ;;                  (setf *kitchen-urdf* (cl-urdf:parse-urdf
-        ;;                                        kitchen-urdf-string))))))
-        )
+        (kitchen (or btr-belief:*kitchen-urdf*
+                     (let ((kitchen-urdf-string
+                             (roslisp:get-param *kitchen-parameter* nil)))
+                       (when kitchen-urdf-string
+                         (setf btr-belief:*kitchen-urdf*
+                               (cl-urdf:parse-urdf kitchen-urdf-string)))))))
     ;; set robot URDF root link to be base_footprint not odom,
     ;; as with odom lots of problems concerning object-pose in bullet happen
     (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
@@ -63,12 +61,12 @@
                 (btr:debug-window ?w)
                 (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
                                                          :normal (0 0 1) :constant 0))
-                ;; (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
-                ;;                                  :collision-group :static-filter
-                ;;                                  :collision-mask (:default-filter
-                ;;                                                   :character-filter)
-                ;;                                  :urdf ,kitchen
-                ;;                                  :compound T))
+                (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
+                                                 :collision-group :static-filter
+                                                 :collision-mask (:default-filter
+                                                                  :character-filter)
+                                                 :urdf ,kitchen
+                                                 :compound T))
                 (-> (rob-int:robot ?robot)
                     (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1))
                                                :urdf ,robot))
@@ -101,8 +99,6 @@
 
   (cram-bullet-reasoning:clear-costmap-vis-object)
 
-  (btr:add-objects-to-mesh-list "cram_donbot_retail_demo")
-  ;; (btr:add-objects-to-mesh-list "assembly_models" :directory "battat/convention" :extension "stl")
-  )
+  (btr:add-objects-to-mesh-list "cram_donbot_retail_demo"))
 
 (roslisp-utilities:register-ros-init-function init-projection)

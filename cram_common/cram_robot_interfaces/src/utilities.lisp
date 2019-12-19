@@ -29,10 +29,4 @@
 
 (in-package :cram-robot-interfaces)
 
-(defun symbol-to-prolog-rule (the-symbol &rest parameters)
-  (let ((interned-symbol (find-symbol (string-upcase the-symbol))))
-    (if interned-symbol
-        (cram-utilities:var-value
-         '?result
-         (car (prolog `(,interned-symbol ,@parameters ?result))))
-        the-symbol)))
+

@@ -85,7 +85,9 @@
    #:get-object-look-from-pose
    ;; standard-grasps
    #:*x-across-z-grasp-rotation*
+   #:*x-across-z-grasp-rotation-2*
    #:*-x-across-z-grasp-rotation*
+   #:*-x-across-z-grasp-rotation-2*
    #:*x-across-y-grasp-rotation*
    #:*-x-across-y-grasp-rotation*
    #:*y-across-z-grasp-rotation*

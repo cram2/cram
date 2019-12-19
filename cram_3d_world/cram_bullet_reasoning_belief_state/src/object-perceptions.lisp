@@ -129,8 +129,9 @@ just updated. Otherwise a new instance is created."))
                                                 ;; :disable-face-culling t
                                                 :color ,(if (slot-boundp data 'desig::color)
                                                             (desig:object-color data)
-                                                            '(0.5 0.5 0.5)))))
-                    (btr:simulate ?world 10))))))
+                                                            '(0.5 0.5 0.5)))))))
+      ;; simulate world
+      (btr:simulate btr:*current-bullet-world* 10))))
 
 (defmethod register-object-designator-data
     ((data cram-physics-utils:object-point-data-mixin) &key type)

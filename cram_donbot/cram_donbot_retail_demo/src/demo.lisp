@@ -29,6 +29,63 @@
 
 (in-package :demo)
 
+(defun spawn-objects-on-small-shelf ()
+  (btr-utils:spawn-object :balea-bottle-1 :balea-bottle :pose
+                          '((1.75 -1.42 1.05) (0 0 0.7 0.7)))
+  (btr-utils:spawn-object :dish-washer-tabs-1 :dish-washer-tabs
+                          :pose '((1.9 -1.45 1.05) (0 0 0.7 0.7)))
+  (btr:simulate btr:*current-bullet-world* 50))
+
+(defun pick-objects-from-small-shelf (&optional (list-of-objects
+                                                 '(:balea-bottle :dish-washer-tabs)))
+  (dolist (?item-type list-of-objects)
+
+    (let ((?object
+            (an object
+                (type ?item-type)
+                (location (a location
+                             (on (an object
+                                     (type shelf)
+                                     (urdf-name shelf-2-level-3-link)
+                                     (owl-name "shelf_system_verhuetung"))))))))
+
+      ;; park arm
+      (exe:perform
+       (desig:an action
+                 (type positioning-arm)
+                 (left-configuration park)))
+
+      ;; drive to pick up
+      (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                    "map" 0.0
+                    (cl-transforms-stamped:make-3d-vector
+                     2.2660367329915365d0 -0.16621163686116536d0 0.0)
+                    (cl-transforms:make-quaternion
+                     0.0d0 0.0d0 -0.020739689469337463d0 0.9997849464416504d0))))
+        (exe:perform
+         (desig:an action
+                   (type going)
+                   (target (desig:a location (pose ?pose))))))
+
+      ;; look at the shelf
+      (exe:perform
+       (desig:an action
+                 (type looking)
+                 (direction right)))
+
+      ;; perceive
+      (exe:perform
+       (an action
+           (type detecting)
+           (object ?object)))
+
+      ;; picking up
+      (exe:perform
+       (an action
+           (type picking-up)
+           (grasp front)
+           (object ?object))))))
+
 (defun stuff-that-works ()
   (cram-process-modules:with-process-modules-running
       (giskard:giskard-pm)
@@ -51,14 +108,28 @@
                   (collision-mode :allow-all))))))
 
 
+   ;; drive to place
+    (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                  "map" 0.0
+                  (cl-transforms-stamped:make-3d-vector
+                   2.6765769958496093d0
+                   -0.13911641438802083d0
+                   0.0)
+                  (cl-transforms:make-quaternion
+                   0.0d0
+                   0.0d0
+                   0.6886594891548157d0
+                   0.7250849008560181d0))))
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location (pose ?pose))))))
 
   (giskard::call-giskard-environment-service :remove-all)
-  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
 
   ;; pick up from tray
   (donbot-pm:with-real-robot
     (giskard::call-giskard-environment-service :remove-all)
-    (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
     (exe:perform
      (desig:an action
                (type looking)
@@ -109,44 +180,7 @@
                         (for ?obj)
                         (attachment donbot-tray-left))))))))
 
-  (donbot-pm:with-real-robot
-    ;; park arm
-    (exe:perform
-     (desig:an action
-               (type positioning-arm)
-               (left-configuration park)))
-    ;; drive to pick up
-    (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                  "map" 0.0
-                  (cl-transforms-stamped:make-3d-vector
-                   2.6765769958496093d0
-                   -0.13911641438802083d0
-                   0.0)
-                  (cl-transforms:make-quaternion
-                   0.0d0
-                   0.0d0
-                   0.6886594891548157d0
-                   0.7250849008560181d0))))
-      (exe:perform
-       (desig:an action
-                 (type going)
-                 (target (desig:a location (pose ?pose))))))
-    ;; look at the shelf
-    (exe:perform
-     (desig:an action
-               (type looking)
-               (direction right)))
-    ;; perceive
-    (exe:perform
-     (an action
-         (type detecting)
-         (object (an object
-                     (type balea-bottle)
-                     (location (a location
-                                  (on (an object
-                                          (type shelf)
-                                          (urdf-name shelf-system-verhuetung)
-                                          (owl-name "shelf_system_verhuetung"))))))))))
+  
 
   ;; drive to place
   (donbot-pm:with-real-robot
