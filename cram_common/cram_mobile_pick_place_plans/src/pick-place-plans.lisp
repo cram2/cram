@@ -131,6 +131,7 @@
 
 (defun place (&key
                 ((:object ?object-designator))
+                ((:target ?target-location-designator))
                 ((:other-object ?other-object-designator))
                 other-object-is-a-robot
                 ((:arm ?arm))
@@ -165,7 +166,7 @@
     (exe:perform
      (desig:an action
                (type reaching)
-               (object ?other-object-designator)
+               (location ?target-location-designator)
                (left-poses ?left-reach-poses)
                (right-poses ?right-reach-poses))))
   (roslisp:ros-info (pick-place place) "Putting")

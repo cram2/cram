@@ -84,6 +84,14 @@
     ("ur5_wrist_2_joint" 1.704722285270691d0)
     ("ur5_wrist_3_joint" -1.5686963240252894d0)))
 
+(defparameter *looking-right-separators-preplace-state*
+  '(("ur5_shoulder_pan_joint" 1.585883378982544d0)
+    ("ur5_shoulder_lift_joint" -0.4995768705951136d0)
+    ("ur5_elbow_joint" -1.61414081255068d0)
+    ("ur5_wrist_1_joint" -1.1720898787127894d0)
+    ("ur5_wrist_2_joint" 1.37771737575531d0)
+    ("ur5_wrist_3_joint" -1.3602331320392054d0)))
+
 (defparameter *ee-p-camera*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector -0.04214122915220634d0
@@ -205,6 +213,10 @@
   (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :right-separators
                           ?joint-states)
     (symbol-value *looking-right-separators-state* ?joint-states))
+
+  (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :right-separators-preplace-state
+                          ?joint-states)
+    (symbol-value *looking-right-separators-preplace-state* ?joint-states))
 
   (<- (camera-in-neck-ee-pose donbot ?pose)
     (symbol-value *ee-p-camera* ?pose)))

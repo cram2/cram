@@ -41,6 +41,7 @@
 
                cram-donbot-low-level
 
+               cram-bullet-reasoning-belief-state ; for WORLD-STATE-DETECTING
                cram-robosherlock ; for WITH-REAL-ROBOT
                cram-giskard)
   :components

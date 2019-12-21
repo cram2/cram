@@ -133,9 +133,7 @@ just updated. Otherwise a new instance is created."))
                                                             (desig:object-color data)
                                                             '(0.5 0.5 0.5)))))))
       ;; simulate world
-      (break)
-      (btr:simulate btr:*current-bullet-world* 10)
-      )))
+      (btr:simulate btr:*current-bullet-world* 10))))
 
 (defmethod register-object-designator-data
     ((data cram-physics-utils:object-point-data-mixin) &key type)

@@ -217,6 +217,10 @@
       (unless btr-object
         (error "[GISKARD OBJECT-ATTACHED] there was no corresponding btr object."))
 
+      ;; TODO: hack for pivoting!!
+      (when (string-equal link "ur5_wrist_3_link")
+        (setf link "refills_finger"))
+
       (let* ((map-to-ee-transform (cl-transforms-stamped:lookup-transform
                                    cram-tf:*transformer*
                                    cram-tf:*fixed-frame*
@@ -233,6 +237,19 @@
                                       link object-name-string
                                       ee-to-map-transform map-to-obj-transform))
              (ee-to-object-pose (cram-tf:strip-transform-stamped ee-to-object-transform)))
+        ;; TODO: another hack for pivoting!!
+        ;; if we're attaching to the tray, then take the object pose
+        ;; just directly from TF, giskard is publishing the tf frame
+        (when (string-equal link "plate")
+          (setf ee-to-object-pose
+                (cram-tf:strip-transform-stamped
+                 (cl-transforms-stamped:lookup-transform
+                  cram-tf:*transformer*
+                  "plate"
+                  object-name-string
+                  :timeout 2
+                  :time 0))))
+
         ;; remove the object first, maybe it was already attached to something
         (call-giskard-environment-service
          :remove
@@ -247,20 +264,34 @@
 
 (defmethod coe:on-event giskard-detach-object ((event cpoe:object-detached-robot))
   (unless cram-projection:*projection-environment*
-    (let* ((object-name (cpoe:event-object-name event))
-           (object-name-string (roslisp-utilities:rosify-underscores-lisp-name object-name)))
-      (call-giskard-environment-service
-       :detach
-       :name object-name-string))))
+    (let* ((object-name
+             (cpoe:event-object-name event))
+           (object-name-string
+             (roslisp-utilities:rosify-underscores-lisp-name object-name))
+           (btr-object
+             (btr:object btr:*current-bullet-world* object-name))
+           (attached-to-another-link-as-well?
+             (btr:object-attached (btr:get-robot-object) btr-object)))
+      (unless attached-to-another-link-as-well?
+        (call-giskard-environment-service
+         :detach
+         :name object-name-string)))))
 
 (defmethod coe:on-event giskard-perceived ((event cpoe:object-perceived-event))
   (unless cram-projection:*projection-environment*
-    (let* ((object-name (desig:desig-prop-value (cpoe:event-object-designator event) :name))
-           (object-name-string (roslisp-utilities:rosify-underscores-lisp-name object-name))
-           (btr-object (btr:object btr:*current-bullet-world* object-name)))
+    (let* ((object-name
+             (desig:desig-prop-value (cpoe:event-object-designator event) :name))
+           (object-name-string
+             (roslisp-utilities:rosify-underscores-lisp-name object-name))
+           (btr-object
+             (btr:object btr:*current-bullet-world* object-name))
+           (robot-links-object-is-attached-to
+             (btr:object-attached (btr:get-robot-object) btr-object)))
+      ;; to update an object pose, first remove the old object together with the pose
       (call-giskard-environment-service
        :remove
        :name object-name-string)
+      ;; add it at the new perceived pose
       (call-giskard-environment-service
        :add
        :name object-name-string
@@ -268,7 +299,38 @@
               cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
        :dimensions (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
                        (btr:calculate-bb-dims btr-object)
-                     (list cl-transforms:x cl-transforms:y cl-transforms:z))))))
+                     (list cl-transforms:x cl-transforms:y cl-transforms:z)))
+      ;; reattach the object if it was attached somewhere
+      (when robot-links-object-is-attached-to
+        (let* ((link (car robot-links-object-is-attached-to))
+               (map-to-link-transform
+                 (cl-transforms-stamped:lookup-transform
+                  cram-tf:*transformer*
+                  cram-tf:*fixed-frame*
+                  link
+                  :timeout 2
+                  :time 0))
+               (link-to-map-transform
+                 (cram-tf:transform-stamped-inv map-to-link-transform))
+               (map-to-obj-transform
+                 (cram-tf:pose->transform-stamped
+                  cram-tf:*fixed-frame*
+                  object-name-string
+                  0.0
+                  (btr:pose btr-object)))
+               (link-to-object-transform
+                 (cram-tf:multiply-transform-stampeds
+                  link object-name-string
+                  link-to-map-transform map-to-obj-transform))
+               (link-to-object-pose
+                 (cram-tf:strip-transform-stamped link-to-object-transform)))
+          (call-giskard-environment-service
+           :attach
+           :name object-name-string
+           :pose link-to-object-pose
+           :dimensions (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
+                           (btr:calculate-bb-dims btr-object)
+                         (list cl-transforms:x cl-transforms:y cl-transforms:z))))))))
 
 (defmethod coe:clear-belief giskard-clear ()
   (unless cram-projection:*projection-environment*

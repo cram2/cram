@@ -55,12 +55,24 @@ If there is no other method with 1 as qualifier, this method will be executed al
       (btr:detach-object environment-object btr-object))
     ;; now attach to the robot-object
     (when btr-object
-      (let ((loose?
-              (if (and (btr:object-attached robot-object btr-object)
-                       (not (cpoe:event-not-loose event)))
-                  t
-                  nil)))
-        (btr:attach-object robot-object btr-object :link link :loose loose? :grasp grasp)))))
+      ;; if the object is already attached to some other robot link
+      ;; make the old attachment loose,
+      ;; because the new attachment will take precedence now
+      (multiple-value-bind (links grasps)
+          (btr:object-attached robot-object btr-object)
+        (when links
+          (mapc (lambda (link grasp)
+                  ;; detach and attach again with loose attachment
+                  (btr:detach-object robot-object btr-object :link link)
+                  ;; These loose attachments seem buggy,
+                  ;; so just removing completely...
+                  ;; (btr:attach-object robot-object btr-object :link link
+                  ;;                                            :loose t
+                  ;;                                            :grasp grasp)
+                  )
+                links grasps)))
+      ;; attach
+      (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp))))
 
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))

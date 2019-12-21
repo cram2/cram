@@ -63,9 +63,14 @@
     ;; we shouldn't move the base if we're getting something of our own back
     (-> (and (or (spec:property ?action-designator (:type :reaching))
                  (spec:property ?action-designator (:type :grasping)))
-             (spec:property ?action-designator (:object ?some-object-designator))
-             (desig:current-designator ?some-object-designator ?object-designator)
-             (spec:property ?object-designator (:location ?some-location-designator))
+             (or (and (spec:property ?action-designator
+                                     (:object ?some-object-designator))
+                      (desig:current-designator ?some-object-designator
+                                                ?object-designator)
+                      (spec:property ?object-designator
+                                     (:location ?some-location-designator)))
+                 (spec:property ?action-designator
+                                (:location ?some-location-designator)))
              (desig:current-designator ?some-location-designator ?location-designator)
              (spec:property ?location-designator (:on ?on-object-designator))
              (spec:property ?on-object-designator (:name ?robot-name))
