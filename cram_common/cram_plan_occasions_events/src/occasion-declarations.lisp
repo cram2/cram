@@ -32,7 +32,7 @@
 (def-fact-group occasions (object-in-hand object-placed-at object-picked object-put
                                           loc looking-at arms-parked
                                           container-state)
-  (<- (object-in-hand ?object)
+  (<- (object-in-hand ?object ?hand ?grasp)
     (fail))
 
   (<- (object-placed-at ?object ?location)

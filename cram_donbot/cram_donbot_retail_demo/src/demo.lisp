@@ -47,10 +47,11 @@
 
   (when (and spawn? cram-projection:*projection-environment*)
     (btr-utils:spawn-object :balea-bottle-1 :balea-bottle :pose
-                            '((1.75 -1.42 1.05) (0 0 0.7 0.7)))
+                            '((1.9 -1.42 1.05) (0 0 0.7 0.7)))
     (btr-utils:spawn-object :dish-washer-tabs-1 :dish-washer-tabs
-                            :pose '((1.9 -1.45 1.06) (0 0 0.7 0.7)))
-    (btr:simulate btr:*current-bullet-world* 50)))
+                            :pose '((1.75 -1.45 1.06) (0 0 0.7 0.7)))
+    ;; (btr:simulate btr:*current-bullet-world* 50)
+    ))
 
 (defun demo (&optional (?item-type :dish-washer-tabs)
                (park-drive-look? t))
@@ -66,15 +67,19 @@
                                    (urdf-name shelf-2-level-3-link)
                                    (owl-name "shelf_system_verhuetung")))))))
 
-        (?target-pose
-          (cl-transforms-stamped:pose->pose-stamped
-           cram-tf:*fixed-frame* 0.0
-           (cram-tf:list->pose
-            '((4.048458 -0.64891 1.07)
-              (-0.7071067811865475d0
-               0.0d0
-               0.7071067811865475d0
-               0.0d0))))))
+        (?target-pose-front
+          (cl-transforms-stamped:make-pose-stamped
+           cram-tf:*fixed-frame*
+           0.0
+           (cl-transforms:make-3d-vector 4.06 -0.64 1.05)
+           (cl-transforms:make-quaternion 0 0 1 0)))
+
+        (?target-pose-back
+          (cl-transforms-stamped:make-pose-stamped
+           cram-tf:*fixed-frame*
+           0.0
+           (cl-transforms:make-3d-vector 4.06 -0.64 1.05)
+           (cl-transforms:make-quaternion 0 0 0 1))))
 
     (when park-drive-look?
       ;; park arm
@@ -109,9 +114,9 @@
       (loop until percept-believable
             do (let* ((perceived-object
                         (exe:perform
-                         (an action
-                             (type detecting)
-                             (object ?object))))
+                         (desig:an action
+                                   (type detecting)
+                                   (object ?object))))
                       (perceived-object-pose
                         (btr:object-pose
                          (desig:desig-prop-value perceived-object :name)))
@@ -132,12 +137,13 @@
                              perceived-object-orientation))
                            (if (> (cl-transforms:z perceived-object-orientation-axis)
                                   0)
-                               (prog1
-                                   1
-                                 (setf ?grasp :front))
-                               (prog1
-                                   -1
-                                 (setf ?grasp :back))))))
+                               1
+                               -1))))
+                 (if (> (cl-transforms:normalize-angle
+                         perceived-object-orientation-angle)
+                        0)
+                     (setf ?grasp :front)
+                     (setf ?grasp :back))
                  (setf percept-believable
                        (and (> perceived-object-pose-z 1.02)
                             (< perceived-object-pose-z 1.2)
@@ -153,7 +159,7 @@
                             (< (abs perceived-object-orientation-angle) 2.0)))))
 
       (let ((picking-up-action
-              (an action
+              (desig:an action
                   (type picking-up)
                   (grasp ?grasp)
                   (object ?object))))
@@ -161,7 +167,50 @@
         ;; picking up
         (exe:perform picking-up-action))
 
-      (setf ?object (desig:current-desig ?object))
+      ;; placing on the back
+      (let* ((?robot-name (btr:get-robot-name))
+             (?robot-link-name "plate")
+             (?pose-in-map (cram-tf:frame-to-pose-in-fixed-frame ?robot-link-name))
+             (?transform-in-map (cram-tf:pose-stamped->transform-stamped
+                                 ?pose-in-map ?robot-link-name))
+             (?pose-in-base (cram-tf:ensure-pose-in-frame
+                             ?pose-in-map cram-tf:*robot-base-frame*
+                             :use-zero-time t))
+             (?transform-in-base (cram-tf:pose-stamped->transform-stamped
+                                  ?pose-in-base ?robot-link-name))
+             (?attachment (ecase ?grasp
+                            (:front :donbot-tray-front)
+                            (:back :donbot-tray-back))))
+        (exe:perform
+         (an action
+             (type placing)
+             (object ?object)
+             (target (a location
+                        (on (an object
+                                (type robot)
+                                (name ?robot-name)
+                                (urdf-name plate)
+                                (owl-name "donbot_tray")
+                                (pose ((pose ?pose-in-base)
+                                       (transform ?transform-in-base)
+                                       (pose-in-map ?pose-in-map)
+                                       (transform-in-map ?transform-in-map)))))
+                        (for ?object)
+                        (attachment ?attachment)))))
+
+        (setf ?object
+              (desig:copy-designator
+               (perform (a motion
+                           (type :world-state-detecting)
+                           (object (an object
+                                       (name denkmitgeschirrreinigernature-1)))))
+               :new-description
+               `((:location ,(a location
+                                (on (an object
+                                        (type robot)
+                                        (name ?robot-name)
+                                        (urdf-name plate)
+                                        (owl-name "donbot_tray")))))))))
 
       ;; park arm
       (exe:perform
@@ -186,39 +235,6 @@
                    (type going)
                    (target (desig:a location (pose ?pose))))))
 
-      ;; placing on the back
-      (let* ((?robot-name (btr:get-robot-name))
-             (?robot-link-name "plate")
-             (?pose-in-map (cram-tf:frame-to-pose-in-fixed-frame ?robot-link-name))
-             (?transform-in-map (cram-tf:pose-stamped->transform-stamped
-                                 ?pose-in-map ?robot-link-name))
-             (?pose-in-base (cram-tf:ensure-pose-in-frame
-                             ?pose-in-map cram-tf:*robot-base-frame*
-                             :use-zero-time t))
-             (?transform-in-base (cram-tf:pose-stamped->transform-stamped
-                                  ?pose-in-base ?robot-link-name)))
-        (exe:perform
-         (an action
-             (type placing)
-             (object ?object)
-             (target (a location
-                        (on (an object
-                                (type robot)
-                                (name ?robot-name)
-                                (urdf-name plate)
-                                (owl-name "donbot_tray")
-                                (pose ((pose ?pose-in-base)
-                                       (transform ?transform-in-base)
-                                       (pose-in-map ?pose-in-map)
-                                       (transform-in-map ?transform-in-map)))))
-                        (for ?object)
-                        (attachment donbot-tray-left)))))
-
-        (setf ?object
-              (perform (a motion
-                          (type :world-state-detecting)
-                          (object (an object
-                                      (name denkmitgeschirrreinigernature-1)))))))
 
       ;; look at separators
       ;; (exe:perform
@@ -257,12 +273,16 @@
            (object ?object)))
 
       ;; place on the big shelf
-      (exe:perform
-       (an action
-           (type placing)
-           (object ?object)
-           (target (a location
-                      (pose ?target-pose))))))))
+      (let ((?target-pose
+              (ecase ?grasp
+                (:front ?target-pose-front)
+                (:back ?target-pose-back))))
+        (exe:perform
+         (an action
+             (type placing)
+             (object ?object)
+             (target (a location
+                        (pose ?target-pose)))))))))
 
 
 
@@ -431,11 +451,11 @@
                  (target (desig:a location (pose ?pose))))))
 
     ;; look at separators
-    ;; (exe:perform
-    ;;  (desig:an action
-    ;;            (type looking)
-    ;;            (direction right-separators)))
-    ;; (cpl:sleep 5.0)
+    (exe:perform
+     (desig:an action
+               (type looking)
+               (direction right-separators)))
+    (cpl:sleep 5.0)
 
     ;; look at tray
     (exe:perform

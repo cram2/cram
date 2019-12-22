@@ -29,17 +29,23 @@
 (in-package :cram-bullet-reasoning-belief-state)
 
 (def-fact-group occasions (cpoe:object-in-hand cpoe:object-picked cpoe:object-placed-at cpoe:loc)
-  (<- (cpoe:object-in-hand ?object ?side ?grasp)
+  (<- (cpoe:object-in-hand ?object ?arm ?grasp)
     (btr:bullet-world ?world)
-    (cram-robot-interfaces:robot ?robot)
+    (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
-    (once
-     (and (object-designator-name ?object ?object-name)
-          (desig:obj-desig? ?object)))
-    (cram-robot-interfaces:end-effector-link ?robot ?side ?link))
+    (once (and (object-designator-name ?object ?object-name)
+               (desig:obj-desig? ?object)))
+    (rob-int:end-effector-link ?robot ?arm ?link))
 
-  (<- (cpoe:object-in-hand ?object ?side)
-    (cpoe:object-in-hand ?object ?side ?_))
+  (<- (cpoe:object-in-hand ?object ?_ ?grasp ?link)
+    (btr:bullet-world ?world)
+    (rob-int:robot ?robot)
+    (btr:attached ?world ?robot ?link ?object-name ?grasp)
+    (once (and (object-designator-name ?object ?object-name)
+               (desig:obj-desig? ?object))))
+
+  (<- (cpoe:object-in-hand ?object ?arm)
+    (cpoe:object-in-hand ?object ?arm ?_))
 
   (<- (cpoe:object-in-hand ?object)
     (setof ?object (cpoe:object-in-hand ?object ?_) ?objects)

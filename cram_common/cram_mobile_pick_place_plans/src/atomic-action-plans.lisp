@@ -178,6 +178,8 @@ while ignoring failures; and execute the last pose with propagating the failures
 (defun move-arms-into-configuration (&key
                                        ((:left-joint-states ?left-joint-states))
                                        ((:right-joint-states ?right-joint-states))
+                                       ((:align-planes-left ?align-planes-left))
+                                       ((:align-planes-right ?align-planes-right))
                                      &allow-other-keys)
   (declare (type list ?left-joint-states ?right-joint-states))
   "Calls moving-arm-joints motion, while ignoring failures, and robot-state-changed event."
@@ -195,7 +197,11 @@ while ignoring failures; and execute the last pose with propagating the failures
                    (desig:when ?left-joint-states
                      (left-joint-states ?left-joint-states))
                    (desig:when ?right-joint-states
-                     (right-joint-states ?right-joint-states))))
+                     (right-joint-states ?right-joint-states))
+                   (desig:when ?align-planes-left
+                     (align-planes-left ?align-planes-left))
+                   (desig:when ?align-planes-right
+                     (align-planes-right ?align-planes-right))))
          ;; (cpl:seq
          ;;   (exe:perform
          ;;    (desig:a motion
@@ -371,19 +377,19 @@ equate resulting designator to the original one."
                (resulting-designator
                  (funcall object-chosing-function resulting-designators)))
           (if (listp resulting-designators)
-              (mapcar (lambda (desig)
-                        (cram-occasions-events:on-event
-                         (make-instance 'cram-plan-occasions-events:object-perceived-event
-                           :object-designator desig
-                           :perception-source :whatever))
-                        ;; doesn't make sense to equate all these desigs together
-                        ;; (desig:equate ?object-designator desig)
-                        )
-                      resulting-designators)
+              (mapc (lambda (desig)
+                      (cram-occasions-events:on-event
+                       (make-instance 'cram-plan-occasions-events:object-perceived-event
+                         :object-designator desig
+                         :perception-source :whatever))
+                      ;; doesn't make sense to equate all these desigs together
+                      ;; (desig:equate ?object-designator desig)
+                      )
+                    resulting-designators)
               (progn
                 (cram-occasions-events:on-event
                  (make-instance 'cram-plan-occasions-events:object-perceived-event
                    :object-designator resulting-designators
                    :perception-source :whatever))
                 (desig:equate ?object-designator resulting-designator)))
-          resulting-designator)))))
+          (desig:current-desig resulting-designator))))))

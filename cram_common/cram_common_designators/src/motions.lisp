@@ -121,12 +121,17 @@
     (once (or (desig:desig-prop ?designator (:align-planes-right ?align-planes-right))
               (equal ?align-planes-right nil))))
 
-  (<- (motion-grounding ?designator (move-joints ?left-config ?right-config))
+  (<- (motion-grounding ?designator (move-joints ?left-config ?right-config
+                                                 ?align-planes-left ?align-planes-right))
     (property ?designator (:type :moving-arm-joints))
     (once (or (property ?designator (:left-joint-states ?left-config))
               (equal ?left-config nil)))
     (once (or (property ?designator (:right-joint-states ?right-config))
-              (equal ?right-config nil)))))
+              (equal ?right-config nil)))
+    (once (or (property ?designator (:align-planes-left ?align-planes-left))
+              (equal ?align-planes-left nil)))
+    (once (or (property ?designator (:align-planes-right ?align-planes-right))
+              (equal ?align-planes-right nil)))))
 
 (def-fact-group world-state-detecting (motion-grounding)
 

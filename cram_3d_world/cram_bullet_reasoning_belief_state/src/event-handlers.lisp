@@ -46,7 +46,10 @@ If there is no other method with 1 as qualifier, this method will be executed al
                           `(and (cram-robot-interfaces:robot ?robot)
                                 (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
                                                                          ?ee-link)))))
-                   (cpoe:event-link event)))
+                   (if (cpoe:event-link event)
+                       (cpoe:event-link event)
+                       (error "[BTR-BELIEF OBJECT-ATTACHED] either link or arm ~
+                               in object-attached-robot even had to be given..."))))
          (grasp (cpoe:event-grasp event)))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
     ;; first detach from environment in case it is attached
@@ -77,12 +80,17 @@ If there is no other method with 1 as qualifier, this method will be executed al
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))
          (btr-object-name (cpoe:event-object-name event))
-         (link (cut:var-value
-                '?ee-link
-                (car (prolog:prolog
-                      `(and (cram-robot-interfaces:robot ?robot)
-                            (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
-                                                                     ?ee-link)))))))
+         (link (if (cpoe:event-arm event)
+                   (cut:var-value
+                    '?ee-link
+                    (car (prolog:prolog
+                          `(and (cram-robot-interfaces:robot ?robot)
+                                (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
+                                                                         ?ee-link)))))
+                   (if (cpoe:event-link event)
+                       (cpoe:event-link event)
+                       (error "[BTR-BELIEF OBJECT-DETACHED] either link or arm ~
+                               in object-attached-robot even had to be given...")))))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (if btr-object-name
         (let ((btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
@@ -218,9 +226,15 @@ If there is no other method with 1 as qualifier, this method will be executed al
                         *object-identifier-to-instance-mappings*)
                (desig:object-identifier object-data))))
       ;; otherwise, spawn a new object in the bullet world
-      (register-object-designator-data
-       (desig:reference (cpoe:event-object-designator event))
-       :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))))
+      (progn
+        (register-object-designator-data
+         (desig:reference (cpoe:event-object-designator event))
+         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))
+        ;; after having spawned the object, update the designator to get the
+        ;; new simulated pose
+        (desig:equate
+         (cpoe:event-object-designator event)
+         (detect-new-object-pose-from-btr (cpoe:event-object-designator event))))))
 
 
 

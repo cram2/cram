@@ -100,9 +100,15 @@
   ((arm
     :initarg :arm
     :reader event-arm
-    :initform (error
-               'simple-error
-               :format-control "OBJECT-DETACHED-ROBOT event requires an arm."))))
+    :initform nil
+    ;; (error
+    ;;  'simple-error
+    ;;  :format-control "OBJECT-DETACHED-ROBOT event requires an arm.")
+    )
+   (link
+    :initarg :link
+    :reader event-link
+    :initform nil)))
 
 (defclass object-attached-object (object-connection-event)
   ((other-object-name

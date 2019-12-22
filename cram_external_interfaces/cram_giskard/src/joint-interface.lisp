@@ -31,14 +31,87 @@
 
 (defparameter *giskard-convergence-delta-joint* 0.17 "in radiants, about 10 degrees")
 
-(defun make-giskard-joint-action-goal (joint-state-left joint-state-right)
-  (declare (type list joint-state-left joint-state-right))
+(defun make-giskard-joint-action-goal (joint-state-left joint-state-right
+                                       align-planes-left align-planes-right)
+  (declare (type list joint-state-left joint-state-right)
+           (type boolean align-planes-left align-planes-right))
   (roslisp:make-message
    'giskard_msgs-msg:MoveGoal
    :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal :plan_and_execute)
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
+              :constraints
+              (map 'vector #'identity
+                   (remove
+                    NIL
+                    (list
+                     (when align-planes-left
+                       (roslisp:make-message
+                        'giskard_msgs-msg:constraint
+                        :type
+                        "AlignPlanes"
+                        :parameter_value_pair
+                        (let ((stream (make-string-output-stream)))
+                          (yason:encode
+                           (cram-tf:recursive-alist-hash-table
+                            `(("root" . "base_footprint")
+                              ("tip" . "refills_finger")
+                              ("root_normal"
+                               . (("header"
+                                   . (("stamp" . (("secs" . 0.0)
+                                                  ("nsecs" . 0.0)))
+                                      ("frame_id" . "base_footprint")
+                                      ("seq" . 0)))
+                                  ("vector" . (("x" . 0.0)
+                                               ("y" . 0.0)
+                                               ("z" . 1.0)))))
+                              ("tip_normal"
+                               . (("header"
+                                   . (("stamp" . (("secs" . 0.0)
+                                                  ("nsecs" . 0.0)))
+                                      ("frame_id" . "base_footprint")
+                                      ("seq" . 0)))
+                                  ("vector"
+                                   . (("x" . 0.0)
+                                      ("y" . 0.0)
+                                      ("z" . 1.0))))))
+                            :test #'equal)
+                           stream)
+                          (get-output-stream-string stream))))
+                     (when align-planes-right
+                       (roslisp:make-message
+                        'giskard_msgs-msg:constraint
+                        :type
+                        "AlignPlanes"
+                        :parameter_value_pair
+                        (let ((stream (make-string-output-stream)))
+                          (yason:encode
+                           (cram-tf:recursive-alist-hash-table
+                            `(("root" . "base_footprint")
+                              ("tip" . "refills_finger")
+                              ("tip_normal"
+                               . (("header"
+                                   . (("stamp" . (("secs" . 0.0)
+                                                  ("nsecs" . 0.0)))
+                                      ("frame_id" . "refills_finger")
+                                      ("seq" . 0)))
+                                  ("vector"
+                                   . (("x" . 0.0)
+                                      ("y" . 1.0)
+                                      ("z" . 0.0)))))
+                              ("root_normal"
+                               . (("header"
+                                   . (("stamp" . (("secs" . 0.0)
+                                                  ("nsecs" . 0.0)))
+                                      ("frame_id" . "base_footprint")
+                                      ("seq" . 0)))
+                                  ("vector" . (("x" . 0.0)
+                                               ("y" . 0.0)
+                                               ("z" . 1.0))))))
+                            :test #'equal)
+                           stream)
+                          (get-output-stream-string stream)))))))
               :joint_constraints (vector (roslisp:make-message
                                           'giskard_msgs-msg:jointconstraint
                                           :type (roslisp:symbol-code
@@ -133,6 +206,8 @@
 (defun call-giskard-joint-action (&key
                                     goal-configuration-left
                                     goal-configuration-right
+                                    align-planes-left
+                                    align-planes-right
                                     action-timeout
                                     (convergence-delta-joint
                                      *giskard-convergence-delta-joint*))
@@ -145,7 +220,8 @@
         (actionlib-client:call-simple-action-client
          'giskard-action
          :action-goal (make-giskard-joint-action-goal
-                       joint-state-left joint-state-right)
+                       joint-state-left joint-state-right
+                       align-planes-left align-planes-right)
          :action-timeout action-timeout)
       (ensure-giskard-joint-goal-reached
        status goal-configuration-left goal-configuration-right

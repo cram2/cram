@@ -112,7 +112,7 @@ just updated. Otherwise a new instance is created."))
       ;; cutting off the plane
       (setf object-pose (cram-tf:translate-pose object-pose
                                                 :z-offset -0.04
-                                                :y-offset -0.05))
+                                                :y-offset -0.02))
       ;; below is a hack to deal with shitty identity resolution on
       ;; RS / KnowRob side :P
       (prolog `(and (btr:bullet-world ?world)

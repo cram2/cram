@@ -238,17 +238,20 @@
                                       ee-to-map-transform map-to-obj-transform))
              (ee-to-object-pose (cram-tf:strip-transform-stamped ee-to-object-transform)))
         ;; TODO: another hack for pivoting!!
-        ;; if we're attaching to the tray, then take the object pose
-        ;; just directly from TF, giskard is publishing the tf frame
-        (when (string-equal link "plate")
-          (setf ee-to-object-pose
-                (cram-tf:strip-transform-stamped
-                 (cl-transforms-stamped:lookup-transform
-                  cram-tf:*transformer*
-                  "plate"
-                  object-name-string
-                  :timeout 2
-                  :time 0))))
+        ;; take the object pose just directly from TF,
+        ;; giskard is publishing the tf frame
+        ;; giskard only publishes TF for attached objects,
+        ;; not the other objects in the collision scene
+        (handler-case
+            (setf ee-to-object-pose
+                  (cram-tf:strip-transform-stamped
+                   (cl-transforms-stamped:lookup-transform
+                    cram-tf:*transformer*
+                    link
+                    object-name-string
+                    :timeout 2
+                    :time (roslisp:ros-time))))
+          (cl-transforms-stamped:transform-stamped-error ()))
 
         ;; remove the object first, maybe it was already attached to something
         (call-giskard-environment-service

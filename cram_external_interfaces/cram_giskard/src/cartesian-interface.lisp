@@ -53,8 +53,6 @@
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
-              ;; THIS STUFF HAS A STATE
-              ;; RESET THE STATE EXPLICITLY IF YOU WANT A NON CART MOVEMENT AFTER THIS
               :constraints
               (map 'vector #'identity
                    (remove
@@ -236,15 +234,16 @@
                                       (roslisp:symbol-code
                                        'giskard_msgs-msg:collisionentry
                                        :all))
-                          :link_bs (vector (roslisp:symbol-code
-                                            'giskard_msgs-msg:collisionentry
-                                            :all))
-                          ;; (if collision-object-b-link
-                          ;;     (vector (roslisp-utilities:rosify-underscores-lisp-name
-                          ;;              collision-object-b-link))
-                          ;;     (vector (roslisp:symbol-code
-                          ;;              'giskard_msgs-msg:collisionentry
-                          ;;              :all)))
+                          :link_bs
+                          ;; (vector (roslisp:symbol-code
+                          ;;          'giskard_msgs-msg:collisionentry
+                          ;;          :all))
+                          (if collision-object-b-link
+                              (vector (roslisp-utilities:rosify-underscores-lisp-name
+                                       collision-object-b-link))
+                              (vector (roslisp:symbol-code
+                                       'giskard_msgs-msg:collisionentry
+                                       :all)))
                           )
                          ;; (roslisp:make-message
                          ;;  'giskard_msgs-msg:collisionentry

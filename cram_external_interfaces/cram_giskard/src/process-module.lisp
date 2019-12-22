@@ -46,7 +46,9 @@
                                       :align-planes-right (ninth rest-arguments)))
       (cram-common-designators:move-joints
        (call-giskard-joint-action :goal-configuration-left argument-1
-                                  :goal-configuration-right (first rest-arguments)))
+                                  :goal-configuration-right (first rest-arguments)
+                                  :align-planes-left (second rest-arguments)
+                                  :align-planes-right (third rest-arguments)))
       (cram-common-designators:move-head
        ;; for donbot, as his left arm is also his head
        (call-giskard-joint-action :goal-configuration-left (first rest-arguments)

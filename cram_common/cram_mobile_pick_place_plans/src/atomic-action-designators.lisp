@@ -124,8 +124,6 @@
     (spec:property ?action-designator (:type ?action-type))
     (spec:property ?action-designator (:object ?object-designator))
     (spec:property ?object-designator (:name ?object-name))
-    (or (spec:property ?action-designator (:link ?object-link))
-        (equal ?object-link nil))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
@@ -133,11 +131,19 @@
     (infer-cartesian-motion-flags ?action-designator
                                   ?prefer-base ?move-base
                                   ?align-planes-left ?align-planes-right)
+    ;; infer collision-object-b and collision-object-b-link
+    (-> (cpoe:object-in-hand ?object-designator ?_ ?_ ?_)
+        (and (rob-int:robot ?robot)
+             (equal ?collision-object-b ?robot)
+             (equal ?object-link ?object-name))
+        (and (equal ?collision-object-b ?object-name)
+             (or (spec:property ?action-designator (:link ?object-link))
+                 (equal ?object-link nil))))
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
                                (:collision-mode :allow-hand)
-                               (:collision-object-b ?object-name)
+                               (:collision-object-b ?collision-object-b)
                                (:collision-object-b-link ?object-link)
                                (:prefer-base ?prefer-base)
                                (:move-base ?move-base)
@@ -214,9 +220,12 @@
                 (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states))
             (rob-int:robot-joint-states ?robot :arm :right ?right-config ?right-joint-states))
         (equal ?right-joint-states nil))
+    (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type :positioning-arm)
                                (:left-joint-states ?left-joint-states)
-                               (:right-joint-states ?right-joint-states))
+                               (:right-joint-states ?right-joint-states)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
 
 

@@ -111,7 +111,8 @@
 (defun call-gripper-grasp-action ()
   (actionlib-client:call-simple-action-client
    'gripper-grasp-action
-   :action-goal (make-gripper-grasp-action-goal)))
+   :action-goal (make-gripper-grasp-action-goal))
+  (cpl:sleep 5.0))
 
 
 

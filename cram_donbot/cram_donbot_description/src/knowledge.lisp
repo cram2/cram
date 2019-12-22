@@ -109,18 +109,18 @@
                                  robot-base-frame robot-torso-link-joint
                                  arm
                                  camera-frame)
-  (<- (robot donbot))
+  (<- (robot iai-donbot))
 
-  (<- (robot-odom-frame donbot "odom"))
+  (<- (robot-odom-frame iai-donbot "odom"))
 
-  (<- (robot-base-frame donbot "base_footprint"))
-  (<- (robot-torso-link-joint donbot "ur5_base_link" "arm_base_mounting_joint"))
+  (<- (robot-base-frame iai-donbot "base_footprint"))
+  (<- (robot-torso-link-joint iai-donbot "ur5_base_link" "arm_base_mounting_joint"))
 
-  (<- (arm donbot :left))
+  (<- (arm iai-donbot :left))
 
-  (<- (camera-frame donbot "camera_link")) ; rgb camera for barcodes etc.
-  (<- (camera-frame donbot "rs_camera_depth_optical_frame")) ; realsense
-  (<- (camera-frame donbot "rs_camera_color_optical_frame")))
+  (<- (camera-frame iai-donbot "camera_link")) ; rgb camera for barcodes etc.
+  (<- (camera-frame iai-donbot "rs_camera_depth_optical_frame")) ; realsense
+  (<- (camera-frame iai-donbot "rs_camera_color_optical_frame")))
 
 
 
@@ -134,48 +134,48 @@
                                   tcp-in-ee-pose
                                   hand-links)
 
-  (<- (end-effector-link donbot :left "ur5_wrist_3_link"))
+  (<- (end-effector-link iai-donbot :left "ur5_wrist_3_link"))
 
-  (<- (robot-tool-frame donbot :left "refills_tool_frame"))
+  (<- (robot-tool-frame iai-donbot :left "refills_tool_frame"))
 
-  (<- (arm-joints donbot :left ("ur5_shoulder_pan_joint"
+  (<- (arm-joints iai-donbot :left ("ur5_shoulder_pan_joint"
                                 "ur5_shoulder_lift_joint"
                                 "ur5_elbow_joint"
                                 "ur5_wrist_1_joint"
                                 "ur5_wrist_2_joint"
                                 "ur5_wrist_3_joint")))
 
-  (<- (arm-links donbot :left ("ur5_shoulder_link"
+  (<- (arm-links iai-donbot :left ("ur5_shoulder_link"
                                "ur5_upper_arm_link"
                                "ur5_forearm_link"
                                "ur5_wrist_1_link"
                                "ur5_wrist_2_link"
                                "ur5_wrist_3_link")))
 
-  (<- (gripper-joint donbot :left "gripper_joint"))
+  (<- (gripper-joint iai-donbot :left "gripper_joint"))
 
-  (<- (gripper-link donbot :left ?link)
+  (<- (gripper-link iai-donbot :left ?link)
     (bound ?link)
     (lisp-fun search "gripper_" ?link ?pos)
     (lisp-pred identity ?pos))
 
-  (<- (gripper-meter-to-joint-multiplier donbot 1.0))
+  (<- (gripper-meter-to-joint-multiplier iai-donbot 1.0))
 
-  (<- (standard-to-particular-gripper-transform donbot ?transform)
+  (<- (standard-to-particular-gripper-transform iai-donbot ?transform)
     (symbol-value *standard-to-donbot-gripper-transform* ?transform))
 
-  (<- (robot-joint-states donbot :arm :left :carry ?joint-states)
+  (<- (robot-joint-states iai-donbot :arm :left :carry ?joint-states)
     (symbol-value ;; *looking-forward-state*
      *parking-joint-state*
      ?joint-states))
 
-  (<- (robot-joint-states donbot :arm :left :park ?joint-states)
+  (<- (robot-joint-states iai-donbot :arm :left :park ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
 
-  (<- (tcp-in-ee-pose donbot ?pose)
+  (<- (tcp-in-ee-pose iai-donbot ?pose)
     (symbol-value *tcp-in-ee-pose* ?pose))
 
-  (<- (hand-links donbot :left ("wrist_collision"
+  (<- (hand-links iai-donbot :left ("wrist_collision"
                                 "gripper_base_link"
                                 "gripper_finger_left_link"
                                 "gripper_finger_right_link"
@@ -190,35 +190,35 @@
                                    robot-joint-states
                                    camera-in-neck-ee-pose)
 
-  (<- (robot-neck-links donbot . ?links)
-    (arm-links donbot :left ?links))
+  (<- (robot-neck-links iai-donbot . ?links)
+    (arm-links iai-donbot :left ?links))
 
-  (<- (robot-neck-joints donbot . ?joints)
-    (arm-joints donbot :left ?joints))
+  (<- (robot-neck-joints iai-donbot . ?joints)
+    (arm-joints iai-donbot :left ?joints))
 
-  (<- (robot-neck-base-link donbot "ur5_base_link"))
+  (<- (robot-neck-base-link iai-donbot "ur5_base_link"))
 
-  (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :away ?joint-states)
+  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :away ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
 
-  ;; (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :forward ?joint-states)
+  ;; (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :forward ?joint-states)
   ;;   (symbol-value *looking-forward-state* ?joint-states))
 
-  (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :down ?joint-states)
+  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :down ?joint-states)
     (symbol-value *looking-down-state* ?joint-states))
 
-  (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :right ?joint-states)
+  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :right ?joint-states)
     (symbol-value *looking-right-state* ?joint-states))
 
-  (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :right-separators
+  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :right-separators
                           ?joint-states)
     (symbol-value *looking-right-separators-state* ?joint-states))
 
-  (<- (robot-joint-states donbot :neck ?there-is-only-one-neck :right-separators-preplace-state
+  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :right-separators-preplace-state
                           ?joint-states)
     (symbol-value *looking-right-separators-preplace-state* ?joint-states))
 
-  (<- (camera-in-neck-ee-pose donbot ?pose)
+  (<- (camera-in-neck-ee-pose iai-donbot ?pose)
     (symbol-value *ee-p-camera* ?pose)))
 
 
