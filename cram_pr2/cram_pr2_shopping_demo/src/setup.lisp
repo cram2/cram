@@ -29,6 +29,11 @@
 
 (in-package :cram-pr2-shopping-demo)
 
+(defmethod man-int:get-z-offset-for-placing-distance :heuristics 20
+  ((other-object (eql :basket))
+   (object (eql :denkmit))
+   attachment)
+  0.1)
 
 
 (defun spawn-shelf ()
@@ -50,21 +55,6 @@
                                                      :handle-height 0.09)
   (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world* :b) :link "l_wrist_roll_link"))
 
-  ;; (cram-occasions-events:on-event
-  ;;  (make-instance 'cpoe:object-attached-robot
-  ;;    :arm :left
-  ;;    :object-name :basket)))
-
-
-(defun spawn-kitchen ()
-  (let ((kitchen-urdf
-          (cl-urdf:parse-urdf
-           (roslisp:get-param "kitchen_description"))))
-    (prolog:prolog
-     `(and (btr:bullet-world ?world)
-           (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                            :urdf ,kitchen-urdf))))))
-
 (defun spawn-robot ()
   (setf cram-robot-interfaces:*robot-urdf*
         (cl-urdf:parse-urdf
@@ -79,57 +69,35 @@
 
 (defun spawn-objects ()
   (let ((i 1))
+    ;;Spawn objects in shelf 1
   (loop for j from -1.35 to -0.7 by 0.12
         do
            (let ((denkmit (concatenate 'string "denkmit" "-" (write-to-string j) "-" (write-to-string i)))
                  (heitmamn (concatenate 'string "heitmann" "-" (write-to-string j) "-" (write-to-string i)))
                  (dove (concatenate 'string "dove" "-" (write-to-string j) "-" (write-to-string i))))
              (btr-utils:spawn-object (intern denkmit) :denkmit :pose `((,j 0.9 0.5) (0 0 1 0)))
-             (btr-utils:spawn-object (intern heitmamn) :heitmann :pose `((,j 0.9 0.75) (0 0 1 0)))
-             (btr-utils:spawn-object (intern dove) :dove :pose `((,j 0.9 0.94) (0 0 1 0)))))
+             (btr-utils:spawn-object (intern heitmamn) :heitmann :pose `((,j 0.9 0.96) (0 0 1 0)))
+             (btr-utils:spawn-object (intern dove) :dove :pose `((,j 0.9 0.73) (0 0 1 0)))))
     (incf i)
+    ;; Spawn objects in shelf 2
     (loop for k from 0.6 to 1.4 by 0.12
           do
              (let ((denkmit (concatenate 'string "denkmit" "-" (write-to-string k) "-" (write-to-string i)))
                    (heitmamn (concatenate 'string "heitmann" "-" (write-to-string k) "-" (write-to-string i)))
                    (dove (concatenate 'string "dove" "-" (write-to-string k) "-" (write-to-string i))))
-               (btr-utils:spawn-object (intern denkmit) :denkmit :pose `((,k 0.7 0.68) (0 0 1 0)) :color '(1 0 0 1))
+               ;;(btr-utils:spawn-object (intern denkmit) :denkmit :pose `((,k 0.7 0.68) (0 0 1 0)) :color '(1 0 0 1))
                
                (btr-utils:spawn-object (intern heitmamn) :heitmann :pose `((,k 0.75 1.05) (0 0 1 0)))
-               (btr-utils:spawn-object (intern dove) :dove :pose `((,k 0.75 1.39) (0 0 1 0)))))))
+               (btr-utils:spawn-object (intern dove) :dove :pose `((,k 0.75 1.39) (0 0 1 0)))))
+    (incf i)
+    ;; Spawn objects on the table
+     (loop for k from -3.7 to -3.3 by 0.12
+          do
+             (let ((denkmit (concatenate 'string "denkmit" "-" (write-to-string k) "-" (write-to-string i)))
+                   (heitmamn (concatenate 'string "heitmann" "-" (write-to-string k) "-" (write-to-string i)))
+                   (dove (concatenate 'string "dove" "-" (write-to-string k) "-" (write-to-string i))))
+               (btr-utils:spawn-object (intern denkmit) :denkmit :pose `((,k 0.1 0.7) (0 0 1 0)) :color '(1 0 0 1))))))
 
-(defun place-objects ()
-  (btr-utils:move-object :denkmit '((1 0.75 1) (0 0 1 0)))
-  (btr-utils:move-object :heitmann '((1.23 0.75 0.75) (0 0 1 0)))
-  (btr-utils:move-object :dove '((0.8 0.75 1) (0 0 1 0))))
-
-(defun place-table ()
-  (btr-utils:move-object :denkmit '((-3.1 0.2 0.7) (0 0 1 0)))
-  (btr-utils:move-object :heitmann '((-3.1 0.5 0.7) (0 0 -1 1)))
-  (btr-utils:move-object :dove '((-3.1 0.8 0.7) (0 0 0 1))))
-
-
-(defun replace-denkmit (name)
-  (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-detached-robot
-     :arm :right
-     :object-name name))
-  (btr-utils:move-object :denkmit '((1 0.75 1) (0 0 1 0))))
-
-(defun replace-dove (name)
-  (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-detached-robot
-     :arm :right
-     :object-name name))
-  (btr-utils:move-object :dove '((0.8 0.75 1) (0 0 1 0)))
-  (place-objects))
-
-(defun replace-heitmann (name)
-  (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-detached-robot
-     :arm :right
-     :object-name name))
-  (btr-utils:move-object :heitmann '((0.8 0.75 1) (0 0 1 0))))
 
 (defun init ()
   ;; (roslisp:start-ros-node "shopping_demo")
