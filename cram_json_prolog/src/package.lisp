@@ -40,8 +40,4 @@
            #:finish-query
            #:json-prolog
            #:wait-for-prolog-service
-           #:with-type-atoms
-           #:init-type-atoms
-           #:clear-type-atoms
-           #:replace-complex-types
-           #:start-prolog-server))
+           #:replace-complex-types))

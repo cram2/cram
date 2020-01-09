@@ -49,7 +49,6 @@
   ((:module "src"
             :components
             ((:file "package")
-             (:file "json-conversion" :depends-on ("package"))
-             (:file "prolog-interface" :depends-on ("package" "json-conversion"))
-             (:file "prolog-handlers" :depends-on ("package" "prolog-interface"))
-             (:file "server" :depends-on ("package"))))))
+             (:file "conversion" :depends-on ("package"))
+             (:file "prolog-interface" :depends-on ("package" "conversion"))
+             (:file "prolog-handlers" :depends-on ("package" "prolog-interface"))))))

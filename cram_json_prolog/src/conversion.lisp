@@ -29,24 +29,6 @@
 
 (in-package :json-prolog)
 
-(defvar *complex-type-atoms* :undefined
-  "Contains the list of type atoms that are used in the current
-  query. This is mainly useful if not all data can be jsonified and
-  needs to be replaced by some symbols. Use it in combination with
-  WITH-TYPE-ATOMS")
-
-(defmacro with-type-atoms (&body body)
-  `(let ((*complex-type-atoms* nil))
-     ,@body))
-
-(defun init-type-atoms ()
-  (when (eq *complex-type-atoms* :undefined)
-    (setf *complex-type-atoms* nil)))
-
-(defun clear-type-atoms ()
-  (unless (eq *complex-type-atoms* :undefined)
-    (setf *complex-type-atoms* nil)))
-
 (defun prologify (s)
   (flet ((contains-lower-case-char (symbol)
            (and 
@@ -80,25 +62,12 @@
   (remove "\\" (copy-seq str)))
 
 (defun jsonify-complex-type (exp &key prologify)
-  (jsonify-exp
-   (let ((id (gensym (symbol-name (type-of exp)))))
-     (if (eq *complex-type-atoms* :undefined)
-         id
-         (or (cdr (assoc exp *complex-type-atoms*))
-             (cdar (push (cons exp id) *complex-type-atoms*)))))
-   :prologify prologify))
+  (prolog->query-string (gensym (symbol-name (type-of exp))) :prologify prologify))
 
 (defun prologify-complex-type (exp)
-  (let ((atom-name (typecase exp
-                     (string exp)
-                     (symbol (symbol-name exp)))))
-    (if (or (not atom-name) (eq *complex-type-atoms* :undefined))
-        exp
-        (or
-         (car (rassoc atom-name *complex-type-atoms*
-                      :key #'symbol-name
-                      :test #'equal))
-         exp))))
+  (typecase exp
+    (symbol (symbol-name exp))
+    (t exp)))
 
 (defun replace-complex-types (exp)
   (mapcar (lambda (e)
@@ -108,53 +77,6 @@
               (symbol (prologify-complex-type e))
               (t e)))
           exp))
-
-(defun jsonify-exp (exp &key prologify)
-  "Recursively walks exp and converts every lisp-expression
-             into an expression that leads to the correct json
-             expression when passed to JSON:ENCODE."
-  (when exp
-    (typecase exp
-      (symbol
-         (cond ((is-var exp)
-                (when (find #\- (symbol-name exp))
-                  (error 'simple-error
-                         :format-control "Variable name `~a' invalid. For prolog, it must not contain `-' characters."
-                         :format-arguments (list exp)))
-                (alexandria:plist-hash-table `("variable" ,(subseq (symbol-name exp) 1))))
-               (t (if prologify
-                      (escape-quotes (prologify exp))
-                      (escape-quotes (symbol-name exp))))))
-      (string (escape-quotes exp))
-      (number exp)
-      (list
-         (cond ((eq (car exp) 'quote)
-                (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cadr exp)))
-                                             :test 'equal))
-               ((eq (car exp) 'list)
-                (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp (cdr exp)))
-                                             :test 'equal))
-               ((listp (car exp))
-                (alexandria:plist-hash-table `("list" ,(mapcar #'jsonify-exp exp))
-                                             :test 'equal))
-               ((eq (car exp) 'and)
-                (alexandria:plist-hash-table
-                 `("term" ("," ,(jsonify-exp (cadr exp))
-                               ,(jsonify-exp (if (cdddr exp)
-                                                 (cons 'and (cddr exp))
-                                                 (caddr exp)))))
-                 :test 'equal))
-               ((eq (car exp) 'or)
-                (alexandria:plist-hash-table
-                 `("term" (";" ,(jsonify-exp (cadr exp))
-                               ,(jsonify-exp (if (cdddr exp)
-                                                 (cons 'or (cddr exp))
-                                                 (caddr exp)))))
-                 :test 'equal))
-               (t
-                (alexandria:plist-hash-table `("term" ,(mapcar #'jsonify-exp exp))
-                                             :test 'equal))))
-      (t (jsonify-complex-type exp :prologify prologify)))))
 
 (defun prolog->query-string (exp &key prologify)
   "Recursively walks exp and converts every lisp-expression
@@ -189,12 +111,6 @@
              (t
               (format nil "~a(~{~A~^, ~})" (car exp) (mapcar 'prolog->query-string (cdr exp)))))) 
       (t (jsonify-complex-type exp :prologify prologify)))))
-
-(defun prolog->json (exp &key (prologify t))
-  "Converts a lisp-prolog expression into its json representation."
-  (let ((strm (make-string-output-stream)))
-    (yason:encode (gethash "term" (jsonify-exp exp :prologify prologify)) strm)
-    (get-output-stream-string strm)))
 
 (defun json->prolog (exp &key (lispify nil) (package *package*))
   "Converts a json encoded string into its lisp prolog
