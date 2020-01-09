@@ -156,6 +156,40 @@
                                              :test 'equal))))
       (t (jsonify-complex-type exp :prologify prologify)))))
 
+(defun prolog->query-string (exp &key prologify)
+  "Recursively walks exp and converts every lisp-expression
+   into a simple prolog query representation."
+  (when exp
+    (typecase exp
+      (string (format nil "'~a'" exp))
+      (number (write-to-string exp))
+      (symbol
+         (cond ((is-var exp)
+                (when (find #\- (symbol-name exp))
+                  (error 'simple-error
+                         :format-control
+                         (concatenate 'string "Variable name `~a' invalid. "
+                                      "For prolog, it must not contain `-' characters.")
+                         :format-arguments (list exp)))
+                (subseq (symbol-name exp) 1))
+               (t (if prologify
+                      (escape-quotes (prologify exp))
+                      (escape-quotes (symbol-name exp))))))
+      (list
+       (cond ((eq (car exp) 'and)
+              (format nil "~{~A~^, ~}" (mapcar 'prolog->query-string (cdr exp))))
+             ((eq (car exp) 'or)
+              (format nil "~{~A~^; ~}" (mapcar 'prolog->query-string (cdr exp))))
+             ((eq (car exp) 'quote)
+              (format nil "[~{~A~^, ~}]" (mapcar 'prolog->query-string (cadr exp))))
+             ((eq (car exp) 'list)
+              (format nil "[~{~A~^, ~}]" (mapcar 'prolog->query-string (cdr exp))))
+             ((listp (car exp))
+              (format nil "[~{~A~^, ~}]" (mapcar 'prolog->query-string exp)))
+             (t
+              (format nil "~a(~{~A~^, ~})" (car exp) (mapcar 'prolog->query-string (cdr exp)))))) 
+      (t (jsonify-complex-type exp :prologify prologify)))))
+
 (defun prolog->json (exp &key (prologify t))
   "Converts a lisp-prolog expression into its json representation."
   (let ((strm (make-string-output-stream)))
@@ -192,3 +226,8 @@
         using (hash-value bdg)
         collecting (cons (intern (concatenate 'string "?" var) package)
                          (json->prolog bdg :lispify lispify :package package))))
+
+
+
+
+

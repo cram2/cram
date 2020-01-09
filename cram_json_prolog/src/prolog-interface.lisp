@@ -30,7 +30,7 @@
 (in-package :json-prolog)
 
 (defvar *finish-marker* nil)
-(defvar *service-namespace* "/json_prolog")
+(defvar *service-namespace* "/rosprolog")
 
 (defvar *persistent-services* (make-hash-table :test 'equal))
 
@@ -116,7 +116,7 @@
                           'json_prolog_msgs-srv:PrologQuery
                           :id query-id
                           :mode mode
-                          :query (prolog->json exp :prologify prologify))
+                          :query (prolog->query-string exp :prologify prologify))
      :lispify lispify :package package)))
 
 (defun prolog-1 (exp &key (mode 0) (prologify t) (lispify nil) (package *package*))
@@ -130,7 +130,7 @@ evaluates it."
   (let ((query-id (make-query-id)))
     (prolog-result->bdgs
      query-id
-     (call-prolog-service (concatenate 'string *service-namespace* "/simple_query")
+     (call-prolog-service (concatenate 'string *service-namespace* "/query")
                           'json_prolog_msgs-srv:PrologQuery
                           :id query-id
                           :mode mode
@@ -151,3 +151,4 @@ evaluates it."
   (wait-for-service
    (concatenate 'string *service-namespace* "/query")
    timeout))
+
