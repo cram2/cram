@@ -74,6 +74,7 @@
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform
    #:get-object-type-to-gripper-2nd-pregrasp-transform
+   #:get-object-type-fixed-frame-lift-transforms
    #:get-object-type-to-gripper-lift-transform
    #:get-object-type-to-gripper-2nd-lift-transform
    #:def-object-type-to-gripper-transforms
