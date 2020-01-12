@@ -394,9 +394,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                             (desig:current-desig ?object-designator)))))))))))))))
 
 
-
-
-
 (defun deliver (&key
                   ((:object ?object-designator))
                   ((:arm ?arm))
@@ -454,6 +451,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                    (type navigating)
                                    (location ?target-robot-location)))
 
+            (let ((clear-spot NIL))
+
             ;; take a new `?target-location' sample if a failure happens
             (cpl:with-retry-counters ((target-location-retries 9))
               (cpl:with-failure-handling
@@ -468,13 +467,47 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                           :reset-designators (list ?target-robot-location)
                           :rethrow-failure 'common-fail:object-undeliverable)
                        (roslisp:ros-warn (fd-plans deliver)
-                                         "Retrying with new placing location ...~%"))))
+                                         "Retrying with new placing location ...~%")))
+                   (common-fail:perception-object-not-found (e)
+                     (declare (ignore e))
+                     (setf clear-spot T)
+                     (cpl:retry))
+                   (common-fail::perception-object-found (e)
+                     (let ((?updated-target-location
+                             (if (find (desig:desig-prop-value
+                                        ?object-designator :name)
+                                       (desig:desig-prop-value
+                                        ?target-location :not-near)
+                                       :test #'eql)
+                                 ?target-location
+                                 (desig:copy-designator ?target-location
+                                                    :new-description
+                                                    (desig:update-designator-properties
+                                                     (list (list :not-near (desig:desig-prop-value
+                                                                            ?object-designator :name)))
+                                                     (desig:description ?target-location))))))
+                         (common-fail:retry-with-loc-designator-solutions
+                             ?updated-target-location
+                             target-location-retries
+                             (:error-object-or-string (format NIL "Placing failed: ~a" e)
+                              :warning-namespace (fd-plans deliver)
+                              :reset-designators (list ?target-robot-location)
+                              :rethrow-failure 'common-fail:object-undeliverable)
+                           (roslisp:ros-warn (fd-plans deliver)
+                                             "Retrying with new placing location ...~%")))))
 
                 ;; look
                 (exe:perform (desig:an action
                                        (type turning-towards)
                                        (target ?target-location)))
 
+                ;; detect
+                (unless clear-spot
+                  (exe:perform 
+                   (desig:an action 
+                             (type detecting)
+                             (object ?object-designator))))
+                
                 ;; place
                 (let ((place-action
                         (or (when place-action
@@ -506,7 +539,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   (proj-reasoning:check-placing-pose-stability
                    ?object-designator ?target-location)
 
-                  (exe:perform place-action))))))))))
+                  (exe:perform place-action)))))))))))
 
 
 
