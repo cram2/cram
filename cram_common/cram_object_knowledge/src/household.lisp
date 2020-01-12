@@ -233,6 +233,7 @@
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *milk-grasp-xy-offset* 0.01 "in meters")
@@ -274,6 +275,7 @@
   :lift-offsets `(0.0 ,*milk-grasp-xy-offset* ,*milk-lift-z-offset*)
   :2nd-lift-offsets `(0.0 ,*milk-grasp-xy-offset* ,*milk-lift-z-offset*))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *cereal-grasp-z-offset* 0.04 "in meters")
@@ -292,6 +294,24 @@
   :lift-offsets `(,*cereal-grasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
   :2nd-lift-offsets `(,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-lift-z-offset*))
 
+(defmethod man-int::get-object-type-fixed-frame-lift-transforms ((object-type (eql :breakfast-cereal))
+                                                                 object-name
+                                                                 arm
+                                                                 (grasp (eql :front)))
+  `(((,*cereal-grasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
+     (0 0 0 1))
+    ((,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
+     (0 0 0 1))))
+
+(defmethod man-int::get-object-type-fixed-frame-lift-transforms ((object-type (eql :cereal))
+                                                                 object-name
+                                                                 arm
+                                                                 (grasp (eql :front)))
+  `(((,*cereal-grasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
+     (0 0 0 1))
+    ((,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
+     (0 0 0 1))))
+
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :top
   :grasp-translation `(0.0d0 0.0d0 ,*cereal-grasp-z-offset*)
@@ -301,6 +321,24 @@
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 
+(defmethod man-int::get-object-type-fixed-frame-lift-transforms ((object-type (eql :breakfast-cereal))
+                                                                 object-name
+                                                                 arm
+                                                                 (grasp (eql :top)))
+  `((,*lift-offset*
+     (0 0 0 1))
+    (,*lift-offset*
+     (0 0 0 1))))
+
+(defmethod man-int::get-object-type-fixed-frame-lift-transforms ((object-type (eql :cereal))
+                                                                 object-name
+                                                                 arm
+                                                                 (grasp (eql :top)))
+  `((,*lift-offset*
+     (0 0 0 1))
+    (,*lift-offset*
+     (0 0 0 1))))
+
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :back
   :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
@@ -309,6 +347,24 @@
   :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets `(,(- *cereal-grasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*)
   :2nd-lift-offsets `(,(- *cereal-postgrasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*))
+
+(defmethod man-int::get-object-type-fixed-frame-lift-transforms ((object-type (eql :breakfast-cereal))
+                                                                 object-name
+                                                                 arm
+                                                                 (grasp (eql :back)))
+  `(((,(- *cereal-grasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*)
+     (0 0 0 1))
+    ((,(- *cereal-postgrasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*)
+     (0 0 0 1))))
+
+(defmethod man-int::get-object-type-fixed-frame-lift-transforms ((object-type (eql :cereal))
+                                                                 object-name
+                                                                 arm
+                                                                 (grasp (eql :back)))
+  `(((,(- *cereal-grasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*)
+     (0 0 0 1))
+    ((,(- *cereal-postgrasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*)
+     (0 0 0 1))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -325,3 +381,12 @@
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :lift-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-lift-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
+
+(defmethod man-int::get-object-type-fixed-frame-lift-transforms ((object-type (eql :bowl))
+                                                                 object-name
+                                                                 arm
+                                                                 (grasp (eql :top)))
+  `(((0.0 0.0 ,*bowl-pregrasp-z-offset*)
+     (0 0 0 1))
+    ((0.0 0.0 ,*bowl-pregrasp-z-offset*)
+     (0 0 0 1))))
