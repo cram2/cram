@@ -30,6 +30,9 @@
 
 (in-package :learning-vr)
 
+(defvar *base-objects* 
+  (list :bowl :plate))
+
 (defun location-on-p (urdf-name)
   (or (equal urdf-name :kitchen-island-surface)
       (equal urdf-name :kitchen-island)
@@ -90,14 +93,40 @@
  (defun owl->type (owl-name)
    (gethash owl-name owl->type-table)))
 
+(defun get-base-object-pose (not-near)
+  (let ((ret (first
+              (remove-if-not (lambda (obj)
+                               (and (typep obj 'btr:item)
+                                    (member (first (btr:item-types obj))
+                                            learning-vr::*base-objects* :test #'eql)
+                                    (not (member (btr:name obj)
+                                                 not-near :test
+                                                 #'equalp))
+                                    (equalp
+                                     "kitchen_island"  ;; TODO CHECK IF OBJ IS ON
+                                     ;; ITS DESTINATION LOCATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+                                     (cdr (find (btr:name obj)
+                                                ;; get all links contacting items
+                                                ;; in the environment
+                                                (btr:link-contacts
+                                                 (btr:get-environment-object))
+                                                :key (lambda (item-and-link-name-cons)
+                                                       (btr:name (car item-and-link-name-cons)))
+                                                :test #'equal)))))
+                             (btr:objects btr:*current-bullet-world*)))))
+    (when ret
+      (btr:pose ret))))
+
 (defmethod man-int:get-location-poses :learning 10 (location-designator)
   (print "get-location-poses w/ vr-learning called")
+  (print location-designator)
   (if T ;;(and *learning-framework-on* (rob-int:reachability-designator-p location-designator))
       (let (object-type kitchen-name context urdf-name on-p)
         (if (and (desig:desig-prop-value location-designator :for) ;; (for (desig:an object (type ...)))
                  (or (desig:desig-prop-value location-designator :on)
                      (desig:desig-prop-value location-designator :in));; (on (desig:an object (part-of kitchen ...)))
-                 (desig:desig-prop-value location-designator :context))
+                 (desig:desig-prop-value location-designator :context)
+                 (not (desig:desig-prop-value location-designator :reachable-for)))
             
             (let* ((object-designator
                      (desig:current-desig
@@ -134,10 +163,20 @@
               (return-from man-int:get-location-poses
                 (desig:resolve-location-designator-through-generators-and-validators
                  location-designator))))
-        (let* ((learned-costmap
+        (let* ((base-object-position
+                 (get-base-object-pose '()))
+               (x-base-object-position
+                 (if base-object-position 
+                   (cl:float (cl-transforms:x (cl-transforms:origin base-object-position)))
+                   cl:most-positive-single-float))
+               (y-base-object-position
+                 (if base-object-position
+                   (cl:float (cl-transforms:y (cl-transforms:origin base-object-position)))
+                   cl:most-positive-single-float))
+               (learned-costmap
                  (get-costmap-for
-                  object-type context *human-name* kitchen-name
-                  *table-id* urdf-name on-p))
+                  object-type x-base-object-position y-base-object-position
+                  context *human-name* kitchen-name *table-id* urdf-name on-p))
                (heuristics-costmaps
                  (mapcar (lambda (bindings)
                            (cut:var-value '?cm bindings))

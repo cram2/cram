@@ -74,18 +74,25 @@
 (defun get-object-destination-location (object-type context name kitchen table-id)
   (get-object-location object-type context name kitchen table-id NIL))
 
-(defun get-costmap-for (object-type context name kitchen 
-                        table-id urdf-name on-p)
+(defun get-costmap-for (object-type x-base-object-position y-base-object-position
+                        context name kitchen table-id urdf-name on-p)
+  (format t "called get-costmap-for for object-type ~a" object-type)
   (when T ;;(every #'identity (mapcar #'keywordp (list object-type context
           ;;                                         name kitchen table-id)))
     (if (not (eql roslisp::*node-status* :running))
         (roslisp:ros-info (cvr costmap) "Please start a ros node.")
         (if (not (roslisp:wait-for-service "get_costmap" 10))
             (roslisp:ros-warn (cvr costmap) "Timed out waiting for service get_costmap")
-            (let ((response (roslisp:call-service "get_costmap" "costmap_learning/GetCostmap"
+            (let ((response (roslisp:call-service "get_costmap" 'costmap_learning-srv::GetCostmap
                                                   :object_type
                                                   (keyword-to-string
                                                    object-type) ;; e.g. :bowl
+                                                  :x_base_object_position
+                                                  (coerce
+                                                   x-base-object-position 'cl:float)
+                                                  :y_base_object_position
+                                                  (coerce
+                                                   y-base-object-position 'cl:float)
                                                   :context 
                                                   (keyword-to-string
                                                    context) ;; e.g. :breakfast
@@ -155,10 +162,10 @@
                         (get-obj-instance-from-type object-type)
                         (if on-p :on :in))))
                     ;; (costmap:register-orientation-generator 
-                    ;; costmap
-                    ;; (lambda (x y)
-                    ;;   (cut::lazy-list ()
-                    ;;     (cl-transforms:make-identity-rotation))))
+                    ;;  costmap
+                    ;;  (lambda (x y)
+                    ;;    (cut::lazy-list ()
+                    ;;      (cl-transforms:make-identity-rotation))))
                     costmap))))))))
   
   

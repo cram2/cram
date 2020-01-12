@@ -34,6 +34,9 @@
 (define-condition perception-object-not-found (perception-low-level-failure)
   ((object :initarg :object :initform nil :reader object-not-found-object)))
 
+(define-condition perception-object-found (perception-low-level-failure)
+  ((object :initarg :object :initform nil :reader object-not-found-object)))
+
 (define-condition perception-object-not-in-world (perception-low-level-failure)
   ((object :initarg :object :initform nil :reader object-not-in-world-object)))
 
