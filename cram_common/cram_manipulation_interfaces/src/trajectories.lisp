@@ -137,6 +137,35 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                              object-type object-name arm grasp grasp-transform)))
 
 
+(defgeneric get-object-type-fixed-frame-lift-transforms (object-type object-name
+                                                         arm grasp)
+  (:documentation "Returns two transform stampeds mTm representing the
+lift and 2nd-lift offset of given `object-type' with `arm' and `grasp'
+in `cram-tf:*fixed-frame*'. Therefore, instantiated methods will
+specify how much a object with given `object-type' will be lifted
+up in meters after grasping it."))
+
+(defmethod get-object-type-fixed-frame-lift-transforms :around (object-type object-name
+                                                                arm grasp)
+  "Creates transform stampeds so the real defmethod implementation
+just need to return a list containing poses encoded as lists."
+  (mapcar (lambda (pose-as-list)
+            (let* ((translation-as-list (first pose-as-list))
+                   (rotation-as-list (second pose-as-list)))
+              (cram-tf:pose->transform-stamped 
+               cram-tf:*fixed-frame*
+               cram-tf:*fixed-frame*
+               0.0
+               (cl-tf:make-pose
+                (cl-tf:make-3d-vector (first translation-as-list)
+                                      (second translation-as-list)
+                                      (third translation-as-list))
+                (cl-tf:make-quaternion (first rotation-as-list)
+                                       (second rotation-as-list)
+                                       (third rotation-as-list)
+                                       (fourth rotation-as-list))))))
+          (call-next-method)))
+  
 (defmacro def-object-type-to-gripper-transforms (object-type arm grasp-type
                                                  &key
                                                    (grasp-translation ''(0.0 0.0 0.0))
@@ -269,12 +298,30 @@ Gripper is defined by a convention where Z is pointing towards the object.")
            (desig:desig-prop-value object :name))
          (object-type
            (desig:desig-prop-value object :type))
+         (mTo
+           (car (cdr (car (last (desig:desig-prop-value object :pose))))))
+         (oTm
+           (cram-tf:transform-stamped-inv mTo))
          (bTo
            (man-int:get-object-transform object))
+         (mTm-lift
+           (first (get-object-type-fixed-frame-lift-transforms
+                   object-type object-name arm grasp)))
+         (mTm-2ndlift
+           (second (get-object-type-fixed-frame-lift-transforms
+                    object-type object-name arm grasp)))
          (oTg-std
-           (man-int:get-object-type-to-gripper-transform
-            object-type object-name arm grasp)))
-
+            (man-int:get-object-type-to-gripper-transform
+             object-type object-name arm grasp))
+         (oTg-lift
+           (reduce #'cram-tf:apply-transform
+                   `(,oTm ,mTm-lift ,mTo ,oTg-std)
+                   :from-end T))
+         (oTg-2ndlift
+           (reduce #'cram-tf:apply-transform
+                   `(,oTm ,mTm-2ndlift ,mTo ,oTg-std)
+                   :from-end T)))
+    
     (mapcar (lambda (label transforms)
               (make-traj-segment
                :label label
@@ -288,10 +335,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                ,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
                  object-type object-name arm grasp oTg-std))
               (,oTg-std)
-              (,(man-int:get-object-type-to-gripper-lift-transform
-                 object-type object-name arm grasp oTg-std)
-               ,(man-int:get-object-type-to-gripper-2nd-lift-transform
-                 object-type object-name arm grasp oTg-std))))))
+              (,oTg-lift ,oTg-2ndlift)))))
 
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :placing))
                                                  arm
