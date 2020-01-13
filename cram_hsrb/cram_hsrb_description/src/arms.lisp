@@ -39,12 +39,21 @@
 (defparameter *standard-to-hsrb-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
 
+
+(defparameter *left-parking-joint-states*
+  '(("arm_flex_joint" 0)
+    ("arm_lift_joint" 0)
+    ("arm_roll_joint" 1.5)
+    ("wrist_flex_joint" -1.85)
+    ("wrist_roll_joint" 0)))
+
 (def-fact-group hsrb-arm-facts (end-effector-link
                                 robot-tool-frame
                                 arm-joints arm-links
                                 gripper-joint
                                 gripper-link
                                 standard-to-particular-gripper-transform
+                                robot-joint-states
                                 tcp-in-ee-pose)
 
   (<- (end-effector-link hsrb :left "wrist_roll_link"))
@@ -85,6 +94,11 @@
 
   (<- (standard-to-particular-gripper-transform hsrb ?transform)
     (symbol-value *standard-to-hsrb-gripper-transform* ?transform))
+
+  
+  (<- (robot-joint-states hsrb :arm :left :park ?joint-states)
+    (symbol-value *left-parking-joint-states* ?joint-states))
+
 
   (<- (tcp-in-ee-pose hsrb ?transform)
     (symbol-value *tcp-in-ee-pose* ?transform)))
