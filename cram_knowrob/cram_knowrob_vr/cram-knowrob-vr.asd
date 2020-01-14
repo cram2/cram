@@ -48,7 +48,7 @@
                cram-prolog
                cram-common-failures
                cram-urdf-projection
-               cram-pr2-description
+               ;; cram-pr2-description
                cram-robot-interfaces
                cram-fetch-deliver-plans
                ;; costmaps are loaded for comparison with heuristics experiments
@@ -56,7 +56,8 @@
                cram-btr-visibility-costmap
                cram-btr-spatial-relations-costmap
                cram-robot-pose-gaussian-costmap
-               cram-occupancy-grid-costmap)
+               ;; cram-occupancy-grid-costmap
+               )
 	:components
 
 	((:module "src"

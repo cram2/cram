@@ -75,6 +75,7 @@
                          key-value-pair
                        (let ((value (car values)))
                          ;; below are the only keys supported by RS at the moment
+                         ;; TODO: make sure that an already perceived object doesn't get reperceived with its original SHAPE and SIZE...
                          (if (or (eql key :type)
                                  (eql key :shape)
                                  (eql key :color)
@@ -217,7 +218,9 @@
               (:EdekaRedBowl
                :bowl)
               (:WeideMilchSmall
-               :milk))))
+               :milk)
+              (:BLUEPLASTICSPOON
+               :spoon))))
       (setf rs-answer
             (subst-if `(:type ,cram-type)
                       (lambda (x)

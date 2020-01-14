@@ -1,15 +1,14 @@
 <launch>
-  <!-- upload or not upload the pr2 description, in case one is already uploaded -->
+  <!-- upload or not upload the robot description, in case one is already uploaded -->
   <arg name="upload" default="true" />
   <!-- launch knowrob or not -->
   <arg name="knowrob" default="false" />
+  <!-- launch boxy? otherwise pr2 per default -->
+  <arg name="boxy" default="false" />
 
   <!-- occupancy map -->
   <include file="$(find iai_maps)/launch/map.launch" />
 
-  <!-- kitchen URDF -->
-  <!-- <param name="kitchen_description" -->
-  <!--        command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf/IAI_kitchen.urdf.xacro'"/> -->
   <param name="kitchen_description"
          command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
   <node pkg="joint_state_publisher" type="joint_state_publisher"
@@ -33,11 +32,16 @@
     <remap from="joint_states" to="kitchen/joint_states" />
   </node>
 
-  <!-- PR2 URDF -->
+  <!-- upload robot URDF -->
   <group if="$(arg upload)">
-    <param name="robot_description"
-           command="$(find xacro)/xacro.py
-                    '$(find pr2_description)/robots/pr2.urdf.xacro'"/>
+    <group unless="$(arg boxy)">
+      <param name="robot_description"
+             command="$(find xacro)/xacro.py
+                      '$(find pr2_description)/robots/pr2.urdf.xacro'"/>
+    </group>
+    <group if="$(arg boxy)">
+      <include file="$(find iai_boxy_description)/launch/upload_boxy.launch" />
+    </group>
   </group>
   <!-- <node pkg="joint_state_publisher" type="joint_state_publisher" -->
   <!--       name="robot_joint_state_publisher" output="screen"> -->
@@ -49,9 +53,15 @@
   <!--   <param name="publish_frequency" value="25"/> -->
   <!-- </node> -->
 
-  <!-- PR2 IK solver -->
-  <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_larm_node.launch" />
-  <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_rarm_node.launch" />
+  <group unless="$(arg boxy)">
+    <!-- PR2 IK solver -->
+    <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_larm_node.launch" />
+    <include file="$(find pr2_arm_kinematics)/launch/pr2_ik_rarm_node.launch" />
+  </group>
+  <group if="$(arg boxy)">
+    <!-- Boxy IK solver -->
+    <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
+  </group>
 
   <!-- launch knowrob with namespace -->
   <group if="$(arg knowrob)">

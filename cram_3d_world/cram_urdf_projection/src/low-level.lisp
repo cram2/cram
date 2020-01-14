@@ -39,6 +39,8 @@
 (defparameter *be-strict-with-collisions* nil
   "when grasping a spoon from table, fingers can collide with kitchen, so we might allow this")
 
+(defparameter *projection-convergence-delta-joint* 0.17 "in radiants, about 10 degrees")
+
 (defun robot-transform-in-map ()
   (let ((pose-in-map
           (cut:var-value
@@ -553,7 +555,27 @@ with the object, calculates similar angle around Y axis and applies the rotation
                  `(and
                    (btr:bullet-world ?world)
                    (rob-int:robot ?robot)
-                   (assert ?world (btr:joint-state ?robot ,joint-name-value-list)))))))))
+                   (assert ?world (btr:joint-state ?robot ,joint-name-value-list)))))
+               ;; check if joint state was indeed reached
+               (let* ((robot-object
+                        (btr:get-robot-object))
+                      (current-joint-state
+                        (mapcar (lambda (joint-name-and-value)
+                                  (btr:joint-state robot-object
+                                                   (car joint-name-and-value)))
+                                joint-name-value-list))
+                      (goal-joint-state
+                        (mapcar #'second joint-name-value-list)))
+                 (unless (cram-tf:values-converged current-joint-state goal-joint-state
+                                                   *projection-convergence-delta-joint*)
+                   (cpl:fail 'common-fail:manipulation-goal-not-reached
+                             :description (format nil "Projection did not converge to goal:~%~
+                                                   ~a (~a)~%should have been at~%~a~%~
+                                                   with delta-joint of ~a."
+                                                  arm
+                                                  current-joint-state
+                                                  goal-joint-state
+                                                  *projection-convergence-delta-joint*))))))))
     (set-configuration :left left-configuration)
     (set-configuration :right right-configuration)))
 
