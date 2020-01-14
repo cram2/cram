@@ -137,25 +137,55 @@ semantic map kitchen."
                                     costmap:costmap-resolution
                                     costmap:orientation-samples
                                     costmap:orientation-sample-step)
-    (<- (location-costmap:costmap-size 12 12))
-    (<- (location-costmap:costmap-origin -6 -6))
+    (<- (location-costmap:costmap-size 5 5))
+    (<- (location-costmap:costmap-origin -2.5 -2.5))
     (<- (location-costmap:costmap-resolution 0.04))
     (<- (location-costmap:orientation-samples 2))
     (<- (location-costmap:orientation-sample-step 0.1))))
 
-(defun init-full-simulation (&optional namedir)
+(defun init-full-simulation (&key namedir urdf-new-kitchen?)
    "Spawns all the objects which are necessary for the current
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
 objects for debugging."
-  ;;set the "unreal" prefix for the json_prolog node if you are using the simulation.launch
+  ;; set the "unreal" prefix for the json_prolog node if we are running on a robot
+  ;; and don't want to interfere with its KnowRob
+  ;; we'll have our own KnowRob, with blackjack
   (setq json-prolog:*service-namespace* "/unreal/json_prolog")
+
   (roslisp-utilities:startup-ros)
 
+  (when urdf-new-kitchen?
+    (unless btr-belief:*kitchen-urdf*
+      (let ((kitchen-urdf-string
+              (roslisp:get-param btr-belief:*kitchen-parameter* nil)))
+        (when kitchen-urdf-string
+          (setf btr-belief:*kitchen-urdf*
+                (cl-urdf:parse-urdf kitchen-urdf-string)))))
+    (btr-belief:vary-kitchen-urdf))
+
   (coe:clear-belief)
+
+  (when urdf-new-kitchen?
+    (setf (btr:pose (btr:object btr:*current-bullet-world* (btr:get-robot-name)))
+           (cram-tf:list->pose  '((-1 1.5 0) (0 0 0 1)))))
+
+  (cram-bullet-reasoning:clear-costmap-vis-object)
+
   (spawn-urdf-items)
 
   (init-episode (or namedir
-                    (loop for i from 1 to 18 collecting (format nil "ep~a" i))))
+                    ;; (loop for i from 1 to 18 collecting (format nil "ep~a" i))
+                    '(
+                      "original1" "original2" "original3" "original4" "original5"
+                      "original6" "original7" "original8" "original9" "original10"
+                      "original11" "original12" "original13" "original14" "original15"
+                      "original16" "original17" "original18" "original19" "original20"
+                      "original21" "original22" "original23" "original24" "original25"
+                      "original26" "original27"
+                       ;; "exp1_t_1" "exp1_t_2" "exp1_t_3" "exp1_t_4" "exp1_t_5"
+                       ;; "exp1_tc_1" "exp1_tc_2" "exp1_tc_3" "exp1_tc_4" "exp1_tc_5"
+                       ;; "exp1_tr_1" "exp1_tr_2" "exp1_tr_3" "exp1_tr_4" "exp1_tr_5"
+                      )))
   ;; (spawn-semantic-map)
   ;; (spawn-semantic-items)
 

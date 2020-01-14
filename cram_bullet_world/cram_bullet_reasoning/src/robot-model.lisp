@@ -555,10 +555,10 @@ current joint states"
           (setf new-value (cl-transforms:normalize-angle new-value)))
         (unless (and (<= new-value (cl-urdf:upper limits))
                      (>= new-value (cl-urdf:lower limits)))
-          ;; (setf new-value (min (max new-value (cl-urdf:lower limits))
-          ;;                      (cl-urdf:upper limits)))
-          (error "Trying to assert joint value for ~a to ~a but limits are (~a; ~a)"
-                 name new-value (cl-urdf:lower limits) (cl-urdf:upper limits))))
+          (setf new-value (min (max new-value (cl-urdf:lower limits))
+                               (cl-urdf:upper limits)))
+          (warn "Trying to assert joint value for ~a to ~a but limits are (~a; ~a)"
+                name new-value (cl-urdf:lower limits) (cl-urdf:upper limits))))
       (let ((joint-transform
               (cl-transforms:transform*
                (cl-transforms:reference-transform
