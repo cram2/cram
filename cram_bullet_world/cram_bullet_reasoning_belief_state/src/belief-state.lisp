@@ -110,28 +110,34 @@ is replaced with replacement.
         (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
         (warn "ROBOT was not defined. Have you loaded a robot package?"))))
 
-(defun make-kitchen-variation (&key (sink '((1.825 1.32 0) (0 0 1 0.001)))
-                                 (oven '((1.805 2.52 0) (0 0 1 0.001)))
-                                 (island '((-1.365 0.59 0) (0 0 0 1)))
-                                 (fridge `((1.825 -0.74 0) (0 0 1 0.001))))
-  (let* ((sink_foot (gethash "sink_area_footprint_joint" (cl-urdf:joints *kitchen-urdf*)))
-        (oven_foot (gethash "oven_area_footprint_joint" (cl-urdf:joints *kitchen-urdf*)))
-        (island_foot (gethash "kitchen_island_footprint_joint" (cl-urdf:joints *kitchen-urdf*)))
-        (fridge_foot (gethash "fridge_area_footprint_joint" (cl-urdf:joints *kitchen-urdf*)))
-         (poses (mapcar (lambda (pose) (cl-transforms:make-transform
-                                        (cl-transforms:make-3d-vector (first (car pose))
-                                                                      (second (car pose))
-                                                                      (third (car pose)))
-                                        (cl-transforms:make-quaternion (first (cadr pose))
-                                                                       (second (cadr pose))
-                                                                     (third (cadr pose))
-                                                                     (fourth (cadr posE)))))
-                        (concatenate 'list (list sink) (list oven) (list island) (list fridge))))
 
-         (locations (list sink_foot oven_foot island_foot fridge_foot)))
-    
-    (mapcar (lambda (pose loc) 
-              (setf (slot-value loc 'cl-urdf:origin) pose)) poses locations)
-    (coe:clear-belief)
-         
-  ))
+
+(defun vary-kitchen-urdf (&optional (new-joint-states
+                                     ;; '(("sink_area_footprint_joint"
+                                     ;;    ((1.855d0 1.3d0 0.0d0) (0 0 1 0)))
+                                     ;;   ("oven_area_footprint_joint"
+                                     ;;    ((1.855d0 2.47d0 0.0d0) (0 0 1 0)))
+                                     ;;   ("kitchen_island_footprint_joint"
+                                     ;;    ((-1.365d0 0.59d0 0.0d0) (0 0 0 1)))
+                                     ;;   ("fridge_area_footprint_joint"
+                                     ;;    ((1.845d0 -0.73d0 0.0d0) (0 0 1 0)))
+                                     ;;   ("table_area_main_joint"
+                                     ;;    ((-2.4d0 -1.5d0 0.0d0) (0 0 1 0))))
+                                     '(("sink_area_footprint_joint"
+                                        ((1.155d0 0.9d0 0.0d0) (0 0 0 1)))
+                                       ("oven_area_footprint_joint"
+                                        ((-0.155d0 2.97d0 0.0d0) (0 0 -0.5 0.5)))
+                                       ("kitchen_island_footprint_joint"
+                                        ((-0.60d0 -0.2d0 0.0d0) (0 0 0.5 0.5)))
+                                       ("fridge_area_footprint_joint"
+                                        ((-2.30d0 0.5d0 0.0d0) (0 0 0.5 0.5)))
+                                       ("table_area_main_joint"
+                                        ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5))))))
+  (let ((kitchen-urdf-joints (cl-urdf:joints *kitchen-urdf*)))
+   (mapc (lambda (joint-name-poses-list-pair)
+           (destructuring-bind (joint-name poses-list)
+               joint-name-poses-list-pair
+             (let ((joint (gethash joint-name kitchen-urdf-joints)))
+               (setf (slot-value joint 'cl-urdf:origin)
+                     (cram-tf:list->transform poses-list)))))
+         new-joint-states)))

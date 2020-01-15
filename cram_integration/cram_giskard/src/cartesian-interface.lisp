@@ -309,8 +309,12 @@
           (ensure-giskard-cartesian-goal-reached result status goal-pose-left goal-pose-right
                                                  left-tool-frame right-tool-frame
                                                  convergence-delta-xy convergence-delta-theta)
-          (values result status)))
-      (roslisp:ros-info (pr2-ll giskard-cart) "Got an empty goal...")))
+          (values result status)
+          ;; return the joint state, which is our observation
+          (joints:full-joint-states-as-hash-table)))
+      ;; return NIL as observation if the goal is empty
+      (and (roslisp:ros-info (pr2-ll giskard-cart) "Got an empty goal...")
+           NIL)))
 
 
 
