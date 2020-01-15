@@ -42,4 +42,5 @@
    #:joint-states
    #:joint-positions
    #:joint-velocities
-   #:normalize-joint-angles))
+   #:normalize-joint-angles
+   #:full-joint-states-as-hash-table))
