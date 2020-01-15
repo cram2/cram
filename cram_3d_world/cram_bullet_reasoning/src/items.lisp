@@ -244,7 +244,7 @@ The name in the list is a keyword that is created by lispifying the filename."
                                     :half-extents (cl-transforms:v*
                                                    (cl-transforms:make-3d-vector width 0.005 0.005) 0.5)))
     ;; Adds the basket to the specified world
-    (make-item world name 'basket-shape
+    (make-item world name '(:basket)
                (list
                 (make-instance
                  'rigid-body

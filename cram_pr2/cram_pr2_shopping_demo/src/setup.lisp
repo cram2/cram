@@ -33,7 +33,37 @@
   ((other-object (eql :basket))
    (object (eql :denkmit))
    attachment)
+  (print "offset")
   0.1)
+
+(man-int:def-object-type-in-other-object-transform :heitmann :basket :asd
+  :attachment-translation `(0.15 -0.1 0.05;; -0.005
+                                )
+  :attachment-rot-matrix '((-1 0 0)
+                           (0 -1 0)
+                           (0 0 1)))
+
+(def-fact-group location-designators (desig:location-grounding)
+  (<- (desig:location-grounding ?location-designator ?pose-stamped)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (desig:desig-prop ?current-location-designator (:for ?object-designator))
+    (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
+    (desig:desig-prop ?current-location-designator (:attachment ?attachment-type))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (spec:property ?current-object-designator (:type ?object-type))
+    (spec:property ?current-object-designator (:name ?object-name))
+    (desig:current-designator ?other-object-designator ?current-other-object-designator)
+    (spec:property ?current-other-object-designator (:type ?other-object-type))
+    (spec:property ?current-other-object-designator (:name ?other-object-name))
+    (lisp-fun man-int:get-object-transform ?current-other-object-designator
+              ?other-object-transform)
+    (lisp-fun man-int:get-object-placement-transform
+              ?object-name ?object-type
+              ?other-object-name ?other-object-type ?other-object-transform
+              ?attachment-type
+              ?attachment-transform)
+    (lisp-fun cram-tf:strip-transform-stamped ?attachment-transform ?pose-stamped)
+  (format "~a" ?pose-stamped)))
 
 
 (defun spawn-shelf ()
