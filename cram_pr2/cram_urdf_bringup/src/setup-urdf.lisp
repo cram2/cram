@@ -47,7 +47,7 @@
 ;;the tool-frame for the hsrb, since the urdf does not provide one
 (defparameter *tool-frame*
       "<joint name=\"gripper_tool_joint\" type=\"fixed\">
-         <origin rpy=\"0.0 0.0 0\" xyz=\"0.0 0.0 0.23090002\"/>
+         <origin rpy=\"0.0 0.0 1.5707963267948963d0\" xyz=\"0.0 0.0 0.23090002\"/>
          <parent link=\"wrist_roll_link\" />
           <child link=\"gripper_tool_frame\"/>
         </joint>
@@ -96,3 +96,22 @@
     ;;        'cl-urdf:collision)
    ;;       NIL)
   )
+
+(defun add-objects-to-mesh-list (&optional (ros-package "cram_bullet_world_tutorial"))
+  (mapcar (lambda (object-filename-and-object-extension)
+            (declare (type list object-filename-and-object-extension))
+            (destructuring-bind (object-filename object-extension)
+                object-filename-and-object-extension
+              (let ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
+                                object-filename :keyword)))
+                (pushnew (list lisp-name
+                               (format nil "package://~a/resource/~a.~a"
+                                       ros-package object-filename object-extension)
+                               nil)
+                         btr::*mesh-files*
+                         :key #'car)
+                lisp-name)))
+          (mapcar (lambda (pathname)
+                    (list (pathname-name pathname) (pathname-type pathname)))
+                  (directory (physics-utils:parse-uri
+                              (format nil "package://~a/resource/*.*" ros-package))))))
