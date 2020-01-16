@@ -101,10 +101,11 @@
                (link ?link-name)
                (left-poses ?left-grasp-poses)
                (right-poses ?right-grasp-poses))))
+
   (when (eq ?type :opening)
     (exe:perform
      (desig:an action
-               (type gripping)
+               (type closing-gripper)
                (gripper ?arm))))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
