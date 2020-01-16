@@ -465,8 +465,8 @@ with the object, calculates similar angle around Y axis and applies the rotation
     (prolog:prolog
      `(and (rob-int:robot ?robot)
            (rob-int:gripper-joint ?robot ,arm ?joint)
-           (rob-int:joint-lower-limit ?robot ?joint ?min-limit)
-           (rob-int:joint-upper-limit ?robot ?joint ?max-limit)
+           (rob-int:joint-lower-limit ?robot ?joint ?max-limit)
+           (rob-int:joint-upper-limit ?robot ?joint ?min-limit)
            (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)))))
 
   ;; check if there is an object to grip
