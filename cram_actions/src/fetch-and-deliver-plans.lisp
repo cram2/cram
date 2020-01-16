@@ -270,7 +270,8 @@ retries with different search location or robot base location."
 one of arms in the `?arms' lazy list (if not NIL) and one of grasps in `?grasps' if not NIL,
 while standing at `?pick-up-robot-location'
 and using the grasp and arm specified in `pick-up-action' (if not NIL)."
-
+  (let ((counter 10))
+    
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans fetch) "~a~%Propagating up." e)
@@ -285,7 +286,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 common-fail:looking-high-level-failure
                 common-fail:perception-low-level-failure
                 common-fail:object-unreachable
-                common-fail:manipulation-low-level-failure) (e) 
+                common-fail:manipulation-low-level-failure) (e)
+             (decf counter)
              (common-fail:retry-with-loc-designator-solutions
                  ?pick-up-robot-location
                  relocation-for-ik-retries
@@ -385,7 +387,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
                             (exe:perform pick-up-action)
 
-                            (desig:current-desig ?object-designator))))))))))))
+                            (desig:current-desig ?object-designator))))))))))))))))
 
 
 (defun deliver (&key

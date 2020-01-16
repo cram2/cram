@@ -231,10 +231,15 @@
              (type positioning-arm)
              (left-configuration park)
              (right-configuration park)))
-  (exe:perform
-   (desig:an action
-             (type detecting)
-             (object ?object-designator))))
+  (if (<= counter 2)
+      (exe:perform
+       (desig:a motion
+                (type world-state-detecting)
+                (object ?object-designator)))
+      (exe:perform
+       (desig:an action
+                 (type detecting)
+                 (object ?object-designator)))))
 
 
 ;; (defun perform-phases-in-sequence (action-designator)

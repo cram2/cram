@@ -339,7 +339,7 @@ In any case, issue ROBOT-STATE-CHANGED event."
 equate resulting designator to the original one."
   (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
                      1
-                     4)))
+                     4))) 
     (cpl:with-retry-counters ((perceive-retries retries))
       (cpl:with-failure-handling
           ((common-fail:perception-low-level-failure (e)
@@ -348,7 +348,31 @@ equate resulting designator to the original one."
                (cpl:retry))))
 
         (let* ((resulting-designators
+                 (exe:perform(let* ((resulting-designators
                  (exe:perform
+                  (desig:a motion
+                           (type detecting)
+                           (object ?object-designator))))
+                 (resulting-designator
+                  (funcall object-chosing-function resulting-designators)))
+               (print "test")
+               (if (listp resulting-designators)
+                   (mapcar (lambda (desig)
+                             (cram-occasions-events:on-event
+                              (make-instance 'cram-plan-occasions-events:object-perceived-event
+                                             :object-designator desig
+                                             :perception-source :whatever))
+                             ;; doesn't make sense to equate all these desigs together
+                             ;; (desig:equate ?object-designator desig)
+                             )
+                           resulting-designators)
+                   (progn
+                     (cram-occasions-events:on-event
+                      (make-instance 'cram-plan-occasions-events:object-perceived-event
+                                     :object-designator resulting-designators
+                                     :perception-source :whatever))
+                     (desig:equate ?object-designator resulting-designator)))
+               resulting-designator)))))
                   (desig:a motion
                            (type detecting)
                            (object ?object-designator))))
@@ -358,8 +382,8 @@ equate resulting designator to the original one."
               (mapcar (lambda (desig)
                         (cram-occasions-events:on-event
                          (make-instance 'cram-plan-occasions-events:object-perceived-event
-                           :object-designator desig
-                           :perception-source :whatever))
+                                        :object-designator desig
+                                        :perception-source :whatever))
                         ;; doesn't make sense to equate all these desigs together
                         ;; (desig:equate ?object-designator desig)
                         )
@@ -367,7 +391,7 @@ equate resulting designator to the original one."
               (progn
                 (cram-occasions-events:on-event
                  (make-instance 'cram-plan-occasions-events:object-perceived-event
-                   :object-designator resulting-designators
-                   :perception-source :whatever))
+                                :object-designator resulting-designators
+                                :perception-source :whatever))
                 (desig:equate ?object-designator resulting-designator)))
           resulting-designator)))))
