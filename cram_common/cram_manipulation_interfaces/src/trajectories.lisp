@@ -341,7 +341,9 @@ just need to return a list containing poses encoded as lists."
                                                  arm
                                                  grasp
                                                  objects-acted-on
-                                                 &key target-object-transform-in-base)
+                                                 &key
+                                                   target-object-transform-in-base)
+  
   (let* ((object
            (car objects-acted-on))
          (object-name
@@ -350,7 +352,31 @@ just need to return a list containing poses encoded as lists."
            (desig:desig-prop-value object :type))
          (oTg-std
            (get-object-type-to-gripper-transform
-            object-type object-name arm grasp)))
+            object-type object-name arm grasp))
+         (rob-baseTo
+           target-object-transform-in-base)
+         (mTrob-base
+           (costmap::pose-stamped->transform-stamped 
+            (cram-tf:robot-current-pose)
+            btr::*robot-base-frame*))
+         (mTo 
+           (cram-tf:apply-transform mTrob-base rob-baseTo))
+         (oTm
+           (cram-tf:transform-stamped-inv mTo))
+         (mTm-lift
+           (first (get-object-type-fixed-frame-lift-transforms
+                   object-type object-name arm grasp)))
+         (mTm-2ndlift
+           (second (get-object-type-fixed-frame-lift-transforms
+                    object-type object-name arm grasp)))
+         (oTg-lift
+           (reduce #'cram-tf:apply-transform
+                   `(,oTm ,mTm-lift ,mTo ,oTg-std)
+                   :from-end T))
+         (oTg-2ndlift
+           (reduce #'cram-tf:apply-transform
+                   `(,oTm ,mTm-2ndlift ,mTo ,oTg-std)
+                   :from-end T)))
 
     (mapcar (lambda (label transforms)
               (make-traj-segment
@@ -361,10 +387,7 @@ just need to return a list containing poses encoded as lists."
             '(:reaching
               :putting
               :retracting)
-            `((,(man-int:get-object-type-to-gripper-2nd-lift-transform
-                 object-type object-name arm grasp oTg-std)
-               ,(man-int:get-object-type-to-gripper-lift-transform
-                 object-type object-name arm grasp oTg-std))
+            `((,otg-lift ,oTg-2ndlift)
               (,oTg-std)
               (,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
                  object-type object-name arm grasp oTg-std)
