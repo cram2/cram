@@ -238,6 +238,25 @@ Using a default (1 0 0)."
         (cl-urdf:name joint))
        (* 2 pi)))
 
+(defun get-connecting-joint-state-secure (container-name btr-environment)
+  (let* ((joint (get-connecting-joint
+                 (get-container-link container-name
+                                     btr-environment)))
+         (type (find-container-joint-type-under-joint joint))
+         (state (btr:joint-state
+                     (btr:object btr:*current-bullet-world*
+                                 btr-environment)
+                     (cl-urdf:name joint))))
+    (if (eq type :rotational)
+        (mod state (* 2 pi))
+        state)))
+
+(defun get-relative-distance (container-name btr-environment distance action-type)
+  (let ((state (get-connecting-joint-state-secure container-name btr-environment)))
+    (if (eq action-type :opening)
+        (- distance state)
+        (- (- distance state)))))
+
 (defun clip-distance (container-name btr-environment distance action-type)
   "Return a distance that stays inside the joint's limits."
   (let ((joint (get-connecting-joint
@@ -245,7 +264,7 @@ Using a default (1 0 0)."
                                     btr-environment))))
     (let ((upper-limit (cl-urdf:upper (cl-urdf:limits joint)))
           (lower-limit (cl-urdf:lower (cl-urdf:limits joint)))
-          (state (get-positive-joint-state joint btr-environment)))
+          (state (get-connecting-joint-state-secure container-name btr-environment)))
       (if (eq action-type :opening)
           (if (> (+ state distance) upper-limit)
               (- upper-limit state)
@@ -254,11 +273,3 @@ Using a default (1 0 0)."
               (- state lower-limit)
               distance)))))
 
-(defun get-relative-distance (container-name btr-environment distance action-type)
-  (let* ((joint (get-connecting-joint
-                (get-container-link container-name
-                                    btr-environment)))
-         (state (get-positive-joint-state joint btr-environment)))
-    (if (eq action-type :opening)
-        (- distance state)
-        (- (- distance state)))))
