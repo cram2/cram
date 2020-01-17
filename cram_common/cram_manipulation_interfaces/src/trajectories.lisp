@@ -358,7 +358,7 @@ just need to return a list containing poses encoded as lists."
          (mTrob-base
            (costmap::pose-stamped->transform-stamped 
             (cram-tf:robot-current-pose)
-            btr::*robot-base-frame*))
+            cram-tf:*robot-base-frame*))
          (mTo 
            (cram-tf:apply-transform mTrob-base rob-baseTo))
          (oTm
