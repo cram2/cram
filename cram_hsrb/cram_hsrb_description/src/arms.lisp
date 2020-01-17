@@ -34,7 +34,7 @@
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.23090001999999998d0)
-   (cl-transforms:make-identity-rotation)))
+   (cl-tf:make-quaternion 0.0d0 0.0d0 0.7071067811865475d0 0.7071067811865476d0)))
 
 (defparameter *standard-to-hsrb-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
@@ -47,15 +47,26 @@
     ("wrist_flex_joint" -1.85)
     ("wrist_roll_joint" 0)))
 
-(def-fact-group hsrb-arm-facts (end-effector-link
+(defun get-hand-link-names (arm)
+  (ecase arm
+    (:left (list "hand_l_distal_link"
+                 "hand_l_spring_proximal_link"
+                ;; "hand_palm_link"
+                 "hand_r_distal_link"
+                 "hand_r_spring_proximal_link"))))
+
+(def-fact-group hsrb-arm-facts (arm
+                                end-effector-link
                                 robot-tool-frame
                                 arm-joints arm-links
                                 gripper-joint
                                 gripper-link
                                 standard-to-particular-gripper-transform
                                 robot-joint-states
+                                gripper-meter-to-joint-multiplier
                                 tcp-in-ee-pose)
 
+  (<- (arm hsrb :left))
   (<- (end-effector-link hsrb :left "wrist_roll_link"))
   (<- (end-effector-link hsrb :right "ATTENTION please don't use this frame"))
 
@@ -77,13 +88,15 @@
 
   (<- (arm-links hsrb :right ("ATTENTION please don't use this frame")))
 
-  (<- (gripper-joint hsrb :left "hand_motor_joint"))
+  (<- (gripper-joint hsrb :left "hand_l_proximal_joint"))
 
+  (<- (gripper-joint hsrb :left "hand_r_proximal_joint"))
+  
   (<- (gripper-joint hsrb :right "ATTENTION please don't use this frame"))
 
   (<- (gripper-link hsrb :left ?link)
     (bound ?link)
-    (lisp-fun search "hand_palm_link" ?link ?pos)
+    (lisp-fun search "hand" ?link ?pos)
     (lisp-pred identity ?pos))
 
   (<- (gripper-link hsrb :right ?link)
@@ -94,10 +107,15 @@
 
   (<- (standard-to-particular-gripper-transform hsrb ?transform)
     (symbol-value *standard-to-hsrb-gripper-transform* ?transform))
+  
+  (<- (arm-joints hsrb ?arm ?joints)
+    (lisp-fun get-arm-joint-names ?arm ?joints))
 
   
   (<- (robot-joint-states hsrb :arm :left :park ?joint-states)
     (symbol-value *left-parking-joint-states* ?joint-states))
+
+  (<- (gripper-meter-to-joint-multiplier hsrb 1.0))
 
 
   (<- (tcp-in-ee-pose hsrb ?transform)
