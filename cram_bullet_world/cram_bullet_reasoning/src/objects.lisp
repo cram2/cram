@@ -358,8 +358,45 @@
       (loop for body in (rigid-bodies object)
             collecting (make-collision-information
                         :rigid-body-name (name body)
-                        :flags (collision-flags body))
-            do (setf (collision-flags body) :cf-static-object))))
+                        :flags (or (when (not (attached-objects object))
+                                     (collision-flags body))
+                                   (if (object-static-in-past-p object)
+                                       '(:cf-static-object)
+                                       NIL)))
+                        do (setf (collision-flags body) :cf-static-object))))
+
+(defun object-static-in-past-p (object)
+  "Returns if the `object's flags were `cf-static-object' at the
+beginning or if its flags were set to `cf-static-object', because
+it was attached to other objects. Returns T, if `object's flags were
+always `cf-static-object', else NIL."
+  (declare (type object object))
+  (let* ((attached-object-names (mapcar #'car (attached-objects
+                                               (object
+                                                *current-bullet-world*
+                                                (name object)))))
+         (attachments-of-attached-objects 
+           (mapcar #'attached-objects (mapcar (alexandria:curry #'object
+                                                                *current-bullet-world*)
+                                                  attached-object-names)))
+         (attachments-to-object
+           (mapcar #'car
+                   (loop for attachments in attachments-of-attached-objects
+                         collecting
+                         (remove-if-not (lambda (attach)
+                                          (equalp (car
+                                                   attach)
+                                                  (name object)))
+                                        attachments))))
+         (collision-information-list 
+           (remove-if-not #'identity (mapcar #'caddr attachments-to-object))))
+
+    (when collision-information-list
+      (every (alexandria:curry #'equalp '(:cf-static-object))
+             (mapcar
+              #'collision-information-flags
+              collision-information-list)))))
+  
 
 (defun reset-collision-information (object collision-information)
   (loop for collision-data in collision-information
@@ -367,7 +404,10 @@
                     object (collision-information-rigid-body-name
                             collision-data))
         do (setf (collision-flags body)
-                 (collision-information-flags collision-data))))
+                 (or 
+                  (when (attached-objects object)
+                    '(:cf-static-object))
+                  (collision-information-flags collision-data)))))
 
 
 (defstruct attachment
