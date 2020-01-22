@@ -140,7 +140,6 @@
              (object-in-map-pose
                (cram-tf:strip-transform-stamped
                 map-to-object-transform)))
-        (print "hier")
         (setf (btr:pose btr-object) object-in-map-pose))
       (if (and attachment-type
                (prolog `(man-int:unidirectional-attachment ,attachment-type)))

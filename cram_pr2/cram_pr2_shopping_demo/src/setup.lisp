@@ -33,7 +33,18 @@
   ((other-object (eql :basket))
    (object (eql :denkmit))
    attachment)
-  (print "offset")
+  0.1)
+
+(defmethod man-int:get-z-offset-for-placing-distance :heuristics 20
+  ((other-object (eql :basket))
+   (object (eql :heitmann))
+   attachment)
+  0.1)
+
+(defmethod man-int:get-z-offset-for-placing-distance :heuristics 20
+  ((other-object (eql :basket))
+   (object (eql :dove))
+   attachment)
   0.1)
 
 (man-int:def-object-type-in-other-object-transform :heitmann :basket :asd
