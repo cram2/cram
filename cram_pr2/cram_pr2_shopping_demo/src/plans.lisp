@@ -156,8 +156,6 @@
                                                                   "map" "b" 0
                                                                   (cl-transforms:pose->transform basket-pose))))))))
 
-      (print (desig:reference (desig:a location (on ?basket-desig) (for ?newobject) (attachment asd))))
-      (break)
       
       
       (exe:perform
