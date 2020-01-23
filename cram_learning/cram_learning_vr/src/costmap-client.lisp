@@ -74,7 +74,7 @@
 (defun get-object-destination-location (object-type context name kitchen table-id)
   (get-object-location object-type context name kitchen table-id NIL))
 
-(defun get-costmap-for (object-type x-base-object-position y-base-object-position
+(defun get-costmap-for (object-type x-placed-base-object-positions y-placed-base-object-positions
                         context name kitchen table-id urdf-name on-p)
   (format t "called get-costmap-for for object-type ~a" object-type)
   (when T ;;(every #'identity (mapcar #'keywordp (list object-type context
@@ -87,12 +87,32 @@
                                                   :object_type
                                                   (keyword-to-string
                                                    object-type) ;; e.g. :bowl
-                                                  :x_base_object_position
-                                                  (coerce
-                                                   x-base-object-position 'cl:float)
-                                                  :y_base_object_position
-                                                  (coerce
-                                                   y-base-object-position 'cl:float)
+                                                  :placed_base_x_object_positions
+                                                  (if x-placed-base-object-positions
+                                                      (cl:make-array
+                                                       (length x-placed-base-object-positions)
+                                                       :element-type
+                                                       'cl:float
+                                                       :initial-contents
+                                                       (mapcar
+                                                        (alexandria:rcurry
+                                                         #'coerce
+                                                         'cl:float)
+                                                        x-placed-base-object-positions))
+                                                      (cl:vector))
+                                                  :placed_base_y_object_positions
+                                                  (if y-placed-base-object-positions
+                                                      (make-array
+                                                       (length y-placed-base-object-positions)
+                                                       :element-type
+                                                       'cl:float
+                                                       :initial-contents
+                                                       (mapcar
+                                                        (alexandria:rcurry
+                                                         #'coerce
+                                                         'cl:float)
+                                                        y-placed-base-object-positions))
+                                                      (cl:vector))
                                                   :context 
                                                   (keyword-to-string
                                                    context) ;; e.g. :breakfast

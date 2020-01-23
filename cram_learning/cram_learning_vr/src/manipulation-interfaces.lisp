@@ -93,29 +93,27 @@
  (defun owl->type (owl-name)
    (gethash owl-name owl->type-table)))
 
-(defun get-base-object-pose (not-near)
-  (let ((ret (first
-              (remove-if-not (lambda (obj)
-                               (and (typep obj 'btr:item)
-                                    (member (first (btr:item-types obj))
-                                            learning-vr::*base-objects* :test #'eql)
-                                    (not (member (btr:name obj)
-                                                 not-near :test
-                                                 #'equalp))
-                                    (equalp
-                                     "kitchen_island"  ;; TODO CHECK IF OBJ IS ON
-                                     ;; ITS DESTINATION LOCATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-                                     (cdr (find (btr:name obj)
-                                                ;; get all links contacting items
-                                                ;; in the environment
-                                                (btr:link-contacts
-                                                 (btr:get-environment-object))
-                                                :key (lambda (item-and-link-name-cons)
-                                                       (btr:name (car item-and-link-name-cons)))
-                                                :test #'equal)))))
-                             (btr:objects btr:*current-bullet-world*)))))
-    (when ret
-      (btr:pose ret))))
+(defun get-base-object-poses (not-near)
+  (mapcar #'btr:pose
+          (remove-if-not (lambda (obj)
+                           (and (typep obj 'btr:item)
+                                (member (first (btr:item-types obj))
+                                        learning-vr::*base-objects* :test #'eql)
+                                (not (member (btr:name obj)
+                                             not-near :test
+                                             #'equalp))
+                                (equalp
+                                 "kitchen_island"  ;; TODO CHECK IF OBJ IS ON
+                                 ;; ITS DESTINATION LOCATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+                                 (cdr (find (btr:name obj)
+                                            ;; get all links contacting items
+                                            ;; in the environment
+                                            (btr:link-contacts
+                                             (btr:get-environment-object))
+                                            :key (lambda (item-and-link-name-cons)
+                                                   (btr:name (car item-and-link-name-cons)))
+                                            :test #'equal)))))
+                         (btr:objects btr:*current-bullet-world*))))
 
 (defmethod man-int:get-location-poses :learning 10 (location-designator)
   (print "get-location-poses w/ vr-learning called")
@@ -163,19 +161,21 @@
               (return-from man-int:get-location-poses
                 (desig:resolve-location-designator-through-generators-and-validators
                  location-designator))))
-        (let* ((base-object-position
-                 (get-base-object-pose '()))
-               (x-base-object-position
-                 (if base-object-position 
-                   (cl:float (cl-transforms:x (cl-transforms:origin base-object-position)))
-                   cl:most-positive-single-float))
-               (y-base-object-position
-                 (if base-object-position
-                   (cl:float (cl-transforms:y (cl-transforms:origin base-object-position)))
-                   cl:most-positive-single-float))
+        (let* ((placed-base-object-positions
+                 (mapcar 
+                  #'cl-transforms:origin
+                  (get-base-object-poses '())))
+               (x-placed-base-object-positions
+                 (mapcar 
+                  #'cl-transforms:x
+                  placed-base-object-positions))
+               (y-placed-base-object-positions
+                 (mapcar 
+                  #'cl-transforms:y
+                  placed-base-object-positions))
                (learned-costmap
                  (get-costmap-for
-                  object-type x-base-object-position y-base-object-position
+                  object-type x-placed-base-object-positions y-placed-base-object-positions
                   context *human-name* kitchen-name *table-id* urdf-name on-p))
                (heuristics-costmaps
                  (mapcar (lambda (bindings)
