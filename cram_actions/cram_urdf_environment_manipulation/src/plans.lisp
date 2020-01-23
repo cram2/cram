@@ -105,7 +105,7 @@
   (when (eq ?type :opening)
     (exe:perform
      (desig:an action
-               (type closing-gripper)
+               (type gripping)
                (gripper ?arm))))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
