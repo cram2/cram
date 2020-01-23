@@ -247,13 +247,15 @@ In any case, issue ROBOT-STATE-CHANGED event."
                      (desig:when ?effort
                        (effort ?effort))))
            (roslisp:ros-info (pick-place grip) "Assert grasp into knowledge base")
-           (cram-occasions-events:on-event
-            (make-instance 'cpoe:object-attached-robot
-              :arm ?left-or-right
-              :object-name (desig:desig-prop-value object-designator :name)
-              :grasp ?grasp))
-           (desig:equate object-designator new-object-designator)
-           new-object-designator))
+
+           (when object-designator
+             (cram-occasions-events:on-event
+              (make-instance 'cpoe:object-attached-robot
+                             :arm ?left-or-right
+                             :object-name (desig:desig-prop-value object-designator :name)
+                             :grasp ?grasp))
+             (desig:equate object-designator new-object-designator)
+             new-object-designator)))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
