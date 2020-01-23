@@ -178,6 +178,13 @@
     (once (or (spec:property ?action-designator (:object ?_))
               (true))))
 
+  (<- (desig:action-grounding ?action-designator (grip ?action-designator))
+    (spec:property ?action-designator (:type :gripping))
+    (spec:property ?action-designator (:gripper ?_))
+    (not (spec:property ?action-designator (:object ?_)))
+    (once (or (spec:property ?action-designator (:effort ?_))
+              (true))))
+
   (<- (desig:action-grounding ?action-designator (grip ?augmented-action-designator))
     (spec:property ?action-designator (:type :gripping))
     (spec:property ?action-designator (:gripper ?_))
