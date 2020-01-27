@@ -341,8 +341,7 @@ just need to return a list containing poses encoded as lists."
                                                  arm
                                                  grasp
                                                  objects-acted-on
-                                                 &key
-                                                   target-object-transform-in-base)
+                                                 &key target-object-transform-in-base)
   
   (let* ((object
            (car objects-acted-on))
