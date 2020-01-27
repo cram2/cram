@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Alina Hawkin <hawkin@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,32 +29,65 @@
 
 (in-package :kvr)
 
-(def-fact-group location-designators (desig:location-grounding)
+(defmethod man-int:get-location-poses :vr 10 (location-designator)
+  (if *kvr-enabled*
+      (if (or (rob-int:visibility-designator-p location-designator)
+              (rob-int:reachability-designator-p location-designator))
+          (let* ((obj-type-raw (intern (symbol-name
+                                        (car (desig:desig-prop-values
+                                              (car (desig:desig-prop-values location-designator
+                                                                            :object))
+                                              :type)))))
+                 ;; (obj-type (object-type-filter-prolog obj-type-raw))
+                 )
 
-  (<- (desig:location-grounding ?designator ?pose-stamped)
-    (desig:loc-desig? ?designator)
-    (rob-int:reachability-designator ?designator)
-    (desig:desig-prop ?designator (:object ?object-designator))
-    (desig:current-designator ?object-designator ?current-object-designator)
-    (lisp-fun base-poses-ll-for-fetching-based-on-object-desig
-              ?current-object-designator
-              ?base-poses-ll)
-    (member ?pose-stamped ?base-poses-ll)
-    (format "Reachability VR POSE!~%"))
+            (cond
+              ;; VISIBILITY
+              ((rob-int:visibility-designator-p location-designator)
+               ;; based on location of obj
+               (alexandria:shuffle
+                (cut:force-ll
+                 (base-poses-ll-for-fetching-based-on-object-pose
+                  (object-type-filter-bullet obj-type-raw) ; obj-type
+                  (desig:reference
+                   (desig:desig-prop-value
+                    ;;current search loc.
+                    (desig:current-desig location-designator) :location))))))
 
-  (<- (desig:location-grounding ?designator ?pose-stamped)
-    (desig:loc-desig? ?designator)
-    (rob-int:visibility-designator ?designator)
-    (desig:desig-prop ?designator (:object ?object-designator))
-    (desig:current-designator ?object-designator ?current-object-designator)
-    (desig:desig-prop ?object-designator (:type ?object-type))
-    (desig:desig-prop ?designator (:location ?location-designator))
-    (desig:current-designator ?location-designator ?location-object-designator)
-    (desig:location-grounding ?location-designator ?pose)
-    (lisp-fun base-poses-ll-for-fetching-based-on-object-pose ?object-type ?pose ?base-poses-ll)
-    (member ?pose-stamped ?base-poses-ll)
-    (format "Visibility VR POSE!~%")))
+              ;; REACHABILITY
+              ((rob-int:reachability-designator-p location-designator)
+               ;; differenticate between a loc desig with an obj desig with a valid POSE (fetch)
+               ;; or a loc desig (deliver) (who has an object desig with OLD-POSE not POSE
+               (cond
+                 ;; obj-desig with a valid pose -> fetch
+                 ((and (desig:desig-prop-value
+                        (desig:current-desig location-designator) :object)
+                       (man-int:get-object-pose
+                        (desig:current-desig
+                         (desig:desig-prop-value
+                          (desig:current-desig location-designator) :object))))
+                  (alexandria:shuffle
+                   (cut:force-ll
+                    (base-poses-ll-for-fetching-based-on-object-desig
+                     (desig:desig-prop-value
+                      (desig:current-desig location-designator) :object)))))
 
+                 ;; location-desig -> deliver
+                 ((desig:desig-prop-value
+                   (desig:current-desig location-designator) :location)
+                  (let ((pose (desig:reference
+                               (desig:desig-prop-value
+                                (desig:current-desig location-designator) :location))))
+                    (alexandria:shuffle
+                     (cut:force-ll
+                      (base-poses-ll-for-fetching-based-on-object-pose
+                       (object-type-filter-bullet obj-type-raw)
+                       pose)))))))))
+
+          (desig:resolve-location-designator-through-generators-and-validators location-designator))
+      (desig:resolve-location-designator-through-generators-and-validators location-designator)))
+
+;; will replace ?grasps-list
 
 ;; (defmethod man-int:get-action-grasps :vr 40 (object-type arm object-transform-in-base)
 ;;   (remove-duplicates (cut:force-ll (object-grasped-faces-ll object-type))))

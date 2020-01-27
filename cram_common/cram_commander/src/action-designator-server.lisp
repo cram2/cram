@@ -101,6 +101,11 @@
     (or (desig-prop ?action-designator (:type :stoppping))
         (desig-prop ?action-designator (:to :stop)))))
 
+(defgeneric perform-with-pms-running (designator)
+  (:documentation "Each robot should define this function with its corresponding PMs.")
+  (:method (designator)
+    (cpl:fail "PERFORM-WITH-PMS-RUNNING is not defined for this robot. Please do!")))
+
 (roslisp:def-service-callback cram_commander-srv:PerformDesignator (designator)
   (roslisp:ros-info (commander perform-server) "Referencing designator ~a" designator)
   (multiple-value-bind (success parsed-designator grounding)
@@ -113,30 +118,35 @@
              (stop-all-actions)
              (roslisp:make-response :result (format nil "Stopping all actions.")))
             (progn
-              ;; (when (some #'(lambda (process-module-name)
-              ;;                 (cpm::check-process-module-running process-module-name :throw-error nil))
-              ;;             (cpm:get-process-module-names))
-              ;;   (roslisp:ros-info (commander perform-server) "Agent already has goals. Cancelling.")
-              ;;   (stop-all-actions)
-              ;;   (cpl:sleep 1) ; give one second to kill all threads
-              ;;   )
-              (let ((worker-thread nil)
-                    (result nil))
-                (setf worker-thread
-                      (sb-thread:make-thread
-                       (lambda ()
-                         (handler-case
-                             (progn
-                               (setf result (cpl-impl::named-top-level (:name red-wasp-tasks)
-                                              (exe:perform parsed-designator))))
-                           (condition (error-object)
-                             (format t "CONDITION: ~a~%" error-object)
-                             (setf result error-object)))
-                         (format t "finished with result : ~a~%~%" result))))
-                (push worker-thread *performing-threads*)
+              ;; ;; (when (some #'(lambda (process-module-name)
+              ;; ;;                 (cpm::check-process-module-running process-module-name :throw-error nil))
+              ;; ;;             (cpm:get-process-module-names))
+              ;; ;;   (roslisp:ros-info (commander perform-server) "Agent already has goals. Cancelling.")
+              ;; ;;   (stop-all-actions)
+              ;; ;;   (cpl:sleep 1) ; give one second to kill all threads
+              ;; ;;   )
+              ;; (let ((worker-thread nil)
+              ;;       (result nil))
+              ;;   (setf worker-thread
+              ;;         (sb-thread:make-thread
+              ;;          (lambda ()
+              ;;            (handler-case
+              ;;                (progn
+              ;;                  (setf result (cpl-impl::named-top-level (:name red-wasp-tasks)
+              ;;                                 (exe:perform parsed-designator))))
+              ;;              (condition (error-object)
+              ;;                (format t "CONDITION: ~a~%" error-object)
+              ;;                (setf result error-object)))
+              ;;            (format t "finished with result : ~a~%~%" result))))
+              ;;   (push worker-thread *performing-threads*)
+              ;;   (roslisp:make-response :result
+              ;;                          (format nil "Performing designator ~a."
+              ;;                                  parsed-designator)))))
+              (let ((result (perform-with-pms-running parsed-designator)))
+                (roslisp:ros-info (commander perform-server)
+                                  "Got result: ~a~%" result)
                 (roslisp:make-response :result
-                                       (format nil "Performing designator ~a."
-                                               parsed-designator)))))
+                                       (if result (designator->json result) NIL)))))
         (roslisp:make-response :result
                                (format nil
                                        "Designator ~a could not be referenced."

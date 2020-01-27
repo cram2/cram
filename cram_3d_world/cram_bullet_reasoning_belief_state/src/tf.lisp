@@ -91,45 +91,45 @@
        (prolog:prolog `(and (cram-robot-interfaces:robot ?robot)
                             (btr:bullet-world ?world)
                             (btr:%object ?world ?robot ?robot-instance))))
-    (assert (not (cut:is-var ?robot-instance)))
+    (if (cut:is-var ?robot-instance)
+        (warn "Robot was not present in the world. Not going to GET-TRANSFORMS-FROM-BULLET.")
+        (let* (;; global fixed frame and the odom frame are the same
+               (global->odom
+                 (cl-tf:make-transform-stamped
+                  fixed-frame odom-frame time
+                  (cl-transforms:make-identity-vector)
+                  (cl-transforms:make-identity-rotation)))
+               ;; robot's pose in the odom frame
+               (robot-pose-in-map
+                 (btr:link-pose ?robot-instance base-frame))
+               (odom->base-frame
+                 (cl-tf:transform->transform-stamped
+                  odom-frame base-frame time
+                  (cl-transforms:pose->transform robot-pose-in-map)))
+               ;; the current configuration of robot's Bullet world joints
+               (reference-transform-inv
+                 (cl-transforms:transform-inv
+                  (cl-transforms:reference-transform robot-pose-in-map)))
+               (list-of-base-frame->link
+                 (loop for link in (btr:link-names ?robot-instance)
+                       append (unless (equal link base-frame)
+                                (list
+                                 (cl-tf:transform->transform-stamped
+                                  base-frame
+                                  link
+                                  time
+                                  (cl-transforms:transform*
+                                   reference-transform-inv
+                                   (cl-transforms:reference-transform
+                                    (btr:link-pose ?robot-instance link))))))))
+               ;; the current configuration of robot's non-Bullet virtual URDF joints
+               (list-of-base-frame->virtual-link
+                 (get-virtual-joint-transforms ?robot-instance display-warnings time)))
 
-    (let* (;; global fixed frame and the odom frame are the same
-           (global->odom
-             (cl-tf:make-transform-stamped
-              fixed-frame odom-frame time
-              (cl-transforms:make-identity-vector)
-              (cl-transforms:make-identity-rotation)))
-           ;; robot's pose in the odom frame
-           (robot-pose-in-map
-             (btr:link-pose ?robot-instance base-frame))
-           (odom->base-frame
-             (cl-tf:transform->transform-stamped
-              odom-frame base-frame time
-              (cl-transforms:pose->transform robot-pose-in-map)))
-           ;; the current configuration of robot's Bullet world joints
-           (reference-transform-inv
-             (cl-transforms:transform-inv
-              (cl-transforms:reference-transform robot-pose-in-map)))
-           (list-of-base-frame->link
-             (loop for link in (btr:link-names ?robot-instance)
-                   append (unless (equal link base-frame)
-                            (list
-                             (cl-tf:transform->transform-stamped
-                              base-frame
-                              link
-                              time
-                              (cl-transforms:transform*
-                               reference-transform-inv
-                               (cl-transforms:reference-transform
-                                (btr:link-pose ?robot-instance link))))))))
-           ;; the current configuration of robot's non-Bullet virtual URDF joints
-           (list-of-base-frame->virtual-link
-             (get-virtual-joint-transforms ?robot-instance display-warnings time)))
-
-      (append (list global->odom)
-              (list odom->base-frame)
-              list-of-base-frame->link
-              list-of-base-frame->virtual-link))))
+          (append (list global->odom)
+                  (list odom->base-frame)
+                  list-of-base-frame->link
+                  list-of-base-frame->virtual-link)))))
 
 
 (defun set-tf-from-bullet (&key (transformer cram-tf:*transformer*)
