@@ -42,7 +42,8 @@
 
   (<- (desig:action-grounding ?action-designator (perceive ?action-designator))
     (spec:property ?action-designator (:type :perceiving))
-    (spec:property ?action-designator (:object ?_)))
+    (spec:property ?action-designator (:object ?_))
+    (spec:property ?action-designator (:counter ?_)))
 
 
   (<- (desig:action-grounding ?action-designator (pick-up ?resolved-action-designator))

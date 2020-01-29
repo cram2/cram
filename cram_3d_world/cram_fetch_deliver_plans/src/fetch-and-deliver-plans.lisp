@@ -247,7 +247,8 @@ retries with different search location or robot base location."
                                            (target ?search-location)))
                     (exe:perform (desig:an action
                                            (type perceiving)
-                                           (object ?object-designator)))))))))))))
+                                           (object ?object-designator)
+                                           (counter 1)))))))))))))
 
 
 
@@ -270,7 +271,7 @@ retries with different search location or robot base location."
 one of arms in the `?arms' lazy list (if not NIL) and one of grasps in `?grasps' if not NIL,
 while standing at `?pick-up-robot-location'
 and using the grasp and arm specified in `pick-up-action' (if not NIL)."
-  (let ((counter 10))
+  (let ((?counter 10))
     
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -287,7 +288,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                 common-fail:perception-low-level-failure
                 common-fail:object-unreachable
                 common-fail:manipulation-low-level-failure) (e)
-             (decf counter)
+             (decf ?counter)
              (common-fail:retry-with-loc-designator-solutions
                  ?pick-up-robot-location
                  relocation-for-ik-retries
@@ -319,7 +320,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
             (let ((?more-precise-perceived-object-desig
                     (exe:perform (desig:an action
                                            (type perceiving)
-                                           (object ?object-designator)))))
+                                           (object ?object-designator)
+                                           (counter ?counter)))))
 
               (let ((?arm (cut:lazy-car ?arms)))
                 ;; if picking up fails, try another arm
@@ -499,7 +501,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   (proj-reasoning:check-placing-pose-stability
                    ?object-designator ?target-location)
 
-                  (exe:perform place-action)))))))))))))
+                  (exe:perform place-action))))))))))
 
 
 
