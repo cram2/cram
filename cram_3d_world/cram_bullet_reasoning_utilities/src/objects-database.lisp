@@ -84,7 +84,8 @@
   (<- (scenario-object-extra-attributes ?_ :orange (:radius 0.04)))
   (<- (scenario-object-extra-attributes ?_ :apple (:radius 0.0425)))
   (<- (scenario-object-extra-attributes ?_ :cereal-box (:size (0.029 0.0965 0.1385))))
-  (<- (scenario-object-extra-attributes ?_ :visualization-box (:size (0.03 0.01 0.01))))
+  (<- (scenario-object-extra-attributes ?_ :visualization-box (:size (0.5 1.5 0.5);; (0.03 0.01 0.01)
+                                                                     )))
   (<- (scenario-object-extra-attributes ?_ :sugar-box (:size (0.0275 0.047 0.1035)))))
 
 

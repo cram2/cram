@@ -92,6 +92,13 @@
          (y-bucket-padding 0.2)
          (y-bucket-length 0.3)
          (y-buckets (alexandria:shuffle '(0 1 2))))
+    (when varied-kitchen?
+      (btr-utils:spawn-object :obstacle1 :visualization-box 
+                              :world btr:*current-bullet-world*
+                              :mass 0.0
+                              :color '(1 0 0)
+                              :pose '((2.5 1.5 0.5) (0 0 0 1))
+                              ))
     ;; spawn objects at random poses
     (let ((objects (mapcar (lambda (object-type)
                              (let* ((delta-x (ecase object-type

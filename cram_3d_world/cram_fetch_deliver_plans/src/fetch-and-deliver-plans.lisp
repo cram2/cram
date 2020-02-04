@@ -183,7 +183,7 @@ retries with different search location or robot base location."
                    :description "Search location designator could not be resolved.")))
 
     ;; take new `?search-location' sample if a failure happens and retry
-    (cpl:with-retry-counters ((outer-search-location-retries 3))
+    (cpl:with-retry-counters ((outer-search-location-retries 6))
       (cpl:with-failure-handling
           ((common-fail:object-nowhere-to-be-found (e)
              (common-fail:retry-with-loc-designator-solutions
@@ -198,7 +198,7 @@ retries with different search location or robot base location."
                                  "Search is about to give up. Retrying~%"))))
 
         ;; if the going action fails, pick another `?robot-location' sample and retry
-        (cpl:with-retry-counters ((robot-location-retries 4))
+        (cpl:with-retry-counters ((robot-location-retries 6))
           (cpl:with-failure-handling
               (((or common-fail:navigation-goal-in-collision
                     common-fail:looking-high-level-failure
@@ -431,7 +431,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   :rethrow-failure 'common-fail:delivering-failed))))
 
         ;; take a new `?target-robot-location' sample if a failure happens
-        (cpl:with-retry-counters ((relocation-for-ik-retries 10))
+        (cpl:with-retry-counters ((relocation-for-ik-retries 50))
           (cpl:with-failure-handling
               (((or common-fail:navigation-goal-in-collision
                     common-fail:object-undeliverable
