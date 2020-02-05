@@ -30,7 +30,7 @@
 (in-package :json-prolog)
 
 (defvar *finish-marker* nil)
-(defvar *service-namespace* "/json_prolog")
+(defvar *service-namespace* "/rosprolog")
 
 (defvar *persistent-services* (make-hash-table :test 'equal))
 
@@ -60,12 +60,14 @@
                         (ros-warn (json-prolog) "Service call failed.")
                         (when (> reconnect-tries 0)
                           (ros-warn (json-prolog) "Retrying...")
-                          (invoke-restart 'roslisp:reconnect)
+                          ;; (invoke-restart 'roslisp:reconnect)
                           (decf reconnect-tries)
-                          (apply 'call-persistent-service
-                                 (gethash name *persistent-services*) request)))))
-               (apply 'call-persistent-service
-                      (gethash name *persistent-services*) request))))
+                          ;;(apply 'call-persistent-service
+                          ;;       (gethash name *persistent-services*) request)
+                          (apply 'roslisp:call-service name type request)))))
+               ;;(apply 'call-persistent-service
+               ;;       (gethash name *persistent-services*) request)
+               (apply 'roslisp:call-service name type request))))
       (cram-utilities::on-finish-json-prolog-prove log-id))))
 
 (defun prolog-result->bdgs (query-id result &key (lispify nil) (package *package*))
