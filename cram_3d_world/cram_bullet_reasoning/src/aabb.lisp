@@ -74,12 +74,61 @@
                     (/ (cl-transforms:z
                         (bounding-box-dimensions bounding-box)) 2))))))
 
+(defun stabilized-object-orientation (bullet-object)
+
+  (let* ((z-up (cl-transforms:make-identity-rotation))
+         (z-down (cl-transforms:make-quaternion 0 1 0 0))
+         (x-up (cl-transforms:matrix->quaternion (make-array '(3 3)
+                                                             :initial-contents
+                                                             '((0  0 -1)
+                                                               (0  1  0)
+                                                               (1  0  0)))))
+         (x-down (cl-transforms:q-inv x-up))
+         (y-up (cl-transforms:matrix->quaternion (make-array '(3 3)
+                                                             :initial-contents
+                                                             '((1  0  0)
+                                                               (0  0 -1)
+                                                               (0  1  0)))))
+         (y-down (cl-transforms:q-inv y-up))
+         (different-axis-upwards `(,(list x-up x-down) 
+                                   ,(list y-up y-down)
+                                   ,(list z-up z-down)))
+         (orientation-m (cl-transforms:quaternion->matrix
+                         (cl-transforms:orientation 
+                          (btr:pose
+                           bullet-object))))
+         (max-i 0)
+         (max-v most-negative-single-float))
+    
+    (loop for i from 0 to (1- (second (array-dimensions
+                                       orientation-m))) 
+          do
+             (when (> (abs (aref orientation-m 2 i)) max-v)
+               (setf max-v (abs (aref orientation-m 2 i)))
+               (setf max-i i)))
+    
+    (funcall (lambda (list)
+               (if (< 0 (aref orientation-m 2 max-i))
+                   (first list)
+                   (second list)))
+             (nth max-i different-axis-upwards))
+    (print "fertisch")
+    (funcall (lambda (list)
+               (if (< 0 (aref orientation-m 2 max-i))
+                   (first list)
+                   (second list)))
+             (nth max-i different-axis-upwards))))
+  
+
 (defun calculate-bb-dims (bullet-object)
   (let ((old-pose (pose bullet-object))
         aabb)
     (unwind-protect
          (progn
-           (setf (pose bullet-object) (cl-transforms:make-identity-pose))
+           (setf (pose bullet-object)
+                 (cl-transforms:make-pose
+                  (cl-transforms:make-identity-vector)
+                  (stabilized-object-orientation bullet-object)))
            (setf aabb (cl-bullet:aabb bullet-object)))
       (setf (pose bullet-object) old-pose))
     (cl-bullet:bounding-box-dimensions aabb)))
