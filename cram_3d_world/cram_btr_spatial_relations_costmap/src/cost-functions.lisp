@@ -197,7 +197,7 @@ reverse sort it"
                  (cl-transforms:angle-between-quaternions 
                   (cl-transforms:orientation
                    (btr:pose object))
-                  (stabilized-identity-object-orientation object))
+                  (btr:stabilized-identity-object-orientation object))
                ;; Check if rotation is clockwise or counterclockwise
                (if (> 0 (nth axis-facing-up (vector-as-list axis)))
                    (* -1 angle)
