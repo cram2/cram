@@ -93,6 +93,25 @@
  (defun owl->type (owl-name)
    (gethash owl-name owl->type-table)))
 
+(defun get-any-except-object-poses ()
+  (mapcar #'btr:pose
+          (remove-if-not (lambda (obj)
+                           (and (typep obj 'btr:item)
+                                (not (member (first (btr:item-types obj))
+                                             learning-vr::*base-objects* :test #'eql))
+                                (equalp
+                                 "kitchen_island"  ;; TODO CHECK IF OBJ IS ON
+                                 ;; ITS DESTINATION LOCATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+                                 (cdr (find (btr:name obj)
+                                            ;; get all links contacting items
+                                            ;; in the environment
+                                            (btr:link-contacts
+                                             (btr:get-environment-object))
+                                            :key (lambda (item-and-link-name-cons)
+                                                   (btr:name (car item-and-link-name-cons)))
+                                            :test #'equal)))))
+                         (btr:objects btr:*current-bullet-world*))))
+
 (defun get-base-object-poses (not-near)
   (mapcar #'btr:pose
           (remove-if-not (lambda (obj)
@@ -173,9 +192,23 @@
                  (mapcar 
                   #'cl-transforms:y
                   placed-base-object-positions))
+               (placed-object-positions
+                 (mapcar 
+                  #'cl-transforms:origin
+                  (get-any-except-object-poses)))
+               (x-placed-object-positions 
+                 (mapcar 
+                  #'cl-transforms:x
+                  placed-object-positions))
+               (y-placed-object-positions
+                 (mapcar 
+                  #'cl-transforms:y
+                  placed-object-positions))
                (learned-costmap
                  (get-costmap-for
-                  object-type x-placed-base-object-positions y-placed-base-object-positions
+                  object-type 
+                  x-placed-object-positions y-placed-object-positions
+                  x-placed-base-object-positions y-placed-base-object-positions
                   context *human-name* kitchen-name *table-id* urdf-name on-p))
                (heuristics-costmaps
                  (mapcar (lambda (bindings)

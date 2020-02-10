@@ -74,7 +74,9 @@
 (defun get-object-destination-location (object-type context name kitchen table-id)
   (get-object-location object-type context name kitchen table-id NIL))
 
-(defun get-costmap-for (object-type x-placed-base-object-positions y-placed-base-object-positions
+(defun get-costmap-for (object-type
+                        x-placed-object-positions y-placed-object-positions
+                        x-placed-base-object-positions y-placed-base-object-positions
                         context name kitchen table-id urdf-name on-p)
   (format t "called get-costmap-for for object-type ~a" object-type)
   (when T ;;(every #'identity (mapcar #'keywordp (list object-type context
@@ -113,6 +115,38 @@
                                                          'cl:float)
                                                         y-placed-base-object-positions))
                                                       (cl:vector))
+                                                  :placed_x_object_positions
+                                                  (if x-placed-object-positions
+                                                      (make-array
+                                                       (length x-placed-object-positions)
+                                                       :element-type
+                                                       'cl:float
+                                                       :initial-contents
+                                                       (mapcar
+                                                        (alexandria:rcurry
+                                                         #'coerce
+                                                         'cl:float)
+                                                        (mapcar 
+                                                         (lambda (v)
+                                                           (+ v 0.11)) 
+                                                         x-placed-object-positions)))
+                                                      (cl:vector))
+                                                  :placed_y_object_positions
+                                                  (if y-placed-object-positions
+                                                      (make-array
+                                                       (length y-placed-object-positions)
+                                                       :element-type
+                                                       'cl:float
+                                                       :initial-contents
+                                                       (mapcar
+                                                        (alexandria:rcurry
+                                                         #'coerce
+                                                         'cl:float)
+                                                        (mapcar
+                                                         (lambda (v) 
+                                                           (+ v 0.05)) 
+                                                         y-placed-object-positions)))
+                                                      (cl:vector))
                                                   :context 
                                                   (keyword-to-string
                                                    context) ;; e.g. :breakfast
@@ -148,7 +182,7 @@
                      costmap
                      (costmap:make-matrix-cost-function
                       (- (geometry_msgs-msg:x bottem_left) 0.11)
-                      (geometry_msgs-msg:y bottem_left)
+                      (- (geometry_msgs-msg:y bottem_left) 0.05)
                       resolution array
                       ;; Sebastian's X axis looks to the right,
                       ;; after transposing, which happened above, see the comment,
@@ -181,12 +215,36 @@
                         (get-urdfs-rigid-body urdf-name)
                         (get-obj-instance-from-type object-type)
                         (if on-p :on :in))))
-                    ;; (costmap:register-orientation-generator 
-                    ;;  costmap
-                    ;;  (lambda (x y)
-                    ;;    (cut::lazy-list ()
-                    ;;      (cl-transforms:make-identity-rotation))))
+                    (let* ((mean (aref angles 0))
+                           (std (aref angles 1))
+                           (gauss (1d-gauss std mean)))
+                      (print "mean and std")
+                      (print mean)
+                      (print std)
+                      (costmap:register-orientation-generator 
+                       costmap
+                       (costmap::make-orientation-generator 
+                        (lambda (x y)
+                          (declare (ignore x y))
+                          (jaaa mean std gauss)
+                          ))))
                     costmap))))))))
+
+(defun jaaa (mean std gauss)
+  (funcall gauss (+ (* (box-mueller-transform-value) std) mean)))
+
+(defun box-mueller-transform-value ()
+  (let ((u1 (random 1.0d0))
+        (u2 (random 1.0d0)))
+    (* (sqrt (* -2 (log u1))) (cos (* 2 pi u2)))))
+
+(defun 1d-gauss (std mean)
+  (declare (type double-float std mean))
+  (lambda (x)
+    (* (/ 1 (* std (sqrt (* 2 pi))))
+       (exp (* -0.5 (expt (/ (- x mean)
+                             std)
+                          2))))))
   
   
   ;; (let* ((bindings
