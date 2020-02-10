@@ -74,7 +74,33 @@
                     (/ (cl-transforms:z
                         (bounding-box-dimensions bounding-box)) 2))))))
 
-(defun stabilized-object-orientation (bullet-object)
+(defun object-axis-facing-upwards (bullet-object)
+  "Returns the axis `max-i' showing upwards and the direction which
+can be up (1), down (-1) or inbetween by returning a value
+`real-max-v' in [-1, 1]. `max-i' is 0 for the x-axis, 1 for the
+y-axis or 2 for z-axis."
+  (let ((max-i 0)
+        (max-v most-negative-single-float)
+        (real-max-v most-negative-single-float)
+        (orientation-m (cl-transforms:quaternion->matrix
+                        (cl-transforms:orientation 
+                         (btr:pose
+                          bullet-object)))))
+    (loop for i from 0 to (1- (second (array-dimensions
+                                       orientation-m))) 
+          do
+             (when (> (abs (aref orientation-m 2 i)) max-v)
+               (setf max-v (abs (aref orientation-m 2 i)))
+               (setf real-max-v (aref orientation-m 2 i))
+               (setf max-i i)))
+    (cons max-i real-max-v)))
+
+(defun stabilized-identity-object-orientation (bullet-object)
+  "Stabilized intend that only rotations around the z-axis in the object
+frame are allowed (like objects laying on other horizontal objects).
+Identity means that there are only 6 possible identity orientations of
+objects represented in `different-axis-upwards'. This method takes a
+`bullet-object' and returns a rotation from `different-axis-upwards'." 
 
   (let* ((z-up (cl-transforms:make-identity-rotation))
          (z-down (cl-transforms:make-quaternion 0 1 0 0))
@@ -93,31 +119,15 @@
          (different-axis-upwards `(,(list x-up x-down) 
                                    ,(list y-up y-down)
                                    ,(list z-up z-down)))
-         (orientation-m (cl-transforms:quaternion->matrix
-                         (cl-transforms:orientation 
-                          (btr:pose
-                           bullet-object))))
-         (max-i 0)
-         (max-v most-negative-single-float))
-    
-    (loop for i from 0 to (1- (second (array-dimensions
-                                       orientation-m))) 
-          do
-             (when (> (abs (aref orientation-m 2 i)) max-v)
-               (setf max-v (abs (aref orientation-m 2 i)))
-               (setf max-i i)))
-    
+         (axis-facing-up-and-value (object-axis-facing-upwards bullet-object))
+         (axis-facing-up (car axis-facing-up-and-value))
+         (axis-facing-down-p (< (cdr axis-facing-up-and-value) 0)))
+
     (funcall (lambda (list)
-               (if (< 0 (aref orientation-m 2 max-i))
+               (if (not axis-facing-down-p)
                    (first list)
                    (second list)))
-             (nth max-i different-axis-upwards))
-    (print "fertisch")
-    (funcall (lambda (list)
-               (if (< 0 (aref orientation-m 2 max-i))
-                   (first list)
-                   (second list)))
-             (nth max-i different-axis-upwards))))
+             (nth axis-facing-up different-axis-upwards))))
   
 
 (defun calculate-bb-dims (bullet-object)
@@ -128,7 +138,7 @@
            (setf (pose bullet-object)
                  (cl-transforms:make-pose
                   (cl-transforms:make-identity-vector)
-                  (stabilized-object-orientation bullet-object)))
+                  (stabilized-identity-object-orientation bullet-object)))
            (setf aabb (cl-bullet:aabb bullet-object)))
       (setf (pose bullet-object) old-pose))
     (cl-bullet:bounding-box-dimensions aabb)))

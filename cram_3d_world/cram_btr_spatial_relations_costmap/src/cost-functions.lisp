@@ -180,88 +180,52 @@ reverse sort it"
 
 (defun make-object-bounding-box-costmap-generator (object)
 
-  (multiple-value-bind (w vec) 
-      (btr::angle-between-quaternions (cl-transforms:orientation
-                                       (btr:pose object))
-                                      (cl-transforms::make-identity-rotation))
+  (flet ((vector-as-list (vec)
+           (list (btr::x vec)
+                 (btr::y vec)
+                 (btr::z vec))))
 
     (let* ((bounding-box-dims (btr:calculate-bb-dims object))
            (object-position (cl-transforms:origin (btr:pose object)))
            (dimensions-x/2 (/ (cl-transforms:x bounding-box-dims) 2))
            (dimensions-y/2 (/ (cl-transforms:y bounding-box-dims) 2))
-           (orientation-m (cl-transforms:quaternion->matrix
-                           (cl-transforms:orientation 
-                            (btr:pose
-                             object))))
-           (max-i 0)
-           (max-v most-negative-single-float)
-           (real-max-v most-negative-single-float)
-           (axis-facing-upwards
-             (progn
-               (loop for i from 0 to (1- (second (array-dimensions
-                                                  orientation-m))) 
-                     do
-                        (when (> (abs (aref orientation-m 2 i)) max-v)
-                          (setf max-v (abs (aref orientation-m 2 i)))
-                          (setf real-max-v (aref orientation-m 2 i))
-                          (setf max-i i)))
-               (cons max-i real-max-v)))
+           (axis-facing-up-and-value (btr::object-axis-facing-upwards object))
+           (axis-facing-up (car axis-facing-up-and-value))
+           (axis-facing-down-p (< (cdr axis-facing-up-and-value) 0))
            (z-axis-angle
-             (multiple-value-bind (angle axis) 
+             (multiple-value-bind (angle axis)
                  (cl-transforms:angle-between-quaternions 
-                  (cl-transforms:orientation 
-                   (btr:pose
-                    object))
-                  (btr::stabilized-object-orientation object))
-               (let ((vector-as-list 
-                       (list (btr::x axis)
-                             (btr::y axis)
-                             (btr::z axis))))
-                 (if (> 0 (nth max-i vector-as-list))
-                     (* -1 angle)
-                     angle))))
-           (orientation-difference
-             (multiple-value-bind (angle axis)  
-                 (cl-transforms:angle-between-quaternions 
-                  (cl-transforms:orientation 
-                   (btr:pose
-                    object))
-                  (btr::stabilized-object-orientation object))
-               (cl-transforms:axis-angle->quaternion axis angle)))
-           (center-x (cl-transforms:x (cl-transforms:origin (btr:pose object))))
-           (center-y (cl-transforms:y (cl-transforms:origin (btr:pose object)))))
+                  (cl-transforms:orientation
+                   (btr:pose object))
+                  (stabilized-identity-object-orientation object))
+               ;; Check if rotation is clockwise or counterclockwise
+               (if (> 0 (nth axis-facing-up (vector-as-list axis)))
+                   (* -1 angle)
+                   angle)))
+           (center-x (cl-transforms:x object-position))
+           (center-y (cl-transforms:y object-position)))
 
-      (print "cost")
-      (print (car axis-facing-upwards))
-      (print (cdr axis-facing-upwards))
-      (print orientation-difference)
-      (print z-axis-angle)
-
-      
       (lambda (x y)
         (let* ((x-diff (- x center-x))
                (y-diff (- y center-y))
-               (rotated-vec (cl-transforms:v+ 
+               (rotated-vec (cl-transforms:v+
+                             ;; Rotating vector from middle-point of the
+                             ;; object to the Point(x,y):
+                             ;; - the rotation is the difference between the
+                             ;;   current object pose and the identity
+                             ;;   rotation in btr:stabilized-identity-object-orientation
+                             ;; - Since the object is stable on a
+                             ;;   horizontal platform, the rotation is
+                             ;;   only around the z-axis 
                              (cl-transforms:rotate
-                              (cl-transforms:q-inv orientation-difference)
-                              ;; (cl-transforms:axis-angle->quaternion
-                              ;;  (multiple-value-bind (x y z)
-                              ;;      (values-list 
-                              ;;       (loop for i from 0 to 2
-                              ;;             collecting
-                              ;;             (if (eq i (car
-                              ;;                        axis-facing-upwards))
-                              ;;                 1.0d0
-                              ;;                 0.0d0)))
-                              ;;    (cl-transforms:make-3d-vector x y z))
-                              ;;  (* -1 z-axis-angle))
-                                  ;; (if (< (cdr axis-facing-upwards) 0)
-                                  ;;     (* -1 z-axis-angle)
-                                  ;;     z-axis-angle)))
+                              (cl-transforms:axis-angle->quaternion
+                               (cl-transforms:make-3d-vector 0 0 1)
+                               ;; Check if the axis is facing down or up
+                               (if axis-facing-down-p
+                                   (* -1 z-axis-angle)
+                                   z-axis-angle))
                               (btr::make-3d-vector x-diff y-diff 0))
-                             (cl-transforms:make-3d-vector center-x
-                                                           center-y
-                                                           0)))
+                             (cl-transforms:make-3d-vector center-x center-y 0)))
                (r-x (btr::x rotated-vec))
                (r-y (btr::y rotated-vec)))
 
