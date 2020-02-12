@@ -13,6 +13,18 @@
 (defun attach-event-to-situation (event-prolog-url situation-prolog-url)
   (get-url-from-send-query-1 "TaskNode" "mem_event_create" situation-prolog-url event-prolog-url "TaskNode"))
 
+(defun send-belief-new-object-query (object-type)
+  (get-url-from-send-query-1 "Object" "belief_new_object" object-type "Object"))
+
+(defun set-event-status-to-succeeded (event-prolog-url)
+  (send-query-1-without-result "mem_event_set_succeeded" event-prolog-url))
+
+(defun set-event-status-to-failed (event-prolog-url)
+  (send-query-1-without-result "mem_event_set_failed" event-prolog-url))
+
+(defun set-event-diagnosis (event-prolog-url diagnosis-url)
+  (send-query-1-without-result "mem_event_add_diagnosis" event-prolog-url diagnosis-url))
+
 (defun start-episode ()
   (send-episode-query "mem_episode_start"))
 

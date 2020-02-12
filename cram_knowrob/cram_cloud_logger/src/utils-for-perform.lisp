@@ -32,8 +32,19 @@
 
 (cpl:define-task-variable *action-parents* '())
 (defparameter *action-siblings* (make-hash-table))
+(defparameter *detected-objects* (make-hash-table :test 'equal))
 (defparameter *episode-name* nil)
 (defparameter *is-logging-enabled* nil)
+(defparameter *ease-object-lookup-table* (get-ease-object-lookup-table))
+
+
+(defun clear-detected-objects ()
+  (setf *detected-objects* (make-hash-table :test 'equal)))
+(defun get-ease-object-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/EASE.owl#Bowl'")
+    (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/EASE.owl#Cup'")
+    lookup-table))
 
 (defun get-parent-uri()
   (if (is-action-parent)
@@ -43,6 +54,21 @@
 (defun is-action-parent ()
   (if (not *action-parents*) t nil))
 
+(defun convert-to-ease-object-type-url (object-type)
+  (if (gethash object-type *ease-object-lookup-table*)
+      (gethash object-type *ease-object-lookup-table*)
+      "'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#DesignedArtifact'"))
+
+(defun handle-detected-object (detected-object)
+  (let ((object-name (get-designator-property-value-str detected-object :NAME))
+        (object-type
+          (convert-to-ease-object-type-url (get-designator-property-value-str detected-object :TYPE))))
+    (print object-type)
+    (if (gethash object-name *detected-objects*)
+        (print "LALALALA")
+        (setf (gethash object-name *detected-objects*) (send-belief-new-object-query object-type)))))
+
+
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
       (let ((action-id (log-perform-call designator))
@@ -50,7 +76,8 @@
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
                ;;(log-cram-finish-action action-id)
-               ;;(send-task-success action-id "false")
+               (set-event-status-to-failed action-id)
+               (set-event-diagnosis action-id "'http://www.ease-crc.org/ont/EASE.owl#FailedAttempt'")
                ;;(log-failure action-id e)
                ;;(equate action-id (log-perform-call  (second (desig:reference designator)))))
                (print "plan failure")))
@@ -81,7 +108,9 @@
               ;;  (let ((name (desig:desig-prop-value perform-result :name)))
               ;;    (when name
               ;;      (send-object-action-parameter action-id perform-result))))
-              ;;(send-task-success action-id "true")
+              (when (string-equal cram-action-name "detecting")
+                (handle-detected-object perform-result))
+              (set-event-status-to-succeeded action-id)
               (ccl::stop-situation action-id)
               perform-result))))
       (call-next-method)))
