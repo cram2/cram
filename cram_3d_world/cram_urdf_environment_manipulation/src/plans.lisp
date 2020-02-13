@@ -38,8 +38,8 @@
                                ((:right-reach-poses ?right-reach-poses))
                                ((:left-grasp-poses ?left-grasp-poses))
                                ((:right-grasp-poses ?right-grasp-poses))
-                               ((:left-open-poses ?left-manipulate-poses))
-                               ((:right-open-poses ?right-manipulate-poses))
+                               ((:left-manipulate-poses ?left-manipulate-poses))
+                               ((:right-manipulate-poses ?right-manipulate-poses))
                                ((:left-retract-poses ?left-retract-poses))
                                ((:right-retract-poses ?right-retract-poses))
                                joint-name
