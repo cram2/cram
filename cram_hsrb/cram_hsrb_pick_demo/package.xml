@@ -1,13 +1,11 @@
 <package format="2">
-  <name>cram_hsrb_execute_demo</name>
+  <name>cram_hsrb_pick_demo</name>
   <version>0.7.0</version>
-  <description>Demo code for assembly objects with hsrb</description>
+  <description>Demo code for picking objects with hsrb</description>
   <author>Gayane Kazhoyan</author>
-  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <maintainer email="hassouna@uni-bremen.de">Vanessa Hassouna</maintainer>
   <license>BSD</license>
 
-  <url type="website">http://cram-system.org</url>
-  <url type="repository">http://github.com/cram2/cram</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -30,7 +28,6 @@
   <depend>cram_common_failures</depend>
   <depend>cram_mobile_pick_place_plans</depend>
 
-  <depend>cram_knowrob_assembly</depend>
   <!-- <depend>cram_robosherlock</depend> -->
 
   <depend>cram_physics_utils</depend>
@@ -44,8 +41,7 @@
   <depend>cram_occupancy_grid_costmap</depend>
   <depend>cram_location_costmap</depend>
 
-  <depend>cram_hsrb_projection</depend>
+  <depend>cram_urdf_projection</depend>
   <depend>cram_hsrb_description</depend>
-
-  <depend>cram_knowrob_pick_place</depend>
+  
 </package>

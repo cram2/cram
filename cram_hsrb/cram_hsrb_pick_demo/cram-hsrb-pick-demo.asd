@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,7 +28,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-hsrb-execute-demo
+(defsystem cram-hsrb-pick-demo
   :author "gaya"
   :license "BSD"
 
@@ -50,7 +51,6 @@
                cram-common-failures
                cram-mobile-pick-place-plans
 
-               cram-knowrob-assembly
                ;; cram-robosherlock
 
                cram-physics-utils ; for reading "package://" paths
@@ -64,14 +64,17 @@
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
                cram-location-costmap
-
-               cram-hsrb-projection      ; for with-simulated-robot
-               cram-hsrb-description)
+               cram-math
+	       cram-urdf-projection
+               cram-hsrb-description
+               )
 
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "setup" :depends-on ("package"))
-     (:file "projection-demo" :depends-on ("package"))
-     (:file "demo" :depends-on ("package" "projection-demo"))))))
+     (:file "demo" :depends-on ("package"))
+     (:file "hsrb-grasp" :depends-on ("package"))
+     (:file "hsrb-pick-up" :depends-on ("package"))
+     (:file "setup-urdf" :depends-on ("package"))
+     (:file "setup" :depends-on ("package"))))))

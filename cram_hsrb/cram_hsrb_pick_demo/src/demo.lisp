@@ -1,4 +1,5 @@
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;
+;;; Copyright (c) 2020, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,17 +27,21 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :hsrb-proj)
+(in-package :hsrb-demo)
 
-(defmethod cram-occasions-events:on-event
-    update-tf ((event cram-plan-occasions-events:robot-state-changed))
-  (when (eql cram-projection:*projection-environment*
-           'cram-hsrb-projection::hsrb-bullet-projection-environment)
-    (cram-bullet-reasoning-belief-state:set-tf-from-bullet)))
 
-(defmethod cram-robot-interfaces:compute-iks
-    :before (pose-stamped &key link-name arm robot-state seed-state
-                            pose-stamped-frame tcp-in-ee-pose)
-  (declare (ignore pose-stamped link-name arm robot-state seed-state
-                   pose-stamped-frame tcp-in-ee-pose))
-  (cram-bullet-reasoning-belief-state:set-tf-from-bullet))
+(defun spawn-pickup-cylinder-table ()
+"spawn primitiv cylinder and tries to pick up from table"
+  (urdf-proj:with-simulated-robot
+    (btr:add-object btr:*current-bullet-world* :primit-cylinder 'cylinder-1 
+                    '((-0.7 -0.7 0.85) (0 0 1 1)) :mass 0.2 :size 
+                    (cl-tf:make-3d-vector 0.03 0.03 0.08))
+    (hsrb-demo::pick-up-object 'hsrb-demo::cylinder-1 :primit-cylinder)))
+
+(defun spawn-pickup-cylinder-air ()
+"spawn primitiv cylinder and tries to pick up"
+  (urdf-proj:with-simulated-robot
+    (btr:add-object btr:*current-bullet-world* :primit-cylinder 'cylinder-1 
+                    '((0.7 0.0777 0.65) (0 0 1 1)) :mass 0.2 :size 
+                    (cl-tf:make-3d-vector 0.03 0.03 0.08))
+    (hsrb-demo::pick-up-object 'hsrb-demo::cylinder-1 :primit-cylinder)))
