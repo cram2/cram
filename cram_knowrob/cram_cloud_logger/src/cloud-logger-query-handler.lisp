@@ -13,6 +13,9 @@
 (defun attach-event-to-situation (event-prolog-url situation-prolog-url)
   (get-url-from-send-query-1 "TaskNode" "mem_event_create" situation-prolog-url event-prolog-url "TaskNode"))
 
+(defun send-belief-perceived-at (object-type transform)
+  (get-url-from-send-query-1 "Object" "belief_perceived_at" object-type transform "_" "Object"))
+
 (defun send-belief-new-object-query (object-type)
   (get-url-from-send-query-1 "Object" "belief_new_object" object-type "Object"))
 
@@ -202,7 +205,7 @@
   (let ((x (cl-transforms:x 3d-vector))
         (y (cl-transforms:y 3d-vector))
         (z (cl-transforms:z 3d-vector)))
-    (concatenate 'string (format nil "~F" x) " " (format nil "~F" y) " " (format nil "~F" z))))
+    (concatenate 'string "["(format nil "~F" x) "," (format nil "~F" y) "," (format nil "~F" z)"]")))
 
 
 (defun send-create-quaternion (quaternion)
@@ -210,7 +213,7 @@
         (y (cl-transforms:y quaternion))
         (z (cl-transforms:z quaternion))
         (w (cl-transforms:w quaternion)))
-        (concatenate 'string (format nil "~F" x) " " (format nil "~F" y) " " (format nil "~F" z) " " (format nil "~F" w))))
+        (concatenate 'string "["(format nil "~F" x) "," (format nil "~F" y) "," (format nil "~F" z) "," (format nil "~F" w) "]")))
 
 (defun send-create-transform-pose-stamped (transform-pose)
   (let ((pose-stamped-instance-id (send-instance-from-class "Pose"))

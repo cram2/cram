@@ -30,6 +30,12 @@
 
 (in-package :ccl)
 
+(defun get-ease-object-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/EASE.owl#Bowl'")
+    (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/EASE.owl#Cup'")
+    lookup-table))
+
 (cpl:define-task-variable *action-parents* '())
 (defparameter *action-siblings* (make-hash-table))
 (defparameter *detected-objects* (make-hash-table :test 'equal))
@@ -40,16 +46,24 @@
 
 (defun clear-detected-objects ()
   (setf *detected-objects* (make-hash-table :test 'equal)))
-(defun get-ease-object-lookup-table()
-  (let ((lookup-table (make-hash-table :test 'equal)))
-    (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/EASE.owl#Bowl'")
-    (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/EASE.owl#Cup'")
-    lookup-table))
 
 (defun get-parent-uri()
   (if (is-action-parent)
       *episode-name*
       (car *action-parents*)))
+
+(defun get-transform-of-detected-object (detected-object)
+  (let*
+      ((detected-object-transform (man-int:get-object-transform detected-object))
+       (reference-frame (cl-transforms-stamped:frame-id detected-object-transform))
+       (target-frame (cl-transforms-stamped:child-frame-id detected-object-transform))
+       (translate (cl-transforms-stamped:translation detected-object-transform))
+       (quaternion (cl-transforms-stamped:rotation detected-object-transform)))
+    (concatenate
+     'string "[" reference-frame ","
+     target-frame ","
+     (send-create-3d-vector translate) ","
+     (send-create-quaternion quaternion)"]")))
 
 (defun is-action-parent ()
   (if (not *action-parents*) t nil))
@@ -63,10 +77,10 @@
   (let ((object-name (get-designator-property-value-str detected-object :NAME))
         (object-type
           (convert-to-ease-object-type-url (get-designator-property-value-str detected-object :TYPE))))
-    (print object-type)
     (if (gethash object-name *detected-objects*)
-        (print "LALALALA")
-        (setf (gethash object-name *detected-objects*) (send-belief-new-object-query object-type)))))
+        (print "Object exists")
+        (setf (gethash object-name *detected-objects*)
+              (send-belief-perceived-at object-type (get-transform-of-detected-object detected-object))))))
 
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))

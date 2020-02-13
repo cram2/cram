@@ -34,6 +34,7 @@
   (roslisp-utilities:startup-ros :name "cram" :anonymous nil)
   ;;(setq roslisp::*debug-stream* nil)
   (print "Init bullet world")
+  (setf ccl::*is-logging-enabled* t)
   (loop for x from 0 to (- num-experiments 1)
         do (progn
              (print "Start")
