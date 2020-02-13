@@ -28,7 +28,8 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :hsrb-proj)
+(in-package :hsrb-demo)
+
 
 (defparameter *robot-parameter* "robot_description")
 
@@ -46,8 +47,8 @@
 ;;the tool-frame for the hsrb, since the urdf does not provide one
 (defparameter *tool-frame*
       "<joint name=\"gripper_tool_joint\" type=\"fixed\">
-         <origin rpy=\"0.0 0.0 -80.14159265359\" xyz=\"0.012 0.0 0.075\"/>
-         <parent link=\"hand_palm_link\" />
+         <origin rpy=\"0.0 0.0 1.5707963267948963d0\" xyz=\"0.0 0.0 0.23090002\"/>
+         <parent link=\"wrist_roll_link\" />
           <child link=\"gripper_tool_frame\"/>
         </joint>
         <link name=\"gripper_tool_frame\"/>")
@@ -59,7 +60,7 @@
 ;;   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
 ;;   (let* ((robot (hsrb-proj::get-urdf))
 ;;          (kitchen (or *kitchen-urdf* .....
-(defun get-urdf ()
+(defun get-urdf-hsrb ()
   (let* ((robi (substitute #\SPACE #\` 
                            (roslisp:get-param *robot-parameter*)))
          (robot (setf rob-int:*robot-urdf*
@@ -74,3 +75,43 @@
                                     *tool-frame*
                                     (subseq robi (search "<link name=\"hand_motor_dummy_link\"" robi)))))))
     robot))
+
+(defun get-setup-boxy()
+   ;; set Boxy URDF root link to be base_footprint not odom,
+    ;; as with odom lots of problems concerning object-pose in bullet happen
+    (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
+          (or (gethash cram-tf:*robot-base-frame*
+                       (cl-urdf:links rob-int:*robot-urdf*))
+              (error "[setup-bullet-world] cram-tf:*robot-base-frame* was undefined or smt.")))
+    ;; get rid of Boxy's camera obstacle thing, it's bad for visibility reasoning
+    ;; it's an annoying hack anyway...
+    ;; (setf (slot-value
+    ;;        (gethash "neck_obstacle"
+    ;;                 (cl-urdf:links rob-int:*robot-urdf*))
+    ;;        'cl-urdf:collision)
+    ;;       NIL)
+    ;; (setf (slot-value
+    ;;        (gethash "neck_look_target"
+    ;;                 (cl-urdf:links rob-int:*robot-urdf*))
+    ;;        'cl-urdf:collision)
+   ;;       NIL)
+  )
+
+(defun add-objects-to-mesh-list (&optional (ros-package "cram_bullet_world_tutorial"))
+  (mapcar (lambda (object-filename-and-object-extension)
+            (declare (type list object-filename-and-object-extension))
+            (destructuring-bind (object-filename object-extension)
+                object-filename-and-object-extension
+              (let ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
+                                object-filename :keyword)))
+                (pushnew (list lisp-name
+                               (format nil "package://~a/resource/~a.~a"
+                                       ros-package object-filename object-extension)
+                               nil)
+                         btr::*mesh-files*
+                         :key #'car)
+                lisp-name)))
+          (mapcar (lambda (pathname)
+                    (list (pathname-name pathname) (pathname-type pathname)))
+                  (directory (physics-utils:parse-uri
+                              (format nil "package://~a/resource/*.*" ros-package))))))

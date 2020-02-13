@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@
 
 (in-package :cl-user)
 
-(defpackage cram-hsrb-execute-demo
-  (:nicknames #:demo)
+(defpackage cram-hsrb-pick-demo
+  (:nicknames #:hsrb-demo)
   (:use #:common-lisp #:cram-prolog
         #:desig #:exe)
   (:export
