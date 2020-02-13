@@ -151,7 +151,7 @@
            :action-timeout action-timeout))
       (ensure-giskard-base-goal-reached result status goal-pose
                                         convergence-delta-xy convergence-delta-theta)
-      (values result status))))
+      (joints:full-joint-states-as-hash-table))))
 
 
 
