@@ -51,7 +51,7 @@
   (ecase arm
     (:left (list "hand_l_distal_link"
                  "hand_l_spring_proximal_link"
-                ;; "hand_palm_link"
+                 "hand_palm_link"
                  "hand_r_distal_link"
                  "hand_r_spring_proximal_link"))))
 
@@ -88,9 +88,9 @@
 
   (<- (arm-links hsrb :right ("ATTENTION please don't use this frame")))
 
-  (<- (gripper-joint hsrb :left "hand_l_proximal_joint"))
+  (<- (gripper-joint hsrb :left "hand_motor_joint"))
 
-  (<- (gripper-joint hsrb :left "hand_r_proximal_joint"))
+  (<- (gripper-joint hsrb :left "hand_motor_joint"))
   
   (<- (gripper-joint hsrb :right "ATTENTION please don't use this frame"))
 
