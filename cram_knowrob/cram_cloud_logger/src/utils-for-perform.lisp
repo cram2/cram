@@ -47,6 +47,8 @@
 (defun clear-detected-objects ()
   (setf *detected-objects* (make-hash-table :test 'equal)))
 
+(defun get-ease-object-id-of-detected-object-by-name (object-name)
+  (gethash object-name *detected-objects*))
 (defun get-parent-uri()
   (if (is-action-parent)
       *episode-name*

@@ -55,10 +55,10 @@
 
 
 (defun send-object-action-parameter (action-inst object-designator)
-  (print "MMMMMMMMMM")
-  (print action-inst)
-  (print object-designator)
-  (print "XXXXXXXXXXXXXXXX"))
+  (let* ((object-name (get-designator-property-value-str object-designator :NAME))
+         (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
+    (when object-ease-id 
+      (send-query-1-without-result "mem_event_includes" action-inst object-ease-id "'http://www.ease-crc.org/ont/EASE-OBJ.owl#AffectedObject'"))))
 
 
 
