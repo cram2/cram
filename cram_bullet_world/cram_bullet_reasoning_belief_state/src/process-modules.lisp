@@ -88,7 +88,7 @@ the old object-designator description is enough to create a new one."
          (map-P-obj
            (cram-tf:strip-transform-stamped map-T-obj)))
 
-    (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))3
+    (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
 
 
 (defun detect-new-object-pose-from-old-pose (old-object)
