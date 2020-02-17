@@ -40,10 +40,30 @@
 
 (def-fact-group pick-and-place-plans (desig:action-grounding)
 
-  (<- (desig:action-grounding ?action-designator (perceive ?action-designator))
+  (<- (desig:action-grounding ?action-designator (perceive ?resolved-action-designator))
     (spec:property ?action-designator (:type :perceiving))
-    (spec:property ?action-designator (:object ?_))
-    (spec:property ?action-designator (:counter ?_)))
+    (spec:property ?action-designator (:counter ?_))
+    ;; extract object from ?action-designator
+    (spec:property ?action-designator (:object ?object-designator))
+    (desig:current-designator ?object-designator ?current-object-desig)
+    (spec:property ?current-object-desig (:type ?object-type))
+    ;; test if the object designator has an name and check for occluduing obejcts if it has one 
+    (-> (spec:property ?current-object-desig (:name ?object-name))
+        (and (btr:bullet-world ?world)
+             (cram-robot-interfaces:robot ?robot)
+             (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
+             (btr:link-pose ?robot ?camera-frame ?camera-pose)
+             (format "~a ~%" ?current-object-desig)
+             (btr:occluding-objects ?world ?camera-pose ?object-name ?occluding-names)
+             (-> (lisp-pred identity ?occluding-names)
+                 (and (equal ?tmp (:occluding-names ?occluding-names))
+                      (equal ?new-key (?tmp)))
+                 (equal ?new-key NIL))
+             (lisp-fun desig:extend-designator-properties ?action-designator ?new-key ?resolved-action-designator)
+             (format "~a ~% ~% ~% ~%" ?new-key)
+             (format "test")
+             (format "~a ~%" ?occluding-names))
+        (equal ?action-designator ?resolved-action-designator)))
 
 
   (<- (desig:action-grounding ?action-designator (pick-up ?resolved-action-designator))
