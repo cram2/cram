@@ -223,26 +223,32 @@
 (defun perceive (&key
                    ((:object ?object-designator))
                    ((:counter ?counter))
+                   ((:occluding-names ?occluding))
                    (object-chosing-function #'identity)
                  &allow-other-keys)
   (declare (type desig:object-designator ?object-designator))
   "Park arms and call DETECTING action. The counter determines how often the detction should be tried.
    If it is below or equal 0 the World-state-detecting will be used."
+  
   (exe:perform
    (desig:an action
              (type positioning-arm)
              (left-configuration park)
              (right-configuration park)))
-  (let ((counter ?counter))
-    (if (<= counter 0)
-        (exe:perform
-         (desig:a motion
-                  (type world-state-detecting)
-                  (object ?object-designator)))
-        (exe:perform
-         (desig:an action
-                   (type detecting)
-                   (object ?object-designator))))))
+  
+  (cpl:with-failure-handling
+      (((or common-fail:perception-low-level-failure
+            cram-common-failures:perception-object-not-found) (e)
+         (roslisp:ros-warn (pick-place-plans perceive) "Detecting failed: ~a~%" e)
+         (when (and ?occluding (<= ?counter 0))
+               (return (exe:perform
+                       (desig:a motion
+                                (type world-state-detecting)
+                                (object ?object-designator)))))))
+    (exe:perform
+     (desig:an action
+               (type detecting)
+               (object ?object-designator)))))
 
 
 ;; (defun perform-phases-in-sequence (action-designator)
