@@ -108,4 +108,7 @@
            timeline-current-world-state timeline-lookup
            holds-in-world with-timeline
            ;; simple-sem-map
-           #:*mesh-path-whitelist*))
+           #:*mesh-path-whitelist*
+           ;; Query the bullet world
+           get-objects-for-type
+           ))
