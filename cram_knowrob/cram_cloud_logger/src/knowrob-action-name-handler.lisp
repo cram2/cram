@@ -38,7 +38,7 @@
           ((string-equal cram-action-name "looking")
            (setf knowrob-action-name "LookingAt"))
           ((string-equal cram-action-name "going")
-           (setf knowrob-action-name "BodyMovement"))
+           (setf knowrob-action-name "MovingTo"))
           ((string-equal cram-action-name "navigating")
            (setf knowrob-action-name "Navigating"))
           ((string-equal cram-action-name "searching")

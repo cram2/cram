@@ -14,7 +14,7 @@
   (get-url-from-send-query-1 "TaskNode" "mem_event_create" situation-prolog-url event-prolog-url "TaskNode"))
 
 (defun send-belief-perceived-at (object-type transform)
-  (get-url-from-send-query-1 "Object" "belief_perceived_at" object-type transform "_" "Object"))
+  (get-url-from-send-query-1 "Object" "belief_perceived_at" object-type transform "0.0" "Object"))
 
 (defun send-belief-new-object-query (object-type)
   (get-url-from-send-query-1 "Object" "belief_new_object" object-type "Object"))
@@ -24,6 +24,9 @@
 
 (defun set-event-status-to-failed (event-prolog-url)
   (send-query-1-without-result "mem_event_set_failed" event-prolog-url))
+
+(defun send-attach-object-as-parameter-to-situation (object-url parameter-type-url event-prolog-url)
+  (send-query-1-without-result "mem_event_includes" event-prolog-url object-url parameter-type-url))
 
 (defun set-event-diagnosis (event-prolog-url diagnosis-url)
   (send-query-1-without-result "mem_event_add_diagnosis" event-prolog-url diagnosis-url))
@@ -47,7 +50,32 @@
 (defun get-url-from-send-query-1 (url-parameter query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
          (query-result (send-query-1 query)))
+    (when (eq query-result nil) (break))
     (ccl::get-url-variable-result-as-str-from-json-prolog-result url-parameter query-result)))
+
+
+(defun send-object-action-parameter (action-inst object-designator)
+  (print "MMMMMMMMMM")
+  (print action-inst)
+  (print object-designator)
+  (print "XXXXXXXXXXXXXXXX"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -155,22 +183,22 @@
 (defun send-rdf-query (a b c)
   (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
-(defun send-object-action-parameter (action-inst object-designator)
-  (let ((object-instance-id (symbol-name (desig:desig-prop-value object-designator :NAME))))
-    (when (not (string-equal object-instance-id "nil"))
-      (progn
-        (send-rdf-query
-         (convert-to-prolog-str action-inst)
-         "knowrob:objectActedOn"
-         (convert-to-prolog-str object-instance-id)))))
+;;(defun send-object-action-parameter (action-inst object-designator)
+;;  (let ((object-instance-id (symbol-name (desig:desig-prop-value object-designator :NAME))))
+;;    (when (not (string-equal object-instance-id "nil"))
+;;      (progn
+;;        (send-rdf-query
+;;         (convert-to-prolog-str action-inst)
+;;         "knowrob:objectActedOn"
+;;         (convert-to-prolog-str object-instance-id)))))
 
-  (let ((object-type (symbol-name (desig:desig-prop-value object-designator :TYPE))))
-    (when (not (string-equal object-type "nil"))
-      (progn
-        (send-rdf-query
-         (convert-to-prolog-str action-inst)
-         "knowrob:objectType"
-         (convert-to-prolog-str object-type))))))
+;;  (let ((object-type (symbol-name (desig:desig-prop-value object-designator :TYPE))))
+;;    (when (not (string-equal object-type "nil"))
+;;      (progn
+;;        (send-rdf-query
+;;         (convert-to-prolog-str action-inst)
+;;         "knowrob:objectType"
+;;         (convert-to-prolog-str object-type))))))
 
 
 
