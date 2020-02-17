@@ -57,20 +57,24 @@ the old object-designator description is enough to create a new one."
                                               or an old pose." object-designator)))))
 
 (defun detect-new-object-pose-from-btr (old-object)
-  (let* ((camera-pose (cdr (assoc '?camera-pose (car
+  (let* (tmp
+         (camera-pose (cdr (assoc '?camera-pose (car
                                                  (prolog:prolog '(and (btr:bullet-world ?world)
                                                                   (cram-robot-interfaces:robot ?robot)
                                                                   (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
                                                                   (btr:link-pose ?robot ?camera-frame ?camera-pose)))))))
          (object-name (if (desig:desig-prop-value old-object :name)
                           (desig:desig-prop-value old-object :name)
-                          (btr:name (car (remove-if-not #'identity
-                                      (remove-if-not (lambda (obj)
-                                                       (< 0.9 (btr:object-visibility-percentage (btr:calculate-object-visibility
-                                                                                                 btr:*current-bullet-world*
-                                                                                                 camera-pose
-                                                                                                 obj))))
-                                                       (btr:get-objects-for-type (desig:desig-prop-value old-object :type))))))))
+                          (btr:name (if (setf tmp (car (remove-if-not (lambda (obj)
+                                                          (btr:object-visibility-occluding-objects (btr:calculate-object-visibility
+                                                                                                    btr:*current-bullet-world*
+                                                                                                    camera-pose
+                                                                                                    obj)))
+                                                                      (btr:get-objects-for-type (desig:desig-prop-value old-object :type)))))
+                                        tmp
+                                        (cpl:fail 'common-fail:perception-object-not-found
+                                                  :object old-object
+                                                  :description (format NIL "There is no object with a matching type to ~a in the fiel of view of the robot" old-object))))))
          (object-type
            (first (btr:item-types
                    (btr:object btr:*current-bullet-world* object-name))))
@@ -84,7 +88,7 @@ the old object-designator description is enough to create a new one."
          (map-P-obj
            (cram-tf:strip-transform-stamped map-T-obj)))
 
-    (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
+    (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))3
 
 
 (defun detect-new-object-pose-from-old-pose (old-object)
