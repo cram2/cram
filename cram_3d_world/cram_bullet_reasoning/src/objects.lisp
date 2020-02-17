@@ -447,3 +447,10 @@ the names of which are in `object-to-attach-names'."
       (btr:object *current-bullet-world* object-to-detach-from-name)
     (when obj-found
       (detach-all-objects obj))))
+
+(defun get-objects-for-type (object-type)
+  (remove-if-not #'identity
+                 (mapcar (lambda (obj) (when (typep obj 'btr:item)
+                                         (when (eql (first (btr:item-types obj)) object-type)
+                                           obj)))
+                         (btr:objects btr:*current-bullet-world*))))

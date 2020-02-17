@@ -49,16 +49,28 @@ the old object-designator description is enough to create a new one."
            (desig:desig-prop-value object-designator :type)
            (desig:desig-prop-value object-designator :name))
       (detect-new-object-pose-from-old-pose object-designator)
-      (if (desig:desig-prop-value object-designator :name)
+      (if (desig:desig-prop-value object-designator :type)
           (detect-new-object-pose-from-btr object-designator)
           (cpl:fail 'common-fail:perception-object-not-in-world
                     :object object-designator
-                    :description (format nil "Object designator ~a has to have a name ~
+                    :description (format nil "Object designator ~a has to have a type ~
                                               or an old pose." object-designator)))))
 
 (defun detect-new-object-pose-from-btr (old-object)
-  (let* ((object-name
-           (desig:desig-prop-value old-object :name))
+  (let* ((camera-pose (cdr (assoc '?camera-pose (car
+                                                 (prolog:prolog '(and (btr:bullet-world ?world)
+                                                                  (cram-robot-interfaces:robot ?robot)
+                                                                  (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
+                                                                  (btr:link-pose ?robot ?camera-frame ?camera-pose)))))))
+         (object-name (if (desig:desig-prop-value old-object :name)
+                          (desig:desig-prop-value old-object :name)
+                          (btr:name (car (remove-if-not #'identity
+                                      (remove-if-not (lambda (obj)
+                                                       (< 0.9 (btr:object-visibility-percentage (btr:calculate-object-visibility
+                                                                                                 btr:*current-bullet-world*
+                                                                                                 camera-pose
+                                                                                                 obj))))
+                                                       (btr:get-objects-for-type (desig:desig-prop-value old-object :type))))))))
          (object-type
            (first (btr:item-types
                    (btr:object btr:*current-bullet-world* object-name))))
