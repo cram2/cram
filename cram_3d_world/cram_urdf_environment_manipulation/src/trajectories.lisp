@@ -175,7 +175,10 @@ container with revolute joints."
                                 &key
                                   (axis (cl-transforms:make-3d-vector 0 0 1))
                                   angle-max)
-  "Return a list of transforms from joint to gripper rotated around AXIS by ANGLE-MAX."
+  "Return a list of stamped transforms from of the gripper-frame in the joint-frame rotated
+around AXIS by ANGLE-MAX in steps of 0.1 rad.
+JOINT-TO-GRIPPER is a cl-transforms-stamped:transform-stamped with the joint frame as it's frame
+and the gripper frame as the child frame."
   (let ((angle-step (if (>= angle-max 0)
                         0.1
                         -0.1)))
@@ -204,7 +207,13 @@ container with revolute joints."
                                            arm
                                            handle-axis
                                            btr-environment)
-  "Get the transform from the container handle to the robot's gripper."
+  "Get the transform of the robot's gripper in the container handle frame.
+OBJECT-NAME is the name of a container in the BTR-ENVIRONMENT. Can be either a string or a
+symbol.
+ARM denotes which arm's gripper should be used (eg. :left or :right).
+HANDLE-AXIS is the axis on which the handle lies when looked at from the front in form of a vector.
+So normally (1 0 0) or (0 0 1).
+BTR-ENVIRONMENT is the name of the environment in which the container is located (eg. :KITCHEN)."
   (when (symbolp object-name)
     (setf object-name
           (roslisp-utilities:rosify-underscores-lisp-name object-name)))
