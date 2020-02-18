@@ -30,8 +30,8 @@
 (in-package :env-man)
 
 (defun line-equation (x1 y1 x2 y2)
-  "Return the a, b and c values of the equation descriping a straight line
-through (x1,y1) and (x2,y2)."
+  "Return the a, b and c values of the term (ax + by + c) descriping a straight line
+through the points (x1,y1) and (x2,y2)."
   (let ((x (- x2 x1))
         (y (- y2 y1)))
     (if (eq 0 x)
@@ -42,8 +42,17 @@ through (x1,y1) and (x2,y2)."
            1
            (- 0 (- y1 (* m x1))))))))
 
+(defun line-equation-in-xy (p1 p2)
+  "Helper-function to get the equation (a,b,c values) describing a line between p1 and p2
+in the x-y-plane (i.e. only considering the first two dimensions)."
+  (let ((x1 (cl-transforms:x p1))
+        (y1 (cl-transforms:y p1))
+        (x2 (cl-transforms:x p2))
+        (y2 (cl-transforms:y p2)))
+    (line-equation x1 y1 x2 y2)))
+
 (defun distance-point (a b c x y)
-  "Return the coordinates on the line described by ax + bx + c
+  "Return the coordinates on the line described by ax + by + c
 from which the distance to the point (x,y) is minimal."
   (values
    (/
@@ -53,16 +62,8 @@ from which the distance to the point (x,y) is minimal."
     (- (* a (+ (* (- 0 b) x) (* a y))) (* b c))
     (+ (expt a 2) (expt b 2)))))
 
-(defun line-equation-in-xy (p1 p2)
-  "Return the equation (a,b,c values) describing a line between p1 and p2 in the x-y-plane."
-  (let ((x1 (cl-transforms:x p1))
-        (y1 (cl-transforms:y p1))
-        (x2 (cl-transforms:x p2))
-        (y2 (cl-transforms:y p2)))
-    (line-equation x1 y1 x2 y2)))
-
 (defun line-p-dist (a b c p)
-  "Return the disctance between the line described by ax + bx + c
+  "Return the distance between the line described by ax + by + c
 and the point p (in the x-y plane)."
   (let ((x (cl-transforms:x p))
         (y (cl-transforms:y p)))
@@ -71,7 +72,7 @@ and the point p (in the x-y plane)."
      (sqrt (+ (expt a 2) (expt b 2))))))
 
 (defun line-p-dist-point (a b c p)
-  "Return the point on the line described by ax + bx + c
+  "Return the point on the line described by ax + by + c
 from which the distance to the point (x,y) is minimal."
   (let ((px (cl-transforms:x p))
         (py (cl-transforms:y p)))
