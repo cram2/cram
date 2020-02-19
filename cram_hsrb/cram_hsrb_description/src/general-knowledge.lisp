@@ -1,4 +1,3 @@
-
 ;;;
 ;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
@@ -31,6 +30,7 @@
 
 (in-package :hsrb-descr)
 
+;;for the calculate-pan-tilt function
 (defparameter *robot-head-tilt-rotation-sign* '- )
 
 (def-fact-group hsrb-metadata (robot

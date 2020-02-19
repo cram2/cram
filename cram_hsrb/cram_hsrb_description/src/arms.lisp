@@ -83,6 +83,7 @@
 
   (<- (arm hsrb :left))
   (<- (end-effector-link hsrb :left "wrist_roll_link"))
+  ;;cram-tf needs the right link/joint, for now we can do it like this
   (<- (end-effector-link hsrb :right "ATTENTION please don't use this frame"))
 
 

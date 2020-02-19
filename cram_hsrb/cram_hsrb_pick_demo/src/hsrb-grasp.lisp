@@ -1,6 +1,6 @@
 ;;;
-;;; Copyright (c) 2020, Vanessa Hassouna <hassouna@uni-bremen.de>
-;;;                     Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;                      Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without

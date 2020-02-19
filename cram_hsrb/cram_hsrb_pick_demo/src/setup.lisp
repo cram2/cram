@@ -1,5 +1,6 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;                      Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -47,10 +48,8 @@
                          (setf *kitchen-urdf* (cl-urdf:parse-urdf
                                                kitchen-urdf-string)))))))
 
-    (if (search "hsrb" robot-urdf)
+
         (setf robot (get-urdf-hsrb))
-        (when (search "boxy" robot-urdf )
-          (get-setup-boxy)))
         
     (assert
      (cut:force-ll
