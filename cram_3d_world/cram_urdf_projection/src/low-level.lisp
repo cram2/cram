@@ -770,7 +770,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
     (btr:add-vis-axis-object right-tcp-pose))
   (when left-tcp-pose
     (btr:add-vis-axis-object left-tcp-pose))
-  (cpl:sleep 2.0)
+  ;; (cpl:sleep 2.0)
 
   (cut:with-vars-strictly-bound (?robot
                                  ?left-tool-frame ?right-tool-frame

@@ -106,13 +106,13 @@
 (defun make-gripper-grasp-action-goal ()
   (roslisp:make-message
    'slipping_control_msgs-msg:GraspGoal
-   :desired_force 5.0))
+   :desired_force 20.0))
 
 (defun call-gripper-grasp-action ()
   (actionlib-client:call-simple-action-client
    'gripper-grasp-action
    :action-goal (make-gripper-grasp-action-goal))
-  (cpl:sleep 5.0))
+  (cpl:sleep 7.0))
 
 
 

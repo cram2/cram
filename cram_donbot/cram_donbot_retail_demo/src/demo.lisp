@@ -47,9 +47,11 @@
 
   (when (and spawn? cram-projection:*projection-environment*)
     (btr-utils:spawn-object :balea-bottle-1 :balea-bottle :pose
-                            '((1.9 -1.42 1.05) (0 0 0.7 0.7)))
+                            '((1.9 -1.42 1.05) (0 0 0.7 0.7))
+                            :color '(1 1 1))
     (btr-utils:spawn-object :dish-washer-tabs-1 :dish-washer-tabs
-                            :pose '((1.75 -1.45 1.06) (0 0 0.7 0.7)))
+                            :pose '((1.75 -1.45 1.06) (0 0 0.7 0.7))
+                            :color '(0 1 0))
     ;; (btr:simulate btr:*current-bullet-world* 50)
     ))
 

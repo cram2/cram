@@ -53,7 +53,7 @@
   0.72)
 
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :dish-washer-tabs)))
-  0.72)
+  0.2)
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :balea-bottle)))
   0.72)
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :deodorant)))
@@ -64,10 +64,10 @@
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;; DISH-WASHER-TABS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *dish-washer-tabs-grasp-x-offset* 0.0 "in meters")
-(defparameter *dish-washer-tabs-grasp-z-offset* 0.02 "in meters")
+(defparameter *dish-washer-tabs-grasp-z-offset* 0.0 "in meters")
 (defparameter *dish-washer-tabs-pregrasp-x-offset* 0.3 "in meters")
 (defparameter *dish-washer-tabs-lift-z-top-grasp-offset* 0.1 "in meters")
-(defparameter *dish-washer-tabs-lift-z-other-grasp-offset* 0.03 "in meters")
+(defparameter *dish-washer-tabs-lift-z-other-grasp-offset* 0.04 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :top
@@ -190,14 +190,14 @@
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
   :donbot-tray-front
-  :attachment-translation `(0.1 0.05 0.12)
+  :attachment-translation `(0.1 0.05 0.11)
   :attachment-rot-matrix '((0  0  1)
                            (0 -1  0)
                            (1  0  0)))
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
   :donbot-tray-back
-  :attachment-translation `(0.1 0.05 0.12)
+  :attachment-translation `(0.1 0.05 0.11)
   :attachment-rot-matrix '(( 0  0  1)
                            ( 0  1  0)
                            (-1  0  0)))
