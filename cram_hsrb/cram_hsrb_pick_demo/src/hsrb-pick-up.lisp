@@ -114,8 +114,8 @@ to grasp the object, if that fails the next position in list will be tried"
        ;;sets object-type to prolog variable 
        (?object-type object-type))
 
-    ;;retrying 43 times since the list has as many entries
-    (cpl:with-retry-counters ((going-retry 43))
+    ;;retrying 78 times since the list has as many entries
+    (cpl:with-retry-counters ((going-retry 78))
       (cpl:with-failure-handling
           (((or common-fail:low-level-failure 
                 cl::simple-error
@@ -158,8 +158,8 @@ to grasp the object, if that fails the next position in list will be tried"
                                        (type detecting)
                                        (object (desig:an object 
                                                          (type ?object-type))))))
-               (?grasp (car (car (cdr (car nav-pose))))))
-          
+               (?grasp (caadar  nav-pose)))
+   
           ;;perform a action type picking-up with given grasp and object
           (exe:perform (desig:an action
                                  (type picking-up)
