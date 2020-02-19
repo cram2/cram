@@ -2,8 +2,9 @@
   <name>cram_hsrb</name>
   <version>0.7.0</version>
   <description>Metapackage for hsrb robot's code</description>
-  <author>Gayane Kazhoyan</author>
+  <author>Vanessa Hassouna</author> 
   <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <maintainer email="hassouna@uni-bremen.de">Vanessa Hassouna</maintainer>
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
