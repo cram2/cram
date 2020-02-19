@@ -506,27 +506,29 @@
                                         1.0)
                                      *object-delivering-poses-varied-kitchen*
                                      *object-delivering-poses*))))))
-                 (bowl-transform
-                   (cram-tf:pose-stamped->transform-stamped bowl-pose "bowl"))
                  (?delivering-poses
                    (case ?bullet-type
-                     (:bowl (list bowl-pose))
+                     (:bowl
+                      (list bowl-pose))
                      (t
                       (list (cl-transforms-stamped:pose->pose-stamped
-                          cram-tf:*fixed-frame* 0.0
-                          (cram-tf:list->pose
-                           (cdr (assoc type
-                                       (if (> (cl-transforms:y
-                                               (cl-transforms:origin
-                                                (btr:pose
-                                                 (btr:rigid-body
-                                                  (btr:get-environment-object)
-                                                  :|KITCHEN.sink_area|))))
-                                              1.0)
-                                           *object-delivering-poses-varied-kitchen*
-                                           *object-delivering-poses*))))))
+                             cram-tf:*fixed-frame* 0.0
+                             (cram-tf:list->pose
+                              (cdr (assoc type
+                                          (if (> (cl-transforms:y
+                                                  (cl-transforms:origin
+                                                   (btr:pose
+                                                    (btr:rigid-body
+                                                     (btr:get-environment-object)
+                                                     :|KITCHEN.sink_area|))))
+                                                 1.0)
+                                              *object-delivering-poses-varied-kitchen*
+                                              *object-delivering-poses*))))))
                       ;; (alexandria:shuffle
-                      ;;  (cut:force-ll (object-poses-ll-for-placing type bowl-transform)))
+                      ;;  (cut:force-ll (object-poses-ll-for-placing
+                      ;;                 type
+                      ;;                 (cram-tf:pose-stamped->transform-stamped
+                      ;;                  bowl-pose "bowl"))))
                       ))))
 
             (exe:perform
