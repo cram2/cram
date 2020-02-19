@@ -31,7 +31,7 @@
 
 (defun line-equation (x1 y1 x2 y2)
   "Return the a, b and c values of the term (ax + by + c) descriping a straight line
-through the points (x1,y1) and (x2,y2)."
+through the points (`x1',`y1') and (`x2',`y2')."
   (let ((x (- x2 x1))
         (y (- y2 y1)))
     (if (eq 0 x)
@@ -43,7 +43,7 @@ through the points (x1,y1) and (x2,y2)."
            (- 0 (- y1 (* m x1))))))))
 
 (defun line-equation-in-xy (p1 p2)
-  "Helper-function to get the equation (a,b,c values) describing a line between p1 and p2
+  "Helper-function to get the equation (a,b,c values) describing a line between `p1' and `p2'
 in the x-y-plane (i.e. only considering the first two dimensions)."
   (let ((x1 (cl-transforms:x p1))
         (y1 (cl-transforms:y p1))
@@ -81,13 +81,13 @@ from which the distance to the point (x,y) is minimal."
       (cl-transforms:make-3d-vector x y 0))))
 
 (defun angle-between-vectors (v1 v2)
-  "Return the cos of the angle between vectors V1 and V2."
+  "Return the cos of the angle between vectors `v1' and `v2.'"
   (/ (cl-transforms:dot-product v1 v2)
      (* (cl-transforms:v-norm v1)
         (cl-transforms:v-norm v2))))
 
 (defun v-which-side (v1 v2)
-  "Return either :left or :right depending on which side of v1 v2 is."
+  "Return either :left or :right depending on which side of `v1' `v2' is."
   (let ((v2-rot90ccw (cl-transforms:make-3d-vector
                       (- (cl-transforms:y v2))
                       (cl-transforms:x v2)
