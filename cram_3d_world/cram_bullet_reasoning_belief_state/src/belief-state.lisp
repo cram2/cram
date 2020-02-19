@@ -113,27 +113,7 @@ is replaced with replacement.
 
 
 
-(defun vary-kitchen-urdf (&optional (new-joint-states
-                                     ;; '(("sink_area_footprint_joint"
-                                     ;;    ((1.855d0 1.3d0 0.0d0) (0 0 1 0)))
-                                     ;;   ("oven_area_footprint_joint"
-                                     ;;    ((1.855d0 2.47d0 0.0d0) (0 0 1 0)))
-                                     ;;   ("kitchen_island_footprint_joint"
-                                     ;;    ((-1.365d0 0.59d0 0.0d0) (0 0 0 1)))
-                                     ;;   ("fridge_area_footprint_joint"
-                                     ;;    ((1.845d0 -0.73d0 0.0d0) (0 0 1 0)))
-                                     ;;   ("table_area_main_joint"
-                                     ;;    ((-2.4d0 -1.5d0 0.0d0) (0 0 1 0))))
-                                     '(("sink_area_footprint_joint"
-                                        ((1.155d0 0.9d0 0.0d0) (0 0 0 1)))
-                                       ("oven_area_footprint_joint"
-                                        ((-0.155d0 2.97d0 0.0d0) (0 0 -0.5 0.5)))
-                                       ("kitchen_island_footprint_joint"
-                                        ((-0.60d0 -0.2d0 0.0d0) (0 0 0.5 0.5)))
-                                       ("fridge_area_footprint_joint"
-                                        ((-2.30d0 0.5d0 0.0d0) (0 0 0.5 0.5)))
-                                       ("table_area_main_joint"
-                                        ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5))))))
+(defun vary-kitchen-urdf (new-joint-states)
   (let ((kitchen-urdf-joints (cl-urdf:joints *kitchen-urdf*)))
    (mapc (lambda (joint-name-poses-list-pair)
            (destructuring-bind (joint-name poses-list)
