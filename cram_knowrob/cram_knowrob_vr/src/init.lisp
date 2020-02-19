@@ -161,7 +161,42 @@ objects for debugging."
         (when kitchen-urdf-string
           (setf btr-belief:*kitchen-urdf*
                 (cl-urdf:parse-urdf kitchen-urdf-string)))))
-    (btr-belief:vary-kitchen-urdf))
+    (btr-belief:vary-kitchen-urdf
+     ;; original values
+     ;; '(("sink_area_footprint_joint"
+     ;;    ((1.855d0 1.3d0 0.0d0) (0 0 1 0)))
+     ;;   ("oven_area_footprint_joint"
+     ;;    ((1.855d0 2.47d0 0.0d0) (0 0 1 0)))
+     ;;   ("kitchen_island_footprint_joint"
+     ;;    ((-1.365d0 0.59d0 0.0d0) (0 0 0 1)))
+     ;;   ("fridge_area_footprint_joint"
+     ;;    ((1.845d0 -0.73d0 0.0d0) (0 0 1 0)))
+     ;;   ("table_area_main_joint"
+     ;;    ((-2.4d0 -1.5d0 0.0d0) (0 0 1 0))))
+     ;;
+     ;; flipped sink values
+     ;; '(("sink_area_footprint_joint"
+     ;;    ((1.155d0 0.9d0 0.0d0) (0 0 0 1)))
+     ;;   ("oven_area_footprint_joint"
+     ;;    ((-0.155d0 2.97d0 0.0d0) (0 0 -0.5 0.5)))
+     ;;   ("kitchen_island_footprint_joint"
+     ;;    ((-0.60d0 -0.2d0 0.0d0) (0 0 0.5 0.5)))
+     ;;   ("fridge_area_footprint_joint"
+     ;;    ((-2.30d0 0.5d0 0.0d0) (0 0 0.5 0.5)))
+     ;;   ("table_area_main_joint"
+     ;;    ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5))))
+     ;;
+     ;; more realistic kitchen variation
+     '(("sink_area_footprint_joint"
+        ((1.855d0 2.9d0 0.0d0) (0 0 1 0)))
+       ("oven_area_footprint_joint"
+        ((1.2d0 -1.8d0 0.0d0) (0 0 0.5 0.5)))
+       ("kitchen_island_footprint_joint"
+        ((-0.5d0 0.45d0 0.0d0) (0 0 0.5 0.5)))
+       ("fridge_area_footprint_joint"
+        ((-0.05d0 -1.78d0 0.0d0) (0 0 0.5 0.5)))
+       ("table_area_main_joint"
+        ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5))))))
 
   (coe:clear-belief)
 
