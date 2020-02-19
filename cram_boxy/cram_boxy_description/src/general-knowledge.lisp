@@ -29,6 +29,8 @@
 
 (in-package :boxy-descr)
 
+(defparameter *robot-head-tilt-rotation-sign* '+ )
+
 (def-fact-group boxy-metadata (robot
                                robot-odom-frame
                                robot-base-frame robot-torso-link-joint

@@ -28,6 +28,8 @@
 
 (in-package :cram-pr2-description)
 
+(defparameter *robot-head-tilt-rotation-sign* '+ )
+
 ;; (def-tool (cl-transforms:make-3d-vector 1 0 0) 0.20)
 
 (defparameter *forward-looking-position-in-base-frame*
