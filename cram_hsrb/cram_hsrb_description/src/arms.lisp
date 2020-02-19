@@ -47,6 +47,11 @@
     ("wrist_flex_joint" -1.85)
     ("wrist_roll_joint" 0)))
 
+(defun get-arm-base-joint-names (arm)
+  (declare (ignore arm))
+  (list "arm_lift_joint"))
+
+
 (defun get-hand-link-names (arm)
   (ecase arm
     (:left (list "hand_l_distal_link"
@@ -54,6 +59,16 @@
                  "hand_palm_link"
                  "hand_r_distal_link"
                  "hand_r_spring_proximal_link"))))
+
+(defun get-arm-joint-names (arm)
+  ;; TODO: the proper way to do this is to read them out of the srdl,
+  ;; so that we don't need to write the same thing, consistently, in several places
+  (ecase arm
+    (:left (list "arm_lift_joint" ;;torso (toros_lift_joint mirrows arm_lift_j)
+                 "arm_flex_joint"
+                 "arm_roll_joint"
+                 "wrist_flex_joint"
+                 "wrist_roll_joint")))) ;;ee-joint
 
 (def-fact-group hsrb-arm-facts (arm
                                 end-effector-link
@@ -78,17 +93,14 @@
                               "arm_roll_joint"
                               "wrist_flex_joint"
                               "wrist_roll_joint")))
+  (<- (arm-joints hsrb :right ("ATTENTION please don't use this frame")))
 
   (<- (arm-links hsrb :left ("arm_flex_link"
                              "arm_roll_link"
                              "wrist_flex_link"
                              "wrist_roll_link")))
 
-  (<- (arm-joints hsrb :right ("ATTENTION please don't use this frame")))
-
   (<- (arm-links hsrb :right ("ATTENTION please don't use this frame")))
-
-  (<- (gripper-joint hsrb :left "hand_motor_joint"))
 
   (<- (gripper-joint hsrb :left "hand_motor_joint"))
   
@@ -114,6 +126,10 @@
   
   (<- (robot-joint-states hsrb :arm :left :park ?joint-states)
     (symbol-value *left-parking-joint-states* ?joint-states))
+
+  (<- (robot-joint-states hsrb :arm :left :carry ?joint-states)
+    (symbol-value *left-parking-joint-states* ?joint-states))
+
 
   (<- (gripper-meter-to-joint-multiplier hsrb 1.0))
 
