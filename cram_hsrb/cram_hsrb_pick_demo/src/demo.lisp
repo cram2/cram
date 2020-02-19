@@ -37,7 +37,7 @@
     (btr:add-object btr:*current-bullet-world* :primit-cylinder 'cylinder-1 
                     '((-0.7 -0.7 0.85) (0 0 1 1)) :mass 0.2 :size 
                     (cl-tf:make-3d-vector 0.03 0.03 0.08))
-    (hsrb-demo::pick-up-object 'hsrb-demo::cylinder-1 :primit-cylinder)))
+    (pick-up-object 'hsrb-demo::cylinder-1 :primit-cylinder)))
 
 (defun spawn-pickup-cylinder-air ()
 "spawn primitiv cylinder and tries to pick up"
@@ -45,4 +45,4 @@
     (btr:add-object btr:*current-bullet-world* :primit-cylinder 'cylinder-1 
                     '((0.7 0.0777 0.65) (0 0 1 1)) :mass 0.2 :size 
                     (cl-tf:make-3d-vector 0.03 0.03 0.08))
-    (hsrb-demo::pick-up-object 'hsrb-demo::cylinder-1 :primit-cylinder)))
+    (pick-up-object 'hsrb-demo::cylinder-1 :primit-cylinder)))

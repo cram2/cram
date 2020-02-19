@@ -38,6 +38,8 @@
   "moves the robot as the object while ignoring the enviroment"
   (let* ((?object-pose (btr:object-pose object-name)))
     (roslisp:with-fields (x y) (cl-tf:origin ?object-pose)
+      ;;TODO This does not work on the real robot 
+      ;;to make it work multiply the transforms instead of teleporting the robot
       (btr-utils:move-robot 
        (cl-tf:make-pose 
         (cl-tf:make-3d-vector x y 0)
@@ -50,6 +52,7 @@
 to grasp the object, if that fails the next position in list will be tried" 
   (let* 
       ((nav-pose 
+         ;;TODO shuffle the list?
          ;;applying append function to the successive subsets of the list
          (reduce #'append 
                  ;;goes through each element in the sequence, and returns a new list
@@ -114,8 +117,9 @@ to grasp the object, if that fails the next position in list will be tried"
        ;;sets object-type to prolog variable 
        (?object-type object-type))
     
-    ;;retrying 78 times since the list has as many entries
-    (cpl:with-retry-counters ((going-retry 163))
+    
+    (cpl:with-retry-counters ((going-retry 500))
+      ;;TODO if it takes to long to go through the whole list implement a stop
       (cpl:with-failure-handling
           (((or common-fail:low-level-failure 
                 cl::simple-error
@@ -125,13 +129,13 @@ to grasp the object, if that fails the next position in list will be tried"
              (roslisp:ros-warn (grasp-object fail)
                                "~%Failed with given msgs ~a~%" e)
              ;;get rid of head of nav-pose by setting only the rest
-             (setf nav-pose (cdr nav-pose))
+             (unless (eq nil (cdr nav-pose))
+               (setf nav-pose (cdr nav-pose))
 
-             
-             (cpl:do-retry going-retry
-               (roslisp:ros-warn (grasp-object fail)
-                                 "~%Failed with given msgs ~a~%" e)
-               (cpl:retry))
+               (cpl:do-retry going-retry
+                 (roslisp:ros-warn (grasp-object fail)
+                                   "~%Failed with given msgs ~a~%" e)
+                 (cpl:retry)))
              (roslisp:ros-warn (grasp-object fail)
                                "~%No more retries~%")))
         ;;park-robot (percieve pose)
@@ -159,7 +163,7 @@ to grasp the object, if that fails the next position in list will be tried"
                                        (object (desig:an object 
                                                          (type ?object-type))))))
                (?grasp (caadar  nav-pose)))
-   
+          
           ;;perform a action type picking-up with given grasp and object
           (exe:perform (desig:an action
                                  (type picking-up)
@@ -168,5 +172,5 @@ to grasp the object, if that fails the next position in list will be tried"
                                  (object ?object-desig))))))))
 
 
-        
+
 
