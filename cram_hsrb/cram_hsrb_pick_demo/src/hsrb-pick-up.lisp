@@ -56,7 +56,7 @@ to grasp the object, if that fails the next position in list will be tried"
                  (mapcar
                   (lambda (list-poses)
                     (let ((tmp-list nil))
-                      (loop for a from 0.0 to 0.2 by 0.01
+                      (loop for a from 0.0 to 0.4 by 0.01
                             do
                                ;;push element to list
                                (push
@@ -113,9 +113,9 @@ to grasp the object, if that fails the next position in list will be tried"
                          :right-side)))))
        ;;sets object-type to prolog variable 
        (?object-type object-type))
-
+    
     ;;retrying 78 times since the list has as many entries
-    (cpl:with-retry-counters ((going-retry 78))
+    (cpl:with-retry-counters ((going-retry 163))
       (cpl:with-failure-handling
           (((or common-fail:low-level-failure 
                 cl::simple-error
