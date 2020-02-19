@@ -302,7 +302,7 @@ The name in the list is a keyword that is created by lispifying the filename."
                                    :half-extents (ensure-vector size)
                                    :color color)))))
 
-(defmethod add-object ((world bt-world) (type (eql :primit-cylinder)) name pose
+(defmethod add-object ((world bt-world) (type (eql :primitiv-cylinder)) name pose
                        &key mass (color '(0.5 0.5 0.5 1.0)) size)
   (assert size)
   (make-item world name (list type)

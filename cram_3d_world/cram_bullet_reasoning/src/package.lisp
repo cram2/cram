@@ -55,7 +55,7 @@
            rigid-body-names rigid-body world make-object box
            static-plane sphere cylinder cone point-cloud
            cutlery fork knife mug plate mondamin pot bowl sugar-box apple orange
-           cereal primit-cylinder spatula pancake pancake-maker
+           cereal primitiv-cylinder spatula pancake pancake-maker
            bt-reasoning-world invalidate-object objects object %object
            bt-reasoning-world-state robot-object links joint-states
            assert joint-state urdf joint-names joint-state link-names
