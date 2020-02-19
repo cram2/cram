@@ -36,10 +36,10 @@
 
 
 (defmethod man-int:get-action-gripping-effort :heuristics 20 
-    ((object-type (eql :primit-cylinder))) 50)
+    ((object-type (eql :primitiv-cylinder))) 50)
 
 (defmethod man-int:get-action-gripper-opening :heuristics 20 
-    ((object-type (eql :primit-cylinder))) 0.10)
+    ((object-type (eql :primitiv-cylinder))) 0.10)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; primitiv-cylinder ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
