@@ -31,8 +31,8 @@
 
 (defun get-container-pose-and-transform (name btr-environment)
   "Return a list of the pose-stamped and transform-stamped of the object named
-NAME in the environment BTR-ENVIRONMENT.
-The frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be the NAME."
+`name' in the environment `btr-environment'.
+the frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be the `name'."
   (when (symbolp name)
     (setf name
           (roslisp-utilities:rosify-underscores-lisp-name name)))
@@ -48,7 +48,7 @@ The frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be t
     (list pose transform)))
 
 (defun get-urdf-link-pose (name btr-environment)
-  "Return the pose of the object with NAME in BTR-ENVIRONMENT."
+  "Return the pose of the object with `name' in `btr-environment'."
   (when (symbolp name)
     (setf name
           (roslisp-utilities:rosify-underscores-lisp-name name)))
@@ -61,7 +61,7 @@ The frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be t
      name))))
 
 (defun get-container-link (container-name btr-environment)
-  "Return the cl-URDF:LINKurdf:link object of the container with CONTAINER-NAME in the BTR-ENVIRONMENT."
+  "Return the `cl-urdf:link' object of the container with `container-name' in the `btr-environment'."
   (when (symbolp container-name)
     (setf container-name
           (roslisp-utilities:rosify-underscores-lisp-name container-name)))
@@ -72,22 +72,22 @@ The frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be t
                          btr-environment)))))
 
 (defun get-container-joint-type (container-name btr-environment)
-  "Return the joint-type of the container with CONTAINER-NAME in the BTR-ENVIRONMENT."
+  "Return the joint-type of the container with `container-name' in the `btr-environment'."
   (find-container-joint-type-under-joint
    (cl-urdf:from-joint
     (get-container-link container-name
                         btr-environment))))
 
 (defun find-container-joint-type-under-joint (joint)
-  "Return the first joint type different from :FIXED under the given JOINT (cl-urdf:joint)."
+  "Return the first joint type different from :FIXED under the given `joint' (`cl-urdf:joint')."
   (if (eq :FIXED (cl-urdf:joint-type joint))
       (find-container-joint-type-under-joint
        (car (cl-urdf:to-joints (cl-urdf:child joint))))
       (cl-urdf:joint-type joint)))
 
 (defun get-handle-link (container-name btr-environment)
-  "Return the cl-urdf:link object of the handle of the container with CONTAINER-NAME in
-the BTR-ENVIRONMENT."
+  "Return the `cl-urdf:link' object of the handle of the container with `container-name' in
+the `btr-environment'."
   (when (symbolp container-name)
     (setf container-name
           (roslisp-utilities:rosify-underscores-lisp-name container-name)))
@@ -95,7 +95,7 @@ the BTR-ENVIRONMENT."
    (get-container-link container-name btr-environment)))
 
 (defun find-handle-under-link (link)
-  "Return the cl-urdf:link object of the handle under the given LINK."
+  "Return the `cl-urdf:link' object of the handle under the given `link' object."
   (if (search "handle" (cl-urdf:name link))
       link
       (reduce (lambda (&optional x y) (or x y))
@@ -103,12 +103,12 @@ the BTR-ENVIRONMENT."
                       (mapcar 'cl-urdf:child (cl-urdf:to-joints link))))))
 
 (defun get-joint-position (joint btr-environment)
-  "Return the value of the JOINT (cl-urdf:joint) in the BTR-ENVIRONMENT."
+  "Return the value of the `joint' (`cl-urdf:joint') in the `btr-environment'."
   (gethash (cl-urdf:name joint)
            (btr:joint-states (btr:object btr:*current-bullet-world* btr-environment))))
 
 (defun get-connecting-joint (part)
-  "Returns the connecting (moveable) joint of PART (cl-urdf:joint or cl-urdf:link)."
+  "Returns the connecting (moveable) joint of `part' (`cl-urdf:joint' or `cl-urdf:link')."
   (or
    (get-connecting-joint-below part)
    (get-connecting-joint-above part)))
@@ -141,17 +141,18 @@ the BTR-ENVIRONMENT."
           (get-connecting-joint-above (cl-urdf:from-joint part))))))
 
 (defun get-manipulated-link (part)
-  "Returns the cl-urdf:link object under the connecting joint. Which is the one actually
+  "Returns the `cl-urdf:link' object under the connecting joint of `part'. Which is the one actually
 being manipulated.
-PART can be either a cl-urdf:joint or a cl-urdf:link."
+`part' can be either a `cl-urdf:joint' or a `cl-urdf:link'."
   (cl-urdf:child
    (get-connecting-joint part)))
 
 (defun get-manipulated-pose (link-name joint-position btr-environment &key relative)
-  "Returns the pose of a link based on its connection joint position
-  JOINT-POSITION. If RELATIVE is T, the actual value is calculated
-  by JOINT-POSITION * <joint maximal value>. This function returns two
-  values, the new pose of the link and the cl-urdf:joint object that was changed."
+  "Returns the pose of the link with `link-name' based on its connection joint position
+`joint-position'. If `relative' is T, the actual value is calculated
+by `joint-position' * <joint maximal value>. This function returns two
+values, the new pose of the link and the `cl-urdf:joint' object that was changed.
+`btr-environment' is the name of the bullet environment (eg. :kitchen)."
   (when (not (floatp joint-position))
     (setf joint-position (float joint-position)))
   (let ((link (get-container-link link-name btr-environment)))
@@ -206,7 +207,7 @@ PART can be either a cl-urdf:joint or a cl-urdf:link."
 
 (defun get-handle-axis (container-designator)
   "Return either a vector with (1 0 0) for horizontal handles or (0 0 1) for
-vertical handles on the container described by CONTAINER-DESIGNATOR.
+vertical handles on the container described by `container-designator'.
 Prismatic containers are assumed to have horizontal handles while revolute containers are assumed
 to have vertical ones. There are exceptions to this of course. For now those are hard-coded into
 this function."
