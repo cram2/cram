@@ -58,7 +58,12 @@
   (<- (cpoe:loc ?object ?location)
     (desig:obj-desig? object)
     (object-designator-name ?object ?object-name)
-    (object-at-location ?_ ?object-name ?location)))
+    (object-at-location ?_ ?object-name ?location))
+
+  ;; This goal check is defined in the cram_urdf_environment_manipulation package
+  ;; (<- (cpoe:container-state ?container-designator ?distance)
+  ;;   ...)
+  )
 
 
 
