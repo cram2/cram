@@ -31,10 +31,17 @@
 
 (def-fact-group environment-occasions (cpoe:container-state)
   (<- (cpoe:container-state ?container-designator ?distance)
+    (cpoe:container-state ?container-designator ?distance 0.01))
+
+  (<- (cpoe:container-state ?container-designator ?distance ?delta)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (btr:bullet-world ?world)
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-connecting-joint ?container-link ?joint)
     (lisp-fun cl-urdf:name ?joint ?joint-name)
-    (btr:joint-state ?world ?btr-environment ?joint-name ?distance)))
+    (btr:joint-state ?world ?btr-environment ?joint-name ?joint-state)
+    (lisp-fun - ?joint-state ?delta ?lower)
+    (lisp-fun + ?joint-state ?delta ?upper)
+    (< ?lower ?distance)
+    (> ?upper ?distance)))
