@@ -59,5 +59,5 @@
            (setf knowrob-action-name "Pulling"))
           ((string-equal cram-action-name "ACCESSING")
            (setf knowrob-action-name "Accessing")))
-    ;;(when (not knowrob-action-name) (progn (print cram-action-name) (break)))
+    (when (not knowrob-action-name) (setf knowrob-action-name "Task"))
     knowrob-action-name))
