@@ -28,7 +28,7 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(def-fact-group occasions (cpoe:object-in-hand cpoe:object-picked cpoe:object-placed-at cpoe:loc)
+(def-fact-group occasions (cpoe:object-in-hand cpoe:object-picked cpoe:object-placed-at cpoe:loc cpoe:torso-at)
   (<- (cpoe:object-in-hand ?object ?side ?grasp)
     (btr:bullet-world ?world)
     (cram-robot-interfaces:robot ?robot)
@@ -63,7 +63,19 @@
   ;; This goal check is defined in the cram_urdf_environment_manipulation package
   ;; (<- (cpoe:container-state ?container-designator ?distance)
   ;;   ...)
-  )
+
+  (<- (cpoe:torso-at ?joint-state)
+    (cpoe:torso-at ?joint-state 0.01))
+
+  (<- (cpoe:torso-at ?joint-state ?delta)
+    (btr:bullet-world ?world)
+    (rob-int:robot ?robot)
+    (symbol-value cram-tf:*robot-torso-joint* ?torso-joint)
+    (btr:joint-state ?world ?robot ?torso-joint ?torso-joint-state)
+    (lisp-fun - ?torso-joint-state ?delta ?lower)
+    (lisp-fun + ?torso-joint-state ?delta ?upper)
+    (< ?lower ?joint-state)
+    (> ?upper ?joint-state)))
 
 
 

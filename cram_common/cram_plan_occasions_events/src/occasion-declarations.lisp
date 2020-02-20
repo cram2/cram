@@ -54,4 +54,10 @@
     (fail))
 
   (<- (container-state ?container-object-designator ?joint-state)
+    (fail))
+
+  (<- (torso-at ?joint-state)
+    (fail))
+
+  (<- (torso-at ?joint-state ?delta)
     (fail)))

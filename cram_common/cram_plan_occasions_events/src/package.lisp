@@ -69,4 +69,5 @@
            #:loc
            #:looking-at
            #:arms-parked
-           #:container-state))
+           #:container-state
+           #:torso-at))
