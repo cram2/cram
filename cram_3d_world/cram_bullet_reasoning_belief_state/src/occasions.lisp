@@ -127,7 +127,7 @@
     (lisp-pred desig:validate-location-designator-solution ?current-location ?object-pose))
 
   (<- (object-at-location ?world ?object-name ?location-designator)
-    (not (bound ?location))
+    (not (bound ?location-designator))
     (btr:bullet-world ?world)
     (btr:object-pose ?world ?object-name ?object-pose)
     (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
