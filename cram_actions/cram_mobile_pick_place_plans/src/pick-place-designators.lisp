@@ -53,16 +53,12 @@
              (cram-robot-interfaces:robot ?robot)
              (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
              (btr:link-pose ?robot ?camera-frame ?camera-pose)
-             (format "~a ~%" ?current-object-desig)
              (btr:occluding-objects ?world ?camera-pose ?object-name ?occluding-names)
              (-> (lisp-pred identity ?occluding-names)
                  (and (equal ?tmp (:occluding-names ?occluding-names))
                       (equal ?new-key (?tmp)))
                  (equal ?new-key NIL))
-             (lisp-fun desig:extend-designator-properties ?action-designator ?new-key ?resolved-action-designator)
-             (format "~a ~% ~% ~% ~%" ?new-key)
-             (format "test")
-             (format "~a ~%" ?occluding-names))
+             (lisp-fun desig:extend-designator-properties ?action-designator ?new-key ?resolved-action-designator))
         (equal ?action-designator ?resolved-action-designator)))
 
 
