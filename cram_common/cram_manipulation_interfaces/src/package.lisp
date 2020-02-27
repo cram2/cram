@@ -44,6 +44,7 @@
    #:object-type-subtype
    #:object-type-direct-subtype
    #:robot-free-hand
+   #:configuration-joint-states
    #:unidirectional-attachment
    ;; utils
    #:reasoning-engine-for-method

@@ -83,4 +83,12 @@
   (<- (robot-free-hand ?robot ?arm)
     (rob-int:robot ?robot)
     (rob-int:arm ?robot ?arm)
-    (not (cpoe:object-in-hand ?_ ?arm))))
+    (not (cpoe:object-in-hand ?_ ?arm)))
+
+  (<- (configuration-joint-states ?arm ?config ?joint-states)
+    (rob-int:robot ?robot)
+    (-> (equal ?config :park)
+        (-> (cpoe:object-in-hand ?_ ?arm)
+            (rob-int:robot-joint-states ?robot :arm ?arm :carry ?joint-states)
+            (rob-int:robot-joint-states ?robot :arm ?arm :park ?joint-states))
+        (rob-int:robot-joint-states ?robot :arm ?arm ?config ?joint-states))))
