@@ -32,13 +32,12 @@
   (send-query-1-without-result "mem_event_add_diagnosis" event-prolog-url diagnosis-url))
 
 (defun start-episode ()
-  (send-episode-query "mem_episode_start"))
+  (ccl::clear-detected-objects)
+  (get-url-from-send-query-1 "Episode" "mem_episode_start" "Episode"))
 
 (defun stop-episode ()
-  (send-episode-query "mem_episode_stop"))
-
-(defun send-episode-query (predicate-name)
-  (get-url-from-send-query-1 "Episode" predicate-name "Episode"))
+  (send-query-1-without-result "mem_episode_stop" ccl::*episode-name*)
+  (setf ccl::*episode-name* nil))
 
 (defun send-query-1-without-result (query-name &rest query-parameters)
   (let ((query (create-query query-name query-parameters)))

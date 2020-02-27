@@ -1,6 +1,6 @@
 (in-package :cslg)
 (defparameter *mongo-logger* nil)
-(defparameter num-experiments 1)
+(defparameter num-experiments 10)
 (defparameter connection-retries 0)
 (defparameter *start-time* 0)
 (defparameter *global-timer* 0)
@@ -38,10 +38,8 @@
   (loop for x from 0 to (- num-experiments 1)
         do (progn
              (print "Start")
-             (ccl::clear-detected-objects)
              (setf ccl::*episode-name* (ccl::start-episode))
              ;;(urdf-proj:with-simulated-robot (demo::demo-random nil ))
              (urdf-proj:with-simulated-robot (demo::demo-random nil '(:bowl) ))
              (ccl::stop-episode)
-             (setf ccl::*episode-name* nil)
              (print "End"))))
