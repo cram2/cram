@@ -70,4 +70,5 @@
            #:looking-at
            #:arms-parked
            #:container-state
-           #:torso-at))
+           #:torso-at
+           #:arms-positioned))

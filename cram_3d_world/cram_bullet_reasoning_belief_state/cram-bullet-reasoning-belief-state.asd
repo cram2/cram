@@ -46,6 +46,7 @@
                roslisp-utilities
                roslisp
                cram-robot-interfaces
+               cram-manipulation-interfaces
                cram-tf
                cl-tf ; for tf broadcaster and for setting transforms from bullet to tf
                cl-transforms-stamped

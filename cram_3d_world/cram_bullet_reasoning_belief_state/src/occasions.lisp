@@ -28,7 +28,7 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(def-fact-group occasions (cpoe:object-in-hand cpoe:object-picked cpoe:object-placed-at cpoe:loc cpoe:torso-at)
+(def-fact-group occasions (cpoe:object-in-hand cpoe:object-picked cpoe:object-placed-at cpoe:loc cpoe:torso-at cpoe:arms-positioned)
   (<- (cpoe:object-in-hand ?object ?side ?grasp)
     (btr:bullet-world ?world)
     (cram-robot-interfaces:robot ?robot)
@@ -75,9 +75,30 @@
     (lisp-fun - ?torso-joint-state ?delta ?lower)
     (lisp-fun + ?torso-joint-state ?delta ?upper)
     (< ?lower ?joint-state)
-    (> ?upper ?joint-state)))
+    (> ?upper ?joint-state))
 
+  (<- (cpoe:arms-positioned ?left-configuration ?right-configuration)
+    (cpoe:arms-positioned ?left-configuration ?right-configuration 0.01))
 
+  (<- (cpoe:arms-positioned ?left-configuration ?right-configuration ?delta)
+    (rob-int:robot ?robot)
+    (-> (lisp-pred identity ?left-configuration)
+        (and (man-int:configuration-joint-states :left ?left-configuration ?left-goal-states)
+             (lisp-pred joint-states-converged ?left-goal-states ?delta))
+        (true))
+    (-> (lisp-pred identity ?right-configuration)
+        (and (man-int:configuration-joint-states :right ?right-configuration ?right-goal-states)
+             (lisp-pred joint-states-converged ?right-goal-states ?delta))
+        (true))))
+
+(defun joint-states-converged (goal-states delta)
+  (let ((arm-joints (loop for (name value) in goal-states collect name))
+        (goal-values (loop for (name value) in goal-states collect value)))
+    (cram-tf:values-converged
+     (mapcar (alexandria:curry 'btr:joint-state (btr:get-robot-object))
+             arm-joints)
+     goal-values
+     delta)))
 
 (def-fact-group occasion-utilities (object-designator-name desig:desig-location-prop)
   (<- (object-designator-name ?name ?name)
