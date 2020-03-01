@@ -53,30 +53,30 @@
               'giskard_msgs-msg:movecmd
               ;; THIS STUFF HAS A STATE
               ;; RESET THE STATE EXPLICITLY IF YOU WANT A NON CART MOVEMENT AFTER THIS
-              :constraints
-              (vector (roslisp:make-message
-                       'giskard_msgs-msg:constraint
-                       :type
-                       "UpdateGodMap"
-                       :parameter_value_pair
-                       (let ((stream (make-string-output-stream)))
-                         (yason:encode
-                          (alexandria:alist-hash-table
-                           `(("updates"
-                              .
-                              ,(alexandria:alist-hash-table
-                                `(("rosparam"
-                                   .
-                                   ,(alexandria:alist-hash-table
-                                     `(("joint_weights"
-                                        .
-                                        ,(alexandria:alist-hash-table
-                                          `(("odom_x_joint" . ,(if move-the-ass 0.0001 1.0))
-                                            ("odom_y_joint" . ,(if move-the-ass 0.0001 1.0))
-                                            ("odom_z_joint" . ,(if move-the-ass 0.0001 1.0)))))))))
-                                :test #'equal))))
-                          stream)
-                         (get-output-stream-string stream))))
+              ;; :constraints
+              ;; (vector (roslisp:make-message
+              ;;          'giskard_msgs-msg:constraint
+              ;;          :type
+              ;;          "UpdateGodMap"
+              ;;          :parameter_value_pair
+              ;;          (let ((stream (make-string-output-stream)))
+              ;;            (yason:encode
+              ;;             (alexandria:alist-hash-table
+              ;;              `(("updates"
+              ;;                 .
+              ;;                 ,(alexandria:alist-hash-table
+              ;;                   `(("rosparam"
+              ;;                      .
+              ;;                      ,(alexandria:alist-hash-table
+              ;;                        `(("joint_weights"
+              ;;                           .
+              ;;                           ,(alexandria:alist-hash-table
+              ;;                             `(("odom_x_joint" . ,(if move-the-ass 0.0001 1.0))
+              ;;                               ("odom_y_joint" . ,(if move-the-ass 0.0001 1.0))
+              ;;                               ("odom_z_joint" . ,(if move-the-ass 0.0001 1.0)))))))))
+              ;;                   :test #'equal))))
+              ;;             stream)
+              ;;            (get-output-stream-string stream))))
               :cartesian_constraints
               (map 'vector #'identity
                    (remove nil

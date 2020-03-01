@@ -65,11 +65,11 @@
                                                        :position (apply #'vector
                                                                         (second
                                                                          joint-state-right)))))
-              ;; :collisions (vector (roslisp:make-message
-              ;;                      'giskard_msgs-msg:collisionentry
-              ;;                      :type (roslisp:symbol-code
-              ;;                             'giskard_msgs-msg:collisionentry
-              ;;                             :avoid_all_collisions)))
+              :collisions (vector (roslisp:make-message
+                                   'giskard_msgs-msg:collisionentry
+                                   :type (roslisp:symbol-code
+                                          'giskard_msgs-msg:collisionentry
+                                          :avoid_all_collisions)))
               ))))
 
 (defun get-arm-joint-names-and-positions-list (arm &optional joint-states)
@@ -81,7 +81,8 @@
                              (cut:lazy-car
                               (prolog:prolog
                                `(cram-robot-interfaces:arm-joints
-                                 ,(intern "PR2" :cram-pr2-description) ,arm ?joints))))))
+                                 ,(rob-int:current-robot-symbol)
+                                 ,arm ?joints))))))
         (list joint-names
               (joints:joint-positions joint-names)))))
 

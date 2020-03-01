@@ -33,8 +33,7 @@
 
   :depends-on (roslisp
                roslisp-utilities
-               cl-transforms
-               cl-transforms-stamped
+               cl-tf2
                cram-tf
                cram-common-failures
                cram-designators
@@ -59,5 +58,8 @@
      (:file "joint-interface" :depends-on ("package" "action-client"))
      (:file "base-goals" :depends-on ("package" "action-client" "joint-interface"))
      (:file "torso-goals" :depends-on ("package" "action-client"))
+     (:file "neck-cartesian-interface" :depends-on ("package" "action-client"))
+     (:file "neck-joint-interface" :depends-on ("package" "action-client"))
+     (:file "gripper-joint-interface" :depends-on ("package" "action-client"))
      (:file "process-module" :depends-on ("package" "cartesian-interface" "joint-interface"
                                                     "base-goals" "torso-goals"))))))

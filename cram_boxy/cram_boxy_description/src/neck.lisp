@@ -74,7 +74,15 @@
                         "neck_wrist_1_link"
                         "neck_wrist_2_link"
                         "neck_wrist_3_link"))
-
+  
+  (<- (robot-neck-links boxy
+                        ("neck_shoulder_link"
+                        "neck_upper_arm_link"
+                        "neck_forearm_link"
+                        "neck_wrist_1_link"
+                        "neck_wrist_2_link"
+                        "neck_wrist_3_link")))
+  
   (<- (robot-neck-joints boxy
                          "neck_shoulder_pan_joint"
                          "neck_shoulder_lift_joint"
@@ -82,6 +90,14 @@
                          "neck_wrist_1_joint"
                          "neck_wrist_2_joint"
                          "neck_wrist_3_joint"))
+  
+  (<- (robot-neck-joints boxy
+                         ("neck_shoulder_pan_joint"
+                          "neck_shoulder_lift_joint"
+                          "neck_elbow_joint"
+                          "neck_wrist_1_joint"
+                          "neck_wrist_2_joint"
+                          "neck_wrist_3_joint")))
 
   (<- (robot-neck-base-link boxy "neck_base_link"))
 

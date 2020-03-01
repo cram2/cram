@@ -49,7 +49,11 @@
 
   (<- (robot-neck-links ?robot ?pan-link ?tilt-link)
     (fail))
+  (<- (robot-neck-links ?robot ?links)
+    (fail))
   (<- (robot-neck-joints ?robot ?pan-joint ?tilt-joint)
+    (fail))
+  (<- (robot-neck-joints ?robot ?joints)
     (fail))
   (<- (robot-neck-base-link ?robot ?neck-base-link)
     (fail))

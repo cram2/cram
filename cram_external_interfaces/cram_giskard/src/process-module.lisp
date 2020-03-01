@@ -47,7 +47,16 @@
       (cram-common-designators:move-base
        (call-giskard-base-action :goal-pose argument-1))
       (cram-common-designators:move-torso
-       (call-giskard-torso-action :goal-joint-state argument-1)))))
+       (call-giskard-torso-action :goal-joint-state argument-1))
+      (cram-common-designators:move-head
+       (if (first rest-arguments)
+         (call-giskard-neck-action :goal-configuration (first rest-arguments))
+         (when argument-1
+           (call-giskard-poi-neck-action :poi argument-1))))
+      (cram-common-designators:move-gripper-joint
+       (call-giskard-gripper-action :action-type-or-position argument-1
+                                    :left-or-right (first rest-arguments)
+                                    :effort (when (cdr rest-arguments) (second rest-arguments)))))))
 
 (prolog:def-fact-group giskard-pm (cpm:matching-process-module
                                    cpm:available-process-module)
@@ -56,7 +65,12 @@
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
         (desig:desig-prop ?motion-designator (:type :going))
-        (desig:desig-prop ?motion-designator (:type :moving-torso))))
+        (desig:desig-prop ?motion-designator (:type :moving-torso))
+        (desig:desig-prop ?motion-designator (:type :looking))
+        (desig:desig-prop ?motion-designator (:type :gripping))
+        (desig:desig-prop ?motion-designator (:type :opening-gripper))
+        (desig:desig-prop ?motion-designator (:type :closing-gripper))
+        (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))))
 
   (prolog:<- (cpm:available-process-module giskard-pm)
     (prolog:not (cpm:projection-running ?_))))
