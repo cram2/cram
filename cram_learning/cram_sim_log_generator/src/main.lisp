@@ -38,7 +38,7 @@
   (loop for x from 0 to (- num-experiments 1)
         do (progn
              (print "Start")
-             (setf ccl::*episode-name* (ccl::start-episode))
+             (ccl::start-episode)
              ;;(urdf-proj:with-simulated-robot (demo::demo-random nil ))
              (urdf-proj:with-simulated-robot (demo::demo-random nil '(:bowl) ))
              (ccl::stop-episode)

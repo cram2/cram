@@ -32,8 +32,12 @@
   (send-query-1-without-result "mem_event_add_diagnosis" event-prolog-url diagnosis-url))
 
 (defun start-episode ()
+  (when *episode-name*
+    (progn
+      (print "Previous episode recording is still running. Stopping the recording ...")
+      (stop-episode)))
   (ccl::clear-detected-objects)
-  (get-url-from-send-query-1 "Episode" "mem_episode_start" "Episode"))
+  (setf ccl::*episode-name* (get-url-from-send-query-1 "Episode" "mem_episode_start" "Episode")))
 
 (defun stop-episode ()
   (send-query-1-without-result "mem_episode_stop" ccl::*episode-name*)
