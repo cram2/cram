@@ -56,7 +56,7 @@
     (object-at-location ?_ ?robot ?location))
 
   (<- (cpoe:loc ?object ?location)
-    (desig:obj-desig? object)
+    (desig:obj-desig? ?object)
     (object-designator-name ?object ?object-name)
     (object-at-location ?_ ?object-name ?location))
 
@@ -115,7 +115,7 @@
     (-> (lisp-pred identity ?belief-name)
         (equal ?object-name ?belief-name)
         (and (desig:desig-prop ?object-designator (:type ?object-type))
-             (btr:bullet-world ?w)
+             (btr:bullet-world ?world)
              (btr:item-type ?world ?object-name ?object-type))))
 
   (<- (desig:desig-location-prop ?designator ?location)
