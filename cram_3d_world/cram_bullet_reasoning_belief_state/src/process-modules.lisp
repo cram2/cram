@@ -28,7 +28,8 @@
 
 (in-package :btr-belief)
 
-(def-fact-group world-state-matching-pms (cpm:matching-process-module)
+(def-fact-group world-state-matching-pms (cpm:matching-process-module
+                                          cpm:available-process-module)
   (<- (cpm:matching-process-module ?motion-designator world-state-detecting-pm)
     (desig:desig-prop ?motion-designator (:type :world-state-detecting))))
 
@@ -41,38 +42,46 @@
 
 (defun world-state-detecting (object-designator)
   (declare (type desig:object-designator object-designator))
+  
   "Creates a new object designator with pose corresponding to current robot pose.
 The `object-designator' has to have at least a :name key, then detecting happens
 through btr, otherwise, if the designator has :pose and :type and :name,
 the old object-designator description is enough to create a new one."
   (if (eql (desig:quantifier object-designator) :all)
       (detect-new-pose-for-all-objects object-designator)
-  (if (and (desig:desig-prop-value object-designator :pose)
-           (desig:desig-prop-value object-designator :type)
-           (desig:desig-prop-value object-designator :name))
-      (detect-new-object-pose-from-old-pose object-designator)
-      (if (desig:desig-prop-value object-designator :type)
-          (detect-new-object-pose-from-btr object-designator)
-          (cpl:fail 'common-fail:perception-object-not-in-world
-                    :object object-designator
-                    :description (format nil "Object designator ~a has to have a type ~
-                                              or an old pose." object-designator))))))
+      (if (and (desig:desig-prop-value object-designator :pose)
+               (desig:desig-prop-value object-designator :type)
+               (desig:desig-prop-value object-designator :name))
+          (detect-new-object-pose-from-old-pose object-designator)
+          (if (desig:desig-prop-value object-designator :type)
+              (detect-new-object-pose-from-btr object-designator)
+              (cpl:fail 'common-fail:perception-object-not-in-world
+                        :object object-designator
+                        :description (format nil
+                                             "Object designator ~a has to have a type or an old pose." object-designator))))))
 
 (defun detect-new-pose-for-all-objects (old-object)
-  (let* ((camera-pose (cdr (assoc '?camera-pose (car
-                                                 (prolog:prolog '(and (btr:bullet-world ?world)
-                                                                  (cram-robot-interfaces:robot ?robot)
-                                                                  (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
-                                                                  (btr:link-pose ?robot ?camera-frame ?camera-pose)))))))
-         (visible-objects-in-fov (remove-if-not #'identity
-                                                (mapcar (lambda (obj) (let ((visibility  (btr:calculate-object-visibility
-                                                                                          btr:*current-bullet-world*
-                                                                                          camera-pose
-                                                                                          obj)))
-                                                                        (if (or (btr:object-visibility-occluding-objects visibility)
-                                                                                (<= btr:*visibility-threshold* (btr:object-visibility-percentage visibility)))
-                                                                            obj)))
-                                                        (btr:get-objects-for-type (desig:desig-prop-value old-object :type))))))
+  (let* ((camera-pose
+           (cdr
+            (assoc '?camera-pose
+                   (car
+                    (prolog:prolog '(and (btr:bullet-world ?world)
+                                     (cram-robot-interfaces:robot ?robot)
+                                     (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
+                                     (btr:link-pose ?robot ?camera-frame ?camera-pose)))))))
+         (visible-objects-in-fov
+           (remove-if-not #'identity
+                          (mapcar (lambda (obj)
+                                    (let ((visibility
+                                            (btr:calculate-object-visibility
+                                             btr:*current-bullet-world*
+                                             camera-pose
+                                             obj)))
+                                      (if (or (btr:object-visibility-occluding-objects visibility)
+                                              (<= btr:*visibility-threshold*
+                                                  (btr:object-visibility-percentage visibility)))
+                                          obj)))
+                                  (btr:get-objects-for-type (desig:desig-prop-value old-object :type))))))
     (if visible-objects-in-fov 
         (mapcar (lambda (obj)
                   (let* ((object-name (btr:name obj))
@@ -91,31 +100,41 @@ the old object-designator description is enough to create a new one."
                 visible-objects-in-fov)
         (cpl:fail 'common-fail:perception-object-not-found
                   :object old-object
-                  :description (format NIL "There are no objects with a matching type to ~a in the field of view of the robot" old-object)))))
+                  :description
+                  (format NIL
+  "There are no objects with a matching type to ~a in the field of view of the robot" old-object)))))
 
 
 (defun detect-new-object-pose-from-btr (old-object)
-  (let* ((camera-pose (cdr (assoc '?camera-pose (car
-                                                 (prolog:prolog '(and (btr:bullet-world ?world)
-                                                                  (cram-robot-interfaces:robot ?robot)
-                                                                  (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
-                                                                  (btr:link-pose ?robot ?camera-frame ?camera-pose)))))))
-         (visible-objects-in-fov (remove-if-not #'identity
-                                                (mapcar (lambda (obj) (let ((visibility  (btr:calculate-object-visibility
-                                                                                          btr:*current-bullet-world*
-                                                                                          camera-pose
-                                                                                          obj)))
-                                                                        (if (or (btr:object-visibility-occluding-objects visibility)
-                                                                                (<= btr:*visibility-threshold* (btr:object-visibility-percentage visibility)))
-                                                                            obj)))
-                                                        (btr:get-objects-for-type (desig:desig-prop-value old-object :type)))))
+  (let* ((camera-pose
+           (cdr
+            (assoc '?camera-pose
+                   (car
+                    (prolog:prolog '(and (btr:bullet-world ?world)
+                                     (cram-robot-interfaces:robot ?robot)
+                                     (cram-robot-interfaces:camera-frame ?robot ?camera-frame)
+                                     (btr:link-pose ?robot ?camera-frame ?camera-pose)))))))
+         (visible-objects-in-fov
+           (remove-if-not #'identity
+                          (mapcar (lambda (obj)
+                                    (let ((visibility  (btr:calculate-object-visibility
+                                                        btr:*current-bullet-world*
+                                                        camera-pose
+                                                        obj)))
+                                      (if (or (btr:object-visibility-occluding-objects visibility)
+                                              (<= btr:*visibility-threshold*
+                                                  (btr:object-visibility-percentage visibility)))
+                                          obj)))
+                                  (btr:get-objects-for-type (desig:desig-prop-value old-object :type)))))
          (object-name (if (desig:desig-prop-value old-object :name)
                           (desig:desig-prop-value old-object :name)
                           (btr:name (if visible-objects-in-fov
                                         (car visible-objects-in-fov)
                                         (cpl:fail 'common-fail:perception-object-not-found
                                                   :object old-object
-                                                  :description (format NIL "There is no object with a matching type to ~a in the field of view of the robot" old-object))))))
+                                                  :description
+                                                  (format NIL
+  "There is no object with a matching type to ~a in the field of view of the robot" old-object))))))
          (object-type
            (first (btr:item-types
                    (btr:object btr:*current-bullet-world* object-name))))
