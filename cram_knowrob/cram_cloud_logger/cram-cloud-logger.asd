@@ -10,7 +10,7 @@
                :cram-executive
                :cram-projection)
   :components
-  ((:module "src"
+  ((:module "src" 
     :components
     ((:file "package")
      (:file "utils" :depends-on ("package"))
@@ -22,4 +22,7 @@
      (:file "action-parameter-handler" :depends-on ("package" "logging-functions"))
      (:file "utils-for-perform" :depends-on ("package" "cloud-logger-query-handler" "prolog-query-handler" "knowrob-action-name-handler" "action-parameter-handler" "utils"))
      (:file "object-interface" :depends-on ("package" "utils" "cloud-logger-client" "utils-for-perform"))
+     (:module "mapper" 
+      :components 
+      ((:file "cram-2-knowrob-mapper")))
      (:file "failure-handler" :depends-on ("package" "utils-for-perform"))))))
