@@ -1,6 +1,6 @@
 (in-package :cslg)
 (defparameter *mongo-logger* nil)
-(defparameter num-experiments 10)
+(defparameter num-experiments 1)
 (defparameter connection-retries 0)
 (defparameter *start-time* 0)
 (defparameter *global-timer* 0)
