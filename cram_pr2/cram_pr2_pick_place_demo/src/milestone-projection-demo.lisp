@@ -156,7 +156,7 @@
 
 (defun spawn-objects-on-fixed-spots (&key (spawning-poses *demo-object-spawning-poses*)
                                        (object-types '(:breakfast-cereal :cup :bowl :spoon :milk)))
-  (btr-utils:kill-all-objects)
+  ;;(btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
   ;; spawn objects at default poses

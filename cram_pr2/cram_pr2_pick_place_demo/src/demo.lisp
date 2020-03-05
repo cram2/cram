@@ -123,11 +123,12 @@
                                     (random t)
                                     (list-of-objects '(:bowl :spoon :cup :milk :breakfast-cereal)))
 
-  (initialize)
+  ;;(initialize)
   (when cram-projection:*projection-environment*
     (if random
         (spawn-objects-on-sink-counter-randomly)
-        (spawn-objects-on-sink-counter)))
+        ;;(spawn-objects-on-sink-counter)
+        ))
 
   (park-robot)
 
