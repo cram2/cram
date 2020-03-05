@@ -72,15 +72,17 @@
     (:milk . ((-0.75 1.7 0.95) (0 0 0.7071 0.7071)))))
 
 
-(defun spawn-objects-on-sink-counter (&optional (spawning-poses *object-spawning-poses*))
-  (btr-utils:kill-all-objects)
+(defun spawn-objects-on-sink-counter (&optional (spawning-poses *object-spawning-poses*)
+                                        (obj-types '(:breakfast-cereal :cup :bowl :spoon :milk))
+                                        (name-suffix "~a-1"))
+;;  (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
-  (let ((object-types '(:breakfast-cereal :cup :bowl :spoon :milk)))
+  (let ((object-types obj-types))
     ;; spawn objects at default poses
     (let ((objects (mapcar (lambda (object-type)
                              (let* ((object-name
-                                      (intern (format nil "~a-1" object-type) :keyword))
+                                      (intern (format nil name-suffix object-type) :keyword))
                                     (object-pose-list
                                       (cdr (assoc object-type spawning-poses)))
                                     (object
