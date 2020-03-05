@@ -35,7 +35,7 @@
           
 (defun get-row (vec elem_i end)
   (when (< elem_i end)
-    (cons (float (aref vec elem_i)) (get-row vec (1+ elem_i) end))))
+    (cons (/ (float (aref vec elem_i)) 2) (get-row vec (1+ elem_i) end))))
 
 (defun keyword-to-string (kw)
   (unless (stringp kw)
@@ -75,8 +75,7 @@
   (get-object-location object-type context name kitchen table-id NIL))
 
 (defun get-costmap-for (object-type
-                        x-placed-object-positions y-placed-object-positions
-                        x-placed-base-object-positions y-placed-base-object-positions
+                        x-placed-object-positions y-placed-object-positions placed-object-types
                         context name kitchen table-id urdf-name on-p)
   (format t "called get-costmap-for for object-type ~a" object-type)
   (when T ;;(every #'identity (mapcar #'keywordp (list object-type context
@@ -89,32 +88,6 @@
                                                   :object_type
                                                   (keyword-to-string
                                                    object-type) ;; e.g. :bowl
-                                                  :placed_base_x_object_positions
-                                                  (if x-placed-base-object-positions
-                                                      (cl:make-array
-                                                       (length x-placed-base-object-positions)
-                                                       :element-type
-                                                       'cl:float
-                                                       :initial-contents
-                                                       (mapcar
-                                                        (alexandria:rcurry
-                                                         #'coerce
-                                                         'cl:float)
-                                                        x-placed-base-object-positions))
-                                                      (cl:vector))
-                                                  :placed_base_y_object_positions
-                                                  (if y-placed-base-object-positions
-                                                      (make-array
-                                                       (length y-placed-base-object-positions)
-                                                       :element-type
-                                                       'cl:float
-                                                       :initial-contents
-                                                       (mapcar
-                                                        (alexandria:rcurry
-                                                         #'coerce
-                                                         'cl:float)
-                                                        y-placed-base-object-positions))
-                                                      (cl:vector))
                                                   :placed_x_object_positions
                                                   (if x-placed-object-positions
                                                       (make-array
@@ -128,7 +101,7 @@
                                                          'cl:float)
                                                         (mapcar 
                                                          (lambda (v)
-                                                           (+ v 0.11)) 
+                                                           (+ v 0.15)) 
                                                          x-placed-object-positions)))
                                                       (cl:vector))
                                                   :placed_y_object_positions
@@ -147,6 +120,17 @@
                                                            (+ v 0.05)) 
                                                          y-placed-object-positions)))
                                                       (cl:vector))
+                                                  :placed_object_types
+                                                  (if placed-object-types
+                                                      (make-array
+                                                       (length placed-object-types)
+                                                       ;; :element-type
+                                                       ;; #'string
+                                                       :initial-contents
+                                                       (mapcar
+                                                        #'keyword-to-string
+                                                        placed-object-types))
+                                                      (cl:vector))
                                                   :context 
                                                   (keyword-to-string
                                                    context) ;; e.g. :breakfast
@@ -159,15 +143,38 @@
                                                   :table_id 
                                                   table-id ;; e.g. "rectangular_table"
                                                   )))
-              (roslisp:with-fields (bottem_left
-                                    z_coordinate
+              (roslisp:with-fields (bottem_lefts
                                     resolution
-                                    width height
-                                    x_y_vecs angles) response
-                (let ((m '())
-                      (rows (truncate (/ height resolution)))
-                      (columns (truncate (/ width resolution))))
-                  (dotimes (row-i (truncate (/ height resolution)))
+                                    widths heights
+                                    x_y_vecs 
+                                    global_width
+                                    global_height
+                                    angles) response
+                (let* ((m '())
+                       (bottem_left (reduce (lambda (p other-p) 
+                                              (make-instance
+                                               'geometry_msgs-msg::Point 
+                                               :x 
+                                               (if (<
+                                                    (geometry_msgs-msg:x other-p)
+                                                    (geometry_msgs-msg:x p))
+                                                   (geometry_msgs-msg:x other-p)
+                                                   (geometry_msgs-msg:x p))
+                                               :y
+                                               (if (<
+                                                    (geometry_msgs-msg:y other-p)
+                                                    (geometry_msgs-msg:y p))
+                                                   (geometry_msgs-msg:y other-p)
+                                                   (geometry_msgs-msg:y p))
+                                               :z 0.0))
+                                            bottem_lefts))
+                       (rows (truncate (/ global_height resolution)))
+                       (columns (truncate (/ global_width resolution))))
+                  (print bottem_lefts)
+                  (print bottem_left)
+                  (print angles)
+                  ;;(break)
+                  (dotimes (row-i (truncate (/ global_height resolution)))
                     (push (get-row x_y_vecs
                                    (* row-i columns)
                                    (+ (* row-i columns)
@@ -181,7 +188,7 @@
                     (costmap:register-cost-function
                      costmap
                      (costmap:make-matrix-cost-function
-                      (- (geometry_msgs-msg:x bottem_left) 0.11)
+                      (- (geometry_msgs-msg:x bottem_left) 0.15)
                       (- (geometry_msgs-msg:y bottem_left) 0.05)
                       resolution array
                       ;; Sebastian's X axis looks to the right,
@@ -215,25 +222,69 @@
                         (get-urdfs-rigid-body urdf-name)
                         (get-obj-instance-from-type object-type)
                         (if on-p :on :in))))
-                    (let* ((mean (aref angles 0))
-                           (std (aref angles 1))
-                           (gauss (1d-gauss std mean)))
-                      (print "mean and std")
-                      (print mean)
-                      (print std)
-                      (costmap:register-orientation-generator 
-                       costmap
-                       (costmap::make-orientation-generator 
-                        (lambda (x y)
-                          (declare (ignore x y))
-                          (jaaa mean std gauss)
-                          ))))
+                    (dotimes (i (length widths))
+                      (print i)
+                      (let* ((bottem-left (aref bottem_lefts i))
+                             (width (aref widths i))
+                             (height (aref heights i))
+                             (mean (aref angles (* 2 i)))
+                             (std (aref angles (+ (* 2 i) 1)))
+                             (gauss (1d-gauss std mean)))
+                        (print "mean")
+                        (print mean)
+                        (print "std")
+                        (print std)
+                        (costmap:register-orientation-generator 
+                         costmap
+                         (make-vr-orientation-generator bottem-left
+                                                        width height
+                                                        mean std)
+                         ;; do not
+                          ;; use own fun gen with ret lambda (x y prev_orient)
+                          ;; angle -> quaternion (fixme); return more
+                          ;; samples in (lazy) list 
+                          )))
                     costmap))))))))
 
-(defun jaaa (mean std gauss)
-  (funcall gauss (+ (* (box-mueller-transform-value) std) mean)))
+(defun make-vr-orientation-generator (bottem_left width height mean std)
+  (lambda (x y prev-orient)
+    (if (and prev-orient
+             (not (cl-transforms:q=
+                   (car prev-orient)
+                   (cl-transforms:make-identity-rotation))))
+        prev-orient
+        (if (and (< (- (geometry_msgs-msg:x
+                        bottem_left) 0.15)
+                    x
+                    (+ (- (geometry_msgs-msg:x
+                           bottem_left) 0.15)
+                       height))
+                 (< (- (geometry_msgs-msg:y
+                        bottem_left) 0.05)
+                    y
+                    (+ (- (geometry_msgs-msg:y
+                           bottem_left) 0.05)
+                       width)))
+            
+            (cut:lazy-list ()
+              (list
+               (cl-transforms:euler->quaternion
+                :ax 0.0 :ay 0.0 :az (+ pi
+                                       (jaaa mean std nil)))))
+                                       ;; (if (< pi (+ mean 0))
+                                       ;;     (* -1 (- pi
+                                       ;;              (- (+ mean 0) pi)))
+                                       ;;     (+ mean 0))))))
+            ;;(jaaa mean std gauss)
+            (cut:lazy-list ()
+              (list
+               (cl-transforms:make-identity-rotation)))))))
+  
 
-(defun box-mueller-transform-value ()
+(defun jaaa (mean std gauss)
+  (+ (* (box-mueller-transform-value) std) mean))
+
+(defun box-mueller-transform-value () ;; <- broken
   (let ((u1 (random 1.0d0))
         (u2 (random 1.0d0)))
     (* (sqrt (* -2 (log u1))) (cos (* 2 pi u2)))))

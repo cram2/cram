@@ -30,9 +30,6 @@
 
 (in-package :learning-vr)
 
-(defvar *base-objects* 
-  (list :bowl :plate))
-
 (defun location-on-p (urdf-name)
   (or (equal urdf-name :kitchen-island-surface)
       (equal urdf-name :kitchen-island)
@@ -93,46 +90,21 @@
  (defun owl->type (owl-name)
    (gethash owl-name owl->type-table)))
 
-(defun get-any-except-object-poses ()
-  (mapcar #'btr:pose
-          (remove-if-not (lambda (obj)
-                           (and (typep obj 'btr:item)
-                                (not (member (first (btr:item-types obj))
-                                             learning-vr::*base-objects* :test #'eql))
-                                (equalp
-                                 "kitchen_island"  ;; TODO CHECK IF OBJ IS ON
-                                 ;; ITS DESTINATION LOCATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-                                 (cdr (find (btr:name obj)
-                                            ;; get all links contacting items
-                                            ;; in the environment
-                                            (btr:link-contacts
-                                             (btr:get-environment-object))
-                                            :key (lambda (item-and-link-name-cons)
-                                                   (btr:name (car item-and-link-name-cons)))
-                                            :test #'equal)))))
-                         (btr:objects btr:*current-bullet-world*))))
-
-(defun get-base-object-poses (not-near)
-  (mapcar #'btr:pose
-          (remove-if-not (lambda (obj)
-                           (and (typep obj 'btr:item)
-                                (member (first (btr:item-types obj))
-                                        learning-vr::*base-objects* :test #'eql)
-                                (not (member (btr:name obj)
-                                             not-near :test
-                                             #'equalp))
-                                (equalp
-                                 "kitchen_island"  ;; TODO CHECK IF OBJ IS ON
-                                 ;; ITS DESTINATION LOCATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-                                 (cdr (find (btr:name obj)
-                                            ;; get all links contacting items
-                                            ;; in the environment
-                                            (btr:link-contacts
-                                             (btr:get-environment-object))
-                                            :key (lambda (item-and-link-name-cons)
-                                                   (btr:name (car item-and-link-name-cons)))
-                                            :test #'equal)))))
-                         (btr:objects btr:*current-bullet-world*))))
+(defun get-every-object ()
+  (remove-if-not (lambda (obj)
+                   (and (typep obj 'btr:item)
+                        (equalp
+                         "kitchen_island"  ;; TODO CHECK IF OBJ IS ON
+                         ;; ITS DESTINATION LOCATION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+                         (cdr (find (btr:name obj)
+                                    ;; get all links contacting items
+                                    ;; in the environment
+                                    (btr:link-contacts
+                                     (btr:get-environment-object))
+                                    :key (lambda (item-and-link-name-cons)
+                                           (btr:name (car item-and-link-name-cons)))
+                                    :test #'equal)))))
+                 (btr:objects btr:*current-bullet-world*)))
 
 (defmethod man-int:get-location-poses :learning 10 (location-designator)
   (print "get-location-poses w/ vr-learning called")
@@ -180,22 +152,12 @@
               (return-from man-int:get-location-poses
                 (desig:resolve-location-designator-through-generators-and-validators
                  location-designator))))
-        (let* ((placed-base-object-positions
+        (let* ((placed-object-positions
                  (mapcar 
-                  #'cl-transforms:origin
-                  (get-base-object-poses '())))
-               (x-placed-base-object-positions
-                 (mapcar 
-                  #'cl-transforms:x
-                  placed-base-object-positions))
-               (y-placed-base-object-positions
-                 (mapcar 
-                  #'cl-transforms:y
-                  placed-base-object-positions))
-               (placed-object-positions
-                 (mapcar 
-                  #'cl-transforms:origin
-                  (get-any-except-object-poses)))
+                  (alexandria:compose 
+                   #'cl-transforms:origin
+                   #'btr:pose)
+                   (get-every-object)))
                (x-placed-object-positions 
                  (mapcar 
                   #'cl-transforms:x
@@ -204,11 +166,15 @@
                  (mapcar 
                   #'cl-transforms:y
                   placed-object-positions))
+               (placed-object-types
+                 (mapcar 
+                  (lambda (obj)
+                    (first (btr:item-types obj)))
+                  (get-every-object)))
                (learned-costmap
                  (get-costmap-for
                   object-type 
-                  x-placed-object-positions y-placed-object-positions
-                  x-placed-base-object-positions y-placed-base-object-positions
+                  x-placed-object-positions y-placed-object-positions placed-object-types
                   context *human-name* kitchen-name *table-id* urdf-name on-p))
                (heuristics-costmaps
                  (mapcar (lambda (bindings)
@@ -221,10 +187,21 @@
                                                        heuristics-costmaps))))
           (print "test")
           ;; TODO: check for invalid-probability-distribution
-          (costmap:costmap-samples learned-costmap)
-          (roslisp:ros-info (cvr costmap) "Visualizing learned costmap.")
-          (cpl:sleep 1.0)
-          (costmap:costmap-samples learned-costmap)))
+          (let ((samples (costmap:costmap-samples learned-costmap)))
+            (print samples)
+            (print (mapcar (lambda (c)
+                             (funcall c
+                                      (cl-transforms:x
+                                       (cl-transforms:origin (cut:lazy-car samples)))
+                                      (cl-transforms:y 
+                                       (cl-transforms:origin
+                                        (cut:lazy-car samples)))
+                                      nil))
+                           (location-costmap::orientation-generators
+                learned-costmap)))
+            (roslisp:ros-info (cvr costmap) "Visualizing learned costmap.")
+            (cpl:sleep 1.0)
+            samples)))
 
         ;;(desig:resolve-location-designator-through-generators-and-validators
         ;;location-designator)
