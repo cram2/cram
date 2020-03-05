@@ -201,11 +201,15 @@ Kitchen in OWL."
               (cl-transforms:transform-inv
                map-T-object))
             (obj-angle
-              (/
-               (cl-tf:angle-between-quaternions
-                (cl-transforms:rotation map-T-object)
-                (cl-tf:make-identity-rotation))
-               pi))
+              (let ((angle (car
+                            (last ;; get z rotation
+                             (cl-tf:quaternion->euler
+                              (cl-transforms:rotation map-T-object))))))
+              ;; (multiple-value-bind (vector angle)
+              ;;     (cl-tf:quaternion->axis-angle
+              ;;      (cl-tf:normalize (cl-transforms:rotation
+              ;;                        map-T-object)))
+                angle))
             (hand-string
               (string
                (cut:var-value '|?HandTypeName| binding-set)))
