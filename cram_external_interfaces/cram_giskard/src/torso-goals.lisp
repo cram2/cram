@@ -58,7 +58,6 @@
            (car
             (prolog:prolog
              `(and (rob-int:robot ?robot)
-                   (btr:bullet-world ?w)
                    (rob-int:robot-torso-link-joint ?robot ?_ ?joint)
                    (rob-int:joint-lower-limit ?robot ?joint ?lower)
                    (rob-int:joint-upper-limit ?robot ?joint ?upper)))))

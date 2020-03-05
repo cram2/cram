@@ -71,11 +71,11 @@
 
 (defun ensure-giskard-neck-joint-input-parameters (neck-goal)
   (if (and (listp neck-goal) (= (length neck-goal) 6))
-               (get-neck-joint-names-and-positions-list neck-goal)
-               (and (roslisp:ros-warn (low-level giskard)
-                                      "Joint goal ~a was not a list of 6. Ignoring."
-                                      neck-goal)
-                    (get-neck-joint-names-and-positions-list))))
+      (get-neck-joint-names-and-positions-list neck-goal)
+      (and (roslisp:ros-warn (low-level giskard)
+                             "Joint goal ~a was not a list of 6. Ignoring."
+                             neck-goal)
+           (get-neck-joint-names-and-positions-list))))
 
 (defun ensure-giskard-neck-joint-goal-reached (status
                                           goal-configuration
@@ -104,17 +104,16 @@
                                         (mapcar #'second goal-configuration))
                                        convergence-delta-joint))))))
 
-
-(defun call-giskard-neck-action (&key goal-configuration
+(defun call-giskard-neck-action (&key goal-configuration action-timeout
                                    (convergence-delta-joint *giskard-convergence-delta-joint*))
   (declare (type list goal-configuration)
            (type (or null number) convergence-delta-joint))
-  
   (let ((joint-state (ensure-giskard-neck-joint-input-parameters goal-configuration)))
     (multiple-value-bind (result status)
         (actionlib-client:call-simple-action-client
          'giskard-action
-         :action-goal (make-giskard-neck-joint-action-goal joint-state))
+         :action-goal (make-giskard-neck-joint-action-goal joint-state)
+         :action-timeout action-timeout)
       (ensure-giskard-neck-joint-goal-reached status goal-configuration
                                               convergence-delta-joint)
       (values result status)

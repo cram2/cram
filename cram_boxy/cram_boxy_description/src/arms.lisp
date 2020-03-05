@@ -72,6 +72,7 @@
                                 standard-to-particular-gripper-transform
                                 ;; robot-arms-parking-joint-states
                                 ;; robot-arms-carrying-joint-states
+                                hand-links
                                 robot-joint-states
                                 tcp-in-ee-pose)
 
@@ -110,6 +111,19 @@
                               "right_arm_5_link"
                               "right_arm_6_link"
                               "right_arm_7_link")))
+
+  (<- (hand-links boxy :left (;; "left_gripper_base_link"
+                              "left_gripper_finger_left_link"
+                              "left_gripper_finger_right_link"
+                              "left_gripper_gripper_left_link"
+                              "left_gripper_gripper_right_link"
+                              "left_gripper_tool_frame")))
+  (<- (hand-links boxy :right (;; "right_gripper_base_link"
+                               "right_gripper_finger_left_link"
+                               "right_gripper_finger_right_link"
+                               "right_gripper_gripper_left_link"
+                               "right_gripper_gripper_right_link"
+                               "right_gripper_tool_frame")))
 
   (<- (gripper-joint boxy :left "left_gripper_joint"))
   (<- (gripper-joint boxy :right "right_gripper_joint"))

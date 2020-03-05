@@ -33,6 +33,7 @@
   "in meters")
 (defparameter *giskard-convergence-delta-theta* 0.5 ;; 0.1
   "in radiants, about 6 degrees")
+(defparameter *move-base* t)
 
 (defun make-giskard-cartesian-action-goal (left-pose right-pose
                                            pose-base-frame left-tool-frame right-tool-frame
@@ -281,7 +282,9 @@
                                         collision-object-a
                                         move-the-ass
                                         (pose-base-frame ;; cram-tf:*robot-base-frame*
-                                         cram-tf:*odom-frame*)
+                                         (if *move-base*
+                                             cram-tf:*odom-frame*
+                                             cram-tf:*robot-base-frame*))
                                         (left-tool-frame cram-tf:*robot-left-tool-frame*)
                                         (right-tool-frame cram-tf:*robot-right-tool-frame*)
                                         (convergence-delta-xy *giskard-convergence-delta-xy*)
