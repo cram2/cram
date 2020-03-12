@@ -3,14 +3,14 @@
 (defmethod cram-manipulation-interfaces:get-action-gripping-effort :around (object-type)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
-          ;;(log-reasoning-task "cram-manipulation-interfaces:get-action-gripping-effort" (write-to-string object-type) (write-to-string query-result))
+          (log-reasoning-task "GetActionGrippingEffort" (write-to-string object-type) (write-to-string query-result))
           query-result)
         (call-next-method)))
 
 (defmethod cram-manipulation-interfaces:get-action-gripper-opening :around (object-type)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
-          ;;(log-reasoning-task "cram-manipulation-interfaces:get-action-gripper-opening" (write-to-string object-type) (write-to-string query-result))
+          (log-reasoning-task "GetActionGripperOpening" (write-to-string object-type) (write-to-string query-result))
           query-result)
         (call-next-method)))
 
@@ -28,39 +28,47 @@
 (defmethod cram-manipulation-interfaces:get-action-trajectory :around  (action-type arm grasp objects-acted-on  &key &allow-other-keys)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
-          ;;(log-reasoning-task "cram-manipulation-interfaces:get-action-trajectory" (write-to-string grasp) "result")
+          (log-reasoning-task "GetActionTrajectory" (write-to-string grasp) "result")
           query-result)
         (call-next-method)))
 
 (defmethod cram-manipulation-interfaces:get-location-poses :around (location-designator)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
-          ;;(log-reasoning-task "cram-manipulation-interfaces:get-location-pose" location-designator query-result)
+          (log-reasoning-task "GetLocationPoses" location-designator query-result)
           query-result)
       (call-next-method)))
 
 (defun log-reasoning-task (predicate-name parameter reasoning-result)
-  (let
-      ((query-id (convert-to-prolog-str (get-value-of-json-prolog-dict
-                      (cdaar
-                       (send-cram-start-action
-                        (concatenate 'string "knowrob:" (convert-to-prolog-str "ReasoningTask"))
-                        " \\'TableSetting\\'"
-                        (convert-to-prolog-str (get-timestamp-for-logging))
-                        "PV"
-                        "ActionInst"))
-                      "ActionInst"))))
-    (print "REASONING LOGGING")
-    ;;(send-init-reasoning-query query-id)
-    (send-predicate-query query-id predicate-name)
-        (print "REASONING LOGGING 1")
-    (send-parameter-query query-id parameter)
-        (print "REASONING LOGGING 2")
-    (send-link-reasoing-to-action query-id)
-        (print "REASONING LOGGING 3")
-    (send-result-query query-id reasoning-result)
-        (print "REASONING LOGGING 4")
-    query-id))
+  (let ((reasoning-url (create-reasoning-url predicate-name)))
+      (attach-event-to-situation reasoning-url (get-parent-uri))))
+
+
+(defun create-reasoning-url (predicate-name)
+  (concatenate 'string "'http://www.ease-crc.org/ont/EASE-ACT.owl#" predicate-name "'"))
+
+;;(defun log-reasoning-task (predicate-name parameter reasoning-result)
+;;  (let
+;;      ((query-id (convert-to-prolog-str (get-value-of-json-prolog-dict
+;;                      (cdaar
+;;                       (send-cram-start-action
+;;                        (concatenate 'string "knowrob:" (convert-to-prolog-str "ReasoningTask"))
+;;                        " \\'TableSetting\\'"
+;;                        (convert-to-prolog-str (get-timestamp-for-logging))
+;;                        "PV"
+;;                        "ActionInst"))
+;;                      "ActionInst"))))
+;;    (print "REASONING LOGGING")
+;;    ;;(send-init-reasoning-query query-id)
+;;    (send-predicate-query query-id predicate-name)
+;;        (print "REASONING LOGGING 1")
+;;    (send-parameter-query query-id parameter)
+;;        (print "REASONING LOGGING 2")
+;;    (send-link-reasoing-to-action query-id)
+;;        (print "REASONING LOGGING 3")
+;;    (send-result-query query-id reasoning-result)
+;;       (print "REASONING LOGGING 4")
+;;    query-id))
 
 
 (defun send-init-reasoning-query (query-id)
