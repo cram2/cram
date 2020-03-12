@@ -32,8 +32,8 @@
 
 (defun get-ease-object-lookup-table()
   (let ((lookup-table (make-hash-table :test 'equal)))
-    (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/EASE.owl#Bowl'")
-    (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/EASE.owl#Cup'")
+    (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Bowl'")
+    (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Cup'")
     lookup-table))
 
 (cpl:define-task-variable *action-parents* '())
@@ -90,7 +90,7 @@
             ((cpl:plan-failure (e)
                ;;(log-cram-finish-action action-id)
                (set-event-status-to-failed action-id)
-               (set-event-diagnosis action-id "'http://www.ease-crc.org/ont/EASE.owl#FailedAttempt'")
+               (set-event-diagnosis action-id (ccl::get-failure-uri (subseq (write-to-string e) 2 (search " " (write-to-string e)))))
                ;;(log-failure action-id e)
                ;;(equate action-id (log-perform-call  (second (desig:reference designator)))))
                (print "plan failure")))
