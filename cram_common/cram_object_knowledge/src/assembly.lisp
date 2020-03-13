@@ -325,6 +325,12 @@
                                 )
   :attachment-rot-matrix man-int:*identity-matrix*)
 
+(defmethod man-int:get-z-offset-for-placing-distance :heuristics 20
+  ((other-object (eql :chassis))
+   (object (eql :bottom-wing))
+   (attachment (eql :wing-attachment)))
+  0.02)
+
 (man-int:def-object-type-in-other-object-transform :underbody :bottom-wing :body-attachment
   :attachment-translation `(0.0 -0.025 0.02)
   :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)

@@ -304,9 +304,31 @@ Gripper is defined by a convention where Z is pointing towards the object.")
            (desig:desig-prop-value object :name))
          (object-type
            (desig:desig-prop-value object :type))
+         (maybe-other-object
+           (car (cdr objects-acted-on)))
+         (maybe-other-object-type
+           (desig:desig-prop-value maybe-other-object :type))
+         (maybe-attachment
+           (car (cdr (cdr objects-acted-on))))
+         (z-offset (get-z-offset-for-placing-distance
+                    maybe-other-object-type
+                    object-type
+                    maybe-attachment))
          (oTg-std
-           (get-object-type-to-gripper-transform
-            object-type object-name arm grasp)))
+           (let ((tmp-oTg-std (get-object-type-to-gripper-transform
+                               object-type object-name arm grasp)))
+             (cl-tf:transform->stamped-transform
+              (cl-tf:frame-id tmp-oTg-std)
+              (cl-tf:child-frame-id tmp-oTg-std)
+              (cl-tf:stamp tmp-oTg-std)
+              (cl-tf:make-transform
+               (cl-tf:make-3d-vector
+                (cl-tf:x (cl-tf:translation tmp-oTg-std))
+                (cl-tf:y (cl-tf:translation tmp-oTg-std))
+                (+ (cl-tf:z (cl-tf:translation tmp-oTg-std))
+                   z-offset))
+               (cl-tf:copy-quaternion
+                (cl-tf:rotation tmp-oTg-std)))))))
 
     (mapcar (lambda (label transforms)
               (make-traj-segment
