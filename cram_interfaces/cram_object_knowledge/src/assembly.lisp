@@ -51,7 +51,9 @@
 (def-fact-group attachmend-knowledge (man-int:unidirectional-attachment)
 
   (<- (man-int:unidirectional-attachment ?attachment-type)
-    (member ?attachment-type (:horizontal-attachment :vertical-attachment))))
+    (member ?attachment-type (:horizontal-attachment
+                              :vertical-attachment
+                              :popcorn-pot-lid-attachment))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -233,6 +235,83 @@
   :lift-offsets *default-lift-offsets*
   :2nd-lift-offsets *default-lift-offsets*)
 
+;;;;;;;;;;;;;;;;;;;;;;; POPCORN-POT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TOP GRASP
+(man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :top
+  :grasp-translation `(0.0 0.105 0.025)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 0.02)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.02)
+  :lift-offsets `(0.0 0.0 0.02)
+  :2nd-lift-offsets `(0.0 0.0 0.02))
+
+;;;;;;;;;;;;;;;;;;;;;; POPCORN-POT-LID ;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TOP GRASP
+(man-int:def-object-type-to-gripper-transforms :popcorn-pot-lid '(:left :right) :top
+  :grasp-translation `(0.0 0.0 0.01)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets  `(0.0 0.0 0.01)
+  :2nd-lift-offsets  `(0.0 0.0 0.01))
+
+;;;;;;;;;;;;;;;;;;;;;;; IKEA-BOWL-WW ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TOP GRASP
+(man-int:def-object-type-to-gripper-transforms :ikea-bowl-ww '(:left :right) :top
+  :grasp-translation `(0.0 0.075 0.03)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+;;;;;;;;;;;;;;;;;;;;;;; SALT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TOP GRASP
+(man-int:def-object-type-to-gripper-transforms :salt '(:left :right) :top
+  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+;;;;;;;;;;;;;;;;;;;;;;; IKEA-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TOP GRASP
+(man-int:def-object-type-to-gripper-transforms :ikea-plate '(:left :right) :top
+  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def-fact-group popcorn-object-type-hierarchy (man-int:object-type-direct-subtype)
+  (<- (man-int:object-type-direct-subtype :popcorn-item :popcorn-pot))
+  (<- (man-int:object-type-direct-subtype :popcorn-item :popcorn-pot-lid))
+  (<- (man-int:object-type-direct-subtype :popcorn-item :ikea-bowl-ww))
+  (<- (man-int:object-type-direct-subtype :popcorn-item :ikea-plate))
+  (<- (man-int:object-type-direct-subtype :popcorn-item :salt)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :popcorn-item)))
+  35)
+
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :popcorn-item)))
+  0.1)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(man-int:def-object-type-in-other-object-transform :popcorn-pot-lid :popcorn-pot :popcorn-pot-lid-attachment
+  :attachment-translation `(0.0 0.0 0.0)
+  :attachment-rot-matrix man-int:*identity-matrix*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
