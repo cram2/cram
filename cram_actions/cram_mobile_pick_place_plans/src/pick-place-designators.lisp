@@ -181,7 +181,9 @@
         (cpoe:object-in-hand ?object-designator ?arm ?grasp))
 
     ;; calculate trajectory
-    (equal ?objects (?current-object-designator))
+    (equal ?objects (?current-object-designator
+                     ?other-object-designator
+                     ?placement-location-name))
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory
                        :placing ?arm ?grasp ?objects

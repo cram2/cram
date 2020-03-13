@@ -359,8 +359,17 @@ and the other one is loosly attached. "
       (if (equal (car (last already-visited)) (name object))
           (setf already-visited '())))))
 
+(defun object-attached-to-robot-p (object)
+  (when object
+    (assoc (name object) (btr:attached-objects (get-robot-object)))))
+
+(defun get-collision-information-from-robot (object)
+  (declare (type item object))
+  (list (caddr (assoc (name object) (attached-objects (get-robot-object))))))
+
 (defmethod attach-object ((other-object item) (object item)
-                          &key attachment-type loose skip-removing-loose link grasp)
+                          &key attachment-type loose
+                          skip-removing-loose link grasp)
   "Attaches `object' to `other-object': adds an attachment to the
 attached-objects lists of each other. `attachment-type' is a keyword
 that specifies the type of attachment. `loose' specifies if the attachment
@@ -381,7 +390,11 @@ attaching more objects unidirectional and should be for this T. See
               (cons
                (list (make-attachment :object (name object)
                                       :attachment attachment-type))
-               (create-static-collision-information object)))
+               ;; Since robot objects are not in the attached-objects
+               ;; list of items, this has to be copied manuelly:
+               (if (object-attached-to-robot-p object)
+                   (get-collision-information-from-robot object)
+                   (create-static-collision-information object))))
         (slot-value other-object 'attached-objects))
   (push (cons (name other-object)
               (cons
@@ -413,14 +426,16 @@ the element before in `other-objects' and `object'."
            (attachment-object (car (second elem))))
          (get-collision-info (attached obj)
            (cdr (cdr (assoc (name attached) (attached-objects obj))))))
-    (reset-collision-information object (get-collision-info object other-object))
-    (reset-collision-information other-object (get-collision-info other-object object))
-    (setf (slot-value other-object 'attached-objects)
-          (remove (name object) (attached-objects other-object)
-                  :key #'get-attachment-object :test #'equal))
-    (setf (slot-value object 'attached-objects)
-          (remove (name other-object) (attached-objects object)
-                  :key #'get-attachment-object :test #'equal))))
+    (let ((object-collision-info (get-collision-info object other-object))
+          (other-object-collision-info (get-collision-info other-object object)))
+      (setf (slot-value other-object 'attached-objects)
+            (remove (name object) (attached-objects other-object)
+                    :key #'get-attachment-object :test #'equal))
+      (setf (slot-value object 'attached-objects)
+            (remove (name other-object) (attached-objects object)
+                    :key #'get-attachment-object :test #'equal))
+      (reset-collision-information object object-collision-info)
+      (reset-collision-information other-object other-object-collision-info))))
 
 (defmethod detach-all-objects ((object item))
   (with-slots (attached-objects) object
