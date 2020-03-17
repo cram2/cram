@@ -46,7 +46,7 @@ and `node' - a list of values. The result is a list, e.g. (parsed-named parsed-v
 and returns a list with (key value)"
     (when *show-json-warnings*
       (warn 'json-key-not-supported
-            :format-control "JSON element type `~a' not supported. Ignoring"
+            :format-control "JSON element type `~a' not supported. Parsing with default."
             :format-arguments (list name)))
     (cons name node)))
 
@@ -67,10 +67,13 @@ This is where the result of YASON:PARSE lands."
   "A general function to parse things like (a location ((prop1 val1)))"
   (destructuring-bind (article designator-type designator-properties)
       the-list
-    (declare (ignore article))
-    (desig:make-designator
-     (intern (string-upcase designator-type) :keyword)
-     (parse-property-list designator-properties))))
+    (let ((designator
+            (desig:make-designator
+             (intern (string-upcase designator-type) :keyword)
+             (parse-property-list designator-properties))))
+      (setf (slot-value designator 'desig:quantifier)
+            (intern (string-upcase article) :keyword))
+      designator)))
 
 (defun parse-action-json (json-string)
   (handler-case
@@ -94,15 +97,27 @@ This is where the result of YASON:PARSE lands."
      (cl-transforms:make-3d-vector x y z)
      (cl-transforms:make-quaternion q1 q2 q3 w))))
 
+(defun pose-stamped-from-list (the-list)
+  (destructuring-bind (frame-id stamp (x y z) (q1 q2 q3 w))
+      the-list
+    (cl-transforms-stamped:make-pose-stamped
+     frame-id stamp
+     (cl-transforms:make-3d-vector x y z)
+     (cl-transforms:make-quaternion q1 q2 q3 w))))
+
 ;;; ACTION PROPERTIES
 
 (defmethod parse-json-node ((name (eql :type)) node)
   (list name (intern (string-upcase (car node)) :keyword)))
-(defmethod parse-json-node ((name (eql :device)) node)
+;; (defmethod parse-json-node ((name (eql :device)) node)
+;;   (list name (intern (string-upcase (car node)) :keyword)))
+;; (defmethod parse-json-node ((name (eql :state)) node)
+;;   (list name (intern (string-upcase (car node)) :keyword)))
+;; (defmethod parse-json-node ((name (eql :object)) node)
+;;   (list name (intern (string-upcase (car node)) :keyword)))
+(defmethod parse-json-node ((name (eql :gripper)) node)
   (list name (intern (string-upcase (car node)) :keyword)))
-(defmethod parse-json-node ((name (eql :state)) node)
-  (list name (intern (string-upcase (car node)) :keyword)))
-(defmethod parse-json-node ((name (eql :object)) node)
+(defmethod parse-json-node ((name (eql :collision-mode)) node)
   (list name (intern (string-upcase (car node)) :keyword)))
 
 (defmethod parse-json-node ((name (eql :area)) node)
@@ -112,6 +127,10 @@ This is where the result of YASON:PARSE lands."
 (defmethod parse-json-node ((name (eql :value)) node)
   (cons name node))
 (defmethod parse-json-node ((name (eql :agent)) node)
+  (cons name node))
+(defmethod parse-json-node ((name (eql :position)) node)
+  (cons name node))
+(defmethod parse-json-node ((name (eql :joint-angle)) node)
   (cons name node))
 
 (defmethod parse-json-node ((name (eql :goal)) node)
@@ -144,6 +163,46 @@ This is where the result of YASON:PARSE lands."
               (list name (car node))))
       (list name (intern (string-upcase (car node)) :keyword))))
 
+(defmethod parse-json-node ((name (eql :target)) node)
+  (if (listp (car node))
+      (if (= 3 (length (car node)))
+          (list name (parse-designator-description (car node)))
+          (if (= 2 (length (car node)))
+              (list name (pose-from-list (car node)))
+              (list name (car node))))
+      ;; (list name (intern (string-upcase (car node)) :keyword))
+      (list name node)))
+
+
+(defmethod parse-json-node ((name (eql :object)) node)
+  (if (listp (car node))
+      (if (= 3 (length (car node)))
+          (list name (parse-designator-description (car node)))
+          ;; (list name (car node))
+          )
+      ;; (list name (intern (string-upcase (car node)) :keyword))
+      (list name node)))
+
+
+(defmethod parse-json-node ((name (eql :on)) node)
+  (if (listp (car node))
+      (if (= 3 (length (car node)))
+          (list name (parse-designator-description (car node)))
+          ;; (list name (car node))
+          )
+      ;; (list name (intern (string-upcase (car node)) :keyword))
+      (list name node)))
+
+
+(defmethod parse-json-node ((name (eql :location)) node)
+  (if (listp (car node))
+      (if (= 3 (length (car node)))
+          (list name (parse-designator-description (car node)))
+          ;; (list name (car node))
+          )
+      ;; (list name (intern (string-upcase (car node)) :keyword))
+      (list name node)))
+
 ;;; LOCATION PROPERTIES
 
 (defmethod parse-json-node ((name (eql :of)) node)
@@ -162,14 +221,46 @@ This is where the result of YASON:PARSE lands."
   (cons name node))
 (defmethod parse-json-node ((name (eql :behind)) node)
   (cons name node))
+(defmethod parse-json-node ((name (eql :urdf-name)) node)
+  (list name (intern (string-upcase (car node)) :keyword)))
+(defmethod parse-json-node ((name (eql :owl-name)) node)
+  (cons name node))
 
 (defmethod parse-json-node ((name (eql :pose)) node)
   (if (listp (car node))
       (if (= 2 (length (car node)))
           (list name (pose-from-list (car node)))
-          (list name (car node)))
+          (if (= 4 (length (car node)))
+              (list name (pose-stamped-from-list (car node)))
+              (list name (car node))))
+      (list name (intern (string-upcase (car node)) :keyword))))
+(defmethod parse-json-node ((name (eql :left-pose)) node)
+  (if (listp (car node))
+      (if (= 2 (length (car node)))
+          (list name (pose-from-list (car node)))
+          (if (= 4 (length (car node)))
+              (list name (pose-stamped-from-list (car node)))
+              (list name (car node))))
+      (list name (intern (string-upcase (car node)) :keyword))))
+(defmethod parse-json-node ((name (eql :right-pose)) node)
+  (if (listp (car node))
+      (if (= 2 (length (car node)))
+          (list name (pose-from-list (car node)))
+          (if (= 4 (length (car node)))
+              (list name (pose-stamped-from-list (car node)))
+              (list name (car node))))
       (list name (intern (string-upcase (car node)) :keyword))))
 
+(defmethod parse-json-node ((name (eql :left-joint-states)) node)
+  (cons name node))
+(defmethod parse-json-node ((name (eql :right-joint-states)) node)
+  (cons name node))
+
+
+;;; OBJECT PROPERTIES
+
+(defmethod parse-json-node ((name (eql :name)) node)
+  (list name (roslisp-utilities:lispify-ros-underscore-name (car node) :keyword)))
 
 ;; (defmacro getassoc (key alist)
 ;;   `(cdr (assoc ,key ,alist :test #'equal)))

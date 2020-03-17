@@ -293,8 +293,8 @@ commented out "
         (exe:perform (desig:an action
                                (type fetching)
                                (object ?obj)
-                               (grasp ?grasp)
-                               (arm right)))
+                               (grasps (?grasp))
+                               (arms (right))))
         (exe:perform (desig:an action
                                (type delivering)
                                (object ?obj)
