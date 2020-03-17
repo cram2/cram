@@ -17,4 +17,5 @@
                  (:file "bounding-box-tests" :depends-on ("package"))
                  (:file "timeline-tests" :depends-on ("package"))
                  (:file "copy-world-tests" :depends-on ("package"))
-                 (:file "moveit-tests" :depends-on ("package"))))))
+                 (:file "moveit-tests" :depends-on ("package"))
+                 (:file "compound-meshes-tests" :depends-on ("package"))))))

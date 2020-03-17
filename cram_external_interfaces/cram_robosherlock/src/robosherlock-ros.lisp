@@ -75,6 +75,7 @@
                          key-value-pair
                        (let ((value (car values)))
                          ;; below are the only keys supported by RS at the moment
+                         ;; TODO: make sure that an already perceived object doesn't get reperceived with its original SHAPE and SIZE...
                          (if (or (eql key :type)
                                  (eql key :shape)
                                  (eql key :color)
@@ -83,7 +84,7 @@
                              (list key
                                    (etypecase value ; RS is only case-sensitive on "TYPE"s
                                      (keyword (remove #\-
-                                                      (if (or (eql key :type))
+                                                      (if (eql key :type)
                                                           (string-capitalize (symbol-name value))
                                                           (string-downcase (symbol-name value)))))
                                      (string value)
@@ -200,9 +201,38 @@
     (second pose-description-we-want)))
 
 (defun make-robosherlock-designator (rs-answer keyword-key-value-pairs-list)
-  (when (and (find :type rs-answer :key #'car) ; <- TYPE comes from original query
+  (when (and (find :type rs-answer :key #'car)
              (find :type keyword-key-value-pairs-list :key #'car))
-    (setf rs-answer (remove :type rs-answer :key #'car)))
+    ;; TYPE comes from original query
+    ;; (setf rs-answer (remove :type rs-answer :key #'car))
+    ;;
+    ;; Actually not, because if we want to perceive "type KitchenObject",
+    ;; we get KitchenObject back and that's not nice.
+    ;; so for now we'll have a mapping...
+    (let ((cram-type
+            (ecase (second (find :type rs-answer :key #'car))
+              (:KoellnMuesliKnusperHonigNuss
+               :breakfast-cereal)
+              (:CupEcoOrange
+               :cup)
+              (:EdekaRedBowl
+               :bowl)
+              (:WeideMilchSmall
+               :milk)
+              (:BLUEPLASTICSPOON
+               :spoon))))
+      (setf rs-answer
+            (subst-if `(:type ,cram-type)
+                      (lambda (x)
+                        (and (listp x) (eq (car x) :type)))
+                      rs-answer))
+      ;; REPLACE NAME WITH TYPE FOR HPN
+      ;; (setf rs-answer
+      ;;       (subst-if `(:name ,cram-type)
+      ;;                 (lambda (x)
+      ;;                   (and (listp x) (eq (car x) :name)))
+      ;;                 rs-answer))
+      ))
   ;; (when (and (find :location rs-answer :key #'car) ; <- LOCATION comes from original query
   ;;            (find :location keyword-key-value-pairs-list :key #'car))
   ;;   (setf rs-answer (remove :location rs-answer :key #'car)))

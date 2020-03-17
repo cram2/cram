@@ -112,7 +112,9 @@
            :action-goal goal
            :action-timeout action-timeout))
       (ensure-giskard-torso-goal-reached result status goal-joint-state convergence-delta)
-      (values result status))))
+      (values result status)
+      ;; return the joint state, which is our observation
+      (joints:full-joint-states-as-hash-table))))
 
 
 

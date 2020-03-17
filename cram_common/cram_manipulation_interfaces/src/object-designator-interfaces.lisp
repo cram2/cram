@@ -43,3 +43,9 @@
 
 (defun get-object-pose-in-map (object-designator)
   (car (getassoc :pose-in-map (desig:desig-prop-value object-designator :pose))))
+
+(defun get-object-old-transform (object-designator)
+  (car (getassoc :transform (desig:desig-prop-value object-designator :old-pose))))
+
+(defun get-object-old-pose (object-designator)
+  (car (getassoc :pose (desig:desig-prop-value object-designator :old-pose))))

@@ -46,7 +46,7 @@
    #:pose->flat-list #:pose->flat-list-w-first
    #:pose->list
    #:flat-list->pose #:flat-list->transform #:flat-list-w-first->pose
-   #:list->pose
+   #:list->pose #:list->transform
    #:ensure-pose-in-frame #:ensure-point-in-frame
    #:translate-pose #:rotate-pose
    #:rotate-pose-in-own-frame #:rotate-transform-in-own-frame
