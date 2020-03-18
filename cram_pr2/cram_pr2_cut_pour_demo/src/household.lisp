@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Vanessa Hassouna <hassouna@bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -35,15 +36,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group household-object-type-hierarchy (man-int:object-type-direct-subtype)
-  (<- (man-int:object-type-direct-subtype :household-item :cutlery))
-  (<- (man-int:object-type-direct-subtype :household-item :plate))
-  (<- (man-int:object-type-direct-subtype :household-item :tray))
-  (<- (man-int:object-type-direct-subtype :household-item :bottle))
-  (<- (man-int:object-type-direct-subtype :household-item :cup))
-  (<- (man-int:object-type-direct-subtype :household-item :milk))
-  (<- (man-int:object-type-direct-subtype :household-item :cereal))
-  (<- (man-int:object-type-direct-subtype :household-item :bowl))
-  (<- (man-int:object-type-direct-subtype :food :weisswurst))
+  (<- (man-int:object-type-direct-subtype :household-item :weisswurst))
   (<- (man-int:object-type-direct-subtype :household-item :bread))
   
   (<- (man-int:object-type-direct-subtype :cutlery :knife))
@@ -57,8 +50,6 @@
 
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :household-item)))
   50)
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :food)))
-  50)
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :milk)))
   20)
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :cereal)))
@@ -67,8 +58,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :household-item)))
-  0.10)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :food)))
   0.10)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :cutlery)))
   0.04)
@@ -462,5 +451,6 @@
   :2nd-pregrasp-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
   :lift-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
   :2nd-lift-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*))
+
 
 
