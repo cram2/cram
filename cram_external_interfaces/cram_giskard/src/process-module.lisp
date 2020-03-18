@@ -40,7 +40,9 @@
                                       :collision-object-b (third rest-arguments)
                                       :collision-object-b-link (fourth rest-arguments)
                                       :collision-object-a (fifth rest-arguments)
-                                      :move-the-ass (sixth rest-arguments)))
+                                      :move-the-ass (sixth rest-arguments)
+                                      :constraints (seventh rest-arguments)
+                                      ))
       (cram-common-designators:move-joints
        (call-giskard-joint-action :goal-configuration-left argument-1
                                   :goal-configuration-right (first rest-arguments)))

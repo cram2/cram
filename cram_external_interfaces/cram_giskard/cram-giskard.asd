@@ -54,6 +54,7 @@
     ((:file "package")
      (:file "collision-scene" :depends-on ("package"))
      (:file "action-client" :depends-on ("package"))
+     (:file "constraints" :depends-on ("package"))
      (:file "cartesian-interface" :depends-on ("package" "action-client"))
      (:file "joint-interface" :depends-on ("package" "action-client"))
      (:file "base-goals" :depends-on ("package" "action-client" "joint-interface"))

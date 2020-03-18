@@ -99,6 +99,12 @@
     (or (lisp-pred identity ?left-trajectory)
         (lisp-pred identity ?right-trajectory))
 
+    ;; Use giskard constraints if available
+    (or (spec:property ?action-designator (:constraints ?constraints))
+        (and (rob-int:robot ?robot)
+             (rob-int:gripper-joint ?robot ?arm ?joint)
+             (equal ?constraints ((?joint) (?gripper-opening)))))
+    
     ;; put together resulting action designator
     (desig:designator :action ((:type :picking-up)
                                (:object ?current-object-desig)
@@ -111,7 +117,8 @@
                                (:left-grasp-poses ?left-grasp-poses)
                                (:right-grasp-poses ?right-grasp-poses)
                                (:left-lift-poses ?left-lift-poses)
-                               (:right-lift-poses ?right-lift-poses))
+                               (:right-lift-poses ?right-lift-poses)
+                               (:constraints ?constraints))
                       ?resolved-action-designator))
 
 
@@ -196,6 +203,18 @@
     (or (lisp-pred identity ?left-trajectory)
         (lisp-pred identity ?right-trajectory))
 
+    ;; Use giskard constraints if available
+    ;; (once (or (spec:property ?action-designator (:constraints ?constraints))
+    ;;           (equal ?constraints nil)))
+    (-> (spec:property ?action-designator (:constraints ?constraints))
+        (true)
+        (equal ?constraints nil)
+        ;; (and (rob-int:robot ?robot)
+        ;;      (rob-int:gripper-joint ?robot ?arm ?joint)
+        ;;      (equal ?constraints ((?joint) (?gripper-opening))))
+        )
+    
+    
     ;; put together resulting designator
     (desig:designator :action ((:type :placing)
                                (:object ?current-object-designator)
@@ -209,5 +228,6 @@
                                (:left-put-poses ?left-put-poses)
                                (:right-put-poses ?right-put-poses)
                                (:left-retract-poses ?left-retract-poses)
-                               (:right-retract-poses ?right-retract-poses))
+                               (:right-retract-poses ?right-retract-poses)
+                               (:constraints ?constraints))
                       ?resolved-action-designator)))

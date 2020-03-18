@@ -96,7 +96,8 @@
                                               ?collision-mode
                                               ?collision-object-b ?collision-object-b-link
                                               ?collision-object-a
-                                              ?move-the-ass))
+                                              ?move-the-ass
+                                              ?constraints))
     (property ?designator (:type :moving-tcp))
     (-> (property ?designator (:left-pose ?left-pose))
         (true)
@@ -118,7 +119,10 @@
         (equal ?collision-object-a nil))
     (-> (desig:desig-prop ?designator (:move-the-ass ?move-the-ass))
         (true)
-        (equal ?move-the-ass nil)))
+        (equal ?move-the-ass nil))
+    (-> (desig:desig-prop ?designator (:constraints ?constraints))
+        (true)
+        (equal ?constraints nil)))
 
   (<- (motion-grounding ?designator (move-joints ?left-config ?right-config))
     (property ?designator (:type :moving-arm-joints))

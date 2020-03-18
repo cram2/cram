@@ -47,6 +47,7 @@
                   ((:right-grasp-poses ?right-grasp-poses))
                   ((:left-lift-poses ?left-lift-poses))
                   ((:right-lift-poses ?right-lift-poses))
+                  ((:constraints ?constraints))
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type keyword ?arm ?grasp)
@@ -54,9 +55,9 @@
            (type (or null list) ; yes, null is also list, but this is more readable
                  ?left-reach-poses ?right-reach-poses
                  ?left-grasp-poses ?right-grasp-poses
-                 ?left-lift-poses ?right-lift-poses))
+                 ?left-lift-poses ?right-lift-poses
+                 ?constraints))
   "Open gripper, reach traj, grasp traj, close gripper, issue grasping event, lift."
-
   (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
                             :r-g-b-list '(1 1 0) :id 300)
 
@@ -79,7 +80,8 @@
        (desig:an action
                  (type reaching)
                  (left-poses ?left-reach-poses)
-                 (right-poses ?right-reach-poses)))))
+                 (right-poses ?right-reach-poses)
+                 (constraints ?constraints)))))
   (roslisp:ros-info (pick-place pick-up) "Grasping")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -88,12 +90,14 @@
                            e)
          (return)
          ))
+    
     (exe:perform
      (desig:an action
                (type grasping)
                (object ?object-designator)
                (left-poses ?left-grasp-poses)
-               (right-poses ?right-grasp-poses))))
+               (right-poses ?right-grasp-poses)
+               (constraints ?constraints))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
   (exe:perform
    (desig:an action
@@ -103,17 +107,38 @@
              (object ?object-designator)
              (grasp ?grasp)))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (pp-plans pick-up)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         (return)))
-    (exe:perform
-     (desig:an action
-               (type lifting)
-               (left-poses ?left-lift-poses)
-               (right-poses ?right-lift-poses))))
+  ;; Split lifting between first and rest and ignore collision avoidanve for first
+  (let ((?first-left-lift-poses (when ?left-lift-poses
+                                     (list (car ?left-lift-poses))))
+        (?first-right-lift-poses (when ?right-lift-poses
+                                      (list (car ?right-lift-poses))))
+        (?last-left-lift-poses (cdr ?left-lift-poses))
+        (?last-right-lift-poses (cdr ?right-lift-poses)))
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans pick-up)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object ?object-designator)
+                 (left-poses ?first-left-lift-poses)
+                 (right-poses ?first-right-lift-poses)))
+      (exe:perform
+       (desig:an action
+                 (type lifting)
+                 (left-poses ?last-left-lift-poses)
+                 (right-poses ?last-right-lift-poses)))
+      ;; (exe:perform
+      ;;  (desig:an action
+      ;;            (type lifting)
+      ;;            (left-poses ?left-lift-poses)
+      ;;            (right-poses ?right-lift-poses)
+      ;;            ;; (constraints ?constraints)
+      ;;            ))
+      ))
   (roslisp:ros-info (pick-place place) "Parking")
   (exe:perform
    (desig:an action
@@ -140,6 +165,7 @@
                 ((:right-put-poses ?right-put-poses))
                 ((:left-retract-poses ?left-retract-poses))
                 ((:right-retract-poses ?right-retract-poses))
+                ((:constraints ?constraints))
               &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type (or desig:object-designator null) ?other-object-designator)
@@ -164,7 +190,8 @@
      (desig:an action
                (type reaching)
                (left-poses ?left-reach-poses)
-               (right-poses ?right-reach-poses))))
+               (right-poses ?right-reach-poses)
+               (constraints ?constraints))))
   (roslisp:ros-info (pick-place place) "Putting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -179,7 +206,8 @@
                (desig:when ?other-object-designator
                  (supporting-object ?other-object-designator))
                (left-poses ?left-put-poses)
-               (right-poses ?right-put-poses))))
+               (right-poses ?right-put-poses)
+               (constraints ?constraints))))
   (when ?placing-location-name
     (roslisp:ros-info (boxy-plans connect) "Asserting assemblage connection in knowledge base")
     (cram-occasions-events:on-event
@@ -209,7 +237,8 @@
      (desig:an action
                (type retracting)
                (left-poses ?left-retract-poses)
-               (right-poses ?right-retract-poses))))
+               (right-poses ?right-retract-poses)
+               (constraints ?constraints))))
   (roslisp:ros-info (pick-place place) "Parking")
   (exe:perform
    (desig:an action
