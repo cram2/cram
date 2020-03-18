@@ -314,6 +314,7 @@ The name in the list is a keyword that is created by lispifying the filename."
                 :collision-shape (make-instance 'colored-box-shape
                                    :half-extents (ensure-vector size)
                                    :color color)))))
+
 (defmethod btr:add-object ((world bullet:bt-world) (type (eql :box-item)) name pose
                            &key mass (color '(1.0 0.0 0.0 1.0)) size item-type)
   (assert size)

@@ -1,6 +1,7 @@
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;;                     Christopher Pollok <cpollok@cs.uni-bremen.de>
+;;;                     Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -96,7 +97,7 @@
 
 
 
-;;;;;;;;;;;;;;;; Everything below is for pick and place only ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;; Everything below is for pick/place & cut/pour only ;;;;;;;;;;;;;;;;;;
 
 (defvar *known-grasp-types* nil
   "A list of symbols representing all known grasp types")
@@ -398,10 +399,6 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                ,(man-int:get-object-type-to-gripper-pregrasp-transform
                  object-type object-name arm grasp oTg-std))))))
 
-(defparameter *lift-z-offset* 0.4 "in meters")
-(defparameter *bottle-grasp-z-offset* 0.095 "in meters") ; 0.105?
-(defparameter *pour-xy-offset* 0.10 "in meters")
-(defparameter *pour-z-offset* -0.04 "in meters")
 
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :tilting))
                                                  arm
@@ -410,16 +407,18 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                                                  &key tilt-approach-poses)
   (let* ((?approach-pose (car tilt-approach-poses))
          (angle (cram-math:degrees->radians 100))
+         ;;depending on the grasp the angle to tilt is different
          (?tilt-pose
            (case grasp
-               (:front (rotate-once-pose ?approach-pose (- angle) :y))
-               (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
-               (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
-               (:back (rotate-once-pose ?approach-pose (+ angle) :y))
-               (t (error "can only pour from :side, back or :front")))))
+             (:front (rotate-once-pose ?approach-pose (- angle) :y))
+             (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
+             (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
+             (:back (rotate-once-pose ?approach-pose (+ angle) :y))
+             (t (error "can only pour from :side, back or :front")))))
     `(,?tilt-pose)))
 
 ;;helper function for tilting
+;;rotate the pose around the axis in an angle
 (defun rotate-once-pose (pose angle axis)
   (cl-transforms-stamped:copy-pose-stamped
    pose
@@ -434,12 +433,15 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                     angle)
                    pose-orientation))))
 
+;;get pouring trajectory workes like picking-up it will get the 
+;;object-type-to-gripper-tilt-approch-transform und makes a traj-segment out of it
+;;here we have only the approach pose, followed by that is the titing pose (above)
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :pouring))
                                                  arm
                                                  grasp
                                                  objects-acted-on
                                                  &key )
-   (let* ((object
+  (let* ((object
            (car objects-acted-on))
          (object-name
            (desig:desig-prop-value object :name))
@@ -459,12 +461,15 @@ Gripper is defined by a convention where Z is pointing towards the object.")
             `((,(man-int::get-object-type-to-gripper-tilt-approach-transform
                  object-type object-name arm grasp oTg-std))))))
 
+;;get sclicing trajectory has the poses:
+;;reaching,graspinng,lifting,slice-up,slice down
+;;the rest will be calculated in the plan for sclicing
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :slicing))
                                                  arm
                                                  grasp
                                                  objects-acted-on
                                                  &key )
-   (let* ((object
+  (let* ((object
            (car objects-acted-on))
          (object-name
            (desig:desig-prop-value object :name))
@@ -498,8 +503,6 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                  object-type object-name arm grasp oTg-std))
               (,(man-int::get-object-type-to-gripper-slice-down-transform
                  object-type object-name arm grasp oTg-std))))))
-
-
 
 
 ;;;;;;;;;;;;;;;;;;; OBJECT TO OTHER OBJECT TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;
