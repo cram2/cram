@@ -4,8 +4,8 @@
   <description>
      cram_mobile_cut_pour_plans
   </description>
-  <author>Gayane Kazhoyan</author>
-  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <author>Vanessa Hassouna</author>
+  <maintainer email="hassouna@uni-bremen.de">Vanessa Hassouna</maintainer>
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
