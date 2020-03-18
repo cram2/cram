@@ -1,4 +1,3 @@
-
 ;;;
 ;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.

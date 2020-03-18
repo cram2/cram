@@ -1,4 +1,5 @@
 ;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,8 +28,8 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (defsystem cram-mobile-cut-pour-plans
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
+  :author "Vanessa Hassouna"
+  :maintainer "Vanessa Hassouna"
   :license "BSD"
 
   :depends-on (cl-transforms
