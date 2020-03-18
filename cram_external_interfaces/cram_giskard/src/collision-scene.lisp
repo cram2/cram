@@ -173,6 +173,12 @@
                       (invoke-restart 'roslisp:reconnect))
                (cpl:retry)))))
     (let ((service (get-giskard-environment-service)))
+      ;; hack for tall holder bc origin is off
+      (when (and (eq add-or-remove-or-attach-or-detach :add)
+                 (string= name (roslisp-utilities:rosify-underscores-lisp-name
+                                'holder-plane-horizontal)))
+        (setf (slot-value (cl-tf:origin pose) 'cl-tf:z)
+              (- (slot-value (cl-tf:origin pose) 'cl-tf:z) 0.045)))
       (if service
           (roslisp:msg-slot-value
            (roslisp:call-persistent-service
@@ -249,20 +255,23 @@
   (unless cram-projection:*projection-environment*
     (let* ((object-name (desig:desig-prop-value (cpoe:event-object-designator event) :name))
            (object-name-string (roslisp-utilities:rosify-underscores-lisp-name object-name))
-           (btr-object (btr:object btr:*current-bullet-world* object-name)))
+           (btr-object (btr:object btr:*current-bullet-world* object-name))
+           (original-pose (cl-transforms-stamped:pose->pose-stamped
+                           cram-tf:*fixed-frame* 0.0 (btr:pose btr-object)))
+           )
       (call-giskard-environment-service
        :remove
        :name object-name-string)
       (call-giskard-environment-service
        :add
        :name object-name-string
-       :pose (cl-transforms-stamped:pose->pose-stamped
-              cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))
+       :pose original-pose
        :dimensions (with-slots (cl-transforms:x cl-transforms:y cl-transforms:z)
                        (btr:calculate-bb-dims btr-object)
                      (list cl-transforms:x cl-transforms:y cl-transforms:z))))))
 
 (defmethod coe:clear-belief giskard-clear ()
+  (break)
   (unless cram-projection:*projection-environment*
     (call-giskard-environment-service
      :remove-all)
@@ -273,3 +282,14 @@
        :pose (cl-transforms-stamped:pose->pose-stamped
               cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
        :joint-state-topic "kitchen/joint_states"))))
+
+(defun giskard-clear ()
+  (call-giskard-environment-service
+   :remove-all)
+  (when (btr:get-environment-object)
+    (call-giskard-environment-service
+     :add-environment
+     :name (roslisp-utilities:rosify-underscores-lisp-name (btr:name (btr:get-environment-object)))
+     :pose (cl-transforms-stamped:pose->pose-stamped
+            cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
+     :joint-state-topic "kitchen/joint_states")))

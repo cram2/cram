@@ -87,10 +87,7 @@
   (when (eql status :timeout)
     (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
   (when (eql status :aborted)
-    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action aborted! With result ~a" result)
-    ;; (cpl:fail 'common-fail:manipulation-goal-not-reached
-    ;;           :description "Giskard did not converge to goal because of collision")
-    )
+    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action aborted! With result ~a" result))
   (let ((current-position (car (joints:joint-positions (list cram-tf:*robot-torso-joint*)))))
     (unless (cram-tf:values-converged current-position goal convergence-delta)
       (cpl:fail 'common-fail:torso-goal-not-reached

@@ -90,9 +90,12 @@
   (flet ((ensure-giskard-joint-goal (goal arm)
            (if (and (listp goal) (= (length goal) 7))
                (get-arm-joint-names-and-positions-list arm goal)
-               (and (roslisp:ros-warn (low-level giskard)
-                                      "Joint goal ~a was not a list of 7. Ignoring."
-                                      goal)
+               (and (if goal
+                        (roslisp:ros-warn (low-level giskard)
+                                          "No joint goal for ~a arm given. Ignoring." arm)
+                        (roslisp:ros-warn (low-level giskard)
+                                          "Joint goal ~a for ~a arm was not a list of 7. Ignoring."
+                                          goal arm))
                     (get-arm-joint-names-and-positions-list arm)))))
    (values (ensure-giskard-joint-goal left-goal :left)
            (ensure-giskard-joint-goal right-goal :right))))
