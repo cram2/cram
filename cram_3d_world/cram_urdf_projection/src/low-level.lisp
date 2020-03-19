@@ -684,7 +684,8 @@ with the object, calculates similar angle around Y axis and applies the rotation
 
 (defun get-ik-joint-positions (ee-pose base-link end-effector-link joint-names
                                torso-joint-name
-                               torso-joint-lower-limit torso-joint-upper-limit)
+                               torso-joint-lower-limit torso-joint-upper-limit
+                               &key collision-check-function collision-check-arguments)
   (when ee-pose
     (multiple-value-bind (ik-solution-msg torso-angle)
         (let ((torso-current-angle
@@ -695,9 +696,11 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 (btr::make-robot-joint-state-msg
                  (btr:get-robot-object)
                  :joint-names joint-names)))
-          (ik:call-ik-service-with-resampling
-           ee-pose base-link end-effector-link seed-state-msg *torso-resampling-step* :z
-           torso-current-angle torso-joint-lower-limit torso-joint-upper-limit))
+          (ik:call-ik-service-with-resampling-and-collision-check
+           ee-pose base-link end-effector-link seed-state-msg *torso-resampling-step*
+           :z torso-current-angle torso-joint-lower-limit torso-joint-upper-limit
+           :collision-check-function collision-check-function
+           :collision-check-arguments collision-check-arguments))
       (unless ik-solution-msg
         (cpl:fail 'common-fail:manipulation-pose-unreachable
                   :description (format nil "~a is unreachable for EE." ee-pose)))
@@ -802,7 +805,9 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                    (tcp-pose->ee-pose left-tcp-pose
                                                       ?left-tool-frame ?left-ee-frame))
                                   ?torso-link ?left-ee-frame ?left-arm-joints
-                                  ?torso-joint ?lower-limit ?upper-limit))
+                                  ?torso-joint ?lower-limit ?upper-limit
+                                  :collision-check-function #'perform-collision-check
+                                  :collision-check-arguments (list collision-mode left-tcp-pose right-tcp-pose)))
       (multiple-value-bind (right-ik right-torso-angle)
           (let ((ik::*ik-service-name*
                   (if (string-equal (symbol-name ?robot) "PR2")
@@ -812,8 +817,10 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                      (tcp-pose->ee-pose right-tcp-pose
                                                         ?right-tool-frame ?right-ee-frame))
                                     ?torso-link ?right-ee-frame ?right-arm-joints
-                                    ?torso-joint ?lower-limit ?upper-limit))
-        (cond
+                                    ?torso-joint ?lower-limit ?upper-limit
+                                    :collision-check-function #'perform-collision-check
+                                    :collision-check-arguments `(,collision-mode ,left-tcp-pose ,right-tcp-pose)))
+       (cond
           ((and left-torso-angle right-torso-angle)
            (when (not (eq left-torso-angle right-torso-angle))
              (cpl:fail 'common-fail:manipulation-pose-unreachable
