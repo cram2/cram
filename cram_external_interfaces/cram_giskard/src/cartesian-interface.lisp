@@ -143,12 +143,15 @@
                                                   `(and (rob-int:robot ?robot)
                                                         (rob-int:hand-links ?robot :right
                                                                             ?hand-links))))))))
-                          :body_b (if collision-object-b
-                                      (roslisp-utilities:rosify-underscores-lisp-name
-                                       collision-object-b)
-                                      (roslisp:symbol-code
-                                            'giskard_msgs-msg:collisionentry
-                                            :all))
+                          :body_b (roslisp:symbol-code
+                                   'giskard_msgs-msg:collisionentry
+                                   :all)
+                                  ;; (if collision-object-b
+                                  ;;     (roslisp-utilities:rosify-underscores-lisp-name
+                                  ;;      collision-object-b)
+                                  ;;     (roslisp:symbol-code
+                                  ;;      'giskard_msgs-msg:collisionentry
+                                  ;;      :all))
                           :link_bs (vector (roslisp:symbol-code
                                             'giskard_msgs-msg:collisionentry
                                             :all))
