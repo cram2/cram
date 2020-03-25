@@ -37,7 +37,7 @@
                cram-tf
                moveit_msgs-msg
                moveit_msgs-srv
-               cram-bullet-reasoning
+               cram-common-failures
                cram-language)
   :components
   ((:module "src"

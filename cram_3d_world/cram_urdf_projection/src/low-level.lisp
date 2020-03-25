@@ -807,7 +807,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                   ?torso-link ?left-ee-frame ?left-arm-joints
                                   ?torso-joint ?lower-limit ?upper-limit
                                   :collision-check-function #'perform-collision-check
-                                  :collision-check-arguments (list collision-mode left-tcp-pose right-tcp-pose)))
+                                  :collision-check-arguments `(,collision-mode ,left-tcp-pose ,right-tcp-pose)))
       (multiple-value-bind (right-ik right-torso-angle)
           (let ((ik::*ik-service-name*
                   (if (string-equal (symbol-name ?robot) "PR2")
