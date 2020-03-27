@@ -360,20 +360,20 @@
      ?costmap))
 
   ;;;;;;;;;;;;;;; spatial relation ON for item objects ;;;;;;;;;;;;;;;;;;;;;;
-  (<- (costmap:desig-costmap ?designator ?costmap)
-    (desig:desig-prop ?designator (:on ?object))
-    (btr-belief:object-designator-name ?object ?object-instance-name)
-    (btr:bullet-world ?world)
-    (btr:item-type ?world ?object-instance-name ?_)
-    (btr:%object ?world ?object-instance-name ?object-instance)
-    (costmap:costmap ?costmap)
-    (costmap:costmap-add-function
-     on-bounding-box
-     (make-object-bounding-box-costmap-generator ?object-instance)
-     ?costmap)
-    (costmap:costmap-add-cached-height-generator
-     (make-object-bounding-box-height-generator ?object-instance :on)
-     ?costmap))
+  ;; (<- (costmap:desig-costmap ?designator ?costmap)
+  ;;   (desig:desig-prop ?designator (:on ?object))
+  ;;   (btr-belief:object-designator-name ?object ?object-instance-name)
+  ;;   (btr:bullet-world ?world)
+  ;;   (btr:item-type ?world ?object-instance-name ?_)
+  ;;   (btr:%object ?world ?object-instance-name ?object-instance)
+  ;;   (costmap:costmap ?costmap)
+  ;;   (costmap:costmap-add-function
+  ;;    on-bounding-box
+  ;;    (make-object-bounding-box-costmap-generator ?object-instance)
+  ;;    ?costmap)
+  ;;   (costmap:costmap-add-cached-height-generator
+  ;;    (make-object-bounding-box-height-generator ?object-instance :on)
+  ;;    ?costmap))
   ;;
   ;;;;;;;;;;;;;;; spatial relation ON for environment objects ;;;;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
