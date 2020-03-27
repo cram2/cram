@@ -105,7 +105,9 @@
     (exe:perform
      (desig:an action
                (type gripping)
-               (gripper ?arm))))
+               (gripper ?arm)
+               (object (desig:an object
+                                 (name ?environment-name))))))
 
   ;;;;;;;;;;;;;;;;;;;;;; MANIPULATING ;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
@@ -143,10 +145,13 @@
   ;;;;;;;;;;;;;;;;;;;; RETRACTING ;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Retracting")
-  (exe:perform
-   (desig:an action
-             (type releasing)
-             (gripper ?arm)))
+  (when (eq ?type :opening)
+    (exe:perform
+     (desig:an action
+               (type releasing)
+               (gripper ?arm)
+               (object (desig:an object
+                                 (name ?environment-name))))))
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans manipulate)
