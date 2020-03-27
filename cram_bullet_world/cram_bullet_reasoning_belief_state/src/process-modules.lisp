@@ -54,7 +54,11 @@ the old object-designator description is enough to create a new one."
                (desig:desig-prop-value object-designator :name))
           (detect-new-object-pose-from-old-pose object-designator)
           (if (desig:desig-prop-value object-designator :type)
-              (detect-new-object-pose-from-btr object-designator)
+              (progn 
+                (print "hellooo")
+                (print (detect-new-object-pose-from-btr
+                        object-designator))
+                (detect-new-object-pose-from-btr object-designator))
               (cpl:fail 'common-fail:perception-object-not-in-world
                         :object object-designator
                         :description (format nil
@@ -82,7 +86,7 @@ the old object-designator description is enough to create a new one."
                                                   (btr:object-visibility-percentage visibility)))
                                           obj)))
                                   (btr:get-objects-for-type (desig:desig-prop-value old-object :type))))))
-    (if visible-objects-in-fov 
+    (if T
         (mapcar (lambda (obj)
                   (let* ((object-name (btr:name obj))
                          (object-type (car (btr:item-types
@@ -97,7 +101,7 @@ the old object-designator description is enough to create a new one."
                          (map-P-obj
                            (cram-tf:strip-transform-stamped map-T-obj)))
                     (detect-new-object-pose old-object object-name object-type map-P-obj map-T-obj)))
-                visible-objects-in-fov)
+                 (btr:get-objects-for-type (desig:desig-prop-value old-object :type)))
         (cpl:fail 'common-fail:perception-object-not-found
                   :object old-object
                   :description
@@ -128,8 +132,8 @@ the old object-designator description is enough to create a new one."
                                   (btr:get-objects-for-type (desig:desig-prop-value old-object :type)))))
          (object-name (if (desig:desig-prop-value old-object :name)
                           (desig:desig-prop-value old-object :name)
-                          (btr:name (if visible-objects-in-fov
-                                        (car visible-objects-in-fov)
+                          (btr:name (if T
+                                        (car (btr:get-objects-for-type (desig:desig-prop-value old-object :type)))
                                         (cpl:fail 'common-fail:perception-object-not-found
                                                   :object old-object
                                                   :description
