@@ -271,9 +271,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;; SALT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; TOP GRASP
-(man-int:def-object-type-to-gripper-transforms :salt '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms :salt '(:left :right) :left-side
   :grasp-translation `(0.0 0.0 0.0)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
   :lift-offsets *default-lift-offsets*
@@ -310,7 +310,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (man-int:def-object-type-in-other-object-transform :popcorn-pot-lid :popcorn-pot :popcorn-pot-lid-attachment
-  :attachment-translation `(0.0 0.0 0.0)
+  :attachment-translation `(0.0 0.0 0.0745)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
