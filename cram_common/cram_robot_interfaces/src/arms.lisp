@@ -34,6 +34,7 @@
                       arm-joints arm-links arm-base-joints arm-base-links arm-tool-joints
                       hand-links end-effector-link robot-tool-frame
                       gripper-joint gripper-link gripper-meter-to-joint-multiplier
+                      gripper-finger-link
                       ;; specific configurations
                       ;; robot-arms-parking-joint-states robot-arms-carrying-joint-states
                       ;; end-effector-parking-pose
@@ -96,6 +97,10 @@
 
   ;; Defines links of the grippers of the robot
   (<- (gripper-link ?robot ?arm ?link)
+    (fail))
+
+  ;; Defines the links of a gripper's fingers of a robot.
+  (<- (gripper-finger-link ?robot ?arm ?link)
     (fail))
 
   (<- (gripper-meter-to-joint-multiplier ?robot ?multiplier)

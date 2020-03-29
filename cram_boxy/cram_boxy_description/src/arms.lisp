@@ -68,6 +68,7 @@
                                 robot-tool-frame
                                 arm-joints arm-links
                                 gripper-joint gripper-link
+                                gripper-finger-link
                                 gripper-meter-to-joint-multiplier
                                 standard-to-particular-gripper-transform
                                 ;; robot-arms-parking-joint-states
@@ -135,6 +136,15 @@
   (<- (gripper-link boxy :right ?link)
     (bound ?link)
     (lisp-fun search "right_gripper" ?link ?pos)
+    (lisp-pred identity ?pos))
+
+  (<- (gripper-finger-link boxy :left ?link)
+    (bound ?link)
+    (lisp-fun search "left_gripper_finger" ?link ?pos)
+    (lisp-pred identity ?pos))
+  (<- (gripper-finger-link boxy :right ?link)
+    (bound ?link)
+    (lisp-fun search "right_gripper_finger" ?link ?pos)
     (lisp-pred identity ?pos))
 
   (<- (gripper-meter-to-joint-multiplier boxy 1.0))

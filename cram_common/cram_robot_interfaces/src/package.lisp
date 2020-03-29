@@ -36,7 +36,7 @@
    #:arm #:required-arms #:available-arms
    #:arm-joints #:arm-links #:arm-base-joints #:arm-base-links #:arm-tool-joints
    #:hand-links #:end-effector-link #:robot-tool-frame
-   #:gripper-link #:gripper-joint #:gripper-meter-to-joint-multiplier
+   #:gripper-link #:gripper-joint #:gripper-meter-to-joint-multiplier #:gripper-finger-link
    #:planning-group
    #:standard-to-particular-gripper-transform
    #:tcp-in-ee-pose
