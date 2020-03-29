@@ -135,32 +135,31 @@ while ignoring failures; and execute the last pose with propagating the failures
   ;; Move arm to the last pose of `?left-poses' and `?right-poses'.
   (let ((?left-pose (car (last left-poses)))
         (?right-pose (car (last right-poses))))
+    (unwind-protect
+         (cpl:with-failure-handling
+             ((common-fail:manipulation-low-level-failure (e)
+                ;; propagate failures up
+                (roslisp:ros-error (pick-place move-arms-in-sequence) "~a~%Failing." e)))
 
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           ;; propagate failures up
-           (roslisp:ros-error (pick-place move-arms-in-sequence) "~a~%Failing." e)))
-
-      (exe:perform
-       (desig:a motion
-                (type moving-tcp)
-                (desig:when ?left-pose
-                  (left-pose ?left-pose))
-                (desig:when ?right-pose
-                  (right-pose ?right-pose))
-                (desig:when ?collision-mode
-                  (collision-mode ?collision-mode))
-                (desig:when ?collision-object-b
-                  (collision-object-b ?collision-object-b))
-                (desig:when ?collision-object-b-link
-                  (collision-object-b-link ?collision-object-b-link))
-                (desig:when ?collision-object-a
-                  (collision-object-a ?collision-object-a))
-                (desig:when ?move-the-ass
-                  (move-the-ass ?move-the-ass))
-                (desig:when ?constraints
-                  (constraints ?constraints))))
-
+           (exe:perform
+            (desig:a motion
+                     (type moving-tcp)
+                     (desig:when ?left-pose
+                       (left-pose ?left-pose))
+                     (desig:when ?right-pose
+                       (right-pose ?right-pose))
+                     (desig:when ?collision-mode
+                       (collision-mode ?collision-mode))
+                     (desig:when ?collision-object-b
+                       (collision-object-b ?collision-object-b))
+                     (desig:when ?collision-object-b-link
+                       (collision-object-b-link ?collision-object-b-link))
+                     (desig:when ?collision-object-a
+                       (collision-object-a ?collision-object-a))
+                     (desig:when ?move-the-ass
+                       (move-the-ass ?move-the-ass))
+                     (desig:when ?constraints
+                       (constraints ?constraints)))))
       (cram-occasions-events:on-event
        (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
 
