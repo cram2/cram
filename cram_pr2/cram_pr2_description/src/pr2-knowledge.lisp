@@ -37,6 +37,7 @@
                               robot-base-frame robot-torso-link-joint
                               robot-odom-frame
                               camera-frame camera-minimal-height camera-maximal-height
+                              camera-horizontal-angle camera-vertical-angle
                               robot-neck-links robot-neck-joints
                               robot-joint-states robot-pose)
   (<- (robot pr2))
@@ -51,6 +52,11 @@
   (<- (camera-frame pr2 "narrow_stereo_optical_frame"))
   (<- (camera-minimal-height pr2 1.27))
   (<- (camera-maximal-height pr2 1.60))
+
+  ;; These are values taken from the Kinect's wikipedia page for the 360 variant
+  (<- (camera-horizontal-angle pr2 0.99483)) ;;  ca 57 degrees
+  (<- (camera-vertical-angle pr2 0.75049)) ;; ca 43 degrees
+
   (<- (robot-neck-links pr2 "head_pan_link" "head_tilt_link"))
   (<- (robot-neck-joints pr2 "head_pan_joint" "head_tilt_joint"))
 

@@ -47,6 +47,7 @@
    #:trajectory-desig? #:constraints-desig?
    ;; ptu
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
+   #:camera-horizontal-angle #:camera-vertical-angle
    #:robot-neck-links #:robot-neck-joints #:robot-neck-base-link
    #:camera-in-neck-ee-pose
    ;; robot

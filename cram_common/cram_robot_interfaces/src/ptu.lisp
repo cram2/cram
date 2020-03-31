@@ -47,6 +47,11 @@
   (<- (camera-maximal-height ?robot ?max-height)
     (fail))
 
+  (<- (camera-horizontal-angle ?robot ?angle)
+    (fail))
+  (<- (camera-vertical-angle ?robot ?angle)
+    (fail))
+
   (<- (robot-neck-links ?robot ?pan-link ?tilt-link)
     (fail))
   (<- (robot-neck-joints ?robot ?pan-joint ?tilt-joint)
