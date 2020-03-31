@@ -31,7 +31,8 @@
 
 (def-fact-group occasions (object-in-hand object-placed-at object-picked object-put
                                           loc looking-at arms-parked
-                                          container-state torso-at arm-positioned)
+                                          container-state torso-at arms-positioned
+                                          ees-at looking-at)
   (<- (object-in-hand ?object)
     (fail))
 
@@ -66,4 +67,16 @@
     (fail))
 
   (<- (arms-positioned ?left-configuration ?right-configuration ?delta)
+    (fail))
+
+  (<- (ees-at ?left-poses ?right-poses)
+    (fail))
+
+  (<- (ees-at ?left-poses ?right-poses ?delta-pos ?delta-rot)
+    (fail))
+
+  (<- (looking-at ?target)
+    (fail))
+
+  (<- (looking-at ?target ?delta)
     (fail)))

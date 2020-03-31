@@ -71,4 +71,6 @@
            #:arms-parked
            #:container-state
            #:torso-at
-           #:arms-positioned))
+           #:arms-positioned
+           #:ees-at
+           #:looking-at))
