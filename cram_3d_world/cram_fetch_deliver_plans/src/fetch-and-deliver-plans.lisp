@@ -225,8 +225,10 @@ retries with different search location or robot base location."
                      (cpl:do-retry move-torso-retries
                        (roslisp:ros-warn (pick-and-place perceive) "~a" e)
                        ;; if a failure happens, try to go with the torso a bit more down
-                       (exe:perform
-                        (desig:an action (type moving-torso) (joint-angle middle)))
+                       (let ((?goal `(cpoe:torso-at middle)))
+                         (exe:perform
+                          (desig:an action (type moving-torso) (joint-angle middle)
+                                    (goal ?goal))))
                        (cpl:retry))))
 
                 ;; if perception action fails, try another `?search-location' and retry
