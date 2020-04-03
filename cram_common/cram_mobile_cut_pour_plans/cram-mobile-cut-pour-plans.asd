@@ -1,4 +1,4 @@
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (defsystem cram-mobile-cut-pour-plans
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
+  :author "Vanessa Hassouna"
+  :maintainer ""
   :license "BSD"
 
   :depends-on (cl-transforms
@@ -56,16 +56,14 @@
     :components
     ((:file "package")
 
-     ;; actions such as REACHING, LIFTING, GRASPING, GRIPPING, LOOKING-AT, etc.
      (:file "atomic-action-plans" :depends-on ("package"))
      (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
 
-     ;; PICKING-UP and PLACING actions
+
      (:file "cut-pour-plans" :depends-on ("package" "atomic-action-designators"))
      (:file "cut-pour-designators" :depends-on ("package"
-                                                  "cut-pour-plans"))
+                                                "cut-pour-plans"))
 
-     ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
      (:file "high-level-plans" :depends-on ("package"
                                             "atomic-action-designators"
                                             "cut-pour-designators"))))))

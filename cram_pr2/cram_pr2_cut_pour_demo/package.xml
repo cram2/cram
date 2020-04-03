@@ -2,12 +2,9 @@
   <name>cram_pr2_cut_pour_demo</name>
   <version>0.7.0</version>
   <description>Demo code for picking and placing objects on counters</description>
-  <author>Gayane Kazhoyan</author>
-  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <author>Vanessa Hassouna</author>
+  <maintainer email="hassouna@uni-bremen.de">Vanessa Hassouna</maintainer>
   <license>BSD</license>
-
-  <url type="website">http://cram-system.org</url>
-  <url type="repository">http://github.com/cram2/cram_projection_demos</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 

@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
 (defsystem cram-pr2-cut-pour-demo
-  :author "gaya"
+  :author "vanessa"
   :license "BSD"
 
   :depends-on (roslisp-utilities ; for ros-init-function
@@ -68,18 +68,12 @@
                cram-urdf-projection      ; for with-simulated-robot
                cram-urdf-projection-reasoning ; to set projection reasoning to T
                ;; cram-pr2-description
-               cram-fetch-deliver-plans
                cram-urdf-environment-manipulation
-                      cram-mobile-cut-pour-plans	        )
+	       cram-mobile-cut-pour-plans)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "costmaps" :depends-on ("package"))
-     (:file "projection-demo" :depends-on ("package" "costmaps"))
-     (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))
-     (:file "data-generation-script" :depends-on ("package" "projection-demo" "costmaps"))
-     (:file "data-generation-plan" :depends-on ("package" "demo"))
-     (:file "evaluation-plan" :depends-on ("package" "demo"))))))
+     (:file "demo" :depends-on ("package" "household-knifes"))))))

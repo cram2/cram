@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@ni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -173,7 +173,6 @@
                 ((:object ?object-designator))
                 ((:object-name  ?object-name))
                 ((:arm ?arm))
-                ((:arm-support ?arm-support))
                 ((:gripper-opening ?gripper-opening))
                 ((:effort ?grip-effort))
                 ((:grasp ?grasp))
@@ -344,19 +343,10 @@
 
 
 
-    
-
-
-
-
-
-
-
 (defun hold (&key
                ((:object ?object-designator))
                ((:object-name ?object-name))
                ((:arm ?arm))
-               ((:arm-support ?arm-support))
                ((:gripper-opening ?gripper-opening))
                ((:effort ?grip-effort))
                ((:grasp ?grasp))

@@ -81,6 +81,6 @@
 (def-fact-group manipulation-knowledge (robot-free-hand)
 
   (<- (robot-free-hand ?robot ?arm)
-    (rob-int:robot ?robot)
-    (rob-int:arm ?robot ?arm)
+    (cram-robot-interfaces:robot ?robot)
+    (cram-robot-interfaces:arm ?robot ?arm)
     (not (cpoe:object-in-hand ?_ ?arm))))

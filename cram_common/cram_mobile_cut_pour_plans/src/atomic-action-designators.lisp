@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@
 
 (in-package :cp-plans)
 
-  ;;copy and pasterino from reaching
 (def-fact-group cut-and-pour-atomic-actions (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
