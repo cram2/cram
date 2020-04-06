@@ -42,7 +42,9 @@
                 :time timestamp :timeout *tf-default-timeout*)
              (transform-stamped-error (error)
                (roslisp:ros-warn (set-robot-state-from-tf)
-                                 "Failed with transform-stamped-error: ~a" error)
+                                 "Failed with transform-stamped-error:~%    ~a~%    ~
+                                  Ignore this warning if no real robot is running."
+                                 error)
                NIL))))
     (when robot-transform
       (setf (link-pose robot root-link)
