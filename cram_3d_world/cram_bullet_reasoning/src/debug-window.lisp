@@ -152,7 +152,7 @@ It is built from 3 rigid bodies of primitive box shape.")
 
   (:method ((object-name symbol) &optional (length 0.30))
     (add-vis-axis-object
-     (btr:pose (btr:object btr:*current-bullet-world* object-name)) length))
+     (pose (btr:object *current-bullet-world* object-name)) length))
 
   (:method ((pose cl-transforms:pose) &optional (length 0.30))
     (sb-thread:with-mutex (*debug-window-lock*)
