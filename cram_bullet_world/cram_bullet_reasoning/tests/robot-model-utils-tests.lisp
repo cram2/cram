@@ -30,37 +30,48 @@
 (in-package :btr-tests)
 
 (defun clean-environment (from)
-  (mapcar (lambda (name) (btr:remove-object btr:*current-bullet-world* name)) from))
+  (mapcar (lambda (name)
+            (btr:remove-object btr:*current-bullet-world* name))
+          from))
 
 (defun spawn-objects-with-same-pose (names)
-  (mapcar (lambda (name) (btr-utils:spawn-object name :mug :pose '((0 0 0) (0 0 0 1)))) names)) 
-    
+  (mapcar (lambda (name)
+            (btr-utils:spawn-object name :mug :pose '((0 0 0) (0 0 0 1))))
+          names))
+
 (define-test robot-attached-objects-in-collision-negative
-  ;; Tests if the function returns nil since not one object is attached to
-  ;; a robot link.
+  ;; Tests if the function returns nil since not one object is attached
+  ;; to a robot link.
   (setup-world)
   (spawn-objects-with-same-pose '(o oo))
   (assert-false (btr:robot-attached-objects-in-collision)) ;; -> no collision
   (clean-environment '(o oo)))
 
 (define-test robot-attached-objects-in-collision-positive
-  ;; Tests if the function registers a collision since one of the objects is
-  ;; attached to the robot and the other is in collision to the attached object.
+  ;; Tests if the function registers a collision since one of the objects
+  ;; is attached to the robot and the other is in collision to the
+  ;; attached object.
   (setup-world)
   (spawn-objects-with-same-pose '(o oo))
-  (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world* 'o) :link "base_footprint")
+  (btr:attach-object (btr:get-robot-object)
+                     (btr:object btr:*current-bullet-world* 'o)
+                     :link "base_footprint")
   (assert-true (btr:robot-attached-objects-in-collision)) ;; -> collision
   (clean-environment '(o oo)))
 
 (define-test robot-attached-objects-in-collision-negative-because-of-attachment
-  ;; Since the robot can attach things made of items attached to each other, there should not be
-  ;; a collision if the robot attaches one of these things. Even if the items in the "thing" are
-  ;; in collision to each other.
+  ;; Since the robot can attach things made of items attached to each other,
+  ;; there should not be a collision if the robot attaches one of
+  ;; these things. Even if the items in the "thing" are in collision
+  ;; to each other.
   (setup-world)
   (spawn-objects-with-same-pose '(o oo))
-  ;; "thing" 'o: 'oo is attached to 'o with the same pose, therefore they are in collision.
+  ;; "thing" 'o: 'oo is attached to 'o with the same pose, therefore
+  ;; they are in collision.
   (btr:attach-object 'o 'oo)
   ;; attach "thing" 'o to a robot link
-  (btr:attach-object (btr:get-robot-object) (btr:object btr:*current-bullet-world* 'o) :link "base_footprint")
+  (btr:attach-object (btr:get-robot-object)
+                     (btr:object btr:*current-bullet-world* 'o)
+                     :link "base_footprint")
   (assert-false (btr:robot-attached-objects-in-collision)) ;; -> no collision
   (clean-environment '(o oo)))
