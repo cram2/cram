@@ -109,6 +109,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
     (call-with-specific-type #'get-object-type-to-gripper-transform
                              object-type object-name arm grasp)))
 
+
 (defgeneric get-object-type-to-gripper-pregrasp-transform (object-type object-name
                                                            arm grasp grasp-transform)
   (:documentation "Returns a transform stamped")
@@ -116,27 +117,56 @@ Gripper is defined by a convention where Z is pointing towards the object.")
     (call-with-specific-type #'get-object-type-to-gripper-pregrasp-transform
                              object-type object-name arm grasp grasp-transform)))
 
-(defgeneric get-object-type-to-gripper-slice-up-transform (object-type object-name
-                                                           arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped")
-  (:method (object-type object-name arm grasp grasp-transform)
-    (call-with-specific-type #'get-object-type-to-gripper-slice-up-transform
-                             object-type object-name arm grasp grasp-transform)))
 
-(defgeneric get-object-type-to-gripper-slice-down-transform (object-type object-name
-                                                           arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped")
-  (:method (object-type object-name arm grasp grasp-transform)
-    (call-with-specific-type #'get-object-type-to-gripper-slice-down-transform
-                             object-type object-name arm grasp grasp-transform)))
+(defgeneric get-object-type-fixed-frame-slice-up-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped"))
+
+(defmethod get-object-type-fixed-frame-slice-up-transform :around (object-type arm grasp)
+    (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*fixed-frame*
+     cram-tf:*fixed-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
 
 
-(defgeneric get-object-type-to-gripper-tilt-approach-transform (object-type object-name
-                                                           arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped")
-  (:method (object-type object-name arm grasp grasp-transform)
-    (call-with-specific-type #'get-object-type-to-gripper-tilt-approach-transform
-                             object-type object-name arm grasp grasp-transform)))
+(defgeneric get-object-type-fixed-frame-slice-down-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped"))
+
+(defmethod get-object-type-fixed-frame-slice-down-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*fixed-frame*
+     cram-tf:*fixed-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
+
+
+(defgeneric get-object-type-fixed-frame-tilt-approach-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped"))
+
+(defmethod get-object-type-fixed-frame-tilt-approach-transform :around (object-type arm grasp)
+  (destructuring-bind
+      ((x y z) (ax ay az aw))
+      (call-next-method)
+    (cl-tf:transform->transform-stamped
+     cram-tf:*fixed-frame*
+     cram-tf:*fixed-frame*
+     0.0
+     (cl-tf:pose->transform
+      (cl-transforms:make-pose
+       (cl-transforms:make-3d-vector x y z)
+       (cl-transforms:make-quaternion ax ay az aw))))))
 
 
 (defgeneric get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name
@@ -168,24 +198,18 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                                                                         (0.0 1.0 0.0)
                                                                         (0.0 0.0 1.0)))
                                                    (pregrasp-offsets ''(0.0 0.0 0.0))
-                                                   (slice-up-offsets ''(0.0 0.0 0.0))
-                                                   (slice-down-offsets ''(0.0 0.0 0.0))
                                                    (2nd-pregrasp-offsets ''(0.0 0.0 0.0))
                                                    (lift-offsets ''(0.0 0.0 0.0))
-                                                   (2nd-lift-offsets ''(0.0 0.0 0.0))
-                                                   (tilt-approach-offsets ''(0.0 0.0 0.0)))
+                                                   (2nd-lift-offsets ''(0.0 0.0 0.0)))
   `(let ((evaled-object-type ,object-type)
          (evaled-arm ,arm)
          (evaled-grasp-type ,grasp-type)
          (evaled-grasp-translation ,grasp-translation)
          (evaled-grasp-rot-matrix ,grasp-rot-matrix)
          (evaled-pregrasp-offsets ,pregrasp-offsets)
-         (evaled-slice-up-offsets ,slice-up-offsets)
-         (evaled-slice-down-offsets ,slice-down-offsets)
          (evaled-2nd-pregrasp-offsets ,2nd-pregrasp-offsets)
          (evaled-lift-offsets ,lift-offsets)
-         (evaled-2nd-lift-offsets ,2nd-lift-offsets)
-         (evaled-tilt-approach-offsets ,tilt-approach-offsets))
+         (evaled-2nd-lift-offsets ,2nd-lift-offsets))
      (let ((object-list
              (if (listp evaled-object-type)
                  evaled-object-type
@@ -239,49 +263,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
              :x-offset x :y-offset y :z-offset z))
           (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
-
-  (defmethod get-object-type-to-gripper-slice-up-transform ((object-type (eql object))
-                                                            object-name
-                                                            (arm (eql arm))
-                                                            (grasp (eql evaled-grasp-type))
-                                                            grasp-transform)
-    (let ((pregrasp-offsets evaled-slice-up-offsets))
-      (if pregrasp-offsets
-          (destructuring-bind (x y z) pregrasp-offsets
-            (cram-tf:translate-transform-stamped
-             grasp-transform
-             :x-offset x :y-offset y :z-offset z))
-          (error "slice-up transform not defined for object type ~a with arm ~a and grasp ~a~%"
-                 object-type arm grasp))))
-
-   (defmethod get-object-type-to-gripper-slice-down-transform ((object-type (eql object))
-                                                            object-name
-                                                            (arm (eql arm))
-                                                            (grasp (eql evaled-grasp-type))
-                                                            grasp-transform)
-    (let ((pregrasp-offsets evaled-slice-down-offsets))
-      (if pregrasp-offsets
-          (destructuring-bind (x y z) pregrasp-offsets
-            (cram-tf:translate-transform-stamped
-             grasp-transform
-             :x-offset x :y-offset y :z-offset z))
-          (error "slice-down transform not defined for object type ~a with arm ~a and grasp ~a~%"
-                 object-type arm grasp))))
-
-   (defmethod get-object-type-to-gripper-tilt-approach-transform ((object-type (eql object))
-                                                                  object-name
-                                                                  (arm (eql arm))
-                                                                  (grasp (eql evaled-grasp-type))
-                                                                  grasp-transform)
-    (let ((pregrasp-offsets evaled-tilt-approach-offsets))
-      (if pregrasp-offsets
-          (destructuring-bind (x y z) pregrasp-offsets
-            (cram-tf:translate-transform-stamped
-             grasp-transform
-             :x-offset x :y-offset y :z-offset z))
-          (error "slice-down transform not defined for object type ~a with arm ~a and grasp ~a~%"
-                 object-type arm grasp))))
-
+                             
   (defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql object))
                                                                 object-name
                                                                 (arm (eql arm))
@@ -400,22 +382,16 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                  object-type object-name arm grasp oTg-std))))))
 
 
-(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :tilting))
-                                                 arm
-                                                 grasp
-                                                 objects-acted-on
-                                                 &key tilt-approach-poses)
-  (let* ((?approach-pose (car tilt-approach-poses))
-         (angle (cram-math:degrees->radians 100))
-         ;;depending on the grasp the angle to tilt is different
-         (?tilt-pose
-           (case grasp
-             (:front (rotate-once-pose ?approach-pose (- angle) :y))
-             (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
-             (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
-             (:back (rotate-once-pose ?approach-pose (+ angle) :y))
-             (t (error "can only pour from :side, back or :front")))))
-    `(,?tilt-pose)))
+(defun get-tilting-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 100)))
+  (mapcar (lambda (?approach-pose)
+            ;;depending on the grasp the angle to tilt is different
+            (case grasp
+              (:front (rotate-once-pose ?approach-pose (- angle) :y))
+              (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
+              (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
+              (:back (rotate-once-pose ?approach-pose (+ angle) :y))
+              (t (error "can only pour from :side, back or :front"))))
+          approach-poses))
 
 ;;helper function for tilting
 ;;rotate the pose around the axis in an angle
@@ -451,58 +427,35 @@ Gripper is defined by a convention where Z is pointing towards the object.")
            (man-int:get-object-transform object))
          (oTg-std
            (man-int:get-object-type-to-gripper-transform
-            object-type object-name arm grasp)))
-    (mapcar (lambda (label transforms)
+            object-type object-name arm grasp))
+         (approach-pose
+           (let* ((tmp-pose-stmp (funcall
+                                  (alexandria:curry #'calculate-gripper-pose-in-map bTo arm)
+                                  oTg-std))
+                  (transform (cram-tf:apply-transform
+                              (man-int::get-object-type-fixed-frame-tilt-approach-transform
+                               object-type arm grasp)
+                              (cl-tf:make-transform-stamped
+                               cram-tf:*fixed-frame*
+                               cram-tf:*fixed-frame*
+                               0.0
+                               (cl-tf:origin tmp-pose-stmp)
+                               (cl-tf:orientation tmp-pose-stmp)))))
+             (cl-tf:make-pose-stamped 
+               cram-tf:*fixed-frame*
+               0.0
+               (cl-tf:translation transform)
+               (cl-tf:rotation transform))))
+         (tilting-poses
+           (get-tilting-poses grasp (list approach-pose))))
+    (mapcar (lambda (label poses)
               (make-traj-segment
                :label label
-               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map bTo arm)
-                              transforms)))
-            '(:approach)
-            `((,(man-int::get-object-type-to-gripper-tilt-approach-transform
-                 object-type object-name arm grasp oTg-std))))))
-
-;;get sclicing trajectory has the poses:
-;;reaching,graspinng,lifting,slice-up,slice down
-;;the rest will be calculated in the plan for sclicing
-(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :slicing))
-                                                 arm
-                                                 grasp
-                                                 objects-acted-on
-                                                 &key )
-  (let* ((object
-           (car objects-acted-on))
-         (object-name
-           (desig:desig-prop-value object :name))
-         (object-type
-           (desig:desig-prop-value object :type))
-         (bTo
-           (man-int:get-object-transform object))
-         (oTg-std
-           (man-int:get-object-type-to-gripper-transform
-            object-type object-name arm grasp)))
-    (mapcar (lambda (label transforms)
-              (make-traj-segment
-               :label label
-               :poses (mapcar (alexandria:curry #'calculate-gripper-pose-in-map bTo arm)
-                              transforms)))
-            '(:reaching
-              :grasping
-              :lifting
-              :slice-up
-              :slice-down)
-            `((,(man-int:get-object-type-to-gripper-pregrasp-transform
-                 object-type object-name arm grasp oTg-std)
-               ,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
-                 object-type object-name arm grasp oTg-std))
-              (,oTg-std)
-              (,(man-int:get-object-type-to-gripper-lift-transform
-                 object-type object-name arm grasp oTg-std)
-               ,(man-int:get-object-type-to-gripper-2nd-lift-transform
-                 object-type object-name arm grasp oTg-std))
-              (,(man-int::get-object-type-to-gripper-slice-up-transform
-                 object-type object-name arm grasp oTg-std))
-              (,(man-int::get-object-type-to-gripper-slice-down-transform
-                 object-type object-name arm grasp oTg-std))))))
+               :poses poses))
+            '(:approach
+              :tilting)
+            `((,approach-pose)
+              ,tilting-poses))))
 
 
 ;;;;;;;;;;;;;;;;;;; OBJECT TO OTHER OBJECT TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;
