@@ -37,7 +37,8 @@
             1.0
             (if (and (> x 0.0) (> y -1.5) (< y 1.0))
                 1.0
-                (if (and (< x 0.0) (> x -1.5) (> y -1.5) (< y 2.5))
+                (if (and (< x 0.0) (> x -1.5) (> y -2.5) (< y 2.5)) ;; changed so the robot can place objects on
+                                                                    ;; the other side of kitchen island too
                     1.0
                     0.0))))))
 
