@@ -77,8 +77,8 @@
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOTTOM-WING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -94,8 +94,8 @@
   :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
   :pregrasp-offsets `(0 ,*default-z-offset* ,*default-z-offset*)
   :2nd-pregrasp-offsets `(0 ,*default-z-offset* 0.0)
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 (man-int:def-object-type-to-gripper-transforms :bottom-wing :right :right-side
   :grasp-translation `(,*bottom-wing-grasp-x-offset*
@@ -104,8 +104,8 @@
   :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
   :pregrasp-offsets `(0 ,(- *default-z-offset*) ,*default-z-offset*)
   :2nd-pregrasp-offsets `(0 ,(- *default-z-offset*) 0.0)
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :bottom-wing '(:left :right) :back
@@ -115,8 +115,8 @@
   :grasp-rot-matrix man-int:*-x-across-y-grasp-rotation*
   :pregrasp-offsets `(,(- *default-z-offset*) 0.0 ,*default-z-offset*)
   :2nd-pregrasp-offsets `(,(- *default-z-offset*) 0.0 0.0)
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; UNDERBODY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -129,16 +129,16 @@
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 (man-int:def-object-type-to-gripper-transforms :underbody :right :top
   :grasp-translation `(0.0 ,(- *underbody-grasp-y-offset*) ,*underbody-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; UPPER-BODY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -151,8 +151,8 @@
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; TOP-WING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -168,8 +168,8 @@
   :grasp-rot-matrix man-int:*-x-across-y-grasp-rotation*
   :pregrasp-offsets `(,(- *default-z-offset*) 0.0 ,*default-z-offset*)
   :2nd-pregrasp-offsets `(,(- *default-z-offset*) 0.0 0.0)
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; WINDOW ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -185,8 +185,8 @@
   :grasp-rot-matrix man-int:*z-diagonal-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;; FRONT-WHEEL ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -202,8 +202,8 @@
   :grasp-rot-matrix man-int:*z-diagonal-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;; PROPELLER ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -219,8 +219,8 @@
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOLT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -230,8 +230,8 @@
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
