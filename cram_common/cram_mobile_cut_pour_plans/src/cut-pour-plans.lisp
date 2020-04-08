@@ -192,164 +192,63 @@
   "Object already in hand, approach 2nd object, tilt 100degree, tilt back"
  
   
-
-   (let* ((x-dim-object
-           (cl-transforms:x
-                   (cl-bullet::bounding-box-dimensions
-                    (btr::aabb(btr:object btr:*current-bullet-world*  ?object-name)))))
-          (n-times-cut-value
-             (round (/ (* 2 x-dim-object)
-                           0.02)))
-        (n-gripper-position-offset
-          (/(cl-transforms:y
-                   (cl-bullet::bounding-box-dimensions
-                    (btr:aabb(btr:object btr:*current-bullet-world*  ?object-name))))
-            2))
-         ;;- 0.01 since the other gripper is holding the object
-          (length-one-cut
-            (/ (* 2 x-dim-object) n-times-cut-value)))
        
-    (setf ?left-slice-up-poses
-          (mapcar (lambda (slice-left)
-                    (translate-pose slice-left :x-offset (- n-gripper-position-offset)))
-                  ?left-slice-up-poses))
-    (setf ?right-slice-up-poses
-          (mapcar (lambda (slice-right)
-                    (translate-pose slice-right :x-offset (- n-gripper-position-offset)))
-                  ?right-slice-up-poses))
-    (setf ?left-slice-down-poses
-          (mapcar (lambda (slice-left)
-                    (translate-pose slice-left :x-offset (- n-gripper-position-offset)))
-                  ?left-slice-down-poses))
-    (setf ?right-slice-down-poses
-          (mapcar (lambda (slice-right)
-                    (translate-pose slice-right :x-offset  (- n-gripper-position-offset)))
-                  ?right-slice-down-poses))
 
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;first cut
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;first cut
     
 
-    (roslisp:ros-info (cut-pour pour) "approach")
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           (roslisp:ros-warn (cut-and-pour-plans slice)
-                             "Manipulation messed up: ~a~%Ignoring."
+  (loop while (or ?left-slice-up-poses
+                  ?left-slice-down-poses
+                  ?right-slice-up-poses
+                  ?right-slice-down-poses)
+        do
+           
+           (let ((?current-left-slice-up-poses `(,(pop ?left-slice-up-poses)))
+                 (?current-left-slice-down-poses `(,(pop ?left-slice-down-poses)))
+                 (?current-right-slice-up-poses `(,(pop ?right-slice-up-poses)))
+                 (?current-right-slice-down-poses `(,(pop ?right-slice-down-poses))))
+
+             (roslisp:ros-info (cut-pour pour) "approach")
+             (cpl:with-failure-handling
+                 ((common-fail:manipulation-low-level-failure (e)
+                    (roslisp:ros-warn (cut-and-pour-plans slice)
+                                      "Manipulation messed up: ~a~%Ignoring."
+                                      e)
+                    ;; (return)
+                    ))
+               (exe:perform
+                (desig:an action
+                          (type approaching)
+                          (left-poses ?current-left-slice-up-poses)
+                          (right-poses ?current-right-slice-up-poses))))
+             
+             (roslisp:ros-info (cut-pour pour) "slice-down")
+             (cpl:with-failure-handling
+                 ((common-fail:manipulation-low-level-failure (e)
+                    (roslisp:ros-warn (cut-and-pour-plans slice)
+                                      "Manipulation messed up: ~a~%Ignoring."
+                                      e)
+                    ;; (return)
+                    ))
+               (exe:perform
+                (desig:an action
+                          (type approaching)
+                          (left-poses ?current-left-slice-down-poses)
+                          (right-poses ?current-right-slice-down-poses))))
+             
+             (roslisp:ros-info (cut-pour pour) "slice-up")
+             (cpl:with-failure-handling
+                 ((common-fail:manipulation-low-level-failure (e)
+                    (roslisp:ros-warn (cut-and-pour-plans slice)
+                                      "Manipulation messed up: ~a~%Ignoring."
                              e)
            ;; (return)
            ))
       (exe:perform
        (desig:an action
                  (type approaching)
-                 (left-poses ?left-slice-up-poses)
-                 (right-poses ?right-slice-up-poses))))
-
-    (roslisp:ros-info (cut-pour pour) "slice-down")
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           (roslisp:ros-warn (cut-and-pour-plans slice)
-                             "Manipulation messed up: ~a~%Ignoring."
-                             e)
-           ;; (return)
-           ))
-      (exe:perform
-       (desig:an action
-                 (type approaching)
-                 (left-poses ?left-slice-down-poses)
-                 (right-poses ?right-slice-down-poses))))
-
-    (roslisp:ros-info (cut-pour pour) "slice-up")
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           (roslisp:ros-warn (cut-and-pour-plans slice)
-                             "Manipulation messed up: ~a~%Ignoring."
-                             e)
-           ;; (return)
-           ))
-      (exe:perform
-       (desig:an action
-                 (type approaching)
-                 (left-poses ?left-slice-up-poses)
-                 (right-poses ?right-slice-up-poses))))
-
-
-;;ADJUSTMENT + do times
-
-     (dotimes (n (- n-times-cut-value 3))
-      (let ((?left-slice-up-adjustment-poses
-              (mapcar (lambda (slice-left)
-                        (translate-pose slice-left :y-offset (- length-one-cut)))
-                      ?left-slice-up-poses))
-            (?right-slice-up-adjustment-poses
-              (mapcar (lambda (slice-right)
-                        (translate-pose slice-right :y-offset length-one-cut))
-                      ?right-slice-up-poses))
-            (?left-slice-down-adjustment-poses
-              (mapcar (lambda (slice-left)
-                        (translate-pose slice-left :y-offset (- length-one-cut)))
-                      ?left-slice-down-poses))
-            (?right-slice-down-adjustment-poses
-              (mapcar (lambda (slice-right)
-                        (translate-pose slice-right :y-offset length-one-cut))
-                      ?right-slice-down-poses)))
-
-        (setf ?left-slice-up-poses ?left-slice-up-adjustment-poses)
-        (setf ?left-slice-down-poses ?left-slice-down-adjustment-poses)
-        (setf ?right-slice-up-poses ?right-slice-up-adjustment-poses)
-        (setf ?right-slice-down-poses ?right-slice-down-adjustment-poses)
-
-        
-        (roslisp:ros-info (cut-pour pour) "approach")
-        (cpl:with-failure-handling
-            ((common-fail:manipulation-low-level-failure (e)
-               (roslisp:ros-warn (cut-and-pour-plans slice)
-                                 "Manipulation messed up: ~a~%Ignoring."
-                                 e)
-               ;; (return)
-               ))
-          (exe:perform
-           (desig:an action
-                     (type approaching)
-                     (left-poses ?left-slice-up-adjustment-poses)
-                     (right-poses ?right-slice-up-adjustment-poses))))
-
-        (roslisp:ros-info (cut-pour pour) "slice-down")
-        (cpl:with-failure-handling
-            ((common-fail:manipulation-low-level-failure (e)
-               (roslisp:ros-warn (cut-and-pour-plans slice)
-                                 "Manipulation messed up: ~a~%Ignoring."
-                                 e)
-               ;; (return)
-               ))
-          (exe:perform
-           (desig:an action
-                     (type approaching)
-                     (left-poses ?left-slice-down-adjustment-poses)
-                     (right-poses ?right-slice-down-adjustment-poses))))
-
-        (roslisp:ros-info (cut-pour pour) "slice-up")
-        (cpl:with-failure-handling
-            ((common-fail:manipulation-low-level-failure (e)
-               (roslisp:ros-warn (cut-and-pour-plans slice)
-                                 "Manipulation messed up: ~a~%Ignoring."
-                                 e)
-               ;; (return)
-               ))
-          (exe:perform
-           (desig:an action
-                     (type approaching)
-                     (left-poses ?left-slice-up-adjustment-poses)
-                     (right-poses ?right-slice-up-adjustment-poses))))))))
-
-
-
-
-
-    
-
-
-
-
-
+                 (left-poses ?current-left-slice-up-poses)
+                 (right-poses ?current-right-slice-up-poses)))))))
 
 
 (defun hold (&key
@@ -428,23 +327,4 @@
 
 
 
-(defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
-   (let* ((pose-in-base
-           (cl-tf:transform-pose cram-tf:*transformer*
-                                 :pose pose
-                                 :target-frame "base_footprint"))
-        (pose-in-base-with-offset
-          (cl-transforms-stamped:copy-pose-stamped
-           pose-in-base
-           :origin (let ((pose-origin (cl-transforms:origin pose-in-base)))
-                     (cl-transforms:copy-3d-vector
-                      pose-origin
-                      :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
-                           (+ x-pose-origin x-offset))
-                      :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
-                           (+ y-pose-origin y-offset))
-                      :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
-                           (+ z-pose-origin z-offset)))))))
-     (cl-tf:transform-pose cram-tf:*transformer*
-                                 :pose pose-in-base-with-offset
-                                 :target-frame "map")))
+

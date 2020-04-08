@@ -65,8 +65,8 @@
                        ?left-pouring-pose)
              (lisp-fun man-int:get-traj-poses-by-label ?left-pouring-pose :approach
                        ?left-approach-poses)
-             (lisp-fun man-int:get-action-trajectory :tilting ?arm ?grasp ?objects
-                       :tilt-approach-poses ?left-approach-poses ?left-tilt-poses))
+             (lisp-fun man-int:get-traj-poses-by-label ?left-pouring-pose :tilting
+                       ?left-tilt-poses))
              
         (and (equal ?left-approach-poses NIL)
              (equal ?left-tilt-poses NIL)))
@@ -76,8 +76,8 @@
                        ?right-pouring-pose)
              (lisp-fun man-int:get-traj-poses-by-label ?right-pouring-pose :approach
                        ?right-approach-poses)
-             (lisp-fun man-int:get-action-trajectory :tilting ?arm ?grasp ?objects
-                       :tilt-approach-poses ?right-approach-poses ?right-tilt-poses))
+             (lisp-fun man-int:get-traj-poses-by-label ?right-pouring-pose :tilting
+                       ?right-tilt-poses))
              
         (and (equal ?right-approach-poses NIL)
              (equal ?right-tilt-poses NIL)))
@@ -102,26 +102,31 @@
   
   (<- (desig:action-grounding ?action-designator (slice ?resolved-action-designator))
     (spec:property ?action-designator (:type :slicing))
-
+    (format "test3a")
     ;; extract info from ?action-designator
     (spec:property ?action-designator (:object ?object-designator))
+    (format "tesst")
+    ;;(format ?object-designator)
     (desig:current-designator ?object-designator ?current-object-desig)
+    (format "ttttt")
     (spec:property ?current-object-desig (:type ?object-type))
     (spec:property ?current-object-desig (:name ?object-name))
-    
+    (format "test3aa")
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
         (man-int:robot-free-hand ?_ ?arm))
     
-
-    (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
-
+    (format "test3aaa")
+    (lisp-fun man-int:get-object-old-transform ?current-object-desig ?object-transform)
+    (format "test3")
+    ;;(format ?current-object-desig)
 
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
     (lisp-fun man-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
     (-> (man-int:object-rotationally-symmetric ?object-type)
         (equal ?rotationally-symmetric t)
         (equal ?rotationally-symmetric nil))
+    (format "test4")
     
     (-> (spec:property ?action-designator (:grasp ?grasp))
         (true)
@@ -191,15 +196,18 @@
           (man-int:robot-free-hand ?_ ?arm))
       
 
-      (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
-
+    (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
+    (format "test1")
 
       ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
       (lisp-fun man-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
       (-> (man-int:object-rotationally-symmetric ?object-type)
           (equal ?rotationally-symmetric t)
           (equal ?rotationally-symmetric nil))
+    
+    (format "test2")
       
+
       (-> (spec:property ?action-designator (:grasp ?grasp))
           (true)
           (and (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
