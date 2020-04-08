@@ -108,74 +108,51 @@ Gripper is defined by a convention where Z is pointing towards the object.")
     (call-with-specific-type #'get-object-type-to-gripper-transform
                              object-type object-name arm grasp)))
 
-(defgeneric get-object-type-to-gripper-pregrasp-transform (object-type object-name
-                                                           arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped")
+(defgeneric get-object-type-to-gripper-pregrasp-transforms (object-type object-name
+                                                            arm grasp grasp-transform)
+  (:documentation "Returns a list of transform stampeds")
   (:method (object-type object-name arm grasp grasp-transform)
-    (call-with-specific-type #'get-object-type-to-gripper-pregrasp-transform
+    (call-with-specific-type #'get-object-type-to-gripper-pregrasp-transforms
                              object-type object-name arm grasp grasp-transform)))
 
-(defgeneric get-object-type-to-gripper-2nd-pregrasp-transform (object-type object-name
-                                                               arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped. Default value is NIL.")
-  (:method (object-type object-name arm grasp grasp-transform)
-    (call-with-specific-type #'get-object-type-to-gripper-2nd-pregrasp-transform
-                             object-type object-name arm grasp grasp-transform)))
-
-(defgeneric get-object-type-to-gripper-lift-transform (object-type object-name
-                                                       arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped")
-  (:method (object-type object-name arm grasp grasp-transform)
-    (call-with-specific-type #'get-object-type-to-gripper-lift-transform
-                             object-type object-name arm grasp grasp-transform)))
-
-(defgeneric get-object-type-to-gripper-2nd-lift-transform (object-type object-name
-                                                           arm grasp grasp-transform)
-  (:documentation "Returns a transform stamped")
-  (:method (object-type object-name arm grasp grasp-transform)
-    (call-with-specific-type #'get-object-type-to-gripper-2nd-lift-transform
-                             object-type object-name arm grasp grasp-transform)))
-
-
-(defgeneric get-object-type-fixed-frame-lift-transforms (object-type object-name
-                                                         arm grasp)
-  (:documentation "Returns two transform stampeds mTm representing the
+(defgeneric get-object-type-wrt-base-frame-lift-transforms (object-type arm grasp)
+  (:documentation "Returns a list of transform stampeds bTb representing the
 lift and 2nd-lift offset of given `object-type' with `arm' and `grasp'
-in `cram-tf:*fixed-frame*'. Therefore, instantiated methods will
-specify how much a object with given `object-type' will be lifted
-up in meters after grasping it."))
+in `cram-tf:*robot-base-frame*'. Therefore, instantiated methods will
+specify how much an object with given `object-type' will be lifted
+up in meters after grasping it, where the offset is defined w.r.t. base frame.")
+  (:method (object-type arm grasp)
+    (call-with-specific-type #'get-object-type-wrt-base-frame-lift-transforms
+                             object-type arm grasp)))
 
-(defmethod get-object-type-fixed-frame-lift-transforms :around (object-type object-name
-                                                                arm grasp)
-  "Creates transform stampeds so the real defmethod implementation
-just need to return a list containing poses encoded as lists."
-  (mapcar (lambda (pose-as-list)
-            (let* ((translation-as-list (first pose-as-list))
-                   (rotation-as-list (second pose-as-list)))
-              (cram-tf:pose->transform-stamped 
-               cram-tf:*fixed-frame*
-               cram-tf:*fixed-frame*
-               0.0
-               (cl-tf:make-pose
-                (cl-tf:make-3d-vector (first translation-as-list)
-                                      (second translation-as-list)
-                                      (third translation-as-list))
-                (cl-tf:make-quaternion (first rotation-as-list)
-                                       (second rotation-as-list)
-                                       (third rotation-as-list)
-                                       (fourth rotation-as-list))))))
-          (call-next-method)))
-  
+
+
 (defmacro def-object-type-to-gripper-transforms (object-type arm grasp-type
                                                  &key
-                                                   (grasp-translation ''(0.0 0.0 0.0))
-                                                   (grasp-rot-matrix ''((1.0 0.0 0.0)
-                                                                        (0.0 1.0 0.0)
-                                                                        (0.0 0.0 1.0)))
-                                                   (pregrasp-offsets ''(0.0 0.0 0.0))
-                                                   (2nd-pregrasp-offsets ''(0.0 0.0 0.0))
-                                                   (lift-offsets ''(0.0 0.0 0.0))
-                                                   (2nd-lift-offsets ''(0.0 0.0 0.0)))
+                                                   (grasp-translation
+                                                    ''(0.0 0.0 0.0))
+                                                   (grasp-rot-matrix
+                                                    ''((1.0 0.0 0.0)
+                                                       (0.0 1.0 0.0)
+                                                       (0.0 0.0 1.0)))
+                                                   (pregrasp-offsets
+                                                    ''(0.0 0.0 0.0))
+                                                   (2nd-pregrasp-offsets
+                                                    ''(0.0 0.0 0.0))
+                                                   (lift-translation
+                                                    ''(0.0 0.0 0.0))
+                                                   (lift-rotation
+                                                    ''(0.0 0.0 0.0 1.0))
+                                                   (2nd-lift-translation
+                                                    ''(0.0 0.0 0.0))
+                                                   (2nd-lift-rotation
+                                                    ''(0.0 0.0 0.0 1.0)))
+  "`grasp-translation' is the translation part of oTg-std,
+   `grasp-rot-matrix' is the rotation part, represented as a rotation matrix 2x2 list of lists,
+   `pregrasp-offsets' is a list of 3 values, which is the offset of the gripper in object frame,
+   `2nd-pregrasp-offsets' is the same as pregrasp offsets, for picking it goes after pregrasp,
+   `lift-translation' and `lift-rotation' are the transform of the gripper in robot base frame,
+   `2nd-lift-translation' and `2nd-lift-rotation' are similar, they go after lift in picking."
   `(let ((evaled-object-type ,object-type)
          (evaled-arm ,arm)
          (evaled-grasp-type ,grasp-type)
@@ -183,8 +160,10 @@ just need to return a list containing poses encoded as lists."
          (evaled-grasp-rot-matrix ,grasp-rot-matrix)
          (evaled-pregrasp-offsets ,pregrasp-offsets)
          (evaled-2nd-pregrasp-offsets ,2nd-pregrasp-offsets)
-         (evaled-lift-offsets ,lift-offsets)
-         (evaled-2nd-lift-offsets ,2nd-lift-offsets))
+         (evaled-lift-translation ,lift-translation)
+         (evaled-lift-rotation ,lift-rotation)
+         (evaled-2nd-lift-translation ,2nd-lift-translation)
+         (evaled-2nd-lift-rotation ,2nd-lift-rotation))
      (let ((object-list
              (if (listp evaled-object-type)
                  evaled-object-type
@@ -193,8 +172,10 @@ just need to return a list containing poses encoded as lists."
              (if (listp evaled-arm)
                  evaled-arm
                  (list evaled-arm))))
+
        (mapcar (lambda (object)
                  (mapcar (lambda (arm)
+
                            (let ((transform
                                    (cl-transforms-stamped:make-transform-stamped
                                     (roslisp-utilities:rosify-underscores-lisp-name object)
@@ -206,7 +187,29 @@ just need to return a list containing poses encoded as lists."
                                      (third evaled-grasp-translation))
                                     (cl-transforms:matrix->quaternion
                                      (make-array '(3 3)
-                                                 :initial-contents evaled-grasp-rot-matrix)))))
+                                                 :initial-contents evaled-grasp-rot-matrix))))
+                                 (lift-transform
+                                   (cl-transforms-stamped:make-transform
+                                    (cl-transforms:make-3d-vector
+                                     (first evaled-lift-translation)
+                                     (second evaled-lift-translation)
+                                     (third evaled-lift-translation))
+                                    (cl-transforms:make-quaternion
+                                     (first evaled-lift-rotation)
+                                     (second evaled-lift-rotation)
+                                     (third evaled-lift-rotation)
+                                     (fourth evaled-lift-rotation))))
+                                 (2nd-lift-transform
+                                   (cl-transforms-stamped:make-transform
+                                    (cl-transforms:make-3d-vector
+                                     (first evaled-2nd-lift-translation)
+                                     (second evaled-2nd-lift-translation)
+                                     (third evaled-2nd-lift-translation))
+                                    (cl-transforms:make-quaternion
+                                     (first evaled-2nd-lift-rotation)
+                                     (second evaled-2nd-lift-rotation)
+                                     (third evaled-2nd-lift-rotation)
+                                     (fourth evaled-2nd-lift-rotation)))))
 
                              (pushnew evaled-grasp-type *known-grasp-types*)
 
@@ -225,60 +228,41 @@ just need to return a list containing poses encoded as lists."
           (error "Grasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
-  (defmethod get-object-type-to-gripper-pregrasp-transform ((object-type (eql object))
-                                                            object-name
-                                                            (arm (eql arm))
-                                                            (grasp (eql evaled-grasp-type))
-                                                            grasp-transform)
-    (let ((pregrasp-offsets evaled-pregrasp-offsets))
-      (if pregrasp-offsets
-          (destructuring-bind (x y z) pregrasp-offsets
-            (cram-tf:translate-transform-stamped
-             grasp-transform
-             :x-offset x :y-offset y :z-offset z))
-          (error "Pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
+  (defmethod get-object-type-to-gripper-pregrasp-transforms ((object-type (eql object))
+                                                             object-name
+                                                             (arm (eql arm))
+                                                             (grasp (eql evaled-grasp-type))
+                                                             grasp-transform)
+    (let ((pregrasp-offsets evaled-pregrasp-offsets)
+          (2nd-pregrasp-offsets evaled-2nd-pregrasp-offsets))
+      (if (and pregrasp-offsets 2nd-pregrasp-offsets)
+          (list
+           (destructuring-bind (x y z) pregrasp-offsets
+             (cram-tf:translate-transform-stamped
+              grasp-transform
+              :x-offset x :y-offset y :z-offset z))
+           (destructuring-bind (x y z) 2nd-pregrasp-offsets
+             (cram-tf:translate-transform-stamped
+              grasp-transform
+              :x-offset x :y-offset y :z-offset z)))
+          (error "Pregrasp transforms not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
-  (defmethod get-object-type-to-gripper-2nd-pregrasp-transform ((object-type (eql object))
-                                                                object-name
-                                                                (arm (eql arm))
-                                                                (grasp (eql evaled-grasp-type))
-                                                                grasp-transform)
-    (let ((offsets evaled-2nd-pregrasp-offsets))
-      (if offsets
-          (destructuring-bind (x y z) offsets
-            (cram-tf:translate-transform-stamped
-             grasp-transform
-             :x-offset x :y-offset y :z-offset z))
-          (error "2nd pregrasp transform not defined for object type ~a with arm ~a and grasp ~a~%"
-                 object-type arm grasp))))
-
-  (defmethod get-object-type-to-gripper-lift-transform ((object-type (eql object))
-                                                        object-name
-                                                        (arm (eql arm))
-                                                        (grasp (eql evaled-grasp-type))
-                                                        grasp-transform)
-    (let ((offsets evaled-lift-offsets))
-      (if offsets
-          (destructuring-bind (x y z) offsets
-            (cram-tf:translate-transform-stamped
-             grasp-transform
-             :x-offset x :y-offset y :z-offset z))
-          (error "Lift transform not defined for object type ~a with arm ~a and grasp ~a~%"
-                 object-type arm grasp))))
-
-  (defmethod get-object-type-to-gripper-2nd-lift-transform ((object-type (eql object))
-                                                            object-name
-                                                            (arm (eql arm))
-                                                            (grasp (eql evaled-grasp-type))
-                                                            grasp-transform)
-    (let ((offsets evaled-2nd-lift-offsets))
-      (if offsets
-          (destructuring-bind (x y z) offsets
-            (cram-tf:translate-transform-stamped
-             grasp-transform
-             :x-offset x :y-offset y :z-offset z))
-          (error "2nd lift transform not defined for object type ~a with arm ~a and grasp ~a~%"
+  (defmethod get-object-type-wrt-base-frame-lift-transforms ((object-type (eql object))
+                                                             (arm (eql arm))
+                                                             (grasp (eql evaled-grasp-type)))
+    (let ((this-lift-transform lift-transform)
+          (this-2nd-lift-transform 2nd-lift-transform))
+      (if (and this-lift-transform this-2nd-lift-transform)
+          (list
+           (cl-transforms-stamped:transform->transform-stamped
+            cram-tf:*robot-base-frame* cram-tf:*robot-base-frame* 0.0
+            this-lift-transform)
+           (cl-transforms-stamped:transform->transform-stamped
+            cram-tf:*robot-base-frame* cram-tf:*robot-base-frame* 0.0
+            this-2nd-lift-transform))
+          (error "Lift transforms w.r.t. base frame not defined ~
+                  for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
                              ))
@@ -298,29 +282,33 @@ just need to return a list containing poses encoded as lists."
            (desig:desig-prop-value object :name))
          (object-type
            (desig:desig-prop-value object :type))
-         (mTo
-           (car (cdr (car (last (desig:desig-prop-value object :pose))))))
-         (oTm
-           (cram-tf:transform-stamped-inv mTo))
+         (oTg-std
+           (get-object-type-to-gripper-transform
+            object-type object-name arm grasp))
          (bTo
            (man-int:get-object-transform object))
-         (mTm-lift
-           (first (get-object-type-fixed-frame-lift-transforms
-                   object-type object-name arm grasp)))
-         (mTm-2ndlift
-           (second (get-object-type-fixed-frame-lift-transforms
-                    object-type object-name arm grasp)))
-         (oTg-std
-            (man-int:get-object-type-to-gripper-transform
-             object-type object-name arm grasp))
+         (oTb
+           (cram-tf:transform-stamped-inv bTo))
+         (bTb-lift
+           (first (get-object-type-wrt-base-frame-lift-transforms
+                   object-type arm grasp)))
+         (bTb-2ndlift
+           (second (get-object-type-wrt-base-frame-lift-transforms
+                    object-type arm grasp)))
          (oTg-lift
            (reduce #'cram-tf:apply-transform
-                   `(,oTm ,mTm-lift ,mTo ,oTg-std)
+                   `(,oTb ,bTb-lift ,bTo ,oTg-std)
                    :from-end T))
          (oTg-2ndlift
            (reduce #'cram-tf:apply-transform
-                   `(,oTm ,mTm-2ndlift ,mTo ,oTg-std)
-                   :from-end T)))
+                   `(,oTb ,bTb-2ndlift ,bTo ,oTg-std)
+                   :from-end T))
+         (oTg-pregrasp
+           (first (get-object-type-to-gripper-pregrasp-transforms
+                   object-type object-name arm grasp oTg-std)))
+         (oTg-2ndpregrasp
+           (second (get-object-type-to-gripper-pregrasp-transforms
+                    object-type object-name arm grasp oTg-std))))
     
     (mapcar (lambda (label transforms)
               (make-traj-segment
@@ -330,10 +318,7 @@ just need to return a list containing poses encoded as lists."
             '(:reaching
               :grasping
               :lifting)
-            `((,(man-int:get-object-type-to-gripper-pregrasp-transform
-                 object-type object-name arm grasp oTg-std)
-               ,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
-                 object-type object-name arm grasp oTg-std))
+            `((,oTg-pregrasp ,oTg-2ndpregrasp)
               (,oTg-std)
               (,oTg-lift ,oTg-2ndlift)))))
 
@@ -352,30 +337,30 @@ just need to return a list containing poses encoded as lists."
          (oTg-std
            (get-object-type-to-gripper-transform
             object-type object-name arm grasp))
-         (rob-baseTo
+         (bTo
            target-object-transform-in-base)
-         (mTrob-base
-           (costmap::pose-stamped->transform-stamped 
-            (cram-tf:robot-current-pose)
-            cram-tf:*robot-base-frame*))
-         (mTo 
-           (cram-tf:apply-transform mTrob-base rob-baseTo))
-         (oTm
-           (cram-tf:transform-stamped-inv mTo))
-         (mTm-lift
-           (first (get-object-type-fixed-frame-lift-transforms
-                   object-type object-name arm grasp)))
-         (mTm-2ndlift
-           (second (get-object-type-fixed-frame-lift-transforms
-                    object-type object-name arm grasp)))
+         (oTb
+           (cram-tf:transform-stamped-inv bTo))
+         (bTb-lift
+           (first (get-object-type-wrt-base-frame-lift-transforms
+                   object-type arm grasp)))
+         (bTb-2ndlift
+           (second (get-object-type-wrt-base-frame-lift-transforms
+                    object-type arm grasp)))
          (oTg-lift
            (reduce #'cram-tf:apply-transform
-                   `(,oTm ,mTm-lift ,mTo ,oTg-std)
+                   `(,oTb ,bTb-lift ,bTo ,oTg-std)
                    :from-end T))
          (oTg-2ndlift
            (reduce #'cram-tf:apply-transform
-                   `(,oTm ,mTm-2ndlift ,mTo ,oTg-std)
-                   :from-end T)))
+                   `(,oTb ,bTb-2ndlift ,bTo ,oTg-std)
+                   :from-end T))
+         (oTg-pregrasp
+           (first (get-object-type-to-gripper-pregrasp-transforms
+                   object-type object-name arm grasp oTg-std)))
+         (oTg-2ndpregrasp
+           (second (get-object-type-to-gripper-pregrasp-transforms
+                    object-type object-name arm grasp oTg-std))))
 
     (mapcar (lambda (label transforms)
               (make-traj-segment
@@ -386,12 +371,9 @@ just need to return a list containing poses encoded as lists."
             '(:reaching
               :putting
               :retracting)
-            `((,otg-lift ,oTg-2ndlift)
+            `((,oTg-2ndlift ,otg-lift)
               (,oTg-std)
-              (,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
-                 object-type object-name arm grasp oTg-std)
-               ,(man-int:get-object-type-to-gripper-pregrasp-transform
-                 object-type object-name arm grasp oTg-std))))))
+              (,oTg-2ndpregrasp ,oTg-pregrasp)))))
 
 
 
