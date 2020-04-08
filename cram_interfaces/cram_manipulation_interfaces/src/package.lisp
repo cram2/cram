@@ -72,10 +72,8 @@
    #:calculate-gripper-pose-in-map
    ;;
    #:get-object-type-to-gripper-transform
-   #:get-object-type-to-gripper-pregrasp-transform
-   #:get-object-type-to-gripper-2nd-pregrasp-transform
-   #:get-object-type-to-gripper-lift-transform
-   #:get-object-type-to-gripper-2nd-lift-transform
+   #:get-object-type-to-gripper-pregrasp-transforms
+   #:get-object-type-wrt-base-frame-lift-transforms
    #:def-object-type-to-gripper-transforms
    #:get-object-grasping-poses
    ;;

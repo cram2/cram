@@ -46,7 +46,7 @@
   (<- (object-visibility-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:object ?object))
     (desig:desig-prop ?object (:name ?object-name))
-    ;; (btr:bullet-world ?world)
+    (btr:bullet-world ?world)
     ;; (btr-belief:object-designator-name ?object ?object-name)
     (cram-robot-interfaces:robot ?robot)
     (costmap:costmap ?costmap)
