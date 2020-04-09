@@ -182,7 +182,7 @@
   ;;                                    HOLDING
   ;;###############################################################################
 
-  (<- (desig:action-grounding ?action-designator (hold ?resolved-action-designator))
+  (<- (desig:action-grounding ?action-designator (pp-plans:pick-up ?resolved-action-designator))
       (spec:property ?action-designator (:type :holding))
 
       ;; extract info from ?action-designator
@@ -197,16 +197,12 @@
       
 
     (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
-    (format "test1")
 
       ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
       (lisp-fun man-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
       (-> (man-int:object-rotationally-symmetric ?object-type)
           (equal ?rotationally-symmetric t)
-          (equal ?rotationally-symmetric nil))
-    
-    (format "test2")
-      
+          (equal ?rotationally-symmetric nil))      
 
       (-> (spec:property ?action-designator (:grasp ?grasp))
           (true)
@@ -245,7 +241,7 @@
                (equal ?right-grasp-poses NIL)))
       
       ;;put together resulting action designator
-      (desig:designator :action ((:type :holding)
+      (desig:designator :action ((:type :picking-up)
                                  (:object ?current-object-desig)
                                  (:object-name  ?object-name)
                                  (:arm ?arm)
@@ -255,7 +251,8 @@
                                  (:left-reach-poses ?left-reach-poses)
                                  (:right-reach-poses ?right-reach-poses)
                                  (:left-grasp-poses ?left-grasp-poses)
-                                 (:right-grasp-poses ?right-grasp-poses))
+                                 (:right-grasp-poses ?right-grasp-poses)
+                                 (:hold :holding))
                         ?resolved-action-designator)))
 
 

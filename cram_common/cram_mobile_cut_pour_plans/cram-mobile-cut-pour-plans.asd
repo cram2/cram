@@ -50,6 +50,7 @@
                cram-plan-occasions-events
                cram-common-failures
                cram-manipulation-interfaces
+               cram-mobile-pick-place-plans
                cram-robot-interfaces)
 
   :components
@@ -57,16 +58,11 @@
     :components
     ((:file "package")
 
-     ;; actions such as REACHING, LIFTING, GRASPING, GRIPPING, LOOKING-AT, etc.
-     (:file "atomic-action-plans" :depends-on ("package"))
-     (:file "atomic-action-designators" :depends-on ("package" "atomic-action-plans"))
-
      ;; PICKING-UP and PLACING actions
-     (:file "cut-pour-plans" :depends-on ("package" "atomic-action-designators"))
+     (:file "cut-pour-plans" :depends-on ("package"))
      (:file "cut-pour-designators" :depends-on ("package"
-                                                  "cut-pour-plans"))
+                                                "cut-pour-plans"))
 
      ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
      (:file "high-level-plans" :depends-on ("package"
-                                            "atomic-action-designators"
                                             "cut-pour-designators"))))))
