@@ -53,117 +53,120 @@
   ;;                ?left-tilt-poses ?right-tilt-poses))
   "Object already in hand, approach 2nd object, tilt 100degree, tilt back"
   
-  (let* ((?a-object-in-hand
-           (if (eq ?arm :left)
-               (cdr (first (car (prolog:prolog '(cpoe:object-in-hand ? :left)))))
-               (cdr (first (car (prolog:prolog '(cpoe:object-in-hand ? :right)))))))             
+  ;; (let* ((?a-object-in-hand
+  ;;          (if (eq ?arm :left)
+  ;;              (cdr (first (car (prolog:prolog '(cpoe:object-in-hand ? :left)))))
+  ;;              (cdr (first (car (prolog:prolog '(cpoe:object-in-hand ? :right)))))))             
 
          
-         (?description-hand
-           (roslisp:with-fields (description) ?a-object-in-hand description))
+    ;;      (?description-hand
+    ;;        (roslisp:with-fields (description) ?a-object-in-hand description))
 
-         (?object-in-hand-name
-           (second (second ?description-hand)))
-         (?object-in-hand-type
-           (second (first ?description-hand)))
+    ;;      (?object-in-hand-name
+    ;;        (second (second ?description-hand)))
+    ;;      (?object-in-hand-type
+    ;;        (second (first ?description-hand)))
 
          
-         (x-dim-object
-           (cl-transforms:x
-            (cl-bullet::bounding-box-dimensions
-             (btr::aabb(btr:object btr:*current-bullet-world*  ?object-in-hand-name)))))
+    ;;      (x-dim-object
+    ;;        (cl-transforms:x
+    ;;         (cl-bullet::bounding-box-dimensions
+    ;;          (btr::aabb(btr:object btr:*current-bullet-world*  ?object-in-hand-name)))))
          
-         (z-dim-object
-           (cl-transforms:z
-            (cl-bullet::bounding-box-dimensions
-             (btr::aabb(btr:object btr:*current-bullet-world*  ?object-in-hand-name)))))
+    ;;      (z-dim-object
+    ;;        (cl-transforms:z
+    ;;         (cl-bullet::bounding-box-dimensions
+    ;;          (btr::aabb(btr:object btr:*current-bullet-world*  ?object-in-hand-name)))))
          
-         (y-gripper-position-offset
-           (/ x-dim-object 2))
-         (z-gripper-position-offset
-           (/ z-dim-object 5)))
+    ;;      (y-gripper-position-offset
+    ;;        (/ x-dim-object 2))
+    ;;      (z-gripper-position-offset
+    ;;        (/ z-dim-object 5)))
 
+    ;; (print ?left-approach-poses)
+    ;; (print ?right-approach-poses)
+    ;; (break)
 
     
-    (when (not (eq ?object-type ?object-in-hand-type))
-         
-    
-    (setf ?left-approach-poses
-          (mapcar (lambda (slice-left)
-                    (translate-pose slice-left
-                                    :y-offset (+ y-gripper-position-offset)
-                                    :z-offset z-gripper-position-offset))
-                  ?left-approach-poses))
-    
-    (setf ?left-tilt-poses
-          (mapcar (lambda (slice-left)
-                    (translate-pose slice-left
-                                    :y-offset (+ y-gripper-position-offset)
-                                    :z-offset z-gripper-position-offset))
-                  ?left-tilt-poses))
+    ;; (when (not (eq ?object-type ?object-in-hand-type)) 
+      
+      
+    ;;   (setf ?left-approach-poses
+    ;;         (mapcar (lambda (slice-left)
+    ;;                   (translate-pose slice-left
+    ;;                                   :y-offset (+ y-gripper-position-offset)
+    ;;                                   :z-offset z-gripper-position-offset))
+    ;;                 ?left-approach-poses))
+      
+    ;;   (setf ?left-tilt-poses
+    ;;         (mapcar (lambda (slice-left)
+    ;;                   (translate-pose slice-left
+    ;;                                   :y-offset (+ y-gripper-position-offset)
+    ;;                                   :z-offset z-gripper-position-offset))
+    ;;                 ?left-tilt-poses))
 
-       (setf ?right-approach-poses
-          (mapcar (lambda (slice-left)
-                    (translate-pose slice-left
-                                    :y-offset (- y-gripper-position-offset)
-                                    :z-offset z-gripper-position-offset))
-                  ?right-approach-poses))
+    ;;   (setf ?right-approach-poses
+    ;;         (mapcar (lambda (slice-left)
+    ;;                   (translate-pose slice-left
+    ;;                                   :y-offset (- y-gripper-position-offset)
+    ;;                                   :z-offset z-gripper-position-offset))
+    ;;                 ?right-approach-poses))
+      
+    ;;   (setf ?right-tilt-poses
+    ;;         (mapcar (lambda (slice-left)
+    ;;                   (translate-pose slice-left
+    ;;                                   :y-offset (- y-gripper-position-offset)
+    ;;                                   :z-offset z-gripper-position-offset))
+    ;;                 ?right-tilt-poses)))
     
-    (setf ?right-tilt-poses
-          (mapcar (lambda (slice-left)
-                    (translate-pose slice-left
-                                    :y-offset (- y-gripper-position-offset)
-                                    :z-offset z-gripper-position-offset))
-                  ?right-tilt-poses)))
     
- 
 
-  (roslisp:ros-info (cut-pour pour) "Approaching")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (cut-and-pour-plans pour)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         ;; (return)
-         ))
-    (exe:perform
-     (desig:an action
-               (type approaching)
-               (left-poses ?left-approach-poses)
-               (right-poses ?right-approach-poses))))
+    (roslisp:ros-info (cut-pour pour) "Approaching")
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (cut-and-pour-plans pour)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           ;; (return)
+           ))
+      (exe:perform
+       (desig:an action
+                 (type approaching)
+                 (left-poses ?left-approach-poses)
+                 (right-poses ?right-approach-poses))))
+(sleep 2)
+    
+    (roslisp:ros-info (cut-pour pour) "Tilting")
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (cut-and-pour-plans pour)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           ;; (return)
+           ))
+      (exe:perform
+       (desig:an action
+                 (type tilting)
+                 (left-poses ?left-tilt-poses)
+                 (right-poses ?right-tilt-poses))))
+(sleep 2)
+    
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (cut-and-pour-plans pour)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           ;; (return)
+           ))
+      (exe:perform
+       (desig:an action
+                 (type approaching)
+                 (left-poses ?left-approach-poses)
+                 (right-poses ?right-approach-poses))))
+    
+    ;; (print ?object-type) (print '?object-in-hand-type)
   
-           
-  (sleep 2.0)
-  
-  (roslisp:ros-info (cut-pour pour) "Tilting")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (cut-and-pour-plans pour)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         ;; (return)
-         ))
-    (exe:perform
-     (desig:an action
-               (type tilting)
-               (left-poses ?left-tilt-poses)
-               (right-poses ?right-tilt-poses))))
-
- (sleep 2.0)
- (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (cut-and-pour-plans pour)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         ;; (return)
-         ))
-    (exe:perform
-     (desig:an action
-               (type approaching)
-               (left-poses ?left-approach-poses)
-               (right-poses ?right-approach-poses))))
-  
-  (print ?object-type) (print '?object-in-hand-type)))
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                      SLICE                                   ;;;
