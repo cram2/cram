@@ -70,6 +70,9 @@
    #:get-traj-poses-by-label
    #:calculate-gripper-pose-in-base
    #:calculate-gripper-pose-in-map
+   #:get-object-type-fixed-frame-slice-up-transform
+   #:get-object-type-fixed-frame-slice-down-transform
+   #:get-object-type-fixed-frame-tilt-approach-transform
    ;;
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform

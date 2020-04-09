@@ -31,31 +31,21 @@
 
 (in-package :demo)
 
-
-(defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
-  (let* ((translate-frame cram-tf:*robot-base-frame*)
-         (output-frame cram-tf:*fixed-frame*)
-         (pose-in-base
+(defun translate-pose-in-base (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
+  (let* ((pose-in-base
            (cl-tf:transform-pose cram-tf:*transformer*
                                  :pose pose
-                                 :target-frame translate-frame))
+                                 :target-frame cram-tf:*robot-base-frame*))
          (pose-in-base-with-offset
-           (cl-transforms-stamped:copy-pose-stamped
-            pose-in-base
-            :origin (let ((pose-origin (cl-transforms:origin pose-in-base)))
-                      (cl-transforms:copy-3d-vector
-                       pose-origin
-                       :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
-                            (+ x-pose-origin x-offset))
-                       :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
-                            (+ y-pose-origin y-offset))
-                       :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
-                            (+ z-pose-origin z-offset)))))))
+           (cram-tf:translate-pose pose-in-base 
+                                   :x-offset x-offset
+                                   :y-offset y-offset
+                                   :z-offset z-offset)))
     (cl-tf:transform-pose cram-tf:*transformer*
                           :pose pose-in-base-with-offset
-                          :target-frame output-frame)))
+                          :target-frame cram-tf:*fixed-frame*)))
 
-(defun calculate-slicing-trajectory (label object arm slice-pose
+(defun calculate-slicing-trajectory (label object arm gripper-pose
                                      &optional (slicing-thickness 0.02))
 
    (let* ((x-dim-object
@@ -75,20 +65,51 @@
           (length-one-cut
             (/ (* 2 x-dim-object) n-times-cut-value))
           (init-slice-pose
-            (translate-pose slice-pose :x-offset (- n-gripper-position-offset)))
+            (translate-pose-in-base 
+             gripper-pose
+             :x-offset (- n-gripper-position-offset)))
           (slice-poses
             `(,init-slice-pose)))
 
      (dotimes (n (- n-times-cut-value 3))
        (let ((slice-adjustment-pose
-               (translate-pose (car (last slice-poses)) 
-                               :y-offset (if (eq arm :right)
-                                             length-one-cut
-                                             (- length-one-cut)))))
-
+               (translate-pose-in-base (car (last slice-poses)) 
+                                       :y-offset (if (eq arm :right)
+                                                     length-one-cut
+                                                     (- length-one-cut)))))
+         (print slice-adjustment-pose)
+         (break)
          (push slice-adjustment-pose
                (cdr (last slice-poses)))))
      slice-poses))
+
+(defun get-tilting-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 100)))
+  (mapcar (lambda (?approach-pose)
+            ;;depending on the grasp the angle to tilt is different
+            (case grasp
+              (:front (rotate-once-pose ?approach-pose (- angle) :y))
+              (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
+              (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
+              (:back (rotate-once-pose ?approach-pose (+ angle) :y))
+              (t (error "can only pour from :side, back or :front"))))
+          approach-poses))
+
+;;helper function for tilting
+;;rotate the pose around the axis in an angle
+(defun rotate-once-pose (pose angle axis)
+  (cl-transforms-stamped:copy-pose-stamped
+   pose
+   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
+                  (cl-tf:normalize
+                   (cl-transforms:q*
+                    (cl-transforms:axis-angle->quaternion
+                     (case axis
+                       (:x (cl-transforms:make-3d-vector 1 0 0))
+                       (:y (cl-transforms:make-3d-vector 0 1 0))
+                       (:z (cl-transforms:make-3d-vector 0 0 1))
+                       (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
+                     angle)
+                    pose-orientation)))))
 
 ;;get sclicing trajectory has the poses:
 ;;reaching,graspinng,lifting,slice-up,slice down
@@ -115,13 +136,17 @@
     (mapcar (lambda (label transforms)
               (man-int:make-traj-segment
                :label label
-               :poses (let ((poses (mapcar 
-                                    (alexandria:curry #'man-int:calculate-gripper-pose-in-map bTo arm)
-                                    transforms)))
+               :poses (let ((gripper-poses (mapcar 
+                                            (alexandria:curry #'man-int:calculate-gripper-pose-in-map bTo arm)
+                                            transforms))) ;; <- this
+                        ;; should be for slicing in frame object type
+                        ;; to gripper, but we use in map. calc gripper
+                        ;; pose like in lift-z-tf pr https://github.com/cram2/cram/pull/155/files, others should be
+                        ;; calc like this
                         (if (or (eq label :slice-up) 
                                 (eq label :slice-down))
-                            (calculate-slicing-trajectory label btr-object arm (car poses))
-                            poses))))
+                            (calculate-slicing-trajectory label btr-object arm (car gripper-poses))
+                            gripper-poses))))
             '(:reaching
               :grasping
               :lifting
@@ -136,7 +161,66 @@
                  object-type object-name arm grasp oTg-std)
                ,(man-int:get-object-type-to-gripper-2nd-lift-transform
                  object-type object-name arm grasp oTg-std))
-              (,(man-int::get-object-type-to-gripper-slice-up-transform
+              (,(man-int:get-object-type-fixed-frame-slice-up-transform
                  object-type arm grasp))
-              (,(man-int::get-object-type-to-gripper-slice-down-transform
+              (,(man-int:get-object-type-fixed-frame-slice-down-transform
                  object-type arm grasp))))))
+
+;;get pouring trajectory workes like picking-up it will get the 
+;;object-type-to-gripper-tilt-approch-transform und makes a traj-segment out of it
+;;here we have only the approach pose, followed by that is the titing pose (above)
+(defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :pouring))
+                                                         arm
+                                                         grasp
+                                                         objects-acted-on
+                                                         &key )
+  (let* ((object
+           (car objects-acted-on))
+         (object-name
+           (desig:desig-prop-value object :name))
+         (object-type
+           (desig:desig-prop-value object :type))
+         (bTo
+           (man-int:get-object-transform object))
+         (oTg-std
+           (man-int:get-object-type-to-gripper-transform
+            object-type object-name arm grasp))
+         (approach-pose
+           (let* ((tmp-pose-stmp
+                    (cl-tf:pose->pose-stamped
+                     cram-tf:*fixed-frame*
+                     0.0
+                     (man-int:calculate-gripper-pose-in-map 
+                      bTo arm oTg-std)))
+                  (transform (cram-tf:apply-transform
+                              (man-int::get-object-type-fixed-frame-tilt-approach-transform
+                               object-type arm grasp)
+                              (cl-tf:make-transform-stamped
+                               cram-tf:*fixed-frame*
+                               cram-tf:*fixed-frame*
+                               0.0
+                               (cl-tf:origin tmp-pose-stmp)
+                               (cl-tf:orientation tmp-pose-stmp)))))
+             (print arm)
+             (print grasp)
+             (print oTg-std)
+             (print bTo)
+             (print tmp-pose-stmp)
+             (cl-tf:make-pose-stamped 
+               cram-tf:*fixed-frame*
+               0.0
+               (cl-tf:translation transform)
+               (cl-tf:rotation transform))))
+         (tilting-poses
+           (get-tilting-poses grasp (list approach-pose))))
+    (print approach-pose)
+    (print (cl-tf:quaternion->euler (cl-tf:orientation (car (get-tilting-poses grasp (list approach-pose))))))
+    ;;(break)
+    (mapcar (lambda (label poses)
+              (man-int:make-traj-segment
+               :label label
+               :poses poses))
+            '(:approach
+              :tilting)
+            `((,approach-pose)
+              ,tilting-poses))))

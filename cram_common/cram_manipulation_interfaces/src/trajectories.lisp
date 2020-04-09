@@ -328,7 +328,8 @@ Gripper is defined by a convention where Z is pointing towards the object.")
          (oTg-std
            (man-int:get-object-type-to-gripper-transform
             object-type object-name arm grasp)))
-
+    (print (calculate-gripper-pose-in-map bTo arm oTg-std))
+    (break)
     (mapcar (lambda (label transforms)
               (make-traj-segment
                :label label
@@ -380,82 +381,6 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                  object-type object-name arm grasp oTg-std)
                ,(man-int:get-object-type-to-gripper-pregrasp-transform
                  object-type object-name arm grasp oTg-std))))))
-
-
-(defun get-tilting-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 100)))
-  (mapcar (lambda (?approach-pose)
-            ;;depending on the grasp the angle to tilt is different
-            (case grasp
-              (:front (rotate-once-pose ?approach-pose (- angle) :y))
-              (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
-              (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
-              (:back (rotate-once-pose ?approach-pose (+ angle) :y))
-              (t (error "can only pour from :side, back or :front"))))
-          approach-poses))
-
-;;helper function for tilting
-;;rotate the pose around the axis in an angle
-(defun rotate-once-pose (pose angle axis)
-  (cl-transforms-stamped:copy-pose-stamped
-   pose
-   :orientation (let ((pose-orientation (cl-transforms:orientation pose)))
-                  (cl-transforms:q*
-                   (cl-transforms:axis-angle->quaternion
-                    (case axis
-                      (:x (cl-transforms:make-3d-vector 1 0 0))
-                      (:y (cl-transforms:make-3d-vector 0 1 0))
-                      (:z (cl-transforms:make-3d-vector 0 0 1))
-                      (t (error "in ROTATE-ONCE-POSE forgot to specify axis properly: ~a" axis)))
-                    angle)
-                   pose-orientation))))
-
-;;get pouring trajectory workes like picking-up it will get the 
-;;object-type-to-gripper-tilt-approch-transform und makes a traj-segment out of it
-;;here we have only the approach pose, followed by that is the titing pose (above)
-(defmethod get-action-trajectory :heuristics 20 ((action-type (eql :pouring))
-                                                 arm
-                                                 grasp
-                                                 objects-acted-on
-                                                 &key )
-  (let* ((object
-           (car objects-acted-on))
-         (object-name
-           (desig:desig-prop-value object :name))
-         (object-type
-           (desig:desig-prop-value object :type))
-         (bTo
-           (man-int:get-object-transform object))
-         (oTg-std
-           (man-int:get-object-type-to-gripper-transform
-            object-type object-name arm grasp))
-         (approach-pose
-           (let* ((tmp-pose-stmp (funcall
-                                  (alexandria:curry #'calculate-gripper-pose-in-map bTo arm)
-                                  oTg-std))
-                  (transform (cram-tf:apply-transform
-                              (man-int::get-object-type-fixed-frame-tilt-approach-transform
-                               object-type arm grasp)
-                              (cl-tf:make-transform-stamped
-                               cram-tf:*fixed-frame*
-                               cram-tf:*fixed-frame*
-                               0.0
-                               (cl-tf:origin tmp-pose-stmp)
-                               (cl-tf:orientation tmp-pose-stmp)))))
-             (cl-tf:make-pose-stamped 
-               cram-tf:*fixed-frame*
-               0.0
-               (cl-tf:translation transform)
-               (cl-tf:rotation transform))))
-         (tilting-poses
-           (get-tilting-poses grasp (list approach-pose))))
-    (mapcar (lambda (label poses)
-              (make-traj-segment
-               :label label
-               :poses poses))
-            '(:approach
-              :tilting)
-            `((,approach-pose)
-              ,tilting-poses))))
 
 
 ;;;;;;;;;;;;;;;;;;; OBJECT TO OTHER OBJECT TRANSFORMS ;;;;;;;;;;;;;;;;;;;;;;;;;;
