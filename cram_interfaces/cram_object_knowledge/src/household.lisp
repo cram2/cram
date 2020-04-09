@@ -461,13 +461,13 @@
     ((object-type (eql :bread))
      arm
      (grasp (eql :left-top)))
-  '((0.1 0.0 0.085)(0 0 1 0)))
+  '((0.1 0.0 0.085)(0 0 0 1)))
 
 (defmethod man-int::get-object-type-fixed-frame-slice-down-transform
     ((object-type (eql :bread))
      arm
      (grasp (eql :left-top)))
-  '((0.1 0.0 0.002)(0 0 1 0)))
+  '((0.1 0.0 0.002)(0 0 0 1)))
 
 
 ;; right-TOP grasp
@@ -479,13 +479,13 @@
     ((object-type (eql :bread))
      arm
      (grasp (eql :right-top)))
-  '((-0.1 0.0 0.085)(0 0 1 0)))
+  '((-0.1 0.0 0.085)(0 0 0 1)))
 
 (defmethod man-int::get-object-type-fixed-frame-slice-down-transform
     ((object-type (eql :bread))
      arm
      (grasp (eql :right-top)))
-  '((-0.1 0.0 0.002)(0 0 1 0)))
+  '((-0.1 0.0 0.002)(0 0 0 1)))
 
 
 ;; left hold
