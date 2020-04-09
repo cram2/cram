@@ -92,7 +92,7 @@
       (btr-utils:spawn-object 'cup-2 :cup
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector 1.4 0.6 0.95)
-                                     (cl-tf:make-quaternion 0 0 1 1)))
+                                     (cl-tf:make-quaternion 0 0 0 1)))
 
       (btr-utils:spawn-object 'cup-2 :cup
                               :pose (cl-transforms:make-pose
@@ -408,7 +408,7 @@
                              (type picking-up)
                              (object ?object-cup-1)
                              (arm :right) 
-                             (grasp back)))
+                             (grasp right-side)))
 
       
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;looking at object-to-slice
@@ -481,15 +481,16 @@
       (sleep 2.0)
       (park)
 
-             (cram-executive:perform
-              (desig:an action
-                        (type pouring)
-                        (object ?object-cup-2)
-                        (arm right)
-                        (grasp right-side)))
-      (sleep 2.0)
+      (cram-executive:perform
+       (desig:an action
+                 (type pouring)
+                 (object ?object-cup-2)
+                 (arm right)
+                 (grasp right-side)))
+
       (park)
-        (cram-executive:perform
+
+      (cram-executive:perform
               (desig:an action
                         (type pouring)
                         (object ?object-cup-2)
@@ -498,12 +499,12 @@
       (sleep 2.0)
       (park)
 
-             (cram-executive:perform
-              (desig:an action
-                        (type pouring)
-                        (object ?object-cup-2)
-                        (arm left)
-                        (grasp back)))
+      (cram-executive:perform
+       (desig:an action
+                 (type pouring)
+                 (object ?object-cup-2)
+                 (arm left)
+                 (grasp back)))
 
       )))
        
