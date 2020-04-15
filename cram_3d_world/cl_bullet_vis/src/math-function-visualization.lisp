@@ -86,9 +86,12 @@
             (gl:mult-matrix (pose->gl-matrix pose))
             (loop for x from (- (/ width 2)) to (- (/ width 2) step-size) by step-size do
               (loop for y from (- (/ height 2)) to (- (/ height 2) step-size) by step-size do
-                (let ((pt-1 (get-point x y)))
-                  (when pt-1
-                    (let* ((value (cl-transforms:z pt-1))
+                (let ((middle-pt (get-point (+ x (/ step-size 2))
+                                            (+ y (/ step-size 2)))))
+                  (when middle-pt
+                    (let* ((value (cl-transforms:z middle-pt))
+                           (pt-1 (cl-transforms:make-3d-vector
+                                  x y value))
                            (pt-2 (cl-transforms:make-3d-vector
                                   (+ x step-size) y value))
                            (pt-3 (cl-transforms:make-3d-vector

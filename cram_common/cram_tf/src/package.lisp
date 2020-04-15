@@ -43,6 +43,7 @@
    ;; utilities
    #:poses-equal-p
    #:frame-to-pose-in-fixed-frame
+   #:3d-vector->list #:list->3d-vector
    #:pose->flat-list #:pose->flat-list-w-first
    #:pose->list
    #:flat-list->pose #:flat-list->transform #:flat-list-w-first->pose
@@ -60,6 +61,7 @@
    #:pose-stamped->transform-stamped
    #:apply-transform
    #:values-converged
+   #:map-axis-aligned-axis #:map-axis-aligned-orientation #:angle-around-map-z
    ;; prolog facts
    #:pose #:pose-stamped #:position #:orientation #:poses-equal
    #:location-pose
