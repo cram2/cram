@@ -40,7 +40,7 @@
   (:shadow copy-object)
   (:export *current-bullet-world* *current-timeline* *visibility-threshold*
            *all-meshes-as-compound*
-           merge-bounding-boxes aabb stabilized-identity-object-orientation calculate-bb-dims
+           merge-bounding-boxes aabb calculate-bb-dims
            with-stored-world *debug-window*
            add-debug-window add-costmap-function-object add-vis-axis-object
            add-costmap-sample-object clear-costmap-vis-object add-vis-axis-object
