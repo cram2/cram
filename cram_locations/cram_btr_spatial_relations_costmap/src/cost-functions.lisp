@@ -179,62 +179,53 @@ reverse sort it"
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun make-object-bounding-box-costmap-generator (object)
+  "This cost function assumes that one of the planes of the object
+is aligned with the horizontal plane,
+i.e. the object is lying flatly on the horizontal surface."
+  (let* ((bounding-box-dims
+           (btr:calculate-bb-dims object))
+         (dimensions-x/2
+           (/ (cl-transforms:x bounding-box-dims) 2))
+         (dimensions-y/2
+           (/ (cl-transforms:y bounding-box-dims) 2))
+         (angle-around-map-z
+           (cram-tf:angle-around-map-z (cl-transforms:orientation (btr:pose object))))
+         (object-position
+           (cl-transforms:origin (btr:pose object)))
+         (center-x
+           (cl-transforms:x object-position))
+         (center-y
+           (cl-transforms:y object-position)))
 
-  (flet ((vector-as-list (vec)
-           (list (btr::x vec)
-                 (btr::y vec)
-                 (btr::z vec))))
-
-    (let* ((bounding-box-dims (btr:calculate-bb-dims object))
-           (object-position (cl-transforms:origin (btr:pose object)))
-           (dimensions-x/2 (/ (cl-transforms:x bounding-box-dims) 2))
-           (dimensions-y/2 (/ (cl-transforms:y bounding-box-dims) 2))
-           (axis-facing-up-and-value (btr::object-axis-facing-upwards object))
-           (axis-facing-up (car axis-facing-up-and-value))
-           (axis-facing-down-p (< (cdr axis-facing-up-and-value) 0))
-           (z-axis-angle
-             (multiple-value-bind (angle axis)
-                 (cl-transforms:angle-between-quaternions 
-                  (cl-transforms:orientation
-                   (btr:pose object))
-                  (btr:stabilized-identity-object-orientation object))
-               ;; Check if rotation is clockwise or counterclockwise
-               (if (> 0 (nth axis-facing-up (vector-as-list axis)))
-                   (* -1 angle)
-                   angle)))
-           (center-x (cl-transforms:x object-position))
-           (center-y (cl-transforms:y object-position)))
-
-      (lambda (x y)
-        (let* ((x-diff (- x center-x))
-               (y-diff (- y center-y))
-               (rotated-vec (cl-transforms:v+
-                             ;; Rotating vector from middle-point of the
-                             ;; object to the Point(x,y):
-                             ;; - the rotation is the difference between the
-                             ;;   current object pose and the identity
-                             ;;   rotation in btr:stabilized-identity-object-orientation
-                             ;; - Since the object is stable on a
-                             ;;   horizontal platform, the rotation is
-                             ;;   only around the z-axis 
-                             (cl-transforms:rotate
-                              (cl-transforms:axis-angle->quaternion
-                               (cl-transforms:make-3d-vector 0 0 1)
-                               ;; Check if the axis is facing down or up
-                               (if axis-facing-down-p
-                                   (* -1 z-axis-angle)
-                                   z-axis-angle))
-                              (btr::make-3d-vector x-diff y-diff 0))
-                             (cl-transforms:make-3d-vector center-x center-y 0)))
-               (r-x (btr::x rotated-vec))
-               (r-y (btr::y rotated-vec)))
-
-          (if (and
-               (<= r-x (+ center-x dimensions-x/2))
-               (>= r-x (- center-x dimensions-x/2))
-               (< r-y (+ center-y dimensions-y/2))
-               (> r-y (- center-y dimensions-y/2)))
-              1.0 0.0))))))
+    (lambda (x y)
+      (let* ((rotated-vec
+               ;; Rotating vector from middle-point of the
+               ;; object to the Point(x,y):
+               ;; - the rotation is the difference between the
+               ;;   current object pose and the identity
+               ;;   rotation in btr:stabilized-identity-object-orientation
+               ;; - Since the object is stable on a
+               ;;   horizontal platform, the rotation is
+               ;;   only around the z-axis
+               (cl-transforms:v+
+                (cl-transforms:rotate
+                 (cl-transforms:axis-angle->quaternion
+                  (cl-transforms:make-3d-vector 0 0 1)
+                  (- angle-around-map-z))
+                 (btr::make-3d-vector
+                  (- x center-x)
+                  (- y center-y)
+                  0))
+                (cl-transforms:make-3d-vector center-x center-y 0)))
+             (r-x (cl-transforms:x rotated-vec))
+             (r-y (cl-transforms:y rotated-vec)))
+        (if (and
+             (<= r-x (+ center-x dimensions-x/2))
+             (>= r-x (- center-x dimensions-x/2))
+             (< r-y (+ center-y dimensions-y/2))
+             (> r-y (- center-y dimensions-y/2)))
+            1.0
+            0.0)))))
 
 (defun make-object-in-object-bounding-box-costmap-generator (container-object inner-object)
   "Returns a costmap generator, which for any point within
