@@ -114,7 +114,9 @@
           (multiple-value-bind (perform-result action-desig)
               (call-next-method)
             ;;(let ((referenced-action-id (log-perform-call action-desig)))
-            (let ((referenced-action-id ""))
+            (let ((referenced-action-id "")
+                  (action-designator-parameters (desig:properties action-desig)))
+              (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id)
               ;;(log-cram-finish-action action-id)
               ;;(equate action-id referenced-action-id)
               ;;(when (and perform-result (typep perform-result 'desig:object-designator))
@@ -139,7 +141,7 @@
             (action-designator-parameters (desig:properties designator))
             (event-name-url (attach-event-to-situation cram-action-name (get-parent-uri))))
         ;;LOG THE ACTION PARAMETERS
-        (log-action-designator-parameters-for-logged-action-designator action-designator-parameters event-name-url)
+        ;;(log-action-designator-parameters-for-logged-action-designator action-designator-parameters event-name-url)
         event-name-url)
       "NOLOGGING"))
 

@@ -1,5 +1,6 @@
 (in-package :ccl)
 
+(defparameter *grasp-type-lookup-table* (get-grasp-type-lookup-table))
 
 (defun start-situation (situation-uri)
   (attach-time-to-situation "mem_event_begin" situation-uri))
@@ -53,6 +54,7 @@
 (defun get-url-from-send-query-1 (url-parameter query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
          (query-result (send-query-1 query)))
+    (print query)
     (when (eq query-result nil) (break))
     (ccl::get-url-variable-result-as-str-from-json-prolog-result url-parameter query-result)))
 
@@ -64,15 +66,24 @@
       (send-query-1-without-result "mem_event_includes" action-inst object-ease-id "'http://www.ease-crc.org/ont/EASE-OBJ.owl#AffectedObject'"))))
 
 
+(defun send-grasp-action-parameter (action-inst grasp)
+  (let ((grasp-type (gethash (write-to-string grasp) *grasp-type-lookup-table*)))
+    (send-parameter action-inst "GraspingOrientation" grasp-type)))
+
+(defun send-parameter(action-inst parameter-type region-type)
+  (send-query-1
+   (concatenate 'string "event_memory:mem_new_individual('http://www.ease-crc.org/ont/EASE.owl#"region-type"', RegionInstance),event_memory:mem_new_individual('http://www.ease-crc.org/ont/EASE.owl#"parameter-type"',ParameterInstance), mem_event_add_parameter("action-inst",ParameterInstance), mem_event_add_classification("action-inst",RegionInstance,ParameterInstance).")))
 
 
-
-
-
-
-
-
-
+(defun get-grasp-type-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash ":TOP" lookup-table) "TopGrasp")
+    (setf (gethash ":BOTTOM" lookup-table) "BottomGrasp")
+    (setf (gethash ":LEFT" lookup-table) "LeftGrasp")
+    (setf (gethash ":RIGHT" lookup-table) "RightGrasp")
+    (setf (gethash ":FRONT" lookup-table) "'FrontGrasp'")
+    (setf (gethash ":BACK" lookup-table) "'BackGrasp'")
+    lookup-table))
 
 
 
@@ -150,13 +161,6 @@
 
 (defun export-belief-state-to-owl (&optional (filename (concatenate 'string "default_belief_state_" (write-to-string (truncate (cram-utilities:current-timestamp))) ".owl")))
   (json-prolog:prolog-simple-1 (concatenate 'string "rdf_save(" (concatenate 'string "'/home/ease/logs/" filename "'" "," "[graph('belief_state')])"))))
-
-
-(defun send-grasp-action-parameter (action-inst grasp)
-  (let ((a (convert-to-prolog-str action-inst))
-        (b "knowrob:grasp")
-        (c (create-owl-literal "xsd:string" (convert-to-prolog-str (write-to-string grasp)))))
-    (send-rdf-query a b c)))
 
 (defun send-task-success (action-inst is-sucessful)
   (let ((a (convert-to-prolog-str action-inst))

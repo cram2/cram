@@ -39,7 +39,7 @@
         do (progn
              (print "Start")
              (ccl::start-episode)
-             (urdf-proj:with-simulated-robot (demo::demo-random nil ))
-             ;;(urdf-proj:with-simulated-robot (demo::demo-random nil '(:bowl) ))
+             ;;(urdf-proj:with-simulated-robot (demo::demo-random nil ))
+             (urdf-proj:with-simulated-robot (demo::demo-random nil '(:bowl) ))
              (ccl::stop-episode)
              (print "End"))))
