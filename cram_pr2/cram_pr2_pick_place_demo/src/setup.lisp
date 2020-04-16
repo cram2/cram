@@ -39,7 +39,7 @@
                                     costmap:orientation-sample-step)
     (<- (costmap:costmap-size 12 12))
     (<- (costmap:costmap-origin -6 -6))
-    (<- (costmap:costmap-resolution 0.04))
+    (<- (costmap:costmap-resolution 0.01))
     (<- (costmap:orientation-samples 2))
     (<- (costmap:orientation-sample-step 0.3)))
 
