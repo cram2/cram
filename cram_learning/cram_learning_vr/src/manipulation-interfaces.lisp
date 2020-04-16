@@ -201,7 +201,7 @@
                 learned-costmap)))
             (roslisp:ros-info (cvr costmap) "Visualizing learned costmap.")
             (cpl:sleep 1.0)
-            samples)))
+            (costmap:costmap-samples learned-costmap))))
 
         ;;(desig:resolve-location-designator-through-generators-and-validators
         ;;location-designator)
