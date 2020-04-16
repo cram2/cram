@@ -352,7 +352,7 @@
      (?object-type (eql :spoon)))
   
   (desig:a location
-           (on (desig:an object
+           (on (desig:an object ;; in
                          (type counter-top)
                          ;;(type drawer)
                          (urdf-name sink-area-surface)
@@ -370,10 +370,12 @@
      (?object-type (eql :knife)))
   
   (desig:a location
-           (in (desig:an object
-                         (type drawer)
-                         (urdf-name sink-area-left-upper-drawer-main)
-                         (owl-name "drawer_sinkblock_upper_open")
+           (on (desig:an object ;; in
+                         ;;(type drawer)
+                         (urdf-name sink-area-surface)
+                         ;;(urdf-name sink-area-left-upper-drawer-main)
+                         (owl-name "kitchen_sink_block_counter_top")
+                         ;;(owl-name "drawer_sinkblock_upper_open")
                          (part-of ?kitchen-name)))
            (side front)))
 
