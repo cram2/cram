@@ -244,6 +244,8 @@
                           ;; angle -> quaternion (fixme); return more
                           ;; samples in (lazy) list 
                           )))
+                    (costmap:costmap-samples costmap)
+                    (sleep 3)
                     costmap))))))))
 
 (defun make-vr-orientation-generator (bottem_left width height mean std)
@@ -265,23 +267,38 @@
                     (+ (- (geometry_msgs-msg:y
                            bottem_left) 0.05)
                        width)))
-            
-            (cut:lazy-list ()
-              (list
-               (cl-transforms:euler->quaternion
-                :ax 0.0 :ay 0.0 :az (+ pi
-                                       (jaaa mean std nil)))))
-                                       ;; (if (< pi (+ mean 0))
-                                       ;;     (* -1 (- pi
-                                       ;;              (- (+ mean 0) pi)))
-                                       ;;     (+ mean 0))))))
-            ;;(jaaa mean std gauss)
+            (progn 
+              (let ((q (cl-transforms:euler->quaternion
+                        :ax 0.0 
+                        :ay 0.0 
+                        :az (+ pi
+                               (box-mueller-transform mean
+                                                      std)))))
+                (sleep 0.1)
+                (btr-utils:spawn-object (write-to-string
+                                         (random 1000000))
+                                        :arrow
+                                        :mass 1.0
+                                        :color '(1 0 1)
+                                        :pose `((,x ,y 1)
+                                                (,(cl-tf::x q)
+                                                 ,(cl-tf::y q)
+                                                 ,(cl-tf::z q)
+                                                 ,(cl-tf::w q)))))
+              (cut:lazy-list ()
+                (loop for i from 0 to 20
+                      collecting
+                      (cl-transforms:euler->quaternion
+                       :ax 0.0 
+                       :ay 0.0 
+                       :az (+ pi
+                              (box-mueller-transform mean std))))))
             (cut:lazy-list ()
               (list
                (cl-transforms:make-identity-rotation)))))))
   
 
-(defun jaaa (mean std gauss)
+(defun box-mueller-transform (mean std)
   (+ (* (box-mueller-transform-value) std) mean))
 
 (defun box-mueller-transform-value () ;; <- broken
