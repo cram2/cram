@@ -309,7 +309,7 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
          (oTg-2ndpregrasp
            (second (get-object-type-to-gripper-pregrasp-transforms
                     object-type object-name arm grasp oTg-std))))
-    
+
     (mapcar (lambda (label transforms)
               (make-traj-segment
                :label label
@@ -327,7 +327,6 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
                                                  grasp
                                                  objects-acted-on
                                                  &key target-object-transform-in-base)
-  
   (let* ((object
            (car objects-acted-on))
          (object-name
