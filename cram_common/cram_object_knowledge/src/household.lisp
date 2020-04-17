@@ -108,8 +108,8 @@
 ;;   :grasp-rot-matrix man-int:*-z-across-x-grasp-rotation*
 ;;   :pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
 ;;   :2nd-pregrasp-offsets `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
-;;   :lift-translation `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*))
-;;   :2nd-lift-translation `(0.0 0.0 ,(- *cutlery-pregrasp-z-offset*)))
+;;   :lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*)
+;;   :2nd-lift-translation `(0.0 0.0 ,*cutlery-pregrasp-z-offset*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
