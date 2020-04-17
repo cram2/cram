@@ -318,43 +318,6 @@ The name in the list is a keyword that is created by lispifying the filename."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;; ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod get-loose-attached-objects ((object item))
-  "Returns all objects attached to `object',
-where ATTACHMENTs have the keyword LOOSE as not NIL."
-  (mapcar #'car
-          (remove-if-not
-           (alexandria:compose #'attachment-loose #'car #'car #'cdr)
-           (attached-objects object))))
-
-(let ((already-visited '()))
-  (defmethod remove-loose-attachment-for ((object item))
-    "Searches if the `object' was connected loosely to other
-objects and removes ALL corresponding attachments if so.
-To search through the attached objects of `object' the variable
-ALREADY-VISITED will help to prevent endless loops, as this is a
-recursive function."
-    (let ((loose-attached-objects (get-loose-attached-objects object)))
-      (when loose-attached-objects
-        ;; Map the following: (detach-object object loosely-attached-object)
-        (mapcar (alexandria:curry #'detach-object object)
-                (mapcar (alexandria:curry #'object *current-bullet-world*)
-                        loose-attached-objects))))
-    ;; searching recursivly:
-    ;; if `object' has attachments, `remove-loose-attachment-for'
-    ;; gets called with these to remove every indirect loose
-    ;; attachment: e. g. `object' is not loosely attached but one of
-    ;; its attached objects is connected loosely to something
-    (when (and (slot-boundp object 'attached-objects)
-               (> (length (attached-objects object)) 0))
-      (push (name object) already-visited)
-      (loop for attached-object in (mapcar (lambda (attach)
-                                             (object *current-bullet-world* (car attach)))
-                                           (attached-objects object))
-            do (unless (member (name attached-object) already-visited)
-                 (remove-loose-attachment-for attached-object)))
-      (if (equal (car (last already-visited)) (name object))
-          (setf already-visited '())))))
-
 (defmethod attach-object ((other-object item) (object item)
                           &key attachment-type loose skip-removing-loose link grasp)
   "Attaches `object' to `other-object': adds an attachment to the
