@@ -51,6 +51,15 @@ If there is no other method with 1 as qualifier, this method will be executed al
     (when (and (typep environment-object 'btr:robot-object)
                (btr:object-attached environment-object btr-object))
       (btr:detach-object environment-object btr-object))
+    ;; also detach the object from other items in case they are attached,
+    ;; but only detach the loose attachments, because those are the attachments
+    ;; with the supporting objects. do not destroy the normal attachments,
+    ;; as those are attachments to the supported objects and we want the
+    ;; supported objects to still stay with our grasped object
+    (mapcar (lambda (other-object-name)
+              (btr:detach-object
+               btr-object (btr:object btr:*current-bullet-world* other-object-name)))
+            (btr:get-loose-attached-objects btr-object))
     ;; now attach to the robot-object
     (when btr-object
       (if (btr:object-attached robot-object btr-object)
@@ -59,6 +68,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))
+         (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
          (link (cut:var-value
                 '?ee-link
@@ -68,25 +78,43 @@ If there is no other method with 1 as qualifier, this method will be executed al
                                                                      ?ee-link)))))))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (if btr-object-name
+        ;; if btr-object-name was given, detach it from the robot link
         (let ((btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
           (when btr-object
             (btr:detach-object robot-object btr-object :link link)
             (btr:simulate btr:*current-bullet-world* 10)
-            ;; finding the link that supports the object now
-            ;; TODO: This part seems to be buggy, needs more testing.
-            ;;       The part that fails is the environment link, sometimes it gets weird values.
-            ;; (let ((environment-object (btr:get-environment-object))
-            ;;       (environment-link (cut:var-value
-            ;;                          '?env-link
-            ;;                          (car (prolog:prolog
-            ;;                                `(and (btr:bullet-world ?world)
-            ;;                                      (btr:supported-by
-            ;;                                       ?world ,btr-object-name ?env-name ?env-link)))))))
-            ;;   ;; attaching the link to the object if it finds one.
-            ;;   (unless (cut:is-var environment-link)
-            ;;     (btr:attach-object environment-object btr-object
-            ;;                        :link environment-link)))
-            ))
+            ;; find the link or item that supports the object and attach the object to it.
+            ;; if btr-object is in contact with both the environment and an item,
+            ;; only environment attachment will happen.
+            (let ((contacting-links
+                    (remove-duplicates
+                     (mapcar
+                      #'cdr
+                      (remove-if-not
+                       ;; filter all the links contacting items to our specific item
+                       (lambda (item-and-link-name-cons)
+                         (equal
+                          (btr:name (car item-and-link-name-cons))
+                          btr-object-name))
+                       ;; get all links contacting items in the environment
+                       (btr:link-contacts environment-object)))
+                     :test #'equal))
+                  (contacting-items
+                    (remove-if-not
+                     (lambda (c) (typep c 'btr:item))
+                     (btr:find-objects-in-contact btr:*current-bullet-world* btr-object))))
+              ;; If a link contacting btr-object was found, btr-object
+              ;; will be attached to it
+              ;; also, if btr-object is in contact with an item,
+              ;; it will be attached loose.
+              (mapcar (lambda (link-name)
+                        (btr:attach-object environment-object btr-object :link link-name))
+                      contacting-links)
+              (mapcar (lambda (item-object)
+                        (when item-object
+                          (btr:attach-object item-object btr-object :loose T)))
+                      contacting-items))))
+        ;; if btr-object-name was not given, detach all objects from the robot link
         (progn
           (btr:detach-all-from-link robot-object link)
           (btr:simulate btr:*current-bullet-world* 10)))))

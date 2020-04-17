@@ -180,17 +180,18 @@ Otherwise, the attachment is only used as information but does not affect the wo
  `link'. Otherwise, detaches `object' from all links."
   (with-slots (attached-objects) robot-object
     (let ((attachment (assoc (name object) attached-objects)))
-      (cond (link
-             (setf (second attachment)
-                   (remove link (second attachment)
-                           :test #'equal :key #'attachment-link))
-             (unless (second attachment)
-               (setf attached-objects (remove (name object) attached-objects
-                                              :key #'car))
-               (reset-collision-information object (cdr (cdr attachment)))))
-            (t (setf attached-objects (remove (name object) attached-objects
-                                              :key #'car))
-               (reset-collision-information object (cdr (cdr attachment))))))))
+      (when attachment
+        (cond (link
+               (setf (second attachment)
+                     (remove link (second attachment)
+                             :test #'equal :key #'attachment-link))
+               (unless (second attachment)
+                 (setf attached-objects (remove (name object) attached-objects
+                                                :key #'car))
+                 (reset-collision-information object (cdr (cdr attachment)))))
+              (t (setf attached-objects (remove (name object) attached-objects
+                                                :key #'car))
+                 (reset-collision-information object (cdr (cdr attachment)))))))))
 
 (defmethod detach-all-from-link ((robot-object robot-object) link)
   "Removes all objects form the given `link' of `robot-object'."
