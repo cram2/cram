@@ -142,10 +142,9 @@
 (defun log-perform-call (designator)
   (if *is-logging-enabled*
       (let* ((cram-action-name (get-knowrob-action-name-uri (get-designator-property-value-str designator :TYPE) designator))
-            (action-designator-parameters (desig:properties designator))
-            (event-name-url (attach-event-to-situation cram-action-name (get-parent-uri))))
-        ;;LOG THE ACTION PARAMETERS
-        ;;(log-action-designator-parameters-for-logged-action-designator action-designator-parameters event-name-url)
+             (event-name-url (attach-event-to-situation cram-action-name (get-parent-uri))))
+        (when (string-equal cram-action-name "'http://www.ease-crc.org/ont/EASE-ACT.owl#PhysicalTask'")
+          (send-comment event-name-url (concatenate 'string "Unknown Action: "  (get-designator-property-value-str designator :TYPE))))
         event-name-url)
       "NOLOGGING"))
 

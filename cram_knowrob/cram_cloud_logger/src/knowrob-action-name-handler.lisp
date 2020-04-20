@@ -41,5 +41,5 @@
 (defun get-knowrob-action-name (cram-action-name designator)
   (let* ((lower-cram-action-name (string-downcase cram-action-name))
          (knowrob-action-name (get-definition-from-mapper lower-cram-action-name *action-name-mapper*)))
-    (when (not knowrob-action-name) (setf knowrob-action-name "Task"))
+    (when (not knowrob-action-name) (setf knowrob-action-name "PhysicalTask"))
     knowrob-action-name))
