@@ -685,7 +685,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
 (defun get-ik-joint-positions (ee-pose base-link end-effector-link joint-names
                                torso-joint-name
                                torso-joint-lower-limit torso-joint-upper-limit
-                               &key collision-check-function collision-check-arguments)
+                               validation-function)
   (when ee-pose
     (multiple-value-bind (ik-solution-msg torso-angle)
         (let ((torso-current-angle
@@ -696,73 +696,100 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 (btr::make-robot-joint-state-msg
                  (btr:get-robot-object)
                  :joint-names joint-names)))
-          (ik:call-ik-service-with-resampling-and-collision-check
+          (ik:call-ik-service-with-resampling
            ee-pose base-link end-effector-link seed-state-msg *torso-resampling-step*
            :z torso-current-angle torso-joint-lower-limit torso-joint-upper-limit
-           :collision-check-function collision-check-function
-           :collision-check-arguments collision-check-arguments))
+           validation-function))
       (unless ik-solution-msg
-        (cpl:fail 'common-fail:manipulation-pose-unreachable
-                  :description (format nil "~a is unreachable for EE." ee-pose)))
+        (cpl:fail 'common-fail:manipulation-low-level-failure
+                  :description (format nil "~a is unreachable for EE or is in collision."
+                                       ee-pose)))
       (values (map 'list #'identity (roslisp:msg-slot-value ik-solution-msg :position))
               torso-angle))))
 
-(defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose)
-  (unless collision-mode
-    (setf collision-mode :avoid-all))
-  (ecase collision-mode
-    (:allow-all
-     nil)
-    (:allow-attached
-     ;; allow-attached means the robot is not allowed to hit anything
-     ;; (except the object it is holding),
-     ;; but the object it is holding can create collisions with environment etc.
-     (when (and *be-strict-with-collisions*
-                (btr:robot-colliding-objects-without-attached))
-       (cpl:fail 'common-fail:manipulation-goal-not-reached
-                 :description "Robot is in collision with environment.")))
-    (:allow-hand
-     ;; allow hand allows collisions between the hand and anything
-     ;; but not the rest of the robot
-     ;; therefore, we take a list of all links of the robot that are colliding
-     ;; with something, remove attached object collisions from this list,
-     ;; and then remove the hand links from the list.
-     ;; if the list is still not empty, there is a collision between
-     ;; a robot non-hand link and something else
-     (when (and *be-strict-with-collisions*
-                (set-difference
-                 (mapcar #'cdr
-                         (reduce (lambda (link-contacts attachment)
-                                   (remove (btr:object
-                                            btr:*current-bullet-world*
-                                            (car attachment))
-                                           link-contacts
-                                           :key #'car))
-                                 (append
-                                  (list (btr:link-contacts (btr:get-robot-object)))
-                                  (btr:attached-objects (btr:get-robot-object)))))
-                 (append (when left-tcp-pose
-                           (cut:var-value
-                            '?hand-links
-                            (car (prolog:prolog
-                                  `(and (rob-int:robot ?robot)
-                                        (rob-int:hand-links ?robot :left ?hand-links))))))
-                         (when right-tcp-pose
-                           (cut:var-value
-                            '?hand-links
-                            (car (prolog:prolog
-                                  `(and (rob-int:robot ?robot)
-                                        (rob-int:hand-links ?robot :right ?hand-links)))))))
-                 :test #'string-equal))
-       (cpl:fail 'common-fail:manipulation-goal-not-reached
-                 :description "Robot is in collision with environment.")))
-    (:avoid-all
-     ;; avoid-all means the robot is not colliding with anything except the
-     ;; objects it is holding, and the objects it is holding only collides with robot
-     (when (or (btr:robot-colliding-objects-without-attached)
-               (btr:robot-attached-objects-in-collision))
-       (cpl:fail 'common-fail:manipulation-goal-not-reached
-                 :description "Robot is in collision with environment.")))))
+(defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose
+                                &optional joint-state-msg)
+  (declare (type (or keyword null) collision-mode)
+           (type (or cl-transforms-stamped:pose-stamped null)
+                 left-tcp-pose right-tcp-pose)
+           (type (or sensor_msgs-msg:jointstate null) joint-state-msg))
+  "Returns NIL if current joint state does not result in collisions
+and returns (not throws or fails but simply returns) an error instance,
+if a collision occurs.
+If `joint-state-msg' is given, check collisions in that joint state
+ (and restore the world to original state afterwards),
+otherwise check collisions in current joint state."
+  (flet ((the-actual-collision-check (collision-mode left-tcp-pose right-tcp-pose)
+           (ecase collision-mode
+             (:allow-all
+              nil)
+             (:allow-attached
+              ;; allow-attached means the robot is not allowed to hit anything
+              ;; (except the object it is holding),
+              ;; but the object it is holding can create collisions with environment etc.
+              (when (and *be-strict-with-collisions*
+                         (btr:robot-colliding-objects-without-attached))
+                (make-instance 'common-fail:manipulation-goal-not-reached
+                  :description "Robot is in collision with environment.")))
+             (:allow-hand
+              ;; allow hand allows collisions between the hand and anything
+              ;; but not the rest of the robot
+              ;; therefore, we take a list of all links of the robot that are colliding
+              ;; with something, remove attached object collisions from this list,
+              ;; and then remove the hand links from the list.
+              ;; if the list is still not empty, there is a collision between
+              ;; a robot non-hand link and something else
+              (when (and *be-strict-with-collisions*
+                         (set-difference
+                          (mapcar #'cdr
+                                  (reduce (lambda (link-contacts attachment)
+                                            (remove (btr:object
+                                                     btr:*current-bullet-world*
+                                                     (car attachment))
+                                                    link-contacts
+                                                    :key #'car))
+                                          (append
+                                           (list (btr:link-contacts
+                                                  (btr:get-robot-object)))
+                                           (btr:attached-objects
+                                            (btr:get-robot-object)))))
+                          (append (when left-tcp-pose
+                                    (cut:var-value
+                                     '?hand-links
+                                     (car (prolog:prolog
+                                           `(and (rob-int:robot ?robot)
+                                                 (rob-int:hand-links ?robot :left
+                                                                     ?hand-links))))))
+                                  (when right-tcp-pose
+                                    (cut:var-value
+                                     '?hand-links
+                                     (car (prolog:prolog
+                                           `(and (rob-int:robot ?robot)
+                                                 (rob-int:hand-links ?robot :right
+                                                                     ?hand-links)))))))
+                          :test #'string-equal))
+                (make-instance 'common-fail:manipulation-goal-not-reached
+                  :description "Robot is in collision with environment.")))
+             (:avoid-all
+              ;; avoid-all means the robot is not colliding with anything except the
+              ;; objects it is holding, and the object it is holding
+              ;; only collides with robot
+              (when (or (btr:robot-colliding-objects-without-attached)
+                        (btr:robot-attached-objects-in-collision))
+                (make-instance 'common-fail:manipulation-goal-not-reached
+                  :description "Robot is in collision with environment."))))))
+
+    (unless collision-mode
+      (setf collision-mode :avoid-all))
+    (if joint-state-msg
+        (let* ((world btr:*current-bullet-world*)
+               (world-state (btr::get-state world)))
+          (unwind-protect
+               (progn
+                 (btr:set-robot-state-from-joints joint-state-msg (btr:get-robot-object))
+                 (the-actual-collision-check collision-mode left-tcp-pose right-tcp-pose))
+            (btr::restore-world-state world-state world)))
+        (the-actual-collision-check collision-mode left-tcp-pose right-tcp-pose))))
 
 (defun move-tcp (left-tcp-pose right-tcp-pose
                  &optional collision-mode
@@ -794,40 +821,45 @@ with the object, calculates similar angle around Y axis and applies the rotation
               (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
               (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit))))
 
-    (multiple-value-bind (left-ik left-torso-angle)
-        ;; TODO: the LET is a temporary hack until we get a relay running for PR2
-        ;; such that both arms IKs go over the same ROS service
-        (let ((ik::*ik-service-name*
-                (if (string-equal (symbol-name ?robot) "PR2")
-                    "pr2_left_arm_kinematics/get_ik"
-                    "kdl_ik_service/get_ik")))
-          (get-ik-joint-positions (ee-pose-in-map->ee-pose-in-torso
-                                   (tcp-pose->ee-pose left-tcp-pose
-                                                      ?left-tool-frame ?left-ee-frame))
-                                  ?torso-link ?left-ee-frame ?left-arm-joints
-                                  ?torso-joint ?lower-limit ?upper-limit
-                                  :collision-check-function #'perform-collision-check
-                                  :collision-check-arguments `(,collision-mode ,left-tcp-pose ,right-tcp-pose)))
-      (multiple-value-bind (right-ik right-torso-angle)
+    (let ((validation-function
+            (lambda (ik-solution-msg)
+              (not (perform-collision-check collision-mode
+                                            left-tcp-pose right-tcp-pose
+                                            ik-solution-msg)))))
+      (multiple-value-bind (left-ik left-torso-angle)
+          ;; TODO: the LET is a temporary hack until we get a relay running for PR2
+          ;; such that both arms IKs go over the same ROS service
           (let ((ik::*ik-service-name*
                   (if (string-equal (symbol-name ?robot) "PR2")
-                      "pr2_right_arm_kinematics/get_ik"
+                      "pr2_left_arm_kinematics/get_ik"
                       "kdl_ik_service/get_ik")))
-            (get-ik-joint-positions (ee-pose-in-map->ee-pose-in-torso
-                                     (tcp-pose->ee-pose right-tcp-pose
-                                                        ?right-tool-frame ?right-ee-frame))
-                                    ?torso-link ?right-ee-frame ?right-arm-joints
-                                    ?torso-joint ?lower-limit ?upper-limit
-                                    :collision-check-function #'perform-collision-check
-                                    :collision-check-arguments `(,collision-mode ,left-tcp-pose ,right-tcp-pose)))
-       (cond
-          ((and left-torso-angle right-torso-angle)
-           (when (not (eq left-torso-angle right-torso-angle))
-             (cpl:fail 'common-fail:manipulation-pose-unreachable
-                       :description (format nil "In MOVE-TCP goals for the two arms ~
+            (get-ik-joint-positions
+             (ee-pose-in-map->ee-pose-in-torso
+              (tcp-pose->ee-pose left-tcp-pose
+                                 ?left-tool-frame ?left-ee-frame))
+             ?torso-link ?left-ee-frame ?left-arm-joints
+             ?torso-joint ?lower-limit ?upper-limit
+             validation-function))
+        (multiple-value-bind (right-ik right-torso-angle)
+            (let ((ik::*ik-service-name*
+                    (if (string-equal (symbol-name ?robot) "PR2")
+                        "pr2_right_arm_kinematics/get_ik"
+                        "kdl_ik_service/get_ik")))
+              (get-ik-joint-positions
+               (ee-pose-in-map->ee-pose-in-torso
+                (tcp-pose->ee-pose right-tcp-pose
+                                   ?right-tool-frame ?right-ee-frame))
+               ?torso-link ?right-ee-frame ?right-arm-joints
+               ?torso-joint ?lower-limit ?upper-limit
+               validation-function))
+          (cond
+            ((and left-torso-angle right-torso-angle)
+             (when (not (eq left-torso-angle right-torso-angle))
+               (cpl:fail 'common-fail:manipulation-pose-unreachable
+                         :description (format nil "In MOVE-TCP goals for the two arms ~
                                                  require different torso angles).")))
-           (move-torso left-torso-angle))
-          (left-torso-angle (move-torso left-torso-angle))
-          (right-torso-angle (move-torso right-torso-angle)))
-        (move-joints left-ik right-ik)
-        (perform-collision-check collision-mode left-tcp-pose right-tcp-pose)))))
+             (move-torso left-torso-angle))
+            (left-torso-angle (move-torso left-torso-angle))
+            (right-torso-angle (move-torso right-torso-angle)))
+          (move-joints left-ik right-ik)
+          (perform-collision-check collision-mode left-tcp-pose right-tcp-pose))))))

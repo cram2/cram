@@ -33,5 +33,4 @@
   (:export
    ;; ik
    #:call-ik-service
-   #:call-ik-service-with-resampling
-   #:call-ik-service-with-resampling-and-collision-check))
+   #:call-ik-service-with-resampling))
