@@ -37,8 +37,8 @@
                cram-tf
                moveit_msgs-msg
                moveit_msgs-srv
-               cram-common-failures
-               cram-language)
+               ;; for representing joint states
+               sensor_msgs-msg)
   :components
   ((:module "src"
     :components
