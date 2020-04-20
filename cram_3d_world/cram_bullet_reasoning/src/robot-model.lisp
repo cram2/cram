@@ -2,10 +2,10 @@
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -15,7 +15,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -66,23 +66,16 @@
   a `compound-shape' if compound it T.
   The former combines all meshes and faces into one convex-hull-shape, while the latter
   contains every single mesh as a seperate convex-hull-shape as children in a compound-shape."
-  (let* ((model (load-mesh mesh compound)))
-    (flet ((make-ch-mesh-shape (model-part)
-             (make-instance 'convex-hull-mesh-shape
-               :color (apply-alpha-value color)
-               :faces (physics-utils:3d-model-faces model-part)
-               :points (physics-utils:3d-model-vertices model-part))))
-      (if compound
-          (let ((compound-shape (make-instance 'compound-shape))
-                (id-pose (cl-transforms:make-pose
-                          (cl-transforms:make-3d-vector 0 0 0)
-                          (cl-transforms:make-identity-rotation))))
-            (mapcar (alexandria:compose
-                     (alexandria:curry #'add-child-shape compound-shape id-pose)
-                     #'make-ch-mesh-shape)
-                    model)
-            compound-shape)
-          (make-ch-mesh-shape (car model))))))
+  (let* ((mesh-filename
+           (cl-urdf:filename mesh))
+         (scale
+           (cl-urdf:scale mesh))
+         (size
+           (cl-urdf:size mesh))
+         (collision-shape
+           (make-collision-shape-from-mesh
+            mesh-filename :color color :scale scale :size size :compound compound)))
+    collision-shape))
 
 (defclass robot-object (object)
   ((links :initarg :links :initform (make-hash-table :test 'equal) :reader links)
@@ -144,6 +137,7 @@
 (defgeneric (setf link-pose) (new-value robot-object name)
   (:documentation "Sets the pose of a link and all its children"))
 
+
 (defgeneric object-attached (robot-object object)
   (:documentation "Returns the list of links `object' has been
   attached to.")
@@ -154,7 +148,8 @@
               (mapcar #'attachment-grasp (car (cdr (assoc (name object) attached-objects
                                                           :test #'equal))))))))
 
-(defmethod attach-object ((robot-object robot-object) (obj object) &key link loose grasp)
+(defmethod attach-object ((robot-object robot-object) (obj object)
+                          &key link loose grasp &allow-other-keys)
   "Adds `obj' to the set of attached objects of `robot-object'.
 `link' specifies to which link of `robot-object' to attach the `obj'.
 If `loose' is set to NIL and the link the object is attached to is moved,
@@ -176,26 +171,16 @@ Otherwise, the attachment is only used as information but does not affect the wo
              (push (cons (name obj)
                          (cons
                           (list new-attachment)
-                          (loop for body in (rigid-bodies obj)
-                                collecting (make-collision-information
-                                            :rigid-body-name (name body)
-                                            :flags (collision-flags body))
-                                do (setf (collision-flags body) :cf-static-object))))
+                          (create-static-collision-information obj)))
                    attached-objects))))))
 
 (defmethod detach-object ((robot-object robot-object) (object object) &key link)
-  "Detaches `detach-obj' from the set of attached objects.
-If `link' is specified, detaches `object' only from
-  `link'. Otherwise, detaches `object' from all links."
-  (flet ((reset-collision-information (object collision-information)
-           (loop for collision-data in collision-information
-                 for body = (rigid-body
-                             object (collision-information-rigid-body-name
-                                     collision-data))
-                 do (setf (collision-flags body)
-                          (collision-information-flags collision-data)))))
-    (with-slots (attached-objects) robot-object
-      (let ((attachment (assoc (name object) attached-objects)))
+  "Detaches `object' from the set of attached objects.
+ If `link' is specified, detaches `object' only from
+ `link'. Otherwise, detaches `object' from all links."
+  (with-slots (attached-objects) robot-object
+    (let ((attachment (assoc (name object) attached-objects)))
+      (when attachment
         (cond (link
                (setf (second attachment)
                      (remove link (second attachment)
@@ -208,14 +193,26 @@ If `link' is specified, detaches `object' only from
                                                 :key #'car))
                  (reset-collision-information object (cdr (cdr attachment)))))))))
 
+(defmethod detach-all-from-link ((robot-object robot-object) link)
+  "Removes all objects form the given `link' of `robot-object'."
+  (with-slots (attached-objects) robot-object
+       (dolist (attachment attached-objects)
+         (let* ((object-name (car attachment))
+                (object-instance (object *current-bullet-world* object-name)))
+           (if object-instance
+               (let ((attached-to-links (object-attached robot-object object-instance)))
+                 (when (find link attached-to-links :test #'equalp)
+                   (detach-object robot-object object-instance :link link)))
+               (setf attached-objects (remove object-name attached-objects :key #'car)))))))
+
 (defmethod detach-all-objects ((robot-object robot-object))
   "Removes all objects form the list of attached objects."
-    (with-slots (attached-objects) robot-object
-      (dolist (attached-object attached-objects)
-        (let ((object-name (car attached-object)))
-          (if (object *current-bullet-world* object-name)
-              (detach-object robot-object (object *current-bullet-world* object-name))
-              (setf attached-objects (remove object-name attached-objects :key #'car)))))))
+  (with-slots (attached-objects) robot-object
+    (dolist (attached-object attached-objects)
+      (let ((object-name (car attached-object)))
+        (if (object *current-bullet-world* object-name)
+            (detach-object robot-object (object *current-bullet-world* object-name))
+            (setf attached-objects (remove object-name attached-objects :key #'car)))))))
 
 (defgeneric gc-attached-objects (robot-object)
   (:documentation "Removes all attached objects with an invalid world
@@ -357,6 +354,40 @@ If `link' is specified, detaches `object' only from
     :collision-mask collision-mask
     :compound compound))
 
+(let ((updated-attachments (make-hash-table)))
+  ;; Stores the already updated attached objects and the corresponding traversed links
+
+  (defun get-updated-attachments ()
+    "This getter exists only for testing `updated-link-in-attachment'
+in the unit tests."
+    updated-attachments)
+
+  (defun updated-link-in-attachment (link attachment)
+    "Returns if the pose of the attached object behind the `attachment'
+was updated by checking if `link' was already updated. The already
+updated links are saved under the attachment name in `updated-attachments'.
+If all links of an attachment were updated the entry under the attachment
+name in `updated-attachments' gets deleted."
+    (let ((links-attached-to (mapcar #'attachment-link (car (cdr attachment))))
+          (ret T))
+      (when (and link (member (cl-urdf:name link) links-attached-to :test #'string-equal))
+        (if (gethash (car attachment) updated-attachments)
+            (setf (gethash (car attachment) updated-attachments)
+                  (push (cl-urdf:name link) (gethash (car attachment) updated-attachments)))
+            (setf (gethash (car attachment) updated-attachments)
+                  (list (cl-urdf:name link))
+                  ret
+                  NIL))
+        ;; checks if the list of links in attachment and the already visited links are equal
+        (when (equal
+               (length links-attached-to)
+               (length
+                (intersection
+                 (gethash (car attachment) updated-attachments)
+                 links-attached-to :test #'string-equal)))
+          (remhash (car attachment) updated-attachments))
+        (return-from updated-link-in-attachment ret)))))
+
 (defun update-attached-object-poses (robot-object link pose)
   "Updates the poses of all objects that are attached to
 `link'. `pose' is the new pose of `link'"
@@ -372,7 +403,8 @@ If `link' is specified, detaches `object' only from
                              (find (cl-urdf:name link) (car (cdr attachment))
                                    :key #'attachment-link :test #'equal)))
                        (and link-attachment
-                            (not (attachment-loose link-attachment)))))
+                            (not (attachment-loose link-attachment))
+                            (not (updated-link-in-attachment link attachment)))))
                    attached-objects)))
                (body-transform (cl-transforms:reference-transform (pose body)))
                (pose-transform (cl-transforms:reference-transform pose))
@@ -531,10 +563,10 @@ current joint states"
           (setf new-value (cl-transforms:normalize-angle new-value)))
         (unless (and (<= new-value (cl-urdf:upper limits))
                      (>= new-value (cl-urdf:lower limits)))
-          ;; (setf new-value (min (max new-value (cl-urdf:lower limits))
-          ;;                      (cl-urdf:upper limits)))
-          (error "Trying to assert joint value for ~a to ~a but limits are (~a; ~a)"
-                 name new-value (cl-urdf:lower limits) (cl-urdf:upper limits))))
+          (setf new-value (min (max new-value (cl-urdf:lower limits))
+                               (cl-urdf:upper limits)))
+          (warn "Trying to assert joint value for ~a to ~a but limits are (~a; ~a)"
+                name new-value (cl-urdf:lower limits) (cl-urdf:upper limits))))
       (let ((joint-transform
               (cl-transforms:transform*
                (cl-transforms:reference-transform
@@ -681,18 +713,3 @@ Only one joint state changes in this situation, so only one joint state is updat
           (destructuring-bind (r g b) color
             (list r g b (or *robot-model-alpha* 1.0)))
           (error "Color of an object has to be a list of 3 or 4 values"))))
-
-(defun load-mesh (mesh &optional (compound nil))
-  "Loads and resizes the 3d-model. If `compound' is T we have a list of meshes, instead of one."
-  (let ((model (multiple-value-list
-                (physics-utils:load-3d-model (physics-utils:parse-uri (cl-urdf:filename mesh))
-                                             :compound compound))))
-    (cond ((cl-urdf:scale mesh)
-           (mapcar (lambda (model-part)
-                     (physics-utils:scale-3d-model model-part (cl-urdf:scale mesh)))
-                   model))
-          ((cl-urdf:size mesh)
-           (mapcar (lambda (model-part)
-                     (physics-utils:resize-3d-model model-part (cl-urdf:size mesh)))
-                   model))
-          (t model))))

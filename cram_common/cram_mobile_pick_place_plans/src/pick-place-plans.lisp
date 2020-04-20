@@ -42,7 +42,7 @@
                   ((:effort ?grip-effort))
                   ((:grasp ?grasp))
                   ((:left-reach-poses ?left-reach-poses))
-                  ((:right-reach-posees ?right-reach-poses))
+                  ((:right-reach-poses ?right-reach-poses))
                   ((:left-grasp-poses ?left-grasp-poses))
                   ((:right-grasp-poses ?right-grasp-poses))
                   ((:left-lift-poses ?left-lift-poses))
@@ -51,7 +51,7 @@
   (declare (type desig:object-designator ?object-designator)
            (type keyword ?arm ?grasp)
            (type number ?gripper-opening ?grip-effort)
-           (type (or null list) ; yes, null is also list, but this is better reachability
+           (type (or null list) ; yes, null is also list, but this is more readable
                  ?left-reach-poses ?right-reach-poses
                  ?left-grasp-poses ?right-grasp-poses
                  ?left-lift-poses ?right-lift-poses))
@@ -100,13 +100,8 @@
              (type gripping)
              (gripper ?arm)
              (effort ?grip-effort)
-             (object ?object-designator)))
-  (roslisp:ros-info (pick-place pick-up) "Assert grasp into knowledge base")
-  (cram-occasions-events:on-event
-   (make-instance 'cpoe:object-attached-robot
-     :object-name (desig:desig-prop-value ?object-designator :name)
-     :arm ?arm
-     :grasp ?grasp))
+             (object ?object-designator)
+             (grasp ?grasp)))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -118,7 +113,18 @@
      (desig:an action
                (type lifting)
                (left-poses ?left-lift-poses)
-               (right-poses ?right-lift-poses)))))
+               (right-poses ?right-lift-poses))))
+  (roslisp:ros-info (pick-place place) "Parking")
+  (exe:perform
+   (desig:an action
+             (type positioning-arm)
+             ;; TODO: this will not work with dual-arm grasping
+             ;; but as our ?arm is declared as a keyword,
+             ;; for now this code is the right code
+             (desig:when (eql ?arm :left)
+               (left-configuration park))
+             (desig:when (eql ?arm :right)
+               (right-configuration park)))))
 
 
 
@@ -203,7 +209,32 @@
      (desig:an action
                (type retracting)
                (left-poses ?left-retract-poses)
-               (right-poses ?right-retract-poses)))))
+               (right-poses ?right-retract-poses))))
+  (roslisp:ros-info (pick-place place) "Parking")
+  (exe:perform
+   (desig:an action
+             (type positioning-arm)
+             (desig:when (eql ?arm :left)
+               (left-configuration park))
+             (desig:when (eql ?arm :right)
+               (right-configuration park)))))
+
+
+(defun perceive (&key
+                   ((:object ?object-designator))
+                   (object-chosing-function #'identity)
+                 &allow-other-keys)
+  (declare (type desig:object-designator ?object-designator))
+  "Park arms and call DETECTING action."
+  (exe:perform
+   (desig:an action
+             (type positioning-arm)
+             (left-configuration park)
+             (right-configuration park)))
+  (exe:perform
+   (desig:an action
+             (type detecting)
+             (object ?object-designator))))
 
 
 ;; (defun perform-phases-in-sequence (action-designator)

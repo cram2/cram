@@ -7,7 +7,7 @@
           query-result)
         (call-next-method)))
 
-(defmethod cram-manipulation-interfaces:get-action-gripper-opening :around (object-type)
+(defmethod man-int:get-action-gripper-opening :around (object-type)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
           (log-reasoning-task "GetActionGripperOpening" (write-to-string object-type) (write-to-string query-result))

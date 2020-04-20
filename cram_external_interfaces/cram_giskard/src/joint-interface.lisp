@@ -53,7 +53,7 @@
                                                                         (second
                                                                          joint-state-left))))
                                          (roslisp:make-message
-                                          'giskard_msgs-msg:controller
+                                          'giskard_msgs-msg:jointconstraint
                                           :type (roslisp:symbol-code
                                                  'giskard_msgs-msg:jointconstraint
                                                  :joint)
@@ -65,11 +65,12 @@
                                                        :position (apply #'vector
                                                                         (second
                                                                          joint-state-right)))))
-              :collisions (vector (roslisp:make-message
-                                   'giskard_msgs-msg:collisionentry
-                                   :type (roslisp:symbol-code
-                                          'giskard_msgs-msg:collisionentry
-                                          :avoid_all_collisions)))))))
+              ;; :collisions (vector (roslisp:make-message
+              ;;                      'giskard_msgs-msg:collisionentry
+              ;;                      :type (roslisp:symbol-code
+              ;;                             'giskard_msgs-msg:collisionentry
+              ;;                             :avoid_all_collisions)))
+              ))))
 
 (defun get-arm-joint-names-and-positions-list (arm &optional joint-states)
   (if joint-states
@@ -80,7 +81,7 @@
                              (cut:lazy-car
                               (prolog:prolog
                                `(cram-robot-interfaces:arm-joints
-                                 (intern "PR2" :cram-pr2-description) ,arm ?joints))))))
+                                 ,(intern "PR2" :cram-pr2-description) ,arm ?joints))))))
         (list joint-names
               (joints:joint-positions joint-names)))))
 
@@ -140,4 +141,6 @@
          :action-timeout action-timeout)
       (ensure-giskard-joint-goal-reached status goal-configuration-left goal-configuration-right
                                          convergence-delta-joint)
-      (values result status))))
+      (values result status)
+      ;; return the joint state, which is our observation
+      (joints:full-joint-states-as-hash-table))))

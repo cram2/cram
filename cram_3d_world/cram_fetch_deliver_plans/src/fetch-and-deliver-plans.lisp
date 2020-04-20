@@ -118,7 +118,7 @@ if yes, relocate and retry, if no collisions, open or close container."
          (cpl:fail 'common-fail:environment-manipulation-impossible
                    :description "Some designator could not be resolved.")))
 
-    (cpl:with-retry-counters ((relocation-retries 20))
+    (cpl:with-retry-counters ((relocation-retries 50))
       (cpl:with-failure-handling
           (((or common-fail:navigation-goal-in-collision
                 common-fail:environment-unreachable
@@ -130,6 +130,9 @@ if yes, relocate and retry, if no collisions, open or close container."
                  (:error-object-or-string e
                   :warning-namespace (fd-plans environment)
                   :rethrow-failure 'common-fail:environment-manipulation-impossible)
+               (exe:perform (desig:an action
+                                      (type opening-gripper)
+                                      (gripper (left right))))
                (roslisp:ros-info (fd-plans environment) "Relocating..."))))
 
         ;; navigate, open / close
@@ -162,7 +165,6 @@ if yes, relocate and retry, if no collisions, open or close container."
                             ((:object ?object-designator))
                             ((:location ?search-location))
                             ((:robot-location ?robot-location))
-                            (retries 3)
                           &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            ;; location desigs can turn NILL in the course of execution
@@ -177,11 +179,11 @@ retries with different search location or robot base location."
          (roslisp:ros-warn (fd-plans search-for-object)
                            "Desig ~a could not be resolved: ~a~%Propagating up."
                            ?search-location e)
-         (cpl:fail 'common-fail:object-nowhere-to-be-found
+         (cpl:fail 'common-fail:searching-failed
                    :description "Search location designator could not be resolved.")))
 
     ;; take new `?search-location' sample if a failure happens and retry
-    (cpl:with-retry-counters ((outer-search-location-retries 2))
+    (cpl:with-retry-counters ((outer-search-location-retries 3))
       (cpl:with-failure-handling
           ((common-fail:object-nowhere-to-be-found (e)
              (common-fail:retry-with-loc-designator-solutions
@@ -190,12 +192,13 @@ retries with different search location or robot base location."
                  (:error-object-or-string e
                   :warning-namespace (fd-plans search-for-object)
                   :reset-designators (list ?robot-location)
-                  :rethrow-failure 'common-fail:object-nowhere-to-be-found)
+                  :rethrow-failure 'common-fail:searching-failed
+                  :distance-threshold 0.1)
                (roslisp:ros-warn (fd-plans search-for-object)
                                  "Search is about to give up. Retrying~%"))))
 
         ;; if the going action fails, pick another `?robot-location' sample and retry
-        (cpl:with-retry-counters ((robot-location-retries 10))
+        (cpl:with-retry-counters ((robot-location-retries 4))
           (cpl:with-failure-handling
               (((or common-fail:navigation-goal-in-collision
                     common-fail:looking-high-level-failure
@@ -212,25 +215,38 @@ retries with different search location or robot base location."
             (exe:perform (desig:an action
                                    (type navigating)
                                    (location ?robot-location)))
+            ;; go up with torso to look from higher up
+            (exe:perform
+             (desig:an action (type moving-torso) (joint-angle upper-limit)))
 
-            ;; if perception action fails, try another `?search-location' and retry
-            (cpl:with-retry-counters ((search-location-retries retries))
+            (cpl:with-retry-counters ((move-torso-retries 1))
               (cpl:with-failure-handling
-                  (((or common-fail:perception-low-level-failure
-                        common-fail:looking-high-level-failure) (e)
-                     (common-fail:retry-with-loc-designator-solutions
-                         ?search-location
-                         search-location-retries
-                         (:error-object-or-string e
-                          :warning-namespace (fd-plans search-for-object)
-                          :reset-designators (list ?robot-location)))))
+                  ((common-fail:perception-low-level-failure (e)
+                     (cpl:do-retry move-torso-retries
+                       (roslisp:ros-warn (pick-and-place perceive) "~a" e)
+                       ;; if a failure happens, try to go with the torso a bit more down
+                       (exe:perform
+                        (desig:an action (type moving-torso) (joint-angle middle)))
+                       (cpl:retry))))
 
-                (exe:perform (desig:an action
-                                       (type turning-towards)
-                                       (target ?search-location)))
-                (exe:perform (desig:an action
-                                       (type detecting)
-                                       (object ?object-designator)))))))))))
+                ;; if perception action fails, try another `?search-location' and retry
+                (cpl:with-retry-counters ((search-location-retries 1))
+                  (cpl:with-failure-handling
+                      (((or common-fail:perception-low-level-failure
+                            common-fail:looking-high-level-failure) (e)
+                         (common-fail:retry-with-loc-designator-solutions
+                             ?search-location
+                             search-location-retries
+                             (:error-object-or-string e
+                              :warning-namespace (fd-plans search-for-object)
+                              :reset-designators (list ?robot-location)))))
+
+                    (exe:perform (desig:an action
+                                           (type turning-towards)
+                                           (target ?search-location)))
+                    (exe:perform (desig:an action
+                                           (type perceiving)
+                                           (object ?object-designator)))))))))))))
 
 
 
@@ -239,6 +255,7 @@ retries with different search location or robot base location."
                 ((:arms ?arms))
                 ((:grasps ?grasps))
                 ((:robot-location ?pick-up-robot-location))
+                ((:look-location ?look-location))
                 pick-up-action
               &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
@@ -255,12 +272,12 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans fetch) "~a~%Propagating up." e)
-         (cpl:fail 'common-fail:object-unfetchable
+         (cpl:fail 'common-fail:fetching-failed
                    :object ?object-designator
                    :description "Some designator could not be resolved.")))
 
     ;; take a new `?pick-up-robot-location' sample if a failure happens
-    (cpl:with-retry-counters ((relocation-for-ik-retries 20))
+    (cpl:with-retry-counters ((relocation-for-ik-retries 50))
       (cpl:with-failure-handling
           (((or common-fail:navigation-goal-in-collision
                 common-fail:looking-high-level-failure
@@ -274,7 +291,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                   (format NIL "Object of type ~a is unreachable: ~a"
                           (desig:desig-prop-value ?object-designator :type) e)
                   :warning-namespace (fd-plans fetch)
-                  :rethrow-failure 'common-fail:object-unfetchable))))
+                  :rethrow-failure 'common-fail:fetching-failed))))
 
         ;; navigate, look, detect and pick-up
         (exe:perform (desig:an action
@@ -282,7 +299,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                (location ?pick-up-robot-location)))
         (exe:perform (desig:an action
                                (type turning-towards)
-                               (target (desig:a location (of ?object-designator)))))
+                               (target ?look-location)))
 
         (cpl:with-retry-counters ((regrasping-retries 1))
           (cpl:with-failure-handling
@@ -290,10 +307,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                  (roslisp:ros-warn (fd-plans fetch) "Misgrasp happened: ~a~%" e)
                  (cpl:do-retry regrasping-retries
                    (roslisp:ros-info (fd-plans fetch) "Reperceiving and repicking...")
-                   (exe:perform (desig:an action
-                                          (type positioning-arm)
-                                          (left-configuration park)
-                                          (right-configuration park)))
                    (cpl:retry))
                  (roslisp:ros-warn (fd-plans fetch) "No more regrasping retries left :'(")
                  (cpl:fail 'common-fail:object-unreachable
@@ -301,7 +314,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
             (let ((?more-precise-perceived-object-desig
                     (exe:perform (desig:an action
-                                           (type detecting)
+                                           (type perceiving)
                                            (object ?object-designator)))))
 
 
@@ -371,10 +384,6 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
 
                             (exe:perform pick-up-action)
 
-                            (exe:perform (desig:an action
-                                                   (type positioning-arm)
-                                                   (left-configuration park)
-                                                   (right-configuration park)))
                             (desig:current-desig ?object-designator)))))))))))))))
 
 
@@ -403,7 +412,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
   (cpl:with-failure-handling
       ((desig:designator-error (e)
          (roslisp:ros-warn (fd-plans deliver) "~a~%Propagating up." e)
-         (cpl:fail 'common-fail:object-undeliverable
+         (cpl:fail 'common-fail:delivering-failed
                    :description "Some designator could not be resolved.")))
 
     (cpl:with-retry-counters ((outer-target-location-retries 2))
@@ -417,10 +426,10 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   (format NIL "Undeliverable. Trying another target location.~%~a" e)
                   :warning-namespace (fd-plans deliver)
                   :reset-designators (list ?target-robot-location)
-                  :rethrow-failure 'common-fail:object-undeliverable))))
+                  :rethrow-failure 'common-fail:delivering-failed))))
 
         ;; take a new `?target-robot-location' sample if a failure happens
-        (cpl:with-retry-counters ((relocation-for-ik-retries 4))
+        (cpl:with-retry-counters ((relocation-for-ik-retries 10))
           (cpl:with-failure-handling
               (((or common-fail:navigation-goal-in-collision
                     common-fail:object-undeliverable
@@ -538,8 +547,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     ((:search-location ?search-location))
                     ((:search-robot-location ?search-base-location))
                     ((:fetch-robot-location ?fetch-robot-location))
-                    ((:arm ?arm))
-                    ((:grasp ?grasp))
                     ((:arms ?arms))
                     ((:grasps ?grasps))
                     ((:deliver-location ?delivering-location))
@@ -550,8 +557,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
   (unless search-location-accessible
     (exe:perform (desig:an action
                            (type accessing)
-                           (location ?search-location)
-                           (distance 0.3))))
+                           (location ?search-location))))
 
   (unwind-protect
        (let ((?perceived-object-designator
@@ -560,26 +566,10 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                       (object ?object-designator)
                                       (location ?search-location)
                                       (desig:when ?search-base-location
-                                        (robot-location ?search-base-location)))))
-             (?robot-name
-               (cut:var-value '?robot-name
-                              (car (prolog:prolog '(rob-int:robot ?robot-name))))))
+                                        (robot-location ?search-base-location))))))
          (roslisp:ros-info (pp-plans transport)
                            "Found object of type ~a."
                            (desig:desig-prop-value ?perceived-object-designator :type))
-
-         (unless ?fetch-robot-location
-           (setf ?fetch-robot-location
-                 (desig:a location
-                          (reachable-for ?robot-name)
-                          (desig:when ?arm
-                            (arm ?arm))
-                          (object ?perceived-object-designator))))
-         (unless ?deliver-robot-location
-           (setf ?deliver-robot-location
-                 (desig:a location
-                          (reachable-for ?robot-name)
-                          (location ?delivering-location))))
 
          ;; If running on the real robot, execute below task tree in projection
          ;; N times first, then pick the best parameterization
@@ -595,21 +585,18 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
              (let ((?fetched-object
                      (exe:perform (desig:an action
                                             (type fetching)
-                                            (desig:when ?arm
-                                              (arm ?arm))
-                                            (desig:when ?grasp
-                                              (grasp ?grasp))
                                             (desig:when ?arms
                                               (arms ?arms))
                                             (desig:when ?grasps
                                               (grasps ?grasps))
                                             (object ?perceived-object-designator)
-                                            (robot-location ?fetch-robot-location)
+                                            (desig:when ?fetch-robot-location
+                                              (robot-location ?fetch-robot-location))
                                             (pick-up-action ?fetch-pick-up-action)))))
-
                (roslisp:ros-info (pp-plans transport) "Fetched the object.")
+
                (cpl:with-failure-handling
-                   ((common-fail:object-undeliverable (e)
+                   ((common-fail:delivering-failed (e)
                       (declare (ignore e))
                       (drop-at-sink)
                       ;; (return)
@@ -617,25 +604,23 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                  (unless delivery-location-accessible
                    (exe:perform (desig:an action
                                           (type accessing)
-                                          (location ?delivering-location)
-                                          (distance 0.3))))
+                                          (location ?delivering-location))))
                  (unwind-protect
                       (exe:perform (desig:an action
                                              (type delivering)
-                                             (desig:when ?arm
-                                               (arm ?arm))
+                                             ;; (desig:when ?arm
+                                             ;;   (arm ?arm))
                                              (object ?fetched-object)
                                              (target ?delivering-location)
-                                             (robot-location ?deliver-robot-location)
+                                             (desig:when ?deliver-robot-location
+                                               (robot-location ?deliver-robot-location))
                                              (place-action ?deliver-place-action)))
                    (unless delivery-location-accessible
                      (exe:perform (desig:an action
                                             (type sealing)
-                                            (location ?delivering-location)
-                                            (distance 0.3))))))))))
+                                            (location ?delivering-location))))))))))
 
     (unless search-location-accessible
       (exe:perform (desig:an action
                              (type sealing)
-                             (location ?search-location)
-                             (distance 0.3))))))
+                             (location ?search-location))))))

@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +14,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -29,6 +29,28 @@
 ;;;
 
 (in-package :btr)
+
+(defparameter *all-meshes-as-compound* T)
+
+(defclass object ()
+  ((name :initarg :name :reader name)
+   (rigid-bodies :initform (make-hash-table :test 'equal))
+   (pose-reference-body :initarg :pose-reference-body
+                        :documentation "The name of the rigid-body
+                        that is used for returning the pose of the
+                        object. It defaults to the first body that got
+                        added.")
+   (world :initarg :world :reader world)))
+
+
+(defun make-object (world name &optional
+                                 bodies (add-to-world t))
+  (make-instance 'object
+    :name name
+    :world world
+    :rigid-bodies bodies
+    :add add-to-world))
+
 
 (defgeneric add-object (world type name pose &key &allow-other-keys)
   (:documentation "Adds an object of `type' named `name' to the bullet
@@ -47,15 +69,6 @@
                      :format-control "Could not find a body named `~a'"
                      :format-arguments (list name)))))))
 
-(defclass object ()
-  ((name :initarg :name :reader name)
-   (rigid-bodies :initform (make-hash-table :test 'equal))
-   (pose-reference-body :initarg :pose-reference-body
-                        :documentation "The name of the rigid-body
-                        that is used for returning the pose of the
-                        object. It defaults to the first body that got
-                        added.")
-   (world :initarg :world :reader world)))
 
 (defgeneric rigid-bodies (obj)
   (:documentation "Return the list of rigid bodies that belong to the object `obj'")
@@ -87,6 +100,7 @@
                             :format-control "Could not find body with name `~a'"
                             :format-arguments (list name))))))))))
 
+
 (defgeneric copy-object (obj world)
   (:documentation "Copies the object `obj' and makes it an object of world `world'")
   (:method ((obj object) (world bt-reasoning-world))
@@ -99,6 +113,7 @@
         (prog1 new-instance
           (setf (slot-value new-instance 'rigid-bodies)
                 (copy-hash-table rigid-bodies)))))))
+
 
 (defgeneric initialize-rigid-bodies (object rigid-bodies &key add)
   (:method ((object object) rigid-bodies &key (add t))
@@ -115,13 +130,6 @@
         (setf (gethash (name body) (slot-value object 'rigid-bodies))
               body)))))
 
-(defun make-object (world name &optional
-                                 bodies (add-to-world t))
-  (make-instance 'object
-    :name name
-    :world world
-    :rigid-bodies bodies
-    :add add-to-world))
 
 (defmethod initialize-instance :after ((object object)
                                        &key rigid-bodies pose-reference-body
@@ -140,6 +148,7 @@
     (loop for key being the hash-keys in rigid-bodies do
       (setf (gethash key rigid-bodies) nil))))
 
+
 (defmethod pose ((object object))
   "Returns the pose of the object, i.e. the pose of the body named by
   the slot `pose-reference-body'"
@@ -155,9 +164,11 @@
 (defun set-object-pose (object new-pose)
   (setf (pose object) (ensure-pose new-pose)))
 
+
 (defmethod draw ((context gl-context) (object object))
   (dolist (body (rigid-bodies object))
     (draw context body)))
+
 
 (defun make-rigid-body-name (obj-name body-name)
   (flet ((ensure-string (name)
@@ -171,12 +182,16 @@
              (ensure-string body-name))
             :keyword)))
 
+
 (defmethod add-object ((world bt-reasoning-world) type name pose
                        &key disable-collisions-with)
   (prog1
       (call-next-method)
     (when disable-collisions-with
       (disable-collisions world name disable-collisions-with))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;; SPAWNING PRIMITIVE-SHAPED OBJECTS ;;;;;;;;;;;;;;;
 
 (defmethod add-object ((world bt-world) (type (eql :box)) name pose &key mass size)
   (destructuring-bind (size-x size-y size-z) size
@@ -277,8 +292,83 @@
                   :collision-shape (make-instance 'convex-hull-shape :points points)))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;; MESH LOADING UTILS ;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun load-mesh (mesh-filename &key (scale nil) (size nil)
+                                  (compound *all-meshes-as-compound*)
+                                  (flip-winding-order nil))
+  "Loads and resizes the 3d-model. If `compound' is T we have a list of meshes, instead of one."
+  (let ((model (multiple-value-list
+                (physics-utils:load-3d-model (physics-utils:parse-uri mesh-filename)
+                                             :compound compound
+                                             :flip-winding-order flip-winding-order))))
+    (cond (scale
+           (mapcar (lambda (model-part)
+                     (physics-utils:scale-3d-model model-part scale))
+                   model))
+          (size
+           (mapcar (lambda (model-part)
+                     (physics-utils:resize-3d-model model-part size))
+                   model))
+          (t model))))
+
+(defun make-collision-shape-from-mesh (mesh-filename &key (color '(0.8 0.8 0.8 1.0))
+                                                       (scale nil) (size nil)
+                                                       (compound *all-meshes-as-compound*)
+                                                       (disable-face-culling nil)
+                                                       (flip-winding-order nil))
+  "Loads the meshes from the specified filename and creates either:
+      a `convex-hull-shape' if `compound' is NIL or
+      a `compound-shape' if compound it T.
+  The former combines all meshes and faces into one convex-hull-shape, while the latter
+  contains every single mesh as a seperate convex-hull-shape as children in a compound-shape."
+  (flet ((make-ch-mesh-shape (model-part)
+           (make-instance 'convex-hull-mesh-shape
+             :color color
+             :disable-face-culling disable-face-culling
+             :faces (physics-utils:3d-model-faces model-part)
+             :points (physics-utils:3d-model-vertices model-part))))
+    (let ((model (load-mesh mesh-filename
+                            :scale scale
+                            :size size
+                            :compound compound
+                            :flip-winding-order flip-winding-order)))
+      ;; model has multiple components, such that it makes sense to make a compound shape
+      (if (and compound (> (length model) 1))
+          (let ((compound-shape (make-instance 'compound-shape))
+                (id-pose (cl-transforms:make-pose
+                          (cl-transforms:make-3d-vector 0 0 0)
+                          (cl-tf:make-identity-rotation))))
+            (mapcar (alexandria:compose
+                     (alexandria:curry #'add-child-shape compound-shape id-pose)
+                     #'make-ch-mesh-shape)
+                    model)
+            compound-shape)
+          (make-ch-mesh-shape (car model))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;; OBJECT ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;
+
 (defstruct collision-information
   rigid-body-name flags)
+
+(defmethod create-static-collision-information ((object object))
+  (if (not (object *current-bullet-world* (name object)))
+      (error "Cannot find object named ~a" (name object))
+      (loop for body in (rigid-bodies object)
+            collecting (make-collision-information
+                        :rigid-body-name (name body)
+                        :flags (collision-flags body))
+            do (setf (collision-flags body) :cf-static-object))))
+
+(defmethod reset-collision-information ((object object) collision-information)
+  (loop for collision-data in collision-information
+        for body = (rigid-body
+                    object (collision-information-rigid-body-name
+                            collision-data))
+        do (setf (collision-flags body)
+                 (collision-information-flags collision-data))))
+
 
 (defstruct attachment
   "Represents a link between an object and another object or its link.
@@ -299,17 +389,41 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
 (defgeneric detach-object (object-to-detach-from object &key &allow-other-keys)
   (:documentation "Removes `object' from the attached objects of `object-to-detach-from'."))
 
+(defgeneric detach-all-from-link (object link)
+  (:documentation "Removes all attachments form the given `link' of `object'."))
+
 (defgeneric detach-all-objects (object)
   (:documentation "Removes all attachments form the list of attached objects of `object'."))
 
-(defmethod attach-object ((object-to-attach-to-name symbol) (object-name symbol) &key)
+(defmethod attach-object ((object-to-attach-to-name symbol) (object-name symbol)
+                          &key attachment-type loose skip-removing-loose link grasp)
   "Attaches object named `object-name' to another object named `object-to-attach-to-name'."
   (multiple-value-bind (obj obj-found)
       (btr:object *current-bullet-world* object-name)
     (multiple-value-bind (other-obj other-obj-found)
         (btr:object *current-bullet-world* object-to-attach-to-name)
       (when (and obj-found other-obj-found)
-        (attach-object obj other-obj)))))
+        (attach-object other-obj obj
+                       ;; merged keywords from items.lisp and robot-model.lisp
+                       :attachment-type attachment-type :loose loose
+                       :skip-removing-loose skip-removing-loose :link link
+                       :grasp grasp)))))
+
+(defmethod attach-object ((object-to-attach-to-names list) (object-name symbol)
+                          &key attachment-type loose skip-removing-loose link grasp)
+  "Attaches object named `object-name' to other objects,
+the names of which are in `object-to-attach-names'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-name)
+    (when obj-found
+      (attach-object
+       (remove-if-not #'identity
+                      (mapcar (alexandria:curry #'object *current-bullet-world*)
+                              object-to-attach-to-names))
+       obj
+       :attachment-type attachment-type :loose loose
+       :skip-removing-loose skip-removing-loose :link link
+       :grasp grasp))))
 
 (defmethod detach-object ((object-to-detach-from-name symbol) (object-name symbol) &key)
   "Detaches object named `object-name' from another object named `object-to-detach-from-name'."
@@ -319,3 +433,54 @@ of the object should _not_ be updated. `grasp' is the type of grasp orientation.
         (btr:object *current-bullet-world* object-to-detach-from-name)
       (when (and obj-found other-obj-found)
         (detach-object obj other-obj)))))
+
+(defmethod detach-all-from-link ((object-to-detach-from-name symbol) link)
+  "Detaches objects from object named `object-to-detach-from-name'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-to-detach-from-name)
+    (when obj-found
+      (detach-all-from-link obj link))))
+
+(defmethod detach-all-objects ((object-to-detach-from-name symbol))
+  "Detaches objects from object named `object-to-detach-from-name'."
+  (multiple-value-bind (obj obj-found)
+      (btr:object *current-bullet-world* object-to-detach-from-name)
+    (when obj-found
+      (detach-all-objects obj))))
+
+(defun get-loose-attached-objects (object)
+  "Returns all objects attached to `object',
+where ATTACHMENTs have the keyword LOOSE as not NIL."
+  (mapcar #'car
+          (remove-if-not
+           (alexandria:compose #'attachment-loose #'car #'car #'cdr)
+           (attached-objects object))))
+
+(let ((already-visited '()))
+  (defun remove-loose-attachment-for (object)
+    "Searches if the `object' was connected loosely to other
+objects and removes ALL corresponding attachments if so.
+To search through the attached objects of `object' the variable
+ALREADY-VISITED will help to prevent endless loops, as this is a
+recursive function."
+    (let ((loose-attached-objects (get-loose-attached-objects object)))
+      (when loose-attached-objects
+        ;; Map the following: (detach-object object loosely-attached-object)
+        (mapcar (alexandria:curry #'detach-object object)
+                (mapcar (alexandria:curry #'object *current-bullet-world*)
+                        loose-attached-objects))))
+    ;; searching recursivly:
+    ;; if `object' has attachments, `remove-loose-attachment-for'
+    ;; gets called with these to remove every indirect loose
+    ;; attachment: e. g. `object' is not loosely attached but one of
+    ;; its attached objects is connected loosely to something
+    (when (and (slot-boundp object 'attached-objects)
+               (> (length (attached-objects object)) 0))
+      (push (name object) already-visited)
+      (loop for attached-object in (mapcar (lambda (attach)
+                                             (object *current-bullet-world* (car attach)))
+                                           (attached-objects object))
+            do (unless (member (name attached-object) already-visited)
+                 (remove-loose-attachment-for attached-object)))
+      (if (equal (car (last already-visited)) (name object))
+          (setf already-visited '())))))

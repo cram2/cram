@@ -35,4 +35,5 @@
   (:export
    #:call-perform
    #:run-perform-server
-   #:run-reference-server))
+   #:run-reference-server
+   #:perform-with-pms-running))

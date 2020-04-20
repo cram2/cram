@@ -48,9 +48,24 @@
 
   (<- (desig-costmap ?desig ?cm)
     (cram-robot-interfaces:visibility-designator ?desig)
-    (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
+    ;; (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
+    (once (or (and (desig:desig-prop ?desig (:object ?some-object))
+                   (desig:current-designator ?some-object ?object)
+                   ;; (btr-belief:object-designator-name ?object ?object-name)
+                   ;; (btr:bullet-world ?world)
+                   ;; (btr:object-pose ?world ?object-name ?to-see-pose)
+                   (lisp-fun man-int:get-object-pose-in-map ?object ?to-see-pose)
+                   (lisp-pred identity ?to-see-pose))
+              (and (desig:desig-prop ?desig (:location ?some-location))
+                   (desig:current-designator ?some-location ?location)
+                   (desig:designator-groundings ?location ?location-poses)
+                   ;; have to take one pose from all possibilities
+                   ;; as later we have a FORCE-LL on ?TO-SEE-POSES
+                   ;; and that can be an infinitely long list
+                   (member ?to-see-pose ?location-poses))))
+    (lisp-fun list ?to-see-pose ?to-see-poses)
+    (lisp-fun 2d-pose-covariance ?to-see-poses 0.5 (?mean ?covariance))
     (costmap ?cm)
-    (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
     (costmap-add-function
      pose-distribution
      (make-gauss-cost-function ?mean ?covariance)
@@ -72,13 +87,26 @@
 
   (<- (desig-costmap ?desig ?cm)
     (cram-robot-interfaces:reachability-designator ?desig)
-    (bagof ?pose (cram-robot-interfaces:designator-reach-pose ?desig ?pose ?_) ?poses)
-    (costmap ?cm)
-    (lisp-fun 2d-pose-covariance ?poses 0.5 (?mean ?covariance))
+    ;; (bagof ?pose (cram-robot-interfaces:designator-reach-pose ?desig ?pose ?_) ?poses)
+    (once (or (and (desig:desig-prop ?desig (:object ?some-object))
+                   (desig:current-designator ?some-object ?object)
+                   (lisp-fun man-int:get-object-pose-in-map ?object ?to-reach-pose)
+                   (lisp-pred identity ?to-reach-pose))
+              (and (desig:desig-prop ?desig (:location ?some-location))
+                   (desig:current-designator ?some-location ?location)
+                   (desig:designator-groundings ?location ?location-poses)
+                   ;; have to take one pose from all possibilities
+                   ;; as later we have a FORCE-LL on ?TO-REACH-POSES
+                   ;; and that can be an infinitely long list
+                   (member ?to-reach-pose ?location-poses))))
+    (lisp-fun list ?to-reach-pose ?to-reach-poses)
+    (lisp-fun cut:force-ll ?to-reach-poses ?poses-list)
+    (lisp-fun 2d-pose-covariance ?to-reach-poses 0.5 (?mean ?covariance))
     (costmap-in-reach-distance ?distance)
     (costmap-reach-minimal-distance ?minimal-distance)
+    (costmap ?cm)
     (forall
-     (member ?pose ?poses)
+     (member ?pose ?to-reach-poses)
      (and
       (instance-of pose-distribution-range-include-generator
                    ?include-generator-id)

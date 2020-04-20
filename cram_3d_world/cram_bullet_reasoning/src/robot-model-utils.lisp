@@ -42,7 +42,9 @@
                 :time timestamp :timeout *tf-default-timeout*)
              (transform-stamped-error (error)
                (roslisp:ros-warn (set-robot-state-from-tf)
-                                 "Failed with transform-stamped-error: ~a" error)
+                                 "Failed with transform-stamped-error:~%    ~a~%    ~
+                                  Ignore this warning if no real robot is running."
+                                 error)
                NIL))))
     (when robot-transform
       (setf (link-pose robot root-link)
@@ -185,3 +187,18 @@ Should it be taken out and made PR2-specific?"
     (reduce #'set-difference
             (list colliding-object-names attached-object-names
                   robot-object-name-list other-objects-to-discard))))
+
+(defmethod robot-attached-objects-in-collision ()
+  "Returns a boolean that says if the objects the robot is holding
+are colliding with anything in the world, except the robot itself
+or other objects to which current object is attached."
+  (some #'identity
+        (mapcar (lambda (attachment)
+                  ;; remove if object has attachments, which are then colliding
+                  (remove-if #'attached-objects
+                             ;; remove if robot is colliding
+                             (remove (get-robot-object)
+                                     (find-objects-in-contact
+                                      *current-bullet-world*
+                                      (object *current-bullet-world* (car attachment))))))
+                (attached-objects (get-robot-object)))))

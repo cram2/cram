@@ -45,8 +45,9 @@
 
   (<- (object-visibility-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:object ?object))
+    (desig:desig-prop ?object (:name ?object-name))
     (btr:bullet-world ?world)
-    (btr-belief:object-designator-name ?object ?object-name)
+    ;; (btr-belief:object-designator-name ?object ?object-name)
     (cram-robot-interfaces:robot ?robot)
     (costmap:costmap ?costmap)
     (visibility-costmap-metadata ?minimal-height ?maximal-height ?resolution ?size)
@@ -57,21 +58,21 @@
       ?minimal-height ?maximal-height ?size ?resolution)
      ?costmap))
 
-  (<- (unknown-object-visibility-costmap ?designator ?costmap)
-    ;; object hasn't been perceived yet and
-    ;; (OBJECT-VISIBILITY-COSTMAP ?des ?cm) failed
-    (desig:desig-prop ?designator (:object ?object))
-    (desig:desig-prop ?object (:at ?location))
-    (btr:bullet-world ?world)
-    (cram-robot-interfaces:robot ?robot)
-    (costmap:costmap ?costmap)
-    (visibility-costmap-metadata ?minimal-height ?maximal-height ?resolution ?size)
-    (costmap:costmap-add-function
-     visible
-     (make-location-visibility-costmap
-      ?world ?location ?robot
-      ?minimal-height ?maximal-height ?size ?resolution)
-     ?costmap))
+  ;; (<- (unknown-object-visibility-costmap ?designator ?costmap)
+  ;;   ;; object hasn't been perceived yet and
+  ;;   ;; (OBJECT-VISIBILITY-COSTMAP ?des ?cm) failed
+  ;;   (desig:desig-prop ?designator (:object ?object))
+  ;;   (desig:desig-prop ?object (:at ?location))
+  ;;   (btr:bullet-world ?world)
+  ;;   (cram-robot-interfaces:robot ?robot)
+  ;;   (costmap:costmap ?costmap)
+  ;;   (visibility-costmap-metadata ?minimal-height ?maximal-height ?resolution ?size)
+  ;;   (costmap:costmap-add-function
+  ;;    visible
+  ;;    (make-location-visibility-costmap
+  ;;     ?world ?location ?robot
+  ;;     ?minimal-height ?maximal-height ?size ?resolution)
+  ;;    ?costmap))
 
   (<- (location-visibility-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:location ?location))
@@ -89,25 +90,32 @@
   (<- (costmap:desig-costmap ?designator ?costmap)
     (cram-robot-interfaces:visibility-designator ?designator)
     (once (or (object-visibility-costmap ?designator ?costmap)
-              (unknown-object-visibility-costmap ?designator ?costmap)
+              ;; (unknown-object-visibility-costmap ?designator ?costmap)
               (location-visibility-costmap ?designator ?costmap))))
 
   (<- (desig-check-to-see ?desig ?robot-pose)
-    (desig:desig-prop ?desig (:object ?obj))
-    (desig:desig-location-prop ?desig ?obj-pose)
-    (btr:bullet-world ?w)
-    (cram-robot-interfaces:robot ?robot)
-    (assert (btr:object-pose ?w ?robot ?robot-pose))
-    (btr:object-not-in-collision ?w ?robot)
-    (cram-robot-interfaces:camera-frame ?robot ?cam-frame)
-    (btr:head-pointing-at ?w ?robot ?obj-pose)
-    (-> (btr:object ?w ?obj)
-        (btr:visible ?w ?robot ?obj)
+    ;; (desig:desig-prop ?desig (:object ?obj))
+    ;; (desig:desig-location-prop ?desig ?obj-pose)
+    (desig:desig-prop ?desig (:object ?some-object))
+    (desig:current-designator ?some-object ?object)
+    (lisp-fun man-int:get-object-pose-in-map ?object ?to-see-pose)
+    (-> (lisp-pred identity ?to-see-pose)
+        (and (btr:bullet-world ?w)
+             (cram-robot-interfaces:robot ?robot)
+             (assert (btr:object-pose ?w ?robot ?robot-pose))
+             (btr:object-not-in-collision ?w ?robot)
+             (cram-robot-interfaces:camera-frame ?robot ?cam-frame)
+             (btr:head-pointing-at ?w ?robot ?to-see-pose)
+             (desig:desig-prop ?object (:name ?object-name))
+             (-> (btr:object ?w ?object-name)
+                 (btr:visible ?w ?robot ?object-name)
+                 (true)))
         (true)))
 
   (<- (location-valid ?desig ?pose (desig-check-to-see ?desig ?pose))
     (cram-robot-interfaces:visibility-designator ?desig)
-    (desig:desig-prop ?desig (:object ?obj)))
+    (or (desig:desig-prop ?desig (:object ?obj))
+        (true)))
 
   (<- (btr-desig-solution-valid ?desig ?solution)
     (btr-desig-solution-valid ?desig ?solution ?_))

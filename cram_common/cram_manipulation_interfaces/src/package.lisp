@@ -38,10 +38,13 @@
    #:get-object-pose
    #:get-object-transform-in-map
    #:get-object-pose-in-map
+   #:get-object-old-transform
+   #:get-object-old-pose
    ;; prolog
    #:object-type-subtype
    #:object-type-direct-subtype
    #:robot-free-hand
+   #:unidirectional-attachment
    ;; utils
    #:reasoning-engine-for-method
    ;; manipulation-interfaces
@@ -50,6 +53,8 @@
    #:get-action-trajectory
    #:get-action-grasps
    #:get-location-poses
+   #:get-container-opening-distance
+   #:get-container-closing-distance
    ;; grasps
    #:calculate-object-faces
    #:calculate-face-vector
@@ -64,12 +69,11 @@
    #:make-empty-trajectory
    #:get-traj-poses-by-label
    #:calculate-gripper-pose-in-base
+   #:calculate-gripper-pose-in-map
    ;;
    #:get-object-type-to-gripper-transform
-   #:get-object-type-to-gripper-pregrasp-transform
-   #:get-object-type-to-gripper-2nd-pregrasp-transform
-   #:get-object-type-to-gripper-lift-transform
-   #:get-object-type-to-gripper-2nd-lift-transform
+   #:get-object-type-to-gripper-pregrasp-transforms
+   #:get-object-type-wrt-base-frame-lift-transforms
    #:def-object-type-to-gripper-transforms
    #:get-object-grasping-poses
    ;;
@@ -93,6 +97,8 @@
    ;; standard-rotations
    #:*rotation-around-z-90-matrix*
    #:*rotation-around-z+90-matrix*
+   #:*rotation-around-x+90-matrix*
+   #:*rotation-around-z-180-and-x+90-matrix*
    #:*identity-matrix*
    #:*rotation-around-x+90-list*
    #:*rotation-around-x-90-list*
