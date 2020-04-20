@@ -120,3 +120,73 @@
               :test-value nil
               :current-value current-value))
         (roslisp:set-debug-level nil old-debug-lvl)))))
+
+
+(defun call-ik-service-with-resampling-and-collision-check (cartesian-pose
+                                                            base-link end-effector-link
+                                                            seed-state-msg
+                                                            resampling-step resampling-axis
+                                                            current-value lower-limit upper-limit
+                                                            &key collision-check-function
+                                                            collision-check-arguments)
+  "Calls the IK service to achieve the specified `cartesian-pose' achieved by manipulating the
+joints from `base-link' to `end-effector-link'. A collision check is performed using the provided
+`collision-check-function' after obtaining a possible solution. The `collision-check-function' is
+invoked with the arguments provided in `collision-check-arguments' as a list. The function is
+expected to throw the `common-fail:manipulation-goal-not-reached' error when a collision occurs"
+
+  (labels ((call-ik-service-inner (cartesian-pose
+                                   &key test-value current-value)
+             (let ((ik-solution-msg
+                     (call-ik-service
+                      cartesian-pose base-link end-effector-link seed-state-msg)))
+               (if ik-solution-msg
+                   (cpl:with-failure-handling
+                       ((common-fail:manipulation-goal-not-reached (e)
+                          (declare (ignore e))
+                          (call-ik-service-inner-with-next-solution cartesian-pose
+                                                                    :test-value test-value
+                                                                    :current-value current-value)))
+                     (apply collision-check-function collision-check-arguments)
+                     (values ik-solution-msg
+                             (or test-value current-value)))
+                   (when (or (not test-value) (> test-value lower-limit))
+                     ;; When we have no ik solution and have a valid test value to try,
+                     ;; use it to resample.
+                     (call-ik-service-inner-with-next-solution cartesian-pose
+                                                               :test-value test-value
+                                                               :current-value current-value)))))
+           (call-ik-service-inner-with-next-solution (cartesian-pose
+                                                      &key test-value current-value)
+             (let* ((next-test-value
+                      (if test-value
+                          (max lower-limit (- test-value resampling-step))
+                          upper-limit))
+                    (offset
+                      (if test-value
+                          (- test-value current-value)
+                          0))
+                    (next-offset
+                      (- next-test-value current-value))
+                    (pseudo-pose
+                      (cram-tf:translate-pose
+                       cartesian-pose
+                       (ecase resampling-axis
+                         (:x :x-offset)
+                         (:y :y-offset)
+                         (:z :z-offset))
+                       (- offset next-offset))))
+               (call-ik-service-inner
+                pseudo-pose
+                :test-value next-test-value
+                :current-value current-value))))
+    
+    (let ((old-debug-lvl (roslisp:debug-level nil)))
+      (unwind-protect
+           (progn
+             (roslisp:set-debug-level nil 9)
+             (call-ik-service-inner
+              cartesian-pose
+              :test-value nil
+              :current-value current-value))
+        (roslisp:set-debug-level nil old-debug-lvl)))))
