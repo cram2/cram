@@ -34,6 +34,7 @@
   (let ((lookup-table (make-hash-table :test 'equal)))
     (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Bowl'")
     (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Cup'")
+    (setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Drawer'")
     lookup-table))
 
 (cpl:define-task-variable *action-parents* '())
@@ -73,13 +74,16 @@
       "'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#DesignedArtifact'"))
 
 (defun handle-detected-object (detected-object)
-  (let ((object-name (get-designator-property-value-str detected-object :NAME))
+  (let* ((object-name (get-designator-property-value-str detected-object :NAME))
+        (detected-object-type (get-designator-property-value-str detected-object :TYPE))
         (object-type
-          (convert-to-ease-object-type-url (get-designator-property-value-str detected-object :TYPE))))
+          (convert-to-ease-object-type-url detected-object-type)))
     (if (gethash object-name *detected-objects*)
         (print "Object exists")
-        (setf (gethash object-name *detected-objects*)
-              (send-belief-perceived-at object-type (get-transform-of-detected-object detected-object))))))
+        (let ((object-id (send-belief-perceived-at object-type (get-transform-of-detected-object detected-object))))
+          (setf (gethash object-name *detected-objects*) object-id)
+          (when (string-equal object-type "'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#DesignedArtifact'")
+            (send-comment object-id (concatenate 'string "Unknown Object: "(write-to-string detected-object-type))))))))
 
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
