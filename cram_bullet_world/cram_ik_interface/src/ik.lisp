@@ -77,12 +77,26 @@
                                         base-link end-effector-link
                                         seed-state-msg
                                         resampling-step resampling-axis
-                                        current-value lower-limit upper-limit)
+                                        current-value lower-limit upper-limit
+                                        &optional solution-valid-p)
+  (declare (type (or function null) solution-valid-p))
+  "Calls the IK service to achieve the specified `cartesian-pose' by manipulating
+the joints from `base-link' to `end-effector-link'.
+`solution-valid-p' is a predicate that gets the joint state message as input
+and returns T or NIL according to some validation criteria.
+Mostly this is a collision check.
+Returns two values: resulting joint state message and torso value.
+If not valid solution was found, returns NIL."
   (labels ((call-ik-service-with-resampling-inner (cartesian-pose
                                                    &key test-value current-value)
              (let ((ik-solution-msg
-                     (call-ik-service cartesian-pose base-link end-effector-link seed-state-msg)))
-               (if ik-solution-msg
+                     (call-ik-service cartesian-pose base-link end-effector-link
+                                      seed-state-msg)))
+               (if (and ik-solution-msg
+                        ;; if `solution-valid-p' is bound, call it
+                        ;; otherwise assume that the solution is valid
+                        (or (not solution-valid-p)
+                            (funcall solution-valid-p ik-solution-msg)))
                    (values ik-solution-msg
                            (or test-value current-value))
                    (when (or (not test-value) (> test-value lower-limit))
