@@ -7,10 +7,32 @@
           query-result)
         (call-next-method)))
 
-(defmethod man-int:get-action-gripper-opening :around (object-type)
+(defmethod cram-manipulation-interfaces:get-action-gripper-opening :around (object-type)
     (if *is-logging-enabled*
         (let ((query-result (call-next-method)))
           (log-reasoning-task "GetActionGripperOpening" (write-to-string object-type) (write-to-string query-result))
+          query-result)
+        (call-next-method)))
+
+
+(defmethod cram-manipulation-interfaces:get-action-grasps :around  (object-type arm object-transform-in-base)
+    (if *is-logging-enabled*
+        (let ((query-result (call-next-method)))
+          (log-reasoning-task "GetActionGrasps" "parameter ""result")
+          query-result)
+        (call-next-method)))
+
+(defmethod cram-manipulation-interfaces:get-container-closing-distance :around (container-name)
+    (if *is-logging-enabled*
+        (let ((query-result (call-next-method)))
+          (log-reasoning-task "GetContainerClosingDistance"  container-name query-result)
+          query-result)
+        (call-next-method)))
+
+(defmethod cram-manipulation-interfaces:get-container-opening-distance :around (container-name)
+    (if *is-logging-enabled*
+        (let ((query-result (call-next-method)))
+          (log-reasoning-task "GetContainerOpeningDistance"  container-name query-result)
           query-result)
         (call-next-method)))
 
