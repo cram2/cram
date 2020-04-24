@@ -45,6 +45,9 @@
    #:object-type-direct-subtype
    #:robot-free-hand
    #:unidirectional-attachment
+   ;; environment
+   #:environment-name
+   #:current-environment-symbol
    ;; utils
    #:reasoning-engine-for-method
    ;; manipulation-interfaces
@@ -54,7 +57,7 @@
    #:get-action-grasps
    #:get-location-poses
    #:get-object-likely-location
-   #:get-object-likely-destination
+   #:get-object-destination
    #:get-container-opening-distance
    #:get-container-closing-distance
    ;; grasps

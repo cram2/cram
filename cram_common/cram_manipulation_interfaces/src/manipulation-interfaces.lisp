@@ -57,23 +57,8 @@ grasp orientations for `object-type' given `arm' and `object-transform-in-base'.
   (:documentation "Returns a (lazy) list of cl-transforms-pose-stamped that,
 according to the reasoning engine, correspond to the given `location-designator'.")
   (:method :heuristics 20 (location-designator)
-    (desig:resolve-location-designator-through-generators-and-validators location-designator)))
-
-(defgeneric get-object-likely-location (kitchen-name human-name context object-type)
-  (:method-combination cut:first-in-order-and-around)
-  (:documentation "Returns a location designator representing the
-storage places of objects with given type `object-type' corresponding
-to the given `kitchen-name' representing the name of the kitchen as a
-string, `human-name' representing the name of the human as a string
-and `context' representing the name of the context as a string."))
-
-(defgeneric get-object-likely-destination (kitchen-name human-name context object-type)
-  (:method-combination cut:first-in-order-and-around)
-  (:documentation "Returns a location designator representing the
-destination places of objects with given type `object-type' corresponding
-to the given `kitchen-name' representing the name of the kitchen as a
-string, `human-name' representing the name of the human as a string
-and `context' representing the name of the context as a string."))
+    (desig:resolve-location-designator-through-generators-and-validators
+     location-designator)))
 
 (defmethod desig:resolve-designator :around ((desig desig:location-designator) role)
   "We have to hijack DESIG:RESOLVE-DESIGNATOR because otherwise we would have to
@@ -81,6 +66,22 @@ make CRAM_DESIGNATORS package depend on CRAM_MANIPULATION_INTERFACES,
 and man-int is way too high level to make it a dependency of CRAM_CORE.
 This hijacking is kind of an ugly hack that Gaya feels bad about :(."
   (get-location-poses desig))
+
+(defgeneric get-object-likely-location (object-type environment-name human-name context)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns a location designator representing the
+location, where an object with given type `object-type' can typically be found at.
+The likely location can depend on the `environment-name',
+the human preferences represented as `human-name'
+and `context' representing the name of the action context, e.g. :table-setting."))
+
+(defgeneric get-object-destination (object-type environment-name human-name context)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns a location designator representing the
+location, where an object with given type `object-type' usually should be brought to
+in the given action context `context', e.g., :table-setting..
+The likely destination can additionally depend on the `environment-name' and
+the human preferences represented as `human-name'."))
 
 (defgeneric get-container-opening-distance (container-name)
   (:method-combination cut:first-in-order-and-around)
