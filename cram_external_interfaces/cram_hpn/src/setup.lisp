@@ -154,7 +154,7 @@
   (let ((aabb (btr:aabb
                (btr:rigid-body
                 (btr:get-environment-object)
-                (intern (format nil "KITCHEN.~(~a~)" name) :keyword)))))
+                (intern (format nil "ENVIRONMENT.~(~a~)" name) :keyword)))))
     (btr:add-object btr:*current-bullet-world*
                     :box-item
                     name

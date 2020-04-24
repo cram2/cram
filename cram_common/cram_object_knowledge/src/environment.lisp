@@ -29,6 +29,10 @@
 
 (in-package :objects)
 
+(def-fact-group environment-name (man-int:environment-name)
+  (<- (man-int:environment-name :environment)))
+
+
 (def-fact-group environment-object-type-hierarchy (man-int:object-type-direct-subtype)
   (<- (man-int:object-type-direct-subtype :container :container-prismatic))
   (<- (man-int:object-type-direct-subtype :container-prismatic :drawer))
