@@ -32,15 +32,13 @@
 (in-package :pp-tut)
 
 (defun get-kitchen-urdf ()
-  (slot-value
-   (btr:object btr:*current-bullet-world* :kitchen)
-   'cram-bullet-reasoning:urdf))
+  (slot-value (btr:get-environment-object) 'btr:urdf))
 
 (defun move-kitchen-joint (&key (joint-name "iai_fridge_door_joint")
-                             (joint-angle 0.2d0) (kitchen-name :kitchen))
+                             (joint-angle 0.2d0))
   (btr:set-robot-state-from-joints
    `((,joint-name  ,joint-angle))
-   (btr:object btr:*current-bullet-world* kitchen-name)))
+   (btr:get-environment-object)))
 
 (defun spawn-object (spawn-pose &optional (obj-type :bottle) (obj-name 'bottle-1) (obj-color '(1 0 0)))
   (unless (assoc obj-type btr::*mesh-files*)

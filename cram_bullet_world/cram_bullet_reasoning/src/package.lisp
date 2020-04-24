@@ -101,7 +101,7 @@
            #:make-joint-state-message
            #:calculate-pan-tilt
            #:get-robot-object #:get-robot-name
-           #:get-environment-object
+           #:get-environment-object #:get-environment-name
            #:robot-colliding-objects-without-attached
            #:robot-attached-objects-in-collision
            ;; temporal-reasoning
