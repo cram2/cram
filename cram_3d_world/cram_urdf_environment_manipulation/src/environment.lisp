@@ -30,7 +30,7 @@
 (in-package :env-man)
 
 (defun get-current-environment ()
-  (btr:object btr:*current-bullet-world* :kitchen)
+  (btr:get-environment-object)
   ;; (find 'btr::urdf-semantic-map-object
   ;;       (btr:objects btr:*current-bullet-world*)
   ;;       :key #'type-of)
