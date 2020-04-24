@@ -42,6 +42,14 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     # check if calculated joint state results in the correct end-effector position using FK
     goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl)
 
+    
+    if not goal_pose_reached:
+        # try with joint seed states as 0
+        print "Cannot reach goal using the IK solution with the provided seed state. Trying with zeros"
+        result_joint_state_kdl_with_zero_seed = solve_ik(ik_solver, num_joints, PyKDL.JntArray(num_joints), goal_frame_kdl)
+        goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl_with_zero_seed, goal_frame_kdl)
+        result_joint_state_kdl = result_joint_state_kdl_with_zero_seed if goal_pose_reached else result_joint_state_kdl 
+
     # check if calculated joint state is within joint limits
     joints_within_limits = check_result_joints_are_within_limits(num_joints, result_joint_state_kdl,
                                                                  kdl_joint_limits_min, kdl_joint_limits_max)
