@@ -2,39 +2,49 @@
 
 (defmethod cram-manipulation-interfaces:get-action-gripping-effort :around (object-type)
     (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetActionGrippingEffort")))
+        (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "GetActionGrippingEffort" (write-to-string object-type) (write-to-string query-result))
-          query-result)
-        (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          query-result))        
+      (call-next-method)))
 
 (defmethod cram-manipulation-interfaces:get-action-gripper-opening :around (object-type)
-    (if *is-logging-enabled*
+  (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetActionGripperOpening")))
+        (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "GetActionGripperOpening" (write-to-string object-type) (write-to-string query-result))
-          query-result)
-        (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          query-result))        
+      (call-next-method)))
 
 
 (defmethod cram-manipulation-interfaces:get-action-grasps :around  (object-type arm object-transform-in-base)
-    (if *is-logging-enabled*
+  (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetActionGrasps")))
+        (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "GetActionGrasps" "parameter ""result")
-          query-result)
-        (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          query-result))        
+      (call-next-method)))
 
 (defmethod cram-manipulation-interfaces:get-container-closing-distance :around (container-name)
     (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetContainerClosingDistance")))
+        (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "GetContainerClosingDistance"  container-name query-result)
-          query-result)
-        (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          query-result))        
+      (call-next-method)))
 
 (defmethod cram-manipulation-interfaces:get-container-opening-distance :around (container-name)
-    (if *is-logging-enabled*
+  (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetContainerOpeningDistance")))
+        (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "GetContainerOpeningDistance"  container-name query-result)
-          query-result)
-        (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          query-result))        
+      (call-next-method)))
 
 ;;(defmethod cram-manipulation-interfaces:get-action-grasps :around  (object-type arm object-transform-in-base)
 ;;    (if *is-logging-enabled*
@@ -49,19 +59,23 @@
 
 (defmethod cram-manipulation-interfaces:get-action-trajectory :around  (action-type arm grasp objects-acted-on  &key &allow-other-keys)
     (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetActionTrajectory")))
+        (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
-          (log-reasoning-task "GetActionTrajectory" (write-to-string grasp) "result")
-          query-result)
-        (call-next-method)))
-
-(defmethod cram-manipulation-interfaces:get-location-poses :around (location-designator)
-    (if *is-logging-enabled*
-        (let ((query-result (call-next-method)))
-          (log-reasoning-task "GetLocationPoses" location-designator query-result)
-          query-result)
+          (ccl::stop-situation reasoning-id)
+          query-result))        
       (call-next-method)))
 
-(defun log-reasoning-task (predicate-name parameter reasoning-result)
+(defmethod cram-manipulation-interfaces:get-location-poses :around (location-designator)
+  (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task "GetLocationPoses")))
+        (ccl::start-situation reasoning-id)
+        (let ((query-result (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          query-result))        
+      (call-next-method)))
+
+(defun log-reasoning-task (predicate-name)
   (let ((reasoning-url (create-reasoning-url predicate-name)))
       (attach-event-to-situation reasoning-url (get-parent-uri))))
 
