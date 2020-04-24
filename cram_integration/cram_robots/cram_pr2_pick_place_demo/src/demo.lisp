@@ -127,9 +127,7 @@
 
   (initialize)
   (when cram-projection:*projection-environment*
-    (if random
-        (spawn-objects-on-sink-counter-randomly)
-        (spawn-objects-on-sink-counter)))
+    (spawn-objects-on-sink-counter :random random))
 
   (park-robot)
 
@@ -151,20 +149,6 @@
                        (desig:when ?color
                          (color ?color)))))
 
-      ;; (when (eq ?object-type :bowl)
-      ;;   (cpl:with-failure-handling
-      ;;       ((common-fail:high-level-failure (e)
-      ;;          (roslisp:ros-warn (pp-plans demo)
-      ;;                            "Failure happened: ~a~%Skipping the search" e)
-      ;;          (return)))
-      ;;     (let ((?loc (man-int:get-object-likely-location
-      ;;                  :kitchen :thomas :table-setting :breakfast-cereal)))
-      ;;       (exe:perform
-      ;;        (desig:an action
-      ;;                  (type searching)
-      ;;                  (object (desig:an object (type breakfast-cereal)))
-      ;;                  (location ?loc))))))
-
       (cpl:with-failure-handling
           ((common-fail:high-level-failure (e)
              (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
@@ -173,25 +157,11 @@
         (exe:perform
          (desig:an action
                    (type transporting)
+                   (context table-setting)
                    (object ?object-to-fetch)
-                   (desig:when ?arm-to-use
-                     (arms (?arm-to-use)))))
-
-        ;; (if (or (eq ?object-type :bowl)
-        ;;          (eq ?object-type :breakfast-cereal))
-        ;;      (exe:perform
-        ;;       (desig:an action
-        ;;                 (type transporting)
-        ;;                 (object ?object-to-fetch)
-        ;;                 ;; (arm right)
-        ;;                 ))
-        ;;      (exe:perform
-        ;;       (desig:an action
-        ;;                 (type transporting)
-        ;;                 (object ?object-to-fetch)
-        ;;                 (desig:when ?arm-to-use
-        ;;                   (arm ?arm-to-use)))))
-        )
+                   ;; (desig:when ?arm-to-use
+                   ;;   (arms (?arm-to-use)))
+                   )))
 
       ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
       ))

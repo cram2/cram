@@ -17,4 +17,5 @@
 
   <depend>cram_prolog</depend>
   <depend>cram_manipulation_interfaces</depend>
+  <depend>cram_designators</depend>
 </package>
