@@ -156,22 +156,17 @@ Should it be taken out and made PR2-specific?"
 
 
 
-(defun get-robot-object ()
-  (with-vars-bound (?robot-object)
-      (lazy-car (prolog `(and (cram-robot-interfaces:robot ?robot-name)
-                              (bullet-world ?world)
-                              (%object ?world ?robot-name ?robot-object))))
-    (unless (is-var ?robot-object)
-      ?robot-object)))
-
 (defun get-robot-name ()
-  (with-vars-bound (?robot)
-      (lazy-car (prolog `(cram-robot-interfaces:robot ?robot)))
-    (unless (is-var ?robot)
-      ?robot)))
+  (rob-int:current-robot-symbol))
+
+(defun get-robot-object ()
+  (object *current-bullet-world* (get-robot-name)))
+
+(defun get-environment-name ()
+  (man-int:current-environment-symbol))
 
 (defun get-environment-object ()
-  (object *current-bullet-world* :kitchen))
+  (object *current-bullet-world* (get-environment-name)))
 
 
 (defun robot-colliding-objects-without-attached (&optional other-objects-to-discard)

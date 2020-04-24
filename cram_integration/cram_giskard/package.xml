@@ -20,6 +20,8 @@
   <depend>cram_process_modules</depend>
   <depend>cram_prolog</depend>
   <depend>cram_common_designators</depend>
+  <depend>cram_robot_interfaces</depend>
+  <depend>cram_manipulation_interfaces</depend>
   <depend>cram_occasions_events</depend>
   <depend>cram_plan_occasions_events</depend>
   <depend>cram_bullet_reasoning</depend>

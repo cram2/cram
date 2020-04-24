@@ -32,14 +32,14 @@
 
 (defun get-kitchen-urdf ()
   (slot-value
-   (btr:object btr:*current-bullet-world* :kitchen)
+   (btr:get-environment-object)
    'cram-bullet-reasoning:urdf))
 
 (defun move-kitchen-joint (&key (joint-name "iai_fridge_door_joint")
-                             (joint-angle 0.2d0) (kitchen-name :kitchen))
+                             (joint-angle 0.2d0))
   (btr:set-robot-state-from-joints
    `((,joint-name  ,joint-angle))
-   (btr:object btr:*current-bullet-world* kitchen-name)))
+   (btr:get-environment-object)))
 
 (defun add-objects-to-mesh-list (&optional (ros-package "cram_bullet_world_tutorial"))
   (mapcar (lambda (object-filename-and-object-extension)

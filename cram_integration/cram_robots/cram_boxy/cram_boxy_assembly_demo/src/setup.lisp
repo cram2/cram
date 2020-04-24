@@ -74,15 +74,23 @@
                 (btr:debug-window ?w)
                 (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
                                                          :normal (0 0 1) :constant 0))
-                (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                                 :collision-group :static-filter
-                                                 :collision-mask (:default-filter
-                                                                  :character-filter)
-                                                 :urdf ,kitchen
-                                                 :compound T))
-                (-> (cram-robot-interfaces:robot ?robot)
-                    (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1)) :urdf ,robot))
-                    (warn "ROBOT was not defined. Have you loaded a robot package?")))))))
+                (-> (man-int:environment-name ?environment-name)
+                    (btr:assert ?w (btr:object :urdf ?environment-name
+                                               ((0 0 0) (0 0 0 1))
+                                               :collision-group :static-filter
+                                               :collision-mask (:default-filter
+                                                                :character-filter)
+                                               ,@(when kitchen
+                                                   `(:urdf ,kitchen))
+                                               :compound T))
+                    (warn "MAN-INT:ENVIRONMENT-NAME was not defined. ~
+                           Have you loaded an environment knowledge package?"))
+                (-> (rob-int:robot ?robot)
+                    (btr:assert ?w (btr:object :urdf ?robot
+                                               ((0 0 0) (0 0 0 1))
+                                               :urdf ,robot))
+                    (warn "ROB-INT:ROBOT was not defined. ~
+                           Have you loaded a robot package?")))))))
 
   (let ((robot-object (btr:get-robot-object)))
     (if robot-object
