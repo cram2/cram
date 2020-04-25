@@ -31,21 +31,13 @@
 
 (in-package :demo)
 
-(defun translate-pose-in-base (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
-  (let* ((pose-in-base
-           (cl-tf:transform-pose cram-tf:*transformer*
-                                 :pose pose
-                                 :target-frame cram-tf:*robot-base-frame*))
-         (pose-in-base-with-offset
-           (cram-tf:translate-pose pose-in-base 
-                                   :x-offset x-offset
-                                   :y-offset y-offset
-                                   :z-offset z-offset)))
-    (cl-tf:transform-pose cram-tf:*transformer*
-                          :pose pose-in-base-with-offset
-                          :target-frame cram-tf:*fixed-frame*)))
+(defun translate-pose-in-base (bTg &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
+  (cram-tf:translate-transform-stamped bTg
+                                       :x-offset x-offset
+                                       :y-offset y-offset
+                                       :z-offset z-offset))
 
-(defun calculate-slicing-trajectory (label object arm gripper-pose
+(defun calculate-slicing-trajectory (label object arm bTg mTb
                                      &optional (slicing-thickness 0.02))
 
    (let* ((x-dim-object
@@ -66,7 +58,7 @@
             (/ (* 2 x-dim-object) n-times-cut-value))
           (init-slice-pose
             (translate-pose-in-base 
-             gripper-pose
+             bTg
              :x-offset (- n-gripper-position-offset)))
           (slice-poses
             `(,init-slice-pose)))
@@ -78,10 +70,15 @@
                                                      length-one-cut
                                                      (- length-one-cut)))))
          (print slice-adjustment-pose)
-         (break)
+         ;;(break)
          (push slice-adjustment-pose
                (cdr (last slice-poses)))))
-     slice-poses))
+     (mapcar (lambda (bTg-pose)
+               (cl-tf:ensure-pose-stamped
+                (cram-tf:apply-transform 
+                 mTb
+                 bTg-pose)))
+             slice-poses)))
 
 (defun get-tilting-poses (grasp approach-poses &optional (angle (cram-math:degrees->radians 100)))
   (mapcar (lambda (?approach-pose)
@@ -119,6 +116,7 @@
                                                           grasp
                                                           objects-acted-on
                                                           &key )
+  (print (car objects-acted-on))
   (let* ((object
            (car objects-acted-on))
          (object-name
@@ -129,24 +127,61 @@
            (desig:desig-prop-value object :type))
          (bTo
            (man-int:get-object-old-transform object))
-         (oTg-std
+         (oTg-std ;; <- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! THIS
+           ;; IS ONLY FOR THE BREAD, FOR SLICING THIS SHOULD NOT BE
+           ;; USED TO CALC BTG. INSTEAD TAKE BTO AND GET OTG-
            (man-int:get-object-type-to-gripper-transform
-            object-type object-name arm grasp)))
-           
+            object-type object-name arm grasp))
+         (fake-oTg
+           (cl-tf:make-transform-stamped
+            (cl-tf:child-frame-id bTo)
+            (if (eql arm :right)
+                "r_gripper_tool_frame"
+                "l_gripper_tool_frame")
+            0.0
+            (cl-tf:make-identity-vector)
+            (cl-tf:make-identity-rotation)))
+         (bTg 
+           (cram-tf:apply-transform 
+            bTo fake-oTg))
+         (mTb
+           (cram-tf:pose->transform-stamped
+            cram-tf:*fixed-frame*
+            cram-tf:*robot-base-frame*
+            0.0
+            (btr:pose (btr:get-robot-object))))) ;; mTb * bTb * bTo * oTg
+    (print oTg-std)
+    (print "oTg")
+    (print bto)
+    (print "bto")
+    (print btg)
+    (print "btg")
+    (break)
     (mapcar (lambda (label transforms)
               (man-int:make-traj-segment
                :label label
-               :poses (let ((gripper-poses (mapcar 
-                                            (alexandria:curry #'man-int:calculate-gripper-pose-in-map bTo arm)
-                                            transforms))) ;; <- this
-                        ;; should be for slicing in frame object type
-                        ;; to gripper, but we use in map. calc gripper
-                        ;; pose like in lift-z-tf pr https://github.com/cram2/cram/pull/155/files, others should be
-                        ;; calc like this
-                        (if (or (eq label :slice-up) 
-                                (eq label :slice-down))
-                            (calculate-slicing-trajectory label btr-object arm (car gripper-poses))
-                            gripper-poses))))
+               :poses ;; <- this
+               ;; should be for slicing in frame object type
+               ;; to gripper, but we use in map. calc gripper
+               ;; pose like in lift-z-tf pr https://github.com/cram2/cram/pull/155/files, others should be
+               ;; calc like this
+               (if (or (eq label :slice-up) 
+                       (eq label :slice-down))
+                   (progn
+                     (print (calculate-slicing-trajectory label btr-object arm
+                                                          (cram-tf:apply-transform
+                                                           (car
+                                                            transforms) ;; bTb
+                                                           bTg) ;; bTg
+                                                          mTb))
+                     (calculate-slicing-trajectory label btr-object arm
+                                                   (cram-tf:apply-transform
+                                                    (car transforms)
+                                                    bTg) ;; bTg
+                                                   mTb))
+                   (mapcar 
+                    (alexandria:curry #'man-int:calculate-gripper-pose-in-map bTo arm)
+                    transforms))))
             '(:reaching
               :grasping
               :lifting
@@ -161,9 +196,9 @@
                  object-type object-name arm grasp oTg-std)
                ,(man-int:get-object-type-to-gripper-2nd-lift-transform
                  object-type object-name arm grasp oTg-std))
-              (,(man-int:get-object-type-fixed-frame-slice-up-transform
+              (,(man-int:get-object-type-robot-frame-slice-up-transform
                  object-type arm grasp))
-              (,(man-int:get-object-type-fixed-frame-slice-down-transform
+              (,(man-int:get-object-type-robot-frame-slice-down-transform
                  object-type arm grasp))))))
 
 ;;get pouring trajectory workes like picking-up it will get the 

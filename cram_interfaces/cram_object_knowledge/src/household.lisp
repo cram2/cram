@@ -392,34 +392,34 @@
     '(:left :right) :left-top
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
 
-(defmethod man-int::get-object-type-fixed-frame-slice-up-transform
+(defmethod man-int::get-object-type-robot-frame-slice-up-transform
     ((object-type (eql :weisswurst))
      arm
      (grasp (eql :left-top)))
-  '((0.04 0.0 0.037)(0 0 1 0)))
+  '((0.04 0.0 0.037)(0 0 0 1)))
 
-(defmethod man-int::get-object-type-fixed-frame-slice-down-transform
+(defmethod man-int::get-object-type-robot-frame-slice-down-transform
     ((object-type (eql :weisswurst))
      arm
      (grasp (eql :left-top)))
-  '((0.04 0.0 0.001)(0 0 1 0)))
+  '((0.04 0.0 0.001)(0 0 0 1)))
 
 ;; Right-TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
     '(:left :right) :right-top
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
 
-(defmethod man-int::get-object-type-fixed-frame-slice-up-transform
+(defmethod man-int::get-object-type-robot-frame-slice-up-transform
     ((object-type (eql :weisswurst))
      arm
      (grasp (eql :right-top)))
-  '((-0.04 0.0 0.037)(0 0 1 0)))
+  '((-0.04 0.0 0.037)(0 0 0 1)))
 
-(defmethod man-int::get-object-type-fixed-frame-slice-down-transform
+(defmethod man-int::get-object-type-robot-frame-slice-down-transform
     ((object-type (eql :weisswurst))
      arm
      (grasp (eql :right-top)))
-  '((-0.04 0.0 0.001)(0 0 1 0)))
+  '((-0.04 0.0 0.001)(0 0 0 1)))
 
 ;; left hold-hold
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
@@ -457,13 +457,13 @@
     '(:left :right) :left-top
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
 
-(defmethod man-int::get-object-type-fixed-frame-slice-up-transform
+(defmethod man-int::get-object-type-robot-frame-slice-up-transform
     ((object-type (eql :bread))
      arm
      (grasp (eql :left-top)))
   '((0.1 0.0 0.085)(0 0 0 1)))
 
-(defmethod man-int::get-object-type-fixed-frame-slice-down-transform
+(defmethod man-int::get-object-type-robot-frame-slice-down-transform
     ((object-type (eql :bread))
      arm
      (grasp (eql :left-top)))
@@ -475,13 +475,13 @@
     '(:left :right) :right-top
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
 
-(defmethod man-int::get-object-type-fixed-frame-slice-up-transform
+(defmethod man-int::get-object-type-robot-frame-slice-up-transform
     ((object-type (eql :bread))
      arm
      (grasp (eql :right-top)))
   '((-0.1 0.0 0.085)(0 0 0 1)))
 
-(defmethod man-int::get-object-type-fixed-frame-slice-down-transform
+(defmethod man-int::get-object-type-robot-frame-slice-down-transform
     ((object-type (eql :bread))
      arm
      (grasp (eql :right-top)))
@@ -498,7 +498,7 @@
   :lift-offsets `(0.1 0.0 ,*bread-pregrasp-z-offset*)
   :2nd-lift-offsets `(0.1 0.0 ,*bread-pregrasp-z-offset*))
 
-;; right-holdy
+;; right-hold
 (man-int:def-object-type-to-gripper-transforms '(:bread)
     '(:left :right) :right-hold
   :grasp-translation `(-0.1 0.0 ,*bread-grasp-z-offset*)
