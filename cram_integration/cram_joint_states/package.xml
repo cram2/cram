@@ -14,5 +14,6 @@
   <depend>roslisp_utilities</depend>
   <depend>cl_transforms</depend>
   <depend>cram_language</depend>
+  <depend>cram_tf</depend>
   <depend>sensor_msgs</depend>
 </package>
