@@ -32,26 +32,26 @@
 (defvar *joint-state-sub* nil
   "Subscriber for robot's joint state topic.")
 
-(defvar *joint-state-sub-counter* 0
-  "Counter to decrease the frequency of the subscriber callback")
-
-(defparameter *joint-state-sub-frequency-cut* 100 "in times")
+(defparameter *joint-state-frequency* 20.0d0 "in Hz")
+(defvar *joint-state-timestamp* 1.0d0 "Holds time-stamp of the last fluent update.")
 
 (defvar *robot-joint-states-msg* (cpl:make-fluent :name :robot-joint-states)
   "ROS message containing robot's current joint states.")
 
 (defun init-joint-state-sub ()
-  "Initializes *joint-state-sub*"
-  (flet ((joint-state-sub-cb (joint-state-msg)
-           (incf *joint-state-sub-counter*)
-           (if (> *joint-state-sub-counter* *joint-state-sub-frequency-cut*)
-               (progn
-                 (setf *joint-state-sub-counter* 0)
-                 (setf (cpl:value *robot-joint-states-msg*) joint-state-msg)))))
-    (setf *joint-state-sub*
-          (roslisp:subscribe "joint_states"
-                             "sensor_msgs/JointState"
-                             #'joint-state-sub-cb))))
+  "Initializes *joint-state-sub*,
+updating `*robot-joint-states-msg*' with frequency given in `*joint-state-frequency*'."
+  (let ((freq-in-hz (the double-float (/ 1.0d0 *joint-state-frequency*))))
+    (declare (double-float freq-in-hz))
+    (flet ((joint-state-sub-cb (joint-state-msg)
+             (when (> (the double-float (- (roslisp:ros-time) *joint-state-timestamp*))
+                      freq-in-hz)
+               (setf *joint-state-timestamp* (the double-float (roslisp:ros-time)))
+               (setf (cpl:value *robot-joint-states-msg*) joint-state-msg))))
+      (setf *joint-state-sub*
+            (roslisp:subscribe "joint_states"
+                               "sensor_msgs/JointState"
+                               #'joint-state-sub-cb)))))
 
 (defun destroy-joint-state-sub ()
   (setf *joint-state-sub* nil))

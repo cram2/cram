@@ -34,6 +34,7 @@
   :depends-on (roslisp
                roslisp-utilities
                cl-transforms
+               cram-tf
                cram-language ; for fluents
                sensor_msgs-msg)
   :components
