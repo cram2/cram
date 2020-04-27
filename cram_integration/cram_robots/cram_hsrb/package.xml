@@ -1,0 +1,21 @@
+<package>
+  <name>cram_hsrb</name>
+  <version>0.7.0</version>
+  <description>Metapackage for hsrb robot's code</description>
+  <author>Vanessa Hassouna</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <url type="website">http://cram-system.org</url>
+  <url type="bugtracker">https://github.com/cram2/cram_common/issues</url>
+  <url type="repository">https://github.com/cram2/cram_common</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>cram_hsrb_description</run_depend>
+  <run_depend>cram_hsrb_pick_demo</run_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>
