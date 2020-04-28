@@ -352,7 +352,7 @@
 (defstruct collision-information
   rigid-body-name flags)
 
-(defmethod create-static-collision-information ((object object))
+(defun create-static-collision-information (object)
   (if (not (object *current-bullet-world* (name object)))
       (error "Cannot find object named ~a" (name object))
       (loop for body in (rigid-bodies object)
@@ -361,7 +361,7 @@
                         :flags (collision-flags body))
             do (setf (collision-flags body) :cf-static-object))))
 
-(defmethod reset-collision-information ((object object) collision-information)
+(defun reset-collision-information (object collision-information)
   (loop for collision-data in collision-information
         for body = (rigid-body
                     object (collision-information-rigid-body-name
