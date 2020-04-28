@@ -98,11 +98,3 @@ is considered closed.
 `container-designator' is a designator describing the container.")
   (:method :heuristics 20 (container-name)
     nil))
-
-(defgeneric get-z-offset-for-placing-distance (other-object object attachment)
-  (:method-combination cut:first-in-order-and-around)
-  (:documentation "Returns a z offset in map for given `object' for
-  placing or dropping it on the `other-object'.")
-  (:method :heuristics 20 (other-object object attachment)
-    0.0))
-  

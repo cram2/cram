@@ -60,7 +60,6 @@
    #:get-object-destination
    #:get-container-opening-distance
    #:get-container-closing-distance
-   #:get-z-offset-for-placing-distance
    ;; grasps
    #:calculate-object-faces
    #:calculate-face-vector
@@ -84,6 +83,7 @@
    #:get-object-grasping-poses
    ;;
    #:get-object-type-in-other-object-transform
+   #:get-z-offset-for-placing-with-dropping
    #:get-object-placement-transform
    #:def-object-type-in-other-object-transform
    #:get-object-look-from-pose
