@@ -6,6 +6,8 @@
         (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
           (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string object-type)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
           query-result))        
       (call-next-method)))
 
@@ -15,6 +17,8 @@
         (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
           (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string object-type)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
           query-result))        
       (call-next-method)))
 
@@ -34,6 +38,8 @@
         (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
           (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string container-name)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
           query-result))        
       (call-next-method)))
 
@@ -43,6 +49,8 @@
         (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
           (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string container-name)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
           query-result))        
       (call-next-method)))
 
@@ -63,6 +71,11 @@
         (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
           (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string action-type)
+                                                       " -####- " (write-to-string arm)
+                                                       " -####- " (write-to-string grasp)
+                                                        " -####- " (write-to-string objects-acted-on)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
           query-result))        
       (call-next-method)))
 
@@ -72,6 +85,8 @@
         (ccl::start-situation reasoning-id)
         (let ((query-result (call-next-method)))
           (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string location-designator)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
           query-result))        
       (call-next-method)))
 
