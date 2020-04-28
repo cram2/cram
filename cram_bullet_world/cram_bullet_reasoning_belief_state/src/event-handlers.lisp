@@ -125,7 +125,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
          (btr-other-object-name (cpoe:event-other-object-name event))
          (btr-other-object (btr:object btr:*current-bullet-world* btr-other-object-name))
          (attachment-type (cpoe:event-attachment-type event)))
-    (when (and btr-object btr-other-object)
+    (when (and btr-object btr-other-object attachment-type)
       (let* ((btr-object-type
                (car (slot-value btr-object 'btr::types)))
              (btr-other-object-type
@@ -156,8 +156,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
                (cram-tf:strip-transform-stamped
                 map-to-object-transform)))
         (setf (btr:pose btr-object) object-in-map-pose))
-      (if (and attachment-type
-               (prolog `(man-int:unidirectional-attachment ,attachment-type)))
+      (if (prolog `(man-int:unidirectional-attachment ,attachment-type))
           (btr:attach-object btr-other-object btr-object :loose T)
           (btr:attach-object btr-other-object btr-object)))))
 
