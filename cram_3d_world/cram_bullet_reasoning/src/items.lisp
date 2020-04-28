@@ -302,18 +302,29 @@ The name in the list is a keyword that is created by lispifying the filename."
                                    :half-extents (ensure-vector size)
                                    :color color)))))
 
-(defmethod add-object ((world bt-world) (type (eql :box-item)) name pose
-                           &key mass (color '(1.0 0.0 0.0 1.0)) size item-type)
+(defmethod add-object ((world bt-world) (type (eql :cylinder-item)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) size item-type)
   (assert size)
   (assert item-type)
-  (unless (find name (objects *current-bullet-world*) :key #'name)
-    (make-item world name (list item-type)
-               (list
-                (make-instance 'rigid-body
-                  :name name :mass mass :pose (ensure-pose pose)
-                  :collision-shape (make-instance 'bt-vis:colored-box-shape
-                                     :half-extents (ensure-vector size)
-                                     :color color))))))
+  (make-item world name (list item-type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'bt-vis:colored-cylinder-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql :box-item)) name pose
+                       &key mass (color '(1.0 0.0 0.0 1.0)) size item-type)
+  (assert size)
+  (assert item-type)
+  (make-item world name (list item-type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'bt-vis:colored-box-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;; ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;

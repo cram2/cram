@@ -515,13 +515,12 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
            0.0
            (cl-transforms:make-3d-vector 0 0 0)
            (cl-transforms:make-quaternion 0 0 -1 1)))
-        ;; (?placing-pose
-        ;;   (cl-transforms-stamped:make-pose-stamped
-        ;;    cram-tf:*robot-base-frame*
-        ;;    0.0
-        ;;    (cl-transforms:make-3d-vector 0.7 0 1.2)
-        ;;    (cl-transforms:make-identity-rotation)))
-        )
+        (?placing-pose
+          (cl-transforms-stamped:make-pose-stamped
+           cram-tf:*robot-base-frame*
+           0.0
+           (cl-transforms:make-3d-vector 0.7 0 1.2)
+           (cl-transforms:make-identity-rotation))))
     (cpl:with-failure-handling
         ((common-fail:navigation-low-level-failure (e)
            (declare (ignore e))
@@ -529,21 +528,21 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
       (exe:perform
        (desig:an action
                  (type going)
-                 (target (desig:a location (pose ?base-pose-in-map)))))))
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (declare (ignore e))
-         (return)))
-    (exe:perform
-     (desig:an action
-               (type placing)
-               ;; (target (desig:a location
-               ;;                  (pose ?placing-pose)))
-               ))))
+                 (target (desig:a location (pose ?base-pose-in-map))))))
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (declare (ignore e))
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type placing)
+                 (target (desig:a location
+                                  (pose ?placing-pose))))))))
 
 
 (defun transport (&key
                     ((:object ?object-designator))
+                    ((:context ?context))
                     ((:search-location ?search-location))
                     ((:search-robot-location ?search-base-location))
                     ((:fetch-robot-location ?fetch-robot-location))
@@ -564,6 +563,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                (exe:perform (desig:an action
                                       (type searching)
                                       (object ?object-designator)
+                                      (desig:when ?context
+                                        (context ?context))
                                       (location ?search-location)
                                       (desig:when ?search-base-location
                                         (robot-location ?search-base-location))))))
@@ -611,6 +612,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                              ;; (desig:when ?arm
                                              ;;   (arm ?arm))
                                              (object ?fetched-object)
+                                             (context ?context)
                                              (target ?delivering-location)
                                              (desig:when ?deliver-robot-location
                                                (robot-location ?deliver-robot-location))

@@ -35,7 +35,8 @@
            (roslisp:get-param "shelf_description"))))
     (prolog:prolog
      `(and (btr:bullet-world ?world)
-           (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
+           (man-int:environment-name ?environment-name)
+           (assert (btr:object ?world :urdf ?environment-name ((0 0 0) (0 0 0 1))
                                             :urdf ,shelve-urdf))))))
 
 
@@ -45,7 +46,8 @@
            (roslisp:get-param "kitchen_description"))))
     (prolog:prolog
      `(and (btr:bullet-world ?world)
-           (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
+           (man-int:environment-name ?environment-name)
+           (assert (btr:object ?world :urdf ?environment-name ((0 0 0) (0 0 0 1))
                                             :urdf ,kitchen-urdf))))))
 
 (defun spawn-robot ()

@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +14,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -119,59 +119,65 @@ sensor_msgs/JointStates message."
   `pose'. Returns (LIST PAN-VALUE TILT-VALUE)
 Used in desig-check-to-see of btr-visibility-costmap.
 Should it be taken out and made PR2-specific?"
-  (let* ((pan-transform (cl-transforms:reference-transform
-                         (link-pose robot pan-link)))
-         (tilt-transform (cl-transforms:reference-transform
-                          (link-pose robot tilt-link)))
-         (pose-trans (etypecase pose
-                       (cl-transforms:3d-vector
-                          (cl-transforms:make-transform
-                           pose (cl-transforms:make-quaternion 0 0 0 1)))
-                       (cl-transforms:pose (cl-transforms:reference-transform pose))
-                       (cl-transforms:transform pose)))
-         (pose-in-pan (cl-transforms:transform*
-                       (cl-transforms:transform-inv pan-transform)
-                       pose-trans))
-         (pose-in-tilt (cl-transforms:transform*
-                        (cl-transforms:transform-inv tilt-transform)
-                        pose-trans))
-         (pan-joint-name (cl-urdf:name
-                          (cl-urdf:from-joint
-                           (gethash pan-link (cl-urdf:links (urdf robot))))))
-         (tilt-joint-name (cl-urdf:name
-                           (cl-urdf:from-joint
-                            (gethash tilt-link (cl-urdf:links (urdf robot)))))))
+  (let* ((pan-transform
+           (cl-transforms:reference-transform (link-pose robot pan-link)))
+         (tilt-transform
+           (cl-transforms:reference-transform (link-pose robot tilt-link)))
+         (pose-trans
+           (etypecase pose
+             (cl-transforms:3d-vector
+              (cl-transforms:make-transform
+               pose (cl-transforms:make-quaternion 0 0 0 1)))
+             (cl-transforms:pose (cl-transforms:reference-transform pose))
+             (cl-transforms:transform pose)))
+         (pose-in-pan
+           (cl-transforms:transform*
+            (cl-transforms:transform-inv pan-transform)
+            pose-trans))
+         (pose-in-tilt
+           (cl-transforms:transform*
+            (cl-transforms:transform-inv tilt-transform)
+            pose-trans))
+         (pan-joint
+           (cl-urdf:from-joint (gethash pan-link (cl-urdf:links (urdf robot)))))
+         (pan-joint-name
+           (cl-urdf:name pan-joint))
+         (pan-joint-axis-sign
+           (cl-transforms:z (cl-urdf:axis pan-joint)))
+         (tilt-joint
+           (cl-urdf:from-joint (gethash tilt-link (cl-urdf:links (urdf robot)))))
+         (tilt-joint-name
+           (cl-urdf:name tilt-joint))
+         (tilt-joint-axis-sign
+           (cl-transforms:y (cl-urdf:axis tilt-joint))))
     (list
-     (+ (joint-state robot pan-joint-name)
-        (if (= (cl-transforms:x (cl-transforms:translation pose-in-pan)) 0)
-            0.0
-            (atan (cl-transforms:y (cl-transforms:translation pose-in-pan))
-                  (cl-transforms:x (cl-transforms:translation pose-in-pan)))))
-     (+ (joint-state robot tilt-joint-name)
-        (if (= (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 0)
-            0.0
-            (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
-                  (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
-                     (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2))))))))
+     (* pan-joint-axis-sign
+        (+ (joint-state robot pan-joint-name)
+           (if (= (cl-transforms:x (cl-transforms:translation pose-in-pan)) 0)
+               0.0
+               (atan (cl-transforms:y (cl-transforms:translation pose-in-pan))
+                     (cl-transforms:x (cl-transforms:translation pose-in-pan))))))
+     (* tilt-joint-axis-sign
+        (+ (joint-state robot tilt-joint-name)
+           (if (= (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 0)
+               0.0
+               (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
+                     (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
+                        (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2)))))))))
 
 
-
-(defun get-robot-object ()
-  (with-vars-bound (?robot-object)
-      (lazy-car (prolog `(and (cram-robot-interfaces:robot ?robot-name)
-                              (bullet-world ?world)
-                              (%object ?world ?robot-name ?robot-object))))
-    (unless (is-var ?robot-object)
-      ?robot-object)))
 
 (defun get-robot-name ()
-  (with-vars-bound (?robot)
-      (lazy-car (prolog `(cram-robot-interfaces:robot ?robot)))
-    (unless (is-var ?robot)
-      ?robot)))
+  (rob-int:current-robot-symbol))
+
+(defun get-robot-object ()
+  (object *current-bullet-world* (get-robot-name)))
+
+(defun get-environment-name ()
+  (man-int:current-environment-symbol))
 
 (defun get-environment-object ()
-  (object *current-bullet-world* :kitchen))
+  (object *current-bullet-world* (get-environment-name)))
 
 
 (defun robot-colliding-objects-without-attached (&optional other-objects-to-discard)

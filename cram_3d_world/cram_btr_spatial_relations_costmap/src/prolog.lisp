@@ -138,7 +138,7 @@
         (cram-robot-interfaces:reachability-designator ?designator))
     (costmap:costmap ?costmap)
     (btr:bullet-world ?world)
-    (btr:%object ?world :kitchen ?kitchen-object)
+    (lisp-fun btr:get-environment-object ?kitchen-object)
     (lisp-fun btr:rigid-bodies ?kitchen-object ?rigid-bodies)
     (costmap:costmap-padding ?padding)
     (costmap:costmap-add-function

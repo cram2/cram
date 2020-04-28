@@ -200,7 +200,7 @@
                                                         (rob-int:hand-links ?robot :right
                                                                             ?hand-links))))))))
                           :body_b (roslisp-utilities:rosify-underscores-lisp-name
-                                   :kitchen)
+                                   (man-int:current-environment-symbol))
                           :link_bs (vector (roslisp:symbol-code
                                             'giskard_msgs-msg:collisionentry
                                             :all)))))
@@ -223,7 +223,9 @@
                                     (vector (roslisp:symbol-code
                                              'giskard_msgs-msg:collisionentry
                                              :all))) ; collision-object-a = attached-obj
-                   :body_b "kitchen";; (roslisp-utilities:rosify-underscores-lisp-name
+                   :body_b (roslisp-utilities:rosify-underscores-lisp-name
+                            (man-int:current-environment-symbol))
+                   ;; (roslisp-utilities:rosify-underscores-lisp-name
                    ;;  collision-object-b-link)
                    :link_bs (if collision-object-b-link
                                 (vector (roslisp-utilities:rosify-underscores-lisp-name

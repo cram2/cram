@@ -32,7 +32,9 @@
   :license "BSD"
 
   :depends-on (cram-prolog
-               cram-manipulation-interfaces)
+               cram-manipulation-interfaces
+               cram-designators ; mostly used for likely locations
+               )
   :components
   ((:module "src"
     :components
