@@ -30,6 +30,7 @@
 (in-package :cl-user)
 
 (defpackage cram-pr2-shopping-demo
+  (:nicknames #:pr2-shop-demo #:demo)
   (:use #:common-lisp
         #:cram-prolog)
   (:export))
