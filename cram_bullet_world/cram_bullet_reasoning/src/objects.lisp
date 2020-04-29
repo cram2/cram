@@ -33,7 +33,7 @@
 (defparameter *all-meshes-as-compound* T)
 
 (defclass object ()
-  ((name :initarg :name :reader name)
+  ((name :initarg :name :reader name :type keyword)
    (rigid-bodies :initform (make-hash-table :test 'equal))
    (pose-reference-body :initarg :pose-reference-body
                         :documentation "The name of the rigid-body

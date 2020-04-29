@@ -95,35 +95,6 @@ The name in the list is a keyword that is created by lispifying the filename."
   (change-class (call-next-method) 'item
                 :types (item-types object)))
 
-(defgeneric item-dimensions (object)
-  (:method ((object item))
-    (bounding-box-dimensions (aabb object)))
-  (:method ((object-type symbol))
-    (or (cutlery-dimensions object-type)
-        (let ((mesh-specification (assoc object-type *mesh-files*)))
-          (assert
-           mesh-specification ()
-           "Couldn't find a mesh for object type ~a." object-type)
-          (destructuring-bind (type uri &optional flip-winding-order)
-              mesh-specification
-            (declare (ignore type))
-            (let ((model-filename (physics-utils:parse-uri uri)))
-              (with-file-cache
-                  model model-filename (physics-utils:load-3d-model
-                                        model-filename
-                                        :flip-winding-order flip-winding-order)
-                (values
-                 (physics-utils:calculate-aabb
-                  (physics-utils:3d-model-vertices model))))))))))
-
-(defgeneric cutlery-dimensions (type)
-  (:method ((type t))
-    nil)
-  (:method ((type (eql :knife)))
-    (cl-transforms:make-3d-vector 0.1 0.01 0.005))
-  (:method ((type (eql :fork)))
-    (cl-transforms:make-3d-vector 0.1 0.015 0.005)))
-
 (defun make-item (world name types &optional bodies (add-to-world t))
   (make-instance 'item
     :name name
@@ -132,200 +103,25 @@ The name in the list is a keyword that is created by lispifying the filename."
     :add add-to-world
     :types types))
 
-(defun make-octagon-prism-shape (radius height)
-  "Returns a collision shape that is a octagon prism, i.e. that has an
-  octagon at its base."
-  (let ((compound-shape (make-instance 'compound-shape)))
-    (dotimes (i 4)
-      (add-child-shape compound-shape
-                       (cl-transforms:make-pose
-                        (cl-transforms:make-3d-vector 0 0 0)
-                        (cl-transforms:axis-angle->quaternion
-                         (cl-transforms:make-3d-vector 0 0 1)
-                         (/ (* i pi)
-                            4)))
-                       (make-instance
-                           'box-shape
-                         :half-extents (cl-transforms:make-3d-vector
-                                        radius (* radius (sin (/ pi 8)))
-                                        (/ height 2)))))
-    compound-shape))
-
-(defun make-cup-shape (radius height handle-size)
-  (let ((collision-shape (make-octagon-prism-shape radius height)))
-    (add-child-shape collision-shape
-                     (cl-transforms:make-pose
-                      (cl-transforms:make-3d-vector
-                       (+ (* radius (cos (/ pi 8)))
-                          (/ (cl-transforms:x handle-size)
-                             2))
-                       0 0)
-                      (cl-transforms:make-quaternion 0 0 0 1))
-                     (make-instance
-                         'box-shape
-                       :half-extents (cl-transforms:v* handle-size 0.5)))
-    collision-shape))
-
-
-;;;;;;;;;;;;;;;;;;;;; SPAWNING MESH AND PRIMITIVE-SHAPED ITEMS ;;;;;;;;;;;;
-
-(defmethod add-object ((world bt-world) (type (eql :generic-cup)) name pose
-                       &key
-                         mass radius height
-                         (handle-size (cl-transforms:make-3d-vector
-                                       0.03 0.01 (* height 0.8))))
-  (make-item world name '(generic-cup)
-             (list
-              (make-instance
-                  'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-cup-shape radius height handle-size)))))
-
-(defmethod add-object ((world bt-world) (type (eql :mug)) name pose &key mass)
-  (add-object world :mesh name pose :mass mass :mesh :mug))
-
-(defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
-                       &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
-                         disable-face-culling (compound *all-meshes-as-compound*))
-  (let ((collision-shape
-          (etypecase mesh
-
-            (physics-utils:3d-model
-             (let ((scaled-mesh (physics-utils:scale-3d-model mesh scale)))
-               (make-instance 'convex-hull-mesh-shape
-                 :points (physics-utils:3d-model-vertices scaled-mesh)
-                 :faces (physics-utils:3d-model-faces scaled-mesh)
-                 :color color
-                 :disable-face-culling disable-face-culling)))
-
-            ((or string symbol)
-             (let (path flip-winding-order)
-               (etypecase mesh
-                 (string
-                  (setf path mesh
-                        flip-winding-order nil))
-                 (symbol
-                  (let ((mesh-files-entry (assoc mesh *mesh-files*)))
-                    (if mesh-files-entry
-                        (setf path (second mesh-files-entry)
-                              flip-winding-order (third mesh-files-entry))
-                        (error "[btr add-object] Item ~a is unknown in btr:*mesh-files*." mesh)))))
-               (make-collision-shape-from-mesh
-                path
-                :scale scale
-                :compound compound
-                :color color
-                :disable-face-culling disable-face-culling
-                :flip-winding-order flip-winding-order))))))
-
-    (make-item world name (or types (list mesh))
-               (list
-                (make-instance 'rigid-body
-                  :name name :mass mass :pose (ensure-pose pose)
-                  :collision-shape collision-shape)))))
-
-(defmethod add-object ((world bt-world) (type (eql :cutlery)) name pose
-                       &key mass (color '(0.5 0.5 0.5 1.0)) cutlery-type)
-  (let ((size (cutlery-dimensions cutlery-type)))
-    (assert size)
-    (make-item world name (list type cutlery-type)
-               (list
-                (make-instance 'rigid-body
-                  :name name :mass mass :pose (ensure-pose pose)
-                  :collision-shape (make-instance 'colored-box-shape
-                                     :half-extents size
-                                     :color color))))))
-
-(defmethod add-object ((world bt-world) (type (eql :pancake-maker)) name pose
-                       &key mass (color '(0.5 0.5 0.5 1.0)) size)
-  (assert size)
-  (make-item world name (list type)
-             (list
-              (make-instance 'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-instance 'colored-cylinder-shape
-                                   :half-extents (ensure-vector size)
-                                   :color color)))))
-
-(defmethod add-object ((world bt-world) (type (eql :pancake)) name pose
-                       &key mass (color '(0.5 0.5 0.5 1.0)) size)
-  (assert size)
-  (make-item world name (list type)
-             (list
-              (make-instance 'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-instance 'colored-cylinder-shape
-                                   :half-extents (ensure-vector size)
-                                   :color color)))))
-
-(defmethod add-object ((world bt-world) (type (eql :orange)) name pose
-                       &key mass (color '(0.5 0.5 0.5 1.0)) radius)
-  (assert radius)
-  (make-item world name (list type)
-             (list
-              (make-instance 'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-instance 'colored-sphere-shape
-                                   :radius radius
-                                   :color color)))))
-
-(defmethod add-object ((world bt-world) (type (eql :apple)) name pose
-                       &key mass (color '(0.5 0.5 0.5 1.0)) radius)
-  (assert radius)
-  (make-item world name (list type)
-             (list
-              (make-instance 'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-instance 'colored-sphere-shape
-                                   :radius radius
-                                   :color color)))))
-
-(defmethod add-object ((world bt-world) (type (eql :sugar-box)) name pose
-                       &key mass (color '(0.5 0.5 0.5 1.0)) size)
-  (assert size)
-  (make-item world name (list type)
-             (list
-              (make-instance 'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-instance 'colored-box-shape
-                                   :half-extents (ensure-vector size)
-                                   :color color)))))
-
-(defmethod add-object ((world bt-world) (type (eql :cereal)) name pose
-                       &key mass (color '(0.5 0.5 0.5 1.0)) size)
-  (assert size)
-  (make-item world name (list type)
-             (list
-              (make-instance 'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-instance 'colored-box-shape
-                                   :half-extents (ensure-vector size)
-                                   :color color)))))
-
-(defmethod add-object ((world bt-world) (type (eql :cylinder-item)) name pose
-                       &key mass (color '(0.5 0.5 0.5 1.0)) size item-type)
-  (assert size)
-  (assert item-type)
-  (make-item world name (list item-type)
-             (list
-              (make-instance 'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-instance 'bt-vis:colored-cylinder-shape
-                                   :half-extents (ensure-vector size)
-                                   :color color)))))
-
-(defmethod add-object ((world bt-world) (type (eql :box-item)) name pose
-                       &key mass (color '(1.0 0.0 0.0 1.0)) size item-type)
-  (assert size)
-  (assert item-type)
-  (make-item world name (list item-type)
-             (list
-              (make-instance 'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-instance 'bt-vis:colored-box-shape
-                                   :half-extents (ensure-vector size)
-                                   :color color)))))
-
+(defgeneric item-dimensions (object)
+  (:method ((object item))
+    (calculate-bb-dims object))
+  (:method ((object-type symbol))
+    (let ((mesh-specification (assoc object-type *mesh-files*)))
+      (assert
+       mesh-specification ()
+       "Couldn't find a mesh for object type ~a." object-type)
+      (destructuring-bind (type uri &optional flip-winding-order)
+          mesh-specification
+        (declare (ignore type))
+        (let ((model-filename (physics-utils:parse-uri uri)))
+          (with-file-cache
+              model model-filename (physics-utils:load-3d-model
+                                    model-filename
+                                    :flip-winding-order flip-winding-order)
+            (values
+             (physics-utils:calculate-aabb
+              (physics-utils:3d-model-vertices model)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;; ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -440,3 +236,267 @@ it is possible to change the pose of its attachments when its pose changes."
             (if (equal (name object) (car (last already-moved)))
                 (setf already-moved '()))))
         (call-next-method))))
+
+;;;;;;;;;;;;;;;;;;;;; SPAWNING MESH AND PRIMITIVE-SHAPED ITEMS ;;;;;;;;;;;;
+
+(defmethod add-object ((world bt-world) (type (eql :mesh)) name pose
+                       &key mass mesh (color '(0.5 0.5 0.5 1.0)) types (scale 1.0)
+                         disable-face-culling (compound *all-meshes-as-compound*))
+  (let ((collision-shape
+          (etypecase mesh
+
+            (physics-utils:3d-model
+             (let ((scaled-mesh (physics-utils:scale-3d-model mesh scale)))
+               (make-instance 'convex-hull-mesh-shape
+                 :points (physics-utils:3d-model-vertices scaled-mesh)
+                 :faces (physics-utils:3d-model-faces scaled-mesh)
+                 :color color
+                 :disable-face-culling disable-face-culling)))
+
+            ((or string symbol)
+             (let (path flip-winding-order)
+               (etypecase mesh
+                 (string
+                  (setf path mesh
+                        flip-winding-order nil))
+                 (symbol
+                  (let ((mesh-files-entry (assoc mesh *mesh-files*)))
+                    (if mesh-files-entry
+                        (setf path (second mesh-files-entry)
+                              flip-winding-order (third mesh-files-entry))
+                        (error "[btr add-object] Item ~a is unknown ~
+                                in btr:*mesh-files*." mesh)))))
+               (make-collision-shape-from-mesh
+                path
+                :scale scale
+                :compound compound
+                :color color
+                :disable-face-culling disable-face-culling
+                :flip-winding-order flip-winding-order))))))
+
+    (make-item world name (or types (list mesh))
+               (list
+                (make-instance 'rigid-body
+                  :name name :mass mass :pose (ensure-pose pose)
+                  :collision-shape collision-shape)))))
+
+(defmethod add-object ((world bt-world) (type (eql :mug)) name pose &key mass)
+  (add-object world :mesh name pose :mass mass :mesh :mug))
+
+
+(defmethod add-object ((world bt-world) (type (eql :generic-cup)) name pose
+                       &key
+                         mass radius height
+                         (handle-size (cl-transforms:make-3d-vector
+                                       0.03 0.01 (* height 0.8))))
+
+  (labels ((make-octagon-prism-shape (radius height)
+             "Returns a collision shape that is a octagon prism, ~
+            i.e. that has an octagon at its base."
+             (let ((compound-shape (make-instance 'compound-shape)))
+               (dotimes (i 4)
+                 (add-child-shape
+                  compound-shape
+                  (cl-transforms:make-pose
+                   (cl-transforms:make-3d-vector 0 0 0)
+                   (cl-transforms:axis-angle->quaternion
+                    (cl-transforms:make-3d-vector 0 0 1)
+                    (/ (* i pi)
+                       4)))
+                  (make-instance 'box-shape
+                    :half-extents (cl-transforms:make-3d-vector
+                                   radius (* radius (sin (/ pi 8)))
+                                   (/ height 2)))))
+               compound-shape))
+
+           (make-cup-shape (radius height handle-size)
+             (let ((collision-shape (make-octagon-prism-shape radius height)))
+               (add-child-shape
+                collision-shape
+                (cl-transforms:make-pose
+                 (cl-transforms:make-3d-vector
+                  (+ (* radius (cos (/ pi 8)))
+                     (/ (cl-transforms:x handle-size)
+                        2))
+                  0 0)
+                 (cl-transforms:make-quaternion 0 0 0 1))
+                (make-instance 'box-shape
+                  :half-extents (cl-transforms:v* handle-size 0.5)))
+               collision-shape)))
+
+    (make-item world name '(generic-cup)
+               (list
+                (make-instance 'rigid-body
+                  :name name :mass mass :pose (ensure-pose pose)
+                  :collision-shape (make-cup-shape radius height handle-size))))))
+
+
+(defmethod add-object ((world bt-world) (type (eql :basket)) name pose
+                       &key (mass 1.0) length width height (handle-height 0.09))
+  "Creates a collision shape in the form of a basket and adds it to the world.
+The length, width and height have to be given for the function to work."
+  (assert length)
+  (assert width)
+  (assert height)
+  ;; have to check if the object with such a name already exists,
+  ;; otherwise rogue objects will be spawned
+  (unless (object world name)
+    (let ((compound-shape (make-instance 'compound-shape)))
+      ;; Walls
+      (dotimes (i 2)
+        (add-child-shape
+         compound-shape
+         (cl-transforms:make-pose
+          (cl-transforms:make-3d-vector (* i width) 0 0)
+          (cl-transforms:make-quaternion 0 0 0 1))
+         (make-instance 'box-shape
+           :half-extents (cl-transforms:v*
+                          (cl-transforms:make-3d-vector 0.01 length height)
+                          0.5))))
+      (dotimes (i 2)
+        (add-child-shape
+         compound-shape
+         (cl-transforms:make-pose
+          (cl-transforms:make-3d-vector (/ width 2)
+                                        ;; ((i + 1) * -2 + 3) * length/2
+                                        (* (+ (* (+ i 1) -2) 3) (/ length 2))
+                                        0)
+          (cl-transforms:make-quaternion 0 0 1 0))
+         (make-instance 'box-shape
+           :half-extents (cl-transforms:v*
+                          (cl-transforms:make-3d-vector width 0.01 height)
+                          0.5))))
+      ;; Bottom
+      (add-child-shape
+       compound-shape
+       (cl-transforms:make-pose
+        (cl-transforms:make-3d-vector (/ width 2) 0 (- (/ height 2)))
+        (cl-transforms:make-quaternion 0 0 0 1))
+       (make-instance 'box-shape
+         :half-extents (cl-transforms:v*
+                        (cl-transforms:make-3d-vector width length 0.01)
+                        0.5)))
+    ;;; Handle
+      ;; the handle of the basket is formed like this:
+      ;; ------------
+      ;; |          |
+      ;; |          |
+      ;; |          |
+      ;; The sides
+      (dotimes (i 2)
+        (add-child-shape
+         compound-shape
+         (cl-transforms:make-pose
+          (cl-transforms:make-3d-vector (* i width) 0 (/ (+ height handle-height) 2))
+          (cl-transforms:make-quaternion 0 0 0 1))
+         (make-instance 'box-shape
+           :half-extents (cl-transforms:v*
+                          (cl-transforms:make-3d-vector 0.005 0.005 handle-height)
+                          0.5))))
+      ;; the top
+      (add-child-shape
+       compound-shape
+       (cl-transforms:make-pose
+        (cl-transforms:make-3d-vector (/ width 2) 0 (+ handle-height (/ height 2)))
+        (cl-transforms:make-quaternion 0 0 0 1))
+       (make-instance 'box-shape
+         :half-extents (cl-transforms:v*
+                        (cl-transforms:make-3d-vector width 0.005 0.005)
+                        0.5)))
+      ;; Adds the basket to the specified world
+      (make-item world name (list type)
+                 (list
+                  (make-instance 'rigid-body
+                    :name name :mass mass :pose (ensure-pose pose)
+                    :collision-shape compound-shape))))))
+
+
+(defmethod add-object ((world bt-world) (type (eql :pancake-maker)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) size)
+  (assert size)
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-cylinder-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql :pancake)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) size)
+  (assert size)
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-cylinder-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql :orange)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) radius)
+  (assert radius)
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-sphere-shape
+                                   :radius radius
+                                   :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql :apple)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) radius)
+  (assert radius)
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-sphere-shape
+                                   :radius radius
+                                   :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql :sugar-box)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) size)
+  (assert size)
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-box-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql :cereal)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) size)
+  (assert size)
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-box-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql :cylinder-item)) name pose
+                       &key mass (color '(0.5 0.5 0.5 1.0)) size item-type)
+  (assert size)
+  (assert item-type)
+  (make-item world name (list item-type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'bt-vis:colored-cylinder-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
+
+(defmethod add-object ((world bt-world) (type (eql :box-item)) name pose
+                       &key mass (color '(1.0 0.0 0.0 1.0)) size item-type)
+  (assert size)
+  (assert item-type)
+  (make-item world name (list item-type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'bt-vis:colored-box-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
