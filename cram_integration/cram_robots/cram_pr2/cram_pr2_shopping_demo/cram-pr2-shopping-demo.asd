@@ -47,22 +47,27 @@
                cram-common-failures
                cram-manipulation-interfaces
                cram-physics-utils
+
                cl-bullet
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
+
                cram-btr-visibility-costmap
+               cram-btr-spatial-relations-costmap 
                cram-robot-pose-gaussian-costmap
                cram-location-costmap
+
                cram-urdf-projection
                cram-mobile-pick-place-plans
                cram-pr2-description
-               cram-object-knowledge)
+               cram-object-knowledge
+               cram-fetch-deliver-plans)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "grasping" :depends-on ("package"))
-     (:file "utils" :depends-on ("package"))
-     (:file "plans" :depends-on ("package" "utils" "grasping"))))))
+     (:file "object-knowledge" :depends-on ("package"))
+     (:file "setup" :depends-on ("package"))
+     (:file "plans" :depends-on ("package" "setup" "object-knowledge"))))))
