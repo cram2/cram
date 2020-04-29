@@ -73,7 +73,7 @@
                                                          "prolog-handlers"
                                                          "robot-model"
                                                          "robot-model-utils"))
-       (:file "items" :depends-on ("package" "objects" "utils"))
+       (:file "items" :depends-on ("package" "objects" "utils" "aabb"))
 
        (:file "aabb" :depends-on ("package" "objects"))
 

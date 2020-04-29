@@ -35,8 +35,12 @@
   <depend>cram_mobile_pick_place_plans</depend>
   <depend>cram_pr2_description</depend>
   <depend>cram_object_knowledge</depend>
+  <depend>cram_fetch_deliver_plans</depend>
 
   <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>tf</exec_depend>
   <exec_depend>pr2_description</exec_depend>
   <exec_depend>pr2_arm_kinematics</exec_depend>
+  <exec_depend>iai_refills_lab</exec_depend>
 </package>
