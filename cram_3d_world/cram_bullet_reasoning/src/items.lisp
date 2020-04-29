@@ -329,14 +329,6 @@ The name in the list is a keyword that is created by lispifying the filename."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;; ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun object-attached-to-robot-p (object)
-  (when object
-    (assoc (name object) (btr:attached-objects (get-robot-object)))))
-
-(defun get-collision-information-from-robot (object)
-  (declare (type item object))
-  (list (caddr (assoc (name object) (attached-objects (get-robot-object))))))
-
 (defmethod attach-object ((other-object item) (object item)
                           &key attachment-type loose
                           skip-removing-loose link grasp)
@@ -364,8 +356,8 @@ unidirectional. See `attach-object' above."
                                       :attachment attachment-type))
                ;; Since robot objects are not in the attached-objects
                ;; list of items, this has to be copied manuelly:
-               (if (object-attached-to-robot-p object)
-                   (get-collision-information-from-robot object)
+               (if (object-attached (get-robot-object) object)
+                   (get-collision-information object (get-robot-object))
                    (create-static-collision-information object))))
         (slot-value other-object 'attached-objects))
   (push (cons (name other-object)
@@ -389,17 +381,17 @@ the element before in `other-objects' and `object'."
           (cdr other-objects)))
 
 (defmethod detach-object ((other-object item) (object item) &key)
-  "Removes item names from the given arguments in the corresponding `attached-objects' lists
-   of the given items."
+  "Removes item names from the given arguments in the corresponding
+`attached-objects' lists of the given items."
   (when (equal (name object) (name other-object))
     (warn "Cannot attach an object to itself: ~a" (name object))
     (return-from detach-object))
   (flet ((get-attachment-object (elem)
-           (attachment-object (car (second elem))))
-         (get-collision-info (attached obj)
-           (cdr (cdr (assoc (name attached) (attached-objects obj))))))
-    (let ((object-collision-info (get-collision-info object other-object))
-          (other-object-collision-info (get-collision-info other-object object)))
+           (attachment-object (car (second elem)))))
+    (let ((object-collision-info
+            (get-collision-information object other-object))
+          (other-object-collision-info
+            (get-collision-information other-object object)))
       (setf (slot-value other-object 'attached-objects)
             (remove (name object) (attached-objects other-object)
                     :key #'get-attachment-object :test #'equal))
