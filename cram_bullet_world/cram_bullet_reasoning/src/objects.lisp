@@ -352,22 +352,70 @@
 (defstruct collision-information
   rigid-body-name flags)
 
-(defmethod create-static-collision-information ((object object))
+(defun get-collision-information (object other-object)
+  "Collision information about `object' from `other-object',
+who is the parent of `object' in the attachment."
+  (cdr (cdr (assoc (name object) (attached-objects other-object)))))
+
+(defun create-static-collision-information (object)
   (if (not (object *current-bullet-world* (name object)))
       (error "Cannot find object named ~a" (name object))
       (loop for body in (rigid-bodies object)
             collecting (make-collision-information
                         :rigid-body-name (name body)
-                        :flags (collision-flags body))
-            do (setf (collision-flags body) :cf-static-object))))
+                        :flags (cond ((not (attached-objects object))
+                                      (collision-flags body))
+                                     ((object-static-in-past-p object)
+                                      '(:cf-static-object))
+                                     (t
+                                      NIL)))
+                        do (setf (collision-flags body) :cf-static-object))))
 
-(defmethod reset-collision-information ((object object) collision-information)
+(defun object-static-in-past-p (object)
+  "Returns if the `object's flags were `cf-static-object' at the
+beginning or if its flags were set to `cf-static-object', because
+it was attached to other objects. Returns T, if `object's flags were
+always `cf-static-object', else NIL."
+  (declare (type object object))
+  (let* ((attached-object-names
+           (mapcar #'car
+                   (attached-objects
+                    (object
+                     *current-bullet-world*
+                     (name object)))))
+         (attachments-of-attached-objects
+           (mapcar #'attached-objects
+                   (mapcar (alexandria:curry #'object
+                                             *current-bullet-world*)
+                           attached-object-names)))
+         (attachments-to-object
+           (mapcar #'car
+                   (loop for attachments in attachments-of-attached-objects
+                         collecting
+                         (remove-if-not (lambda (attach)
+                                          (equalp (car
+                                                   attach)
+                                                  (name object)))
+                                        attachments))))
+         (collision-information-list
+           (remove-if-not #'identity
+                          (mapcar #'caddr attachments-to-object))))
+
+    (when collision-information-list
+      (every (alexandria:curry #'equalp '(:cf-static-object))
+             (mapcar #'collision-information-flags
+                     collision-information-list)))))
+
+
+(defun reset-collision-information (object collision-information)
   (loop for collision-data in collision-information
         for body = (rigid-body
                     object (collision-information-rigid-body-name
                             collision-data))
         do (setf (collision-flags body)
-                 (collision-information-flags collision-data))))
+                 (if (attached-objects object)
+                     '(:cf-static-object)
+                     (collision-information-flags collision-data)))))
 
 
 (defstruct attachment
