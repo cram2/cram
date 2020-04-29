@@ -194,7 +194,7 @@ Should it be taken out and made PR2-specific?"
             (list colliding-object-names attached-object-names
                   robot-object-name-list other-objects-to-discard))))
 
-(defmethod robot-attached-objects-in-collision ()
+(defun robot-attached-objects-in-collision ()
   "Returns a boolean that says if the objects the robot is holding
 are colliding with anything in the world, except the robot itself
 or other objects to which current object is attached."
@@ -206,5 +206,6 @@ or other objects to which current object is attached."
                              (remove (get-robot-object)
                                      (find-objects-in-contact
                                       *current-bullet-world*
-                                      (object *current-bullet-world* (car attachment))))))
+                                      (object *current-bullet-world*
+                                              (car attachment))))))
                 (attached-objects (get-robot-object)))))
