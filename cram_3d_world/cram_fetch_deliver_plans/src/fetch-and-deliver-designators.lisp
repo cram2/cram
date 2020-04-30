@@ -168,10 +168,15 @@ the `look-pose-stamped'."
     ;; arms
     (-> (spec:property ?action-designator (:arms ?arms))
         (true)
-        (equal ?arms NIL))
+        ;; (equal ?arms NIL)
+        (setof ?arm (man-int:robot-free-hand ?robot ?arm) ?arms))
     ;; grasps
     (-> (spec:property ?action-designator (:grasps ?grasps))
         (true)
+        ;; we do not ask for grasps because they are arm-specific!
+        ;; therefore, projection reasoning is essential for these plans
+        ;; (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform
+        ;;           ?grasps)
         (equal ?grasps NIL))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location

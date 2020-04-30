@@ -330,7 +330,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                              arm-retries
                              (:error-object-or-string
                               (format NIL "Manipulation failed: ~a.~%Next." e)
-                              :warning-namespace (kvr plans)
+                              :warning-namespace (fd-plans fetch)
                               :rethrow-failure 'common-fail:object-unreachable)
                            (setf ?arm (cut:lazy-car ?arms)))))
 
@@ -346,7 +346,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                    grasp-retries
                                    (:error-object-or-string
                                     (format NIL "Picking up failed: ~a.~%Next" e)
-                                    :warning-namespace (kvr plans))
+                                    :warning-namespace (fd-plans fetch))
                                  (setf ?grasp (cut:lazy-car ?grasps)))))
 
                           (let ((pick-up-action

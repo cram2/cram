@@ -93,7 +93,6 @@ Store found pose into designator or throw error if good pose not found."
 
 
 
-
 (defun check-picking-up-collisions (pick-up-action-desig &optional (retries 30))
   (when *projection-checks-enabled*
     (let* ((world btr:*current-bullet-world*)
@@ -114,7 +113,7 @@ Store found pose into designator or throw error if good pose not found."
              ;; If no configuration is good, throw `object-unreachable' failure
              (cpl:with-retry-counters ((pick-up-configuration-retries retries))
                (cpl:with-failure-handling
-                   (((or common-fail:manipulation-pose-unreachable
+                   (((or common-fail:manipulation-low-level-failure
                          common-fail:manipulation-goal-in-collision) (e)
                       (declare (ignore e))
                       (urdf-proj::move-torso :upper-limit)
@@ -126,7 +125,7 @@ Store found pose into designator or throw error if good pose not found."
                             (progn
                               (roslisp:ros-warn (coll-check pick)
                                                 "No more pick-up samples to try.~
-                                               Object unreachable.")
+                                                 Object unreachable.")
                               (cpl:fail 'common-fail:object-unreachable
                                         :description "No more pick-up samples to try."))))
                       (roslisp:ros-warn (coll-check pick) "No more retries left :'(")
