@@ -72,6 +72,6 @@
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding 0.3))
   (<- (costmap:costmap-manipulation-padding 0.4))
-  (<- (costmap:costmap-in-reach-distance 0.9))
+  (<- (costmap:costmap-in-reach-distance 1.0))
   (<- (costmap:costmap-reach-minimal-distance 0.2))
   (<- (costmap:visibility-costmap-size 2)))
