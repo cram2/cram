@@ -74,7 +74,7 @@
    #:calculate-gripper-pose-in-map
    #:get-object-type-robot-frame-slice-up-transform
    #:get-object-type-robot-frame-slice-down-transform
-   #:get-object-type-fixed-frame-tilt-approach-transform
+   #:get-object-type-robot-frame-tilt-approach-transform
    ;;
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform

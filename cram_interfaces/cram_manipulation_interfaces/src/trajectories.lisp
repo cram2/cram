@@ -119,7 +119,10 @@ Gripper is defined by a convention where Z is pointing towards the object.")
 
 
 (defgeneric get-object-type-robot-frame-slice-up-transform (object-type arm grasp)
-  (:documentation "Returns a transform stamped"))
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (call-with-specific-type #'get-object-type-robot-frame-slice-up-transform
+                             object-type arm grasp)))
 
 (defmethod get-object-type-robot-frame-slice-up-transform :around (object-type arm grasp)
     (destructuring-bind
@@ -136,7 +139,10 @@ Gripper is defined by a convention where Z is pointing towards the object.")
 
 
 (defgeneric get-object-type-robot-frame-slice-down-transform (object-type arm grasp)
-  (:documentation "Returns a transform stamped"))
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (call-with-specific-type #'get-object-type-robot-frame-slice-down-transform
+                             object-type arm grasp)))
 
 (defmethod get-object-type-robot-frame-slice-down-transform :around (object-type arm grasp)
   (destructuring-bind
@@ -152,16 +158,19 @@ Gripper is defined by a convention where Z is pointing towards the object.")
        (cl-transforms:make-quaternion ax ay az aw))))))
 
 
-(defgeneric get-object-type-fixed-frame-tilt-approach-transform (object-type arm grasp)
-  (:documentation "Returns a transform stamped"))
+(defgeneric get-object-type-robot-frame-tilt-approach-transform (object-type arm grasp)
+  (:documentation "Returns a transform stamped")
+  (:method (object-type arm grasp)
+    (call-with-specific-type #'get-object-type-robot-frame-tilt-approach-transform
+                             object-type arm grasp)))
 
-(defmethod get-object-type-fixed-frame-tilt-approach-transform :around (object-type arm grasp)
+(defmethod get-object-type-robot-frame-tilt-approach-transform :around (object-type arm grasp)
   (destructuring-bind
       ((x y z) (ax ay az aw))
       (call-next-method)
     (cl-tf:transform->transform-stamped
-     cram-tf:*fixed-frame*
-     cram-tf:*fixed-frame*
+     cram-tf:*robot-base-frame*
+     cram-tf:*robot-base-frame*
      0.0
      (cl-tf:pose->transform
       (cl-transforms:make-pose
@@ -328,8 +337,6 @@ Gripper is defined by a convention where Z is pointing towards the object.")
          (oTg-std
            (man-int:get-object-type-to-gripper-transform
             object-type object-name arm grasp)))
-    (print (calculate-gripper-pose-in-map bTo arm oTg-std))
-    (break)
     (mapcar (lambda (label transforms)
               (make-traj-segment
                :label label
