@@ -104,7 +104,7 @@
 
   (<- (%property ?designator (?list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?list-key (:left-poses :right-poses))
+    (member ?list-key (:left-poses :right-poses :arms))
     (property-member (?list-key ?value) ?designator)
     (assert-type ?value list "ACTION SPEC:PROPERTY"))
 
