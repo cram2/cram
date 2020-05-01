@@ -476,7 +476,7 @@
               (desig:an action
                         (type pouring)
                         (object ?object-cup-2)
-                        (arm left)
+                        (arms (left))
                         (grasp left-side)))
       (sleep 2.0)
       (park)
@@ -485,7 +485,7 @@
        (desig:an action
                  (type pouring)
                  (object ?object-cup-2)
-                 (arm right)
+                 (arms (right))
                  (grasp right-side)))
 
       (park)
@@ -494,7 +494,7 @@
               (desig:an action
                         (type pouring)
                         (object ?object-cup-2)
-                        (arm right)
+                        (arms (right))
                         (grasp back)))
       (sleep 2.0)
       (park)
@@ -503,7 +503,7 @@
        (desig:an action
                  (type pouring)
                  (object ?object-cup-2)
-                 (arm left)
+                 (arms (left))
                  (grasp back)))
 
       )))
@@ -643,7 +643,7 @@
               (desig:an action
                         (type pouring)
                         (object ?object-cup-2)
-                        (arm left)
+                        (arms (left))
                         (grasp right-side)))
       (sleep 2.0)
       (park)
@@ -652,7 +652,7 @@
               (desig:an action
                         (type pouring)
                         (object ?object-cup-2)
-                        (arm right)
+                        (arms (right))
                         (grasp left-side)))
 
 
