@@ -39,7 +39,7 @@
                cl-transforms-stamped
                cram-robot-interfaces ; for gripper transform calculations
                cram-plan-occasions-events ; for robot-free-arm
-               cram-utilities ; for working with prolog lazy listssy
+               cram-utilities ; for working with prolog lazy lists
                )
   :components
   ((:module "src"
