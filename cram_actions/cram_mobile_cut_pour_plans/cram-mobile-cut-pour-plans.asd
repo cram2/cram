@@ -62,7 +62,7 @@
      (:file "cut-pour-plans" :depends-on ("package"))
      (:file "cut-pour-designators" :depends-on ("package"
                                                 "cut-pour-plans"))
-
+     (:file "trajectories" :depends-on ("package"))
      ;; high-level plans such as DRIVE-AND-PICK-UP, PERCEIVE, etc.
      (:file "high-level-plans" :depends-on ("package"
                                             "cut-pour-designators"))))))
