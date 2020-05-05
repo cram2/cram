@@ -72,7 +72,6 @@
     (simple-error (e)
       (declare (ignore e))
       nil)))
-
 (defun call-ik-service-with-resampling (cartesian-pose
                                         base-link end-effector-link
                                         seed-state-msg
@@ -134,3 +133,58 @@ If not valid solution was found, returns NIL."
               :test-value nil
               :current-value current-value))
         (roslisp:set-debug-level nil old-debug-lvl)))))
+
+
+(defmacro call-ik-service-with-resampling-2 (cartesian-pose
+                                             resampling-step resampling-axis
+                                             current-value lower-limit upper-limit
+                                             &optional solution-valid-p
+                                             &body body)
+`(progn
+   ;; (declare (type (or function null) ,solution-valid-p))
+   (labels ((call-ik-service-with-resampling-inner (cartesian-pose
+                                                    &key test-value current-value)
+              (multiple-value-bind (ik-solution-msg joint-values)
+                  ,@body
+                (if (and ik-solution-msg
+                         ;; if `solution-valid-p' is bound, call it
+                         ;; otherwise assume that the solution is valid
+                         (or (not ,solution-valid-p)
+                             (funcall ,solution-valid-p ik-solution-msg)))
+                    (values ik-solution-msg
+                            (cons (or test-value current-value) joint-values))
+                    (when (or (not test-value) (> test-value ,lower-limit))
+                      ;; When we have no ik solution and have a valid test value to try,
+                      ;; use it to resample.
+                      (let* ((next-test-value
+                               (if test-value
+                                   (max ,lower-limit (- test-value ,resampling-step))
+                                   ,upper-limit))
+                             (offset
+                               (if test-value
+                                   (- test-value current-value)
+                                   0))
+                             (next-offset
+                               (- next-test-value current-value))
+                             (pseudo-pose
+                               (cram-tf:translate-pose
+                                cartesian-pose
+                                (ecase ,resampling-axis
+                                  (:x :x-offset)
+                                  (:y :y-offset)
+                                  (:z :z-offset))
+                                (- offset next-offset))))
+                        (call-ik-service-with-resampling-inner
+                         pseudo-pose
+                         :test-value next-test-value
+                         :current-value current-value)))))))
+
+     (let ((old-debug-lvl (roslisp:debug-level nil)))
+       (unwind-protect
+            (progn
+              (roslisp:set-debug-level nil 9)
+              (call-ik-service-with-resampling-inner
+               ,cartesian-pose
+               :test-value nil
+               :current-value ,current-value))
+         (roslisp:set-debug-level nil old-debug-lvl))))))
