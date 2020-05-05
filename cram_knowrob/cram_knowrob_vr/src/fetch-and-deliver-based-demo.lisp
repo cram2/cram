@@ -504,12 +504,15 @@
                       ;; (cut:force-ll (arms-for-fetching-ll type))
                       '(:left :right)))
                    (?grasps
-                     (alexandria:shuffle
-                      ;; (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))
-                      (ecase ?bullet-type
-                        (:bowl '(:top))
-                        (:cup '(::RIGHT-SIDE :FRONT :LEFT-SIDE :TOP :BACK))
-                        (:spoon '(:top))))))
+                     ;; There is some bug in the plan, that makes it get stuck
+                     ;; on the last grasp from the list.
+                     ;; If that's the case, at least get stuck on TOP grasp for the cup
+                     ;;(alexandria:shuffle
+                     ;; (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))
+                     (ecase ?bullet-type
+                       (:bowl '(:top))
+                       (:cup '(::RIGHT-SIDE :FRONT :LEFT-SIDE :back :TOP))
+                       (:spoon '(:top)))))
               (exe:perform
                (desig:an action
                          (type transporting)
