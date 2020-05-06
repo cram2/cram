@@ -39,12 +39,17 @@ If there is no other method with 1 as qualifier, this method will be executed al
          (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
          (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
-         (link (cut:var-value
-                '?ee-link
-                (car (prolog:prolog
-                      `(and (cram-robot-interfaces:robot ?robot)
-                            (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
-                                                                     ?ee-link))))))
+         (arm (cpoe:event-arm event))
+         (link (if arm
+                   (cut:var-value
+                    '?ee-link
+                    (car (prolog:prolog
+                          `(and (rob-int:robot ?robot)
+                                (rob-int:end-effector-link ?robot ,arm ?ee-link)))))
+                   (if (cpoe:event-link event)
+                       (cpoe:event-link event)
+                       (error "[BTR-BELIEF OBJECT-ATTACHED] either link or arm ~
+                               in object-attached-robot event had to be given..."))))
          (grasp (cpoe:event-grasp event)))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
     ;; first detach from environment in case it is attached
@@ -62,20 +67,41 @@ If there is no other method with 1 as qualifier, this method will be executed al
             (btr:get-loose-attached-objects btr-object))
     ;; now attach to the robot-object
     (when btr-object
-      (if (btr:object-attached robot-object btr-object)
-          (btr:attach-object robot-object btr-object :link link :loose t :grasp grasp)
-          (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)))))
+      ;; if the object is already attached to some other robot link
+      ;; make the old attachment loose,
+      ;; because the new attachment will take precedence now
+      (multiple-value-bind (links grasps)
+          (btr:object-attached robot-object btr-object)
+        (when links
+          (mapc (lambda (attached-link grasp)
+                  ;; detach and attach again with loose attachment
+                  (btr:detach-object robot-object btr-object :link attached-link)
+                  ;; TODO: These loose attachments seem buggy,
+                  ;; so just removing completely...
+                  ;; (btr:attach-object robot-object btr-object :link attached-link
+                  ;;                                            :loose t
+                  ;;                                            :grasp grasp)
+                  )
+                links grasps)))
+      ;; attach
+      (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp))))
 
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))
          (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
-         (link (cut:var-value
-                '?ee-link
-                (car (prolog:prolog
-                      `(and (cram-robot-interfaces:robot ?robot)
-                            (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
-                                                                     ?ee-link)))))))
+         (arm (cpoe:event-arm event))
+         (link (if arm
+                   (cut:var-value
+                    '?ee-link
+                    (car (prolog:prolog
+                          `(and (cram-robot-interfaces:robot ?robot)
+                                (cram-robot-interfaces:end-effector-link ?robot ,arm
+                                                                         ?ee-link)))))
+                   (if (cpoe:event-link event)
+                       (cpoe:event-link event)
+                       (error "[BTR-BELIEF OBJECT-DETACHED] either link or arm ~
+                               in object-attached-robot even had to be given...")))))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (if btr-object-name
         ;; if btr-object-name was given, detach it from the robot link
