@@ -228,9 +228,15 @@ If there is no other method with 1 as qualifier, this method will be executed al
                         *object-identifier-to-instance-mappings*)
                (desig:object-identifier object-data))))
       ;; otherwise, spawn a new object in the bullet world
-      (register-object-designator-data
-       (desig:reference (cpoe:event-object-designator event))
-       :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))))
+      (progn
+        (register-object-designator-data
+         (desig:reference (cpoe:event-object-designator event))
+         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))
+        ;; after having spawned the object, update the designator to get the
+        ;; new simulated pose
+        (desig:equate
+         (cpoe:event-object-designator event)
+         (detect-new-object-pose-from-btr (cpoe:event-object-designator event))))))
 
 
 
