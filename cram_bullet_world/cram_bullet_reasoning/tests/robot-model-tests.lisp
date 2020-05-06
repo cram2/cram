@@ -300,7 +300,7 @@
   ;; attached to two links and the robot moves and rotates
   (setup-world)
   (setf (pose (btr:get-robot-object)) (cl-transforms:make-pose
-                                       (cl-tf:make-3d-vector 0 0 0)
+                                       (cl-transforms:make-3d-vector 0 0 0)
                                        (cl-transforms:make-quaternion
                                         0 0 0 1)))
   (btr-utils:spawn-object 'o1 :mug :pose
@@ -312,7 +312,7 @@
     ;;   (list of attachments) <- link1, link2
     ;;   collision-info of o1))
     (setf (pose (btr:get-robot-object)) (cl-transforms:make-pose
-                                         (cl-tf:make-3d-vector 0.2 0 0)
+                                         (cl-transforms:make-3d-vector 0.2 0 0)
                                          (cl-transforms:make-quaternion
                                           0 0 1 1)))
     (lisp-unit:assert-equal
@@ -331,7 +331,7 @@
   ;; attached to two links and the robot moves and rotates
   (setup-world)
   (setf (pose (btr:get-robot-object)) (cl-transforms:make-pose
-                                       (cl-tf:make-3d-vector 0 0 0)
+                                       (cl-transforms:make-3d-vector 0 0 0)
                                        (cl-transforms:make-quaternion
                                         0 0 0 1)))
   (btr-utils:spawn-object 'o1 :mug :pose
@@ -346,7 +346,7 @@
     ;;   (list of attachments) <- link1, link2
     ;;   collision-info of o1))
     (setf (pose (btr:get-robot-object)) (cl-transforms:make-pose
-                                         (cl-tf:make-3d-vector 0.2 0 0)
+                                         (cl-transforms:make-3d-vector 0.2 0 0)
                                          (cl-transforms:make-quaternion
                                           0 0 1 1)))
     (lisp-unit:assert-equal

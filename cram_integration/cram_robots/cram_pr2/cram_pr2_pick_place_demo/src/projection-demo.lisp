@@ -257,7 +257,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 ;;   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
 ;;     (cpl:top-level
 ;;       (exe:perform
-;;        (let ((?pose (cl-tf:make-pose-stamped
+;;        (let ((?pose (cl-transforms-stamped:make-pose-stamped
 ;;                      cram-tf:*robot-base-frame* 0.0
 ;;                      (cl-transforms:make-3d-vector -0.5 0 0)
 ;;                      (cl-transforms:make-identity-rotation))))
@@ -269,7 +269,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 ;;       (exe:perform
 ;;        (desig:a motion (type looking) (direction forward)))
 ;;       (exe:perform
-;;        (let ((?pose (cl-tf:make-pose-stamped
+;;        (let ((?pose (cl-transforms-stamped:make-pose-stamped
 ;;                      cram-tf:*robot-base-frame* 0.0
 ;;                      (cl-transforms:make-3d-vector 0.7 0.3 0.85)
 ;;                      (cl-transforms:make-identity-rotation))))

@@ -68,7 +68,7 @@
                                 (if (member parent-name bullet-links)
                                     (progn
                                       (push
-                                       (cl-tf:transform->transform-stamped
+                                       (cl-transforms-stamped:transform->transform-stamped
                                         parent-name link-name time
                                         (cl-urdf:origin link-joint))
                                        virtual-joint-transforms)
@@ -95,7 +95,7 @@
         (warn "Robot was not present in the world. Not going to GET-TRANSFORMS-FROM-BULLET.")
         (let* (;; global fixed frame and the odom frame are the same
                (global->odom
-                 (cl-tf:make-transform-stamped
+                 (cl-transforms-stamped:make-transform-stamped
                   fixed-frame odom-frame time
                   (cl-transforms:make-identity-vector)
                   (cl-transforms:make-identity-rotation)))
@@ -103,7 +103,7 @@
                (robot-pose-in-map
                  (btr:link-pose ?robot-instance base-frame))
                (odom->base-frame
-                 (cl-tf:transform->transform-stamped
+                 (cl-transforms-stamped:transform->transform-stamped
                   odom-frame base-frame time
                   (cl-transforms:pose->transform robot-pose-in-map)))
                ;; the current configuration of robot's Bullet world joints
@@ -114,7 +114,7 @@
                  (loop for link in (btr:link-names ?robot-instance)
                        append (unless (equal link base-frame)
                                 (list
-                                 (cl-tf:transform->transform-stamped
+                                 (cl-transforms-stamped:transform->transform-stamped
                                   base-frame
                                   link
                                   time
