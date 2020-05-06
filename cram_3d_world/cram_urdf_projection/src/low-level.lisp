@@ -226,7 +226,7 @@
 (defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
   (let ((joint-state-msg
           (or (ik:call-ik-service-with-resampling
-               (cl-tf:pose->pose-stamped
+               (cl-transforms-stamped:pose->pose-stamped
                 base-link
                 0.0
                 cartesian-pose)
@@ -237,7 +237,7 @@
                *camera-resampling-step* :x
                0 (- *camera-x-axis-limit*) *camera-x-axis-limit*)
               (ik:call-ik-service-with-resampling
-               (cl-tf:pose->pose-stamped
+               (cl-transforms-stamped:pose->pose-stamped
                 base-link
                 0.0
                 cartesian-pose)
