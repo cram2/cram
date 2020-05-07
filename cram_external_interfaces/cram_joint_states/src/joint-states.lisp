@@ -134,9 +134,6 @@ as multiple values."
       (roslisp:msg-slot-value last-joint-state-msg :header)
       :stamp))))
 
-(defun normalize-joint-angles (list-of-angles)
-  (mapcar #'cl-transforms:normalize-angle list-of-angles))
-
 
 (defun full-joint-states-as-hash-table (&optional state-fluent)
   (let ((last-joint-state-msg (cpl:value (or state-fluent *robot-joint-states-msg*))))

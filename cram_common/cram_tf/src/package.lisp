@@ -60,7 +60,7 @@
    #:translate-transform-stamped
    #:pose-stamped->transform-stamped
    #:apply-transform
-   #:values-converged
+   #:values-converged #:normalize-joint-angles
    #:map-axis-aligned-axis #:map-axis-aligned-orientation #:angle-around-map-z
    ;; prolog facts
    #:pose #:pose-stamped #:position #:orientation #:poses-equal

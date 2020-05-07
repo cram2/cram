@@ -107,19 +107,20 @@
   (flet ((ensure-giskard-joint-arm-goal-reached (arm goal-configuration)
            (when goal-configuration
              (let ((configuration (second (get-arm-joint-names-and-positions-list arm))))
-               (unless (cram-tf:values-converged (joints:normalize-joint-angles
-                                                  configuration)
-                                                 (joints:normalize-joint-angles
-                                                  (mapcar #'second goal-configuration))
-                                                 convergence-delta-joint)
+               (unless (cram-tf:values-converged
+                        (cram-tf:normalize-joint-angles
+                         configuration)
+                        (cram-tf:normalize-joint-angles
+                         (mapcar #'second goal-configuration))
+                        convergence-delta-joint)
                  (cpl:fail 'common-fail:manipulation-goal-not-reached
                            :description (format nil "Giskard did not converge to goal:~%~
                                                    ~a (~a)~%should have been at~%~a~%~
                                                    with delta-joint of ~a."
                                                 arm
-                                                (joints:normalize-joint-angles
+                                                (cram-tf:normalize-joint-angles
                                                  configuration)
-                                                (joints:normalize-joint-angles
+                                                (cram-tf:normalize-joint-angles
                                                  (mapcar #'second goal-configuration))
                                                 convergence-delta-joint)))))))
     (when goal-configuration-left
