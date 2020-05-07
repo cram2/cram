@@ -54,7 +54,7 @@
                         :parameter_value_pair
                         (let ((stream (make-string-output-stream)))
                           (yason:encode
-                           (cram-tf:recursive-alist-hash-table
+                           (cut:recursive-alist-hash-table
                             `(("root" . "base_footprint")
                               ("tip" . "refills_finger")
                               ("root_normal"
@@ -87,7 +87,7 @@
                         :parameter_value_pair
                         (let ((stream (make-string-output-stream)))
                           (yason:encode
-                           (cram-tf:recursive-alist-hash-table
+                           (cut:recursive-alist-hash-table
                             `(("root" . "base_footprint")
                               ("tip" . "refills_finger")
                               ("tip_normal"
