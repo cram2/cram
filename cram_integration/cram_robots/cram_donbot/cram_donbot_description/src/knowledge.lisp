@@ -139,18 +139,18 @@
   (<- (robot-tool-frame iai-donbot :left "refills_tool_frame"))
 
   (<- (arm-joints iai-donbot :left ("ur5_shoulder_pan_joint"
-                                "ur5_shoulder_lift_joint"
-                                "ur5_elbow_joint"
-                                "ur5_wrist_1_joint"
-                                "ur5_wrist_2_joint"
-                                "ur5_wrist_3_joint")))
+                                    "ur5_shoulder_lift_joint"
+                                    "ur5_elbow_joint"
+                                    "ur5_wrist_1_joint"
+                                    "ur5_wrist_2_joint"
+                                    "ur5_wrist_3_joint")))
 
   (<- (arm-links iai-donbot :left ("ur5_shoulder_link"
-                               "ur5_upper_arm_link"
-                               "ur5_forearm_link"
-                               "ur5_wrist_1_link"
-                               "ur5_wrist_2_link"
-                               "ur5_wrist_3_link")))
+                                   "ur5_upper_arm_link"
+                                   "ur5_forearm_link"
+                                   "ur5_wrist_1_link"
+                                   "ur5_wrist_2_link"
+                                   "ur5_wrist_3_link")))
 
   (<- (gripper-joint iai-donbot :left "gripper_joint"))
 
@@ -176,11 +176,11 @@
     (symbol-value *tcp-in-ee-pose* ?pose))
 
   (<- (hand-links iai-donbot :left ("wrist_collision"
-                                "gripper_base_link"
-                                "gripper_finger_left_link"
-                                "gripper_finger_right_link"
-                                "gripper_gripper_left_link"
-                                "gripper_gripper_right_link"))))
+                                    "gripper_base_link"
+                                    "gripper_finger_left_link"
+                                    "gripper_finger_right_link"
+                                    "gripper_gripper_left_link"
+                                    "gripper_gripper_right_link"))))
 
 
 
