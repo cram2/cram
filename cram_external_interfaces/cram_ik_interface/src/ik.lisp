@@ -72,6 +72,7 @@
     (simple-error (e)
       (declare (ignore e))
       nil)))
+
 (defun call-ik-service-with-resampling (cartesian-pose
                                         base-link end-effector-link
                                         seed-state-msg
@@ -195,65 +196,57 @@ If not valid solution was found, returns NIL."
                :current-value ,current-value))
          (roslisp:set-debug-level nil old-debug-lvl)))))))
 
-;; (defmacro with-goal-location (cartesian-pose seed-state &optional solution-valid-p &body body)
-;;   `(macrolet (with-resampling (resampling-step resampling-axis
-;;                                current-value lower-limit upper-limit
-;;                                &body body)
-;;               `(progn
-;;                  ;; (declare (type (or function null) ,solution-valid-p))
-;;                  (labels ((call-ik-service-with-resampling-inner (cartesian-pose
-;;                                                                   &key test-value current-value)
-;;                             (multiple-value-bind (ik-solution-msg joint-values)
-;;                                 (or ,@body
-;;                                     (call-ik-service cartesian
-;;                               (if (and ik-solution-msg
-;;                                        ;; if `solution-valid-p' is bound, call it
-;;                                        ;; otherwise assume that the solution is valid
-;;                                        (or (not ,solution-valid-p)
-;;                                            (funcall ,solution-valid-p ik-solution-msg)))
-;;                                   (values ik-solution-msg
-;;                                           (cons (or test-value current-value) joint-values))
-;;                                   (when (or (not test-value) (> test-value ,lower-limit))
-;;                                     (let* ((next-test-value
-;;                                              (if test-value
-;;                                                  (max ,lower-limit (- test-value ,resampling-step))
-;;                                                  ,upper-limit))
-;;                                            (offset
-;;                                              (if test-value
-;;                                                  (- test-value current-value)
-;;                                                  0))
-;;                                            (next-offset
-;;                                              (- next-test-value current-value))
-;;                                               (pseudo-pose
-;;                                                 (cram-tf:translate-pose
-;;                                                  cartesian-pose
-;;                                                  (ecase ,resampling-axis
-;;                                                    (:x :x-offset)
-;;                                                    (:y :y-offset)
-;;                                                    (:z :z-offset))
-;;                                                  ( offset next-offset))))
-;;                                       (call-ik-service-with-resampling-inner
-;;                                        pseudo-pose
-;;                                        :test-value next-test-value
-;;                                        :current-value current-value)))))))
-                   
-;;                    (let ((old-debug-lvl (roslisp:debug-level nil)))
-;;                      (unwind-protect
-;;                           (progn
-;;                             (roslisp:set-debug-level nil 9)
-;;                             (call-ik-service-with-resampling-inner
-;;                              ,cartesian-pose
-;;                              :test-value nil
-;;                              :current-value ,current-value))
-;;                        (roslisp:set-debug-level nil old-debug-lvl))))))
-;;     ,@body))
+
+(defmacro find-ik-for (cartesian-pose
+                       base-link tip-link
+                       seed-state &body body)
+  `(macrolet ((with-resampling (&whole whole-form
+                                       current-value resampling-axis
+                                       upper-limit lower-limit
+                                       interval-size
+                                       &body resample-body)
+                  (let ((form-length (length whole-form)))
+                    `(let ((sampling-values
+                             (append
+                              (list ,current-value)
+                              (loop 
+                                for x = ,upper-limit then  (- x ,interval-size)
+                                until (<= x ,lower-limit)
+                                collect x)
+                              (list ,lower-limit)))
+                           (pseudo-pose (lambda (offset)
+                                          (cram-tf:translate-pose
+                                           ,,cartesian-pose
+                                           (ecase ,resampling-axis
+                                             (:x :x-offset)
+                                             (:y :y-offset)
+                                             (:z :z-offset))
+                                           offset))))
+                       (loop
+                         for value in sampling-values
+                         with solution-msg = nil
+                         do (setf solution-msg
+                                  (if (> ,form-length 6) 
+                                      (progn ,@resample-body)
+                                      (call-ik-service
+                                       (funcall pseudo-pose value)
+                                       ,,base-link ,,tip-link ,,seed-state)))
+                            (when solution-msg
+                              (return (values solution-msg 
+                                              (list (cons ,resampling-axis value))))))))))
+                                
+     ,@body))
 
 
 
 (defmacro testmacro1 (&whole u j &body body)
   `(let ((k ,j))
-       (print (first ,u))
        ,@body))
 
 
 
+(defmacro testmacro2 (argument-1 argument-2 &body body)
+  `(macrolet ((testing (&whole x u &body body)
+               (progn
+                 (values (+ u ,argument-1 ,argument-2) u))))
+     ,@body))
