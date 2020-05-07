@@ -169,7 +169,7 @@
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :back
-  :grasp-translation `(,*bottle-grasp-xy-offset* 0.0d0 ,*bottle-grasp-z-offset*)
+  :grasp-translation `(,(- *bottle-grasp-xy-offset*) 0.0d0 ,*bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
@@ -180,8 +180,8 @@
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :front
   :grasp-translation `(,*bottle-grasp-xy-offset* 0.0d0 ,*bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
-  :pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
+  :pregrasp-offsets `(,*bottle-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,*bottle-pregrasp-xy-offset* 0.0 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
