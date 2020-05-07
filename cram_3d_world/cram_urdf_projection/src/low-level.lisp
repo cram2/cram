@@ -565,16 +565,22 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                 joint-name-value-list))
                       (goal-joint-state
                         (mapcar #'second joint-name-value-list)))
-                 (unless (cram-tf:values-converged current-joint-state goal-joint-state
-                                                   *projection-convergence-delta-joint*)
+                 (unless (cram-tf:values-converged
+                          (cram-tf:normalize-joint-angles current-joint-state)
+                          (cram-tf:normalize-joint-angles goal-joint-state)
+                          *projection-convergence-delta-joint*)
                    (cpl:fail 'common-fail:manipulation-goal-not-reached
-                             :description (format nil "Projection did not converge to goal:~%~
+                             :description
+                             (format nil
+                                     "Projection did not converge to goal:~%~
                                                    ~a (~a)~%should have been at~%~a~%~
                                                    with delta-joint of ~a."
-                                                  arm
-                                                  current-joint-state
-                                                  goal-joint-state
-                                                  *projection-convergence-delta-joint*))))))))
+                                     arm
+                                     (cram-tf:normalize-joint-angles
+                                      current-joint-state)
+                                     (cram-tf:normalize-joint-angles
+                                      goal-joint-state)
+                                     *projection-convergence-delta-joint*))))))))
     (set-configuration :left left-configuration)
     (set-configuration :right right-configuration)))
 
