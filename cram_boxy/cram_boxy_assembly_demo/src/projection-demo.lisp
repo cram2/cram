@@ -176,7 +176,7 @@
                                 :mass 0.0
                                 :color object-color
                                 :pose (cram-tf:pose->list
-                                       (cl-tf:make-pose
+                                       (cl-transforms:make-pose
                                         (cl-transforms:v+
                                          (cl-transforms:make-3d-vector
                                           (- *plate-x* *plate-rad-x*)

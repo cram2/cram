@@ -133,7 +133,7 @@
 ;;                               cram-tf:*fixed-frame*
 ;;                               :use-zero-time t)))
 ;;
-;;           (let ((?pose-for-base (cl-tf:pose->pose-stamped
+;;           (let ((?pose-for-base (cl-transforms:pose->pose-stamped
 ;;                                  "map"
 ;;                                  0.0
 ;;                                  (cl-transforms-stamped:make-identity-pose))))

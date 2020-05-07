@@ -510,29 +510,29 @@
 
   
   ;; new position of the item 'oo1 is set properly
-  (lisp-unit:assert-number-equal -1.0d0 (cl-tf:x (cl-tf:origin (btr:pose
+  (lisp-unit:assert-number-equal -1.0d0 (cl-transforms:x (cl-tf:origin (btr:pose
                                                                 (btr:object btr:*current-bullet-world* 'oo1)))))
-  (lisp-unit:assert-number-equal 0.0d0 (cl-tf:y (cl-tf:origin (btr:pose
+  (lisp-unit:assert-number-equal 0.0d0 (cl-transforms:y (cl-tf:origin (btr:pose
                                                                (btr:object btr:*current-bullet-world* 'oo1)))))
-  (lisp-unit:assert-number-equal 1.0d0 (cl-tf:z (cl-tf:origin (btr:pose
+  (lisp-unit:assert-number-equal 1.0d0 (cl-transforms:z (cl-tf:origin (btr:pose
                                                                (btr:object btr:*current-bullet-world* 'oo1)))))
   ;; Changed values of z in the position of the attached items:
   ;; z_oo2 + 0.1 = 0.9
-  (lisp-unit:assert-number-equal 0.9d0 (cl-tf:z (cl-tf:origin (btr:pose
+  (lisp-unit:assert-number-equal 0.9d0 (cl-transforms:z (cl-tf:origin (btr:pose
                                                                (btr:object btr:*current-bullet-world* 'oo2)))))
   ;; z_oo3 + 0.1 = 0.8
-  (lisp-unit:assert-number-equal 0.8d0 (cl-tf:z (cl-tf:origin (btr:pose
+  (lisp-unit:assert-number-equal 0.8d0 (cl-transforms:z (cl-tf:origin (btr:pose
                                                                (btr:object btr:*current-bullet-world* 'oo3)))))
   ;; Still the same values x,y in the position of the attached items:
   ;; x
-  (lisp-unit:assert-number-equal -1.0d0 (cl-tf:x (cl-tf:origin (btr:pose
+  (lisp-unit:assert-number-equal -1.0d0 (cl-transforms:x (cl-tf:origin (btr:pose
                                                                 (btr:object btr:*current-bullet-world* 'oo2)))))
-  (lisp-unit:assert-number-equal -1.0d0 (cl-tf:x (cl-tf:origin (btr:pose
+  (lisp-unit:assert-number-equal -1.0d0 (cl-transforms:x (cl-tf:origin (btr:pose
                                                                 (btr:object btr:*current-bullet-world* 'oo3)))))
   ;; y
-  (lisp-unit:assert-number-equal 0.0d0 (cl-tf:y (cl-tf:origin (btr:pose
+  (lisp-unit:assert-number-equal 0.0d0 (cl-transforms:y (cl-tf:origin (btr:pose
                                                                (btr:object btr:*current-bullet-world* 'oo2)))))
-  (lisp-unit:assert-number-equal 0.0d0 (cl-tf:y (cl-tf:origin (btr:pose
+  (lisp-unit:assert-number-equal 0.0d0 (cl-transforms:y (cl-tf:origin (btr:pose
                                                                (btr:object btr:*current-bullet-world* 'oo3)))))
 
   (btr:remove-object btr:*current-bullet-world* 'oo1)

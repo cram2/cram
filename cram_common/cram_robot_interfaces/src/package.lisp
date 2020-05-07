@@ -56,8 +56,6 @@
    #:robot-pose
    ;; trajectories
    #:trajectory-point
-   ;; utilities
-   #:symbol-to-prolog-rule
    ;; urdf
    #:*robot-urdf*
    #:get-joint-type #:get-joint-lower-limit #:get-joint-upper-limit

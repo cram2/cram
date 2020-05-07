@@ -33,7 +33,10 @@
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector 0.0d0 0.0d0 0.23090001999999998d0)
-   (cl-tf:make-quaternion 0.0d0 0.0d0 0.7071067811865475d0 0.7071067811865476d0)))
+   (cl-transforms:make-quaternion 0.0d0
+                                  0.0d0
+                                  0.7071067811865475d0
+                                  0.7071067811865476d0)))
 
 (defparameter *standard-to-hsrb-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
@@ -66,26 +69,20 @@
   (<- (arm hsrb :left))
 
   (<- (end-effector-link hsrb :left "wrist_roll_link"))
-  ;; cram-tf needs the right link/joint, for now we can do it like this
-  (<- (end-effector-link hsrb :right "ERROR: HSRB does not have a right arm!"))
 
   (<- (robot-tool-frame hsrb :left "gripper_tool_joint"))
-  (<- (robot-tool-frame hsrb :right "ERROR: HSRB does not have a right arm!"))
 
   (<- (arm-joints hsrb :left ("arm_flex_joint"
                               "arm_roll_joint"
                               "wrist_flex_joint"
                               "wrist_roll_joint")))
-  (<- (arm-joints hsrb :right ("ERROR: HSRB does not have a right arm!")))
 
   (<- (arm-links hsrb :left ("arm_flex_link"
                              "arm_roll_link"
                              "wrist_flex_link"
                              "wrist_roll_link")))
-  (<- (arm-links hsrb :right ("ERROR: HSRB does not have a right arm!")))
 
   (<- (gripper-joint hsrb :left "hand_motor_joint"))
-  (<- (gripper-joint hsrb :right "ERROR: HSRB does not have a right arm!"))
 
   (<- (gripper-link hsrb :left ?link)
     (bound ?link)

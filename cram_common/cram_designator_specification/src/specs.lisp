@@ -192,4 +192,9 @@
   (<- (%property ?designator (:pose ?pose))
     (lisp-pred typep ?designator desig:object-designator)
     (property-member (:pose ?pose) ?designator)
-    (assert-type ?pose list "OBEJCT SPEC:PROPERTY")))
+    (assert-type ?pose list "OBEJCT SPEC:PROPERTY"))
+
+  (<- (%property ?designator (:location ?location))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:location ?location) ?designator)
+    (assert-type ?location desig:location-designator "OBJECT SPEC:PROPERTY")))

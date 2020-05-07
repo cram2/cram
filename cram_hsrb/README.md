@@ -15,4 +15,4 @@ and, in future, HSR hardware-specific code.
 
 Load the package **cram_hsrb_pick_demo**
 
-You can start the demo with: `(hsrb-demo::spawn-pickup-cylinder-air)`
+You can start the demo with: `(demo::spawn-pickup-cylinder-air)`

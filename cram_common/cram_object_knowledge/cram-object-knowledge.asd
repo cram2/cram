@@ -41,4 +41,5 @@
     ((:file "package")
      (:file "environment" :depends-on ("package"))
      (:file "household" :depends-on ("package"))
-     (:file "assembly" :depends-on ("package"))))))
+     (:file "assembly" :depends-on ("package"))
+     (:file "retail" :depends-on ("package"))))))
