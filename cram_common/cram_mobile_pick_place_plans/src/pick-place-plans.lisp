@@ -78,6 +78,7 @@
       (exe:perform
        (desig:an action
                  (type reaching)
+                 (object ?object-designator)
                  (left-poses ?left-reach-poses)
                  (right-poses ?right-reach-poses)))))
   (roslisp:ros-info (pick-place pick-up) "Grasping")
@@ -130,7 +131,9 @@
 
 (defun place (&key
                 ((:object ?object-designator))
+                ((:target ?target-location-designator))
                 ((:other-object ?other-object-designator))
+                other-object-is-a-robot
                 ((:arm ?arm))
                 ((:gripper-opening ?gripper-opening))
                 ((:attachment-type ?placing-location-name))
@@ -163,6 +166,7 @@
     (exe:perform
      (desig:an action
                (type reaching)
+               (location ?target-location-designator)
                (left-poses ?left-reach-poses)
                (right-poses ?right-reach-poses))))
   (roslisp:ros-info (pick-place place) "Putting")
@@ -182,11 +186,19 @@
                (right-poses ?right-put-poses))))
   (when ?placing-location-name
     (roslisp:ros-info (boxy-plans connect) "Asserting assemblage connection in knowledge base")
-    (cram-occasions-events:on-event
-     (make-instance 'cpoe:object-attached-object
-       :object-name (desig:desig-prop-value ?object-designator :name)
-       :other-object-name (desig:desig-prop-value ?other-object-designator :name)
-       :attachment-type ?placing-location-name)))
+    (if other-object-is-a-robot
+        (cram-occasions-events:on-event
+         (make-instance 'cpoe:object-attached-robot
+           :link (roslisp-utilities:rosify-underscores-lisp-name
+                  (desig:desig-prop-value ?other-object-designator :urdf-name))
+           :not-loose t
+           :object-name (desig:desig-prop-value ?object-designator :name)
+           :grasp ?placing-location-name))
+        (cram-occasions-events:on-event
+         (make-instance 'cpoe:object-attached-object
+           :object-name (desig:desig-prop-value ?object-designator :name)
+           :other-object-name (desig:desig-prop-value ?other-object-designator :name)
+           :attachment-type ?placing-location-name))))
   (roslisp:ros-info (pick-place place) "Opening gripper")
   (exe:perform
    (desig:an action
