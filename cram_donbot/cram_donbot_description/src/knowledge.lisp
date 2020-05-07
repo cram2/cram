@@ -119,8 +119,8 @@
   (<- (arm iai-donbot :left))
 
   (<- (camera-frame iai-donbot "camera_link")) ; rgb camera for barcodes etc.
-  (<- (camera-frame iai-donbot "rs_camera_depth_optical_frame")) ; realsense
-  (<- (camera-frame iai-donbot "rs_camera_color_optical_frame")))
+  (<- (camera-frame iai-donbot "rs_camera_depth_optical_frame")) ; realsense, virtual
+  (<- (camera-frame iai-donbot "rs_camera_color_optical_frame"))) ; virtual
 
 
 
@@ -201,8 +201,8 @@
   (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :away ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
 
-  ;; (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :forward ?joint-states)
-  ;;   (symbol-value *looking-forward-state* ?joint-states))
+  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :forward ?joint-states)
+    (symbol-value *parking-joint-state* ?joint-states))
 
   (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :down ?joint-states)
     (symbol-value *looking-down-state* ?joint-states))

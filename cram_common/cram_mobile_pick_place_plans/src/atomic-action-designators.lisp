@@ -205,15 +205,23 @@
     (-> (spec:property ?action-designator (:left-configuration ?left-config))
         (-> (equal ?left-config :park)
             (-> (cpoe:object-in-hand ?_ :left)
-                (rob-int:robot-joint-states ?robot :arm :left :carry ?left-joint-states)
-                (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states))
+                (once (or (rob-int:robot-joint-states ?robot :arm :left :carry
+                                                      ?left-joint-states)
+                          (equal ?left-joint-states NIL)))
+                (once (or (rob-int:robot-joint-states ?robot :arm :left :park
+                                                      ?left-joint-states)
+                          (equal ?left-joint-states NIL))))
             (rob-int:robot-joint-states ?robot :arm :left ?left-config ?left-joint-states))
         (equal ?left-joint-states nil))
     (-> (spec:property ?action-designator (:right-configuration ?right-config))
         (-> (equal ?right-config :park)
             (-> (cpoe:object-in-hand ?_ :right)
-                (rob-int:robot-joint-states ?robot :arm :right :carry ?right-joint-states)
-                (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states))
+                (once (or (rob-int:robot-joint-states ?robot :arm :right :carry
+                                                      ?right-joint-states)
+                          (equal ?right-joint-states NIL)))
+                (once (or (rob-int:robot-joint-states ?robot :arm :right :park
+                                                      ?right-joint-states)
+                          (equal ?right-joint-states NIL))))
             (rob-int:robot-joint-states ?robot :arm :right ?right-config ?right-joint-states))
         (equal ?right-joint-states nil))
     (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
