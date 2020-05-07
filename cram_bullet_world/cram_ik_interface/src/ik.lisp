@@ -136,117 +136,73 @@ If not valid solution was found, returns NIL."
         (roslisp:set-debug-level nil old-debug-lvl)))))
 
 
-(defmacro call-ik-service-with-resampling-2 (&whole w
-                                               cartesian-pose
-                                               resampling-step resampling-axis
-                                               current-value lower-limit upper-limit
-                                             &optional base-link tip-link
-                                               seed-state solution-valid-p
-                                             &body body)
-  (let ((form-length (length w)))
-    `(progn
-       ;; (declare (type (or function null) ,solution-valid-p))
-       (labels ((call-ik-service-with-resampling-inner (cartesian-pose
-                                                        &key test-value current-value)
-                  (multiple-value-bind (ik-solution-msg joint-values)
-                      (if (> ,form-length 11)
-                          (progn
-                            ,@body)
-                          (call-ik-service cartesian-pose ,base-link ,tip-link ,seed-state))
-                    (if (and ik-solution-msg
-                             ;; if `solution-valid-p' is bound, call it
-                             ;; otherwise assume that the solution is valid
-                             (or (not ,solution-valid-p)
-                                 (funcall ,solution-valid-p ik-solution-msg)))
-                        (values ik-solution-msg
-                                (cons (or test-value current-value) joint-values))
-                        (when (or (not test-value) (> test-value ,lower-limit))
-                          ;; When we have no ik solution and have a valid test value to try,
-                          ;; use it to resample.
-                          (let* ((next-test-value
-                                   (if test-value
-                                       (max ,lower-limit (- test-value ,resampling-step))
-                                       ,upper-limit))
-                                 (offset
-                                   (if test-value
-                                   (- test-value current-value)
-                                   0))
-                             (next-offset
-                               (- next-test-value current-value))
-                             (pseudo-pose
-                               (cram-tf:translate-pose
-                                cartesian-pose
-                                (ecase ,resampling-axis
-                                  (:x :x-offset)
-                                  (:y :y-offset)
-                                  (:z :z-offset))
-                                (- offset next-offset))))
-                        (call-ik-service-with-resampling-inner
-                         pseudo-pose
-                         :test-value next-test-value
-                         :current-value current-value)))))))
-
-     (let ((old-debug-lvl (roslisp:debug-level nil)))
-       (unwind-protect
-            (progn
-              (roslisp:set-debug-level nil 9)
-              (call-ik-service-with-resampling-inner
-               ,cartesian-pose
-               :test-value nil
-               :current-value ,current-value))
-         (roslisp:set-debug-level nil old-debug-lvl)))))))
-
-
 (defmacro find-ik-for (cartesian-pose
                        base-link tip-link
                        seed-state &body body)
-  `(macrolet ((with-resampling (&whole whole-form
-                                       current-value resampling-axis
-                                       upper-limit lower-limit
-                                       interval-size
-                                       &body resample-body)
-                  (let ((form-length (length whole-form)))
-                    `(let ((sampling-values
-                             (append
-                              (list ,current-value)
-                              (loop 
-                                for x = ,upper-limit then  (- x ,interval-size)
-                                until (<= x ,lower-limit)
-                                collect x)
-                              (list ,lower-limit)))
-                           (pseudo-pose (lambda (offset)
-                                          (cram-tf:translate-pose
-                                           ,,cartesian-pose
-                                           (ecase ,resampling-axis
-                                             (:x :x-offset)
-                                             (:y :y-offset)
-                                             (:z :z-offset))
-                                           offset))))
-                       (loop
-                         for value in sampling-values
-                         with solution-msg = nil
-                         do (setf solution-msg
-                                  (if (> ,form-length 6) 
-                                      (progn ,@resample-body)
-                                      (call-ik-service
-                                       (funcall pseudo-pose value)
-                                       ,,base-link ,,tip-link ,,seed-state)))
-                            (when solution-msg
-                              (return (values solution-msg 
-                                              (list (cons ,resampling-axis value))))))))))
-                                
-     ,@body))
+  "Method to find inverse kinematics for a given cartesian pose using resampling
+Syntax:
+ (ik::find-ik-for ?goal-pose base-link tip-link seed-state-message
+         (ik::with-resampling current-value resampling-axis upper-limit lower-limit resampling-step
+             (ik::with-resampling current-value2 resampling-axis2 ...
+                            ....)))
+"
+  (let* ((current-pose (list (cons 'pose (eval cartesian-pose))))
+         (get-current-pose (lambda () (cdr (assoc 'pose current-pose))))
+         (set-current-pose (lambda (val) (setf (cdr (assoc 'pose current-pose)) val))))
+       
+    `(macrolet ((with-resampling (&whole whole-form
+                                         current-value resampling-axis
+                                         upper-limit lower-limit
+                                         interval-size
+                                         &body body)
+                    (let ((form-length (length whole-form)))
+                      ;;Formulating a list of joint values to sample
+                      `(let ((sampling-values
+                               (append
+                                (list ,current-value)
+                                (loop 
+                                  for x = ,upper-limit
+                                    then  (- x ,interval-size)
+                                  until (<= x ,lower-limit)
+                                  collect x)
+                                (list ,lower-limit)))
+                             ;; Calculating the pose offset for the corresponding joint value
+                             (pseudo-pose (lambda (offset)
+                                            (cram-tf:translate-pose
+                                             (funcall ,,get-current-pose)
+                                             (ecase ,resampling-axis
+                                               (:x :x-offset)
+                                               (:y :y-offset)
+                                               (:z :z-offset))
+                                             (- offset)))))
+                           (loop
+                             for value in sampling-values
+                             do
+                                (multiple-value-bind (solution-msg joint-values)
+                                    ;; Checking if the arguments contain &body clause or not. 6 is
+                                    ;; currently the number of arguments without including &body.
+                                    ;; Update according to API changes
+                                    (if (> ,form-length 6) 
+                                        ;; If body is provided, call it with the current offseted
+                                        ;; value of pose (for retaining the loop value on nested
+                                        ;; calls). Revert it back after the execution of
+                                        ;; &body is completed.
+                                        (let ((old-current-pose (funcall ,,get-current-pose)))
+                                          (funcall ,,set-current-pose (funcall pseudo-pose value))
+                                          (unwind-protect 
+                                               (progn ,@body)
+                                            (funcall ,,set-current-pose old-current-pose)))
+
+                                        ;; If no &body clause make the ik-service call
+                                        (call-ik-service
+                                         (funcall pseudo-pose value)
+                                         ,,base-link ,,tip-link ,,seed-state))
+                                  
+                                  ;; When a solution is obtained parse accordingly
+                                  (when solution-msg
+                                    (return (values solution-msg 
+                                                    (cons (cons ,resampling-axis value)
+                                                          joint-values))))))))))
+         ,@body)))
 
 
-
-(defmacro testmacro1 (&whole u j &body body)
-  `(let ((k ,j))
-       ,@body))
-
-
-
-(defmacro testmacro2 (argument-1 argument-2 &body body)
-  `(macrolet ((testing (&whole x u &body body)
-               (progn
-                 (values (+ u ,argument-1 ,argument-2) u))))
-     ,@body))
