@@ -102,18 +102,3 @@
              (member ?pose ?poses))
         (or (pose ?pose ?location)
             (equal ?location ?pose)))))
-
-
-;; todo(@gaya): ugliest piece of code ever...
-;; spent 2 years cleaning up cram, now spend another 2 messing it up again...
-(def-fact-group robot-parts-location (desig-location-prop)
-  (<- (desig-location-prop ?object-designator ?pose-stamped)
-    (obj-desig? ?object-designator)
-    (desig-prop ?object-designator (:part-of ?robot))
-    (cram-robot-interfaces:robot ?robot)
-    (desig-prop ?object-designator (:link ?link))
-    (-> (desig-prop ?object-designator (:which-link ?params))
-        (lisp-fun symbol-to-prolog-rule ?link ?robot-name ?params ?link-name)
-        (lisp-fun symbol-to-prolog-rule ?link ?robot-name ?link-name))
-    (lisp-fun frame-to-pose-in-fixed-frame ?link-name ?pose-stamped)))
-
