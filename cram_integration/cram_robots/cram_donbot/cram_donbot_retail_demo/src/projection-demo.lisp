@@ -1,4 +1,5 @@
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,20 +27,5 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-object-knowledge
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
-  :license "BSD"
+(in-package :demo)
 
-  :depends-on (cram-prolog
-               cram-manipulation-interfaces
-               cram-designators ; mostly used for likely locations
-               )
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "environment" :depends-on ("package"))
-     (:file "household" :depends-on ("package"))
-     (:file "assembly" :depends-on ("package"))
-     (:file "retail" :depends-on ("package"))))))

@@ -1,4 +1,4 @@
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,8 +10,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
+;;;       Technische Universitaet Muenchen nor the names of its contributors 
+;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -26,20 +26,17 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-object-knowledge
+(defsystem cram-donbot-description
   :author "Gayane Kazhoyan"
   :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
   :depends-on (cram-prolog
-               cram-manipulation-interfaces
-               cram-designators ; mostly used for likely locations
+               cram-robot-interfaces
+               cram-location-costmap ; for robot-specific costmap metadata
                )
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "environment" :depends-on ("package"))
-     (:file "household" :depends-on ("package"))
-     (:file "assembly" :depends-on ("package"))
-     (:file "retail" :depends-on ("package"))))))
+     (:file "knowledge" :depends-on ("package"))))))
