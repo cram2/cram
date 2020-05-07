@@ -48,7 +48,9 @@
            #:event-other-object-name
            #:event-attachment-type
            #:event-arm
+           #:event-link
            #:event-grasp
+           #:event-not-loose
            ;; #:object-designator #:opening-distance
 
            #:environment-manipulation-event

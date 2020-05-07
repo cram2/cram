@@ -226,7 +226,7 @@
 (defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
   (let ((joint-state-msg
           (or (ik:call-ik-service-with-resampling
-               (cl-tf:pose->pose-stamped
+               (cl-transforms-stamped:pose->pose-stamped
                 base-link
                 0.0
                 cartesian-pose)
@@ -237,7 +237,7 @@
                *camera-resampling-step* :x
                0 (- *camera-x-axis-limit*) *camera-x-axis-limit*)
               (ik:call-ik-service-with-resampling
-               (cl-tf:pose->pose-stamped
+               (cl-transforms-stamped:pose->pose-stamped
                 base-link
                 0.0
                 cartesian-pose)
@@ -365,8 +365,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                      (prolog:prolog
                       `(and (rob-int:robot ?robot)
                             (btr:bullet-world ?w)
-                            (rob-int:robot-neck-joints
-                             ?robot . ?joint-names))))))))
+                            (rob-int:robot-neck-joints ?robot . ?joint-names))))))))
     (if pose
         (if (= neck-joints-num 2)
             (look-at-pose-stamped-two-joints pose)
@@ -566,16 +565,22 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                 joint-name-value-list))
                       (goal-joint-state
                         (mapcar #'second joint-name-value-list)))
-                 (unless (cram-tf:values-converged current-joint-state goal-joint-state
-                                                   *projection-convergence-delta-joint*)
+                 (unless (cram-tf:values-converged
+                          (cram-tf:normalize-joint-angles current-joint-state)
+                          (cram-tf:normalize-joint-angles goal-joint-state)
+                          *projection-convergence-delta-joint*)
                    (cpl:fail 'common-fail:manipulation-goal-not-reached
-                             :description (format nil "Projection did not converge to goal:~%~
+                             :description
+                             (format nil
+                                     "Projection did not converge to goal:~%~
                                                    ~a (~a)~%should have been at~%~a~%~
                                                    with delta-joint of ~a."
-                                                  arm
-                                                  current-joint-state
-                                                  goal-joint-state
-                                                  *projection-convergence-delta-joint*))))))))
+                                     arm
+                                     (cram-tf:normalize-joint-angles
+                                      current-joint-state)
+                                     (cram-tf:normalize-joint-angles
+                                      goal-joint-state)
+                                     *projection-convergence-delta-joint*))))))))
     (set-configuration :left left-configuration)
     (set-configuration :right right-configuration)))
 
@@ -811,12 +816,18 @@ otherwise check collisions in current joint state."
       (cut:lazy-car
        (prolog:prolog
         `(and (rob-int:robot ?robot)
-              (rob-int:robot-tool-frame ?robot :left ?left-tool-frame)
-              (rob-int:robot-tool-frame ?robot :right ?right-tool-frame)
-              (rob-int:end-effector-link ?robot :left ?left-ee-frame)
-              (rob-int:end-effector-link ?robot :right ?right-ee-frame)
-              (rob-int:arm-joints ?robot :left ?left-arm-joints)
-              (rob-int:arm-joints ?robot :right ?right-arm-joints)
+              (once (or (rob-int:robot-tool-frame ?robot :left ?left-tool-frame)
+                        (equal ?left-tool-frame nil)))
+              (once (or (rob-int:robot-tool-frame ?robot :right ?right-tool-frame)
+                        (equal ?right-tool-frame nil)))
+              (once (or (rob-int:end-effector-link ?robot :left ?left-ee-frame)
+                        (equal ?left-ee-frame nil)))
+              (once (or (rob-int:end-effector-link ?robot :right ?right-ee-frame)
+                        (equal ?right-ee-frame nil)))
+              (once (or (rob-int:arm-joints ?robot :left ?left-arm-joints)
+                        (equal ?left-arm-joints nil)))
+              (once (or (rob-int:arm-joints ?robot :right ?right-arm-joints)
+                        (equal ?right-arm-joints nil)))
               (rob-int:robot-torso-link-joint ?robot ?torso-link ?torso-joint)
               (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
               (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit))))

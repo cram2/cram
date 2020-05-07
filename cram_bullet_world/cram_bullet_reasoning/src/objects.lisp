@@ -338,7 +338,7 @@
           (let ((compound-shape (make-instance 'compound-shape))
                 (id-pose (cl-transforms:make-pose
                           (cl-transforms:make-3d-vector 0 0 0)
-                          (cl-tf:make-identity-rotation))))
+                          (cl-transforms:make-identity-rotation))))
             (mapcar (alexandria:compose
                      (alexandria:curry #'add-child-shape compound-shape id-pose)
                      #'make-ch-mesh-shape)

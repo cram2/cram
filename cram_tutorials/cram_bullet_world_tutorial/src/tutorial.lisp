@@ -73,10 +73,10 @@
    (cl-transforms:make-identity-rotation)))
 
 (defparameter *pose-meal-table*
-  (cl-tf:make-pose-stamped
+  (cl-transforms-stamped:make-pose-stamped
    "map" 0.0
-   (cl-tf:make-3d-vector -0.15 2.0 0)
-   (cl-tf:make-quaternion 0.0d0 0.0d0 -1.0d0 0.0d0)))
+   (cl-transforms:make-3d-vector -0.15 2.0 0)
+   (cl-transforms:make-quaternion 0.0d0 0.0d0 -1.0d0 0.0d0)))
 
 (defparameter *pose-counter*
   (cl-transforms-stamped:make-pose-stamped

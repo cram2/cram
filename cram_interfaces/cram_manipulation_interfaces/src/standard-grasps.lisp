@@ -37,10 +37,18 @@
   '(( 0  0 -1)
     (-1  0  0)
     ( 0  1  0)))
+(defparameter *x-across-z-grasp-rotation-2*
+  '((0  0 -1)
+    (1  0  0)
+    (0 -1  0)))
 (defparameter *-x-across-z-grasp-rotation*
   '((0 0 1)
     (1 0 0)
     (0 1 0)))
+(defparameter *-x-across-z-grasp-rotation-2*
+  '(( 0  0  1)
+    (-1  0  0)
+    ( 0 -1  0)))
 (defparameter *x-across-y-grasp-rotation*
   '(( 0  0 -1)
     ( 0 -1  0)

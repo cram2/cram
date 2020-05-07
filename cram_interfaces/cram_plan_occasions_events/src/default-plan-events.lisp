@@ -47,15 +47,6 @@
   contains a symbol indicating the sensor that produces the
   perception."))
 
-;; NOTE(winkler): This contradicts the above notice; will be resolved
-;; later after everything got cleaned up, as this is a conceptual
-;; issue, not a code-one.
-;; (defclass object-updated-event (object-perceived-event) ())
-
-;; (defclass object-removed-event (event)
-;;   ((object-name :initarg :object-name :reader event-object-name
-;;                 :initform :object-name)))
-
 (defclass robot-state-changed (event)
   ()
   (:documentation "Event that is generated whenever the robot state
@@ -75,24 +66,29 @@
   ((arm
     :initarg :arm
     :reader event-arm
-    :initform (error
-               'simple-error
-               :format-control "OBJECT-ATTACHED-ROBOT event requires an arm."))
+    :initform nil)
+   (link
+    :initarg :link
+    :reader event-link
+    :initform nil)
    (grasp
     :initarg :grasp
     :reader event-grasp
-    :initform nil
-    ;; (error 'simple-error
-    ;;        :format-control "OBJECT-ATTACHED-ROBOT event requires GRASP.")
-    )))
+    :initform nil)
+   (not-loose
+    :initarg :not-loose
+    :reader event-not-loose
+    :initform nil)))
 
 (defclass object-detached-robot (object-connection-event)
   ((arm
     :initarg :arm
     :reader event-arm
-    :initform (error
-               'simple-error
-               :format-control "OBJECT-DETACHED-ROBOT event requires an arm."))))
+    :initform nil)
+   (link
+    :initarg :link
+    :reader event-link
+    :initform nil)))
 
 (defclass object-attached-object (object-connection-event)
   ((other-object-name

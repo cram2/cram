@@ -121,13 +121,13 @@
  (proj:with-projection-environment pr2-proj::pr2-bullet-projection-environment
    (cpl:top-level
      (exe:perform
-      (let ((?pose (cl-tf:make-pose-stamped
+      (let ((?pose (cl-transforms-stamped:make-pose-stamped
                     cram-tf:*robot-base-frame* 0.0
                     (cl-transforms:make-3d-vector -4 -5 0)
                     (cl-transforms:make-identity-rotation))))
         (desig:a motion (type going) (pose ?pose))))
      (exe:perform
-      (let ((?pose (cl-tf:make-pose-stamped
+      (let ((?pose (cl-transforms-stamped:make-pose-stamped
                     cram-tf:*robot-base-frame* 0.0
                     (cl-transforms:make-3d-vector 0.5 0.3 1.0)
                     (cl-transforms:make-identity-rotation))))
