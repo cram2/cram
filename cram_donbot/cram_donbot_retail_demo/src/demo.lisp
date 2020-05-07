@@ -40,7 +40,7 @@
       (giskard::call-giskard-environment-service
        :add-environment
        :name (roslisp-utilities:rosify-underscores-lisp-name
-              (btr:name (btr:get-environment-object)))
+              (man-int:current-environment-symbol))
        :pose (cl-transforms-stamped:pose->pose-stamped
               cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
        :joint-state-topic "kitchen/joint_states")))
