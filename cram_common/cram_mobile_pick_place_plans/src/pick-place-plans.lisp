@@ -232,11 +232,11 @@
   "Park arms and call DETECTING action. The counter determines how often the detction should be tried.
    If it is below or equal 0 the World-state-detecting will be used."
   
-  (exe:perform
-   (desig:an action
-             (type positioning-arm)
-             (left-configuration park)
-             (right-configuration park)))
+  ;; (exe:perform                          
+  ;;  (desig:an action
+  ;;            (type positioning-arm)
+  ;;            (left-configuration park)
+  ;;            (right-configuration park)))
   
   (cpl:with-failure-handling
       (((or common-fail:perception-low-level-failure
