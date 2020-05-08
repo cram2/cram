@@ -100,11 +100,23 @@
   (<- (desig-solution-not-in-collision ?desig ?object-to-check ?pose)
     (btr:bullet-world ?world)
     (btr:with-copied-world ?world
-      (btr-belief:object-designator-name ?object-to-check ?object-name)
+      (object-designator-from-name-or-type ?object-to-check ?object-name)
       (btr:object ?world ?object-name)
       (btr:assert (btr:object-pose ?world ?object-name ?pose))
       (forall (btr:contact ?world ?object-name ?other-object-name)
-              (not (btr:item-type ?world ?other-object-name ?_))))))
+              (not (btr:item-type ?world ?other-object-name ?_)))))
+
+  (<- (object-designator-from-name-or-type ?object-designator ?object-name)
+    (or (and (bound ?object-designator)
+             (desig:obj-desig? ?object-designator))
+        (and (not (bound ?object-designator))
+             (lisp-fun btr-belief::unique-object-designators ?object-designators)
+             (member ?one-desig-from-chain ?object-designators)
+             (desig:current-designator ?one-desig-from-chain ?object-designator)))
+    (or (desig:desig-prop ?object-designator (:name ?object-name))
+        (and (desig:desig-prop ?object-designator (:type ?object-type))
+             (btr:bullet-world ?w)
+             (btr:item-type ?world ?object-name ?object-type)))))
 
 
 
@@ -203,14 +215,14 @@
     (-> (desig:loc-desig? ?ref-obj)
         (and (equal ?ref-obj-size 0.1)
              (equal ?ref-padding 0.1))
-        (and (btr-belief:object-designator-name ?ref-obj ?ref-obj-name)
+        (and (object-designator-from-name-or-type ?ref-obj ?ref-obj-name)
              (btr:bullet-world ?world)
              (btr:object ?world ?ref-obj-name)
              (object-size-without-handles ?world ?ref-obj-name ?ref-obj-size)
              (padding-size ?world ?ref-obj-name ?ref-padding)))
     ;;
     (-> (desig:desig-prop ?designator (:for ?for-obj))
-        (and (btr-belief:object-designator-name ?for-obj ?for-obj-name)
+        (and (object-designator-from-name-or-type ?for-obj ?for-obj-name)
              (btr:object ?world ?for-obj-name)
              (object-size-without-handles ?world ?for-obj-name ?for-obj-size)
              (padding-size ?world ?for-obj-name ?for-padding))
@@ -263,7 +275,7 @@
     (-> (desig:loc-desig? ?ref-designator)
         (and (equal ?edge :front)
              (lisp-fun cl-transforms:make-identity-pose ?supp-obj-pose))
-        (and (btr-belief:object-designator-name ?ref-designator ?obj-name)
+        (and (object-designator-from-name-or-type ?ref-designator ?obj-name)
              (btr:bullet-world ?world)
              (btr:object ?world ?obj-name)
              (-> (supporting-rigid-body ?world ?obj-name ?supporting-rigid-body)
@@ -317,7 +329,7 @@
     (collision-costmap-padding-in-meters ?padding)
     (-> (desig:desig-prop ?desig (:for ?object))
         (and
-         (btr-belief:object-designator-name ?object ?object-name)
+         (object-designator-from-name-or-type ?object ?object-name)
          (btr:object ?world ?object-name)
          (object-size-without-handles ?world ?object-name ?obj-size)
          (lisp-fun / ?obj-size 2 ?obj-size/2)
@@ -336,7 +348,7 @@
      (desig:desig-prop ?designator (:far-from ?ref-obj))
      (desig:desig-prop ?designator (:near ?ref-obj)))
     (costmap:costmap ?costmap)
-    (btr-belief:object-designator-name ?ref-obj ?ref-obj-name)
+    (object-designator-from-name-or-type ?ref-obj ?ref-obj-name)
     (btr:bullet-world ?world)
     (btr:object ?world ?ref-obj-name)
     (-> (bagof ?z (and (supporting-rigid-body ?world ?ref-obj-name ?rigid-body)
@@ -344,7 +356,7 @@
                ?z-bag)
         (and (max ?z-bag ?highest-z)
              (-> (desig:desig-prop ?designator (:for ?for-obj))
-                 (and (btr-belief:object-designator-name ?for-obj ?for-obj-name)
+                 (and (object-designator-from-name-or-type ?for-obj ?for-obj-name)
                       (btr:object ?world ?for-obj-name)
                       (btr:%object ?world ?for-obj-name ?for-object-instance)
                       (lisp-fun btr:calculate-bb-dims ?for-object-instance ?dimensions)
@@ -363,7 +375,7 @@
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?object))
     (not (desig:desig-prop ?designator (:attachment ?_)))
-    (btr-belief:object-designator-name ?object ?object-instance-name)
+    (object-designator-from-name-or-type ?object ?object-instance-name)
     (btr:bullet-world ?world)
     (btr:item-type ?world ?object-instance-name ?_)
     (btr:%object ?world ?object-instance-name ?object-instance)
@@ -393,7 +405,7 @@
      ?costmap)
     ;; height generator
     (once (or (and (desig:desig-prop ?designator (:for ?for-object))
-                   (btr-belief:object-designator-name ?for-object ?for-object-name)
+                   (object-designator-from-name-or-type ?for-object ?for-object-name)
                    (btr:%object ?world ?for-object-name ?for-object-instance)
                    (costmap:costmap-add-height-generator
                     (make-object-on/in-object-bb-height-generator
@@ -453,7 +465,7 @@
                                     ?environment-link ?height-calculation-tag)
     (costmap:costmap ?costmap)
     (once (or (and (desig:desig-prop ?designator (:for ?for-object))
-                   (btr-belief:object-designator-name ?for-object ?for-object-name)
+                   (object-designator-from-name-or-type ?for-object ?for-object-name)
                    (btr:%object ?world ?for-object-name ?for-object-instance)
                    (costmap:costmap-add-function
                     on-bounding-box
@@ -509,7 +521,7 @@
     (btr:%object ?world ?environment-name ?environment-object)
     (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?environment-link)
     (lisp-pred identity ?environment-link)
-    (btr-belief:object-designator-name ?for-object ?object-name)
+    (object-designator-from-name-or-type ?for-object ?object-name)
     (btr:item-type ?world ?object-name ?object-type)
     (slot-costmap ?designator ?environment-link ?urdf-name :table-setting ?object-type
                   ?object-count
