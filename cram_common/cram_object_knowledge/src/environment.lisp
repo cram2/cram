@@ -33,6 +33,14 @@
   (<- (man-int:environment-name :environment)))
 
 
+(def-fact-group costmap-metadata (costmap:costmap-size
+                                  costmap:costmap-origin
+                                  costmap:costmap-resolution)
+  (<- (costmap:costmap-size 12 12))
+  (<- (costmap:costmap-origin -6 -6))
+  (<- (costmap:costmap-resolution 0.04)))
+
+
 (def-fact-group environment-object-type-hierarchy (man-int:object-type-direct-subtype)
   (<- (man-int:object-type-direct-subtype :container :container-prismatic))
   (<- (man-int:object-type-direct-subtype :container-prismatic :drawer))
