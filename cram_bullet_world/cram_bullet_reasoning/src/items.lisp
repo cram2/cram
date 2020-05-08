@@ -46,6 +46,8 @@
     (:weisswurst "package://cram_bullet_reasoning/resource/ww.stl" nil)
     (:bowl-original "package://cram_bullet_reasoning/resource/bowl_original.stl" t)
     (:bowl "package://cram_bullet_reasoning/resource/bowl.stl" nil)
+    (:bottle "package://cram_pr2_pick_place_demo/resource/bottle.dae" nil)
+    (:bread "package://cram_bullet_reasoning/resource/bread1.stl" nil)
     (:bowl-compound "package://cram_bullet_reasoning/resource/bowl_compound.dae" nil)
     (:ikea-bowl "package://cram_bullet_reasoning/resource/ikea_bowl.stl" nil)
     (:ikea-bowl-ww "package://cram_bullet_reasoning/resource/ikea_bowl_ww.stl" nil)
@@ -54,6 +56,7 @@
     (:salt "package://cram_bullet_reasoning/resource/salt.stl" nil)
     (:fork "package://cram_bullet_reasoning/resource/fork.stl" nil)
     (:knife "package://cram_bullet_reasoning/resource/knife.stl" nil)
+    (:big-knife "package://cram_bullet_reasoning/resource/big-knife.stl" nil)
     (:spatula "package://cram_bullet_reasoning/resource/spatula.stl" nil)
     (:cap "package://cram_bullet_reasoning/resource/cap.stl" t)
     (:glasses "package://cram_bullet_reasoning/resource/glasses.stl" nil)
@@ -307,6 +310,17 @@ The name in the list is a keyword that is created by lispifying the filename."
                                    :half-extents (ensure-vector size)
                                    :color color)))))
 
+(defmethod add-object ((world bt-world) (type (eql :bread)) name pose
+                       &key mass (color '(0 1 0 0.5)) size)
+  (assert size)
+  (make-item world name (list type)
+             (list
+              (make-instance 'rigid-body
+                :name name :mass mass :pose (ensure-pose pose)
+                :collision-shape (make-instance 'colored-box-shape
+                                   :half-extents (ensure-vector size)
+                                   :color color)))))
+
 (defmethod btr:add-object ((world bullet:bt-world) (type (eql :box-item)) name pose
                            &key mass (color '(1.0 0.0 0.0 1.0)) size item-type)
   (assert size)
@@ -319,6 +333,8 @@ The name in the list is a keyword that is created by lispifying the filename."
                   :collision-shape (make-instance 'bt-vis:colored-box-shape
                                      :half-extents (btr:ensure-vector size)
                                      :color color))))))
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;; ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;

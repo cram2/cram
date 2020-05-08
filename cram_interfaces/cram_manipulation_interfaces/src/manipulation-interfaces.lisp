@@ -88,4 +88,3 @@ is considered closed.
   placing or dropping it on the `other-object'.")
   (:method :heuristics 20 (other-object object attachment)
     0.0))
-  

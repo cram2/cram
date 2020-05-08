@@ -40,6 +40,8 @@
    #:get-object-pose-in-map
    #:get-object-old-transform
    #:get-object-old-pose
+   #:get-object-old-transform-in-map
+   #:get-object-old-pose-in-map
    ;; prolog
    #:object-type-subtype
    #:object-type-direct-subtype
@@ -71,6 +73,9 @@
    #:get-traj-poses-by-label
    #:calculate-gripper-pose-in-base
    #:calculate-gripper-pose-in-map
+   #:get-object-type-robot-frame-slice-up-transform
+   #:get-object-type-robot-frame-slice-down-transform
+   #:get-object-type-robot-frame-tilt-approach-transform
    ;;
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transform

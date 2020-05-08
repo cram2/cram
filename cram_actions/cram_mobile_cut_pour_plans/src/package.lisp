@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Vanessa Hassouna <hassouna@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,21 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-manipulation-interfaces
-  :author "Gayane Kazhoyan"
-  :license "BSD"
-  :description "Object interfaces"
+(in-package :cl-user)
 
-  :depends-on (cram-prolog
-               cram-utilities ; for lazy lists in manipulation.lisp
-               cram-designators
-               cram-tf
-               cl-transforms-stamped
-               cram-robot-interfaces ; for gripper transform calculations
-               cram-plan-occasions-events ; for robot-free-arm
-               cram-utilities ; for working with prolog lazy listssy
-               )
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-
-     (:file "object-designator-interfaces" :depends-on ("package"))
-     (:file "prolog" :depends-on ("package" "object-designator-interfaces"))
-
-     (:file "object-hierarchy" :depends-on ("package" "prolog"))
-     (:file "manipulation-interfaces" :depends-on ("package"))
-     (:file "gripper" :depends-on ("package" "manipulation-interfaces" "object-hierarchy"))
-     (:file "grasps" :depends-on ("package" "manipulation-interfaces"))
-     (:file "trajectories" :depends-on ("package"
-                                        "prolog" "manipulation-interfaces" "object-hierarchy"))
-
-     (:file "standard-grasps" :depends-on ("package"))
-     (:file "standard-rotations" :depends-on ("package"))
-
-     (:file "utils" :depends-on ("package"))))))
+(defpackage cram-mobile-cut-pour-plans
+  (:nicknames #:cp-plans)
+  (:use #:common-lisp #:cram-prolog)
+  (:export
+   ;; atomic-action-plans
+   #:move-arms-in-sequence
+   #:release #:grip #:close-gripper #:set-gripper-to-position
+   #:look-at #:go-to-target
+   ;; pick-place-plans
+   #:pick-up #:place
+   ;; high-level-plans
+   #:perceive
+   ;; #:drive-to-reach-pose #:drive-towards-object-plan #:drive-and-pick-up-plan
+   ;; #:perceive-and-drive-and-pick-up-plan
+   ;; #:pick-and-place-plan
+   ))
