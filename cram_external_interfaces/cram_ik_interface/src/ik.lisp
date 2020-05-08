@@ -136,24 +136,27 @@ If not valid solution was found, returns NIL."
         (roslisp:set-debug-level nil old-debug-lvl)))))
 
 
-(defmacro find-ik-for (cartesian-pose
-                       base-link tip-link
-                       seed-state &body body)
+(defmacro find-ik-for ((cartesian-pose
+                        base-link tip-link
+                        seed-state-message
+                        &key solution-valid-p)
+                       &body body)
   "Method to find inverse kinematics for a given cartesian pose using resampling
 Syntax:
- (ik::find-ik-for ?goal-pose base-link tip-link seed-state-message
-         (ik::with-resampling current-value resampling-axis upper-limit lower-limit resampling-step
-             (ik::with-resampling current-value2 resampling-axis2 ...
-                            ....)))
+ (ik::find-ik-for (?goal-pose base-link tip-link seed-state-message)
+         (ik::with-resampling (current-value resampling-axis upper-limit lower-limit resampling-step)
+             (ik::with-resampling current-value2 resampling-axis2 ...)
+                            ....))
 "
   (let* ((current-pose (list (cons 'pose (eval cartesian-pose))))
          (get-current-pose (lambda () (cdr (assoc 'pose current-pose))))
          (set-current-pose (lambda (val) (setf (cdr (assoc 'pose current-pose)) val))))
        
     `(macrolet ((with-resampling (&whole whole-form
-                                         current-value resampling-axis
-                                         upper-limit lower-limit
-                                         interval-size
+                                         (current-value
+                                          resampling-axis
+                                          upper-limit lower-limit
+                                          resampling-step)
                                          &body body)
                     (let ((form-length (length whole-form)))
                       ;;Formulating a list of joint values to sample
@@ -162,7 +165,7 @@ Syntax:
                                 (list ,current-value)
                                 (loop 
                                   for x = ,upper-limit
-                                    then  (- x ,interval-size)
+                                    then  (- x ,resampling-step)
                                   until (<= x ,lower-limit)
                                   collect x)
                                 (list ,lower-limit)))
@@ -196,10 +199,12 @@ Syntax:
                                         ;; If no &body clause make the ik-service call
                                         (call-ik-service
                                          (funcall pseudo-pose value)
-                                         ,,base-link ,,tip-link ,,seed-state))
+                                         ,,base-link ,,tip-link ,,seed-state-message))
                                   
                                   ;; When a solution is obtained parse accordingly
-                                  (when solution-msg
+                                  (when (and solution-msg
+                                             (or (not ,,solution-valid-p)
+                                                 (funcall ,,solution-valid-p solution-msg)))
                                     (return (values solution-msg 
                                                     (cons (cons ,resampling-axis value)
                                                           joint-values))))))))))
