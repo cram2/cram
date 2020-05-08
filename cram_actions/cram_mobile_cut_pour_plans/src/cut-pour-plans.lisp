@@ -130,7 +130,8 @@
                  (type approaching)
                  (left-poses ?left-approach-poses)
                  (right-poses ?right-approach-poses))))
-(sleep 2)
+  (cpl:sleep 2)
+  ;;(break)
     
     (roslisp:ros-info (cut-pour pour) "Tilting")
     (cpl:with-failure-handling
@@ -145,7 +146,8 @@
                  (type tilting)
                  (left-poses ?left-tilt-poses)
                  (right-poses ?right-tilt-poses))))
-(sleep 2)
+  (cpl:sleep 2)
+  ;;(break)
     
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
@@ -159,6 +161,8 @@
                  (type approaching)
                  (left-poses ?left-approach-poses)
                  (right-poses ?right-approach-poses))))
+
+  ;;(break)
     
     ;; (print ?object-type) (print '?object-in-hand-type)
   
