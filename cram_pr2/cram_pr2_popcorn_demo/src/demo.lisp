@@ -30,12 +30,14 @@
 (in-package :demo)
 
 (defparameter *start-pose* '((-0.35 -0.9 0.0)(0 0 -0.707 0.707)))
+(defparameter *pouring-popcorn-corn-pose* '((-0.2 -0.9 0.0)(0 0 -0.707 0.707)))
 (defparameter *robot-salt-pose* '((0.3 -0.9 0)(0 0 -0.707 0.707)))
 (defparameter *pot-cooking-pose* '((-0.15 -1.45 0.755)(0 0 0 1)))
 (defparameter *pot-lid-on-cooking-pot-pose* '((-0.135 -1.535 0.815)(0 0 0 1)))
-(defparameter *pot-lid-after-cooking-pose* '((-0.75 -1.5 0.75)(0 0 0 1)))
-(defparameter *ikea-bowl-pose* '((-1.005 -1.44 0.755)(0 0 0 1)))
-                                                                    
+(defparameter *pot-lid-after-cooking-pose* '((-0.87 -1.5 0.75)(0 0 0 1)))
+(defparameter *ikea-bowl-pose* '((-1.08 -1.44 0.755)(0 0 0 1)))
+(defparameter *ikea-plate-pose* '((0.3 -1.52 0.75)(0 0 0 1)))
+
 
 (defparameter *object-grasps*
   '((:popcorn-pot . :top)
@@ -112,6 +114,10 @@
   ;;  (ccl::export-belief-state-to-owl "ease_milestone_2018_belief.owl"))
   (sb-ext:gc :full t))
 
+(defun robot-state-changed ()
+  (cram-occasions-events:on-event
+   (make-instance 'cram-plan-occasions-events:robot-state-changed)))
+
 
 (cpl:def-cram-function demo ()
 
@@ -120,9 +126,6 @@
     (spawn-objects))
 
   (park-robot)
-
-  ;; (an object
-  ;;     (obj-part "drawer_sinkblock_upper_handle"))
 
   (cpl:with-failure-handling
       ((common-fail:high-level-failure (e)
@@ -134,6 +137,10 @@
 
     ;; Pick the popcorn pot up
     (go-to-pose (convert-pose *start-pose*))
+
+    ;; Update robot state
+    (robot-state-changed)
+    
     (pick-object :popcorn-pot :right)
 
     ;; Place it on the stove
@@ -147,8 +154,25 @@
 
     ;; pick the ikea bowl up
     (pick-object :ikea-bowl-ww :right)
+
+    ;; go to pose to pour the popcorn corn in the bowl
+    (go-to-pose (convert-pose *pouring-popcorn-corn-pose*))
+
+    (robot-state-changed)
     
-    ;; TODO: pour it in the popcorn-pot
+    ;; pour it in the popcorn-pot
+    (let ((?object-to-pour-into
+            (world-state-detecting :popcorn-pot)))
+
+      (exe:perform
+       (desig:an action
+                 (type pouring)
+                 (object ?object-to-pour-into)
+                 (arms (right))
+                 (grasp right-side))))
+
+    ;; go back to the previous pose
+    (go-to-pose (convert-pose *start-pose*))
     
     ;; put ikea bowl away
     (place-object (convert-pose *ikea-bowl-pose*) :right)
@@ -167,11 +191,11 @@
     
     ;; move right arm to knob-1
     (let ((?knob-1-reach-pose
-              (cl-tf:make-pose-stamped
-               cram-tf:*fixed-frame*
-               0.0
-               (cl-tf:make-3d-vector -0.535 -1.41 0.754)
-               (cl-tf:make-quaternion 0.5 0.5 -0.5 0.5))))
+            (cl-tf:make-pose-stamped
+             cram-tf:*fixed-frame*
+             0.0
+             (cl-tf:make-3d-vector -0.535 -1.41 0.754)
+             (cl-tf:make-quaternion 0.5 0.5 -0.5 0.5))))
       (move-arms :?right-arm-pose ?knob-1-reach-pose))
     
     ;; close the gripper
@@ -300,7 +324,7 @@
       '((-0.005 -1.53 0.782)
         (-0.183 0.683 0.683 0.183))))
 
-    ;; Attaching popcorn pot to the robot
+    ;; Attaching popcorn pot to one of the robot arm links
     (btr:attach-object (btr:get-robot-object) 
                        (btr:object btr:*current-bullet-world* :popcorn-pot-1)
                        :link "l_gripper_palm_link")
@@ -332,93 +356,171 @@
     (place-object (convert-pose *pot-lid-after-cooking-pose*)
                   :right)
 
+    ;; Grasp the popcorn pot
+    (move-arms 
+     :?right-arm-pose
+     (convert-pose 
+      '((-0.515 -1.53 0.782)
+        (-0.7071067690849304d0 0.0d0 0.0d0 0.7071067690849304d0)))
+     :?left-arm-pose
+     (convert-pose 
+      '((-0.245 -1.53 0.782)
+        (0.0d0 0.7071067690849304d0 -0.7071067690849304d0 0.0d0))))
+
+
+    ;; Attaching popcorn pot to the robot
+    (btr:attach-object (btr:get-robot-object) 
+                       (btr:object btr:*current-bullet-world* :popcorn-pot-1)
+                       :link "l_gripper_palm_link")
+
+    ;; Lift the popcorn pot from the stove
+    (move-arms 
+     :?right-arm-pose
+     (convert-pose 
+      '((-0.515 -1.48 1.032)
+        (-0.7071067690849304d0 0.0d0 0.0d0 0.7071067690849304d0)))
+     :?left-arm-pose
+     (convert-pose 
+      '((-0.245 -1.48 1.032)
+        (0.0d0 0.7071067690849304d0 -0.7071067690849304d0 0.0d0))))
+
+    ;; Move the robot to the plate
+    (go-to-pose (convert-pose *robot-salt-pose*) T)
+
+    (robot-state-changed)
+    
+    ;; Pour the popcorn from the popcorn-pot in the plate
+    (let ((?plate-to-pour-into
+            (world-state-detecting :plate)))
+
+      (exe:perform
+       (desig:an action
+                 (type pouring)
+                 (object ?plate-to-pour-into)
+                 (arms (right left))
+                 (grasp back))))
+
+    ;; Go back to the stove the place the popcorn pot
+    (go-to-pose (convert-pose *start-pose*) T)
+
+    ;; Move popcorn pot away 
+    ;; (move-arms                          
+    ;;  :?right-arm-pose
+    ;;  (convert-pose 
+    ;;   '((-0.515 -1.53 0.782)
+    ;;     (0.683 0.183 -0.183 0.683)))
+    ;;  :?left-arm-pose
+    ;;  (convert-pose 
+    ;;   '((-0.245 -1.53 0.782)
+    ;;     (-0.183 0.683 0.683 0.183))))
+
+    ;; move popcorn pot above the stove
+    (move-arms 
+     :?right-arm-pose
+     (convert-pose 
+      '((-0.515 -1.53 0.782)
+        (-0.7071067690849304d0 0.0d0 0.0d0 0.7071067690849304d0)))
+     :?left-arm-pose
+     (convert-pose 
+      '((-0.245 -1.53 0.782)
+        (0.0d0 0.7071067690849304d0 -0.7071067690849304d0 0.0d0))))
+
+    ;; Detach popcorn pot from the robot
+    (btr:detach-all-objects (btr:get-robot-object))
+
+    (park-arms)
+
     ;; Salting the popcron
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    ;; Move to the plate
-    (go-to-pose (convert-pose *robot-salt-pose*))
+    ;; move robot to the plate
+    (go-to-pose (convert-pose *robot-salt-pose*) T)
     
-    ;; Picking the salt up
+    (robot-state-changed)
+    
+    ;; Pick the salt up
     (pick-object :salt :left)
 
+    ;; Salt the popcorn
     (let ((right-hand-position (cl-tf:make-3d-vector 0.28 -1.5 0.86))
           (left-hand-position (cl-tf:make-3d-vector 0.28 -1.5 0.9))
           (offset 0.01))
-    
-    (dotimes (c 5)
-      (let ((dynamic-right-hand-position 
-              (with-slots (cl-tf:x cl-tf:y cl-tf:z)
-                  right-hand-position
-                (cl-tf:make-3d-vector (+ cl-tf:x (* c offset))
-                                      cl-tf:y
-                                      cl-tf:z)))
-            (dynamic-left-hand-position 
-              (with-slots (cl-tf:x cl-tf:y cl-tf:z)
-                  left-hand-position
-                (cl-tf:make-3d-vector (+ cl-tf:x (* c offset))
-                                      cl-tf:y
-                                      cl-tf:z))))
+      
+      (dotimes (c 5)
+        (let ((dynamic-right-hand-position 
+                (with-slots (cl-tf:x cl-tf:y cl-tf:z)
+                    right-hand-position
+                  (cl-tf:make-3d-vector (+ cl-tf:x (* c offset))
+                                        cl-tf:y
+                                        cl-tf:z)))
+              (dynamic-left-hand-position 
+                (with-slots (cl-tf:x cl-tf:y cl-tf:z)
+                    left-hand-position
+                  (cl-tf:make-3d-vector (+ cl-tf:x (* c offset))
+                                        cl-tf:y
+                                        cl-tf:z))))
 
-        (when (eq c 0)
-          (let ((?arm :right)
-                (?gripper-opening 0.048))
-            (exe:perform
-             (desig:an action
-                       (type setting-gripper)
-                       (gripper ?arm)
-                       (position ?gripper-opening)))))
+          (when (eq c 0)
+            (let ((?arm :right)
+                  (?gripper-opening 0.048))
+              (exe:perform
+               (desig:an action
+                         (type setting-gripper)
+                         (gripper ?arm)
+                         (position ?gripper-opening)))))
 
-        ;; Moving the salt in the right pose over the plate
-        (move-arms 
-         :?right-arm-pose
-         (cl-tf:make-pose-stamped
-          cram-tf:*fixed-frame*
-          0.0
-          dynamic-right-hand-position 
-          (cl-tf:euler->quaternion :ax pi :ay 0.0 :az 0))
-         :?left-arm-pose
-         (cl-tf:make-pose-stamped
-          cram-tf:*fixed-frame*
-          0.0
-          dynamic-left-hand-position
-          (cl-tf:euler->quaternion :ax pi :ay 0.0 :az pi)))
-
-        (sleep 0.5)
-        
-        ;; Salt the pocorn by ....
-        ;; ... rotating both endeffectors towards the robot
-        (dotimes (angle-c 6)
+          ;; Moving the salt in the right pose over the plate
           (move-arms 
            :?right-arm-pose
            (cl-tf:make-pose-stamped
             cram-tf:*fixed-frame*
             0.0
             dynamic-right-hand-position 
-            (cl-tf:euler->quaternion :ax pi :ay 0.0 :az (*
-                                                         angle-c
-                                                         (/ pi 36))))
+            (cl-tf:euler->quaternion :ax pi :ay 0.0 :az 0))
            :?left-arm-pose
            (cl-tf:make-pose-stamped
             cram-tf:*fixed-frame*
             0.0
             dynamic-left-hand-position
-            (cl-tf:euler->quaternion :ax pi :ay 0.0 :az (- pi (*
-                                                               angle-c
-                                                               (/ pi 36)))))))
+            (cl-tf:euler->quaternion :ax pi :ay 0.0 :az pi)))
 
-        (sleep 0.5)
-        ;; ... and rotating back.
-        (sleep 0.5)
-        ;; repeat for another pose above the plate
-        )))
-      
-      ;; place salt back
-      (place-object (convert-pose '((0.5 -1.6 0.78) (0 0 0 1))) :left)
-    )
+          (sleep 0.5)
+          
+          ;; Salt the pocorn by ....
+          ;; ... rotating both endeffectors towards the robot
+          (dotimes (angle-c 6)
+            (move-arms 
+             :?right-arm-pose
+             (cl-tf:make-pose-stamped
+              cram-tf:*fixed-frame*
+              0.0
+              dynamic-right-hand-position 
+              (cl-tf:euler->quaternion :ax pi :ay 0.0 :az (*
+                                                           angle-c
+                                                           (/ pi 36))))
+             :?left-arm-pose
+             (cl-tf:make-pose-stamped
+              cram-tf:*fixed-frame*
+              0.0
+              dynamic-left-hand-position
+              (cl-tf:euler->quaternion :ax pi :ay 0.0 :az (- pi (*
+                                                                 angle-c
+                                                                 (/ pi 36)))))))
+
+          (sleep 0.5)
+          ;; ... and rotating back.
+          (sleep 0.5)
+          ;; repeat for another pose above the plate
+          )))
+    
+    ;; place salt back
+    (place-object (convert-pose '((0.5 -1.6 0.78) (0 0 0 1))) :left)
+
+    (park-robot))
   
   
-    (park-robot)
-    
-    (finalize)
-    
-    cpl:*current-path*)
+  (park-robot)
+  
+  (finalize)
+  
+  cpl:*current-path*)
