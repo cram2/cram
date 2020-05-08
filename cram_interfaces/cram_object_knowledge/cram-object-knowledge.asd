@@ -34,6 +34,7 @@
   :depends-on (cram-prolog
                cram-manipulation-interfaces
                cram-designators ; mostly used for likely locations
+               cram-location-costmap ; for specifying the metadata
                )
   :components
   ((:module "src"

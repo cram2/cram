@@ -50,6 +50,7 @@
 
                cram-common-failures
                cram-mobile-pick-place-plans
+               cram-object-knowledge
 
                ;; cram-robosherlock
 
