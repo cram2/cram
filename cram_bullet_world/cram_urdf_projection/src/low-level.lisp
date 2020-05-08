@@ -218,35 +218,39 @@
                   :description "Look action wanted to twist the neck")))))
 
 (defparameter *camera-pose-unit-vector-multiplyer* 0.4)
-(defparameter *camera-pose-z-offset* 0.2)
 (defparameter *camera-resampling-step* 0.1)
 (defparameter *camera-x-axis-limit* 0.5)
 (defparameter *camera-y-axis-limit* 0.5)
 
 (defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
-  (let ((joint-state-msg
-          (or (ik:call-ik-service-with-resampling
-               (cl-transforms-stamped:pose->pose-stamped
-                base-link
-                0.0
-                cartesian-pose)
-               base-link ee-link
-               (btr::make-robot-joint-state-msg
-                (btr:get-robot-object)
-                :joint-names joint-names)
-               *camera-resampling-step* :x
-               0 (- *camera-x-axis-limit*) *camera-x-axis-limit*)
-              (ik:call-ik-service-with-resampling
-               (cl-transforms-stamped:pose->pose-stamped
-                base-link
-                0.0
-                cartesian-pose)
-               base-link ee-link
-               (btr::make-robot-joint-state-msg
-                (btr:get-robot-object)
-                :joint-names joint-names)
-               *camera-resampling-step* :y
-               0 (- *camera-y-axis-limit*) *camera-y-axis-limit*))))
+  (let* ((validation-function
+           (lambda (ik-solution-msg)
+             (not (perform-collision-check :avoid-all NIL NIL ik-solution-msg))))
+         (joint-state-msg
+           (or (ik:call-ik-service-with-resampling
+                (cl-transforms-stamped:pose->pose-stamped
+                 base-link
+                 0.0
+                 cartesian-pose)
+                base-link ee-link
+                (btr::make-robot-joint-state-msg
+                 (btr:get-robot-object)
+                 :joint-names joint-names)
+                *camera-resampling-step* :x
+                0 (- *camera-x-axis-limit*) *camera-x-axis-limit*
+                validation-function)
+               (ik:call-ik-service-with-resampling
+                (cl-transforms-stamped:pose->pose-stamped
+                 base-link
+                 0.0
+                 cartesian-pose)
+                base-link ee-link
+                (btr::make-robot-joint-state-msg
+                 (btr:get-robot-object)
+                 :joint-names joint-names)
+                *camera-resampling-step* :y
+                0 (- *camera-y-axis-limit*) *camera-y-axis-limit*
+                validation-function))))
     (when joint-state-msg
       (map 'list #'identity (roslisp:msg-slot-value joint-state-msg :position)))))
 
@@ -266,11 +270,17 @@ with the object, calculates similar angle around Y axis and applies the rotation
          (neck-base-t-object-unit-vector
            (cl-transforms:normalize-vector neck-base-t-object-vector-without-z))
          (neck-base-t-object-short-vector
-           (cl-transforms:v* neck-base-t-object-unit-vector *camera-pose-unit-vector-multiplyer*))
+           (cl-transforms:v* neck-base-t-object-unit-vector
+                             *camera-pose-unit-vector-multiplyer*))
          (neck-base-t-object-short-vector-lifted
-           (cl-transforms:v+ neck-base-t-object-short-vector
-                             (cl-transforms:make-3d-vector 0 0 *camera-pose-z-offset*)))
-
+           (cl-transforms:v+
+            neck-base-t-object-short-vector
+            (cl-transforms:make-3d-vector
+             0 0 (cut:var-value
+                  '?z-offset
+                  (car (prolog:prolog
+                        `(and (rob-int:robot ?robot)
+                              (rob-int:neck-camera-z-offset ?robot ?z-offset))))))))
          (neck-base-t-camera-not-oriented
            (cl-transforms:make-transform
             neck-base-t-object-short-vector-lifted
@@ -284,8 +294,10 @@ with the object, calculates similar angle around Y axis and applies the rotation
             neck-base-t-object))
          (rotation-angle-around-x
            (- (atan
-               (cl-transforms:y (cl-transforms:translation camera-not-oriented-t-object))
-               (cl-transforms:z (cl-transforms:translation camera-not-oriented-t-object)))))
+               (cl-transforms:y
+                (cl-transforms:translation camera-not-oriented-t-object))
+               (cl-transforms:z
+                (cl-transforms:translation camera-not-oriented-t-object)))))
          (neck-base-t-camera-rotated-around-x
            (cram-tf:rotate-transform-in-own-frame
             neck-base-t-camera-not-oriented
