@@ -267,7 +267,7 @@
     ((object-type (eql :cup))
      (arm (eql :right))
      (grasp (eql :left-side)))
-  '((0.0 -0.085 0.065)(0 0 0 1)))
+  '((0.0 0.085 0.065)(0 0 0 1)))
 
 
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :right-side
@@ -289,7 +289,7 @@
     ((object-type (eql :cup))
      (arm (eql :left))
      (grasp (eql :right-side)))
-  '((0.0 0.085 0.065)(0 0 0 1)))
+  '((0.0 -0.085 0.065)(0 0 0 1)))
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :back

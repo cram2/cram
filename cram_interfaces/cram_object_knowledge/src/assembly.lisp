@@ -246,6 +246,74 @@
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
+(man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :left-side
+  :grasp-translation `(0.0 0.105 0.025)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 0.02)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.02)
+  :lift-offsets `(0.0 0.0 0.02)
+  :2nd-lift-offsets `(0.0 0.0 0.02))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :popcorn-pot))
+     (arm (eql :left))
+     (grasp (eql :left-side)))
+  '((0.0 0.0 0.12)(0 0 0 1)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :popcorn-pot))
+     (arm (eql :right))
+     (grasp (eql :left-side)))
+  '((0.0 0.0 0.12)(0 0 0 1)))
+
+(man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :right-side
+  :grasp-translation `(0.0 0.105 0.025)
+  :grasp-rot-matrix man-int::*z-across--y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 0.02)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.02)
+  :lift-offsets `(0.0 0.0 0.02)
+  :2nd-lift-offsets `(0.0 0.0 0.02))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :popcorn-pot))
+     (arm (eql :left))
+     (grasp (eql :right-side)))
+  '((0.0 -0.21 0.12)(0 0 0 1)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :popcorn-pot))
+     (arm (eql :right))
+     (grasp (eql :right-side)))
+  '((0.0 -0.21 0.12)(0 0 0 1)))
+
+(man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :front
+  :grasp-translation `(0.0 0.105 0.025)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 0.02)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.02)
+  :lift-offsets `(0.0 0.0 0.02)
+  :2nd-lift-offsets `(0.0 0.0 0.02))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :popcorn-pot))
+     arm
+     (grasp (eql :front)))
+  '((0.1 -0.105 0.12)(0 0 0 1)))
+
+(man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :back
+  :grasp-translation `(0.0 0.105 0.025)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 0.02)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.02)
+  :lift-offsets `(0.0 0.0 0.02)
+  :2nd-lift-offsets `(0.0 0.0 0.02))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :popcorn-pot))
+     arm
+     (grasp (eql :back)))
+  '((-0.1 -0.105 0.12)(0 0 0 1)))
+
 ;;;;;;;;;;;;;;;;;;;;;; POPCORN-POT-LID ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; TOP GRASP
@@ -261,7 +329,7 @@
 
 ;; TOP GRASP
 (man-int:def-object-type-to-gripper-transforms :ikea-bowl-ww '(:left :right) :top
-  :grasp-translation `(0.0 0.075 0.03)
+  :grasp-translation `(0.0 0.075 0.025)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
@@ -289,6 +357,34 @@
   :2nd-pregrasp-offsets *default-lift-offsets*
   :lift-offsets *default-lift-offsets*
   :2nd-lift-offsets *default-lift-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :plate '(:right) :back
+  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :plate '(:left) :back
+  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-offsets *default-lift-offsets*
+  :2nd-lift-offsets *default-lift-offsets*)
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :plate))
+     (arm (eql :left))
+     (grasp (eql :back)))
+  '((-0.1 0.125 0.15)(0 0 0 1)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :plate))
+     (arm (eql :right))
+     (grasp (eql :back)))
+  '((-0.1 -0.125 0.15)(0 0 0 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
