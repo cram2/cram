@@ -68,6 +68,7 @@
                cram-urdf-projection-reasoning ; to set projection reasoning to T
                ;; cram-pr2-description
                cram-fetch-deliver-plans
+               cram-mobile-cut-pour-plans
                cram-urdf-environment-manipulation)
 
   :components

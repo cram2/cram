@@ -34,6 +34,7 @@
     (:popcorn-pot-lid . ((-0.78 -1.53 0.54) (0 0 0 1)))
     (:ikea-bowl-ww . ((-0.95 -1.65 0.54) (0 0 0 1)))
     (:salt . ((0.5 -1.6 0.78) (0 0 0 1)))
+    (:plate . ((0.3 -1.52 0.75)(0 0 0 1)))
     (:ikea-plate . ((-0.18 -0.35 0.1) (0 0 0 1))))
   "Absolute poses in map.")
 
@@ -50,7 +51,9 @@
                                         :popcorn-pot-lid
                                         :salt
                                         :ikea-bowl-ww
-                                        :ikea-plate))
+                                        :plate
+                                        ;;ikea-plate
+                                        ))
                         (spawning-poses-absolute *object-spawning-poses*))
   ;; make sure mesh paths are known, kill old objects and destroy all attachments
   (btr:add-objects-to-mesh-list "cram_pr2_popcorn_demo")
@@ -96,25 +99,25 @@
     (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
                        (btr:object btr:*current-bullet-world* :salt-1)
                        :link "iai_popcorn_table_surface")
-    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
-                       (btr:object btr:*current-bullet-world* :ikea-plate-1)
-                       :link "iai_popcorn_table_drawer_right_main")
+    ;; (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+    ;;                    (btr:object btr:*current-bullet-world* :ikea-plate-1)
+    ;;                    :link "iai_popcorn_table_drawer_right_main")
 
     ;; return list of BTR objects
     objects))
 
 
 
-(defun go-to-pose (?navigation-goal)
+(defun go-to-pose (?navigation-goal &optional (dont-move-arms nil))
   (let ((?ptu-goal *look-goal*))
-    (cpl:par
+    (unless dont-move-arms
       (exe:perform (desig:an action
                              (type positioning-arm)
                              (left-configuration park)
-                             (right-configuration park)))
-      (exe:perform (desig:a motion
-                            (type going)
-                            (pose ?navigation-goal))))
+                             (right-configuration park))))
+    (exe:perform (desig:a motion
+                          (type going)
+                          (pose ?navigation-goal)))
     (exe:perform (desig:a motion
                           (type looking)
                           (pose ?ptu-goal)))))
@@ -127,6 +130,16 @@
                            (object ?object-desig)
                            (counter 0)
                            (occluding-names T)))))
+
+(defun world-state-detecting (?object-type)
+  (let ((?object-desig
+          (desig:an object (type ?object-type))))
+    (exe:perform (desig:a motion
+                          (type world-state-detecting)
+                          (object ?object-desig)
+                          (counter 0)
+                          (occluding-names T)))))
+
 
 (defun pick-object (?object-type ?arm)
   (let* ((?perceived-object-desig (perceive-object ?object-type)))
