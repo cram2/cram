@@ -46,72 +46,73 @@
                    (remove
                     NIL
                     (list
-                     (when align-planes-left
-                       (roslisp:make-message
-                        'giskard_msgs-msg:constraint
-                        :type
-                        "AlignPlanes"
-                        :parameter_value_pair
-                        (let ((stream (make-string-output-stream)))
-                          (yason:encode
-                           (cut:recursive-alist-hash-table
-                            `(("root" . "base_footprint")
-                              ("tip" . "refills_finger")
-                              ("root_normal"
-                               . (("header"
-                                   . (("stamp" . (("secs" . 0.0)
-                                                  ("nsecs" . 0.0)))
-                                      ("frame_id" . "base_footprint")
-                                      ("seq" . 0)))
-                                  ("vector" . (("x" . 0.0)
-                                               ("y" . 0.0)
-                                               ("z" . 1.0)))))
-                              ("tip_normal"
-                               . (("header"
-                                   . (("stamp" . (("secs" . 0.0)
-                                                  ("nsecs" . 0.0)))
-                                      ("frame_id" . "base_footprint")
-                                      ("seq" . 0)))
-                                  ("vector"
-                                   . (("x" . 0.0)
-                                      ("y" . 0.0)
-                                      ("z" . 1.0))))))
-                            :test #'equal)
-                           stream)
-                          (get-output-stream-string stream))))
-                     (when align-planes-right
-                       (roslisp:make-message
-                        'giskard_msgs-msg:constraint
-                        :type
-                        "AlignPlanes"
-                        :parameter_value_pair
-                        (let ((stream (make-string-output-stream)))
-                          (yason:encode
-                           (cut:recursive-alist-hash-table
-                            `(("root" . "base_footprint")
-                              ("tip" . "refills_finger")
-                              ("tip_normal"
-                               . (("header"
-                                   . (("stamp" . (("secs" . 0.0)
-                                                  ("nsecs" . 0.0)))
-                                      ("frame_id" . "refills_finger")
-                                      ("seq" . 0)))
-                                  ("vector"
-                                   . (("x" . 0.0)
-                                      ("y" . 1.0)
-                                      ("z" . 0.0)))))
-                              ("root_normal"
-                               . (("header"
-                                   . (("stamp" . (("secs" . 0.0)
-                                                  ("nsecs" . 0.0)))
-                                      ("frame_id" . "base_footprint")
-                                      ("seq" . 0)))
-                                  ("vector" . (("x" . 0.0)
-                                               ("y" . 0.0)
-                                               ("z" . 1.0))))))
-                            :test #'equal)
-                           stream)
-                          (get-output-stream-string stream)))))))
+                     ;; (when align-planes-left
+                     ;;   (roslisp:make-message
+                     ;;    'giskard_msgs-msg:constraint
+                     ;;    :type
+                     ;;    "AlignPlanes"
+                     ;;    :parameter_value_pair
+                     ;;    (let ((stream (make-string-output-stream)))
+                     ;;      (yason:encode
+                     ;;       (cut:recursive-alist-hash-table
+                     ;;        `(("root" . "base_footprint")
+                     ;;          ("tip" . "refills_finger")
+                     ;;          ("root_normal"
+                     ;;           . (("header"
+                     ;;               . (("stamp" . (("secs" . 0.0)
+                     ;;                              ("nsecs" . 0.0)))
+                     ;;                  ("frame_id" . "base_footprint")
+                     ;;                  ("seq" . 0)))
+                     ;;              ("vector" . (("x" . 0.0)
+                     ;;                           ("y" . 0.0)
+                     ;;                           ("z" . 1.0)))))
+                     ;;          ("tip_normal"
+                     ;;           . (("header"
+                     ;;               . (("stamp" . (("secs" . 0.0)
+                     ;;                              ("nsecs" . 0.0)))
+                     ;;                  ("frame_id" . "base_footprint")
+                     ;;                  ("seq" . 0)))
+                     ;;              ("vector"
+                     ;;               . (("x" . 0.0)
+                     ;;                  ("y" . 0.0)
+                     ;;                  ("z" . 1.0))))))
+                     ;;        :test #'equal)
+                     ;;       stream)
+                     ;;      (get-output-stream-string stream))))
+                     ;; (when align-planes-right
+                     ;;   (roslisp:make-message
+                     ;;    'giskard_msgs-msg:constraint
+                     ;;    :type
+                     ;;    "AlignPlanes"
+                     ;;    :parameter_value_pair
+                     ;;    (let ((stream (make-string-output-stream)))
+                     ;;      (yason:encode
+                     ;;       (cut:recursive-alist-hash-table
+                     ;;        `(("root" . "base_footprint")
+                     ;;          ("tip" . "refills_finger")
+                     ;;          ("tip_normal"
+                     ;;           . (("header"
+                     ;;               . (("stamp" . (("secs" . 0.0)
+                     ;;                              ("nsecs" . 0.0)))
+                     ;;                  ("frame_id" . "refills_finger")
+                     ;;                  ("seq" . 0)))
+                     ;;              ("vector"
+                     ;;               . (("x" . 0.0)
+                     ;;                  ("y" . 1.0)
+                     ;;                  ("z" . 0.0)))))
+                     ;;          ("root_normal"
+                     ;;           . (("header"
+                     ;;               . (("stamp" . (("secs" . 0.0)
+                     ;;                              ("nsecs" . 0.0)))
+                     ;;                  ("frame_id" . "base_footprint")
+                     ;;                  ("seq" . 0)))
+                     ;;              ("vector" . (("x" . 0.0)
+                     ;;                           ("y" . 0.0)
+                     ;;                           ("z" . 1.0))))))
+                     ;;        :test #'equal)
+                     ;;       stream)
+                     ;;      (get-output-stream-string stream))))
+                     )))
               :joint_constraints (vector (roslisp:make-message
                                           'giskard_msgs-msg:jointconstraint
                                           :type (roslisp:symbol-code
