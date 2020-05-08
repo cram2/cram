@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Vanessa Hassouna <hassouna@bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -35,15 +36,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group household-object-type-hierarchy (man-int:object-type-direct-subtype)
-  (<- (man-int:object-type-direct-subtype :household-item :cutlery))
-  (<- (man-int:object-type-direct-subtype :household-item :plate))
-  (<- (man-int:object-type-direct-subtype :household-item :tray))
-  (<- (man-int:object-type-direct-subtype :household-item :bottle))
-  (<- (man-int:object-type-direct-subtype :household-item :cup))
-  (<- (man-int:object-type-direct-subtype :household-item :milk))
-  (<- (man-int:object-type-direct-subtype :household-item :cereal))
-  (<- (man-int:object-type-direct-subtype :household-item :bowl))
-  (<- (man-int:object-type-direct-subtype :food :weisswurst))
+  (<- (man-int:object-type-direct-subtype :household-item :weisswurst))
   (<- (man-int:object-type-direct-subtype :household-item :bread))
   
   (<- (man-int:object-type-direct-subtype :cutlery :knife))
@@ -57,8 +50,6 @@
 
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :household-item)))
   50)
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :food)))
-  50)
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :milk)))
   20)
 (defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :cereal)))
@@ -67,8 +58,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :household-item)))
-  0.10)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :food)))
   0.10)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :cutlery)))
   0.04)
@@ -173,20 +162,6 @@
   :2nd-pregrasp-offsets `(0.0 ,*bottle-pregrasp-xy-offset* 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :bottle))
-     (arm (eql :left))
-     (grasp (eql :left-side)))
-  '((0.0 0.085 0.065)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :bottle))
-     (arm (eql :right))
-     (grasp (eql :left-side)))
-  '((0.0 -0.085 0.065)(0 0 0 1)))
-
-
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*bottle-grasp-xy-offset* ,*bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
@@ -194,18 +169,6 @@
   :2nd-pregrasp-offsets `(0.0 ,(- *bottle-pregrasp-xy-offset*) 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :bottle))
-     (arm (eql :right))
-     (grasp (eql :right-side)))
-  '((0.0 -0.085 0.065)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :bottle))
-     (arm (eql :left))
-     (grasp (eql :right-side)))
-  '((0.0 0.085 0.065)(0 0 0 1)))
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :back
@@ -215,12 +178,6 @@
   :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :bottle))
-     arm
-     (grasp (eql :back)))
-  '((-0.085 0.0 0.065)(0 0 0 1)))
 
 ;; FRONT grasp
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :front
@@ -255,20 +212,8 @@
   :pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* 0.0)
   :lift-offsets *lift-offset*
-  :2nd-lift-offsets *lift-offset*)
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :cup))
-     (arm (eql :left))
-     (grasp (eql :left-side)))
-  '((0.0 0.085 0.065)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :cup))
-     (arm (eql :right))
-     (grasp (eql :left-side)))
-  '((0.0 -0.085 0.065)(0 0 0 1)))
-
+  :2nd-lift-offsets *lift-offset*
+  :tilt-approach-offsets '(0.0 0.085 0.065))
 
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*cup-grasp-xy-offset* ,*cup-grasp-z-offset*)
@@ -276,20 +221,8 @@
   :pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) 0.0)
   :lift-offsets *lift-offset*
-  :2nd-lift-offsets *lift-offset*)
-
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :cup))
-     (arm (eql :right))
-     (grasp (eql :right-side)))
-  '((0.0 -0.085 0.065)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :cup))
-     (arm (eql :left))
-     (grasp (eql :right-side)))
-  '((0.0 0.085 0.065)(0 0 0 1)))
+  :2nd-lift-offsets *lift-offset*
+  :tilt-approach-offsets '(0.0 -0.085 0.065))
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :back
@@ -298,30 +231,18 @@
   :pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cup-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
-  :2nd-lift-offsets *lift-offset*)
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :cup))
-     arm
-     (grasp (eql :back)))
-  '((-0.085 0.0 0.065)(0 0 0 1)))
-
-
+  :2nd-lift-offsets *lift-offset*
+  :tilt-approach-offsets '(-0.085 0.0 0.065))
 
 ;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :front
+(man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :left-side
   :grasp-translation `(,(- *cup-grasp-xy-offset*) 0.0d0 ,*cup-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-offsets *lift-offset*
-  :2nd-lift-offsets *lift-offset*)
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :cup))
-     arm
-     (grasp (eql :front)))
-  '((0.085 0.0 0.065)(0 0 0 1)))
+  :2nd-lift-offsets *lift-offset*
+  :tilt-approach-offsets '(0.085 0.0 0.065))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -437,36 +358,16 @@
 ;; Left-TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
     '(:left :right) :left-top
-  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
-
-(defmethod man-int:get-object-type-robot-frame-slice-up-transform
-    ((object-type (eql :weisswurst))
-     arm
-     (grasp (eql :left-top)))
-  '((0.04 0.0 0.037)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-slice-down-transform
-    ((object-type (eql :weisswurst))
-     arm
-     (grasp (eql :left-top)))
-  '((0.04 0.0 0.001)(0 0 0 1)))
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :slice-up-offsets `(0.04 0.0 0.037)
+  :slice-down-offsets `(0.04 0.0 0.001))
 
 ;; Right-TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
     '(:left :right) :right-top
-  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
-
-(defmethod man-int:get-object-type-robot-frame-slice-up-transform
-    ((object-type (eql :weisswurst))
-     arm
-     (grasp (eql :right-top)))
-  '((-0.04 0.0 0.037)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-slice-down-transform
-    ((object-type (eql :weisswurst))
-     arm
-     (grasp (eql :right-top)))
-  '((-0.04 0.0 0.001)(0 0 0 1)))
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :slice-up-offsets `(-0.04 0.0 0.037)
+  :slice-down-offsets `(-0.04 0.0 0.001))
 
 ;; left hold-hold
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
@@ -479,7 +380,7 @@
   :2nd-lift-offsets `(0.04 0.0 ,*weisswurst-pregrasp-z-offset*))
 
 
-;; right-hold
+;; right-holdy
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
     '(:left :right) :right-hold
   :grasp-translation `(-0.04 0.0 ,*weisswurst-grasp-z-offset*)
@@ -502,38 +403,16 @@
 ;; Left-TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:bread)
     '(:left :right) :left-top
-  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
-
-(defmethod man-int:get-object-type-robot-frame-slice-up-transform
-    ((object-type (eql :bread))
-     arm
-     (grasp (eql :left-top)))
-  '((0.0 0.0 0.085)(0 0.707 0 0.707)))
-
-(defmethod man-int:get-object-type-robot-frame-slice-down-transform
-    ((object-type (eql :bread))
-     arm
-     (grasp (eql :left-top)))
-  '((0.0 0.0 0.002)(0 0.707 0 0.707)))
-
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :slice-up-offsets `(0.1 0.0 0.085)
+  :slice-down-offsets `(0.1 0.0 0.002))
 
 ;; right-TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:bread)
     '(:left :right) :right-top
-  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
-
-(defmethod man-int:get-object-type-robot-frame-slice-up-transform
-    ((object-type (eql :bread))
-     arm
-     (grasp (eql :right-top)))
-  '((-0.0 0.0 0.085)(0 0.707 0 0.707))) ;; -0.1
-
-(defmethod man-int:get-object-type-robot-frame-slice-down-transform
-    ((object-type (eql :bread))
-     arm
-     (grasp (eql :right-top)))
-  '((-0.0 0.0 0.002)(0 0.707 0 0.707))) ;; -0.1
-
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :slice-up-offsets `(-0.1 0.0 0.085)
+  :slice-down-offsets `(-0.1 0.0 0.002))
 
 ;; left hold
 (man-int:def-object-type-to-gripper-transforms '(:bread)
@@ -545,7 +424,7 @@
   :lift-offsets `(0.1 0.0 ,*bread-pregrasp-z-offset*)
   :2nd-lift-offsets `(0.1 0.0 ,*bread-pregrasp-z-offset*))
 
-;; right-hold
+;; right-holdy
 (man-int:def-object-type-to-gripper-transforms '(:bread)
     '(:left :right) :right-hold
   :grasp-translation `(-0.1 0.0 ,*bread-grasp-z-offset*)
@@ -572,5 +451,6 @@
   :2nd-pregrasp-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
   :lift-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*)
   :2nd-lift-offsets `(0.0 0.06 ,*cutlery-pregrasp-z-offset*))
+
 
 

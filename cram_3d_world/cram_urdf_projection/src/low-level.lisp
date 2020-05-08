@@ -707,7 +707,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
 (defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose)
   (unless collision-mode
     (setf collision-mode :avoid-all))
-  (ecase collision-mode
+  (ecase :allow-all
     (:allow-all
      nil)
     (:allow-attached

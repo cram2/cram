@@ -47,6 +47,7 @@
                   ((:right-grasp-poses ?right-grasp-poses))
                   ((:left-lift-poses ?left-lift-poses))
                   ((:right-lift-poses ?right-lift-poses))
+                  ((:hold ?holding))
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type keyword ?arm ?grasp)
@@ -102,29 +103,30 @@
              (effort ?grip-effort)
              (object ?object-designator)
              (grasp ?grasp)))
-  (roslisp:ros-info (pick-place pick-up) "Lifting")
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (roslisp:ros-warn (pp-plans pick-up)
-                           "Manipulation messed up: ~a~%Ignoring."
-                           e)
-         (return)))
+  (unless ?holding
+    (roslisp:ros-info (pick-place pick-up) "Lifting")
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans pick-up)
+                             "Manipulation messed up: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type lifting)
+                 (left-poses ?left-lift-poses)
+                 (right-poses ?right-lift-poses))))
+    (roslisp:ros-info (pick-place place) "Parking")
     (exe:perform
      (desig:an action
-               (type lifting)
-               (left-poses ?left-lift-poses)
-               (right-poses ?right-lift-poses))))
-  (roslisp:ros-info (pick-place place) "Parking")
-  (exe:perform
-   (desig:an action
-             (type positioning-arm)
-             ;; TODO: this will not work with dual-arm grasping
-             ;; but as our ?arm is declared as a keyword,
-             ;; for now this code is the right code
-             (desig:when (eql ?arm :left)
-               (left-configuration park))
-             (desig:when (eql ?arm :right)
-               (right-configuration park)))))
+               (type positioning-arm)
+               ;; TODO: this will not work with dual-arm grasping
+               ;; but as our ?arm is declared as a keyword,
+               ;; for now this code is the right code
+               (desig:when (eql ?arm :left)
+                 (left-configuration park))
+               (desig:when (eql ?arm :right)
+                 (right-configuration park))))))
 
 
 
@@ -196,8 +198,8 @@
   (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
-     :arm ?arm
-     :object-name (desig:desig-prop-value ?object-designator :name)))
+                  :arm ?arm
+                  :object-name (desig:desig-prop-value ?object-designator :name)))
   (roslisp:ros-info (pick-place place) "Retracting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
