@@ -28,9 +28,10 @@
 
 (in-package :cram-robot-interfaces)
 
-(def-fact-group robot (robot robot-base-frame robot-odom-frame
-                             robot-torso-link-joint
-                             robot-joint-states robot-pose)
+(def-fact-group robot (robot
+                       robot-base-frame robot-odom-frame
+                       robot-torso-link-joint
+                       robot-joint-states robot-pose)
   (<- (robot ?robot-name)
     (fail))
 
@@ -50,6 +51,18 @@
   (<- (robot-pose ?robot-name ?pose-for-which-joint-group ?left-or-right-or-which
                   ?pose-name ?pose)
     (fail)))
+
+
+(def-fact-group utils (arms arms-that-are-not-neck)
+  (<- (arms ?robot-name ?arms)
+    (once (or (setof ?arm (rob-int:arm ?robot ?arm) ?arms)
+              (equal ?arms NIL))))
+
+  (<- (arms-that-are-not-neck ?robot-name ?arms)
+    (once (or (setof ?arm (and (rob-int:arm ?robot ?arm)
+                               (not (rob-int:neck ?robot ?arm)))
+                     ?arms)
+              (equal ?arms NIL)))))
 
 
 (defun current-robot-symbol ()

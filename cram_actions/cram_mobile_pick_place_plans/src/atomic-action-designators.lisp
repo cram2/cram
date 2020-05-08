@@ -33,7 +33,8 @@
 
   (<- (desig:action-grounding ?action-designator (go-to-target ?resolved-action-designator))
     (spec:property ?action-designator (:type :going))
-    (spec:property ?action-designator (:target ?location-designator))
+    (spec:property ?action-designator (:target ?some-location-designator))
+    (desig:current-designator ?some-location-designator ?location-designator)
     (desig:designator-groundings ?location-designator ?poses)
     (member ?pose-stamped ?poses)
     (desig:designator :action ((:type :going)
@@ -231,6 +232,29 @@
                                (:align-planes-left ?align-planes-left)
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
+
+  (<- (desig:action-grounding ?action-designator (park-arms ?resolved-action-desig))
+    (spec:property ?action-designator (:type :parking-arms))
+    ;; get the arms list from the designator or infer it
+    (once (or (spec:property ?action-designator (:arms ?arms-list))
+              (-> (spec:property ?action-designator (:not-neck T))
+                  (and (rob-int:robot ?robot-name)
+                       (rob-int:arms-that-are-not-neck ?robot-name ?arms-list))
+                  (and (rob-int:robot ?robot-name)
+                       (rob-int:arms ?robot-name ?arms-list)))))
+    ;; see if left arm and right arm are present
+    ;; this is super non-general but has to be like this
+    ;; because positioning-arm is so non-general
+    (-> (member :left ?arms-list)
+        (equal ?left-arm-p T)
+        (equal ?left-arm-p NIL))
+    (-> (member :right ?arms-list)
+        (equal ?right-arm-p T)
+        (equal ?right-arm-p NIL))
+    (desig:designator :action ((:type :parking-arms)
+                               (:left-arm ?left-arm-p)
+                               (:right-arm ?right-arm-p))
+                      ?resolved-action-desig))
 
 
 
