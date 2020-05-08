@@ -121,7 +121,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
 (defgeneric get-object-type-robot-frame-slice-up-transform (object-type arm grasp)
   (:documentation "Returns a transform stamped")
   (:method (object-type arm grasp)
-    (call-with-specific-type #'get-object-type-robot-frame-slice-up-transform
+    (call-with-specific-type #'man-int:get-object-type-robot-frame-slice-up-transform
                              object-type arm grasp)))
 
 (defmethod get-object-type-robot-frame-slice-up-transform :around (object-type arm grasp)
@@ -141,7 +141,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
 (defgeneric get-object-type-robot-frame-slice-down-transform (object-type arm grasp)
   (:documentation "Returns a transform stamped")
   (:method (object-type arm grasp)
-    (call-with-specific-type #'get-object-type-robot-frame-slice-down-transform
+    (call-with-specific-type #'man-int:get-object-type-robot-frame-slice-down-transform
                              object-type arm grasp)))
 
 (defmethod get-object-type-robot-frame-slice-down-transform :around (object-type arm grasp)
@@ -161,7 +161,7 @@ Gripper is defined by a convention where Z is pointing towards the object.")
 (defgeneric get-object-type-robot-frame-tilt-approach-transform (object-type arm grasp)
   (:documentation "Returns a transform stamped")
   (:method (object-type arm grasp)
-    (call-with-specific-type #'get-object-type-robot-frame-tilt-approach-transform
+    (call-with-specific-type #'man-int:get-object-type-robot-frame-tilt-approach-transform
                              object-type arm grasp)))
 
 (defmethod get-object-type-robot-frame-tilt-approach-transform :around (object-type arm grasp)

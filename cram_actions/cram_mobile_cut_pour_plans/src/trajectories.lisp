@@ -211,17 +211,32 @@
            (man-int:get-object-type-to-gripper-transform
             object-type object-name arm grasp))
          (approach-pose
-           (man-int:calculate-gripper-pose-in-map 
+           (man-int:calculate-gripper-pose-in-base
             (cram-tf:apply-transform
              bTb-offset
-             bTo)
+             (cram-tf:copy-transform-stamped
+              bTo
+              :rotation (cl-tf:make-identity-rotation)))
             arm oTg-std))
          (tilting-poses
            (get-tilting-poses grasp (list approach-pose))))
-    (mapcar (lambda (label poses)
+    (mapcar (lambda (label poses-in-base)
               (man-int:make-traj-segment
                :label label
-               :poses poses))
+               :poses (mapcar 
+                       (lambda (pose-in-base)
+                         (let ((mTb (cram-tf:pose->transform-stamped
+                                     cram-tf:*fixed-frame*
+                                     cram-tf:*robot-base-frame*
+                                     0.0
+                                     (btr:pose (btr:get-robot-object))))
+                               (bTg-std
+                                 (cram-tf:pose-stamped->transform-stamped
+                                  pose-in-base
+                                  (cl-tf:child-frame-id bTo))))
+                           (cl-tf:ensure-pose-stamped
+                            (cram-tf:apply-transform mTb bTg-std))))
+                       poses-in-base)))
             '(:approach
               :tilting)
             `((,approach-pose)
