@@ -188,9 +188,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
         (?ptu-goal *look-goal*))
     (cpl:par
       (exe:perform (desig:an action
-                             (type positioning-arm)
-                             (left-configuration park)
-                             (right-configuration park)))
+                             (type parking-arms)))
       (exe:perform (desig:a motion
                             (type going)
                             (pose ?navigation-goal))))
@@ -363,9 +361,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 ;;           (cpl:par
 ;; (exe:perform
 ;;  (desig:an action
-;;            (type positioning-arm)
-;;            (left-configuration park)
-;;            (right-configuration park)))
+;;            (type parking-arms)))
 ;;             (exe:perform (desig:a motion
 ;;                                   (type going)
 ;;                                   (pose ?navigation-goal))))

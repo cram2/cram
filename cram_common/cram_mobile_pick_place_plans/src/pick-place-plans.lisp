@@ -118,14 +118,11 @@
   (roslisp:ros-info (pick-place place) "Parking")
   (exe:perform
    (desig:an action
-             (type positioning-arm)
+             (type parking-arms)
              ;; TODO: this will not work with dual-arm grasping
              ;; but as our ?arm is declared as a keyword,
              ;; for now this code is the right code
-             (desig:when (eql ?arm :left)
-               (left-configuration park))
-             (desig:when (eql ?arm :right)
-               (right-configuration park)))))
+             (arms (?arm)))))
 
 
 
@@ -225,11 +222,8 @@
   (roslisp:ros-info (pick-place place) "Parking")
   (exe:perform
    (desig:an action
-             (type positioning-arm)
-             (desig:when (eql ?arm :left)
-               (left-configuration park))
-             (desig:when (eql ?arm :right)
-               (right-configuration park)))))
+             (type parking-arms)
+             (arms (?arm)))))
 
 
 (defun perceive (&key
@@ -240,31 +234,31 @@
   "Park arms and call DETECTING action."
   (exe:perform
    (desig:an action
-             (type positioning-arm)
-             (left-configuration park)
-             (right-configuration park)))
+             (type parking-arms)
+             (not-neck T)))
   (exe:perform
    (desig:an action
              (type detecting)
              (object ?object-designator))))
 
 
-;; (defun perform-phases-in-sequence (action-designator)
-;;   (declare (type desig:action-designator action-designator))
-;;   (let ((phases (desig:desig-prop-value action-designator :phases)))
-;;     (mapc (lambda (phase)
-;;             (format t "Executing phase: ~%~a~%~%" phase)
-;;             (exe:perform phase))
-;;           phases)))
+#+the-stuff-below-with-action-phases-is-a-bit-awkward
+(
+ (defun perform-phases-in-sequence (action-designator)
+   (declare (type desig:action-designator action-designator))
+   (let ((phases (desig:desig-prop-value action-designator :phases)))
+     (mapc (lambda (phase)
+             (format t "Executing phase: ~%~a~%~%" phase)
+             (exe:perform phase))
+           phases)))
 
-;; (cpl:def-cram-function pick-up (action-designator object arm grasp)
-;;   (perform-phases-in-sequence action-designator)
-;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-attached-robot :object object :arm arm :grasp grasp)))
+ (cpl:def-cram-function pick-up (action-designator object arm grasp)
+   (perform-phases-in-sequence action-designator)
+   (cram-occasions-events:on-event
+    (make-instance 'cpoe:object-attached-robot :object object :arm arm :grasp grasp)))
 
-
-;; (cpl:def-cram-function place (action-designator object arm)
-;;   (perform-phases-in-sequence action-designator)
-;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-detached-robot :arm arm :object object)))
-
+ (cpl:def-cram-function place (action-designator object arm)
+   (perform-phases-in-sequence action-designator)
+   (cram-occasions-events:on-event
+    (make-instance 'cpoe:object-detached-robot :arm arm :object object)))
+ )
