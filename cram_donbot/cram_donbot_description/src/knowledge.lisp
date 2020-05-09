@@ -109,7 +109,8 @@
                                  robot-base-frame robot-torso-link-joint
                                  arm
                                  neck
-                                 camera-frame)
+                                 camera-frame
+                                 camera-minimal-height camera-maximal-height)
   (<- (robot iai-donbot))
 
   (<- (robot-odom-frame iai-donbot "odom"))
@@ -123,7 +124,10 @@
 
   (<- (camera-frame iai-donbot "camera_link")) ; rgb camera for barcodes etc.
   (<- (camera-frame iai-donbot "rs_camera_depth_optical_frame")) ; realsense, virtual
-  (<- (camera-frame iai-donbot "rs_camera_color_optical_frame"))) ; virtual
+  (<- (camera-frame iai-donbot "rs_camera_color_optical_frame")) ; virtual
+
+  (<- (camera-minimal-height iai-donbot 0.5))
+  (<- (camera-maximal-height iai-donbot 1.0)))
 
 
 
