@@ -119,7 +119,8 @@
                   (generated-angle (calculate-z-angle pose)))
               (if (and (< dist ?max-distance)
                        (> dist ?min-distance)
-                       (<= (abs (- perfect-angle generated-angle ?orientation-offset))
+                       (<= (abs (- (abs (- perfect-angle generated-angle))
+                                   (cl-transforms:normalize-angle ?orientation-offset)))
                            allowed-range))
                   :accept
                   :reject))))
