@@ -168,14 +168,3 @@
 (roslisp-utilities:register-ros-init-function spawn-objects)
 (roslisp-utilities:register-ros-init-function spawn-basket)
 
-(def-fact-group costmap-metadata (costmap:costmap-size
-                                    costmap:costmap-origin
-                                    costmap:costmap-resolution
-                                    costmap:orientation-samples
-                                    costmap:orientation-sample-step)
-  (<- (location-costmap:costmap-size 12 12))
-  (<- (location-costmap:costmap-origin -6 -6))
-  (<- (location-costmap:costmap-resolution 0.04))
-  (<- (location-costmap:orientation-samples 2))
-  (<- (location-costmap:orientation-sample-step 0.1)))
-

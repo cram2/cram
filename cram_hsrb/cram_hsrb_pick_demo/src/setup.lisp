@@ -89,20 +89,6 @@
 
 
 (defun init-projection ()
-  (def-fact-group costmap-metadata (costmap:costmap-size
-                                    costmap:costmap-origin
-                                    costmap:costmap-resolution
-                                    costmap:orientation-samples
-                                    costmap:orientation-sample-step)
-    (<- (costmap:costmap-size 12 12))
-    (<- (costmap:costmap-origin -6 -6))
-    (<- (costmap:costmap-resolution 0.04))
-    (<- (costmap:orientation-samples 2))
-    (<- (costmap:orientation-sample-step 0.3)))
-
-  (def-fact-group environment-name (man-int:environment-name)
-    (<- (man-int:environment-name :environment)))
-
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
 

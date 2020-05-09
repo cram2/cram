@@ -28,9 +28,15 @@
 
 (in-package :cram-robot-interfaces)
 
-(def-fact-group ptu (camera-frame camera-minimal-height camera-maximal-height
-                                  robot-neck-links robot-neck-joints robot-neck-base-link
-                                  camera-in-neck-ee-pose)
+(def-fact-group ptu (neck
+                     camera-frame camera-minimal-height camera-maximal-height
+                     robot-neck-links robot-neck-joints robot-neck-base-link
+                     camera-in-neck-ee-pose
+                     neck-camera-z-offset)
+  ;; Unifies ?neck with the name of a body part that is present on the ?robot.
+  (<- (neck ?robot ?neck)
+    (fail))
+
   ;; Unifies ?frame with the name of the camera frame present on the ?robot
   (<- (camera-frame ?robot ?frame)
     (fail))
@@ -55,4 +61,8 @@
     (fail))
 
   (<- (camera-in-neck-ee-pose ?robot ?pose)
+    (fail))
+
+  ;; for doing neck IK if the neck has more than 2 joints
+  (<- (neck-camera-z-offset ?robot ?offset)
     (fail)))
