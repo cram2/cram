@@ -54,7 +54,8 @@ quaternion to face towards `position'"
                   (cl-transforms:pose (cl-transforms:origin position))
                   (cl-transforms:3d-vector position)))
          (p-rel (cl-transforms:v- point (cl-transforms:make-3d-vector x y 0))))
-    (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))
+    (cl-transforms:normalize-angle
+     (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel)))))
 
 (defun make-orientation-generator (main-direction-function
                                    &key (samples 1) sample-step sample-offset)
