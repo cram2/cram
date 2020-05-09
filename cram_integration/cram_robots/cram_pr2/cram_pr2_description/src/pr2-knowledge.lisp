@@ -69,9 +69,13 @@
                                            costmap:costmap-manipulation-padding
                                            costmap:costmap-in-reach-distance
                                            costmap:costmap-reach-minimal-distance
+                                           costmap:orientation-samples
+                                           costmap:orientation-sample-step
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding 0.3))
   (<- (costmap:costmap-manipulation-padding 0.4))
   (<- (costmap:costmap-in-reach-distance 1.0))
   (<- (costmap:costmap-reach-minimal-distance 0.2))
+  (<- (costmap:orientation-samples 1))
+  (<- (costmap:orientation-sample-step 0.3))
   (<- (costmap:visibility-costmap-size 2)))

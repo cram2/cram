@@ -82,9 +82,7 @@ If the result is anything but NIL, the world is stable."
       (cpl:seq
         (exe:perform
          (desig:an action
-                   (type positioning-arm)
-                   (left-configuration park)
-                   (right-configuration park)))))))
+                   (type parking-arms)))))))
 
 
 ;;if in back 'cereal-5

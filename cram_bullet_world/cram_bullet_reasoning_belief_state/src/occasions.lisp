@@ -84,14 +84,12 @@
              (desig:obj-desig? ?object-designator))
         (and (not (bound ?object-designator))
              (lisp-fun unique-object-designators ?object-designators)
-             (member ?one-object-designator-from-chain ?object-designators)
-             (desig:current-designator ?one-object-designator-from-chain ?object-designator)))
-    (lisp-fun get-designator-object-name ?object-designator ?belief-name)
-    (-> (lisp-pred identity ?belief-name)
-        (equal ?object-name ?belief-name)
-        (and (desig:desig-prop ?object-designator (:type ?object-type))
-             (btr:bullet-world ?w)
-             (btr:item-type ?world ?object-name ?object-type))))
+             (member ?one-desig-from-chain ?object-designators)
+             (desig:current-designator ?one-desig-from-chain ?object-designator)))
+    ;; all object designators who have the same name should be
+    ;; perceptions of the same exact object, and, thus,
+    ;; they should be equated into one chain
+    (desig:desig-prop ?object-designator (:name ?object-name)))
 
   (<- (desig:desig-location-prop ?designator ?location)
     (desig:obj-desig? ?designator)

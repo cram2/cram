@@ -108,7 +108,9 @@
                                  robot-odom-frame
                                  robot-base-frame robot-torso-link-joint
                                  arm
-                                 camera-frame)
+                                 neck
+                                 camera-frame
+                                 camera-minimal-height camera-maximal-height)
   (<- (robot iai-donbot))
 
   (<- (robot-odom-frame iai-donbot "odom"))
@@ -118,9 +120,14 @@
 
   (<- (arm iai-donbot :left))
 
+  (<- (neck iai-donbot :left))
+
   (<- (camera-frame iai-donbot "camera_link")) ; rgb camera for barcodes etc.
   (<- (camera-frame iai-donbot "rs_camera_depth_optical_frame")) ; realsense, virtual
-  (<- (camera-frame iai-donbot "rs_camera_color_optical_frame"))) ; virtual
+  (<- (camera-frame iai-donbot "rs_camera_color_optical_frame")) ; virtual
+
+  (<- (camera-minimal-height iai-donbot 0.5))
+  (<- (camera-maximal-height iai-donbot 1.0)))
 
 
 
@@ -188,7 +195,8 @@
                                    robot-neck-joints
                                    robot-neck-base-link
                                    robot-joint-states
-                                   camera-in-neck-ee-pose)
+                                   camera-in-neck-ee-pose
+                                   neck-camera-z-offset)
 
   (<- (robot-neck-links iai-donbot . ?links)
     (arm-links iai-donbot :left ?links))
@@ -219,16 +227,24 @@
     (symbol-value *looking-right-separators-preplace-state* ?joint-states))
 
   (<- (camera-in-neck-ee-pose iai-donbot ?pose)
-    (symbol-value *ee-p-camera* ?pose)))
+    (symbol-value *ee-p-camera* ?pose))
+
+  (<- (neck-camera-z-offset iai-donbot 0.6)))
 
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding
                                            costmap:costmap-manipulation-padding
                                            costmap:costmap-in-reach-distance
                                            costmap:costmap-reach-minimal-distance
+                                           costmap:orientation-samples
+                                           costmap:orientation-sample-step
+                                           costmap:reachability-orientation-offset
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding 0.5))
   (<- (costmap:costmap-manipulation-padding 0.5))
-  (<- (costmap:costmap-in-reach-distance 1.2))
-  (<- (costmap:costmap-reach-minimal-distance 0.2))
+  (<- (costmap:costmap-in-reach-distance 1.05))
+  (<- (costmap:costmap-reach-minimal-distance 0.1))
+  (<- (costmap:orientation-samples 1))
+  (<- (costmap:orientation-sample-step 0.3))
+  (<- (costmap:reachability-orientation-offset 3.14))
   (<- (costmap:visibility-costmap-size 2)))
