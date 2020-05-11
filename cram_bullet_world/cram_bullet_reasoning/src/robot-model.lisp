@@ -505,15 +505,16 @@ current joint states"
                       child-body-to-its-link-transform)))
               (case (cl-urdf:joint-type urdf-joint)
                 ((:revolute :continuous)
-                 (multiple-value-bind (angle axis)
-                     (cl-transforms:angle-between-quaternions
-                      (cl-transforms:rotation map-to-urdf-joint-transform)
-                      (cl-transforms:rotation map-to-child-link-transform))
-                   (if (< (cl-transforms:dot-product
-                           axis (cl-urdf:axis urdf-joint))
-                          0)
-                       (* angle -1)
-                       angle)))
+                 (cl-transforms:normalize-angle
+                  (multiple-value-bind (angle axis)
+                      (cl-transforms:angle-between-quaternions
+                       (cl-transforms:rotation map-to-urdf-joint-transform)
+                       (cl-transforms:rotation map-to-child-link-transform))
+                    (if (< (cl-transforms:dot-product
+                            axis (cl-urdf:axis urdf-joint))
+                           0)
+                        (* angle -1)
+                        angle))))
                 (:prismatic
                  (let ((urdf-joint-to-child-link-transform
                          (cl-transforms:transform*
@@ -543,7 +544,8 @@ current joint states"
               (setf (gethash name links)
                     (rigid-body obj (name body))))
     (loop for name being the hash-keys in joint-states do
-      (setf (gethash name joint-states) (or (calculate-joint-state obj name) 0.0d0)))))
+      (setf (gethash name joint-states)
+            (or (calculate-joint-state obj name) 0.0d0)))))
 
 (defmethod joint-state ((obj robot-object) name)
   (nth-value 0 (gethash name (joint-states obj))))
