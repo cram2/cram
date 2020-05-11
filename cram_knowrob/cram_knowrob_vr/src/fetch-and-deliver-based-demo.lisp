@@ -175,13 +175,13 @@
   (setf proj-reasoning::*projection-checks-enabled* t)
 
   (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
+  (btr:detach-all-objects (btr:get-environment-object))
   (btr-utils:kill-all-objects)
-  (setf (btr:joint-state (btr:object btr:*current-bullet-world* :kitchen)
+  (setf (btr:joint-state (btr:get-environment-object)
                          "sink_area_left_upper_drawer_main_joint")
         0.0)
   (btr-belief::publish-environment-joint-state
-   (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
+   (btr:joint-states (btr:get-environment-object)))
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
@@ -465,7 +465,8 @@
     (spawn-objects-on-sink-counter))
   (park-robot)
 
-  (dolist (type list-of-objects)
+  (unwind-protect
+       (dolist (type list-of-objects)
 
     (experiment-log-start-object-transport type)
 
@@ -493,6 +494,59 @@
              (?bullet-type
                (object-type-filter-bullet type)))
 
+          (let* ((?bullet-type
+                   (object-type-filter-bullet type))
+                 (?search-poses
+                   (alexandria:shuffle
+                    (cut:force-ll (look-poses-ll-for-searching type))))
+                 (?grasps
+                   (alexandria:shuffle
+                    (ecase ?bullet-type
+                      (:bowl '(:top))
+                      (:cup '(::RIGHT-SIDE :FRONT :LEFT-SIDE :TOP :BACK))
+                      (:spoon '(:top)))
+                    ;; (cut:force-ll (object-grasped-faces-ll-from-kvr-type type))
+                    ))
+                 (?arms
+                   (alexandria:shuffle
+                    '(:left :right) ;; (cut:force-ll (arms-for-fetching-ll type))
+                    ))
+                 (bowl-pose
+                   (cl-transforms-stamped:pose->pose-stamped
+                    cram-tf:*fixed-frame* 0.0
+                    (cram-tf:list->pose
+                     (cdr (assoc 'bowl
+                                 (if (> (cl-transforms:y
+                                         (cl-transforms:origin
+                                          (btr:pose
+                                           (btr:rigid-body
+                                            (btr:get-environment-object)
+                                            :|ENVIRONMENT.sink_area|))))
+                                        1.0)
+                                     *object-delivering-poses-varied-kitchen*
+                                     *object-delivering-poses*))))))
+                 (bowl-transform
+                   (cram-tf:pose-stamped->transform-stamped bowl-pose "bowl"))
+                 (?delivering-poses
+                   (case ?bullet-type
+                     (:bowl (list bowl-pose))
+                     (t
+                      (list (cl-transforms-stamped:pose->pose-stamped
+                          cram-tf:*fixed-frame* 0.0
+                          (cram-tf:list->pose
+                           (cdr (assoc type
+                                       (if (> (cl-transforms:y
+                                               (cl-transforms:origin
+                                                (btr:pose
+                                                 (btr:rigid-body
+                                                  (btr:get-environment-object)
+                                                  :|ENVIRONMENT.sink_area|))))
+                                              1.0)
+                                           *object-delivering-poses-varied-kitchen*
+                                           *object-delivering-poses*))))))
+                      ;; (alexandria:shuffle
+                      ;;  (cut:force-ll (object-poses-ll-for-placing type bowl-transform)))
+                      ))))
 
         (if *kvr-enabled*
 

@@ -92,7 +92,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                          (map-T-object
                            (cl-transforms:transform* map-T-surface surface-T-object))
                          (map-P-object
-                           (cl-tf:transform->pose map-T-object)))
+                           (cl-transforms:transform->pose map-T-object)))
                     `(,type . ,map-P-object))))
               (second spawning-poses)))))
 
@@ -171,9 +171,10 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     (btr:simulate btr:*current-bullet-world* 100)
 
     ;; attach spoon to the drawer
-    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
-                       (btr:object btr:*current-bullet-world* :spoon-1)
-                       :link "sink_area_left_upper_drawer_main")
+    (when (btr:object btr:*current-bullet-world* :spoon-1)
+      (btr:attach-object (btr:get-environment-object)
+                         (btr:object btr:*current-bullet-world* :spoon-1)
+                         :link "sink_area_left_upper_drawer_main"))
 
     ;; return list of BTR objects
     objects))

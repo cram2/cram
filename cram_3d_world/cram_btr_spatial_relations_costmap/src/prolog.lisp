@@ -138,7 +138,7 @@
         (cram-robot-interfaces:reachability-designator ?designator))
     (costmap:costmap ?costmap)
     (btr:bullet-world ?world)
-    (btr:%object ?world :kitchen ?kitchen-object)
+    (lisp-fun btr:get-environment-object ?kitchen-object)
     (lisp-fun btr:rigid-bodies ?kitchen-object ?rigid-bodies)
     (costmap:costmap-padding ?padding)
     (costmap:costmap-add-function
@@ -362,6 +362,7 @@
   ;;;;;;;;;;;;;;; spatial relation ON for item objects ;;;;;;;;;;;;;;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:on ?object))
+    (not (desig:desig-prop ?designator (:attachment ?_)))
     (btr-belief:object-designator-name ?object ?object-instance-name)
     (btr:bullet-world ?world)
     (btr:item-type ?world ?object-instance-name ?_)

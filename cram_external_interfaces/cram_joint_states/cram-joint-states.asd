@@ -35,6 +35,7 @@
                roslisp-utilities
                cl-transforms
                cram-language ; for fluents
+               cram-tf
                sensor_msgs-msg)
   :components
   ((:module "src"

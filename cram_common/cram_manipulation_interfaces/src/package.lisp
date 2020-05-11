@@ -45,6 +45,9 @@
    #:object-type-direct-subtype
    #:robot-free-hand
    #:unidirectional-attachment
+   ;; environment
+   #:environment-name
+   #:current-environment-symbol
    ;; utils
    #:reasoning-engine-for-method
    ;; manipulation-interfaces
@@ -53,6 +56,8 @@
    #:get-action-trajectory
    #:get-action-grasps
    #:get-location-poses
+   #:get-object-likely-location
+   #:get-object-destination
    #:get-container-opening-distance
    #:get-container-closing-distance
    ;; grasps
@@ -72,14 +77,13 @@
    #:calculate-gripper-pose-in-map
    ;;
    #:get-object-type-to-gripper-transform
-   #:get-object-type-to-gripper-pregrasp-transform
-   #:get-object-type-to-gripper-2nd-pregrasp-transform
-   #:get-object-type-to-gripper-lift-transform
-   #:get-object-type-to-gripper-2nd-lift-transform
+   #:get-object-type-to-gripper-pregrasp-transforms
+   #:get-object-type-wrt-base-frame-lift-transforms
    #:def-object-type-to-gripper-transforms
    #:get-object-grasping-poses
    ;;
    #:get-object-type-in-other-object-transform
+   #:get-z-offset-for-placing-with-dropping
    #:get-object-placement-transform
    #:def-object-type-in-other-object-transform
    #:get-object-look-from-pose

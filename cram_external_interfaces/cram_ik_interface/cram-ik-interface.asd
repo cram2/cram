@@ -36,7 +36,9 @@
                cl-transforms-stamped
                cram-tf
                moveit_msgs-msg
-               moveit_msgs-srv)
+               moveit_msgs-srv
+               ;; for representing joint states
+               sensor_msgs-msg)
   :components
   ((:module "src"
     :components

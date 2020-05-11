@@ -180,28 +180,29 @@ Otherwise, the attachment is only used as information but does not affect the wo
  `link'. Otherwise, detaches `object' from all links."
   (with-slots (attached-objects) robot-object
     (let ((attachment (assoc (name object) attached-objects)))
-      (cond (link
-             (setf (second attachment)
-                   (remove link (second attachment)
-                           :test #'equal :key #'attachment-link))
-             (unless (second attachment)
-               (setf attached-objects (remove (name object) attached-objects
-                                              :key #'car))
-               (reset-collision-information object (cdr (cdr attachment)))))
-            (t (setf attached-objects (remove (name object) attached-objects
-                                              :key #'car))
-               (reset-collision-information object (cdr (cdr attachment))))))))
+      (when attachment
+        (cond (link
+               (setf (second attachment)
+                     (remove link (second attachment)
+                             :test #'equal :key #'attachment-link))
+               (unless (second attachment)
+                 (setf attached-objects (remove (name object) attached-objects
+                                                :key #'car))
+                 (reset-collision-information object (cdr (cdr attachment)))))
+              (t (setf attached-objects (remove (name object) attached-objects
+                                                :key #'car))
+                 (reset-collision-information object (cdr (cdr attachment)))))))))
 
 (defmethod detach-all-from-link ((robot-object robot-object) link)
   "Removes all objects form the given `link' of `robot-object'."
   (with-slots (attached-objects) robot-object
        (dolist (attachment attached-objects)
          (let* ((object-name (car attachment))
-                (object-instance (object btr:*current-bullet-world* object-name)))
+                (object-instance (object *current-bullet-world* object-name)))
            (if object-instance
                (let ((attached-to-links (object-attached robot-object object-instance)))
                  (when (find link attached-to-links :test #'equalp)
-                   (btr:detach-object robot-object object-instance :link link)))
+                   (detach-object robot-object object-instance :link link)))
                (setf attached-objects (remove object-name attached-objects :key #'car)))))))
 
 (defmethod detach-all-objects ((robot-object robot-object))
@@ -353,32 +354,39 @@ Otherwise, the attachment is only used as information but does not affect the wo
     :collision-mask collision-mask
     :compound compound))
 
-(defvar *updated-attachments* (make-hash-table)
-  "Saves the already updated attached objects and the traversed links of it")
+(let ((updated-attachments (make-hash-table)))
+  ;; Stores the already updated attached objects and the corresponding traversed links
 
-(defun updated-link-in-attachment (link attachment)
-  "Returns if the pose of the attached object behind the `attachment'
+  (defun get-updated-attachments ()
+    "This getter exists only for testing `updated-link-in-attachment'
+in the unit tests."
+    updated-attachments)
+
+  (defun updated-link-in-attachment (link attachment)
+    "Returns if the pose of the attached object behind the `attachment'
 was updated by checking if `link' was already updated. The already
-updated links are saved under the attachment name in `*updated-attachments*'.
+updated links are saved under the attachment name in `updated-attachments'.
 If all links of an attachment were updated the entry under the attachment
-name in `*updated-attachments*' gets deleted."
-  (let ((links-attached-to (mapcar #'btr::attachment-link (car (cdr attachment))))
-        (ret T))
-    (when (and link (member (cl-urdf:name link) links-attached-to :test #'string-equal))
-      (if (gethash (car attachment) *updated-attachments*)
-          (setf (gethash (car attachment) *updated-attachments*)
-                (push (cl-urdf:name link) (gethash (car attachment) *updated-attachments*)))
-          (progn
-            (setf (gethash (car attachment) *updated-attachments*) (list (cl-urdf:name link)))
-            (setf ret NIL)))
-      (when (equal ;; checks if the list of links in attachment and the already visited links are equal
-             (length links-attached-to)
-             (length
-              (intersection
-               (gethash (car attachment) *updated-attachments*)
-               links-attached-to :test #'string-equal)))
-        (remhash (car attachment) *updated-attachments*))
-      (return-from updated-link-in-attachment ret))))
+name in `updated-attachments' gets deleted."
+    (let ((links-attached-to (mapcar #'attachment-link (car (cdr attachment))))
+          (ret T))
+      (when (and link (member (cl-urdf:name link) links-attached-to :test #'string-equal))
+        (if (gethash (car attachment) updated-attachments)
+            (setf (gethash (car attachment) updated-attachments)
+                  (push (cl-urdf:name link) (gethash (car attachment) updated-attachments)))
+            (setf (gethash (car attachment) updated-attachments)
+                  (list (cl-urdf:name link))
+                  ret
+                  NIL))
+        ;; checks if the list of links in attachment and the already visited links are equal
+        (when (equal
+               (length links-attached-to)
+               (length
+                (intersection
+                 (gethash (car attachment) updated-attachments)
+                 links-attached-to :test #'string-equal)))
+          (remhash (car attachment) updated-attachments))
+        (return-from updated-link-in-attachment ret)))))
 
 (defun update-attached-object-poses (robot-object link pose)
   "Updates the poses of all objects that are attached to

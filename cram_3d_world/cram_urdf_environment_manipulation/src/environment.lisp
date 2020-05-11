@@ -30,7 +30,7 @@
 (in-package :env-man)
 
 (defun get-current-environment ()
-  (btr:object btr:*current-bullet-world* :kitchen)
+  (btr:get-environment-object)
   ;; (find 'btr::urdf-semantic-map-object
   ;;       (btr:objects btr:*current-bullet-world*)
   ;;       :key #'type-of)
@@ -238,6 +238,29 @@ Using a default (1 0 0)."
         (cl-urdf:name joint))
        (* 2 pi)))
 
+(defun get-connecting-joint-state-secure (container-name btr-environment)
+  (let* ((joint (get-connecting-joint
+                 (get-container-link container-name
+                                     btr-environment)))
+         (type (find-container-joint-type-under-joint joint))
+         (state (btr:joint-state
+                     (btr:object btr:*current-bullet-world*
+                                 btr-environment)
+                     (cl-urdf:name joint))))
+    (ecase type
+      (:revolute
+       (mod state (* 2 pi)))
+      (:prismatic
+       state))))
+
+(defun get-relative-distance (container-name btr-environment distance action-type)
+  (let ((state (get-connecting-joint-state-secure container-name btr-environment)))
+    (ecase action-type
+      (:opening
+       (- distance state))
+      (:closing
+       (- (- distance state))))))
+
 (defun clip-distance (container-name btr-environment distance action-type)
   "Return a distance that stays inside the joint's limits."
   (let ((joint (get-connecting-joint
@@ -245,20 +268,14 @@ Using a default (1 0 0)."
                                     btr-environment))))
     (let ((upper-limit (cl-urdf:upper (cl-urdf:limits joint)))
           (lower-limit (cl-urdf:lower (cl-urdf:limits joint)))
-          (state (get-positive-joint-state joint btr-environment)))
-      (if (eq action-type :opening)
-          (if (> (+ state distance) upper-limit)
-              (- upper-limit state)
-              distance)
-          (if (< (- state distance) lower-limit)
-              (- state lower-limit)
-              distance)))))
+          (state (get-connecting-joint-state-secure container-name btr-environment)))
+      (ecase action-type
+        (:opening
+         (if (> (+ state distance) upper-limit)
+             (- upper-limit state)
+             distance))
+        (:closing
+         (if (< (- state distance) lower-limit)
+             (- state lower-limit)
+             distance))))))
 
-(defun get-relative-distance (container-name btr-environment distance action-type)
-  (let* ((joint (get-connecting-joint
-                (get-container-link container-name
-                                    btr-environment)))
-         (state (get-positive-joint-state joint btr-environment)))
-    (if (eq action-type :opening)
-        (- distance state)
-        (- (- distance state)))))

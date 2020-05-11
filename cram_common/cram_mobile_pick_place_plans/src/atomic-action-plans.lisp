@@ -51,11 +51,13 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
+
 (defun go-with-torso (&key
                      ((:joint-angle ?joint-angle))
                      &allow-other-keys)
   (declare (type (or number keyword) ?joint-angle))
   "Go to `?joint-angle' with torso, if a failure happens propagate it up, robot-state-changed event."
+
   (unwind-protect
        (cpl:with-retry-counters ((torso-retries 1))
          (cpl:with-failure-handling
@@ -70,6 +72,7 @@
             (desig:a motion (type moving-torso) (joint-angle ?joint-angle)))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
 
 
 (defun move-arms-in-sequence (&key
@@ -194,6 +197,7 @@ while ignoring failures; and execute the last pose with propagating the failures
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
+
 (defun release (&key
                   ((:gripper ?left-or-right))
                   ((:object ?object-designator))
@@ -220,6 +224,7 @@ while ignoring failures; and execute the last pose with propagating the failures
                         (desig:desig-prop-value ?object-designator :name)
                         NIL)))))
 
+
 (defun grip (&key
                ((:gripper ?left-or-right))
                ((:effort ?effort))
@@ -233,29 +238,36 @@ while ignoring failures; and execute the last pose with propagating the failures
 In any case, issue ROBOT-STATE-CHANGED event."
 
   (unwind-protect
+
+       ;; if grasping fails, regrasp once then propagate up
        (cpl:with-retry-counters ((grasping-retries 1))
          (cpl:with-failure-handling
-             ((common-fail:gripper-low-level-failure (e) ; regrasp once then propagate up
+             ((common-fail:gripper-low-level-failure (e)
                 (cpl:do-retry grasping-retries
                   (roslisp:ros-warn (pick-and-place grip) "~a~%Retrying" e)
                   (cpl:retry))
                 (roslisp:ros-warn (pick-and-place grip) "No retries left. Propagating up.")))
+
            (exe:perform
             (desig:a motion
                      (type gripping)
                      (gripper ?left-or-right)
                      (desig:when ?effort
                        (effort ?effort))))
+
            (roslisp:ros-info (pick-place grip) "Assert grasp into knowledge base")
-           (cram-occasions-events:on-event
-            (make-instance 'cpoe:object-attached-robot
-              :arm ?left-or-right
-              :object-name (desig:desig-prop-value object-designator :name)
-              :grasp ?grasp))
-           (desig:equate object-designator new-object-designator)
-           new-object-designator))
+           (when object-designator
+             (cram-occasions-events:on-event
+              (make-instance 'cpoe:object-attached-robot
+                :arm ?left-or-right
+                :object-name (desig:desig-prop-value object-designator :name)
+                :grasp ?grasp))
+             (desig:equate object-designator new-object-designator)
+             new-object-designator)))
+
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
 
 (defun open-or-close-gripper (&key
                                 ((:type ?action-type))
@@ -266,16 +278,20 @@ In any case, issue ROBOT-STATE-CHANGED event."
   "Call ACTION-TYPE motion while ignoring failures and issue robot-state-changed."
 
   (unwind-protect
+
+       ;; ignore failures
        (cpl:with-failure-handling
-           ((common-fail:gripper-low-level-failure (e) ; ignore failures
+           ((common-fail:gripper-low-level-failure (e)
               (roslisp:ros-warn (pick-and-place close-gripper) "~a" e)
               (return)))
          (exe:perform
           (desig:a motion
                    (type ?action-type)
                    (gripper ?left-or-right))))
+
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
 
 (defun set-gripper-to-position (&key
                                   ((:gripper ?left-or-right))
@@ -286,8 +302,10 @@ In any case, issue ROBOT-STATE-CHANGED event."
   "Call MOVING-GRIPPER-JOINT motion while ignoring failures and issue robot-state-changed."
 
   (unwind-protect
+
+       ;; ignore failures
        (cpl:with-failure-handling
-           ((common-fail:gripper-low-level-failure (e) ; ignore failures
+           ((common-fail:gripper-low-level-failure (e)
               (roslisp:ros-warn (pick-and-place set-gripper-to-pos) "~a" e)
               (return)))
          (exe:perform
@@ -295,8 +313,10 @@ In any case, issue ROBOT-STATE-CHANGED event."
                    (type moving-gripper-joint)
                    (gripper ?left-or-right)
                    (joint-angle ?position))))
+
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
 
 
 (defun look-at (&key
@@ -337,6 +357,7 @@ In any case, issue ROBOT-STATE-CHANGED event."
   (declare (type desig:object-designator ?object-designator))
   "Call detecting motion on `?object-designator', retry on failure, issue perceived event,
 equate resulting designator to the original one."
+
   (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
                      1
                      4)))
