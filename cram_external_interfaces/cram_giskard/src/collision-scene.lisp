@@ -271,13 +271,14 @@
            (object-name-string
              (roslisp-utilities:rosify-underscores-lisp-name object-name))
            (btr-object
-             (btr:object btr:*current-bullet-world* object-name))
-           (attached-to-another-link-as-well?
-             (btr:object-attached (btr:get-robot-object) btr-object)))
-      (unless attached-to-another-link-as-well?
-        (call-giskard-environment-service
-         :detach
-         :name object-name-string)))))
+             (btr:object btr:*current-bullet-world* object-name)))
+      (when btr-object
+        (let ((attached-to-another-link-as-well?
+                (btr:object-attached (btr:get-robot-object) btr-object)))
+          (unless attached-to-another-link-as-well?
+            (call-giskard-environment-service
+             :detach
+             :name object-name-string)))))))
 
 (defmethod coe:on-event giskard-perceived ((event cpoe:object-perceived-event))
   (unless cram-projection:*projection-environment*
