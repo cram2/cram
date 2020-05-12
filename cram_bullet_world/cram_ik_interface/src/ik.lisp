@@ -187,10 +187,12 @@ Syntax:
                          for value in sampling-values
                          do
                             (multiple-value-bind (solution-msg joint-values)
-                                ;; Checking if the arguments contain &body clause or not. 6 is
-                                ;; currently the number of arguments without including &body.
+                                ;; Checking if the arguments contain &body clause or not. 2
+                                ;; is the current number of arguments without including the
+                                ;; body. One being the form itself and the second being the
+                                ;; list of arguments inside the paranthesis.
                                 ;; Update according to API changes
-                                (if (> ,form-length 6)
+                                (if (> ,form-length 2)
                                     ;; If body is provided, call it with the current offseted
                                     ;; value of pose (for retaining the loop value on nested
                                     ;; calls). Revert it back after the execution of
