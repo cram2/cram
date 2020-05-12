@@ -139,7 +139,7 @@ If not valid solution was found, returns NIL."
 (defmacro find-ik-for ((cartesian-pose
                         base-link tip-link
                         seed-state-message
-                        &key solution-valid-p)
+                        &optional solution-valid-p)
                        &body body)
   "Method to find inverse kinematics for a given cartesian pose using resampling
 Syntax:
