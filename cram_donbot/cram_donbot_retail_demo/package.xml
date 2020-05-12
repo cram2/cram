@@ -41,10 +41,10 @@
   <depend>cram_bullet_reasoning_utilities</depend>
   <depend>cram_urdf_projection</depend>
 
-  <!-- <depend>cram_location_costmap</depend> -->
-  <!-- <depend>cram_btr_visibility_costmap</depend> -->
-  <!-- <depend>cram_robot_pose_gaussian_costmap</depend> -->
-  <!-- <depend>cram_occupancy_grid_costmap</depend> -->
+  <depend>cram_location_costmap</depend>
+  <depend>cram_btr_visibility_costmap</depend>
+  <depend>cram_robot_pose_gaussian_costmap</depend>
+  <depend>cram_btr_spatial_relations_costmap</depend>
 
   <depend>cram_donbot_description</depend>
 

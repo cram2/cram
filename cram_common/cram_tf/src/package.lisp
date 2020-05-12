@@ -42,13 +42,13 @@
    #:start-publishing-transforms #:stop-publishing-transforms
    ;; utilities
    #:poses-equal-p
-   #:frame-to-pose-in-fixed-frame
+   #:frame-to-pose-in-fixed-frame #:frame-to-transform-in-fixed-frame
    #:3d-vector->list #:list->3d-vector
    #:pose->flat-list #:pose->flat-list-w-first
    #:pose->list
    #:flat-list->pose #:flat-list->transform #:flat-list-w-first->pose
    #:list->pose #:list->transform
-   #:ensure-pose-in-frame #:ensure-point-in-frame
+   #:ensure-pose-in-frame #:ensure-point-in-frame #:ensure-transform-in-frame
    #:translate-pose #:rotate-pose
    #:rotate-pose-in-own-frame #:rotate-transform-in-own-frame
    #:tf-frame-converged
@@ -66,7 +66,7 @@
    #:pose #:pose-stamped #:position #:orientation #:poses-equal
    #:location-pose
    ;; robot current pose
-   #:robot-current-pose
+   #:robot-current-pose #:robot-current-transform
    ;; setup
    #:*transformer*
    #:*tf-default-timeout*
