@@ -13,8 +13,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -225,28 +225,25 @@
 
 (defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
   (let ((joint-state-msg
-          (or (ik:call-ik-service-with-resampling
-               (cl-tf:pose->pose-stamped
-                base-link
-                0.0
-                cartesian-pose)
-               base-link ee-link
-               (btr::make-robot-joint-state-msg
-                (btr:get-robot-object)
-                :joint-names joint-names)
-               *camera-resampling-step* :x
-               0 (- *camera-x-axis-limit*) *camera-x-axis-limit*)
-              (ik:call-ik-service-with-resampling
-               (cl-tf:pose->pose-stamped
-                base-link
-                0.0
-                cartesian-pose)
-               base-link ee-link
-               (btr::make-robot-joint-state-msg
-                (btr:get-robot-object)
-                :joint-names joint-names)
-               *camera-resampling-step* :y
-               0 (- *camera-y-axis-limit*) *camera-y-axis-limit*))))
+          (ik:find-ik-for ((cl-tf:pose->pose-stamped
+                            base-link
+                            0.0
+                            cartesian-pose)
+                           base-link ee-link
+                           (btr::make-robot-joint-state-msg
+                            (btr:get-robot-object)
+                            :joint-names joint-names))
+            (ik:with-resampling (0.0d0
+                                 :x
+                                 *camera-x-axis-limit*
+                                 (- *camera-x-axis-limit*)
+                                 *camera-resampling-step*)
+              (ik:with-resampling (0.0d0
+                                   :y
+                                   *camera-y-axis-limit*
+                                   (- *camera-y-axis-limit*)
+                                   *camera-resampling-step*))))))
+
     (when joint-state-msg
       (map 'list #'identity (roslisp:msg-slot-value joint-state-msg :position)))))
 
@@ -687,7 +684,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                torso-joint-lower-limit torso-joint-upper-limit
                                validation-function)
   (when ee-pose
-    (multiple-value-bind (ik-solution-msg torso-angle)
+    (multiple-value-bind (ik-solution-msg joint-values)
         (let ((torso-current-angle
                 (btr:joint-state
                  (btr:get-robot-object)
@@ -696,16 +693,19 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 (btr::make-robot-joint-state-msg
                  (btr:get-robot-object)
                  :joint-names joint-names)))
-          (ik:call-ik-service-with-resampling
-           ee-pose base-link end-effector-link seed-state-msg *torso-resampling-step*
-           :z torso-current-angle torso-joint-lower-limit torso-joint-upper-limit
-           validation-function))
+          (ik:find-ik-for (ee-pose base-link end-effector-link seed-state-msg
+                           :solution-valid-p validation-function)
+            (ik:with-resampling (torso-current-angle
+                                 :z torso-joint-upper-limit
+                                 torso-joint-lower-limit *torso-resampling-step*))))
+
       (unless ik-solution-msg
         (cpl:fail 'common-fail:manipulation-low-level-failure
                   :description (format nil "~a is unreachable for EE or is in collision."
                                        ee-pose)))
-      (values (map 'list #'identity (roslisp:msg-slot-value ik-solution-msg :position))
-              torso-angle))))
+      (let ((torso-angle (cdr (assoc :z joint-values))))
+        (values (map 'list #'identity (roslisp:msg-slot-value ik-solution-msg :position))
+                torso-angle)))))
 
 (defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose
                                 &optional joint-state-msg)
