@@ -208,6 +208,16 @@
                            ( 0  1  0)
                            (-1  0  0)))
 
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :environment
+  :donbot-shelf-1-front
+  :attachment-translation `(0.39968 -0.26038335 0.1202)
+  :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :environment
+  :donbot-shelf-1-back
+  :attachment-translation `(0.39968 -0.26038335 0.1202)
+  :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
+
 (man-int:def-object-type-in-other-object-transform :balea-bottle :robot
   :donbot-tray-left
   :attachment-translation `(0.2 0.1 0.1)
