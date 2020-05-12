@@ -62,10 +62,13 @@
                cram-urdf-projection      ; for with-simulated-robot
                cram-urdf-projection-reasoning
 
-               ;; cram-location-costmap
-               ;; cram-btr-visibility-costmap
-               ;; cram-robot-pose-gaussian-costmap
+               cram-location-costmap
+               cram-btr-visibility-costmap
+               cram-robot-pose-gaussian-costmap
+               cram-btr-spatial-relations-costmap
                ;; cram-occupancy-grid-costmap
+
+               cram-fetch-deliver-plans
 
                cram-donbot-description
 
