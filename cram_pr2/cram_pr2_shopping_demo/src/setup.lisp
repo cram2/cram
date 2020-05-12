@@ -235,6 +235,7 @@
 (roslisp-utilities:register-ros-init-function spawn-robot)
 (roslisp-utilities:register-ros-init-function spawn-shelf)
 ;;(roslisp-utilities:register-ros-init-function spawn-objects)
+(roslisp-utilities:register-ros-init-function spawn-objects-new)
 (roslisp-utilities:register-ros-init-function spawn-basket)
 
 (def-fact-group costmap-metadata (costmap:costmap-size
