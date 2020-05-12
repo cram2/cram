@@ -116,20 +116,33 @@
     (desig:current-designator ?location-designator ?current-location-designator)
     (desig:desig-prop ?current-location-designator (:for ?object-designator))
     (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
-    (desig:desig-prop ?current-location-designator (:attachment ?attachment-type))
+    (-> (desig:desig-prop ?current-location-designator (:attachments ?attachments))
+        (member ?attachment-type ?attachments)
+        (desig:desig-prop ?current-location-designator (:attachment
+                                                        ?attachment-type)))
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
-    (desig:current-designator ?other-object-designator ?current-other-object-designator)
-    (spec:property ?current-other-object-designator (:type ?other-object-type))
-    (spec:property ?current-other-object-designator (:name ?other-object-name))
+    (desig:current-designator ?other-object-designator ?current-other-obj-desig)
+    (spec:property ?current-other-obj-desig (:type ?other-object-type))
 
-    (lisp-fun get-object-transform ?current-other-object-designator
-              ?other-object-transform)
+    (-> (spec:property ?current-other-obj-desig (:urdf-name ?other-object-name))
+        (and (lisp-fun roslisp-utilities:rosify-underscores-lisp-name
+                       ?other-object-name ?link-name)
+             (symbol-value cram-tf:*robot-base-frame* ?parent-frame)
+             (lisp-fun cram-tf:frame-to-transform-in-fixed-frame
+                       ?link-name ?parent-frame
+                       ?other-object-transform))
+        (and (spec:property ?current-other-obj-desig (:name ?other-object-name))
+             (lisp-fun get-object-transform ?current-other-obj-desig
+                       ?other-object-transform)))
 
     (lisp-fun get-object-placement-transform
               ?object-name ?object-type
               ?other-object-name ?other-object-type ?other-object-transform
               ?attachment-type
               ?attachment-transform)
-    (lisp-fun cram-tf:strip-transform-stamped ?attachment-transform ?pose-stamped)))
+    (lisp-fun cram-tf:strip-transform-stamped ?attachment-transform ?attachment-pose)
+    (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
+    (lisp-fun cram-tf:ensure-pose-in-frame ?attachment-pose ?fixed-frame
+              ?pose-stamped)))
