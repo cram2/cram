@@ -38,7 +38,7 @@
             (cl-transforms:orientation pose-2))
            ang-sigma)))
 
-(defun frame-to-pose-in-fixed-frame (frame-name)
+(defun frame-to-pose-in-fixed-frame (frame-name &optional parent-frame)
   (when *transformer*
     (transform-pose-stamped
      *transformer*
@@ -46,7 +46,15 @@
      :pose (make-pose-stamped frame-name 0.0
                               (make-identity-vector)
                               (make-identity-rotation))
-     :target-frame *fixed-frame*)))
+     :target-frame (or parent-frame *fixed-frame*))))
+
+(defun frame-to-transform-in-fixed-frame (frame-name &optional parent-frame)
+  (when *transformer*
+    (cl-transforms-stamped:lookup-transform
+     *transformer*
+     parent-frame frame-name
+     :timeout *tf-default-timeout*
+     :time 0.0)))
 
 (defun 3d-vector->list (3d-vector)
   (let ((x (cl-transforms:x 3d-vector))
@@ -158,6 +166,19 @@
    :target-frame frame
    :timeout *tf-default-timeout*
    :use-current-ros-time use-current-ros-time))
+
+(defun ensure-transform-in-frame (transform frame
+                                  &key use-current-ros-time use-zero-time)
+  (declare (type (or null cl-transforms-stamped:transform-stamped)))
+  (when transform
+    (let* ((child-frame
+             (cl-transforms-stamped:child-frame-id transform))
+           (new-pose-stamped
+             (ensure-pose-in-frame (strip-transform-stamped transform)
+                                   frame
+                                   :use-current-ros-time use-current-ros-time
+                                   :use-zero-time use-zero-time)))
+      (pose-stamped->transform-stamped new-pose-stamped child-frame))))
 
 (defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
   (let* ((pose-origin
