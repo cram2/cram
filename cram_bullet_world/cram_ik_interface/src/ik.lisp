@@ -148,66 +148,67 @@ Syntax:
              (ik::with-resampling current-value2 resampling-axis2 ...)
                             ....))
 "
-  (let* ((current-pose (list (cons 'pose (eval cartesian-pose))))
-         (get-current-pose (lambda () (cdr (assoc 'pose current-pose))))
-         (set-current-pose (lambda (val) (setf (cdr (assoc 'pose current-pose)) val))))
-       
-    `(macrolet ((with-resampling (&whole whole-form
-                                         (current-value
-                                          resampling-axis
-                                          upper-limit lower-limit
-                                          resampling-step)
-                                         &body body)
-                    (let ((form-length (length whole-form)))
-                      ;;Formulating a list of joint values to sample
-                      `(let ((sampling-values
-                               (append
-                                (list ,current-value)
-                                (loop 
-                                  for x = ,upper-limit
-                                    then  (- x ,resampling-step)
-                                  until (<= x ,lower-limit)
-                                  collect x)
-                                (list ,lower-limit)))
-                             ;; Calculating the pose offset for the corresponding joint value
-                             (pseudo-pose (lambda (offset)
-                                            (cram-tf:translate-pose
-                                             (funcall ,,get-current-pose)
-                                             (ecase ,resampling-axis
-                                               (:x :x-offset)
-                                               (:y :y-offset)
-                                               (:z :z-offset))
-                                             (- offset)))))
-                           (loop
-                             for value in sampling-values
-                             do
-                                (multiple-value-bind (solution-msg joint-values)
-                                    ;; Checking if the arguments contain &body clause or not. 6 is
-                                    ;; currently the number of arguments without including &body.
-                                    ;; Update according to API changes
-                                    (if (> ,form-length 6) 
-                                        ;; If body is provided, call it with the current offseted
-                                        ;; value of pose (for retaining the loop value on nested
-                                        ;; calls). Revert it back after the execution of
-                                        ;; &body is completed.
-                                        (let ((old-current-pose (funcall ,,get-current-pose)))
-                                          (funcall ,,set-current-pose (funcall pseudo-pose value))
-                                          (unwind-protect 
-                                               (progn ,@body)
-                                            (funcall ,,set-current-pose old-current-pose)))
+  `(let ((current-pose ,cartesian-pose)
+         (base-link-evaled ,base-link)
+         (tip-link-evaled ,tip-link)
+         (seed-state-msg-evaled ,seed-state-message)
+         (solution-valid-p-evaled ,solution-valid-p))
+     (macrolet ((with-resampling (&whole whole-form
+                                    (current-value
+                                     resampling-axis
+                                     upper-limit lower-limit
+                                     resampling-step)
+                                  &body body)
+                  (let ((form-length (length whole-form)))
+                    ;;Formulating a list of joint values toample
+                    `(let ((sampling-values
+                             (append
+                              (list ,current-value)
+                              (loop
+                                for x = ,upper-limit
+                                  then  (- x ,resampling-step)
+                                until (<= x ,lower-limit)
+                                collect x)
+                              (list ,lower-limit)))
+                           ;; Calculating the pose offset for the corresponding joint value
+                           (pseudo-pose (lambda (offset)
+                                          (cram-tf:translate-pose
+                                           current-pose
+                                           (ecase ,resampling-axis
+                                             (:x :x-offset)
+                                             (:y :y-offset)
+                                             (:z :z-offset))
+                                           (- offset)))))
+                       (loop
+                         for value in sampling-values
+                         do
+                            (multiple-value-bind (solution-msg joint-values)
+                                ;; Checking if the arguments contain &body clause or not. 6 is
+                                ;; currently the number of arguments without including &body.
+                                ;; Update according to API changes
+                                (if (> ,form-length 6)
+                                    ;; If body is provided, call it with the current offseted
+                                    ;; value of pose (for retaining the loop value on nested
+                                    ;; calls). Revert it back after the execution of
+                                    ;; &body is completed.
+                                    (let ((old-current-pose current-pose))
+                                      (setf current-pose (funcall pseudo-pose value))
+                                      (unwind-protect
+                                           (progn ,@body)
+                                        (setf current-pose old-current-pose)))
 
-                                        ;; If no &body clause make the ik-service call
-                                        (call-ik-service
-                                         (funcall pseudo-pose value)
-                                         ,,base-link ,,tip-link ,,seed-state-message))
-                                  
-                                  ;; When a solution is obtained parse accordingly
-                                  (when (and solution-msg
-                                             (or (not ,,solution-valid-p)
-                                                 (funcall ,,solution-valid-p solution-msg)))
-                                    (return (values solution-msg 
-                                                    (cons (cons ,resampling-axis value)
-                                                          joint-values))))))))))
-         ,@body)))
+                                    ;; If no &body clause make the ik-service call
+                                    (call-ik-service
+                                     (funcall pseudo-pose value)
+                                     base-link-evaled
+                                     tip-link-evaled
+                                     seed-state-msg-evaled))
 
-
+                              ;; When a solution is obtained parse accordingly
+                              (when (and solution-msg
+                                         (or (not solution-valid-p-evaled)
+                                             (funcall solution-valid-p-evaled solution-msg)))
+                                (return (values solution-msg
+                                                (cons (cons ,resampling-axis value)
+                                                      joint-values))))))))))
+       ,@body)))
