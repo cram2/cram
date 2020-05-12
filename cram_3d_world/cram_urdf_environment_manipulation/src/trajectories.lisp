@@ -185,7 +185,8 @@ container with revolute joints."
              (cl-transforms-stamped:frame-id joint-to-gripper)
              (cl-transforms-stamped:child-frame-id joint-to-gripper)
              (cl-transforms-stamped:stamp joint-to-gripper)
-             (cl-transforms:rotate rotation (cl-tf:translation joint-to-gripper))
+             (cl-transforms:rotate rotation (cl-transforms:translation
+                                             joint-to-gripper))
              (apply 'cl-transforms:euler->quaternion
                     (3d-vector->keyparam-list
                      (cl-transforms:v+

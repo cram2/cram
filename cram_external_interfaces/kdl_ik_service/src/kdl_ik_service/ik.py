@@ -5,6 +5,29 @@ import kdl_parser_py.urdf  # from kdl_parser_py
 import tf2_kdl
 import math
 
+def hacky_urdf_parser_fix(urdf_str):
+    """
+    Simon's function to get rid of transmission tags in the URDF.
+    The urdf_parser_py parser really doesn't like it when transmission XML nodes
+    don't have a hardwareInterface tag, which our transmissions of Boxy don't have.
+    So just throw those guys the hell out of the URDF string...
+    """
+    # TODO this function is inefficient but the tested urdfs's aren't big enough for it to be a problem
+    fixed_urdf = ''
+    delete = False
+    black_list = ['transmission', 'gazebo']
+    black_open = ['<{}'.format(x) for x in black_list]
+    black_close = ['</{}'.format(x) for x in black_list]
+    for line in urdf_str.split('\n'):
+        if len([x for x in black_open if x in line]) > 0:
+            delete = True
+        if len([x for x in black_close if x in line]) > 0:
+            delete = False
+            continue
+        if not delete:
+            fixed_urdf += line + '\n'
+    return fixed_urdf
+
 
 # ================================= API ===================================================
 def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_msg):
@@ -16,7 +39,8 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     tip_link eg. - "left_arm_7_link" or "right_arm_7_link"
     """
     robot_urdf_string = rospy.get_param('robot_description')
-    urdf_obj = urdf_parser_py.urdf.URDF.from_xml_string(robot_urdf_string)
+    robot_urdf_string_fixed = hacky_urdf_parser_fix(robot_urdf_string)
+    urdf_obj = urdf_parser_py.urdf.URDF.from_xml_string(robot_urdf_string_fixed)
     _, kdl_tree = kdl_parser_py.urdf.treeFromUrdfModel(urdf_obj)
     kdl_chain = kdl_tree.getChain(base_link, tip_link)
 
@@ -42,7 +66,7 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     # check if calculated joint state results in the correct end-effector position using FK
     goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl)
 
-    
+
     if not goal_pose_reached:
         # try with joint seed states as 0
         print "Cannot reach goal using the IK solution with the provided seed state. Trying with zeros"

@@ -121,8 +121,12 @@
        ?cm)))
     (costmap:orientation-samples ?samples)
     (costmap:orientation-sample-step ?sample-step)
+    (once (or (costmap:reachability-orientation-offset ?offset)
+              (equal ?offset 0.0)))
     (costmap-add-orientation-generator
-     (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
+     (make-angle-to-point-generator ?mean :samples ?samples
+                                          :sample-step ?sample-step
+                                          :sample-offset ?offset)
      ?cm)
     (costmap-add-height-generator
      (make-constant-height-function 0.0)

@@ -172,18 +172,6 @@ semantic map kitchen."
                            object-types)))
       objects)))
 
-(defun init-location-costmap-parameters ()
-  (def-fact-group costmap-metadata (costmap:costmap-size
-                                    costmap:costmap-origin
-                                    costmap:costmap-resolution
-                                    costmap:orientation-samples
-                                    costmap:orientation-sample-step)
-    (<- (location-costmap:costmap-size 5 5))
-    (<- (location-costmap:costmap-origin -2.5 -2.5))
-    (<- (location-costmap:costmap-resolution 0.04))
-    (<- (location-costmap:orientation-samples 2))
-    (<- (location-costmap:orientation-sample-step 0.1))))
-
 (defun init-full-simulation (&key namedir urdf-new-kitchen?)
    "Spawns all the objects which are necessary for the current
 scenario (Meaning: Kitchen, Robot, Muesli, Milk, Cup, Bowl, Fork and 3 Axis
@@ -244,6 +232,5 @@ objects for debugging."
          )))
   ;; (spawn-semantic-map)
   ;; (spawn-semantic-items)
-
-  (init-location-costmap-parameters))
+)
 
