@@ -131,6 +131,37 @@
                   list-of-base-frame->link
                   list-of-base-frame->virtual-link)))))
 
+(defun get-environment-transforms-from-bullet (&key
+                                                 (fixed-frame cram-tf:*fixed-frame*)
+                                                 (time (cut:current-timestamp)))
+  "Calculate the transform from fixed frame to all links of environment object.
+Assumes that the environment is spawned at the `fixed-frame' origin!"
+  (let ((environment-instance (btr:get-environment-object)))
+    (if (not environment-instance)
+        (warn "Environment was not present in the world.~%~
+               Not going to GET-TRANSFORMS-FROM-BULLET for the environment.")
+        (loop for link in (btr:link-names environment-instance)
+              append (list
+                      (cl-transforms-stamped:transform->transform-stamped
+                       fixed-frame
+                       link
+                       time
+                       (cl-transforms:reference-transform
+                         (btr:link-pose environment-instance link))))))))
+
+(defun get-item-transforms-from-bullet (&key
+                                          (fixed-frame cram-tf:*fixed-frame*)
+                                          (time (cut:current-timestamp)))
+  "Calculate the transform from fixed frame to all item objects."
+  (loop for item in (remove-if-not (lambda (object)
+                                     (typep object 'btr:item))
+                                   (btr:objects btr:*current-bullet-world*))
+        append (list
+                (cl-transforms-stamped:transform->transform-stamped
+                 fixed-frame
+                 (roslisp-utilities:rosify-underscores-lisp-name (btr:name item))
+                 time
+                 (cl-transforms:reference-transform (btr:pose item))))))
 
 (defun set-tf-from-bullet (&key (transformer cram-tf:*transformer*)
                              (fixed-frame cram-tf:*fixed-frame*)
@@ -140,14 +171,24 @@
                              (display-warnings nil))
   "Sets the transform from fixed frame to odom and then robot and all robot link transforms"
 
-  (let ((transforms
+  (let ((robot-transforms
           (get-transforms-from-bullet
            :fixed-frame fixed-frame
            :odom-frame odom-frame
            :base-frame base-frame
            :time time
-           :display-warnings display-warnings)))
-    (dolist (transform transforms)
+           :display-warnings display-warnings))
+        (environment-transforms
+          (get-environment-transforms-from-bullet
+           :fixed-frame fixed-frame
+           :time time))
+        (item-transforms
+          (get-item-transforms-from-bullet
+           :fixed-frame fixed-frame
+           :time time)))
+    (dolist (transform (append robot-transforms
+                               environment-transforms
+                               item-transforms))
       (cl-tf:set-transform
        transformer
        transform
