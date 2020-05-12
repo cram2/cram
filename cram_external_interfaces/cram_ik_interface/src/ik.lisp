@@ -172,13 +172,17 @@ Syntax:
                               (list ,lower-limit)))
                            ;; Calculating the pose offset for the corresponding joint value
                            (pseudo-pose (lambda (offset)
-                                          (cram-tf:translate-pose
-                                           current-pose
-                                           (ecase ,resampling-axis
-                                             (:x :x-offset)
-                                             (:y :y-offset)
-                                             (:z :z-offset))
-                                           (- offset)))))
+                                          (if (eq ,resampling-axis :theta)
+                                              (cram-tf:rotate-pose
+                                               current-pose
+                                               :z (- offset))
+                                              (cram-tf:translate-pose
+                                               current-pose
+                                               (ecase ,resampling-axis
+                                                 (:x :x-offset)
+                                                 (:y :y-offset)
+                                                 (:z :z-offset))
+                                               (- offset))))))
                        (loop
                          for value in sampling-values
                          do
