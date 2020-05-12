@@ -30,6 +30,9 @@
 (in-package :demo)
 
 (defun spawn-objects-on-small-shelf (&optional (spawn? t))
+  (sb-ext:gc :full t)
+  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
+  (btr:clear-costmap-vis-object)
   (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
@@ -55,8 +58,123 @@
     ;; (btr:simulate btr:*current-bullet-world* 50)
     ))
 
-(defun demo (&optional (?item-type :dish-washer-tabs)
-               (park-drive-look? t))
+(defun demo ()
+  (spawn-objects-on-small-shelf)
+
+  (let* ((?search-location
+           (desig:a location
+                    (on (desig:an object
+                                  (type shelf)
+                                  (urdf-name shelf-2-base)
+                                  (owl-name "shelf_system_verhuetung")
+                                  (part-of environment)
+                                  (level middle)))
+                    (side left)))
+         (?object
+           (an object
+               (type dish-washer-tabs)
+               (location ?search-location)))
+         (?target-location-shelf
+           (desig:a location
+                    (on (desig:an object
+                                  (type environment)
+                                  (name environment)
+                                  (part-of environment)
+                                  (urdf-name shelf-1-level-2-link)))
+                    (for ?object)
+                    (attachments (donbot-shelf-1-front donbot-shelf-1-back))))
+         (?robot-name (btr:get-robot-name))
+         (?intermediate-locaiton-robot
+           (desig:a location
+                    (on (desig:an object
+                                  (type robot)
+                                  (name ?robot-name)
+                                  (part-of ?robot-name)
+                                  ;; (owl-name "donbot_tray")
+                                  (urdf-name plate)))
+                    (for ?object)
+                    (attachments (donbot-tray-front donbot-tray-back)))))
+
+    (exe:perform
+     (desig:an action
+               (type transporting)
+               (object ?object)
+               (location ?search-location)
+               (target ?intermediate-locaiton-robot)
+               ;; (target ?target-location-shelf)
+               ))
+
+    (exe:perform
+     (desig:an action
+               (type transporting)
+               (object ?object)
+               (location ?intermediate-locaiton-robot)
+               (target ?target-location-shelf)))
+
+    ;; (setf ?object
+    ;;       (desig:copy-designator
+    ;;        (perform (a motion
+    ;;                    (type :world-state-detecting)
+    ;;                    (object (an object
+    ;;                                (name denkmitgeschirrreinigernature-1)))))
+    ;;        :new-description
+    ;;        `((:location ,(a location
+    ;;                         (on (an object
+    ;;                                 (type robot)
+    ;;                                 (name ?robot-name)
+    ;;                                 (urdf-name plate)
+    ;;                                 (owl-name "donbot_tray"))))))))
+
+    ;; look at separators
+    ;; (exe:perform
+    ;;  (desig:an action
+    ;;            (type looking)
+    ;;            (direction right-separators)))
+    ;; (cpl:sleep 5.0)
+
+    ;; look at tray
+    ;; (exe:perform
+    ;;  (desig:an action
+    ;;            (type looking)
+    ;;            (direction down)))
+
+    ;; ;; reperceive object
+    ;; (let* ((?robot-name
+    ;;          (btr:get-robot-name)))
+    ;;   (setf ?object
+    ;;         (perform
+    ;;          (an action
+    ;;              (type detecting)
+    ;;              (object (an object
+    ;;                          (type ?item-type)
+    ;;                          (location (a location
+    ;;                                       (on (an object
+    ;;                                               (type robot)
+    ;;                                               (name ?robot-name)
+    ;;                                               (urdf-name plate)
+    ;;                                               (owl-name "donbot_tray")))))))))))
+))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(defun demo-hardcoded (&optional (?item-type :dish-washer-tabs)
+                         (park-drive-look? t))
 
   (spawn-objects-on-small-shelf)
 
@@ -165,9 +283,9 @@
 
       (let ((picking-up-action
               (desig:an action
-                  (type picking-up)
-                  (grasp ?grasp)
-                  (object ?object))))
+                        (type picking-up)
+                        (grasp ?grasp)
+                        (object ?object))))
         ;; (proj-reasoning:check-picking-up-collisions picking-up-action)
         ;; picking up
         (exe:perform picking-up-action))

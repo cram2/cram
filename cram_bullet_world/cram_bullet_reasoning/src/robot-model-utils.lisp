@@ -69,8 +69,8 @@
 
 (defgeneric set-robot-state-from-joints (joint-states robot)
   (:method ((joint-states sensor_msgs-msg:jointstate) (robot robot-object))
-    "Sets the joints of `robot' to the values specified in the
-sensor_msgs/JointStates message."
+    "Sets the joints of `robot' to the values specified in the ~
+     sensor_msgs/JointStates message."
     (roslisp:with-fields ((names name)
                           (positions position))
         joint-states
@@ -78,10 +78,8 @@ sensor_msgs/JointStates message."
                  (setf (joint-state robot name) state))
            names positions)))
   (:method ((joint-states list) (robot robot-object))
-    "Sets the joint states of `robot' to the values specifies in the
-    list `joint-states'. `joint-states' is a list of the form:
-
-      ([(name value)]*)"
+    "Sets the joint states of `robot' to the values specifies in the ~
+    list `joint-states'. `joint-states' is a list of the form: ([(name value)]*)"
     (loop for (name value) in joint-states do
       (setf (joint-state robot name) value))))
 

@@ -30,6 +30,60 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
+(defmethod cram-occasions-events:on-event object-perceived 2 ((event cpoe:object-perceived-event))
+  (if cram-projection:*projection-environment*
+      ;; if in projection, only add the object name to perceived designators list
+      (let ((object-data (desig:reference (cpoe:event-object-designator event))))
+        (or
+         (gethash (desig:object-identifier object-data)
+                  *object-identifier-to-instance-mappings*)
+         (setf (gethash (desig:object-identifier object-data)
+                        *object-identifier-to-instance-mappings*)
+               (desig:object-identifier object-data))))
+      ;; otherwise, spawn a new object in the bullet world
+      (progn
+        (register-object-designator-data
+         (desig:reference (cpoe:event-object-designator event))
+         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))
+        ;; after having spawned the object, update the designator to get the
+        ;; new simulated pose
+        (desig:equate
+         (cpoe:event-object-designator event)
+         (detect-new-object-pose-from-btr (cpoe:event-object-designator event))))))
+
+
+
+(defmethod cram-occasions-events:on-event btr-belief ((event cpoe:object-location-changed))
+  (flet ((update-object-designator-location (object-designator location-designator)
+           (desig:make-designator
+            :object
+            `((:location ,location-designator)
+              ,@(remove :location (desig:properties object-designator) :key #'car))
+            object-designator)))
+
+    ;; update the designator to get the new location
+    (update-object-designator-location
+      (cpoe:event-object-designator event)
+      (cpoe:event-location-designator event))))
+
+
+
+(defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
+  (unless cram-projection:*projection-environment*
+    (let ((robot (btr:get-robot-object)))
+      (when robot
+        (btr:set-robot-state-from-tf
+         cram-tf:*transformer*
+         robot
+         :timestamp (cram-occasions-events:event-timestamp event)))))
+  (btr:timeline-advance
+   btr:*current-timeline*
+   (btr:make-event
+    btr:*current-bullet-world*
+    `(location-change robot))))
+
+
+
 (defmethod cram-occasions-events:on-event btr-attach-object 2 ((event cpoe:object-attached-robot))
   "2 means this method has to be ordered based on integer qualifiers.
 It could have been 1 but 1 is reserved in case somebody has to be even more urgently
@@ -188,22 +242,6 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 
 
-(defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
-  (unless cram-projection:*projection-environment*
-    (let ((robot (btr:get-robot-object)))
-      (when robot
-        (btr:set-robot-state-from-tf
-         cram-tf:*transformer*
-         robot
-         :timestamp (cram-occasions-events:event-timestamp event)))))
-  (btr:timeline-advance
-   btr:*current-timeline*
-   (btr:make-event
-    btr:*current-bullet-world*
-    `(location-change robot))))
-
-
-
 (defun move-joint-by-event (event open-or-close)
   (let* ((joint-name (cpoe:environment-event-joint-name event))
          (object (cpoe:environment-event-object event))
@@ -243,39 +281,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 
 
-(defmethod cram-occasions-events:on-event object-perceived 2 ((event cpoe:object-perceived-event))
-  (if cram-projection:*projection-environment*
-      ;; if in projection, only add the object name to perceived designators list
-      (let ((object-data (desig:reference (cpoe:event-object-designator event))))
-        (or
-         (gethash (desig:object-identifier object-data)
-                  *object-identifier-to-instance-mappings*)
-         (setf (gethash (desig:object-identifier object-data)
-                        *object-identifier-to-instance-mappings*)
-               (desig:object-identifier object-data))))
-      ;; otherwise, spawn a new object in the bullet world
-      (progn
-        (register-object-designator-data
-         (desig:reference (cpoe:event-object-designator event))
-         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))
-        ;; after having spawned the object, update the designator to get the
-        ;; new simulated pose
-        (desig:equate
-         (cpoe:event-object-designator event)
-         (detect-new-object-pose-from-btr (cpoe:event-object-designator event))))))
-
-
-
 #+old-Lorenzs-stuff-currently-not-used-but-maybe-in-the-future
 (
  ;; Utility functions
- (defun update-object-designator-location (object-designator location-designator)
-   (desig:make-designator
-    :object
-    `((:at ,location-designator)
-      ,@(remove :at (desig:properties object-designator) :key #'car))
-    object-designator))
-
  (defun get-supporting-object-bounding-box (object-name)
    (cut:with-vars-bound (?supporting-name ?supporting-link)
        (cut:lazy-car (prolog

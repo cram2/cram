@@ -207,6 +207,11 @@
    (make-instance 'cpoe:object-detached-robot
      :arm ?arm
      :object-name (desig:desig-prop-value ?object-designator :name)))
+  (roslisp:ros-info (pick-place place) "Updating object location in knowledge base")
+  (cram-occasions-events:on-event
+   (make-instance 'cpoe:object-location-changed
+     :object-designator ?object-designator
+     :location-designator ?target-location-designator))
   (roslisp:ros-info (pick-place place) "Retracting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
