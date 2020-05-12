@@ -38,7 +38,9 @@
     (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
     (once (and (object-designator-name ?object ?object-name)
+               (format "OK: ~a~%~%" ?object)
                (desig:obj-desig? ?object)))
+    (format "OBJ: ~a~%" ?object)
     (rob-int:end-effector-link ?robot ?arm ?link))
 
   ;; if we only want to know the link and don't care about the arm
@@ -81,15 +83,18 @@
 
   (<- (object-designator-name ?object-designator ?object-name)
     (or (and (bound ?object-designator)
-             (desig:obj-desig? ?object-designator))
+             (desig:obj-desig? ?object-designator)
+             (desig:current-designator ?object-designator
+                                       ?current-object-designator)
+             (desig:desig-prop ?current-object-designator (:name ?object-name)))
         (and (not (bound ?object-designator))
+             ;; all object designators who have the same name should be
+             ;; perceptions of the same exact object, and, thus,
+             ;; they should be equated into one chain
              (lisp-fun unique-object-designators ?object-designators)
              (member ?one-desig-from-chain ?object-designators)
-             (desig:current-designator ?one-desig-from-chain ?object-designator)))
-    ;; all object designators who have the same name should be
-    ;; perceptions of the same exact object, and, thus,
-    ;; they should be equated into one chain
-    (desig:desig-prop ?object-designator (:name ?object-name)))
+             (desig:current-designator ?one-desig-from-chain ?object-designator)
+             (desig:desig-prop ?object-designator (:name ?object-name)))))
 
   (<- (desig:desig-location-prop ?designator ?location)
     (desig:obj-desig? ?designator)
