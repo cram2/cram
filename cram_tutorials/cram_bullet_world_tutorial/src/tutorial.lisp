@@ -73,10 +73,10 @@
    (cl-transforms:make-identity-rotation)))
 
 (defparameter *pose-meal-table*
-  (cl-tf:make-pose-stamped
+  (cl-transforms-stamped:make-pose-stamped
    "map" 0.0
-   (cl-tf:make-3d-vector -0.15 2.0 0)
-   (cl-tf:make-quaternion 0.0d0 0.0d0 -1.0d0 0.0d0)))
+   (cl-transforms:make-3d-vector -0.15 2.0 0)
+   (cl-transforms:make-quaternion 0.0d0 0.0d0 -1.0d0 0.0d0)))
 
 (defparameter *pose-counter*
   (cl-transforms-stamped:make-pose-stamped
@@ -144,9 +144,7 @@
            (desig:a motion (type moving-torso) (joint-angle 0.3)))
           (exe:perform
            (desig:an action
-                     (type positioning-arm)
-                     (left-configuration park)
-                     (right-configuration park)))
+                     (type parking-arms)))
           (navigate-to ?navigation-goal))
         (look-at ?ptu-goal))
       ;; Pick up bottle-1 with right arm.
@@ -154,8 +152,8 @@
         (pick-up ?perceived-bottle-1 :right)
         (exe:perform
          (desig:an action
-                   (type positioning-arm)
-                   (right-configuration park)))
+                   (type parking-arms)
+                   (arms (:right))))
         ;; Move to the meal table
         (let ((?pose *pose-meal-table*))
           (navigate-to ?pose))
@@ -165,17 +163,17 @@
           ;; Move left arm out of sight
           (exe:perform
            (desig:an action
-                     (type positioning-arm)
-                     (left-configuration park)))
+                     (type parking-arms)
+                     (arms (:left))))
           ;; Place bottle-1 on second table
           (let ((?drop-pose *pose-bottle-2*))
             (place-down ?drop-pose ?perceived-bottle-1 :right))
           ;; Move right arm out of sight
           (exe:perform
            (desig:an action
-                     (type positioning-arm)
-                     (right-configuration park)))
-          ;; Move to the counter table 
+                     (type parking-arms)
+                     (arms (:right))))
+          ;; Move to the counter table
           (let ((?navigation-goal *pose-counter*))
             (navigate-to ?navigation-goal))
           ;; Place bottle-2 on the counter
@@ -183,6 +181,4 @@
             (place-down ?drop-pose ?perceived-bottle-2 :left))
           (exe:perform
            (desig:an action
-                     (type positioning-arm)
-                     (left-configuration park)
-                     (right-configuration park))))))))
+                     (type parking-arms))))))))

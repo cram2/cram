@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,13 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-robot-interfaces)
+(in-package :cl-user)
 
-(defun symbol-to-prolog-rule (the-symbol &rest parameters)
-  (let ((interned-symbol (find-symbol (string-upcase the-symbol))))
-    (if interned-symbol
-        (cram-utilities:var-value
-         '?result
-         (car (prolog `(,interned-symbol ,@parameters ?result))))
-        the-symbol)))
+(defpackage cram-donbot-process-modules
+  (:nicknames #:donbot-pm)
+  (:use #:common-lisp #:cram-prolog)
+  (:export
+   ;; definitions
+   #:grippers-pm
+   ;; interface
+   #:with-real-robot))

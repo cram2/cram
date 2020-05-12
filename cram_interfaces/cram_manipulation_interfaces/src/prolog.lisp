@@ -84,3 +84,52 @@
     (rob-int:robot ?robot)
     (rob-int:arm ?robot ?arm)
     (not (cpoe:object-in-hand ?_ ?arm))))
+
+
+
+(defun symbol-to-prolog-rule (the-symbol &rest parameters)
+  (let ((interned-symbol (find-symbol (string-upcase the-symbol))))
+    (if interned-symbol
+        (cram-utilities:var-value
+         '?result
+         (car (prolog `(,interned-symbol ,@parameters ?result))))
+        the-symbol)))
+
+;; todo(@gaya): ugliest piece of code ever...
+;; spent 2 years cleaning up cram, now spend another 2 messing it up again...
+(def-fact-group robot-parts-location (desig:desig-location-prop)
+  (<- (desig:desig-location-prop ?object-designator ?pose-stamped)
+    (desig:obj-desig? ?object-designator)
+    (desig:desig-prop ?object-designator (:part-of ?robot))
+    (rob-int:robot ?robot)
+    (desig:desig-prop ?object-designator (:link ?link))
+    (-> (desig:desig-prop ?object-designator (:which-link ?params))
+        (lisp-fun symbol-to-prolog-rule ?link ?robot-name ?params ?link-name)
+        (lisp-fun symbol-to-prolog-rule ?link ?robot-name ?link-name))
+    (lisp-fun cram-tf:frame-to-pose-in-fixed-frame ?link-name ?pose-stamped)))
+
+
+;; Resolving (a location (for ?object) (on ?other-object) (attachment object-to-other-object))
+;; TODO: move to pick and place heuristics package, when it is created
+(def-fact-group location-designator-with-attachment (desig:location-grounding)
+  (<- (desig:location-grounding ?location-designator ?pose-stamped)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (desig:desig-prop ?current-location-designator (:for ?object-designator))
+    (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
+    (desig:desig-prop ?current-location-designator (:attachment ?attachment-type))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (spec:property ?current-object-designator (:type ?object-type))
+    (spec:property ?current-object-designator (:name ?object-name))
+    (desig:current-designator ?other-object-designator ?current-other-object-designator)
+    (spec:property ?current-other-object-designator (:type ?other-object-type))
+    (spec:property ?current-other-object-designator (:name ?other-object-name))
+
+    (lisp-fun get-object-transform ?current-other-object-designator
+              ?other-object-transform)
+
+    (lisp-fun get-object-placement-transform
+              ?object-name ?object-type
+              ?other-object-name ?other-object-type ?other-object-transform
+              ?attachment-type
+              ?attachment-transform)
+    (lisp-fun cram-tf:strip-transform-stamped ?attachment-transform ?pose-stamped)))

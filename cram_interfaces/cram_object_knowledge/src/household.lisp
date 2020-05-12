@@ -169,7 +169,7 @@
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :back
-  :grasp-translation `(,*bottle-grasp-xy-offset* 0.0d0 ,*bottle-grasp-z-offset*)
+  :grasp-translation `(,(- *bottle-grasp-xy-offset*) 0.0d0 ,*bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
@@ -180,8 +180,8 @@
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :front
   :grasp-translation `(,*bottle-grasp-xy-offset* 0.0d0 ,*bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
-  :pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
+  :pregrasp-offsets `(,*bottle-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,*bottle-pregrasp-xy-offset* 0.0 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
@@ -328,6 +328,27 @@
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top
   :grasp-translation `(,(- *bowl-grasp-x-offset*) 0.0d0 ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-front
+  :grasp-translation `(,*bowl-grasp-x-offset* 0.0d0 ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-left
+  :grasp-translation `(0.0d0 ,*bowl-grasp-x-offset* ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-right
+  :grasp-translation `(0.0d0 ,(- *bowl-grasp-x-offset*) ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
@@ -523,11 +544,8 @@
 
 (defun make-location-right-of-behind-other-object (?object-type ?other-object-type)
   (desig:a location
-           ;; (left-of (desig:an object (type ?other-object-type)))
-           ;; (near (desig:an object (type ?other-object-type)))
-           ;; (for (desig:an object (type ?object-type)))
            (right-of (desig:an object (type ?other-object-type)))
-           (behind (desig:an object (type ?other-object-type)))
+           ;; (behind (desig:an object (type ?other-object-type)))
            (near (desig:an object (type ?other-object-type)))
            (for (desig:an object (type ?object-type)))))
 

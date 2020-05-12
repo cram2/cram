@@ -328,18 +328,38 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
                                                  objects-acted-on
                                                  &key target-object-transform-in-base)
   (let* ((object
-           (car objects-acted-on))
+           (first objects-acted-on))
          (object-name
            (desig:desig-prop-value object :name))
          (object-type
            (desig:desig-prop-value object :type))
-         (oTg-std
-           (get-object-type-to-gripper-transform
-            object-type object-name arm grasp))
+         (other-object
+           (second objects-acted-on))
+         (other-object-type
+           (desig:desig-prop-value other-object :type))
+         (attachment
+           (third objects-acted-on))
          (bTo
            target-object-transform-in-base)
          (oTb
            (cram-tf:transform-stamped-inv bTo))
+         (drop-z-offset
+           (get-z-offset-for-placing-with-dropping
+            object-type other-object-type attachment))
+         (bTb-drop-z-offset
+           (cl-transforms-stamped:make-transform-stamped
+            cram-tf:*robot-base-frame*
+            cram-tf:*robot-base-frame*
+            0.0
+            (cl-transforms:make-3d-vector 0 0 drop-z-offset)
+            (cl-transforms:make-identity-rotation)))
+         (oTg-std-no-z-offset
+           (get-object-type-to-gripper-transform
+            object-type object-name arm grasp))
+         (oTg-std
+           (reduce #'cram-tf:apply-transform
+                   `(,oTb ,bTb-drop-z-offset ,bTo ,oTg-std-no-z-offset)
+                   :from-end T))
          (bTb-lift
            (first (get-object-type-wrt-base-frame-lift-transforms
                    object-type arm grasp)))
@@ -384,6 +404,15 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
 (defgeneric get-object-type-in-other-object-transform (object-type object-name
                                                        other-object-type other-object-name
                                                        attachment))
+
+(defgeneric get-z-offset-for-placing-with-dropping (object-type other-object-type attachment)
+  (:documentation "Returns a Z offset in the cram-tf:*robot-base-frame* in meters
+for dropping given `object-type' on the `other-object-type', with the given
+`attachemnt' placement pose type.")
+  (:method (object-type other-object-type attachment)
+    "Per default, the robot touches the object with the other object
+before opening the gripper, such that no dropping offset is necessary."
+    0.0))
 
 (defun get-object-placement-transform (object-name object-type
                                        other-object-name other-object-type other-object-transform

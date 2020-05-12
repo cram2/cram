@@ -176,7 +176,7 @@
                                 :mass 0.0
                                 :color object-color
                                 :pose (cram-tf:pose->list
-                                       (cl-tf:make-pose
+                                       (cl-transforms:make-pose
                                         (cl-transforms:v+
                                          (cl-transforms:make-3d-vector
                                           (- *plate-x* *plate-rad-x*)
@@ -299,9 +299,7 @@
 
     (exe:perform
      (desig:an action
-               (type positioning-arm)
-               (left-configuration park)
-               (right-configuration park)))))
+               (type parking-arms)))))
 
 (defun initialize-attachments ()
   (btr:attach-object 'motor-grill 'underbody))
@@ -310,9 +308,7 @@
   ;; park arms
   (exe:perform
    (desig:an action
-             (type positioning-arm)
-             (left-configuration park)
-             (right-configuration park)))
+             (type parking-arms)))
   ;; drive to right location
   (let ((?pose (cl-transforms-stamped:pose->pose-stamped
                 cram-tf:*fixed-frame*
