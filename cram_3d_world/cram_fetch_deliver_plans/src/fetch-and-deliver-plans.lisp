@@ -37,9 +37,7 @@
 if yes, perform GOING action while ignoring failures."
 
   (exe:perform (desig:an action
-                         (type positioning-arm)
-                         (left-configuration park)
-                         (right-configuration park)))
+                         (type parking-arms)))
 
   (proj-reasoning:check-navigating-collisions ?navigation-location)
   (setf ?navigation-location (desig:current-desig ?navigation-location))
@@ -330,7 +328,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                              arm-retries
                              (:error-object-or-string
                               (format NIL "Manipulation failed: ~a.~%Next." e)
-                              :warning-namespace (kvr plans)
+                              :warning-namespace (fd-plans fetch)
                               :rethrow-failure 'common-fail:object-unreachable)
                            (setf ?arm (cut:lazy-car ?arms)))))
 
@@ -346,7 +344,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                    grasp-retries
                                    (:error-object-or-string
                                     (format NIL "Picking up failed: ~a.~%Next" e)
-                                    :warning-namespace (kvr plans))
+                                    :warning-namespace (fd-plans fetch))
                                  (setf ?grasp (cut:lazy-car ?grasps)))))
 
                           (let ((pick-up-action
@@ -415,10 +413,13 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
          (cpl:fail 'common-fail:delivering-failed
                    :description "Some designator could not be resolved.")))
 
-    (cpl:with-retry-counters ((outer-target-location-retries 2))
+    (cpl:with-retry-counters ((outer-target-location-retries 4))
       (cpl:with-failure-handling
           (((or desig:designator-error
                 common-fail:object-undeliverable) (e)
+             (roslisp:ros-warn (fd-plans deliver)
+                               "outer-target-location-retries ~a~%"
+                               (cpl:get-counter outer-target-location-retries))
              (common-fail:retry-with-loc-designator-solutions
                  ?target-location
                  outer-target-location-retries
@@ -434,12 +435,16 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
               (((or common-fail:navigation-goal-in-collision
                     common-fail:object-undeliverable
                     common-fail:manipulation-low-level-failure) (e)
+                 (roslisp:ros-warn (fd-plans deliver)
+                                   "relocation-for-ik-retries ~A~%"
+                                   (cpl:get-counter relocation-for-ik-retries))
                  (common-fail:retry-with-loc-designator-solutions
                      ?target-robot-location
                      relocation-for-ik-retries
                      (:error-object-or-string
                       (format NIL "Object is undeliverable from base location.~%~a" e)
                       :warning-namespace (fd-plans deliver)
+                      :reset-designators (list ?target-location)
                       :rethrow-failure 'common-fail:object-undeliverable))))
 
             ;; navigate
@@ -448,7 +453,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                    (location ?target-robot-location)))
 
             ;; take a new `?target-location' sample if a failure happens
-            (cpl:with-retry-counters ((target-location-retries 9))
+            (cpl:with-retry-counters ((target-location-retries 2))
               (cpl:with-failure-handling
                   (((or common-fail:looking-high-level-failure
                         common-fail:object-unreachable

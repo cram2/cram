@@ -385,6 +385,9 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
     ;; actually compare
     (every #'value-converged values goal-values deltas)))
 
+(defun normalize-joint-angles (list-of-angles)
+  (mapcar #'cl-transforms:normalize-angle list-of-angles))
+
 
 (defun map-axis-aligned-axis (input-quaternion &optional (map-axis 2))
   (declare (type cl-transforms:quaternion input-quaternion))

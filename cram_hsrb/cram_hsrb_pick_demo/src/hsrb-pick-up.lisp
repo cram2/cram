@@ -101,8 +101,8 @@ to grasp the object, if that fails the next position in list will be tried"
                      (cl-transforms:euler->quaternion :az pi))
                     :front)
               (list (cl-transforms:make-pose
-                     (cl-tf:make-3d-vector -0.40  -0.07769999504089356d0 0)
-                     (cl-tf:make-identity-rotation))
+                     (cl-transforms:make-3d-vector -0.40  -0.07769999504089356d0 0)
+                     (cl-transforms:make-identity-rotation))
                     :back)
               (list (cl-transforms:make-pose
                      (cl-transforms:make-3d-vector -0.07769999504089356d0 0.40 0)

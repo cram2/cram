@@ -28,18 +28,31 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(def-fact-group occasions (cpoe:object-in-hand cpoe:object-picked cpoe:object-placed-at cpoe:loc)
-  (<- (cpoe:object-in-hand ?object ?side ?grasp)
+(def-fact-group occasions (cpoe:object-in-hand
+                           cpoe:object-picked
+                           cpoe:object-placed-at
+                           cpoe:loc)
+  ;; if we want the arm, we get it from the link
+  (<- (cpoe:object-in-hand ?object ?arm ?grasp)
     (btr:bullet-world ?world)
-    (cram-robot-interfaces:robot ?robot)
+    (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
-    (once
-     (and (object-designator-name ?object ?object-name)
-          (desig:obj-desig? ?object)))
-    (cram-robot-interfaces:end-effector-link ?robot ?side ?link))
+    (once (and (object-designator-name ?object ?object-name)
+               (desig:obj-desig? ?object)))
+    (rob-int:end-effector-link ?robot ?arm ?link))
 
-  (<- (cpoe:object-in-hand ?object ?side)
-    (cpoe:object-in-hand ?object ?side ?_))
+  ;; if we only want to know the link and don't care about the arm
+  ;; it can be that the arm is not even given in the attachments
+  ;; so we need a bit of copy paste here...
+  (<- (cpoe:object-in-hand ?object ?_ ?grasp ?link)
+    (btr:bullet-world ?world)
+    (rob-int:robot ?robot)
+    (btr:attached ?world ?robot ?link ?object-name ?grasp)
+    (once (and (object-designator-name ?object ?object-name)
+               (desig:obj-desig? ?object))))
+
+  (<- (cpoe:object-in-hand ?object ?arm)
+    (cpoe:object-in-hand ?object ?arm ?_))
 
   (<- (cpoe:object-in-hand ?object)
     (setof ?object (cpoe:object-in-hand ?object ?_) ?objects)
@@ -71,14 +84,12 @@
              (desig:obj-desig? ?object-designator))
         (and (not (bound ?object-designator))
              (lisp-fun unique-object-designators ?object-designators)
-             (member ?one-object-designator-from-chain ?object-designators)
-             (desig:current-designator ?one-object-designator-from-chain ?object-designator)))
-    (lisp-fun get-designator-object-name ?object-designator ?belief-name)
-    (-> (lisp-pred identity ?belief-name)
-        (equal ?object-name ?belief-name)
-        (and (desig:desig-prop ?object-designator (:type ?object-type))
-             (btr:bullet-world ?w)
-             (btr:item-type ?world ?object-name ?object-type))))
+             (member ?one-desig-from-chain ?object-designators)
+             (desig:current-designator ?one-desig-from-chain ?object-designator)))
+    ;; all object designators who have the same name should be
+    ;; perceptions of the same exact object, and, thus,
+    ;; they should be equated into one chain
+    (desig:desig-prop ?object-designator (:name ?object-name)))
 
   (<- (desig:desig-location-prop ?designator ?location)
     (desig:obj-desig? ?designator)

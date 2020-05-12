@@ -103,7 +103,7 @@
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
-  (coe:clear-belief)
+  ;; (coe:clear-belief)
 
   (btr:clear-costmap-vis-object)
 

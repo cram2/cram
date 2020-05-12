@@ -38,6 +38,7 @@
     (cram-tf:pose-stamped->transform-stamped target-pose-in-base child-frame-rosy)))
 
 
+
 (def-fact-group pick-and-place-plans (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (perceive ?action-designator))
@@ -155,6 +156,11 @@
     (or (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
         (desig:desig-prop ?current-location-designator (:in ?other-object-designator))
         (equal ?other-object-designator NIL))
+    ;; and that other object can be a robot or not
+    (-> (desig:desig-prop ?other-object-designator (:type :robot))
+        (equal ?other-object-is-a-robot T)
+        (equal ?other-object-is-a-robot NIL))
+    ;; and the placement can have a specific attachment or not
     (-> (desig:desig-prop ?current-location-designator (:attachment ?placement-location-name))
         (true)
         (equal ?placement-location-name NIL))
@@ -164,7 +170,9 @@
         (cpoe:object-in-hand ?object-designator ?arm ?grasp))
 
     ;; calculate trajectory
-    (equal ?objects (?current-object-designator))
+    (equal ?objects (?current-object-designator
+                     ?other-object-designator
+                     ?placement-location-name))
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory
                        :placing ?arm ?grasp ?objects
@@ -199,7 +207,9 @@
     ;; put together resulting designator
     (desig:designator :action ((:type :placing)
                                (:object ?current-object-designator)
+                               (:target ?current-location-designator)
                                (:other-object ?other-object-designator)
+                               (:other-object-is-a-robot ?other-object-is-a-robot)
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
                                (:target ?current-location-designator)
