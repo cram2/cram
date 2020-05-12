@@ -43,8 +43,9 @@
 (defvar *kvr-enabled* t)
 
 (defvar *episode-path*
-  "/home/cram/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/"
-  "path of where the episode data is located")
+  (directory-namestring
+   (cram-physics-utils:parse-uri "package://episodes/Own-Episodes/set-clean-table/"))
+  "rospackage path of where the episode data is located")
 
 (defparameter *furniture-offsets-original-kitchen*
   '(("sink_area_footprint_joint"
