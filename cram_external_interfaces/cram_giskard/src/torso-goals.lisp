@@ -101,16 +101,19 @@
   (declare (type (or number keyword) goal-joint-state)
            (type (or null number) action-timeout convergence-delta))
   (let ((goal-joint-state (ensure-torso-input-parameters goal-joint-state)))
-    (multiple-value-bind (result status)
-        (let ((goal (make-giskard-torso-action-goal goal-joint-state)))
-          (actionlib-client:call-simple-action-client
-           'giskard-action
-           :action-goal goal
-           :action-timeout action-timeout))
-      (ensure-giskard-torso-goal-reached result status goal-joint-state convergence-delta)
-      (values result status)
-      ;; return the joint state, which is our observation
-      (joints:full-joint-states-as-hash-table))))
+    (if (cram-tf:values-converged (car (joints:joint-positions (list cram-tf:*robot-torso-joint*)))
+                                  goal-joint-state convergence-delta)
+        (roslisp:ros-warn (giskard torso) "Torso is alrady in goal-position.")
+        (multiple-value-bind (result status)
+            (let ((goal (make-giskard-torso-action-goal goal-joint-state)))
+              (actionlib-client:call-simple-action-client
+               'giskard-action
+               :action-goal goal
+               :action-timeout action-timeout))
+          (ensure-giskard-torso-goal-reached result status goal-joint-state convergence-delta)
+          (values result status)
+          ;; return the joint state, which is our observation
+          (joints:full-joint-states-as-hash-table)))))
 
 
 

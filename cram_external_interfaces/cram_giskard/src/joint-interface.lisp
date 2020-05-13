@@ -100,6 +100,16 @@
    (values (ensure-giskard-joint-goal left-goal :left)
            (ensure-giskard-joint-goal right-goal :right))))
 
+(defun ensure-giskard-joint-arm-goal-reached (arm goal-configuration convergence-delta-joint)
+  (when goal-configuration
+    (let ((configuration (second (get-arm-joint-names-and-positions-list arm))))
+      (values (cram-tf:values-converged (joints:normalize-joint-angles
+                                         configuration)
+                                        (joints:normalize-joint-angles
+                                         (mapcar #'second goal-configuration))
+                                        convergence-delta-joint)
+              configuration))))
+
 (defun ensure-giskard-joint-goal-reached (status
                                           goal-configuration-left goal-configuration-right
                                           convergence-delta-joint)
@@ -108,28 +118,23 @@
     (return-from ensure-giskard-joint-goal-reached))
   (when (eql status :timeout)
     (roslisp:ros-warn (pr2-ll giskard-joint) "Giskard action timed out."))
-  (flet ((ensure-giskard-joint-arm-goal-reached (arm goal-configuration)
-           (when goal-configuration
-             (let ((configuration (second (get-arm-joint-names-and-positions-list arm))))
-               (unless (cram-tf:values-converged (joints:normalize-joint-angles
-                                                  configuration)
-                                                 (joints:normalize-joint-angles
-                                                  (mapcar #'second goal-configuration))
-                                                 convergence-delta-joint)
-                 (cpl:fail 'common-fail:manipulation-goal-not-reached
-                           :description (format nil "Giskard did not converge to goal:~%~
+  (flet ((throw-failure (arm goal-configuration current-configuration)
+           (cpl:fail 'common-fail:manipulation-goal-not-reached
+                     :description (format nil "Giskard did not converge to goal:~%~
                                                    ~a (~a)~%should have been at~%~a~%~
                                                    with delta-joint of ~a."
                                                 arm
                                                 (joints:normalize-joint-angles
-                                                 configuration)
+                                                 current-configuration)
                                                 (joints:normalize-joint-angles
                                                  (mapcar #'second goal-configuration))
-                                                convergence-delta-joint)))))))
-    (when goal-configuration-left
-      (ensure-giskard-joint-arm-goal-reached :left goal-configuration-left))
-    (when goal-configuration-right
-      (ensure-giskard-joint-arm-goal-reached :right goal-configuration-right))))
+                                                convergence-delta-joint))))
+    (multiple-value-bind (reached current-configuration)
+        (ensure-giskard-joint-arm-goal-reached :left goal-configuration-left convergence-delta-joint)
+      (unless reached (throw-failure :left goal-configuration-left current-configuration)))
+    (multiple-value-bind (reached current-configuration)
+        (ensure-giskard-joint-arm-goal-reached :right goal-configuration-right convergence-delta-joint)
+      (unless reached (throw-failure :right goal-configuration-right current-configuration)))))
 
 (defun call-giskard-joint-action (&key
                                     goal-configuration-left goal-configuration-right action-timeout
@@ -138,13 +143,17 @@
            (type (or null number) action-timeout convergence-delta-joint))
   (multiple-value-bind (joint-state-left joint-state-right)
       (ensure-giskard-joint-input-parameters goal-configuration-left goal-configuration-right)
-    (multiple-value-bind (result status)
-        (actionlib-client:call-simple-action-client
-         'giskard-action
-         :action-goal (make-giskard-joint-action-goal joint-state-left joint-state-right)
-         :action-timeout action-timeout)
-      (ensure-giskard-joint-goal-reached status goal-configuration-left goal-configuration-right
-                                         convergence-delta-joint)
-      (values result status)
-      ;; return the joint state, which is our observation
-      (joints:full-joint-states-as-hash-table))))
+    
+    (if (and (ensure-giskard-joint-arm-goal-reached :left goal-configuration-left convergence-delta-joint)
+             (ensure-giskard-joint-arm-goal-reached :right goal-configuration-right convergence-delta-joint))
+        (roslisp:ros-info (low-level giskard) "Arms are already in goal-configuration.")
+        (multiple-value-bind (result status)
+            (actionlib-client:call-simple-action-client
+             'giskard-action
+             :action-goal (make-giskard-joint-action-goal joint-state-left joint-state-right)
+             :action-timeout action-timeout)
+          (ensure-giskard-joint-goal-reached status goal-configuration-left goal-configuration-right
+                                             convergence-delta-joint)
+          (values result status)
+          ;; return the joint state, which is our observation
+          (joints:full-joint-states-as-hash-table)))))
