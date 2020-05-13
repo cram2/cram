@@ -34,7 +34,7 @@
 (defparameter *giskard-convergence-delta-theta* 0.5 ;; 0.1
   "in radiants, about 6 degrees")
 (defparameter *move-base* t)
-
+(defparameter *max-velocity* 0.1)
 
 (defun make-giskard-cartesian-action-goal (left-pose right-pose
                                            pose-base-frame left-tool-frame right-tool-frame
@@ -43,12 +43,14 @@
                                              collision-object-b collision-object-b-link
                                              collision-object-a
                                              ;; move-the-ass
-                                             constrained-joints)
+                                             constrained-joints
+                                             max-velocity)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type string pose-base-frame left-tool-frame right-tool-frame))
   (roslisp:make-message
    'giskard_msgs-msg:MoveGoal
-   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal ;; :plan_only
+   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal
+                              ;; :plan_only
                               :plan_and_execute
                               )
    :cmd_seq (vector
@@ -57,17 +59,24 @@
               ;; THIS STUFF HAS A STATE
               ;; RESET THE STATE EXPLICITLY IF YOU WANT A NON CART MOVEMENT AFTER THIS
               :constraints
-              (constraint-jointposition constrained-joints)
-              :cartesian_constraints
-              (apply
-               #'vector
-               (remove
-                nil
-                (append
-                 (when left-pose
-                   (constraint-cartesian left-pose left-tool-frame pose-base-frame))
-                 (when right-pose
-                   (constraint-cartesian right-pose right-tool-frame pose-base-frame)))))
+              (apply #'vector
+                     (remove nil
+                             (append (coerce (constraint-jointposition constrained-joints) 'list)
+                                     (constraint-cartesian-2 left-pose
+                                                             left-tool-frame
+                                                             pose-base-frame
+                                                             *max-velocity*))))
+
+              ;; :cartesian_constraints
+              ;; (apply
+              ;;  #'vector
+              ;;  (remove
+              ;;   nil
+              ;;   (append
+              ;;    (when left-pose
+              ;;      (constraint-cartesian left-pose left-tool-frame pose-base-frame))
+              ;;    (when right-pose
+              ;;      (constraint-cartesian right-pose right-tool-frame pose-base-frame)))))
               :collisions
               (case collision-mode
                 (:allow-all
@@ -78,12 +87,14 @@
                  (vector
                   (constraint-collision-avoid-all :min-dist 0.05)
                   (constraint-collision-allow-hand left-pose right-pose collision-object-b
-                                                   :link-bs collision-object-b-link)))
+                                                   :link-bs collision-object-b-link)
+                  (constraint-collision-allow-hand left-pose right-pose :kitchen)))
                 (:allow-fingers
                  (vector
                   (constraint-collision-avoid-all :min-dist 0.02)
                   (constraint-collision-allow-fingers left-pose right-pose collision-object-b
-                                                      :link-bs collision-object-b-link)))
+                                                      :link-bs collision-object-b-link)
+                  (constraint-collision-allow-hand left-pose right-pose :kitchen)))
                 (:allow-attached
                  (vector (constraint-collision-avoid-all :min-dist 0.02)
                          (constraint-collision-allow-attached collision-object-a
@@ -103,13 +114,15 @@
                                               convergence-delta-xy convergence-delta-theta)
   (when (eql status :preempted)
     (roslisp:ros-warn (low-level giskard) "Giskard action preempted with result ~a" result)
+    (cpl:fail 'common-fail:manipulation-goal-not-reached
+              :description "Giskard did not converge to goal because of preemtion")
     (return-from ensure-giskard-cartesian-goal-reached))
   (when (eql status :timeout)
     (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
   (when (eql status :aborted)
     (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action aborted! With result ~a" result)
-    ;; (cpl:fail 'common-fail:manipulation-goal-not-reached
-    ;;           :description "Giskard did not converge to goal because of collision")
+    (cpl:fail 'common-fail:manipulation-goal-not-reached
+              :description "Giskard did not converge to goal because of collision")
     )
   (when goal-position-left
     (unless (cram-tf:tf-frame-converged goal-frame-left goal-position-left
@@ -125,7 +138,7 @@
       (cpl:fail 'common-fail:manipulation-goal-not-reached
                 :description (format nil "Giskard did not converge to goal:
 ~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
-                                     goal-frame-right goal-position-right
+                                     goal-frame-right goal-position-right    
                                      convergence-delta-xy convergence-delta-theta)))))
 
 (defun call-giskard-cartesian-action (&key
@@ -173,7 +186,8 @@
                                                  convergence-delta-xy convergence-delta-theta)
           (values result status)
           ;; return the joint state, which is our observation
-          (joints:full-joint-states-as-hash-table)))
+          (joints:full-joint-states-as-hash-table)
+          ))
       ;; return NIL as observation if the goal is empty
       (and (roslisp:ros-info (pr2-ll giskard-cart) "Got an empty goal...")
            NIL)))

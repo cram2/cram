@@ -116,28 +116,9 @@
       (and (roslisp:ros-info (giskard-pm giskard-cart) "Got an empty goal...")
            NIL)))
 
-(defmethod yason:encode-object ((point cl-transforms-stamped:point-stamped))
-  (yason:encode
-   (alexandria:alist-hash-table
-    `(("header"
-       .
-       ,(alexandria:alist-hash-table
-         `(("stamp"
-            .
-            ,(alexandria:alist-hash-table
-              `(("secs" . 0)
-                ("nsecs" . 0))
-              :test #'equal))
-           ("frame_id" . ,(cl-tf:frame-id point))
-           ("seq" . 0))
-         :test #'equal))
-      ("point"
-       .
-       ,(alexandria:alist-hash-table
-         `(("x" . ,(cl-tf:x point))
-           ("y" . ,(cl-tf:y point))
-           ("z" . ,(cl-tf:z point)))
-         :test #'equal))))))
+
+
+
 
 (defun point-stamped->pose-stamped (poi)
   (cl-tf:make-pose-stamped

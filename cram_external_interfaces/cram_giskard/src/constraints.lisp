@@ -62,6 +62,96 @@
          :tip_link tool-frame
          :goal (cl-transforms-stamped:to-msg pose))))
 
+(defmethod yason:encode-object ((pose cl-transforms-stamped:pose-stamped))
+  (yason:encode
+   (alexandria:alist-hash-table
+    `(("header"
+       .
+       ,(alexandria:alist-hash-table
+         `(("stamp"
+            .
+            ,(alexandria:alist-hash-table
+              `(("secs" . 0)
+                ("nsecs" . 0))
+              :test #'equal))
+           ("frame_id" . ,(cl-tf:frame-id pose))
+           ("seq" . 0))
+         :test #'equal))
+      ("pose"
+       .
+       ,(alexandria:alist-hash-table
+         `(("position"
+            .
+            ,(alexandria:alist-hash-table
+              `(("x" . ,(cl-tf:x (cl-tf:origin pose)))
+                ("y" . ,(cl-tf:y (cl-tf:origin pose)))
+                ("z" . ,(cl-tf:z (cl-tf:origin pose)))) :test #'equal))
+           ("orientation"
+            .
+            ,(alexandria:alist-hash-table
+              `(("x" . ,(cl-tf:x (cl-tf:orientation pose)))
+                ("y" . ,(cl-tf:y (cl-tf:orientation pose)))
+                ("z" . ,(cl-tf:z (cl-tf:orientation pose)))
+                ("w" . ,(cl-tf:w (cl-tf:orientation pose)))) :test #'equal))) :test #'equal)))
+    :test #'equal)))
+
+(defmethod yason:encode-object ((point cl-transforms-stamped:point-stamped))
+  (yason:encode
+   (alexandria:alist-hash-table
+    `(("header"
+       .
+       ,(alexandria:alist-hash-table
+         `(("stamp"
+            .
+            ,(alexandria:alist-hash-table
+              `(("secs" . 0)
+                ("nsecs" . 0))
+              :test #'equal))
+           ("frame_id" . ,(cl-tf:frame-id point))
+           ("seq" . 0))
+         :test #'equal))
+      ("point"
+       .
+       ,(alexandria:alist-hash-table
+         `(("x" . ,(cl-tf:x point))
+           ("y" . ,(cl-tf:y point))
+           ("z" . ,(cl-tf:z point)))
+         :test #'equal))))))
+
+(defun constraint-cartesian-2 (pose tool-frame pose-base-frame max-velocity)
+  (list
+   (roslisp:make-message
+    'giskard_msgs-msg:constraint
+    :type
+    "CartesianPosition"
+    :parameter_value_pair
+    (let ((stream (make-string-output-stream)))
+      (yason:encode
+       (alexandria:alist-hash-table
+        `(("root_link" . ,pose-base-frame)
+          ("tip_link" . ,tool-frame)
+          ("goal" . ,(yason:encode-object pose))
+          ("max_velocity" . ,max-velocity))
+        :test #'equalp)
+       stream)
+      (get-output-stream-string stream)))
+   (roslisp:make-message
+    'giskard_msgs-msg:constraint
+    :type
+    "CartesianOrientationSlerp"
+    :parameter_value_pair
+    (let ((stream (make-string-output-stream)))
+      (yason:encode
+       (alexandria:alist-hash-table
+        `(("root_link" . ,pose-base-frame)
+          ("tip_link" . ,tool-frame)
+          ("goal" . ,(yason:encode-object pose))
+          ;; ("max_velocity" . ,max-velocity)
+          )
+        :test #'equalp)
+       stream)
+      (get-output-stream-string stream)))))
+
 (defun constraint-jointposition (joint-states &optional weights)
   (declare (type (or null list) joint-states)
            (type (or null list) weights))
@@ -100,7 +190,7 @@ Throws error when joints and states are of different length or a joint can't be 
                                                  :initial-element *joint-constraint-default-weight*))
                       (subseq weights 0 (length joints)))))
             (if (eq 1 (length (remove-duplicates (mapcar #'length (list joints states weights)))))
-               (coerce
+              ;; (coerce
                  (loop for joint in joints
                        for state in states
                        for weight in weights
@@ -118,7 +208,8 @@ Throws error when joints and states are of different length or a joint can't be 
                                     :test #'equalp)
                                    stream)
                                   (get-output-stream-string stream))))
-                 'vector)))))
+            ;;     'vector)
+                 ))))
       (progn (roslisp:ros-info (giskard constraint-joints) "No joints constrained.")
              (vector))))
 
@@ -265,11 +356,31 @@ Allow collision between object attached to gripper and the given body, with spec
 ;;       constraints:
 ;;         -
 ;;           type: "AlignPlanes"
-;;           parameter_value_pair: "{\"root\": \"odom_combined\", \"tip\": \"r_gripper_tool_frame\", \"tip_normal\":\
-;;   \ {\"header\": {\"stamp\": {\"secs\": 0, \"nsecs\": 0}, \"frame_id\": \"r_gripper_tool_frame\"\
-;;   , \"seq\": 0}, \"vector\": {\"y\": 0.0, \"x\": 0.0, \"z\": 1}}, \"root_normal\"\
-;;   : {\"header\": {\"stamp\": {\"secs\": 0, \"nsecs\": 0}, \"frame_id\": \"odom_combined\"\
-;;   , \"seq\": 0}, \"vector\": {\"y\": 0.0, \"x\": 0.0, \"z\": 1}}}"
+  ;;           parameter_value_pair:
+  ;;              "{\"root\": \"odom_combined\",
+  ;;                          \"tip\": \"r_gripper_tool_frame\",
+  ;;                          \"tip_normal\":\
+  ;;                                   \ {\"header\":
+  ;;                                        {\"stamp\":
+  ;;                                             {\"secs\": 0,
+  ;;                                              \"nsecs\": 0},
+  ;;                                         \"frame_id\": \"r_gripper_tool_frame\"\,
+  ;;                                         \"seq\": 0},
+  ;;                                      \"vector\":
+  ;;                                         {\"y\": 0.0,
+  ;;                                          \"x\": 0.0,
+  ;;                                          \"z\": 1}},
+  ;;                           \"root_normal\":\
+  ;;                                    \ {\"header\":
+  ;;                                         {\"stamp\":
+  ;;                                             {\"secs\": 0,
+  ;;                                              \"nsecs\": 0},
+  ;;                                          \"frame_id\": \"odom_combined\"\,
+  ;;                                          \"seq\": 0},
+  ;;                                       \"vector\":
+  ;;                                          {\"y\": 0.0,
+  ;;                                           \"x\": 0.0,
+  ;;                                           \"z\": 1}}}"
 ;;       joint_constraints: []
 ;;       cartesian_constraints: []
 ;;       collisions: []
