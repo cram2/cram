@@ -139,6 +139,8 @@
                                        goal-state
                                        convergence-delta-joint))))))
 
+(defparameter *mocked* nil)
+
 (defun call-giskard-gripper-action (&key action-type-or-position left-or-right effort
                                       action-timeout
                                       (convergence-delta-joint *giskard-gripper-convergence-delta-joint*))
@@ -147,19 +149,28 @@
            (type (or null number) effort)
            (type (or number keyword) action-type-or-position))
   "`goal-position' is in meters."
-  
-  (multiple-value-bind (joint-goal effort)
-      (ensure-gripper-input-parameters action-type-or-position left-or-right effort)
-    
-    (multiple-value-bind (result status)
-        (actionlib-client:call-simple-action-client
-         'giskard-action
-         :action-goal (make-giskard-gripper-joint-action-goal joint-goal effort)
-         :action-timeout action-timeout)
-
-      (cpl:sleep 1.0) ;; FIXME: wait for action result before ensuring
-      (ensure-giskard-gripper-joint-goal-reached status joint-goal left-or-right
-                                                 convergence-delta-joint)
-      (values result status)
-      ;; return the joint state, which is our observation
-      (joints:full-joint-states-as-hash-table))))
+  (if *mocked*
+      (progn (break "trying with boxy-ll")
+             (handler-case
+                 (boxy-ll:move-gripper-joint :action-type-or-position action-type-or-position
+                                             :left-or-right left-or-right
+                                             :effort effort)
+               (CRAM-COMMON-FAILURES:GRIPPER-GOAL-NOT-REACHED (e)
+                 (declare (ignore e))
+                 (break "set ~a gripper manually to ~a" left-or-right action-type-or-position)))
+             (coe:on-event (make-instance 'cram-plan-occasions-events:robot-state-changed)))
+      (multiple-value-bind (joint-goal effort)
+          (ensure-gripper-input-parameters action-type-or-position left-or-right effort)
+        
+        (multiple-value-bind (result status)
+            (actionlib-client:call-simple-action-client
+             'giskard-action
+             :action-goal (make-giskard-gripper-joint-action-goal joint-goal effort)
+             :action-timeout action-timeout)
+          
+          (cpl:sleep 1.0) ;; FIXME: wait for action result before ensuring
+          (ensure-giskard-gripper-joint-goal-reached status joint-goal left-or-right
+                                                     convergence-delta-joint)
+          (values result status)
+          ;; return the joint state, which is our observation
+          (joints:full-joint-states-as-hash-table)))))
