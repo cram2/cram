@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -60,13 +60,13 @@
   ;; Ignoring collision checks
   (setf proj-reasoning::*projection-checks-enabled* nil)
 
-  (setf ccl::*is-client-connected* nil)
-  (setf ccl::*is-logging-enabled* nil)
-  (setf ccl::*host* "'https://192.168.100.172'")
-  (setf ccl::*cert-path* "'/home/ease/openease-certificates/sebastian.pem'")
-  (setf ccl::*api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
-  (ccl::connect-to-cloud-logger)
-  (ccl::reset-logged-owl)
+  ;; (setf ccl::*is-client-connected* nil)
+  ;; (setf ccl::*is-logging-enabled* nil)
+  ;; (setf ccl::*host* "'https://192.168.100.172'")
+  ;; (setf ccl::*cert-path* "'/home/ease/openease-certificates/sebastian.pem'")
+  ;; (setf ccl::*api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
+  ;; (ccl::connect-to-cloud-logger)
+  ;; (ccl::reset-logged-owl)
 
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
