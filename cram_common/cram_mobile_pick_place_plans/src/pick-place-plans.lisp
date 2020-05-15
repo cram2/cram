@@ -190,6 +190,7 @@
                   (desig:desig-prop-value ?other-object-designator :urdf-name))
            :not-loose t
            :object-name (desig:desig-prop-value ?object-designator :name)
+           :other-object-name (desig:desig-prop-value ?other-object-designator :name)
            :grasp ?placing-location-name))
         (cram-occasions-events:on-event
          (make-instance 'cpoe:object-attached-object

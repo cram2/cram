@@ -408,4 +408,4 @@ equate resulting designator to the original one."
              (desig:when ?left-arm-p
                (left-configuration park))
              (desig:when ?right-arm-p
-               (right-configuraiton park)))))
+               (right-configuration park)))))

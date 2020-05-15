@@ -51,13 +51,14 @@
     ;; (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
     (once (or (and (desig:desig-prop ?desig (:object ?some-object))
                    (desig:current-designator ?some-object ?object)
-                   ;; (btr-belief:object-designator-name ?object ?object-name)
-                   ;; (btr:bullet-world ?world)
-                   ;; (btr:object-pose ?world ?object-name ?to-see-pose)
                    (lisp-fun man-int:get-object-pose-in-map ?object ?to-see-pose)
-                   (lisp-pred identity ?to-see-pose))
+                   (lisp-pred identity ?to-see-pose)
+                   (-> (desig:desig-prop ?object (:location ?loc))
+                       (not (man-int:always-reachable ?loc))
+                       (true)))
               (and (desig:desig-prop ?desig (:location ?some-location))
                    (desig:current-designator ?some-location ?location)
+                   (not (man-int:always-reachable ?location))
                    (desig:designator-groundings ?location ?location-poses)
                    ;; have to take one pose from all possibilities
                    ;; as later we have a FORCE-LL on ?TO-SEE-POSES
@@ -91,9 +92,15 @@
     (once (or (and (desig:desig-prop ?desig (:object ?some-object))
                    (desig:current-designator ?some-object ?object)
                    (lisp-fun man-int:get-object-pose-in-map ?object ?to-reach-pose)
-                   (lisp-pred identity ?to-reach-pose))
+                   (lisp-pred identity ?to-reach-pose)
+                   (-> (desig:desig-prop ?object (:location ?loc))
+                       (not (man-int:always-reachable ?loc))
+                       (true)))
               (and (desig:desig-prop ?desig (:location ?some-location))
                    (desig:current-designator ?some-location ?location)
+                   ;; if the location is on the robot itself,
+                   ;; don't use the costmap
+                   (not (man-int:always-reachable ?location))
                    (desig:designator-groundings ?location ?location-poses)
                    ;; have to take one pose from all possibilities
                    ;; as later we have a FORCE-LL on ?TO-REACH-POSES

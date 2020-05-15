@@ -109,9 +109,13 @@
     (lisp-fun cram-tf:frame-to-pose-in-fixed-frame ?link-name ?pose-stamped)))
 
 
-;; Resolving (a location (for ?object) (on ?other-object) (attachment object-to-other-object))
 ;; TODO: move to pick and place heuristics package, when it is created
-(def-fact-group location-designator-with-attachment (desig:location-grounding)
+(def-fact-group location-designator-stuff (desig:location-grounding)
+
+  ;; Resolving (a location
+  ;;              (for ?object)
+  ;;              (on ?other-object)
+  ;;              (attachment object-to-other-object))
   (<- (desig:location-grounding ?location-designator ?pose-stamped)
     (desig:current-designator ?location-designator ?current-location-designator)
     (desig:desig-prop ?current-location-designator (:for ?object-designator))
@@ -145,4 +149,37 @@
     (lisp-fun cram-tf:strip-transform-stamped ?attachment-transform ?attachment-pose)
     (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
     (lisp-fun cram-tf:ensure-pose-in-frame ?attachment-pose ?fixed-frame
-              ?pose-stamped)))
+              ?pose-stamped))
+
+  ;; Resolving (a location
+  ;;              (on (an object
+  ;;                      (type robot
+  ;; First, a helper predicate to discern such a location
+  (<- (always-reachable ?location-designator)
+    (desig:loc-desig? ?location-designator)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (desig:desig-prop ?current-location-designator (:on ?object-designator))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (desig:desig-prop ?current-object-designator (:type :robot)))
+
+  (<- (other-object-is-a-robot ?some-object-designator)
+    (desig:current-designator ?some-object-designator ?object-designator)
+    (or (desig:desig-prop ?object-designator (:type :robot))
+        (desig:desig-prop ?object-designator (:type :environment))))
+
+  ;; Now the actual location grounding for reachability and visibility
+  (<- (desig:location-grounding ?location-designator ?pose-stamped)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (or (rob-int:reachability-designator ?current-location-designator)
+        (rob-int:visibility-designator ?current-location-designator))
+    (or (and (desig:desig-prop ?current-location-designator (:object ?some-object))
+             (desig:current-designator ?some-object ?object)
+             (lisp-fun man-int:get-object-pose-in-map ?object ?to-reach-pose)
+             (lisp-pred identity ?to-reach-pose)
+             (desig:desig-prop ?object (:location ?some-location)))
+        (desig:desig-prop ?current-location-designator (:location ?some-location)))
+    (desig:current-designator ?some-location ?location)
+    ;; if the location is on the robot itself, use the current robot pose
+    (always-reachable ?location)
+    (format "LOCATION ALWAYS REACHABLE~%~%~%~%")
+    (lisp-fun cram-tf:robot-current-pose ?pose-stamped)))
