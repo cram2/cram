@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@
                cram-mobile-pick-place-plans
                cram-object-knowledge
 
-               cram-cloud-logger
+               ;; cram-cloud-logger
 
                cram-physics-utils     ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
@@ -66,7 +66,7 @@
 
                cram-urdf-projection      ; for with-simulated-robot
                cram-urdf-projection-reasoning ; to set projection reasoning to T
-               ;; cram-pr2-description
+               cram-pr2-description
                cram-fetch-deliver-plans
                cram-mobile-cut-pour-plans
                cram-urdf-environment-manipulation)
@@ -78,8 +78,4 @@
      (:file "setup" :depends-on ("package"))
      (:file "costmaps" :depends-on ("package"))
      (:file "projection-demo" :depends-on ("package" "costmaps"))
-     (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))
-     (:file "milestone-projection-demo" :depends-on ("package" "costmaps"))
-     (:file "data-generation-script" :depends-on ("package" "projection-demo" "costmaps"))
-     (:file "data-generation-plan" :depends-on ("package" "demo"))
-     (:file "evaluation-plan" :depends-on ("package" "demo"))))))
+     (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))))))
