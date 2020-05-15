@@ -1,5 +1,6 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Thomas Lipps    <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -43,9 +44,9 @@
     ((:POPCORN-POT . ((-0.575 0.22 -0.505)(0 0 0 1)))
      (:POPCORN-POT-LID . ((-0.48 0.14 -0.16)(0 0 0 1)))
      (:IKEA-BOWL-WW . ((-0.65 0.020 -0.16)(0 0 0 1)))
-     (:SALT . ((0.8d0 0.070 0.08)(0 0 0 1)))
+     (:SALT . ((0.8035 0.07637 0.0738)(0 0 0 1)))
      (:PLATE . ((0.6 0.15 0.05)(0 0 0 1)))
-     (:IKEA-PLATE . ((0.12 1.32 -0.60)(0 0 0 1))))))
+     (:IKEA-PLATE . ((0.6 0.15 -0.16)(0 0 0 1))))))
 
 (defparameter *look-goal*
   (cl-transforms-stamped:make-pose-stamped
@@ -153,9 +154,7 @@
                                         :popcorn-pot-lid
                                         :salt
                                         :ikea-bowl-ww
-                                        :plate
-                                        ;;ikea-plate
-                                        )))
+                                        :ikea-plate)))
   
   ;; make sure mesh paths are known, kill old objects and destroy all attachments
   (btr:add-objects-to-mesh-list "cram_pr2_popcorn_demo")
@@ -182,7 +181,7 @@
                        ;; return object
                        object))
                    object-types)))
-
+  
     ;; stabilize world
     (btr:simulate btr:*current-bullet-world* 100)
 
@@ -199,9 +198,9 @@
     (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
                        (btr:object btr:*current-bullet-world* :salt-1)
                        :link "iai_popcorn_table_surface")
-    ;; (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
-    ;;                    (btr:object btr:*current-bullet-world* :ikea-plate-1)
-    ;;                    :link "iai_popcorn_table_drawer_right_main")
+    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+                       (btr:object btr:*current-bullet-world* :ikea-plate-1)
+                       :link "iai_popcorn_table_drawer_left_main")
 
     ;; return list of BTR objects
     objects))
@@ -223,7 +222,7 @@
                           (pose ?ptu-goal)))))
 
 
-(defun pick-object (?object-type ?arm ?pose-as-list)
+(defun pick-object (?object-type ?arm ?pose-as-list &key ?grasp)
   (let ((?object (get-object-designator ?object-type ?pose-as-list)))
     (cpl:seq
       (exe:perform (desig:an action     
@@ -232,6 +231,8 @@
       (exe:perform (desig:an action
                              (type picking-up)
                              (arm ?arm)
+                             (desig:when ?grasp
+                               (grasp ?grasp))
                              (object ?object))))))
 
 (defun place-object (?arm ?target-pose-as-list &key ?object-placed-on ?object-to-place ?attachment)
