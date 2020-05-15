@@ -38,12 +38,114 @@
     (:ikea-plate . ((-0.18 -0.35 0.1) (0 0 0 1))))
   "Absolute poses in map.")
 
+(defparameter *relative-object-spawning-poses*
+  '("iai_popcorn_table_surface"
+    ((:POPCORN-POT . ((-0.575 0.22 -0.505)(0 0 0 1)))
+     (:POPCORN-POT-LID . ((-0.48 0.14 -0.16)(0 0 0 1)))
+     (:IKEA-BOWL-WW . ((-0.65 0.020 -0.16)(0 0 0 1)))
+     (:SALT . ((0.8d0 0.070 0.08)(0 0 0 1)))
+     (:PLATE . ((0.6 0.15 0.05)(0 0 0 1)))
+     (:IKEA-PLATE . ((0.12 1.32 -0.60)(0 0 0 1))))))
+
 (defparameter *look-goal*
   (cl-transforms-stamped:make-pose-stamped
    "base_footprint"
    0.0
    (cl-transforms:make-3d-vector 0.5d0 0.0d0 1.0d0)
    (cl-transforms:make-identity-rotation)))
+
+(defun ensure-pose-stamped (pose)
+  (when pose
+    (case (type-of pose)
+      ('cl-transforms-stamped:pose-stamped pose)
+      ('cons (make-pose-absolute pose))
+      (T (error "cannot translate pose of type ~a in cl-transforms-stamped" (type-of pose))))))
+
+(defun get-item (?object-type)
+  (find ?object-type
+        (remove-if-not
+         (lambda (x) 
+           (equalp
+            'cram-bullet-reasoning::item x))
+         (btr:objects
+          btr:*current-bullet-world*)
+         :key #'type-of)
+        :key (alexandria:compose #'car #'btr:item-types)))
+
+(defun get-object-designator (?object-type &optional ?pose-in-map)
+  (let* ((?object-name (btr:name (get-item ?object-type)))
+         (?pose (if ?pose-in-map
+                    (ensure-pose-stamped ?pose-in-map)
+                    (cl-tf:pose->pose-stamped
+                     cram-tf:*fixed-frame*
+                     0.0
+                     (btr:pose (get-item ?object-type)))))
+         (?transform-in-base (pp-plans::pose->transform-stamped-in-base ?pose ?object-name))
+         (?pose-in-base (cl-tf:ensure-pose-stamped ?transform-in-base))
+         (?transform (cram-tf:pose-stamped->transform-stamped ?pose ?object-name)))
+    (desig:an object
+              (type ?object-type)
+              (name ?object-name)
+              (pose ((pose ?pose-in-base)
+                     (transform ?transform-in-base)
+                     (transform-in-map ?transform)
+                     (pose-in-map ?pose))))))
+  
+
+(cpl:def-cram-function park-robot ()
+  (cpl:with-failure-handling
+      ((cpl:plan-failure (e)
+         (declare (ignore e))
+         (return)))
+    (cpl:par
+      (exe:perform
+       (desig:an action
+                 (type positioning-arm)
+                 (left-configuration park)
+                 (right-configuration park)))
+      (let ((?pose (cl-transforms-stamped:make-pose-stamped
+                    cram-tf:*fixed-frame*
+                    0.0
+                    (cl-transforms:make-identity-vector)
+                    (cl-transforms:make-identity-rotation))))
+        (exe:perform
+         (desig:an action
+                   (type going)
+                   (target (desig:a location
+                                    (pose ?pose))))))
+      (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
+      (exe:perform (desig:an action (type looking) (direction forward))))))
+
+(defun make-poses-absolute (frame-and-types-with-poses)
+  (when frame-and-types-with-poses
+    (let ((frame (first frame-and-types-with-poses)))
+      (mapcar (lambda (type-and-pose)
+                (cons (car type-and-pose)
+                      (make-pose-absolute (cons frame (cdr type-and-pose)))))
+              (second frame-and-types-with-poses)))))
+
+(defun make-pose-absolute (frame-and-pose)
+  (when frame-and-pose
+    (let* ((btr-object (btr:object btr:*current-bullet-world* (first frame-and-pose)))
+           (link-pose (btr:link-pose (btr:get-environment-object) (first frame-and-pose)))
+           (map-T-surface (cl-transforms:pose->transform
+                           (if btr-object
+                               (btr:pose btr-object)
+                               link-pose))))
+        (let* ((input-pose (cdr frame-and-pose))
+               (pose (case (type-of input-pose)
+                       ('cl-transforms-stamped:pose-stamped input-pose)
+                       ('cons (cram-tf:list->pose input-pose))
+                       (T (error "Unknown pose data type: only lists ~
+                                  and pose-stampeds are allow as input."))))
+               (surface-T-object
+                 (cl-transforms:pose->transform pose))
+               (map-T-object
+                 (cl-transforms:transform* map-T-surface surface-T-object)))
+          (cl-tf:pose->pose-stamped
+           cram-tf:*fixed-frame*
+           0.0
+           (cl-tf:transform->pose map-T-object))))))
 
 
 (defun spawn-objects (&key
@@ -53,8 +155,8 @@
                                         :ikea-bowl-ww
                                         :plate
                                         ;;ikea-plate
-                                        ))
-                        (spawning-poses-absolute *object-spawning-poses*))
+                                        )))
+  
   ;; make sure mesh paths are known, kill old objects and destroy all attachments
   (btr:add-objects-to-mesh-list "cram_pr2_popcorn_demo")
   (btr-utils:kill-all-objects)
@@ -62,7 +164,8 @@
   (btr:detach-all-objects (btr:get-environment-object))
 
   ;; spawn objects
-  (let* ((objects
+  (let* ((spawning-poses-absolute (make-poses-absolute *relative-object-spawning-poses*))
+         (objects
            (mapcar (lambda (object-type)
                      (let* (;; generate object name of form :TYPE-1
                             (object-name
@@ -79,9 +182,6 @@
                        ;; return object
                        object))
                    object-types)))
-
-    ;; make sure generated poses are stable
-    ;; TODO: if unstable, call itself
 
     ;; stabilize world
     (btr:simulate btr:*current-bullet-world* 100)
@@ -107,9 +207,9 @@
     objects))
 
 
-
-(defun go-to-pose (?navigation-goal &optional (dont-move-arms nil))
-  (let ((?ptu-goal *look-goal*))
+(defun go-to-pose (?navigation-goal-as-list &key dont-move-arms)
+  (let ((?ptu-goal *look-goal*)
+        (?navigation-goal (ensure-pose-stamped ?navigation-goal-as-list)))
     (unless dont-move-arms
       (exe:perform (desig:an action
                              (type positioning-arm)
@@ -122,57 +222,38 @@
                           (type looking)
                           (pose ?ptu-goal)))))
 
-(defun perceive-object (?object-type)
-  (let ((?object-desig
-          (desig:an object (type ?object-type))))
-    (exe:perform (desig:an action
-                           (type perceiving)
-                           (object ?object-desig)
-                           (counter 0)
-                           (occluding-names T)))))
 
-(defun world-state-detecting (?object-type)
-  (let ((?object-desig
-          (desig:an object (type ?object-type))))
-    (exe:perform (desig:a motion
-                          (type world-state-detecting)
-                          (object ?object-desig)
-                          (counter 0)
-                          (occluding-names T)))))
-
-
-(defun pick-object (?object-type ?arm)
-  (let* ((?perceived-object-desig (perceive-object ?object-type)))
+(defun pick-object (?object-type ?arm ?pose-as-list)
+  (let ((?object (get-object-designator ?object-type ?pose-as-list)))
     (cpl:seq
-     (exe:perform (desig:an action
-                            (type looking)
-                            (object ?perceived-object-desig)))
-     (exe:perform (desig:an action
-                            (type picking-up)
-                            (arm ?arm)
-                            (object ?perceived-object-desig))))))
+      (exe:perform (desig:an action     
+                             (type looking)
+                             (object ?object)))
+      (exe:perform (desig:an action
+                             (type picking-up)
+                             (arm ?arm)
+                             (object ?object))))))
 
-(defun place-object (?target-pose ?arm &key ?object-placed-on ?object-to-place ?attachment)
-  (cpl:par
-    (exe:perform (desig:a motion
-                          (type looking)
-                          (pose ?target-pose)))
-    (exe:perform 
-     (desig:an action
-               (type placing)
-               (arm ?arm)
-               (desig:when ?object-to-place
-                 (object ?object-to-place))
-               (target (desig:a location
-                                (desig:when ?object-placed-on
-                                  (on ?object-placed-on))
-                                (desig:when ?object-to-place
-                                  (for ?object-to-place))
-                                (desig:when ?attachment
-                                  (attachment ?attachment))
-                                (pose ?target-pose))))))
-  ;; (btr:simulate btr:*current-bullet-world* 100)
-  )
+(defun place-object (?arm ?target-pose-as-list &key ?object-placed-on ?object-to-place ?attachment)
+  (let ((?target-pose (ensure-pose-stamped ?target-pose-as-list)))
+    (cpl:seq
+      (exe:perform (desig:a motion
+                            (type looking)
+                            (pose ?target-pose)))
+      (exe:perform 
+       (desig:an action
+                 (type placing)
+                 (arm ?arm)
+                 (desig:when ?object-to-place
+                   (object ?object-to-place))
+                 (target (desig:a location
+                                  (desig:when ?object-placed-on
+                                    (on ?object-placed-on))
+                                  (desig:when ?object-to-place
+                                    (for ?object-to-place))
+                                  (desig:when ?attachment
+                                    (attachment ?attachment))
+                                  (pose ?target-pose))))))))
 
 (defun open-drawer (drawer)
   (manipulate-drawer drawer :opening))
@@ -200,13 +281,31 @@
                (distance ?distance)))))
 
 (defun move-arms (&key ?left-arm-pose ?right-arm-pose)
-  (exe:perform
-   (desig:a motion
-            (type moving-tcp)
-            (desig:when ?right-arm-pose
-              (right-pose ?right-arm-pose))
-            (desig:when ?left-arm-pose
-              (left-pose ?left-arm-pose)))))
+  (let* ((?left-arm-pose-stamped-unknown-frame (ensure-pose-stamped ?left-arm-pose))
+        (?right-arm-pose-stamped-unknown-frame (ensure-pose-stamped ?right-arm-pose))
+        (?left-arm-pose-stamped (when ?left-arm-pose-stamped-unknown-frame
+                                  (if (equalp
+                                       cram-tf:*fixed-frame*
+                                       (cl-tf:frame-id ?left-arm-pose-stamped-unknown-frame))
+                                      ?left-arm-pose-stamped-unknown-frame
+                                      (make-pose-absolute (cons 
+                                                           (cl-tf:frame-id ?left-arm-pose-stamped-unknown-frame)
+                                                           ?left-arm-pose-stamped-unknown-frame)))))
+        (?right-arm-pose-stamped (when ?right-arm-pose-stamped-unknown-frame 
+                                   (if (equalp
+                                        cram-tf:*fixed-frame*
+                                        (cl-tf:frame-id ?right-arm-pose-stamped-unknown-frame))
+                                       ?right-arm-pose-stamped-unknown-frame
+                                       (make-pose-absolute (cons 
+                                                            (cl-tf:frame-id ?right-arm-pose-stamped-unknown-frame)
+                                                            ?right-arm-pose-stamped-unknown-frame))))))
+        (exe:perform
+          (desig:a motion
+                   (type moving-tcp)
+                   (desig:when ?right-arm-pose
+                     (right-pose ?right-arm-pose-stamped))
+                   (desig:when ?left-arm-pose
+                     (left-pose ?left-arm-pose-stamped))))))
 
 (defun park-arms ()
   (exe:perform
@@ -215,184 +314,20 @@
              (left-configuration park)
              (right-configuration park))))
 
+;; (defun perceive-object (?object-type)
+;;   (let ((?object-desig
+;;           (desig:an object (type ?object-type))))
+;;     (exe:perform (desig:an action
+;;                            (type perceiving)
+;;                            (object ?object-desig)
+;;                            (counter 0)
+;;                            (occluding-names T)))))
 
-;; (defun test-projection ()
-;;   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
-;;     (cpl:top-level
-;;       (exe:perform
-;;        (let ((?pose (cl-tf:make-pose-stamped
-;;                      cram-tf:*robot-base-frame* 0.0
-;;                      (cl-transforms:make-3d-vector -0.5 0 0)
-;;                      (cl-transforms:make-identity-rotation))))
-;;          (desig:a motion (type going) (pose ?pose))))
-;;       (exe:perform
-;;        (desig:a motion (type moving-torso) (joint-angle 0.3)))
-;;       (exe:perform
-;;        (desig:a motion (type opening-gripper) (gripper left)))
-;;       (exe:perform
-;;        (desig:a motion (type looking) (direction forward)))
-;;       (exe:perform
-;;        (let ((?pose (cl-tf:make-pose-stamped
-;;                      cram-tf:*robot-base-frame* 0.0
-;;                      (cl-transforms:make-3d-vector 0.7 0.3 0.85)
-;;                      (cl-transforms:make-identity-rotation))))
-;;          (desig:a motion (type moving-tcp) (left-pose ?pose)))))))
-
-;; (defun test-desigs ()
-;;   (let ((?pose (desig:reference (desig:a location
-;;                                          (on "CounterTop")
-;;                                          (name "iai_kitchen_meal_table_counter_top")))))
-;;     (desig:reference (desig:a location
-;;                               (to see)
-;;                               (object (desig:an object (at (desig:a location (pose ?pose)))))))))
-
-;; (defun spawn-bottle ()
-;;   (add-objects-to-mesh-list)
-;;   (btr-utils:kill-all-objects)
-;;   (btr-utils:spawn-object :bottle-1 :bottle :color '(1 0.5 0))
-;;   (btr-utils:move-object :bottle-1 (cl-transforms:make-pose
-;;                                     (cl-transforms:make-3d-vector -2 -1.0 0.861667d0)
-;;                                     (cl-transforms:make-identity-rotation)))
-;;   ;; stabilize world
-;;   (btr:simulate btr:*current-bullet-world* 100))
-
-;; (defun spawn-objects ()
-;;   (let ((object-types (add-objects-to-mesh-list)))
-;;     ;; spawn at default location
-;;     (let ((objects (mapcar (lambda (object-type)
-;;                              (btr-utils:spawn-object
-;;                               (intern (format nil "~a-1" object-type) :keyword)
-;;                               object-type))
-;;                            object-types)))
-;;       ;; move on top of counter tops
-;;       (mapcar (lambda (btr-object)
-;;                 (let* ((aabb-z (cl-transforms:z
-;;                                 (cl-bullet:bounding-box-dimensions (btr:aabb btr-object))))
-;;                        (new-pose (cram-tf:translate-pose
-;;                                   (desig:reference
-;;                                    (desig:a location
-;;                                             (on "CounterTop")
-;;                                             (name "iai_kitchen_meal_table_counter_top")))
-;;                                   :z-offset (/ aabb-z 2.0))))
-;;                   (btr-utils:move-object (btr:name btr-object) new-pose)))
-;;               objects)
-;;       ;; bottle gets special treatment
-;;       (btr-utils:move-object :bottle-1 (cl-transforms:make-pose
-;;                                         (cl-transforms:make-3d-vector -2 -1.0 0.861667d0)
-;;                                         (cl-transforms:make-identity-rotation)))))
-;;   ;; stabilize world
-;;   (btr:simulate btr:*current-bullet-world* 100))
-
-;; (defparameter *meal-table-left-base-pose*
-;;   (cl-transforms-stamped:make-pose-stamped
-;;    "map"
-;;    0.0
-;;    (cl-transforms:make-3d-vector -1.12d0 -0.42d0 0.0)
-;;    (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
-;; (defparameter *meal-table-right-base-pose*
-;;   (cl-transforms-stamped:make-pose-stamped
-;;    "map"
-;;    0.0
-;;    (cl-transforms:make-3d-vector -2.0547d0 -0.481d0 0.0d0)
-;;    (cl-transforms:axis-angle->quaternion (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
-;; (defparameter *meal-table-left-base-look-pose*
-;;   (cl-transforms-stamped:make-pose-stamped
-;;    "base_footprint"
-;;    0.0
-;;    (cl-transforms:make-3d-vector 0.75d0 -0.12d0 1.11d0)
-;;    (cl-transforms:make-identity-rotation)))
-;; (defparameter *meal-table-right-base-look-pose*
-;;   (cl-transforms-stamped:make-pose-stamped
-;;    "base_footprint"
-;;    0.0
-;;    (cl-transforms:make-3d-vector 0.65335d0 0.076d0 0.758d0)
-;;    (cl-transforms:make-identity-rotation)))
-;; (defparameter *meal-table-left-base-look-down-pose*
-;;   (cl-transforms-stamped:make-pose-stamped
-;;    "base_footprint"
-;;    0.0
-;;    (cl-transforms:make-3d-vector 0.7d0 -0.12d0 0.7578d0)
-;;    (cl-transforms:make-identity-rotation)))
-
-
-;; (defun prepare ()
-;;   (cpl:with-failure-handling
-;;           ((common-fail:low-level-failure (e)
-;;              (roslisp:ros-warn (demo step-0) "~a" e)
-;;              (return)))
-
-;;         (let ((?navigation-goal *meal-table-right-base-pose*)
-;;               (?ptu-goal *meal-table-right-base-look-pose*))
-;;           (cpl:par
-;; (exe:perform
-;;  (desig:an action
-;;            (type positioning-arm)
-;;            (left-configuration park)
-;;            (right-configuration park)))
-;;             (exe:perform (desig:a motion
-;;                                   (type going)
-;;                                   (pose ?navigation-goal))))
-;;           (exe:perform (desig:a motion
-;;                                 (type looking)
-;;                                 (pose ?ptu-goal))))))
-;; (defun test-pr2-plans ()
-;;   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
-;;     (cpl:top-level
-;;       (prepare))))
-
-;; (defun test-projection-perception ()
-;;   (spawn-objects)
-;;   (test-pr2-plans)
-;;   (cpl:sleep 1)
-;;   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
-;;     (cpl:top-level
-;;       (exe:perform
-;;        (let ((?object-designator
-;;                (desig:an object (type bottle))))
-;;          (desig:a motion
-;;                   (type detecting)
-;;                   (object ?object-designator)))))))
-
-;; (defun test-grasp-and-place-object (&optional (?object-type :bottle) (?arm :right))
-;;   (let ((proj-result
-;;           (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
-;;             (cpl:top-level
-;;               (prepare))
-;;             (cpl:top-level
-;;               (let ((?bottle-desig (desig:an object (type ?object-type))))
-;;                 (flet ((step-1-inner ()
-;;                          (let ((?perceived-bottle-desig (pp-plans::perceive ?bottle-desig)))
-;;                            (cpl:par
-;;                              (exe:perform (desig:an action
-;;                                                     (type looking)
-;;                                                     (object ?perceived-bottle-desig)))
-;;                              (exe:perform (desig:an action
-;;                                                     (type picking-up)
-;;                                                     (arm ?arm)
-;;                                                     (object ?perceived-bottle-desig)))))))
-;;                   (cpl:with-retry-counters ((bottle-grasp-tries 2))
-;;                     (cpl:with-failure-handling
-;;                         ((common-fail:low-level-failure (e)
-;;                            (roslisp:ros-warn (demo step-1) "~a" e)
-;;                            (cpl:do-retry bottle-grasp-tries
-;;                              (roslisp:ros-warn (demo step-1) "~a" e)
-;;                              (prepare)
-;;                              (cpl:retry))))
-
-;;                       (step-1-inner))))
-;;                 (desig:current-desig ?bottle-desig))))))
-;;     (cpl:sleep 1.0)
-;;     (let ((?result-object (car (proj::projection-environment-result-result proj-result))))
-;;       (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
-;;         (cpl:top-level
-;;           (exe:perform (desig:an action
-;;                                  (type placing)
-;;                                  (arm ?arm)
-;;                                  (object ?result-object))))))))
-
-;; (defun test-place-bottle ()
-;;   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
-;;     (cpl:top-level
-;;       (exe:perform (desig:an action
-;;                              (type placing)
-;;                              (arm right))))))
+;; (defun world-state-detecting (?object-type)
+;;   (let ((?object-desig
+;;           (desig:an object (type ?object-type))))
+;;     (exe:perform (desig:a motion
+;;                           (type world-state-detecting)
+;;                           (object ?object-desig)
+;;                           (counter 0)
+;;                           (occluding-names T)))))
