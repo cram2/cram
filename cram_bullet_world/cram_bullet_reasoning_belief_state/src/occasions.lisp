@@ -38,10 +38,11 @@
     (rob-int:robot ?robot)
     (btr:attached ?world ?robot ?link ?object-name ?grasp)
     (once (and (object-designator-name ?object ?object-name)
-               (format "OK: ~a~%~%" ?object)
                (desig:obj-desig? ?object)))
-    (format "OBJ: ~a~%" ?object)
-    (rob-int:end-effector-link ?robot ?arm ?link))
+    (-> (bound ?arm)
+        (rob-int:end-effector-link ?robot ?arm ?link)
+        (once (or (rob-int:end-effector-link ?robot ?arm ?link)
+                  (true)))))
 
   ;; if we only want to know the link and don't care about the arm
   ;; it can be that the arm is not even given in the attachments

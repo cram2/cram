@@ -89,7 +89,9 @@
 It could have been 1 but 1 is reserved in case somebody has to be even more urgently
 executed before everyone else.
 If there is no other method with 1 as qualifier, this method will be executed always first."
-  (let* ((robot-object (btr:get-robot-object))
+  (let* ((robot-object-name (cpoe:event-other-object-name event))
+         (robot-object (btr:object btr:*current-bullet-world*
+                                   (or robot-object-name (btr:get-robot-name))))
          (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
          (btr-object (btr:object btr:*current-bullet-world* btr-object-name))

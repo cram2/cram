@@ -55,7 +55,19 @@
     (drivable-location-costmap ?cm ?padding))
 
   (<- (desig-costmap ?desig ?cm)
-    (cram-robot-interfaces:reachability-designator ?desig)
+    (rob-int:reachability-designator ?desig)
+    ;; make sure that the location is not on the robot itself
+    ;; if it is, don't generate a costmap
+    (once (or (and (desig:desig-prop ?desig (:object ?some-object))
+                   (desig:current-designator ?some-object ?object)
+                   (lisp-fun man-int:get-object-pose-in-map ?object ?object-pose)
+                   (lisp-pred identity ?object-pose)
+                   (-> (desig:desig-prop ?object (:location ?some-loc))
+                       (not (man-int:always-reachable ?some-loc))
+                       (true)))
+              (and (desig:desig-prop ?desig (:location ?some-location))
+                   (desig:current-designator ?some-location ?location)
+                   (not (man-int:always-reachable ?location)))))
     (costmap ?cm)
     (costmap-manipulation-padding ?padding)
     (drivable-location-costmap ?cm ?padding)))

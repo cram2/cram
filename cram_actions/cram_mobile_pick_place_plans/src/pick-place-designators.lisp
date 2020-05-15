@@ -38,6 +38,18 @@
     (cram-tf:pose-stamped->transform-stamped target-pose-in-base child-frame-rosy)))
 
 
+(defun split-attachments-desig (location-designator)
+  (let ((attachments (desig:desig-prop-value location-designator :attachments)))
+    (loop for attachment in attachments
+          collecting (desig:make-designator
+                      :location
+                      ;; cannot equate these guys because they will all end up
+                      ;; being the same location designator
+                      `((:attachment ,attachment)
+                        ,@ (remove :attachments (desig:properties location-designator)
+                                   :key #'car))))))
+
+
 
 (def-fact-group pick-and-place-plans (desig:action-grounding)
 
@@ -140,7 +152,14 @@
 
     ;; take object-pose from action-designator :target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location-designator))
-        (and (desig:current-designator ?location-designator ?current-location-designator)
+        (and (desig:current-designator ?location-designator ?current-loc-desig)
+             ;; if the location designator has ATTACHMENTS property,
+             ;; split it into a list of locations with ATTACHMENT property
+             (-> (desig:desig-prop ?current-loc-desig (:attachments ?_))
+                 (and (lisp-fun split-attachments-desig ?current-loc-desig
+                                ?list-of-current-loc-desig-split)
+                      (member ?current-location-designator ?list-of-current-loc-desig-split))
+                 (equal ?current-location-designator ?current-loc-desig))
              (desig:designator-groundings ?current-location-designator ?poses)
              (member ?target-object-pose ?poses)
              (lisp-fun pose->transform-stamped-in-base ?target-object-pose ?object-name
@@ -157,7 +176,7 @@
         (desig:desig-prop ?current-location-designator (:in ?other-object-designator))
         (equal ?other-object-designator NIL))
     ;; and that other object can be a robot or not
-    (-> (desig:desig-prop ?other-object-designator (:type :robot))
+    (-> (man-int:other-object-is-a-robot ?other-object-designator)
         (equal ?other-object-is-a-robot T)
         (equal ?other-object-is-a-robot NIL))
     ;; and the placement can have a specific attachment or not
@@ -212,7 +231,6 @@
                                (:other-object-is-a-robot ?other-object-is-a-robot)
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
-                               (:target ?current-location-designator)
                                (:attachment-type ?placement-location-name)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)

@@ -76,8 +76,13 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:target ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; robot-location
-    (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
-              ?robot-rotated-pose)
+    (-> (and (spec:property ?location-designator (:of ?some-object-designator))
+             (desig:current-designator ?some-object-designator ?object-designator)
+             (spec:property ?object-designator (:location ?object-location))
+             (man-int:always-reachable ?object-location))
+        (lisp-fun cram-tf:robot-current-pose ?robot-rotated-pose)
+        (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
+              ?robot-rotated-pose))
     (desig:designator :location ((:pose ?robot-rotated-pose)) ?robot-location)
     (desig:designator :action ((:type :turning-towards)
                                (:target ?location-designator)
