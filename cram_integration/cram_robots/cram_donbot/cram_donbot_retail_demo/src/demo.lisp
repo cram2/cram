@@ -131,28 +131,6 @@
     ;;            (type looking)
     ;;            (direction right-separators)))
     ;; (cpl:sleep 5.0)
-
-    ;; look at tray
-    ;; (exe:perform
-    ;;  (desig:an action
-    ;;            (type looking)
-    ;;            (direction down)))
-
-    ;; ;; reperceive object
-    ;; (let* ((?robot-name
-    ;;          (btr:get-robot-name)))
-    ;;   (setf ?object
-    ;;         (perform
-    ;;          (an action
-    ;;              (type detecting)
-    ;;              (object (an object
-    ;;                          (type ?item-type)
-    ;;                          (location (a location
-    ;;                                       (on (an object
-    ;;                                               (type robot)
-    ;;                                               (name ?robot-name)
-    ;;                                               (urdf-name plate)
-    ;;                                               (owl-name "donbot_tray")))))))))))
 ))
 
 
