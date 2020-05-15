@@ -1,5 +1,6 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Thomas Lipps    <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -55,6 +56,7 @@
 (defparameter *pot-lid-on-cooking-pot-pose* '("iai_popcorn_table_surface" . ((0.165 0.135 0.115)(0 0 0 1))))
 (defparameter *pot-lid-after-cooking-pose* '("iai_popcorn_table_surface" . ((-0.57 0.17 0.05) (0 0 0 1))))
 (defparameter *ikea-bowl-placing-pose* '("iai_popcorn_table_surface" . ((-0.78 0.23 0.055)(0 0 0 1))))
+(defparameter *ikea-plate-placing-pose* '("iai_popcorn_table_surface" . ((0.6 0.20 0.05)(0 0 0 1))))
 (defparameter *ikea-plate-pose* '("iai_popcorn_table_surface" . ((0.6 0.15 0.05)(0 0 0 1))))
 (defparameter *popcorn-pot-away-from-hot-stove-right-diagonal* '("iai_popcorn_table_surface" . ((-0.215 0.14 0.082)(0.68 0.183 -0.183 0.68))))
 (defparameter *popcorn-pot-away-from-hot-stove-left-diagonal* '("iai_popcorn_table_surface" . ((0.055 0.14 0.082)(-0.183 0.683 0.683 0.183))))
@@ -65,6 +67,7 @@
 
 ;; ****************************** PICKING POSES ******************************
 (defparameter *ikea-bowl-picking-pose* '("iai_popcorn_table_surface" . ((-0.65 0.42 -0.13)(0 0 0 1))))
+(defparameter *ikea-plate-picking-pose* '("iai_popcorn_table_surface" . ((0.601 0.5065 -0.147)(0 0 0 1))))
 (defparameter *popcorn-pot-lid-picking-pose* '("iai_popcorn_table_surface" . ((-0.48 0.54 -0.14)(0 0 0 1))))
 (defparameter *popcorn-pot-lid-on-popcorn-pot* '("iai_popcorn_table_surface" . ((-0.06 0.14 0.125)(0 0 0 1))))
 (defparameter *salt-picking-pose* '("iai_popcorn_table_surface" . ((0.8 0.07 0.08)(0 0 0 1))))
@@ -133,7 +136,7 @@
                             :az z-rotation)))
   
 
-(cpl:def-cram-function demo ()
+ (cpl:def-cram-function demo ()
 
   (initialize)
   (when cram-projection:*projection-environment*
@@ -216,16 +219,13 @@
                  (type setting-gripper)
                  (gripper ?arm)
                  (position ?gripper-opening))))
-    
+
     ;; Rotating the right gripper
     (loop for degree from 0 to 90 by 10 do        
       (let* ((?knob-1-rotate-pose-in-knob-frame
                (get-rotate-pose-in-knob-frame
                 (* -1 
-                   (cram-math:degrees->radians 
-                    (+
-                     degree
-                     180)))))
+                   (cram-math:degrees->radians 10))))
              (?knob-1-rotate-pose
                (make-pose-absolute (cons "iai_popcorn_stove_knob_1"
                                          ?knob-1-rotate-pose-in-knob-frame))))
@@ -265,8 +265,13 @@
 
     ;; Opening the left drawer
     (open-drawer :left)
-    
-    ;; TODO: grasping the plate and putting it on the table
+
+    ;; Grasping the plate
+    (pick-object :ikea-plate :left
+                 *ikea-plate-picking-pose* :?grasp :top)
+
+    ;; Putting the plate on the table
+    (place-object :left *ikea-plate-placing-pose*)
     
     ;; Closing the left drawer
     (close-drawer :left)
@@ -288,10 +293,7 @@
       (let* ((?knob-1-rotate-pose-in-knob-frame
                (get-rotate-pose-in-knob-frame 
                 (* -1 
-                   (cram-math:degrees->radians
-                    (-
-                     90
-                     degree)))))
+                   (cram-math:degrees->radians -10))))
              (?knob-1-rotate-pose
                (make-pose-absolute (cons "iai_popcorn_stove_knob_1"
                                          ?knob-1-rotate-pose-in-knob-frame))))
@@ -310,7 +312,7 @@
     ;; 7. Removing the popcorn pot from the hot stove area with both arms
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    ;; Opening the grippers of the robot arms
+    ;; Setting the grippers of the robot arms
     (let ((?arm :right)
           (?gripper-opening 0.018))
       (exe:perform
@@ -360,6 +362,22 @@
     ;; Placing popcorn pot lid on the table
     (place-object :right *pot-lid-after-cooking-pose*)
 
+    ;; Setting the grippers of the arms
+    (let ((?arm :right)
+          (?gripper-opening 0.018))
+      (exe:perform
+       (desig:an action
+                 (type setting-gripper)
+                 (gripper ?arm)
+                 (position ?gripper-opening))))
+    (let ((?arm :left)
+          (?gripper-opening 0.018))
+      (exe:perform
+       (desig:an action
+                 (type setting-gripper)
+                 (gripper ?arm)
+                 (position ?gripper-opening))))
+
     ;; Grasping the popcorn pot
     (move-arms 
      :?right-arm-pose
@@ -387,7 +405,7 @@
     
     ;; Pouring the popcorn from the popcorn pot in the plate
     (let ((?plate-to-pour-into
-            (get-object-designator :plate)))
+            (get-object-designator :ikea-plate)))
 
       (exe:perform
        (desig:an action
@@ -456,13 +474,13 @@
           (move-arms 
            :?right-arm-pose
            (cl-tf:make-pose-stamped
-            :plate-1
+            :ikea-plate-1
             0.0
             dynamic-right-hand-position 
             (cl-tf:euler->quaternion :ax pi :ay 0.0 :az 0))
            :?left-arm-pose
            (cl-tf:make-pose-stamped
-            :plate-1
+            :ikea-plate-1
             0.0
             dynamic-left-hand-position
             (cl-tf:euler->quaternion :ax pi :ay 0.0 :az pi)))
@@ -472,23 +490,30 @@
           ;; Salting the pocorn by ....
           ;; ... rotating both endeffectors towards the robot
           (dotimes (angle-c 6)
+            (sleep 0.1)
             (move-arms 
              :?right-arm-pose
              (cl-tf:make-pose-stamped
               :salt-1
               0.0
-              (cl-tf:make-3d-vector 0 0 -0.02)
-              (cl-tf:euler->quaternion :ax pi :ay 0.0 :az (*
-                                                           angle-c
-                                                           (/ pi 36))))
+              (cl-tf:make-3d-vector 0 0 0.035)
+              (cl-tf:euler->quaternion :ax 0.0 :ay 0.0 :az
+                                       (+ (/ pi 2)
+                                          (* 2
+                                             (*
+                                              angle-c
+                                              (/ pi 36))))))
              :?left-arm-pose
              (cl-tf:make-pose-stamped
               :salt-1
               0.0
-              (cl-tf:make-3d-vector 0 0 0.02)
-              (cl-tf:euler->quaternion :ax pi :ay 0.0 :az (- pi (*
-                                                                 angle-c
-                                                                 (/ pi 36)))))))
+              (cl-tf:make-identity-vector)
+              (cl-tf:euler->quaternion :ax 0.0 :ay 0.0 :az 
+                                       (- 
+                                        (+ pi (/ pi 2))
+                                        (*
+                                         angle-c
+                                         (/ pi 36)))))))
 
           (sleep 0.5)
           ;; ... and rotating back.
