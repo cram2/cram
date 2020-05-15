@@ -630,8 +630,8 @@
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot-lid '(:left :right) :top
   :grasp-translation `(0.0 0.0 0.01)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets*
-  :2nd-pregrasp-offsets *default-lift-offsets*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
   :lift-offsets  `(0.0 0.0 0.01)
   :2nd-lift-offsets  `(0.0 0.0 0.01))
 
@@ -641,10 +641,10 @@
 (man-int:def-object-type-to-gripper-transforms :ikea-bowl-ww '(:left :right) :top
   :grasp-translation `(0.0 0.075 0.025)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets*
-  :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-offsets *lift-offset*
+  :2nd-lift-offsets *lift-offset*)
 
 ;;;;;;;;;;;;;;;;;;;;;;; SALT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -652,10 +652,10 @@
 (man-int:def-object-type-to-gripper-transforms :salt '(:left :right) :left-side
   :grasp-translation `(0.0 0.0 0.0)
   :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets*
-  :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-offsets *lift-offset*
+  :2nd-lift-offsets *lift-offset*)
 
 ;;;;;;;;;;;;;;;;;;;;;;; IKEA-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -663,26 +663,26 @@
 (man-int:def-object-type-to-gripper-transforms :ikea-plate '(:left :right) :top
   :grasp-translation `(-0.14 0.0 0.025)
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets*
-  :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-offsets *lift-offset*
+  :2nd-lift-offsets *lift-offset*)
 
 (man-int:def-object-type-to-gripper-transforms :ikea-plate '(:right) :back
   :grasp-translation `(0.0 0.0 0.0)
   :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets*
-  :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-offsets *lift-offset*
+  :2nd-lift-offsets *lift-offset*)
 
 (man-int:def-object-type-to-gripper-transforms :ikea-plate '(:left) :back
   :grasp-translation `(0.0 0.0 0.0)
   :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
-  :pregrasp-offsets *default-lift-offsets*
-  :2nd-pregrasp-offsets *default-lift-offsets*
-  :lift-offsets *default-lift-offsets*
-  :2nd-lift-offsets *default-lift-offsets*)
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-offsets *lift-offset*
+  :2nd-lift-offsets *lift-offset*)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
