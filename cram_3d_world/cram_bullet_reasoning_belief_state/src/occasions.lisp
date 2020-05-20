@@ -28,7 +28,7 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(def-fact-group occasions (cpoe:object-in-hand cpoe:object-picked cpoe:object-placed-at cpoe:loc cpoe:torso-at cpoe:arms-positioned cpoe:ees-at cpoe:looking-at)
+(def-fact-group occasions (cpoe:object-in-hand cpoe:object-picked cpoe:object-placed-at cpoe:loc cpoe:torso-at cpoe:arms-positioned cpoe:ees-at cpoe:looking-at cpoe:robot-loc)
   (<- (cpoe:object-in-hand ?object ?side ?grasp)
     (btr:bullet-world ?world)
     (cram-robot-interfaces:robot ?robot)
@@ -59,6 +59,10 @@
     (desig:obj-desig? ?object)
     (object-designator-name ?object ?object-name)
     (object-at-location ?_ ?object-name ?location))
+
+  (<- (cpoe:robot-loc ?location)
+    (cram-robot-interfaces:robot ?robot)
+    (object-at-location ?_ ?robot ?location))
 
   ;; This goal check is defined in the cram_urdf_environment_manipulation package
   ;; (<- (cpoe:container-state ?container-designator ?distance)
@@ -193,12 +197,14 @@
         (fail)))
 
   (<- (cpoe:looking-at ?direction ?delta)
-    (lisp-pred typep ?direction cl-tf:3d-vector)
+    (lisp-pred typep ?direction keyword)
     (rob-int:robot ?robot)
-    (rob-int:camera-frame ?robot ?camera-frame)
-    (rob-int:camera-horizontal-angle ?robot ?camera-angle-h)
-    (rob-int:camera-vertical-angle ?robot ?camera-angle-v)
-    (lisp-pred looking-in-direction ?camera-frame ?camera-angle-h ?camera-angle-v ?direction))
+    ;; (rob-int:camera-frame ?robot ?camera-frame)
+    ;; (rob-int:camera-horizontal-angle ?robot ?camera-angle-h)
+    ;; (rob-int:camera-vertical-angle ?robot ?camera-angle-v)
+    ;; (lisp-pred looking-in-direction ?camera-frame ?camera-angle-h ?camera-angle-v ?direction)
+    (rob-int:robot-pose ?robot :neck ?_ ?direction ?pose-stamped)
+    (cpoe:looking-at ?pose-stamped ?delta))
 
   (<- (cpoe:looking-at ?pose ?delta)
     (not (lisp-pred typep ?pose cl-tf:pose-stamped))

@@ -73,4 +73,5 @@
            #:torso-at
            #:arms-positioned
            #:ees-at
-           #:looking-at))
+           #:looking-at
+           #:robot-loc))

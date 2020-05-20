@@ -32,7 +32,7 @@
 (def-fact-group occasions (object-in-hand object-placed-at object-picked object-put
                                           loc looking-at arms-parked
                                           container-state torso-at arms-positioned
-                                          ees-at looking-at)
+                                          ees-at looking-at robot-loc)
   (<- (object-in-hand ?object)
     (fail))
 
@@ -46,6 +46,9 @@
     (fail))
 
   (<- (loc ?robot-or-object ?location)
+    (fail))
+
+  (<- (robot-loc ?location)
     (fail))
 
   (<- (looking-at ?location)
