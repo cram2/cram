@@ -77,11 +77,13 @@
                              e)
            ;; (return)
            ))
-      (exe:perform
-       (desig:an action
-                 (type reaching)
-                 (left-poses ?left-reach-poses)
-                 (right-poses ?right-reach-poses)))))
+      (let ((?goal `(cpoe:ees-at ?left-reach-poses ?right-reach-poses)))
+        (exe:perform
+         (desig:an action
+                   (type reaching)
+                   (left-poses ?left-reach-poses)
+                   (right-poses ?right-reach-poses)
+                   (goal ?goal))))))
 
   ;;;;;;;;;;;;;;;;;;;; GRIPPING ;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
@@ -93,14 +95,16 @@
                            e)
          ;; (return)
          ))
-    (exe:perform
-     (desig:an action
-               (type grasping)
-               (object (desig:an object
-                                 (name ?environment-name)))
-               (link ?link-name)
-               (left-poses ?left-grasp-poses)
-               (right-poses ?right-grasp-poses))))
+    (let ((?goal `(cpoe:ees-at left-grasp-poses ?right-grasp-poses)))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (link ?link-name)
+                 (left-poses ?left-grasp-poses)
+                 (right-poses ?right-grasp-poses)
+                 (goal ?goal)))))
   (when (eq ?type :opening)
     (exe:perform
      (desig:an action
@@ -119,7 +123,9 @@
          ))
     (let ((?push-or-pull (if (eq ?type :opening)
                             :pulling
-                            :pushing)))
+                            :pushing))
+          (?goal `(cpoe:ees-at ?left-manipulate-poses ?right-manipulate-poses)))
+      ;; TODO(cpo) Have goal for opened container?
       (exe:perform
        (desig:an action
                  (type ?push-or-pull)
@@ -128,7 +134,8 @@
                  (container-object ?container-designator)
                  (link ?link-name)
                  (left-poses ?left-manipulate-poses)
-                 (right-poses ?right-manipulate-poses)))))
+                 (right-poses ?right-manipulate-poses)
+                 (goal ?goal)))))
 
   (when (and joint-name)
     (cram-occasions-events:on-event
@@ -153,8 +160,10 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (exe:perform
-     (desig:an action
-               (type retracting)
-               (left-poses ?left-retract-poses)
-               (right-poses ?right-retract-poses)))))
+    (let ((?goal `(cpoe:ees-at ?left-retract-poses ?right-retract-poses)))
+      (exe:perform
+       (desig:an action
+                 (type retracting)
+                 (left-poses ?left-retract-poses)
+                 (right-poses ?right-retract-poses)
+                 (goal ?goal))))))

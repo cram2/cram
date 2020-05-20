@@ -75,11 +75,13 @@
                              e)
            ;; (return)
            ))
-      (exe:perform
-       (desig:an action
-                 (type reaching)
-                 (left-poses ?left-reach-poses)
-                 (right-poses ?right-reach-poses)))))
+      (let ((?goal `(cpoe:ees-at ?left-reach-poses ?right-reach-poses)))
+        (exe:perform
+         (desig:an action
+                   (type reaching)
+                   (left-poses ?left-reach-poses)
+                   (right-poses ?right-reach-poses)
+                   (goal ?goal))))))
   (roslisp:ros-info (pick-place pick-up) "Grasping")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -88,20 +90,24 @@
                            e)
          (return)
          ))
+    (let ((?goal `(cpoe:ees-at ?left-grasp-poses ?right-grasp-poses)))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object ?object-designator)
+                 (left-poses ?left-grasp-poses)
+                 (right-poses ?right-grasp-poses)
+                 (goal ?goal)))))
+  (roslisp:ros-info (pick-place pick-up) "Gripping")
+  (let ((?goal `(cpoe:object-picked ?object-designator)))
     (exe:perform
      (desig:an action
-               (type grasping)
+               (type gripping)
+               (gripper ?arm)
+               (effort ?grip-effort)
                (object ?object-designator)
-               (left-poses ?left-grasp-poses)
-               (right-poses ?right-grasp-poses))))
-  (roslisp:ros-info (pick-place pick-up) "Gripping")
-  (exe:perform
-   (desig:an action
-             (type gripping)
-             (gripper ?arm)
-             (effort ?grip-effort)
-             (object ?object-designator)
-             (grasp ?grasp)))
+               (grasp ?grasp)
+               (goal ?goal))))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -109,22 +115,30 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
+    (let ((?goal `(cpoe:ees-at ?left-lift-poses ?right-lift-poses)))
+      (exe:perform
+       (desig:an action
+                 (type lifting)
+                 (left-poses ?left-lift-poses)
+                 (right-poses ?right-lift-poses)
+                 (goal ?goal)))))
+  (roslisp:ros-info (pick-place place) "Parking")
+  (let ((?goal (if (eql ?arm :left)
+                   `(cpoe:arms-positioned :park nil)
+                   (if (eql ?arm :right)
+                       `(cpoe:arms-positioned nil :park)
+                       nil))))
     (exe:perform
      (desig:an action
-               (type lifting)
-               (left-poses ?left-lift-poses)
-               (right-poses ?right-lift-poses))))
-  (roslisp:ros-info (pick-place place) "Parking")
-  (exe:perform
-   (desig:an action
-             (type positioning-arm)
-             ;; TODO: this will not work with dual-arm grasping
-             ;; but as our ?arm is declared as a keyword,
-             ;; for now this code is the right code
-             (desig:when (eql ?arm :left)
-               (left-configuration park))
-             (desig:when (eql ?arm :right)
-               (right-configuration park)))))
+               (type positioning-arm)
+               ;; TODO: this will not work with dual-arm grasping
+               ;; but as our ?arm is declared as a keyword,
+               ;; for now this code is the right code
+               (desig:when (eql ?arm :left)
+                 (left-configuration park))
+               (desig:when (eql ?arm :right)
+                 (right-configuration park))
+               (goal ?goal)))))
 
 
 
@@ -160,11 +174,13 @@
                            e)
          ;; (return)
          ))
-    (exe:perform
-     (desig:an action
-               (type reaching)
-               (left-poses ?left-reach-poses)
-               (right-poses ?right-reach-poses))))
+    (let ((?goal `(cpoe:ees-at ?left-reach-poses ?right-reach-poses)))
+      (exe:perform
+       (desig:an action
+                 (type reaching)
+                 (left-poses ?left-reach-poses)
+                 (right-poses ?right-reach-poses)
+                 (goal ?goal)))))
   (roslisp:ros-info (pick-place place) "Putting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -172,14 +188,16 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (exe:perform
-     (desig:an action
-               (type putting)
-               (object ?object-designator)
-               (desig:when ?other-object-designator
-                 (supporting-object ?other-object-designator))
-               (left-poses ?left-put-poses)
-               (right-poses ?right-put-poses))))
+    (let ((?goal `(cpoe:ees-at ?left-put-poses ?right-put-poses)))
+      (exe:perform
+       (desig:an action
+                 (type putting)
+                 (object ?object-designator)
+                 (desig:when ?other-object-designator
+                   (supporting-object ?other-object-designator))
+                 (left-poses ?left-put-poses)
+                 (right-poses ?right-put-poses)
+                 (goal ?goal)))))
   (when ?placing-location-name
     (roslisp:ros-info (boxy-plans connect) "Asserting assemblage connection in knowledge base")
     (cram-occasions-events:on-event
@@ -205,19 +223,28 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
+    (let ((?goal `(cpoe:ees-at ?left-retract-poses ?right-retract-poses)))
+      (exe:perform
+       (desig:an action
+                 (type retracting)
+                 (left-poses ?left-retract-poses)
+                 (right-poses ?right-retract-poses)
+                 (goal ?goal)))))
+  (roslisp:ros-info (pick-place place) "Parking")
+  (let ((?goal (if (eql ?arm :left)
+                   `(cpoe:arms-positioned :park nil)
+                   (if (eql ?arm :right)
+                       `(cpoe:arms-positioned nil :park)
+                       nil))))
+
     (exe:perform
      (desig:an action
-               (type retracting)
-               (left-poses ?left-retract-poses)
-               (right-poses ?right-retract-poses))))
-  (roslisp:ros-info (pick-place place) "Parking")
-  (exe:perform
-   (desig:an action
-             (type positioning-arm)
-             (desig:when (eql ?arm :left)
-               (left-configuration park))
-             (desig:when (eql ?arm :right)
-               (right-configuration park)))))
+               (type positioning-arm)
+               (desig:when (eql ?arm :left)
+                 (left-configuration park))
+               (desig:when (eql ?arm :right)
+                 (right-configuration park))
+               (goal ?goal)))))
 
 
 (defun perceive (&key
@@ -226,11 +253,13 @@
                  &allow-other-keys)
   (declare (type desig:object-designator ?object-designator))
   "Park arms and call DETECTING action."
-  (exe:perform
-   (desig:an action
-             (type positioning-arm)
-             (left-configuration park)
-             (right-configuration park)))
+  (let ((?goal `(cpoe:arms-positioned :park :park)))
+    (exe:perform
+     (desig:an action
+               (type positioning-arm)
+               (left-configuration park)
+               (right-configuration park)
+               (goal ?goal))))
   (exe:perform
    (desig:an action
              (type detecting)
