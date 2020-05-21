@@ -34,37 +34,25 @@
     ((object-type (eql :popcorn-pot))
      arm
      (grasp (eql :left-side)))
-  '((0.0 0.05 0.12)(0 0 0 1)))
+  '((0.0 0.05 0.12)(0 0.707 0 0.707)))
 
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
     ((object-type (eql :popcorn-pot))
      arm
      (grasp (eql :right-side)))
-  '((-0.08 -0.22 0.12)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :popcorn-pot))
-     arm
-     (grasp (eql :front)))
-  '((0.1 -0.105 0.12)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :popcorn-pot))
-     arm
-     (grasp (eql :back)))
-  '((-0.1 -0.105 0.12)(0 0 0 1)))
+  '((-0.08 -0.22 0.12)(0.707 0 -0.707 0)))
 
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
     ((object-type (eql :ikea-plate))
      (arm (eql :left))
-     (grasp (eql :back)))
-  '((-0.1 0.125 0.15)(0 0 0 1)))
+     (grasp (eql :front)))
+  '((-0.1 0.125 0.15)(-0.5 0.5 -0.5 0.5)))
 
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
     ((object-type (eql :ikea-plate))
      (arm (eql :right))
-     (grasp (eql :back)))
-  '((-0.1 -0.125 0.15)(0 0 0 1)))
+     (grasp (eql :front)))
+  '((-0.1 -0.125 0.15)(-0.5 -0.5 0.5 0.5)))
 
 ;;;;;;;;;;;;;; POURING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

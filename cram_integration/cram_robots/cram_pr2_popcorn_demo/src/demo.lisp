@@ -412,7 +412,7 @@
                  (type pouring)
                  (object ?plate-to-pour-into)
                  (arms (right left))
-                 (grasp back))))
+                 (grasp front))))
 
     ;; Going back to the stove to place the popcorn pot
     (go-to-pose *start-pose* :dont-move-arms T)
