@@ -39,4 +39,5 @@
     ((:file "package")
      (:file "environment" :depends-on ("package"))
      (:file "household" :depends-on ("package"))
+     (:file "pouring-and-slicing" :depends-on ("package"))
      (:file "assembly" :depends-on ("package"))))))
