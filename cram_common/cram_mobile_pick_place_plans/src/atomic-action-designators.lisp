@@ -63,10 +63,13 @@
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
+    (-> (desig:desig-prop ?action-designator (:collision-mode ?collision-mode))
+        (true)
+        (equal ?collision-mode :avoid-all))
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :avoid-all))
+                               (:collision-mode ?collision-mode))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
