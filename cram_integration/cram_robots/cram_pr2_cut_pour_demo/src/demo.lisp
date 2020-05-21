@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Thomas Lipps    <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -130,7 +131,7 @@
       (btr-utils:spawn-object 'cup-2 :cup
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector 1.4 0.6 0.95)
-                                     (cl-tf:make-quaternion 0 0 0 1)))
+                                     (cl-tf:make-quaternion 0 0 0.7 0.7)))
 
       (btr-utils:spawn-object 'cup-2 :cup
                               :pose (cl-transforms:make-pose
@@ -547,7 +548,8 @@
                         (type pouring)
                         (object ?object-cup-2)
                         (arms (right))
-                        (grasp back)))
+                        (grasp front)
+                        (collision-mode :allow-hand)))
       
  ;;;;; Parking the robot
       (sleep 2.0)
@@ -560,4 +562,5 @@
                  (type pouring)
                  (object ?object-cup-2)
                  (arms (left))
-                 (grasp back))))))
+                 (grasp front)
+                 (collision-mode :allow-hand))))))
