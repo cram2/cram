@@ -47,7 +47,7 @@
     (:bowl-original "package://cram_bullet_reasoning/resource/bowl_original.stl" t)
     (:bowl "package://cram_bullet_reasoning/resource/bowl.stl" nil)
     (:bottle "package://cram_pr2_pick_place_demo/resource/bottle.dae" nil)
-    (:bread "package://cram_bullet_reasoning/resource/bread1.stl" nil)
+    (:bread "package://cram_bullet_reasoning/resource/bread.stl" nil)
     (:bowl-compound "package://cram_bullet_reasoning/resource/bowl_compound.dae" nil)
     (:fork "package://cram_bullet_reasoning/resource/fork.stl" nil)
     (:knife "package://cram_bullet_reasoning/resource/knife.stl" nil)
