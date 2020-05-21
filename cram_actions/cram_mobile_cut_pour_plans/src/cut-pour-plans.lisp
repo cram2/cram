@@ -45,128 +45,55 @@
                ((:right-approach-poses ?right-approach-poses))
                ((:left-tilt-poses ?left-tilt-poses))
                ((:right-tilt-poses ?right-tilt-poses))
+               ((:collision-mode ?collision-mode))
              &allow-other-keys)
-  ;; (declare (type desig:object-designator ?object-designator)
-  ;;          (type keyword ?arm ?grasp)
-  ;;          (type (or null list) ; yes, null is also list, but this is better reachability
-  ;;                ?left-approach-poses ?right-approach-poses
-  ;;                ?left-tilt-poses ?right-tilt-poses))
   "Object already in hand, approach 2nd object, tilt 100degree, tilt back"
   
-  ;; (let* ((?a-object-in-hand
-  ;;          (if (eq ?arm :left)
-  ;;              (cdr (first (car (prolog:prolog '(cpoe:object-in-hand ? :left)))))
-  ;;              (cdr (first (car (prolog:prolog '(cpoe:object-in-hand ? :right)))))))             
-
-         
-    ;;      (?description-hand
-    ;;        (roslisp:with-fields (description) ?a-object-in-hand description))
-
-    ;;      (?object-in-hand-name
-    ;;        (second (second ?description-hand)))
-    ;;      (?object-in-hand-type
-    ;;        (second (first ?description-hand)))
-
-         
-    ;;      (x-dim-object
-    ;;        (cl-transforms:x
-    ;;         (cl-bullet::bounding-box-dimensions
-    ;;          (btr::aabb(btr:object btr:*current-bullet-world*  ?object-in-hand-name)))))
-         
-    ;;      (z-dim-object
-    ;;        (cl-transforms:z
-    ;;         (cl-bullet::bounding-box-dimensions
-    ;;          (btr::aabb(btr:object btr:*current-bullet-world*  ?object-in-hand-name)))))
-         
-    ;;      (y-gripper-position-offset
-    ;;        (/ x-dim-object 2))
-    ;;      (z-gripper-position-offset
-    ;;        (/ z-dim-object 5)))
-
-    
-    ;; (when (not (eq ?object-type ?object-in-hand-type)) 
-      
-      
-    ;;   (setf ?left-approach-poses
-    ;;         (mapcar (lambda (slice-left)
-    ;;                   (translate-pose slice-left
-    ;;                                   :y-offset (+ y-gripper-position-offset)
-    ;;                                   :z-offset z-gripper-position-offset))
-    ;;                 ?left-approach-poses))
-      
-    ;;   (setf ?left-tilt-poses
-    ;;         (mapcar (lambda (slice-left)
-    ;;                   (translate-pose slice-left
-    ;;                                   :y-offset (+ y-gripper-position-offset)
-    ;;                                   :z-offset z-gripper-position-offset))
-    ;;                 ?left-tilt-poses))
-
-    ;;   (setf ?right-approach-poses
-    ;;         (mapcar (lambda (slice-left)
-    ;;                   (translate-pose slice-left
-    ;;                                   :y-offset (- y-gripper-position-offset)
-    ;;                                   :z-offset z-gripper-position-offset))
-    ;;                 ?right-approach-poses))
-      
-    ;;   (setf ?right-tilt-poses
-    ;;         (mapcar (lambda (slice-left)
-    ;;                   (translate-pose slice-left
-    ;;                                   :y-offset (- y-gripper-position-offset)
-    ;;                                   :z-offset z-gripper-position-offset))
-    ;;                 ?right-tilt-poses)))
-    
-    
-
-    (roslisp:ros-info (cut-pour pour) "Approaching")
-    (cpl:with-failure-handling
-        ((common-fail:manipulation-low-level-failure (e)
-           (roslisp:ros-warn (cut-and-pour-plans pour)
-                             "Manipulation messed up: ~a~%Ignoring."
-                             e)
-           ;; (return)
-           ))
-      (exe:perform
-       (desig:an action
-                 (type approaching)
-                 (left-poses ?left-approach-poses)
-                 (right-poses ?right-approach-poses))))
-  (cpl:sleep 2)
-  ;;(break)
+  (roslisp:ros-info (cut-pour pour) "Approaching")
+  (cpl:with-failure-handling
+      ((common-fail:manipulation-low-level-failure (e)
+         (roslisp:ros-warn (cut-and-pour-plans pour)
+                           "Manipulation messed up: ~a~%Ignoring."
+                           e)
+         ;; (return)
+         ))
+    (exe:perform
+     (desig:an action
+               (type approaching)
+               (left-poses ?left-approach-poses)
+               (right-poses ?right-approach-poses)
+               (desig:when ?collision-mode
+                 (collision-mode ?collision-mode))))
+    (cpl:sleep 2)
     
     (roslisp:ros-info (cut-pour pour) "Tilting")
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (cut-and-pour-plans pour)
                              "Manipulation messed up: ~a~%Ignoring."
-                             e)
-           ;; (return)
-           ))
+                             e)))
       (exe:perform
        (desig:an action
                  (type tilting)
                  (left-poses ?left-tilt-poses)
-                 (right-poses ?right-tilt-poses))))
-  (cpl:sleep 2)
-  ;;(break)
+                 (right-poses ?right-tilt-poses)
+                 (desig:when ?collision-mode
+                   (collision-mode ?collision-mode)))))
+
+    (cpl:sleep 2)
     
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (cut-and-pour-plans pour)
                              "Manipulation messed up: ~a~%Ignoring."
-                             e)
-           ;; (return)
-           ))
+                             e)))
       (exe:perform
        (desig:an action
                  (type approaching)
                  (left-poses ?left-approach-poses)
-                 (right-poses ?right-approach-poses))))
-
-  ;;(break)
-    
-    ;; (print ?object-type) (print '?object-in-hand-type)
-  
-  )
+                 (right-poses ?right-approach-poses)
+                 (desig:when ?collision-mode
+                   (collision-mode ?collision-mode)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                      SLICE                                   ;;;
@@ -187,19 +114,13 @@
                 ((:right-slice-down-poses ?right-slice-down-poses))
                 ((:collision-mode ?collision-mode))
               &allow-other-keys)
-  
-  ;; (declare (type desig:object-designator ?object-designator)
-  ;;          (type keyword ?arm ?grasp)
-  ;;          (type (or null list) ; yes, null is also list, but this is better reachability
-  ;;                ?left-slice-up-poses ?left-slice-up-poses
-  ;;                ?left-slice-down-poses ?left-slice-down-poses))
   "Object already in hand, approach 2nd object, tilt 100degree, tilt back"
- 
   
-       
+  
+  
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;first cut
-    
+  
 
   (loop while (or ?left-slice-up-poses
                   ?left-slice-down-poses
@@ -246,89 +167,12 @@
                     (roslisp:ros-warn (cut-and-pour-plans slice)
                                       "Manipulation messed up: ~a~%Ignoring."
                                       e)))
-      (exe:perform
-       (desig:an action
-                 (type approaching)
-                 (left-poses ?current-left-slice-up-poses)
-                 (right-poses ?current-right-slice-up-poses)
-                 (desig:when ?collision-mode
-                   (collision-mode ?collision-mode))))))))
-
-
-;; (defun hold (&key
-;;                ((:object ?object-designator))
-;;                ((:object-name ?object-name))
-;;                ((:arm ?arm))
-;;                ((:arm-support ?arm-support))
-;;                ((:gripper-opening ?gripper-opening))
-;;                ((:effort ?grip-effort))
-;;                ((:grasp ?grasp))
-;;                ((:left-reach-poses ?left-reach-poses))
-;;                ((:right-reach-poses ?right-reach-poses))
-;;                ((:left-grasp-poses ?left-grasp-poses))
-;;                ((:right-grasp-poses ?right-grasp-poses))
-;;              &allow-other-keys)
-  
-;;   ;; (declare (type desig:object-designator ?object-designator)
-;;   ;;          (type keyword ?arm ?grasp)
-;;   ;;          (type (or null list) ; yes, null is also list, but this is better reachability
-;;   ;;                ?left-slice-up-poses ?left-slice-up-poses
-;;   ;;                ?left-slice-down-poses ?left-slice-down-poses))
-;;   "Object already in hand, approach 2nd object, tilt 100degree, tilt back"
-
-;;   (cpl:par
-;;     (roslisp:ros-info (pick-place pick-up) "Opening gripper")
-;;     (exe:perform
-;;      (desig:an action
-;;                (type setting-gripper)
-;;                (gripper ?arm)
-;;                (position ?gripper-opening)))
-;;     (roslisp:ros-info (cut-pour slicing) "Approaching")
-;;     (cpl:with-failure-handling
-;;         ((common-fail:manipulation-low-level-failure (e)
-;;            (roslisp:ros-warn (cp-plans slicing)
-;;                              "Manipulation messed up: ~a~%Ignoring."
-;;                              e)
-;;            ;; (return)
-;;            ))
-;;       (exe:perform
-;;        (desig:an action
-;;                  (type reaching)
-;;                  (left-poses ?left-reach-poses)
-;;                  (right-poses ?right-reach-poses)))))
-  
-;;   (roslisp:ros-info (cut-pour slicing) "Grasping")
-;;   (cpl:with-failure-handling
-;;       ((common-fail:manipulation-low-level-failure (e)
-;;          (roslisp:ros-warn (cp-plans slicing)
-;;                            "Manipulation messed up: ~a~%Ignoring."
-;;                            e)
-;;          (return)
-;;          ))
-;;     (exe:perform
-;;      (desig:an action
-;;                (type grasping)
-;;                (object ?object-designator)
-;;                (left-poses ?left-grasp-poses)
-;;                (right-poses ?right-grasp-poses))))
-  
-;;   (roslisp:ros-info (cut-pour slicing) "Gripping")
-;;   (exe:perform
-;;    (desig:an action
-;;              (type gripping)
-;;              (gripper ?arm)
-;;              (effort ?grip-effort)
-;;              (object ?object-designator)))
-  
-;;   (roslisp:ros-info (cut-pour slicing) "Assert grasp into knowledge base")
-;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-attached-robot
-;;      :object-name (desig:desig-prop-value ?object-designator :name)
-;;      :arm ?arm
-;;      :grasp ?grasp))
-  
-;; )
-
-
+               (exe:perform
+                (desig:an action
+                          (type approaching)
+                          (left-poses ?current-left-slice-up-poses)
+                          (right-poses ?current-right-slice-up-poses)
+                          (desig:when ?collision-mode
+                            (collision-mode ?collision-mode))))))))
 
 
