@@ -30,6 +30,10 @@
 (in-package :cp-plans)
 
 (def-fact-group cut-and-pour-plans (desig:action-grounding)
+
+  ;;###############################################################################
+  ;;                                    POURING
+  ;;###############################################################################
     
 
    (<- (desig:action-grounding ?action-designator (pour ?resolved-action-designator))
@@ -82,6 +86,10 @@
         (and (equal ?right-approach-poses NIL)
              (equal ?right-tilt-poses NIL)))
 
+     (-> (desig:desig-prop ?action-designator (:collision-mode ?collision-mode))
+        (true)
+        (equal ?collision-mode nil))
+
      ;; put together resulting action designator
     (desig:designator :action ((:type :pouring)
                                (:object ?current-object-desig)
@@ -92,7 +100,8 @@
                                (:left-approach-poses ?left-approach-poses)
                                (:right-approach-poses ?right-approach-poses)
                                (:left-tilt-poses ?left-tilt-poses)
-                               (:right-tilt-poses ?right-tilt-poses))
+                               (:right-tilt-poses ?right-tilt-poses)
+                               (:collision-mode ?collision-mode))
                       ?resolved-action-designator))
     
 
@@ -123,8 +132,6 @@
         (true)
         (and (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
              (member ?grasp ?grasps)))
-
-    
     
     (lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
     (lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
@@ -153,6 +160,9 @@
         (and(equal ?right-slice-up-poses NIL)
             (equal ?right-slice-down-poses NIL)))
 
+    (-> (desig:desig-prop ?action-designator (:collision-mode ?collision-mode))
+        (true)
+        (equal ?collision-mode nil))
     
     ;;put together resulting action designator
     (desig:designator :action ((:type :slicing)
@@ -165,7 +175,8 @@
                                (:left-slice-up-poses ?left-slice-up-poses)
                                (:right-slice-up-poses ?right-slice-up-poses)
                                (:left-slice-down-poses ?left-slice-down-poses)
-                               (:right-slice-down-poses ?right-slice-down-poses))
+                               (:right-slice-down-poses ?right-slice-down-poses)
+                               (:collision-mode ?collision-mode))
                       ?resolved-action-designator))
 
 

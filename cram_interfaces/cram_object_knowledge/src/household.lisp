@@ -179,19 +179,6 @@
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :bottle))
-     (arm (eql :left))
-     (grasp (eql :left-side)))
-  '((0.0 0.085 0.065)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :bottle))
-     (arm (eql :right))
-     (grasp (eql :left-side)))
-  '((0.0 -0.085 0.065)(0 0 0 1)))
-
-
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*bottle-grasp-xy-offset* ,*bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
@@ -199,18 +186,6 @@
   :2nd-pregrasp-offsets `(0.0 ,(- *bottle-pregrasp-xy-offset*) 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :bottle))
-     (arm (eql :right))
-     (grasp (eql :right-side)))
-  '((0.0 -0.085 0.065)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :bottle))
-     (arm (eql :left))
-     (grasp (eql :right-side)))
-  '((0.0 0.085 0.065)(0 0 0 1)))
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :back
@@ -220,12 +195,6 @@
   :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :bottle))
-     arm
-     (grasp (eql :back)))
-  '((-0.085 0.0 0.065)(0 0 0 1)))
 
 ;; FRONT grasp
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :front
@@ -262,18 +231,6 @@
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :cup))
-     (arm (eql :left))
-     (grasp (eql :left-side)))
-  '((0.0 0.085 0.065)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :cup))
-     (arm (eql :right))
-     (grasp (eql :left-side)))
-  '((0.0 0.085 0.065)(0 0 0 1)))
-
 
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*cup-grasp-xy-offset* ,*cup-grasp-z-offset*)
@@ -284,18 +241,6 @@
   :2nd-lift-offsets *lift-offset*)
 
 
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :cup))
-     (arm (eql :right))
-     (grasp (eql :right-side)))
-  '((0.0 -0.085 0.065)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :cup))
-     (arm (eql :left))
-     (grasp (eql :right-side)))
-  '((0.0 -0.085 0.065)(0 0 0 1)))
-
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :back
   :grasp-translation `(,*cup-grasp-xy-offset* 0.0d0 ,*cup-grasp-z-offset*)
@@ -305,14 +250,6 @@
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
-    ((object-type (eql :cup))
-     arm
-     (grasp (eql :back)))
-  '((-0.085 0.0 0.065)(0 0 0 1)))
-
-
-
 ;; FRONT grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :front
   :grasp-translation `(,(- *cup-grasp-xy-offset*) 0.0d0 ,*cup-grasp-z-offset*)
@@ -321,12 +258,6 @@
   :2nd-pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 0.0)
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
-
-(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
-    ((object-type (eql :cup))
-     arm
-     (grasp (eql :front)))
-  '((0.085 0.0 0.065)(0 0 0 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -444,34 +375,10 @@
     '(:left :right) :left-top
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
 
-(defmethod man-int:get-object-type-robot-frame-slice-up-transform
-    ((object-type (eql :weisswurst))
-     arm
-     (grasp (eql :left-top)))
-  '((0.04 0.0 0.037)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-slice-down-transform
-    ((object-type (eql :weisswurst))
-     arm
-     (grasp (eql :left-top)))
-  '((0.04 0.0 0.001)(0 0 0 1)))
-
 ;; Right-TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
     '(:left :right) :right-top
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
-
-(defmethod man-int:get-object-type-robot-frame-slice-up-transform
-    ((object-type (eql :weisswurst))
-     arm
-     (grasp (eql :right-top)))
-  '((-0.04 0.0 0.037)(0 0 0 1)))
-
-(defmethod man-int:get-object-type-robot-frame-slice-down-transform
-    ((object-type (eql :weisswurst))
-     arm
-     (grasp (eql :right-top)))
-  '((-0.04 0.0 0.001)(0 0 0 1)))
 
 ;; left hold-hold
 (man-int:def-object-type-to-gripper-transforms '(:weisswurst)
@@ -509,36 +416,10 @@
     '(:left :right) :left-top
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
 
-(defmethod man-int:get-object-type-robot-frame-slice-up-transform
-    ((object-type (eql :bread))
-     arm
-     (grasp (eql :left-top)))
-  '((0.0 0.0 0.085)(0 0.707 0 0.707)))
-
-(defmethod man-int:get-object-type-robot-frame-slice-down-transform
-    ((object-type (eql :bread))
-     arm
-     (grasp (eql :left-top)))
-  '((0.0 0.0 0.002)(0 0.707 0 0.707)))
-
-
 ;; right-TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:bread)
     '(:left :right) :right-top
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*)
-
-(defmethod man-int:get-object-type-robot-frame-slice-up-transform
-    ((object-type (eql :bread))
-     arm
-     (grasp (eql :right-top)))
-  '((-0.0 0.0 0.085)(0 0.707 0 0.707))) ;; -0.1
-
-(defmethod man-int:get-object-type-robot-frame-slice-down-transform
-    ((object-type (eql :bread))
-     arm
-     (grasp (eql :right-top)))
-  '((-0.0 0.0 0.002)(0 0.707 0 0.707))) ;; -0.1
-
 
 ;; left hold
 (man-int:def-object-type-to-gripper-transforms '(:bread)

@@ -1,6 +1,7 @@
 ;;;
-;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan  <kazhoyan@cs.uni-bremen.de>
 ;;;                     Vanessa Hassouna <hassouna@uni-bremen.de>
+;;;                     Thomas Lipps     <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -164,10 +165,10 @@
   (mapcar (lambda (?approach-pose)
             ;;depending on the grasp the angle to tilt is different
             (case grasp
-              (:front (rotate-once-pose ?approach-pose (- angle) :y))
+              (:front (rotate-once-pose ?approach-pose (+ angle) :y))
               (:left-side (rotate-once-pose ?approach-pose (+ angle) :x))
               (:right-side (rotate-once-pose ?approach-pose (- angle) :x))
-              (:back (rotate-once-pose ?approach-pose (+ angle) :y))
+              (:back (rotate-once-pose ?approach-pose (- angle) :y))
               (t (error "can only pour from :side, back or :front"))))
           approach-poses))
 
@@ -204,20 +205,58 @@
            (desig:desig-prop-value object :type))
          (bTo
            (man-int:get-object-transform object))
+         ;; The first part of the btb-offset transform encodes the
+         ;; translation difference between the gripper and the
+         ;; object. The static defined orientation of bTb-offset
+         ;; describes how the gripper should be orientated to approach
+         ;; the object in which something should be poured into. This
+         ;; depends mostly on the defined coordinate frame of the
+         ;; object and how objects should be rotated to pour something
+         ;; out of them.
          (bTb-offset
            (man-int::get-object-type-robot-frame-tilt-approach-transform
             object-type arm grasp))
+         ;; Since the grippers orientation should not depend on the
+         ;; orientation of the object it is omitted here.
          (oTg-std
-           (man-int:get-object-type-to-gripper-transform
-            object-type object-name arm grasp))
+           (cram-tf:copy-transform-stamped
+            (man-int:get-object-type-to-gripper-transform
+             object-type object-name arm grasp)
+            :rotation (cl-tf:make-identity-rotation)))
          (approach-pose
-           (man-int:calculate-gripper-pose-in-base
-            (cram-tf:apply-transform
-             bTb-offset
-             (cram-tf:copy-transform-stamped
-              bTo
-              :rotation (cl-tf:make-identity-rotation)))
-            arm oTg-std))
+           (cl-tf:copy-pose-stamped 
+            (man-int:calculate-gripper-pose-in-base
+              (cram-tf:apply-transform
+               (cram-tf:copy-transform-stamped 
+                bTb-offset
+                :rotation (cl-tf:make-identity-rotation))
+               bTo)
+              arm oTg-std)
+            :orientation 
+            (cl-tf:rotation bTb-offset)))
+            ;; (cl-tf:q+
+            ;;  (cl-tf:q-
+            ;;   (cl-tf:orientation (btr:pose (btr:get-robot-object)))
+            ;;   (cl-tf:rotation
+            ;;    (cram-tf:apply-transform
+            ;;     (cl-tf:make-transform-stamped
+            ;;      cram-tf:*robot-base-frame*
+            ;;      cram-tf:*robot-base-frame*
+            ;;      0.0
+            ;;      (cl-tf:make-identity-vector)
+            ;;      (cl-tf:rotation (cl-tf:transform-inv bTo)))
+            ;;     (cl-tf:make-transform-stamped
+            ;;      cram-tf:*robot-base-frame*
+            ;;      cram-tf:*robot-base-frame*
+            ;;      0.0
+            ;;      (cl-tf:make-identity-vector)
+            ;;      (cl-tf:orientation (btr:pose
+            ;;                          (btr:get-robot-object)))))))
+            ;;  (case grasp
+            ;;    (:FRONT (cl-tf:euler->quaternion :az 0.0))
+            ;;    (:BACK (cl-tf:euler->quaternion :az pi))
+            ;;    (:LEFT-SIDE (cl-tf:euler->quaternion :az (- (/ pi 2))))
+            ;;    (:RIGHT-SIDE (cl-tf:euler->quaternion :az (/ pi 2)))))))
          (tilting-poses
            (get-tilting-poses grasp (list approach-pose))))
     (mapcar (lambda (label poses-in-base)

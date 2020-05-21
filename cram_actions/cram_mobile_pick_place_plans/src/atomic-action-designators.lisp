@@ -55,7 +55,6 @@
         (spec:property ?action-designator (:type :lifting))
         (spec:property ?action-designator (:type :approaching))
         (spec:property ?action-designator (:type :tilting))
-        (spec:property ?action-designator (:type :tilting-back))
         (spec:property ?action-designator (:type :retracting))
         (spec:property ?action-designator (:type :cutting)))
     (spec:property ?action-designator (:type ?action-type))
@@ -63,10 +62,13 @@
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
+    (-> (desig:desig-prop ?action-designator (:collision-mode ?collision-mode))
+        (true)
+        (equal ?collision-mode :avoid-all))
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :avoid-all)) ;; :allow-hand
+                               (:collision-mode ?collision-mode))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence

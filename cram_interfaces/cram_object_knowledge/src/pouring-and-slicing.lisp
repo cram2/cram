@@ -65,3 +65,87 @@
      (arm (eql :right))
      (grasp (eql :back)))
   '((-0.1 -0.125 0.15)(0 0 0 1)))
+
+;;;;;;;;;;;;;; POURING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;; CUP ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :cup))
+     arm
+     (grasp (eql :left-side)))
+  '((0.0 0.085 0.065)(0 0 -0.707 0.707)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
+    ((object-type (eql :cup))
+     arm
+     (grasp (eql :right-side)))
+  '((0.0 -0.085 0.065)(0 0 0.707 0.707)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
+    ((object-type (eql :cup))
+     arm
+     (grasp (eql :front)))
+  '((-0.085 0.0 0.065)(0 0 0 1)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
+    ((object-type (eql :cup))
+     arm
+     (grasp (eql :back)))
+  '((0.085 0.0 0.065)(0 0 1 0)))
+
+;;;;;;;;;;;;;;;; SLICING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;; WEISSWURST ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-robot-frame-slice-up-transform
+    ((object-type (eql :weisswurst))
+     arm
+     (grasp (eql :left-top)))
+  '((0.04 0.0 0.037)(0 0 0 1)))
+
+(defmethod man-int:get-object-type-robot-frame-slice-down-transform
+    ((object-type (eql :weisswurst))
+     arm
+     (grasp (eql :left-top)))
+  '((0.04 0.0 0.001)(0 0 0 1)))
+
+(defmethod man-int:get-object-type-robot-frame-slice-up-transform
+    ((object-type (eql :weisswurst))
+     arm
+     (grasp (eql :right-top)))
+  '((-0.04 0.0 0.037)(0 0 0 1)))
+
+(defmethod man-int:get-object-type-robot-frame-slice-down-transform
+    ((object-type (eql :weisswurst))
+     arm
+     (grasp (eql :right-top)))
+  '((-0.04 0.0 0.001)(0 0 0 1)))
+
+;;;;;;;;;;;;;;; BREAD ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-robot-frame-slice-up-transform
+    ((object-type (eql :bread))
+     arm
+     (grasp (eql :left-top)))
+  '((0.0 0.0 0.085)(0 0.707 0 0.707)))
+
+(defmethod man-int:get-object-type-robot-frame-slice-down-transform
+    ((object-type (eql :bread))
+     arm
+     (grasp (eql :left-top)))
+  '((0.0 0.0 0.002)(0 0.707 0 0.707)))
+
+(defmethod man-int:get-object-type-robot-frame-slice-up-transform
+    ((object-type (eql :bread))
+     arm
+     (grasp (eql :right-top)))
+  '((-0.0 0.0 0.085)(0 0.707 0 0.707))) ;; -0.1
+
+(defmethod man-int:get-object-type-robot-frame-slice-down-transform
+    ((object-type (eql :bread))
+     arm
+     (grasp (eql :right-top)))
+  '((-0.0 0.0 0.002)(0 0.707 0 0.707))) ;; -0.1
+
