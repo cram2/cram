@@ -153,6 +153,9 @@
         (and(equal ?right-slice-up-poses NIL)
             (equal ?right-slice-down-poses NIL)))
 
+    (-> (desig:desig-prop ?action-designator (:collision-mode ?collision-mode))
+        (true)
+        (equal ?collision-mode nil))
     
     ;;put together resulting action designator
     (desig:designator :action ((:type :slicing)
@@ -165,7 +168,8 @@
                                (:left-slice-up-poses ?left-slice-up-poses)
                                (:right-slice-up-poses ?right-slice-up-poses)
                                (:left-slice-down-poses ?left-slice-down-poses)
-                               (:right-slice-down-poses ?right-slice-down-poses))
+                               (:right-slice-down-poses ?right-slice-down-poses)
+                               (:collision-mode ?collision-mode))
                       ?resolved-action-designator))
 
 

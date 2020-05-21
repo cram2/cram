@@ -116,7 +116,8 @@
         (?slice-position nil)
         (?arm-to-hold nil)
         (?pose-slice-object nil)
-        (?pose-knife nil))
+        (?pose-knife nil)
+        (?collision-mode :allow-hand))
     
     (if (eq ?object-type :weisswurst)
         (progn
@@ -281,7 +282,8 @@
                                (type slicing)
                                (object ?object-to-slice)
                                (arm ?arm-to-slice) 
-                               (grasp ?slice-position)))))))
+                               (grasp ?slice-position)
+                               (collision-mode ?collision-mode)))))))
   
 
 (defun clean-demo ()

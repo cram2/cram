@@ -185,6 +185,7 @@
                 ((:right-slice-up-poses ?right-slice-up-poses))
                 ((:left-slice-down-poses ?left-slice-down-poses))
                 ((:right-slice-down-poses ?right-slice-down-poses))
+                ((:collision-mode ?collision-mode))
               &allow-other-keys)
   
   ;; (declare (type desig:object-designator ?object-designator)
@@ -216,42 +217,42 @@
                  ((common-fail:manipulation-low-level-failure (e)
                     (roslisp:ros-warn (cut-and-pour-plans slice)
                                       "Manipulation messed up: ~a~%Ignoring."
-                                      e)
-                    ;; (return)
-                    ))
+                                      e)))
                (exe:perform
                 (desig:an action
                           (type approaching)
                           (left-poses ?current-left-slice-up-poses)
-                          (right-poses ?current-right-slice-up-poses))))
+                          (right-poses ?current-right-slice-up-poses)
+                          (desig:when ?collision-mode
+                            (collision-mode ?collision-mode)))))
              
              (roslisp:ros-info (cut-pour pour) "slice-down")
              (cpl:with-failure-handling
                  ((common-fail:manipulation-low-level-failure (e)
                     (roslisp:ros-warn (cut-and-pour-plans slice)
                                       "Manipulation messed up: ~a~%Ignoring."
-                                      e)
-                    ;; (return)
-                    ))
+                                      e)))
                (exe:perform
                 (desig:an action
                           (type approaching)
                           (left-poses ?current-left-slice-down-poses)
-                          (right-poses ?current-right-slice-down-poses))))
+                          (right-poses ?current-right-slice-down-poses)
+                          (desig:when ?collision-mode
+                            (collision-mode ?collision-mode)))))
              
              (roslisp:ros-info (cut-pour pour) "slice-up")
              (cpl:with-failure-handling
                  ((common-fail:manipulation-low-level-failure (e)
                     (roslisp:ros-warn (cut-and-pour-plans slice)
                                       "Manipulation messed up: ~a~%Ignoring."
-                             e)
-           ;; (return)
-           ))
+                                      e)))
       (exe:perform
        (desig:an action
                  (type approaching)
                  (left-poses ?current-left-slice-up-poses)
-                 (right-poses ?current-right-slice-up-poses)))))))
+                 (right-poses ?current-right-slice-up-poses)
+                 (desig:when ?collision-mode
+                   (collision-mode ?collision-mode))))))))
 
 
 ;; (defun hold (&key
