@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Thomas Lipps    <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -31,20 +32,36 @@
 
 (defparameter *weisswurst-detect* nil)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;SPAWN;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun clean-demo ()
+  (btr:detach-all-objects (btr:get-robot-object))
+  (btr-utils:kill-all-objects)
+  (sleep 0.3))
+
+(defun park ()
+   (exe:perform (desig:an action
+                         (type positioning-arm)
+                         (left-configuration park)
+                         (right-configuration park))))
+
+
+  ;;###############################################################################
+  ;;                                    SPAWNING
+  ;;###############################################################################
+
 
 (defun spawn-weisswurst(location)
-  (if (eq location 'sink)
+  (if (eq location :sink)
       (btr-utils:spawn-object 'weisswurst-1 :weisswurst
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector 1.4 0.6 0.9)
                                      (cl-tf:make-quaternion 0 0 1 1)))
       (btr-utils:spawn-object 'weisswurst-1 :weisswurst
                               :pose (cl-transforms:make-pose
-                                     (cl-tf:make-3d-vector -0.85 0.9 0.9)
+                                     (cl-tf:make-3d-vector -0.95 0.9 0.9)
                                      (cl-tf:make-quaternion 0 0 -1 1)))))
 (defun spawn-pr2(location)
-  (if (eq location 'sink)
+  (if (eq location :sink)
       (prolog:prolog '(and (btr:bullet-world ?world)
                        (assert (btr:object-pose ?world cram-pr2-description:pr2
                                 ((0.73 0.6 0) (0 0 0 1))))))
@@ -53,7 +70,7 @@
                                 ((-0.3 0.9 0) (0 0 1 0))))))))
 
 (defun spawn-bread (location)
-  (if (eq location 'sink)
+  (if (eq location :sink)
       (btr-utils:spawn-object 'bread-1 :bread
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector 1.4 0.6 0.95)
@@ -65,7 +82,7 @@
                                      (cl-tf:make-quaternion 0 0 -1 1)))))
 
 (defun spawn-knife (location)
-  (if (eq location 'sink)
+  (if (eq location :sink)
       (btr-utils:spawn-object 'knife-1 :knife
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector 1.5 0.6 1.15)
@@ -76,7 +93,7 @@
                                      (cl-tf:make-quaternion 1 1 1 -1)))))
 
 (defun spawn-big-knife (location)
-  (if (eq location 'sink)
+  (if (eq location :sink)
       (btr-utils:spawn-object 'big-knife-1 :big-knife
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector 1.5 0.6 1.4)
@@ -86,13 +103,35 @@
                                      (cl-tf:make-3d-vector -0.95 1.2 1.3)
                                      (cl-tf:make-quaternion 1 -1 1 -1)))))
 
-
+(defun spawn-bottle (location)
+  (if (eq location :sink)
+      (btr-utils:spawn-object 'bottle-1 :bottle
+                              :pose (cl-transforms:make-pose
+                                     (cl-tf:make-3d-vector 1.4 0.8 0.95)
+                                     (cl-tf:make-identity-rotation)))
+      (btr-utils:spawn-object 'bottle-1 :bottle
+                              :pose (cl-transforms:make-pose
+                                     (cl-tf:make-3d-vector -0.85 1.1 0.95)
+                                     (cl-tf:make-identity-rotation)))))
+      
+    
 (defun spawn-cup (location)
-  (if (eq location 'sink)
+  (if (eq location :sink)
+      (btr-utils:spawn-object 'cup-1 :cup
+                              :pose (cl-transforms:make-pose
+                                     (cl-tf:make-3d-vector 1.4 0.4 0.95)
+                                     (cl-tf:make-identity-rotation)))
+      (btr-utils:spawn-object 'cup-1 :cup
+                              :pose (cl-transforms:make-pose
+                                     (cl-tf:make-3d-vector -0.85 0.6 0.95)
+                                     (cl-tf:make-identity-rotation)))))
+
+(defun spawn-cup-to-pour-into (location)
+  (if (eq location :sink)
       (btr-utils:spawn-object 'cup-2 :cup
                               :pose (cl-transforms:make-pose
                                      (cl-tf:make-3d-vector 1.4 0.6 0.95)
-                                     (cl-tf:make-quaternion 0 0 0 1)))
+                                     (cl-tf:make-quaternion 0 0 0.7 0.7)))
 
       (btr-utils:spawn-object 'cup-2 :cup
                               :pose (cl-transforms:make-pose
@@ -101,11 +140,35 @@
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;DEMOS SLICE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;###############################################################################
+  ;;                                    SLICING
+  ;;###############################################################################
+
+
+(defun demo-play-slice (bread-or-weisswurst island-or-sink)
+  (clean-demo)
+  (when (and (or (equal bread-or-weisswurst :bread)
+                 (equal bread-or-weisswurst :weisswurst))
+             (or (equal island-or-sink :island)
+                 (equal island-or-sink :sink)))
+    (let ((?knife (if (equal bread-or-weisswurst :bread)
+                      :big-knife
+                      :knife)))
+      (urdf-proj:with-simulated-robot
+        (park)
+        (demo-slice :right bread-or-weisswurst
+                    ?knife island-or-sink
+                    :allow-hand))
+      (clean-demo)
+      (urdf-proj:with-simulated-robot
+        (park)
+        (demo-slice :left bread-or-weisswurst
+                    ?knife island-or-sink
+                    :allow-hand)))))
 
 
 
-(defun demo-slice (?arm-to-slice ?object-type ?knife-type ?location)
+(defun demo-slice (?arm-to-slice ?object-type ?knife-type ?location ?arms-collision-mode)
   (when (not (or (and (eq ?object-type :weisswurst) (eq ?knife-type :knife))
                  (and (eq ?object-type :bread) (eq ?knife-type :big-knife))))
     (error "Types are not compatible: ~a is not sliceable with ~a~%."
@@ -116,27 +179,38 @@
         (?slice-position nil)
         (?arm-to-hold nil)
         (?pose-slice-object nil)
-        (?pose-knife nil))
+        (?pose-knife nil)
+        (?collision-mode ?arms-collision-mode))
     
     (if (eq ?object-type :weisswurst)
         (progn
           (spawn-weisswurst ?location)
           (spawn-knife ?location)
           (setf ?pose-knife (cl-tf:pose->pose-stamped
-                             "map" 0 (btr:object-pose 'knife-1)))
+                             cram-tf:*fixed-frame*
+                             0 
+                             (btr:object-pose 'knife-1)))
           (setf ?pose-slice-object (cl-tf:pose->pose-stamped
-                                    "map" 0 (btr:object-pose 'weisswurst-1))))
+                                    cram-tf:*fixed-frame*
+                                    0
+                                    (btr:object-pose 'weisswurst-1))))
         (progn
           (spawn-bread ?location)
           (spawn-big-knife ?location)
           (setf ?pose-knife (cl-tf:pose->pose-stamped
-                             "map" 0 (btr:object-pose 'big-knife-1)))
+                             cram-tf:*fixed-frame*
+                             0
+                             (btr:object-pose 'big-knife-1)))
           (setf ?pose-slice-object (cl-tf:pose->pose-stamped
-                                    "map" 0 (btr:object-pose 'bread-1)))))
+                                    cram-tf:*fixed-frame*
+                                    0
+                                    (btr:object-pose 'bread-1)))))
 
     
     (spawn-pr2 ?location)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;looking at knife
+    
+;;;;; Looking at the knife
+
     (cpl:with-retry-counters ((looking-retry 3))
       (cpl:with-failure-handling
           ((common-fail:low-level-failure
@@ -154,7 +228,7 @@
                      (type looking)
                      (target (desig:a location (pose ?pose-knife))))))))
     
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;detecting knife
+;;;;; Detecting the knife
 
     (cpl:with-retry-counters ((detecting-retry 5))
       (cpl:with-failure-handling
@@ -169,9 +243,8 @@
         (setf ?object-knife
               (urdf-proj::detect (desig:an object (type ?knife-type))))))
     
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;set parameters
+;;;;; Setting parameters
     
-
     (if (eq ?arm-to-slice :right)
         (progn
           (setf ?grasp-to-hold :left-hold)
@@ -183,7 +256,7 @@
           (setf ?arm-to-hold :right)))
 
     
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;picking-up-knife
+;;;;; Picking the knife up
     
     (exe:perform (desig:an action
                            (type picking-up)
@@ -192,7 +265,7 @@
                            (grasp front)))
 
     
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;parking arms
+;;;;; Parking arm
     
     (if (eq ?arm-to-slice :right)
         (exe:perform (desig:an action
@@ -204,7 +277,7 @@
                                (left-configuration park))))
 
     
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;looking at object-to-slice
+;;;;; Looking at object to slice
 
     (cpl:with-retry-counters ((looking-retry 3))
       (cpl:with-failure-handling
@@ -223,7 +296,7 @@
                      (type looking)
                      (target (desig:a location (pose ?pose-slice-object))))))))
     
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;decting the object-to-slice
+;;;;; Detecting the object to slice
 
     (cpl:with-retry-counters ((detecting-retry 3))
       (cpl:with-failure-handling
@@ -236,11 +309,9 @@
              (roslisp:ros-warn (slice-demo detecting-fail)
                                "~%No more retries~%")))
         (setf ?object-to-slice
-              (urdf-proj::detect (desig:an object (type ?object-type))))))
-    
-    
+              (urdf-proj::detect (desig:an object (type ?object-type))))))  
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;holding the object w/ 2hand
+;;;;; Holding the object to slice with the other hand
     
     (cpl:with-retry-counters ((holding-retry 3))
       (cpl:with-failure-handling
@@ -261,7 +332,7 @@
                                (grasp ?grasp-to-hold)))))
 
     
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;slicing the object
+;;;;; Slicing the object
 
     (cpl:with-retry-counters ((slicing-retry 3))
       (cpl:with-failure-handling
@@ -276,99 +347,47 @@
                                "~%No more retries~%")))
         
         
-        
         (exe:perform (desig:an action
                                (type slicing)
                                (object ?object-to-slice)
                                (arm ?arm-to-slice) 
-                               (grasp ?slice-position)))))))
-  
-
-(defun clean-demo ()
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr-utils:kill-all-objects)
-  (sleep 0.3))
-
-(defun park ()
-   (exe:perform (desig:an action
-                         (type positioning-arm)
-                         (left-configuration park)
-                         (right-configuration park))))
-
-(defun demo-play-slice-island ()
-  (clean-demo)
-  (urdf-proj:with-simulated-robot
-    (park)
-    (demo-slice :right :bread  :big-knife 'island))
-  (clean-demo)
-  (urdf-proj:with-simulated-robot
-    (park)
-    (demo-slice :left :bread :big-knife 'island)))
-
-(defun demo-play-slice-island-w ()
-  (clean-demo)
-  (urdf-proj:with-simulated-robot
-    (park)
-    (demo-slice :right :weisswurst  :knife 'island))
-  (clean-demo)
-  (urdf-proj:with-simulated-robot
-    (park)
-    (demo-slice :left :weisswurst :knife 'island)))
-
-(defun demo-play-slice-sink ()
-  (clean-demo)
-  (urdf-proj:with-simulated-robot
-    (park)
-    (demo-slice :right :bread  :big-knife 'sink))
-  (clean-demo)
-  (urdf-proj:with-simulated-robot
-    (park)
-    (demo-slice :left :bread :big-knife 'sink)))
-
-(defun demo-play-slice-sink-w ()
-  (clean-demo)
-  (urdf-proj:with-simulated-robot
-    (park)
-    (demo-slice :right :weisswurst  :knife 'sink))
-  (clean-demo)
-  (urdf-proj:with-simulated-robot
-    (park)
-    (demo-slice :left :weisswurst :knife 'sink)))
+                               (grasp ?slice-position)
+                               (desig:when ?collision-mode
+                                 (collision-mode ?collision-mode))))))))
 
 
-(defun demo-play-pour-sink ()
-  (clean-demo)
-  (spawn-cup 'sink))
 
+  ;;###############################################################################
+  ;;                                    POURING
+  ;;###############################################################################
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;pour
+(defun demo-play-pour (island-or-sink)
+  (when (or (equal island-or-sink :sink)
+            (equal island-or-sink :island))
+    (demo-pour island-or-sink)))
 
-
-(defun init-pour-sink ()
+(defun demo-pour (island-or-sink)
   (urdf-proj:with-simulated-robot
     (clean-demo)
     (park)
-    (spawn-pr2 'sink)
-    (btr-utils:spawn-object 'cup-1 :cup
-                            :pose (cl-transforms:make-pose
-                                   (cl-tf:make-3d-vector 1.4 0.4 0.95)
-                                   (cl-tf:make-identity-rotation)))
-    (btr-utils:spawn-object 'bottle-1 :bottle
-                            :pose (cl-transforms:make-pose
-                                   (cl-tf:make-3d-vector 1.4 0.9 0.95)
-                                   (cl-tf:make-identity-rotation)))
+    (spawn-pr2 island-or-sink)
+    (spawn-cup island-or-sink)
+    (spawn-bottle island-or-sink)
 
     (let* ((?pose-cup-1 (cl-tf:pose->pose-stamped
-                         "map" 0 (btr:object-pose 'cup-1)))
+                         cram-tf:*fixed-frame*
+                         0
+                         (btr:object-pose 'cup-1)))
            (?object-cup-1 nil)
            (?pose-bottle-1 (cl-tf:pose->pose-stamped
-                            "map" 0 (btr:object-pose 'bottle-1)))
+                            cram-tf:*fixed-frame*
+                            0
+                            (btr:object-pose 'bottle-1)))
            (?object-bottle-1 nil)
            (?object-cup-2 nil))
       
-
       
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;looking at object-to-slice
+;;;;; Looking at object to pour from
 
       (cpl:with-retry-counters ((looking-retry 3))
         (cpl:with-failure-handling
@@ -387,7 +406,7 @@
                        (type looking)
                        (target (desig:a location (pose ?pose-cup-1))))))))
       
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;decting the object-to-slice
+;;;;; Detecting the object to pour from
 
       (cpl:with-retry-counters ((detecting-retry 3))
         (cpl:with-failure-handling
@@ -402,16 +421,26 @@
           (setf ?object-cup-1
                 (urdf-proj::detect (desig:an object (type :cup))))))
 
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;picking-up-knife
+;;;;; Picking-up the object to pour from
 
-      (exe:perform (desig:an action
-                             (type picking-up)
-                             (object ?object-cup-1)
-                             (arm :right) 
-                             (grasp right-side)))
+      (let ((?arm :right)
+            (?possible-arms '(:right :left)))
+        (cpl:with-retry-counters ((arm-change-retry 1))
+          (cpl:with-failure-handling
+              ((common-fail:manipulation-pose-unreachable (e)
+                 (roslisp:ros-warn (arm-failure) "Manipulation failed: ~a~%" e)
+                 (cpl:do-retry arm-change-retry
+                   (setf ?arm (car (remove ?arm ?possible-arms)))
+                   (cpl:retry))
+                 (roslisp:ros-warn (arm-failures) "No more retries left")))
+ 
+            (exe:perform (desig:an action
+                                   (type picking-up)
+                                   (object ?object-cup-1)
+                                   (arm ?arm) 
+                                   (grasp right-side))))))
 
-      
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;looking at object-to-slice
+;;;;; Looking at other object to pour from
 
       (cpl:with-retry-counters ((looking-retry 3))
         (cpl:with-failure-handling
@@ -430,7 +459,7 @@
                        (type looking)
                        (target (desig:a location (pose ?pose-bottle-1))))))))
       
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;decting the object-to-slice
+;;;;; Detecting the other object to pour from
 
       (cpl:with-retry-counters ((detecting-retry 3))
         (cpl:with-failure-handling
@@ -445,18 +474,31 @@
           (setf ?object-bottle-1
                 (urdf-proj::detect (desig:an object (type :bottle))))))
 
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;picking-up-knife
+;;;;; Picking up the other object to pour from
+      
+      (let ((?arm :right)
+            (?possible-arms '(:right :left)))
+        (cpl:with-retry-counters ((arm-change-retry 1))
+          (cpl:with-failure-handling
+              ((common-fail:manipulation-pose-unreachable (e)
+                 (roslisp:ros-warn (arm-failure) "Manipulation failed: ~a~%" e)
+                 (cpl:do-retry arm-change-retry
+                   (setf ?arm (car (remove ?arm ?possible-arms)))
+                   (cpl:retry))
+                 (roslisp:ros-warn (arm-failures) "No more retries left")))
+            
+            (exe:perform (desig:an action
+                                   (type picking-up)
+                                   (object ?object-bottle-1)
+                                   (arm ?arm) 
+                                   (grasp left-side))))))
 
-      (exe:perform (desig:an action
-                             (type picking-up)
-                             (object ?object-bottle-1)
-                             (arm :left) 
-                             (grasp back)))
-
+;;;;; Park the robot and spawn the object to pour into
+      
       (park)
+      (spawn-cup-to-pour-into island-or-sink)
 
-      (spawn-cup 'sink)
-
+;;;;; Pouring into the object spawned
       
       (cpl:with-retry-counters ((detecting-retry 3))
         (cpl:with-failure-handling
@@ -471,6 +513,8 @@
           (setf ?object-cup-2
                 (urdf-proj::detect (desig:an object (type :cup))))))
 
+;;;;; Pouring from the left-side of the spawned object with the
+;;;;; object holded in the left arm
       
       (cram-executive:perform
               (desig:an action
@@ -478,9 +522,14 @@
                         (object ?object-cup-2)
                         (arms (left))
                         (grasp left-side)))
+
+;;;;; Parking the robot
       (sleep 2.0)
       (park)
 
+
+;;;;; Pouring from the right-side of the spawned object with the
+;;;;; object holded in the right arm
       (cram-executive:perform
        (desig:an action
                  (type pouring)
@@ -488,175 +537,30 @@
                  (arms (right))
                  (grasp right-side)))
 
+;;;;; Parking the robot
+      (sleep 2.0)
       (park)
 
+;;;;; Pouring from the back of the spawned object with the
+;;;;; object holded in the right arm
       (cram-executive:perform
               (desig:an action
                         (type pouring)
                         (object ?object-cup-2)
                         (arms (right))
-                        (grasp back)))
+                        (grasp front)
+                        (collision-mode :allow-hand)))
+      
+ ;;;;; Parking the robot
       (sleep 2.0)
       (park)
 
+;;;;; Pouring from the back of the spawned object with the
+;;;;; object holded in the left arm
       (cram-executive:perform
        (desig:an action
                  (type pouring)
                  (object ?object-cup-2)
                  (arms (left))
-                 (grasp back)))
-
-      )))
-       
-
-
-      
-(defun init-pour-island ()
-  (urdf-proj:with-simulated-robot
-    (clean-demo)
-    (park)
-    (spawn-pr2 'island)
-    (btr-utils:spawn-object 'cup-1 :cup
-                            :pose (cl-transforms:make-pose
-                                   (cl-tf:make-3d-vector -0.85 0.6 0.95)
-                                   (cl-tf:make-identity-rotation)))
-    (btr-utils:spawn-object 'bottle-1 :bottle
-                            :pose (cl-transforms:make-pose
-                                   (cl-tf:make-3d-vector -0.85 1.1 0.95)
-                                   (cl-tf:make-identity-rotation)))
-
-    (let* ((?pose-cup-1 (cl-tf:pose->pose-stamped
-                         "map" 0 (btr:object-pose 'cup-1)))
-           (?object-cup-1 nil)
-           (?pose-bottle-1 (cl-tf:pose->pose-stamped
-                            "map" 0 (btr:object-pose 'bottle-1)))
-           (?object-bottle-1 nil)
-           (?object-cup-2 nil))
-      
-
-      
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;looking at object-to-slice
-
-      (cpl:with-retry-counters ((looking-retry 3))
-        (cpl:with-failure-handling
-            ((common-fail:low-level-failure
-                 (e)
-               (declare (ignore e))
-               (cpl:do-retry looking-retry
-                 (roslisp:ros-warn (slice-demo looking-fail)
-                                   "~%Failed to look at given position~%")
-                 (cpl:retry))
-               (roslisp:ros-warn (slice-demo looking-fail)
-                                 "~%No more retries~%")))
-          (dotimes (n 3)
-            (cram-executive:perform
-             (desig:an action
-                       (type looking)
-                       (target (desig:a location (pose ?pose-cup-1))))))))
-      
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;decting the object-to-slice
-
-      (cpl:with-retry-counters ((detecting-retry 3))
-        (cpl:with-failure-handling
-            ((common-fail:high-level-failure (e)
-               (declare (ignore e))
-               (cpl:do-retry detecting-retry
-                 (roslisp:ros-warn (slice-demo detecting-fail)
-                                   "~%Failed to detect bottle")
-                 (cpl:retry))
-               (roslisp:ros-warn (slice-demo detecting-fail)
-                                 "~%No more retries~%")))
-          (setf ?object-cup-1
-                (urdf-proj::detect (desig:an object (type :cup))))))
-
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;picking-up-knife
-
-      (exe:perform (desig:an action
-                             (type picking-up)
-                             (object ?object-cup-1)
-                             (arm :left) 
-                             (grasp right-side)))
-
-      
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;looking at object-to-slice
-
-      (cpl:with-retry-counters ((looking-retry 3))
-        (cpl:with-failure-handling
-            ((common-fail:low-level-failure
-                 (e)
-               (declare (ignore e))
-               (cpl:do-retry looking-retry
-                 (roslisp:ros-warn (slice-demo looking-fail)
-                                   "~%Failed to look at given position~%")
-                 (cpl:retry))
-               (roslisp:ros-warn (slice-demo looking-fail)
-                                 "~%No more retries~%")))
-          (dotimes (n 3)
-            (cram-executive:perform
-             (desig:an action
-                       (type looking)
-                       (target (desig:a location (pose ?pose-bottle-1))))))))
-      
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;decting the object-to-slice
-
-      (cpl:with-retry-counters ((detecting-retry 3))
-        (cpl:with-failure-handling
-            ((common-fail:high-level-failure (e)
-               (declare (ignore e))
-               (cpl:do-retry detecting-retry
-                 (roslisp:ros-warn (slice-demo detecting-fail)
-                                   "~%Failed to detect bottle")
-                 (cpl:retry))
-               (roslisp:ros-warn (slice-demo detecting-fail)
-                                 "~%No more retries~%")))
-          (setf ?object-bottle-1
-                (urdf-proj::detect (desig:an object (type :bottle))))))
-
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;picking-up-knife
-
-      (exe:perform (desig:an action
-                             (type picking-up)
-                             (object ?object-bottle-1)
-                             (arm :right) 
-                             (grasp left-side)))
-
-      (park)
-
-      (spawn-cup 'island)
-
-      
-      (cpl:with-retry-counters ((detecting-retry 3))
-        (cpl:with-failure-handling
-            ((common-fail:high-level-failure (e)
-               (declare (ignore e))
-               (cpl:do-retry detecting-retry
-                 (roslisp:ros-warn (slice-demo detecting-fail)
-                                   "~%Failed to detect bottle")
-                 (cpl:retry))
-               (roslisp:ros-warn (slice-demo detecting-fail)
-                                 "~%No more retries~%")))
-          (setf ?object-cup-2
-                (urdf-proj::detect (desig:an object (type :cup))))))
-
-      
-      (cram-executive:perform
-              (desig:an action
-                        (type pouring)
-                        (object ?object-cup-2)
-                        (arms (left))
-                        (grasp right-side)))
-      (sleep 2.0)
-      (park)
-
-             (cram-executive:perform
-              (desig:an action
-                        (type pouring)
-                        (object ?object-cup-2)
-                        (arms (right))
-                        (grasp left-side)))
-
-
-      )))
-
-
-
+                 (grasp front)
+                 (collision-mode :allow-hand))))))
