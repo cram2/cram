@@ -549,7 +549,7 @@
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 
-(man-int:def-object-type-to-gripper-transforms :ikea-plate '(:right) :back
+(man-int:def-object-type-to-gripper-transforms :ikea-plate '(:right) :front
   :grasp-translation `(0.0 0.0 0.0)
   :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
   :pregrasp-offsets *lift-offset*
@@ -557,7 +557,7 @@
   :lift-offsets *lift-offset*
   :2nd-lift-offsets *lift-offset*)
 
-(man-int:def-object-type-to-gripper-transforms :ikea-plate '(:left) :back
+(man-int:def-object-type-to-gripper-transforms :ikea-plate '(:left) :front
   :grasp-translation `(0.0 0.0 0.0)
   :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
   :pregrasp-offsets *lift-offset*
