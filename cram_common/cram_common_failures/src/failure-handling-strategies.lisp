@@ -29,6 +29,10 @@
 
 (in-package :common-fail)
 
+(defparameter *default-distance-threshold* 0.05
+  "Distance threshold used as a default for identifying unique
+poses")
+
 (defmacro retry-with-designator-solutions (iterator-desig
                                            retries
                                            (&key
@@ -91,7 +95,7 @@ after each iteration of the retry."
        (cpl:fail ,rethrow-failure))))
 
 (defun next-different-location-solution (designator
-                                         &optional (distance-threshold 0.05))
+                                         &optional (distance-threshold *default-distance-threshold*))
   "Returns a new designator solution that is at a different place than
   the current solution of `designator'."
   (declare (type desig:location-designator designator))
@@ -106,7 +110,7 @@ after each iteration of the retry."
                                                   error-object-or-string
                                                   warning-namespace
                                                   reset-designators
-                                                  (distance-threshold 0.05)
+                                                  (distance-threshold *default-distance-threshold*)
                                                   (rethrow-failure NIL))
                                                &body body)
   "Macro that iterates through different solutions of the specified
