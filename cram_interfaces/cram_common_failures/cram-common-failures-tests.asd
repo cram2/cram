@@ -31,36 +31,24 @@
   :license "BSD"
   
   :depends-on (lisp-unit
+               roslisp
+               cram-language
+               cram-prolog
+               cl-urdf
                cram-common-failures
                cram-bullet-reasoning
                cram-pr2-description
-               cram-robot-pose-gaussian-costmap
                cram-robot-interfaces
-               roslisp
-               cram-prolog
                cl-transforms
                cl-transforms-stamped
-               cl-urdf
-
-               cram-language
-               ;cram-executive
                cram-designators
-               ;cram-projection
-               ;cram-occasions-events
-               ;cram-utilities
-
                cram-object-knowledge
-               ;cl-bullet
-               ;cram-bullet-reasoning-belief-state
-               ;cram-bullet-reasoning-utilities
-
                cram-location-costmap
                cram-btr-visibility-costmap
                cram-btr-spatial-relations-costmap
                cram-occupancy-grid-costmap
-
-               
-               )
+               cram-robot-pose-gaussian-costmap)
+  
   :components
   ((:module "tests"
     :components
