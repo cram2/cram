@@ -30,6 +30,10 @@
 
 (in-package :objects)
 
+;;;;;;;;;;;;;; POURING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;; POPCORN-POT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
     ((object-type (eql :popcorn-pot))
      arm
@@ -40,7 +44,9 @@
     ((object-type (eql :popcorn-pot))
      arm
      (grasp (eql :right-side)))
-  '((-0.08 -0.22 0.12)(0.707 0 -0.707 0)))
+  '((0.07 -0.06 0.15)(0.707 0 -0.707 0)))
+
+;;;;;;;;;;;;;;;;; IKEA-PLATE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;y
 
 (defmethod man-int:get-object-type-robot-frame-tilt-approach-transform 
     ((object-type (eql :ikea-plate))
@@ -53,8 +59,6 @@
      (arm (eql :right))
      (grasp (eql :front)))
   '((-0.1 -0.125 0.15)(-0.5 -0.5 0.5 0.5)))
-
-;;;;;;;;;;;;;; POURING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;; CUP ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
