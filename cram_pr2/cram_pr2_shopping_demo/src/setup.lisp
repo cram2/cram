@@ -29,36 +29,48 @@
 
 (in-package :cram-pr2-shopping-demo)
 
-(defparameter *shelf-1-poses*
-  '(((-0.4 -0.3 0.1) (-0.28 -0.3 0.1) (-0.16 -0.3 0.1) (-0.04 -0.3 0.1)  (0.08 -0.3 0.1) (0.2 -0.3 0.1) (0.32 -0.3 0.11)  )
-    ((-0.4 -0.3 0.11) (-0.2 -0.3 0.11) (0.05 -0.3 0.13) (0.28 -0.3 0.16) )
-    ((-0.4 -0.3 0.1) (-0.2 -0.3 0.1) (0 -0.3 0.11) (0.22 -0.3 0.1) (0.4 -0.3 0.1) )
-    ((-0.4 -0.3 0.13) (-0.21 -0.3 0.1) (0 -0.3 0.12) (0.22 -0.3 0.1) (0.43 -0.3 0.1))
-    ((-0.4 -0.3 0.08) (-0.25 -0.3 0.09) (-0.04 -0.3 0.13) (0.22 -0.3 0.15) (0.43 -0.3 0.15))
-    ((-0.4 -0.3 0.15) (-0.28 -0.3 0.15) (-0.14 -0.3 0.14) (0.01 -0.3 0.15)  (0.14 -0.3 0.15) (0.27 -0.3 0.14) (0.4 -0.3 0.13))))
+(let ((y -0.38)
+      (off -0.07))
+  (defparameter *shelf-1-poses*
+    `(((-0.36 ,y 0.1)
+       (-0.28 ,y 0.1)
+       (-0.19 ,y 0.1)
+       (-0.03 ,y 0.1)
+       (0.14 ,y 0.1)
+       (0.23 ,y 0.1)
+       (0.32 ,y 0.11))
 
+      ((-0.43 ,y 0.11)
+       (-0.26 ,y 0.11)
+       (0.17 ,y 0.13)
+       (0.37 ,y 0.16))
 
-(def-fact-group location-designators (desig:location-grounding)
-  (<- (desig:location-grounding ?location-designator ?pose-stamped)
-    (desig:current-designator ?location-designator ?current-location-designator)
-    (desig:desig-prop ?current-location-designator (:for ?object-designator))
-    (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
-    (desig:desig-prop ?current-location-designator (:attachment ?attachment-type))
-    (desig:current-designator ?object-designator ?current-object-designator)
-    (spec:property ?current-object-designator (:type ?object-type))
-    (spec:property ?current-object-designator (:name ?object-name))
-    (desig:current-designator ?other-object-designator ?current-other-object-designator)
-    (spec:property ?current-other-object-designator (:type ?other-object-type))
-    (spec:property ?current-other-object-designator (:name ?other-object-name))
-    (lisp-fun man-int:get-object-transform ?current-other-object-designator
-              ?other-object-transform)
-    (lisp-fun man-int:get-object-placement-transform
-              ?object-name ?object-type
-              ?other-object-name ?other-object-type ?other-object-transform
-              ?attachment-type
-              ?attachment-transform)
-    (lisp-fun cram-tf:strip-transform-stamped ?attachment-transform ?pose-stamped)
-  (format "~a" ?pose-stamped)))
+      ((-0.4 ,y 0.1)
+       (-0.26 ,y 0.1)
+       (-0.02 ,y 0.1)
+       (0.21 ,y 0.1)
+       (0.4 ,y 0.1))
+
+      ((-0.4 ,y 0.13)
+       (-0.217 ,y 0.1)
+       (-0.033 ,y 0.12)
+       (0.137 ,y 0.1)
+       (0.43 ,y 0.1))
+
+      ((-0.31 ,y 0.08)
+       (-0.25 ,y 0.08)
+       (-0.175 ,y 0.09)
+       (-0.05 ,y 0.13)
+       (0.082 ,y 0.15)
+       (0.203 ,y 0.14))
+
+      ((-0.43 ,(+ y off) 0.15)
+       (-0.30 ,(+ y off) 0.15)
+       (-0.14 ,(+ y off) 0.14)
+       (0.01 ,(+ y off) 0.15)
+       (0.15 ,(+ y off) 0.15)
+       (0.29 ,(+ y off) 0.145)
+       (0.42 ,(+ y off) 0.13)))))
 
 
 (defun convert-shelf-poses (shelf poses)
@@ -74,18 +86,21 @@
                       :|ENVIRONMENT.shelf_1_level_3_link|
                       :|ENVIRONMENT.shelf_1_level_2_link|
                       :|ENVIRONMENT.shelf_1_level_1_link|
-                      :|ENVIRONMENT.shelf_1_level_0_link|))))      
-    (loop for i from 0 to (- (length levels) 1) ;; Loop for every level of the shelf
+                      :|ENVIRONMENT.shelf_1_level_0_link|))))
+     ;; Loop for every level of the shelf
+    (loop for i from 0 to (- (length levels) 1)
           do (let* ((level-poses (nth i poses))
                     (world-T-shelf (cl-transforms:pose->transform
                                     (btr:pose
                                      (btr:rigid-body
                                       (btr:object btr:*current-bullet-world* :environment)
                                       (nth i levels))))))
-               (loop for j from 0 to (- (length level-poses) 1) ;; Loop for the objects 
-                     do
-                        (let* ((shelf-T-object (cram-tf:list->transform `(,(nth j level-poses) (0 0 1 0))))
-                               (world-T-object (cl-transforms:transform* world-T-shelf shelf-T-object)))
+                ;; Loop for the objects
+               (loop for j from 0 to (- (length level-poses) 1)
+                     do (let* ((shelf-T-object
+                                 (cram-tf:list->transform `(,(nth j level-poses) (0 0 1 0))))
+                               (world-T-object
+                                 (cl-transforms:transform* world-T-shelf shelf-T-object)))
                           (push (cl-transforms:transform->pose world-T-object) tmp)))
                (push (reverse tmp) res)
                (setf tmp '())))
@@ -94,32 +109,59 @@
 
 (defun spawn-objects-new ()
   (let ((poses (convert-shelf-poses "shelf-1" *shelf-1-poses*))
-        (object-types '((:denkmit-edelstahl-reiniger-spray :denkmit-edelstahl-reiniger :denkmit-glaskeramik-reiniger :denkmit-maschienen-entkalker :denkmit-entkalker :kuehne-essig-essenz :heitmann-citronensaeure)
-                        (:finish-deo :finish-spuelmaschienen-tabs-quantum :finish-spuelmaschienen-tabs-classic :finish-spuelmaschienen-tabs-classic-vorratspack)
-                        (:finish-spuelmaschienen-pulver :finish-spuelmaschienen-protector :somat-spuelmaschienen-tabs-extra :somat-spuelmaschienen-tabs-classic :somat-spuelmaschienen-pulver)
-                        (:denkmit-spezialsalz :denkmit-spuelmaschienen-tabs-power :denkmit-spuelmaschienen-tabs-revolution :denkmit-spuelmaschienen-tabs-classic :denkmit-spuelmaschienen-tabs-nature)
-                        (:denkmit-maschienenpfleger :finish-maschienenpfleger :finish-spezialsalz :finish-klarspueler :denkmit-spuelmaschienen-tabs-allinone)
-                        (:domestos-allzweckreiniger :sagrotan-allzweckreiniger :denkmit-allzweckreiniger :denkmit-allzweckreiniger-frueling :meister-proper-allzweckreiniger :denkmit-allzweckreiniger-limette :der-general-allzweckreiniger )))
-        (names '(("edelstahl-reiniger-spray" "edelstahl-reiniger" "keramik-reiniger" "maschinen-entkalker" "entkalker" "essig-essenz" "citronensaure")
-                 ("deo"  "f-spuelmachinen-tabs-quantum" "f-spuelmaschinen-tabs-classic" "s-spuelmaschinen-tabs-classic-vorrat" )
-                 ("f-spuelmaschinen-pul" "f-spuelmaschinen-pro" "s-spuelmaschinen-tabs-ex" "s-spuelmaschinen-tabs-cla" "s-spuelmaschinen-pul")
-                 ("spezial-salz" "d-spuelmaschinen-tabs-po" "d-spuelmaschinen-tabs-rev" "d-spuelmaschinen-tabs-cla" "d-spuelmaschinen-tabs-nat")
-                 ("d-maschinenpfleger" "f-maschinenpfleger" "f-spezial-salz" "f-klarspueler" "d-spuelmaschienen-tab-al")
-                 ("dom-allzweck" "sa-allzweck" "d-allzweck" "d-allzweck-frueling" "meister-allzweck" "d-allzweck-limette" "der-general"))))
-    (loop for i from 0 to (- (length poses) 1) ;; Loop for shelf level 
-          do
-             (loop for j from 0 to (- (length (nth i poses)) 1) ;; loop for objects in the level
-                   do 
-                      (spawn-object-n-times (nth j (nth i names)) (nth j (nth i object-types)) (cram-tf:pose->list (nth j(nth i poses))) (+ (random 5) 1) `(,(float (/ (random 10) 10)) ,(float (/ (random 10) 10)) ,(float (/ (random 10) 10))))))))
-    
-                            
-(defun spawn-object-n-times (name type pose times color)
-  (loop for i from 0 to (- times 1)
-        do
-           (let ((name-in (intern (concatenate 'string name "-" (write-to-string i)))))
-             (setf (second (first pose)) (+ (second (first pose)) 0.1))
-             (btr-utils:spawn-object name-in type :pose pose :color color))))           
+        (object-types '((:denkmit-edelstahl-reiniger-spray
+                         :denkmit-edelstahl-reiniger
+                         :denkmit-glaskeramik-reiniger
+                         :denkmit-maschienen-entkalker
+                         :denkmit-entkalker
+                         :kuehne-essig-essenz
+                         :heitmann-citronensaeure)
+                        (:finish-deo
+                         :finish-spuelmaschienen-tabs-quantum
+                         :finish-spuelmaschienen-tabs-classic
+                         :finish-spuelmaschienen-tabs-classic-vorratspack)
+                        (:finish-spuelmaschienen-pulver
+                         :finish-spuelmaschienen-protector
+                         :somat-spuelmaschienen-tabs-extra
+                         :somat-spuelmaschienen-tabs-classic
+                         :somat-spuelmaschienen-pulver)
+                        (:denkmit-spezialsalz
+                         :denkmit-spuelmaschienen-tabs-power
+                         :denkmit-spuelmaschienen-tabs-revolution
+                         :denkmit-spuelmaschienen-tabs-classic
+                         :denkmit-spuelmaschienen-tabs-nature)
+                        (:denkmit-maschienenpfleger
+                         :denkmit-maschienenpfleger
+                         :finish-maschienenpfleger
+                         :finish-spezialsalz
+                         :finish-klarspueler
+                         :denkmit-spuelmaschienen-tabs-allinone)
+                        (:domestos-allzweckreiniger
+                         :sagrotan-allzweckreiniger
+                         :denkmit-allzweckreiniger
+                         :denkmit-allzweckreiniger-frueling
+                         :meister-proper-allzweckreiniger
+                         :denkmit-allzweckreiniger-limette
+                         :der-general-allzweckreiniger))))
+    ;; Loop for shelf level
+    (loop for i from 0 to (- (length poses) 1)
+       ;; loop for objects in the level
+      do (loop for j from 0 to (- (length (nth i poses)) 1)
+               do (spawn-object-n-times (nth j (nth i object-types))
+                                        (cram-tf:pose->list (nth j(nth i poses)))
+                                        (+ (random 3) 1)
+                                        `(,(float (/ (random 10) 10))
+                                          ,(float (/ (random 10) 10))
+                                          ,(float (/ (random 10) 10))))))))
 
+(defun spawn-object-n-times (type pose times color)
+  (loop for i from 0 to times
+        do (let ((name (intern (string-upcase (format nil "~a-~a" type i)) :keyword)))
+             (setf (second (first pose)) (+ (second (first pose)) 0.13))
+             (when (btr:object btr:*current-bullet-world* name)
+               (setf i (+ i times)
+                     name (intern (string-upcase (format nil "~a-~a" type i)) :keyword)))
+             (btr-utils:spawn-object name type :pose pose :color color))))
 
 (defun spawn-shelf ()
   (let ((shelve-urdf
