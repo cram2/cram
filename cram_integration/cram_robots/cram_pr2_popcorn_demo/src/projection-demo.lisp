@@ -55,6 +55,19 @@
    (cl-transforms:make-3d-vector 0.5d0 0.0d0 1.0d0)
    (cl-transforms:make-identity-rotation)))
 
+(defparameter *first-knob-look-goal*
+  (cl-transforms-stamped:make-pose-stamped
+   "base_footprint"
+   0.0
+   (cl-transforms:make-3d-vector 0.45 -0.1 0.754)
+   (cl-transforms:make-identity-rotation)))
+
+(defun look-at-knob ()
+  (let ((?first-knob-look-goal *first-knob-look-goal*))
+    (exe:perform (desig:a motion
+                          (type looking)
+                          (pose ?first-knob-look-goal)))))
+
 (defun ensure-pose-stamped (pose)
   (when pose
     (case (type-of pose)
@@ -258,12 +271,16 @@
 
 (defun pour-into (?object-type-to-pour-into ?arms ?from-which-side-pouring)
   (let ((?object-to-pour-into (get-object-designator ?object-type-to-pour-into)))
-    (exe:perform
-     (desig:an action
-               (type pouring)
-               (object ?object-to-pour-into)
-               (arms ?arms)
-               (grasp ?from-which-side-pouring)))))
+    (cpl:seq
+      (exe:perform (desig:an action     
+                             (type looking)
+                             (object ?object-to-pour-into)))
+      (exe:perform
+       (desig:an action
+                 (type pouring)
+                 (object ?object-to-pour-into)
+                 (arms ?arms)
+                 (grasp ?from-which-side-pouring))))))
 
 (defun open-drawer (drawer)
   (manipulate-drawer drawer :opening))
@@ -303,7 +320,7 @@
              (gripper ?arm)
              (position ?position))))
 
-(defun move-arms (&key ?left-arm-pose ?right-arm-pose)
+(defun move-arms (&key ?left-arm-pose ?right-arm-pose ?collision-mode)
   (let* ((?left-arm-pose-stamped-unknown-frame (ensure-pose-stamped ?left-arm-pose))
         (?right-arm-pose-stamped-unknown-frame (ensure-pose-stamped ?right-arm-pose))
         (?left-arm-pose-stamped (when ?left-arm-pose-stamped-unknown-frame
@@ -328,7 +345,9 @@
                    (desig:when ?right-arm-pose
                      (right-pose ?right-arm-pose-stamped))
                    (desig:when ?left-arm-pose
-                     (left-pose ?left-arm-pose-stamped))))))
+                     (left-pose ?left-arm-pose-stamped))
+                   (desig:when ?collision-mode
+                     (collision-mode ?collision-mode))))))
 
 (defun park-arms ()
   (exe:perform
