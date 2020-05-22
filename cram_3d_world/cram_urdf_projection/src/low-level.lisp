@@ -453,7 +453,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                   (btr:bullet-world ?world)
                                   ,@(when object-name
                                       `((prolog:== ?object-name ,object-name)))
-                                  (btr:object ?world ?object-name)
+                                  (btr:item ?world ?object-name)
                                   ;; it is possible to ask RoboSherlock for
                                   ;; (all object (type kitchen-object))
                                   ;; which returns a list of all the objects RS sees
