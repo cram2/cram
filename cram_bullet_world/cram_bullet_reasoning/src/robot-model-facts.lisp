@@ -114,8 +114,10 @@
 
   (<- (attached ?world ?robot ?link-name ?object ?grasp)
     (bullet-world ?world)
-    (object ?world ?object)
     (%object ?world ?robot ?robot-instance)
+    (lisp-fun attached-objects ?robot-instance ?object-attachments-list)
+    (member (?object . ?_) ?object-attachments-list)
+    (object ?world ?object)
     (%object ?world ?object ?object-instance)
     (lisp-fun multiple-value-list-fun object-attached ?robot-instance ?object-instance
               (?links ?grasps))
