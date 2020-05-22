@@ -823,4 +823,4 @@ with the object, calculates similar angle around Y axis and applies the rotation
           (left-torso-angle (move-torso left-torso-angle))
           (right-torso-angle (move-torso right-torso-angle)))
         (move-joints left-ik right-ik)
-        (perform-collision-check :allow-hand left-tcp-pose right-tcp-pose)))))
+        (perform-collision-check collision-mode left-tcp-pose right-tcp-pose)))))
