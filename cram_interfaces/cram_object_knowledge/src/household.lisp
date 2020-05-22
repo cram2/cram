@@ -465,16 +465,16 @@
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :top
   :grasp-translation `(0.0 0.105 0.025)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.06)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.06)
+  :pregrasp-offsets `(0.0 0.0 0.08)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.08)
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :left-side
   :grasp-translation `(0.0 0.105 0.025)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.07)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.07)
+  :pregrasp-offsets `(0.0 0.0 0.08)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.08)
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
@@ -482,8 +482,8 @@
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :right-side
   :grasp-translation `(0.0 0.105 0.025)
   :grasp-rot-matrix man-int::*z-across--y-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.06)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.06)
+  :pregrasp-offsets `(0.0 0.0 0.08)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.08)
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
@@ -491,8 +491,8 @@
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :front
   :grasp-translation `(0.0 0.105 0.025)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.06)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.06)
+  :pregrasp-offsets `(0.0 0.0 0.08)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.08)
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
@@ -500,8 +500,8 @@
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :back
   :grasp-translation `(0.0 0.105 0.025)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.06)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.06)
+  :pregrasp-offsets `(0.0 0.0 0.08)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.08)
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
