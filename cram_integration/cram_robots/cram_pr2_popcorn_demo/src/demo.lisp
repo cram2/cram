@@ -54,7 +54,7 @@
 ;; ****************************** PLACING POSES ******************************
 (defparameter *pot-cooking-pose* '("iai_popcorn_table_surface" . ((0.15 0.22 0.055)(0 0 0 1))))
 (defparameter *pot-lid-on-cooking-pot-pose* '("iai_popcorn_table_surface" . ((0.165 0.135 0.115)(0 0 0 1))))
-(defparameter *pot-lid-after-cooking-pose* '("iai_popcorn_table_surface" . ((-0.57 0.17 0.05) (0 0 0 1))))
+(defparameter *pot-lid-after-cooking-pose* '("iai_popcorn_table_surface" . ((-0.55 0.17 0.05) (0 0 0 1))))
 (defparameter *ikea-bowl-placing-pose* '("iai_popcorn_table_surface" . ((-0.78 0.23 0.055)(0 0 0 1))))
 (defparameter *ikea-plate-placing-pose* '("iai_popcorn_table_surface" . ((0.6 0.20 0.05)(0 0 0 1))))
 (defparameter *ikea-plate-pose* '("iai_popcorn_table_surface" . ((0.6 0.15 0.05)(0 0 0 1))))
@@ -74,22 +74,10 @@
 
 ;; ****************************** ARM POSES **********************************
 (defparameter *knob-1-reaching-pose* '("iai_popcorn_stove_knob_1" . ((0.0 0.0 0.034)(-0.5 -0.5 0.5 -0.5))))
-;;(defparameter *popcorn-pot-handle-right* '(:popcorn-pot-1 . ((-0.128 -0.004 0.0309)(-0.7075389894932524d0 -0.020786373909931412d0 0.02061319182224939d0 0.706))));;(0.677 0.203 -0.163 0.689))))
-;;(defparameter *popcorn-pot-handle-left* '(:popcorn-pot-1 . ((0.1315 0.0114 0.031)(-0.02061319182224939d0 0.7060677237798845d0 -0.7075389894932524d0 0.020786373909931412d0))));;(-0.2035 0.678 0.687 0.163))))
 (defparameter *popcorn-pot-handle-right-diagonal-grasp* '(:popcorn-pot-1 . ((-0.128 -0.004 0.0309)(0.68 0.183 -0.183 0.68))))
 (defparameter *popcorn-pot-handle-left-diagonal-grasp* '(:popcorn-pot-1 . ((0.1315 0.0114 0.031)(-0.183 0.683 0.683 0.183))))
 (defparameter *popcorn-pot-handle-right-horizontal-grasp* '(:popcorn-pot-1 . ((-0.128 -0.004 0.0309)(-0.707 0.0d0 0.0d0 0.707))))
 (defparameter *popcorn-pot-handle-left-horizontal-grasp* '(:popcorn-pot-1 . ((0.1315 0.0114 0.031)(0.0d0 0.707 -0.707 0.0d0))))
-
-;;(defparameter *popcorn-pot-handle-right-left-grasp* '(:popcorn-pot-1 . ((-0.128 -0.004 0.0309)(0.68 0.183 -0.183 0.68))))
-;;(defparameter *popcorn-pot-handle-right-left-grasp* '(:popcorn-pot-1 . ((-0.128 -0.004 0.0309)(0.68 0.183 -0.183 0.68))))
-
-(defparameter *object-grasps*
-  '((:popcorn-pot . :top)
-    (:popcorn-pot-lid . :top)
-    (:ikea-bowl-ww . :top)
-    (:ikea-plate . :top)
-    (:salt . :top)))
 
 (defun initialize ()
   (sb-ext:gc :full t)
@@ -178,17 +166,9 @@
 
     ;; Updating robot state
     (robot-state-changed)
-    
-    ;; Pouring corn from bowl in the popcorn pot
-    (let ((?object-to-pour-into
-            (get-object-designator :popcorn-pot)))
 
-      (exe:perform
-       (desig:an action
-                 (type pouring)
-                 (object ?object-to-pour-into)
-                 (arms (right))
-                 (grasp right-side))))
+    ;; Pouring corn from bowl in the popcorn pot
+    (pour-into :popcorn-pot '(:right) :right-side)
 
     ;; Going back to the previous pose
     (go-to-pose *start-pose*)
@@ -200,25 +180,13 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
     ;; Opening the gripper
-    (let ((?arm :right)
-          (?gripper-opening 0.1))
-      (exe:perform
-       (desig:an action
-                 (type setting-gripper)
-                 (gripper ?arm)
-                 (position ?gripper-opening))))
+    (open-gripper :right)
     
     ;; Moving right arm to knob-1
     (move-arms :?right-arm-pose *knob-1-reaching-pose*)
     
     ;; Closing the right gripper
-    (let ((?arm :right)
-          (?gripper-opening 0.018))
-      (exe:perform
-       (desig:an action
-                 (type setting-gripper)
-                 (gripper ?arm)
-                 (position ?gripper-opening))))
+    (close-gripper :right)
 
     ;; Rotating the right gripper
     (loop for degree from 0 to 90 by 10 do        
@@ -279,14 +247,14 @@
     ;; 6. Turning the stove off
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+    ;; Opening the right gripper
+    (open-gripper :right)
+
+    ;; Moving right arm to knob-1
+    (move-arms :?right-arm-pose *knob-1-reaching-pose*)
+
     ;; Closing the right gripper
-    (let ((?arm :right)
-          (?gripper-opening 0.018))
-      (exe:perform
-       (desig:an action
-                 (type setting-gripper)
-                 (gripper ?arm)
-                 (position ?gripper-opening))))
+    (close-gripper :right)
     
     ;; Turning the knob 1 off
     (loop for degree from 0 to 90 by 10 do        
@@ -312,21 +280,9 @@
     ;; 7. Removing the popcorn pot from the hot stove area with both arms
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    ;; Setting the grippers of the robot arms
-    (let ((?arm :right)
-          (?gripper-opening 0.018))
-      (exe:perform
-       (desig:an action
-                 (type setting-gripper)
-                 (gripper ?arm)
-                 (position ?gripper-opening))))
-    (let ((?arm :left)
-          (?gripper-opening 0.018))
-      (exe:perform
-       (desig:an action
-                 (type setting-gripper)
-                 (gripper ?arm)
-                 (position ?gripper-opening))))
+    ;; Opening the grippers of the robot arms
+    (open-gripper :right)
+    (open-gripper :left)
     
     ;; Moving arms to the handles of the popcorn pot
     (move-arms 
@@ -335,6 +291,10 @@
      :?left-arm-pose
      *popcorn-pot-handle-left-diagonal-grasp*)
 
+    ;; Closing the grippers of the robot arms
+    (close-gripper :right)
+    (close-gripper :left)
+    
     ;; Attaching popcorn pot to one of the robot arm links
     (btr:attach-object (btr:get-robot-object) 
                        (btr:object btr:*current-bullet-world* :popcorn-pot-1)
@@ -362,21 +322,9 @@
     ;; Placing popcorn pot lid on the table
     (place-object :right *pot-lid-after-cooking-pose*)
 
-    ;; Setting the grippers of the arms
-    (let ((?arm :right)
-          (?gripper-opening 0.018))
-      (exe:perform
-       (desig:an action
-                 (type setting-gripper)
-                 (gripper ?arm)
-                 (position ?gripper-opening))))
-    (let ((?arm :left)
-          (?gripper-opening 0.018))
-      (exe:perform
-       (desig:an action
-                 (type setting-gripper)
-                 (gripper ?arm)
-                 (position ?gripper-opening))))
+    ;; Opening the grippers of the robot arms
+    (open-gripper :right)
+    (open-gripper :left)
 
     ;; Grasping the popcorn pot
     (move-arms 
@@ -384,6 +332,10 @@
      *popcorn-pot-handle-right-horizontal-grasp*
      :?left-arm-pose
      *popcorn-pot-handle-left-horizontal-grasp*)
+    
+    ;; Closing the grippers of the robot arms
+    (close-gripper :right)
+    (close-gripper :left)
 
     ;; Attaching popcorn pot to the robot
     (btr:attach-object (btr:get-robot-object) 
@@ -404,15 +356,7 @@
     (robot-state-changed)
     
     ;; Pouring the popcorn from the popcorn pot in the plate
-    (let ((?plate-to-pour-into
-            (get-object-designator :ikea-plate)))
-
-      (exe:perform
-       (desig:an action
-                 (type pouring)
-                 (object ?plate-to-pour-into)
-                 (arms (right left))
-                 (grasp front))))
+    (pour-into :ikea-plate '(:right :left) :front)
 
     ;; Going back to the stove to place the popcorn pot
     (go-to-pose *start-pose* :dont-move-arms T)

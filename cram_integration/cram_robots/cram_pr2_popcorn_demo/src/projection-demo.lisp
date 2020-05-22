@@ -256,6 +256,15 @@
                                     (attachment ?attachment))
                                   (pose ?target-pose))))))))
 
+(defun pour-into (?object-type-to-pour-into ?arms ?from-which-side-pouring)
+  (let ((?object-to-pour-into (get-object-designator ?object-type-to-pour-into)))
+    (exe:perform
+     (desig:an action
+               (type pouring)
+               (object ?object-to-pour-into)
+               (arms ?arms)
+               (grasp ?from-which-side-pouring)))))
+
 (defun open-drawer (drawer)
   (manipulate-drawer drawer :opening))
 
@@ -280,6 +289,19 @@
                              ;; robot should use the left arm.
                (object ?drawer-obj)
                (distance ?distance)))))
+
+(defun open-gripper (arm)
+  (change-gripper arm 0.1))
+
+(defun close-gripper (arm)
+  (change-gripper arm 0.018))
+
+(defun change-gripper (?arm ?position)
+  (exe:perform
+   (desig:an action
+             (type setting-gripper)
+             (gripper ?arm)
+             (position ?position))))
 
 (defun move-arms (&key ?left-arm-pose ?right-arm-pose)
   (let* ((?left-arm-pose-stamped-unknown-frame (ensure-pose-stamped ?left-arm-pose))
