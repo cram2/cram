@@ -465,16 +465,16 @@
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :top
   :grasp-translation `(0.0 0.105 0.025)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.02)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.02)
+  :pregrasp-offsets `(0.0 0.0 0.06)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.06)
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :left-side
   :grasp-translation `(0.0 0.105 0.025)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.02)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.02)
+  :pregrasp-offsets `(0.0 0.0 0.07)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.07)
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
@@ -482,8 +482,8 @@
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :right-side
   :grasp-translation `(0.0 0.105 0.025)
   :grasp-rot-matrix man-int::*z-across--y-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.02)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.02)
+  :pregrasp-offsets `(0.0 0.0 0.06)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.06)
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
@@ -491,8 +491,8 @@
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :front
   :grasp-translation `(0.0 0.105 0.025)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.02)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.02)
+  :pregrasp-offsets `(0.0 0.0 0.06)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.06)
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
@@ -500,8 +500,8 @@
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :back
   :grasp-translation `(0.0 0.105 0.025)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.02)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.02)
+  :pregrasp-offsets `(0.0 0.0 0.06)
+  :2nd-pregrasp-offsets `(0.0 0.0 0.06)
   :lift-offsets `(0.0 0.0 0.02)
   :2nd-lift-offsets `(0.0 0.0 0.02))
 
@@ -580,6 +580,12 @@
 (man-int:def-object-type-in-other-object-transform :popcorn-pot-lid :popcorn-pot :popcorn-pot-lid-attachment
   :attachment-translation `(0.0 0.0 0.0745)
   :attachment-rot-matrix man-int:*identity-matrix*)
+
+(defmethod man-int:get-z-offset-for-placing-distance :heuristics 20
+  ((other-object (eql :popcorn-pot))
+   (object (eql :popcorn-pot-lid))
+   (attachment (eql :popcorn-pot-lid-attachment)))
+  0.02)
 
 (def-fact-group popcorn-object-type-hierarchy (man-int:object-type-direct-subtype)
   (<- (man-int:object-type-direct-subtype :popcorn-item :popcorn-pot))

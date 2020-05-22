@@ -188,6 +188,9 @@
     ;; Closing the right gripper
     (close-gripper :right)
 
+    ;; Looking at the knob 1
+    (look-at-knob)
+
     ;; Rotating the right gripper
     (loop for degree from 0 to 90 by 10 do        
       (let* ((?knob-1-rotate-pose-in-knob-frame
@@ -196,11 +199,13 @@
                    (cram-math:degrees->radians 10))))
              (?knob-1-rotate-pose
                (make-pose-absolute (cons "iai_popcorn_stove_knob_1"
-                                         ?knob-1-rotate-pose-in-knob-frame))))
+                                         ?knob-1-rotate-pose-in-knob-frame))))       
+        ;; Moving the robots right arm
         (exe:perform
          (desig:a motion
                   (type moving-tcp)
-                  (right-pose ?knob-1-rotate-pose))))
+                  (right-pose ?knob-1-rotate-pose)
+                  (collision-mode :allow-hand))))
       ;; Setting the joint state of the knob 1 accordingly
       (setf (btr:joint-state (btr:get-environment-object)
                              "iai_popcorn_stove_knob_1_joint")
@@ -255,6 +260,9 @@
 
     ;; Closing the right gripper
     (close-gripper :right)
+
+    ;; Looking at the knob 1
+    (look-at-knob)
     
     ;; Turning the knob 1 off
     (loop for degree from 0 to 90 by 10 do        
@@ -268,7 +276,8 @@
         (exe:perform
          (desig:a motion
                   (type moving-tcp)
-                  (right-pose ?knob-1-rotate-pose))))
+                  (right-pose ?knob-1-rotate-pose)
+                  (collision-mode :allow-hand))))
       (setf (btr:joint-state (btr:get-environment-object)
                              "iai_popcorn_stove_knob_1_joint")
             (* -1 
@@ -331,7 +340,8 @@
      :?right-arm-pose
      *popcorn-pot-handle-right-horizontal-grasp*
      :?left-arm-pose
-     *popcorn-pot-handle-left-horizontal-grasp*)
+     *popcorn-pot-handle-left-horizontal-grasp*
+     :?collision-mode :allow-all)
     
     ;; Closing the grippers of the robot arms
     (close-gripper :right)
@@ -366,7 +376,8 @@
      :?right-arm-pose
      *popcorn-pot-away-from-hot-stove-right-horizontal*
      :?left-arm-pose
-     *popcorn-pot-away-from-hot-stove-left-horizontal*)
+     *popcorn-pot-away-from-hot-stove-left-horizontal*
+     :?collision-mode :allow-all)
 
     ;; Detaching popcorn pot from the robot
     (btr:detach-all-objects (btr:get-robot-object))
@@ -433,7 +444,7 @@
           
           ;; Salting the pocorn by ....
           ;; ... rotating both endeffectors towards the robot
-          (dotimes (angle-c 6)
+          (dotimes (angle-c 5)
             (sleep 0.1)
             (move-arms 
              :?right-arm-pose
