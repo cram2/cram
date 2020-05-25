@@ -80,9 +80,12 @@
      (:file "designator-integration" :depends-on ("package"
                                                   "init" ; for *kvr-enabled*
                                                   "query-based-calculations"))
+     ;; experiment log csv file generator stuff
+     (:file "experiment-log-generator" :depends-on ("package"))
      ;; plans that call fetch and deliver actions
      (:file "fetch-and-deliver-based-demo" :depends-on ("package"
                                                         "init" ; for *kvr-enabled*
+                                                        "experiment-log-generator"
                                                         "query-based-calculations"
                                                         "designator-integration"))
      ;; (:file "plan-execution" :depends-on ("package"))

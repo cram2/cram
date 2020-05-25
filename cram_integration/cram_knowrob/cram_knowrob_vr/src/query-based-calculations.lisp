@@ -227,20 +227,20 @@ Formula: umap-T-uobj = umap-T-usurface * ssurface-T-obj
      (lambda (surface-name-dim-transform-and-object-transform)
        (let* ((surface-name
                 (first surface-name-dim-transform-and-object-transform))
-              (surface-dimensions
-                (second surface-name-dim-transform-and-object-transform))
+              ;; (surface-dimensions
+              ;;   (second surface-name-dim-transform-and-object-transform))
               (smap-T-ssurface
                 (third surface-name-dim-transform-and-object-transform))
               (smap-T-sobject
                 (fourth surface-name-dim-transform-and-object-transform))
 
-              (closest-edge-and-distance
-                (get-closest-edge-and-distance
-                 smap-T-sobject smap-T-ssurface surface-dimensions))
-              (closest-edge
-                (first closest-edge-and-distance))
-              (closest-edge-distance
-                (second closest-edge-and-distance))
+              ;; (closest-edge-and-distance
+              ;;   (get-closest-edge-and-distance
+              ;;    smap-T-sobject smap-T-ssurface surface-dimensions))
+              ;; (closest-edge
+              ;;   (first closest-edge-and-distance))
+              ;; (closest-edge-distance
+              ;;   (second closest-edge-and-distance))
 
               (ssurface-T-sobject
                 (cl-transforms:transform*
@@ -259,15 +259,16 @@ Formula: umap-T-uobj = umap-T-usurface * ssurface-T-obj
                 (cl-transforms:transform*
                  umap-T-usurface ssurface-T-sobject))
 
-              (usurface-dimensions
-                (btr:calculate-bb-dims usurface-obj))
+              ;; (usurface-dimensions
+              ;;   (btr:calculate-bb-dims usurface-obj))
 
-              (uclosest-edge-and-distance
-                (get-closest-edge-and-distance
-                 umap-T-uobj umap-T-usurface usurface-dimensions)))
+              ;; (uclosest-edge-and-distance
+              ;;   (get-closest-edge-and-distance
+              ;;    umap-T-uobj umap-T-usurface usurface-dimensions))
+              )
 
-         (print closest-edge-and-distance)
-         (print uclosest-edge-and-distance)
+         ;; (print closest-edge-and-distance)
+         ;; (print uclosest-edge-and-distance)
          (cl-transforms-stamped:make-pose-stamped
           cram-tf:*fixed-frame*
           0.0
