@@ -37,13 +37,55 @@
 ;;; rcg_f has the to date better grasps
 ;;; eval2 has best full set pick and place
 ;;; rcg_d different grasps
+
 (in-package :kvr)
 
 (defvar *kvr-enabled* t)
 
 (defvar *episode-path*
-  "/home/cram/ros_workspace/episode_data/episodes/Own-Episodes/set-clean-table/"
-  "path of where the episode data is located")
+  (directory-namestring
+   (cram-physics-utils:parse-uri "package://episodes/Own-Episodes/set-clean-table/"))
+  "rospackage path of where the episode data is located")
+
+(defparameter *furniture-offsets-original-kitchen*
+  '(("sink_area_footprint_joint"
+     ((1.855d0 1.3d0 0.0d0) (0 0 1 0)))
+    ("oven_area_footprint_joint"
+     ((1.855d0 2.47d0 0.0d0) (0 0 1 0)))
+    ("kitchen_island_footprint_joint"
+     ((-1.365d0 0.59d0 0.0d0) (0 0 0 1)))
+    ("fridge_area_footprint_joint"
+     ((1.845d0 -0.73d0 0.0d0) (0 0 1 0)))
+    ("table_area_main_joint"
+     ((-2.4d0 -1.5d0 0.0d0) (0 0 1 0)))))
+
+(defparameter *furniture-offsets-flipped-sink-kitchen*
+  '(("sink_area_footprint_joint"
+     ((1.155d0 0.9d0 0.0d0) (0 0 0 1)))
+    ("oven_area_footprint_joint"
+     ((-0.155d0 2.97d0 0.0d0) (0 0 -0.5 0.5)))
+    ("kitchen_island_footprint_joint"
+     ((-0.60d0 -0.2d0 0.0d0) (0 0 0.5 0.5)))
+    ("fridge_area_footprint_joint"
+     ((-2.30d0 0.5d0 0.0d0) (0 0 0.5 0.5)))
+    ("table_area_main_joint"
+     ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5)))))
+
+(defparameter *furniture-offsets-realistic-kitchen-variation*
+  '(("sink_area_footprint_joint"
+     ((1.855d0 2.9d0 0.0d0) (0 0 1 0)))
+    ("oven_area_footprint_joint"
+     ((1.2d0 -1.8d0 0.0d0) (0 0 0.5 0.5)))
+    ("kitchen_island_footprint_joint"
+     ((-0.5d0 0.45d0 0.0d0) (0 0 0.5 0.5)))
+    ("fridge_area_footprint_joint"
+     ((-0.05d0 -1.78d0 0.0d0) (0 0 0.5 0.5)))
+    ("table_area_main_joint"
+     ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5)))))
+
+(defparameter *robot-starting-pose-in-realistic-kitchen-variation*
+  '((-1 2.0 0) (0 0 0 1)))
+
 
 (defun load-multiple-episodes (&optional namedir-list)
   ;;make a list of all directories of episodes and load them
@@ -149,31 +191,46 @@ objects for debugging."
         (when kitchen-urdf-string
           (setf btr-belief:*kitchen-urdf*
                 (cl-urdf:parse-urdf kitchen-urdf-string)))))
-    (btr-belief:vary-kitchen-urdf))
+    (btr-belief:vary-kitchen-urdf *furniture-offsets-realistic-kitchen-variation*))
 
   (coe:clear-belief)
 
   (when urdf-new-kitchen?
     (setf (btr:pose (btr:object btr:*current-bullet-world* (btr:get-robot-name)))
-           (cram-tf:list->pose  '((-1 1.5 0) (0 0 0 1)))))
+          (cram-tf:list->pose *robot-starting-pose-in-realistic-kitchen-variation*)))
 
   (cram-bullet-reasoning:clear-costmap-vis-object)
 
   (spawn-urdf-items)
 
-  (init-episode (or namedir
-                    ;; (loop for i from 1 to 18 collecting (format nil "ep~a" i))
-                    '(
-                      "original1" "original2" "original3" "original4" "original5"
-                      "original6" "original7" "original8" "original9" "original10"
-                      "original11" "original12" "original13" "original14" "original15"
-                      "original16" "original17" "original18" "original19" "original20"
-                      "original21" "original22" "original23" "original24" "original25"
-                      "original26" "original27"
-                       ;; "exp1_t_1" "exp1_t_2" "exp1_t_3" "exp1_t_4" "exp1_t_5"
-                       ;; "exp1_tc_1" "exp1_tc_2" "exp1_tc_3" "exp1_tc_4" "exp1_tc_5"
-                       ;; "exp1_tr_1" "exp1_tr_2" "exp1_tr_3" "exp1_tr_4" "exp1_tr_5"
-                      )))
+  (init-episode
+   (or namedir
+       ;; (loop for i from 1 to 18 collecting (format nil "ep~a" i))
+       '(
+         ;; "original1" "original2" "original3" "original4" "original5"
+         ;; "original6" "original7" "original8" "original9" "original10"
+         ;; "original11" "original12" "original13" "original14" "original15"
+         ;; "original16" "original17" "original18" "original19" "original20"
+         ;; "original21" "original22" "original23" "original24" "original25"
+         ;; "original26" "original27"
+         ;; "exp1_t_1" "exp1_t_2" "exp1_t_3" "exp1_t_4" "exp1_t_5"
+         ;; "exp1_tc_1" "exp1_tc_2" "exp1_tc_3" "exp1_tc_4" "exp1_tc_5"
+         ;; "exp1_tr_1" "exp1_tr_2" "exp1_tr_3" "exp1_tr_4" "exp1_tr_5"
+         "cosy1" "cosy2" "cosy3" "cosy4" "cosy5"
+         "cosy6" "cosy7"
+         "cosy8" "cosy9" "cosy10"
+         "diagonal1" "diagonal2"  "diagonal3"  "diagonal4"  "diagonal5"
+         "diagonal6" "diagonal7" "diagonal8"  "diagonal9" "diagonal10"
+         ;;   "spacy1" "spacy2"
+         ;;    "spacy3" "spacy4" "spacy5"
+         ;; "spacy6" "spacy7"  "spacy8" "spacy9"  "spacy10"
+         "flipped_sink1" "flipped_sink2" "flipped_sink3"  "flipped_sink4"
+         "flipped_sink5" "flipped_sink6" "flipped_sink7" "flipped_sink8"
+         "flipped_sink9" "flipped_sink10"
+         ;; "l_cosy1" "l_cosy2" "l_cosy3"
+         ;; "l_diagonal1" "l_diagonal2" "l_diagonal3"
+         ;; "l_spacy1" "l_spacy2" "l_spacy3"
+         )))
   ;; (spawn-semantic-map)
   ;; (spawn-semantic-items)
 )
