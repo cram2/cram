@@ -152,17 +152,15 @@ Syntax:
          (base-link-evaled ,base-link)
          (tip-link-evaled ,tip-link)
          (seed-state-msg-evaled ,seed-state-message)
-         (solution-valid-p-evaled ,solution-valid-p)
-         (current-joint-values))
+         (solution-valid-p-evaled ,solution-valid-p))
      (macrolet ((with-resampling (&whole whole-form
                                     (current-value
                                      resampling-axis
                                      upper-limit lower-limit
-                                     resampling-step
-                                     &key joint-name)
+                                     resampling-step)
                                   &body body)
                   (let ((form-length (length whole-form)))
-                    ;;Formulating a list of joint values to sample
+                    ;;Formulating a list of joint values toample
                     `(let ((sampling-values
                              (append
                               (list ,current-value)
@@ -185,16 +183,10 @@ Syntax:
                                                  (:y :y-offset)
                                                  (:z :z-offset))
                                                (- offset))))))
-                       (if (and ,joint-name
-                                (null (assoc ,joint-name current-joint-values
-                                             :test #'equal))) 
-                           (setf current-joint-values (cons
-                                                       (cons ,joint-name current-value)
-                                                       current-joint-values)))
                        (loop
                          for value in sampling-values
                          do
-                            (multiple-value-bind (solution-msg result-joint-values)
+                            (multiple-value-bind (solution-msg joint-values)
                                 ;; Checking if the arguments contain &body clause or not. 2
                                 ;; is the current number of arguments without including the
                                 ;; body. One being the form itself and the second being the
@@ -217,17 +209,12 @@ Syntax:
                                      base-link-evaled
                                      tip-link-evaled
                                      seed-state-msg-evaled))
-                              (if ,joint-name
-                                  (setf (cdr (assoc ,joint-name current-joint-values
-                                                    :test #'equal))
-                                        value))
-                                                    
+
                               ;; When a solution is obtained parse accordingly
                               (when (and solution-msg
                                          (or (not solution-valid-p-evaled)
-                                             (funcall solution-valid-p-evaled
-                                                      solution-msg current-joint-values)))
+                                             (funcall solution-valid-p-evaled solution-msg)))
                                 (return (values solution-msg
                                                 (cons (cons ,resampling-axis value)
-                                                      result-joint-values))))))))))
+                                                      joint-values))))))))))
        ,@body)))

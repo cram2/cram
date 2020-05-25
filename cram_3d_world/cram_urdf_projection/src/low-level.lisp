@@ -718,7 +718,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 torso-angle)))))
 
 (defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose
-                                &optional joint-state-msg additional-joint-states)
+                                &optional joint-state-msg)
   (declare (type (or keyword null) collision-mode)
            (type (or cl-transforms-stamped:pose-stamped null)
                  left-tcp-pose right-tcp-pose)
@@ -797,7 +797,6 @@ otherwise check collisions in current joint state."
           (unwind-protect
                (progn
                  (btr:set-robot-state-from-joints joint-state-msg (btr:get-robot-object))
-                 (btr:set-robot-state-from-joints additional-joint-states (btr:get-robot-object))
                  (the-actual-collision-check collision-mode left-tcp-pose right-tcp-pose))
             (btr::restore-world-state world-state world)))
         (the-actual-collision-check collision-mode left-tcp-pose right-tcp-pose))))
@@ -839,11 +838,10 @@ otherwise check collisions in current joint state."
               (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit))))
 
     (let ((validation-function
-            (lambda (ik-solution-msg &optional additional-joint-states)
+            (lambda (ik-solution-msg)
               (not (perform-collision-check collision-mode
                                             left-tcp-pose right-tcp-pose
-                                            ik-solution-msg
-                                            additional-joint-states)))))
+                                            ik-solution-msg)))))
       (multiple-value-bind (left-ik left-torso-angle)
           ;; TODO: the LET is a temporary hack until we get a relay running for PR2
           ;; such that both arms IKs go over the same ROS service
