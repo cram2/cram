@@ -132,12 +132,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
           (mapc (lambda (attached-link grasp)
                   ;; detach and attach again with loose attachment
                   (btr:detach-object robot-object btr-object :link attached-link)
-                  ;; TODO: These loose attachments seem buggy,
-                  ;; so just removing completely...
-                  ;; (btr:attach-object robot-object btr-object :link attached-link
-                  ;;                                            :loose t
-                  ;;                                            :grasp grasp)
-                  )
+                  (btr:attach-object robot-object btr-object :link attached-link
+                                                             :loose t
+                                                             :grasp grasp))
                 links grasps)))
       ;; attach
       (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp))))
