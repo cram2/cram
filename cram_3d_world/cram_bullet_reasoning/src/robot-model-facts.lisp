@@ -152,4 +152,4 @@
     (forall (member ?arm ?arms)
             (and
              (end-effector-link ?robot ?arm ?link)
-             (not (btr:attached ?_ ?robot ?link ?_))))))
+             (not (attached ?_ ?robot ?link ?_))))))

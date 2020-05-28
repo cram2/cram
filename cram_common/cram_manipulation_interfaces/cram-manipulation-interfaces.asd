@@ -39,7 +39,7 @@
                cl-transforms-stamped
                cram-robot-interfaces ; for gripper transform calculations
                cram-plan-occasions-events ; for robot-free-arm
-               cram-utilities ; for working with prolog lazy lists
+               cram-designator-specification ; for location desig resolution
                )
   :components
   ((:module "src"
@@ -48,13 +48,21 @@
 
      (:file "object-designator-interfaces" :depends-on ("package"))
      (:file "prolog" :depends-on ("package" "object-designator-interfaces"))
-
+     (:file "environment" :depends-on ("package"))
      (:file "object-hierarchy" :depends-on ("package" "prolog"))
      (:file "manipulation-interfaces" :depends-on ("package"))
-     (:file "gripper" :depends-on ("package" "manipulation-interfaces" "object-hierarchy"))
+
+     (:file "gripper" :depends-on ("package"
+                                   "manipulation-interfaces"
+                                   "object-hierarchy"))
+     (:file "likely-locations" :depends-on ("package"
+                                            "manipulation-interfaces"
+                                            "object-hierarchy"))
      (:file "grasps" :depends-on ("package" "manipulation-interfaces"))
      (:file "trajectories" :depends-on ("package"
-                                        "prolog" "manipulation-interfaces" "object-hierarchy"))
+                                        "prolog"
+                                        "manipulation-interfaces"
+                                        "object-hierarchy"))
 
      (:file "standard-grasps" :depends-on ("package"))
      (:file "standard-rotations" :depends-on ("package"))

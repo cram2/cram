@@ -30,63 +30,173 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
+(defmethod cram-occasions-events:on-event object-perceived 2 ((event cpoe:object-perceived-event))
+  (if cram-projection:*projection-environment*
+      ;; if in projection, only add the object name to perceived designators list
+      (let ((object-data (desig:reference (cpoe:event-object-designator event))))
+        (or
+         (gethash (desig:object-identifier object-data)
+                  *object-identifier-to-instance-mappings*)
+         (setf (gethash (desig:object-identifier object-data)
+                        *object-identifier-to-instance-mappings*)
+               (desig:object-identifier object-data))))
+      ;; otherwise, spawn a new object in the bullet world
+      (progn
+        (register-object-designator-data
+         (desig:reference (cpoe:event-object-designator event))
+         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))
+        ;; after having spawned the object, update the designator to get the
+        ;; new simulated pose
+        (desig:equate
+         (cpoe:event-object-designator event)
+         (detect-new-object-pose-from-btr (cpoe:event-object-designator event))))))
+
+
+
+(defmethod cram-occasions-events:on-event btr-belief ((event cpoe:object-location-changed))
+  (flet ((update-object-designator-location (object-designator location-designator)
+           (desig:make-designator
+            :object
+            `((:location ,location-designator)
+              ,@(remove :location (desig:properties object-designator) :key #'car))
+            object-designator)))
+
+    ;; update the designator to get the new location
+    (update-object-designator-location
+      (cpoe:event-object-designator event)
+      (cpoe:event-location-designator event))))
+
+
+
+(defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
+  (unless cram-projection:*projection-environment*
+    (let ((robot (btr:get-robot-object)))
+      (when robot
+        (btr:set-robot-state-from-tf
+         cram-tf:*transformer*
+         robot
+         :timestamp (cram-occasions-events:event-timestamp event)))))
+  (btr:timeline-advance
+   btr:*current-timeline*
+   (btr:make-event
+    btr:*current-bullet-world*
+    `(location-change robot))))
+
+
+
 (defmethod cram-occasions-events:on-event btr-attach-object 2 ((event cpoe:object-attached-robot))
   "2 means this method has to be ordered based on integer qualifiers.
 It could have been 1 but 1 is reserved in case somebody has to be even more urgently
 executed before everyone else.
 If there is no other method with 1 as qualifier, this method will be executed always first."
-  (let* ((robot-object (btr:get-robot-object))
+  (let* ((robot-object-name (cpoe:event-other-object-name event))
+         (robot-object (btr:object btr:*current-bullet-world*
+                                   (or robot-object-name (btr:get-robot-name))))
          (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
          (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
-         (link (cut:var-value
-                '?ee-link
-                (car (prolog:prolog
-                      `(and (cram-robot-interfaces:robot ?robot)
-                            (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
-                                                                     ?ee-link))))))
+         (arm (cpoe:event-arm event))
+         (link (if arm
+                   (cut:var-value
+                    '?ee-link
+                    (car (prolog:prolog
+                          `(and (rob-int:robot ?robot)
+                                (rob-int:end-effector-link ?robot ,arm ?ee-link)))))
+                   (if (cpoe:event-link event)
+                       (cpoe:event-link event)
+                       (error "[BTR-BELIEF OBJECT-ATTACHED] either link or arm ~
+                               in object-attached-robot event had to be given..."))))
          (grasp (cpoe:event-grasp event)))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
     ;; first detach from environment in case it is attached
     (when (and (typep environment-object 'btr:robot-object)
                (btr:object-attached environment-object btr-object))
       (btr:detach-object environment-object btr-object))
+    ;; also detach the object from other items in case they are attached,
+    ;; but only detach the loose attachments, because those are the attachments
+    ;; with the supporting objects. do not destroy the normal attachments,
+    ;; as those are attachments to the supported objects and we want the
+    ;; supported objects to still stay with our grasped object
+    (mapcar (lambda (other-object-name)
+              (btr:detach-object
+               btr-object (btr:object btr:*current-bullet-world* other-object-name)))
+            (btr:get-loose-attached-objects btr-object))
     ;; now attach to the robot-object
     (when btr-object
-      (if (btr:object-attached robot-object btr-object)
-          (btr:attach-object robot-object btr-object :link link :loose t :grasp grasp)
-          (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)))))
+      ;; if the object is already attached to some other robot link
+      ;; make the old attachment loose,
+      ;; because the new attachment will take precedence now
+      (multiple-value-bind (links grasps)
+          (btr:object-attached robot-object btr-object)
+        (when links
+          (mapc (lambda (attached-link grasp)
+                  ;; detach and attach again with loose attachment
+                  (btr:detach-object robot-object btr-object :link attached-link)
+                  ;; TODO: These loose attachments seem buggy,
+                  ;; so just removing completely...
+                  ;; (btr:attach-object robot-object btr-object :link attached-link
+                  ;;                                            :loose t
+                  ;;                                            :grasp grasp)
+                  )
+                links grasps)))
+      ;; attach
+      (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp))))
 
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))
+         (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
-         (link (cut:var-value
-                '?ee-link
-                (car (prolog:prolog
-                      `(and (cram-robot-interfaces:robot ?robot)
-                            (cram-robot-interfaces:end-effector-link ?robot ,(cpoe:event-arm event)
-                                                                     ?ee-link)))))))
+         (arm (cpoe:event-arm event))
+         (link (if arm
+                   (cut:var-value
+                    '?ee-link
+                    (car (prolog:prolog
+                          `(and (cram-robot-interfaces:robot ?robot)
+                                (cram-robot-interfaces:end-effector-link ?robot ,arm
+                                                                         ?ee-link)))))
+                   (if (cpoe:event-link event)
+                       (cpoe:event-link event)
+                       (error "[BTR-BELIEF OBJECT-DETACHED] either link or arm ~
+                               in object-attached-robot even had to be given...")))))
     (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (if btr-object-name
+        ;; if btr-object-name was given, detach it from the robot link
         (let ((btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
           (when btr-object
             (btr:detach-object robot-object btr-object :link link)
             (btr:simulate btr:*current-bullet-world* 10)
-            ;; finding the link that supports the object now
-            ;; TODO: This part seems to be buggy, needs more testing.
-            ;;       The part that fails is the environment link, sometimes it gets weird values.
-            ;; (let ((environment-object (btr:get-environment-object))
-            ;;       (environment-link (cut:var-value
-            ;;                          '?env-link
-            ;;                          (car (prolog:prolog
-            ;;                                `(and (btr:bullet-world ?world)
-            ;;                                      (btr:supported-by
-            ;;                                       ?world ,btr-object-name ?env-name ?env-link)))))))
-            ;;   ;; attaching the link to the object if it finds one.
-            ;;   (unless (cut:is-var environment-link)
-            ;;     (btr:attach-object environment-object btr-object
-            ;;                        :link environment-link)))
-            ))
+            ;; find the link or item that supports the object and attach the object to it.
+            ;; if btr-object is in contact with both the environment and an item,
+            ;; only environment attachment will happen.
+            (let ((contacting-links
+                    (remove-duplicates
+                     (mapcar
+                      #'cdr
+                      (remove-if-not
+                       ;; filter all the links contacting items to our specific item
+                       (lambda (item-and-link-name-cons)
+                         (equal
+                          (btr:name (car item-and-link-name-cons))
+                          btr-object-name))
+                       ;; get all links contacting items in the environment
+                       (btr:link-contacts environment-object)))
+                     :test #'equal))
+                  (contacting-items
+                    (remove-if-not
+                     (lambda (c) (typep c 'btr:item))
+                     (btr:find-objects-in-contact btr:*current-bullet-world* btr-object))))
+              ;; If a link contacting btr-object was found, btr-object
+              ;; will be attached to it
+              ;; also, if btr-object is in contact with an item,
+              ;; it will be attached loose.
+              (mapcar (lambda (link-name)
+                        (btr:attach-object environment-object btr-object :link link-name))
+                      contacting-links)
+              (mapcar (lambda (item-object)
+                        (when item-object
+                          (btr:attach-object item-object btr-object :loose T)))
+                      contacting-items))))
+        ;; if btr-object-name was not given, detach all objects from the robot link
         (progn
           (btr:detach-all-from-link robot-object link)
           (btr:simulate btr:*current-bullet-world* 10)))))
@@ -97,7 +207,7 @@ If there is no other method with 1 as qualifier, this method will be executed al
          (btr-other-object-name (cpoe:event-other-object-name event))
          (btr-other-object (btr:object btr:*current-bullet-world* btr-other-object-name))
          (attachment-type (cpoe:event-attachment-type event)))
-    (when (and btr-object btr-other-object)
+    (when (and btr-object btr-other-object attachment-type)
       (let* ((btr-object-type
                (car (slot-value btr-object 'btr::types)))
              (btr-other-object-type
@@ -128,26 +238,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
                (cram-tf:strip-transform-stamped
                 map-to-object-transform)))
         (setf (btr:pose btr-object) object-in-map-pose))
-      (if (and attachment-type
-               (prolog `(man-int:unidirectional-attachment ,attachment-type)))
+      (if (prolog `(man-int:unidirectional-attachment ,attachment-type))
           (btr:attach-object btr-other-object btr-object :loose T)
           (btr:attach-object btr-other-object btr-object)))))
-
-
-
-(defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
-  (unless cram-projection:*projection-environment*
-    (let ((robot (btr:get-robot-object)))
-      (when robot
-        (btr:set-robot-state-from-tf
-         cram-tf:*transformer*
-         robot
-         :timestamp (cram-occasions-events:event-timestamp event)))))
-  (btr:timeline-advance
-   btr:*current-timeline*
-   (btr:make-event
-    btr:*current-bullet-world*
-    `(location-change robot))))
 
 
 
@@ -190,33 +283,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 
 
-(defmethod cram-occasions-events:on-event object-perceived 2 ((event cpoe:object-perceived-event))
-  (if cram-projection:*projection-environment*
-      ;; if in projection, only add the object name to perceived designators list
-      (let ((object-data (desig:reference (cpoe:event-object-designator event))))
-        (or
-         (gethash (desig:object-identifier object-data)
-                  *object-identifier-to-instance-mappings*)
-         (setf (gethash (desig:object-identifier object-data)
-                        *object-identifier-to-instance-mappings*)
-               (desig:object-identifier object-data))))
-      ;; otherwise, spawn a new object in the bullet world
-      (register-object-designator-data
-       (desig:reference (cpoe:event-object-designator event))
-       :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))))
-
-
-
 #+old-Lorenzs-stuff-currently-not-used-but-maybe-in-the-future
 (
  ;; Utility functions
- (defun update-object-designator-location (object-designator location-designator)
-   (desig:make-designator
-    :object
-    `((:at ,location-designator)
-      ,@(remove :at (desig:properties object-designator) :key #'car))
-    object-designator))
-
  (defun get-supporting-object-bounding-box (object-name)
    (cut:with-vars-bound (?supporting-name ?supporting-link)
        (cut:lazy-car (prolog

@@ -82,7 +82,7 @@
                                (btr:pose
                                 (btr:rigid-body
                                  (btr:get-environment-object)
-                                 :|KITCHEN.sink_area|))))
+                                 :|ENVIRONMENT.sink_area|))))
                              1.0))
          (object-types '(:cup :bowl :spoon))
          (delta-alpha (* 2 pi))
@@ -137,9 +137,7 @@
     (cpl:par
       (exe:perform
        (desig:an action
-                 (type positioning-arm)
-                 (left-configuration park)
-                 (right-configuration park)))
+                 (type parking-arms)))
       (let ((?pose (cl-transforms-stamped:make-pose-stamped
                     cram-tf:*fixed-frame*
                     0.0
@@ -166,13 +164,13 @@
   (setf proj-reasoning::*projection-checks-enabled* t)
 
   (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:object btr:*current-bullet-world* :kitchen))
+  (btr:detach-all-objects (btr:get-environment-object))
   (btr-utils:kill-all-objects)
-  (setf (btr:joint-state (btr:object btr:*current-bullet-world* :kitchen)
+  (setf (btr:joint-state (btr:get-environment-object)
                          "sink_area_left_upper_drawer_main_joint")
         0.0)
   (btr-belief::publish-environment-joint-state
-   (btr:joint-states (btr:object btr:*current-bullet-world* :kitchen)))
+   (btr:joint-states (btr:get-environment-object)))
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
@@ -495,7 +493,7 @@
                                           (btr:pose
                                            (btr:rigid-body
                                             (btr:get-environment-object)
-                                            :|KITCHEN.sink_area|))))
+                                            :|ENVIRONMENT.sink_area|))))
                                         1.0)
                                      *object-delivering-poses-varied-kitchen*
                                      *object-delivering-poses*))))))
@@ -514,7 +512,7 @@
                                                 (btr:pose
                                                  (btr:rigid-body
                                                   (btr:get-environment-object)
-                                                  :|KITCHEN.sink_area|))))
+                                                  :|ENVIRONMENT.sink_area|))))
                                               1.0)
                                            *object-delivering-poses-varied-kitchen*
                                            *object-delivering-poses*))))))
@@ -545,7 +543,7 @@
                                                 (btr:pose
                                                  (btr:rigid-body
                                                   (btr:get-environment-object)
-                                                  :|KITCHEN.sink_area|))))
+                                                  :|ENVIRONMENT.sink_area|))))
                                               1.0)
                                            *object-delivering-poses-varied-kitchen*
                                            *object-delivering-poses*))))))))

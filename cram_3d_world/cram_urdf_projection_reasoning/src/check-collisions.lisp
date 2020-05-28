@@ -93,7 +93,6 @@ Store found pose into designator or throw error if good pose not found."
 
 
 
-
 (defun check-picking-up-collisions (pick-up-action-desig &optional (retries 30))
   (when *projection-checks-enabled*
     (let* ((world btr:*current-bullet-world*)
@@ -114,7 +113,7 @@ Store found pose into designator or throw error if good pose not found."
              ;; If no configuration is good, throw `object-unreachable' failure
              (cpl:with-retry-counters ((pick-up-configuration-retries retries))
                (cpl:with-failure-handling
-                   (((or common-fail:manipulation-pose-unreachable
+                   (((or common-fail:manipulation-low-level-failure
                          common-fail:manipulation-goal-in-collision) (e)
                       (declare (ignore e))
                       (urdf-proj::move-torso :upper-limit)
@@ -126,7 +125,7 @@ Store found pose into designator or throw error if good pose not found."
                             (progn
                               (roslisp:ros-warn (coll-check pick)
                                                 "No more pick-up samples to try.~
-                                               Object unreachable.")
+                                                 Object unreachable.")
                               (cpl:fail 'common-fail:object-unreachable
                                         :description "No more pick-up samples to try."))))
                       (roslisp:ros-warn (coll-check pick) "No more retries left :'(")
@@ -176,10 +175,9 @@ Store found pose into designator or throw error if good pose not found."
                                                :allow-all)
                           (unless (< (abs urdf-proj::*debug-short-sleep-duration*) 0.0001)
                             (cpl:sleep urdf-proj::*debug-short-sleep-duration*))
-                          (when ;; (remove object-name
-                              ;;         (btr:robot-colliding-objects-without-attached))
-                              (urdf-proj::perform-collision-check
-                               collision-flag (nth i left-poses) (nth i right-poses))
+                          (when (urdf-proj::perform-collision-check
+                                 collision-flag
+                                 (nth i left-poses) (nth i right-poses))
                             (roslisp:ros-warn (coll-check pick)
                                               "Robot is in collision with environment.")
                             (cpl:sleep urdf-proj::*debug-long-sleep-duration*)
@@ -301,7 +299,7 @@ Store found pose into designator or throw error if good pose not found."
              (let* ((new-pose
                       (btr:pose new-btr-object))
                     (distance-new-pose-and-place-pose
-                      (cl-tf:v-dist
+                      (cl-transforms:v-dist
                        (cl-transforms:origin new-pose)
                        (cl-transforms:origin placing-pose))))
                (when (> distance-new-pose-and-place-pose 0.2)

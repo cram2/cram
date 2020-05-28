@@ -83,12 +83,103 @@
   (<- (robot-free-hand ?robot ?arm)
     (rob-int:robot ?robot)
     (rob-int:arm ?robot ?arm)
-    (not (cpoe:object-in-hand ?_ ?arm)))
+    (not (cpoe:object-in-hand ?_ ?arm))))
 
-  (<- (configuration-joint-states ?arm ?config ?joint-states)
+
+
+(defun symbol-to-prolog-rule (the-symbol &rest parameters)
+  (let ((interned-symbol (find-symbol (string-upcase the-symbol))))
+    (if interned-symbol
+        (cram-utilities:var-value
+         '?result
+         (car (prolog `(,interned-symbol ,@parameters ?result))))
+        the-symbol)))
+
+;; todo(@gaya): ugliest piece of code ever...
+;; spent 2 years cleaning up cram, now spend another 2 messing it up again...
+(def-fact-group robot-parts-location (desig:desig-location-prop)
+  (<- (desig:desig-location-prop ?object-designator ?pose-stamped)
+    (desig:obj-desig? ?object-designator)
+    (desig:desig-prop ?object-designator (:part-of ?robot))
     (rob-int:robot ?robot)
-    (-> (equal ?config :park)
-        (-> (cpoe:object-in-hand ?_ ?arm)
-            (rob-int:robot-joint-states ?robot :arm ?arm :carry ?joint-states)
-            (rob-int:robot-joint-states ?robot :arm ?arm :park ?joint-states))
-        (rob-int:robot-joint-states ?robot :arm ?arm ?config ?joint-states))))
+    (desig:desig-prop ?object-designator (:link ?link))
+    (-> (desig:desig-prop ?object-designator (:which-link ?params))
+        (lisp-fun symbol-to-prolog-rule ?link ?robot-name ?params ?link-name)
+        (lisp-fun symbol-to-prolog-rule ?link ?robot-name ?link-name))
+    (lisp-fun cram-tf:frame-to-pose-in-fixed-frame ?link-name ?pose-stamped)))
+
+
+;; TODO: move to pick and place heuristics package, when it is created
+(def-fact-group location-designator-stuff (desig:location-grounding)
+
+  ;; Resolving (a location
+  ;;              (for ?object)
+  ;;              (on ?other-object)
+  ;;              (attachment object-to-other-object))
+  (<- (desig:location-grounding ?location-designator ?pose-stamped)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (desig:desig-prop ?current-location-designator (:for ?object-designator))
+    (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
+    (-> (desig:desig-prop ?current-location-designator (:attachments ?attachments))
+        (member ?attachment-type ?attachments)
+        (desig:desig-prop ?current-location-designator (:attachment
+                                                        ?attachment-type)))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (spec:property ?current-object-designator (:type ?object-type))
+    (spec:property ?current-object-designator (:name ?object-name))
+    (desig:current-designator ?other-object-designator ?current-other-obj-desig)
+    (spec:property ?current-other-obj-desig (:type ?other-object-type))
+
+    (-> (spec:property ?current-other-obj-desig (:urdf-name ?other-object-name))
+        (and (lisp-fun roslisp-utilities:rosify-underscores-lisp-name
+                       ?other-object-name ?link-name)
+             (symbol-value cram-tf:*robot-base-frame* ?parent-frame)
+             (lisp-fun cram-tf:frame-to-transform-in-fixed-frame
+                       ?link-name ?parent-frame
+                       ?other-object-transform))
+        (and (spec:property ?current-other-obj-desig (:name ?other-object-name))
+             (lisp-fun get-object-transform ?current-other-obj-desig
+                       ?other-object-transform)))
+
+    (lisp-fun get-object-placement-transform
+              ?object-name ?object-type
+              ?other-object-name ?other-object-type ?other-object-transform
+              ?attachment-type
+              ?attachment-transform)
+    (lisp-fun cram-tf:strip-transform-stamped ?attachment-transform ?attachment-pose)
+    (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
+    (lisp-fun cram-tf:ensure-pose-in-frame ?attachment-pose ?fixed-frame
+              ?pose-stamped))
+
+  ;; Resolving (a location
+  ;;              (on (an object
+  ;;                      (type robot
+  ;; First, a helper predicate to discern such a location
+  (<- (always-reachable ?location-designator)
+    (desig:loc-desig? ?location-designator)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (desig:desig-prop ?current-location-designator (:on ?object-designator))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (desig:desig-prop ?current-object-designator (:type :robot)))
+
+  (<- (other-object-is-a-robot ?some-object-designator)
+    (desig:current-designator ?some-object-designator ?object-designator)
+    (or (desig:desig-prop ?object-designator (:type :robot))
+        (desig:desig-prop ?object-designator (:type :environment))))
+
+  ;; Now the actual location grounding for reachability and visibility
+  (<- (desig:location-grounding ?location-designator ?pose-stamped)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (or (rob-int:reachability-designator ?current-location-designator)
+        (rob-int:visibility-designator ?current-location-designator))
+    (or (and (desig:desig-prop ?current-location-designator (:object ?some-object))
+             (desig:current-designator ?some-object ?object)
+             (lisp-fun man-int:get-object-pose-in-map ?object ?to-reach-pose)
+             (lisp-pred identity ?to-reach-pose)
+             (desig:desig-prop ?object (:location ?some-location)))
+        (desig:desig-prop ?current-location-designator (:location ?some-location)))
+    (desig:current-designator ?some-location ?location)
+    ;; if the location is on the robot itself, use the current robot pose
+    (always-reachable ?location)
+    (format "LOCATION ALWAYS REACHABLE~%~%~%~%")
+    (lisp-fun cram-tf:robot-current-pose ?pose-stamped)))

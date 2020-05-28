@@ -198,3 +198,18 @@ To achieve equal length appends NILs at the end of the shorter of `first-list' a
 
    (values first-result-l-of-ls
            second-result-l-of-ls)))
+
+
+(defun recursive-alist-hash-table (alist &rest hash-table-initargs)
+  "Returns a hash table containing the keys and values of the association list
+ALIST. Hash table is initialized using the HASH-TABLE-INITARGS.
+This is a recursive version of alexandria:alist-hash-table."
+  (let ((table (apply #'make-hash-table hash-table-initargs)))
+    (dolist (cons alist)
+      (alexandria:ensure-gethash
+       (car cons)
+       table
+       (if (listp (cdr cons))
+           (apply #'recursive-alist-hash-table (cdr cons) hash-table-initargs)
+           (cdr cons))))
+    table))

@@ -92,7 +92,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                          (map-T-object
                            (cl-transforms:transform* map-T-surface surface-T-object))
                          (map-P-object
-                           (cl-tf:transform->pose map-T-object)))
+                           (cl-transforms:transform->pose map-T-object)))
                     `(,type . ,map-P-object))))
               (second spawning-poses)))))
 
@@ -171,9 +171,10 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     (btr:simulate btr:*current-bullet-world* 100)
 
     ;; attach spoon to the drawer
-    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
-                       (btr:object btr:*current-bullet-world* :spoon-1)
-                       :link "sink_area_left_upper_drawer_main")
+    (when (btr:object btr:*current-bullet-world* :spoon-1)
+      (btr:attach-object (btr:get-environment-object)
+                         (btr:object btr:*current-bullet-world* :spoon-1)
+                         :link "sink_area_left_upper_drawer_main"))
 
     ;; return list of BTR objects
     objects))
@@ -187,9 +188,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
         (?ptu-goal *look-goal*))
     (cpl:par
       (exe:perform (desig:an action
-                             (type positioning-arm)
-                             (left-configuration park)
-                             (right-configuration park)))
+                             (type parking-arms)))
       (exe:perform (desig:a motion
                             (type going)
                             (pose ?navigation-goal))))
@@ -256,7 +255,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 ;;   (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
 ;;     (cpl:top-level
 ;;       (exe:perform
-;;        (let ((?pose (cl-tf:make-pose-stamped
+;;        (let ((?pose (cl-transforms-stamped:make-pose-stamped
 ;;                      cram-tf:*robot-base-frame* 0.0
 ;;                      (cl-transforms:make-3d-vector -0.5 0 0)
 ;;                      (cl-transforms:make-identity-rotation))))
@@ -268,7 +267,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 ;;       (exe:perform
 ;;        (desig:a motion (type looking) (direction forward)))
 ;;       (exe:perform
-;;        (let ((?pose (cl-tf:make-pose-stamped
+;;        (let ((?pose (cl-transforms-stamped:make-pose-stamped
 ;;                      cram-tf:*robot-base-frame* 0.0
 ;;                      (cl-transforms:make-3d-vector 0.7 0.3 0.85)
 ;;                      (cl-transforms:make-identity-rotation))))
@@ -362,9 +361,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 ;;           (cpl:par
 ;; (exe:perform
 ;;  (desig:an action
-;;            (type positioning-arm)
-;;            (left-configuration park)
-;;            (right-configuration park)))
+;;            (type parking-arms)))
 ;;             (exe:perform (desig:a motion
 ;;                                   (type going)
 ;;                                   (pose ?navigation-goal))))

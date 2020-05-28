@@ -33,6 +33,12 @@
                                           loc looking-at arms-parked
                                           container-state torso-at arms-positioned
                                           ees-at looking-at robot-loc)
+  (<- (object-in-hand ?object ?hand ?grasp ?link)
+    (fail))
+  (<- (object-in-hand ?object ?hand ?grasp)
+    (fail))
+  (<- (object-in-hand ?object ?hand)
+    (fail))
   (<- (object-in-hand ?object)
     (fail))
 

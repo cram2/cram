@@ -1,0 +1,57 @@
+<launch>
+  <arg name="upload_donbot" default="false" />
+  <arg name="kitchen" default="false" />
+
+  <!-- occupancy map -->
+  <!-- <include file="$(find iai_maps)/launch/map.launch" /> -->
+
+  <!-- environment URDF -->
+  <group if="$(arg kitchen)">
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro.py '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
+  </group>
+  <group unless="$(arg kitchen)">
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro.py '$(find iai_refills_lab)/maps/dm_shelves.urdf.xacro'"/>
+  </group>
+  <node pkg="joint_state_publisher" type="joint_state_publisher"
+        name="kitchen_joint_state_publisher" output="screen">
+    <remap from="robot_description" to="kitchen_description"/>
+    <param name="rate" value="25"/>
+    <param name="use_gui" value="False"/>
+    <remap from="joint_states" to="kitchen/joint_states" />
+    <rosparam param="source_list">
+      - /kitchen/cram_joint_states
+    </rosparam>
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="kitchen_link_broadcaster"
+        args="0 0 0 0 0 0 /map /iai_kitchen/room_link 25">
+  </node>
+  <node pkg="robot_state_publisher" type="robot_state_publisher"
+    name="kitchen_state_publisher" output="screen">
+    <param name="tf_prefix" value="iai_kitchen"/>
+    <param name="publish_frequency" value="25"/>
+    <remap from="robot_description" to="kitchen_description" />
+    <remap from="joint_states" to="kitchen/joint_states" />
+  </node>
+
+  <!-- Donbot URDF -->
+  <group if="$(arg upload_donbot)">
+    <include file="$(find iai_donbot_description)/launch/upload_with_refills_finger.launch" />
+    <node pkg="joint_state_publisher" type="joint_state_publisher"
+          name="robot_joint_state_publisher" output="screen">
+      <param name="rate" value="25"/>
+      <param name="use_gui" value="False"/>
+    </node>
+    <node pkg="robot_state_publisher" type="robot_state_publisher"
+          name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" value="25"/>
+    </node>
+  </group>
+
+  <!-- Generic IK solver -->
+  <include file="$(find kdl_ik_service)/launch/kdl_ik.launch" />
+
+  <!-- TF buffer server -->
+  <node pkg="tf2_ros" type="buffer_server" name="tf_server" output="screen" />
+</launch>

@@ -36,13 +36,9 @@
   "Check if navigation goal is in reach, if not propagate failure up,
 if yes, perform GOING action while ignoring failures."
 
-  (let ((?goal `(cpoe:arms-positioned :park :park)))
-    (exe:perform (desig:an action
-                           (type positioning-arm)
-                           (left-configuration park)
-                           (right-configuration park)
-                           (goal ?goal))))
-
+  
+  (exe:perform (desig:an action
+                         (type parking-arms)))
   (proj-reasoning:check-navigating-collisions ?navigation-location)
   (setf ?navigation-location (desig:current-desig ?navigation-location))
 
@@ -359,7 +355,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                              arm-retries
                              (:error-object-or-string
                               (format NIL "Manipulation failed: ~a.~%Next." e)
-                              :warning-namespace (kvr plans)
+                              :warning-namespace (fd-plans fetch)
                               :rethrow-failure 'common-fail:object-unreachable)
                            (setf ?arm (cut:lazy-car ?arms)))))
 
@@ -375,7 +371,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                                    grasp-retries
                                    (:error-object-or-string
                                     (format NIL "Picking up failed: ~a.~%Next" e)
-                                    :warning-namespace (kvr plans))
+                                    :warning-namespace (fd-plans fetch))
                                  (setf ?grasp (cut:lazy-car ?grasps)))))
 
                           (let* ((?goal
@@ -448,10 +444,13 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
          (cpl:fail 'common-fail:delivering-failed
                    :description "Some designator could not be resolved.")))
 
-    (cpl:with-retry-counters ((outer-target-location-retries 2))
+    (cpl:with-retry-counters ((outer-target-location-retries 4))
       (cpl:with-failure-handling
           (((or desig:designator-error
                 common-fail:object-undeliverable) (e)
+             (roslisp:ros-warn (fd-plans deliver)
+                               "outer-target-location-retries ~a~%"
+                               (cpl:get-counter outer-target-location-retries))
              (common-fail:retry-with-loc-designator-solutions
                  ?target-location
                  outer-target-location-retries
@@ -467,12 +466,16 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
               (((or common-fail:navigation-goal-in-collision
                     common-fail:object-undeliverable
                     common-fail:manipulation-low-level-failure) (e)
+                 (roslisp:ros-warn (fd-plans deliver)
+                                   "relocation-for-ik-retries ~A~%"
+                                   (cpl:get-counter relocation-for-ik-retries))
                  (common-fail:retry-with-loc-designator-solutions
                      ?target-robot-location
                      relocation-for-ik-retries
                      (:error-object-or-string
                       (format NIL "Object is undeliverable from base location.~%~a" e)
                       :warning-namespace (fd-plans deliver)
+                      :reset-designators (list ?target-location)
                       :rethrow-failure 'common-fail:object-undeliverable))))
 
             ;; navigate
@@ -483,7 +486,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                      (goal ?goal))))
 
             ;; take a new `?target-location' sample if a failure happens
-            (cpl:with-retry-counters ((target-location-retries 9))
+            (cpl:with-retry-counters ((target-location-retries 2))
               (cpl:with-failure-handling
                   (((or common-fail:looking-high-level-failure
                         common-fail:object-unreachable
@@ -558,13 +561,12 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
            0.0
            (cl-transforms:make-3d-vector 0 0 0)
            (cl-transforms:make-quaternion 0 0 -1 1)))
-        ;; (?placing-pose
-        ;;   (cl-transforms-stamped:make-pose-stamped
-        ;;    cram-tf:*robot-base-frame*
-        ;;    0.0
-        ;;    (cl-transforms:make-3d-vector 0.7 0 1.2)
-        ;;    (cl-transforms:make-identity-rotation)))
-        )
+        (?placing-pose
+          (cl-transforms-stamped:make-pose-stamped
+           cram-tf:*robot-base-frame*
+           0.0
+           (cl-transforms:make-3d-vector 0.7 0 1.2)
+           (cl-transforms:make-identity-rotation))))
     (cpl:with-failure-handling
         ((common-fail:navigation-low-level-failure (e)
            (declare (ignore e))
@@ -575,22 +577,22 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
          (desig:an action
                    (type going)
                    (target ?target-location)
-                   (goal ?goal))))))
-  (cpl:with-failure-handling
-      ((common-fail:manipulation-low-level-failure (e)
-         (declare (ignore e))
-         (return)))
-    ;; TODO(cpo goals) Is there a goal here?
-    (exe:perform
-     (desig:an action
-               (type placing)
-               ;; (target (desig:a location
-               ;;                  (pose ?placing-pose)))
-               ))))
+                   (goal ?goal)))))
+    (cpl:with-failure-handling
+        ((common-fail:manipulation-low-level-failure (e)
+           (declare (ignore e))
+           (return)))
+      ;; TODO(cpo goals) Add goal here
+      (exe:perform
+       (desig:an action
+                 (type placing)
+                 (target (desig:a location
+                                  (pose ?placing-pose))))))))
 
 
 (defun transport (&key
                     ((:object ?object-designator))
+                    ((:context ?context))
                     ((:search-location ?search-location))
                     ((:search-robot-location ?search-base-location))
                     ((:fetch-robot-location ?fetch-robot-location))
@@ -615,6 +617,8 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                (exe:perform (desig:an action
                                       (type searching)
                                       (object ?object-designator)
+                                      (desig:when ?context
+                                        (context ?context))
                                       (location ?search-location)
                                       (desig:when ?search-base-location
                                         (robot-location ?search-base-location))))))
@@ -671,6 +675,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                                ;; (desig:when ?arm
                                                ;;   (arm ?arm))
                                                (object ?fetched-object)
+                                               (context ?context)
                                                (target ?delivering-location)
                                                (desig:when ?deliver-robot-location
                                                  (robot-location ?deliver-robot-location))
