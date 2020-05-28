@@ -368,9 +368,11 @@ was updated by checking if `link' was already updated. The already
 updated links are saved under the attachment name in `updated-attachments'.
 If all links of an attachment were updated the entry under the attachment
 name in `updated-attachments' gets deleted."
-    (let ((links-attached-to (mapcar #'attachment-link (car (cdr attachment))))
+    (let ((links-to-update (mapcar #'attachment-link 
+                                   (remove-if #'attachment-loose
+                                              (car (cdr attachment)))))
           (ret T))
-      (when (and link (member (cl-urdf:name link) links-attached-to :test #'string-equal))
+      (when (and link (member (cl-urdf:name link) links-to-update :test #'string-equal))
         (if (gethash (car attachment) updated-attachments)
             (setf (gethash (car attachment) updated-attachments)
                   (push (cl-urdf:name link) (gethash (car attachment) updated-attachments)))
@@ -380,11 +382,11 @@ name in `updated-attachments' gets deleted."
                   NIL))
         ;; checks if the list of links in attachment and the already visited links are equal
         (when (equal
-               (length links-attached-to)
+               (length links-to-update)
                (length
                 (intersection
                  (gethash (car attachment) updated-attachments)
-                 links-attached-to :test #'string-equal)))
+                 links-to-update :test #'string-equal)))
           (remhash (car attachment) updated-attachments))
         (return-from updated-link-in-attachment ret)))))
 
