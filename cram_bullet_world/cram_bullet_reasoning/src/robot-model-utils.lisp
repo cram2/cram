@@ -199,11 +199,18 @@ or other objects to which current object is attached."
   (some #'identity
         (mapcar (lambda (attachment)
                   ;; remove if object has attachments, which are then colliding
-                  (remove-if #'attached-objects
-                             ;; remove if robot is colliding
-                             (remove (get-robot-object)
-                                     (find-objects-in-contact
-                                      *current-bullet-world*
-                                      (object *current-bullet-world*
-                                              (car attachment))))))
+                  (let ((colliding-objects (remove (get-robot-object)
+                                                   (find-objects-in-contact
+                                                    *current-bullet-world*
+                                                    (object *current-bullet-world*
+                                                            (car attachment))))))
+                    ;; remove colliding object, if it is attached with
+                    ;; the same object the robot is attached with
+                    (remove-if (lambda (object)
+                                 (when (or (typep object 'btr:item)
+                                           (typep object 'btr:robot-object))
+                                   (find (car attachment)
+                                         (btr:attached-objects object)
+                                         :key #'car)))
+                               colliding-objects)))   
                 (attached-objects (get-robot-object)))))
