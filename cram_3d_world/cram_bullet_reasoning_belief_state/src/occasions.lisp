@@ -142,49 +142,68 @@
     (cpoe:ees-at ?left-poses ?right-poses 0.03 0.09)) ;; about 5 degrees for delta-rot
 
   (<- (cpoe:ees-at ?left-poses ?right-poses ?delta-pos ?delta-rot)
-    (-> (lisp-pred typep ?left-poses list)
+    (or
+     (and (lisp-pred identity ?left-poses) (lisp-pred typep ?left-poses list))
+     (and (lisp-pred identity ?right-poses) (lisp-pred typep ?right-poses list)))
+    (-> (and (lisp-pred identity ?left-poses) (lisp-pred typep ?left-poses list))
         (and
-         (lisp-fun last ?poses ?left-pose-list)
+         (lisp-fun last ?left-poses ?left-pose-list)
          (lisp-fun car ?left-pose-list ?left-pose))
-        (equal ?left-poses (?left-pose)))
-    (-> (lisp-pred typep ?right-poses list)
+        (equal ?left-poses ?left-pose))
+    (-> (and (lisp-pred identity ?right-poses) (lisp-pred typep ?right-poses list))
         (and
-         (lisp-fun last ?poses ?right-pose-list)
+         (lisp-fun last ?right-poses ?right-pose-list)
          (lisp-fun car ?right-pose-list ?right-pose))
-        (equal ?right-poses (?right-pose)))
+        (equal ?right-poses ?right-pose))
     (cpoe:ees-at ?left-pose ?right-pose ?delta-pos ?delta-rot))
 
   (<- (cpoe:ees-at ?left-pose ?right-pose ?delta-pos ?delta-rot)
-    (not (lisp-pred typep ?left-pose 'cl-tf:pose-stamped))
-    (not (lisp-pred typep ?right-pose 'cl-tf:pose-stamped))
-    (lisp-pred typep ?left-pose 'cl-tf:pose)
-    (lisp-pred typep ?right-pose 'cl-tf:pose)
+    (not (lisp-pred typep ?left-pose cl-tf:pose-stamped))
+    (not (lisp-pred typep ?right-pose cl-tf:pose-stamped))
+    (or
+     (lisp-pred typep ?left-pose cl-tf:pose)
+     (lisp-pred typep ?right-pose cl-tf:pose))
     ;; We have to assume the pose is in the fixed-frame
     (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
-    (lisp-fun cl-tf:pose->pose-stamped ?fixed-frame 0.0 ?left-pose-stamped)
-    (lisp-fun cl-tf:pose->pose-stamped ?fixed-frame 0.0 ?right-pose-stamped)
+    (-> (lisp-pred typep ?left-pose cl-tf:pose)
+        (lisp-fun cl-tf:pose->pose-stamped ?fixed-frame 0.0 ?left-pose ?left-pose-stamped)
+        (true))
+    (-> (lisp-pred typep ?right-pose cl-tf:pose)
+        (lisp-fun cl-tf:pose->pose-stamped ?fixed-frame 0.0 ?right-pose ?right-pose-stamped)
+        (true))
     (cpoe:ees-at ?left-pose-stamped ?right-pose-stamped ?delta-pos ?delta-rot))
 
   (<- (cpoe:ees-at ?left-pose-stamped ?right-pose-stamped ?delta-pos ?delta-rot)
-    (lisp-pred typep ?left-pose-stamped 'cl-tf:pose-stamped)
-    (lisp-pred typep ?right-pose-stamped 'cl-tf:pose-stamped)
+    (or
+     (lisp-pred typep ?left-pose-stamped cl-tf:pose-stamped)
+     (lisp-pred typep ?right-pose-stamped cl-tf:pose-stamped))
     (rob-int:robot ?robot)
-    (rob-int:robot-tool-frame ?robot :left ?left-tool-frame)
-    (rob-int:robot-tool-frame ?robot :right ?right-tool-frame)
     (symbol-value cram-tf:*transformer* ?transformer)
     (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
-    (lisp-fun cl-tf:lookup-transform ?transformer ?fixed-frame ?left-tool-frame
-              ?left-tool-transform-stamped)
-    (lisp-fun cl-tf:lookup-transform ?transformer ?fixed-frame ?right-tool-frame
-              ?right-tool-transform-stamped)
-    (lisp-fun cl-tf:stamp ?left-tool-transfrom-stamped ?left-stamp)
-    (lisp-fun cl-tf:stamp ?right-tool-transfrom-stamped ?right-stamp)
-    (lisp-fun cram-tf:transform->pose-stamped ?fixed-frame ?left-stamp ?left-tool-transform-stamped
-              ?left-tool-pose-stamped)
-    (lisp-fun cram-tf:transform->pose-stamped ?fixed-frame ?right-stamp ?right-tool-transform-stamped
-              ?right-tool-pose-stamped)
-    (lisp-pred pose-stampeds-similar? ?left-pose-stamped ?left-tool-pose-stamped ?delta-pos ?delta-rot)
-    (lisp-pred pose-stampeds-similar? ?right-pose-stamped ?right-tool-pose-stamped ?delta-pos ?delta-rot))
+
+    (-> (lisp-pred typep ?left-pose-stamped cl-tf:pose-stamped)
+        (and
+         (rob-int:robot-tool-frame ?robot :left ?left-tool-frame)
+         (lisp-fun cl-tf:lookup-transform ?transformer ?fixed-frame ?left-tool-frame
+                   ?left-tool-transform-stamped)
+         (lisp-fun cl-tf:stamp ?left-tool-transform-stamped ?left-stamp)
+         (lisp-fun cram-tf:transform->pose-stamped ?fixed-frame ?left-stamp
+                   ?left-tool-transform-stamped ?left-tool-pose-stamped)
+         (lisp-pred pose-stampeds-similar? ?left-pose-stamped ?left-tool-pose-stamped
+                    ?delta-pos ?delta-rot))
+        (true))
+
+    (-> (lisp-pred typep ?right-pose-stamped cl-tf:pose-stamped)
+        (and
+         (rob-int:robot-tool-frame ?robot :right ?right-tool-frame)
+         (lisp-fun cl-tf:lookup-transform ?transformer ?fixed-frame ?right-tool-frame
+                   ?right-tool-transform-stamped)
+         (lisp-fun cl-tf:stamp ?right-tool-transform-stamped ?right-stamp)
+         (lisp-fun cram-tf:transform->pose-stamped ?fixed-frame ?right-stamp
+                   ?right-tool-transform-stamped ?right-tool-pose-stamped)
+         (lisp-pred pose-stampeds-similar? ?right-pose-stamped ?right-tool-pose-stamped
+                    ?delta-pos ?delta-rot))
+        (true)))
 
   (<- (cpoe:looking-at ?target)
     (cpoe:looking-at ?target 0.1))
@@ -250,7 +269,8 @@
                             :target-frame ?fixed-frame
                             :timeout 0.1)
                  (and
-                  (lisp-fun cl-tf:lookup-transform ?transformer ?fixed-frame ?camera-frame ?camera-transform)
+                  (lisp-fun cl-tf:lookup-transform ?transformer ?fixed-frame ?camera-frame
+                            ?camera-transform)
                   (lisp-fun cl-tf:translation ?camera-transform ?camera-point)
                   (lisp-fun cl-tf:origin ?pose-stamped ?target-point)
                   (lisp-fun cl-tf:v- ?target-point ?camera-point ?direction)

@@ -75,7 +75,7 @@
                              e)
            ;; (return)
            ))
-      (let ((?goal `(cpoe:ees-at ?left-reach-poses ?right-reach-poses)))
+      (let ((?goal `(cpoe:ees-at ,?left-reach-poses ,?right-reach-poses)))
         (exe:perform
          (desig:an action
                    (type reaching)
@@ -91,7 +91,7 @@
                            e)
          (return)
          ))
-    (let ((?goal `(cpoe:ees-at ?left-grasp-poses ?right-grasp-poses)))
+    (let ((?goal `(cpoe:ees-at ,?left-grasp-poses ,?right-grasp-poses)))
       (exe:perform
        (desig:an action
                  (type grasping)
@@ -100,7 +100,7 @@
                  (right-poses ?right-grasp-poses)
                  (goal ?goal)))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
-  (let ((?goal `(cpoe:object-picked ?object-designator)))
+  (let ((?goal `(cpoe:object-picked ,?object-designator)))
     (exe:perform
      (desig:an action
                (type gripping)
@@ -116,7 +116,7 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (let ((?goal `(cpoe:ees-at ?left-lift-poses ?right-lift-poses)))
+    (let ((?goal `(cpoe:ees-at ,?left-lift-poses ,?right-lift-poses)))
       (exe:perform
        (desig:an action
                  (type lifting)
@@ -165,7 +165,7 @@
                            e)
          ;; (return)
          ))
-    (let ((?goal `(cpoe:ees-at ?left-reach-poses ?right-reach-poses)))
+    (let ((?goal `(cpoe:ees-at ,?left-reach-poses ,?right-reach-poses)))
       (exe:perform
        (desig:an action
                  (type reaching)
@@ -180,7 +180,7 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (let ((?goal `(cpoe:ees-at ?left-put-poses ?right-put-poses)))
+    (let ((?goal `(cpoe:ees-at ,?left-put-poses ,?right-put-poses)))
       (exe:perform
        (desig:an action
                  (type putting)
@@ -229,7 +229,7 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (let ((?goal `(cpoe:ees-at ?left-retract-poses ?right-retract-poses)))
+    (let ((?goal `(cpoe:ees-at ,?left-retract-poses ,?right-retract-poses)))
       (exe:perform
        (desig:an action
                  (type retracting)
