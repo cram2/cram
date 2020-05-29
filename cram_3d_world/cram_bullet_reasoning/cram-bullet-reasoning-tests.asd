@@ -10,7 +10,7 @@
   :components ((:module "tests"
                 :components
                 ((:file "package")
-                 (:file "items-tests" :depends-on ("package"))
+                 (:file "items-tests" :depends-on ("package objects-tests"))
                  (:file "objects-tests" :depends-on ("package"))
                  (:file "robot-model-tests" :depends-on ("package"))
                  (:file "robot-model-utils-tests" :depends-on ("package" "robot-model-tests" "objects-tests"))
