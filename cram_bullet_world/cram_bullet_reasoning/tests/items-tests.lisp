@@ -33,6 +33,7 @@
 (define-test attach-object-bidirectional-and-attachment-type
   ;; Attaches two objects and check their attached objects and the
   ;; attachment-type of these
+  (spawn-robot)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
   (btr-utils:spawn-object 'o2 :mug :pose 
@@ -62,6 +63,7 @@
 
 (define-test attach-object-bidirectional-more-than-two-objects
   ;; Attaches three objects and 'o1 is connected with both objects
+  (spawn-robot)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
   (btr-utils:spawn-object 'o2 :mug :pose 
@@ -98,6 +100,7 @@
 (define-test attach-object-more-objects-connected-bidirectional-to-one-object-in-one-call
   ;; Attaches three objects and 'o1 is connected with both objects in
   ;; one call
+  (spawn-robot)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
   (btr-utils:spawn-object 'o2 :mug :pose 
@@ -134,6 +137,7 @@
 (define-test attach-object-more-objects-connected-unidirectional-to-one-object-in-one-call
   ;; Attaches three objects and 'o1 is connected loose with both
   ;; objects in one call
+  (spawn-robot)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
   (btr-utils:spawn-object 'o2 :mug :pose 
@@ -182,6 +186,7 @@
 (define-test attach-object-unidirectional
   ;; Attaches two objects unidirectional and check if loose attachment
   ;; was properly saved in the attachment
+  (spawn-robot)
   (btr-utils:spawn-object 'o1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
   (btr-utils:spawn-object 'o2 :mug :pose 
@@ -215,6 +220,7 @@
   ;; bidirectional with the mug and attach it loose to a hook. Therefore the loose attachment of
   ;; the mug and tray-1 should be removed and the hook and handle should be in an loose
   ;; connection.
+  (spawn-robot)
   (btr-utils:spawn-object 'handle :mug :pose         ;;
                           '((-1 0.0 0.92)(0 0 0 1))) ;;  
   (btr-utils:spawn-object 'mug :mug :pose            ;;                                                  (X)
@@ -272,6 +278,7 @@
 
 (define-test detach-object-simple-and-bidirectional-attachments
   ;; Detaches two bidirectional conntected objects
+  (spawn-robot)
   (btr-utils:spawn-object 'oo1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
   (btr-utils:spawn-object 'oo2 :mug :pose 
@@ -299,6 +306,7 @@
 
 (define-test detach-object-dont-remove-other-attachments-and-unidirectional
   ;; Detaches two objects where one object has one attached object
+  (spawn-robot)
   (btr-utils:spawn-object 'oo1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
   (btr-utils:spawn-object 'oo2 :mug :pose 
@@ -393,8 +401,485 @@
   (btr:remove-object btr:*current-bullet-world* 'oo4)
   (btr:remove-object btr:*current-bullet-world* 'oo5))
 
+(define-test attach-object-with-static-objects-correct-collision-information 
+  (spawn-robot)
+  (btr-utils:spawn-object 'oo1 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'oo2 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'oo3 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (loop for body in (apply 'concatenate 'list
+                           (list (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'oo1))
+                                 (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'oo2))
+                                 (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'oo3))))
+        do
+           (setf
+            (btr::collision-flags body)
+            :CF-STATIC-OBJECT))
+  (btr:attach-object 'oo1 'oo2)
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo2))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo1
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo2))
+            :key #'car)))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo2
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo1))
+            :key #'car)))))
+  (btr:attach-object 'oo1 'oo3)
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo3))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo3
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo1))
+            :key #'car)))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo1
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo3))
+            :key #'car)))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo1
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo2))
+            :key #'car)))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo2
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo1))
+            :key #'car)))))
+  (btr:remove-object btr:*current-bullet-world* 'oo1)
+  (btr:remove-object btr:*current-bullet-world* 'oo2)
+  (btr:remove-object btr:*current-bullet-world* 'oo3))
+
+(define-test attach-object-correct-collision-information 
+  (spawn-robot)
+  (btr-utils:spawn-object 'oo1 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'oo2 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'oo3 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr:attach-object 'oo1 'oo2)
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo2))))))
+  (assert-equal
+   NIL
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo1
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo2))
+            :key #'car)))))
+  (assert-equal
+   NIL
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo2
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo1))
+            :key #'car)))))
+  (btr:attach-object 'oo1 'oo3)
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo3))))))
+  (assert-equal
+   NIL
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo3
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo1))
+            :key #'car)))))
+  (assert-equal
+   NIL
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo1
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo3))
+            :key #'car)))))
+  (assert-equal
+   NIL
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo1
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo2))
+            :key #'car)))))
+  (assert-equal
+   NIL
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo2
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo1))
+            :key #'car)))))
+  (btr:remove-object btr:*current-bullet-world* 'oo1)
+  (btr:remove-object btr:*current-bullet-world* 'oo2)
+  (btr:remove-object btr:*current-bullet-world* 'oo3))
+
+(define-test detach-object-correct-collision-information
+  (spawn-robot)
+  (btr-utils:spawn-object 'oo1 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'oo2 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'oo3 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr:attach-object 'oo1 'oo2)
+  (btr:attach-object 'oo1 'oo3)
+  (btr:detach-object 'oo1 'oo2)
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  (assert-equal
+   NIL
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo2))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo3))))))
+  (assert-equal
+   NIL
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo3
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo1))
+            :key #'car)))))
+  (assert-equal
+   NIL
+   (car
+    (btr::collision-information-flags
+     (caddr 
+      (find 'oo1
+            (btr:attached-objects
+             (btr:object
+              btr:*current-bullet-world*
+              'oo3))
+            :key #'car)))))
+  (assert-false
+   (btr:attached-objects
+    (btr:object
+     btr:*current-bullet-world*
+     'oo2)))
+  (btr:remove-object btr:*current-bullet-world* 'oo1)
+  (btr:remove-object btr:*current-bullet-world* 'oo2)
+  (btr:remove-object btr:*current-bullet-world* 'oo3))
+
+(define-test detach-object-with-static-objects-correct-collision-information
+  (spawn-robot)
+  (btr-utils:spawn-object 'oo1 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'oo2 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'oo3 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (loop for body in (apply 'concatenate 'list
+                           (list (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'oo1))
+                                 (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'oo2))
+                                 (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'oo3))))
+        do
+           (setf
+            (btr::collision-flags body)
+            :CF-STATIC-OBJECT))
+  (btr:attach-object 'oo1 'oo2)
+  (btr:attach-object 'oo1 'oo3)
+  (btr:detach-object 'oo1 'oo2)
+  (assert-equal
+   :CF-STATIC-OBJECT
+     (car (btr::collision-flags 
+           (car 
+            (btr:rigid-bodies 
+             (btr:object
+              btr:*current-bullet-world* 
+              'oo1))))))
+    (assert-equal
+     :CF-STATIC-OBJECT
+     (car (btr::collision-flags 
+           (car 
+            (btr:rigid-bodies 
+             (btr:object
+              btr:*current-bullet-world* 
+              'oo2))))))
+    (assert-equal
+     :CF-STATIC-OBJECT
+     (car (btr::collision-flags 
+           (car 
+            (btr:rigid-bodies 
+             (btr:object
+              btr:*current-bullet-world* 
+              'oo3))))))
+    (assert-equal
+     :CF-STATIC-OBJECT
+     (car
+      (btr::collision-information-flags
+       (caddr 
+        (find 'oo3
+              (btr:attached-objects
+               (btr:object
+                btr:*current-bullet-world*
+                'oo1))
+              :key #'car)))))
+    (assert-equal
+     :CF-STATIC-OBJECT
+     (car
+      (btr::collision-information-flags
+       (caddr 
+        (find 'oo1
+              (btr:attached-objects
+               (btr:object
+                btr:*current-bullet-world*
+                'oo3))
+              :key #'car)))))
+    (assert-false
+     (btr:attached-objects
+      (btr:object
+       btr:*current-bullet-world*
+       'oo2)))
+    (btr:remove-object btr:*current-bullet-world* 'oo1)
+    (btr:remove-object btr:*current-bullet-world* 'oo2)
+    (btr:remove-object btr:*current-bullet-world* 'oo3))
+
+(define-test attach-object-and-detach-object-shopping-demo-collision-flagsy
+  (spawn-robot)
+  (spawn-environment)
+  (btr-utils:spawn-object 'basket :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'oo1 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  ;; Attach object to environment and basket to the robot
+  (btr:attach-object (btr:get-robot-object)
+                     (btr:object btr:*current-bullet-world* 'basket)
+                     :link "r_wrist_roll_link" :loose nil :grasp :front)
+  (btr:attach-object (btr:get-environment-object)
+                     (btr:object btr:*current-bullet-world* 'oo1 )
+                     :link "sink_area_surface")
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'basket))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'basket))))))
+  ;; Robot grasps the object
+  ;; 1. detached from the env
+  (btr:detach-object (btr:get-environment-object) 
+                     (btr:object btr:*current-bullet-world* 'oo1))
+  (assert-equal
+   NIL
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  ;; 2. attached to the robot
+  (btr:attach-object (btr:get-robot-object)
+                     (btr:object btr:*current-bullet-world* 'oo1)
+                     :link "l_wrist_roll_link" :loose nil :grasp :front)
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  ;; Place object into the basket
+  (btr:detach-object (btr:get-robot-object)
+                     (btr:object btr:*current-bullet-world* 'oo1)
+                     :link "l_wrist_roll_link")
+  ;; Object oo1 falls in the basket
+  (assert-equal
+   NIL
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  ;; Attach object to the basket
+  (btr:attach-object 'basket 'oo1)
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'basket))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  (btr:remove-object btr:*current-bullet-world* 'oo1)
+  (btr:remove-object btr:*current-bullet-world* 'basket)
+  (btr:detach-all-objects (btr:get-robot-object))
+  (btr:detach-all-objects (btr:get-environment-object)))
+
+
+
 (define-test get-loose-attached-objects-simple
   ;; Returns the loose attachments of an object
+  (spawn-robot)
   (btr-utils:spawn-object 'oo1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
   (btr-utils:spawn-object 'oo2 :mug :pose 
@@ -438,6 +923,7 @@
 
 (define-test remove-loose-attachment-for-simple
   ;; Removes the loose attachments of an object
+  (spawn-robot)
   (btr-utils:spawn-object 'oo1 :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
   (btr-utils:spawn-object 'oo2 :mug :pose 
@@ -487,6 +973,7 @@
   ;; Attaches a new pose to an item with attached items,
   ;; so the pose of the attached items should change relative to the
   ;; item they are attached to too.
+  (spawn-robot)
   (btr-utils:spawn-object 'oo1 :mug :pose 
                           '((-1 0.0 0.9)(0 0 0 1)))
   (btr-utils:spawn-object 'oo2 :mug :pose 
