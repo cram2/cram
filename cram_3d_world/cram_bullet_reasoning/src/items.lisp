@@ -147,22 +147,27 @@ unidirectional. See `attach-object' above."
     (return-from attach-object))
   (unless skip-removing-loose
     (remove-loose-attachment-for object))
-  (push (cons (name object)
-              (cons
-               (list (make-attachment :object (name object)
-                                      :attachment attachment-type))
-               ;; Since robot objects are not in the attached-objects
-               ;; list of items, this has to be copied manuelly:
-               (if (object-attached (get-robot-object) object)
-                   (get-collision-information object (get-robot-object))
-                   (create-static-collision-information object))))
-        (slot-value other-object 'attached-objects))
-  (push (cons (name other-object)
-              (cons
-               (list (make-attachment :object (name other-object)
-                                      :loose loose :attachment attachment-type))
-               (create-static-collision-information other-object)))
-        (slot-value object 'attached-objects)))
+  (let ((object-collision-information 
+          ;; Since robot objects are not in the attached-objects
+          ;; list of items, this has to be copied manuelly:
+          (if (object-attached (get-robot-object) object)
+              (get-collision-information object (get-robot-object))
+              (create-static-collision-information object)))
+        (other-object-collision-information 
+          (create-static-collision-information other-object)))
+    
+    (push (cons (name object)
+                (cons
+                 (list (make-attachment :object (name object)
+                                        :attachment attachment-type))
+                 object-collision-information))
+          (slot-value other-object 'attached-objects))
+    (push (cons (name other-object)
+                (cons
+                 (list (make-attachment :object (name other-object)
+                                        :loose loose :attachment attachment-type))
+                 other-object-collision-information))
+          (slot-value object 'attached-objects))))
 
 (defmethod attach-object ((other-objects list) (object item)
                           &key attachment-type loose)
