@@ -39,25 +39,6 @@
             (btr-utils:spawn-object name :mug :pose '((0 0 2.0) (0 0 0 1))))
           names))
 
-(defun spawn-environment ()
-  (assert
-   (setf btr-belief:*kitchen-urdf*
-         (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
-  (prolog:prolog
-   `(and (btr:bullet-world ?w)
-         (prolog:-> (man-int:environment-name ?environment-name)
-                    (btr:assert ?w (btr:object :urdf ?environment-name
-                                               ((0 0 0) (0 0 0 1))
-                                               :collision-group :static-filter
-                                               :collision-mask (:default-filter
-                                                                :character-filter)
-                                               :urdf ,btr-belief:*kitchen-urdf*
-                                               :compound T))
-                    (warn "MAN-INT:ENVIRONMENT-NAME was not defined. ~
-                    Have you loaded an environment knowledge package?"))))
-  (clrhash (btr::get-updated-attachments))
-  (btr:detach-all-objects (btr:get-robot-object)))
-
 (define-test robot-attached-objects-in-collision-negative
   ;; Tests if the function returns nil since not one object is attached
   ;; to a robot link.
