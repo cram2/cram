@@ -130,12 +130,14 @@
   (<- (cpoe:arms-positioned ?left-configuration ?right-configuration ?delta)
     (rob-int:robot ?robot)
     (-> (lisp-pred identity ?left-configuration)
-        (and (rob-int:robot-joint-states :left ?left-configuration ?left-goal-states)
-             (lisp-pred joint-states-converged ?left-goal-states ?delta))
+        (and
+         (rob-int:robot-joint-states ?robot :arm :left ?left-configuration ?left-goal-states)
+         (lisp-pred joint-states-converged ?left-goal-states ?delta))
         (true))
     (-> (lisp-pred identity ?right-configuration)
-        (and (rob-int:robot-joint-states :right ?right-configuration ?right-goal-states)
-             (lisp-pred joint-states-converged ?right-goal-states ?delta))
+        (and
+         (rob-int:robot-joint-states ?robot :arm :right ?right-configuration ?right-goal-states)
+         (lisp-pred joint-states-converged ?right-goal-states ?delta))
         (true)))
 
   (<- (cpoe:ees-at ?left-poses ?right-poses)
