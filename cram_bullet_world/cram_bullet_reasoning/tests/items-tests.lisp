@@ -785,7 +785,7 @@
     (btr:remove-object btr:*current-bullet-world* 'oo2)
     (btr:remove-object btr:*current-bullet-world* 'oo3))
 
-(define-test attach-object-and-detach-object-shopping-demo-collision-flagsy
+(define-test attach-object-and-detach-object-shopping-demo-collision-flags
   (spawn-robot)
   (spawn-environment)
   (btr-utils:spawn-object 'basket :mug :pose 
@@ -875,6 +875,106 @@
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object)))
 
+(define-test attach-object-and-detach-static-object-shopping-demo-collision-flags
+  (spawn-robot)
+  (spawn-kitchen)
+  (btr-utils:spawn-object 'basket :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'oo1 :mug :pose 
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (loop for body in (apply 'concatenate 'list
+                           (list (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'oo1))
+                                 (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'basket))))
+        do
+           (setf
+            (btr::collision-flags body)
+            :CF-STATIC-OBJECT))
+  ;; Attach object to environment and basket to the robot
+  (btr:attach-object (btr:get-robot-object)
+                     (btr:object btr:*current-bullet-world* 'basket)
+                     :link "r_wrist_roll_link" :loose nil :grasp :front)
+  (btr:attach-object (btr:get-environment-object)
+                     (btr:object btr:*current-bullet-world* 'oo1 )
+                     :link "sink_area_surface")
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'basket))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'basket))))))
+  ;; Robot grasps the object
+  ;; 1. detached from the env
+  (btr:detach-object (btr:get-environment-object) 
+                     (btr:object btr:*current-bullet-world* 'oo1))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  ;; 2. attached to the robot
+  (btr:attach-object (btr:get-robot-object)
+                     (btr:object btr:*current-bullet-world* 'oo1)
+                     :link "l_wrist_roll_link" :loose nil :grasp :front)
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  ;; Place object into the basket
+  (btr:detach-object (btr:get-robot-object)
+                     (btr:object btr:*current-bullet-world* 'oo1)
+                     :link "l_wrist_roll_link")
+  ;; Object oo1 falls in the basket
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  ;; Attach object to the basket
+  (btr:attach-object 'basket 'oo1)
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'basket))))))
+  (assert-equal
+   :CF-STATIC-OBJECT
+   (car (btr::collision-flags 
+         (car 
+          (btr:rigid-bodies 
+           (btr:object
+            btr:*current-bullet-world* 
+            'oo1))))))
+  (btr:remove-object btr:*current-bullet-world* 'oo1)
+  (btr:remove-object btr:*current-bullet-world* 'basket)
+  (btr:detach-all-objects (btr:get-robot-object))
+  (btr:detach-all-objects (btr:get-environment-object)))
 
 
 (define-test get-loose-attached-objects-simple
