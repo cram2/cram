@@ -100,6 +100,10 @@
    (other-object-name
     :initarg :other-object-name
     :reader event-other-object-name
+    :initform nil)
+   (object-designator
+    :initarg :object-designator
+    :reader event-object-designator
     :initform nil)))
 
 (defclass object-detached-robot (object-connection-event)
