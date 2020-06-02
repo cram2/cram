@@ -510,22 +510,18 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
 (defun drop-at-sink ()
   (let ((?base-pose-in-map
-          ;; (cl-transforms-stamped:make-pose-stamped
-          ;;  cram-tf:*fixed-frame*
-          ;;  0.0
-          ;;  (cl-transforms:make-3d-vector 0.7 -0.2 0)
-          ;;  (cl-transforms:make-identity-rotation))
           (cl-transforms-stamped:make-pose-stamped
            cram-tf:*fixed-frame*
            0.0
            (cl-transforms:make-3d-vector 0 0 0)
            (cl-transforms:make-quaternion 0 0 -1 1)))
-        (?placing-pose
-          (cl-transforms-stamped:make-pose-stamped
-           cram-tf:*robot-base-frame*
-           0.0
-           (cl-transforms:make-3d-vector 0.7 0 1.2)
-           (cl-transforms:make-identity-rotation))))
+        ;; (?placing-pose
+        ;;   (cl-transforms-stamped:make-pose-stamped
+        ;;    cram-tf:*robot-base-frame*
+        ;;    0.0
+        ;;    (cl-transforms:make-3d-vector 0.7 0 1.2)
+        ;;    (cl-transforms:make-identity-rotation)))
+        )
     (cpl:with-failure-handling
         ((common-fail:navigation-low-level-failure (e)
            (declare (ignore e))
@@ -541,8 +537,9 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
       (exe:perform
        (desig:an action
                  (type placing)
-                 (target (desig:a location
-                                  (pose ?placing-pose))))))))
+                 ;; (target (desig:a location
+                 ;;                  (pose ?placing-pose)))
+                 )))))
 
 
 (defun transport (&key

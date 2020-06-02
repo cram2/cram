@@ -141,10 +141,27 @@ unidirectional. See `attach-object' above."
   (when (equal (name object) (name other-object))
     (warn "Cannot attach an object to itself: ~a" (name object))
     (return-from attach-object))
-  (when (member (name object) (attached-objects other-object))
-    (warn "Item ~a already attached to ~a. Ignoring new attachment."
-          (name object) (name other-object))
-    (return-from attach-object))
+  (let ((existing-attachment
+          (find (name object) (attached-objects other-object) :key #'car)))
+    (when existing-attachment
+      (let ((attachment-struct (caadr existing-attachment)))
+        (cond
+          ((and (eql attachment-type (attachment-attachment attachment-struct))
+                (eql loose (attachment-loose attachment-struct)))
+           (warn "Item ~a already attached to ~a. ~
+                  Ignoring new attachment."
+                 (name object) (name other-object))
+           (return-from attach-object))
+          ((eql loose T)
+           (warn "Item ~a already attached to ~a but not loosely. ~
+                  Ignoring new loose attachment."
+                 (name object) (name other-object))
+           (return-from attach-object))
+          ((eql loose NIL)
+           (warn "Item ~a already attached to ~a but loosely. ~
+                  Deleting old attachment."
+                 (name object) (name other-object))
+           (btr:detach-object other-object object))))))
   (unless skip-removing-loose
     (remove-loose-attachment-for object))
   (let ((object-collision-information
