@@ -153,7 +153,8 @@ unidirectional. See `attach-object' above."
                                       :attachment attachment-type))
                ;; Since robot objects are not in the attached-objects
                ;; list of items, this has to be copied manuelly:
-               (if (object-attached (get-robot-object) object)
+               (if (and (get-robot-object)
+                        (object-attached (get-robot-object) object))
                    (get-collision-information object (get-robot-object))
                    (create-static-collision-information object))))
         (slot-value other-object 'attached-objects))
@@ -170,12 +171,16 @@ unidirectional. See `attach-object' above."
 than one item. If `loose' T the other attachments have to be made with
 `skip-removing-loose' as T to prevent removing loose attachments between
 the element before in `other-objects' and `object'."
-  (attach-object (first other-objects) object :attachment-type attachment-type :loose loose)
-  (mapcar (lambda (obj)
-            (attach-object obj object
-                           :attachment-type attachment-type :loose loose
-                           :skip-removing-loose T))
-          (cdr other-objects)))
+  (if other-objects
+      (progn
+        (attach-object (first other-objects) object
+                       :attachment-type attachment-type :loose loose)
+        (mapcar (lambda (obj)
+                  (attach-object obj object
+                                 :attachment-type attachment-type :loose loose
+                                 :skip-removing-loose T))
+                (cdr other-objects)))
+      (warn "Trying to attach an object to a NIL.")))
 
 (defmethod detach-object ((other-object item) (object item) &key)
   "Removes item names from the given arguments in the corresponding
