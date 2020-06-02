@@ -39,6 +39,25 @@
             (btr-utils:spawn-object name :mug :pose '((0 0 2.0) (0 0 0 1))))
           names))
 
+(defun spawn-environment ()
+  (assert
+   (setf btr-belief:*kitchen-urdf*
+         (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
+  (prolog:prolog
+   `(and (btr:bullet-world ?w)
+         (prolog:-> (man-int:environment-name ?environment-name)
+                    (btr:assert ?w (btr:object :urdf ?environment-name
+                                               ((0 0 0) (0 0 0 1))
+                                               :collision-group :static-filter
+                                               :collision-mask (:default-filter
+                                                                :character-filter)
+                                               :urdf ,btr-belief:*kitchen-urdf*
+                                               :compound T))
+                    (warn "MAN-INT:ENVIRONMENT-NAME was not defined. ~
+                    Have you loaded an environment knowledge package?"))))
+  (clrhash (btr::get-updated-attachments))
+  (btr:detach-all-objects (btr:get-robot-object)))
+
 (define-test robot-attached-objects-in-collision-negative
   ;; Tests if the function returns nil since not one object is attached
   ;; to a robot link.
@@ -94,58 +113,60 @@
 (define-test robot-attached-objects-in-collision-positive-environment-collisions
   (setup-world)
   (spawn-robot)
+  (spawn-environment)
   (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
   ;; spawn basket which is in collision with the environment
-  (btr:add-object btr:*current-bullet-world* :basket :basket-1
+  (btr:add-object btr:*current-bullet-world* :basket
+                  :basket-1
                   '((1.2 0 0.8) (0.0 0 0 1.0))
-                                                     :length 0.2 :width 0.2 :height 0.2)
-  ;; attach basket to robot 
+                  :length 0.2 :width 0.2 :height 0.2)
+  ;; attach basket to robot
   (btr:attach-object (btr:get-robot-object)
                      (btr:object btr:*current-bullet-world* :basket-1)
                      :link "r_wrist_roll_link" :loose nil :grasp :front)
-  ;; check for collision 
-  (assert-equal '(:ENVIRONMENT) 
+  ;; check for collision
+  (assert-equal (list (btr:get-environment-name))
                 (mapcar #'btr:name (btr::robot-attached-objects-in-collision)))
   ;; spawn plate on sink area surface ...
   (btr-utils:spawn-object :plate-1 :plate :pose '((1.5 0.5 0.9) (0.0 0 0 1.0)))
-  ;; ... and attach it to the environment 
+  ;; ... and attach it to the environment
   (btr:attach-object (btr:get-environment-object)
                      (btr:object btr:*current-bullet-world*
                                  :plate-1)
                      :link "sink_area_surface")
-  ;; and check for collisions again 
-  (assert-equal '(:ENVIRONMENT) 
+  ;; and check for collisions again
+  (assert-equal (list (btr:get-environment-name))
                 (mapcar #'btr:name (btr::robot-attached-objects-in-collision)))
   (clean-environment '(:basket-1 :plate-1)))
 
 (define-test robot-attached-objects-in-collision-negative-environment-collisions
   (setup-world)
   (spawn-robot)
+  (spawn-environment)
   (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
   ;; spawn basket which is in collision with the environment
-  (btr:add-object btr:*current-bullet-world* :basket :basket-1
+  (btr:add-object btr:*current-bullet-world* :basket
+                  :basket-1
                   '((1.2 0 0.8) (0.0 0 0 1.0))
-                                                     :length 0.2 :width 0.2 :height 0.2)
-  ;; attach basket to robot 
+                  :length 0.2 :width 0.2 :height 0.2)
+  ;; attach basket to robot
   (btr:attach-object (btr:get-robot-object)
                      (btr:object btr:*current-bullet-world* :basket-1)
                      :link "r_wrist_roll_link" :loose nil :grasp :front)
   ;; spawn plate on sink area surface ...
   (btr-utils:spawn-object :plate-1 :plate :pose '((1.5 0.5 0.9) (0.0 0 0 1.0)))
-  ;; ... and attach it to the environment 
+  ;; ... and attach it to the environment
   (btr:attach-object (btr:get-environment-object)
-                     (btr:object btr:*current-bullet-world*
-                                 :plate-1)
+                     (btr:object btr:*current-bullet-world* :plate-1)
                      :link "sink_area_surface")
-  ;; attach basket to the environment 
+  ;; attach basket to the environment
   (btr:attach-object (btr:get-environment-object)
-                     (btr:object btr:*current-bullet-world*
-                                 :basket-1)
+                     (btr:object btr:*current-bullet-world* :basket-1)
                      :link "sink_area_surface")
-  ;; check collisions again 
+  ;; check collisions again
   (assert-false (mapcar #'btr:name (btr::robot-attached-objects-in-collision)))
   (clean-environment '(:basket-1 :plate-1)))
