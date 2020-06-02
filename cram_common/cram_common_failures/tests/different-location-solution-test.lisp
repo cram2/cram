@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2019, Amar Fayaz <amar@uni-bremen.de>
+;;; Copyright (c) 2020, Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,11 @@
 
 (in-package :cram-common-failures-tests)
 
-(defparameter *target-location* (cl-tf:make-pose-stamped
+(defparameter *target-location* (cl-transforms-stamped:make-pose-stamped
                                  "map"
                                  0.0
-                                 (cl-tf:make-3d-vector 0 1 0)
-                                 (cl-tf:make-quaternion 0 0 0 1)))
+                                 (cl-transforms:make-3d-vector 0 1 0)
+                                 (cl-transforms:make-quaternion 0 0 0 1)))
 
 (defparameter *test-location* (let ((?target *target-location*))
                                 (desig:a location
@@ -62,11 +62,12 @@
   (setup-world)
   (let ((first-location (desig:reference *test-location*))
         (new-location (desig:reference
-                       (common-fail:next-different-location-solution *test-location*))))
+                       (common-fail:next-different-location-solution
+                        *test-location*))))
     (assert-true (< cram-common-failures::*default-distance-threshold*
-                    (cl-tf:v-dist
-                     (cl-tf:origin first-location)
-                     (cl-tf:origin new-location))))))
+                    (cl-transforms:v-dist
+                     (cl-transforms:origin first-location)
+                     (cl-transforms:origin new-location))))))
 
 
 (define-test retry-with-diff-loc-designator-test
@@ -85,16 +86,19 @@
                                robot-location-retries
                                (:error-object-or-string e
                                 :warning-namespace (fd-plans search-for-object)
-                                :rethrow-failure 'common-fail:object-nowhere-to-be-found) 
-                             (push (desig:reference *test-location*) location-output))))
+                                :rethrow-failure 'common-fail:object-nowhere-to-be-found)
+                             (push
+                              (desig:reference *test-location*)
+                              location-output))))
 
 
                       (cpl:fail 'common-fail:looking-high-level-failure))))
     (assert-true  (eq 8 (length location-output)))
     (maplist (lambda (pose-list)
                (when (>= (length pose-list) 2)
-                 (assert-true (< cram-common-failures::*default-distance-threshold*
-                                 (cl-tf:v-dist
-                                  (cl-tf:origin (first pose-list))
-                                  (cl-tf:origin (second pose-list)))))))
+                 (assert-true
+                  (< cram-common-failures::*default-distance-threshold*
+                     (cl-transforms:v-dist
+                      (cl-transforms:origin (first pose-list))
+                      (cl-transforms:origin (second pose-list)))))))
              location-output)))
