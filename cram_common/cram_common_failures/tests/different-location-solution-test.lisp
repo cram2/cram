@@ -38,9 +38,8 @@
 (defparameter *test-location* (let ((?target *target-location*))
                                 (desig:a location
                                          (reachable-for pr2)
-                                         (location (desig:a
-                                                    location
-                                                    (pose ?target))))))
+                                         (location (desig:a location
+                                                            (pose ?target))))))
 
 (defun setup-world ()
   (setf rob-int:*robot-urdf*
@@ -50,7 +49,6 @@
          (rob-int:robot ?robot)
          (assert (btr:object ?world :urdf ?robot ((0 0 0) (0 0 0 1))
                              :urdf ,rob-int:*robot-urdf*))))
-  (clrhash (btr::get-updated-attachments))
   (btr:detach-all-objects (btr:get-robot-object)))
 
 
@@ -85,14 +83,15 @@
                                *test-location*
                                robot-location-retries
                                (:error-object-or-string e
-                                :warning-namespace (fd-plans search-for-object)
-                                :rethrow-failure 'common-fail:object-nowhere-to-be-found)
+                                :warning-namespace
+                                (fd-plans search-for-object)
+                                :rethrow-failure
+                                'common-fail:object-nowhere-to-be-found)
                              (push
                               (desig:reference *test-location*)
                               location-output))))
-
-
                       (cpl:fail 'common-fail:looking-high-level-failure))))
+
     (assert-true  (eq 8 (length location-output)))
     (maplist (lambda (pose-list)
                (when (>= (length pose-list) 2)
