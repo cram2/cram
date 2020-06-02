@@ -877,7 +877,7 @@
 
 (define-test attach-object-and-detach-static-object-shopping-demo-collision-flags
   (spawn-robot)
-  (spawn-kitchen)
+  (spawn-environment)
   (btr-utils:spawn-object 'basket :mug :pose 
                           '((-1 0.0 0.92)(0 0 0 1)))
   (btr-utils:spawn-object 'oo1 :mug :pose 
