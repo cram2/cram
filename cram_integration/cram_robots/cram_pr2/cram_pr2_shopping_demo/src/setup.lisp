@@ -195,9 +195,13 @@
                    (cl-transforms:make-quaternion 0 0 0 1))
                   :mass 1
                   :length 0.5 :width 0.3 :height 0.18 :handle-height 0.09)
-  (btr:attach-object (btr:get-robot-object)
-                     (btr:object btr:*current-bullet-world* :b)
-                     :link "l_wrist_roll_link"))
+  (coe:on-event
+   (make-instance 'cpoe:object-attached-robot
+     :link "l_wrist_roll_link"
+     :grasp :front
+     :arm :left
+     :object-name :b
+     :object-designator (desig:an object (type basket) (name b)))))
 
 (defun spawn-objects ()
   (let ((i 1))
