@@ -246,7 +246,6 @@ while ignoring failures; and execute the last pose with propagating the failures
                ((:gripper ?left-or-right))
                ((:effort ?effort))
                ((:object object-designator))
-               ((:grasped-object new-object-designator))
                ((:grasp ?grasp))
              &allow-other-keys)
   (declare (type (or keyword list) ?left-or-right)
@@ -274,9 +273,9 @@ In any case, issue ROBOT-STATE-CHANGED event."
               (make-instance 'cpoe:object-attached-robot
                 :arm ?left-or-right
                 :object-name (desig:desig-prop-value object-designator :name)
+                :object-designator object-designator
                 :grasp ?grasp))
-             (desig:equate object-designator new-object-designator)
-             new-object-designator)))
+             (desig:current-desig object-designator))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 

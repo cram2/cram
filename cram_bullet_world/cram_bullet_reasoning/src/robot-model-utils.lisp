@@ -197,13 +197,26 @@ Should it be taken out and made PR2-specific?"
 are colliding with anything in the world, except the robot itself
 or other objects to which current object is attached."
   (some #'identity
+        ;; for each object that is attached to the robot
         (mapcar (lambda (attachment)
-                  ;; remove if object has attachments, which are then colliding
-                  (remove-if #'attached-objects
-                             ;; remove if robot is colliding
-                             (remove (get-robot-object)
-                                     (find-objects-in-contact
-                                      *current-bullet-world*
-                                      (object *current-bullet-world*
-                                              (car attachment))))))
+                  (let* ((this-object-name
+                           (car attachment))
+                         ;; get a list of objects that this object is colliding with
+                         (colliding-objects
+                           (find-objects-in-contact
+                            *current-bullet-world*
+                            (object *current-bullet-world* this-object-name)))
+                         ;; remove the robot from this list
+                         (colliding-objects-without-robot
+                           (remove (get-robot-object) colliding-objects))
+                         ;; remove all objects that this object is attached to
+                         (colliding-objects-without-robot-and-attached-objects
+                           (remove-if (lambda (object)
+                                        (when (or (typep object 'btr:item)
+                                                  (typep object 'btr:robot-object))
+                                          (find this-object-name
+                                                (btr:attached-objects object)
+                                                :key #'car)))
+                                      colliding-objects-without-robot)))
+                    colliding-objects-without-robot-and-attached-objects))
                 (attached-objects (get-robot-object)))))

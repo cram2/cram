@@ -49,16 +49,16 @@
         (rob-int:reachability-designator ?designator))
     ;; make sure that the location is not on the robot itself
     ;; if it is, don't generate a costmap
-    (once (or (and (desig:desig-prop ?designator (:object ?some-object))
-                   (desig:current-designator ?some-object ?object)
-                   (lisp-fun man-int:get-object-pose-in-map ?object ?object-pose)
-                   (lisp-pred identity ?object-pose)
-                   (-> (desig:desig-prop ?object (:location ?some-loc))
-                       (not (man-int:always-reachable ?some-loc))
-                       (true)))
-              (and (desig:desig-prop ?designator (:location ?some-location))
-                   (desig:current-designator ?some-location ?location)
-                   (not (man-int:always-reachable ?location)))))
+    (-> (desig:desig-prop ?designator (:object ?some-object))
+        (and (desig:current-designator ?some-object ?object)
+             (-> (desig:desig-prop ?object (:location ?some-loc))
+                 (not (man-int:always-reachable ?some-loc))
+                 (true)))
+        (true))
+    (-> (desig:desig-prop ?designator (:location ?some-location))
+        (and (desig:current-designator ?some-location ?location)
+             (not (man-int:always-reachable ?location)))
+        (true))
     (location-costmap:costmap ?costmap)
     (location-costmap:costmap-add-function
      restricted-area
