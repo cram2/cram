@@ -167,14 +167,14 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     ;; make sure generated poses are stable, especially important for random ones
     ;; TDOO: if unstable, call itself
 
-    ;; stabilize world
-    (btr:simulate btr:*current-bullet-world* 100)
-
-    ;; attach spoon to the drawer
+     ;; attach spoon to the drawer
     (when (btr:object btr:*current-bullet-world* :spoon-1)
       (btr:attach-object (btr:get-environment-object)
                          (btr:object btr:*current-bullet-world* :spoon-1)
                          :link "sink_area_left_upper_drawer_main"))
+
+    ;; stabilize world
+    (btr:simulate btr:*current-bullet-world* 100)
 
     ;; return list of BTR objects
     objects))
