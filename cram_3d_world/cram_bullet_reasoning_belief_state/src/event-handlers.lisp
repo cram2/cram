@@ -188,9 +188,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
           (when btr-object
             (btr:detach-object robot-object btr-object :link link)
             (btr:simulate btr:*current-bullet-world* 10)
-            ;; find the link or item that supports the object and attach the object to it.
-            ;; if btr-object is in contact with both the environment and an item,
-            ;; only environment attachment will happen.
+            ;; find the links and items that support the object
+            ;; and attach the object to them.
+            ;; links get proper attachments and items loose attachments
             (let ((contacting-links
                     (remove-duplicates
                      (mapcar
