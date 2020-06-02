@@ -1,4 +1,4 @@
-;;; Copyright (c) 2012, Amar Fayaz <amar@uni-bremen.de>
+;;; Copyright (c) 2020, Amar Fayaz <amar@uni-bremen.de>
 ;;; All rights reserved.
 ;;; 
 ;;; Redistribution and use in source and binary forms, with or without
