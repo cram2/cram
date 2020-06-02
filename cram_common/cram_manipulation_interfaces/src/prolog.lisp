@@ -181,5 +181,4 @@
     (desig:current-designator ?some-location ?location)
     ;; if the location is on the robot itself, use the current robot pose
     (always-reachable ?location)
-    (format "LOCATION ALWAYS REACHABLE~%~%~%~%")
     (lisp-fun cram-tf:robot-current-pose ?pose-stamped)))

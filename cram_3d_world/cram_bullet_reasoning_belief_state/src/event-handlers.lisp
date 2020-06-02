@@ -30,6 +30,34 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
+(defun update-object-designator-location (object-designator location-designator)
+  (desig:make-designator
+   :object
+   `((:location ,location-designator)
+     ,@(remove :location (desig:properties object-designator) :key #'car))
+   object-designator))
+
+(defun remove-object-designator-location (object-designator)
+  (desig:make-designator
+   :object
+   (remove :location (desig:properties object-designator) :key #'car)
+   object-designator))
+
+(defun invalidate-object-designator-pose (object-designator)
+  "Removes the LOCATION key of the designator and renames POSE into OLD-POSE."
+  (let* ((properties (desig:properties object-designator))
+         (pose-pair (find :pose properties :key #'car)))
+    (desig:make-designator
+     :object
+     (append (remove pose-pair
+                     (remove :location
+                             (remove :old-pose properties :key #'car)
+                             :key #'car))
+             `((:old-pose ,@(rest pose-pair))))
+     object-designator)))
+
+
+
 (defmethod cram-occasions-events:on-event object-perceived 2 ((event cpoe:object-perceived-event))
   (if cram-projection:*projection-environment*
       ;; if in projection, only add the object name to perceived designators list
@@ -54,17 +82,10 @@
 
 
 (defmethod cram-occasions-events:on-event btr-belief ((event cpoe:object-location-changed))
-  (flet ((update-object-designator-location (object-designator location-designator)
-           (desig:make-designator
-            :object
-            `((:location ,location-designator)
-              ,@(remove :location (desig:properties object-designator) :key #'car))
-            object-designator)))
-
-    ;; update the designator to get the new location
-    (update-object-designator-location
-      (cpoe:event-object-designator event)
-      (cpoe:event-location-designator event))))
+  ;; update the designator to get the new location
+  (update-object-designator-location
+   (cpoe:event-object-designator event)
+   (cpoe:event-location-designator event)))
 
 
 
@@ -106,8 +127,10 @@ If there is no other method with 1 as qualifier, this method will be executed al
                        (cpoe:event-link event)
                        (error "[BTR-BELIEF OBJECT-ATTACHED] either link or arm ~
                                in object-attached-robot event had to be given..."))))
-         (grasp (cpoe:event-grasp event)))
-    (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
+         (grasp (cpoe:event-grasp event))
+         (object-designator (cpoe:event-object-designator event)))
+    (when (cut:is-var link)
+      (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
     ;; first detach from environment in case it is attached
     (when (and (typep environment-object 'btr:robot-object)
                (btr:object-attached environment-object btr-object))
@@ -132,15 +155,15 @@ If there is no other method with 1 as qualifier, this method will be executed al
           (mapc (lambda (attached-link grasp)
                   ;; detach and attach again with loose attachment
                   (btr:detach-object robot-object btr-object :link attached-link)
-                  ;; TODO: These loose attachments seem buggy,
-                  ;; so just removing completely...
-                  ;; (btr:attach-object robot-object btr-object :link attached-link
-                  ;;                                            :loose t
-                  ;;                                            :grasp grasp)
-                  )
+                  (btr:attach-object robot-object btr-object :link attached-link
+                                                             :loose t
+                                                             :grasp grasp))
                 links grasps)))
       ;; attach
-      (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp))))
+      (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)
+      ;; invalidate the pose in the designator
+      (when object-designator
+        (invalidate-object-designator-pose object-designator)))))
 
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))

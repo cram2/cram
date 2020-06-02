@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;               2019, Thomas Lipps <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -363,19 +364,27 @@ who is the parent of `object' in the attachment."
       (loop for body in (rigid-bodies object)
             collecting (make-collision-information
                         :rigid-body-name (name body)
-                        :flags (cond ((not (attached-objects object))
+                        :flags (cond (;; If the object does have no
+                                      ;; attached objects we take the
+                                      ;; current state of it.
+                                      (not (attached-objects object))
                                       (collision-flags body))
-                                     ((object-static-in-past-p object)
+                                     ;; If the object is attached with
+                                     ;; other objects we use the saved
+                                     ;; collision information from
+                                     ;; these objects. If the
+                                     ;; collision information of all
+                                     ;; these objects is static, this
+                                     ;; returns static too.
+                                     ((only-static-in-attachments-p object)
                                       '(:cf-static-object))
                                      (t
                                       NIL)))
-                        do (setf (collision-flags body) :cf-static-object))))
+            do (setf (collision-flags body) :cf-static-object))))
 
-(defun object-static-in-past-p (object)
-  "Returns if the `object's flags were `cf-static-object' at the
-beginning or if its flags were set to `cf-static-object', because
-it was attached to other objects. Returns T, if `object's flags were
-always `cf-static-object', else NIL."
+(defun only-static-in-attachments-p (object)
+  "Returns T, if the `object's flags are `cf-static-object' in
+  the attachments of `object's attached objects."
   (declare (type object object))
   (let* ((attached-object-names
            (mapcar #'car
@@ -384,22 +393,25 @@ always `cf-static-object', else NIL."
                      *current-bullet-world*
                      (name object)))))
          (attachments-of-attached-objects
-           (mapcar #'attached-objects
-                   (mapcar (alexandria:curry #'object
-                                             *current-bullet-world*)
-                           attached-object-names)))
+           (mapcar
+            (alexandria:compose
+             #'attached-objects
+             (alexandria:curry #'object *current-bullet-world*))
+           attached-object-names))
          (attachments-to-object
-           (mapcar #'car
-                   (loop for attachments in attachments-of-attached-objects
-                         collecting
-                         (remove-if-not (lambda (attach)
-                                          (equalp (car
-                                                   attach)
-                                                  (name object)))
-                                        attachments))))
+           (mapcar 
+            #'car
+            (loop for attachments in attachments-of-attached-objects
+                  collecting
+                  (remove-if-not (alexandria:curry 
+                                  #'equalp
+                                  (name object))
+                                 attachments :key #'car))))
          (collision-information-list
-           (remove-if-not #'identity
-                          (mapcar #'caddr attachments-to-object))))
+           (mapcar
+            #'caddr
+            (remove-if-not #'identity
+                           attachments-to-object))))
 
     (when collision-information-list
       (every (alexandria:curry #'equalp '(:cf-static-object))
