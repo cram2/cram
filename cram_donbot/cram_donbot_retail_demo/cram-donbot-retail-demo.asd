@@ -82,5 +82,4 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "projection-demo" :depends-on ("package"))
-     (:file "demo" :depends-on ("package" "projection-demo"))))))
+     (:file "demo" :depends-on ("package"))))))
