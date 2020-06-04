@@ -152,15 +152,24 @@
               ?pose-stamped))
 
   ;; Resolving (a location
-  ;;              (on (an object
-  ;;                      (type robot
+  ;;              (reachable-for pr2)
+  ;;              (location (on/in (an object
+  ;;                                   (type robot
   ;; First, a helper predicate to discern such a location
+  (<- (always-reachable ?location-designator)
+    (desig:loc-desig? ?location-designator)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (or (desig:desig-prop ?current-location-designator (:on ?object-designator))
+        (desig:desig-prop ?current-location-designator (:in ?object-designator)))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (desig:desig-prop ?current-object-designator (:type :robot)))
+  ;; Also, a location on an item that is held by the robot is also always reachable
   (<- (always-reachable ?location-designator)
     (desig:loc-desig? ?location-designator)
     (desig:current-designator ?location-designator ?current-location-designator)
     (desig:desig-prop ?current-location-designator (:on ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
-    (desig:desig-prop ?current-object-designator (:type :robot)))
+    (cpoe:object-in-hand ?current-object-designator))
 
   (<- (other-object-is-a-robot ?some-object-designator)
     (desig:current-designator ?some-object-designator ?object-designator)

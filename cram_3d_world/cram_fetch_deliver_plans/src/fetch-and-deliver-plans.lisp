@@ -504,7 +504,9 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   (proj-reasoning:check-placing-pose-stability
                    ?object-designator ?target-location)
 
-                  (exe:perform place-action))))))))))
+                  (exe:perform place-action)
+
+                  (desig:current-desig ?object-designator))))))))))
 
 
 
@@ -627,4 +629,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
     (unless search-location-accessible
       (exe:perform (desig:an action
                              (type sealing)
-                             (location ?search-location))))))
+                             (location ?search-location)))))
+
+  (desig:current-desig ?object-designator))
