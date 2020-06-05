@@ -144,12 +144,13 @@ If not valid solution was found, returns NIL."
   "Method to find inverse kinematics for a given cartesian pose using resampling
 Syntax:
  (ik::find-ik-for (?goal-pose base-link tip-link seed-state-message)
-         (ik::with-resampling (current-value resampling-axis upper-limit lower-limit resampling-step)
+         (ik::with-resampling (current-value resampling-axis upper-limit
+                               lower-limit resampling-step)
              (ik::with-resampling current-value2 resampling-axis2 ...)
                             ....))
 "
   `(let ((old-debug-level (roslisp:debug-level nil)))
-     (unwind-protect 
+     (unwind-protect
           (progn
             (roslisp:set-debug-level nil 9)
             (let ((current-pose ,cartesian-pose)
@@ -176,40 +177,51 @@ Syntax:
                                          until (<= x ,lower-limit)
                                          collect x)
                                        (list ,lower-limit)))
-                                    ;; Calculating the pose offset for the corresponding joint value
+                                    ;; Calculating the pose offset for the
+                                    ;; corresponding joint value
                                     (pseudo-pose (lambda (offset)
-                                                   (if (eq ,resampling-axis :theta)
+                                                   (if (eq ,resampling-axis
+                                                           :theta)
                                                        (cram-tf:rotate-pose
                                                         current-pose
-                                                        :z (- offset))
+                                                        :z (- ,current-value offset))
                                                        (cram-tf:translate-pose
                                                         current-pose
                                                         (ecase ,resampling-axis
                                                           (:x :x-offset)
                                                           (:y :y-offset)
                                                           (:z :z-offset))
-                                                        (- offset))))))
+                                                        (- ,current-value offset))))))
                                 (loop
                                   for value in sampling-values
                                   do
-                                     (multiple-value-bind (solution-msg joint-values)
-                                         ;; Checking if the arguments contain &body clause or not. 
-                                         ;; 2 is the current number of arguments without including 
-                                         ;; the body. One being the form itself and the second
-                                         ;; being the list of arguments inside the paranthesis.
+                                     (multiple-value-bind
+                                           (solution-msg joint-values)
+                                         ;; Checking if the arguments contain
+                                         ;; &body clause or not. 2 is the
+                                         ;; current number of arguments without
+                                         ;; including the body. One being the
+                                         ;; form itself and the second being the
+                                         ;; list of values in the paranthesis.
                                          ;; Update according to API changes
                                          (if (> ,form-length 2)
-                                             ;; If body is provided, call it with the current 
-                                             ;; offseted value of pose (for retaining the loop 
-                                             ;; value on nestedcalls). Revert it back after 
-                                             ;; the execution of &body is completed.
-                                             (let ((old-current-pose current-pose))
-                                               (setf current-pose (funcall pseudo-pose value))
+                                             ;; If body is provided, call it
+                                             ;; with the current offseted value
+                                             ;; of pose (for retaining the loop
+                                             ;; value on nested calls). Revert
+                                             ;; it back after the execution of
+                                             ;; &body is completed.
+                                             (let ((old-current-pose
+                                                     current-pose))
+                                               (setf current-pose
+                                                     (funcall
+                                                      pseudo-pose value))
                                                (unwind-protect
                                                     (progn ,@body)
-                                                 (setf current-pose old-current-pose)))
+                                                 (setf current-pose
+                                                       old-current-pose)))
 
-                                             ;; If no &body clause make the ik-service call
+                                             ;; else make the ik-service call
                                              (call-ik-service
                                               (funcall pseudo-pose value)
                                               base-link-evaled
@@ -217,21 +229,33 @@ Syntax:
                                               seed-state-msg-evaled))
 
                                        (if (and current-joint-states
-                                                (assoc ,joint-name current-joint-states
+                                                (assoc ,joint-name
+                                                       current-joint-states
                                                        :test #'equal))
-                                           (setf (cdr (assoc ,joint-name current-joint-states
-                                                             :test #'equal))
+                                           (setf (second
+                                                  (assoc ,joint-name
+                                                         current-joint-states
+                                                         :test #'equal))
                                                  value)
                                            (setf current-joint-states
                                                  (cons (list ,joint-name value)
                                                        current-joint-states)))
-                                       ;; When a solution is obtained parse accordingly
+                                       ;; Parse the solution
                                        (when (and solution-msg
-                                                  (or (not solution-valid-p-evaled)
-                                                      (funcall solution-valid-p-evaled solution-msg)))
+                                                  (or (not
+                                                       solution-valid-p-evaled)
+                                                      (funcall
+                                                       solution-valid-p-evaled
+                                                       solution-msg
+                                                       current-joint-states)))
                                          (return (values solution-msg
-                                                         (cons (cons ,resampling-axis value)
-                                                               joint-values))))))))))
-                
+                                                         (cons
+                                                          (cons
+                                                           (if ,joint-name
+                                                               ,joint-name
+                                                               ,resampling-axis)
+                                                           value)
+                                                          joint-values))))))))))
+
                 ,@body)))
        (roslisp:set-debug-level nil old-debug-level))))
