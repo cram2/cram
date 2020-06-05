@@ -56,8 +56,9 @@
    ;; manipulation-interfaces
    #:get-action-gripping-effort
    #:get-action-gripper-opening
-   #:get-action-trajectory
+   #:get-object-type-carry-config
    #:get-action-grasps
+   #:get-action-trajectory
    #:get-location-poses
    #:get-object-likely-location
    #:get-object-destination

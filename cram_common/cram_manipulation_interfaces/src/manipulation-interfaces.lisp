@@ -42,6 +42,12 @@
   (:documentation "Returns a (lazy) list of keywords that represent the possible
 grasp orientations for `object-type' given `arm' and `object-transform-in-base'."))
 
+(defgeneric get-object-type-carry-config (object-type grasp)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "When carrying an object, which arm configuration to use.
+The return value is a symbol (keyword), which associates with a robot-specific
+joint state, specified in the robot description."))
+
 (defgeneric get-action-trajectory (action-type arm grasp objects-acted-on
                                    &key &allow-other-keys)
   (:method-combination cut:first-in-order-and-around)

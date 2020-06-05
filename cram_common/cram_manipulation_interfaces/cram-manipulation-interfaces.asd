@@ -55,6 +55,9 @@
      (:file "gripper" :depends-on ("package"
                                    "manipulation-interfaces"
                                    "object-hierarchy"))
+     (:file "carry" :depends-on ("package"
+                                 "manipulation-interfaces"
+                                 "object-hierarchy"))
      (:file "likely-locations" :depends-on ("package"
                                             "manipulation-interfaces"
                                             "object-hierarchy"))

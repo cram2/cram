@@ -130,14 +130,20 @@
 
   (<- (robot-joint-states boxy :arm :left :carry ?joint-states)
     (symbol-value *left-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states boxy :arm :left :park ?joint-states)
+    (symbol-value *left-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states boxy :arm :left :carry-top ?joint-states)
+    (symbol-value *left-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states boxy :arm :left :carry-side-gripper-vertical ?joint-states)
+    (symbol-value *left-parking-joint-states* ?joint-states))
 
   (<- (robot-joint-states boxy :arm :right :carry ?joint-states)
     (symbol-value *right-parking-joint-states* ?joint-states))
-
-  (<- (robot-joint-states boxy :arm :left :park ?joint-states)
-    (symbol-value *left-parking-joint-states* ?joint-states))
-
   (<- (robot-joint-states boxy :arm :right :park ?joint-states)
+    (symbol-value *right-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states boxy :arm :right :carry-top ?joint-states)
+    (symbol-value *right-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states boxy :arm :right :carry-side-gripper-vertical ?joint-states)
     (symbol-value *right-parking-joint-states* ?joint-states))
 
   (<- (robot-joint-states boxy :arm :left :flip ?joint-states)
