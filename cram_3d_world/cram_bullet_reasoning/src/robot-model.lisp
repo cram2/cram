@@ -161,20 +161,40 @@ Otherwise, the attachment is only used as information but does not affect the wo
     (error 'simple-error :format-control "Link ~a unknown"
                          :format-arguments (list link)))
   (with-slots (attached-objects) robot-object
-    (let ((obj-attachment
-            (assoc (name obj) attached-objects :test #'equal))
-          (new-attachment
-            (make-attachment
-             :object (name obj) :link link :loose loose :grasp grasp)))
-      (cond (obj-attachment
-             (pushnew new-attachment (car (cdr obj-attachment))
-                      :test #'equal :key #'attachment-link))
+    (let* ((new-attachment
+             (make-attachment
+              :object (name obj) :link link :loose loose :grasp grasp))
+           (obj-attachment
+             (assoc (name obj) attached-objects :test #'equal))
+           (attachment-struct
+             (caadr obj-attachment)))
+      (if obj-attachment
+          (cond
+            ((and (string-equal link (attachment-link attachment-struct))
+                  (eql loose (attachment-loose attachment-struct)))
+             (warn "Object ~a already attached to ~a. Ignoring new attachment."
+                   (name obj) (name robot-object))
+             (return-from attach-object))
+            ((and (string-equal link (attachment-link attachment-struct))
+                  (eql loose T))
+             (warn "Object ~a already attached to ~a's link ~a but not loosely. ~
+                    Ignoring new loose attachment."
+                   (name obj) (name robot-object) link)
+             (return-from attach-object))
+            ((and (string-equal link (attachment-link attachment-struct))
+                  (eql loose NIL))
+             (warn "Object ~a already attached to ~a's link ~a but loosely. ~
+                    Overwriting with new attachment."
+                   (name obj) (name robot-object) link)
+             (setf (attachment-loose attachment-struct) NIL))
             (t
-             (push (cons (name obj)
-                         (cons
-                          (list new-attachment)
-                          (create-static-collision-information obj)))
-                   attached-objects))))))
+             (pushnew new-attachment (car (cdr obj-attachment))
+                      :test #'equal :key #'attachment-link)))
+          (push (cons (name obj)
+                      (cons
+                       (list new-attachment)
+                       (create-static-collision-information obj)))
+                attached-objects)))))
 
 (defmethod detach-object ((robot-object robot-object) (object object) &key link)
   "Detaches `object' from the set of attached objects.
