@@ -299,19 +299,24 @@
                                   (compound *all-meshes-as-compound*)
                                   (flip-winding-order nil))
   "Loads and resizes the 3d-model. If `compound' is T we have a list of meshes, instead of one."
-  (let ((model (multiple-value-list
-                (physics-utils:load-3d-model (physics-utils:parse-uri mesh-filename)
-                                             :compound compound
-                                             :flip-winding-order flip-winding-order))))
+  (let* ((uri
+           (physics-utils:parse-uri mesh-filename))
+         (mesh-model
+           (cut:with-file-cache model uri
+               (multiple-value-list
+                (physics-utils:load-3d-model
+                 uri :compound compound :flip-winding-order flip-winding-order))
+             model)))
     (cond (scale
            (mapcar (lambda (model-part)
                      (physics-utils:scale-3d-model model-part scale))
-                   model))
+                   mesh-model))
           (size
            (mapcar (lambda (model-part)
                      (physics-utils:resize-3d-model model-part size))
-                   model))
-          (t model))))
+                   mesh-model))
+          (t
+           mesh-model))))
 
 (defun make-collision-shape-from-mesh (mesh-filename &key (color '(0.8 0.8 0.8 1.0))
                                                        (scale nil) (size nil)
