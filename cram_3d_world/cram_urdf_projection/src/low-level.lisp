@@ -224,8 +224,12 @@
 
 (defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
   (let* ((validation-function
-           (lambda (ik-solution-msg)
-             (not (perform-collision-check :avoid-all NIL NIL ik-solution-msg))))
+           (lambda (ik-solution-msg joint-states)
+             ;; This is due to the funcall in ik:with-resampling expects two
+             ;; arguments.
+             (declare (ignore joint-states))
+             (not
+              (perform-collision-check :avoid-all NIL NIL ik-solution-msg))))
          (joint-state-msg
            (ik:find-ik-for
                ((cl-transforms-stamped:pose->pose-stamped
@@ -687,7 +691,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
             :result-as-pose-or-transform :pose)))
         (error "Arm movement goals should be given in map frame"))))
 
-(defparameter *torso-resampling-step* 0.1)
+(defparameter *torso-resampling-step* 0.1d0)
 
 (defun get-ik-joint-positions (ee-pose base-link end-effector-link joint-names
                                torso-joint-name
@@ -707,7 +711,8 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                    validation-function)
             (ik:with-resampling (torso-current-angle
                                  :z torso-joint-upper-limit
-                                 torso-joint-lower-limit *torso-resampling-step*))))
+                                 torso-joint-lower-limit *torso-resampling-step*
+                                 torso-joint-name))))
                                    
       (unless ik-solution-msg
         (cpl:fail 'common-fail:manipulation-low-level-failure
@@ -718,7 +723,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 torso-angle)))))
 
 (defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose
-                                &optional joint-state-msg)
+                                &optional joint-state-msg joint-state-list)
   (declare (type (or keyword null) collision-mode)
            (type (or cl-transforms-stamped:pose-stamped null)
                  left-tcp-pose right-tcp-pose)
@@ -797,6 +802,7 @@ otherwise check collisions in current joint state."
           (unwind-protect
                (progn
                  (btr:set-robot-state-from-joints joint-state-msg (btr:get-robot-object))
+                 (btr:set-robot-state-from-joints joint-state-list (btr:get-robot-object))
                  (the-actual-collision-check collision-mode left-tcp-pose right-tcp-pose))
             (btr::restore-world-state world-state world)))
         (the-actual-collision-check collision-mode left-tcp-pose right-tcp-pose))))
@@ -838,10 +844,10 @@ otherwise check collisions in current joint state."
               (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit))))
 
     (let ((validation-function
-            (lambda (ik-solution-msg)
+            (lambda (ik-solution-msg joint-state-list)
               (not (perform-collision-check collision-mode
                                             left-tcp-pose right-tcp-pose
-                                            ik-solution-msg)))))
+                                            ik-solution-msg joint-state-list)))))
       (multiple-value-bind (left-ik left-torso-angle)
           ;; TODO: the LET is a temporary hack until we get a relay running for PR2
           ;; such that both arms IKs go over the same ROS service
