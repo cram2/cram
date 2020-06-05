@@ -173,10 +173,13 @@
 
   (<- (robot-joint-states iai-donbot :arm :left :carry ?joint-states)
     (symbol-value ;; *looking-forward-state*
-     *parking-joint-state*
-     ?joint-states))
-
+     *parking-joint-state* ?joint-states))
   (<- (robot-joint-states iai-donbot :arm :left :park ?joint-states)
+    (symbol-value *parking-joint-state* ?joint-states))
+  (<- (robot-joint-states iai-donbot :arm :left :carry-top ?joint-states)
+    (symbol-value *parking-joint-state* ?joint-states))
+  (<- (robot-joint-states iai-donbot :arm :left :carry-side-gripper-vertical
+                          ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
 
   (<- (tcp-in-ee-pose iai-donbot ?pose)

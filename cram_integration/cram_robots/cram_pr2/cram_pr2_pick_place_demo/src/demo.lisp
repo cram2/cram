@@ -121,7 +121,7 @@
 
 (cpl:def-cram-function demo-random (&optional
                                     (random
-                                     t)
+                                     nil)
                                     (list-of-objects
                                      '(:bowl :spoon :cup :milk :breakfast-cereal)))
 

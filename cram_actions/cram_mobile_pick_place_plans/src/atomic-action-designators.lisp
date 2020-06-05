@@ -199,33 +199,31 @@
                                (:move-base ?move-base))
                       ?resolved-action-designator))
 
+  (<- (joint-state-for-arm-config ?robot ?config ?arm ?joint-state)
+    (once
+     (or (-> (and (equal ?config :park)
+                  (cpoe:object-in-hand ?object-designator ?arm ?grasp))
+             (and (desig:current-designator ?object-designator ?current-object-desig)
+                  (spec:property ?current-object-desig (:type ?object-type))
+                  (lisp-fun man-int:get-object-type-carry-config ?object-type ?grasp
+                            ?carry-config)
+                  (-> (lisp-pred identity ?carry-config)
+                      (rob-int:robot-joint-states ?robot :arm ?arm ?carry-config
+                                                  ?joint-state)
+                      (rob-int:robot-joint-states ?robot :arm ?arm :carry
+                                                  ?joint-state)))
+             (rob-int:robot-joint-states ?robot :arm ?arm ?config ?joint-state))
+         (equal ?joint-state NIL))))
+  ;;
   (<- (desig:action-grounding ?action-designator (move-arms-into-configuration
                                                   ?resolved-action-designator))
     (spec:property ?action-designator (:type :positioning-arm))
     (rob-int:robot ?robot)
     (-> (spec:property ?action-designator (:left-configuration ?left-config))
-        (-> (equal ?left-config :park)
-            (-> (cpoe:object-in-hand ?_ :left)
-                (once (or (rob-int:robot-joint-states ?robot :arm :left :carry
-                                                      ?left-joint-states)
-                          (equal ?left-joint-states NIL)))
-                (once (or (rob-int:robot-joint-states ?robot :arm :left :park
-                                                      ?left-joint-states)
-                          (equal ?left-joint-states NIL))))
-            (rob-int:robot-joint-states ?robot :arm :left ?left-config
-                                        ?left-joint-states))
+        (joint-state-for-arm-config ?robot ?left-config :left ?left-joint-states)
         (equal ?left-joint-states nil))
     (-> (spec:property ?action-designator (:right-configuration ?right-config))
-        (-> (equal ?right-config :park)
-            (-> (cpoe:object-in-hand ?_ :right)
-                (once (or (rob-int:robot-joint-states ?robot :arm :right :carry
-                                                      ?right-joint-states)
-                          (equal ?right-joint-states NIL)))
-                (once (or (rob-int:robot-joint-states ?robot :arm :right :park
-                                                      ?right-joint-states)
-                          (equal ?right-joint-states NIL))))
-            (rob-int:robot-joint-states ?robot :arm :right ?right-config
-                                        ?right-joint-states))
+        (joint-state-for-arm-config ?robot ?right-config :right ?right-joint-states)
         (equal ?right-joint-states nil))
     (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type :positioning-arm)
