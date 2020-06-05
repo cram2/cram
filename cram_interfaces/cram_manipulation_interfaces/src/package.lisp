@@ -47,6 +47,7 @@
    #:unidirectional-attachment
    #:always-reachable
    #:other-object-is-a-robot
+   #:accessible
    ;; environment
    #:environment-name
    #:current-environment-symbol

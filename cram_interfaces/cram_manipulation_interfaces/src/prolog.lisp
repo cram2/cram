@@ -170,6 +170,15 @@
     (desig:desig-prop ?current-location-designator (:on ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
     (cpoe:object-in-hand ?current-object-designator))
+  ;; Also, a location of an object at a location that is always reachable
+  ;; is also always reachable
+  (<- (always-reachable ?location-designator)
+    (desig:loc-desig? ?location-designator)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (spec:property ?current-location-designator (:of ?object-designator))
+    (desig:current-designator ?object-designator ?current-object-designator)
+    (spec:property ?current-object-designator (:location ?object-location))
+    (man-int:always-reachable ?object-location))
 
   (<- (other-object-is-a-robot ?some-object-designator)
     (desig:current-designator ?some-object-designator ?object-designator)
@@ -190,4 +199,13 @@
     (desig:current-designator ?some-location ?location)
     ;; if the location is on the robot itself, use the current robot pose
     (always-reachable ?location)
-    (lisp-fun cram-tf:robot-current-pose ?pose-stamped)))
+    (lisp-fun cram-tf:robot-current-pose ?pose-stamped))
+
+
+  ;; Helper to reason if a location is accessible
+  (<- (accessible ?location-designator)
+    (desig:loc-desig? ?location-designator)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (-> (spec:property ?current-location-designator (:in ?container-object))
+        (other-object-is-a-robot ?container-object)
+        (true))))
