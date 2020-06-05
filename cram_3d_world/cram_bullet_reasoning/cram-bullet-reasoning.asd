@@ -52,7 +52,7 @@
                  cram-manipulation-interfaces
                  cram-robot-interfaces
                  cram-occasions-events
-                 cram-utilities ; lazy in pose-generators
+                 cram-utilities ; lazy in pose-generators and with-file-cache
                  cram-occasions-events ; for temporal reasoning
                  cram-tf
                  cram-physics-utils)
