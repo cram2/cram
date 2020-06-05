@@ -52,23 +52,50 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :household-item)))
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :household-item)))
   50)
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :milk)))
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :milk)))
   20)
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :cereal)))
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :cereal)))
   30)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :household-item)))
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :household-item)))
   0.10)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :cutlery)))
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :cutlery)))
   0.04)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :plate)))
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :plate)))
   0.02)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :tray)))
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :tray)))
   0.02)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-carry-config :heuristics 20 (object-type grasp)
+  :carry)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :household-item)) grasp)
+  :carry)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :bowl)) grasp)
+  :carry-top)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :cup)) (grasp (eql :top)))
+  :carry-top)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :cereal)) (grasp (eql :top)))
+  :carry-top)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :plate)) grasp)
+  :carry-side-gripper-vertical)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -413,7 +440,7 @@
                environment human
                (context (eql :table-setting)))
             (make-location-on-sink-middle-front environment)))
-        '(:bottle :milk :cereal))
+        '(:bottle :milk :cereal :breakfast-cereal))
 
 (defun make-location-in-sink-left-middle-drawer (?environment-name)
   (desig:a location
@@ -481,7 +508,7 @@
                environment human
                (context (eql :table-setting)))
             (make-location-in-sink-left-upper-drawer environment)))
-        '(:cutlery))
+        '(:cutlery :spoon))
 
 ;;;; destination
 
@@ -641,4 +668,4 @@
                environment human
                (context (eql :table-cleaning)))
             (make-location-on-sink environment object-type)))
-        '(:bowl :plate :cutlery :mug :cup :cereal :milk :bottle))
+        '(:bowl :plate :cutlery :mug :cup :cereal :breakfast-cereal :milk :bottle))
