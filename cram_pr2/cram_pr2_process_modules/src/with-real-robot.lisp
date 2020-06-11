@@ -31,7 +31,7 @@
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
-       (rs:robosherlock-perception-pm giskard:giskard-pm ;; navp:navp-pm
+       (unreal:urobosim-perception-pm  giskard:giskard-pm ;; navp:navp-pm
         pr2-pms::pr2-grippers-pm pr2-pms::pr2-ptu-pm)
      (cpl-impl::named-top-level (:name :top-level)
        ,@body)))

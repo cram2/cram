@@ -10,8 +10,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -40,7 +40,7 @@
                cram-common-designators
                cram-language ; for with-real-robot
                ;; cram-knowrob-world-state
-               cram-robosherlock
+               cram-urobosim
                cram-giskard
                ;; cram-nav-pcontroller
                )
