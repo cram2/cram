@@ -1,6 +1,7 @@
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;;                     Christopher Pollok <cpollok@cs.uni-bremen.de>
+;;;                     Thomas Lipps <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -289,26 +290,18 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
            (man-int:get-object-transform object))
          (oTb
            (cram-tf:transform-stamped-inv bTo))
-         (bTb-lift
-           (first (get-object-type-wrt-base-frame-lift-transforms
-                   object-type arm grasp)))
-         (bTb-2ndlift
-           (second (get-object-type-wrt-base-frame-lift-transforms
-                    object-type arm grasp)))
-         (oTg-lift
-           (reduce #'cram-tf:apply-transform
-                   `(,oTb ,bTb-lift ,bTo ,oTg-std)
-                   :from-end T))
-         (oTg-2ndlift
-           (reduce #'cram-tf:apply-transform
-                   `(,oTb ,bTb-2ndlift ,bTo ,oTg-std)
-                   :from-end T))
-         (oTg-pregrasp
-           (first (get-object-type-to-gripper-pregrasp-transforms
-                   object-type object-name arm grasp oTg-std)))
-         (oTg-2ndpregrasp
-           (second (get-object-type-to-gripper-pregrasp-transforms
-                    object-type object-name arm grasp oTg-std))))
+         (bTb-lifts
+           (get-object-type-wrt-base-frame-lift-transforms
+            object-type arm grasp))
+         (oTg-lifts
+           (mapcar (lambda (btb-lift)
+                     (reduce #'cram-tf:apply-transform
+                             `(,oTb ,bTb-lift ,bTo ,oTg-std)
+                             :from-end T))
+                   bTb-lifts))
+         (oTg-pregrasps
+           (get-object-type-to-gripper-pregrasp-transforms
+            object-type object-name arm grasp oTg-std)))
 
     (mapcar (lambda (label transforms)
               (make-traj-segment
@@ -318,9 +311,9 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
             '(:reaching
               :grasping
               :lifting)
-            `((,oTg-pregrasp ,oTg-2ndpregrasp)
+            `(,oTg-pregrasps
               (,oTg-std)
-              (,oTg-lift ,oTg-2ndlift)))))
+              ,oTg-lifts))))
 
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :placing))
                                                  arm
@@ -360,27 +353,22 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
            (reduce #'cram-tf:apply-transform
                    `(,oTb ,bTb-drop-z-offset ,bTo ,oTg-std-no-z-offset)
                    :from-end T))
-         (bTb-lift
-           (first (get-object-type-wrt-base-frame-lift-transforms
-                   object-type arm grasp)))
-         (bTb-2ndlift
-           (second (get-object-type-wrt-base-frame-lift-transforms
-                    object-type arm grasp)))
-         (oTg-lift
-           (reduce #'cram-tf:apply-transform
-                   `(,oTb ,bTb-lift ,bTo ,oTg-std)
-                   :from-end T))
-         (oTg-2ndlift
-           (reduce #'cram-tf:apply-transform
-                   `(,oTb ,bTb-2ndlift ,bTo ,oTg-std)
-                   :from-end T))
-         (oTg-pregrasp
-           (first (get-object-type-to-gripper-pregrasp-transforms
-                   object-type object-name arm grasp oTg-std)))
-         (oTg-2ndpregrasp
-           (second (get-object-type-to-gripper-pregrasp-transforms
-                    object-type object-name arm grasp oTg-std))))
-
+         (bTb-lifts
+           (get-object-type-wrt-base-frame-lift-transforms
+            object-type arm grasp))
+         (oTg-lifts
+           (reverse
+            (mapcar 
+             (lambda (btb-lift)
+               (reduce #'cram-tf:apply-transform
+                       `(,oTb ,bTb-lift ,bTo ,oTg-std)
+                       :from-end T))
+             bTb-lifts)))
+         (oTg-pregrasps
+           (reverse 
+            (get-object-type-to-gripper-pregrasp-transforms
+             object-type object-name arm grasp oTg-std))))
+    
     (mapcar (lambda (label transforms)
               (make-traj-segment
                :label label
@@ -390,9 +378,9 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
             '(:reaching
               :putting
               :retracting)
-            `((,oTg-2ndlift ,otg-lift)
+            `(,oTg-lifts
               (,oTg-std)
-              (,oTg-2ndpregrasp ,oTg-pregrasp)))))
+              ,oTg-pregrasps))))
 
 
 
