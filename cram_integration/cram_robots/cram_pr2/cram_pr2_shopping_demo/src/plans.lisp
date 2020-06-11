@@ -62,7 +62,7 @@
 (defun grasp-object-from-shelf (?object shelf)
   (let ((?newobject (desig:an object (type ?object)))
         (?search-pose (if (eql shelf 1) *pose-searching-1* *pose-searching-2*))
-        (?pose-placing (if (eql shelf 1) *placing-pose-2* *placing-pose-2*))
+        (?pose-placing (if (eql shelf 1) *placing-pose-1* *placing-pose-2*))
         (?look-pose (if (eql shelf 1) (cl-transforms-stamped:make-pose-stamped 
                                        "map" 0
                                        (cl-transforms:make-3d-vector -1 0.63 0.7)
@@ -99,32 +99,24 @@
                (arm :right)
                (location (desig:a location
                                   (pose ?search-pose)))))
-    (exe:perform
-     (desig:a motion
-              (type moving-arm-joints)
-              (left-joint-states (("l_shoulder_pan_joint" 0.7)
-                                  ("l_shoulder_lift_joint" 0.5)
-                                  ("l_upper_arm_roll_joint" 1.4)
-                                  ("l_elbow_flex_joint" -1.5)
-                                  ("l_forearm_roll_joint" -1.15)
-                                  ("l_wrist_flex_joint" 0)))))
 
+    (exe:perform
+       (desig:a motion
+                (type moving-arm-joints)
+                (left-joint-states (("l_shoulder_pan_joint" 0)
+                                    ("l_shoulder_lift_joint" -0.5)
+                                    ("l_upper_arm_roll_joint" 3.14)
+                                    ("l_elbow_flex_joint" -1.5)
+                                    ("l_forearm_roll_joint" -0.2)
+                                    ("l_wrist_flex_joint" -0.55)))))
+  
     (exe:perform
      (desig:an action
                (type going)
                (target (desig:a location
                                 (pose ?pose-placing)))))
 
-    (let* ((map->basket (cl-transforms:pose->transform
-                         (btr:pose (btr:object btr:*current-bullet-world* :b))))
-           (basket->object (cl-transforms:make-transform
-                            (cl-transforms:make-3d-vector 0.15 -0.1 0.05)
-                            (cl-transforms:make-quaternion 0 0 1 0)))
-           (map->object (cl-transforms:transform*  map->basket basket->object))
-           (?dropping-pose (cl-transforms-stamped:pose->pose-stamped
-                            "map" 0
-                            (cl-transforms:transform->pose map->object)))
-           (?basket-desig (desig:an object (type :basket)))
+    (let* ((?basket-desig (desig:an object (type :basket)))
            (basket-pose (btr:pose (btr:object btr:*current-bullet-world* :b)))
            (map->basket (cl-transforms:pose->transform basket-pose))
            (map->base (cl-transforms:pose->transform (btr:pose (btr:get-robot-object))))
@@ -160,7 +152,6 @@
                  (type placing)
                  (object ?newobject)
                  (arm right)
-                 ;; (target (desig:a location (pose ?dropping-pose)))))
                  (target (desig:a location
                                   (on ?basket-desig)
                                   (for ?newobject)
@@ -180,7 +171,7 @@
     (exe:perform
      (desig:an action
                (type transporting)
-               (arm right)
+               (arm :left)
                (object ?object)
                (target (desig:a location
                                 (poses  ?target-poses)))))))

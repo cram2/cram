@@ -188,13 +188,19 @@
          (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15d0)))))))
 
 (defun spawn-basket ()
-  (btr:add-object btr:*current-bullet-world* :basket
-                  :b
-                  (cl-transforms:make-pose
-                   (cl-transforms:make-3d-vector 0.8 0.2 0.75)
-                   (cl-transforms:make-quaternion 0 0 0 1))
-                  :mass 1
-                  :length 0.5 :width 0.3 :height 0.18 :handle-height 0.09)
+  (let* ((map-T-wrist (btr:link-pose (btr:get-robot-object) "l_wrist_roll_link"))
+        (wrist-T-basket (cl-transforms:make-transform
+                         (cl-transforms:make-3d-vector 0.28 0 -0.15)
+                         (cl-transforms:make-quaternion 0 -1 0 1)))
+         (map-T-basket (cl-transforms:transform*
+                        (cl-transforms:pose->transform map-T-wrist)
+                        wrist-T-basket))
+         (basket-pose (cl-transforms:transform->pose map-T-basket)))
+    (btr:add-object btr:*current-bullet-world* :basket
+                    :b
+                    basket-pose
+                    :mass 1
+                    :length 0.5 :width 0.3 :height 0.18 :handle-height 0.09)
   (let ((basket-desig (desig:an object (type basket) (name b))))
     (coe:on-event
      (make-instance 'cpoe:object-attached-robot
@@ -203,7 +209,7 @@
        :grasp :front
        :arm :left
        :object-name :b
-       :object-designator basket-desig))))
+       :object-designator basket-desig)))))
 
 (defun spawn-objects ()
   (let ((i 1))
