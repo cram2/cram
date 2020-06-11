@@ -77,7 +77,7 @@
                              e)
            ;; (return)
            ))
-      (let ((?goal `(cpoe:ees-at ?left-reach-poses ?right-reach-poses)))
+      (let ((?goal `(cpoe:ees-at ,?left-reach-poses ,?right-reach-poses)))
         (exe:perform
          (desig:an action
                    (type reaching)
@@ -95,7 +95,7 @@
                            e)
          ;; (return)
          ))
-    (let ((?goal `(cpoe:ees-at left-grasp-poses ?right-grasp-poses)))
+    (let ((?goal `(cpoe:ees-at ,?left-grasp-poses ,?right-grasp-poses)))
       (exe:perform
        (desig:an action
                  (type grasping)
@@ -124,7 +124,7 @@
     (let ((?push-or-pull (if (eq ?type :opening)
                             :pulling
                             :pushing))
-          (?goal `(cpoe:ees-at ?left-manipulate-poses ?right-manipulate-poses)))
+          (?goal `(cpoe:ees-at ,?left-manipulate-poses ,?right-manipulate-poses)))
       ;; TODO(cpo) Have goal for opened container?
       (exe:perform
        (desig:an action
@@ -160,7 +160,7 @@
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (let ((?goal `(cpoe:ees-at ?left-retract-poses ?right-retract-poses)))
+    (let ((?goal `(cpoe:ees-at ,?left-retract-poses ,?right-retract-poses)))
       (exe:perform
        (desig:an action
                  (type retracting)
