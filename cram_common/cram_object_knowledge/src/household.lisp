@@ -204,7 +204,7 @@
   :2nd-lift-translation *lift-offset*)
 
 ;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :front
+(man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :front-table
   :grasp-translation `(,*bottle-grasp-xy-offset* 0.0d0 ,*bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*bottle-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
@@ -257,7 +257,7 @@
   :2nd-lift-translation *lift-offset*)
 
 ;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :front
+(man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :front-table
   :grasp-translation `(,(- *cup-grasp-xy-offset*) 0.0d0 ,*cup-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cup-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
@@ -283,7 +283,7 @@
   :2nd-lift-translation *lift-offset*)
 
 ;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :front
+(man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :front-table
   :grasp-translation `(,(- *milk-grasp-xy-offset*) 0.0d0 ,*milk-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
@@ -318,7 +318,7 @@
 (defparameter *cereal-lift-z-offset* 0.1 "in meters")
 
 ;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :front
+(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :front-table
   :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
