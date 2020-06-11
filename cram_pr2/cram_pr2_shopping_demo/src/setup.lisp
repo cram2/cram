@@ -77,16 +77,33 @@
          (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15d0)))))))
 
 (defun spawn-basket ()
-  (btr:add-object btr:*current-bullet-world* :basket
-                  :b
-                  (cl-transforms:make-pose
-                   (cl-transforms:make-3d-vector 0.8 0.2 0.75)
-                   (cl-transforms:make-quaternion 0 0 0 1))
-                  :mass 1
-                  :length 0.5 :width 0.3 :height 0.18 :handle-height 0.09)
-  (btr:attach-object (btr:get-robot-object)
-                     (btr:object btr:*current-bullet-world* :b)
-                     :link "l_wrist_roll_link"))
+   (urdf-proj:with-simulated-robot
+      (exe:perform
+       (desig:a motion
+                (type moving-arm-joints)
+                (left-joint-states (("l_shoulder_pan_joint" 0.3)
+                                    ("l_shoulder_lift_joint" -0.5)
+                                    ("l_upper_arm_roll_joint" 3.14)
+                                    ("l_elbow_flex_joint" -1.5)
+                                    ("l_forearm_roll_joint" -0.2)
+                                    ("l_wrist_flex_joint" -0.55))))))
+  (let* ((map-T-wrist (btr:link-pose (btr:get-robot-object) "l_wrist_roll_link"))
+        (wrist-T-basket (cl-transforms:make-transform
+                         (cl-transforms:make-3d-vector 0.28 0 -0.15)
+                         (cl-transforms:make-quaternion 0 -1 0 1)))
+         (map-T-basket (cl-transforms:transform*
+                        (cl-transforms:pose->transform map-T-wrist)
+                        wrist-T-basket))
+         (basket-pose (cl-transforms:transform->pose map-T-basket)))
+    
+    (btr:add-object btr:*current-bullet-world* :basket
+                    :b
+                    basket-pose
+                    :mass 1
+                    :length 0.5 :width 0.3 :height 0.18 :handle-height 0.09)
+    (btr:attach-object (btr:get-robot-object)
+                       (btr:object btr:*current-bullet-world* :b)
+                       :link "l_wrist_roll_link")))
 
 (defun spawn-objects ()
   (let ((i 1))
