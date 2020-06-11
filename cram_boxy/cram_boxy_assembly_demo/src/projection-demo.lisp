@@ -159,34 +159,43 @@
            ((0.215 0.725 ,*nut-rad-z*) (0 0 0 1)))))
 
 
-(defun spawn-objects-on-plate (&optional (spawning-poses *object-spawning-data*))
-  (btr-utils:kill-all-objects)
+(defun spawn-objects-on-plate (&optional (spawning-data *object-spawning-data*))
+  ;; (btr-utils:kill-all-objects)
+  ;; detach all objects from robot and environment
   (btr:detach-all-objects (btr:get-robot-object))
-  ;; let ((object-types '(:breakfast-cereal :cup :bowl :spoon :milk)))
+  (btr:detach-all-objects (btr:get-environment-object))
+  ;; detach all items from each other
+  (mapcar #'btr:detach-all-objects
+          (remove-if-not (lambda (obj) (typep obj 'btr:item))
+                         (btr:objects btr:*current-bullet-world*)))
   ;; spawn objects at default poses
-  (let ((objects (mapcar (lambda (object-name-type-pose-list)
-                           (destructuring-bind (object-name object-type object-color
-                                                object-pose-list)
-                               object-name-type-pose-list
-                             (let ((object-relative-pose
-                                     (cram-tf:list->pose object-pose-list)))
-                               (btr-utils:spawn-object
-                                object-name
-                                object-type
-                                :mass 0.0
-                                :color object-color
-                                :pose (cram-tf:pose->list
-                                       (cl-tf:make-pose
-                                        (cl-transforms:v+
-                                         (cl-transforms:make-3d-vector
-                                          (- *plate-x* *plate-rad-x*)
-                                          (- *plate-y* *plate-rad-y*)
-                                          (+ *plate-z* *plate-rad-z*))
-                                         (cl-transforms:origin
-                                          object-relative-pose))
-                                        (cl-transforms:orientation
-                                         object-relative-pose)))))))
-                         spawning-poses)))
+  (let ((objects
+          (mapcar (lambda (object-name-type-pose-list)
+                    (destructuring-bind (object-name object-type object-color
+                                         object-pose-list)
+                        object-name-type-pose-list
+                      (let ((object-relative-pose
+                              (cram-tf:list->pose object-pose-list)))
+                        (btr-utils:spawn-object
+                         object-name
+                         object-type
+                         :mass 0.0
+                         :color object-color
+                         :pose (cram-tf:pose->list
+                                (cl-transforms:make-pose
+                                 (cl-transforms:v+
+                                  (cl-transforms:make-3d-vector
+                                   (- *plate-x* *plate-rad-x*)
+                                   (- *plate-y* *plate-rad-y*)
+                                   (+ *plate-z* *plate-rad-z*))
+                                  (cl-transforms:origin
+                                   object-relative-pose))
+                                 (cl-transforms:orientation
+                                  object-relative-pose)))))))
+                  spawning-data)))
+
+    (btr:attach-object 'motor-grill 'underbody)
+
     objects))
 
 
@@ -225,7 +234,6 @@
 (defun demo ()
   ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
   (spawn-objects-on-plate)
-  (initialize-attachments)
   (urdf-proj:with-projected-robot
 
     ;; 1
@@ -236,7 +244,6 @@
     (go-connect :bottom-wing *base-very-right-side-left-hand-pose*
                 :chassis *base-left-side-left-hand-pose*
                 :wing-attachment)
-
     ;; 3
     (go-connect :underbody *base-middle-side-left-hand-pose*
                 :bottom-wing *base-middle-side-left-hand-pose*
@@ -299,20 +306,13 @@
 
     (exe:perform
      (desig:an action
-               (type positioning-arm)
-               (left-configuration park)
-               (right-configuration park)))))
-
-(defun initialize-attachments ()
-  (btr:attach-object 'motor-grill 'underbody))
+               (type parking-arms)))))
 
 (defun go-perceive (?object-type ?nav-goal)
   ;; park arms
   (exe:perform
    (desig:an action
-             (type positioning-arm)
-             (left-configuration park)
-             (right-configuration park)))
+             (type parking-arms)))
   ;; drive to right location
   (let ((?pose (cl-transforms-stamped:pose->pose-stamped
                 cram-tf:*fixed-frame*

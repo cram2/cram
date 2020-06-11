@@ -37,9 +37,7 @@
 if yes, perform GOING action while ignoring failures."
 
   (exe:perform (desig:an action
-                         (type positioning-arm)
-                         (left-configuration park)
-                         (right-configuration park)))
+                         (type parking-arms)))
 
   (proj-reasoning:check-navigating-collisions ?navigation-location)
   (setf ?navigation-location (desig:current-desig ?navigation-location))
@@ -415,10 +413,13 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
          (cpl:fail 'common-fail:delivering-failed
                    :description "Some designator could not be resolved.")))
 
-    (cpl:with-retry-counters ((outer-target-location-retries 2))
+    (cpl:with-retry-counters ((outer-target-location-retries 4))
       (cpl:with-failure-handling
           (((or desig:designator-error
                 common-fail:object-undeliverable) (e)
+             (roslisp:ros-warn (fd-plans deliver)
+                               "outer-target-location-retries ~a~%"
+                               (cpl:get-counter outer-target-location-retries))
              (common-fail:retry-with-loc-designator-solutions
                  ?target-location
                  outer-target-location-retries
@@ -434,12 +435,16 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
               (((or common-fail:navigation-goal-in-collision
                     common-fail:object-undeliverable
                     common-fail:manipulation-low-level-failure) (e)
+                 (roslisp:ros-warn (fd-plans deliver)
+                                   "relocation-for-ik-retries ~A~%"
+                                   (cpl:get-counter relocation-for-ik-retries))
                  (common-fail:retry-with-loc-designator-solutions
                      ?target-robot-location
                      relocation-for-ik-retries
                      (:error-object-or-string
                       (format NIL "Object is undeliverable from base location.~%~a" e)
                       :warning-namespace (fd-plans deliver)
+                      :reset-designators (list ?target-location)
                       :rethrow-failure 'common-fail:object-undeliverable))))
 
             ;; navigate
@@ -448,7 +453,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                    (location ?target-robot-location)))
 
             ;; take a new `?target-location' sample if a failure happens
-            (cpl:with-retry-counters ((target-location-retries 9))
+            (cpl:with-retry-counters ((target-location-retries 2))
               (cpl:with-failure-handling
                   (((or common-fail:looking-high-level-failure
                         common-fail:object-unreachable
@@ -499,28 +504,26 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                   (proj-reasoning:check-placing-pose-stability
                    ?object-designator ?target-location)
 
-                  (exe:perform place-action))))))))))
+                  (exe:perform place-action)
+
+                  (desig:current-desig ?object-designator))))))))))
 
 
 
 (defun drop-at-sink ()
   (let ((?base-pose-in-map
-          ;; (cl-transforms-stamped:make-pose-stamped
-          ;;  cram-tf:*fixed-frame*
-          ;;  0.0
-          ;;  (cl-transforms:make-3d-vector 0.7 -0.2 0)
-          ;;  (cl-transforms:make-identity-rotation))
           (cl-transforms-stamped:make-pose-stamped
            cram-tf:*fixed-frame*
            0.0
            (cl-transforms:make-3d-vector 0 0 0)
            (cl-transforms:make-quaternion 0 0 -1 1)))
-        (?placing-pose
-          (cl-transforms-stamped:make-pose-stamped
-           cram-tf:*robot-base-frame*
-           0.0
-           (cl-transforms:make-3d-vector 0.7 0 1.2)
-           (cl-transforms:make-identity-rotation))))
+        ;; (?placing-pose
+        ;;   (cl-transforms-stamped:make-pose-stamped
+        ;;    cram-tf:*robot-base-frame*
+        ;;    0.0
+        ;;    (cl-transforms:make-3d-vector 0.7 0 1.2)
+        ;;    (cl-transforms:make-identity-rotation)))
+        )
     (cpl:with-failure-handling
         ((common-fail:navigation-low-level-failure (e)
            (declare (ignore e))
@@ -536,8 +539,9 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
       (exe:perform
        (desig:an action
                  (type placing)
-                 (target (desig:a location
-                                  (pose ?placing-pose))))))))
+                 ;; (target (desig:a location
+                 ;;                  (pose ?placing-pose)))
+                 )))))
 
 
 (defun transport (&key
@@ -625,4 +629,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
     (unless search-location-accessible
       (exe:perform (desig:an action
                              (type sealing)
-                             (location ?search-location))))))
+                             (location ?search-location)))))
+
+  (desig:current-desig ?object-designator))

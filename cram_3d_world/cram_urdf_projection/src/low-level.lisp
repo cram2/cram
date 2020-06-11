@@ -218,35 +218,39 @@
                   :description "Look action wanted to twist the neck")))))
 
 (defparameter *camera-pose-unit-vector-multiplyer* 0.4)
-(defparameter *camera-pose-z-offset* 0.2)
 (defparameter *camera-resampling-step* 0.1)
 (defparameter *camera-x-axis-limit* 0.5)
 (defparameter *camera-y-axis-limit* 0.5)
 
 (defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
-  (let ((joint-state-msg
-          (or (ik:call-ik-service-with-resampling
-               (cl-tf:pose->pose-stamped
-                base-link
-                0.0
-                cartesian-pose)
-               base-link ee-link
-               (btr::make-robot-joint-state-msg
-                (btr:get-robot-object)
-                :joint-names joint-names)
-               *camera-resampling-step* :x
-               0 (- *camera-x-axis-limit*) *camera-x-axis-limit*)
-              (ik:call-ik-service-with-resampling
-               (cl-tf:pose->pose-stamped
-                base-link
-                0.0
-                cartesian-pose)
-               base-link ee-link
-               (btr::make-robot-joint-state-msg
-                (btr:get-robot-object)
-                :joint-names joint-names)
-               *camera-resampling-step* :y
-               0 (- *camera-y-axis-limit*) *camera-y-axis-limit*))))
+  (let* ((validation-function
+           (lambda (ik-solution-msg)
+             (not (perform-collision-check :avoid-all NIL NIL ik-solution-msg))))
+         (joint-state-msg
+           (or (ik:call-ik-service-with-resampling
+                (cl-transforms-stamped:pose->pose-stamped
+                 base-link
+                 0.0
+                 cartesian-pose)
+                base-link ee-link
+                (btr::make-robot-joint-state-msg
+                 (btr:get-robot-object)
+                 :joint-names joint-names)
+                *camera-resampling-step* :x
+                0 (- *camera-x-axis-limit*) *camera-x-axis-limit*
+                validation-function)
+               (ik:call-ik-service-with-resampling
+                (cl-transforms-stamped:pose->pose-stamped
+                 base-link
+                 0.0
+                 cartesian-pose)
+                base-link ee-link
+                (btr::make-robot-joint-state-msg
+                 (btr:get-robot-object)
+                 :joint-names joint-names)
+                *camera-resampling-step* :y
+                0 (- *camera-y-axis-limit*) *camera-y-axis-limit*
+                validation-function))))
     (when joint-state-msg
       (map 'list #'identity (roslisp:msg-slot-value joint-state-msg :position)))))
 
@@ -266,11 +270,17 @@ with the object, calculates similar angle around Y axis and applies the rotation
          (neck-base-t-object-unit-vector
            (cl-transforms:normalize-vector neck-base-t-object-vector-without-z))
          (neck-base-t-object-short-vector
-           (cl-transforms:v* neck-base-t-object-unit-vector *camera-pose-unit-vector-multiplyer*))
+           (cl-transforms:v* neck-base-t-object-unit-vector
+                             *camera-pose-unit-vector-multiplyer*))
          (neck-base-t-object-short-vector-lifted
-           (cl-transforms:v+ neck-base-t-object-short-vector
-                             (cl-transforms:make-3d-vector 0 0 *camera-pose-z-offset*)))
-
+           (cl-transforms:v+
+            neck-base-t-object-short-vector
+            (cl-transforms:make-3d-vector
+             0 0 (cut:var-value
+                  '?z-offset
+                  (car (prolog:prolog
+                        `(and (rob-int:robot ?robot)
+                              (rob-int:neck-camera-z-offset ?robot ?z-offset))))))))
          (neck-base-t-camera-not-oriented
            (cl-transforms:make-transform
             neck-base-t-object-short-vector-lifted
@@ -284,8 +294,10 @@ with the object, calculates similar angle around Y axis and applies the rotation
             neck-base-t-object))
          (rotation-angle-around-x
            (- (atan
-               (cl-transforms:y (cl-transforms:translation camera-not-oriented-t-object))
-               (cl-transforms:z (cl-transforms:translation camera-not-oriented-t-object)))))
+               (cl-transforms:y
+                (cl-transforms:translation camera-not-oriented-t-object))
+               (cl-transforms:z
+                (cl-transforms:translation camera-not-oriented-t-object)))))
          (neck-base-t-camera-rotated-around-x
            (cram-tf:rotate-transform-in-own-frame
             neck-base-t-camera-not-oriented
@@ -365,8 +377,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                      (prolog:prolog
                       `(and (rob-int:robot ?robot)
                             (btr:bullet-world ?w)
-                            (rob-int:robot-neck-joints
-                             ?robot . ?joint-names))))))))
+                            (rob-int:robot-neck-joints ?robot . ?joint-names))))))))
     (if pose
         (if (= neck-joints-num 2)
             (look-at-pose-stamped-two-joints pose)
@@ -442,7 +453,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                   (btr:bullet-world ?world)
                                   ,@(when object-name
                                       `((prolog:== ?object-name ,object-name)))
-                                  (btr:object ?world ?object-name)
+                                  (btr:item ?world ?object-name)
                                   ;; it is possible to ask RoboSherlock for
                                   ;; (all object (type kitchen-object))
                                   ;; which returns a list of all the objects RS sees
@@ -566,16 +577,22 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                 joint-name-value-list))
                       (goal-joint-state
                         (mapcar #'second joint-name-value-list)))
-                 (unless (cram-tf:values-converged current-joint-state goal-joint-state
-                                                   *projection-convergence-delta-joint*)
+                 (unless (cram-tf:values-converged
+                          (cram-tf:normalize-joint-angles current-joint-state)
+                          (cram-tf:normalize-joint-angles goal-joint-state)
+                          *projection-convergence-delta-joint*)
                    (cpl:fail 'common-fail:manipulation-goal-not-reached
-                             :description (format nil "Projection did not converge to goal:~%~
+                             :description
+                             (format nil
+                                     "Projection did not converge to goal:~%~
                                                    ~a (~a)~%should have been at~%~a~%~
                                                    with delta-joint of ~a."
-                                                  arm
-                                                  current-joint-state
-                                                  goal-joint-state
-                                                  *projection-convergence-delta-joint*))))))))
+                                     arm
+                                     (cram-tf:normalize-joint-angles
+                                      current-joint-state)
+                                     (cram-tf:normalize-joint-angles
+                                      goal-joint-state)
+                                     *projection-convergence-delta-joint*))))))))
     (set-configuration :left left-configuration)
     (set-configuration :right right-configuration)))
 
@@ -811,12 +828,18 @@ otherwise check collisions in current joint state."
       (cut:lazy-car
        (prolog:prolog
         `(and (rob-int:robot ?robot)
-              (rob-int:robot-tool-frame ?robot :left ?left-tool-frame)
-              (rob-int:robot-tool-frame ?robot :right ?right-tool-frame)
-              (rob-int:end-effector-link ?robot :left ?left-ee-frame)
-              (rob-int:end-effector-link ?robot :right ?right-ee-frame)
-              (rob-int:arm-joints ?robot :left ?left-arm-joints)
-              (rob-int:arm-joints ?robot :right ?right-arm-joints)
+              (once (or (rob-int:robot-tool-frame ?robot :left ?left-tool-frame)
+                        (equal ?left-tool-frame nil)))
+              (once (or (rob-int:robot-tool-frame ?robot :right ?right-tool-frame)
+                        (equal ?right-tool-frame nil)))
+              (once (or (rob-int:end-effector-link ?robot :left ?left-ee-frame)
+                        (equal ?left-ee-frame nil)))
+              (once (or (rob-int:end-effector-link ?robot :right ?right-ee-frame)
+                        (equal ?right-ee-frame nil)))
+              (once (or (rob-int:arm-joints ?robot :left ?left-arm-joints)
+                        (equal ?left-arm-joints nil)))
+              (once (or (rob-int:arm-joints ?robot :right ?right-arm-joints)
+                        (equal ?right-arm-joints nil)))
               (rob-int:robot-torso-link-joint ?robot ?torso-link ?torso-joint)
               (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
               (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit))))

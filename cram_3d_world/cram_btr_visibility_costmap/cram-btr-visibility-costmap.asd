@@ -37,6 +37,7 @@
 
                cram-location-costmap
                cram-robot-interfaces
+               cram-manipulation-interfaces ; for always-reachable
                cl-transforms
 
                cl-bullet-vis

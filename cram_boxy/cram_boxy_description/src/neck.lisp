@@ -62,10 +62,9 @@
 (def-fact-group boxy-neck-facts (robot-neck-links
                                  robot-neck-joints
                                  robot-neck-base-link
-                                 ;; robot-neck-parking-joint-states
-                                 ;; robot-neck-looking-joint-states
                                  robot-joint-states
-                                 camera-in-neck-ee-pose)
+                                 camera-in-neck-ee-pose
+                                 neck-camera-z-offset)
 
   (<- (robot-neck-links boxy
                         "neck_shoulder_link"
@@ -98,4 +97,6 @@
     (symbol-value *neck-good-looking-left-state* ?joint-states))
 
   (<- (camera-in-neck-ee-pose boxy ?pose)
-    (symbol-value *neck-ee-p-camera* ?pose)))
+    (symbol-value *neck-ee-p-camera* ?pose))
+
+  (<- (neck-camera-z-offset boxy 0.2)))

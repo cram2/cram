@@ -76,8 +76,10 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:target ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; robot-location
-    (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
-              ?robot-rotated-pose)
+    (-> (man-int:always-reachable ?location-designator)
+        (lisp-fun cram-tf:robot-current-pose ?robot-rotated-pose)
+        (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
+              ?robot-rotated-pose))
     (desig:designator :location ((:pose ?robot-rotated-pose)) ?robot-location)
     (desig:designator :action ((:type :turning-towards)
                                (:target ?location-designator)
@@ -307,9 +309,9 @@ the `look-pose-stamped'."
                        ?object-type ?environment nil ?context
                        ?delivering-location-designator)))
     ;; deliver location accessible or not
-    (-> (spec:property ?delivering-location-designator (:in ?_))
-        (equal ?delivering-location-accessible NIL)
-        (equal ?delivering-location-accessible T))
+    (-> (man-int:accessible ?delivering-location-designator)
+        (equal ?delivering-location-accessible T)
+        (equal ?delivering-location-accessible NIL))
     ;; deliver location robot base
     (-> (desig:desig-prop ?action-designator (:deliver-robot-location
                                               ?some-d-robot-loc-desig))

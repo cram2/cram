@@ -109,9 +109,9 @@ do their magic invisibly in the background.
     (setf action-timeout (gethash name *action-timeouts*)))
   (cpl:with-failure-handling
       ((simple-error (e)
-                     (format t "Actionlib error occured!~%~a~%Reinitializing...~%~%" e)
-                     (init-simple-action-client name)
-                     (cpl:retry)))
+         (format t "Actionlib error occured!~%~a~%Reinitializing...~%~%" e)
+         (init-simple-action-client name)
+         (cpl:retry)))
     (let ((actionlib:*action-server-timeout* 10.0)
           (client (get-simple-action-client name)))
       (if client

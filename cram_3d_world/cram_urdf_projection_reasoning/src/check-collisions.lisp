@@ -175,10 +175,9 @@ Store found pose into designator or throw error if good pose not found."
                                                :allow-all)
                           (unless (< (abs urdf-proj::*debug-short-sleep-duration*) 0.0001)
                             (cpl:sleep urdf-proj::*debug-short-sleep-duration*))
-                          (when ;; (remove object-name
-                              ;;         (btr:robot-colliding-objects-without-attached))
-                              (urdf-proj::perform-collision-check
-                               collision-flag (nth i left-poses) (nth i right-poses))
+                          (when (urdf-proj::perform-collision-check
+                                 collision-flag
+                                 (nth i left-poses) (nth i right-poses))
                             (roslisp:ros-warn (coll-check pick)
                                               "Robot is in collision with environment.")
                             (cpl:sleep urdf-proj::*debug-long-sleep-duration*)
@@ -300,7 +299,7 @@ Store found pose into designator or throw error if good pose not found."
              (let* ((new-pose
                       (btr:pose new-btr-object))
                     (distance-new-pose-and-place-pose
-                      (cl-tf:v-dist
+                      (cl-transforms:v-dist
                        (cl-transforms:origin new-pose)
                        (cl-transforms:origin placing-pose))))
                (when (> distance-new-pose-and-place-pose 0.2)

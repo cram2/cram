@@ -52,23 +52,50 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :household-item)))
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :household-item)))
   50)
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :milk)))
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :milk)))
   20)
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :cereal)))
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :cereal)))
   30)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :household-item)))
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :household-item)))
   0.10)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :cutlery)))
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :cutlery)))
   0.04)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :plate)))
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :plate)))
   0.02)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :tray)))
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :tray)))
   0.02)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-carry-config :heuristics 20 (object-type grasp)
+  :carry)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :household-item)) grasp)
+  :carry)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :bowl)) grasp)
+  :carry-top)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :cup)) (grasp (eql :top)))
+  :carry-top)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :cereal)) (grasp (eql :top)))
+  :carry-top)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :plate)) grasp)
+  :carry-side-gripper-vertical)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -169,7 +196,7 @@
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :back
-  :grasp-translation `(,*bottle-grasp-xy-offset* 0.0d0 ,*bottle-grasp-z-offset*)
+  :grasp-translation `(,(- *bottle-grasp-xy-offset*) 0.0d0 ,*bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
@@ -180,8 +207,8 @@
 (man-int:def-object-type-to-gripper-transforms '(:drink :bottle) '(:left :right) :front
   :grasp-translation `(,*bottle-grasp-xy-offset* 0.0d0 ,*bottle-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
-  :pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
-  :2nd-pregrasp-offsets `(,(- *bottle-pregrasp-xy-offset*) 0.0 0.0)
+  :pregrasp-offsets `(,*bottle-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,*bottle-pregrasp-xy-offset* 0.0 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
@@ -296,8 +323,8 @@
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
-  :lift-translation `(,(- *cereal-grasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*)
-  :2nd-lift-translation `(,(- *cereal-postgrasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*))
+  :lift-translation `(,*cereal-grasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-lift-z-offset*))
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :top
@@ -328,6 +355,27 @@
 (man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top
   :grasp-translation `(,(- *bowl-grasp-x-offset*) 0.0d0 ,*bowl-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-front
+  :grasp-translation `(,*bowl-grasp-x-offset* 0.0d0 ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-y-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-left
+  :grasp-translation `(0.0d0 ,*bowl-grasp-x-offset* ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*))
+(man-int:def-object-type-to-gripper-transforms :bowl '(:left :right) :top-right
+  :grasp-translation `(0.0d0 ,(- *bowl-grasp-x-offset*) ,*bowl-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
   :lift-translation `(0.0 0.0 ,*bowl-pregrasp-z-offset*)
@@ -392,7 +440,7 @@
                environment human
                (context (eql :table-setting)))
             (make-location-on-sink-middle-front environment)))
-        '(:bottle :milk :cereal))
+        '(:bottle :milk :cereal :breakfast-cereal))
 
 (defun make-location-in-sink-left-middle-drawer (?environment-name)
   (desig:a location
@@ -460,7 +508,7 @@
                environment human
                (context (eql :table-setting)))
             (make-location-in-sink-left-upper-drawer environment)))
-        '(:cutlery))
+        '(:cutlery :spoon))
 
 ;;;; destination
 
@@ -523,11 +571,8 @@
 
 (defun make-location-right-of-behind-other-object (?object-type ?other-object-type)
   (desig:a location
-           ;; (left-of (desig:an object (type ?other-object-type)))
-           ;; (near (desig:an object (type ?other-object-type)))
-           ;; (for (desig:an object (type ?object-type)))
            (right-of (desig:an object (type ?other-object-type)))
-           (behind (desig:an object (type ?other-object-type)))
+           ;; (behind (desig:an object (type ?other-object-type)))
            (near (desig:an object (type ?other-object-type)))
            (for (desig:an object (type ?object-type)))))
 
@@ -623,4 +668,4 @@
                environment human
                (context (eql :table-cleaning)))
             (make-location-on-sink environment object-type)))
-        '(:bowl :plate :cutlery :mug :cup :cereal :milk :bottle))
+        '(:bowl :plate :cutlery :mug :cup :cereal :breakfast-cereal :milk :bottle))

@@ -45,6 +45,9 @@
    #:object-type-direct-subtype
    #:robot-free-hand
    #:unidirectional-attachment
+   #:always-reachable
+   #:other-object-is-a-robot
+   #:accessible
    ;; environment
    #:environment-name
    #:current-environment-symbol
@@ -53,8 +56,9 @@
    ;; manipulation-interfaces
    #:get-action-gripping-effort
    #:get-action-gripper-opening
-   #:get-action-trajectory
+   #:get-object-type-carry-config
    #:get-action-grasps
+   #:get-action-trajectory
    #:get-location-poses
    #:get-object-likely-location
    #:get-object-destination
@@ -89,7 +93,9 @@
    #:get-object-look-from-pose
    ;; standard-grasps
    #:*x-across-z-grasp-rotation*
+   #:*x-across-z-grasp-rotation-2*
    #:*-x-across-z-grasp-rotation*
+   #:*-x-across-z-grasp-rotation-2*
    #:*x-across-y-grasp-rotation*
    #:*-x-across-y-grasp-rotation*
    #:*y-across-z-grasp-rotation*

@@ -51,13 +51,11 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
-
 (defun go-with-torso (&key
-                     ((:joint-angle ?joint-angle))
-                     &allow-other-keys)
+                        ((:joint-angle ?joint-angle))
+                      &allow-other-keys)
   (declare (type (or number keyword) ?joint-angle))
   "Go to `?joint-angle' with torso, if a failure happens propagate it up, robot-state-changed event."
-
   (unwind-protect
        (cpl:with-retry-counters ((torso-retries 1))
          (cpl:with-failure-handling
@@ -74,7 +72,6 @@
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
 
 
-
 (defun move-arms-in-sequence (&key
                                 left-poses
                                 right-poses
@@ -82,12 +79,16 @@
                                 ((:collision-object-b ?collision-object-b))
                                 ((:collision-object-b-link ?collision-object-b-link))
                                 ((:collision-object-a ?collision-object-a))
-                                ((:move-the-ass ?move-the-ass))
+                                ((:move-base ?move-base))
+                                ((:prefer-base ?prefer-base))
+                                ((:align-planes-left ?align-planes-left))
+                                ((:align-planes-right ?align-planes-right))
                               &allow-other-keys)
   (declare (type (or list cl-transforms-stamped:pose-stamped) left-poses right-poses)
            (type (or null keyword) ?collision-mode)
            (type (or null symbol) ?collision-object-b ?collision-object-a)
-           (type (or null string symbol) ?collision-object-b-link))
+           (type (or null string symbol) ?collision-object-b-link)
+           (type boolean ?move-base ?prefer-base ?align-planes-left ?align-planes-right))
   "Move arms through all but last poses of `left-poses' and `right-poses',
 while ignoring failures; and execute the last pose with propagating the failures."
 
@@ -123,8 +124,14 @@ while ignoring failures; and execute the last pose with propagating the failures
                           (collision-object-b-link ?collision-object-b-link))
                         (desig:when ?collision-object-a
                           (collision-object-a ?collision-object-a))
-                        (desig:when ?move-the-ass
-                          (move-the-ass ?move-the-ass))))
+                        (desig:when ?move-base
+                          (move-base ?move-base))
+                        (desig:when ?prefer-base
+                          (prefer-base ?prefer-base))
+                        (desig:when ?align-planes-left
+                          (align-planes-left ?align-planes-left))
+                        (desig:when ?align-planes-right
+                          (align-planes-right ?align-planes-right))))
 
               (cram-occasions-events:on-event
                (make-instance 'cram-plan-occasions-events:robot-state-changed))))
@@ -155,8 +162,14 @@ while ignoring failures; and execute the last pose with propagating the failures
                   (collision-object-b-link ?collision-object-b-link))
                 (desig:when ?collision-object-a
                   (collision-object-a ?collision-object-a))
-                (desig:when ?move-the-ass
-                  (move-the-ass ?move-the-ass))))
+                (desig:when ?move-base
+                  (move-base ?move-base))
+                (desig:when ?prefer-base
+                  (prefer-base ?prefer-base))
+                (desig:when ?align-planes-left
+                  (align-planes-left ?align-planes-left))
+                (desig:when ?align-planes-right
+                  (align-planes-right ?align-planes-right))))
 
       (cram-occasions-events:on-event
        (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
@@ -165,6 +178,8 @@ while ignoring failures; and execute the last pose with propagating the failures
 (defun move-arms-into-configuration (&key
                                        ((:left-joint-states ?left-joint-states))
                                        ((:right-joint-states ?right-joint-states))
+                                       ((:align-planes-left ?align-planes-left))
+                                       ((:align-planes-right ?align-planes-right))
                                      &allow-other-keys)
   (declare (type list ?left-joint-states ?right-joint-states))
   "Calls moving-arm-joints motion, while ignoring failures, and robot-state-changed event."
@@ -182,7 +197,11 @@ while ignoring failures; and execute the last pose with propagating the failures
                    (desig:when ?left-joint-states
                      (left-joint-states ?left-joint-states))
                    (desig:when ?right-joint-states
-                     (right-joint-states ?right-joint-states))))
+                     (right-joint-states ?right-joint-states))
+                   (desig:when ?align-planes-left
+                     (align-planes-left ?align-planes-left))
+                   (desig:when ?align-planes-right
+                     (align-planes-right ?align-planes-right))))
          ;; (cpl:seq
          ;;   (exe:perform
          ;;    (desig:a motion
@@ -195,7 +214,6 @@ while ignoring failures; and execute the last pose with propagating the failures
          )
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
-
 
 
 (defun release (&key
@@ -224,12 +242,10 @@ while ignoring failures; and execute the last pose with propagating the failures
                         (desig:desig-prop-value ?object-designator :name)
                         NIL)))))
 
-
 (defun grip (&key
                ((:gripper ?left-or-right))
                ((:effort ?effort))
                ((:object object-designator))
-               ((:grasped-object new-object-designator))
                ((:grasp ?grasp))
              &allow-other-keys)
   (declare (type (or keyword list) ?left-or-right)
@@ -238,36 +254,30 @@ while ignoring failures; and execute the last pose with propagating the failures
 In any case, issue ROBOT-STATE-CHANGED event."
 
   (unwind-protect
-
-       ;; if grasping fails, regrasp once then propagate up
        (cpl:with-retry-counters ((grasping-retries 1))
          (cpl:with-failure-handling
-             ((common-fail:gripper-low-level-failure (e)
+             ((common-fail:gripper-low-level-failure (e) ; regrasp once then propagate up
                 (cpl:do-retry grasping-retries
                   (roslisp:ros-warn (pick-and-place grip) "~a~%Retrying" e)
                   (cpl:retry))
                 (roslisp:ros-warn (pick-and-place grip) "No retries left. Propagating up.")))
-
            (exe:perform
             (desig:a motion
                      (type gripping)
                      (gripper ?left-or-right)
                      (desig:when ?effort
                        (effort ?effort))))
-
            (roslisp:ros-info (pick-place grip) "Assert grasp into knowledge base")
            (when object-designator
              (cram-occasions-events:on-event
               (make-instance 'cpoe:object-attached-robot
                 :arm ?left-or-right
                 :object-name (desig:desig-prop-value object-designator :name)
+                :object-designator object-designator
                 :grasp ?grasp))
-             (desig:equate object-designator new-object-designator)
-             new-object-designator)))
-
+             (desig:current-desig object-designator))))
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
-
 
 (defun open-or-close-gripper (&key
                                 ((:type ?action-type))
@@ -278,20 +288,16 @@ In any case, issue ROBOT-STATE-CHANGED event."
   "Call ACTION-TYPE motion while ignoring failures and issue robot-state-changed."
 
   (unwind-protect
-
-       ;; ignore failures
        (cpl:with-failure-handling
-           ((common-fail:gripper-low-level-failure (e)
+           ((common-fail:gripper-low-level-failure (e) ; ignore failures
               (roslisp:ros-warn (pick-and-place close-gripper) "~a" e)
               (return)))
          (exe:perform
           (desig:a motion
                    (type ?action-type)
                    (gripper ?left-or-right))))
-
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
-
 
 (defun set-gripper-to-position (&key
                                   ((:gripper ?left-or-right))
@@ -302,10 +308,8 @@ In any case, issue ROBOT-STATE-CHANGED event."
   "Call MOVING-GRIPPER-JOINT motion while ignoring failures and issue robot-state-changed."
 
   (unwind-protect
-
-       ;; ignore failures
        (cpl:with-failure-handling
-           ((common-fail:gripper-low-level-failure (e)
+           ((common-fail:gripper-low-level-failure (e) ; ignore failures
               (roslisp:ros-warn (pick-and-place set-gripper-to-pos) "~a" e)
               (return)))
          (exe:perform
@@ -313,10 +317,8 @@ In any case, issue ROBOT-STATE-CHANGED event."
                    (type moving-gripper-joint)
                    (gripper ?left-or-right)
                    (joint-angle ?position))))
-
     (cram-occasions-events:on-event
      (make-instance 'cram-plan-occasions-events:robot-state-changed))))
-
 
 
 (defun look-at (&key
@@ -357,7 +359,6 @@ In any case, issue ROBOT-STATE-CHANGED event."
   (declare (type desig:object-designator ?object-designator))
   "Call detecting motion on `?object-designator', retry on failure, issue perceived event,
 equate resulting designator to the original one."
-
   (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
                      1
                      4)))
@@ -376,19 +377,34 @@ equate resulting designator to the original one."
                (resulting-designator
                  (funcall object-chosing-function resulting-designators)))
           (if (listp resulting-designators)
-              (mapcar (lambda (desig)
-                        (cram-occasions-events:on-event
-                         (make-instance 'cram-plan-occasions-events:object-perceived-event
-                           :object-designator desig
-                           :perception-source :whatever))
-                        ;; doesn't make sense to equate all these desigs together
-                        ;; (desig:equate ?object-designator desig)
-                        )
-                      resulting-designators)
+              (mapc (lambda (desig)
+                      (cram-occasions-events:on-event
+                       (make-instance 'cram-plan-occasions-events:object-perceived-event
+                         :object-designator desig
+                         :perception-source :whatever))
+                      ;; doesn't make sense to equate all these desigs together
+                      ;; (desig:equate ?object-designator desig)
+                      )
+                    resulting-designators)
               (progn
                 (cram-occasions-events:on-event
                  (make-instance 'cram-plan-occasions-events:object-perceived-event
                    :object-designator resulting-designators
                    :perception-source :whatever))
                 (desig:equate ?object-designator resulting-designator)))
-          resulting-designator)))))
+          (desig:current-desig resulting-designator))))))
+
+
+(defun park-arms (&key
+                    ((:left-arm ?left-arm-p))
+                    ((:right-arm ?right-arm-p))
+                  &allow-other-keys)
+  (declare (type boolean ?left-arm-p ?right-arm-p))
+  "Puts the arms into a parking configuration"
+  (exe:perform
+   (desig:an action
+             (type positioning-arm)
+             (desig:when ?left-arm-p
+               (left-configuration park))
+             (desig:when ?right-arm-p
+               (right-configuration park)))))

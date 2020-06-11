@@ -20,6 +20,7 @@
   <build_depend>cram_math</build_depend>
   <build_depend>cram_location_costmap</build_depend>
   <build_depend>cram_robot_interfaces</build_depend>
+  <build_depend>cram_manipulation_interfaces</build_depend>
   <build_depend>cl_transforms</build_depend>
   <build_depend>cl_bullet_vis</build_depend>
   <build_depend>cl_opengl</build_depend>
@@ -32,6 +33,7 @@
   <run_depend>cram_math</run_depend>
   <run_depend>cram_location_costmap</run_depend>
   <run_depend>cram_robot_interfaces</run_depend>
+  <run_depend>cram_manipulation_interfaces</run_depend>
   <run_depend>cl_transforms</run_depend>
   <run_depend>cl_bullet_vis</run_depend>
   <run_depend>cl_opengl</run_depend>

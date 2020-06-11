@@ -103,7 +103,7 @@
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
-  (coe:clear-belief)
+  ;; (coe:clear-belief)
 
   (btr:clear-costmap-vis-object)
 
@@ -121,7 +121,7 @@
 
 (cpl:def-cram-function demo-random (&optional
                                     (random
-                                     t)
+                                     nil)
                                     (list-of-objects
                                      '(:bowl :spoon :cup :milk :breakfast-cereal)))
 

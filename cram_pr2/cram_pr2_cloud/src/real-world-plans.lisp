@@ -89,9 +89,7 @@
     (move-projected-pr2-away)
     (cram-bullet-reasoning::clear-costmap-vis-object)
     (exe:perform (desig:an action
-                           (type positioning-arm)
-                           (left-configuration park)
-                           (right-configuration park)))
+                           (type parking-arms)))
     ;; (exe:perform (desig:a motion (type moving-torso) (joint-angle 0.15)))
 
     (cpl:with-failure-handling
@@ -103,9 +101,7 @@
            (cpl:sleep 0.5)
            (exe:perform (desig:an action (type opening-gripper) (gripper right)))
            (exe:perform (desig:an action
-                                  (type positioning-arm)
-                                  (left-configuration park)
-                                  (right-configuration park)))
+                                  (type parking-arms)))
            (move-projected-pr2-away)
            (unless location-designator
              (setf ?location-for-robot (desig:next-solution ?location-for-robot)))

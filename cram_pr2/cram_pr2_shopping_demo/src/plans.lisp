@@ -74,9 +74,7 @@
 
     (exe:perform
      (desig:an action
-               (type positioning-arm)
-               (left-configuration park)
-               (right-configuration park)))
+               (type parking-arms)))
 
     (exe:perform
      (desig:an action

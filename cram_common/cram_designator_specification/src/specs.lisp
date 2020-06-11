@@ -179,10 +179,10 @@
     (property-member (?keyword-key ?name) ?designator)
     (assert-type ?name symbol "OBJECT SPEC:PROPERTY"))
 
-  (<- (%property ?designator (:part-of ?environment))
+  (<- (%property ?designator (:part-of ?environment-or-robot))
     (lisp-pred typep ?designator desig:object-designator)
-    (property-member (:part-of ?environment) ?designator)
-    (assert-type ?environment keyword "OBJECT SPEC:PROPERTY"))
+    (property-member (:part-of ?environment-or-robot) ?designator)
+    (assert-type ?environment-or-robot symbol "OBJECT SPEC:PROPERTY"))
 
   (<- (%property ?designator (:handle-axis ?axis))
     (lisp-pred typep ?designator desig:object-designator)
@@ -192,4 +192,9 @@
   (<- (%property ?designator (:pose ?pose))
     (lisp-pred typep ?designator desig:object-designator)
     (property-member (:pose ?pose) ?designator)
-    (assert-type ?pose list "OBEJCT SPEC:PROPERTY")))
+    (assert-type ?pose list "OBEJCT SPEC:PROPERTY"))
+
+  (<- (%property ?designator (:location ?location))
+    (lisp-pred typep ?designator desig:object-designator)
+    (property-member (:location ?location) ?designator)
+    (assert-type ?location desig:location-designator "OBJECT SPEC:PROPERTY")))
