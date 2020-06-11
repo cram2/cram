@@ -184,9 +184,9 @@
         (true)
         (equal ?placement-location-name NIL))
 
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        (cpoe:object-in-hand ?object-designator ?arm ?grasp))
+    (and (spec:property ?action-designator (:grasp ?grasp))
+         (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
+         (member ?grasp ?grasps))
 
     ;; calculate trajectory
     (equal ?objects (?current-object-designator
