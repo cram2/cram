@@ -40,7 +40,8 @@
                   ((:arm ?arm))
                   ((:gripper-opening ?gripper-opening))
                   ((:effort ?grip-effort))
-                  ((:grasp ?grasp))
+                  ((:left-grasp ?left-grasp))
+                  ((:right-grasp ?right-grasp))
                   ((:left-reach-poses ?left-reach-poses))
                   ((:right-reach-poses ?right-reach-poses))
                   ((:left-grasp-poses ?left-grasp-poses))
@@ -49,7 +50,8 @@
                   ((:right-lift-poses ?right-lift-poses))
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
-           (type keyword ?arm ?grasp)
+           (type list ?arm)
+           ;;(type (or nil keyword) ?left-grasp ?right-grasp)
            (type number ?gripper-opening ?grip-effort)
            (type (or null list) ; yes, null is also list, but this is more readable
                  ?left-reach-poses ?right-reach-poses
@@ -96,13 +98,26 @@
                (left-poses ?left-grasp-poses)
                (right-poses ?right-grasp-poses))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
-  (exe:perform
-   (desig:an action
-             (type gripping)
-             (gripper ?arm)
-             (effort ?grip-effort)
-             (object ?object-designator)
-             (grasp ?grasp)))
+  (when (member :left ?arm)
+    (exe:perform
+     (desig:an action
+               (type gripping)
+               (gripper :left)
+               (effort ?grip-effort)
+               (object ?object-designator)
+               (desig:when ?left-grasp
+                 (grasp ?left-grasp)))))
+  (when (member :right ?arm)
+    (exe:perform
+     (desig:an action
+               (type gripping)
+               (gripper :right)
+               (effort ?grip-effort)
+               (object ?object-designator)
+               (desig:when ?right-grasp
+                 (grasp ?right-grasp)))))
+  ;; TODO GRIP WITH BOTH ARMS!!!
+  ;; gripping needs support for both arms
   (roslisp:ros-info (pick-place pick-up) "Lifting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
