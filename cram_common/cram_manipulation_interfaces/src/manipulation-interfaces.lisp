@@ -104,3 +104,13 @@ is considered closed.
 `container-designator' is a designator describing the container.")
   (:method :heuristics 20 (container-name)
     nil))
+
+(defgeneric get-specific-object-arms (object-type)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns the arm to use for grasping the object of
+  given `object-type'. If nil is returned, it does not matter, which
+  arm is used.")
+  (:method (object-type)
+    (call-with-specific-type #'get-specific-object-arms object-type))
+  (:method (object-type)
+    nil))
