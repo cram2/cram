@@ -224,10 +224,10 @@
 
 (defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
   (let* ((validation-function
-           (lambda (ik-solution-msg joint-states)
+           (lambda (ik-solution-msg joint-states new-robot-base-pose)
              ;; This is due to the funcall in ik:with-resampling expects two
              ;; arguments.
-             (declare (ignore joint-states))
+             (declare (ignore joint-states new-robot-base-pose))
              (not
               (perform-collision-check :avoid-all NIL NIL ik-solution-msg))))
          (joint-state-msg
@@ -692,6 +692,9 @@ with the object, calculates similar angle around Y axis and applies the rotation
         (error "Arm movement goals should be given in map frame"))))
 
 (defparameter *torso-resampling-step* 0.1d0)
+(defparameter *base-resampling-step* 0.05)
+(defparameter *base-x-axis-delta-limit* 0.2)
+(defparameter *base-y-axis-delta-limit* 0.2)
 
 (defun get-ik-joint-positions (ee-pose base-link end-effector-link joint-names
                                torso-joint-name
@@ -699,20 +702,37 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                validation-function)
   (when ee-pose
     (multiple-value-bind (ik-solution-msg joint-values)
-        (let ((torso-current-angle
+        (let* ((torso-current-angle
                 (btr:joint-state
                  (btr:get-robot-object)
                  torso-joint-name))
-              (seed-state-msg
-                (btr::make-robot-joint-state-msg
-                 (btr:get-robot-object)
-                 :joint-names joint-names)))
+               (seed-state-msg
+                 (btr::make-robot-joint-state-msg
+                  (btr:get-robot-object)
+                  :joint-names joint-names))
+               (robot-base-pose-stamped (cl-transforms-stamped:pose->pose-stamped
+                                         cram-tf:*fixed-frame*
+                                         (cut:current-timestamp)
+                                         (btr:object-pose (btr:get-robot-name))))
+               (current-robot-x (cl-transforms:x
+                                 (cl-transforms:origin robot-base-pose-stamped)))
+               (current-robot-y (cl-transforms:y
+                                 (cl-transforms:origin robot-base-pose-stamped))))
+          
           (ik:find-ik-for (ee-pose base-link end-effector-link seed-state-msg
-                                   validation-function)
-            (ik:with-resampling (torso-current-angle
-                                 :z torso-joint-upper-limit
-                                 torso-joint-lower-limit *torso-resampling-step*
-                                 torso-joint-name))))
+                                   validation-function robot-base-pose-stamped)
+            ;; (ik:with-resampling (current-robot-x
+            ;;                      :x (+ current-robot-x *base-x-axis-delta-limit*)
+            ;;                      (- current-robot-x *base-x-axis-delta-limit*)
+            ;;                      *base-resampling-step* nil t)
+            ;;   (ik:with-resampling (current-robot-x
+            ;;                      :y (+ current-robot-y *base-y-axis-delta-limit*)
+            ;;                      (- current-robot-y *base-y-axis-delta-limit*)
+            ;;                      *base-resampling-step* nil t)
+                (ik:with-resampling (torso-current-angle
+                                     :z torso-joint-upper-limit
+                                     torso-joint-lower-limit *torso-resampling-step*
+                                     torso-joint-name)))) ;; ))
                                    
       (unless ik-solution-msg
         (cpl:fail 'common-fail:manipulation-low-level-failure
@@ -723,10 +743,11 @@ with the object, calculates similar angle around Y axis and applies the rotation
                 torso-angle)))))
 
 (defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose
-                                &optional joint-state-msg joint-state-list)
+                                &optional joint-state-msg joint-state-list
+                                  new-robot-base-pose)
   (declare (type (or keyword null) collision-mode)
            (type (or cl-transforms-stamped:pose-stamped null)
-                 left-tcp-pose right-tcp-pose)
+                 left-tcp-pose right-tcp-pose new-robot-base-pose)
            (type (or sensor_msgs-msg:jointstate null) joint-state-msg))
   "Returns NIL if current joint state does not result in collisions
 and returns (not throws or fails but simply returns) an error instance,
@@ -803,6 +824,12 @@ otherwise check collisions in current joint state."
                (progn
                  (btr:set-robot-state-from-joints joint-state-msg (btr:get-robot-object))
                  (btr:set-robot-state-from-joints joint-state-list (btr:get-robot-object))
+                 (when new-robot-base-pose
+                   (assert
+                    (prolog:prolog
+                     `(and (rob-int:robot ?robot)
+                           (btr:bullet-world ?w)
+                           (btr:assert ?w (btr:object-pose ?robot ,new-robot-base-pose))))))
                  (the-actual-collision-check collision-mode left-tcp-pose right-tcp-pose))
             (btr::restore-world-state world-state world)))
         (the-actual-collision-check collision-mode left-tcp-pose right-tcp-pose))))
@@ -844,10 +871,11 @@ otherwise check collisions in current joint state."
               (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit))))
 
     (let ((validation-function
-            (lambda (ik-solution-msg joint-state-list)
+            (lambda (ik-solution-msg joint-state-list new-robot-base-pose)
               (not (perform-collision-check collision-mode
                                             left-tcp-pose right-tcp-pose
-                                            ik-solution-msg joint-state-list)))))
+                                            ik-solution-msg joint-state-list
+                                            new-robot-base-pose)))))
       (multiple-value-bind (left-ik left-torso-angle)
           ;; TODO: the LET is a temporary hack until we get a relay running for PR2
           ;; such that both arms IKs go over the same ROS service
