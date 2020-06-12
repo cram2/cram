@@ -66,27 +66,38 @@
     (desig:current-designator ?object-designator ?current-object-desig)
     (spec:property ?current-object-desig (:type ?object-type))
     (spec:property ?current-object-desig (:name ?object-name))
-    (-> (spec:property ?action-designator (:arm ?arm))
-        (true)
-        (man-int:robot-free-hand ?_ ?arm))
-    (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
 
+    ;; get the arm for grasping by checking if it is specified for ?object-type
+    (lisp-fun man-int:get-specific-object-arms ?object-type ?specific-arms)
+    (-> (equal ?specific-arms nil)
+        (-> (spec:property ?action-designator (:arm ?arm))
+            (true)
+            (and (man-int:robot-free-hand ?_ ?free-arm)
+                 (equal (?free-arm) ?arm)))
+        (-> (spec:property ?action-designator (:arm ?arm))
+            (true);; (equal ?arm ?specific-arms) ;; <- TODO: here a bit retarded
+            ;; since the order of the elements in ?arm matter,
+            ;; therefore currently only true. maybe ishouldntgaf....
+            (equal ?arm ?specific-arms)))
+
+    (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
     (lisp-fun man-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
     (-> (man-int:object-rotationally-symmetric ?object-type)
         (equal ?rotationally-symmetric t)
         (equal ?rotationally-symmetric nil))
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        (and (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
-             (member ?grasp ?grasps)))
+
     (lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
     (lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
 
-    ;; calculate trajectory
+    ;; calculate trajectory with given grasps
+    (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)    
     (equal ?objects (?current-object-desig))
-    (-> (equal ?arm :left)
-        (and (lisp-fun man-int:get-action-trajectory :picking-up ?arm ?grasp ?objects
+    (-> (member :left ?arm)
+        (and (-> (spec:property ?action-designator (:left-grasp ?left-grasp))
+                 (true) ;; TODO: currently idgaf
+                 (member ?left-grasp ?grasps))
+             (lisp-fun man-int:get-action-trajectory :picking-up :left ?left-grasp ?objects
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
                        ?left-reach-poses)
@@ -94,11 +105,16 @@
                        ?left-grasp-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :lifting
                        ?left-lift-poses))
-        (and (equal ?left-reach-poses NIL)
+        (and (equal ?left-grasp NIL)
+             (equal ?left-reach-poses NIL)
              (equal ?left-grasp-poses NIL)
              (equal ?left-lift-poses NIL)))
-    (-> (equal ?arm :right)
-        (and (lisp-fun man-int:get-action-trajectory :picking-up ?arm ?grasp ?objects
+
+    (-> (member :right ?arm)
+        (and  (-> (spec:property ?action-designator (:right-grasp ?right-grasp))
+                  (true) ;; TODO: currently idgaf
+                  (member ?right-grasp ?grasps))
+              (lisp-fun man-int:get-action-trajectory :picking-up :right ?right-grasp ?objects
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
                        ?right-reach-poses)
@@ -106,9 +122,11 @@
                        ?right-grasp-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :lifting
                        ?right-lift-poses))
-        (and (equal ?right-reach-poses NIL)
+        (and (equal ?right-grasp NIL)
+             (equal ?right-reach-poses NIL)
              (equal ?right-grasp-poses NIL)
              (equal ?right-lift-poses NIL)))
+
     (or (lisp-pred identity ?left-trajectory)
         (lisp-pred identity ?right-trajectory))
 
@@ -118,7 +136,8 @@
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
                                (:effort ?effort)
-                               (:grasp ?grasp)
+                               (:left-grasp ?left-grasp)
+                               (:right-grasp ?right-grasp)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)
