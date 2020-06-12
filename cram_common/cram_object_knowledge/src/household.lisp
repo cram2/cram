@@ -159,6 +159,17 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
+(man-int:def-object-type-to-gripper-transforms '(:tray) :right :right-side
+  :grasp-translation `(0.0 ,(- *plate-grasp-y-offset*) ,*plate-grasp-z-offset*)
+  :grasp-rot-matrix
+  `((0 -1 0)
+    (,(- (sin *plate-grasp-roll-offset*)) 0 ,(cos *plate-grasp-roll-offset*))
+    (,(- (cos *plate-grasp-roll-offset*)) 0 ,(- (sin *plate-grasp-roll-offset*))))
+  :pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,(- *plate-pregrasp-y-offset*) ,*plate-2nd-pregrasp-z-offset*)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
 (man-int:def-object-type-to-gripper-transforms :plate :right :right-side
   :grasp-translation `(0.0 ,(- *plate-grasp-y-offset*) ,*plate-grasp-z-offset*)
   :grasp-rot-matrix
