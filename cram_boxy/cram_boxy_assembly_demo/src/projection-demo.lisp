@@ -234,6 +234,7 @@
 (defun demo ()
   ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
   (spawn-objects-on-plate)
+  (setf btr:*visibility-threshold* 0.6)
   (urdf-proj:with-projected-robot
 
     ;; 1
@@ -309,10 +310,6 @@
                (type parking-arms)))))
 
 (defun go-perceive (?object-type ?nav-goal)
-  ;; park arms
-  (exe:perform
-   (desig:an action
-             (type parking-arms)))
   ;; drive to right location
   (let ((?pose (cl-transforms-stamped:pose->pose-stamped
                 cram-tf:*fixed-frame*
@@ -320,9 +317,9 @@
                 (btr:ensure-pose ?nav-goal))))
     (exe:perform
      (desig:an action
-               (type going)
-               (target (desig:a location
-                                (pose ?pose))))))
+               (type navigating)
+               (location (desig:a location
+                                  (pose ?pose))))))
   ;; look down
   (exe:perform
    (desig:an action
@@ -341,42 +338,26 @@
                (direction away)))
     ?object))
 
-(defun go-pick (?object-type ?nav-goal)
-  ;; go and perceive object
+
+(defun go-connect (?object-type ?nav-goal ?other-object-type ?other-nav-goal ?attachment-type)
+  ;; go and perceive object to pick
   (let ((?object
           (go-perceive ?object-type ?nav-goal)))
-    ;; pick object
+    ;; pick it up
     (exe:perform
      (desig:an action
                (type picking-up)
                (arm left)
                (object ?object)))
-    ?object))
-
-(defun go-pick-place (?object-type ?nav-goal)
-  ;; go and pick up object
-  (let ((?object
-          (go-pick ?object-type ?nav-goal)))
-    ;; put the cookie down
-    (exe:perform
-     (desig:an action
-               (type placing)
-               (object ?object)))))
-
-(defun go-connect (?object-type ?nav-goal ?other-object-type ?other-nav-goal ?attachment-type)
-  ;; go and pick up object
-  (let ((?object
-          (go-pick ?object-type ?nav-goal)))
     ;; go and perceive other object
     (let ((?other-object
             (go-perceive ?other-object-type ?other-nav-goal)))
+      ;; place
       (exe:perform
        (desig:an action
                  (type placing)
                  (arm left)
                  (object ?object)
-                 ;; this location designator is resolved in
-                 ;; cram_boxy_plans/src/action-designators.lisp
                  (target (desig:a location
                                   (on ?other-object)
                                   (for ?object)
