@@ -156,7 +156,7 @@
   ;;              (location (on/in (an object
   ;;                                   (type robot
   ;; First, a helper predicate to discern such a location
-  (<- (always-reachable ?location-designator)
+  (<- (location-always-reachable ?location-designator)
     (desig:loc-desig? ?location-designator)
     (desig:current-designator ?location-designator ?current-location-designator)
     (or (desig:desig-prop ?current-location-designator (:on ?object-designator))
@@ -164,7 +164,7 @@
     (desig:current-designator ?object-designator ?current-object-designator)
     (desig:desig-prop ?current-object-designator (:type :robot)))
   ;; Also, a location on an item that is held by the robot is also always reachable
-  (<- (always-reachable ?location-designator)
+  (<- (location-always-reachable ?location-designator)
     (desig:loc-desig? ?location-designator)
     (desig:current-designator ?location-designator ?current-location-designator)
     (desig:desig-prop ?current-location-designator (:on ?object-designator))
@@ -172,18 +172,21 @@
     (cpoe:object-in-hand ?current-object-designator))
   ;; Also, a location of an object at a location that is always reachable
   ;; is also always reachable
-  (<- (always-reachable ?location-designator)
+  (<- (location-always-reachable ?location-designator)
     (desig:loc-desig? ?location-designator)
     (desig:current-designator ?location-designator ?current-location-designator)
     (spec:property ?current-location-designator (:of ?object-designator))
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:location ?object-location))
-    (man-int:always-reachable ?object-location))
+    (man-int:location-always-reachable ?object-location))
 
-  (<- (other-object-is-a-robot ?some-object-designator)
+  (<- (object-is-a-robot ?some-object-designator)
     (desig:current-designator ?some-object-designator ?object-designator)
     (or (desig:desig-prop ?object-designator (:type :robot))
-        (desig:desig-prop ?object-designator (:type :environment))))
+        (desig:desig-prop ?object-designator (:type :environment))
+        (and (rob-int:robot ?robot)
+             (desig:desig-prop ?object-designator (:part-of ?robot)))
+        (desig:desig-prop ?object-designator (:part-of :environment))))
 
   ;; Now the actual location grounding for reachability and visibility
   (<- (desig:location-grounding ?location-designator ?pose-stamped)
@@ -198,14 +201,39 @@
         (desig:desig-prop ?current-location-designator (:location ?some-location)))
     (desig:current-designator ?some-location ?location)
     ;; if the location is on the robot itself, use the current robot pose
-    (always-reachable ?location)
+    (location-always-reachable ?location)
     (lisp-fun cram-tf:robot-current-pose ?pose-stamped))
 
-
   ;; Helper to reason if a location is accessible
-  (<- (accessible ?location-designator)
+  (<- (location-accessible ?location-designator)
     (desig:loc-desig? ?location-designator)
     (desig:current-designator ?location-designator ?current-location-designator)
     (-> (spec:property ?current-location-designator (:in ?container-object))
-        (other-object-is-a-robot ?container-object)
-        (true))))
+        (and (desig:current-designator ?container-object ?object-designator)
+             (or (desig:desig-prop ?object-designator (:type :robot))
+                 (and (rob-int:robot ?robot)
+                      (desig:desig-prop ?object-designator (:part-of ?robot)))))
+        (true)))
+
+  ;; most symbolic locations have a reference object
+  ;; this predicate finds the reference object of the given location desig
+  (<- (location-reference-object ?location-designator ?object-designator)
+    (desig:loc-desig? ?location-designator)
+    (desig:current-designator ?location-designator ?current-location-designator)
+    (or (spec:property ?current-location-designator (:in ?object-designator))
+        (spec:property ?current-location-designator (:on ?object-designator))
+        (spec:property ?current-location-designator (:left-of ?object-designator))
+        (spec:property ?current-location-designator (:right-of ?object-designator))
+        (spec:property ?current-location-designator (:in-front-of ?object-designator))
+        (spec:property ?current-location-designator (:behind ?object-designator))
+        (spec:property ?current-location-designator (:near ?object-designator))
+        (spec:property ?current-location-designator (:far-from ?object-designator))
+        (spec:property ?current-location-designator (:of ?object-designator))))
+
+  (<- (location-certain ?some-location-designator)
+    (desig:loc-desig? ?some-location-designator)
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (or (and (location-reference-object ?location-designator ?reference-object)
+             (object-is-a-robot ?reference-object))
+        (spec:property ?location-designator (:pose ?_))
+        (spec:property ?location-designator (:poses ?_)))))

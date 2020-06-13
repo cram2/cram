@@ -54,11 +54,11 @@
                    (lisp-fun man-int:get-object-pose-in-map ?object ?to-see-pose)
                    (lisp-pred identity ?to-see-pose)
                    (-> (desig:desig-prop ?object (:location ?loc))
-                       (not (man-int:always-reachable ?loc))
+                       (not (man-int:location-always-reachable ?loc))
                        (true)))
               (and (desig:desig-prop ?desig (:location ?some-location))
                    (desig:current-designator ?some-location ?location)
-                   (not (man-int:always-reachable ?location))
+                   (not (man-int:location-always-reachable ?location))
                    (desig:designator-groundings ?location ?location-poses)
                    ;; have to take one pose from all possibilities
                    ;; as later we have a FORCE-LL on ?TO-SEE-POSES
@@ -94,13 +94,13 @@
                    (lisp-fun man-int:get-object-pose-in-map ?object ?to-reach-pose)
                    (lisp-pred identity ?to-reach-pose)
                    (-> (desig:desig-prop ?object (:location ?loc))
-                       (not (man-int:always-reachable ?loc))
+                       (not (man-int:location-always-reachable ?loc))
                        (true)))
               (and (desig:desig-prop ?desig (:location ?some-location))
                    (desig:current-designator ?some-location ?location)
                    ;; if the location is on the robot itself,
                    ;; don't use the costmap
-                   (not (man-int:always-reachable ?location))
+                   (not (man-int:location-always-reachable ?location))
                    (desig:designator-groundings ?location ?location-poses)
                    ;; have to take one pose from all possibilities
                    ;; as later we have a FORCE-LL on ?TO-REACH-POSES

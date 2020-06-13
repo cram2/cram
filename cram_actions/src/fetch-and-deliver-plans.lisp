@@ -555,13 +555,21 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     ((:deliver-location ?delivering-location))
                     ((:deliver-robot-location ?deliver-robot-location))
                     search-location-accessible
-                    delivery-location-accessible
+                    deliver-location-accessible
+                    search-location-certain
+                    deliver-location-certain
                   &allow-other-keys)
+  ;; if we are not sure about the exact location of search-location, find it
+  (unless search-location-certain
+    (exe:perform (desig:an action
+                           (type searching)
+                           (location ?search-location))))
+  ;; if search-location is inside a container, open the container
   (unless search-location-accessible
     (exe:perform (desig:an action
                            (type accessing)
                            (location ?search-location))))
-
+  ;; search for the object to find it's exact pose
   (unwind-protect
        (let ((?perceived-object-designator
                (exe:perform (desig:an action
@@ -569,7 +577,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                       (object ?object-designator)
                                       (desig:when ?context
                                         (context ?context))
-                                      (location ?search-location)
                                       (desig:when ?search-base-location
                                         (robot-location ?search-base-location))))))
          (roslisp:ros-info (pp-plans transport)
@@ -606,7 +613,14 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                       (drop-at-sink)
                       ;; (return)
                       ))
-                 (unless delivery-location-accessible
+                 ;; if we are not sure about the exact location of deliver-location
+                 ;; find it
+                 (unless deliver-location-certain
+                   (exe:perform (desig:an action
+                                          (type searching)
+                                          (location ?delivering-location))))
+                 ;; if deliver-location is inside a container, open the container
+                 (unless deliver-location-accessible
                    (exe:perform (desig:an action
                                           (type accessing)
                                           (location ?delivering-location))))
@@ -621,7 +635,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                              (desig:when ?deliver-robot-location
                                                (robot-location ?deliver-robot-location))
                                              (place-action ?deliver-place-action)))
-                   (unless delivery-location-accessible
+                   (unless deliver-location-accessible
                      (exe:perform (desig:an action
                                             (type sealing)
                                             (location ?delivering-location))))))))))
