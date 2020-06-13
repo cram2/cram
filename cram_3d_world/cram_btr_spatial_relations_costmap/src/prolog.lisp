@@ -152,11 +152,11 @@
     ;; if it is, don't generate a costmap
     (-> (desig:desig-prop ?designator (:location ?some-location))
         (and (desig:current-designator ?some-location ?location)
-             (not (man-int:always-reachable ?location)))
+             (not (man-int:location-always-reachable ?location)))
         (-> (desig:desig-prop ?designator (:object ?some-object))
             (and (desig:current-designator ?some-object ?object)
                  (-> (desig:desig-prop ?object (:location ?some-loc))
-                     (not (man-int:always-reachable ?some-loc))
+                     (not (man-int:location-always-reachable ?some-loc))
                      (true)))
             (true)))
     (costmap:costmap ?costmap)

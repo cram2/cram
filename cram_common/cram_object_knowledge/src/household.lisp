@@ -551,12 +551,17 @@
             (make-location-on-kitchen-island object-type environment)))
         '(:mug :bottle))
 
-(defun make-location-right-of-other-object (?object-type ?other-object-type)
-  (desig:a location
-           (right-of (desig:an object (type ?other-object-type)))
-           (near (desig:an object (type ?other-object-type)))
-           (for (desig:an object (type ?object-type)))
-           (orientation support-aligned)))
+(defun make-location-right-of-other-object (?object-type ?other-object-type
+                                            ?other-object-location)
+  (let ((?other-object-designator
+          (desig:an object
+                    (type ?other-object-type)
+                    (location ?other-object-location))))
+    (desig:a location
+             (right-of ?other-object-designator)
+             (near ?other-object-designator)
+             (for (desig:an object (type ?object-type)))
+             (orientation support-aligned))))
 
 (mapcar (lambda (object-type-and-other-object-type)
           (destructuring-bind (object-type other-object-type)
@@ -565,16 +570,24 @@
                 ((object-type (eql object-type))
                  environment human
                  (context (eql :table-setting)))
-              (make-location-right-of-other-object object-type other-object-type))))
-          '((:spoon :bowl)
-            (:knife :plate)))
+              (make-location-right-of-other-object
+               object-type other-object-type
+               (make-location-on-kitchen-island-slots
+                other-object-type environment)))))
+        '((:spoon :bowl)
+          (:knife :plate)))
 
-(defun make-location-right-of-behind-other-object (?object-type ?other-object-type)
-  (desig:a location
-           (right-of (desig:an object (type ?other-object-type)))
-           ;; (behind (desig:an object (type ?other-object-type)))
-           (near (desig:an object (type ?other-object-type)))
-           (for (desig:an object (type ?object-type)))))
+(defun make-location-right-of-behind-other-object (?object-type ?other-object-type
+                                                   ?other-object-location)
+  (let ((?other-object-designator
+          (desig:an object
+                    (type ?other-object-type)
+                    (location ?other-object-location))))
+    (desig:a location
+             (right-of ?other-object-designator)
+             ;; (behind ?other-object-designator)
+             (near ?other-object-designator)
+             (for (desig:an object (type ?object-type))))))
 
 (mapcar (lambda (object-type-and-other-object-type)
           (destructuring-bind (object-type other-object-type)
@@ -583,8 +596,10 @@
                 ((object-type (eql object-type))
                  environment human
                  (context (eql :table-setting)))
-              (make-location-right-of-behind-other-object object-type
-                                                          other-object-type))))
+              (make-location-right-of-behind-other-object
+               object-type other-object-type
+               (make-location-on-kitchen-island-slots
+                other-object-type environment)))))
         '((:cup :bowl)))
 
 (defun make-cereal-pose (?object-type ?environment-name)
@@ -617,17 +632,24 @@
      (context (eql :table-setting)))
   (make-cereal-pose object-type environment-name))
 
-(defun make-location-left-of-far-other-object (?object-type ?other-object-type)
-  (desig:a location
-           (left-of (desig:an object (type ?other-object-type)))
-           (far-from (desig:an object (type ?other-object-type)))
-           (for (desig:an object (type ?object-type)))))
+(defun make-location-left-of-far-other-object (?object-type ?other-object-type
+                                               ?other-object-location)
+  (let ((?other-object-designator
+          (desig:an object
+                    (type ?other-object-type)
+                    (location ?other-object-location))))
+    (desig:a location
+             (left-of ?other-object-designator)
+             (far-from ?other-object-designator)
+             (for (desig:an object (type ?object-type))))))
 
 (defmethod man-int:get-object-destination :heuristics 20
     ((object-type (eql :milk))
      environment human
      (context (eql :table-setting)))
-  (make-location-left-of-far-other-object object-type :bowl))
+  (make-location-left-of-far-other-object
+   object-type :bowl
+   (make-location-on-kitchen-island-slots :bowl environment)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; table cleaning ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

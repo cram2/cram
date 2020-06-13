@@ -176,7 +176,7 @@
         (desig:desig-prop ?current-location-designator (:in ?other-object-designator))
         (equal ?other-object-designator NIL))
     ;; and that other object can be a robot or not
-    (-> (man-int:other-object-is-a-robot ?other-object-designator)
+    (-> (man-int:object-is-a-robot ?other-object-designator)
         (equal ?other-object-is-a-robot T)
         (equal ?other-object-is-a-robot NIL))
     ;; and the placement can have a specific attachment or not
