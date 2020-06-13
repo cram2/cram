@@ -170,17 +170,18 @@
                               &optional pose-2 pose-3 pose-4)
   (declare (type symbol ?object-type)
            (type cl-transforms-stamped:pose-stamped ?destination))
-  (let ((?object (desig:an object (type ?object-type)))
-        (?table *table*)
-        (?target-poses `(,?destination ,pose-2 ,pose-3 ,pose-4)))
+  (let* ((?table *table*)
+         (?object (desig:an object
+                            (type ?object-type)
+                            (location (desig:a location
+                                               (pose ?table)))))
+         (?target-poses `(,?destination ,pose-2 ,pose-3 ,pose-4)))
 
     (exe:perform
      (desig:an action
                (type transporting)
                (arm right)
                (object ?object)
-               (location (desig:a location
-                                  (pose ?table)))
                (target (desig:a location
                                 (poses  ?target-poses)))))))
 

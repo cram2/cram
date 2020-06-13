@@ -45,9 +45,11 @@
    #:object-type-direct-subtype
    #:robot-free-hand
    #:unidirectional-attachment
-   #:always-reachable
-   #:other-object-is-a-robot
-   #:accessible
+   #:location-always-reachable
+   #:object-is-a-robot
+   #:location-accessible
+   #:location-reference-object
+   #:location-certain
    ;; environment
    #:environment-name
    #:current-environment-symbol

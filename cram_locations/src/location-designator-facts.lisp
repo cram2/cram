@@ -49,7 +49,7 @@
     ;; if the object is on the robot, don't need a visibility cm
     (desig:current-designator ?object ?current-object)
     (-> (desig:desig-prop ?current-object (:location ?loc))
-        (not (man-int:always-reachable ?loc))
+        (not (man-int:location-always-reachable ?loc))
         (true))
     (btr:bullet-world ?world)
     ;; (btr-belief:object-designator-name ?object ?object-name)
@@ -81,7 +81,7 @@
 
   (<- (location-visibility-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:location ?location))
-    (not (man-int:always-reachable ?location))
+    (not (man-int:location-always-reachable ?location))
     (btr:bullet-world ?world)
     (cram-robot-interfaces:robot ?robot)
     (costmap:costmap ?costmap)

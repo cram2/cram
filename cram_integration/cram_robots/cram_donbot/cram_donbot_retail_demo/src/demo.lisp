@@ -108,7 +108,6 @@
      (desig:an action
                (type transporting)
                (object ?object)
-               (location ?search-location)
                (target ?intermediate-locaiton-robot)
                ;; (target ?target-location-shelf)
                ))
@@ -117,7 +116,6 @@
      (desig:an action
                (type transporting)
                (object ?object)
-               (location ?intermediate-locaiton-robot)
                (target ?target-location-shelf)))
 
     ;; (setf ?object
