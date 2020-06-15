@@ -38,6 +38,7 @@
   (loop for x from 0 to (- num-experiments 1)
         do (progn
              (print "Start")
+             ;;(ccl::send-query-1-without-result "ensure_loaded" "'/home/seba/Desktop/HOME-OFFICE/interface.pl'")
              (ccl::start-episode)
              (urdf-proj:with-simulated-robot (demo::demo-random nil ))
              ;;(urdf-proj:with-simulated-robot (demo::demo-random nil '(:bowl) ))

@@ -56,19 +56,23 @@
 
 (defun send-query-1-without-result (query-name &rest query-parameters)
   (let ((query (create-query query-name query-parameters)))
-    (send-query-1 query)))
+    (send-query-1 query)
+    (print "DONE REASONING")))
 
 (defun send-query-1 (query)
+  (print query)
   (json-prolog:prolog-simple-1 query))
 
 (defun get-url-from-send-query-1 (url-parameter query-name &rest query-parameters)
   (let* ((query (create-query query-name query-parameters))
          (query-result (send-query-1 query)))
     (when (eq query-result nil) (break))
+    (print "GOT-RESULT")
     (ccl::get-url-variable-result-as-str-from-json-prolog-result url-parameter query-result)))
 
 (defun send-comment (action-inst comment)
-  (send-query-1-without-result "kb_assert" action-inst "rdfs:comment" (concatenate 'string "'"comment"'")))
+  ;;(send-query-1-without-result "kb_assert" action-inst "rdfs:comment" (concatenate 'string "'"comment"'")))
+  (print "COMMENT"))
 
 (defun send-object-action-parameter (action-inst object-designator)
   (let* ((object-name (get-designator-property-value-str object-designator :NAME))
