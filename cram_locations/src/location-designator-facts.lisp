@@ -107,14 +107,19 @@
              (lisp-fun man-int:get-object-pose-in-map ?object ?to-see-pose)
              (-> (lisp-pred identity ?to-see-pose)
                  (and (btr:bullet-world ?w)
-                      (cram-robot-interfaces:robot ?robot)
+                      (rob-int:robot ?robot)
                       (assert (btr:object-pose ?w ?robot ?robot-pose))
                       (btr:object-not-in-collision ?w ?robot)
-                      (cram-robot-interfaces:camera-frame ?robot ?cam-frame)
-                      (btr:head-pointing-at ?w ?robot ?to-see-pose)
-                      (desig:desig-prop ?object (:name ?object-name))
-                      (-> (btr:object ?w ?object-name)
-                          (btr:visible ?w ?robot ?object-name)
+                      (rob-int:camera-frame ?robot ?cam-frame)
+                      (-> (btr:head-pointing-at ?w ?robot ?to-see-pose)
+                          ;; head-pointing-at is implemented with a simple
+                          ;; internal 2DOF IK solver
+                          ;; if a robot has more than 2DOF in the neck
+                          ;; this will not work
+                          (and (desig:desig-prop ?object (:name ?object-name))
+                               (-> (btr:object ?w ?object-name)
+                                   (btr:visible ?w ?robot ?object-name)
+                                   (true)))
                           (true)))
                  (true)))
         (true)))
