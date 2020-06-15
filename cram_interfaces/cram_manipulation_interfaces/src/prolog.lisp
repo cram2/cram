@@ -133,22 +133,20 @@
     (-> (spec:property ?current-other-obj-desig (:urdf-name ?other-object-name))
         (and (lisp-fun roslisp-utilities:rosify-underscores-lisp-name
                        ?other-object-name ?link-name)
-             (symbol-value cram-tf:*robot-base-frame* ?parent-frame)
+             (symbol-value cram-tf:*fixed-frame* ?parent-frame)
              (lisp-fun cram-tf:frame-to-transform-in-fixed-frame
                        ?link-name ?parent-frame
                        ?other-object-transform))
         (and (spec:property ?current-other-obj-desig (:name ?other-object-name))
-             (lisp-fun get-object-transform ?current-other-obj-desig
+             (lisp-fun get-object-transform-in-map ?current-other-obj-desig
                        ?other-object-transform)))
 
     (lisp-fun get-object-placement-transform
               ?object-name ?object-type
               ?other-object-name ?other-object-type ?other-object-transform
               ?attachment-type
-              ?attachment-transform)
-    (lisp-fun cram-tf:strip-transform-stamped ?attachment-transform ?attachment-pose)
-    (symbol-value cram-tf:*fixed-frame* ?fixed-frame)
-    (lisp-fun cram-tf:ensure-pose-in-frame ?attachment-pose ?fixed-frame
+              ?attachment-transform-in-map)
+    (lisp-fun cram-tf:strip-transform-stamped ?attachment-transform-in-map
               ?pose-stamped))
 
   ;; Resolving (a location
