@@ -235,6 +235,10 @@ the `look-pose-stamped'."
              (man-int:environment-name ?environment)
              (lisp-fun man-int:get-object-destination
                        ?object-type ?environment nil ?context ?location-designator)))
+    ;; target stable? or have to check stability first?
+    (-> (man-int:location-always-stable ?location-designator)
+        (equal ?target-stable T)
+        (equal ?target-stable NIL))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location
                                                       ?some-robot-loc-desig))
@@ -254,7 +258,8 @@ the `look-pose-stamped'."
                                (:arm ?arm)
                                (:target ?location-designator)
                                (:robot-location ?robot-location-designator)
-                               (:place-action ?place-action-designator))
+                               (:place-action ?place-action-designator)
+                               (:target-stable ?target-stable))
                       ?resolved-action-designator))
 
 
