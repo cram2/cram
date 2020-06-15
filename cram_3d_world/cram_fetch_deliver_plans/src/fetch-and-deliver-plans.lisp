@@ -394,6 +394,7 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                   ((:target ?target-location))
                   ((:robot-location ?target-robot-location))
                   place-action
+                  target-stable
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type (or keyword null) ?arm)
@@ -501,8 +502,9 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
 
                   ;; test if the placing pose is a good one -- not falling on the floor
                   ;; test function throws a high-level-failure if not good pose
-                  (proj-reasoning:check-placing-pose-stability
-                   ?object-designator ?target-location)
+                  (unless target-stable
+                    (proj-reasoning:check-placing-pose-stability
+                     ?object-designator ?target-location))
 
                   (exe:perform place-action)
 
