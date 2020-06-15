@@ -234,4 +234,10 @@
     (or (and (location-reference-object ?location-designator ?reference-object)
              (object-is-a-robot ?reference-object))
         (spec:property ?location-designator (:pose ?_))
-        (spec:property ?location-designator (:poses ?_)))))
+        (spec:property ?location-designator (:poses ?_))))
+
+  (<- (location-always-stable ?some-location-designator)
+    (desig:loc-desig? ?some-location-designator)
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (or (spec:property ?location-designator (:attachment ?_))
+        (spec:property ?location-designator (:attachments ?_)))))
