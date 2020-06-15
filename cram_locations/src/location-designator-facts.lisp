@@ -109,7 +109,9 @@
                  (and (btr:bullet-world ?w)
                       (rob-int:robot ?robot)
                       (assert (btr:object-pose ?w ?robot ?robot-pose))
-                      (btr:object-not-in-collision ?w ?robot)
+                      ;; There's more to collisions that this,
+                      ;; fancy attachments can exist...
+                      ;; (btr:object-not-in-collision ?w ?robot)
                       (rob-int:camera-frame ?robot ?cam-frame)
                       (-> (btr:head-pointing-at ?w ?robot ?to-see-pose)
                           ;; head-pointing-at is implemented with a simple
