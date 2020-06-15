@@ -415,21 +415,22 @@ before opening the gripper, such that no dropping offset is necessary."
     0.0))
 
 (defun get-object-placement-transform (object-name object-type
-                                       other-object-name other-object-type other-object-transform
+                                       other-object-name other-object-type
+                                       other-object-transform
                                        attachment-type)
-  "Returns a transform in robot base frame where the object named `object-name' should go"
-  (let* ((base-frame
-           cram-tf:*robot-base-frame*)
+  "Returns a transform in fixed frame where the object named `object-name' should go"
+  (let* ((fixed-frame
+           cram-tf:*fixed-frame*)
          (object-frame
            (roslisp-utilities:rosify-underscores-lisp-name object-name))
-         (base-to-object-transform  ; bTo = bToo * ooTo
+         (map-to-object-transform  ; mTo = mToo * ooTo
            (cram-tf:multiply-transform-stampeds
-            base-frame
+            fixed-frame
             object-frame
             other-object-transform
             (get-object-type-in-other-object-transform ; ooTo
              object-type object-name other-object-type other-object-name attachment-type))))
-    base-to-object-transform))
+    map-to-object-transform))
 
 
 
