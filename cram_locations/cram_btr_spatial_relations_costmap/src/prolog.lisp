@@ -547,26 +547,36 @@
                   ?object-count
                   ?costmap))
   ;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;; SIDE relation for ON and IN ;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;; SIDE and RANGE relations for ON and IN ;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
-    (desig:desig-prop ?designator (:side ?relation))
-    (member ?relation (:left :right :front :back))
+    (or (and (desig:desig-prop ?designator (:side ?relation))
+             (member ?relation (:left :right :front :back)))
+        (desig:desig-prop ?designator (:range ?range))
+        (desig:desig-prop ?designator (:range-invert ?range-invert)))
     (or (desig:desig-prop ?designator (:on ?on-object))
         (desig:desig-prop ?designator (:in ?on-object)))
-    (desig:desig-prop ?on-object (:urdf-name ?urdf-name))
-    (desig:desig-prop ?on-object (:part-of ?environment-name))
+    (not (desig:desig-prop ?designator (:attachment ?_)))
+    (not (desig:desig-prop ?designator (:attachments ?_)))
     (costmap:costmap ?costmap)
     (btr:bullet-world ?world)
-    (btr:%object ?world ?environment-name ?environment-object)
-    (lisp-fun get-link-rigid-body ?environment-object ?urdf-name ?environment-link)
-    (lisp-pred identity ?environment-link)
-    (lisp-fun btr:pose ?environment-link ?object-pose)
-    (relation-axis-and-pred ?relation :in-front-of ?axis ?sign)
-    (instance-of side-generator ?side-generator-id)
-    (costmap:costmap-add-function
-     ?side-generator-id
-     (make-side-costmap-generator ?environment-link ?axis ?sign)
-     ?costmap)
+    (or (and (desig:desig-prop ?on-object (:urdf-name ?urdf-name))
+             (desig:desig-prop ?on-object (:part-of ?environment-name))
+             (btr:%object ?world ?environment-name ?environment-object)
+             (lisp-fun get-link-rigid-body ?environment-object ?urdf-name
+                       ?rigid-body))
+        (and (object-designator-from-name-or-type ?on-object ?object-instance-name)
+             (btr:item-type ?world ?object-instance-name ?_)
+             (btr:%object ?world ?object-instance-name ?rigid-body)))
+    (lisp-pred identity ?rigid-body)
+    (lisp-fun btr:pose ?rigid-body ?object-pose)
+    (-> (desig:desig-prop ?designator (:side ?relation))
+        (and (relation-axis-and-pred ?relation :in-front-of ?axis ?sign)
+             (instance-of side-generator ?side-generator-id)
+             (costmap:costmap-add-function
+              ?side-generator-id
+              (make-side-costmap-generator ?rigid-body ?axis ?sign)
+              ?costmap))
+        (true))
     (-> (desig:desig-prop ?designator (:range ?range))
         (and (instance-of range-generator ?range-generator-id)
              (costmap:costmap-add-function
