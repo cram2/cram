@@ -46,8 +46,8 @@
                       ;; cannot equate these guys because they will all end up
                       ;; being the same location designator
                       `((:attachment ,attachment)
-                        ,@ (remove :attachments (desig:properties location-designator)
-                                   :key #'car))))))
+                        ,@(remove :attachments (desig:properties location-designator)
+                                  :key #'car))))))
 
 
 
@@ -172,9 +172,10 @@
                                ?current-location-designator)))
 
     ;; placing happens on/in an object
-    (or (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
-        (desig:desig-prop ?current-location-designator (:in ?other-object-designator))
-        (equal ?other-object-designator NIL))
+    (or (desig:desig-prop ?current-location-designator (:on ?other-object-desig))
+        (desig:desig-prop ?current-location-designator (:in ?other-object-desig))
+        (equal ?other-object-desig NIL))
+    (desig:current-designator ?other-object-desig ?other-object-designator)
     ;; and that other object can be a robot or not
     (-> (man-int:object-is-a-robot ?other-object-designator)
         (equal ?other-object-is-a-robot T)
