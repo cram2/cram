@@ -66,6 +66,8 @@
   0.02)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :window)))
   0.02)
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :underbody)))
+  0.05)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CHASSIS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -87,25 +89,25 @@
 (defparameter *bottom-wing-grasp-z-offset* 0.02)
 
 ;; SIDE grasp
-(man-int:def-object-type-to-gripper-transforms :bottom-wing :left :right-side
-  :grasp-translation `(,(- *bottom-wing-grasp-x-offset*)
-                       ,*bottom-wing-grasp-y-offset*
-                       ,*bottom-wing-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
-  :pregrasp-offsets `(0 ,*default-z-offset* ,*default-z-offset*)
-  :2nd-pregrasp-offsets `(0 ,*default-z-offset* 0.0)
-  :lift-translation *default-lift-offsets*
-  :2nd-lift-translation *default-lift-offsets*)
+;; (man-int:def-object-type-to-gripper-transforms :bottom-wing :left :right-side
+;;   :grasp-translation `(,(- *bottom-wing-grasp-x-offset*)
+;;                        ,*bottom-wing-grasp-y-offset*
+;;                        ,*bottom-wing-grasp-z-offset*)
+;;   :grasp-rot-matrix man-int:*y-across-x-grasp-rotation*
+;;   :pregrasp-offsets `(0 ,*default-z-offset* ,*default-z-offset*)
+;;   :2nd-pregrasp-offsets `(0 ,*default-z-offset* 0.0)
+;;   :lift-translation *default-lift-offsets*
+;;   :2nd-lift-translation *default-lift-offsets*)
 
-(man-int:def-object-type-to-gripper-transforms :bottom-wing :right :right-side
-  :grasp-translation `(,*bottom-wing-grasp-x-offset*
-                       ,(- *bottom-wing-grasp-y-offset*)
-                       ,*bottom-wing-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
-  :pregrasp-offsets `(0 ,(- *default-z-offset*) ,*default-z-offset*)
-  :2nd-pregrasp-offsets `(0 ,(- *default-z-offset*) 0.0)
-  :lift-translation *default-lift-offsets*
-  :2nd-lift-translation *default-lift-offsets*)
+;; (man-int:def-object-type-to-gripper-transforms :bottom-wing :right :right-side
+;;   :grasp-translation `(,*bottom-wing-grasp-x-offset*
+;;                        ,(- *bottom-wing-grasp-y-offset*)
+;;                        ,*bottom-wing-grasp-z-offset*)
+;;   :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
+;;   :pregrasp-offsets `(0 ,(- *default-z-offset*) ,*default-z-offset*)
+;;   :2nd-pregrasp-offsets `(0 ,(- *default-z-offset*) 0.0)
+;;   :lift-translation *default-lift-offsets*
+;;   :2nd-lift-translation *default-lift-offsets*)
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :bottom-wing '(:left :right) :back
@@ -170,6 +172,18 @@
   :2nd-pregrasp-offsets `(,(- *default-z-offset*) 0.0 0.0)
   :lift-translation *default-lift-offsets*
   :2nd-lift-translation *default-lift-offsets*)
+
+;; SIDE grasp (for picking it up with the whole airplane later)
+(man-int:def-object-type-to-gripper-transforms :top-wing :left :right-side
+  :grasp-translation `(,(- *top-wing-grasp-x-offset*)
+                       ,(- *top-wing-grasp-y-offset*)
+                       ,*top-wing-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-y-across-x-grasp-rotation*
+  :pregrasp-offsets `(0 ,(- *default-z-offset*) ,*default-z-offset*)
+  :2nd-pregrasp-offsets `(0 ,(- *default-z-offset*) 0.0)
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; WINDOW ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
