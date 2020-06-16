@@ -85,13 +85,13 @@
   0.1)
 
 (man-int:def-object-type-in-other-object-transform :heitmann :basket :in-basket
-  :attachment-translation `(0.15 0.15 -0.005)
+  :attachment-translation `(0.2 0.15 -0.005)
   :attachment-rot-matrix '((-1 0 0)
                            (0 -1 0)
                            (0 0 1)))
 
 (man-int:def-object-type-in-other-object-transform :dove :basket :in-basket
-  :attachment-translation `(0.2 0.15 -0.005)
+  :attachment-translation `(0.1 0.15 -0.005)
   :attachment-rot-matrix '((-1 0 0)
                            (0 -1 0)
                            (0 0 1)))

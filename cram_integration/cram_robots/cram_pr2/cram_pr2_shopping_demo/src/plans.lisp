@@ -63,10 +63,11 @@
   (let ((?newobject (desig:an object (type ?object)))
         (?search-pose (if (eql shelf 1) *pose-searching-1* *pose-searching-2*))
         (?pose-placing (if (eql shelf 1) *placing-pose-1* *placing-pose-2*))
-        (?look-pose (if (eql shelf 1) (cl-transforms-stamped:make-pose-stamped 
-                                       "map" 0
-                                       (cl-transforms:make-3d-vector -1 0.63 0.7)
-                                       (cl-transforms:make-quaternion 0 0 0 1))
+        (?look-pose (if (eql shelf 1)
+                        (cl-transforms-stamped:make-pose-stamped
+                         "map" 0
+                         (cl-transforms:make-3d-vector -1 0.63 0.7)
+                         (cl-transforms:make-quaternion 0 0 0 1))
                         (cl-transforms-stamped:make-pose-stamped 
                          "map" 0
                          (cl-transforms:make-3d-vector 1 0.63 0.7)
@@ -101,15 +102,14 @@
                                   (pose ?search-pose)))))
 
     (exe:perform
-       (desig:a motion
-                (type moving-arm-joints)
-                (left-joint-states (("l_shoulder_pan_joint" 0)
-                                    ("l_shoulder_lift_joint" -0.5)
-                                    ("l_upper_arm_roll_joint" 3.14)
-                                    ("l_elbow_flex_joint" -1.5)
-                                    ("l_forearm_roll_joint" -0.2)
-                                    ("l_wrist_flex_joint" -0.55)))))
-  
+     (desig:a motion
+              (type moving-arm-joints)
+              (left-joint-states (("l_shoulder_pan_joint" 0)
+                                  ("l_shoulder_lift_joint" -0.5)
+                                  ("l_upper_arm_roll_joint" 3.14)
+                                  ("l_elbow_flex_joint" -1.5)
+                                  ("l_forearm_roll_joint" -0.2)
+                                  ("l_wrist_flex_joint" -0.55)))))
     (exe:perform
      (desig:an action
                (type going)
@@ -171,7 +171,6 @@
     (exe:perform
      (desig:an action
                (type transporting)
-               (arm :left)
                (object ?object)
                (target (desig:a location
                                 (poses  ?target-poses)))))))
