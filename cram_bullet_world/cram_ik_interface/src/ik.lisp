@@ -198,7 +198,8 @@ Syntax:
                                               (cram-tf:rotate-pose
                                                original-pose
                                                :z (funcall operation
-                                                           (- offset ,current-value)))
+                                                           (- offset
+                                                              ,current-value)))
                                               (cram-tf:translate-pose
                                                original-pose
                                                (ecase ,resampling-axis
@@ -206,7 +207,8 @@ Syntax:
                                                  (:y :y-offset)
                                                  (:z :z-offset))
                                                (funcall operation
-                                                        (- offset ,current-value))))))))
+                                                        (- offset
+                                                           ,current-value))))))))
                                 (loop
                                   for value in sampling-values
                                   do
@@ -253,18 +255,19 @@ Syntax:
                                               seed-state-msg-evaled))
 
                                        (if ,joint-name
-                                        (if (and current-joint-states
-                                                (assoc ,joint-name
-                                                       current-joint-states
-                                                       :test #'equal))
-                                           (setf (second
-                                                  (assoc ,joint-name
-                                                         current-joint-states
-                                                         :test #'equal))
-                                                 value)
-                                           (setf current-joint-states
-                                                 (cons (list ,joint-name value)
-                                                       current-joint-states))))
+                                           (if (and current-joint-states
+                                                    (assoc ,joint-name
+                                                           current-joint-states
+                                                           :test #'equal))
+                                               (setf (second
+                                                      (assoc ,joint-name
+                                                             current-joint-states
+                                                             :test #'equal))
+                                                     value)
+                                               (setf current-joint-states
+                                                     (cons
+                                                      (list ,joint-name value)
+                                                      current-joint-states))))
                                        ;; Parse the solution
                                        (when (and solution-msg
                                                   (or (not
@@ -277,12 +280,10 @@ Syntax:
                                          (return (values solution-msg
                                                          (cons
                                                           (cons
-                                                           (if ,joint-name
-                                                               ,joint-name
-                                                               ,resampling-axis)
+                                                           ,resampling-axis
                                                            value)
                                                           joint-values))))
                                        (setf offseted-robot-base-pose
-                                           old-offseted-robot-base-pose)))))))
+                                             old-offseted-robot-base-pose)))))))
                 ,@body)))
        (roslisp:set-debug-level nil old-debug-level))))
