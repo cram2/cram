@@ -56,6 +56,7 @@
                                                                    object-name
                                                                    arm
                                                                    (grasp (eql :top))
+                                                                   location
                                                                    grasp-transform)
   (list
    (cl-transforms-stamped:make-transform-stamped
@@ -85,7 +86,8 @@
 
 (defmethod man-int:get-object-type-wrt-base-frame-lift-transforms ((type (eql :shoe))
                                                                    arm
-                                                                   (grasp (eql :top)))
+                                                                   (grasp (eql :top))
+                                                                   location)
   (list
    (cl-transforms-stamped:make-transform-stamped
     cram-tf:*robot-base-frame*

@@ -41,6 +41,7 @@
                   ((:gripper-opening ?gripper-opening))
                   ((:effort ?grip-effort))
                   ((:grasp ?grasp))
+                  location-type
                   ((:left-reach-poses ?left-reach-poses))
                   ((:right-reach-poses ?right-reach-poses))
                   ((:left-grasp-poses ?left-grasp-poses))
@@ -54,7 +55,8 @@
            (type (or null list) ; yes, null is also list, but this is more readable
                  ?left-reach-poses ?right-reach-poses
                  ?left-grasp-poses ?right-grasp-poses
-                 ?left-lift-poses ?right-lift-poses))
+                 ?left-lift-poses ?right-lift-poses)
+           (ignore location-type))
   "Open gripper, reach traj, grasp traj, close gripper, issue grasping event, lift."
 
   (cram-tf:visualize-marker (man-int:get-object-pose ?object-designator)
@@ -132,6 +134,8 @@
                 ((:other-object ?other-object-designator))
                 other-object-is-a-robot
                 ((:arm ?arm))
+                grasp
+                location-type
                 ((:gripper-opening ?gripper-opening))
                 ((:attachment-type ?placing-location-name))
                 ((:left-reach-poses ?left-reach-poses))
@@ -146,10 +150,11 @@
            (type keyword ?arm)
            (type (or null keyword) ?placing-location-name)
            (type number ?gripper-opening)
-           (type (or null list) ; yes, null is also list, but this is better reachability
+           (type (or null list) ; yes, null is also list, but this is better readable
                  ?left-reach-poses ?right-reach-poses
                  ?left-put-poses ?right-put-poses
-                 ?left-retract-poses ?right-retract-poses))
+                 ?left-retract-poses ?right-retract-poses)
+           (ignore grasp location-type))
   "Reach, put, assert assemblage if given, open gripper, retract grasp event, retract arm."
 
   (roslisp:ros-info (pick-place place) "Reaching")
