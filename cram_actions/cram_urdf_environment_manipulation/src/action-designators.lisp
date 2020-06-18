@@ -106,8 +106,8 @@
     ;; calculate trajectory
     (equal (?container-designator) ?objects)
     (-> (equal ?arm :left)
-        (and (lisp-fun man-int:get-action-trajectory
-                       ?action-type ?arm NIL ?objects
+        (and (lisp-fun man-int:get-action-trajectory ?action-type
+                       ?arm NIL NIL ?objects
                        :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?left-trajectory)
@@ -128,8 +128,8 @@
              (equal ?left-manipulate-poses NIL)
              (equal ?left-retract-poses NIL)))
     (-> (equal ?arm :right)
-        (and (lisp-fun man-int:get-action-trajectory
-                       ?action-type ?arm NIL ?objects
+        (and (lisp-fun man-int:get-action-trajectory ?action-type
+                       ?arm NIL NIL ?objects
                        :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?right-trajectory)

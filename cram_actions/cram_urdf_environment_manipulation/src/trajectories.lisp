@@ -37,6 +37,7 @@
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :opening))
                                                          arm
                                                          grasp
+                                                         location
                                                          objects-acted-on
                                                          &key
                                                            opening-distance
@@ -52,6 +53,7 @@ in the robot's XZ-plane. It's Z-element should be 0."
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :closing))
                                                          arm
                                                          grasp
+                                                         location
                                                          objects-acted-on
                                                          &key
                                                            opening-distance
