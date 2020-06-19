@@ -59,6 +59,7 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
 
     # Getting the goal frame and seed state
     goal_frame_kdl = tf2_kdl.transform_to_kdl(goal_transform_geometry_msg)
+    seed_joint_state_kdl = get_kdl_jnt_array_from_list(num_joints, seed_joint_state)
 
     # Solving IK
     result_joint_state_kdl = solve_ik(ik_solver, num_joints, seed_joint_state_kdl, goal_frame_kdl)
