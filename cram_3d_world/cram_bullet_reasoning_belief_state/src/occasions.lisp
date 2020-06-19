@@ -1,19 +1,20 @@
+;;;
 ;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -29,9 +30,8 @@
 (in-package :cram-bullet-reasoning-belief-state)
 
 (def-fact-group occasions (cpoe:object-in-hand
-                           cpoe:object-picked
-                           cpoe:object-placed-at
-                           cpoe:loc)
+                           cpoe:object-at-location
+                           cpoe:robot-at-location)
   ;; if we want the arm, we get it from the link
   (<- (cpoe:object-in-hand ?object ?arm ?grasp)
     (btr:bullet-world ?world)
@@ -61,24 +61,20 @@
     (setof ?object (cpoe:object-in-hand ?object ?_) ?objects)
     (member ?object ?objects))
 
-  (<- (cpoe:object-picked ?object)
-    (cpoe:object-in-hand ?object))
+  (<- (cpoe:robot-at-location ?robot ?location)
+    (rob-int:robot ?robot)
+    (%object-at-location ?_ ?robot ?location))
 
-  (<- (cpoe:object-placed-at ?object ?location)
-    (cpoe:loc ?object ?location))
-
-  (<- (cpoe:loc ?robot ?location)
-    (cram-robot-interfaces:robot ?robot)
-    (object-at-location ?_ ?robot ?location))
-
-  (<- (cpoe:loc ?object ?location)
+  (<- (cpoe:object-at-location ?object ?location)
     (desig:obj-desig? ?object)
     (object-designator-name ?object ?object-name)
-    (object-at-location ?_ ?object-name ?location)))
+    (%object-at-location ?_ ?object-name ?location)))
 
 
 
-(def-fact-group occasion-utilities (object-designator-name desig:desig-location-prop)
+(def-fact-group occasion-utilities (object-designator-name
+                                    desig:desig-location-prop)
+
   (<- (object-designator-name ?name ?name)
     (lisp-type ?name symbol))
 
@@ -116,7 +112,7 @@
     (btr:object ?_ ?o)
     (btr:pose ?_ ?o ?loc))
 
-  (<- (object-at-location ?world ?object-name ?location-designator)
+  (<- (%object-at-location ?world ?object-name ?location-designator)
     (lisp-type ?location-designator desig:location-designator)
     (btr:bullet-world ?world)
     (lisp-fun desig:current-desig ?location-designator ?current-location)
@@ -126,7 +122,7 @@
         (btr:object-bottom-pose ?world ?object-name ?object-pose))
     (lisp-pred desig:validate-location-designator-solution ?current-location ?object-pose))
 
-  (<- (object-at-location ?world ?object-name ?location-designator)
+  (<- (%object-at-location ?world ?object-name ?location-designator)
     (not (bound ?location-designator))
     (btr:bullet-world ?world)
     (btr:object-pose ?world ?object-name ?object-pose)

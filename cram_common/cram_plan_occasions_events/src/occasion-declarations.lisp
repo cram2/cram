@@ -29,9 +29,10 @@
 
 (in-package :cram-plan-occasions-events)
 
-(def-fact-group occasions (object-in-hand object-placed-at object-picked object-put
-                                          loc looking-at arms-parked
-                                          container-state)
+(def-fact-group occasions (object-in-hand
+                           object-at-location robot-at-location
+                           looking-at
+                           container-state)
   (<- (object-in-hand ?object ?hand ?grasp ?link)
     (fail))
   (<- (object-in-hand ?object ?hand ?grasp)
@@ -41,22 +42,12 @@
   (<- (object-in-hand ?object)
     (fail))
 
-  (<- (object-placed-at ?object ?location)
+  (<- (object-at-location ?object-designator ?location-designator)
+    (fail))
+  (<- (robot-at-location ?object-designator ?location-designator)
     (fail))
 
-  (<- (object-picked ?object)
-    (fail))
-
-  (<- (object-put ?object)
-    (fail))
-
-  (<- (loc ?robot-or-object ?location)
-    (fail))
-
-  (<- (looking-at ?location)
-    (fail))
-
-  (<- (arms-parked)
+  (<- (looking-at ?location-designator)
     (fail))
 
   (<- (container-state ?container-object-designator ?joint-state)
