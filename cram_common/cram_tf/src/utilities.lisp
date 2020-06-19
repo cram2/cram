@@ -255,20 +255,6 @@
       (cl-transforms:transform
        (cl-transforms:copy-transform transform :rotation new-rotation)))))
 
-(defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
-  (let* ((pose-in-frame
-           (cram-tf:ensure-pose-in-frame
-            goal-pose-stamped
-            goal-frame
-            :use-zero-time t))
-         (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
-                         (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
-         (goal-angle (cl-transforms:normalize-angle
-                      (cl-transforms:get-yaw
-                       (cl-transforms:orientation pose-in-frame)))))
-    (and (<= goal-dist delta-xy)
-         (<= (abs goal-angle) delta-theta))))
-
 (defun pose->transform-stamped (parent-frame child-frame stamp pose)
   (let ((translation (cl-transforms:origin pose))
         (rotation (cl-transforms:orientation pose)))
@@ -405,6 +391,36 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
                   deltas (list deltas))))
     ;; actually compare
     (every #'value-converged values goal-values deltas)))
+
+(defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
+  (let* ((pose-in-frame
+           (cram-tf:ensure-pose-in-frame
+            goal-pose-stamped
+            goal-frame
+            :use-zero-time t))
+         (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
+                         (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
+         (goal-angle (cl-transforms:normalize-angle
+                      (cl-transforms:get-yaw
+                       (cl-transforms:orientation pose-in-frame)))))
+    (and (<= goal-dist delta-xy)
+         (<= (abs goal-angle) delta-theta))))
+
+(defun pose-stampeds-converged (pose other-pose delta-position delta-rotation)
+  (and (< (cl-transforms:v-norm
+           (cl-transforms:v-
+            (cl-transforms:origin pose)
+            (cl-transforms:origin other-pose)))
+          delta-position)
+       (values-converged
+        (cl-transforms:quaternion->euler
+         (cl-transforms:orientation pose)
+         :just-values T)
+        (cl-transforms:quaternion->euler
+         (cl-transforms:orientation other-pose)
+         :just-values T)
+        delta-rotation)))
+
 
 (defun normalize-joint-angles (list-of-angles)
   (mapcar #'cl-transforms:normalize-angle list-of-angles))
