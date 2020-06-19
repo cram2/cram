@@ -66,6 +66,7 @@
            object-visibility-occluding-objects flat-color-object-proxy
            calculate-object-visibility
            object-visible-p looking-at-object-p object-in-view-p
+           looking-at-pose-p
            occluding-objects simulate find-objects contact-p
            find-all-contacts find-objects-in-contact
            object-pose-different
@@ -100,7 +101,7 @@
            #:set-robot-state-from-joints
            #:make-robot-joint-state-msg
            #:make-joint-state-message
-           #:calculate-pan-tilt
+           #:calculate-pan-tilt #:looking-in-direction-p
            #:get-robot-object #:get-robot-name
            #:get-environment-object #:get-environment-name
            #:robot-colliding-objects-without-attached
