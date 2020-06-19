@@ -80,18 +80,19 @@
   :2nd-lift-translation *default-lift-offsets*)
 
 
-(defmethod man-int:get-z-offset-for-placing-with-dropping ((other-object (eql :basket))
-                                                           object attachment)
+(defmethod man-int:get-z-offset-for-placing-with-dropping (object
+                                                           (other-object (eql :basket))
+                                                           attachment)
   0.15)
 
 (man-int:def-object-type-in-other-object-transform :heitmann :basket :in-basket
   :attachment-translation `(0.2 0.15 -0.005)
-  :attachment-rot-matrix '((-1 0 0)
-                           (0 -1 0)
+  :attachment-rot-matrix '((1 0 0)
+                           (0 1 0)
                            (0 0 1)))
 
 (man-int:def-object-type-in-other-object-transform :dove :basket :in-basket
   :attachment-translation `(0.1 0.15 -0.005)
-  :attachment-rot-matrix '((-1 0 0)
-                           (0 -1 0)
+  :attachment-rot-matrix '((1 0 0)
+                           (0 1 0)
                            (0 0 1)))
