@@ -32,10 +32,13 @@
 (in-package :btr)
 
 (defvar *rendering-context* nil)
-(defvar *visibility-threshold* 0.9
+(defparameter *visibility-threshold* 0.9
   "Percentage of object pixels that has to be in the rendered image
 to consider the object as visible.")
-(defvar *total-pixel-threshold* 5
+(defparameter *pose-visibility-threshold* 0.2
+  "Percentage of a 5cm radius sphere's pixels that has to be in the rendered image
+to consider the pose at the center of the sphere as visible.")
+(defparameter *total-pixel-threshold* 5
   "The minimum number of pixels that have to be in the rendered image
 to consider the object as in the camera view.")
 
@@ -237,3 +240,14 @@ if a couple of pixels are in the view, this predicate is T."
   (let ((visibility (calculate-object-visibility world camera-pose object)))
     (>= (object-visibility-total-object-pixels visibility)
         threshold)))
+
+(defun looking-at-pose-p (world camera-pose pose
+                          &optional (threshold *pose-visibility-threshold*))
+  (let ((object-name (gensym "SPHERE")))
+    (unwind-protect
+         (let ((sphere
+                 (btr:add-object world :sphere object-name pose
+                                 :radius 0.05 :mass 0.0 :color '(1.0 0.0 0.0))))
+           (btr:looking-at-object-p
+            btr:*current-bullet-world* camera-pose sphere threshold))
+      (btr:remove-object world object-name))))
