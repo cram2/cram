@@ -64,7 +64,8 @@
            semantic-map container semantic-map-part semantic-map-part-type
            semantic-map-part-pose object-visibility-percentage
            object-visibility-occluding-objects flat-color-object-proxy
-           calculate-object-visibility object-visible-p
+           calculate-object-visibility
+           object-visible-p looking-at-object-p object-in-view-p
            occluding-objects simulate find-objects contact-p
            find-all-contacts find-objects-in-contact
            object-pose-different
