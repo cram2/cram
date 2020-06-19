@@ -30,6 +30,7 @@
 (in-package :ik)
 
 (defparameter *ik-service-name* "kdl_ik_service/get_ik")
+(defparameter *float-comparison-precision* 0.001d0)
 
 (defun call-ik-service (cartesian-pose base-link end-effector-link seed-state-msg)
   (declare (type cl-transforms-stamped:pose-stamped cartesian-pose)
@@ -176,16 +177,22 @@ Syntax:
                              `(let ((old-offseted-robot-base-pose
                                       offseted-robot-base-pose)
                                     (sampling-values
-                                      (append
-                                       (list ,current-value)
-                                       (loop
-                                         for x = ,upper-limit
-                                           then  (- x ,resampling-step)
-                                         until (<= x ,lower-limit)
-                                         collect x)
-                                       (list ,lower-limit)))
-                                    ;; Calculating the pose offset for the
-                                    ;; corresponding joint value
+                                      (remove-duplicates
+                                       (append
+                                        (list ,current-value)
+                                        (loop
+                                          for x = ,upper-limit
+                                            then  (- x ,resampling-step)
+                                          until (<= x ,lower-limit)
+                                          if (> (abs (- x ,current-value))
+                                                *float-comparison-precision*)
+                                            collect x)
+                                        (list ,lower-limit))
+                                       :test (lambda (x y)
+                                               (< (abs (- x y))
+                                                  *float-comparison-precision*))))
+                                      ;; Calculating the pose offset for the
+                                      ;; corresponding joint value
                                     (calculate-pseudo-pose
                                       (lambda (original-pose offset
                                                &optional (operand :-))
