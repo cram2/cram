@@ -139,7 +139,8 @@
                        ?other-object-transform))
         (and (spec:property ?current-other-obj-desig (:name ?other-object-name))
              (-> (cpoe:object-in-hand ?current-other-obj-desig ?hand ?grasp ?link)
-                 (fail)
+                 (lisp-fun get-object-transform-in-map ?current-other-obj-desig
+                           ?other-object-transform)
                  ;; (and (symbol-value cram-tf:*fixed-frame* ?parent-frame)
                  ;;      (lisp-fun cram-tf:frame-to-transform-in-fixed-frame
                  ;;                ?link ?parent-frame
