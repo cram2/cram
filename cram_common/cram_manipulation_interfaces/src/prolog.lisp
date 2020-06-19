@@ -138,8 +138,16 @@
                        ?link-name ?parent-frame
                        ?other-object-transform))
         (and (spec:property ?current-other-obj-desig (:name ?other-object-name))
-             (lisp-fun get-object-transform-in-map ?current-other-obj-desig
-                       ?other-object-transform)))
+             (-> (cpoe:object-in-hand ?current-other-obj-desig ?hand ?grasp ?link)
+                 (fail)
+                 ;; (and (symbol-value cram-tf:*fixed-frame* ?parent-frame)
+                 ;;      (lisp-fun cram-tf:frame-to-transform-in-fixed-frame
+                 ;;                ?link ?parent-frame
+                 ;;                ?link-transform)
+                 ;;      (lisp-fun cl-transforms:transform*
+                 ;;                ?link-transform ))
+                 (lisp-fun get-object-transform-in-map ?current-other-obj-desig
+                           ?other-object-transform))))
 
     (lisp-fun get-object-placement-transform
               ?object-name ?object-type
@@ -154,6 +162,7 @@
   ;;              (location (on/in (an object
   ;;                                   (type robot
   ;; First, a helper predicate to discern such a location
+  ;; A location on/in the robot is always reachable
   (<- (location-always-reachable ?location-designator)
     (desig:loc-desig? ?location-designator)
     (desig:current-designator ?location-designator ?current-location-designator)
@@ -177,6 +186,7 @@
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:location ?object-location))
     (man-int:location-always-reachable ?object-location))
+  ;; TODO: a location attached to an object in hand is also always reachable
 
   (<- (object-is-a-robot ?some-object-designator)
     (desig:current-designator ?some-object-designator ?object-designator)
@@ -232,7 +242,8 @@
     (desig:loc-desig? ?some-location-designator)
     (desig:current-designator ?some-location-designator ?location-designator)
     (or (and (location-reference-object ?location-designator ?reference-object)
-             (object-is-a-robot ?reference-object))
+             (or (object-is-a-robot ?reference-object)
+                 (cpoe:object-in-hand ?reference-object)))
         (spec:property ?location-designator (:pose ?_))
         (spec:property ?location-designator (:poses ?_))))
 
