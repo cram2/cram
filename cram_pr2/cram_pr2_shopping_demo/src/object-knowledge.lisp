@@ -82,7 +82,7 @@
 
 (defmethod man-int:get-z-offset-for-placing-with-dropping ((other-object (eql :basket))
                                                            object attachment)
-  0.1)
+  0.15)
 
 (man-int:def-object-type-in-other-object-transform :heitmann :basket :in-basket
   :attachment-translation `(0.2 0.15 -0.005)
