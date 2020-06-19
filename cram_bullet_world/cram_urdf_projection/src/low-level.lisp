@@ -692,7 +692,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
         (error "Arm movement goals should be given in map frame"))))
 
 (defparameter *torso-resampling-step* 0.1d0)
-(defparameter *base-resampling-step* 0.05d0)
+(defparameter *base-resampling-step* 0.1d0)
 (defparameter *base-x-axis-delta-limit* 0.2d0)
 (defparameter *base-y-axis-delta-limit* 0.2d0)
 
