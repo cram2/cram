@@ -64,7 +64,8 @@
     1.259474515914917
     -0.06962397694587708))
 
-(def-fact-group boxy-arm-facts (end-effector-link
+(def-fact-group boxy-arm-facts (arm
+                                end-effector-link
                                 robot-tool-frame
                                 arm-joints arm-links
                                 gripper-joint gripper-link
@@ -74,6 +75,9 @@
                                 ;; robot-arms-carrying-joint-states
                                 robot-joint-states
                                 tcp-in-ee-pose)
+
+  (<- (arm boxy :left))
+  (<- (arm boxy :right))
 
   (<- (end-effector-link boxy :left "left_arm_7_link"))
   (<- (end-effector-link boxy :right "right_arm_7_link"))
