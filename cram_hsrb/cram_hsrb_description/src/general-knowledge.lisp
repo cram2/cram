@@ -35,6 +35,7 @@
                                robot-base-frame robot-torso-link-joint
                                arm
                                camera-frame
+                               camera-horizontal-angle camera-vertical-angle
                                robot-neck-links robot-neck-joints
                                robot-head-tilt-rotation-sign)
   (<- (robot hsrb))
@@ -44,7 +45,11 @@
   (<- (robot-torso-link-joint hsrb "arm_lift_link" "arm_lift_joint"))
 
   (<- (camera-frame hsrb "head_center_camera_frame"))
-  (<- (camera-frame hsrb "head_rgbd_sensor_link")) 
+  (<- (camera-frame hsrb "head_rgbd_sensor_link"))
+
+  ;; These are values taken from the Kinect's wikipedia page for the 360 variant
+  (<- (camera-horizontal-angle hsrb 0.99483))
+  (<- (camera-vertical-angle hsrb 0.75049))
 
   (<- (robot-neck-links hsrb "head_pan_link" "head_tilt_link"))
   (<- (robot-neck-joints hsrb "head_pan_joint" "head_tilt_joint")))
