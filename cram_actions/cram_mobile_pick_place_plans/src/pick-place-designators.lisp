@@ -145,14 +145,16 @@
     ;; find in which hand the object is
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
-            (or (cpoe:object-in-hand ?object-designator ?arm)
-                (format "WARNING: Wanted to place an object ~a with arm ~a, ~
-                         but it's not in the arm.~%" ?object-designator ?arm))
+            (once (or (cpoe:object-in-hand ?object-designator ?arm)
+                      (format "WARNING: Wanted to place an object ~a with arm ~a, ~
+                               but it's not in the arm.~%"
+                              ?object-designator ?arm)))
             (cpoe:object-in-hand ?object-designator ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
-            (or (cpoe:object-in-hand ?object-designator ?arm)
-                (format "WARNING: Wanted to place an object ~a ~
-                         but it's not in any of the hands.~%" ?object-designator))
+            (once (or (cpoe:object-in-hand ?object-designator ?arm)
+                      (format "WARNING: Wanted to place an object ~a ~
+                               but it's not in any of the hands.~%"
+                              ?object-designator)))
             (cpoe:object-in-hand ?object-designator ?arm)))
 
     ;;; infer missing information
