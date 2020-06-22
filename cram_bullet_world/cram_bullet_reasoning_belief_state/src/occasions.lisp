@@ -128,13 +128,13 @@
     (-> (lisp-pred identity ?left-configuration)
         (and (rob-int:robot-joint-states ?robot :arm :left ?left-configuration
                                          ?left-goal-states)
-             (lisp-pred btr:robot-joint-states-converged-to-goal
+             (lisp-pred btr:robot-converged-to-goal-joint-states
                         ?left-goal-states ?delta))
         (true))
     (-> (lisp-pred identity ?right-configuration)
         (and (rob-int:robot-joint-states ?robot :arm :right ?right-configuration
                                          ?right-goal-states)
-             (lisp-pred btr:robot-joint-states-converged-to-goal
+             (lisp-pred btr:robot-converged-to-goal-joint-states
                         ?right-goal-states ?delta))
         (true)))
   ;; For checking other than arm configurations, e.g., neck configuration
@@ -144,8 +144,8 @@
     (rob-int:robot-joint-states ?robot ?effector-type ?effector-name
                                 ?effector-configuration-name
                                 ?effector-joint-states)
-    (lisp-pred btr:robot-joint-states-converged-to-goal
-                        ?effector-joint-states ?delta))
+    (lisp-pred btr:robot-converged-to-goal-joint-states
+               ?effector-joint-states ?delta))
 
 
   (<- (cpoe:tool-frames-at ?left-poses ?right-poses)
