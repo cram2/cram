@@ -51,7 +51,6 @@
    #:ensure-pose-in-frame #:ensure-point-in-frame #:ensure-transform-in-frame
    #:translate-pose #:rotate-pose
    #:rotate-pose-in-own-frame #:rotate-transform-in-own-frame
-   #:tf-frame-converged
    #:pose->transform-stamped #:transform->pose-stamped
    #:transform-stamped-inv
    #:multiply-transform-stampeds
@@ -60,7 +59,8 @@
    #:translate-transform-stamped
    #:pose-stamped->transform-stamped
    #:apply-transform
-   #:values-converged #:normalize-joint-angles
+   #:values-converged #:tf-frame-converged #:pose-stampeds-converged
+   #:normalize-joint-angles
    #:map-axis-aligned-axis #:map-axis-aligned-orientation #:angle-around-map-z
    ;; prolog facts
    #:pose #:pose-stamped #:position #:orientation #:poses-equal

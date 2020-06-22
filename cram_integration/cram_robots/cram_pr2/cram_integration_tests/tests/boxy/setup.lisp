@@ -1,3 +1,4 @@
+;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -26,22 +27,6 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-object-knowledge
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
-  :license "BSD"
+(in-package :cram-integration-tests)
 
-  :depends-on (cram-prolog
-               cram-manipulation-interfaces
-               cram-designators ; mostly used for likely locations
-               cram-location-costmap ; for specifying the metadata
-               )
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "environment" :depends-on ("package"))
-     (:file "household" :depends-on ("package"))
-     (:file "assembly" :depends-on ("package"))
-     (:file "retail" :depends-on ("package"))
-     (:file "multiple-trajectory-poses" :depends-on ("package"))))))
+

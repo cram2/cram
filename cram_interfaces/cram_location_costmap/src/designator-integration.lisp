@@ -79,17 +79,27 @@
                        (get-cached-costmap-maxvalue cm))))
               (if (> costmap-value *costmap-valid-solution-threshold*)
                   (let ((costmap-heights
-                          (generate-heights cm (cl-transforms:x p) (cl-transforms:y p))))
+                          (generate-heights
+                           cm
+                           (cl-transforms:x p)
+                           (cl-transforms:y p))))
                     (cond ((not costmap-heights)
                            :accept)
                           ((find-if (lambda (height)
+                                      ;; The z of the pose has to be within
+                                      ;; 1 cm of the costmap heights
                                       (< (abs (- height (cl-transforms:z p)))
-                                         1e-3))
+                                         1e-2))
                                     costmap-heights)
-                           :accept)))
+                           :accept)
+                          (t
+                           :reject)))
                   :reject))
           (cma:invalid-probability-distribution ()
-            :maybe-reject)))
+            :maybe-reject)
+          (error (e)
+            (warn "[BTR:LOCATION-COSTMAP-POSE-VALIDATOR] Error: ~A~%" e)
+            :unknown)))
       :unknown))
 
 

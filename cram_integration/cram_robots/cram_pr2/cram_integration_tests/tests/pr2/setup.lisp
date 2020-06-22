@@ -1,3 +1,4 @@
+;;;
 ;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -26,22 +27,20 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-object-knowledge
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
-  :license "BSD"
+(in-package :cram-integration-tests)
 
-  :depends-on (cram-prolog
-               cram-manipulation-interfaces
-               cram-designators ; mostly used for likely locations
-               cram-location-costmap ; for specifying the metadata
-               )
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "environment" :depends-on ("package"))
-     (:file "household" :depends-on ("package"))
-     (:file "assembly" :depends-on ("package"))
-     (:file "retail" :depends-on ("package"))
-     (:file "multiple-trajectory-poses" :depends-on ("package"))))))
+;; roslaunch cram_integration_tests pr2.launch
+
+(defun init-projection ()
+  (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
+  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
+
+  (cram-occasions-events:clear-belief)
+
+  (setf cram-tf:*tf-default-timeout* 0.1)
+
+  (setf prolog:*break-on-lisp-errors* t)
+
+  (cram-bullet-reasoning:clear-costmap-vis-object))
+
+(roslisp-utilities:register-ros-init-function init-projection)

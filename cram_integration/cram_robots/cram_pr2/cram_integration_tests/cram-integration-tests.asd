@@ -1,5 +1,4 @@
-;;;
-;;; Copyright (c) 2019, Christopher Pollok <cpollok@uni-bremen.de>
+;;; Copyright (c) 2020, Christopher Pollok <cpollok@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,32 +26,48 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :env-man)
+(defsystem cram-integration-tests
+  :author "Christopher Pollok"
+  :license "BSD"
 
-(defparameter *container-state-convergence-delta* 0.1 "In meters or rad.")
+  :depends-on (roslisp-utilities ; for ros-init-function
 
-(def-fact-group environment-occasions (cpoe:container-state)
+               cl-transforms
+               cl-transforms-stamped
+               cl-tf
+               cram-tf
 
-  (<- (cpoe:container-state ?container-designator ?distance)
-    (symbol-value *container-state-convergence-delta* ?delta)
-    (cpoe:container-state ?container-designator ?distance ?delta))
+               cram-language
+               cram-executive
+               cram-designators
+               cram-prolog
+               cram-projection
+               cram-occasions-events
+               cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
 
-  (<- (cpoe:container-state ?container-designator ?distance ?delta)
-    (spec:property ?container-designator (:urdf-name ?container-name))
-    (spec:property ?container-designator (:part-of ?btr-environment))
-    (btr:bullet-world ?world)
-    (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
-    (lisp-fun get-connecting-joint ?container-link ?joint)
-    (lisp-fun cl-urdf:name ?joint ?joint-name)
-    (btr:joint-state ?world ?btr-environment ?joint-name ?joint-state)
-    (or (and (lisp-type ?distance number)
-             (cram-tf:values-converged ?joint-state ?distance ?delta))
-        (and (member ?distance (:open :closed))
-             (lisp-fun cl-urdf:limits ?joint ?joint-limits)
-             (lisp-fun cl-urdf:lower ?joint-limits ?lower-limit)
-             (lisp-fun cl-urdf:upper ?joint-limits ?upper-limit)
-             (-> (equal ?distance :open)
-                 (lisp-pred cram-tf:values-converged
-                            ?joint-state ?upper-limit ?delta)
-                 (lisp-pred cram-tf:values-converged
-                            ?joint-state ?lower-limit ?delta))))))
+               cram-common-failures
+               cram-mobile-pick-place-plans
+               cram-object-knowledge
+
+               cram-physics-utils     ; for reading "package://" paths
+               cl-bullet ; for handling BOUNDING-BOX datastructures
+               cram-bullet-reasoning
+               cram-bullet-reasoning-belief-state
+               cram-bullet-reasoning-utilities
+
+               cram-location-costmap
+               cram-btr-visibility-costmap
+               cram-btr-spatial-relations-costmap
+               cram-robot-pose-gaussian-costmap
+               cram-occupancy-grid-costmap
+
+               cram-urdf-projection      ; for with-simulated-robot
+               cram-fetch-deliver-plans
+               cram-urdf-environment-manipulation
+
+               lisp-unit)
+
+  :components
+  ((:module "tests"
+    :components
+    ((:file "package")))))
