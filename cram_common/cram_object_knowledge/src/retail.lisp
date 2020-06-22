@@ -242,14 +242,14 @@
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
   :donbot-tray-front
-  :attachment-translation `(0.1 0.05 0.11)
+  :attachment-translation `(0.2 0.05 0.11)
   :attachment-rot-matrix '((0  0  1)
                            (0 -1  0)
                            (1  0  0)))
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
   :donbot-tray-back
-  :attachment-translation `(0.1 0.05 0.11)
+  :attachment-translation `(0.2 0.05 0.11)
   :attachment-rot-matrix '(( 0  0  1)
                            ( 0  1  0)
                            (-1  0  0)))
