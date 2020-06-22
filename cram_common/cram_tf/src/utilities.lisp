@@ -419,14 +419,12 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
                   (cl-transforms:origin pose)
                   (cl-transforms:origin other-pose)))
                 delta-position)
-             (values-converged
-              (cl-transforms:quaternion->euler
-               (cl-transforms:orientation pose)
-               :just-values T)
-              (cl-transforms:quaternion->euler
-               (cl-transforms:orientation other-pose)
-               :just-values T)
-              delta-rotation)))))
+             (< (abs
+                 (cl-transforms:normalize-angle
+                  (cl-transforms:angle-between-quaternions
+                   (cl-transforms:orientation pose)
+                   (cl-transforms:orientation other-pose))))
+                delta-rotation)))))
 
 
 (defun normalize-joint-angles (list-of-angles)
