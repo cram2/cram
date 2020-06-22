@@ -76,6 +76,10 @@
   (<- (cpoe:object-in-hand ?object)
     (setof ?object (cpoe:object-in-hand ?object ?_) ?objects)
     (member ?object ?objects))
+  ;;
+  (<- (cpoe:object-in-hand ?object :left-or-right)
+    (or (cpoe:object-in-hand ?object :left)
+        (cpoe:object-in-hand ?object :right)))
 
 
   (<- (cpoe:robot-at-location ?location)
@@ -362,6 +366,9 @@
     (desig:designator-groundings ?current-location ?_)
     (or (btr:object-pose ?world ?object-name ?object-pose)
         (btr:object-bottom-pose ?world ?object-name ?object-pose))
+    ;; this only works for location designators that are resolved through costmaps
+    ;; for others, such as those that are resolved through ATTACHMENT tags,
+    ;; this does not work...
     (lisp-pred desig:validate-location-designator-solution ?current-location ?object-pose))
 
   (<- (%object-at-location ?world ?object-name ?location-designator)
