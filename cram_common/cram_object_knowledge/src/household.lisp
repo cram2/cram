@@ -630,17 +630,18 @@
                 other-object-type environment)))))
         '((:cup :bowl)))
 
-(defun make-cereal-pose (?object-type ?environment-name)
-  (let ((?pose
-          (cl-transforms-stamped:make-pose-stamped
-           "map"
-           0.0
-           (cl-transforms:make-3d-vector -0.78 0.8 0.95)
-           (cl-transforms:make-quaternion 0 0 0.6 0.4)))
-        ;; (?other-object :bowl)
+(defun make-cereal-location (?object-type ?environment-name)
+  (let (;; (?pose
+        ;;   (cl-transforms-stamped:make-pose-stamped
+        ;;    "map"
+        ;;    0.0
+        ;;    (cl-transforms:make-3d-vector -0.78 0.8 0.95)
+        ;;    (cl-transforms:make-quaternion 0 0 0.6 0.4)))
         )
     (desig:a location
-             ;; (pose ?pose)
+             ;; (left-of (desig:an object (type ?other-object)))
+             ;; (far-from (desig:an object (type ?other-object)))
+             ;; (orientation axis-aligned)
              (on (desig:an object
                            (type counter-top)
                            (urdf-name kitchen-island-surface)
@@ -648,18 +649,14 @@
                            (part-of ?environment-name)))
              (for (desig:an object (type ?object-type)))
              (side back)
-             (side right)
-             ;; (orientation axis-aligned)
-             ;; (left-of (desig:an object (type ?other-object)))
-             ;; (far-from (desig:an object (type ?other-object)))
-             )))
+             (side right))))
 
 (mapcar (lambda (object-type)
           (defmethod man-int:get-object-destination :heuristics 20
               ((object-type (eql object-type))
                environment human
                (context (eql :table-setting)))
-            (make-cereal-pose object-type environment)))
+            (make-cereal-location object-type environment)))
         '(:cereal :breakfast-cereal))
 
 (defun make-location-left-of-far-other-object (?object-type ?other-object-type
