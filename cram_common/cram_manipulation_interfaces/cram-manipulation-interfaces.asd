@@ -46,11 +46,13 @@
     :components
     ((:file "package")
 
-     (:file "object-designator-interfaces" :depends-on ("package"))
-     (:file "prolog" :depends-on ("package" "object-designator-interfaces"))
      (:file "environment" :depends-on ("package"))
-     (:file "object-hierarchy" :depends-on ("package" "prolog"))
+     (:file "object-designator-interfaces" :depends-on ("package"))
      (:file "manipulation-interfaces" :depends-on ("package"))
+     (:file "prolog" :depends-on ("package"
+                                  "object-designator-interfaces"
+                                  "manipulation-interfaces"))
+     (:file "object-hierarchy" :depends-on ("package" "prolog"))
 
      (:file "gripper" :depends-on ("package"
                                    "manipulation-interfaces"
