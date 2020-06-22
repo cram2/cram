@@ -407,19 +407,26 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
          (<= (abs goal-angle) delta-theta))))
 
 (defun pose-stampeds-converged (pose other-pose delta-position delta-rotation)
-  (and (< (cl-transforms:v-norm
-           (cl-transforms:v-
-            (cl-transforms:origin pose)
-            (cl-transforms:origin other-pose)))
-          delta-position)
-       (values-converged
-        (cl-transforms:quaternion->euler
-         (cl-transforms:orientation pose)
-         :just-values T)
-        (cl-transforms:quaternion->euler
-         (cl-transforms:orientation other-pose)
-         :just-values T)
-        delta-rotation)))
+  (declare (type (or null cl-transforms-stamped:pose-stamped) pose other-pose))
+  (when (and pose other-pose)
+    (if (string-not-equal (cl-transforms-stamped:frame-id pose)
+                          (cl-transforms-stamped:frame-id other-pose))
+        (warn "[CRAM-TF:POSE-STAMPEDS-CONVERGED]: frames were not equal: ~a vs. ~a"
+              (cl-transforms-stamped:frame-id pose)
+              (cl-transforms-stamped:frame-id other-pose))
+        (and (< (cl-transforms:v-norm
+                 (cl-transforms:v-
+                  (cl-transforms:origin pose)
+                  (cl-transforms:origin other-pose)))
+                delta-position)
+             (values-converged
+              (cl-transforms:quaternion->euler
+               (cl-transforms:orientation pose)
+               :just-values T)
+              (cl-transforms:quaternion->euler
+               (cl-transforms:orientation other-pose)
+               :just-values T)
+              delta-rotation)))))
 
 
 (defun normalize-joint-angles (list-of-angles)
