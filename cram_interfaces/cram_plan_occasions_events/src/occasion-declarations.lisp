@@ -31,8 +31,10 @@
 
 (def-fact-group occasions (object-in-hand
                            object-at-location robot-at-location
+                           torso-at arms-positioned-at tool-frames-at
                            looking-at
                            container-state)
+
   (<- (object-in-hand ?object ?hand ?grasp ?link)
     (fail))
   (<- (object-in-hand ?object ?hand ?grasp)
@@ -47,7 +49,24 @@
   (<- (robot-at-location ?object-designator ?location-designator)
     (fail))
 
-  (<- (looking-at ?location-designator)
+  (<- (torso-at ?joint-state)
+    (fail))
+  (<- (torso-at ?joint-state ?delta)
+    (fail))
+
+  (<- (arms-positioned-at ?left-configuration ?right-configuration)
+    (fail))
+  (<- (arms-positioned-at ?left-configuration ?right-configuration ?delta)
+    (fail))
+
+  (<- (tool-frames-at ?left-poses ?right-poses)
+    (fail))
+  (<- (tool-frames-at ?left-poses ?right-poses ?delta-position ?delta-rotation)
+    (fail))
+
+  (<- (looking-at ?location-or-object-or-frame-or-direction-or-pose)
+    (fail))
+  (<- (looking-at ?location-or-object-or-frame-or-direction-or-pose ?delta)
     (fail))
 
   (<- (container-state ?container-object-designator ?joint-state)
