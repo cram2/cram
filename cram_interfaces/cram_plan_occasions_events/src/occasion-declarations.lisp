@@ -69,5 +69,7 @@
   (<- (looking-at ?location-or-object-or-frame-or-direction-or-pose ?delta)
     (fail))
 
-  (<- (container-state ?container-object-designator ?joint-state)
+  (<- (container-state ?container-object-designator ?joint-state-or-keyword)
+    (fail))
+  (<- (container-state ?container-object-designator ?joint-state-or-keyword ?delta)
     (fail)))
