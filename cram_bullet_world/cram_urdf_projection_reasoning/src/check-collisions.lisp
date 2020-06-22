@@ -280,7 +280,7 @@ Store found pose into designator or throw error if good pose not found."
 (defun check-placing-pose-stability (object-desig placing-location)
   (when *projection-checks-enabled*
     (let* ((placing-pose
-             (desig:reference placing-location))
+             (desig:reference (desig:current-desig placing-location)))
            (world
              btr:*current-bullet-world*)
            (world-state
