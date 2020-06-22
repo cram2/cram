@@ -166,6 +166,7 @@ Should it be taken out and made PR2-specific?"
 (defun looking-in-direction-p (robot camera-frame
                                angle-horizontal angle-vertical
                                direction)
+  (declare (type cl-transforms:3d-vector direction))
   (let* ((camera-pose
            (btr:link-pose robot camera-frame))
          (map-T-cam
