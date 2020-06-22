@@ -46,7 +46,7 @@
 
   (<- (object-at-location ?object-designator ?location-designator)
     (fail))
-  (<- (robot-at-location ?object-designator ?location-designator)
+  (<- (robot-at-location ?location-designator)
     (fail))
 
   (<- (torso-at ?joint-state)

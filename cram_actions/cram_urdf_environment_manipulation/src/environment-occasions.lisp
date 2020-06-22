@@ -52,5 +52,7 @@
              (lisp-fun cl-urdf:lower ?joint-limits ?lower-limit)
              (lisp-fun cl-urdf:upper ?joint-limits ?upper-limit)
              (-> (equal ?open-or-closed :open)
-                 (cram-tf:values-converged ?joint-state ?upper-limit ?delta)
-                 (cram-tf:values-converged ?joint-state ?lower-limit ?delta))))))
+                 (lisp-pred cram-tf:values-converged
+                            ?joint-state ?upper-limit ?delta)
+                 (lisp-pred cram-tf:values-converged
+                            ?joint-state ?lower-limit ?delta))))))

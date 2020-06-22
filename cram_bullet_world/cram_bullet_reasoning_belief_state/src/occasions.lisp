@@ -78,7 +78,7 @@
     (member ?object ?objects))
 
 
-  (<- (cpoe:robot-at-location ?robot ?location)
+  (<- (cpoe:robot-at-location ?location)
     (rob-int:robot ?robot)
     (%object-at-location ?_ ?robot ?location))
 
@@ -284,7 +284,7 @@
                  (lisp-fun cl-transforms:origin ?camera-pose ?camera-point)
                  (lisp-fun cl-transforms:v- ?target-point ?camera-point ?direction)
                  (lisp-pred btr:looking-in-direction-p ?robot-object ?camera-frame
-                            ?camera-angle-h ?camera-angle-v)))
+                            ?camera-angle-h ?camera-angle-v ?direction)))
         (true))
     ;; Don't want to use the transformer if the pose is not in map. Assume TRUE.
     ;; (and (symbol-value cram-tf:*transformer* ?transformer)
