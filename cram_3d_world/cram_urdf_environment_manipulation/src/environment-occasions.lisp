@@ -47,11 +47,11 @@
     (btr:joint-state ?world ?btr-environment ?joint-name ?joint-state)
     (or (and (lisp-type ?distance number)
              (cram-tf:values-converged ?joint-state ?distance ?delta))
-        (and (member ?open-or-closed (:open :closed))
+        (and (member ?distance (:open :closed))
              (lisp-fun cl-urdf:limits ?joint ?joint-limits)
              (lisp-fun cl-urdf:lower ?joint-limits ?lower-limit)
              (lisp-fun cl-urdf:upper ?joint-limits ?upper-limit)
-             (-> (equal ?open-or-closed :open)
+             (-> (equal ?distance :open)
                  (lisp-pred cram-tf:values-converged
                             ?joint-state ?upper-limit ?delta)
                  (lisp-pred cram-tf:values-converged
