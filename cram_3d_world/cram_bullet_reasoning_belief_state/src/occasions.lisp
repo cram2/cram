@@ -229,7 +229,13 @@
     (desig:loc-desig? ?location-designator)
     (desig:current-designator ?location-designator ?current-location-designator)
     (desig:designator-groundings ?current-location-designator ?poses)
-    (member ?pose ?poses)
+    ;; Note(gaya): when checking if a goal has been achieved after having performed
+    ;; the action, it might happen that this implementation will give a
+    ;; false negative, if the costmap is big.
+    ;; Although, if this is happening AFTER the action, the designator
+    ;; must already be resolved, and perhaps the resolved pose will coincide
+    ;; with what the robot is looking at...
+    (once (member ?pose ?poses))
     (cpoe:looking-at ?pose ?delta))
   ;;
   (<- (cpoe:looking-at ?frame ?delta)
