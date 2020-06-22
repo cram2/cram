@@ -449,7 +449,7 @@
                environment human
                (context (eql :table-setting)))
             (make-location-on-sink-left-front environment)))
-        '(:mug :cup))
+        '(:mug))
 
 (defun make-location-on-sink-middle-front (?environment-name)
   (desig:a location
@@ -468,7 +468,7 @@
                environment human
                (context (eql :table-setting)))
             (make-location-on-sink-middle-front environment)))
-        '(:bottle :milk :cereal :breakfast-cereal))
+        '(:bottle :milk :cereal :breakfast-cereal :cup))
 
 (defun make-location-in-sink-left-middle-drawer (?environment-name)
   (desig:a location
