@@ -126,13 +126,13 @@
   (<- (cpoe:arms-positioned-at ?left-configuration ?right-configuration ?delta)
     (rob-int:robot ?robot)
     (-> (lisp-pred identity ?left-configuration)
-        (and (rob-int:robot-joint-states ?robot :arm :left ?left-configuration
+        (and (man-int:joint-state-for-arm-config ?robot ?left-configuration :left
                                          ?left-goal-states)
              (lisp-pred btr:robot-converged-to-goal-joint-states
                         ?left-goal-states ?delta))
         (true))
     (-> (lisp-pred identity ?right-configuration)
-        (and (rob-int:robot-joint-states ?robot :arm :right ?right-configuration
+        (and (man-int:joint-state-for-arm-config ?robot ?right-configuration :right
                                          ?right-goal-states)
              (lisp-pred btr:robot-converged-to-goal-joint-states
                         ?right-goal-states ?delta))

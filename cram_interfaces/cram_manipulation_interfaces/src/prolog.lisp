@@ -83,7 +83,23 @@
   (<- (robot-free-hand ?robot ?arm)
     (rob-int:robot ?robot)
     (rob-int:arm ?robot ?arm)
-    (not (cpoe:object-in-hand ?_ ?arm))))
+    (not (cpoe:object-in-hand ?_ ?arm)))
+
+  (<- (joint-state-for-arm-config ?robot ?config ?arm ?joint-state)
+    (once
+     (or (-> (and (equal ?config :park)
+                  (cpoe:object-in-hand ?object-designator ?arm ?grasp))
+             (and (desig:current-designator ?object-designator ?current-object-desig)
+                  (spec:property ?current-object-desig (:type ?object-type))
+                  (lisp-fun get-object-type-carry-config ?object-type ?grasp
+                            ?carry-config)
+                  (-> (lisp-pred identity ?carry-config)
+                      (rob-int:robot-joint-states ?robot :arm ?arm ?carry-config
+                                                  ?joint-state)
+                      (rob-int:robot-joint-states ?robot :arm ?arm :carry
+                                                  ?joint-state)))
+             (rob-int:robot-joint-states ?robot :arm ?arm ?config ?joint-state))
+         (equal ?joint-state NIL)))))
 
 
 
