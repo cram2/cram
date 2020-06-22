@@ -60,71 +60,51 @@
                             (cl-transforms:make-identity-rotation)))
 
 (defun grasp-object-from-shelf (?object shelf)
-  (let ((?newobject (desig:an object (type ?object)))
-        (?search-pose (if (eql shelf 1) *pose-searching-1* *pose-searching-2*))
-        (?pose-placing (if (eql shelf 1) *placing-pose-2* *placing-pose-2*))
-        (?look-pose (if (eql shelf 1) (cl-transforms-stamped:make-pose-stamped 
-                                       "map" 0
-                                       (cl-transforms:make-3d-vector -1 0.63 0.7)
-                                       (cl-transforms:make-quaternion 0 0 0 1))
-                        (cl-transforms-stamped:make-pose-stamped 
-                         "map" 0
-                         (cl-transforms:make-3d-vector 1 0.63 0.7)
-                         (cl-transforms:make-quaternion 0 0 0 1)))))
+  (let* ((?search-pose (if (eql shelf 1) *pose-searching-1* *pose-searching-2*))
+         (?object-desig (desig:an object
+                                  (type ?object)
+                                  (location (desig:a location
+                                                     (pose ?search-pose)))))
+         (?pose-placing (if (eql shelf 1) *placing-pose-1* *placing-pose-2*))
+         (?look-pose (if (eql shelf 1)
+                         (cl-transforms-stamped:make-pose-stamped
+                          "map" 0
+                          (cl-transforms:make-3d-vector -1 0.63 0.7)
+                          (cl-transforms:make-quaternion 0 0 0 1))
+                         (cl-transforms-stamped:make-pose-stamped
+                          "map" 0
+                          (cl-transforms:make-3d-vector 1 0.63 0.7)
+                          (cl-transforms:make-quaternion 0 0 0 1)))))
 
     (exe:perform
      (desig:an action
-               (type parking-arms)))
-
-    (exe:perform
-     (desig:an action
-               (type going)
-               (target (desig:a location
-                                (pose ?pose-placing)))))
-    (exe:perform
-     (desig:an action
-               (type looking)
-               (target (desig:a location (pose ?look-pose)))))
-
-    (setf ?newobject
-          (exe:perform
-           (desig:a motion
-                    (type detecting)
-                    (object ?newobject))))
+               (type searching)
+               (object ?object-desig)))
 
     (exe:perform
      (desig:an action
                (type fetching)
-               (object ?newobject)
-               (arm :right)
+               (object ?object-desig)
                (location (desig:a location
                                   (pose ?search-pose)))))
+
     (exe:perform
      (desig:a motion
               (type moving-arm-joints)
-              (left-joint-states (("l_shoulder_pan_joint" 0.7)
-                                  ("l_shoulder_lift_joint" 0.5)
-                                  ("l_upper_arm_roll_joint" 1.4)
-                                  ("l_elbow_flex_joint" -1.5)
-                                  ("l_forearm_roll_joint" -1.15)
-                                  ("l_wrist_flex_joint" 0)))))
-
+              (left-joint-states (("l_shoulder_pan_joint" -0.3)
+                                  ("l_shoulder_lift_joint" -0.5)
+                                  ("l_upper_arm_roll_joint" 3.14)
+                                  ("l_elbow_flex_joint" -1.3)
+                                  ("l_forearm_roll_joint" 0)
+                                  ("l_wrist_flex_joint" -0.75)))))
     (exe:perform
      (desig:an action
                (type going)
                (target (desig:a location
                                 (pose ?pose-placing)))))
 
-    (let* ((map->basket (cl-transforms:pose->transform
-                         (btr:pose (btr:object btr:*current-bullet-world* :b))))
-           (basket->object (cl-transforms:make-transform
-                            (cl-transforms:make-3d-vector 0.15 -0.1 0.05)
-                            (cl-transforms:make-quaternion 0 0 1 0)))
-           (map->object (cl-transforms:transform*  map->basket basket->object))
-           (?dropping-pose (cl-transforms-stamped:pose->pose-stamped
-                            "map" 0
-                            (cl-transforms:transform->pose map->object)))
-           (?basket-desig (desig:an object (type :basket)))
+
+    (let* ((?basket-desig (desig:an object (type :basket)))
            (basket-pose (btr:pose (btr:object btr:*current-bullet-world* :b)))
            (map->basket (cl-transforms:pose->transform basket-pose))
            (map->base (cl-transforms:pose->transform (btr:pose (btr:get-robot-object))))
@@ -158,30 +138,23 @@
       (exe:perform
        (desig:an action
                  (type placing)
-                 (object ?newobject)
-                 (arm right)
-                 ;; (target (desig:a location (pose ?dropping-pose)))))
+                 (object ?object-desig)
                  (target (desig:a location
                                   (on ?basket-desig)
-                                  (for ?newobject)
+                                  (for ?object-desig)
                                   (attachment in-basket))))))))
 
-(defun place-object-in-shelf (?object-type ?destination
-                              &optional pose-2 pose-3 pose-4)
+(defun place-object-in-shelf (?object-type &rest ?target-poses)
   (declare (type symbol ?object-type)
-           (type cl-transforms-stamped:pose-stamped ?destination))
-  (let* ((?table *table*)
-         (?object (desig:an object
-                            (type ?object-type)
-                            (location (desig:a location
-                                               (pose ?table)))))
-         (?target-poses `(,?destination ,pose-2 ,pose-3 ,pose-4)))
-
+           (type list ?target-poses))
+  (let* ((?table *table*))
     (exe:perform
      (desig:an action
                (type transporting)
-               (arm right)
-               (object ?object)
+               (object (desig:an object
+                                 (type ?object-type)
+                                 (location (desig:a location
+                                                    (pose ?table)))))
                (target (desig:a location
                                 (poses  ?target-poses)))))))
 
@@ -207,5 +180,5 @@
       (cl-transforms:make-3d-vector 0.7 0.7 0.68)
       (cl-transforms:make-quaternion 0 0 -1 1)))
 
-    (grasp-object-from-shelf :dove 1)
-    (grasp-object-from-shelf :heitmann 2)))
+    (grasp-object-from-shelf :heitmann 2)
+    (grasp-object-from-shelf :dove 1)))

@@ -41,9 +41,8 @@
    #:get-object-old-transform
    #:get-object-old-pose
    ;; prolog
-   #:object-type-subtype
-   #:object-type-direct-subtype
-   #:robot-free-hand
+   #:object-type-subtype #:object-type-direct-subtype
+   #:robot-free-hand #:joint-state-for-arm-config
    #:unidirectional-attachment
    #:location-always-reachable
    #:object-is-a-robot

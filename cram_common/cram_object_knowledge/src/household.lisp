@@ -94,6 +94,9 @@
     ((object-type (eql :cereal)) (grasp (eql :top)))
   :carry-top)
 (defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :basket)) (grasp (eql :top)))
+  :carry-top-basket)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
     ((object-type (eql :plate)) grasp)
   :carry-side-gripper-vertical)
 
@@ -317,17 +320,9 @@
 (defparameter *cereal-postgrasp-xy-offset* 0.40 "in meters")
 (defparameter *cereal-lift-z-offset* 0.1 "in meters")
 
-;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :front
-  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
-  :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
-  :lift-translation `(,*cereal-grasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
-  :2nd-lift-translation `(,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-lift-z-offset*))
-
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :top
   :grasp-translation `(0.0d0 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *lift-offset*
@@ -335,8 +330,41 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
-;; BACK grasp
-(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :back
+;; FRONT grasp table
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :front
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*))
+
+;; FRONT grasp shelf
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :front
+  :location-type :shelf
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation `(,*cereal-grasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-lift-z-offset*))
+
+;; BACK grasp table
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :back
+  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*))
+
+;; BACK grasp shelf
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :back
+  :location-type :shelf
   :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
@@ -421,7 +449,7 @@
                environment human
                (context (eql :table-setting)))
             (make-location-on-sink-left-front environment)))
-        '(:mug :cup))
+        '(:mug))
 
 (defun make-location-on-sink-middle-front (?environment-name)
   (desig:a location
@@ -440,7 +468,7 @@
                environment human
                (context (eql :table-setting)))
             (make-location-on-sink-middle-front environment)))
-        '(:bottle :milk :cereal :breakfast-cereal))
+        '(:bottle :milk :cereal :breakfast-cereal :cup))
 
 (defun make-location-in-sink-left-middle-drawer (?environment-name)
   (desig:a location
@@ -602,17 +630,18 @@
                 other-object-type environment)))))
         '((:cup :bowl)))
 
-(defun make-cereal-pose (?object-type ?environment-name)
-  (let ((?pose
-          (cl-transforms-stamped:make-pose-stamped
-           "map"
-           0.0
-           (cl-transforms:make-3d-vector -0.78 0.8 0.95)
-           (cl-transforms:make-quaternion 0 0 0.6 0.4)))
-        ;; (?other-object :bowl)
+(defun make-cereal-location (?object-type ?environment-name)
+  (let (;; (?pose
+        ;;   (cl-transforms-stamped:make-pose-stamped
+        ;;    "map"
+        ;;    0.0
+        ;;    (cl-transforms:make-3d-vector -0.78 0.8 0.95)
+        ;;    (cl-transforms:make-quaternion 0 0 0.6 0.4)))
         )
     (desig:a location
-             ;; (pose ?pose)
+             ;; (left-of (desig:an object (type ?other-object)))
+             ;; (far-from (desig:an object (type ?other-object)))
+             ;; (orientation axis-aligned)
              (on (desig:an object
                            (type counter-top)
                            (urdf-name kitchen-island-surface)
@@ -620,17 +649,15 @@
                            (part-of ?environment-name)))
              (for (desig:an object (type ?object-type)))
              (side back)
-             (side right)
-             ;; (orientation axis-aligned)
-             ;; (left-of (desig:an object (type ?other-object)))
-             ;; (far-from (desig:an object (type ?other-object)))
-             )))
+             (side right))))
 
-(defmethod man-int:get-object-destination :heuristics 20
-    ((object-type (eql :cereal))
-     environment-name human-name
-     (context (eql :table-setting)))
-  (make-cereal-pose object-type environment-name))
+(mapcar (lambda (object-type)
+          (defmethod man-int:get-object-destination :heuristics 20
+              ((object-type (eql object-type))
+               environment human
+               (context (eql :table-setting)))
+            (make-cereal-location object-type environment)))
+        '(:cereal :breakfast-cereal))
 
 (defun make-location-left-of-far-other-object (?object-type ?other-object-type
                                                ?other-object-location)
@@ -678,7 +705,7 @@
 (defun make-location-on-sink (?environment-name ?object-type)
   (desig:a location
            (on (desig:an object
-                         (type area-sink)
+                         (type sink)
                          (urdf-name sink-area-sink)
                          (owl-name "kitchen_sink_area_sink")
                          (part-of ?environment-name)))

@@ -29,9 +29,12 @@
 
 (in-package :cram-plan-occasions-events)
 
-(def-fact-group occasions (object-in-hand object-placed-at object-picked object-put
-                                          loc looking-at arms-parked
-                                          container-state)
+(def-fact-group occasions (object-in-hand
+                           object-at-location robot-at-location
+                           torso-at arms-positioned-at tool-frames-at
+                           looking-at
+                           container-state)
+
   (<- (object-in-hand ?object ?hand ?grasp ?link)
     (fail))
   (<- (object-in-hand ?object ?hand ?grasp)
@@ -41,23 +44,32 @@
   (<- (object-in-hand ?object)
     (fail))
 
-  (<- (object-placed-at ?object ?location)
+  (<- (object-at-location ?object-designator ?location-designator)
+    (fail))
+  (<- (robot-at-location ?location-designator)
     (fail))
 
-  (<- (object-picked ?object)
+  (<- (torso-at ?joint-state)
+    (fail))
+  (<- (torso-at ?joint-state ?delta)
     (fail))
 
-  (<- (object-put ?object)
+  (<- (arms-positioned-at ?left-configuration ?right-configuration)
+    (fail))
+  (<- (arms-positioned-at ?left-configuration ?right-configuration ?delta)
     (fail))
 
-  (<- (loc ?robot-or-object ?location)
+  (<- (tool-frames-at ?left-poses ?right-poses)
+    (fail))
+  (<- (tool-frames-at ?left-poses ?right-poses ?delta-position ?delta-rotation)
     (fail))
 
-  (<- (looking-at ?location)
+  (<- (looking-at ?location-or-object-or-frame-or-direction-or-pose)
+    (fail))
+  (<- (looking-at ?location-or-object-or-frame-or-direction-or-pose ?delta)
     (fail))
 
-  (<- (arms-parked)
+  (<- (container-state ?container-object-designator ?joint-state-or-keyword)
     (fail))
-
-  (<- (container-state ?container-object-designator ?joint-state)
+  (<- (container-state ?container-object-designator ?joint-state-or-keyword ?delta)
     (fail)))
