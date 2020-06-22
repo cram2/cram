@@ -119,8 +119,8 @@
         (and (equal ?right-reach-poses NIL)
              (equal ?right-grasp-poses NIL)
              (equal ?right-lift-poses NIL)))
-    (or (lisp-pred identity ?left-trajectory)
-        (lisp-pred identity ?right-trajectory))
+    (once (or (lisp-pred identity ?left-trajectory)
+              (lisp-pred identity ?right-trajectory)))
 
     ;; put together resulting action designator
     (desig:designator :action ((:type :picking-up)
@@ -185,9 +185,11 @@
                                ?current-location-designator)))
 
     ;; placing happens on/in an object
-    (or (desig:desig-prop ?current-location-designator (:on ?other-object-desig))
-        (desig:desig-prop ?current-location-designator (:in ?other-object-desig))
-        (equal ?other-object-desig NIL))
+    (once (or (desig:desig-prop ?current-location-designator
+                                (:on ?other-object-desig))
+              (desig:desig-prop ?current-location-designator
+                                (:in ?other-object-desig))
+              (equal ?other-object-desig NIL)))
     (desig:current-designator ?other-object-desig ?other-object-designator)
     ;; and that other object can be a robot or not
     (-> (man-int:object-is-a-robot ?other-object-designator)
@@ -237,8 +239,8 @@
         (and (equal ?right-reach-poses NIL)
              (equal ?right-put-poses NIL)
              (equal ?right-retract-poses NIL)))
-    (or (lisp-pred identity ?left-trajectory)
-        (lisp-pred identity ?right-trajectory))
+    (once (or (lisp-pred identity ?left-trajectory)
+              (lisp-pred identity ?right-trajectory)))
 
     ;; put together resulting designator
     (desig:designator :action ((:type :placing)
