@@ -94,7 +94,8 @@
            ;; return joint state. this will be our observation
            ;; currently only used by HPN
            (robot-joint-states-with-odom-joints-as-hash-table))
-      (when (btr:robot-colliding-objects-without-attached '(:floor))
+      (when (or (btr:robot-colliding-objects-without-attached '(:floor))
+                (btr:robot-attached-objects-in-collision))
         (unless (< (abs *debug-short-sleep-duration*) 0.0001)
           (cpl:sleep *debug-short-sleep-duration*))
         (btr::restore-world-state world-state world)
