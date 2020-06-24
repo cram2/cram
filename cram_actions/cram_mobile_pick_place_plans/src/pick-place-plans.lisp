@@ -158,7 +158,7 @@
               &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type (or desig:object-designator null) ?other-object-designator)
-           (type keyword ?arm)
+           (type list ?arm)
            (type (or null keyword) ?placing-location-name)
            (type number ?gripper-opening)
            (type (or null list) ; yes, null is also list, but this is better reachability
