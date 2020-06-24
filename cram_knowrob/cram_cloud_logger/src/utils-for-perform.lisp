@@ -61,7 +61,7 @@
        (translate (cl-transforms-stamped:translation detected-object-transform))
        (quaternion (cl-transforms-stamped:rotation detected-object-transform)))
     (concatenate
-     'string "['map',_,"
+     'string "['map',"
      (send-create-3d-vector translate) ","
      (send-create-quaternion quaternion)"]")))
 
@@ -120,9 +120,9 @@
             ;;(let ((referenced-action-id (log-perform-call action-desig)))
             (let ((referenced-action-id "")
                   (action-designator-parameters (desig:properties action-desig)))
-              ;;(log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id)
-              ;;(when (string-equal cram-action-name "detecting")
-              ;;  (handle-detected-object perform-result))
+              (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id)
+              (when (string-equal cram-action-name "detecting")
+                (handle-detected-object perform-result))
               (set-event-status-to-succeeded action-id)
               (ccl::stop-situation action-id)
               perform-result))))

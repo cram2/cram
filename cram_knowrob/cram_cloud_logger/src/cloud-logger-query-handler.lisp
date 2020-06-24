@@ -1,5 +1,19 @@
 (in-package :ccl)
 
+(defun get-parent-folder-path()
+  (namestring (physics-utils:parse-uri "package://cram_cloud_logger/src")))
+
+(defun send-load-neem-generation-interface ()
+  (let ((path-to-interface-file (concatenate 'string "'"(get-parent-folder-path) "/neem-interface.pl'")))
+    (ccl::send-query-1-without-result "ensure_loaded" path-to-interface-file)))
+
+(defun init-logging ()
+  (send-load-neem-generation-interface)
+  (ccl::send-query-1-without-result "ros_logger_start" ""))
+
+(defun finish-logging ()
+  (ccl::send-query-1-without-result "ros_logger_stop" ""))
+
 (defun get-grasp-type-lookup-table()
   (let ((lookup-table (make-hash-table :test 'equal)))
     (setf (gethash ":TOP" lookup-table) "TopGrasp")
@@ -22,10 +36,10 @@
   (send-query-1-without-result predicate-name situation-uri))
 
 (defun attach-event-to-situation (event-prolog-url situation-prolog-url)
-  (get-url-from-send-query-1 "TaskNode" "mem_event_create" situation-prolog-url event-prolog-url "TaskNode"))
+  (get-url-from-send-query-1 "SubAction" "add_subaction_with_task" situation-prolog-url "SubAction" event-prolog-url))
 
 (defun send-belief-perceived-at (object-type transform)
-  (get-url-from-send-query-1 "Object" "belief_perceived_at" object-type transform "0.0" "Object"))
+  (get-url-from-send-query-1 "Object" "belief_perceived_at" object-type transform "Object"))
 
 (defun send-belief-new-object-query (object-type)
   (get-url-from-send-query-1 "Object" "belief_new_object" object-type "Object"))
@@ -37,7 +51,8 @@
   (send-query-1-without-result "mem_event_set_failed" event-prolog-url))
 
 (defun send-attach-object-as-parameter-to-situation (object-url parameter-type-url event-prolog-url)
-  (send-query-1-without-result "mem_event_includes" event-prolog-url object-url parameter-type-url))
+  (break)
+  (send-query-1-without-result "add_participant_with_role" event-prolog-url object-url parameter-type-url))
 
 (defun set-event-diagnosis (event-prolog-url diagnosis-url)
   (send-query-1-without-result "mem_event_add_diagnosis" event-prolog-url diagnosis-url))
@@ -48,10 +63,10 @@
       (print "Previous episode recording is still running. Stopping the recording ...")
       (stop-episode)))
   (ccl::clear-detected-objects)
-  (setf ccl::*episode-name* (get-url-from-send-query-1 "Episode" "mem_episode_start" "Episode")))
+  (setf ccl::*episode-name* (get-url-from-send-query-1 "RootAction" "mem_episode_start" "RootAction")))
 
 (defun stop-episode ()
-  (send-query-1-without-result "mem_episode_stop" ccl::*episode-name*)
+  (send-query-1-without-result "mem_episode_stop" "'/home/seba/knowrob-memo'")
   (setf ccl::*episode-name* nil))
 
 (defun send-query-1-without-result (query-name &rest query-parameters)
@@ -71,14 +86,14 @@
     (ccl::get-url-variable-result-as-str-from-json-prolog-result url-parameter query-result)))
 
 (defun send-comment (action-inst comment)
-  ;;(send-query-1-without-result "kb_assert" action-inst "rdfs:comment" (concatenate 'string "'"comment"'")))
+  ;;(send-query-1-without-result "add_comment" action-inst (concatenate 'string "'"comment"'")))
   (print "COMMENT"))
 
 (defun send-object-action-parameter (action-inst object-designator)
   (let* ((object-name (get-designator-property-value-str object-designator :NAME))
          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
     (when object-ease-id 
-      (send-query-1-without-result "mem_event_includes" action-inst object-ease-id "'http://www.ease-crc.org/ont/EASE-OBJ.owl#AffectedObject'"))))
+      (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/EASE-OBJ.owl#AffectedObject'"))))
 
 
 (defun send-grasp-action-parameter (action-inst grasp)
@@ -86,8 +101,9 @@
     (send-parameter action-inst "GraspingOrientation" grasp-type)))
 
 (defun send-parameter(action-inst parameter-type region-type)
-  (send-query-1
-   (concatenate 'string "event_memory:mem_new_individual('http://www.ease-crc.org/ont/EASE.owl#"region-type"', RegionInstance),event_memory:mem_new_individual('http://www.ease-crc.org/ont/EASE.owl#"parameter-type"',ParameterInstance), mem_event_add_parameter("action-inst",ParameterInstance), mem_event_add_classification("action-inst",RegionInstance,ParameterInstance).")))
+  (let ((parameter-type-url (concatenate 'string "'""http://www.ease-crc.org/ont/EASE.owl#" parameter-type "'"))
+        (region-type-url (concatenate 'string "'""http://www.ease-crc.org/ont/EASE.owl#" region-type "'")))
+      (send-query-1-without-result "add_parameter" action-inst parameter-type-url region-type-url)))
 
 
 

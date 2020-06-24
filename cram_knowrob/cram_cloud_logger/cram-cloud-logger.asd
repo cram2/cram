@@ -8,7 +8,8 @@
                :cram-utilities
                :cram-manipulation-interfaces
                :cram-executive
-               :cram-projection)
+               :cram-projection
+               :cram-physics-utils)
   :components
   ((:module "src" 
     :components
