@@ -171,28 +171,43 @@ If there is no other method with 1 as qualifier, this method will be executed al
         (update-object-designator-with-attachment
          object-designator robot-object-name link)))))
 
+(defun get-ee-link (arm)
+   (cut:var-value
+    '?ee-link
+    (car (prolog:prolog
+          `(and (cram-robot-interfaces:robot ?robot)
+                (cram-robot-interfaces:end-effector-link ?robot ,arm
+                                                         ?ee-link))))))
+
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))
          (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
-         (arm (cpoe:event-arm event))
-         (link (if arm
-                   (cut:var-value
-                    '?ee-link
-                    (car (prolog:prolog
-                          `(and (cram-robot-interfaces:robot ?robot)
-                                (cram-robot-interfaces:end-effector-link ?robot ,arm
-                                                                         ?ee-link)))))
-                   (if (cpoe:event-link event)
-                       (cpoe:event-link event)
-                       (error "[BTR-BELIEF OBJECT-DETACHED] either link or arm ~
-                               in object-attached-robot even had to be given...")))))
-    (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
+         (first-arm (first (cpoe:event-arm event)))
+         (second-arm (second (cpoe:event-arm event)))
+         (first-link (when first-arm
+                       (if (get-ee-link first-arm)
+                           (get-ee-link first-arm)
+                           (if (cpoe:event-link event)
+                               (cpoe:event-link event)
+                               (error "[BTR-BELIEF OBJECT-DETACHED] either link or arm ~
+                                 in object-attached-robot even had to be given...")))))
+         (second-link (when second-arm
+                        (if (get-ee-link first-arm)
+                            (get-ee-link second-arm)
+                            (if (cpoe:event-link event)
+                                (cpoe:event-link event)
+                                (error "[BTR-BELIEF OBJECT-DETACHED] either link or arm ~
+                                  in object-attached-robot even had to be given..."))))))
+    (when (and (cut:is-var first-link)
+               (cut:is-var second-link))
+      (error "[BTR-BELIEF OBJECT-DETACHED] Couldn't find robot's EE link."))
     (if btr-object-name
         ;; if btr-object-name was given, detach it from the robot link
         (let ((btr-object (btr:object btr:*current-bullet-world* btr-object-name)))
           (when btr-object
-            (btr:detach-object robot-object btr-object :link link)
+            (btr:detach-object robot-object btr-object :link first-link)
+            (btr:detach-object robot-object btr-object :link second-link)
             (btr:simulate btr:*current-bullet-world* 10)
             ;; find the links and items that support the object
             ;; and attach the object to them.
@@ -227,7 +242,8 @@ If there is no other method with 1 as qualifier, this method will be executed al
                       contacting-items))))
         ;; if btr-object-name was not given, detach all objects from the robot link
         (progn
-          (btr:detach-all-from-link robot-object link)
+          (btr:detach-all-from-link robot-object first-link)
+          (btr:detach-all-from-link robot-object second-link)
           (btr:simulate btr:*current-bullet-world* 10)))))
 
 (defmethod cram-occasions-events:on-event btr-attach-two-objs ((event cpoe:object-attached-object))
