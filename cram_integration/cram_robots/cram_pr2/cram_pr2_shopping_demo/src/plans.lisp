@@ -29,134 +29,72 @@
 
 (in-package :cram-pr2-shopping-demo)
 
-(defparameter *table* (cl-transforms-stamped:make-pose-stamped
-                       "map" 0.0
-                       (cl-transforms:make-3d-vector -3.5 0.1 0.7)
-                       (cl-transforms:make-identity-rotation)))
-
-(defparameter *pose-searching-2* (cl-transforms-stamped:make-pose-stamped
-                                  "map" 0
-                                  (cl-transforms:make-3d-vector 1 0.7 1)
-                                  (cl-transforms:make-identity-rotation)))
-
 (defparameter *placing-pose-2* (cl-transforms-stamped:make-pose-stamped
                                 "map" 0
                                 (cl-transforms:make-3d-vector 1 -0.5 0)
                                 (cl-transforms:make-quaternion 0 0 1 1)))
-
-(defparameter *pose-searching-1* (cl-transforms-stamped:make-pose-stamped
-                                  "map" 0
-                                  (cl-transforms:make-3d-vector -1 0.7 1)
-                                  (cl-transforms:make-identity-rotation)))
 
 (defparameter *placing-pose-1* (cl-transforms-stamped:make-pose-stamped
                                 "map" 0
                                 (cl-transforms:make-3d-vector -1 -0.5 0)
                                 (cl-transforms:make-quaternion 0 0 1 1)))
 
-(defparameter *shelf-pose* (cl-transforms-stamped:make-pose-stamped
-                            "map" 0
-                            (cl-transforms:make-3d-vector 1 1 1.3)
-                            (cl-transforms:make-identity-rotation)))
-
 (defun grasp-object-from-shelf (?object shelf)
-  (let* ((?search-pose (if (eql shelf 1) *pose-searching-1* *pose-searching-2*))
-         (?object-desig (desig:an object
-                                  (type ?object)
-                                  (location (desig:a location
-                                                     (pose ?search-pose)))))
-         (?pose-placing (if (eql shelf 1) *placing-pose-1* *placing-pose-2*))
-         (?look-pose (if (eql shelf 1)
-                         (cl-transforms-stamped:make-pose-stamped
-                          "map" 0
-                          (cl-transforms:make-3d-vector -1 0.63 0.7)
-                          (cl-transforms:make-quaternion 0 0 0 1))
-                         (cl-transforms-stamped:make-pose-stamped
-                          "map" 0
-                          (cl-transforms:make-3d-vector 1 0.63 0.7)
-                          (cl-transforms:make-quaternion 0 0 0 1)))))
-
+  (let* ((?search-location
+           (if (eql shelf 1)
+               (desig:a location
+                        (on (desig:an object
+                                      (type shelf)
+                                      (urdf-name shelf-2-footprint)
+                                      (part-of environment)
+                                      (level 3)))
+                        (side right))
+               (desig:a location
+                        (on (desig:an object
+                                      (type shelf)
+                                      (urdf-name shelf-1-footprint)
+                                      (part-of environment)
+                                      (level 3)))
+                        (side right))))
+         (?object-desig
+           (desig:an object
+                     (type ?object)
+                     (location ?search-location)))
+         (?pose-placing
+           (if (eql shelf 1) *placing-pose-1* *placing-pose-2*)))
     (exe:perform
      (desig:an action
-               (type searching)
-               (object ?object-desig)))
-
-    (exe:perform
-     (desig:an action
-               (type fetching)
+               (type transporting)
                (object ?object-desig)
-               (location (desig:a location
-                                  (pose ?search-pose)))))
-
-    (exe:perform
-     (desig:a motion
-              (type moving-arm-joints)
-              (left-joint-states (("l_shoulder_pan_joint" -0.3)
-                                  ("l_shoulder_lift_joint" -0.5)
-                                  ("l_upper_arm_roll_joint" 3.14)
-                                  ("l_elbow_flex_joint" -1.3)
-                                  ("l_forearm_roll_joint" 0)
-                                  ("l_wrist_flex_joint" -0.75)))))
+               (target (desig:a location
+                                (on (desig:an object
+                                              (type basket)
+                                              (name b)))
+                                (for ?object-desig)
+                                (attachment in-basket)))))
     (exe:perform
      (desig:an action
                (type going)
                (target (desig:a location
-                                (pose ?pose-placing)))))
-
-
-    (let* ((?basket-desig (desig:an object (type :basket)))
-           (basket-pose (btr:pose (btr:object btr:*current-bullet-world* :b)))
-           (map->basket (cl-transforms:pose->transform basket-pose))
-           (map->base (cl-transforms:pose->transform (btr:pose (btr:get-robot-object))))
-           (base->basket (cl-transforms:transform*
-                          (cl-transforms:transform-inv map->base)
-                          map->basket)))
-
-      (setf ?basket-desig
-            (desig:copy-designator
-             ?basket-desig
-             :new-description
-             `((:type :basket)
-               (:name :b)
-               (:pose ((:pose
-                        ,(cl-transforms-stamped:pose->pose-stamped
-                          "base_footprint" 0
-                          (cl-transforms:transform->pose base->basket)))
-                       (:transform
-                        ,(cl-transforms-stamped:transform->transform-stamped
-                          "base_footprint" "b" 0
-                          base->basket))
-                       (:pose-in-map
-                        ,(cl-transforms-stamped:pose->pose-stamped
-                          "map" 0
-                          basket-pose))
-                       (:transform-in-map
-                        ,(cl-transforms-stamped:transform->transform-stamped
-                          "map" "b" 0
-                          (cl-transforms:pose->transform basket-pose))))))))
-
-      (exe:perform
-       (desig:an action
-                 (type placing)
-                 (object ?object-desig)
-                 (target (desig:a location
-                                  (on ?basket-desig)
-                                  (for ?object-desig)
-                                  (attachment in-basket))))))))
+                                (pose ?pose-placing)))))))
 
 (defun place-object-in-shelf (?object-type &rest ?target-poses)
   (declare (type symbol ?object-type)
            (type list ?target-poses))
-  (let* ((?table *table*))
-    (exe:perform
-     (desig:an action
-               (type transporting)
-               (object (desig:an object
-                                 (type ?object-type)
-                                 (location (desig:a location
-                                                    (pose ?table)))))
-               (target (desig:a location
-                                (poses  ?target-poses)))))))
+  (exe:perform
+   (desig:an action
+             (type transporting)
+             (object (desig:an object
+                               (type ?object-type)
+                               (location (desig:a location
+                                                  (on (desig:an object
+                                                                (type counter-top)
+                                                                (urdf-name top)
+                                                                (part-of
+                                                                 environment)))
+                                                  (side right)))))
+             (target (desig:a location
+                              (poses  ?target-poses))))))
 
 
 (defun demo ()
