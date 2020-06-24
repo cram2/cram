@@ -425,6 +425,8 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
                   ((:robot-location ?target-robot-location))
                   place-action
                   target-stable
+                  target-in-hand
+                  target-hand
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type (or keyword null) ?arm)
@@ -505,6 +507,24 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                          (type turning-towards)
                                          (target ?target-location)
                                          (goal ?goal))))
+
+                ;; if target is in hand, we have a handover,
+                ;; so move target hand closer
+                (when target-in-hand
+                  (let ((?goal
+                          (case target-hand
+                            (:left `(cpoe:arms-positioned-at :hand-over nil))
+                            (:right `(cpoe:arms-positioned-at nil :hand-over))
+                            (t `(cpoe:arms-positioned-at nil nil)))))
+                    (exe:perform
+                     (desig:an action
+                               (type positioning-arm)
+                               (desig:when (eql target-hand :left)
+                                 (left-configuration hand-over))
+                               (desig:when (eql target-hand :right)
+                                 (right-configuration hand-over))
+                               (goal ?goal)))
+                    (desig:reset ?target-location)))
 
                 ;; place
                 (let ((place-action
