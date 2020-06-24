@@ -64,8 +64,17 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:type :navigating))
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
+    ;; Check if robots holds object with both arms
+    (setof ?arm (rob-int:arm ?_ ?arm) ?rob-arms)
+    (length ?rob-arms ?number-of-arms)
+    (-> (and (> ?number-of-arms 1)
+             (forall (member ?rob-arm ?rob-arms)
+                     (cpoe:object-in-hand ?object-designator ?rob-arm))
+             (equal ?park-arms NIL)
+             (equal ?park-arms T)))
     (desig:designator :action ((:type :navigating)
-                               (:location ?location-designator))
+                               (:location ?location-designator)
+                               (:park-arms ?park-arms))
                       ?resolved-action-designator))
 
 
