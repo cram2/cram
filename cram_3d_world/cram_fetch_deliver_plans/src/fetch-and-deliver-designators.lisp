@@ -239,6 +239,13 @@ the `look-pose-stamped'."
     (-> (man-int:location-always-stable ?location-designator)
         (equal ?target-stable T)
         (equal ?target-stable NIL))
+    ;; also, the target location can be w.r.t. other object, which can be in hand,
+    ;; in which case we need to bring the other object hand closer
+    (-> (and (man-int:location-reference-object ?location-designator ?target-obj)
+             (cpoe:object-in-hand ?target-obj ?target-hand))
+        (equal ?target-in-hand T)
+        (and (equal ?target-in-hand NIL)
+             (equal ?target-hand NIL)))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location
                                                       ?some-robot-loc-desig))
@@ -259,7 +266,9 @@ the `look-pose-stamped'."
                                (:target ?location-designator)
                                (:robot-location ?robot-location-designator)
                                (:place-action ?place-action-designator)
-                               (:target-stable ?target-stable))
+                               (:target-stable ?target-stable)
+                               (:target-in-hand ?target-in-hand)
+                               (:target-hand ?target-hand))
                       ?resolved-action-designator))
 
 
