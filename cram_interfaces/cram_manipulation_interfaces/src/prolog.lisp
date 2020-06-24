@@ -133,19 +133,18 @@
   ;;              (on ?other-object)
   ;;              (attachment object-to-other-object))
   (<- (desig:location-grounding ?location-designator ?pose-stamped)
-    (desig:current-designator ?location-designator ?current-location-designator)
-    (desig:desig-prop ?current-location-designator (:for ?object-designator))
-    (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
-    (-> (desig:desig-prop ?current-location-designator (:attachments ?attachments))
+    (desig:current-designator ?location-designator ?current-loc-desig)
+    (desig:desig-prop ?current-loc-desig (:for ?object-designator))
+    (desig:desig-prop ?current-loc-desig (:on ?other-object-designator))
+    (-> (desig:desig-prop ?current-loc-desig (:attachments ?attachments))
         (member ?attachment-type ?attachments)
-        (desig:desig-prop ?current-location-designator (:attachment
-                                                        ?attachment-type)))
+        (desig:desig-prop  ?current-loc-desig (:attachment ?attachment-type)))
     (desig:current-designator ?object-designator ?current-object-designator)
     (spec:property ?current-object-designator (:type ?object-type))
     (spec:property ?current-object-designator (:name ?object-name))
     (desig:current-designator ?other-object-designator ?current-other-obj-desig)
     (spec:property ?current-other-obj-desig (:type ?other-object-type))
-
+    ;;
     (-> (spec:property ?current-other-obj-desig (:urdf-name ?other-object-name))
         (and (lisp-fun roslisp-utilities:rosify-underscores-lisp-name
                        ?other-object-name ?link-name)
@@ -155,17 +154,44 @@
                        ?other-object-transform))
         (and (spec:property ?current-other-obj-desig (:name ?other-object-name))
              (-> (cpoe:object-in-hand ?current-other-obj-desig ?hand ?grasp ?link)
-                 (lisp-fun get-object-transform-in-map ?current-other-obj-desig
-                           ?other-object-transform)
-                 ;; (and (symbol-value cram-tf:*fixed-frame* ?parent-frame)
-                 ;;      (lisp-fun cram-tf:frame-to-transform-in-fixed-frame
-                 ;;                ?link ?parent-frame
-                 ;;                ?link-transform)
-                 ;;      (lisp-fun cl-transforms:transform*
-                 ;;                ?link-transform ))
+                 (and (rob-int:robot ?robot)
+                      (-> (rob-int:end-effector-link ?robot ?arm ?link)
+                          (and (rob-int:robot-tool-frame ?robot ?arm ?tool-frame)
+                               (format "REFERENCING THIS GUY~%~%~%~%~%")
+                               (symbol-value cram-tf:*fixed-frame* ?parent-frame)
+                               (lisp-fun cram-tf:frame-to-transform-in-fixed-frame
+                                         ?tool-frame ?parent-frame
+                                         ?map-t-gripper)
+                               (lisp-fun get-object-type-to-gripper-transform
+                                         ?other-object-type ?other-object-name
+                                         ?arm ?grasp
+                                         ?object-t-std-gripper)
+                               (lisp-fun cram-tf:transform-stamped-inv
+                                         ?object-t-std-gripper
+                                         ?std-gripper-t-object)
+                               (rob-int:standard-to-particular-gripper-transform
+                                ?robot
+                                ?std-gripper-t-gripper-not-stamped)
+                               (lisp-fun
+                                cl-transforms-stamped:transform->transform-stamped
+                                ?tool-frame ?tool-frame 0.0
+                                ?std-gripper-t-gripper-not-stamped
+                                ?std-gripper-t-gripper)
+                               (lisp-fun cram-tf:transform-stamped-inv
+                                         ?std-gripper-t-gripper
+                                         ?gripper-t-std-gripper)
+                               (lisp-fun cram-tf:multiply-transform-stampeds nil nil
+                                         ?gripper-t-std-gripper ?std-gripper-t-object
+                                         ?gripper-t-object)
+                               (lisp-fun cram-tf:multiply-transform-stampeds nil nil
+                                         ?map-t-gripper ?gripper-t-object
+                                         ?other-object-transform))
+                          (lisp-fun get-object-transform-in-map
+                                    ?current-other-obj-desig
+                                    ?other-object-transform)))
                  (lisp-fun get-object-transform-in-map ?current-other-obj-desig
                            ?other-object-transform))))
-
+    ;;
     (lisp-fun get-object-placement-transform
               ?object-name ?object-type
               ?other-object-name ?other-object-type ?other-object-transform
@@ -242,7 +268,7 @@
 
   ;; most symbolic locations have a reference object
   ;; this predicate finds the reference object of the given location desig
-  (<- (location-reference-object ?location-designator ?object-designator)
+  (<- (location-reference-object ?location-designator ?current-object-designator)
     (desig:loc-desig? ?location-designator)
     (desig:current-designator ?location-designator ?current-location-designator)
     (or (spec:property ?current-location-designator (:in ?object-designator))
@@ -253,7 +279,8 @@
         (spec:property ?current-location-designator (:behind ?object-designator))
         (spec:property ?current-location-designator (:near ?object-designator))
         (spec:property ?current-location-designator (:far-from ?object-designator))
-        (spec:property ?current-location-designator (:of ?object-designator))))
+        (spec:property ?current-location-designator (:of ?object-designator)))
+    (desig:current-designator ?object-designator ?current-object-designator))
 
   (<- (location-certain ?some-location-designator)
     (desig:loc-desig? ?some-location-designator)
