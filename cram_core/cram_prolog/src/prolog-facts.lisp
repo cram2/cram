@@ -55,6 +55,10 @@
   (<- (member ?x (?y . ?z))
     (member ?x ?z))
 
+  (<- (subset ?subset ?set)
+    (forall (member ?x ?subset)
+            (member ?x ?set)))
+
   ;; for now only handle bound ?list
   (<- (length ?list ?length)
     (bound ?list)
