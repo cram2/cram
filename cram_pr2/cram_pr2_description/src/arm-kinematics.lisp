@@ -95,6 +95,14 @@
     ("l_forearm_roll_joint" -0.2)
     ("l_wrist_flex_joint" -0.55)))
 
+(defparameter *left-carrying-basket-handover-joint-states*
+  '(("l_shoulder_pan_joint" -0.3)
+    ("l_shoulder_lift_joint" -0.5)
+    ("l_upper_arm_roll_joint" 3.14)
+    ("l_elbow_flex_joint" -1.3)
+    ("l_forearm_roll_joint" 0)
+    ("l_wrist_flex_joint" -0.75)))
+
 (defparameter *left-carrying-side-aligned-joint-states*
   '(("l_shoulder_pan_joint" 1.2469064067488675d0)
     ("l_shoulder_lift_joint" 0.013567714247075813d0)
@@ -300,6 +308,8 @@
     (symbol-value *left-carrying-top-joint-states* ?joint-states))
   (<- (robot-joint-states pr2 :arm :left :carry-top-basket ?joint-states)
     (symbol-value *left-carrying-basket-joint-states* ?joint-states))
+  (<- (robot-joint-states pr2 :arm :left :hand-over ?joint-states)
+    (symbol-value *left-carrying-basket-handover-joint-states* ?joint-states))
   (<- (robot-joint-states pr2 :arm :left :carry-side-gripper-vertical ?joint-states)
     (symbol-value *left-carrying-side-aligned-joint-states* ?joint-states))
   (<- (robot-joint-states pr2 :arm :left :tucked ?joint-states)
