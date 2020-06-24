@@ -66,7 +66,7 @@
   (setf ccl::*episode-name* (get-url-from-send-query-1 "RootAction" "mem_episode_start" "RootAction")))
 
 (defun stop-episode ()
-  (send-query-1-without-result "mem_episode_stop" "'/home/seba/knowrob-memo'")
+  (send-query-1-without-result "mem_episode_stop" (concatenate 'string "'" (uiop:getenv "KNOWROB_MEMORY_DIR") "'"))
   (setf ccl::*episode-name* nil))
 
 (defun send-query-1-without-result (query-name &rest query-parameters)
