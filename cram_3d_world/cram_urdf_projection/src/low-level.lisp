@@ -798,10 +798,10 @@ otherwise check collisions in current joint state."
   (declare (ignore collision-object-b collision-object-b-link collision-object-a))
 
   (cram-tf:visualize-marker (list left-tcp-pose right-tcp-pose) :r-g-b-list '(1 0 1))
-  (when right-tcp-pose
-    (btr:add-vis-axis-object right-tcp-pose))
-  (when left-tcp-pose
-    (btr:add-vis-axis-object left-tcp-pose))
+;;  (when right-tcp-pose
+;;    (btr:add-vis-axis-object right-tcp-pose))
+;;  (when left-tcp-pose
+;;    (btr:add-vis-axis-object left-tcp-pose))
 
   (cut:with-vars-strictly-bound (?robot
                                  ?left-tool-frame ?right-tool-frame

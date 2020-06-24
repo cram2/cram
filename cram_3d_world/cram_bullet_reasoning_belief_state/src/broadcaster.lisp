@@ -55,8 +55,8 @@
       (dolist (transform (get-transforms-from-bullet))
         (cram-tf:add-transform broadcaster transform)))
     ;; put bullet object coordinates in broadcaster
-    (dolist (transform (get-bullet-object-transforms))
-      (cram-tf:add-transform broadcaster transform))
+    ;;(dolist (transform (get-bullet-object-transforms))
+    ;;  (cram-tf:add-transform broadcaster transform))
     (cram-tf:publish-transforms broadcaster)))
 
 (defmethod cram-occasions-events:on-event
