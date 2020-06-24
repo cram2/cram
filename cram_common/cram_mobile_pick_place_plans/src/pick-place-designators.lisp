@@ -71,13 +71,13 @@
     (lisp-fun man-int:get-specific-object-arms ?object-type ?specific-arms)
     (-> (equal ?specific-arms nil)
         (-> (spec:property ?action-designator (:arm ?arm))
-            (true)
+            (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
+                 (subset ?arm ?free-arms))
             (and (man-int:robot-free-hand ?_ ?free-arm)
                  (equal (?free-arm) ?arm)))
         (-> (spec:property ?action-designator (:arm ?arm))
-            (true);; (equal ?arm ?specific-arms) ;; <- TODO: here a bit retarded
-            ;; since the order of the elements in ?arm matter,
-            ;; therefore currently only true. maybe ishouldntgaf....
+            (and (subset ?arm ?specific-arms)
+                 (subset ?specific-arms ?arm))
             (equal ?arm ?specific-arms)))
 
     (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
@@ -95,7 +95,7 @@
     (equal ?objects (?current-object-desig))
     (-> (member :left ?arm)
         (and (-> (spec:property ?action-designator (:left-grasp ?left-grasp))
-                 (true) ;; TODO: currently idgaf
+                 (true)
                  (member ?left-grasp ?grasps))
              (lisp-fun man-int:get-action-trajectory :picking-up :left ?left-grasp ?objects
                        ?left-trajectory)
@@ -112,7 +112,7 @@
 
     (-> (member :right ?arm)
         (and  (-> (spec:property ?action-designator (:right-grasp ?right-grasp))
-                  (true) ;; TODO: currently idgaf
+                  (true)
                   (member ?right-grasp ?grasps))
               (lisp-fun man-int:get-action-trajectory :picking-up :right ?right-grasp ?objects
                        ?right-trajectory)
@@ -153,15 +153,23 @@
     ;; find in which hand the object is
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
-            (or (cpoe:object-in-hand ?object-designator ?arm)
+            ;; Check if every given arm holds the given object
+            (or (forall (member ?used-arm ?arm)
+                        (cpoe:object-in-hand ?object-designator ?used-arm))
                 (format "WARNING: Wanted to place an object ~a with arm ~a, ~
                          but it's not in the arm.~%" ?object-designator ?arm))
-            (cpoe:object-in-hand ?object-designator ?arm))
+            ;; Find object which is hold by every given arm 
+            (forall (member ?used-arm ?arm)
+                    (cpoe:object-in-hand ?object-designator ?used-arm)))
         (-> (spec:property ?action-designator (:object ?object-designator))
-            (or (cpoe:object-in-hand ?object-designator ?arm)
+            ;; Find arms which holds the given object
+            (or (setof ?used-arm (cpoe:object-in-hand ?object-designator ?used-arm) ?arm)
                 (format "WARNING: Wanted to place an object ~a ~
                          but it's not in any of the hands.~%" ?object-designator))
-            (cpoe:object-in-hand ?object-designator ?arm)))
+            ;; Find the object the robot is holding and with which
+            ;; arms the object is hold
+            (setof ?used-arm (cpoe:object-in-hand ?object-designator ?used-arm) ?arm)))
+                     
 
     ;;; infer missing information
     (desig:current-designator ?object-designator ?current-object-designator)
@@ -203,17 +211,17 @@
         (true)
         (equal ?placement-location-name NIL))
 
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        (cpoe:object-in-hand ?object-designator ?arm ?grasp))
-
     ;; calculate trajectory
     (equal ?objects (?current-object-designator
                      ?other-object-designator
                      ?placement-location-name))
-    (-> (equal ?arm :left)
-        (and (lisp-fun man-int:get-action-trajectory
-                       :placing ?arm ?grasp ?objects
+    
+    (-> (member :left ?arm)
+        (and (spec:property ?action-designator (:left-grasp ?left-grasp))
+             (lisp-fun man-int:get-action-grasps ?object-type :left ?object-transform ?left-grasps)
+             (member ?left-grasp ?left-grasps)
+             (lisp-fun man-int:get-action-trajectory
+                       :placing :left ?left-grasp ?objects
                        :target-object-transform-in-base ?target-object-transform
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
@@ -222,12 +230,17 @@
                        ?left-put-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :retracting
                        ?left-retract-poses))
-        (and (equal ?left-reach-poses NIL)
+        (and (equal ?left-grasp NIL)
+             (equal ?left-reach-poses NIL)
              (equal ?left-put-poses NIL)
              (equal ?left-retract-poses NIL)))
-    (-> (equal ?arm :right)
-        (and (lisp-fun man-int:get-action-trajectory
-                       :placing ?arm ?grasp ?objects
+
+    (-> (member :right ?arm)
+        (and (spec:property ?action-designator (:right-grasp ?right-grasp))
+             (lisp-fun man-int:get-action-grasps ?object-type :right ?object-transform ?right-grasps)
+             (member ?right-grasp ?right-grasps)
+             (lisp-fun man-int:get-action-trajectory
+                       :placing :right ?right-grasp ?objects
                        :target-object-transform-in-base ?target-object-transform
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
@@ -236,9 +249,11 @@
                        ?right-put-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :retracting
                        ?right-retract-poses))
-        (and (equal ?right-reach-poses NIL)
+        (and (equal ?right-grasp NIL)
+             (equal ?right-reach-poses NIL)
              (equal ?right-put-poses NIL)
              (equal ?right-retract-poses NIL)))
+
     (or (lisp-pred identity ?left-trajectory)
         (lisp-pred identity ?right-trajectory))
 
