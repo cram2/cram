@@ -30,6 +30,7 @@
 (in-package :ik)
 
 (defparameter *ik-service-name* "kdl_ik_service/get_ik")
+(defparameter *float-comparison-precision* 0.001d0)
 
 (defun call-ik-service (cartesian-pose base-link end-effector-link seed-state-msg)
   (declare (type cl-transforms-stamped:pose-stamped cartesian-pose)
@@ -134,3 +135,162 @@ If not valid solution was found, returns NIL."
               :test-value nil
               :current-value current-value))
         (roslisp:set-debug-level nil old-debug-lvl)))))
+
+
+(defmacro find-ik-for ((goal-pose
+                        base-link tip-link
+                        seed-state-message
+                        &optional
+                          solution-valid-p
+                          robot-base-pose)
+                       &body body)
+  "Method to find inverse kinematics for a given cartesian pose using resampling
+Syntax:
+ (ik::find-ik-for (?goal-pose base-link tip-link seed-state-message)
+         (ik::with-resampling (current-value resampling-axis upper-limit
+                               lower-limit resampling-step)
+             (ik::with-resampling current-value2 resampling-axis2 ...)
+                            ....))
+"
+  `(let ((old-debug-level (roslisp:debug-level nil)))
+     (unwind-protect
+          (progn
+            (roslisp:set-debug-level nil 9)
+            (let ((offseted-goal-pose ,goal-pose)
+                  (base-link-evaled ,base-link)
+                  (tip-link-evaled ,tip-link)
+                  (seed-state-msg-evaled ,seed-state-message)
+                  (solution-valid-p-evaled ,solution-valid-p)
+                  (offseted-robot-base-pose ,robot-base-pose)
+                  (current-joint-states))
+              (macrolet ((with-resampling (&whole whole-form
+                                             (current-value
+                                              resampling-axis
+                                              upper-limit lower-limit
+                                              resampling-step
+                                              &optional
+                                                joint-name
+                                                (pose-joint nil))
+                                           &body body)
+                           (let ((form-length (length whole-form)))
+                             ;;Formulating a list of joint values toample
+                             `(let ((old-offseted-robot-base-pose
+                                      offseted-robot-base-pose)
+                                    (sampling-values
+                                      (remove-duplicates
+                                       (append
+                                        (list ,current-value)
+                                        (loop
+                                          for x = ,upper-limit
+                                            then  (- x ,resampling-step)
+                                          until (<= x ,lower-limit)
+                                          if (> (abs (- x ,current-value))
+                                                *float-comparison-precision*)
+                                            collect x)
+                                        (list ,lower-limit))
+                                       :test (lambda (x y)
+                                               (< (abs (- x y))
+                                                  *float-comparison-precision*))))
+                                      ;; Calculating the pose offset for the
+                                      ;; corresponding joint value
+                                    (calculate-pseudo-pose
+                                      (lambda (original-pose offset
+                                               &optional (operand :-))
+                                        (let ((operation
+                                                (ecase operand
+                                                  (:- #'-)
+                                                  (:+ #'+))))
+                                          (if (eq ,resampling-axis
+                                                  :theta)
+                                              (cram-tf:rotate-pose
+                                               original-pose
+                                               :z (funcall operation
+                                                           (- offset
+                                                              ,current-value)))
+                                              (cram-tf:translate-pose
+                                               original-pose
+                                               (ecase ,resampling-axis
+                                                 (:x :x-offset)
+                                                 (:y :y-offset)
+                                                 (:z :z-offset))
+                                               (funcall operation
+                                                        (- offset
+                                                           ,current-value))))))))
+                                (loop
+                                  for value in sampling-values
+                                  do
+                                     (if ,pose-joint
+                                         (setf offseted-robot-base-pose
+                                               (funcall calculate-pseudo-pose
+                                                        offseted-robot-base-pose
+                                                        value :+)))
+                                     (multiple-value-bind
+                                           (solution-msg joint-values)
+                                         ;; Checking if the arguments contain
+                                         ;; &body clause or not. 2 is the
+                                         ;; current number of arguments without
+                                         ;; including the body. One being the
+                                         ;; form itself and the second being the
+                                         ;; list of values in the paranthesis.
+                                         ;; Update according to API changes
+                                         (if (> ,form-length 2)
+                                             ;; If body is provided, call it
+                                             ;; with the current offseted value
+                                             ;; of pose (for retaining the loop
+                                             ;; value on nested calls). Revert
+                                             ;; it back after the execution of
+                                             ;; &body is completed.
+                                             (let ((old-offseted-goal-pose
+                                                     offseted-goal-pose))
+                                               (setf offseted-goal-pose
+                                                     (funcall
+                                                      calculate-pseudo-pose
+                                                      offseted-goal-pose
+                                                      value))
+                                               (unwind-protect
+                                                    (progn ,@body)
+                                                 (setf offseted-goal-pose
+                                                       old-offseted-goal-pose)))
+
+                                             ;; else make the ik-service call
+                                             (call-ik-service
+                                              (funcall calculate-pseudo-pose
+                                                       offseted-goal-pose
+                                                       value)
+                                              base-link-evaled
+                                              tip-link-evaled
+                                              seed-state-msg-evaled))
+
+                                       (if ,joint-name
+                                           (if (and current-joint-states
+                                                    (assoc ,joint-name
+                                                           current-joint-states
+                                                           :test #'equal))
+                                               (setf (second
+                                                      (assoc ,joint-name
+                                                             current-joint-states
+                                                             :test #'equal))
+                                                     value)
+                                               (setf current-joint-states
+                                                     (cons
+                                                      (list ,joint-name value)
+                                                      current-joint-states))))
+                                       ;; Parse the solution
+                                       (when (and solution-msg
+                                                  (or (not
+                                                       solution-valid-p-evaled)
+                                                      (funcall
+                                                       solution-valid-p-evaled
+                                                       solution-msg
+                                                       current-joint-states
+                                                       offseted-robot-base-pose)))
+                                         (return (values solution-msg
+                                                         (cons
+                                                          (cons
+                                                           ,resampling-axis
+                                                           value)
+                                                          joint-values))))
+                                       (setf offseted-robot-base-pose
+                                             old-offseted-robot-base-pose)))))))
+                ,@body)))
+       (roslisp:set-debug-level nil old-debug-level))))

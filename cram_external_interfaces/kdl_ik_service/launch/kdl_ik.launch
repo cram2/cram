@@ -1,3 +1,5 @@
 <launch>
+  <arg name="ik_debug" default="false"/>
+  <param name="ik_debug" value="$(arg ik_debug)"/>
   <node pkg="kdl_ik_service" type="start_ros_server.py" name="kdl_ik_service" output="screen" />
 </launch>
