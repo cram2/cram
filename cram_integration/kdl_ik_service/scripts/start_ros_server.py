@@ -8,11 +8,13 @@ import kdl_ik_service.ik
 
 def callback(request):
     # print "Got request %s"%(request)
+    debug_mode = rospy.get_param("ik_debug", False)
+    ik_logger = Logger(debug_mode)
 
     response = moveit_msgs.srv.GetPositionIKResponse()
 
     end_effector_link = request.ik_request.ik_link_name
-    print end_effector_link
+    ik_logger.log(end_effector_link)
 
     pose_stamped = request.ik_request.pose_stamped
     transform_stamped = geometry_msgs.msg.TransformStamped
@@ -24,27 +26,27 @@ def callback(request):
     transform_stamped.transform.translation.y = pose_stamped.pose.position.y
     transform_stamped.transform.translation.z = pose_stamped.pose.position.z
     transform_stamped.transform.rotation = pose_stamped.pose.orientation
-    print transform_stamped
+    ik_logger.log(transform_stamped)
 
     base_link = transform_stamped.header.frame_id
-    print base_link
+    ik_logger.log(base_link)
 
     joint_state = request.ik_request.robot_state.joint_state
-    print joint_state
+    ik_logger.log(joint_state)
 
     timeout = request.ik_request.timeout
-    print timeout
+    ik_logger.log(timeout)
 
     response.solution.joint_state = joint_state
-    new_joint_state_vector, success = kdl_ik_service.ik.calculate_ik(base_link, end_effector_link, joint_state.position, transform_stamped)
-    print new_joint_state_vector
+    new_joint_state_vector, success = kdl_ik_service.ik.calculate_ik(base_link, end_effector_link, joint_state.position, transform_stamped, ik_logger.log)
+    ik_logger.log(new_joint_state_vector)
     response.solution.joint_state.position = new_joint_state_vector
 
     if success:
         response.error_code.val = response.error_code.SUCCESS
     else:
         response.error_code.val = response.error_code.NO_IK_SOLUTION
-    print response
+    ik_logger.log(response)
     return response
 
 
@@ -53,6 +55,15 @@ def server_main():
     server = rospy.Service('~get_ik', moveit_msgs.srv.GetPositionIK, callback)
     print "IK server ready."
     rospy.spin()
+
+
+class Logger(object):
+    def __init__(self, display_output=False):
+        self.display_output = display_output
+
+    def log(self, line):
+        if self.display_output:
+            print line
 
 
 if __name__ == "__main__":
