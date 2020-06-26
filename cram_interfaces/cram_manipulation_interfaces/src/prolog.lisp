@@ -180,10 +180,10 @@
                                (lisp-fun cram-tf:transform-stamped-inv
                                          ?std-gripper-t-gripper
                                          ?gripper-t-std-gripper)
-                               (lisp-fun cram-tf:multiply-transform-stampeds nil nil
+                               (lisp-fun cram-tf:apply-transform
                                          ?gripper-t-std-gripper ?std-gripper-t-object
                                          ?gripper-t-object)
-                               (lisp-fun cram-tf:multiply-transform-stampeds nil nil
+                               (lisp-fun cram-tf:apply-transform
                                          ?map-t-gripper ?gripper-t-object
                                          ?other-object-transform))
                           (lisp-fun get-object-transform-in-map
