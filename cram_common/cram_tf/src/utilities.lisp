@@ -283,32 +283,30 @@
   (declare (type cl-transforms-stamped:transform-stamped
                  x-y-transform y-z-transform)
            (type keyword result-as-pose-or-transform)
-           (type (or null string) x-frame z-frame))
+           (type string x-frame z-frame))
   "Returns a pose stamped representing xTz -- transfrom from x-frame to z-frame.
 
 Take xTy, ensure it's from x-frame.
 Multiply from the right with the yTz transform -- xTy * yTz == xTz."
 
-  (when (and x-frame
-             (string-not-equal (cl-transforms-stamped:frame-id x-y-transform)
-                               x-frame))
+  (when (string-not-equal (cl-transforms-stamped:frame-id x-y-transform)
+                          x-frame)
     (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM~%~
            did not have correct parent frame: ~a and ~a"
           (cl-transforms-stamped:frame-id x-y-transform) x-frame))
 
-  (when (and z-frame
-             (string-not-equal (cl-transforms-stamped:child-frame-id y-z-transform)
-                               z-frame))
+  (when (string-not-equal (cl-transforms-stamped:child-frame-id y-z-transform)
+                          z-frame)
     (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds Y-Z-TRANSFORM~%~
            did not have correct child frame: ~a and ~a"
-           (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
+          (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
 
   (when (string-not-equal (cl-transforms-stamped:child-frame-id x-y-transform)
                           (cl-transforms-stamped:frame-id y-z-transform))
     (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM and~%~
            Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
-           (cl-transforms-stamped:child-frame-id x-y-transform)
-           (cl-transforms-stamped:frame-id y-z-transform)))
+          (cl-transforms-stamped:child-frame-id x-y-transform)
+          (cl-transforms-stamped:frame-id y-z-transform)))
 
   (let ((multiplied-transforms
           (cl-transforms:transform* x-y-transform y-z-transform))
