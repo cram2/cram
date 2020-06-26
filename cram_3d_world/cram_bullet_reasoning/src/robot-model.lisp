@@ -588,8 +588,8 @@ current joint states"
       (when (and limits (not (eq joint-type :continuous)))
         (when (eq joint-type :revolute)
           (setf new-value (cl-transforms:normalize-angle new-value)))
-        (unless (and (<= new-value (cl-urdf:upper limits))
-                     (>= new-value (cl-urdf:lower limits)))
+        (unless (and (<= new-value (+ (cl-urdf:upper limits) 0.0000001))
+                     (>= new-value (- (cl-urdf:lower limits) 0.0000001)))
           (setf new-value (min (max new-value (cl-urdf:lower limits))
                                (cl-urdf:upper limits)))
           (warn "Trying to assert joint value for ~a to ~a but limits are (~a; ~a)"
