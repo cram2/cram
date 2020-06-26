@@ -63,12 +63,6 @@
                      :no_ik_solution))
                nil)
               (T
-               ;; (error 'simple-error
-               ;;        :format-control "IK service failed: ~a"
-               ;;        :format-arguments (list
-               ;;                           (roslisp-msg-protocol:code-symbol
-               ;;                            'moveit_msgs-msg:moveiterrorcodes
-               ;;                            response-error-code)))
                nil)))
     ;; PR2's IK kinematics solver sends garbage sometimes
     (simple-error (e)
