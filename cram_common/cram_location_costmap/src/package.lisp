@@ -112,6 +112,8 @@
            #:reachability-orientation-offset
            ;; facts
            #:make-angle-to-point-generator #:make-orientation-generator
-           #:2d-pose-covariance)
+           #:2d-pose-covariance
+           ;; designator-integration
+           #:reset-costmap-cache)
   (:import-from #:cram-math invalid-probability-distribution))
 
