@@ -260,10 +260,6 @@
                                           gripper-meter-to-joint-multiplier
                                           planning-group
                                           robot-joint-states
-                                          ;; robot-arms-parking-joint-states
-                                          ;; robot-arms-carrying-joint-states
-                                          ;; end-effector-parking-pose
-                                          ;; robot-pre-grasp-joint-states
                                           arm-joints arm-base-joints arm-tool-joints
                                           arm-links arm-base-links
                                           hand-links
