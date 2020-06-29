@@ -157,7 +157,7 @@
         (exe:perform
          (desig:an action
                    (type transporting)
-                   (context table-setting)
+                   (context table-setting-counter)
                    (object ?object-to-fetch)
                    ;; (desig:when ?arm-to-use
                    ;;   (arms (?arm-to-use)))
