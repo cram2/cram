@@ -35,6 +35,9 @@
 (defvar *costmap-cache* (tg:make-weak-hash-table :test 'eq :weakness :key))
 (defvar *costmap-max-values (tg:make-weak-hash-table :test 'eq :weakness :key))
 
+(defun reset-costmap-cache ()
+  (setf *costmap-cache* (tg:make-weak-hash-table :test 'eq :weakness :key)))
+
 (defun get-cached-costmap (desig)
   (let ((first-designator (first-desig desig)))
     (or (gethash first-designator *costmap-cache*)
