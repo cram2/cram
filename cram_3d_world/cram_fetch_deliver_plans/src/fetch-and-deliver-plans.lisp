@@ -215,12 +215,13 @@ retries with different search location or robot base location."
               (((or common-fail:navigation-goal-in-collision
                     common-fail:looking-high-level-failure
                     common-fail:perception-low-level-failure) (e)
+                 (costmap:reset-costmap-cache)
                  (common-fail:retry-with-loc-designator-solutions
                      ?robot-location
                      robot-location-retries
                      (:error-object-or-string e
                       :warning-namespace (fd-plans search-for-object)
-                      :reset-designators (list ?search-location)
+                      :reset-designators (list ?search-location ?robot-location)
                       :rethrow-failure 'common-fail:object-nowhere-to-be-found))))
 
             ;; navigate
