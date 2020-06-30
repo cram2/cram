@@ -180,7 +180,7 @@
               (actionlib-client:call-simple-action-client
                'giskard-action
                :action-goal goal
-               :action-timeout action-timeout))
+               :action-timeout (or action-timeout 120.0)))
           (ensure-giskard-cartesian-goal-reached result status goal-pose-left goal-pose-right
                                                  left-tool-frame right-tool-frame
                                                  convergence-delta-xy convergence-delta-theta)
