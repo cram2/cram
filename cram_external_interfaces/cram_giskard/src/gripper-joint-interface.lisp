@@ -139,7 +139,7 @@
                                        goal-state
                                        convergence-delta-joint))))))
 
-(defparameter *mocked* nil)
+(defparameter *mocked* t)
 
 (defun call-giskard-gripper-action (&key action-type-or-position left-or-right effort
                                       action-timeout
@@ -150,7 +150,7 @@
            (type (or number keyword) action-type-or-position))
   "`goal-position' is in meters."
   (if *mocked*
-      (progn (break "trying with boxy-ll")
+      (progn (break "Trying to open gripper with boxy-ll")
              (handler-case
                  (boxy-ll:move-gripper-joint :action-type-or-position action-type-or-position
                                              :left-or-right left-or-right

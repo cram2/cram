@@ -32,6 +32,7 @@
 (cpm:def-process-module giskard-pm (motion-designator)
   (destructuring-bind (command argument-1 &rest rest-arguments)
       (desig:reference motion-designator)
+    (break (format nil "Giskard call ~a, ~%~a, ~{~a~^~% ~}" command argument-1 rest-arguments))
     (ecase command
       (cram-common-designators:move-tcp
        (call-giskard-cartesian-action :goal-pose-left argument-1
