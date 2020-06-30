@@ -131,6 +131,7 @@
     (cpoe:gripper-joint-at ?gripper ?joint-state ?gripper-delta))
 
   (<- (cpoe:gripper-joint-at ?gripper ?joint-state ?delta)
+    (lisp-type ?gripper keyword)
     (rob-int:robot ?robot)
     (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)
     (lisp-fun * ?joint-state ?mult ?joint-state-mult)
@@ -138,11 +139,17 @@
     (forall (rob-int:gripper-joint ?robot ?gripper ?gripper-joint)
             (%joint-at ?gripper-joint ?joint-state-mult ?delta-mult)))
 
+  (<- (cpoe:gripper-joint-at ?gripper ?joint-state ?delta)
+    (lisp-type ?gripper list)
+    (forall (member ?single-gripper ?gripper)
+            (cpoe:gripper-joint-at ?single-gripper ?joint-state ?delta)))
+
   (<- (cpoe:gripper-opened ?gripper)
     (symbol-value *gripper-joint-convergence-delta* ?gripper-delta)
     (cpoe:gripper-opened ?gripper ?gripper-delta))
 
   (<- (cpoe:gripper-opened ?gripper ?delta)
+    (lisp-type ?gripper keyword)
     (rob-int:robot ?robot)
     (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)
     (lisp-fun * ?delta ?mult ?delta-mult)
@@ -152,11 +159,17 @@
              (rob-int:joint-upper-limit ?robot ?gripper-joint ?upper-limit)
              (%joint-at ?gripper-joint ?upper-limit ?delta-mult))))
 
+  (<- (cpoe:gripper-opened ?gripper ?delta)
+    (lisp-type ?gripper list)
+    (forall (member ?single-gripper ?gripper)
+            (cpoe:gripper-opened ?single-gripper ?delta)))
+
   (<- (cpoe:gripper-closed ?gripper)
     (symbol-value *gripper-joint-convergence-delta* ?gripper-delta)
     (cpoe:gripper-closed ?gripper ?gripper-delta))
 
   (<- (cpoe:gripper-closed ?gripper ?delta)
+    (lisp-type ?gripper keyword)
     (rob-int:robot ?robot)
     (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)
     (lisp-fun * ?delta ?mult ?delta-mult)
@@ -165,6 +178,11 @@
             (and
              (rob-int:joint-lower-limit ?robot ?gripper-joint ?lower-limit)
              (%joint-at ?gripper-joint ?lower-limit ?delta-mult))))
+
+  (<- (cpoe:gripper-closed ?gripper ?delta)
+    (lisp-type ?gripper list)
+    (forall (member ?single-gripper ?gripper)
+            (cpoe:gripper-closed ?single-gripper ?delta)))
 
   (<- (cpoe:arms-positioned-at ?left-configuration ?right-configuration)
     (symbol-value *arm-joints-convergence-delta* ?delta)
