@@ -46,33 +46,36 @@
                cram-projection
                cram-occasions-events
                cram-utilities ; for EQUALIZE-LISTS-OF-LISTS-LENGTHS
+               cram-process-modules
 
                cram-common-failures
                cram-mobile-pick-place-plans
                cram-robot-interfaces ; for *robot-urdf*
                cram-object-knowledge
-               ;; cram-robosherlock
+               cram-manipulation-interfaces ; for standard rotations
 
-               cram-physics-utils ; for reading "package://" paths
+
+               cram-physics-utils     ; for reading "package://" paths
                cl-bullet ; for handling BOUNDING-BOX datastructures
                cram-bullet-reasoning
                cram-bullet-reasoning-belief-state
                cram-bullet-reasoning-utilities
-               cram-btr-visibility-costmap
 
+               cram-location-costmap
                cram-robot-pose-gaussian-costmap
                cram-occupancy-grid-costmap
-               cram-location-costmap
-               cram-manipulation-interfaces ; for standard rotations
+               cram-btr-visibility-costmap
+               cram-btr-spatial-relations-costmap
+
+               cram-fetch-deliver-plans
 
                cram-urdf-projection      ; for with-simulated-robot
                cram-boxy-description
-               ;; cram-boxy-low-level
-               cram-process-modules
-               ;; cram-boxy-process-modules
-               cram-boxy-plans   ; for (a location (on ?obj) (attachment ?att) ...)
 
                ;; real robot
+               ;; cram-boxy-low-level
+               ;; cram-boxy-process-modules
+               ;; cram-robosherlock
                )
 
   :components
@@ -80,5 +83,6 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
+     (:file "costmaps" :depends-on ("package"))
      (:file "projection-demo" :depends-on ("package"))
      (:file "demo" :depends-on ("package" "projection-demo"))))))

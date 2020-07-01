@@ -30,6 +30,9 @@
 (in-package :demo)
 
 (defun spawn-objects-on-small-shelf (&optional (spawn? t))
+  (sb-ext:gc :full t)
+  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
+  (btr:clear-costmap-vis-object)
   (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
@@ -45,18 +48,118 @@
               cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
        :joint-state-topic "kitchen/joint_states")))
 
-  (when (and spawn? cram-projection:*projection-environment*)
+  (when (and spawn?
+             ;; cram-projection:*projection-environment*
+             )
     (btr-utils:spawn-object :balea-bottle-1 :balea-bottle :pose
                             '((1.9 -1.42 1.05) (0 0 0.7 0.7))
                             :color '(1 1 1))
-    (btr-utils:spawn-object :denkmitgeschirrreinigernature-1 :dish-washer-tabs
-                            :pose '((1.75 -1.45 1.06) (0 0 0.7 0.7))
-                            :color '(0 1 0))
+    (btr:add-object btr:*current-bullet-world* :box-item
+                    :denkmitgeschirrreinigernature-1
+                    '((1.75 -1.45 1.06) (0 0 0.7 0.7))
+                    :mass 0.2
+                    :color '(0 1 0 1.0)
+                    :size '(0.057 0.018 0.074)
+                    :item-type :dish-washer-tabs)
+    ;; (btr-utils:spawn-object :denkmitgeschirrreinigernature-2 :dish-washer-tabs
+    ;;                         :pose '((1.75 -1.45 1.06) (0 0 0.7 0.7))
+    ;;                         :color '(0 1 0))
     ;; (btr:simulate btr:*current-bullet-world* 50)
     ))
 
-(defun demo (&optional (?item-type :dish-washer-tabs)
-               (park-drive-look? t))
+(defun demo ()
+  (spawn-objects-on-small-shelf)
+
+  (let* ((?search-location
+           (desig:a location
+                    (on (desig:an object
+                                  (type shelf)
+                                  (urdf-name shelf-2-base)
+                                  (owl-name "shelf_system_verhuetung")
+                                  (part-of environment)
+                                  (level middle)))
+                    (side left)))
+         (?object
+           (an object
+               (type dish-washer-tabs)
+               (location ?search-location)))
+         (?target-location-shelf
+           (desig:a location
+                    (on (desig:an object
+                                  (type environment)
+                                  (name environment)
+                                  (part-of environment)
+                                  (urdf-name shelf-1-level-2-link)))
+                    (for ?object)
+                    (attachments (donbot-shelf-1-front donbot-shelf-1-back))))
+         (?robot-name (btr:get-robot-name))
+         (?intermediate-locaiton-robot
+           (desig:a location
+                    (on (desig:an object
+                                  (type robot)
+                                  (name ?robot-name)
+                                  (part-of ?robot-name)
+                                  ;; (owl-name "donbot_tray")
+                                  (urdf-name plate)))
+                    (for ?object)
+                    (attachments (donbot-tray-front donbot-tray-back)))))
+
+    (exe:perform
+     (desig:an action
+               (type transporting)
+               (object ?object)
+               (target ?intermediate-locaiton-robot)
+               ;; (target ?target-location-shelf)
+               ))
+
+    (exe:perform
+     (desig:an action
+               (type transporting)
+               (object ?object)
+               (target ?target-location-shelf)))
+
+    ;; (setf ?object
+    ;;       (desig:copy-designator
+    ;;        (perform (a motion
+    ;;                    (type :world-state-detecting)
+    ;;                    (object (an object
+    ;;                                (name denkmitgeschirrreinigernature-1)))))
+    ;;        :new-description
+    ;;        `((:location ,(a location
+    ;;                         (on (an object
+    ;;                                 (type robot)
+    ;;                                 (name ?robot-name)
+    ;;                                 (urdf-name plate)
+    ;;                                 (owl-name "donbot_tray"))))))))
+
+    ;; look at separators
+    ;; (exe:perform
+    ;;  (desig:an action
+    ;;            (type looking)
+    ;;            (direction right-separators)))
+    ;; (cpl:sleep 5.0)
+))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(defun demo-hardcoded (&optional (?item-type :dish-washer-tabs)
+                         (park-drive-look? t))
 
   (spawn-objects-on-small-shelf)
 
@@ -165,9 +268,9 @@
 
       (let ((picking-up-action
               (desig:an action
-                  (type picking-up)
-                  (grasp ?grasp)
-                  (object ?object))))
+                        (type picking-up)
+                        (grasp ?grasp)
+                        (object ?object))))
         ;; (proj-reasoning:check-picking-up-collisions picking-up-action)
         ;; picking up
         (exe:perform picking-up-action))

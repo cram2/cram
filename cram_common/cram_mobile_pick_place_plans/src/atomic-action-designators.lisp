@@ -204,26 +204,12 @@
     (spec:property ?action-designator (:type :positioning-arm))
     (rob-int:robot ?robot)
     (-> (spec:property ?action-designator (:left-configuration ?left-config))
-        (-> (equal ?left-config :park)
-            (-> (cpoe:object-in-hand ?_ :left)
-                (once (or (rob-int:robot-joint-states ?robot :arm :left :carry
-                                                      ?left-joint-states)
-                          (equal ?left-joint-states NIL)))
-                (once (or (rob-int:robot-joint-states ?robot :arm :left :park
-                                                      ?left-joint-states)
-                          (equal ?left-joint-states NIL))))
-            (rob-int:robot-joint-states ?robot :arm :left ?left-config ?left-joint-states))
+        (man-int:joint-state-for-arm-config ?robot ?left-config :left
+                                            ?left-joint-states)
         (equal ?left-joint-states nil))
     (-> (spec:property ?action-designator (:right-configuration ?right-config))
-        (-> (equal ?right-config :park)
-            (-> (cpoe:object-in-hand ?_ :right)
-                (once (or (rob-int:robot-joint-states ?robot :arm :right :carry
-                                                      ?right-joint-states)
-                          (equal ?right-joint-states NIL)))
-                (once (or (rob-int:robot-joint-states ?robot :arm :right :park
-                                                      ?right-joint-states)
-                          (equal ?right-joint-states NIL))))
-            (rob-int:robot-joint-states ?robot :arm :right ?right-config ?right-joint-states))
+        (man-int:joint-state-for-arm-config ?robot ?right-config :right
+                                            ?right-joint-states)
         (equal ?right-joint-states nil))
     (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type :positioning-arm)
@@ -271,7 +257,7 @@
     (once (or (spec:property ?action-designator (:effort ?_))
               (true))))
 
-  (<- (desig:action-grounding ?action-designator (grip ?augmented-action-designator))
+  (<- (desig:action-grounding ?action-designator (grip ?action-designator))
     (spec:property ?action-designator (:type :gripping))
     (spec:property ?action-designator (:gripper ?_))
     (spec:property ?action-designator (:object ?object-designator))
@@ -281,16 +267,7 @@
     (once (or (spec:property ?action-designator (:grasp ?_))
               (true)))
     (once (or (spec:property ?action-designator (:effort ?_))
-              (true)))
-    ;; make a new object designator that will be equated to the old one
-    ;; after the successful grasp
-    (desig:current-designator ?object-designator ?current-object-desig)
-    (lisp-fun desig:rename-designator-property-key ?current-object-desig
-              :pose :old-pose ?new-object-desig)
-    ;; extend the old action designator with a new OBJECT property
-    (equal ?new-description ((:grasped-object ?new-object-desig)))
-    (lisp-fun desig:copy-designator ?action-designator :new-description ?new-description
-              ?augmented-action-designator))
+              (true))))
 
   (<- (desig:action-grounding ?action-designator (set-gripper-to-position ?action-designator))
     (spec:property ?action-designator (:type :setting-gripper))

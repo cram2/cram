@@ -38,7 +38,7 @@
             (cl-transforms:orientation pose-2))
            ang-sigma)))
 
-(defun frame-to-pose-in-fixed-frame (frame-name)
+(defun frame-to-pose-in-fixed-frame (frame-name &optional parent-frame)
   (when *transformer*
     (transform-pose-stamped
      *transformer*
@@ -46,7 +46,15 @@
      :pose (make-pose-stamped frame-name 0.0
                               (make-identity-vector)
                               (make-identity-rotation))
-     :target-frame *fixed-frame*)))
+     :target-frame (or parent-frame *fixed-frame*))))
+
+(defun frame-to-transform-in-fixed-frame (frame-name &optional parent-frame)
+  (when *transformer*
+    (cl-transforms-stamped:lookup-transform
+     *transformer*
+     parent-frame frame-name
+     :timeout *tf-default-timeout*
+     :time 0.0)))
 
 (defun 3d-vector->list (3d-vector)
   (let ((x (cl-transforms:x 3d-vector))
@@ -159,6 +167,19 @@
    :timeout *tf-default-timeout*
    :use-current-ros-time use-current-ros-time))
 
+(defun ensure-transform-in-frame (transform frame
+                                  &key use-current-ros-time use-zero-time)
+  (declare (type (or null cl-transforms-stamped:transform-stamped)))
+  (when transform
+    (let* ((child-frame
+             (cl-transforms-stamped:child-frame-id transform))
+           (new-pose-stamped
+             (ensure-pose-in-frame (strip-transform-stamped transform)
+                                   frame
+                                   :use-current-ros-time use-current-ros-time
+                                   :use-zero-time use-zero-time)))
+      (pose-stamped->transform-stamped new-pose-stamped child-frame))))
+
 (defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
   (let* ((pose-origin
            (cl-transforms:origin pose))
@@ -234,20 +255,6 @@
       (cl-transforms:transform
        (cl-transforms:copy-transform transform :rotation new-rotation)))))
 
-(defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
-  (let* ((pose-in-frame
-           (cram-tf:ensure-pose-in-frame
-            goal-pose-stamped
-            goal-frame
-            :use-zero-time t))
-         (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
-                         (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
-         (goal-angle (cl-transforms:normalize-angle
-                      (cl-transforms:get-yaw
-                       (cl-transforms:orientation pose-in-frame)))))
-    (and (<= goal-dist delta-xy)
-         (<= (abs goal-angle) delta-theta))))
-
 (defun pose->transform-stamped (parent-frame child-frame stamp pose)
   (let ((translation (cl-transforms:origin pose))
         (rotation (cl-transforms:orientation pose)))
@@ -282,37 +289,40 @@
 Take xTy, ensure it's from x-frame.
 Multiply from the right with the yTz transform -- xTy * yTz == xTz."
 
-  (unless (string-equal (cl-transforms-stamped:frame-id x-y-transform) x-frame)
-    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
-              correct parent frame: ~a and ~a"
-           (cl-transforms-stamped:frame-id x-y-transform) x-frame))
+  (when (string-not-equal (cl-transforms-stamped:frame-id x-y-transform)
+                          x-frame)
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM~%~
+           did not have correct parent frame: ~a and ~a"
+          (cl-transforms-stamped:frame-id x-y-transform) x-frame))
 
-  (unless (string-equal (cl-transforms-stamped:child-frame-id y-z-transform) z-frame)
-    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
-              correct child frame: ~a and ~a"
-           (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
+  (when (string-not-equal (cl-transforms-stamped:child-frame-id y-z-transform)
+                          z-frame)
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds Y-Z-TRANSFORM~%~
+           did not have correct child frame: ~a and ~a"
+          (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
 
-  (unless (string-equal (cl-transforms-stamped:child-frame-id x-y-transform)
-                        (cl-transforms-stamped:frame-id y-z-transform))
-    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM and ~
-              Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
-           (cl-transforms-stamped:child-frame-id x-y-transform)
-           (cl-transforms-stamped:frame-id y-z-transform)))
+  (when (string-not-equal (cl-transforms-stamped:child-frame-id x-y-transform)
+                          (cl-transforms-stamped:frame-id y-z-transform))
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM and~%~
+           Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
+          (cl-transforms-stamped:child-frame-id x-y-transform)
+          (cl-transforms-stamped:frame-id y-z-transform)))
 
   (let ((multiplied-transforms
           (cl-transforms:transform* x-y-transform y-z-transform))
-        (timestamp (min (cl-transforms-stamped:stamp x-y-transform)
-                        (cl-transforms-stamped:stamp y-z-transform))))
+        (timestamp
+          (min (cl-transforms-stamped:stamp x-y-transform)
+               (cl-transforms-stamped:stamp y-z-transform))))
     (ecase result-as-pose-or-transform
       (:pose
        (cl-transforms-stamped:pose->pose-stamped
-        x-frame
+        (cl-transforms-stamped:frame-id x-y-transform)
         timestamp
         (cl-transforms:transform->pose multiplied-transforms)))
       (:transform
        (cl-transforms-stamped:transform->transform-stamped
-        x-frame
-        z-frame
+        (cl-transforms-stamped:frame-id x-y-transform)
+        (cl-transforms-stamped:child-frame-id y-z-transform)
         timestamp
         multiplied-transforms)))))
 
@@ -384,6 +394,41 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
                   deltas (list deltas))))
     ;; actually compare
     (every #'value-converged values goal-values deltas)))
+
+(defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
+  (let* ((pose-in-frame
+           (cram-tf:ensure-pose-in-frame
+            goal-pose-stamped
+            goal-frame
+            :use-zero-time t))
+         (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
+                         (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
+         (goal-angle (cl-transforms:normalize-angle
+                      (cl-transforms:get-yaw
+                       (cl-transforms:orientation pose-in-frame)))))
+    (and (<= goal-dist delta-xy)
+         (<= (abs goal-angle) delta-theta))))
+
+(defun pose-stampeds-converged (pose other-pose delta-position delta-rotation)
+  (declare (type (or null cl-transforms-stamped:pose-stamped) pose other-pose))
+  (when (and pose other-pose)
+    (if (string-not-equal (cl-transforms-stamped:frame-id pose)
+                          (cl-transforms-stamped:frame-id other-pose))
+        (warn "[CRAM-TF:POSE-STAMPEDS-CONVERGED]: frames were not equal: ~a vs. ~a"
+              (cl-transforms-stamped:frame-id pose)
+              (cl-transforms-stamped:frame-id other-pose))
+        (and (< (cl-transforms:v-norm
+                 (cl-transforms:v-
+                  (cl-transforms:origin pose)
+                  (cl-transforms:origin other-pose)))
+                delta-position)
+             (< (abs
+                 (cl-transforms:normalize-angle
+                  (cl-transforms:angle-between-quaternions
+                   (cl-transforms:orientation pose)
+                   (cl-transforms:orientation other-pose))))
+                delta-rotation)))))
+
 
 (defun normalize-joint-angles (list-of-angles)
   (mapcar #'cl-transforms:normalize-angle list-of-angles))

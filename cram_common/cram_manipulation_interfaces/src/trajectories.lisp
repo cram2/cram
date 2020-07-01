@@ -1,6 +1,7 @@
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;;                     Christopher Pollok <cpollok@cs.uni-bremen.de>
+;;;                     Thomas Lipps <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -109,26 +110,31 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                              object-type object-name arm grasp)))
 
 (defgeneric get-object-type-to-gripper-pregrasp-transforms (object-type object-name
-                                                            arm grasp grasp-transform)
+                                                            arm grasp location
+                                                            grasp-transform)
   (:documentation "Returns a list of transform stampeds")
-  (:method (object-type object-name arm grasp grasp-transform)
+  (:method (object-type object-name arm grasp location grasp-transform)
     (call-with-specific-type #'get-object-type-to-gripper-pregrasp-transforms
-                             object-type object-name arm grasp grasp-transform)))
+                             object-type object-name arm grasp location
+                             grasp-transform)))
 
-(defgeneric get-object-type-wrt-base-frame-lift-transforms (object-type arm grasp)
+(defgeneric get-object-type-wrt-base-frame-lift-transforms (object-type
+                                                            arm grasp location)
   (:documentation "Returns a list of transform stampeds bTb representing the
 lift and 2nd-lift offset of given `object-type' with `arm' and `grasp'
 in `cram-tf:*robot-base-frame*'. Therefore, instantiated methods will
 specify how much an object with given `object-type' will be lifted
-up in meters after grasping it, where the offset is defined w.r.t. base frame.")
-  (:method (object-type arm grasp)
+up in meters after grasping it, where the offset is defined w.r.t. base frame.
+Depending on the `location', different lifting trajectories can be defined.")
+  (:method (object-type arm grasp location)
     (call-with-specific-type #'get-object-type-wrt-base-frame-lift-transforms
-                             object-type arm grasp)))
+                             object-type arm grasp location)))
 
 
 
 (defmacro def-object-type-to-gripper-transforms (object-type arm grasp-type
                                                  &key
+                                                   location-type
                                                    (grasp-translation
                                                     ''(0.0 0.0 0.0))
                                                    (grasp-rot-matrix
@@ -147,7 +153,8 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
                                                     ''(0.0 0.0 0.0))
                                                    (2nd-lift-rotation
                                                     ''(0.0 0.0 0.0 1.0)))
-  "`grasp-translation' is the translation part of oTg-std,
+  "`location-type' is the type of the location for the pregrasp and lift trajectories,
+   `grasp-translation' is the translation part of oTg-std,
    `grasp-rot-matrix' is the rotation part, represented as a rotation matrix 2x2 list of lists,
    `pregrasp-offsets' is a list of 3 values, which is the offset of the gripper in object frame,
    `2nd-pregrasp-offsets' is the same as pregrasp offsets, for picking it goes after pregrasp,
@@ -156,6 +163,7 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
   `(let ((evaled-object-type ,object-type)
          (evaled-arm ,arm)
          (evaled-grasp-type ,grasp-type)
+         (evaled-location-type ,location-type)
          (evaled-grasp-translation ,grasp-translation)
          (evaled-grasp-rot-matrix ,grasp-rot-matrix)
          (evaled-pregrasp-offsets ,pregrasp-offsets)
@@ -211,6 +219,7 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
                                      (third evaled-2nd-lift-rotation)
                                      (fourth evaled-2nd-lift-rotation)))))
 
+                             evaled-location-type ; just to get rid of unused warning
                              (pushnew evaled-grasp-type *known-grasp-types*)
 
   (defmethod get-object-type-to-gripper-transform ((object-type (eql object))
@@ -232,6 +241,10 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
                                                              object-name
                                                              (arm (eql arm))
                                                              (grasp (eql evaled-grasp-type))
+                                                             ,(if location-type
+                                                                  '(location
+                                                                    (eql evaled-location-type))
+                                                                  'location)
                                                              grasp-transform)
     (let ((pregrasp-offsets evaled-pregrasp-offsets)
           (2nd-pregrasp-offsets evaled-2nd-pregrasp-offsets))
@@ -250,7 +263,11 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
 
   (defmethod get-object-type-wrt-base-frame-lift-transforms ((object-type (eql object))
                                                              (arm (eql arm))
-                                                             (grasp (eql evaled-grasp-type)))
+                                                             (grasp (eql evaled-grasp-type))
+                                                             ,(if location-type
+                                                                  '(location
+                                                                    (eql evaled-location-type))
+                                                                  'location))
     (let ((this-lift-transform lift-transform)
           (this-2nd-lift-transform 2nd-lift-transform))
       (if (and this-lift-transform this-2nd-lift-transform)
@@ -274,6 +291,7 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :picking-up))
                                                  arm
                                                  grasp
+                                                 location
                                                  objects-acted-on
                                                  &key)
   (let* ((object
@@ -289,26 +307,18 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
            (man-int:get-object-transform object))
          (oTb
            (cram-tf:transform-stamped-inv bTo))
-         (bTb-lift
-           (first (get-object-type-wrt-base-frame-lift-transforms
-                   object-type arm grasp)))
-         (bTb-2ndlift
-           (second (get-object-type-wrt-base-frame-lift-transforms
-                    object-type arm grasp)))
-         (oTg-lift
-           (reduce #'cram-tf:apply-transform
-                   `(,oTb ,bTb-lift ,bTo ,oTg-std)
-                   :from-end T))
-         (oTg-2ndlift
-           (reduce #'cram-tf:apply-transform
-                   `(,oTb ,bTb-2ndlift ,bTo ,oTg-std)
-                   :from-end T))
-         (oTg-pregrasp
-           (first (get-object-type-to-gripper-pregrasp-transforms
-                   object-type object-name arm grasp oTg-std)))
-         (oTg-2ndpregrasp
-           (second (get-object-type-to-gripper-pregrasp-transforms
-                    object-type object-name arm grasp oTg-std))))
+         (bTb-lifts
+           (get-object-type-wrt-base-frame-lift-transforms
+            object-type arm grasp location))
+         (oTg-lifts
+           (mapcar (lambda (btb-lift)
+                     (reduce #'cram-tf:apply-transform
+                             `(,oTb ,bTb-lift ,bTo ,oTg-std)
+                             :from-end T))
+                   bTb-lifts))
+         (oTg-pregrasps
+           (get-object-type-to-gripper-pregrasp-transforms
+            object-type object-name arm grasp location oTg-std)))
 
     (mapcar (lambda (label transforms)
               (make-traj-segment
@@ -318,13 +328,14 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
             '(:reaching
               :grasping
               :lifting)
-            `((,oTg-pregrasp ,oTg-2ndpregrasp)
+            `(,oTg-pregrasps
               (,oTg-std)
-              (,oTg-lift ,oTg-2ndlift)))))
+              ,oTg-lifts))))
 
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :placing))
                                                  arm
                                                  grasp
+                                                 location
                                                  objects-acted-on
                                                  &key target-object-transform-in-base)
   (let* ((object
@@ -360,26 +371,21 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
            (reduce #'cram-tf:apply-transform
                    `(,oTb ,bTb-drop-z-offset ,bTo ,oTg-std-no-z-offset)
                    :from-end T))
-         (bTb-lift
-           (first (get-object-type-wrt-base-frame-lift-transforms
-                   object-type arm grasp)))
-         (bTb-2ndlift
-           (second (get-object-type-wrt-base-frame-lift-transforms
-                    object-type arm grasp)))
-         (oTg-lift
-           (reduce #'cram-tf:apply-transform
-                   `(,oTb ,bTb-lift ,bTo ,oTg-std)
-                   :from-end T))
-         (oTg-2ndlift
-           (reduce #'cram-tf:apply-transform
-                   `(,oTb ,bTb-2ndlift ,bTo ,oTg-std)
-                   :from-end T))
-         (oTg-pregrasp
-           (first (get-object-type-to-gripper-pregrasp-transforms
-                   object-type object-name arm grasp oTg-std)))
-         (oTg-2ndpregrasp
-           (second (get-object-type-to-gripper-pregrasp-transforms
-                    object-type object-name arm grasp oTg-std))))
+         (bTb-lifts
+           (get-object-type-wrt-base-frame-lift-transforms
+            object-type arm grasp location))
+         (oTg-lifts
+           (reverse
+            (mapcar
+             (lambda (btb-lift)
+               (reduce #'cram-tf:apply-transform
+                       `(,oTb ,bTb-lift ,bTo ,oTg-std)
+                       :from-end T))
+             bTb-lifts)))
+         (oTg-pregrasps
+           (reverse
+            (get-object-type-to-gripper-pregrasp-transforms
+             object-type object-name arm grasp location oTg-std))))
 
     (mapcar (lambda (label transforms)
               (make-traj-segment
@@ -390,9 +396,9 @@ up in meters after grasping it, where the offset is defined w.r.t. base frame.")
             '(:reaching
               :putting
               :retracting)
-            `((,oTg-2ndlift ,otg-lift)
+            `(,oTg-lifts
               (,oTg-std)
-              (,oTg-2ndpregrasp ,oTg-pregrasp)))))
+              ,oTg-pregrasps))))
 
 
 
@@ -415,21 +421,22 @@ before opening the gripper, such that no dropping offset is necessary."
     0.0))
 
 (defun get-object-placement-transform (object-name object-type
-                                       other-object-name other-object-type other-object-transform
+                                       other-object-name other-object-type
+                                       other-object-transform
                                        attachment-type)
-  "Returns a transform in robot base frame where the object named `object-name' should go"
-  (let* ((base-frame
-           cram-tf:*robot-base-frame*)
+  "Returns a transform in fixed frame where the object named `object-name' should go"
+  (let* ((fixed-frame
+           cram-tf:*fixed-frame*)
          (object-frame
            (roslisp-utilities:rosify-underscores-lisp-name object-name))
-         (base-to-object-transform  ; bTo = bToo * ooTo
+         (map-to-object-transform  ; mTo = mToo * ooTo
            (cram-tf:multiply-transform-stampeds
-            base-frame
+            fixed-frame
             object-frame
             other-object-transform
             (get-object-type-in-other-object-transform ; ooTo
              object-type object-name other-object-type other-object-name attachment-type))))
-    base-to-object-transform))
+    map-to-object-transform))
 
 
 

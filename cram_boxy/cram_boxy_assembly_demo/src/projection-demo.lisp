@@ -159,49 +159,49 @@
            ((0.215 0.725 ,*nut-rad-z*) (0 0 0 1)))))
 
 
-(defun spawn-objects-on-plate (&optional (spawning-poses *object-spawning-data*))
-  (btr-utils:kill-all-objects)
+(defun spawn-objects-on-plate (&optional (spawning-data *object-spawning-data*))
+  ;; (btr-utils:kill-all-objects)
+  ;; detach all objects from robot and environment
   (btr:detach-all-objects (btr:get-robot-object))
-  ;; let ((object-types '(:breakfast-cereal :cup :bowl :spoon :milk)))
+  (btr:detach-all-objects (btr:get-environment-object))
+  ;; detach all items from each other
+  (mapcar #'btr:detach-all-objects
+          (remove-if-not (lambda (obj) (typep obj 'btr:item))
+                         (btr:objects btr:*current-bullet-world*)))
   ;; spawn objects at default poses
-  (let ((objects (mapcar (lambda (object-name-type-pose-list)
-                           (destructuring-bind (object-name object-type object-color
-                                                object-pose-list)
-                               object-name-type-pose-list
-                             (let ((object-relative-pose
-                                     (cram-tf:list->pose object-pose-list)))
-                               (btr-utils:spawn-object
-                                object-name
-                                object-type
-                                :mass 0.0
-                                :color object-color
-                                :pose (cram-tf:pose->list
-                                       (cl-transforms:make-pose
-                                        (cl-transforms:v+
-                                         (cl-transforms:make-3d-vector
-                                          (- *plate-x* *plate-rad-x*)
-                                          (- *plate-y* *plate-rad-y*)
-                                          (+ *plate-z* *plate-rad-z*))
-                                         (cl-transforms:origin
-                                          object-relative-pose))
-                                        (cl-transforms:orientation
-                                         object-relative-pose)))))))
-                         spawning-poses)))
+  (let ((objects
+          (mapcar (lambda (object-name-type-pose-list)
+                    (destructuring-bind (object-name object-type object-color
+                                         object-pose-list)
+                        object-name-type-pose-list
+                      (let ((object-relative-pose
+                              (cram-tf:list->pose object-pose-list)))
+                        (btr-utils:spawn-object
+                         object-name
+                         object-type
+                         :mass 0.0
+                         :color object-color
+                         :pose (cram-tf:pose->list
+                                (cl-transforms:make-pose
+                                 (cl-transforms:v+
+                                  (cl-transforms:make-3d-vector
+                                   (- *plate-x* *plate-rad-x*)
+                                   (- *plate-y* *plate-rad-y*)
+                                   (+ *plate-z* *plate-rad-z*))
+                                  (cl-transforms:origin
+                                   object-relative-pose))
+                                 (cl-transforms:orientation
+                                  object-relative-pose)))))))
+                  spawning-data)))
+
+    (btr:attach-object 'motor-grill 'underbody)
+
     objects))
 
 
 (defmethod exe:generic-perform :before (designator)
   (format t "~%PERFORMING~%~A~%~%" designator))
 
-
-(defparameter *base-x* -2.4)
-(defparameter *base-very-left-side-left-hand-pose* `((,*base-x* 1.8 0) (0 0 0 1)))
-(defparameter *base-left-side-left-hand-pose* `((,*base-x* 1.5 0) (0 0 0 1)))
-(defparameter *base-somewhat-left-side-left-hand-pose* `((,*base-x* 1.3 0) (0 0 0 1)))
-(defparameter *base-middle-side-left-hand-pose* `((,*base-x* 1.1 0) (0 0 0 1)))
-;; (defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.9 0) (0 0 0 1)))
-(defparameter *base-right-side-left-hand-pose* `((,*base-x* 0.7 0) (0 0 0 1)))
-(defparameter *base-very-right-side-left-hand-pose* `((,(- *base-x* 0.2) 0.65 0) (0 0 0 1)))
 
 ;;; ASSEMBLY STEPS:
 ;;; (1)  put chassis on holder (bump inwards)
@@ -225,210 +225,322 @@
 (defun demo ()
   ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
   (spawn-objects-on-plate)
-  (initialize-attachments)
+  (setf btr:*visibility-threshold* 0.6)
+
   (urdf-proj:with-projected-robot
 
-    ;; 1
-    (go-connect :chassis *base-very-left-side-left-hand-pose*
-                :holder-plane-horizontal *base-middle-side-left-hand-pose*
-                :horizontal-attachment)
-    ;; 2
-    (go-connect :bottom-wing *base-very-right-side-left-hand-pose*
-                :chassis *base-left-side-left-hand-pose*
-                :wing-attachment)
+    (let ((wooden-plate
+            (desig:an object
+                      (type big-wooden-plate)
+                      (location (desig:a location
+                                         (on (desig:an object
+                                                       (type counter-top)
+                                                       (urdf-name
+                                                        kitchen-island-surface)
+                                                       (part-of environment)))
+                                         (side back)
+                                         (range 0.5))))))
+      ;; 1
+      (go-transport :chassis '(:side :left) :holder-plane-horizontal '(:range 0.3)
+                    :horizontal-attachment
+                    wooden-plate)
+      ;; 2
+      (go-transport :bottom-wing '(:side :right) :chassis '(:range 0.3)
+                    :wing-attachment
+                    wooden-plate)
+      ;; 3
+      (go-transport :underbody '(:side :right) :bottom-wing '(:range 0.3)
+                    :body-attachment
+                    wooden-plate)
 
-    ;; 3
-    (go-connect :underbody *base-middle-side-left-hand-pose*
-                :bottom-wing *base-middle-side-left-hand-pose*
-                :body-attachment)
+      ;; we put the underbody on the bottom-wing but by doing that
+      ;; we also put it on the rear-wing.
+      ;; as there is no explicit placing action, the two will not be
+      ;; attached automatically.
+      ;; so we have to attach them manually unfortunately.
+      ;; this is required for later moving the whole plane onto another holder
+      (btr:attach-object 'underbody 'rear-wing)
 
-    ;; we put the underbody on the bottom-wing but by doing that
-    ;; we also put it on the rear-wing.
-    ;; as there is no explicit placing action, the two will not be
-    ;; attached automatically.
-    ;; so we have to attach them manually unfortunately.
-    ;; this is required for later moving the whole plane onto another holder
-    (btr:attach-object 'underbody 'rear-wing)
+      ;; 4
+      (go-transport :upper-body '(:side :right) :underbody '(:range 0.3)
+                    :body-on-body
+                    wooden-plate)
+      ;; 5
+      (go-transport :bolt '(:side :right) :upper-body '(:range 0.3)
+                    :rear-thread
+                    wooden-plate)
+      ;; 6
+      (go-transport :top-wing '(:side :left) :upper-body '(:range 0.3)
+                    :wing-attachment
+                    wooden-plate)
+      ;; 7
+      (go-transport :bolt :bolt :top-wing '(:range 0.3)
+                    :middle-thread
+                    wooden-plate)
+      ;; 8
+      (go-transport :window '(:side :left) :top-wing '(:range 0.3)
+                    :window-attachment
+                    wooden-plate)
+      ;; 9
+      (go-transport :bolt :bolt :window '(:range 0.3)
+                    :window-thread
+                    wooden-plate)
 
-    ;; 4
-    (go-connect :upper-body *base-right-side-left-hand-pose*
-                :underbody *base-left-side-left-hand-pose*
-                :body-on-body)
-    ;; 5
-    (go-connect :bolt *base-right-side-left-hand-pose*
-                :upper-body *base-left-side-left-hand-pose*
-                :rear-thread)
-    ;; 6
-    (go-connect :top-wing *base-left-side-left-hand-pose*
-                :upper-body *base-left-side-left-hand-pose*
-                :wing-attachment)
-    ;; 7
-    (go-connect :bolt *base-right-side-left-hand-pose*
-                :top-wing *base-left-side-left-hand-pose*
-                :middle-thread)
-    ;; 8
-    (go-connect :window *base-somewhat-left-side-left-hand-pose*
-                :top-wing *base-left-side-left-hand-pose*
-                :window-attachment)
-    ;; 9
-    (go-connect :bolt *base-right-side-left-hand-pose*
-                :window *base-left-side-left-hand-pose*
-                :window-thread)
+      ;; 10
+      (go-transport :top-wing  '(:range 0.3) :holder-plane-vertical '(:side :left)
+                    ;; or `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
+                    :vertical-attachment
+                    wooden-plate)
 
-    ;; 10
-    (go-connect :top-wing  *base-somewhat-left-side-left-hand-pose*
-                :holder-plane-vertical *base-left-side-left-hand-pose*
-                ;; or `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
-                :vertical-attachment)
+      ;; 11
+      (go-transport :propeller '(:side :left) :motor-grill '(:side :left)
+                    ;; or `((,(- *base-x* 0.15) 1.8 0) (0 0 0 1))
+                    :propeller-attachment
+                    wooden-plate)
 
-    ;; 11
-    (go-connect :propeller `((,(- *base-x* 0.15) 2 0) (0 0 0 1))
-                :motor-grill *base-left-side-left-hand-pose*
-                ;; or `((,(- *base-x* 0.15) 1.8 0) (0 0 0 1))
-                :propeller-attachment)
+      ;; 12
+      (go-transport :bolt :bolt :propeller '(:side :left)
+                    ;; or `((,*base-x* 1.85 0) (0 0 0 1))
+                    :propeller-thread
+                    wooden-plate))))
 
-    ;; 12
-    (go-connect :bolt *base-right-side-left-hand-pose*
-                :propeller *base-left-side-left-hand-pose*
-                ;; or `((,*base-x* 1.85 0) (0 0 0 1))
-                :propeller-thread)
 
-    ;;(go-connect :top-wing  *base-left-side-left-hand-pose*
-    ;;            :holder-plane-horizontal *base-middle-side-left-hand-pose*
-    ;;            :horizontal-attachment)
-
+(defun go-transport (?object-type ?object-location-property
+                     ?other-object-type ?other-object-location-property
+                     ?attachment-type
+                     ?wooden-plate)
+  (let* ((?object-location
+           (if (eq ?object-location-property :bolt)
+               (desig:a location
+                        (on (desig:an object
+                                      (type counter-top)
+                                      (urdf-name
+                                       kitchen-island-surface)
+                                      (part-of environment)))
+                        (side right)
+                        (range-invert 0.9)
+                        (side front))
+               (desig:a location
+                        (on ?wooden-plate)
+                        ?object-location-property
+                        (side front))))
+         (?other-object-location
+           (desig:a location
+                    (on ?wooden-plate)
+                    ?other-object-location-property
+                    (side front)))
+         (?object
+           (desig:an object
+                     (type ?object-type)
+                     (location ?object-location)))
+         (?other-object
+           (desig:an object
+                     (type ?other-object-type)
+                     (location ?other-object-location))))
     (exe:perform
      (desig:an action
-               (type parking-arms)))))
-
-(defun initialize-attachments ()
-  (btr:attach-object 'motor-grill 'underbody))
-
-(defun go-perceive (?object-type ?nav-goal)
-  ;; park arms
-  (exe:perform
-   (desig:an action
-             (type parking-arms)))
-  ;; drive to right location
-  (let ((?pose (cl-transforms-stamped:pose->pose-stamped
-                cram-tf:*fixed-frame*
-                0.0
-                (btr:ensure-pose ?nav-goal))))
-    (exe:perform
-     (desig:an action
-               (type going)
+               (type transporting)
+               (object ?object)
+               (arms (left))
                (target (desig:a location
-                                (pose ?pose))))))
-  ;; look down
-  (exe:perform
-   (desig:an action
-             (type looking)
-             (direction down-left)))
-  ;; perceive object
-  (let ((?object
-          (exe:perform
-           (desig:an action
-                     (type detecting)
-                     (object (desig:an object (type ?object-type)))))))
-    ;; look away
-    (exe:perform
-     (desig:an action
-               (type looking)
-               (direction away)))
-    ?object))
+                                (on ?other-object)
+                                (for ?object)
+                                (attachments (?attachment-type))))))))
 
-(defun go-pick (?object-type ?nav-goal)
-  ;; go and perceive object
-  (let ((?object
-          (go-perceive ?object-type ?nav-goal)))
-    ;; pick object
-    (exe:perform
-     (desig:an action
-               (type picking-up)
-               (arm left)
-               (object ?object)))
-    ?object))
 
-(defun go-pick-place (?object-type ?nav-goal)
-  ;; go and pick up object
-  (let ((?object
-          (go-pick ?object-type ?nav-goal)))
-    ;; put the cookie down
-    (exe:perform
-     (desig:an action
-               (type placing)
-               (object ?object)))))
 
-(defun go-connect (?object-type ?nav-goal ?other-object-type ?other-nav-goal ?attachment-type)
-  ;; go and pick up object
-  (let ((?object
-          (go-pick ?object-type ?nav-goal)))
-    ;; go and perceive other object
-    (let ((?other-object
-            (go-perceive ?other-object-type ?other-nav-goal)))
+
+;;; ASSEMBLY STEPS:
+;;; (1)  put chassis on holder (bump inwards)
+;;; (2)  put bottom wing on chassis
+;;; *    maybe: dont hit the top-wing with the arm
+;;; (3)  put underbody on bottom wing
+;;; (4)  put upperbody on underbody
+;;; (5)  screw rear hole
+;;; (6)  put top wing on body
+;;; (7)  screw top wing
+;;; (8)  put window on body
+;;; (9)  screw window
+;;; (10) put plane on vertical holder
+;;; (11) put propeller on grill
+;;; (12) screw propeller
+;;; * put wheel on
+;;; * screw nut onto wheel
+;;; * put other wheel on
+;;; * screw nut onto wheel
+;;; * screw bottom body
+(defun demo-hardcoded ()
+  ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
+  (spawn-objects-on-plate)
+
+  (let ((base-x
+          -2.4)
+        (base-very-left-side-left-hand-pose
+          `((,base-x 1.8 0) (0 0 0 1)))
+        (base-left-side-left-hand-pose
+          `((,base-x 1.5 0) (0 0 0 1)))
+        (base-somewhat-left-side-left-hand-pose
+          `((,base-x 1.3 0) (0 0 0 1)))
+        (base-middle-side-left-hand-pose
+          `((,base-x 1.1 0) (0 0 0 1)))
+        (base-right-side-left-hand-pose
+          `((,base-x 0.7 0) (0 0 0 1)))
+        (base-very-right-side-left-hand-pose
+          `((,(- base-x 0.2) 0.65 0) (0 0 0 1))))
+
+    (urdf-proj:with-projected-robot
+      ;; 1
+      (go-connect :chassis base-very-left-side-left-hand-pose
+                  :holder-plane-horizontal base-middle-side-left-hand-pose
+                  :horizontal-attachment)
+      ;; 2
+      (go-connect :bottom-wing base-very-right-side-left-hand-pose
+                  :chassis base-left-side-left-hand-pose
+                  :wing-attachment)
+      ;; 3
+      (go-connect :underbody base-middle-side-left-hand-pose
+                  :bottom-wing base-middle-side-left-hand-pose
+                  :body-attachment)
+
+      ;; we put the underbody on the bottom-wing but by doing that
+      ;; we also put it on the rear-wing.
+      ;; as there is no explicit placing action, the two will not be
+      ;; attached automatically.
+      ;; so we have to attach them manually unfortunately.
+      ;; this is required for later moving the whole plane onto another holder
+      (btr:attach-object 'underbody 'rear-wing)
+
+      ;; 4
+      (go-connect :upper-body base-right-side-left-hand-pose
+                  :underbody base-left-side-left-hand-pose
+                  :body-on-body)
+      ;; 5
+      (go-connect :bolt base-right-side-left-hand-pose
+                  :upper-body base-left-side-left-hand-pose
+                  :rear-thread)
+      ;; 6
+      (go-connect :top-wing base-left-side-left-hand-pose
+                  :upper-body base-left-side-left-hand-pose
+                  :wing-attachment)
+      ;; 7
+      (go-connect :bolt base-right-side-left-hand-pose
+                  :top-wing base-left-side-left-hand-pose
+                  :middle-thread)
+      ;; 8
+      (go-connect :window base-somewhat-left-side-left-hand-pose
+                  :top-wing base-left-side-left-hand-pose
+                  :window-attachment)
+      ;; 9
+      (go-connect :bolt base-right-side-left-hand-pose
+                  :window base-left-side-left-hand-pose
+                  :window-thread)
+
+      ;; 10
+      (go-connect :top-wing  base-somewhat-left-side-left-hand-pose
+                  :holder-plane-vertical base-left-side-left-hand-pose
+                  ;; or `((,(- *base-x* 0.00) 1.45 0) (0 0 0 1))
+                  :vertical-attachment)
+
+      ;; 11
+      (go-connect :propeller `((,(- base-x 0.15) 2 0) (0 0 0 1))
+                  :motor-grill base-left-side-left-hand-pose
+                  ;; or `((,(- *base-x* 0.15) 1.8 0) (0 0 0 1))
+                  :propeller-attachment)
+
+      ;; 12
+      (go-connect :bolt base-right-side-left-hand-pose
+                  :propeller base-left-side-left-hand-pose
+                  ;; or `((,*base-x* 1.85 0) (0 0 0 1))
+                  :propeller-thread)
+
+      ;;(go-connect :top-wing  base-left-side-left-hand-pose
+      ;;            :holder-plane-horizontal base-middle-side-left-hand-pose
+      ;;            :horizontal-attachment)
+
       (exe:perform
        (desig:an action
-                 (type placing)
+                 (type parking-arms))))))
+
+
+(defun go-connect (?object-type ?nav-goal ?other-object-type ?other-nav-goal
+                   ?attachment-type)
+  (flet ((go-perceive (?object-type ?nav-goal)
+           ;; drive to right location
+           (let ((?pose (cl-transforms-stamped:pose->pose-stamped
+                         cram-tf:*fixed-frame*
+                         0.0
+                         (btr:ensure-pose ?nav-goal))))
+             (exe:perform
+              (desig:an action
+                        (type navigating)
+                        (location (desig:a location
+                                           (pose ?pose))))))
+           ;; look down
+           (exe:perform
+            (desig:an action
+                      (type looking)
+                      (direction down-left)))
+           ;; perceive object
+           (let ((?object
+                   (exe:perform
+                    (desig:an action
+                              (type detecting)
+                              (object (desig:an object (type ?object-type)))))))
+             ;; look away
+             (exe:perform
+              (desig:an action
+                        (type looking)
+                        (direction away)))
+             ?object)))
+
+    ;; go and perceive object to pick
+    (let ((?object
+            (go-perceive ?object-type ?nav-goal)))
+      ;; pick it up
+      (exe:perform
+       (desig:an action
+                 (type picking-up)
                  (arm left)
-                 (object ?object)
-                 ;; this location designator is resolved in
-                 ;; cram_boxy_plans/src/action-designators.lisp
-                 (target (desig:a location
-                                  (on ?other-object)
-                                  (for ?object)
-                                  (attachment ?attachment-type)))))
-    (values ?object ?other-object))))
+                 (object ?object)))
+      ;; go and perceive other object
+      (let ((?other-object
+              (go-perceive ?other-object-type ?other-nav-goal)))
+        ;; place
+        (exe:perform
+         (desig:an action
+                   (type placing)
+                   (arm left)
+                   (object ?object)
+                   (target (desig:a location
+                                    (on ?other-object)
+                                    (for ?object)
+                                    (attachment ?attachment-type)))))
+        ;; return object and other object
+        (values ?object ?other-object)))))
 
 #+examples
 (
  (boxy-proj:with-projected-robot
-    (cram-executive:perform
-     (desig:an action
-               (type looking)
-               (direction down))))
+   (cram-executive:perform
+    (desig:an action
+              (type looking)
+              (direction down))))
 
  (boxy-proj:with-projected-robot
-     (cram-executive:perform
-      (desig:an action
-                (type detecting)
-                (object (desig:an object (type chassis))))))
+   (cram-executive:perform
+    (desig:an action
+              (type detecting)
+              (object (desig:an object (type chassis))))))
 
  (boxy-proj:with-simulated-robot
-  (exe:perform
-   (desig:an action
-            (type opening-gripper)
-            (gripper left))))
+   (exe:perform
+    (desig:an action
+              (type opening-gripper)
+              (gripper left))))
 
  (boxy-proj:with-projected-robot
-    (cram-executive:perform
-     (desig:an action
-               (type placing)
-               (arm left))))
+   (cram-executive:perform
+    (desig:an action
+              (type placing)
+              (arm left))))
  )
-
-
-
-
-
-
-
-#+everything-below-is-pr2-s-stuff-so-need-new-things-for-boxy
-(
-(defun demo-hard-coded ()
-  (spawn-objects-on-plate)
-
-  (boxy-proj:with-simulated-robot
-
-    (dolist (object-type '(:breakfast-cereal :cup :bowl :spoon :milk))
-
-      (let ((placing-target
-              (cl-transforms-stamped:pose->pose-stamped
-               "map" 0.0
-               (cram-bullet-reasoning:ensure-pose
-                (cdr (assoc object-type *object-placing-poses*)))))
-            (arm-to-use
-              (cdr (assoc object-type *object-grasping-arms*))))
-
-        (pick-object object-type arm-to-use)
-        (place-object placing-target arm-to-use)))))
-)

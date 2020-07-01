@@ -141,28 +141,50 @@ unidirectional. See `attach-object' above."
   (when (equal (name object) (name other-object))
     (warn "Cannot attach an object to itself: ~a" (name object))
     (return-from attach-object))
-  (when (member (name object) (attached-objects other-object))
-    (warn "Item ~a already attached to ~a. Ignoring new attachment."
-          (name object) (name other-object))
-    (return-from attach-object))
+  (let ((existing-attachment
+          (find (name object) (attached-objects other-object) :key #'car)))
+    (when existing-attachment
+      (let ((attachment-struct (caadr existing-attachment)))
+        (cond
+          ((and (eql attachment-type (attachment-attachment attachment-struct))
+                (eql loose (attachment-loose attachment-struct)))
+           (warn "Item ~a already attached to ~a. ~
+                  Ignoring new attachment."
+                 (name object) (name other-object))
+           (return-from attach-object))
+          ((eql loose T)
+           (warn "Item ~a already attached to ~a but not loosely. ~
+                  Ignoring new loose attachment."
+                 (name object) (name other-object))
+           (return-from attach-object))
+          ((eql loose NIL)
+           (warn "Item ~a already attached to ~a but loosely. ~
+                  Deleting old attachment."
+                 (name object) (name other-object))
+           (btr:detach-object other-object object))))))
   (unless skip-removing-loose
     (remove-loose-attachment-for object))
-  (push (cons (name object)
-              (cons
-               (list (make-attachment :object (name object)
-                                      :attachment attachment-type))
-               ;; Since robot objects are not in the attached-objects
-               ;; list of items, this has to be copied manuelly:
-               (if (object-attached (get-robot-object) object)
-                   (get-collision-information object (get-robot-object))
-                   (create-static-collision-information object))))
-        (slot-value other-object 'attached-objects))
-  (push (cons (name other-object)
-              (cons
-               (list (make-attachment :object (name other-object)
-                                      :loose loose :attachment attachment-type))
-               (create-static-collision-information other-object)))
-        (slot-value object 'attached-objects)))
+  (let ((object-collision-information
+          ;; Since robot objects are not in the attached-objects
+          ;; list of items, this has to be copied manuelly:
+          (if (and (get-robot-object)
+                   (object-attached (get-robot-object) object))
+              (get-collision-information object (get-robot-object))
+              (create-static-collision-information object)))
+        (other-object-collision-information
+          (create-static-collision-information other-object)))
+    (push (cons (name object)
+                (cons
+                 (list (make-attachment :object (name object)
+                                        :attachment attachment-type))
+                 object-collision-information))
+          (slot-value other-object 'attached-objects))
+    (push (cons (name other-object)
+                (cons
+                 (list (make-attachment :object (name other-object)
+                                        :loose loose :attachment attachment-type))
+                 other-object-collision-information))
+          (slot-value object 'attached-objects))))
 
 (defmethod attach-object ((other-objects list) (object item)
                           &key attachment-type loose)
@@ -170,12 +192,16 @@ unidirectional. See `attach-object' above."
 than one item. If `loose' T the other attachments have to be made with
 `skip-removing-loose' as T to prevent removing loose attachments between
 the element before in `other-objects' and `object'."
-  (attach-object (first other-objects) object :attachment-type attachment-type :loose loose)
-  (mapcar (lambda (obj)
-            (attach-object obj object
-                           :attachment-type attachment-type :loose loose
-                           :skip-removing-loose T))
-          (cdr other-objects)))
+  (if other-objects
+      (progn
+        (attach-object (first other-objects) object
+                       :attachment-type attachment-type :loose loose)
+        (mapcar (lambda (obj)
+                  (attach-object obj object
+                                 :attachment-type attachment-type :loose loose
+                                 :skip-removing-loose T))
+                (cdr other-objects)))
+      (warn "Trying to attach an object to a NIL.")))
 
 (defmethod detach-object ((other-object item) (object item) &key)
   "Removes item names from the given arguments in the corresponding
@@ -482,22 +508,24 @@ The length, width and height have to be given for the function to work."
                        &key mass (color '(0.5 0.5 0.5 1.0)) size item-type)
   (assert size)
   (assert item-type)
-  (make-item world name (list item-type)
-             (list
-              (make-instance 'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-instance 'bt-vis:colored-cylinder-shape
-                                   :half-extents (ensure-vector size)
-                                   :color color)))))
+  (unless (object world name)
+    (make-item world name (list item-type)
+               (list
+                (make-instance 'rigid-body
+                  :name name :mass mass :pose (ensure-pose pose)
+                  :collision-shape (make-instance 'bt-vis:colored-cylinder-shape
+                                     :half-extents (ensure-vector size)
+                                     :color color))))))
 
 (defmethod add-object ((world bt-world) (type (eql :box-item)) name pose
                        &key mass (color '(1.0 0.0 0.0 1.0)) size item-type)
   (assert size)
   (assert item-type)
-  (make-item world name (list item-type)
-             (list
-              (make-instance 'rigid-body
-                :name name :mass mass :pose (ensure-pose pose)
-                :collision-shape (make-instance 'bt-vis:colored-box-shape
-                                   :half-extents (ensure-vector size)
-                                   :color color)))))
+  (unless (object world name)
+    (make-item world name (list item-type)
+               (list
+                (make-instance 'rigid-body
+                  :name name :mass mass :pose (ensure-pose pose)
+                  :collision-shape (make-instance 'bt-vis:colored-box-shape
+                                     :half-extents (ensure-vector size)
+                                     :color color))))))

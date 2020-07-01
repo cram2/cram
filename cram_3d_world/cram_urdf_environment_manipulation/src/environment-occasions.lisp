@@ -29,12 +29,30 @@
 
 (in-package :env-man)
 
+(defparameter *container-state-convergence-delta* 0.1 "In meters or rad.")
+
 (def-fact-group environment-occasions (cpoe:container-state)
+
   (<- (cpoe:container-state ?container-designator ?distance)
+    (symbol-value *container-state-convergence-delta* ?delta)
+    (cpoe:container-state ?container-designator ?distance ?delta))
+
+  (<- (cpoe:container-state ?container-designator ?distance ?delta)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (btr:bullet-world ?world)
     (lisp-fun get-container-link ?container-name ?btr-environment ?container-link)
     (lisp-fun get-connecting-joint ?container-link ?joint)
     (lisp-fun cl-urdf:name ?joint ?joint-name)
-    (btr:joint-state ?world ?btr-environment ?joint-name ?distance)))
+    (btr:joint-state ?world ?btr-environment ?joint-name ?joint-state)
+    (or (and (lisp-type ?distance number)
+             (cram-tf:values-converged ?joint-state ?distance ?delta))
+        (and (member ?distance (:open :closed))
+             (lisp-fun cl-urdf:limits ?joint ?joint-limits)
+             (lisp-fun cl-urdf:lower ?joint-limits ?lower-limit)
+             (lisp-fun cl-urdf:upper ?joint-limits ?upper-limit)
+             (-> (equal ?distance :open)
+                 (lisp-pred cram-tf:values-converged
+                            ?joint-state ?upper-limit ?delta)
+                 (lisp-pred cram-tf:values-converged
+                            ?joint-state ?lower-limit ?delta))))))

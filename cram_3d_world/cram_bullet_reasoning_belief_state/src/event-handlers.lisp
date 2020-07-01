@@ -30,12 +30,94 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
+(defun update-object-designator-location (object-designator location-designator)
+  (desig:make-designator
+   :object
+   `((:location ,location-designator)
+     ,@(remove :location (desig:properties object-designator) :key #'car))
+   object-designator))
+
+(defun remove-object-designator-location (object-designator)
+  (desig:make-designator
+   :object
+   (remove :location (desig:properties object-designator) :key #'car)
+   object-designator))
+
+(defun make-location-in-attachment (?robot-name ?link)
+  (desig:a location (in (desig:an object
+                                  (type robot)
+                                  (name ?robot-name)
+                                  (part-of ?robot-name)
+                                  (urdf-name ?link)))))
+
+(defun update-object-designator-with-attachment (object-designator robot-name link)
+  "Changes the LOCATION key of the designator to a location on robot
+and renames POSE into OLD-POSE."
+  (let* ((properties (desig:properties object-designator))
+         (pose-pair (find :pose properties :key #'car))
+         (location-in-hand (make-location-in-attachment robot-name link)))
+    (desig:make-designator
+     :object
+     (append (remove pose-pair
+                     (remove :location
+                             (remove :old-pose properties :key #'car)
+                             :key #'car))
+             `((:old-pose ,@(rest pose-pair))
+               (:location ,location-in-hand)))
+     object-designator)))
+
+
+
+(defmethod cram-occasions-events:on-event object-perceived 2 ((event cpoe:object-perceived-event))
+  (if cram-projection:*projection-environment*
+      ;; if in projection, only add the object name to perceived designators list
+      (let ((object-data (desig:reference (cpoe:event-object-designator event))))
+        (or
+         (gethash (desig:object-identifier object-data)
+                  *object-identifier-to-instance-mappings*)
+         (setf (gethash (desig:object-identifier object-data)
+                        *object-identifier-to-instance-mappings*)
+               (desig:object-identifier object-data))))
+      ;; otherwise, spawn a new object in the bullet world
+      (progn
+        (register-object-designator-data
+         (desig:reference (cpoe:event-object-designator event))
+         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))
+        ;; after having spawned the object, update the designator to get the
+        ;; new simulated pose
+        (desig:equate
+         (cpoe:event-object-designator event)
+         (detect-new-object-pose-from-btr (cpoe:event-object-designator event))))))
+
+
+
+(defmethod cram-occasions-events:on-event btr-belief ((event cpoe:object-location-changed))
+  ;; update the designator to get the new location
+  (update-object-designator-location
+   (cpoe:event-object-designator event)
+   (cpoe:event-location-designator event)))
+
+
+
+(defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
+  (unless cram-projection:*projection-environment*
+    (let ((robot (btr:get-robot-object)))
+      (when robot
+        (btr:set-robot-state-from-tf
+         cram-tf:*transformer*
+         robot
+         :timestamp (cram-occasions-events:event-timestamp event))))))
+
+
+
 (defmethod cram-occasions-events:on-event btr-attach-object 2 ((event cpoe:object-attached-robot))
   "2 means this method has to be ordered based on integer qualifiers.
 It could have been 1 but 1 is reserved in case somebody has to be even more urgently
 executed before everyone else.
 If there is no other method with 1 as qualifier, this method will be executed always first."
-  (let* ((robot-object (btr:get-robot-object))
+  (let* ((robot-object-name (or (cpoe:event-other-object-name event)
+                                (btr:get-robot-name)))
+         (robot-object (btr:object btr:*current-bullet-world* robot-object-name))
          (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))
          (btr-object (btr:object btr:*current-bullet-world* btr-object-name))
@@ -50,8 +132,10 @@ If there is no other method with 1 as qualifier, this method will be executed al
                        (cpoe:event-link event)
                        (error "[BTR-BELIEF OBJECT-ATTACHED] either link or arm ~
                                in object-attached-robot event had to be given..."))))
-         (grasp (cpoe:event-grasp event)))
-    (when (cut:is-var link) (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
+         (grasp (cpoe:event-grasp event))
+         (object-designator (cpoe:event-object-designator event)))
+    (when (cut:is-var link)
+      (error "[BTR-BELIEF OBJECT-ATTACHED] Couldn't find robot's EE link."))
     ;; first detach from environment in case it is attached
     (when (and (typep environment-object 'btr:robot-object)
                (btr:object-attached environment-object btr-object))
@@ -76,15 +160,16 @@ If there is no other method with 1 as qualifier, this method will be executed al
           (mapc (lambda (attached-link grasp)
                   ;; detach and attach again with loose attachment
                   (btr:detach-object robot-object btr-object :link attached-link)
-                  ;; TODO: These loose attachments seem buggy,
-                  ;; so just removing completely...
-                  ;; (btr:attach-object robot-object btr-object :link attached-link
-                  ;;                                            :loose t
-                  ;;                                            :grasp grasp)
-                  )
+                  (btr:attach-object robot-object btr-object :link attached-link
+                                                             :loose t
+                                                             :grasp grasp))
                 links grasps)))
       ;; attach
-      (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp))))
+      (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)
+      ;; invalidate the pose in the designator
+      (when object-designator
+        (update-object-designator-with-attachment
+         object-designator robot-object-name link)))))
 
 (defmethod cram-occasions-events:on-event btr-detach-object 2 ((event cpoe:object-detached-robot))
   (let* ((robot-object (btr:get-robot-object))
@@ -109,9 +194,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
           (when btr-object
             (btr:detach-object robot-object btr-object :link link)
             (btr:simulate btr:*current-bullet-world* 10)
-            ;; find the link or item that supports the object and attach the object to it.
-            ;; if btr-object is in contact with both the environment and an item,
-            ;; only environment attachment will happen.
+            ;; find the links and items that support the object
+            ;; and attach the object to them.
+            ;; links get proper attachments and items loose attachments
             (let ((contacting-links
                     (remove-duplicates
                      (mapcar
@@ -188,22 +273,6 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 
 
-(defmethod cram-occasions-events:on-event robot-moved ((event cpoe:robot-state-changed))
-  (unless cram-projection:*projection-environment*
-    (let ((robot (btr:get-robot-object)))
-      (when robot
-        (btr:set-robot-state-from-tf
-         cram-tf:*transformer*
-         robot
-         :timestamp (cram-occasions-events:event-timestamp event)))))
-  (btr:timeline-advance
-   btr:*current-timeline*
-   (btr:make-event
-    btr:*current-bullet-world*
-    `(location-change robot))))
-
-
-
 (defun move-joint-by-event (event open-or-close)
   (let* ((joint-name (cpoe:environment-event-joint-name event))
          (object (cpoe:environment-event-object event))
@@ -243,85 +312,8 @@ If there is no other method with 1 as qualifier, this method will be executed al
 
 
 
-(defmethod cram-occasions-events:on-event object-perceived 2 ((event cpoe:object-perceived-event))
-  (if cram-projection:*projection-environment*
-      ;; if in projection, only add the object name to perceived designators list
-      (let ((object-data (desig:reference (cpoe:event-object-designator event))))
-        (or
-         (gethash (desig:object-identifier object-data)
-                  *object-identifier-to-instance-mappings*)
-         (setf (gethash (desig:object-identifier object-data)
-                        *object-identifier-to-instance-mappings*)
-               (desig:object-identifier object-data))))
-      ;; otherwise, spawn a new object in the bullet world
-      (progn
-        (register-object-designator-data
-         (desig:reference (cpoe:event-object-designator event))
-         :type (desig:desig-prop-value (cpoe:event-object-designator event) :type))
-        ;; after having spawned the object, update the designator to get the
-        ;; new simulated pose
-        (desig:equate
-         (cpoe:event-object-designator event)
-         (detect-new-object-pose-from-btr (cpoe:event-object-designator event))))))
-
-
-
 #+old-Lorenzs-stuff-currently-not-used-but-maybe-in-the-future
 (
- ;; Utility functions
- (defun update-object-designator-location (object-designator location-designator)
-   (desig:make-designator
-    :object
-    `((:at ,location-designator)
-      ,@(remove :at (desig:properties object-designator) :key #'car))
-    object-designator))
-
- (defun get-supporting-object-bounding-box (object-name)
-   (cut:with-vars-bound (?supporting-name ?supporting-link)
-       (cut:lazy-car (prolog
-                      `(or (btr:supported-by ?_ ,object-name ?supporting-name ?supporting-link)
-                           (btr:supported-by ?_ ,object-name ?supporting-name))))
-     (unless (cut:is-var ?supporting-name)
-       (if (cut:is-var ?supporting-link)
-           (btr:aabb (btr:object btr:*current-bullet-world* ?supporting-name))
-           (btr:aabb (gethash
-                      ?supporting-link
-                      (btr:links (btr:object btr:*current-bullet-world* ?supporting-name))))))))
-
- (defun make-object-location (object-name)
-   (let ((object (btr:object btr:*current-bullet-world* object-name)))
-     (assert object)
-     (desig:make-designator
-      :location
-      `((:pose ,(cl-transforms-stamped:pose->pose-stamped
-                 cram-tf:*fixed-frame*
-                 (cut:current-timestamp)
-                 (cl-bullet:pose object)))))))
-
- (defun make-object-location-in-gripper (object gripper-link)
-   "Returns a new location designator that indicates a location in the
-  robot's gripper."
-   (declare (type btr:object object))
-   (let* ((object-pose (cl-transforms-stamped:pose->pose-stamped
-                        cram-tf:*fixed-frame*
-                        0.0
-                        (btr:pose object)))
-          (robot (btr:get-robot-object)))
-     (assert (member gripper-link (btr:object-attached robot object) :test #'equal))
-     (let ((supporting-bounding-box (get-supporting-object-bounding-box (btr:name object))))
-       (desig:make-designator
-        :location
-        `((:in :gripper) (:pose ,(object-pose-in-frame object gripper-link))
-          (:z-offset ,(cond (supporting-bounding-box
-                             (- (cl-transforms:z (cl-transforms:origin object-pose))
-                                (+ (cl-transforms:z
-                                    (cl-bullet:bounding-box-center supporting-bounding-box))
-                                   (/ (cl-transforms:z
-                                       (cl-bullet:bounding-box-dimensions
-                                        supporting-bounding-box))
-                                      2))))
-                            (t 0.0))))))))
-
  (defun object-pose-in-frame (object frame)
    (declare (type btr:object object)
             (type string frame))
@@ -335,76 +327,20 @@ If there is no other method with 1 as qualifier, this method will be executed al
      :target-frame frame
      :timeout cram-tf:*tf-default-timeout*)
     :stamp 0.0))
-
-
-
- ;; Additionally changing the object designator of the object
- (defmethod cram-occasions-events:on-event attach-objects ((event cpoe:object-attached))
-   (let* ((robot (btr:get-robot-object))
-          (current-event-object (desig:current-desig (cpoe:event-object event)))
-          (object (get-designator-object current-event-object)))
-     (when object
-       (cond ((btr:object-attached robot object)
-              ;; If the object is already attached, it is already in
-              ;; the gripper. In that case, we update the designator
-              ;; location designator by extending the current location
-              ;; by a second pose in the gripper.
-              (btr:attach-object robot object :link (cpoe:event-link event) :loose t)
-              (desig:with-desig-props (at) current-event-object
-                (assert (eql (desig:desig-prop-value at :in) :gripper))
-                (update-object-designator-location
-                 current-event-object
-                 (desig:extend-designator-properties
-                  at `((:pose ,(object-pose-in-frame object (cpoe:event-link event))))))))
-             (t
-              (btr:attach-object robot object :link (cpoe:event-link event) :loose nil)
-              (update-object-designator-location
-               current-event-object
-               (desig:extend-designator-properties
-                (make-object-location-in-gripper object (cpoe:event-link event))
-                `((:pose ,(object-pose-in-frame object cram-tf:*robot-base-frame*))))))))
-     (btr:timeline-advance
-      btr:*current-timeline*
-      (btr:make-event
-       btr:*current-bullet-world*
-       `(pick-up ,(cpoe:event-object event) ,(cpoe:event-side event))))))
- (defmethod cram-occasions-events:on-event detach-objects ((event cpoe:object-detached-robot))
-   (let ((robot (btr:get-robot-object))
-         (object (get-designator-object (cpoe:event-object event))))
-     (when object
-       (btr:detach-object robot object :link (cpoe:event-link event))
-       (btr:simulate btr:*current-bullet-world* 10)
-       (update-object-designator-location
-        (desig:current-desig (cpoe:event-object event))
-        (make-object-location (get-designator-object-name (cpoe:event-object event)))))
-     (btr:timeline-advance
-      btr:*current-timeline*
-      (btr:make-event
-       btr:*current-bullet-world*
-       `(put-down ,(cpoe:event-object event) ,(cpoe:event-side event))))
-     (btr:timeline-advance
-      btr:*current-timeline*
-      (btr:make-event
-       btr:*current-bullet-world*
-       `(location-change ,(cpoe:event-object event))))))
-
-
- ;; Additionally updating the semantic map
- (defmethod cram-occasions-events:on-event open-or-close-object
-     ((event cpoe:object-articulation-event))
-   (with-slots (cpoe:object-designator cpoe:opening-distance) event
-     (let ((perceived-object (desig:reference
-                              (desig:newest-effective-designator cpoe:object-designator)))
-           (semantic-map-object
-             (cut:with-vars-strictly-bound (?semantic-map)
-                 (cut:lazy-car
-                  (prolog `(and
-                            (btr:bullet-world ?world)
-                            (btr:semantic-map ?world ?semantic-map-name)
-                            (btr:%object ?world ?semantic-map-name ?semantic-map))))
-               ?semantic-map)))
-       (btr:set-articulated-object-joint-position
-        semantic-map-object
-        (desig:object-identifier perceived-object)
-        cpoe:opening-distance))))
+ ;;
+ (defun make-object-location-in-gripper (object gripper-link)
+   "Returns a new location designator that indicates a location in the
+  robot's gripper."
+   (declare (type btr:object object))
+   (let* ((object-pose (cl-transforms-stamped:pose->pose-stamped
+                        cram-tf:*fixed-frame*
+                        0.0
+                        (btr:pose object)))
+          (robot (btr:get-robot-object)))
+     (assert (member gripper-link (btr:object-attached robot object) :test #'equal))
+     (let ((supporting-bounding-box (get-supporting-object-bounding-box (btr:name object))))
+       (desig:make-designator
+        :location
+        `((:in :gripper)
+          (:pose ,(object-pose-in-frame object gripper-link)))))))
 )
