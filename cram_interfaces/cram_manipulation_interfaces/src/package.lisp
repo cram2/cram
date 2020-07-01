@@ -41,10 +41,15 @@
    #:get-object-old-transform
    #:get-object-old-pose
    ;; prolog
-   #:object-type-subtype
-   #:object-type-direct-subtype
-   #:robot-free-hand
+   #:object-type-subtype #:object-type-direct-subtype
+   #:robot-free-hand #:joint-state-for-arm-config
    #:unidirectional-attachment
+   #:location-always-reachable
+   #:object-is-a-robot
+   #:location-accessible
+   #:location-reference-object
+   #:location-certain
+   #:location-always-stable
    ;; environment
    #:environment-name
    #:current-environment-symbol
@@ -53,8 +58,9 @@
    ;; manipulation-interfaces
    #:get-action-gripping-effort
    #:get-action-gripper-opening
-   #:get-action-trajectory
+   #:get-object-type-carry-config
    #:get-action-grasps
+   #:get-action-trajectory
    #:get-location-poses
    #:get-object-likely-location
    #:get-object-destination

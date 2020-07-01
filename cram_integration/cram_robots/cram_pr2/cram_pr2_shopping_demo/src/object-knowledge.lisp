@@ -32,16 +32,28 @@
 (defparameter *lift-z-offset* 0.05 "in meters")
 (defparameter *default-lift-offsets* `(0 0 ,*lift-z-offset*))
 
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :denkmit))) 50)
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :dove))) 50)
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :heitmann))) 50)
-(defmethod man-int:get-action-gripping-effort :heuristics 20 ((object-type (eql :somat))) 50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :denkmit))) 50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :dove))) 50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :heitmann))) 50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :somat))) 50)
+(defmethod man-int:get-action-gripping-effort :heuristics 20
+    ((object-type (eql :basket))) 50)
 
 
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :denkmit))) 0.1)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :dove))) 0.1)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :heitmann))) 0.1)
-(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :somat))) 0.1)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :denkmit))) 0.1)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :dove))) 0.1)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :heitmann))) 0.1)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :somat))) 0.1)
+(defmethod man-int:get-action-gripper-opening :heuristics 20
+    ((object-type (eql :basket))) 0.1)
 
 (defparameter *denkmit-pregrasp-xy-offste* 0.3 "in meters")
 (defparameter *denkmit-grasp-xy-offset* 0.03 "in meters")
@@ -79,19 +91,28 @@
   :lift-translation *default-lift-offsets*
   :2nd-lift-translation *default-lift-offsets*)
 
+(man-int:def-object-type-to-gripper-transforms :basket '(:left :right) :top
+  :grasp-translation `(0.15 0.0 0.18)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-lift-offsets*
+  :2nd-pregrasp-offsets *default-lift-offsets*
+  :lift-translation *default-lift-offsets*
+  :2nd-lift-translation *default-lift-offsets*)
 
-(defmethod man-int:get-z-offset-for-placing-with-dropping ((other-object (eql :basket))
-                                                           object attachment)
-  0.1)
+
+(defmethod man-int:get-z-offset-for-placing-with-dropping (object
+                                                           (other-object (eql :basket))
+                                                           attachment)
+  0.15)
 
 (man-int:def-object-type-in-other-object-transform :heitmann :basket :in-basket
-  :attachment-translation `(0.2 -0.1 -0.005)
-  :attachment-rot-matrix '((-1 0 0)
-                           (0 -1 0)
+  :attachment-translation `(0.2 0.15 -0.005)
+  :attachment-rot-matrix '((1 0 0)
+                           (0 1 0)
                            (0 0 1)))
 
 (man-int:def-object-type-in-other-object-transform :dove :basket :in-basket
-  :attachment-translation `(0.1 -0.1 -0.005)
-  :attachment-rot-matrix '((-1 0 0)
-                           (0 -1 0)
+  :attachment-translation `(0.1 0.15 -0.005)
+  :attachment-rot-matrix '((1 0 0)
+                           (0 1 0)
                            (0 0 1)))

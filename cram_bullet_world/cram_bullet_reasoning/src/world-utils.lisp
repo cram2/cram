@@ -50,8 +50,10 @@
 
 (defun find-objects (world &optional (pred (constantly t)))
   "Finds all objects that match the predicate"
-  (remove-if-not
-   pred (objects world)))
+  (remove-if-not pred (objects world)))
+
+(defun find-items (world)
+  (find-objects world (lambda (obj) (typep obj 'item))))
 
 (defun contact-p (world obj-1 obj-2)
   "Returns T if obj-1 and obj-2 are in contact"

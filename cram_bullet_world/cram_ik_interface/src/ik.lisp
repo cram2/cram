@@ -63,12 +63,7 @@
                      :no_ik_solution))
                nil)
               (T
-               (error 'simple-error
-                      :format-control "IK service failed: ~a"
-                      :format-arguments (list
-                                         (roslisp-msg-protocol:code-symbol
-                                          'moveit_msgs-msg:moveiterrorcodes
-                                          response-error-code))))))
+               nil)))
     ;; PR2's IK kinematics solver sends garbage sometimes
     (simple-error (e)
       (declare (ignore e))
@@ -137,160 +132,103 @@ If not valid solution was found, returns NIL."
         (roslisp:set-debug-level nil old-debug-lvl)))))
 
 
-(defmacro find-ik-for ((goal-pose
-                        base-link tip-link
-                        seed-state-message
-                        &optional
-                          solution-valid-p
-                          robot-base-pose)
+(defmacro find-ik-for ((goal-pose base-link tip-link seed-state-message
+                        &optional solution-valid-p)
                        &body body)
   "Method to find inverse kinematics for a given cartesian pose using resampling
 Syntax:
- (ik::find-ik-for (?goal-pose base-link tip-link seed-state-message)
-         (ik::with-resampling (current-value resampling-axis upper-limit
-                               lower-limit resampling-step)
+ (ik::find-ik-for (goal-pose base-link tip-link seed-state-message)
+         (ik::with-resampling (current-value resampling-axis
+                               upper-limit lower-limit resampling-step)
              (ik::with-resampling current-value2 resampling-axis2 ...)
                             ....))
-"
-  `(let ((old-debug-level (roslisp:debug-level nil)))
-     (unwind-protect
-          (progn
-            (roslisp:set-debug-level nil 9)
-            (let ((offseted-goal-pose ,goal-pose)
-                  (base-link-evaled ,base-link)
-                  (tip-link-evaled ,tip-link)
-                  (seed-state-msg-evaled ,seed-state-message)
-                  (solution-valid-p-evaled ,solution-valid-p)
-                  (offseted-robot-base-pose ,robot-base-pose)
-                  (current-joint-states))
-              (macrolet ((with-resampling (&whole whole-form
-                                             (current-value
-                                              resampling-axis
-                                              upper-limit lower-limit
-                                              resampling-step
-                                              &optional
-                                                joint-name
-                                                (pose-joint nil))
-                                           &body body)
-                           (let ((form-length (length whole-form)))
-                             ;;Formulating a list of joint values toample
-                             `(let ((old-offseted-robot-base-pose
-                                      offseted-robot-base-pose)
-                                    (sampling-values
-                                      (remove-duplicates
-                                       (append
-                                        (list ,current-value)
-                                        (loop
-                                          for x = ,upper-limit
-                                            then  (- x ,resampling-step)
-                                          until (<= x ,lower-limit)
-                                          if (> (abs (- x ,current-value))
-                                                *float-comparison-precision*)
-                                            collect x)
-                                        (list ,lower-limit))
-                                       :test (lambda (x y)
-                                               (< (abs (- x y))
-                                                  *float-comparison-precision*))))
-                                      ;; Calculating the pose offset for the
-                                      ;; corresponding joint value
-                                    (calculate-pseudo-pose
-                                      (lambda (original-pose offset
-                                               &optional (operand :-))
-                                        (let ((operation
-                                                (ecase operand
-                                                  (:- #'-)
-                                                  (:+ #'+))))
-                                          (if (eq ,resampling-axis
-                                                  :theta)
-                                              (cram-tf:rotate-pose
-                                               original-pose
-                                               :z (funcall operation
-                                                           (- offset
-                                                              ,current-value)))
-                                              (cram-tf:translate-pose
-                                               original-pose
-                                               (ecase ,resampling-axis
-                                                 (:x :x-offset)
-                                                 (:y :y-offset)
-                                                 (:z :z-offset))
-                                               (funcall operation
-                                                        (- offset
-                                                           ,current-value))))))))
-                                (loop
-                                  for value in sampling-values
-                                  do
-                                     (if ,pose-joint
-                                         (setf offseted-robot-base-pose
-                                               (funcall calculate-pseudo-pose
-                                                        offseted-robot-base-pose
-                                                        value :+)))
-                                     (multiple-value-bind
-                                           (solution-msg joint-values)
-                                         ;; Checking if the arguments contain
-                                         ;; &body clause or not. 2 is the
-                                         ;; current number of arguments without
-                                         ;; including the body. One being the
-                                         ;; form itself and the second being the
-                                         ;; list of values in the paranthesis.
-                                         ;; Update according to API changes
-                                         (if (> ,form-length 2)
-                                             ;; If body is provided, call it
-                                             ;; with the current offseted value
-                                             ;; of pose (for retaining the loop
-                                             ;; value on nested calls). Revert
-                                             ;; it back after the execution of
-                                             ;; &body is completed.
-                                             (let ((old-offseted-goal-pose
-                                                     offseted-goal-pose))
-                                               (setf offseted-goal-pose
-                                                     (funcall
-                                                      calculate-pseudo-pose
-                                                      offseted-goal-pose
-                                                      value))
-                                               (unwind-protect
-                                                    (progn ,@body)
-                                                 (setf offseted-goal-pose
-                                                       old-offseted-goal-pose)))
+Resampling axis can only be :X, :Y or :Z"
+  `(let ((offseted-goal-pose ,goal-pose)
+         (base-link-evaled ,base-link)
+         (tip-link-evaled ,tip-link)
+         (seed-state-msg-evaled ,seed-state-message)
+         (solution-valid-p-evaled ,solution-valid-p)
+         (old-debug-level (roslisp:debug-level nil)))
+     (macrolet ((with-resampling (&whole whole-form
+                                    (resampling-axis upper-limit lower-limit
+                                     resampling-step)
+                                  &body body)
+                  (let ((form-length (length whole-form)))
+                    ;; Formulating a list of joint values to sample
+                    `(let* ((original-goal-pose
+                              offseted-goal-pose)
+                            (sampling-values
+                              (remove-duplicates
+                               (append
+                                (list 0.0)
+                                (loop for x = ,lower-limit then (+ x ,resampling-step)
+                                      until (> x ,upper-limit)
+                                      collect x))
+                               ;; remove duplicates in case current value is
+                               ;; exactly one of the sampling values
+                               :test (lambda (x y)
+                                       (< (abs (- x y))
+                                          *float-comparison-precision*))
+                               :from-end t))
+                            (result
+                              (loop for value in sampling-values
+                                    do (setf offseted-goal-pose
+                                                (cram-tf:translate-pose
+                                                 original-goal-pose
+                                                 (ecase ,resampling-axis
+                                                   (:x :x-offset)
+                                                   (:y :y-offset)
+                                                   (:z :z-offset))
+                                                 (- value)))
+                                       (multiple-value-bind
+                                             (solution-msg joint-values)
 
-                                             ;; else make the ik-service call
-                                             (call-ik-service
-                                              (funcall calculate-pseudo-pose
-                                                       offseted-goal-pose
-                                                       value)
-                                              base-link-evaled
-                                              tip-link-evaled
-                                              seed-state-msg-evaled))
+                                           ;; Checking if the arguments contain
+                                           ;; &body clause or not. 2 is the
+                                           ;; current number of arguments without
+                                           ;; including the body. One being the
+                                           ;; form itself and the second being the
+                                           ;; list of values in the paranthesis.
+                                           (if (> ,form-length 2)
+                                               ;; If body is provided, call it
+                                               ;; with the current offseted value
+                                               ;; of pose (for retaining the loop
+                                               ;; value on nested calls).
+                                               (progn ,@body)
+                                               ;; else make the ik-service call
+                                               (call-ik-service
+                                                offseted-goal-pose
+                                                base-link-evaled
+                                                tip-link-evaled
+                                                seed-state-msg-evaled))
+                                         ;; now we either got a solution from the
+                                         ;; ik service call, if we're leaf,
+                                         ;; or from our nested form.
+                                         ;; it can also be that we get NIL back
 
-                                       (if ,joint-name
-                                           (if (and current-joint-states
-                                                    (assoc ,joint-name
-                                                           current-joint-states
-                                                           :test #'equal))
-                                               (setf (second
-                                                      (assoc ,joint-name
-                                                             current-joint-states
-                                                             :test #'equal))
-                                                     value)
-                                               (setf current-joint-states
-                                                     (cons
-                                                      (list ,joint-name value)
-                                                      current-joint-states))))
-                                       ;; Parse the solution
-                                       (when (and solution-msg
-                                                  (or (not
-                                                       solution-valid-p-evaled)
-                                                      (funcall
-                                                       solution-valid-p-evaled
-                                                       solution-msg
-                                                       current-joint-states
-                                                       offseted-robot-base-pose)))
-                                         (return (values solution-msg
-                                                         (cons
-                                                          (cons
-                                                           ,resampling-axis
-                                                           value)
-                                                          joint-values))))
-                                       (setf offseted-robot-base-pose
-                                             old-offseted-robot-base-pose)))))))
-                ,@body)))
-       (roslisp:set-debug-level nil old-debug-level))))
+                                         ;; if we did get an answer,
+                                         ;; first, perform the collision check,
+                                         ;; and if that is successful, break the loop
+                                         (when solution-msg
+                                           ;; if collision check is not defined
+                                           ;; or the collision check is successful
+                                           ;; break the loop
+                                           ;; otherwise, we simply continue our loop
+                                           (let ((new-joint-values
+                                                   (cons
+                                                    (cons ,resampling-axis value)
+                                                    joint-values)))
+                                             (when (or (not solution-valid-p-evaled)
+                                                       (funcall
+                                                        solution-valid-p-evaled
+                                                        solution-msg
+                                                        new-joint-values))
+                                               (return (list solution-msg
+                                                             new-joint-values)))))))))
+                       (setf offseted-goal-pose original-goal-pose)
+                       (values (first result) (second result))))))
+       (unwind-protect
+            (progn
+              (roslisp:set-debug-level nil 9)
+              ,@body)
+         (roslisp:set-debug-level nil old-debug-level)))))

@@ -62,10 +62,13 @@
                cram-urdf-projection      ; for with-simulated-robot
                cram-urdf-projection-reasoning
 
-               ;; cram-location-costmap
-               ;; cram-btr-visibility-costmap
-               ;; cram-robot-pose-gaussian-costmap
+               cram-location-costmap
+               cram-btr-visibility-costmap
+               cram-robot-pose-gaussian-costmap
+               cram-btr-spatial-relations-costmap
                ;; cram-occupancy-grid-costmap
+
+               cram-fetch-deliver-plans
 
                cram-donbot-description
 
@@ -79,5 +82,4 @@
     :components
     ((:file "package")
      (:file "setup" :depends-on ("package"))
-     (:file "projection-demo" :depends-on ("package"))
-     (:file "demo" :depends-on ("package" "projection-demo"))))))
+     (:file "demo" :depends-on ("package"))))))

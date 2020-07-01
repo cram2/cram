@@ -31,20 +31,14 @@
 
 (def-fact-group boxy-metadata (robot
                                robot-odom-frame
-                               robot-base-frame robot-torso-link-joint
-                               arm
-                               camera-frame)
+                               robot-base-frame robot-torso-link-joint)
   (<- (robot boxy))
 
   (<- (robot-odom-frame boxy "odom"))
 
   (<- (robot-base-frame boxy "base_footprint"))
-  (<- (robot-torso-link-joint boxy "triangle_base_link" "triangle_base_joint"))
+  (<- (robot-torso-link-joint boxy "triangle_base_link" "triangle_base_joint")))
 
-  (<- (arm boxy :left))
-  (<- (arm boxy :right))
-
-  (<- (camera-frame boxy "head_mount_kinect2_rgb_optical_frame")))
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding
                                            costmap:costmap-manipulation-padding
@@ -54,9 +48,9 @@
                                            costmap:orientation-sample-step
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding 0.5))
-  (<- (costmap:costmap-manipulation-padding 0.5))
-  (<- (costmap:costmap-in-reach-distance 1.2))
-  (<- (costmap:costmap-reach-minimal-distance 0.2))
+  (<- (costmap:costmap-manipulation-padding 0.2)) ; 0.5 (might be a little low now)
+  (<- (costmap:costmap-in-reach-distance 1.45))
+  (<- (costmap:costmap-reach-minimal-distance 0.65))
   (<- (costmap:orientation-samples 1))
   (<- (costmap:orientation-sample-step 0.3))
   (<- (costmap:visibility-costmap-size 2)))
