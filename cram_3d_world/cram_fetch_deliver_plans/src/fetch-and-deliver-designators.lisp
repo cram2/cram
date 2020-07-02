@@ -68,13 +68,12 @@ the `look-pose-stamped'."
     ;; get robot arms and how many arms the robot has
     (setof ?arm (rob-int:arm ?_ ?arm) ?rob-arms)
     (length ?rob-arms ?number-of-arms)
-    ;; check if robot holds atleast one object
-    (-> (cpoe:object-in-hand ?object-designator ?arm ?grasp)
-        ;; check if the robot with more than one arm holds the above object
-        (and (> ?number-of-arms 1)
+    ;; check if the robot with more than one arm holds only one object
+    (-> (and (cpoe:object-in-hand ?object-designator ?arm ?grasp)
+             (> ?number-of-arms 1)
              (forall (member ?rob-arm ?rob-arms)
-                     (cpoe:object-in-hand ?object-designator ?rob-arm))
-             (equal ?park-arms NIL))
+                     (cpoe:object-in-hand ?object-designator ?rob-arm)))
+        (equal ?park-arms NIL)
         (equal ?park-arms T))
     (desig:designator :action ((:type :navigating)
                                (:location ?location-designator)
