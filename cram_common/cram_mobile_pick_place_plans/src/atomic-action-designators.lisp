@@ -33,7 +33,8 @@
 
   (<- (desig:action-grounding ?action-designator (go-to-target ?resolved-action-designator))
     (spec:property ?action-designator (:type :going))
-    (spec:property ?action-designator (:target ?location-designator))
+    (spec:property ?action-designator (:target ?some-location-designator))
+    (desig:current-designator ?some-location-designator ?location-designator)
     (desig:designator-groundings ?location-designator ?poses)
     (member ?pose-stamped ?poses)
     (desig:designator :action ((:type :going)
@@ -48,6 +49,53 @@
 
 
 
+  (<- (infer-prefer-base ?action-designator ?prefer-base)
+    ;; infer if the robot should prefer to move the base more than arms
+    ;; prefer-base is only true when we're opening prismatic containers
+    (-> (and (spec:property ?action-designator (:type :pulling))
+             (spec:property ?action-designator (:container-object ?container-designator))
+             (spec:property ?container-designator (:type ?container-type))
+             (man-int:object-type-subtype :container-prismatic ?container-type))
+        (equal ?prefer-base t)
+        (equal ?prefer-base nil)))
+
+  (<- (infer-move-base ?action-designator ?move-base)
+    ;; infer if we should move the base at all or not
+    ;; we shouldn't move the base if we're getting something of our own back
+    (-> (and (or (spec:property ?action-designator (:type :reaching))
+                 (spec:property ?action-designator (:type :grasping)))
+             (or (and (spec:property ?action-designator
+                                     (:object ?some-object-designator))
+                      (desig:current-designator ?some-object-designator
+                                                ?object-designator)
+                      (spec:property ?object-designator
+                                     (:location ?some-location-designator)))
+                 (spec:property ?action-designator
+                                (:location ?some-location-designator)))
+             (desig:current-designator ?some-location-designator ?location-designator)
+             (spec:property ?location-designator (:on ?on-object-designator))
+             (spec:property ?on-object-designator (:name ?robot-name))
+             (rob-int:robot ?robot-name))
+        (equal ?move-base nil)
+        (equal ?move-base t)))
+
+  (<- (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
+    ;; infer if we should keep the object in hand upright
+    ;; that should currently always happen if we have an object in hand
+    (-> (cpoe:object-in-hand ?_ :left)
+        (equal ?align-planes-left t)
+        (equal ?align-planes-left nil))
+    (-> (cpoe:object-in-hand ?_ :right)
+        (equal ?align-planes-right t)
+        (equal ?align-planes-right nil)))
+
+  (<- (infer-motion-flags ?action-designator
+                          ?prefer-base ?move-base
+                          ?align-planes-left ?align-planes-right)
+    (infer-prefer-base ?action-designator ?prefer-base)
+    (infer-move-base ?action-designator ?move-base)
+    (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right))
+
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
     (or (spec:property ?action-designator (:type :reaching))
@@ -58,10 +106,15 @@
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
+    (infer-motion-flags ?action-designator
+                        ?_ ?move-base ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :avoid-all))
+                               (:collision-mode :avoid-all)
+                               (:move-base ?move-base)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
@@ -71,40 +124,32 @@
     (spec:property ?action-designator (:type ?action-type))
     (spec:property ?action-designator (:object ?object-designator))
     (spec:property ?object-designator (:name ?object-name))
-    (or (spec:property ?action-designator (:link ?object-link))
-        (equal ?object-link nil))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
-    (or (and (spec:property ?action-designator (:type :grasping))
-             (desig:designator :action ((:type ?action-type)
-                                        (:left-poses ?left-poses)
-                                        (:right-poses ?right-poses)
-                                        (:collision-mode :allow-hand)
-                                        (:collision-object-b ?object-name)
-                                        (:collision-object-b-link ?object-link))
-                               ?resolved-action-designator))
-        (and (spec:property ?action-designator (:type :pulling))
-             (spec:property ?action-designator (:container-object ?container-designator))
-             (spec:property ?container-designator (:type ?container-type))
-             (or (and (man-int:object-type-subtype :container-prismatic ?container-type)
-                      (desig:designator :action ((:type ?action-type)
-                                                 (:left-poses ?left-poses)
-                                                 (:right-poses ?right-poses)
-                                                 (:collision-mode :allow-hand)
-                                                 (:collision-object-b ?object-name)
-                                                 (:collision-object-b-link ?object-link)
-                                                 (:move-the-ass t))
-                                        ?resolved-action-designator))
-                 (desig:designator :action ((:type ?action-type)
-                                            (:left-poses ?left-poses)
-                                            (:right-poses ?right-poses)
-                                            (:collision-mode :allow-hand)
-                                            (:collision-object-b ?object-name)
-                                            (:collision-object-b-link ?object-link)
-                                            (:move-the-ass nil))
-                                   ?resolved-action-designator)))))
+    (infer-motion-flags ?action-designator
+                        ?prefer-base ?move-base
+                        ?align-planes-left ?align-planes-right)
+    ;; infer collision-object-b and collision-object-b-link
+    (-> (cpoe:object-in-hand ?object-designator ?_ ?_ ?_)
+        (and (rob-int:robot ?robot)
+             (equal ?collision-object-b ?robot)
+             (equal ?object-link ?object-name))
+        (and (equal ?collision-object-b ?object-name)
+             (or (spec:property ?action-designator (:link ?object-link))
+                 (equal ?object-link nil))))
+    (desig:designator :action ((:type ?action-type)
+                               (:left-poses ?left-poses)
+                               (:right-poses ?right-poses)
+                               (:collision-mode :allow-hand)
+                               (:collision-object-b ?collision-object-b)
+                               (:collision-object-b-link ?object-link)
+                               (:prefer-base ?prefer-base)
+                               (:move-base ?move-base)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
+                      ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
@@ -123,6 +168,8 @@
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
+    (infer-motion-flags ?action-designator
+                        ?_ ?move-base ?align-planes-left ?align-planes-right)
     ;; putting should actually allow hand and attached if grasping allows hand
     (desig:designator :action ((:type :putting)
                                (:left-poses ?left-poses)
@@ -131,7 +178,10 @@
                                                 )
                                (:collision-object-b ?other-object-name)
                                (:collision-object-b-link ?object-link)
-                               (:collision-object-a ?object-name))
+                               (:collision-object-a ?object-name)
+                               (:move-base ?move-base)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
@@ -141,10 +191,12 @@
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
+    (infer-move-base ?action-designator ?move-base)
     (desig:designator :action ((:type :pushing)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :allow-all))
+                               (:collision-mode :allow-all)
+                               (:move-base ?move-base))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-into-configuration
@@ -152,23 +204,43 @@
     (spec:property ?action-designator (:type :positioning-arm))
     (rob-int:robot ?robot)
     (-> (spec:property ?action-designator (:left-configuration ?left-config))
-        (-> (equal ?left-config :park)
-            (-> (cpoe:object-in-hand ?_ :left)
-                (rob-int:robot-joint-states ?robot :arm :left :carry ?left-joint-states)
-                (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states))
-            (rob-int:robot-joint-states ?robot :arm :left ?left-config ?left-joint-states))
+        (man-int:joint-state-for-arm-config ?robot ?left-config :left
+                                            ?left-joint-states)
         (equal ?left-joint-states nil))
     (-> (spec:property ?action-designator (:right-configuration ?right-config))
-        (-> (equal ?right-config :park)
-            (-> (cpoe:object-in-hand ?_ :right)
-                (rob-int:robot-joint-states ?robot :arm :right :carry ?right-joint-states)
-                (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states))
-            (rob-int:robot-joint-states ?robot :arm :right ?right-config ?right-joint-states))
+        (man-int:joint-state-for-arm-config ?robot ?right-config :right
+                                            ?right-joint-states)
         (equal ?right-joint-states nil))
+    (infer-align-planes ?action-designator ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type :positioning-arm)
                                (:left-joint-states ?left-joint-states)
-                               (:right-joint-states ?right-joint-states))
+                               (:right-joint-states ?right-joint-states)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
+
+  (<- (desig:action-grounding ?action-designator (park-arms ?resolved-action-desig))
+    (spec:property ?action-designator (:type :parking-arms))
+    ;; get the arms list from the designator or infer it
+    (once (or (spec:property ?action-designator (:arms ?arms-list))
+              (-> (spec:property ?action-designator (:not-neck T))
+                  (and (rob-int:robot ?robot-name)
+                       (rob-int:arms-that-are-not-neck ?robot-name ?arms-list))
+                  (and (rob-int:robot ?robot-name)
+                       (rob-int:arms ?robot-name ?arms-list)))))
+    ;; see if left arm and right arm are present
+    ;; this is super non-general but has to be like this
+    ;; because positioning-arm is so non-general
+    (-> (member :left ?arms-list)
+        (equal ?left-arm-p T)
+        (equal ?left-arm-p NIL))
+    (-> (member :right ?arms-list)
+        (equal ?right-arm-p T)
+        (equal ?right-arm-p NIL))
+    (desig:designator :action ((:type :parking-arms)
+                               (:left-arm ?left-arm-p)
+                               (:right-arm ?right-arm-p))
+                      ?resolved-action-desig))
 
 
 
@@ -178,7 +250,14 @@
     (once (or (spec:property ?action-designator (:object ?_))
               (true))))
 
-  (<- (desig:action-grounding ?action-designator (grip ?augmented-action-designator))
+  (<- (desig:action-grounding ?action-designator (grip ?action-designator))
+    (spec:property ?action-designator (:type :gripping))
+    (spec:property ?action-designator (:gripper ?_))
+    (not (spec:property ?action-designator (:object ?_)))
+    (once (or (spec:property ?action-designator (:effort ?_))
+              (true))))
+
+  (<- (desig:action-grounding ?action-designator (grip ?action-designator))
     (spec:property ?action-designator (:type :gripping))
     (spec:property ?action-designator (:gripper ?_))
     (spec:property ?action-designator (:object ?object-designator))
@@ -188,16 +267,7 @@
     (once (or (spec:property ?action-designator (:grasp ?_))
               (true)))
     (once (or (spec:property ?action-designator (:effort ?_))
-              (true)))
-    ;; make a new object designator that will be equated to the old one
-    ;; after the successful grasp
-    (desig:current-designator ?object-designator ?current-object-desig)
-    (lisp-fun desig:rename-designator-property-key ?current-object-desig
-              :pose :old-pose ?new-object-desig)
-    ;; extend the old action designator with a new OBJECT property
-    (equal ?new-description ((:grasped-object ?new-object-desig)))
-    (lisp-fun desig:copy-designator ?action-designator :new-description ?new-description
-              ?augmented-action-designator))
+              (true))))
 
   (<- (desig:action-grounding ?action-designator (set-gripper-to-position ?action-designator))
     (spec:property ?action-designator (:type :setting-gripper))

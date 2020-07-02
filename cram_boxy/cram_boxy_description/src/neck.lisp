@@ -55,17 +55,33 @@
 
 (defparameter *neck-ee-p-camera*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector 0.0986269622673131 0.12544403167962803 -0.03128420761449102)
+   (cl-transforms:make-3d-vector 0.0986269622673131
+                                 0.12544403167962803
+                                 -0.03128420761449102)
    (cl-transforms:make-quaternion 0.9999584853467481 -0.0018697606579721564
                                   0.003765215266400738 0.008087476255186993)))
 
-(def-fact-group boxy-neck-facts (robot-neck-links
+
+
+(def-fact-group boxy-neck-facts (camera-frame
+                                 camera-in-neck-ee-pose
+                                 neck-camera-z-offset
+                                 camera-horizontal-angle camera-vertical-angle
+                                 robot-neck-links
                                  robot-neck-joints
                                  robot-neck-base-link
-                                 ;; robot-neck-parking-joint-states
-                                 ;; robot-neck-looking-joint-states
-                                 robot-joint-states
-                                 camera-in-neck-ee-pose)
+                                 robot-joint-states)
+
+  (<- (camera-frame boxy "head_mount_kinect2_rgb_optical_frame"))
+
+  (<- (camera-in-neck-ee-pose boxy ?pose)
+    (symbol-value *neck-ee-p-camera* ?pose))
+
+  (<- (neck-camera-z-offset boxy 0.2))
+
+  ;; These are values taken from the Kinect's wikipedia page for the 360 variant
+  (<- (camera-horizontal-angle boxy 0.99483)) ;  ca 57 degrees
+  (<- (camera-vertical-angle boxy 0.75049))   ; ca 43 degrees
 
   (<- (robot-neck-links boxy
                         "neck_shoulder_link"
@@ -95,7 +111,4 @@
     (symbol-value *neck-good-looking-down-state* ?joint-states))
 
   (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :down-left ?joint-states)
-    (symbol-value *neck-good-looking-left-state* ?joint-states))
-
-  (<- (camera-in-neck-ee-pose boxy ?pose)
-    (symbol-value *neck-ee-p-camera* ?pose)))
+    (symbol-value *neck-good-looking-left-state* ?joint-states)))

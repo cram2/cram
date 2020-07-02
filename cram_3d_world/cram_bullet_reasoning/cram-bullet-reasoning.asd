@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -14,7 +14,7 @@
 ;;;       Technische Universitaet Muenchen nor the names of its contributors 
 ;;;       may be used to endorse or promote products derived from this software 
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -52,7 +52,7 @@
                  cram-manipulation-interfaces
                  cram-robot-interfaces
                  cram-occasions-events
-                 cram-utilities ; lazy in pose-generators
+                 cram-utilities ; lazy in pose-generators and with-file-cache
                  cram-occasions-events ; for temporal reasoning
                  cram-tf
                  cram-physics-utils)
@@ -64,36 +64,52 @@
        (:file "reasoning-world" :depends-on ("package"))
        (:file "textures" :depends-on ("package"))
        (:file "utils" :depends-on ("package"))
-       (:file "objects" :depends-on ("package" "reasoning-world" "textures" "utils"))
-       (:file "items" :depends-on ("package" "objects" "utils"))
-       (:file "aabb" :depends-on ("package" "objects"))
-       (:file "debug-window" :depends-on ("package"))
-       (:file "world-utils" :depends-on ("package" "reasoning-world" "objects"))
-       (:file "world-facts"
-        :depends-on ("package" "reasoning-world" "items" "objects" "debug-window" "world-utils"))
-       (:file "prolog-handlers" :depends-on ("package" "reasoning-world" "world-facts"))
-       (:module "temporal-reasoning"
-        :depends-on ("package" "reasoning-world" "world-facts" "utils")
-        :components
-        ((:file "events")
-         (:file "timeline" :depends-on ("events"))
-         (:file "prolog")))
-       (:file "pose-generators" :depends-on ("package" "utils" "aabb" "world-facts"))
-       (:file "pose-sampling-facts" :depends-on ("package" "world-facts" "pose-generators"))
-       (:file "pose-facts"
-        :depends-on ("package" "aabb" "world-utils" "pose-generators" "objects" "world-facts"))
-       (:file "robot-model" :depends-on ("package" "objects" "utils" "reasoning-world"))
+
+       (:file "objects" :depends-on ("package" "utils" "reasoning-world" "textures"))
+       (:file "robot-model" :depends-on ("package" "objects" "utils"
+                                                   "reasoning-world"))
        (:file "robot-model-utils" :depends-on ("package" "robot-model"))
-       (:file "robot-model-facts"
-        :depends-on ("package" "world-facts" "prolog-handlers" "robot-model" "robot-model-utils"))
+       (:file "robot-model-facts" :depends-on ("package" "world-facts"
+                                                         "prolog-handlers"
+                                                         "robot-model"
+                                                         "robot-model-utils"))
+       (:file "items" :depends-on ("package" "objects" "utils" "aabb"))
+
+       (:file "aabb" :depends-on ("package" "objects"))
+
+       (:file "debug-window" :depends-on ("package"))
        (:file "gl-scenes" :depends-on ("package" "debug-window"))
        (:file "visibility-reasoning" :depends-on ("package" "gl-scenes"))
-       (:file "visibility-facts"
-        :depends-on ("package" "world-facts" "visibility-reasoning" "robot-model-facts"))
+       (:file "visibility-facts" :depends-on ("package" "world-facts"
+                                                        "visibility-reasoning"
+                                                        "robot-model-facts"))
+
+       (:file "world-utils" :depends-on ("package" "reasoning-world" "objects"))
+       (:file "world-facts" :depends-on ("package" "reasoning-world" "items"
+                                                   "objects" "debug-window"
+                                                   "world-utils"))
+       (:file "prolog-handlers" :depends-on ("package" "reasoning-world"
+                                                       "world-facts"))
+
+       (:file "pose-generators" :depends-on ("package" "utils" "aabb" "world-facts"))
+       (:file "pose-sampling-facts" :depends-on ("package" "world-facts"
+                                                           "pose-generators"))
+       (:file "pose-facts" :depends-on ("package" "aabb" "world-utils"
+                                                  "pose-generators" "objects"
+                                                  "world-facts"))
+
        (:file "semantic-map" :depends-on ("package" "objects" "utils"))
        (:file "simple-semantic-map" :depends-on ("package" "semantic-map"))
-       (:file "urdf-semantic-map"
-        :depends-on ("package" "reasoning-world" "semantic-map" "robot-model"))
-       (:file "semantic-map-facts"
-        :depends-on ("package" "semantic-map" "urdf-semantic-map" "world-facts"))
-       (:file "articulated-objects" :depends-on ("package" "semantic-map"))))))
+       (:file "urdf-semantic-map" :depends-on ("package" "reasoning-world"
+                                                         "semantic-map"
+                                                         "robot-model"))
+       (:file "semantic-map-facts" :depends-on ("package" "semantic-map"
+                                                          "urdf-semantic-map"
+                                                          "world-facts"))
+       (:file "articulated-objects" :depends-on ("package" "semantic-map"))
+
+       (:module "temporal-reasoning" :depends-on ("package" "reasoning-world"
+                                                            "world-facts" "utils")
+        :components ((:file "events")
+                     (:file "timeline" :depends-on ("events"))
+                     (:file "prolog")))))))

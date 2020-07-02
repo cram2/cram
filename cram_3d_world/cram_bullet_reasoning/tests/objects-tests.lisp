@@ -29,7 +29,8 @@
 
 (in-package :btr-tests)
 
-;; Help functions to convert objects to lists, so these can be compared with equals
+;; Help functions to convert objects to lists, so these can be
+;; compared with equals
 (defun orientation->list (orient)
   (list (cl-transforms:w orient)
         (cl-transforms:x orient)
@@ -49,154 +50,486 @@
   (equal (pose->list pose)
          (pose->list other-pose)))
 
+(defun spawn-robot ()
+  (setf rob-int:*robot-urdf*
+        (cl-urdf:parse-urdf
+         (roslisp:get-param "robot_description")))
+  (prolog:prolog
+   `(and (btr:bullet-world ?world)
+         (rob-int:robot ?robot)
+         (assert (btr:object ?world :urdf ?robot ((0 0 0) (0 0 0 1))
+                             :urdf ,rob-int::*robot-urdf*))
+         (assert (btr:joint-state ?world ?robot (("torso_lift_joint"
+                                                  0.15d0))))))
+  (btr:detach-all-objects (btr:get-robot-object)))
+
+(defun spawn-environment ()
+  (assert
+   (setf btr-belief:*kitchen-urdf*
+         (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
+  (prolog:prolog
+   `(and (btr:bullet-world ?w)
+         (prolog:-> (man-int:environment-name ?environment-name)
+                    (btr:assert ?w (btr:object :urdf ?environment-name
+                                               ((0 0 0) (0 0 0 1))
+                                               :collision-group :static-filter
+                                               :collision-mask (:default-filter
+                                                                :character-filter)
+                                               :urdf ,btr-belief:*kitchen-urdf*
+                                               :compound T))
+                    (warn "MAN-INT:ENVIRONMENT-NAME was not defined. ~
+                    Have you loaded an environment knowledge package?"))))
+  (clrhash (btr::get-updated-attachments))
+  (btr:detach-all-objects (btr:get-robot-object)))
 
 (define-test create-static-collision-information-works
-  ;; Tests if the collision information is properly saved and if it has an effect on
-  ;; the object by simulating the bullet world
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  ;; Tests if the collision information is properly saved and if it
+  ;; has an effect on the object by simulating the bullet world
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
   (let* ((pose-o1 (btr:pose (btr:object btr:*current-bullet-world* 'o1))))
-    
-    (btr::create-static-collision-information (btr:object btr:*current-bullet-world* 'o1))
+
+    (btr::create-static-collision-information
+     (btr:object btr:*current-bullet-world* 'o1))
     (lisp-unit:assert-equal :CF-STATIC-OBJECT (car
                                                (cl-bullet:collision-flags
                                                 (first
-                                                 (btr:rigid-bodies (btr:object btr:*current-bullet-world* 'o1))))))
+                                                 (btr:rigid-bodies (btr:object
+                                                                    btr:*current-bullet-world* 'o1))))))
     (btr:simulate btr:*current-bullet-world* 1)
-    (let ((new-pose-o1 (btr:pose (btr:object btr:*current-bullet-world* 'o1))))
-      
+    (let ((new-pose-o1
+            (btr:pose (btr:object btr:*current-bullet-world* 'o1))))
       (lisp-unit:assert-true (pose-equal pose-o1 new-pose-o1))))
 
   ;; recreate begin state for next test case
   (btr:remove-object btr:*current-bullet-world* 'o1))
 
-
-(define-test reset-collision-information-works
-  ;; Tests if the collision information is properly reseted and if it has an effect on
-  ;; the object by simulating the bullet world
-  (btr-utils:spawn-object 'o1 :mug :pose 
+(define-test create-static-collision-information-works-with-more-objects
+  ;; Tests if the collision information is properly saved and if it
+  ;; has an effect on the object by simulating the bullet world
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
-  (btr-utils:spawn-object 'o2 :mug :pose 
+  (btr-utils:spawn-object 'o2 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
+  (let* ((pose-o1 (btr:pose (btr:object btr:*current-bullet-world* 'o1)))
+         (pose-o2 (btr:pose (btr:object btr:*current-bullet-world* 'o2))))
 
+    (lisp-unit:assert-equal
+     NIL
+     (car
+      (btr::collision-information-flags
+       (car
+        (btr::create-static-collision-information
+         (btr:object btr:*current-bullet-world* 'o1))))))
+    (lisp-unit:assert-equal :CF-STATIC-OBJECT (car
+                                               (cl-bullet:collision-flags
+                                                (first
+                                                 (btr:rigid-bodies (btr:object
+                                                                    btr:*current-bullet-world* 'o1))))))
+    (lisp-unit:assert-equal
+     NIL
+     (car
+      (btr::collision-information-flags
+       (car
+        (btr::create-static-collision-information
+         (btr:object btr:*current-bullet-world* 'o2))))))
+    (lisp-unit:assert-equal :CF-STATIC-OBJECT (car
+                                               (cl-bullet:collision-flags
+                                                (first
+                                                 (btr:rigid-bodies (btr:object
+                                                                    btr:*current-bullet-world* 'o2))))))
+    (btr:simulate btr:*current-bullet-world* 1)
+    (let ((new-pose-o1
+            (btr:pose (btr:object btr:*current-bullet-world* 'o1)))
+          (new-pose-o2
+            (btr:pose (btr:object btr:*current-bullet-world* 'o2))))
+      (lisp-unit:assert-true (pose-equal pose-o1 new-pose-o1))
+      (lisp-unit:assert-true (pose-equal pose-o2 new-pose-o2))))
+
+  ;; recreate begin state for next test case
+  (btr:remove-object btr:*current-bullet-world* 'o1)
+  (btr:remove-object btr:*current-bullet-world* 'o2))
+
+(define-test create-static-collision-information-works-with-attached-objects
+  ;; Tests if the collision information is properly saved and if it
+  ;; has an effect on the object by simulating the bullet world
+  (spawn-robot)
+  (btr-utils:spawn-object 'o1 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'o2 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'o3 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr:attach-object 'o1 'o3)
+  (let* ((pose-o1 (btr:pose (btr:object btr:*current-bullet-world* 'o1)))
+         (pose-o2 (btr:pose (btr:object btr:*current-bullet-world* 'o2))))
+    
+    (lisp-unit:assert-equal
+     NIL
+     (car
+      (btr::collision-information-flags
+       (car
+        (btr::create-static-collision-information
+         (btr:object btr:*current-bullet-world* 'o1))))))
+    (lisp-unit:assert-equal :CF-STATIC-OBJECT (car
+                                               (cl-bullet:collision-flags
+                                                (first
+                                                 (btr:rigid-bodies 
+                                                  (btr:object
+                                                   btr:*current-bullet-world* 
+                                                   'o1))))))
+    (lisp-unit:assert-equal
+     NIL
+     (car
+      (btr::collision-information-flags
+       (car
+        (btr::create-static-collision-information
+         (btr:object btr:*current-bullet-world* 'o2))))))
+    (lisp-unit:assert-equal :CF-STATIC-OBJECT (car
+                                               (cl-bullet:collision-flags
+                                                (first
+                                                 (btr:rigid-bodies 
+                                                  (btr:object
+                                                   btr:*current-bullet-world*
+                                                   'o2))))))
+    (btr:simulate btr:*current-bullet-world* 1)
+    (let ((new-pose-o1
+            (btr:pose (btr:object btr:*current-bullet-world* 'o1)))
+          (new-pose-o2
+            (btr:pose (btr:object btr:*current-bullet-world* 'o2))))
+      (lisp-unit:assert-true (pose-equal pose-o1 new-pose-o1))
+      (lisp-unit:assert-true (pose-equal pose-o2 new-pose-o2))))
+  ;; recreate begin state for next test case
+  (btr:remove-object btr:*current-bullet-world* 'o1)
+  (btr:remove-object btr:*current-bullet-world* 'o2)
+  (btr:remove-object btr:*current-bullet-world* 'o3))
+
+(define-test create-static-collision-information-works-with-static-objects
+  ;; Tests if the collision information is properly saved and if it
+  ;; has an effect on the object by simulating the bullet world
+  (btr-utils:spawn-object 'o1 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'o2 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (loop for body in (apply 'concatenate 'list
+                           (list (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'o1))
+                                 (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'o2))))
+        do
+           (setf
+            (btr::collision-flags body)
+            :CF-STATIC-OBJECT))
+  (let* ((pose-o1 (btr:pose (btr:object btr:*current-bullet-world* 'o1)))
+         (pose-o2 (btr:pose (btr:object btr:*current-bullet-world* 'o2))))
+    
+    (lisp-unit:assert-equal
+     :CF-STATIC-OBJECT
+     (car
+      (btr::collision-information-flags
+       (car
+        (btr::create-static-collision-information
+         (btr:object btr:*current-bullet-world* 'o1))))))
+    (lisp-unit:assert-equal :CF-STATIC-OBJECT (car
+                                               (cl-bullet:collision-flags
+                                                (first
+                                                 (btr:rigid-bodies 
+                                                  (btr:object
+                                                   btr:*current-bullet-world* 
+                                                   'o1))))))
+    (lisp-unit:assert-equal
+     :CF-STATIC-OBJECT
+     (car
+      (btr::collision-information-flags
+       (car
+        (btr::create-static-collision-information
+         (btr:object btr:*current-bullet-world* 'o2))))))
+    (lisp-unit:assert-equal :CF-STATIC-OBJECT (car
+                                               (cl-bullet:collision-flags
+                                                (first
+                                                 (btr:rigid-bodies 
+                                                  (btr:object
+                                                   btr:*current-bullet-world*
+                                                   'o2))))))
+    (btr:simulate btr:*current-bullet-world* 1)
+    (let ((new-pose-o1
+            (btr:pose (btr:object btr:*current-bullet-world* 'o1)))
+          (new-pose-o2
+            (btr:pose (btr:object btr:*current-bullet-world* 'o2))))
+      (lisp-unit:assert-true (pose-equal pose-o1 new-pose-o1))
+      (lisp-unit:assert-true (pose-equal pose-o2 new-pose-o2))))
+
+  ;; recreate begin state for next test case
+  (btr:remove-object btr:*current-bullet-world* 'o1)
+  (btr:remove-object btr:*current-bullet-world* 'o2))
+
+(define-test create-static-collision-information-works-with-attached-static-objects
+  ;; Tests if the collision information is properly saved and if it
+  ;; has an effect on the object by simulating the bullet world
+  (spawn-robot)
+  (btr-utils:spawn-object 'o1 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'o2 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'o3 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (loop for body in (apply 'concatenate 'list
+                           (list (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'o1))
+                                 (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'o2))
+                                 (btr:rigid-bodies (btr:object
+                                                    btr:*current-bullet-world*
+                                                    'o3))))
+        do
+           (setf
+            (btr::collision-flags body)
+            :CF-STATIC-OBJECT))
+  (btr:attach-object (btr:object btr:*current-bullet-world* 'o1)
+                     (btr:object btr:*current-bullet-world* 'o3))
+  (let* ((pose-o1 (btr:pose (btr:object btr:*current-bullet-world* 'o1)))
+         (pose-o2 (btr:pose (btr:object btr:*current-bullet-world* 'o2))))
+    
+    (lisp-unit:assert-equal
+     :CF-STATIC-OBJECT
+     (car
+      (btr::collision-information-flags
+       (car
+        (btr::create-static-collision-information
+         (btr:object btr:*current-bullet-world* 'o1))))))
+    (lisp-unit:assert-equal :CF-STATIC-OBJECT (car
+                                               (cl-bullet:collision-flags
+                                                (first
+                                                 (btr:rigid-bodies 
+                                                  (btr:object
+                                                   btr:*current-bullet-world* 
+                                                   'o1))))))
+    (lisp-unit:assert-equal
+     :CF-STATIC-OBJECT
+     (car
+      (btr::collision-information-flags
+       (car
+        (btr::create-static-collision-information
+         (btr:object btr:*current-bullet-world* 'o2))))))
+    (lisp-unit:assert-equal :CF-STATIC-OBJECT (car
+                                               (cl-bullet:collision-flags
+                                                (first
+                                                 (btr:rigid-bodies 
+                                                  (btr:object
+                                                   btr:*current-bullet-world*
+                                                   'o2))))))
+    (btr:simulate btr:*current-bullet-world* 1)
+    (let ((new-pose-o1
+            (btr:pose (btr:object btr:*current-bullet-world* 'o1)))
+          (new-pose-o2
+            (btr:pose (btr:object btr:*current-bullet-world* 'o2))))
+      (lisp-unit:assert-true (pose-equal pose-o1 new-pose-o1))
+      (lisp-unit:assert-true (pose-equal pose-o2 new-pose-o2))))
+  ;; recreate begin state for next test case
+  (btr:remove-object btr:*current-bullet-world* 'o1)
+  (btr:remove-object btr:*current-bullet-world* 'o2)
+  (btr:remove-object btr:*current-bullet-world* 'o3))
+
+
+(define-test reset-collision-information-works-with-attached-objects
+  ;; Tests if the collision information is properly reseted and if it has
+  ;; an effect on the object by simulating the bullet world
+  (spawn-robot)
+  (btr-utils:spawn-object 'o1 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  (btr-utils:spawn-object 'o2 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  
   (let* ((pose-o1 (btr:pose (btr:object btr:*current-bullet-world* 'o1))))
     (btr:attach-object 'o1 'o2)
+    ;;simulate detachment
+    (setf (slot-value (btr:object btr:*current-bullet-world* 'o1) 'attached-objects)
+          nil)
     (btr::reset-collision-information (btr:object btr:*current-bullet-world* 'o1)
-                                      (list (btr::make-collision-information :rigid-body-name 'o1 :flags NIL)))
+                                      (list (btr::make-collision-information
+                                             :rigid-body-name 'o1 :flags NIL)))
     (lisp-unit:assert-equal NIL (car
                                  (cl-bullet:collision-flags
                                   (first
-                                   (btr:rigid-bodies (btr:object btr:*current-bullet-world* 'o1))))))
+                                   (btr:rigid-bodies
+                                    (btr:object btr:*current-bullet-world* 'o1))))))
     (btr:simulate btr:*current-bullet-world* 1)
-    (let ((new-pose-o1 (btr:pose (btr:object btr:*current-bullet-world* 'o1))))
+    (let ((new-pose-o1
+            (btr:pose (btr:object btr:*current-bullet-world* 'o1))))
       
       (lisp-unit:assert-false (pose-equal pose-o1 new-pose-o1))))
-    
+  
   ;; recreate begin state for next test case
   (btr:remove-object btr:*current-bullet-world* 'o1)
   (btr:remove-object btr:*current-bullet-world* 'o2))
 
 (define-test reset-collision-information-fails
   ;; Tests if nothing happens if nil is passed
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
-  (lisp-unit:assert-false (btr::reset-collision-information (btr:object btr:*current-bullet-world* 'o1) nil))
+  (lisp-unit:assert-false (btr::reset-collision-information
+                           (btr:object btr:*current-bullet-world* 'o1) nil))
   (btr:remove-object btr:*current-bullet-world* 'o1))
 
 (define-test attach-object-called-with-item-symbols
-  ;; Tests if the attach-object function gets properly called if it was called with the object item names
-  (btr-utils:spawn-object 'oo1 :mug :pose 
+  ;; Tests if the attach-object function gets properly called if it was
+  ;; called with the object item names
+  (spawn-robot)
+  (btr-utils:spawn-object 'oo1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
-  (btr-utils:spawn-object 'oo2 :mug :pose 
-                           '((-1 0.0 0.92)(0 0 0 1)))
-
+  (btr-utils:spawn-object 'oo2 :mug :pose
+                          '((-1 0.0 0.92)(0 0 0 1)))
+  
   (btr:attach-object 'oo1 'oo2)
-  (lisp-unit:assert-equal 'oo1 (car (assoc 'oo1 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo2)))))
-  (lisp-unit:assert-equal 'oo2 (car (assoc 'oo2 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1)))))
-
+  (lisp-unit:assert-equal
+   'oo1
+   (car (assoc 'oo1
+               (btr:attached-objects
+                (btr:object btr:*current-bullet-world* 'oo2)))))
+  (lisp-unit:assert-equal
+   'oo2
+   (car (assoc 'oo2 (btr:attached-objects
+                     (btr:object btr:*current-bullet-world* 'oo1)))))
+  
   (btr:remove-object btr:*current-bullet-world* 'oo1)
   (btr:remove-object btr:*current-bullet-world* 'oo2))
 
 (define-test attach-object-called-with-more-items-connecting-to-one-item-in-one-call
-  ;; Attaches three objects and 'o1 is connected with both objects in one call
-  (btr-utils:spawn-object 'o1 :mug :pose 
+  ;; Attaches three objects and 'o1 is connected with both objects in
+  ;; one call
+  (btr-utils:spawn-object 'o1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
-  (btr-utils:spawn-object 'o2 :mug :pose 
+  (btr-utils:spawn-object 'o2 :mug :pose
                           '((-1 0.75 0.92)(0 0 0 1)))
-  (btr-utils:spawn-object 'o3 :mug :pose 
+  (btr-utils:spawn-object 'o3 :mug :pose
                           '((-1 0.75 0.92)(0 0 0 1)))
 
   ;;connect objects o2 <-> o1 <-> o3
   (btr:attach-object (list 'o2 'o3) 'o1)
-  
-  ;;these are connected o2 <-> o1 <-> o3
-  (lisp-unit:assert-equal 'o2 (car (assoc 'o2 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o1)))))
-  (lisp-unit:assert-equal 'o3 (car (assoc 'o3 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o1)))))
-  (lisp-unit:assert-equal 'o1 (car (assoc 'o1 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o2)))))
-  (lisp-unit:assert-equal 'o1 (car (assoc 'o1 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o3)))))
-  ;;these are not connected to each other: o2 o3
-  (lisp-unit:assert-false (equal 'o2 (car (assoc 'o2 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o3))))))
-  (lisp-unit:assert-false (equal 'o3 (car (assoc 'o3 (btr:attached-objects (btr:object btr:*current-bullet-world* 'o2))))))
 
-  ;; recreate begin state for next test case
+  ;;these are connected o2 <-> o1 <-> o3
+  (lisp-unit:assert-equal
+   'o2
+   (car (assoc 'o2 (btr:attached-objects
+                    (btr:object btr:*current-bullet-world* 'o1)))))
+  (lisp-unit:assert-equal
+   'o3
+   (car (assoc 'o3 (btr:attached-objects
+                    (btr:object btr:*current-bullet-world* 'o1)))))
+  (lisp-unit:assert-equal
+   'o1
+   (car (assoc 'o1 (btr:attached-objects
+                    (btr:object btr:*current-bullet-world* 'o2)))))
+  (lisp-unit:assert-equal
+   'o1
+   (car (assoc 'o1 (btr:attached-objects
+                    (btr:object btr:*current-bullet-world* 'o3)))))
+  ;;these are not connected to each other: o2 o3
+  (lisp-unit:assert-false
+   (equal 'o2 (car (assoc 'o2 (btr:attached-objects
+                               (btr:object btr:*current-bullet-world* 'o3))))))
+  (lisp-unit:assert-false
+   (equal 'o3 (car (assoc 'o3 (btr:attached-objects
+                               (btr:object btr:*current-bullet-world* 'o2))))))
+
+  ;; attach-object-more-objects-connected-bidirectional-to-one-object-in-one-call begin state for next test case
   (btr:remove-object btr:*current-bullet-world* 'o1)
   (btr:remove-object btr:*current-bullet-world* 'o2)
   (btr:remove-object btr:*current-bullet-world* 'o3))
 
 (define-test attach-object-called-with-item-symbol-and-nil-as-parameter
-  ;; Tests if the attach-object function does nothing if called with nil and an valid item object
-  (btr-utils:spawn-object 'oo1 :mug :pose 
+  ;; Tests if the attach-object function does nothing if called with
+  ;; nil and an valid item object
+  (btr-utils:spawn-object 'oo1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
 
   (lisp-unit:assert-false (btr:attach-object 'oo1 nil))
-  (lisp-unit:assert-number-equal 0 (list-length (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1))))
+  (lisp-unit:assert-number-equal
+   0
+   (list-length (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1))))
   (lisp-unit:assert-false (btr:attach-object nil 'oo1))
-  (lisp-unit:assert-number-equal 0 (list-length (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1))))
+  (lisp-unit:assert-number-equal
+   0
+   (list-length (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1))))
   (lisp-unit:assert-false (btr:attach-object nil nil))
-  
+
   (btr:remove-object btr:*current-bullet-world* 'oo1))
 
 (define-test detach-object-called-with-item-symbols
-  ;; Tests if the detach-object function gets properly called if it was called with the object item names
-  (btr-utils:spawn-object 'oo1 :mug :pose 
+  ;; Tests if the detach-object function gets properly called if it
+  ;; was called with the object item names
+  (btr-utils:spawn-object 'oo1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
-  (btr-utils:spawn-object 'oo2 :mug :pose 
+  (btr-utils:spawn-object 'oo2 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
 
   (btr:attach-object 'oo1 'oo2)
-  (lisp-unit:assert-equal 'oo1 (car (assoc 'oo1 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo2)))))
-  (lisp-unit:assert-equal 'oo2 (car (assoc 'oo2 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1)))))
+  (lisp-unit:assert-equal
+   'oo1
+   (car (assoc 'oo1 (btr:attached-objects
+                     (btr:object btr:*current-bullet-world* 'oo2)))))
+  (lisp-unit:assert-equal
+   'oo2
+   (car (assoc 'oo2 (btr:attached-objects
+                     (btr:object btr:*current-bullet-world* 'oo1)))))
 
   (btr:detach-object 'oo1 'oo2)
-  (lisp-unit:assert-false (equal 'oo2 (car (assoc 'oo2 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1))))))
-  (lisp-unit:assert-false (equal 'oo1 (car (assoc 'oo1 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo2))))))
+  (lisp-unit:assert-false
+   (equal 'oo2 (car (assoc 'oo2 (btr:attached-objects
+                                 (btr:object btr:*current-bullet-world* 'oo1))))))
+  (lisp-unit:assert-false
+   (equal 'oo1 (car (assoc 'oo1 (btr:attached-objects
+                                 (btr:object btr:*current-bullet-world* 'oo2))))))
 
   (btr:remove-object btr:*current-bullet-world* 'oo1)
   (btr:remove-object btr:*current-bullet-world* 'oo2))
 
 
 (define-test detach-object-called-with-item-symbol-and-nil-as-parameter
-  ;; Tests if the detach-object function does nothing if called with nil and an valid item object
-  (btr-utils:spawn-object 'oo1 :mug :pose 
+  ;; Tests if the detach-object function does nothing if called with
+  ;; nil and an valid item object
+  (btr-utils:spawn-object 'oo1 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
-  (btr-utils:spawn-object 'oo2 :mug :pose 
+  (btr-utils:spawn-object 'oo2 :mug :pose
                           '((-1 0.0 0.92)(0 0 0 1)))
 
   (btr:attach-object 'oo1 'oo2)
-  (lisp-unit:assert-equal 'oo1 (car (assoc 'oo1 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo2)))))
-  (lisp-unit:assert-equal 'oo2 (car (assoc 'oo2 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1)))))
+  (lisp-unit:assert-equal
+   'oo1
+   (car (assoc 'oo1 (btr:attached-objects
+                     (btr:object btr:*current-bullet-world* 'oo2)))))
+  (lisp-unit:assert-equal
+   'oo2
+   (car (assoc 'oo2 (btr:attached-objects
+                     (btr:object btr:*current-bullet-world* 'oo1)))))
 
   (lisp-unit:assert-false (btr:detach-object nil 'oo1))
-  (lisp-unit:assert-equal 'oo1 (car (assoc 'oo1 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo2)))))
-  (lisp-unit:assert-equal 'oo2 (car (assoc 'oo2 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1)))))
+  (lisp-unit:assert-equal
+   'oo1
+   (car (assoc 'oo1 (btr:attached-objects
+                     (btr:object btr:*current-bullet-world* 'oo2)))))
+  (lisp-unit:assert-equal
+   'oo2
+   (car (assoc 'oo2 (btr:attached-objects
+                     (btr:object btr:*current-bullet-world* 'oo1)))))
 
   (lisp-unit:assert-false (btr:detach-object 'oo1 nil))
-  (lisp-unit:assert-equal 'oo1 (car (assoc 'oo1 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo2)))))
-  (lisp-unit:assert-equal 'oo2 (car (assoc 'oo2 (btr:attached-objects (btr:object btr:*current-bullet-world* 'oo1)))))
+  (lisp-unit:assert-equal
+   'oo1
+   (car (assoc 'oo1 (btr:attached-objects
+                     (btr:object btr:*current-bullet-world* 'oo2)))))
+  (lisp-unit:assert-equal
+   'oo2
+   (car (assoc 'oo2 (btr:attached-objects
+                     (btr:object btr:*current-bullet-world* 'oo1)))))
 
   (lisp-unit:assert-false (btr:detach-object nil nil))
 
   (btr:remove-object btr:*current-bullet-world* 'oo1)
   (btr:remove-object btr:*current-bullet-world* 'oo2))
 
-  
+

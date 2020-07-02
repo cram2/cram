@@ -37,6 +37,7 @@
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :opening))
                                                          arm
                                                          grasp
+                                                         location
                                                          objects-acted-on
                                                          &key
                                                            opening-distance
@@ -56,6 +57,7 @@ in the robot's XZ-plane. It's Y-element should be 0."
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :closing))
                                                          arm
                                                          grasp
+                                                         location
                                                          objects-acted-on
                                                          &key
                                                            opening-distance
@@ -227,7 +229,8 @@ around `axis' by `angle-max' in steps of 0.1 rad."
              (cl-transforms-stamped:frame-id joint-to-gripper)
              (cl-transforms-stamped:child-frame-id joint-to-gripper)
              (cl-transforms-stamped:stamp joint-to-gripper)
-             (cl-transforms:rotate rotation (cl-tf:translation joint-to-gripper))
+             (cl-transforms:rotate rotation (cl-transforms:translation
+                                             joint-to-gripper))
              (apply 'cl-transforms:euler->quaternion
                     (3d-vector->keyparam-list
                      (cl-transforms:v+

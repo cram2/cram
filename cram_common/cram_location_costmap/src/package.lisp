@@ -109,8 +109,11 @@
            #:costmap-in-reach-distance #:costmap-reach-minimal-distance
            #:visibility-costmap-size
            #:orientation-samples #:orientation-sample-step
+           #:reachability-orientation-offset
            ;; facts
            #:make-angle-to-point-generator #:make-orientation-generator
-           #:2d-pose-covariance)
+           #:2d-pose-covariance
+           ;; designator-integration
+           #:reset-costmap-cache)
   (:import-from #:cram-math invalid-probability-distribution))
 

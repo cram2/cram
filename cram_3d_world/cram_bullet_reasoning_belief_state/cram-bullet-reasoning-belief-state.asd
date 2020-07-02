@@ -30,27 +30,32 @@
   :author "Lorenz Moesenlechner"
   :license "BSD"
 
-  :depends-on (cram-prolog
+  :depends-on (roslisp
+               roslisp-utilities ; for ros-init-function-s for time
+
+               cl-transforms
+               cl-transforms-stamped
+               cl-tf ; for tf broadcaster and for setting transforms from bullet to tf
+
+               cram-prolog
                cram-utilities
                cram-projection
                cram-designators
                cram-process-modules ; for world-state-detecting motion
+               cram-occasions-events
+               cram-language ; for DEFINE-TASK-VARIABLE in utitlities
+
+               cram-tf
                cram-common-designators ; for world-state-detecting motion
                cram-common-failures ; for world-state-detecting motion
-               cram-bullet-reasoning
-               cram-occasions-events
                cram-plan-occasions-events
-               cram-language ; for DEFINE-TASK-VARIABLE in utitlities
-               cram-physics-utils ; for object designator mesh stuff
-               ;; ros-init-function-s for time
-               roslisp-utilities
-               roslisp
                cram-robot-interfaces
-               cram-tf
-               cl-tf ; for tf broadcaster and for setting transforms from bullet to tf
-               cl-transforms-stamped
-               cl-transforms
+               cram-manipulation-interfaces
+
+               cram-physics-utils   ; for object designator mesh stuff
                cl-bullet
+               cram-bullet-reasoning
+
                tf2_msgs-msg
                geometry_msgs-msg
                shape_msgs-msg)
@@ -65,5 +70,7 @@
      (:file "environment-joint-publisher" :depends-on ("package"))
      (:file "object-perceptions" :depends-on ("package"))
      (:file "occasions" :depends-on ("package" "object-perceptions"))
-     (:file "event-handlers" :depends-on ("package" "object-perceptions"))
-     (:file "process-modules" :depends-on ("package"))))))
+     (:file "world-state-detecting" :depends-on ("package"))
+     (:file "event-handlers" :depends-on ("package"
+                                          "object-perceptions"
+                                          "world-state-detecting"))))))

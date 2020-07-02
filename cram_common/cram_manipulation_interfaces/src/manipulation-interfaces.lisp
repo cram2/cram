@@ -42,7 +42,13 @@
   (:documentation "Returns a (lazy) list of keywords that represent the possible
 grasp orientations for `object-type' given `arm' and `object-transform-in-base'."))
 
-(defgeneric get-action-trajectory (action-type arm grasp objects-acted-on
+(defgeneric get-object-type-carry-config (object-type grasp)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "When carrying an object, which arm configuration to use.
+The return value is a symbol (keyword), which associates with a robot-specific
+joint state, specified in the robot description."))
+
+(defgeneric get-action-trajectory (action-type arm grasp location objects-acted-on
                                    &key &allow-other-keys)
   (:method-combination cut:first-in-order-and-around)
   (:documentation "Returns a list of TRAJ-SEGMENTs.
@@ -50,6 +56,7 @@ grasp orientations for `object-type' given `arm' and `object-transform-in-base'.
 `action-type' describes for which type of action the trajectory will be,
 `arm' a single keyword eg. :left,
 `grasp' describes grasp orientation to use, e.g., :top, :left-side,
+`location' is the location type of the action, e.g., counter-top or shelf
 `objects-acted-on' are designators describing the objects used by the action."))
 
 (defgeneric get-location-poses (location-designator)
@@ -57,7 +64,8 @@ grasp orientations for `object-type' given `arm' and `object-transform-in-base'.
   (:documentation "Returns a (lazy) list of cl-transforms-pose-stamped that,
 according to the reasoning engine, correspond to the given `location-designator'.")
   (:method :heuristics 20 (location-designator)
-    (desig:resolve-location-designator-through-generators-and-validators location-designator)))
+    (desig:resolve-location-designator-through-generators-and-validators
+     location-designator)))
 
 (defmethod desig:resolve-designator :around ((desig desig:location-designator) role)
   "We have to hijack DESIG:RESOLVE-DESIGNATOR because otherwise we would have to
@@ -65,6 +73,22 @@ make CRAM_DESIGNATORS package depend on CRAM_MANIPULATION_INTERFACES,
 and man-int is way too high level to make it a dependency of CRAM_CORE.
 This hijacking is kind of an ugly hack that Gaya feels bad about :(."
   (get-location-poses desig))
+
+(defgeneric get-object-likely-location (object-type environment-name human-name context)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns a location designator representing the
+location, where an object with given type `object-type' can typically be found at.
+The likely location can depend on the `environment-name',
+the human preferences represented as `human-name'
+and `context' representing the name of the action context, e.g. :table-setting."))
+
+(defgeneric get-object-destination (object-type environment-name human-name context)
+  (:method-combination cut:first-in-order-and-around)
+  (:documentation "Returns a location designator representing the
+location, where an object with given type `object-type' usually should be brought to
+in the given action context `context', e.g., :table-setting..
+The likely destination can additionally depend on the `environment-name' and
+the human preferences represented as `human-name'."))
 
 (defgeneric get-container-opening-distance (container-name)
   (:method-combination cut:first-in-order-and-around)

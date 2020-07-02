@@ -17,4 +17,6 @@
 
   <depend>cram_prolog</depend>
   <depend>cram_manipulation_interfaces</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_location_costmap</depend>
 </package>

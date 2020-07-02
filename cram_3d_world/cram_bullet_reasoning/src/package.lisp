@@ -64,7 +64,9 @@
            semantic-map container semantic-map-part semantic-map-part-type
            semantic-map-part-pose object-visibility-percentage
            object-visibility-occluding-objects flat-color-object-proxy
-           calculate-object-visibility object-visible-p
+           calculate-object-visibility
+           object-visible-p looking-at-object-p object-in-view-p
+           looking-at-pose-p
            occluding-objects simulate find-objects contact-p
            find-all-contacts find-objects-in-contact
            object-pose-different
@@ -86,6 +88,7 @@
            ros-household-object execute open close ;; reach-ik-solution
            attached attached-objects object-attached
            attach-object detach-object detach-all-objects detach-all-from-link
+           get-loose-attached-objects
            item-dimensions
            add-objects-to-mesh-list
            open-object close-object
@@ -98,9 +101,10 @@
            #:set-robot-state-from-joints
            #:make-robot-joint-state-msg
            #:make-joint-state-message
-           #:calculate-pan-tilt
+           #:calculate-pan-tilt #:looking-in-direction-p
+           #:robot-converged-to-goal-joint-states
            #:get-robot-object #:get-robot-name
-           #:get-environment-object
+           #:get-environment-object #:get-environment-name
            #:robot-colliding-objects-without-attached
            #:robot-attached-objects-in-collision
            ;; temporal-reasoning

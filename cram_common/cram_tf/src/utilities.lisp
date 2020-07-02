@@ -38,7 +38,7 @@
             (cl-transforms:orientation pose-2))
            ang-sigma)))
 
-(defun frame-to-pose-in-fixed-frame (frame-name)
+(defun frame-to-pose-in-fixed-frame (frame-name &optional parent-frame)
   (when *transformer*
     (transform-pose-stamped
      *transformer*
@@ -46,7 +46,26 @@
      :pose (make-pose-stamped frame-name 0.0
                               (make-identity-vector)
                               (make-identity-rotation))
-     :target-frame *fixed-frame*)))
+     :target-frame (or parent-frame *fixed-frame*))))
+
+(defun frame-to-transform-in-fixed-frame (frame-name &optional parent-frame)
+  (when *transformer*
+    (cl-transforms-stamped:lookup-transform
+     *transformer*
+     parent-frame frame-name
+     :timeout *tf-default-timeout*
+     :time 0.0)))
+
+(defun 3d-vector->list (3d-vector)
+  (let ((x (cl-transforms:x 3d-vector))
+        (y (cl-transforms:y 3d-vector))
+        (z (cl-transforms:z 3d-vector)))
+    (list x y z)))
+
+(defun list->3d-vector (position-list)
+  (destructuring-bind (x y z)
+      position-list
+    (cl-transforms:make-3d-vector x y z)))
 
 (defun pose->flat-list (pose)
   (let* ((xyz (cl-transforms:origin pose))
@@ -148,6 +167,19 @@
    :timeout *tf-default-timeout*
    :use-current-ros-time use-current-ros-time))
 
+(defun ensure-transform-in-frame (transform frame
+                                  &key use-current-ros-time use-zero-time)
+  (declare (type (or null cl-transforms-stamped:transform-stamped)))
+  (when transform
+    (let* ((child-frame
+             (cl-transforms-stamped:child-frame-id transform))
+           (new-pose-stamped
+             (ensure-pose-in-frame (strip-transform-stamped transform)
+                                   frame
+                                   :use-current-ros-time use-current-ros-time
+                                   :use-zero-time use-zero-time)))
+      (pose-stamped->transform-stamped new-pose-stamped child-frame))))
+
 (defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
   (let* ((pose-origin
            (cl-transforms:origin pose))
@@ -223,20 +255,6 @@
       (cl-transforms:transform
        (cl-transforms:copy-transform transform :rotation new-rotation)))))
 
-(defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
-  (let* ((pose-in-frame
-           (cram-tf:ensure-pose-in-frame
-            goal-pose-stamped
-            goal-frame
-            :use-zero-time t))
-         (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
-                         (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
-         (goal-angle (cl-transforms:normalize-angle
-                      (cl-transforms:get-yaw
-                       (cl-transforms:orientation pose-in-frame)))))
-    (and (<= goal-dist delta-xy)
-         (<= (abs goal-angle) delta-theta))))
-
 (defun pose->transform-stamped (parent-frame child-frame stamp pose)
   (let ((translation (cl-transforms:origin pose))
         (rotation (cl-transforms:orientation pose)))
@@ -271,37 +289,40 @@
 Take xTy, ensure it's from x-frame.
 Multiply from the right with the yTz transform -- xTy * yTz == xTz."
 
-  (unless (string-equal (cl-transforms-stamped:frame-id x-y-transform) x-frame)
-    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM did not have ~
-              correct parent frame: ~a and ~a"
-           (cl-transforms-stamped:frame-id x-y-transform) x-frame))
+  (when (string-not-equal (cl-transforms-stamped:frame-id x-y-transform)
+                          x-frame)
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM~%~
+           did not have correct parent frame: ~a and ~a"
+          (cl-transforms-stamped:frame-id x-y-transform) x-frame))
 
-  (unless (string-equal (cl-transforms-stamped:child-frame-id y-z-transform) z-frame)
-    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds Y-Z-TRANSFORM did not have ~
-              correct child frame: ~a and ~a"
-           (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
+  (when (string-not-equal (cl-transforms-stamped:child-frame-id y-z-transform)
+                          z-frame)
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds Y-Z-TRANSFORM~%~
+           did not have correct child frame: ~a and ~a"
+          (cl-transforms-stamped:child-frame-id y-z-transform) z-frame))
 
-  (unless (string-equal (cl-transforms-stamped:child-frame-id x-y-transform)
-                        (cl-transforms-stamped:frame-id y-z-transform))
-    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM and ~
-              Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
-           (cl-transforms-stamped:child-frame-id x-y-transform)
-           (cl-transforms-stamped:frame-id y-z-transform)))
+  (when (string-not-equal (cl-transforms-stamped:child-frame-id x-y-transform)
+                          (cl-transforms-stamped:frame-id y-z-transform))
+    (warn "~%~%~%~%!!!!!~%~%~%In multiply-transform-stampeds X-Y-TRANSFORM and~%~
+           Y-Z-TRANSFORM did not have equal corresponding frames: ~a and ~a"
+          (cl-transforms-stamped:child-frame-id x-y-transform)
+          (cl-transforms-stamped:frame-id y-z-transform)))
 
   (let ((multiplied-transforms
           (cl-transforms:transform* x-y-transform y-z-transform))
-        (timestamp (min (cl-transforms-stamped:stamp x-y-transform)
-                        (cl-transforms-stamped:stamp y-z-transform))))
+        (timestamp
+          (min (cl-transforms-stamped:stamp x-y-transform)
+               (cl-transforms-stamped:stamp y-z-transform))))
     (ecase result-as-pose-or-transform
       (:pose
        (cl-transforms-stamped:pose->pose-stamped
-        x-frame
+        (cl-transforms-stamped:frame-id x-y-transform)
         timestamp
         (cl-transforms:transform->pose multiplied-transforms)))
       (:transform
        (cl-transforms-stamped:transform->transform-stamped
-        x-frame
-        z-frame
+        (cl-transforms-stamped:frame-id x-y-transform)
+        (cl-transforms-stamped:child-frame-id y-z-transform)
         timestamp
         multiplied-transforms)))))
 
@@ -321,18 +342,20 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
    (or translation (cl-transforms-stamped:translation transform-stamped))
    (or rotation (cl-transforms-stamped:rotation transform-stamped))))
 
-(defun translate-transform-stamped (transform &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
+(defun translate-transform-stamped (transform
+                                    &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
   (copy-transform-stamped
    transform
-   :translation (let ((transform-translation (cl-transforms:translation transform)))
-                  (cl-transforms:copy-3d-vector
-                   transform-translation
-                   :x (let ((x-transform-translation (cl-transforms:x transform-translation)))
-                        (+ x-transform-translation x-offset))
-                   :y (let ((y-transform-translation (cl-transforms:y transform-translation)))
-                        (+ y-transform-translation y-offset))
-                   :z (let ((z-transform-translation (cl-transforms:z transform-translation)))
-                        (+ z-transform-translation z-offset))))))
+   :translation
+   (let ((transform-translation (cl-transforms:translation transform)))
+     (cl-transforms:copy-3d-vector
+      transform-translation
+      :x (let ((x-transform-translation (cl-transforms:x transform-translation)))
+           (+ x-transform-translation x-offset))
+      :y (let ((y-transform-translation (cl-transforms:y transform-translation)))
+           (+ y-transform-translation y-offset))
+      :z (let ((z-transform-translation (cl-transforms:z transform-translation)))
+           (+ z-transform-translation z-offset))))))
 
 (defun pose-stamped->transform-stamped (pose-stamped child-frame-id)
   (cl-transforms-stamped:make-transform-stamped
@@ -371,3 +394,156 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
                   deltas (list deltas))))
     ;; actually compare
     (every #'value-converged values goal-values deltas)))
+
+(defun tf-frame-converged (goal-frame goal-pose-stamped delta-xy delta-theta)
+  (let* ((pose-in-frame
+           (cram-tf:ensure-pose-in-frame
+            goal-pose-stamped
+            goal-frame
+            :use-zero-time t))
+         (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
+                         (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
+         (goal-angle (cl-transforms:normalize-angle
+                      (cl-transforms:get-yaw
+                       (cl-transforms:orientation pose-in-frame)))))
+    (and (<= goal-dist delta-xy)
+         (<= (abs goal-angle) delta-theta))))
+
+(defun pose-stampeds-converged (pose other-pose delta-position delta-rotation)
+  (declare (type (or null cl-transforms-stamped:pose-stamped) pose other-pose))
+  (when (and pose other-pose)
+    (if (string-not-equal (cl-transforms-stamped:frame-id pose)
+                          (cl-transforms-stamped:frame-id other-pose))
+        (warn "[CRAM-TF:POSE-STAMPEDS-CONVERGED]: frames were not equal: ~a vs. ~a"
+              (cl-transforms-stamped:frame-id pose)
+              (cl-transforms-stamped:frame-id other-pose))
+        (and (< (cl-transforms:v-norm
+                 (cl-transforms:v-
+                  (cl-transforms:origin pose)
+                  (cl-transforms:origin other-pose)))
+                delta-position)
+             (< (abs
+                 (cl-transforms:normalize-angle
+                  (cl-transforms:angle-between-quaternions
+                   (cl-transforms:orientation pose)
+                   (cl-transforms:orientation other-pose))))
+                delta-rotation)))))
+
+
+(defun normalize-joint-angles (list-of-angles)
+  (mapcar #'cl-transforms:normalize-angle list-of-angles))
+
+
+(defun map-axis-aligned-axis (input-quaternion &optional (map-axis 2))
+  (declare (type cl-transforms:quaternion input-quaternion))
+  "Returns a list with (axis-index projection-positive),
+where axis-index is a number 0, 1 or 2 (for x, y or z correspondingly),
+depending on which axis is aligned with the given fixed frame `map-axis',
+and projection-positive is T if the axis-index axis is pointing in the direction
+of the `map-axis' or NIL if it looks in the opposite direction.
+For example, if `map-axis' is 2, then we want to find which axis of
+`input-quaternion' is aligned with map Z
+and the projection-positive will T if axis-index looks up and NIL if it looks down.
+projection-on-axis is a number between [-1; -0.57) V (0.57; 1],
+which is the length of the projection of the `map-axis'
+onto the correspondingly aligned object axis,
+projection-positive is calculated based on the sing of projection-on-axis."
+  (let* ((rotation-matrix
+           (cl-transforms:quaternion->matrix input-quaternion))
+         (map-axis-in-input-frame
+           `(,(aref rotation-matrix map-axis 0)
+             ,(aref rotation-matrix map-axis 1)
+             ,(aref rotation-matrix map-axis 2)))
+         (axis-index
+           0)
+         (projection-on-axis-abs
+           (abs (nth axis-index map-axis-in-input-frame)))
+         (projection-on-axis
+           (nth axis-index map-axis-in-input-frame)))
+    (loop for i from 1 to 2
+          do (when (> (abs (nth i map-axis-in-input-frame))
+                      projection-on-axis-abs)
+               (setf projection-on-axis-abs
+                     (abs (nth i map-axis-in-input-frame))
+                     projection-on-axis
+                     (nth i map-axis-in-input-frame)
+                     axis-index
+                     i)))
+    (list axis-index (> projection-on-axis 0))))
+
+(defun map-axis-aligned-orientation (input-quaternion)
+  (declare (type cl-transforms:quaternion input-quaternion))
+  "The returned orientation is of type cl-transforms:quaternion
+and has its axes aligned with the identity axes of map (Z up, X forward, Y left),
+i.e. the rotation matrix is a permutation and possibly negation of the identity.
+For example, if the object is not flatly lying on the horizontal plane,
+the axis-aligned orientation will put it on the plane and also correct
+the angle around the map Z axis, such that the other two axes are aligned
+with the X and Y of the map"
+  (destructuring-bind (axis-facing-up-index axis-positive-p)
+      (map-axis-aligned-axis input-quaternion)
+    (if axis-positive-p
+        (ecase axis-facing-up-index
+          (0
+           ;; x is up, so align with y, i.e. y of object looks to the left
+           (cl-transforms:axis-angle->quaternion
+            (cl-transforms:make-3d-vector 0 1 0) (/ pi -2)))
+          (1
+           ;; y is up, so align with x, i.e. x of object looks forward
+           (cl-transforms:axis-angle->quaternion
+            (cl-transforms:make-3d-vector 1 0 0) (/ pi 2)))
+          (2
+           ;; z is up, so align with x and y
+           (cl-transforms:make-identity-rotation)))
+        (ecase axis-facing-up-index
+          (0
+           ;; x is down, so align with y, i.e. y of object looks to the left
+           (cl-transforms:axis-angle->quaternion
+            (cl-transforms:make-3d-vector 0 1 0) (/ pi 2)))
+          (1
+           ;; y is down, so align with x, i.e. x of object looks forward
+           (cl-transforms:axis-angle->quaternion
+            (cl-transforms:make-3d-vector 1 0 0) (/ pi -2)))
+          (2
+           ;; z is down, so align with x and y
+           (cl-transforms:axis-angle->quaternion
+            (cl-transforms:make-3d-vector 0 1 0) pi))))))
+
+(defun angle-around-map-z (input-quaternion)
+  (declare (type cl-transforms:quaternion input-quaternion))
+  "Calculates the angle between `input-quaternion' and
+the corresponding axis-aligned orientation as per MAP-AXIS-ALIGNED-ORIENTATION,
+assuming that the object is flatly lying on a horizontal plane,
+i.e. that the angles around X and Y are 0."
+  ;; find out which axis in the `input-quaternion' is aligned with map Z
+  (destructuring-bind (axis-facing-up-index axis-positive-p)
+      (map-axis-aligned-axis input-quaternion)
+    ;; find the map axis-aligned orientation for `input-quaternion'
+    (let ((map-axis-aligned-quaternion
+            (map-axis-aligned-orientation input-quaternion)))
+      ;; find the angle between `input-quaternion' and map-axis-aligned-quaternion
+      ;; this angle is the orientation of input frame in axis-aligned frame
+      (multiple-value-bind (axis-aligned-R-input-angle axis-aligned-R-input-axis)
+          (cl-transforms:angle-between-quaternions
+           map-axis-aligned-quaternion
+           input-quaternion)
+        ;; angle-between-quaternions returns an angle and an axis,
+        ;; around which to rotate with the angle.
+        ;; the axis is going to be in axis-aligned coordinate frame
+        ;; and the angle might be clockwise or counterclockwise around that axis,
+        ;; so normalize it according to the right-hand rule
+        (let* ((axis-aligned-R-input-angle-normalized
+                 (if (> (nth axis-facing-up-index
+                             (3d-vector->list axis-aligned-R-input-axis))
+                        0)
+                     axis-aligned-R-input-angle
+                     (* -1 axis-aligned-R-input-angle)))
+               ;; now that we know the angle between axis-aligned and input,
+               ;; we need to put that angle around map's Z axis.
+               ;; for that, we need to know if the vertical axis of `input-quaternion'
+               ;; is pointing up or down, if it points down we need to go clockwise
+               (angle-around-map-positive-Z
+                 (if axis-positive-p
+                     axis-aligned-R-input-angle-normalized
+                     (* -1 axis-aligned-R-input-angle-normalized))))
+          angle-around-map-positive-Z)))))
