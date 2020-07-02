@@ -32,6 +32,7 @@
 (defun line-equation (x1 y1 x2 y2)
   "Return the a, b and c values of the term (ax + by + c) descriping a straight line
 through the points (`x1',`y1') and (`x2',`y2')."
+  (declare (type number x1 y2 x2 y2))
   (let ((x (- x2 x1))
         (y (- y2 y1)))
     (if (eq 0 x)
@@ -45,6 +46,7 @@ through the points (`x1',`y1') and (`x2',`y2')."
 (defun line-equation-in-xy (p1 p2)
   "Helper-function to get the equation (a,b,c values) describing a line between `p1' and `p2'
 in the x-y-plane (i.e. only considering the first two dimensions)."
+  (declare (type cl-transforms:3d-vector p1 p2))
   (let ((x1 (cl-transforms:x p1))
         (y1 (cl-transforms:y p1))
         (x2 (cl-transforms:x p2))
@@ -54,6 +56,7 @@ in the x-y-plane (i.e. only considering the first two dimensions)."
 (defun distance-point (a b c x y)
   "Return the coordinates on the line described by ax + by + c
 from which the distance to the point (x,y) is minimal."
+  (declare (type number a b c x y))
   (values
    (/
     (- (* b (- (* b x) (* a y))) (* a c))
@@ -63,6 +66,8 @@ from which the distance to the point (x,y) is minimal."
     (+ (expt a 2) (expt b 2)))))
 
 (defun line-p-dist (a b c p)
+  (declare (type number a b c)
+           (type cl-transforms:3d-vector p))
   "Return the distance between the line described by ax + by + c
 and the point p (in the x-y plane)."
   (let ((x (cl-transforms:x p))
@@ -73,7 +78,9 @@ and the point p (in the x-y plane)."
 
 (defun line-p-dist-point (a b c p)
   "Return the point on the line described by ax + by + c
-from which the distance to the point (x,y) is minimal."
+from which the distance to the point p is minimal."
+  (declare (type number a b c)
+           (type cl-transforms:3d-vector p))
   (let ((px (cl-transforms:x p))
         (py (cl-transforms:y p)))
     (multiple-value-bind (x y)
@@ -82,12 +89,14 @@ from which the distance to the point (x,y) is minimal."
 
 (defun angle-between-vectors (v1 v2)
   "Return the cos of the angle between vectors `v1' and `v2.'"
+  (declare (type cl-transforms:3d-vector v1 v2))
   (/ (cl-transforms:dot-product v1 v2)
      (* (cl-transforms:v-norm v1)
         (cl-transforms:v-norm v2))))
 
 (defun v-which-side (v1 v2)
   "Return either :left or :right depending on which side of `v1' `v2' is."
+  (declare (type cl-transforms:3d-vector v1 v2))
   (let ((v2-rot90ccw (cl-transforms:make-3d-vector
                       (- (cl-transforms:y v2))
                       (cl-transforms:x v2)
