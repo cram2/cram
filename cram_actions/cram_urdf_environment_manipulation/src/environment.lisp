@@ -39,7 +39,9 @@
 (defun get-container-pose-and-transform (name btr-environment)
   "Return a list of the pose-stamped and transform-stamped of the object named
 `name' in the environment `btr-environment'.
-the frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be the `name'."
+The frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be the `name'."
+  (declare (type (or string symbol) name)
+           (type keyword btr-environment))
   (when (symbolp name)
     (setf name
           (roslisp-utilities:rosify-underscores-lisp-name name)))
@@ -52,10 +54,14 @@ the frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be t
                 cram-tf:*robot-base-frame*
                 :use-zero-time t))
          (transform (cram-tf:pose-stamped->transform-stamped pose name)))
-    (list pose transform)))
+    (list
+     (the cl-transforms-stamped:pose-stamped pose)
+     (the cl-transforms-stamped:transform-stamped transform))))
 
 (defun get-urdf-link-pose (name btr-environment)
   "Return the pose of the object with `name' in `btr-environment'."
+  (declare (type (or string symbol) name)
+           (type keyword btr-environment))
   (when (symbolp name)
     (setf name
           (roslisp-utilities:rosify-underscores-lisp-name name)))
@@ -68,98 +74,124 @@ the frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be t
      name))))
 
 (defun get-container-link (container-name btr-environment)
-  "Return the `cl-urdf:link' object of the container with `container-name' in the `btr-environment'."
+  "Return the link of the container with `container-name' in the `btr-environment'."
+  (declare (type (or string symbol) container-name)
+           (type keyword btr-environment))
   (when (symbolp container-name)
     (setf container-name
           (roslisp-utilities:rosify-underscores-lisp-name container-name)))
-  (gethash container-name
-           (cl-urdf:links
-            (btr:urdf
-             (btr:object btr:*current-bullet-world*
-                         btr-environment)))))
+  (the cl-urdf:link
+       (gethash container-name
+                (cl-urdf:links
+                 (btr:urdf
+                  (btr:object btr:*current-bullet-world*
+                              btr-environment))))))
 
 (defun get-container-joint-type (container-name btr-environment)
   "Return the joint-type of the container with `container-name' in the `btr-environment'."
+  (declare (type (or string symbol) container-name)
+           (type keyword btr-environment))
   (find-container-joint-type-under-joint
    (cl-urdf:from-joint
     (get-container-link container-name
                         btr-environment))))
 
 (defun find-container-joint-type-under-joint (joint)
-  "Return the first joint type different from :FIXED under the given `joint' (`cl-urdf:joint')."
+  "Return the first joint type different from :FIXED under the given `joint'."
+  (declare (type cl-urdf:joint joint))
   (if (eq :FIXED (cl-urdf:joint-type joint))
       (find-container-joint-type-under-joint
        (car (cl-urdf:to-joints (cl-urdf:child joint))))
       (cl-urdf:joint-type joint)))
 
 (defun get-handle-link (container-name btr-environment)
-  "Return the `cl-urdf:link' object of the handle of the container with `container-name' in
+  "Return the link object of the handle of the container with `container-name' in
 the `btr-environment'."
+  (declare (type (or string symbol) container-name)
+           (type keyword btr-environment))
   (when (symbolp container-name)
     (setf container-name
           (roslisp-utilities:rosify-underscores-lisp-name container-name)))
-  (find-handle-under-link
-   (get-container-link container-name btr-environment)))
+  (the cl-urdf:link
+       (find-handle-under-link
+        (get-container-link container-name btr-environment))))
 
 (defun find-handle-under-link (link)
-  "Return the `cl-urdf:link' object of the handle under the given `link' object."
-  (if (search "handle" (cl-urdf:name link))
-      link
-      (reduce (lambda (&optional x y) (or x y))
-              (mapcar 'find-handle-under-link
-                      (mapcar 'cl-urdf:child (cl-urdf:to-joints link))))))
+  "Return the link object of the handle under the given `link' object."
+  (declare (type cl-urdf:link link))
+  (the cl-urdf:link
+       (if (search "handle" (cl-urdf:name link))
+           link
+           (reduce (lambda (&optional x y) (or x y))
+                   (mapcar 'find-handle-under-link
+                           (mapcar 'cl-urdf:child (cl-urdf:to-joints link)))))))
 
 (defun get-joint-position (joint btr-environment)
-  "Return the value of the `joint' (`cl-urdf:joint') in the `btr-environment'."
-  (gethash (cl-urdf:name joint)
-           (btr:joint-states (btr:object btr:*current-bullet-world* btr-environment))))
+  "Return the value of the `joint' in the `btr-environment'."
+  (declare (type cl-urdf:joint joint)
+           (type keyword btr-environment))
+  (the number
+       (gethash (cl-urdf:name joint)
+                (btr:joint-states (btr:object btr:*current-bullet-world* btr-environment)))))
 
 (defun get-connecting-joint (part)
-  "Returns the connecting (moveable) joint of `part' (`cl-urdf:joint' or `cl-urdf:link')."
-  (or
-   (get-connecting-joint-below part)
-   (get-connecting-joint-above part)))
+  "Returns the connecting (moveable) joint of `part'."
+  (declare (type (or cl-urdf:joint cl-urdf:link) part))
+  (the cl-urdf:joint
+       (or
+        (get-connecting-joint-below part)
+        (get-connecting-joint-above part))))
 
 (defun get-connecting-joint-below (part)
   "Traverse the URDF downwards to find a connecting joint. See `get-connecting-joint' for more info."
+  (declare (type (or cl-urdf:joint cl-urdf:link) part))
   (when part
-    (if (typep part 'cl-urdf:joint)
-        (or
-         (when (not (eql (cl-urdf:joint-type part) :FIXED))
-           part)
-         (get-connecting-joint-below (cl-urdf:child part)))
+    (the cl-urdf:joint
+         (if (typep part 'cl-urdf:joint)
+             (or
+              (when (not (eql (cl-urdf:joint-type part) :FIXED))
+                part)
+              (get-connecting-joint-below (cl-urdf:child part)))
 
-        (when (typep part 'cl-urdf:link)
-          (find-if
-           (lambda (joint)
-             (get-connecting-joint-below joint))
-           (cl-urdf:to-joints part))))))
+             (when (typep part 'cl-urdf:link)
+               (find-if
+                (lambda (joint)
+                  (get-connecting-joint-below joint))
+                (cl-urdf:to-joints part)))))))
 
 (defun get-connecting-joint-above (part)
   "Traverse the URDF upwards to find a connecting joint. See `get-connecting-joint' for more info."
+  (declare (type (or cl-urdf:joint cl-urdf:link) part))
   (when part
-    (if (typep part 'cl-urdf:joint)
-        (or
-         (when (not (eql (cl-urdf:joint-type part) :FIXED))
-           part)
-         (get-connecting-joint-above (cl-urdf:parent part)))
+    (the cl-urdf:joint
+         (if (typep part 'cl-urdf:joint)
+             (or
+              (when (not (eql (cl-urdf:joint-type part) :FIXED))
+                part)
+              (get-connecting-joint-above (cl-urdf:parent part)))
 
-        (when (typep part 'cl-urdf:link)
-          (get-connecting-joint-above (cl-urdf:from-joint part))))))
+             (when (typep part 'cl-urdf:link)
+               (get-connecting-joint-above (cl-urdf:from-joint part)))))))
 
 (defun get-manipulated-link (part)
-  "Returns the `cl-urdf:link' object under the connecting joint of `part'. Which is the one actually
+  "Returns the link under the connecting joint of `part'. Which is the one actually
 being manipulated.
 `part' can be either a `cl-urdf:joint' or a `cl-urdf:link'."
-  (cl-urdf:child
-   (get-connecting-joint part)))
+  (declare (type (or cl-urdf:joint cl-urdf:link) part))
+  (the cl-urdf:link
+       (cl-urdf:child
+        (get-connecting-joint part))))
 
 (defun get-manipulated-pose (link-name joint-position btr-environment &key relative)
   "Returns the pose of the link with `link-name' based on its connection joint position
 `joint-position'. If `relative' is T, the actual value is calculated
 by `joint-position' * <joint maximal value>. This function returns two
-values, the new pose of the link and the `cl-urdf:joint' object that was changed.
+values, the new pose of the link and the joint object that was changed.
 `btr-environment' is the name of the bullet environment (eg. :kitchen)."
+  (declare (type (or string symbol) link-name)
+           (type number joint-position)
+           (type keyword btr-environment)
+           (type boolean relative))
   (when (not (floatp joint-position))
     (setf joint-position (float joint-position)))
   (let ((link (get-container-link link-name btr-environment)))
@@ -169,19 +201,20 @@ values, the new pose of the link and the `cl-urdf:joint' object that was changed
           (values
            (case (cl-urdf:joint-type joint)
              (:prismatic
-              (cl-transforms:transform->pose
-               (cl-transforms:transform*
-                (cl-transforms:pose->transform (get-urdf-link-pose link-name btr-environment))
-                (cl-transforms:make-transform
-                 (cl-transforms:v*
-                  (cl-urdf:axis joint)
-                  (-
-                   (if relative
-                       (* joint-position
-                          (cl-urdf:upper (cl-urdf:limits joint)))
-                       joint-position)
-                   (get-joint-position joint btr-environment)))
-                 (cl-transforms:make-identity-rotation)))))
+              (the cl-transforms:pose
+                   (cl-transforms:transform->pose
+                    (cl-transforms:transform*
+                     (cl-transforms:pose->transform (get-urdf-link-pose link-name btr-environment))
+                     (cl-transforms:make-transform
+                      (cl-transforms:v*
+                       (cl-urdf:axis joint)
+                       (-
+                        (if relative
+                            (* joint-position
+                               (cl-urdf:upper (cl-urdf:limits joint)))
+                            joint-position)
+                        (get-joint-position joint btr-environment)))
+                      (cl-transforms:make-identity-rotation))))))
              (:revolute
               (let* ((rotation
                        (cl-transforms:axis-angle->quaternion
@@ -202,14 +235,14 @@ values, the new pose of the link and the `cl-urdf:joint' object that was changed
                        (cl-transforms:transform-diff
                         link-transform
                         joint-transform)))
-                (cl-transforms:transform-pose
-                 (cl-transforms:make-transform
-                  (cl-transforms:rotate
-                   rotation
-                   (cl-transforms:translation joint-to-handle))
-                  (cl-transforms:make-identity-rotation))
-                 (get-urdf-link-pose (cl-urdf:name (cl-urdf:child joint)) btr-environment))
-              )))
+                (the cl-transforms:pose
+                     (cl-transforms:transform-pose
+                      (cl-transforms:make-transform
+                       (cl-transforms:rotate
+                        rotation
+                        (cl-transforms:translation joint-to-handle))
+                       (cl-transforms:make-identity-rotation))
+                      (get-urdf-link-pose (cl-urdf:name (cl-urdf:child joint)) btr-environment))))))
            joint))))))
 
 (defun get-handle-axis (container-designator)
@@ -218,6 +251,7 @@ vertical handles on the container described by `container-designator'.
 Prismatic containers are assumed to have horizontal handles while revolute containers are assumed
 to have vertical ones. There are exceptions to this of course. For now those are hard-coded into
 this function."
+  (declare (type desig:object-designator container-designator))
   ;; Check for exceptions based on name.
   (let ((name-exception
           (alexandria:switch ((roslisp-utilities:rosify-underscores-lisp-name
@@ -245,6 +279,8 @@ Using a default (1 0 0)."
                (cl-transforms:make-3d-vector 1 0 0)))))))
 
 (defun get-positive-joint-state (joint btr-environment)
+  (declare (type cl-urdf:joint joint)
+           (type keyword btr-environment))
   (mod (btr:joint-state
         (btr:object btr:*current-bullet-world*
                     btr-environment)
@@ -267,6 +303,10 @@ Using a default (1 0 0)."
        state))))
 
 (defun get-relative-distance (container-name btr-environment distance action-type)
+  (declare (type (or string symbol) container-name)
+           (type keyword btr-environment)
+           (type number distance)
+           (type keyword action-type))
   (let ((state (get-connecting-joint-state-secure container-name btr-environment)))
     (ecase action-type
       (:opening
@@ -276,6 +316,10 @@ Using a default (1 0 0)."
 
 (defun clip-distance (container-name btr-environment distance action-type)
   "Return a distance that stays inside the joint's limits."
+  (declare (type (or string symbol) container-name)
+           (type keyword btr-environment)
+           (type number distance)
+           (type keyword action-type))
   (let ((joint (get-connecting-joint
                 (get-container-link container-name
                                     btr-environment))))
@@ -291,4 +335,3 @@ Using a default (1 0 0)."
          (if (< (- state distance) lower-limit)
              (- state lower-limit)
              distance))))))
-
