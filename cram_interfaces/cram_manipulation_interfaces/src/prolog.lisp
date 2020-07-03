@@ -29,7 +29,8 @@
 
 (in-package :cram-manipulation-interfaces)
 
-(def-fact-group object-designators (desig:desig-location-prop desig:location-grounding)
+(def-fact-group object-designators (desig:desig-location-prop
+                                    desig:location-grounding)
 
   (<- (desig:desig-location-prop ?desig ?loc)
     (desig:obj-desig? ?desig)
@@ -67,7 +68,7 @@
   ;; knives, forks, etc, the orientation is important while for plates
   ;; the orientation doesn't matter at all.
   (<- (orientation-matters ?object-type-symbol)
-      (fail))
+    (fail))
 
   ;; The predicate UNIDIRECTIONAL-ATTACHMENTS holds attachments which
   ;; are only used for unidirectional/loose attachments.
@@ -157,7 +158,6 @@
                  (and (rob-int:robot ?robot)
                       (-> (rob-int:end-effector-link ?robot ?arm ?link)
                           (and (rob-int:robot-tool-frame ?robot ?arm ?tool-frame)
-                               (format "REFERENCING THIS GUY~%~%~%~%~%")
                                (symbol-value cram-tf:*fixed-frame* ?parent-frame)
                                (lisp-fun cram-tf:frame-to-transform-in-fixed-frame
                                          ?tool-frame ?parent-frame
