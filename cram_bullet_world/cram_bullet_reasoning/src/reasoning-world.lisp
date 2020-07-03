@@ -107,3 +107,36 @@ list from bt-reasoning-world to keep in the current world state.")))
                            obj (copy-object obj world))))
               (setf (gethash name objects) obj)
               (invalidate-object obj))))))))
+
+(defun get-world-objects-pose-info (&optional (world *current-bullet-world*))
+  "Returns a cons with (name-pose-hash-table . name-joint-states-hash-table)."
+  (loop with name-pose-tbl = (make-hash-table :test #'equalp)
+        with name-joint-state-tbl = (make-hash-table :test #'equalp)
+        for obj in (objects world)
+        do (let ((obj-name (name obj)))
+             (setf (gethash obj-name name-pose-tbl)
+                   (pose obj))
+             (when (typep obj 'robot-object)
+               (setf (gethash obj-name name-joint-state-tbl)
+                     (alexandria:copy-hash-table (joint-states obj)))))
+        finally (return (cons name-pose-tbl name-joint-state-tbl))))
+
+(defun restore-world-poses (poses-and-joint-states
+                            &optional (world *current-bullet-world*))
+  (destructuring-bind (name-pose-tbl . name-joint-states-tbl)
+      poses-and-joint-states
+    (let ((current-names (mapcar #'name (objects *current-bullet-world*)))
+          (new-names (alexandria:hash-table-keys name-pose-tbl)))
+      (when (set-difference current-names new-names :test #'equalp)
+        (error "[btr:restore-world-poses] objects in the two worlds
+                are not the same!~%current world names: ~a~%new world names: ~a~%"
+               current-names new-names))
+      (mapc (lambda (obj)
+              (let ((obj-name (name obj)))
+                (setf (pose obj)
+                      (gethash obj-name name-pose-tbl))
+                (when (typep obj 'robot-object)
+                  (set-robot-state-from-joints
+                   (gethash obj-name name-joint-states-tbl)
+                   obj))))
+            (objects world)))))
