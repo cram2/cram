@@ -42,6 +42,9 @@ to consider the pose at the center of the sphere as visible.")
   "The minimum number of pixels that have to be in the rendered image
 to consider the object as in the camera view.")
 
+(defparameter *visibility-sphere-name* :visibility-sphere
+  "The name of the bullet object to spawn for testing for pose visibility.")
+
 (defstruct object-visibility
   percentage
   occluding-objects
@@ -243,11 +246,11 @@ if a couple of pixels are in the view, this predicate is T."
 
 (defun looking-at-pose-p (world camera-pose pose
                           &optional (threshold *pose-visibility-threshold*))
-  (let ((object-name (gensym "SPHERE")))
-    (unwind-protect
-         (let ((sphere
-                 (btr:add-object world :sphere object-name pose
-                                 :radius 0.05 :mass 0.0 :color '(1.0 0.0 0.0))))
-           (btr:looking-at-object-p
-            btr:*current-bullet-world* camera-pose sphere threshold))
-      (btr:remove-object world object-name))))
+  (unwind-protect
+       (let ((sphere
+               (btr:add-object world :sphere
+                               *visibility-sphere-name* pose
+                               :radius 0.05 :mass 0.0 :color '(1.0 0.0 0.0))))
+         (btr:looking-at-object-p
+          btr:*current-bullet-world* camera-pose sphere threshold))
+    (btr:remove-object world *visibility-sphere-name*)))
