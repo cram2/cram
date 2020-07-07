@@ -148,7 +148,8 @@ Resampling axis can only be :X, :Y or :Z"
          (tip-link-evaled ,tip-link)
          (seed-state-msg-evaled ,seed-state-message)
          (solution-valid-p-evaled ,solution-valid-p)
-         (old-debug-level (roslisp:debug-level nil)))
+         (old-debug-level (roslisp:debug-level nil))
+         (new-joint-values))
      (macrolet ((with-resampling (&whole whole-form
                                     (resampling-axis upper-limit lower-limit
                                      resampling-step)
@@ -180,6 +181,17 @@ Resampling axis can only be :X, :Y or :Z"
                                                    (:y :y-offset)
                                                    (:z :z-offset))
                                                  (- value)))
+                                       (if (assoc
+                                            ,resampling-axis
+                                            new-joint-values)
+                                        (setf (cdr (assoc
+                                                    ,resampling-axis
+                                                    new-joint-values))
+                                              value)
+                                        (setf new-joint-values
+                                              (cons
+                                               (cons ,resampling-axis value)
+                                               new-joint-values)))
                                        (multiple-value-bind
                                              (solution-msg joint-values)
 
@@ -214,7 +226,7 @@ Resampling axis can only be :X, :Y or :Z"
                                            ;; or the collision check is successful
                                            ;; break the loop
                                            ;; otherwise, we simply continue our loop
-                                           (let ((new-joint-values
+                                           (let ((result-joint-values
                                                    (cons
                                                     (cons ,resampling-axis value)
                                                     joint-values)))
@@ -224,7 +236,7 @@ Resampling axis can only be :X, :Y or :Z"
                                                         solution-msg
                                                         new-joint-values))
                                                (return (list solution-msg
-                                                             new-joint-values)))))))))
+                                                             result-joint-values)))))))))
                        (setf offseted-goal-pose original-goal-pose)
                        (values (first result) (second result))))))
        (unwind-protect
