@@ -100,10 +100,15 @@
 
   (<- (check-arms-for-object-type ?arms ?object-type)
     (once (arms-for-object-type ?object-type ?arms-for-object)
+          ;; If there are no specifc arms required return true, else...
           (-> (equal ?arms-for-object nil)
               (true)
-              (and (subset ?arms-for-object ?arms)
-                   (subset ?arms ?arms-for-object)))))
+              ;; if the object needs more arms as the robot has return true...
+              (-> (and (rob-int:arms ?_ ?usable-arms)
+                       (not (subset ?arms-for-object ?usable-arms)))
+                  (true)
+                  ;; or otherwise check if the given arms are enough. 
+                  (subset ?arms ?arms-for-object)))))
 
   (<- (object-in-arms ?arms ?object)
     ;; Get object which is holded by ?arms

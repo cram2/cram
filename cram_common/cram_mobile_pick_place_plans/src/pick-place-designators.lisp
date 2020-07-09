@@ -77,10 +77,11 @@
             (and (man-int:robot-free-hand ?_ ?free-arm)
                  (equal (?free-arm) ?arm)))
         (-> (spec:property ?action-designator (:arm ?arm))
-            (and (subset ?arm ?arms-for-object)
-                 (subset ?arms-for-object ?arm))
-            (equal ?arm ?arms-for-object)))
-
+            (man-int:check-arms-for-object-type ?arm ?object-type)
+            (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
+                 (man-int:check-arms-for-object-type ?free-arms ?object-type)
+                 (equal ?arm ?free-arms))))
+                 
     (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
     (lisp-fun man-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
@@ -170,7 +171,8 @@
         (-> (spec:property ?action-designator (:object ?object-designator))
             ;; Find arms which holds the given object
             ;; and check if the arms are holding the given object as specified
-            (or (man-int:check-arms-for-object ?arm ?object-designator)
+            (or (setof ?used-arm (cpoe:object-in-hand ?object ?used-arm) ?arm)
+                (man-int:check-arms-for-object ?arm ?object-designator)
                 (format "WARNING: Wanted to place an object ~a ~
                          but it's not in any of the hands.~%" ?object-designator))
             ;; Find the object the robot is holding and with which
