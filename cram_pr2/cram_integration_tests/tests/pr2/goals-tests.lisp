@@ -134,6 +134,68 @@
     (lisp-unit:assert-true executed-motions-initially?))
   (lisp-unit:assert-false (executed-motions?)))
 
+(define-test gripper-joints-at-test
+  (initialize)
+  (let* ((?goal
+           `(cpoe:gripper-joint-at :left 0.05 0.005))
+         (the-action
+           (an action
+               (type setting-gripper)
+               (gripper left)
+               (position 0.05)
+               (goal ?goal)))
+         (executed-motions-initially?
+           nil))
+    (urdf-proj:with-simulated-robot
+      (perform the-action)
+      (setf executed-motions-initially? (executed-motions?))
+      (reset-motions-counter)
+      (perform the-action))
+    (lisp-unit:assert-true executed-motions-initially?))
+  (lisp-unit:assert-false (executed-motions?)))
+
+(define-test gripper-opened-test
+  (initialize)
+  (let* ((?goal
+           `(cpoe:gripper-opened :left 0.01))
+         (the-action
+           (an action
+               (type opening-gripper)
+               (gripper left)
+               (goal ?goal)))
+         (executed-motions-initially?
+           nil))
+    (urdf-proj:with-simulated-robot
+      (perform the-action)
+      (setf executed-motions-initially? (executed-motions?))
+      (reset-motions-counter)
+      (perform the-action))
+    (lisp-unit:assert-true executed-motions-initially?))
+  (lisp-unit:assert-false (executed-motions?)))
+
+(define-test gripper-closed-test
+  (initialize)
+  (let* ((?goal
+           `(cpoe:gripper-closed :left 0.01))
+         (the-action
+           (an action
+               (type closing-gripper)
+               (gripper left)
+               (goal ?goal)))
+         (executed-motions-initially?
+           nil))
+    (urdf-proj:with-simulated-robot
+      (perform (an action
+                   (type opening-gripper)
+                   (gripper left)))
+      (reset-motions-counter)
+      (perform the-action)
+      (setf executed-motions-initially? (executed-motions?))
+      (reset-motions-counter)
+      (perform the-action))
+    (lisp-unit:assert-true executed-motions-initially?))
+  (lisp-unit:assert-false (executed-motions?)))
+
 (define-test look-at-goal
   (initialize)
   (let* ((?pose
