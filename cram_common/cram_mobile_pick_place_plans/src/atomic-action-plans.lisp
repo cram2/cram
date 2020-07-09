@@ -237,7 +237,7 @@ while ignoring failures; and execute the last pose with propagating the failures
     (roslisp:ros-info (pick-place release) "Retract grasp in knowledge base")
     (cram-occasions-events:on-event
      (make-instance 'cpoe:object-detached-robot
-       :arm ?left-or-right
+       :arm (list ?left-or-right)
        :object-name (if ?object-designator
                         (desig:desig-prop-value ?object-designator :name)
                         NIL)))))
