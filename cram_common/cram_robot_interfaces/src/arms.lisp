@@ -33,7 +33,7 @@
                       arm
                       required-arms available-arms
                       arm-joints arm-links arm-base-joints arm-base-links
-                      parm-tool-joints
+                      arm-tool-joints
                       hand-links end-effector-link robot-tool-frame
                       gripper-joint gripper-link gripper-meter-to-joint-multiplier
                       planning-group

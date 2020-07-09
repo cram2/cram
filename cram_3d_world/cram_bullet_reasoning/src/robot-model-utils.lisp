@@ -79,9 +79,14 @@
            names positions)))
   (:method ((joint-states list) (robot robot-object))
     "Sets the joint states of `robot' to the values specifies in the ~
-    list `joint-states'. `joint-states' is a list of the form: ([(name value)]*)"
+     list `joint-states'. `joint-states' is a list of the form: ([(name value)]*)"
     (loop for (name value) in joint-states do
-      (setf (joint-state robot name) value))))
+      (setf (joint-state robot name) value)))
+  (:method ((joint-states hash-table) (robot robot-object))
+    "Sets the joint states of `robot' to the values specifies in the ~
+     hash table `joint-states'."
+    (loop for name being the hash-keys in joint-states using (hash-value value)
+          do (setf (joint-state robot name) value))))
 
 (defun make-robot-joint-state-msg (robot &key joint-names (time 0))
   (let ((joint-names (map 'vector #'identity (or joint-names
@@ -162,6 +167,63 @@ Should it be taken out and made PR2-specific?"
                (atan (- (cl-transforms:z (cl-transforms:translation pose-in-tilt)))
                      (+ (expt (cl-transforms:y (cl-transforms:translation pose-in-tilt)) 2)
                         (expt (cl-transforms:x (cl-transforms:translation pose-in-tilt)) 2)))))))))
+
+(defun looking-in-direction-p (robot camera-frame
+                               angle-horizontal angle-vertical
+                               direction)
+  (declare (type cl-transforms:3d-vector direction))
+  (let* ((camera-pose
+           (btr:link-pose robot camera-frame))
+         (map-T-cam
+           (cram-tf:pose->transform-stamped
+            cram-tf:*fixed-frame* camera-frame 0.0 camera-pose))
+         (cam-T-cam-up
+           (cl-transforms-stamped:make-transform-stamped
+            camera-frame "camera_up" 0.0
+            (cl-transforms:make-3d-vector 0 1 0)
+            (cl-transforms:make-identity-rotation)))
+         (map-T-cam-up
+           (cram-tf:multiply-transform-stampeds
+            cram-tf:*fixed-frame* "camera_up"
+            map-T-cam cam-T-cam-up))
+         (camera-up-in-map-vector
+           (cl-transforms:v-
+            (cl-transforms:translation map-T-cam-up)
+            (cl-transforms:translation map-T-cam)))
+         (cam-T-cam-left
+           (cl-transforms-stamped:make-transform-stamped
+            camera-frame "camera_left" 0.0
+            (cl-transforms:make-3d-vector 1 0 0)
+            (cl-transforms:make-identity-rotation)))
+         (map-T-cam-left
+           (cram-tf:multiply-transform-stampeds
+            cram-tf:*fixed-frame* "camera_left"
+            map-T-cam cam-T-cam-left))
+         (camera-left-in-map-vector
+           (cl-transforms:v-
+            (cl-transforms:translation map-T-cam-left)
+            (cl-transforms:translation map-T-cam)))
+         (angle-h
+           (asin (/ (cl-transforms:dot-product camera-left-in-map-vector direction)
+                    (cl-transforms:v-norm direction))))
+         (angle-v
+           (asin (/ (cl-transforms:dot-product camera-up-in-map-vector direction)
+                    (cl-transforms:v-norm direction))))
+         (max-angle-h
+           (/ angle-horizontal 2))
+         (max-angle-v
+           (/ angle-vertical 2)))
+    (and (< (abs angle-h) max-angle-h)
+         (< (abs angle-v) max-angle-v))))
+
+(defun robot-converged-to-goal-joint-states (goal-states delta)
+  (let ((arm-joint-names (loop for (name value) in goal-states collect name))
+        (goal-values (loop for (name value) in goal-states collect value)))
+    (cram-tf:values-converged
+     (mapcar (alexandria:curry 'btr:joint-state (btr:get-robot-object))
+             arm-joint-names)
+     goal-values
+     delta)))
 
 
 

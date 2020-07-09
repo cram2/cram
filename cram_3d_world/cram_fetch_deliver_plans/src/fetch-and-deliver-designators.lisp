@@ -76,7 +76,7 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:target ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; robot-location
-    (-> (man-int:always-reachable ?location-designator)
+    (-> (man-int:location-always-reachable ?location-designator)
         (lisp-fun cram-tf:robot-current-pose ?robot-rotated-pose)
         (lisp-fun calculate-robot-navigation-goal-towards-target ?location-designator
               ?robot-rotated-pose))
@@ -131,14 +131,17 @@ the `look-pose-stamped'."
                                                   ?resolved-action-designator))
     (spec:property ?action-designator (:type :searching))
     (rob-int:robot ?robot)
-    ;; object
-    (spec:property ?action-designator (:object ?some-object-designator))
-    (desig:current-designator ?some-object-designator ?object-designator)
+    ;; searching for an object or for a location
+    (once (or (spec:property ?action-designator (:object ?some-obj-desig))
+              (and (spec:property ?action-designator (:location ?some-loc-desig))
+                   (man-int:location-reference-object ?some-loc-desig
+                                                      ?some-obj-desig))))
+    (desig:current-designator ?some-obj-desig ?object-designator)
     ;; context
     (once (or (spec:property ?action-designator (:context ?context))
               (equal ?context NIL)))
-    ;; location
-    (-> (and (spec:property ?action-designator (:location ?some-location-designator))
+    ;; where to look for the given object or the given location's reference object
+    (-> (and (spec:property ?object-designator (:location ?some-location-designator))
              (not (equal ?some-location-designator NIL)))
         (desig:current-designator ?some-location-designator ?location-designator)
         (and (spec:property ?object-designator (:type ?object-type))
@@ -232,6 +235,17 @@ the `look-pose-stamped'."
              (man-int:environment-name ?environment)
              (lisp-fun man-int:get-object-destination
                        ?object-type ?environment nil ?context ?location-designator)))
+    ;; target stable? or have to check stability first?
+    (-> (man-int:location-always-stable ?location-designator)
+        (equal ?target-stable T)
+        (equal ?target-stable NIL))
+    ;; also, the target location can be w.r.t. other object, which can be in hand,
+    ;; in which case we need to bring the other object hand closer
+    (-> (and (man-int:location-reference-object ?location-designator ?target-obj)
+             (cpoe:object-in-hand ?target-obj ?target-hand))
+        (equal ?target-in-hand T)
+        (and (equal ?target-in-hand NIL)
+             (equal ?target-hand NIL)))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location
                                                       ?some-robot-loc-desig))
@@ -251,7 +265,10 @@ the `look-pose-stamped'."
                                (:arm ?arm)
                                (:target ?location-designator)
                                (:robot-location ?robot-location-designator)
-                               (:place-action ?place-action-designator))
+                               (:place-action ?place-action-designator)
+                               (:target-stable ?target-stable)
+                               (:target-in-hand ?target-in-hand)
+                               (:target-hand ?target-hand))
                       ?resolved-action-designator))
 
 
@@ -264,19 +281,31 @@ the `look-pose-stamped'."
     (once (or (spec:property ?action-designator (:context ?context))
               (equal ?context NIL)))
     ;; search location
-    (-> (and (spec:property ?action-designator (:location ?some-search-loc-desig))
+    (-> (and (spec:property ?object-designator (:location ?some-search-loc-desig))
              (not (equal ?some-search-loc-desig NIL)))
-        (desig:current-designator ?some-search-loc-desig
-                                  ?search-location-designator)
+        (and (desig:current-designator ?some-search-loc-desig
+                                       ?search-location-designator)
+             (equal ?object-designator-with-location ?object-designator))
         (and (spec:property ?object-designator (:type ?object-type))
              (man-int:environment-name ?environment)
              (lisp-fun man-int:get-object-likely-location
                        ?object-type ?environment nil ?context
-                       ?search-location-designator)))
+                       ?search-location-designator)
+             (equal ?new-props ((:location ?search-location-designator)))
+             (lisp-fun desig:extend-designator-properties
+                       ?object-designator ?new-props
+                       ?object-designator-with-location)
+             (lisp-pred desig:equate
+                        ?object-designator ?object-designator-with-location)))
     ;; search location accessible or not
-    (-> (spec:property ?search-location-designator (:in ?_))
-        (equal ?fetching-location-accessible NIL)
-        (equal ?fetching-location-accessible T))
+    (-> (man-int:location-accessible ?search-location-designator)
+        (equal ?fetching-location-accessible T)
+        (equal ?fetching-location-accessible NIL))
+    ;; search location certain or not
+    ;; because if not, we have to first search for the search location ;)
+    (-> (man-int:location-certain ?search-location-designator)
+        (equal ?search-location-certain T)
+        (equal ?search-location-certain NIL))
     ;; search location robot base
     (-> (desig:desig-prop ?action-designator
                           (:search-robot-location ?some-s-robot-loc-desig))
@@ -309,9 +338,14 @@ the `look-pose-stamped'."
                        ?object-type ?environment nil ?context
                        ?delivering-location-designator)))
     ;; deliver location accessible or not
-    (-> (man-int:accessible ?delivering-location-designator)
+    (-> (man-int:location-accessible ?delivering-location-designator)
         (equal ?delivering-location-accessible T)
         (equal ?delivering-location-accessible NIL))
+    ;; deliver location certain or not
+    ;; because if not, we have to first search for the deliver location
+    (-> (man-int:location-certain ?delivering-location-designator)
+        (equal ?delivering-location-certain T)
+        (equal ?delivering-location-certain NIL))
     ;; deliver location robot base
     (-> (desig:desig-prop ?action-designator (:deliver-robot-location
                                               ?some-d-robot-loc-desig))
@@ -320,7 +354,7 @@ the `look-pose-stamped'."
         (equal ?deliver-robot-location-designator NIL))
     ;; resulting action desig
     (desig:designator :action ((:type :transporting)
-                               (:object ?object-designator)
+                               (:object ?object-designator-with-location)
                                (:context ?context)
                                (:search-location ?search-location-designator)
                                (:search-robot-location ?search-robot-location-designator)
@@ -330,5 +364,7 @@ the `look-pose-stamped'."
                                (:deliver-location ?delivering-location-designator)
                                (:deliver-robot-location ?deliver-robot-location-designator)
                                (:search-location-accessible ?fetching-location-accessible)
-                               (:delivery-location-accessible ?delivering-location-accessible))
+                               (:deliver-location-accessible ?delivering-location-accessible)
+                               (:search-location-certain ?search-location-certain)
+                               (:deliver-location-certain ?delivering-location-certain))
                       ?resolved-action-designator)))

@@ -29,7 +29,7 @@
 
 (in-package :objects)
 
-(defparameter *lift-z-offset* 0.15 "in meters")
+(defparameter *lift-z-offset* 0.05 "in meters")
 (defparameter *lift-offset* `(0.0 0.0 ,*lift-z-offset*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -93,6 +93,9 @@
 (defmethod man-int:get-object-type-carry-config :heuristics 20
     ((object-type (eql :cereal)) (grasp (eql :top)))
   :carry-top)
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :basket)) (grasp (eql :top)))
+  :carry-top-basket)
 (defmethod man-int:get-object-type-carry-config :heuristics 20
     ((object-type (eql :plate)) grasp)
   :carry-side-gripper-vertical)
@@ -317,17 +320,9 @@
 (defparameter *cereal-postgrasp-xy-offset* 0.40 "in meters")
 (defparameter *cereal-lift-z-offset* 0.1 "in meters")
 
-;; FRONT grasp
-(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :front
-  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
-  :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
-  :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
-  :lift-translation `(,*cereal-grasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
-  :2nd-lift-translation `(,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-lift-z-offset*))
-
 ;; TOP grasp
-(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :top
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :top
   :grasp-translation `(0.0d0 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *lift-offset*
@@ -335,8 +330,41 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
-;; BACK grasp
-(man-int:def-object-type-to-gripper-transforms '(:cereal :breakfast-cereal) '(:left :right) :back
+;; FRONT grasp table
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :front
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*))
+
+;; FRONT grasp shelf
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :front
+  :location-type :shelf
+  :grasp-translation `(,*cereal-grasp-xy-offset* 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation `(,*cereal-grasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-lift-z-offset*))
+
+;; BACK grasp table
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :back
+  :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*cereal-lift-z-offset*))
+
+;; BACK grasp shelf
+(man-int:def-object-type-to-gripper-transforms
+    '(:cereal :breakfast-cereal) '(:left :right) :back
+  :location-type :shelf
   :grasp-translation `(,(- *cereal-grasp-xy-offset*) 0.0d0 ,*cereal-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
@@ -387,6 +415,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;; table setting locations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;; utilities
+
 (defun make-location-on-sink-left-front (?environment-name)
   (desig:a location
            (on (desig:an object
@@ -398,14 +428,6 @@
            (side front)
            (range-invert 0.5)))
 
-(mapcar (lambda (type)
-          (defmethod man-int:get-object-likely-location :heuristics 20
-              ((object-type (eql type))
-               environment human
-               (context (eql :table-setting)))
-            (make-location-on-sink-left-front environment)))
-        '(:plate :bowl))
-
 (defun make-location-on-sink-left (?environment-name)
   (desig:a location
            (on (desig:an object
@@ -414,14 +436,6 @@
                          (owl-name "kitchen_sink_block_counter_top")
                          (part-of ?environment-name)))
            (side left)))
-
-(mapcar (lambda (type)
-          (defmethod man-int:get-object-likely-location :heuristics 20
-              ((object-type (eql type))
-               environment human
-               (context (eql :table-setting)))
-            (make-location-on-sink-left-front environment)))
-        '(:mug :cup))
 
 (defun make-location-on-sink-middle-front (?environment-name)
   (desig:a location
@@ -433,84 +447,6 @@
            (side left)
            (side front)
            (range 0.5)))
-
-(mapcar (lambda (type)
-          (defmethod man-int:get-object-likely-location :heuristics 20
-              ((object-type (eql type))
-               environment human
-               (context (eql :table-setting)))
-            (make-location-on-sink-middle-front environment)))
-        '(:bottle :milk :cereal :breakfast-cereal))
-
-(defun make-location-in-sink-left-middle-drawer (?environment-name)
-  (desig:a location
-           (in (desig:an object
-                         (type drawer)
-                         (urdf-name sink-area-left-middle-drawer-main)
-                         (owl-name "drawer_sinkblock_middle_open")
-                         (part-of ?environment-name)))))
-
-;; (mapcar (lambda (type)
-;;           (defmethod man-int:get-object-likely-location :heuristics 20
-;;               ((object-type (eql type))
-;;                environment human
-;;                (context (eql :table-setting)))
-;;             (make-location-in-sink-left-middle-drawer environment)))
-;;         '(:bowl :cup))
-
-(defun make-location-in-fridge (?environment-name)
-  (desig:a location
-           (in (desig:an object
-                         (type fridge)
-                         (urdf-name iai-fridge-main)
-                         (owl-name "drawer_fridge_upper_interior")
-                         (part-of ?environment-name)
-                         (level topmost)))))
-
-;; (mapcar (lambda (type)
-;;           (defmethod man-int:get-object-likely-location :heuristics 20
-;;               ((object-type (eql type))
-;;                environment human
-;;                (context (eql :table-setting)))
-;;             (make-location-in-fridge environment)))
-;;         '(:milk))
-
-(defun make-location-in-oven-right-drawer (?environment-name)
-  (desig:a location
-           ;; (side front)
-           (in (desig:an object
-                         (type drawer)
-                         (urdf-name oven-area-area-right-drawer-main)
-                         (owl-name "drawer_oven_right_open")
-                         (part-of ?environment-name)
-                         (level topmost)))))
-
-;; (mapcar (lambda (type)
-;;           (defmethod man-int:get-object-likely-location :heuristics 20
-;;               ((object-type (eql type))
-;;                environment human
-;;                (context (eql :table-setting)))
-;;             (make-location-in-oven-right-drawer environment)))
-;;         '(:cereal))
-
-(defun make-location-in-sink-left-upper-drawer (?environment-name)
-  (desig:a location
-           (in (desig:an object
-                         (type drawer)
-                         (urdf-name sink-area-left-upper-drawer-main)
-                         (owl-name "drawer_sinkblock_upper_open")
-                         (part-of ?environment-name)))
-           (side front)))
-
-(mapcar (lambda (type)
-          (defmethod man-int:get-object-likely-location :heuristics 20
-              ((object-type (eql type))
-               environment human
-               (context (eql :table-setting)))
-            (make-location-in-sink-left-upper-drawer environment)))
-        '(:cutlery :spoon))
-
-;;;; destination
 
 (defun make-location-on-kitchen-island-slots (?object-type ?environment-name)
   (desig:a location
@@ -526,14 +462,6 @@
            (context table-setting)
            (object-count 3)))
 
-(mapcar (lambda (object-type)
-          (defmethod man-int:get-object-destination :heuristics 20
-              ((object-type (eql object-type))
-               environment human
-               (context (eql :table-setting)))
-            (make-location-on-kitchen-island-slots object-type environment)))
-        '(:bowl :plate))
-
 (defun make-location-on-kitchen-island (?object-type ?environment-name)
   (desig:a location
            (on (desig:an object
@@ -543,20 +471,234 @@
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))))
 
+(defun make-location-right-of-other-object (?object-type ?other-object-type
+                                            ?other-object-location)
+  (let ((?other-object-designator
+          (desig:an object
+                    (type ?other-object-type)
+                    (location ?other-object-location))))
+    (desig:a location
+             (right-of ?other-object-designator)
+             (near ?other-object-designator)
+             (for (desig:an object (type ?object-type)))
+             (orientation support-aligned))))
+
+(defun make-location-right-of-behind-other-object (?object-type ?other-object-type
+                                                   ?other-object-location)
+  (let ((?other-object-designator
+          (desig:an object
+                    (type ?other-object-type)
+                    (location ?other-object-location))))
+    (desig:a location
+             (right-of ?other-object-designator)
+             ;; (behind ?other-object-designator)
+             (near ?other-object-designator)
+             (for (desig:an object (type ?object-type))))))
+
+(defun make-cereal-location (?object-type ?environment-name)
+  (desig:a location
+           ;; (left-of (desig:an object (type ?other-object)))
+           ;; (far-from (desig:an object (type ?other-object)))
+           ;; (orientation axis-aligned)
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of ?environment-name)))
+           (for (desig:an object (type ?object-type)))
+           (side back)
+           (side right)))
+
+(defun make-location-left-of-far-other-object (?object-type ?other-object-type
+                                               ?other-object-location)
+  (let ((?other-object-designator
+          (desig:an object
+                    (type ?other-object-type)
+                    (location ?other-object-location))))
+    (desig:a location
+             (left-of ?other-object-designator)
+             (far-from ?other-object-designator)
+             (for (desig:an object (type ?object-type))))))
+
+(defun make-location-in-sink-left-middle-drawer (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name sink-area-left-middle-drawer-main)
+                         (owl-name "drawer_sinkblock_middle_open")
+                         (part-of ?environment-name)))))
+
+(defun make-location-in-fridge (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type fridge)
+                         (urdf-name iai-fridge-main)
+                         (owl-name "drawer_fridge_upper_interior")
+                         (part-of ?environment-name)
+                         (level topmost)))))
+
+(defun make-location-in-oven-right-drawer (?environment-name)
+  (desig:a location
+           ;; (side front)
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name oven-area-area-right-drawer-main)
+                         (owl-name "drawer_oven_right_open")
+                         (part-of ?environment-name)
+                         (level topmost)))))
+
+(defun make-location-on-sink (?environment-name ?object-type)
+  (desig:a location
+           (on (desig:an object
+                         (type sink)
+                         (urdf-name sink-area-sink)
+                         (owl-name "kitchen_sink_area_sink")
+                         (part-of ?environment-name)))
+           (for (desig:an object (type ?object-type)))))
+
+(defun make-location-in-sink-left-upper-drawer (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name sink-area-left-upper-drawer-main)
+                         (owl-name "drawer_sinkblock_upper_open")
+                         (part-of ?environment-name)))
+           (side front)))
+
+;;;;;;;;;;;;;;;;;;;; context TABLE-SETTING-COUNTER
+
+;;;;;;;; fetching locations
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-likely-location :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-setting-counter)))
+            (make-location-on-sink-left-front environment)))
+        '(:plate :bowl :mug))
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-likely-location :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-setting-counter)))
+            (make-location-on-sink-middle-front environment)))
+        '(:bottle :milk :cereal :breakfast-cereal :cup))
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-likely-location :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-setting-counter)))
+            (make-location-in-sink-left-upper-drawer environment)))
+        '(:cutlery :spoon))
+
+;;;;;;;;; destination locations
+
+(mapcar (lambda (object-type)
+          (defmethod man-int:get-object-destination :heuristics 20
+              ((object-type (eql object-type))
+               environment human
+               (context (eql :table-setting-counter)))
+            (make-location-on-kitchen-island-slots object-type environment)))
+        '(:bowl :plate))
+
+(mapcar (lambda (object-type)
+          (defmethod man-int:get-object-destination :heuristics 20
+              ((object-type (eql object-type))
+               environment human
+               (context (eql :table-setting-counter)))
+            (make-location-on-kitchen-island object-type environment)))
+        '(:mug :bottle))
+
+(mapcar (lambda (object-type-and-other-object-type)
+          (destructuring-bind (object-type other-object-type)
+              object-type-and-other-object-type
+            (defmethod man-int:get-object-destination :heuristics 20
+                ((object-type (eql object-type))
+                 environment human
+                 (context (eql :table-setting-counter)))
+              (make-location-right-of-other-object
+               object-type other-object-type
+               (make-location-on-kitchen-island-slots
+                other-object-type environment)))))
+        '((:spoon :bowl)
+          (:knife :plate)))
+
+(mapcar (lambda (object-type-and-other-object-type)
+          (destructuring-bind (object-type other-object-type)
+              object-type-and-other-object-type
+            (defmethod man-int:get-object-destination :heuristics 20
+                ((object-type (eql object-type))
+                 environment human
+                 (context (eql :table-setting-counter)))
+              (make-location-right-of-behind-other-object
+               object-type other-object-type
+               (make-location-on-kitchen-island-slots
+                other-object-type environment)))))
+        '((:cup :bowl)))
+
+(mapcar (lambda (object-type)
+          (defmethod man-int:get-object-destination :heuristics 20
+              ((object-type (eql object-type))
+               environment human
+               (context (eql :table-setting-counter)))
+            (make-cereal-location object-type environment)))
+        '(:cereal :breakfast-cereal))
+
+(defmethod man-int:get-object-destination :heuristics 20
+    ((object-type (eql :milk))
+     environment human
+     (context (eql :table-setting-counter)))
+  (make-location-left-of-far-other-object
+   object-type :bowl
+   (make-location-on-kitchen-island-slots :bowl environment)))
+
+;;;;;;;;;;;;;;;;;;;; context TABLE-SETTING
+
+;;;;;;;;;; fetch locations
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-likely-location :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-setting)))
+            (make-location-in-sink-left-middle-drawer environment)))
+        '(:bowl :cup))
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-likely-location :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-setting)))
+            (make-location-in-fridge environment)))
+        '(:milk))
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-likely-location :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-setting)))
+            (make-location-in-oven-right-drawer environment)))
+        '(:cereal :breakfast-cereal))
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-likely-location :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-setting)))
+            (make-location-in-sink-left-upper-drawer environment)))
+        '(:cutlery :spoon))
+
+;;;;;;;; destination locations
+
 (mapcar (lambda (object-type)
           (defmethod man-int:get-object-destination :heuristics 20
               ((object-type (eql object-type))
                environment human
                (context (eql :table-setting)))
-            (make-location-on-kitchen-island object-type environment)))
-        '(:mug :bottle))
-
-(defun make-location-right-of-other-object (?object-type ?other-object-type)
-  (desig:a location
-           (right-of (desig:an object (type ?other-object-type)))
-           (near (desig:an object (type ?other-object-type)))
-           (for (desig:an object (type ?object-type)))
-           (orientation support-aligned)))
+            (make-location-on-kitchen-island-slots object-type environment)))
+        '(:bowl))
 
 (mapcar (lambda (object-type-and-other-object-type)
           (destructuring-bind (object-type other-object-type)
@@ -565,16 +707,11 @@
                 ((object-type (eql object-type))
                  environment human
                  (context (eql :table-setting)))
-              (make-location-right-of-other-object object-type other-object-type))))
-          '((:spoon :bowl)
-            (:knife :plate)))
-
-(defun make-location-right-of-behind-other-object (?object-type ?other-object-type)
-  (desig:a location
-           (right-of (desig:an object (type ?other-object-type)))
-           ;; (behind (desig:an object (type ?other-object-type)))
-           (near (desig:an object (type ?other-object-type)))
-           (for (desig:an object (type ?object-type)))))
+              (make-location-right-of-other-object
+               object-type other-object-type
+               (make-location-on-kitchen-island-slots
+                other-object-type environment)))))
+        '((:spoon :bowl)))
 
 (mapcar (lambda (object-type-and-other-object-type)
           (destructuring-bind (object-type other-object-type)
@@ -583,51 +720,27 @@
                 ((object-type (eql object-type))
                  environment human
                  (context (eql :table-setting)))
-              (make-location-right-of-behind-other-object object-type
-                                                          other-object-type))))
+              (make-location-right-of-behind-other-object
+               object-type other-object-type
+               (make-location-on-kitchen-island-slots
+                other-object-type environment)))))
         '((:cup :bowl)))
 
-(defun make-cereal-pose (?object-type ?environment-name)
-  (let ((?pose
-          (cl-transforms-stamped:make-pose-stamped
-           "map"
-           0.0
-           (cl-transforms:make-3d-vector -0.78 0.8 0.95)
-           (cl-transforms:make-quaternion 0 0 0.6 0.4)))
-        ;; (?other-object :bowl)
-        )
-    (desig:a location
-             ;; (pose ?pose)
-             (on (desig:an object
-                           (type counter-top)
-                           (urdf-name kitchen-island-surface)
-                           (owl-name "kitchen_island_counter_top")
-                           (part-of ?environment-name)))
-             (for (desig:an object (type ?object-type)))
-             (side back)
-             (side right)
-             ;; (orientation axis-aligned)
-             ;; (left-of (desig:an object (type ?other-object)))
-             ;; (far-from (desig:an object (type ?other-object)))
-             )))
-
-(defmethod man-int:get-object-destination :heuristics 20
-    ((object-type (eql :cereal))
-     environment-name human-name
-     (context (eql :table-setting)))
-  (make-cereal-pose object-type environment-name))
-
-(defun make-location-left-of-far-other-object (?object-type ?other-object-type)
-  (desig:a location
-           (left-of (desig:an object (type ?other-object-type)))
-           (far-from (desig:an object (type ?other-object-type)))
-           (for (desig:an object (type ?object-type)))))
+(mapcar (lambda (object-type)
+          (defmethod man-int:get-object-destination :heuristics 20
+              ((object-type (eql object-type))
+               environment human
+               (context (eql :table-setting)))
+            (make-cereal-location object-type environment)))
+        '(:cereal :breakfast-cereal))
 
 (defmethod man-int:get-object-destination :heuristics 20
     ((object-type (eql :milk))
      environment human
      (context (eql :table-setting)))
-  (make-location-left-of-far-other-object object-type :bowl))
+  (make-location-left-of-far-other-object
+   object-type :bowl
+   (make-location-on-kitchen-island-slots :bowl environment)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; table cleaning ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -653,14 +766,7 @@
             (make-location-on-kitchen-island environment object-type)))
         '(:household-item))
 
-(defun make-location-on-sink (?environment-name ?object-type)
-  (desig:a location
-           (on (desig:an object
-                         (type area-sink)
-                         (urdf-name sink-area-sink)
-                         (owl-name "kitchen_sink_area_sink")
-                         (part-of ?environment-name)))
-           (for (desig:an object (type ?object-type)))))
+
 
 (mapcar (lambda (type)
           (defmethod man-int:get-object-destination :heuristics 20

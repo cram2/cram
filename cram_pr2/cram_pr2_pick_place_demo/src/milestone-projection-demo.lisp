@@ -36,7 +36,7 @@
      ((0.10573 -0.1505 -0.062256) (0 0 -1 0)))
     (:cup
      "sink_area_left_middle_drawer_main"
-     ((0.1375 0.12 -0.0547167o) (0 0 -1 0)))
+     ((0.1275 0.12 -0.0547167) (0 0 -1 0)))
     (:spoon
      ;; "oven_area_area_middle_upper_drawer_main"
      "sink_area_left_upper_drawer_main"
@@ -61,8 +61,7 @@
                (0.0 0.0 1 0)))
     (:milk . ((-0.8495257695515951d0 1.6991498311360678d0 0.9483174006144206d0)
               (0.0 0.0 -0.9 0.7)))
-    (:breakfast-cereal . ((-0.8497650782267253d0 0.8972648620605469d0 0.9625186920166016d0)
-                          (0 0 0 1)))))
+    (:breakfast-cereal . ((-0.78 0.8 0.95) (0 0 0.6 0.4)))))
 
 (defparameter *cleaning-deliver-poses*
   `((:bowl . ((1.45 -0.4 1.0) (0 0 0 1)))
@@ -140,34 +139,15 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
   ;; (park-robot)
   )
 
-;; Open the fridge manually
-  ;; Uncomment and include in `setup-for-demo' to get it working as long as the
-  ;; automatic opening of the fridge door when referring to container is still in work
-  ;; Can only be used with the milk situation right now, as keeping the fridge opened will block pr2 from
-  ;; accessing other drawers
-
-  ;; (exe:perform
-  ;;  (an action
-  ;;      (type accessing)
-  ;;      (arm right)
-  ;;      (distance 1.4)
-  ;;      (location
-  ;;       (a location
-  ;;          (in
-  ;;           (an object
-  ;;               (type container-revolute)
-  ;;               ;; (urdf-name :iai_fridge_door)
-  ;;               (urdf-name :iai_fridge_door_handle)
-  ;;               (part-of environment))))))))
-
 (defun projection-init ()
   (setf btr:*visibility-threshold* 0.7)
-  (setf cram-urdf-projection:*debug-short-sleep-duration* 0.5)
-  (setf cram-urdf-projection:*debug-long-sleep-duration* 1.0)
+  (setf cram-urdf-projection:*debug-short-sleep-duration* 0.0)
+  (setf cram-urdf-projection:*debug-long-sleep-duration* 0.0)
   (setf cram-urdf-projection-reasoning::*projection-checks-enabled* t)
   (spawn-objects-on-fixed-spots))
 
-(defun setting-demo (&optional (object-list '(:milk)))
+(defun setting-demo (&optional (object-list '(:milk :breakfast-cereal
+                                              :bowl :spoon :cup)))
   "Generic implementation, ideally this should work for all objects together.
 Right now, only works with '(:milk) and '(:bowl :cup :spoon). There is a separate method
 for :breakfast-cereal in the bottom.
@@ -182,7 +162,7 @@ commented out "
                            cram-tf:*fixed-frame*))
            (?deliver-location (a location (pose ?deliver-pose)))
            (?color (cdr (assoc ?object-type *object-colors*)))
-           (?grasp (cdr (assoc ?object-type *object-grasps*)))
+           ;; (?grasp (cdr (assoc ?object-type *object-grasps*)))
            (?object (an object
                         (type ?object-type)
                         ;; (location ?fetch-location)
@@ -193,8 +173,8 @@ commented out "
            (type transporting)
            (object ?object)
            (context :table-setting)
-           (grasps (:back :top :front))
-           (arms (left right))
+           ;; (grasps (:back :top :front))
+           ;; (arms (left right))
            ;; (desig:when ?grasp
            ;;   (grasp ?grasp))
            (target ?deliver-location))))))

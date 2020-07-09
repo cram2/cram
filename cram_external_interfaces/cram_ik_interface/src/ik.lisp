@@ -30,6 +30,7 @@
 (in-package :ik)
 
 (defparameter *ik-service-name* "kdl_ik_service/get_ik")
+(defparameter *float-comparison-precision* 0.001d0)
 
 (defun call-ik-service (cartesian-pose base-link end-effector-link seed-state-msg)
   (declare (type cl-transforms-stamped:pose-stamped cartesian-pose)
@@ -62,12 +63,7 @@
                      :no_ik_solution))
                nil)
               (T
-               (error 'simple-error
-                      :format-control "IK service failed: ~a"
-                      :format-arguments (list
-                                         (roslisp-msg-protocol:code-symbol
-                                          'moveit_msgs-msg:moveiterrorcodes
-                                          response-error-code))))))
+               nil)))
     ;; PR2's IK kinematics solver sends garbage sometimes
     (simple-error (e)
       (declare (ignore e))
@@ -134,3 +130,105 @@ If not valid solution was found, returns NIL."
               :test-value nil
               :current-value current-value))
         (roslisp:set-debug-level nil old-debug-lvl)))))
+
+
+(defmacro find-ik-for ((goal-pose base-link tip-link seed-state-message
+                        &optional solution-valid-p)
+                       &body body)
+  "Method to find inverse kinematics for a given cartesian pose using resampling
+Syntax:
+ (ik::find-ik-for (goal-pose base-link tip-link seed-state-message)
+         (ik::with-resampling (current-value resampling-axis
+                               upper-limit lower-limit resampling-step)
+             (ik::with-resampling current-value2 resampling-axis2 ...)
+                            ....))
+Resampling axis can only be :X, :Y or :Z"
+  `(let ((offseted-goal-pose ,goal-pose)
+         (base-link-evaled ,base-link)
+         (tip-link-evaled ,tip-link)
+         (seed-state-msg-evaled ,seed-state-message)
+         (solution-valid-p-evaled ,solution-valid-p)
+         (old-debug-level (roslisp:debug-level nil)))
+     (macrolet ((with-resampling (&whole whole-form
+                                    (resampling-axis upper-limit lower-limit
+                                     resampling-step)
+                                  &body body)
+                  (let ((form-length (length whole-form)))
+                    ;; Formulating a list of joint values to sample
+                    `(let* ((original-goal-pose
+                              offseted-goal-pose)
+                            (sampling-values
+                              (remove-duplicates
+                               (append
+                                (list 0.0)
+                                (loop for x = ,lower-limit then (+ x ,resampling-step)
+                                      until (> x ,upper-limit)
+                                      collect x))
+                               ;; remove duplicates in case current value is
+                               ;; exactly one of the sampling values
+                               :test (lambda (x y)
+                                       (< (abs (- x y))
+                                          *float-comparison-precision*))
+                               :from-end t))
+                            (result
+                              (loop for value in sampling-values
+                                    do (setf offseted-goal-pose
+                                                (cram-tf:translate-pose
+                                                 original-goal-pose
+                                                 (ecase ,resampling-axis
+                                                   (:x :x-offset)
+                                                   (:y :y-offset)
+                                                   (:z :z-offset))
+                                                 (- value)))
+                                       (multiple-value-bind
+                                             (solution-msg joint-values)
+
+                                           ;; Checking if the arguments contain
+                                           ;; &body clause or not. 2 is the
+                                           ;; current number of arguments without
+                                           ;; including the body. One being the
+                                           ;; form itself and the second being the
+                                           ;; list of values in the paranthesis.
+                                           (if (> ,form-length 2)
+                                               ;; If body is provided, call it
+                                               ;; with the current offseted value
+                                               ;; of pose (for retaining the loop
+                                               ;; value on nested calls).
+                                               (progn ,@body)
+                                               ;; else make the ik-service call
+                                               (call-ik-service
+                                                offseted-goal-pose
+                                                base-link-evaled
+                                                tip-link-evaled
+                                                seed-state-msg-evaled))
+                                         ;; now we either got a solution from the
+                                         ;; ik service call, if we're leaf,
+                                         ;; or from our nested form.
+                                         ;; it can also be that we get NIL back
+
+                                         ;; if we did get an answer,
+                                         ;; first, perform the collision check,
+                                         ;; and if that is successful, break the loop
+                                         (when solution-msg
+                                           ;; if collision check is not defined
+                                           ;; or the collision check is successful
+                                           ;; break the loop
+                                           ;; otherwise, we simply continue our loop
+                                           (let ((new-joint-values
+                                                   (cons
+                                                    (cons ,resampling-axis value)
+                                                    joint-values)))
+                                             (when (or (not solution-valid-p-evaled)
+                                                       (funcall
+                                                        solution-valid-p-evaled
+                                                        solution-msg
+                                                        new-joint-values))
+                                               (return (list solution-msg
+                                                             new-joint-values)))))))))
+                       (setf offseted-goal-pose original-goal-pose)
+                       (values (first result) (second result))))))
+       (unwind-protect
+            (progn
+              (roslisp:set-debug-level nil 9)
+              ,@body)
+         (roslisp:set-debug-level nil old-debug-level)))))

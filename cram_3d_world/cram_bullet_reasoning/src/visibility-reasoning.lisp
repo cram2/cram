@@ -1,20 +1,21 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;;               2020, Christopher Pollok <cpollok@uni-bremen.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,11 +32,24 @@
 (in-package :btr)
 
 (defvar *rendering-context* nil)
-(defvar *visibility-threshold* 0.9)
+(defparameter *visibility-threshold* 0.9
+  "Percentage of object pixels that has to be in the rendered image
+to consider the object as visible.")
+(defparameter *pose-visibility-threshold* 0.2
+  "Percentage of a 5cm radius sphere's pixels that has to be in the rendered image
+to consider the pose at the center of the sphere as visible.")
+(defparameter *total-pixel-threshold* 5
+  "The minimum number of pixels that have to be in the rendered image
+to consider the object as in the camera view.")
+
+(defparameter *visibility-sphere-name* :visibility-sphere
+  "The name of the bullet object to spawn for testing for pose visibility.")
 
 (defstruct object-visibility
   percentage
-  occluding-objects)
+  occluding-objects
+  percentage-without-occlusion
+  total-object-pixels)
 
 (defclass flat-color-object-proxy ()
   ((object :initarg :object :reader proxied-object)
@@ -101,8 +115,8 @@
                                                 :pose camera-centered
                                                 :width width :height height))))
                    (camera (make-instance 'camera
-                                          :pose camera-pose
-                                          :width width :height height))
+                             :pose camera-pose
+                             :width width :height height))
                    (object-buffer (car (render-to-framebuffer
                                         rendering-context object camera)))
                    (obj-ref-color nil)
@@ -115,9 +129,9 @@
                                          for obj in objects
                                          for i from step by step
                                          for obj-proxy = (make-instance
-                                                          'flat-color-object-proxy
-                                                          :object obj
-                                                          :color `(,i ,i ,i 1))
+                                                             'flat-color-object-proxy
+                                                           :object obj
+                                                           :color `(,i ,i ,i 1))
                                          when (eq object obj)
                                            do (setf obj-ref-color i)
                                          collecting obj-proxy))
@@ -135,6 +149,7 @@
               (loop for i below (* (width camera) (height camera) 3) by 3
                     with object-total-pixels = 0
                     with object-visible-pixels = 0
+                    with object-visible-pixels-without-occlusion = 0
                     with occluding-object-colors = nil
                     ;; threshold since colors are float values and not
                     ;; always exactly what they should be
@@ -144,6 +159,8 @@
                                                           reasoning-world))))
                     when (> (aref object-total-buffer i) 0.0)
                       do (incf object-total-pixels)
+                    when (> (aref object-buffer i) 0.0)
+                      do (incf object-visible-pixels-without-occlusion)
                     if (< (abs (- (aref scene-buffer i) obj-ref-color))
                           object-color-threshold)
                       do (incf object-visible-pixels)
@@ -152,40 +169,88 @@
                               (pushnew (aref scene-buffer i)
                                        occluding-object-colors))
                     finally (return (make-object-visibility
-                                     :percentage (cond ((> object-visible-pixels
-                                                           object-total-pixels)
-                                                        1.0)
-                                                       ((> object-total-pixels
-                                                           0)
-                                                        (coerce
-                                                         (/ object-visible-pixels
-                                                            object-total-pixels)
-                                                         'single-float))
-                                                       (t 0.0))
+                                     :percentage
+                                     (cond ((> object-visible-pixels
+                                               object-total-pixels)
+                                            1.0)
+                                           ((> object-total-pixels
+                                               0)
+                                            (coerce
+                                             (/ object-visible-pixels
+                                                object-total-pixels)
+                                             'single-float))
+                                           (t 0.0))
                                      :occluding-objects
                                      (mapcar
                                       #'proxied-object
                                       (remove-if-not
                                        (lambda (o)
                                          (block block-check
-                                         (loop for col-occ in occluding-object-colors
-                                               with col-pr = (car (slot-value
-                                                                   o 'color))
-                                               when (< (abs (- col-occ
-                                                               col-pr))
-                                                       object-color-threshold)
-                                                 do (return-from block-check
-                                                      T))))
-                                       object-proxies))))))))))))
+                                           (loop for col-occ in occluding-object-colors
+                                                 with col-pr = (car (slot-value
+                                                                     o 'color))
+                                                 when (< (abs (- col-occ
+                                                                 col-pr))
+                                                         object-color-threshold)
+                                                   do (return-from block-check
+                                                        T))))
+                                       object-proxies))
+                                     :percentage-without-occlusion
+                                     (cond ((> object-visible-pixels-without-occlusion
+                                               object-total-pixels)
+                                            1.0)
+                                           ((> object-total-pixels
+                                               0)
+                                            (coerce
+                                             (/ object-visible-pixels-without-occlusion
+                                                object-total-pixels)
+                                             'single-float))
+                                           (t 0.0))
+                                     :total-object-pixels
+                                     object-total-pixels))))))))))
 
-(defun object-visible-p (world camera-pose object &optional(threshold *visibility-threshold*))
-  "Returns T if at least `threshold' of the object is visible"
+(defun object-visible-p (world camera-pose object
+                         &optional (threshold *visibility-threshold*))
+  "Returns T if at least `threshold' percent of the `object' pixels are visible."
   (let ((visibility (calculate-object-visibility world camera-pose object)))
     (>= (object-visibility-percentage visibility)
         threshold)))
 
-(defun occluding-objects (world camera-pose object &optional (threshold *visibility-threshold*))
-  "Returns the list of occluding objects if less than `threshold' of `object' is visible"
+(defun occluding-objects (world camera-pose object
+                          &optional (threshold *visibility-threshold*))
+  "Returns the list of occluding objects if less than `threshold' percent
+of `object' pixels are visible."
   (let ((visibility (calculate-object-visibility world camera-pose object)))
     (when (< (object-visibility-percentage visibility) threshold)
       (object-visibility-occluding-objects visibility))))
+
+(defun looking-at-object-p (world camera-pose object
+                            &optional (threshold *visibility-threshold*))
+  "Returns T if at least `threshold' of the `object' is
+within the robot's view frame. Even if the `object' is occluded, if the camera
+is directed towards the `object', the predicate will be T.
+If a part of the `object', visible or occluded, is clipped in the image,
+the predicate is NIL."
+  (let ((visibility (calculate-object-visibility world camera-pose object)))
+    (>= (object-visibility-percentage-without-occlusion visibility)
+        threshold)))
+
+(defun object-in-view-p (world camera-pose object
+                         &optional (threshold *total-pixel-threshold*))
+  "Returns T if at least `threshold' pixels of the `object' are visible
+in the robot's view frame. Even if the `object' is fully occluded,
+if a couple of pixels are in the view, this predicate is T."
+  (let ((visibility (calculate-object-visibility world camera-pose object)))
+    (>= (object-visibility-total-object-pixels visibility)
+        threshold)))
+
+(defun looking-at-pose-p (world camera-pose pose
+                          &optional (threshold *pose-visibility-threshold*))
+  (unwind-protect
+       (let ((sphere
+               (btr:add-object world :sphere
+                               *visibility-sphere-name* pose
+                               :radius 0.05 :mass 0.0 :color '(1.0 0.0 0.0))))
+         (btr:looking-at-object-p
+          btr:*current-bullet-world* camera-pose sphere threshold))
+    (btr:remove-object world *visibility-sphere-name*)))

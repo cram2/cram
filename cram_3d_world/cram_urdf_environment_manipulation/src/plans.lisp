@@ -63,11 +63,13 @@
   (cpl:par
     (roslisp:ros-info (environment-manipulation manipulate-container)
                       "Opening gripper")
-    (exe:perform
-     (desig:an action
-               (type setting-gripper)
-               (gripper ?arm)
-               (position ?gripper-opening)))
+    (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
+      (exe:perform
+       (desig:an action
+                 (type setting-gripper)
+                 (gripper ?arm)
+                 (position ?gripper-opening)
+                 (goal ?goal))))
     (roslisp:ros-info (environment-manipulation manipulate-container)
                       "Reaching")
     (cpl:with-failure-handling
@@ -77,11 +79,13 @@
                              e)
            ;; (return)
            ))
-      (exe:perform
-       (desig:an action
-                 (type reaching)
-                 (left-poses ?left-reach-poses)
-                 (right-poses ?right-reach-poses)))))
+      (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
+        (exe:perform
+         (desig:an action
+                   (type reaching)
+                   (left-poses ?left-reach-poses)
+                   (right-poses ?right-reach-poses)
+                   (goal ?goal))))))
 
   ;;;;;;;;;;;;;;;;;;;; GRIPPING ;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
@@ -93,14 +97,16 @@
                            e)
          ;; (return)
          ))
-    (exe:perform
-     (desig:an action
-               (type grasping)
-               (object (desig:an object
-                                 (name ?environment-name)))
-               (link ?link-name)
-               (left-poses ?left-grasp-poses)
-               (right-poses ?right-grasp-poses))))
+    (let ((?goal `(cpoe:tool-frames-at ,?left-grasp-poses ,?right-grasp-poses)))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (link ?link-name)
+                 (left-poses ?left-grasp-poses)
+                 (right-poses ?right-grasp-poses)
+                 (goal ?goal)))))
 
   (when (eq ?type :opening)
     (exe:perform
@@ -118,9 +124,12 @@
                            e)
          ;; (return)
          ))
-    (let ((?push-or-pull (if (eq ?type :opening)
-                            :pulling
-                            :pushing)))
+    (let ((?push-or-pull
+            (if (eq ?type :opening)
+                :pulling
+                :pushing))
+          (?goal
+            `(cpoe:tool-frames-at ,?left-manipulate-poses ,?right-manipulate-poses)))
       (exe:perform
        (desig:an action
                  (type ?push-or-pull)
@@ -129,7 +138,8 @@
                  (container-object ?container-designator)
                  (link ?link-name)
                  (left-poses ?left-manipulate-poses)
-                 (right-poses ?right-manipulate-poses)))))
+                 (right-poses ?right-manipulate-poses)
+                 (goal ?goal)))))
 
   (when (and joint-name)
     (cram-occasions-events:on-event
@@ -144,18 +154,22 @@
   ;;;;;;;;;;;;;;;;;;;; RETRACTING ;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Retracting")
-  (exe:perform
-   (desig:an action
-             (type releasing)
-             (gripper ?arm)))
+  (let ((?goal `(cpoe:gripper-opened ,?arm)))
+    (exe:perform
+     (desig:an action
+               (type releasing)
+               (gripper ?arm)
+               (goal ?goal))))
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans manipulate)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (exe:perform
-     (desig:an action
-               (type retracting)
-               (left-poses ?left-retract-poses)
-               (right-poses ?right-retract-poses)))))
+    (let ((?goal `(cpoe:tool-frames-at ,?left-retract-poses ,?right-retract-poses)))
+      (exe:perform
+       (desig:an action
+                 (type retracting)
+                 (left-poses ?left-retract-poses)
+                 (right-poses ?right-retract-poses)
+                 (goal ?goal))))))

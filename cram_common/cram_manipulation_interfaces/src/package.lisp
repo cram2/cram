@@ -41,13 +41,17 @@
    #:get-object-old-transform
    #:get-object-old-pose
    ;; prolog
-   #:object-type-subtype
-   #:object-type-direct-subtype
-   #:robot-free-hand
+   #:object-type-subtype #:object-type-direct-subtype
+   #:robot-free-hand #:joint-state-for-arm-config
+   #:object-rotationally-symmetric
+   #:orientation-matters
    #:unidirectional-attachment
-   #:always-reachable
-   #:other-object-is-a-robot
-   #:accessible
+   #:location-always-reachable
+   #:object-is-a-robot
+   #:location-accessible
+   #:location-reference-object
+   #:location-certain
+   #:location-always-stable
    ;; environment
    #:environment-name
    #:current-environment-symbol
@@ -69,8 +73,6 @@
    #:calculate-face-vector
    #:object-type-grasp->robot-grasp
    #:robot-grasp->object-type-grasp
-   #:object-rotationally-symmetric
-   #:orientation-matters
    ;; trajectories
    #:make-traj-segment
    #:traj-segment-label

@@ -401,10 +401,14 @@ equate resulting designator to the original one."
                   &allow-other-keys)
   (declare (type boolean ?left-arm-p ?right-arm-p))
   "Puts the arms into a parking configuration"
-  (exe:perform
-   (desig:an action
-             (type positioning-arm)
-             (desig:when ?left-arm-p
-               (left-configuration park))
-             (desig:when ?right-arm-p
-               (right-configuration park)))))
+  (let* ((left-config (when ?left-arm-p :park))
+         (right-config (when ?right-arm-p :park))
+         (?goal `(cpoe:arms-positioned-at ,left-config ,right-config)))
+    (exe:perform
+     (desig:an action
+               (type positioning-arm)
+               (desig:when ?left-arm-p
+                 (left-configuration park))
+               (desig:when ?right-arm-p
+                 (right-configuration park))
+               (goal ?goal)))))
