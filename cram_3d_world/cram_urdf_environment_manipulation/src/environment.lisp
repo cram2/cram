@@ -118,8 +118,8 @@ the `btr-environment'."
 
 (defun find-handle-under-link (link)
   "Return the link object of the handle under the given `link' object."
-  (declare (type cl-urdf:link link))
-  (the cl-urdf:link
+  (declare (type (or null cl-urdf:link) link))
+  (the (or null cl-urdf:link)
        (if (search "handle" (cl-urdf:name link))
            link
            (reduce (lambda (&optional x y) (or x y))
