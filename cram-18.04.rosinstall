@@ -2,7 +2,7 @@
 - git:
     local-name: cram
     uri: https://github.com/cram2/cram.git
-    version: melodic
+    version: master-melodic
 - git:
     local-name: giskard_msgs
     uri: https://github.com/SemRoCo/giskard_msgs.git
