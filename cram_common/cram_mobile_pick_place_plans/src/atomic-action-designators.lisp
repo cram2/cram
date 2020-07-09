@@ -142,7 +142,7 @@
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :allow-hand)
+                               (:collision-mode :allow-all)
                                (:collision-object-b ?collision-object-b)
                                (:collision-object-b-link ?object-link)
                                (:prefer-base ?prefer-base)
