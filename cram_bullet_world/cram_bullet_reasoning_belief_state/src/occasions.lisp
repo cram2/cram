@@ -31,7 +31,7 @@
 (in-package :cram-bullet-reasoning-belief-state)
 
 (defparameter *torso-convergence-delta* 0.01 "In meters")
-(defparameter *gripper-joint-convergence-delta* 0.01 "In meters")
+(defparameter *gripper-joint-convergence-delta* 0.005 "In meters")
 (defparameter *arm-joints-convergence-delta* 0.0174 "In radians, about 1 deg.")
 (defparameter *ee-position-convergence-delta* 0.02 "In meters")
 (defparameter *ee-rotation-convergence-delta* 0.07 "In radians, about 4 deg.")
@@ -155,9 +155,8 @@
     (lisp-fun * ?delta ?mult ?delta-mult)
     (rob-int:gripper-joint ?robot ?gripper ?_)
     (forall (rob-int:gripper-joint ?robot ?gripper ?gripper-joint)
-            (and
-             (rob-int:joint-upper-limit ?robot ?gripper-joint ?upper-limit)
-             (%joint-at ?gripper-joint ?upper-limit ?delta-mult))))
+            (and (rob-int:joint-upper-limit ?robot ?gripper-joint ?upper-limit)
+                 (%joint-at ?gripper-joint ?upper-limit ?delta-mult))))
 
   (<- (cpoe:gripper-opened ?gripper ?delta)
     (lisp-type ?gripper list)
@@ -175,9 +174,8 @@
     (lisp-fun * ?delta ?mult ?delta-mult)
     (rob-int:gripper-joint ?robot ?gripper ?gripper-joint)
     (forall (rob-int:gripper-joint ?robot ?gripper ?gripper-joint)
-            (and
-             (rob-int:joint-lower-limit ?robot ?gripper-joint ?lower-limit)
-             (%joint-at ?gripper-joint ?lower-limit ?delta-mult))))
+            (and (rob-int:joint-lower-limit ?robot ?gripper-joint ?lower-limit)
+                 (%joint-at ?gripper-joint ?lower-limit ?delta-mult))))
 
   (<- (cpoe:gripper-closed ?gripper ?delta)
     (lisp-type ?gripper list)
@@ -188,17 +186,17 @@
     (symbol-value *arm-joints-convergence-delta* ?delta)
     (cpoe:arms-positioned-at ?left-configuration ?right-configuration ?delta))
   ;;
-  (<- (cpoe:arms-positioned-at ?left-configuration ?right-configuration ?delta)
+  (<- (cpoe:arms-positioned-at ?left-config ?right-config ?delta)
     (rob-int:robot ?robot)
-    (-> (lisp-pred identity ?left-configuration)
-        (and (man-int:joint-state-for-arm-config ?robot ?left-configuration :left
-                                         ?left-goal-states)
+    (-> (lisp-pred identity ?left-config)
+        (and (man-int:joint-state-for-arm-config ?robot ?left-config :left
+                                                 ?left-goal-states)
              (lisp-pred btr:robot-converged-to-goal-joint-states
                         ?left-goal-states ?delta))
         (true))
-    (-> (lisp-pred identity ?right-configuration)
-        (and (man-int:joint-state-for-arm-config ?robot ?right-configuration :right
-                                         ?right-goal-states)
+    (-> (lisp-pred identity ?right-config)
+        (and (man-int:joint-state-for-arm-config ?robot ?right-config :right
+                                                 ?right-goal-states)
              (lisp-pred btr:robot-converged-to-goal-joint-states
                         ?right-goal-states ?delta))
         (true)))
