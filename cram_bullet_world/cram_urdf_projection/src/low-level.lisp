@@ -877,10 +877,10 @@ otherwise check collisions in current joint state."
                validation-function))
           (cond
             ((and left-torso-angle right-torso-angle)
-             (when (not (eq left-torso-angle right-torso-angle))
-               (cpl:fail 'common-fail:manipulation-pose-unreachable
-                         :description (format nil "In MOVE-TCP goals for the two arms ~
-                                                 require different torso angles).")))
+             ;; (when (not (eq left-torso-angle right-torso-angle))
+             ;;   (cpl:fail 'common-fail:manipulation-pose-unreachable
+             ;;             :description (format nil "In MOVE-TCP goals for the two arms ~
+             ;;                                     require different torso angles).")))
              (move-torso left-torso-angle))
             (left-torso-angle (move-torso left-torso-angle))
             (right-torso-angle (move-torso right-torso-angle)))
