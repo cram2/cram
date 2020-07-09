@@ -31,7 +31,8 @@
 
 (def-fact-group occasions (object-in-hand
                            object-at-location robot-at-location
-                           torso-at arms-positioned-at tool-frames-at
+                           torso-at gripper-joint-at gripper-opened gripper-closed
+                           arms-positioned-at tool-frames-at
                            looking-at
                            container-state)
 
@@ -52,6 +53,21 @@
   (<- (torso-at ?joint-state)
     (fail))
   (<- (torso-at ?joint-state ?delta)
+    (fail))
+
+  (<- (gripper-joint-at ?arm ?joint-state)
+    (fail))
+  (<- (gripper-joint-at ?arm ?joint-state ?delta)
+    (fail))
+
+  (<- (gripper-opened ?gripper)
+    (fail))
+  (<- (gripper-opened ?gripper ?delta)
+    (fail))
+
+  (<- (gripper-closed ?gripper)
+    (fail))
+  (<- (gripper-closed ?gripper ?delta)
     (fail))
 
   (<- (arms-positioned-at ?left-configuration ?right-configuration)
