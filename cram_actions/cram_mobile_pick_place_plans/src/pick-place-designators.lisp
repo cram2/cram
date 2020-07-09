@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;               2020, Thomas Lipps    <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -68,17 +69,17 @@
     (spec:property ?current-object-desig (:name ?object-name))
 
     ;; get the arm for grasping by checking if it is specified for ?object-type
-    (lisp-fun man-int:get-specific-object-arms ?object-type ?specific-arms)
-    (-> (equal ?specific-arms nil)
+    (man-int:arms-for-object-type ?object-type ?arms-for-object)
+    (-> (equal ?arms-for-object nil)
         (-> (spec:property ?action-designator (:arm ?arm))
             (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
                  (subset ?arm ?free-arms))
             (and (man-int:robot-free-hand ?_ ?free-arm)
                  (equal (?free-arm) ?arm)))
         (-> (spec:property ?action-designator (:arm ?arm))
-            (and (subset ?arm ?specific-arms)
-                 (subset ?specific-arms ?arm))
-            (equal ?arm ?specific-arms)))
+            (and (subset ?arm ?arms-for-object)
+                 (subset ?arms-for-object ?arm))
+            (equal ?arm ?arms-for-object)))
 
     (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
@@ -154,22 +155,33 @@
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
             ;; Check if every given arm holds the given object
-            (or (forall (member ?used-arm ?arm)
-                        (cpoe:object-in-hand ?object-designator ?used-arm))
-                (format "WARNING: Wanted to place an object ~a with arm ~a, ~
-                         but it's not in the arm.~%" ?object-designator ?arm))
-            ;; Find object which is hold by every given arm 
-            (forall (member ?used-arm ?arm)
-                    (cpoe:object-in-hand ?object-designator ?used-arm)))
+            ;; by proofing if given arms fit to specified and ...
+            (or (once (and (man-int:check-arms-for-object ?arm ?object-designator)
+                           ;; ... if given arms hold the object.
+                           (man-int:object-in-arms ?arm ?object-designator)))
+                (and (format "ERROR: Wanted to place an object ~a with arm ~a, ~
+                              but it's not in (both) given arm(s).~%" ?object-designator ?arm)
+                     (fail)))
+            ;; Find object which is hold by every given arm
+            ;; by first getting the ?object-designator and ...
+            (once (and (man-int:object-in-arms ?arm ?object-designator)
+                       ;; then by proofing if given arms fit to specified.
+                       (man-int:check-arms-for-object ?arm ?object-designator))))
         (-> (spec:property ?action-designator (:object ?object-designator))
             ;; Find arms which holds the given object
-            (or (setof ?used-arm (cpoe:object-in-hand ?object-designator ?used-arm) ?arm)
+            ;; and check if the arms are holding the given object as specified
+            (or (man-int:check-arms-for-object ?arm ?object-designator)
                 (format "WARNING: Wanted to place an object ~a ~
                          but it's not in any of the hands.~%" ?object-designator))
             ;; Find the object the robot is holding and with which
-            ;; arms the object is hold
-            (setof ?used-arm (cpoe:object-in-hand ?object-designator ?used-arm) ?arm)))
-                     
+            ;; arms the object is hold by getting all arms in use and
+            ;; checking if these hold one object as specified
+            (or (once (and (setof ?used-arm (cpoe:object-in-hand ?object ?used-arm) ?arm)
+                           (man-int:object-in-arms ?arm ?object-designator)
+                           (man-int:check-arms-for-object ?arm ?object-designator)))
+                (and (format "ERROR: Please specify with an arm which ~
+                              of the arms should be used.~%")
+                     (fail)))))
 
     ;;; infer missing information
     (desig:current-designator ?object-designator ?current-object-designator)
@@ -215,11 +227,12 @@
     (equal ?objects (?current-object-designator
                      ?other-object-designator
                      ?placement-location-name))
-    
+
     (-> (member :left ?arm)
-        (and (spec:property ?action-designator (:left-grasp ?left-grasp))
+        (and (or (spec:property ?action-designator (:left-grasp ?left-grasp))
+                 (and (format "ERROR: Please specify a grasp with :left-grasp.~%")
+                      (fail)))
              (lisp-fun man-int:get-action-grasps ?object-type :left ?object-transform ?left-grasps)
-             (member ?left-grasp ?left-grasps)
              (lisp-fun man-int:get-action-trajectory
                        :placing :left ?left-grasp ?objects
                        :target-object-transform-in-base ?target-object-transform
@@ -236,7 +249,9 @@
              (equal ?left-retract-poses NIL)))
 
     (-> (member :right ?arm)
-        (and (spec:property ?action-designator (:right-grasp ?right-grasp))
+        (and (or (spec:property ?action-designator (:right-grasp ?right-grasp))
+                 (and (format "ERROR: Please specify a grasp with :right-grasp.~%")
+                      (fail)))
              (lisp-fun man-int:get-action-grasps ?object-type :right ?object-transform ?right-grasps)
              (member ?right-grasp ?right-grasps)
              (lisp-fun man-int:get-action-trajectory
