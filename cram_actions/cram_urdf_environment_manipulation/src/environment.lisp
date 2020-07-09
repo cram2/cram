@@ -273,9 +273,12 @@ Using a default (1 0 0)."
         (:opening
          (if (> (+ state distance) upper-limit)
              (- upper-limit state)
-             distance))
+             (if (< (+ state distance) lower-limit)
+                 (- (- state lower-limit))
+                 distance)))
         (:closing
          (if (< (- state distance) lower-limit)
              (- state lower-limit)
-             distance))))))
-
+             (if (> (- state distance) upper-limit)
+                 (- (- upper-limit state))
+                 distance)))))))
