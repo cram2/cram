@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;               2020, Thomas Lipps    <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -78,14 +79,43 @@
     (fail)))
 
 
-(def-fact-group manipulation-knowledge (robot-free-hand)
+(def-fact-group manipulation-knowledge (robot-free-hand
+                                        arms-for-object-type
+                                        check-arms-for-object
+                                        check-arms-for-object-type
+                                        object-in-arms)
 
   (<- (robot-free-hand ?robot ?arm)
     (rob-int:robot ?robot)
     (rob-int:arm ?robot ?arm)
-    (not (cpoe:object-in-hand ?_ ?arm))))
+    (not (cpoe:object-in-hand ?_ ?arm)))
 
+  (<- (arms-for-object-type ?object-type ?arms)
+    (lisp-fun man-int:get-specific-object-arms ?object-type ?specific-arms)
+    (equal ?arms ?specific-arms))
 
+  (<- (check-arms-for-object ?arms ?object)
+    (once (spec:property ?object (:type ?object-type))
+          (check-arms-for-object-type ?arms ?object-type)))
+
+  (<- (check-arms-for-object-type ?arms ?object-type)
+    (once (arms-for-object-type ?object-type ?arms-for-object)
+          (-> (equal ?arms-for-object nil)
+              (true)
+              (and (subset ?arms-for-object ?arms)
+                   (subset ?arms ?arms-for-object)))))
+
+  (<- (object-in-arms ?arms ?object)
+    ;; Get object which is holded by ?arms
+    (and (length ?arms ?num-of-given-arms)
+         (cpoe:object-in-hand ?object ?some-arm)
+         (member ?some-arm ?arms)
+         (-> (> ?num-of-given-arms 1)
+             (and (cpoe:object-in-hand ?other-obj ?other-arm)
+                  (member ?some-arm ?arms)
+                  (not (equal ?some-arm ?other-arm))
+                  (equal ?object ?other-obj))
+             (true)))))
 
 (defun symbol-to-prolog-rule (the-symbol &rest parameters)
   (let ((interned-symbol (find-symbol (string-upcase the-symbol))))

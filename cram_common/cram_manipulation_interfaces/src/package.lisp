@@ -44,6 +44,10 @@
    #:object-type-subtype
    #:object-type-direct-subtype
    #:robot-free-hand
+   #:arms-for-object-type
+   #:check-arms-for-object
+   #:check-arms-for-object-type
+   #:object-in-arms
    #:unidirectional-attachment
    #:always-reachable
    #:other-object-is-a-robot
