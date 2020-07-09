@@ -92,21 +92,21 @@
 (defun replace-denkmit ()
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
-     :arm :right
+     :arm (list :right)
      :object-name 'denkmit))
   (btr-utils:move-object 'denkmit '((-2 -1.1 1.3) (0 0 0 1))))
 
 (defun replace-dove ()
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
-     :arm :left
+     :arm (list :left)
      :object-name 'dove))
   (btr-utils:move-object 'dove '((-1 -1.1 0.7) (0 0 0 1))))
 
 (defun replace-heitmann ()
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
-     :arm :left
+     :arm (list :left)
      :object-name 'heitmann))
   (btr-utils:move-object 'heitmann '((-1.3 -1.1 1) (0 0 0 1))))
 
