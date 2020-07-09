@@ -6,12 +6,16 @@
 - git:
     local-name: giskard_msgs
     uri: https://github.com/SemRoCo/giskard_msgs.git
-    version: 3cea851f1823e5fa58164700e06a8e34cd78a639
+    version: 5bfb2a2dc0d58635fab4eceaf93a43c2729a4cdf
 - git:
     local-name: iai_common_msgs
     uri: https://github.com/code-iai/iai_common_msgs.git
-    version: 673045b2364e54b569438794b0240486e4afae2b
+    version: 46d6e9b9be386de9cf5e153f489c382e0c66f74c
 - git:
     local-name: iai_maps
     uri: https://github.com/code-iai/iai_maps.git
-    version: e64b1dcd0ffb41ea7a07c0817e4fb298976489a8
+    version: 497632f5bbf8f028b5cf25470efeefbaaf9ce388
+- git:
+    local-name: genlisp
+    uri: https://github.com/ros/genlisp.git
+    version: 3ac633abacdf5ab321d23ed013c7d5b7da97736d
