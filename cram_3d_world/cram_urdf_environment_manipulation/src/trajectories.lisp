@@ -43,9 +43,13 @@
                                                            opening-distance
                                                            handle-axis)
   "Return a trajectory for opening the object in OBJECTS-ACTED-ON.
-OPENING-DISTANCE is a float in m, describing how far the object should opened.
-HANDLE-AXIS is a `cl-transforms:3d-vector' describing the handle's orientation
-in the robot's XZ-plane. It's Z-element should be 0."
+`opening-distance' describes how far the object should be opened in m.
+`handle-axis' describes the handle's orientation
+in the robot's XZ-plane. It's Y-element should be 0."
+  (declare (type keyword arm)
+           (type list objects-acted-on)
+           (type number opening-distance)
+           (type cl-transforms:3d-vector handle-axis))
   (when (not (eql 1 (length objects-acted-on)))
     (error "Action-type ~a requires exactly one object.~%" action-type))
   (make-trajectory action-type arm objects-acted-on opening-distance handle-axis))
@@ -59,9 +63,13 @@ in the robot's XZ-plane. It's Z-element should be 0."
                                                            opening-distance
                                                            handle-axis)
   "Return a trajectory for closing the object in OBJECTS-ACTED-ON.
-OPENING-DISTANCE is a float in m, describing how far the object should closed.
-HANDLE-AXIS is a `cl-transforms:3d-vector' describing the handle's orientation
-in the robot's XZ-plane. It's Z-element should be 0."
+`opening-distance' describes how far the object should be closed in m.
+`handle-axis' describes the handle's orientation
+in the robot's XZ-plane. It's Y-element should be 0."
+  (declare (type keyword arm)
+           (type list objects-acted-on)
+           (type number opening-distance)
+           (type cl-transforms:3d-vector handle-axis))
   (when (not (eql 1 (length objects-acted-on)))
     (error "Action-type ~a requires exactly one object.~%" action-type))
   (make-trajectory action-type arm objects-acted-on opening-distance handle-axis))
@@ -72,7 +80,13 @@ in the robot's XZ-plane. It's Z-element should be 0."
                         opening-distance
                         handle-axis)
   "Make a trajectory for opening or closing a container.
-This should only be used by get-action-trajectory for action-types :opening and :closing."
+This should only be called by `get-action-trajectory' for action-types :opening and :closing.
+The parameters are analog to the ones of `get-action-trajectory'."
+  (declare (type keyword action-type)
+           (type keyword arm)
+           (type list objects-acted-on)
+           (type number opening-distance) 
+           (type cl-transforms:3d-vector handle-axis))
   (when (equal action-type :closing)
     (setf opening-distance (- opening-distance)))
   (let* ((object-designator
@@ -109,8 +123,20 @@ This should only be used by get-action-trajectory for action-types :opening and 
 
 (defun make-prismatic-trajectory (object-transform arm action-type
                                   grasp-pose opening-distance)
-  "Return a list of `man-int::traj-segment' representing a trajectory to open a
-container with prismatic joints."
+  "Return a list of `man-int::traj-segment's representing a trajectory to open a
+container with prismatic joints.
+`object-transform' should have `cram-tf:*robot-base-frame*'
+as it's frame and the object's frame as the child.
+`arm' is the arm that should be used (eg. :left or :right)
+`action-type' is :opening or :closing
+`grasp-pose' is a transform with the object's frame and the
+frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-frame*).
+`opening-distance' is the distance the object should be manipulated in m."
+  (declare (type cl-transforms-stamped:transform-stamped object-transform)
+           (type keyword arm)
+           (type keyword action-type)
+           (type cl-transforms-stamped:transform-stamped grasp-pose)
+           (type number opening-distance))
   (mapcar
    (lambda (label transform)
      (man-int:make-traj-segment
@@ -132,7 +158,19 @@ container with prismatic joints."
 (defun make-revolute-trajectory (object-transform arm action-type
                                  grasp-pose opening-angle)
   "Return a list of `man-int::traj-segment' representing a trajectory to open a
-container with revolute joints."
+container with revolute joints.
+`object-transform' should have `cram-tf:*robot-base-frame*'
+as it's frame and the object's frame as the child.
+`arm' is the arm that should be used (eg. :left or :right)
+`action-type' is :opening or :closing
+`grasp-pose' is a transform with the object's frame and the
+frame of the robot's end effector as the child (eg. `cram-tf:*robot-left-tool-frame*).
+`opening-distance' is the distance the object should be manipulated in rad."
+  (declare (type cl-transforms-stamped:transform-stamped object-transform)
+           (type keyword arm)
+           (type keyword action-type)
+           (type cl-transforms-stamped:transform-stamped grasp-pose)
+           (type number opening-angle))
   (let* ((traj-poses (get-revolute-traj-poses grasp-pose :angle-max opening-angle))
          (last-traj-pose (car (last traj-poses))))
     (mapcar
@@ -163,7 +201,7 @@ container with revolute joints."
 
 
 (defun 3d-vector->keyparam-list (v)
-  "Convert a `cl-transform:3d-vector' into a list with content
+  "Convert a vector into a list with content
    (:AX <x-value> :AY <y-value> :AZ <z-value>)."
   (declare (type cl-transforms:3d-vector v))
   (list
@@ -175,7 +213,11 @@ container with revolute joints."
                                 &key
                                   (axis (cl-transforms:make-3d-vector 0 0 1))
                                   angle-max)
-  "Return a list of transforms from joint to gripper rotated around AXIS by ANGLE-MAX."
+  "Return a list of stamped transforms from of the gripper-frame in the joint-frame rotated
+around `axis' by `angle-max' in steps of 0.1 rad."
+  (declare (type cl-transforms-stamped:transform-stamped joint-to-gripper)
+           (type cl-transforms:3d-vector axis)
+           (type number angle-max))
   (let ((angle-step (if (>= angle-max 0)
                         0.1
                         -0.1)))
@@ -204,7 +246,16 @@ container with revolute joints."
                                            arm
                                            handle-axis
                                            btr-environment)
-  "Get the transform from the container handle to the robot's gripper."
+  "Get the transform of the robot's gripper in the container handle frame.
+`object-name' is the name of a container in the `btr-environment'.
+`arm' denotes which arm's gripper should be used (eg. :left or :right).
+`handle-axis' is the axis on which the handle lies when looked at from the front in form of a vector.
+So normally (1 0 0) or (0 0 1).
+`btr-environment' is the name of the environment in which the container is located (eg. :KITCHEN)."
+  (declare (type (or string symbol) object-name)
+           (type keyword arm)
+           (type cl-transforms:3d-vector handle-axis)
+           (type keyword btr-environment))
   (when (symbolp object-name)
     (setf object-name
           (roslisp-utilities:rosify-underscores-lisp-name object-name)))

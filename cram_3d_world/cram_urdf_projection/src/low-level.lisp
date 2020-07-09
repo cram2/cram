@@ -68,7 +68,7 @@
 
 (defun robot-joint-states-with-odom-joints-as-hash-table ()
   (let* ((observed-joint-states
-           (btr:joint-states (btr:get-robot-object)))
+           (alexandria:copy-hash-table (btr:joint-states (btr:get-robot-object))))
          (robot-pose
            (btr:pose (btr:get-robot-object)))
          (robot-x
@@ -92,8 +92,7 @@
 
   (btr:add-vis-axis-object target)
 
-  (let* ((world btr:*current-bullet-world*)
-         (world-state (btr::get-state world)))
+  (let ((world-pose-info (btr:get-world-objects-pose-info)))
     (unwind-protect
          (progn
            ;; assert new robot pose
@@ -109,7 +108,7 @@
                 (btr:robot-attached-objects-in-collision))
         (unless (< (abs *debug-short-sleep-duration*) 0.0001)
           (cpl:sleep *debug-short-sleep-duration*))
-        (btr::restore-world-state world-state world)
+        (btr:restore-world-poses world-pose-info)
         (cpl:fail 'common-fail:navigation-pose-unreachable :pose-stamped target)))))
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -933,8 +932,7 @@ with the given offsets (the offsets are specified in the torso frame).
     ;; if joint state is given, first set the robot to given state,
     ;; then perform the collision check, then restore the robot to original state
     (if joint-state-msg
-        (let* ((world btr:*current-bullet-world*)
-               (world-state (btr::get-state world)))
+        (let ((world-pose-info (btr:get-world-objects-pose-info)))
           (unwind-protect
                (progn
                  (btr:set-robot-state-from-joints
@@ -943,7 +941,7 @@ with the given offsets (the offsets are specified in the torso frame).
                    (apply-torso-offsets torso-offsets))
                  (the-actual-collision-check
                   collision-mode left-tcp-pose right-tcp-pose))
-            (btr::restore-world-state world-state world)))
+            (btr:restore-world-poses world-pose-info)))
         (the-actual-collision-check
          collision-mode left-tcp-pose right-tcp-pose))))
 

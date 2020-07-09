@@ -43,6 +43,8 @@
    ;; prolog
    #:object-type-subtype #:object-type-direct-subtype
    #:robot-free-hand #:joint-state-for-arm-config
+   #:object-rotationally-symmetric
+   #:orientation-matters
    #:unidirectional-attachment
    #:location-always-reachable
    #:object-is-a-robot
@@ -71,8 +73,6 @@
    #:calculate-face-vector
    #:object-type-grasp->robot-grasp
    #:robot-grasp->object-type-grasp
-   #:object-rotationally-symmetric
-   #:orientation-matters
    ;; trajectories
    #:make-traj-segment
    #:traj-segment-label
