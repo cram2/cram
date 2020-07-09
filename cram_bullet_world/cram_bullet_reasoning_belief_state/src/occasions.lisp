@@ -31,6 +31,7 @@
 (in-package :cram-bullet-reasoning-belief-state)
 
 (defparameter *torso-convergence-delta* 0.01 "In meters")
+(defparameter *gripper-joint-convergence-delta* 0.01 "In meters")
 (defparameter *arm-joints-convergence-delta* 0.0174 "In radians, about 1 deg.")
 (defparameter *ee-position-convergence-delta* 0.02 "In meters")
 (defparameter *ee-rotation-convergence-delta* 0.07 "In radians, about 4 deg.")
@@ -41,6 +42,9 @@
                            cpoe:object-at-location
                            cpoe:robot-at-location
                            cpoe:torso-at
+                           cpoe:gripper-joint-at
+                           cpoe:gripper-opened
+                           cpoe:gripper-closed
                            cpoe:arms-positioned-at
                            cpoe:tool-frames-at
                            cpoe:looking-at)
@@ -122,6 +126,63 @@
     (btr:joint-state ?world ?robot ?torso-joint ?torso-joint-state)
     (lisp-pred cram-tf:values-converged ?torso-joint-state ?joint-state ?delta))
 
+  (<- (cpoe:gripper-joint-at ?gripper ?joint-state)
+    (symbol-value *gripper-joint-convergence-delta* ?gripper-delta)
+    (cpoe:gripper-joint-at ?gripper ?joint-state ?gripper-delta))
+
+  (<- (cpoe:gripper-joint-at ?gripper ?joint-state ?delta)
+    (lisp-type ?gripper keyword)
+    (rob-int:robot ?robot)
+    (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)
+    (lisp-fun * ?joint-state ?mult ?joint-state-mult)
+    (lisp-fun * ?delta ?mult ?delta-mult)
+    (forall (rob-int:gripper-joint ?robot ?gripper ?gripper-joint)
+            (%joint-at ?gripper-joint ?joint-state-mult ?delta-mult)))
+
+  (<- (cpoe:gripper-joint-at ?gripper ?joint-state ?delta)
+    (lisp-type ?gripper list)
+    (forall (member ?single-gripper ?gripper)
+            (cpoe:gripper-joint-at ?single-gripper ?joint-state ?delta)))
+
+  (<- (cpoe:gripper-opened ?gripper)
+    (symbol-value *gripper-joint-convergence-delta* ?gripper-delta)
+    (cpoe:gripper-opened ?gripper ?gripper-delta))
+
+  (<- (cpoe:gripper-opened ?gripper ?delta)
+    (lisp-type ?gripper keyword)
+    (rob-int:robot ?robot)
+    (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)
+    (lisp-fun * ?delta ?mult ?delta-mult)
+    (rob-int:gripper-joint ?robot ?gripper ?_)
+    (forall (rob-int:gripper-joint ?robot ?gripper ?gripper-joint)
+            (and
+             (rob-int:joint-upper-limit ?robot ?gripper-joint ?upper-limit)
+             (%joint-at ?gripper-joint ?upper-limit ?delta-mult))))
+
+  (<- (cpoe:gripper-opened ?gripper ?delta)
+    (lisp-type ?gripper list)
+    (forall (member ?single-gripper ?gripper)
+            (cpoe:gripper-opened ?single-gripper ?delta)))
+
+  (<- (cpoe:gripper-closed ?gripper)
+    (symbol-value *gripper-joint-convergence-delta* ?gripper-delta)
+    (cpoe:gripper-closed ?gripper ?gripper-delta))
+
+  (<- (cpoe:gripper-closed ?gripper ?delta)
+    (lisp-type ?gripper keyword)
+    (rob-int:robot ?robot)
+    (rob-int:gripper-meter-to-joint-multiplier ?robot ?mult)
+    (lisp-fun * ?delta ?mult ?delta-mult)
+    (rob-int:gripper-joint ?robot ?gripper ?gripper-joint)
+    (forall (rob-int:gripper-joint ?robot ?gripper ?gripper-joint)
+            (and
+             (rob-int:joint-lower-limit ?robot ?gripper-joint ?lower-limit)
+             (%joint-at ?gripper-joint ?lower-limit ?delta-mult))))
+
+  (<- (cpoe:gripper-closed ?gripper ?delta)
+    (lisp-type ?gripper list)
+    (forall (member ?single-gripper ?gripper)
+            (cpoe:gripper-closed ?single-gripper ?delta)))
 
   (<- (cpoe:arms-positioned-at ?left-configuration ?right-configuration)
     (symbol-value *arm-joints-convergence-delta* ?delta)
@@ -379,7 +440,13 @@
     (lisp-fun cl-transforms-stamped:pose->pose-stamped ?fixed-frame 0.0 ?object-pose
               ?object-pose-stamped)
     (desig:designator :location ((:pose ?object-pose-stamped))
-                      ?location-designator)))
+                      ?location-designator))
+
+  (<- (%joint-at ?joint ?goal-state ?delta)
+    (rob-int:robot ?robot)
+    (btr:bullet-world ?world)
+    (btr:joint-state ?world ?robot ?joint ?state)
+    (lisp-pred cram-tf:values-converged ?state ?goal-state ?delta)))
 
 (defun unique-object-designators ()
   "Returns all designators. For equated designators, only one instance
