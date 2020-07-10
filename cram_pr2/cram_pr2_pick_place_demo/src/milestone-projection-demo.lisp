@@ -48,8 +48,10 @@
     ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
     ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
     (:milk
-     "iai_fridge_main_middle_level"
-     ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437)))))
+     ;; "iai_fridge_main_middle_level"
+     ;; ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437))
+     "iai_fridge_door_shelf1_bottom"
+     ((0.0 -0.05 0.094) (0 0 0 1)))))
 
 
 (defparameter *delivery-poses*
@@ -148,11 +150,6 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 
 (defun setting-demo (&optional (object-list '(:milk :breakfast-cereal
                                               :bowl :spoon :cup)))
-  "Generic implementation, ideally this should work for all objects together.
-Right now, only works with '(:milk) and '(:bowl :cup :spoon). There is a separate method
-for :breakfast-cereal in the bottom.
-To get this working with milk, all the code of accessing and sealing inside the transport plan has to be
-commented out "
   ;; (setup-for-demo object-list)
 
   (dolist (?object-type object-list)
