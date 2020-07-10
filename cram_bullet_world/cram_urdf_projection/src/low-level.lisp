@@ -1073,7 +1073,9 @@ with the given offsets (the offsets are specified in the torso frame).
            (validation-function (lambda (torso-offsets)
                                   (not (perform-collision-check
                                         collision-mode
-                                        nil nil nil
+                                        left-configuration
+                                        right-configuration
+                                        nil
                                         torso-offsets))))
            (joint-values
              (ik:find-joint-values-for (validation-function)
@@ -1108,4 +1110,4 @@ with the given offsets (the offsets are specified in the torso frame).
                   torso-offset-x torso-offset-y)))
           (move-torso new-torso-angle)
           (setf (btr:pose (btr:get-robot-object)) new-base-pose-stamped))))
-    (perform-collision-check collision-mode nil nil)))
+    (perform-collision-check collision-mode left-configuration right-configuration)))
