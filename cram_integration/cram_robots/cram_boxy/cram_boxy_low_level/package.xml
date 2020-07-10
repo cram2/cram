@@ -12,7 +12,7 @@
 
   <depend>roslisp</depend>
   <depend>roslisp_utilities</depend>
-  <depend>actionlib</depend>
+  <depend>actionlib_lisp</depend>
   <depend>cram_simple_actionlib_client</depend>
   <depend>cram_language</depend>
   <depend>cram_math</depend>
