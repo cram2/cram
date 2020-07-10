@@ -64,11 +64,13 @@
 
   (cpl:par
     (roslisp:ros-info (pick-place pick-up) "Opening gripper")
-    (exe:perform
-     (desig:an action
-               (type setting-gripper)
-               (gripper ?arm)
-               (position ?gripper-opening)))
+    (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
+      (exe:perform
+       (desig:an action
+                 (type setting-gripper)
+                 (gripper ?arm)
+                 (position ?gripper-opening)
+                 (goal ?goal))))
     (roslisp:ros-info (pick-place pick-up) "Reaching")
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
@@ -215,11 +217,13 @@
            :other-object-name (desig:desig-prop-value ?other-object-designator :name)
            :attachment-type ?placing-location-name))))
   (roslisp:ros-info (pick-place place) "Opening gripper")
-  (exe:perform
-   (desig:an action
-             (type setting-gripper)
-             (gripper ?arm)
-             (position ?gripper-opening)))
+  (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
+    (exe:perform
+     (desig:an action
+               (type setting-gripper)
+               (gripper ?arm)
+               (position ?gripper-opening)
+               (goal ?goal))))
   (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot

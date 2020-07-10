@@ -134,9 +134,11 @@ if yes, relocate and retry, if no collisions, open or close container."
                  (:error-object-or-string e
                   :warning-namespace (fd-plans environment)
                   :rethrow-failure 'common-fail:environment-manipulation-impossible)
-               (exe:perform (desig:an action
-                                      (type opening-gripper)
-                                      (gripper (left right))))
+               (let ((?goal `(cpoe:gripper-opened (:left :right))))
+                 (exe:perform (desig:an action
+                                        (type opening-gripper)
+                                        (gripper (left right))
+                                        (goal ?goal))))
                (roslisp:ros-info (fd-plans environment) "Relocating..."))))
 
         ;; navigate, open / close

@@ -41,8 +41,7 @@ Repeat `navigation-location-samples' + 1 times.
 Store found pose into designator or throw error if good pose not found."
 
   (when *projection-checks-enabled*
-    (let* ((world btr:*current-bullet-world*)
-           (world-state (btr::get-state world)))
+    (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect
            (cpl:with-failure-handling
                ((desig:designator-error (e)
@@ -89,16 +88,15 @@ Store found pose into designator or throw error if good pose not found."
                    ;;                   "Found non-colliding pose~%~a to satisfy~%~a."
                    ;;                   pose-at-navigation-location navigation-location-desig)
                    navigation-location-desig))))
-        (btr::restore-world-state world-state world)))))
+        (btr:restore-world-poses world-pose-info)))))
 
 
 
 (defun check-picking-up-collisions (pick-up-action-desig &optional (retries 30))
   (when *projection-checks-enabled*
-    (let* ((world btr:*current-bullet-world*)
-           (world-state (btr::get-state world)))
-
+    (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect
+
            (cpl:with-failure-handling
                ((desig:designator-error (e)
                   (roslisp:ros-warn (coll-check pick)
@@ -181,20 +179,21 @@ Store found pose into designator or throw error if good pose not found."
                             (roslisp:ros-warn (coll-check pick)
                                               "Robot is in collision with environment.")
                             (cpl:sleep urdf-proj::*debug-long-sleep-duration*)
-                            (btr::restore-world-state world-state world)
+                            (btr:restore-world-poses world-pose-info)
                             (cpl:fail 'common-fail:manipulation-goal-in-collision)))))
                     (list left-reach-poses left-grasp-poses left-lift-poses)
                     (list right-reach-poses right-grasp-poses right-lift-poses)
                     (list :avoid-all :allow-hand :avoid-all))))))
-        (btr::restore-world-state world-state world)))))
+
+        (btr:restore-world-poses world-pose-info)))))
 
 
 
 (defun check-placing-collisions (placing-action-desig &optional (retries 3))
   (when *projection-checks-enabled*
-    (let* ((world btr:*current-bullet-world*)
-           (world-state (btr::get-state world)))
+    (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect
+
            (cpl:with-failure-handling
                ((desig:designator-error (e)
                   (roslisp:ros-warn (coll-check place)
@@ -289,33 +288,34 @@ Store found pose into designator or throw error if good pose not found."
                             (roslisp:ros-warn (coll-check place)
                                               "Robot is in collision with environment.")
                             (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
-                            (btr::restore-world-state world-state world)
+                            (btr:restore-world-poses world-pose-info)
                             ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
                             ))))
                     ;; (list left-put-poses)
                     ;; (list right-put-poses)
                     (list left-reach-poses left-put-poses left-retract-poses)
                     (list right-reach-poses right-put-poses right-retract-poses))))))
-        (btr::restore-world-state world-state world)))))
+        (btr:restore-world-poses world-pose-info)))))
 
 
 
 (defun check-placing-pose-stability (object-desig placing-location)
   (when *projection-checks-enabled*
-    (let* ((placing-pose
+    (let* ((world-pose-info
+             (btr:get-world-objects-pose-info))
+           (placing-pose
              (desig:reference (desig:current-desig placing-location)))
-           (world
-             btr:*current-bullet-world*)
-           (world-state
-             (btr::get-state world))
            (bullet-object-type
              (desig:desig-prop-value object-desig :type))
+           (bullet-object-name
+             (gensym "obj"))
            (new-btr-object
-             (btr-utils:spawn-object
-              (gensym "obj") bullet-object-type :pose placing-pose)))
+             (btr:add-object btr:*current-bullet-world* :mesh
+                             bullet-object-name placing-pose
+                             :mesh bullet-object-type
+                             :mass 0.2)))
       (unwind-protect
            (progn
-             (setf (btr:pose new-btr-object) placing-pose)
              (cpl:sleep urdf-proj::*debug-short-sleep-duration*)
              (btr:simulate btr:*current-bullet-world* 500)
              (btr:simulate btr:*current-bullet-world* 100)
@@ -328,15 +328,16 @@ Store found pose into designator or throw error if good pose not found."
                (when (> distance-new-pose-and-place-pose 0.2)
                  (cpl:fail 'common-fail:high-level-failure
                            :description "Pose unstable."))))
-        (btr::restore-world-state world-state world)))))
+        (btr:remove-object btr:*current-bullet-world* bullet-object-name)
+        (btr:restore-world-poses world-pose-info)))))
 
 
 
 (defun check-environment-manipulation-collisions (action-desig)
   (when *projection-checks-enabled*
-    (let* ((world btr:*current-bullet-world*)
-           (world-state (btr::get-state world)))
+    (let ((world-pose-info (btr:get-world-objects-pose-info)))
       (unwind-protect
+
            (cpl:with-failure-handling
                ((desig:designator-error (e)
                   (roslisp:ros-warn (coll-check environment)
@@ -403,7 +404,7 @@ Store found pose into designator or throw error if good pose not found."
                    (roslisp:ros-warn (coll-check environment)
                                      "Robot is in collision with environment.")
                    (cpl:sleep urdf-proj:*debug-long-sleep-duration*)
-                   (btr::restore-world-state world-state world)
+                   (btr:restore-world-poses world-pose-info)
                    ;; (cpl:fail 'common-fail:manipulation-goal-in-collision)
                    ))))
-        (btr::restore-world-state world-state world)))))
+        (btr:restore-world-poses world-pose-info)))))

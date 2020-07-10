@@ -57,7 +57,9 @@
            cutlery fork knife mug plate mondamin pot bowl sugar-box apple orange
            cereal spatula pancake pancake-maker
            bt-reasoning-world invalidate-object objects object %object
-           bt-reasoning-world-state robot-object links joint-states
+           bt-reasoning-world-state
+           get-world-objects-pose-info restore-world-poses
+           robot-object links joint-states
            assert joint-state urdf joint-names joint-state link-names
            link-pose
            semantic-map-object ensure-pose ensure-vector object-visibility
