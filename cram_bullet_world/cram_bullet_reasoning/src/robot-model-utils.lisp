@@ -79,9 +79,14 @@
            names positions)))
   (:method ((joint-states list) (robot robot-object))
     "Sets the joint states of `robot' to the values specifies in the ~
-    list `joint-states'. `joint-states' is a list of the form: ([(name value)]*)"
+     list `joint-states'. `joint-states' is a list of the form: ([(name value)]*)"
     (loop for (name value) in joint-states do
-      (setf (joint-state robot name) value))))
+      (setf (joint-state robot name) value)))
+  (:method ((joint-states hash-table) (robot robot-object))
+    "Sets the joint states of `robot' to the values specifies in the ~
+     hash table `joint-states'."
+    (loop for name being the hash-keys in joint-states using (hash-value value)
+          do (setf (joint-state robot name) value))))
 
 (defun make-robot-joint-state-msg (robot &key joint-names (time 0))
   (let ((joint-names (map 'vector #'identity (or joint-names

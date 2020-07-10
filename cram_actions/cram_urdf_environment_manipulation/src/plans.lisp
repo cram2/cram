@@ -63,11 +63,13 @@
   (cpl:par
     (roslisp:ros-info (environment-manipulation manipulate-container)
                       "Opening gripper")
-    (exe:perform
-     (desig:an action
-               (type setting-gripper)
-               (gripper ?arm)
-               (position ?gripper-opening)))
+    (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
+      (exe:perform
+       (desig:an action
+                 (type setting-gripper)
+                 (gripper ?arm)
+                 (position ?gripper-opening)
+                 (goal ?goal))))
     (roslisp:ros-info (environment-manipulation manipulate-container)
                       "Reaching")
     (cpl:with-failure-handling
@@ -152,10 +154,12 @@
   ;;;;;;;;;;;;;;;;;;;; RETRACTING ;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Retracting")
-  (exe:perform
-   (desig:an action
-             (type releasing)
-             (gripper ?arm)))
+  (let ((?goal `(cpoe:gripper-opened ,?arm)))
+    (exe:perform
+     (desig:an action
+               (type releasing)
+               (gripper ?arm)
+               (goal ?goal))))
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans manipulate)
