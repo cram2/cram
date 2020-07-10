@@ -628,8 +628,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                       goal-joint-state)
                                      *projection-convergence-delta-joint*))))))))
     (set-configuration :left left-configuration)
-    (set-configuration :right right-configuration)
-    t))
+    (set-configuration :right right-configuration)))
 
 ;;; cartesian movement
 
@@ -851,8 +850,6 @@ with the object, calculates similar angle around Y axis and applies the rotation
                                   joint-state-msg
                                   torso-offsets)
   (declare (type (or keyword null) collision-mode)
-           (type (or cl-transforms-stamped:pose-stamped null)
-                 left-tcp-pose right-tcp-pose)
            (type (or sensor_msgs-msg:jointstate null) joint-state-msg)
            (type list torso-offsets))
   "Returns NIL if current joint state does not result in collisions
@@ -934,13 +931,14 @@ with the given offsets (the offsets are specified in the torso frame).
       (setf collision-mode :avoid-all))
     ;; if joint state is given, first set the robot to given state,
     ;; then perform the collision check, then restore the robot to original state
-    (if joint-state-msg
+    (if (or torso-offsets joint-state-msg)
         (let* ((world btr:*current-bullet-world*)
                (world-state (btr::get-state world)))
           (unwind-protect
                (progn
-                 (btr:set-robot-state-from-joints
-                  joint-state-msg (btr:get-robot-object))
+                 (when joint-state-msg
+                   (btr:set-robot-state-from-joints
+                    joint-state-msg (btr:get-robot-object)))
                  (when torso-offsets
                    (apply-torso-offsets torso-offsets))
                  (the-actual-collision-check
@@ -1074,68 +1072,42 @@ with the given offsets (the offsets are specified in the torso frame).
     (let* ((current-torso-angle (btr:joint-state (btr:get-robot-object)
                                                  ?torso-joint))
            ;; Placeholder variables for where it requires not null arguments
-           (identity-pose-placeholder (cl-transforms-stamped:make-pose-stamped
-                                       cram-tf:*fixed-frame*
-                                       (cut:current-timestamp)
-                                       (cl-transforms:make-identity-vector)
-                                       (cl-transforms:make-identity-rotation)))
-           (left-tcp-pose-placeholder (if left-configuration
-                                          identity-pose-placeholder
-                                          nil))
-           (right-tcp-pose-placeholder (if right-configuration
-                                           identity-pose-placeholder
-                                           nil))
-           (placeholder-joint-state-msg  (btr::make-robot-joint-state-msg
-                                          (btr:get-robot-object)
-                                          :joint-names (list ?torso-joint)))
-           (validation-function
-             (lambda (ik-solution-msg torso-offsets)
-               (declare (ignore ik-solution-msg))
-               (not (perform-collision-check
-                     collision-mode
-                     nil nil
-                     placeholder-joint-state-msg
-                     torso-offsets)))))
-
-      (multiple-value-bind (ik-solution-msg joint-values)
-          ;; Everything except validation function and robot base pose
-          ;; are not required so they are initialized as nil or empty
-          (ik:find-ik-for
-           (identity-pose-placeholder
-            nil nil nil
-            validation-function)
-           (ik:with-resampling
-             (:x
-              *base-resampling-x-limit*
-              (- *base-resampling-x-limit*)
-              *base-resampling-step*)
-             (ik:with-resampling
-                 (:y
-                  *base-resampling-y-limit*
-                  (- *base-resampling-y-limit*)
-                  *base-resampling-step*)
+           (validation-function (lambda (torso-offsets)
+                                  (not (perform-collision-check
+                                        collision-mode
+                                        nil nil nil
+                                        torso-offsets))))
+           (joint-values
+             (ik:find-joint-values-for (validation-function)
                (ik:with-resampling
-                   (:z
-                    (- ?torso-upper-limit current-torso-angle)
-                    (- ?torso-lower-limit current-torso-angle)
-                    *torso-resampling-step*)
-                  (move-joints left-configuration right-configuration)))))
-        ;; No IK is solved here
-        (declare (ignore ik-solution-msg))
-        (when joint-values
-          (let* ((torso-offset-z (cdr (assoc :z joint-values)))
-                 (new-torso-angle
-                   (+ current-torso-angle torso-offset-z))
-                 (torso-offset-x (cdr (assoc :x joint-values)))
-                 (torso-offset-y (cdr (assoc :y joint-values)))
-                 (new-base-pose-stamped
-                   (calculate-base-pose-with-torso-offsets
-                    (btr:pose (btr:get-robot-object))
-                    (btr:link-pose (btr:get-robot-object) cram-tf:*robot-torso-frame*)
-                    torso-offset-x torso-offset-y)))
-            
-            (move-torso new-torso-angle)
-            (setf (btr:pose (btr:get-robot-object)) new-base-pose-stamped))))
-      (perform-collision-check
-       collision-mode left-tcp-pose-placeholder right-tcp-pose-placeholder))))
+                   (:x
+                    *base-resampling-x-limit*
+                    (- *base-resampling-x-limit*)
+                    *base-resampling-step*)
+                 (ik:with-resampling
+                     (:y
+                      *base-resampling-y-limit*
+                      (- *base-resampling-y-limit*)
+                      *base-resampling-step*)
+                   (ik:with-resampling
+                       (:z
+                        (- ?torso-upper-limit current-torso-angle)
+                        (- ?torso-lower-limit current-torso-angle)
+                        *torso-resampling-step*)
+                     (move-joints left-configuration right-configuration)))))))
 
+      (when joint-values
+        (let* ((torso-offset-z (cdr (assoc :z joint-values)))
+               (new-torso-angle
+                 (+ current-torso-angle torso-offset-z))
+               (torso-offset-x (cdr (assoc :x joint-values)))
+               (torso-offset-y (cdr (assoc :y joint-values)))
+               (new-base-pose-stamped
+                 (calculate-base-pose-with-torso-offsets
+                  (btr:pose (btr:get-robot-object))
+                  (btr:link-pose (btr:get-robot-object)
+                                 cram-tf:*robot-torso-frame*)
+                  torso-offset-x torso-offset-y)))
+          (move-torso new-torso-angle)
+          (setf (btr:pose (btr:get-robot-object)) new-base-pose-stamped))))
+    (perform-collision-check collision-mode nil nil)))
