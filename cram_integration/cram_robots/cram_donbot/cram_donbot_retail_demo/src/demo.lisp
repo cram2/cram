@@ -36,6 +36,7 @@
   (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
+  #+only-for-the-real-robot-so-commenting-out-for-now
   (unless cram-projection:*projection-environment*
     (giskard::call-giskard-environment-service
      :remove-all)
@@ -603,6 +604,7 @@
                     (pose ?target-pose)))))))
 
 
+#+stuff-to-test-real-robot-interfaces
 (defun stuff-that-works ()
   (cram-process-modules:with-process-modules-running
       (giskard:giskard-pm)
@@ -623,94 +625,3 @@
                   (type moving-tcp)
                   (left-pose ?pose)
                   (collision-mode :allow-all)))))))
-
-
-
-
-
-#+everything-below-is-pr2-s-stuff-so-need-new-things-for-donbot
-(
-(defparameter *object-cad-models*
-  '(;; (:cup . "cup_eco_orange")
-    ;; (:bowl . "edeka_red_bowl")
-    ))
-
-(cpl:def-cram-function initialize-or-finalize ()
-  (cpl:with-failure-handling
-      ((cpl:plan-failure (e)
-         (declare (ignore e))
-         (return)))
-    (cpl:par
-      (exe:perform
-       (desig:an action
-                 (type parking-arms)))
-      (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                    cram-tf:*fixed-frame*
-                    0.0
-                    (cl-transforms:make-identity-vector)
-                    (cl-transforms:make-identity-rotation))))
-        (exe:perform
-         (desig:an action
-                   (type going)
-                   (target (desig:a location
-                                    (pose ?pose))))))
-      (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
-      (exe:perform (desig:an action (type looking) (direction forward))))))
-
-
-(cpl:def-cram-function demo-random (&optional
-                                    (random t)
-                                    (list-of-objects '(:milk :cup :breakfast-cereal :bowl :spoon)))
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr-utils:kill-all-objects)
-
-  ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
-  (when (eql cram-projection:*projection-environment*
-             'urdf-proj:urdf-bullet-projection-environment)
-    (spawn-objects-on-sink-counter :random random))
-
-  (setf cram-robot-pose-guassian-costmap::*orientation-samples* 1)
-
-  (initialize-or-finalize)
-
-  (dolist (?object-type list-of-objects)
-    (let* ((?cad-model
-             (cdr (assoc ?object-type *object-cad-models*)))
-           (?object-to-fetch
-             (desig:an object
-                       (type ?object-type)
-                       (desig:when ?cad-model
-                         (cad-model ?cad-model))))
-           (?fetching-location
-             (desig:a location
-                      (on "CounterTop")
-                      (name "iai_kitchen_sink_area_counter_top")
-                      (side left)))
-           (?placing-target-pose
-             (cl-transforms-stamped:pose->pose-stamped
-              "map" 0.0
-              (cram-bullet-reasoning:ensure-pose
-               (cdr (assoc ?object-type *object-placing-poses*)))))
-           (?arm-to-use
-             (cdr (assoc ?object-type *object-grasping-arms*)))
-           (?delivering-location
-             (desig:a location
-                      (pose ?placing-target-pose))))
-
-      (cpl:with-failure-handling
-          ((common-fail:high-level-failure (e)
-             (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
-             (return)))
-        (exe:perform
-         (desig:an action
-                   (type transporting)
-                   (object ?object-to-fetch)
-                   ;; (arm ?arm-to-use)
-                   (location ?fetching-location)
-                   (target ?delivering-location))))))
-
-  (initialize-or-finalize)
-
-  cpl:*current-path*)
-
-)

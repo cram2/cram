@@ -48,9 +48,9 @@
 
   <depend>cram_donbot_description</depend>
 
-  <depend>cram_robosherlock</depend>
-  <depend>cram_giskard</depend>
-  <depend>cram_donbot_process_modules</depend>
+  <!-- <depend>cram_robosherlock</depend> -->
+  <!-- <depend>cram_giskard</depend> -->
+  <!-- <depend>cram_donbot_process_modules</depend> -->
 
   <!-- <!-\- launch file -\-> -->
   <!-- <exec_depend>iai_maps</exec_depend> -->

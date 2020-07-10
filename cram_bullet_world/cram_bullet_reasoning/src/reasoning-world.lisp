@@ -127,7 +127,8 @@ list from bt-reasoning-world to keep in the current world state.")))
       poses-and-joint-states
     (let ((current-names (mapcar #'name (objects *current-bullet-world*)))
           (new-names (alexandria:hash-table-keys name-pose-tbl)))
-      (when (set-difference current-names new-names :test #'equalp)
+      (when (or (set-difference current-names new-names :test #'equalp)
+                (set-difference new-names current-names :test #'equalp))
         (error "[btr:restore-world-poses] objects in the two worlds
                 are not the same!~%current world names: ~a~%new world names: ~a~%"
                current-names new-names))
