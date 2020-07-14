@@ -51,6 +51,9 @@
 (defparameter *base-resampling-y-limit* 0.2d0
   "In meters.")
 
+(defparameter *giskard-mode* nil
+  "Use giskard or teleporting/IK solver for joint and cartesian motions.")
+
 
 (defun robot-transform-in-map ()
   (let ((pose-in-map
@@ -1048,3 +1051,24 @@ with the given offsets (the offsets are specified in the torso frame).
           (move-joints left-ik right-ik)
           ;; perform one last collision check
           (perform-collision-check collision-mode left-tcp-pose right-tcp-pose))))))
+
+
+
+
+#+save-for-next-time
+((giskard:call-giskard-cartesian-action :goal-pose-left (cl-transforms-stamped:make-pose-stamped "l_gripper_tool_frame" 0.0 (cl-transforms:make-identity-vector) (cl-transforms:make-identity-rotation)))
+ (let* ((root-link (cl-urdf:name (cl-urdf:root-link (btr:urdf (btr:get-robot-object)))))
+        (robot-transform
+          (handler-case
+              (cl-transforms-stamped:lookup-transform
+               cram-tf:*transformer* cram-tf:*fixed-frame* root-link
+               :time 0.0 :timeout cram-tf:*tf-default-timeout*)
+            (cl-tf:transform-stamped-error (error)
+              (roslisp:ros-warn (set-robot-state-from-tf)
+                                "Failed with transform-stamped-error:~%    ~a~%    ~
+                                  Ignore this warning if no real robot is running."
+                                error)
+              NIL))))
+   (when robot-transform
+     (setf (btr:link-pose (btr:get-robot-object) root-link)
+           (cl-transforms:transform->pose robot-transform)))))
