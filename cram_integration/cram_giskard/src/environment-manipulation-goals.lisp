@@ -29,15 +29,19 @@
 
 (in-package :giskard)
 
-(defun make-environment-manipulation-goal (arm-left-or-right-or-both
-                                           handle-link)
-  (declare (type (or list keyword) arm-left-or-right-or-both)
-           (type string handle-link))
+(defun make-environment-manipulation-goal (open-or-close
+                                           arm-left-or-right-or-both
+                                           handle-link
+                                           joint-state)
+  (declare (type keyword open-or-close)
+           (type (or list keyword) arm-left-or-right-or-both)
+           (type string handle-link)
+           (type (or number null) joint-state))
   (unless (listp arm-left-or-right-or-both)
     (setf arm-left-or-right-or-both (list arm-left-or-right-or-both)))
   (roslisp:make-message
    'giskard_msgs-msg:movegoal
-   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal :plan_only)
+   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal :plan_and_execute)
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
@@ -57,9 +61,9 @@
                         . (("rosparam"
                             . (("general_options"
                                 . (("joint_weights"
-                                    . (("odom_x_joint" . 0.0001)
-                                       ("odom_y_joint" . 0.0001)
-                                       ("odom_z_joint" . 0.0001))))))))))
+                                    . (("odom_x_joint" . 0.1)
+                                       ("odom_y_joint" . 0.1)
+                                       ("odom_z_joint" . 0.1))))))))))
                      :test #'equal)
                     stream)
                    (get-output-stream-string stream)))
@@ -76,7 +80,7 @@
                             (roslisp:make-message
                              'giskard_msgs-msg:constraint
                              :type
-                             "Open"
+                             (roslisp-utilities:rosify-lisp-name open-or-close)
                              :parameter_value_pair
                              (let ((stream (make-string-output-stream)))
                                (yason:encode
@@ -87,19 +91,84 @@
                                    ("tip"
                                     . ,tool-frame)
                                    ("handle_link"
-                                    . ,handle-link))
+                                    . ,handle-link)
+                                   ,@(when joint-state
+                                       `(("goal_joint_state" . ,joint-state))))
                                  :test #'equal)
                                 stream)
                                (get-output-stream-string stream)))))
-                        arm-left-or-right-or-both)))))))
+                        arm-left-or-right-or-both)))
+              :collisions
+              (vector (roslisp:make-message
+                       'giskard_msgs-msg:collisionentry
+                       :type (roslisp:symbol-code
+                              'giskard_msgs-msg:collisionentry
+                              :avoid_all_collisions)
+                       :min_dist 0.05)
+                      (ecase open-or-close
+                        (:open
+                         (roslisp:make-message
+                          'giskard_msgs-msg:collisionentry
+                          :type
+                          (roslisp:symbol-code
+                           'giskard_msgs-msg:collisionentry
+                           :allow_collision)
+                          :robot_links
+                          (map
+                           'vector
+                           #'identity
+                           (mapcan
+                            (lambda (arm)
+                              (cut:var-value
+                               '?links
+                               (car (prolog:prolog
+                                     `(and (rob-int:robot ?robot)
+                                           (rob-int:hand-links
+                                            ?robot ,arm ?links))))))
+                            arm-left-or-right-or-both))
+                          :body_b
+                          (roslisp-utilities:rosify-underscores-lisp-name
+                           (man-int:current-environment-symbol))
+                          :link_bs
+                          (vector handle-link)))
+                        (:close
+                         (roslisp:make-message
+                          'giskard_msgs-msg:collisionentry
+                          :type
+                          (roslisp:symbol-code
+                           'giskard_msgs-msg:collisionentry
+                           :allow_collision)
+                          :robot_links
+                          (map
+                           'vector
+                           #'identity
+                           (mapcan
+                            (lambda (arm)
+                              (cut:var-value
+                               '?links
+                               (car (prolog:prolog
+                                     `(and (rob-int:robot ?robot)
+                                           (rob-int:arm-links
+                                            ?robot ,arm ?links))))))
+                            arm-left-or-right-or-both))
+                          :body_b
+                          (roslisp-utilities:rosify-underscores-lisp-name
+                           (man-int:current-environment-symbol))
+                          :link_bs
+                          (vector (roslisp:symbol-code
+                                   'giskard_msgs-msg:collisionentry
+                                   :all))))))))))
 
 (defun make-grasp-bar-goal (arm-left-or-right-or-both
                             tip-grasp-axis bar-axis
+                            tip-finger-axis bar-perpendicular-axis
                             bar-center
                             bar-length
                             root-link)
   (declare (type (or list keyword) arm-left-or-right-or-both)
-           (type cl-transforms-stamped:vector-stamped tip-grasp-axis bar-axis)
+           (type cl-transforms-stamped:vector-stamped
+                 tip-grasp-axis bar-axis
+                 tip-finger-axis bar-perpendicular-axis)
            (type cl-transforms-stamped:point-stamped bar-center)
            (type string root-link)
            (type number bar-length))
@@ -107,7 +176,7 @@
     (setf arm-left-or-right-or-both (list arm-left-or-right-or-both)))
   (roslisp:make-message
    'giskard_msgs-msg:movegoal
-   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal :plan_only)
+   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal :plan_and_execute)
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
@@ -133,7 +202,7 @@
                      :test #'equal)
                     stream)
                    (get-output-stream-string stream)))
-                (mapcar (lambda (arm)
+                (mapcan (lambda (arm)
                           (let ((tool-frame
                                   (cut:var-value
                                    '?frame
@@ -143,29 +212,47 @@
                                                 ?robot ,arm ?frame)))))))
                             (when (cut:is-var tool-frame)
                               (error "[giskard] Tool frame was not defined."))
-                            (roslisp:make-message
-                             'giskard_msgs-msg:constraint
-                             :type
-                             "GraspBar"
-                             :parameter_value_pair
-                             (let ((stream (make-string-output-stream)))
-                               (yason:encode
-                                (cut:recursive-alist-hash-table
-                                 `(("tip_grasp_axis"
-                                    . ,(to-hash-table tip-grasp-axis))
-                                   ("bar_axis"
-                                    . ,(to-hash-table bar-axis))
-                                   ("bar_center"
-                                    . ,(to-hash-table bar-center))
-                                   ("tip"
-                                    . ,tool-frame)
-                                   ("bar_length"
-                                    . ,bar-length)
-                                   ("root"
-                                    . ,root-link))
-                                 :test #'equal)
-                                stream)
-                               (get-output-stream-string stream)))))
+                            (list
+                             (roslisp:make-message
+                              'giskard_msgs-msg:constraint
+                              :type
+                              "AlignPlanes"
+                              :parameter_value_pair
+                              (let ((stream (make-string-output-stream)))
+                                (yason:encode
+                                 (cut:recursive-alist-hash-table
+                                  `(("root" . ,cram-tf:*odom-frame*)
+                                    ("tip" . ,tool-frame)
+                                    ("root_normal"
+                                     . ,(to-hash-table bar-perpendicular-axis))
+                                    ("tip_normal"
+                                     . ,(to-hash-table tip-finger-axis)))
+                                  :test #'equal)
+                                 stream)
+                                (get-output-stream-string stream)))
+                             (roslisp:make-message
+                              'giskard_msgs-msg:constraint
+                              :type
+                              "GraspBar"
+                              :parameter_value_pair
+                              (let ((stream (make-string-output-stream)))
+                                (yason:encode
+                                 (cut:recursive-alist-hash-table
+                                  `(("tip_grasp_axis"
+                                     . ,(to-hash-table tip-grasp-axis))
+                                    ("bar_axis"
+                                     . ,(to-hash-table bar-axis))
+                                    ("bar_center"
+                                     . ,(to-hash-table bar-center))
+                                    ("tip"
+                                     . ,tool-frame)
+                                    ("bar_length"
+                                     . ,bar-length)
+                                    ("root"
+                                     . ,root-link))
+                                  :test #'equal)
+                                 stream)
+                                (get-output-stream-string stream))))))
                         arm-left-or-right-or-both)))))))
 
 
@@ -177,17 +264,21 @@
     (roslisp:ros-warn (giskard env-manip) "Giskard action timed out.")))
 
 (defun call-environment-manipulation-action (&key
+                                               (open-or-close :open)
                                                (arm :right)
                                                (handle-link
                                                 "iai_fridge_door_handle")
+                                               joint-state
                                                action-timeout)
-  (declare (type (or keyword list) arm)
+  (declare (type keyword open-or-close)
+           (type (or keyword list) arm)
            (type string handle-link)
-           (type (or null number) action-timeout))
+           (type (or null number) joint-state action-timeout))
   (multiple-value-bind (result status)
       (actionlib-client:call-simple-action-client
        'giskard-action
-       :action-goal (print (make-environment-manipulation-goal arm handle-link))
+       :action-goal (print (make-environment-manipulation-goal
+                      open-or-close arm handle-link joint-state))
        :action-timeout action-timeout)
     (ensure-goal-reached status)
     (values result status)
@@ -200,16 +291,30 @@
                                  :right)
                                 (tip-grasp-axis
                                  (cl-transforms-stamped:make-vector-stamped
-                                  cram-tf:*robot-right-tool-frame* 0.0
+                                  (ecase arm
+                                    (:left cram-tf:*robot-left-tool-frame*)
+                                    (:right cram-tf:*robot-right-tool-frame*))
+                                  0.0
                                   (cl-transforms:make-3d-vector 0 0 1)))
+                                (tip-finger-axis
+                                 (cl-transforms-stamped:make-vector-stamped
+                                  (ecase arm
+                                    (:left cram-tf:*robot-left-tool-frame*)
+                                    (:right cram-tf:*robot-right-tool-frame*))
+                                  0.0
+                                  (cl-transforms:make-3d-vector 0 1 0)))
                                 (bar-axis
                                  (cl-transforms-stamped:make-vector-stamped
                                   "iai_kitchen/iai_fridge_door_handle" 0.0
-                                  (cl-transforms:make-3d-vector 0 0 1)))
+                                  (cl-transforms:make-3d-vector 0 0 -1)))
+                                (bar-perpendicular-axis
+                                 (cl-transforms-stamped:make-vector-stamped
+                                  "iai_kitchen/iai_fridge_door_handle" 0.0
+                                  (cl-transforms:make-3d-vector 0 1 0)))
                                 (bar-center
                                  (cl-transforms-stamped:make-point-stamped
                                   "iai_kitchen/iai_fridge_door_handle" 0.0
-                                  (cl-transforms:make-identity-vector)))
+                                  (cl-transforms:make-3d-vector -0.03 0 0)))
                                 (bar-length
                                  0.4)
                                 (root-link
@@ -225,11 +330,127 @@
       (actionlib-client:call-simple-action-client
        'giskard-action
        :action-goal (print
-                     (make-grasp-bar-goal arm tip-grasp-axis bar-axis bar-center
-                                          bar-length root-link))
+                     (make-grasp-bar-goal
+                      arm
+                      tip-grasp-axis bar-axis
+                      tip-finger-axis bar-perpendicular-axis
+                      bar-center
+                      bar-length root-link))
        :action-timeout action-timeout)
     (ensure-goal-reached status)
     (values result status)
     ;; return the joint state, which is our observation
     ;; (joints:full-joint-states-as-hash-table)
     ))
+
+
+
+#+the-plan
+(
+ (setf (btr:joint-state (btr:get-environment-object) "iai_fridge_door_joint")
+       0.0)
+ (btr-belief::publish-environment-joint-state
+  (btr:joint-states (btr:get-environment-object)))
+ (pr2-pms:with-real-robot
+   (exe:perform
+    (desig:an action
+              (type parking-arms))))
+ (pr2-pms:with-real-robot
+   (exe:perform
+    (desig:an action
+              (type releasing)
+              (gripper right))))
+ (call-grasp-bar-action :arm :right :bar-length 0.8)
+ (pr2-pms:with-real-robot
+   (exe:perform
+    (desig:an action
+              (type gripping)
+              (gripper right))))
+ (giskard::call-environment-manipulation-action :open-or-close :open
+                                                :arm :right)
+ (coe:on-event (make-instance 'cpoe:robot-state-changed))
+ (setf (btr:joint-state (btr:get-environment-object)
+                        "iai_fridge_door_joint") 1.45)
+ (btr-belief::publish-environment-joint-state
+  (btr:joint-states (btr:get-environment-object)))
+ (giskard::call-environment-manipulation-action :open-or-close :close
+                                                :arm :right)
+ (pr2-pms:with-real-robot
+   (exe:perform
+    (desig:an action
+              (type releasing)
+              (gripper right))))
+ (pr2-pms:with-real-robot
+   (exe:perform
+    (desig:an action
+              (type parking-arms))))
+ (setf (btr:joint-state (btr:get-environment-object) "iai_fridge_door_joint")
+       0.0)
+ (btr-belief::publish-environment-joint-state
+  (btr:joint-states (btr:get-environment-object)))
+ )
+
+#+the-dishwasher-plan
+(
+ (setf (btr:joint-state (btr:get-environment-object)
+                        "sink_area_dish_washer_door_joint")
+       0.0)
+ (btr-belief::publish-environment-joint-state
+  (btr:joint-states (btr:get-environment-object)))
+ (pr2-pms:with-real-robot
+   (exe:perform
+    (desig:an action
+              (type parking-arms))))
+ (pr2-pms:with-real-robot
+   (exe:perform
+    (desig:an action
+              (type releasing)
+              (gripper right))))
+ (call-grasp-bar-action
+  :arm :right
+  :bar-axis (cl-transforms-stamped:make-vector-stamped
+             "iai_kitchen/sink_area_dish_washer_door_handle" 0.0
+             (cl-transforms:make-3d-vector 0 1 0))
+  :bar-perpendicular-axis
+  (cl-transforms-stamped:make-vector-stamped
+   "iai_kitchen/sink_area_dish_washer_door_handle" 0.0
+   (cl-transforms:make-3d-vector 0 0 1))
+  :bar-center (cl-transforms-stamped:make-point-stamped
+               "iai_kitchen/sink_area_dish_washer_door_handle" 0.0
+               (cl-transforms:make-3d-vector 0.01 0 0))
+  :bar-length 0.4)
+ (pr2-pms:with-real-robot
+   (exe:perform
+    (desig:an action
+              (type gripping)
+              (gripper right))))
+ (giskard::call-environment-manipulation-action
+  :open-or-close :open
+  :arm :right
+  :handle-link "sink_area_dish_washer_door_handle"
+  :joint-state (cram-math:degrees->radians 35))
+ (coe:on-event (make-instance 'cpoe:robot-state-changed))
+ (setf (btr:joint-state (btr:get-environment-object)
+                        "sink_area_dish_washer_door_joint")
+       (cram-math:degrees->radians 35))
+ (btr-belief::publish-environment-joint-state
+  (btr:joint-states (btr:get-environment-object)))
+ (giskard::call-environment-manipulation-action
+  :open-or-close :close
+  :arm :right
+  :handle-link "sink_area_dish_washer_door_handle")
+ (pr2-pms:with-real-robot
+   (exe:perform
+    (desig:an action
+              (type releasing)
+              (gripper right))))
+ (pr2-pms:with-real-robot
+   (exe:perform
+    (desig:an action
+              (type parking-arms))))
+ (setf (btr:joint-state (btr:get-environment-object)
+                        "sink_area_dish_washer_door_joint")
+       0.0)
+ (btr-belief::publish-environment-joint-state
+  (btr:joint-states (btr:get-environment-object)))
+ )
