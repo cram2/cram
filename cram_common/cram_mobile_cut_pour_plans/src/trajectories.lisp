@@ -100,6 +100,7 @@
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :slicing))
                                                           arm
                                                           grasp
+                                                          location
                                                           objects-acted-on
                                                           &key )
 
@@ -114,9 +115,22 @@
            (desig:desig-prop-value object :type))
          (bTo
            (man-int:get-object-old-transform object))
+         (oTb
+           (cram-tf:transform-stamped-inv bTo))
+         (bTb-lifts
+           (man-int:get-object-type-wrt-base-frame-lift-transforms
+            object-type arm grasp location))
          (oTg-std 
            (man-int:get-object-type-to-gripper-transform
-            object-type object-name arm grasp)))
+            object-type object-name arm grasp))
+         (oTg-lifts
+           (reverse
+            (mapcar
+             (lambda (btb-lift)
+               (reduce #'cram-tf:apply-transform
+                       `(,oTb ,bTb-lift ,bTo ,oTg-std)
+                       :from-end T))
+             bTb-lifts))))
 
     (flet ((get-base-to-gripper-transform-for-slicing (bTb-offset)
              (cl-tf:make-transform-stamped
@@ -129,7 +143,7 @@
                (cl-tf:translation bTo)
                (cl-tf:translation bTb-offset))
               (cl-tf:rotation bTb-offset))))
-
+      
       (mapcar (lambda (label transforms)
                 (man-int:make-traj-segment
                  :label label
@@ -147,15 +161,10 @@
                 :lifting
                 :slice-up
                 :slice-down)
-              `((,(man-int:get-object-type-to-gripper-pregrasp-transform
-                   object-type object-name arm grasp oTg-std)
-                 ,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
-                   object-type object-name arm grasp oTg-std))
+              `(,(man-int:get-object-type-to-gripper-pregrasp-transforms
+                  object-type object-name arm grasp location oTg-std)
                 (,oTg-std)
-                (,(man-int:get-object-type-to-gripper-lift-transform
-                   object-type object-name arm grasp oTg-std)
-                 ,(man-int:get-object-type-to-gripper-2nd-lift-transform
-                   object-type object-name arm grasp oTg-std))
+                ,oTg-lifts
                 (,(man-int:get-object-type-robot-frame-slice-up-transform
                    object-type arm grasp))
                 (,(man-int:get-object-type-robot-frame-slice-down-transform
@@ -195,6 +204,7 @@
 (defmethod man-int:get-action-trajectory :heuristics 20 ((action-type (eql :pouring))
                                                          arm
                                                          grasp
+                                                         location
                                                          objects-acted-on
                                                          &key )
   (let* ((object
