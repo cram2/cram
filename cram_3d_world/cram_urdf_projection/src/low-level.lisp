@@ -635,7 +635,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
     (move-torso new-torso-angle)
     (setf (btr:pose (btr:get-robot-object)) new-base-pose-stamped)))
 
-(defun perform-collision-check (collision-mode left-tcp-pose right-tcp-pose
+(defun perform-collision-check (collision-mode left-hand-moves right-hand-moves
                                 &optional
                                   joint-state-msg
                                   torso-offsets)
@@ -645,13 +645,16 @@ with the object, calculates similar angle around Y axis and applies the rotation
   "Returns NIL if current joint state does not result in collisions
 and returns (not throws or fails but simply returns) an error instance,
 if a collision occurs.
+`left-hand-moves' and `right-hand-moves' are used as flags for the :allow-hand
+collision mode, to see which hand is currently moving and can be allowed collisions.
 If `joint-state-msg' is given, check collisions in that joint state
  (and restore the world to original state afterwards),
 otherwise check collisions in current joint state.
 Same goes for `torso-offsets', if they are given, move the robot torso and base
 with the given offsets (the offsets are specified in the torso frame).
 `torso-offsets' is a list of (:x/:y/:z offset-in-torso-frame) entries."
-  (flet ((the-actual-collision-check (collision-mode left-tcp-pose right-tcp-pose)
+  (flet ((the-actual-collision-check (collision-mode
+                                      left-hand-moves right-hand-moves)
            (ecase collision-mode
              (:allow-all
               nil)
@@ -687,7 +690,7 @@ with the given offsets (the offsets are specified in the torso frame).
                                                   (btr:get-robot-object)))
                                            (btr:attached-objects
                                             (btr:get-robot-object)))))
-                          (append (when left-tcp-pose
+                          (append (when left-hand-moves
                                     (cut:var-value
                                      '?hand-links
                                      (car (prolog:prolog
@@ -696,7 +699,7 @@ with the given offsets (the offsets are specified in the torso frame).
                                                   ?robot
                                                   :left
                                                   ?hand-links))))))
-                                  (when right-tcp-pose
+                                  (when right-hand-moves
                                     (cut:var-value
                                      '?hand-links
                                      (car (prolog:prolog
@@ -731,10 +734,10 @@ with the given offsets (the offsets are specified in the torso frame).
                  (when torso-offsets
                    (apply-torso-offsets torso-offsets))
                  (the-actual-collision-check
-                  collision-mode left-tcp-pose right-tcp-pose))
+                  collision-mode left-hand-moves right-hand-moves))
             (btr:restore-world-poses world-pose-info)))
         (the-actual-collision-check
-         collision-mode left-tcp-pose right-tcp-pose))))
+         collision-mode left-hand-moves right-hand-moves))))
 
 ;;; joint movement
 
@@ -796,30 +799,26 @@ with the given offsets (the offsets are specified in the torso frame).
 (defun move-joints-avoiding-collision (left-configuration right-configuration
                                        &optional collision-mode)
   "Moves arm joints with the specified configuration but tries to avoid
- collision by moving its torso and base"
-
-  ;; If collision check fails, try with resampling
-  (cut:with-vars-strictly-bound (?robot
-                                 ?torso-link ?torso-joint
+collision by moving its torso and base"
+  (cut:with-vars-strictly-bound (?torso-joint
                                  ?torso-lower-limit ?torso-upper-limit)
       (cut:lazy-car
        (prolog:prolog
-        `(and (rob-int:robot ?robot)
-              (rob-int:robot-torso-link-joint ?robot ?torso-link ?torso-joint)
-              (rob-int:joint-lower-limit ?robot ?torso-joint ?torso-lower-limit)
-              (rob-int:joint-upper-limit ?robot ?torso-joint
-                                         ?torso-upper-limit))))
-
-    (let* ((current-torso-angle (btr:joint-state (btr:get-robot-object)
-                                                 ?torso-joint))
-           ;; Placeholder variables for where it requires not null arguments
-           (validation-function (lambda (torso-offsets)
-                                  (not (perform-collision-check
-                                        collision-mode
-                                        left-configuration
-                                        right-configuration
-                                        nil
-                                        torso-offsets))))
+        `(and
+          (rob-int:robot ?robot)
+          (rob-int:robot-torso-link-joint ?robot ?torso-link ?torso-joint)
+          (rob-int:joint-lower-limit ?robot ?torso-joint ?torso-lower-limit)
+          (rob-int:joint-upper-limit ?robot ?torso-joint ?torso-upper-limit))))
+    (let* ((current-torso-angle
+             (btr:joint-state (btr:get-robot-object) ?torso-joint))
+           (validation-function
+             (lambda (torso-offsets)
+               (not (perform-collision-check
+                     collision-mode
+                     left-configuration
+                     right-configuration
+                     nil
+                     torso-offsets))))
            (joint-values
              (ik:find-joint-values-for (validation-function)
                (ik:with-resampling
@@ -840,11 +839,14 @@ with the given offsets (the offsets are specified in the torso frame).
                      (move-joints left-configuration right-configuration)))))))
 
       (when joint-values
-        (let* ((torso-offset-z (cdr (assoc :z joint-values)))
+        (let* ((torso-offset-z
+                 (cdr (assoc :z joint-values)))
                (new-torso-angle
                  (+ current-torso-angle torso-offset-z))
-               (torso-offset-x (cdr (assoc :x joint-values)))
-               (torso-offset-y (cdr (assoc :y joint-values)))
+               (torso-offset-x
+                 (cdr (assoc :x joint-values)))
+               (torso-offset-y
+                 (cdr (assoc :y joint-values)))
                (new-base-pose-stamped
                  (calculate-base-pose-with-torso-offsets
                   (btr:pose (btr:get-robot-object))
@@ -852,8 +854,8 @@ with the given offsets (the offsets are specified in the torso frame).
                                  cram-tf:*robot-torso-frame*)
                   torso-offset-x torso-offset-y)))
           (move-torso new-torso-angle)
-          (setf (btr:pose (btr:get-robot-object)) new-base-pose-stamped))))
-    (perform-collision-check collision-mode left-configuration right-configuration)))
+          (setf (btr:pose (btr:get-robot-object)) new-base-pose-stamped)))))
+  (perform-collision-check collision-mode left-configuration right-configuration))
 
 ;;; cartesian movement
 
