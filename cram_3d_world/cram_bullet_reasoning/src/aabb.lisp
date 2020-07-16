@@ -60,9 +60,11 @@
                                0.5)
      :dimensions (cl-transforms:v- new-max new-min))))
 
+
 (defmethod aabb ((obj object))
   (reduce #'merge-bounding-boxes
           (mapcar #'aabb (rigid-bodies obj))))
+
 
 (defun calculate-object-bottom-pose (object)
   (let ((bounding-box (aabb object)))
@@ -74,12 +76,22 @@
                     (/ (cl-transforms:z
                         (bounding-box-dimensions bounding-box)) 2))))))
 
+
 (defun calculate-bb-dims (bullet-object)
+  "Calculates bounding box dimensions, putting the object down flatly,
+i.e. if the object has an angle with respect to the horizontal plane,
+i.e. an angle around the X or/and Y of the fixed map frame,
+removes those angles, such that the object is touching the horizontal plane
+with one of its sides."
   (let ((old-pose (pose bullet-object))
         aabb)
     (unwind-protect
          (progn
-           (setf (pose bullet-object) (cl-transforms:make-identity-pose))
+           (setf (pose bullet-object)
+                 (cl-transforms:make-pose
+                  (cl-transforms:make-identity-vector)
+                  (cram-tf:map-axis-aligned-orientation
+                   (cl-transforms:orientation (pose bullet-object)))))
            (setf aabb (cl-bullet:aabb bullet-object)))
       (setf (pose bullet-object) old-pose))
     (cl-bullet:bounding-box-dimensions aabb)))

@@ -33,16 +33,6 @@
   (:nicknames #:boxy-ll)
   (:use #:common-lisp)
   (:export
-   ;; simple-actionlib-client
-   #:make-simple-action-client
-   #:call-simple-action-client
-   ;; joint-states
-   #:joint-state
-   #:joint-states
-   #:joint-positions
-   #:normalize-joint-angles
-   ;; nav-pcontroller
-   #:move-base-nav-pcontroller
    ;; neck
    #:move-neck-joints
    ;; grippers

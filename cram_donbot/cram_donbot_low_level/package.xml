@@ -1,0 +1,39 @@
+<package format="2">
+  <name>cram_donbot_low_level</name>
+  <version>0.7.0</version>
+  <description>
+     Low-level code for Donbot
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp</depend>
+  <depend>roslisp_utilities</depend>
+  <depend>actionlib</depend>
+  <depend>cl_transforms_stamped</depend>
+  <depend>cl_transforms</depend>
+  <depend>cram_simple_actionlib_client</depend>
+  <depend>cram_language</depend>
+  <depend>cram_utilities</depend>
+  <depend>cram_prolog</depend>
+  <!-- <depend>cram_math</depend> -->
+  <depend>cram_tf</depend>
+  <depend>cram_common_failures</depend>
+  <depend>cram_robot_interfaces</depend>
+  <depend>cram_joint_states</depend>
+  <depend>cram_donbot_description</depend>
+  <depend>slipping_control_msgs</depend>
+  <depend>sun_tactile_common</depend>
+  <!-- <depend>geometry_msgs</depend> -->
+  <!-- <depend>std_srvs</depend> -->
+  <!-- <depend>sensor_msgs</depend> -->
+  <!-- <depend>visualization_msgs</depend> -->
+  <!-- <depend>iai_wsg_50_msgs</depend> -->
+  <!-- <depend>control_msgs</depend> -->
+  <!-- <depend>trajectory_msgs</depend> -->
+  <!-- <!-\- <depend>iai_control_msgs</depend> -\-> -->
+  <!-- <depend>iai_dlr_msgs</depend> -->
+</package>

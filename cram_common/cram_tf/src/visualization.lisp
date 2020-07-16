@@ -55,7 +55,7 @@
                                           (cl-transforms-stamped:pose-stamped
                                            (cl-transforms-stamped:frame-id pose))
                                           (t (or in-frame cram-tf:*fixed-frame*)))
-                                        ns "goal_locations"
+                                        ns "cram_goal_locations"
                                         id id
                                         type (roslisp:symbol-code
                                               'visualization_msgs-msg:<marker>

@@ -120,6 +120,7 @@
       #:compare
       #:choose
       #:equalize-two-list-lengths #:equalize-lists-of-lists-lengths
+      #:recursive-alist-hash-table
       ;; time
       #:current-timestamp
       #:set-default-timestamp-function

@@ -69,7 +69,7 @@
                   while (< theta theta-max)
                   collect
                   (let ((rotation
-                          (cl-tf:axis-angle->quaternion
+                          (cl-transforms:axis-angle->quaternion
                            (cl-transforms:make-3d-vector 0 0 1) theta)))
                     (cl-transforms-stamped:make-transform-stamped
                      (cl-transforms-stamped:frame-id joint-to-handle)

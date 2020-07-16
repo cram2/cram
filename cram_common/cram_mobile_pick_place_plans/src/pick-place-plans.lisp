@@ -40,7 +40,8 @@
                   ((:arm ?arm))
                   ((:gripper-opening ?gripper-opening))
                   ((:effort ?grip-effort))
-                  ((:grasp ?grasp))
+                  ((:left-grasp ?left-grasp))
+                  ((:right-grasp ?right-grasp))
                   ((:left-reach-poses ?left-reach-poses))
                   ((:right-reach-poses ?right-reach-poses))
                   ((:left-grasp-poses ?left-grasp-poses))
@@ -50,7 +51,8 @@
                   ((:hold ?holding))
                 &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
-           (type keyword ?arm ?grasp)
+           (type list ?arm)
+           ;;(type (or nil keyword) ?left-grasp ?right-grasp)
            (type number ?gripper-opening ?grip-effort)
            (type (or null list) ; yes, null is also list, but this is more readable
                  ?left-reach-poses ?right-reach-poses
@@ -79,6 +81,7 @@
       (exe:perform
        (desig:an action
                  (type reaching)
+                 (object ?object-designator)
                  (left-poses ?left-reach-poses)
                  (right-poses ?right-reach-poses)))))
   (roslisp:ros-info (pick-place pick-up) "Grasping")
@@ -96,13 +99,25 @@
                (left-poses ?left-grasp-poses)
                (right-poses ?right-grasp-poses))))
   (roslisp:ros-info (pick-place pick-up) "Gripping")
-  (exe:perform
-   (desig:an action
-             (type gripping)
-             (gripper ?arm)
-             (effort ?grip-effort)
-             (object ?object-designator)
-             (grasp ?grasp)))
+  (when (member :left ?arm)
+    (exe:perform
+     (desig:an action
+               (type gripping)
+               (gripper :left)
+               (effort ?grip-effort)
+               (object ?object-designator)
+               (desig:when ?left-grasp
+                 (grasp ?left-grasp)))))
+  (when (member :right ?arm)
+    (exe:perform
+     (desig:an action
+               (type gripping)
+               (gripper :right)
+               (effort ?grip-effort)
+               (object ?object-designator)
+               (desig:when ?right-grasp
+                 (grasp ?right-grasp)))))
+  ;; todo: gripping should support more ee?
   (unless ?holding
     (roslisp:ros-info (pick-place pick-up) "Lifting")
     (cpl:with-failure-handling
@@ -132,7 +147,9 @@
 
 (defun place (&key
                 ((:object ?object-designator))
+                ((:target ?target-location-designator))
                 ((:other-object ?other-object-designator))
+                other-object-is-a-robot
                 ((:arm ?arm))
                 ((:gripper-opening ?gripper-opening))
                 ((:attachment-type ?placing-location-name))
@@ -145,7 +162,7 @@
               &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type (or desig:object-designator null) ?other-object-designator)
-           (type keyword ?arm)
+           (type list ?arm)
            (type (or null keyword) ?placing-location-name)
            (type number ?gripper-opening)
            (type (or null list) ; yes, null is also list, but this is better reachability
@@ -165,6 +182,7 @@
     (exe:perform
      (desig:an action
                (type reaching)
+               (location ?target-location-designator)
                (left-poses ?left-reach-poses)
                (right-poses ?right-reach-poses))))
   (roslisp:ros-info (pick-place place) "Putting")
@@ -184,11 +202,20 @@
                (right-poses ?right-put-poses))))
   (when ?placing-location-name
     (roslisp:ros-info (boxy-plans connect) "Asserting assemblage connection in knowledge base")
-    (cram-occasions-events:on-event
-     (make-instance 'cpoe:object-attached-object
-       :object-name (desig:desig-prop-value ?object-designator :name)
-       :other-object-name (desig:desig-prop-value ?other-object-designator :name)
-       :attachment-type ?placing-location-name)))
+    (if other-object-is-a-robot
+        (cram-occasions-events:on-event
+         (make-instance 'cpoe:object-attached-robot
+           :link (roslisp-utilities:rosify-underscores-lisp-name
+                  (desig:desig-prop-value ?other-object-designator :urdf-name))
+           :not-loose t
+           :object-name (desig:desig-prop-value ?object-designator :name)
+           :other-object-name (desig:desig-prop-value ?other-object-designator :name)
+           :grasp ?placing-location-name))
+        (cram-occasions-events:on-event
+         (make-instance 'cpoe:object-attached-object
+           :object-name (desig:desig-prop-value ?object-designator :name)
+           :other-object-name (desig:desig-prop-value ?other-object-designator :name)
+           :attachment-type ?placing-location-name))))
   (roslisp:ros-info (pick-place place) "Opening gripper")
   (exe:perform
    (desig:an action
@@ -198,8 +225,13 @@
   (roslisp:ros-info (pick-place place) "Retract grasp in knowledge base")
   (cram-occasions-events:on-event
    (make-instance 'cpoe:object-detached-robot
-                  :arm ?arm
-                  :object-name (desig:desig-prop-value ?object-designator :name)))
+     :arm ?arm
+     :object-name (desig:desig-prop-value ?object-designator :name)))
+  (roslisp:ros-info (pick-place place) "Updating object location in knowledge base")
+  (cram-occasions-events:on-event
+   (make-instance 'cpoe:object-location-changed
+     :object-designator ?object-designator
+     :location-designator ?target-location-designator))
   (roslisp:ros-info (pick-place place) "Retracting")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
@@ -215,11 +247,8 @@
   (roslisp:ros-info (pick-place place) "Parking")
   (exe:perform
    (desig:an action
-             (type positioning-arm)
-             (desig:when (eql ?arm :left)
-               (left-configuration park))
-             (desig:when (eql ?arm :right)
-               (right-configuration park)))))
+             (type parking-arms)
+             (arms (?arm)))))
 
 
 (defun perceive (&key
@@ -229,46 +258,34 @@
                    (object-chosing-function #'identity)
                  &allow-other-keys)
   (declare (type desig:object-designator ?object-designator))
-  "Park arms and call DETECTING action. The counter determines how often the detction should be tried.
-   If it is below or equal 0 the World-state-detecting will be used."
-  
-  ;; (exe:perform                          
-  ;;  (desig:an action
-  ;;            (type positioning-arm)
-  ;;            (left-configuration park)
-  ;;            (right-configuration park)))
-  
-  (cpl:with-failure-handling
-      (((or common-fail:perception-low-level-failure
-            cram-common-failures:perception-object-not-found) (e)
-         (roslisp:ros-warn (pick-place-plans perceive) "Detecting failed: ~a~%" e)
-         (when (and ?occluding (<= ?counter 0))
-               (return (exe:perform
-                       (desig:a motion
-                                (type world-state-detecting)
-                                (object ?object-designator)))))))
-    (exe:perform
-     (desig:an action
-               (type detecting)
-               (object ?object-designator)))))
+  "Park arms and call DETECTING action."
+  (exe:perform
+   (desig:an action
+             (type parking-arms)
+             (not-neck T)))
+  (exe:perform
+   (desig:an action
+             (type detecting)
+             (object ?object-designator))))
 
 
-;; (defun perform-phases-in-sequence (action-designator)
-;;   (declare (type desig:action-designator action-designator))
-;;   (let ((phases (desig:desig-prop-value action-designator :phases)))
-;;     (mapc (lambda (phase)
-;;             (format t "Executing phase: ~%~a~%~%" phase)
-;;             (exe:perform phase))
-;;           phases)))
+#+the-stuff-below-with-action-phases-is-a-bit-awkward
+(
+ (defun perform-phases-in-sequence (action-designator)
+   (declare (type desig:action-designator action-designator))
+   (let ((phases (desig:desig-prop-value action-designator :phases)))
+     (mapc (lambda (phase)
+             (format t "Executing phase: ~%~a~%~%" phase)
+             (exe:perform phase))
+           phases)))
 
-;; (cpl:def-cram-function pick-up (action-designator object arm grasp)
-;;   (perform-phases-in-sequence action-designator)
-;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-attached-robot :object object :arm arm :grasp grasp)))
+ (cpl:def-cram-function pick-up (action-designator object arm grasp)
+   (perform-phases-in-sequence action-designator)
+   (cram-occasions-events:on-event
+    (make-instance 'cpoe:object-attached-robot :object object :arm arm :grasp grasp)))
 
-
-;; (cpl:def-cram-function place (action-designator object arm)
-;;   (perform-phases-in-sequence action-designator)
-;;   (cram-occasions-events:on-event
-;;    (make-instance 'cpoe:object-detached-robot :arm arm :object object)))
-
+ (cpl:def-cram-function place (action-designator object arm)
+   (perform-phases-in-sequence action-designator)
+   (cram-occasions-events:on-event
+    (make-instance 'cpoe:object-detached-robot :arm arm :object object)))
+ )

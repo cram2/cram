@@ -124,7 +124,7 @@
                             :az z-rotation)))
   
 
- (cpl:def-cram-function demo ()
+(cpl:def-cram-function demo ()
 
   (initialize)
   (when cram-projection:*projection-environment*
@@ -147,10 +147,10 @@
     (robot-state-changed)
     
     ;; Picking the popcorn pot with the right arm up
-    (pick-object :popcorn-pot :right *popcorn-pot-init-pose*)
+    (pick-object :popcorn-pot '(:right) *popcorn-pot-init-pose*)
 
     ;; Placing it on the stove
-    (place-object :right *pot-cooking-pose*)
+    (place-object '(:right) *pot-cooking-pose* :?right-grasp :top)
 
     ;; 2. Getting the ikea bowl with the corn inside and pour corn in the popcorn pot
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -159,7 +159,7 @@
     (open-drawer :right)
 
     ;; Picking the ikea bowl with the right arm up
-    (pick-object :ikea-bowl-ww :right *ikea-bowl-picking-pose*)
+    (pick-object :ikea-bowl-ww '(:right) *ikea-bowl-picking-pose*)
 
     ;; Going to pose to pour the popcorn corn in the bowl
     (go-to-pose *pouring-popcorn-corn-pose*)
@@ -174,7 +174,7 @@
     (go-to-pose *start-pose*)
     
     ;; Putting the ikea bowl away
-    (place-object :right *ikea-bowl-placing-pose*)
+    (place-object '(:right) *ikea-bowl-placing-pose* :?right-grasp :top)
 
     ;; 3. Turning the stove on by rotation the knob 1 with the right arm
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -216,7 +216,7 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
     ;; Picking up the lid
-    (pick-object :popcorn-pot-lid :right
+    (pick-object :popcorn-pot-lid '(:right)
                  *popcorn-pot-lid-picking-pose*)
     
     ;; Placing it on the popcorn pot
@@ -225,7 +225,8 @@
              (get-object-designator :popcorn-pot))
            (?object-to-place
              (get-object-designator :popcorn-pot-lid)))
-      (place-object :right pose
+      (place-object '(:right) pose
+                    :right-grasp :top
                     :?object-placed-on ?object-placed-on
                     :?object-to-place ?object-to-place
                     :?attachment :popcorn-pot-lid-attachment))
@@ -240,11 +241,11 @@
     (open-drawer :left)
 
     ;; Grasping the plate
-    (pick-object :ikea-plate :left
-                 *ikea-plate-picking-pose* :?grasp :top)
+    (pick-object :ikea-plate '(:left)
+                 *ikea-plate-picking-pose* :?left-grasp :top)
 
     ;; Putting the plate on the table
-    (place-object :left *ikea-plate-placing-pose*)
+    (place-object '(:left) *ikea-plate-placing-pose* :?left-grasp :top)
     
     ;; Closing the left drawer
     (close-drawer :left)
@@ -326,10 +327,10 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     ;; Taking popcorn pot lid off the popcorn pot
-    (pick-object :popcorn-pot-lid :right *popcorn-pot-lid-on-popcorn-pot*)
+    (pick-object :popcorn-pot-lid '(:right) *popcorn-pot-lid-on-popcorn-pot*)
     
     ;; Placing popcorn pot lid on the table
-    (place-object :right *pot-lid-after-cooking-pose*)
+    (place-object '(:right) *pot-lid-after-cooking-pose* :?right-grasp :top)
 
     ;; Opening the grippers of the robot arms
     (open-gripper :right)
@@ -395,7 +396,7 @@
     (robot-state-changed)
     
     ;; Picking the salt up
-    (pick-object :salt :left *salt-picking-pose*)
+    (pick-object :salt '(:left) *salt-picking-pose*)
     
     ;; Salting the popcorn
     (let ((right-hand-position '(-0.02 0.02 0.14))
@@ -477,7 +478,7 @@
           )))
     
     ;; Placing salt back
-    (place-object :left *salt-picking-pose*)
+    (place-object '(:left) *salt-picking-pose* :?left-grasp :left-side)
 
     ;; Parking robot
     (park-robot))

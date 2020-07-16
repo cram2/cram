@@ -142,9 +142,7 @@
                      (arm ?arm-to-use)))
           (exe:perform
            (desig:an action
-                     (type positioning-arm)
-                     (left-configuration park)
-                     (right-configuration park)))
+                     (type parking-arms)))
           (btr:simulate btr:*current-bullet-world* 100)
           (let ((?new-object (exe:perform
                               (desig:an action

@@ -47,13 +47,13 @@
     ("left_arm_6_joint" -1.28735d0)))
 
 (defparameter *right-parking-joint-states*
-  '(("right_arm_0_joint" 0.0)
-    ("right_arm_1_joint" 0.0)
-    ("right_arm_2_joint" 0.0)
-    ("right_arm_3_joint" 0.0)
-    ("right_arm_4_joint" 0.0)
-    ("right_arm_5_joint" 0.0)
-    ("right_arm_6_joint" 0.0)))
+  '(("right_arm_0_joint" 1.858d0)
+    ("right_arm_1_joint" -0.70571d0)
+    ("right_arm_2_joint" -0.9614d0)
+    ("right_arm_3_joint" 0.602d0)
+    ("right_arm_4_joint" 2.5922d0)
+    ("right_arm_5_joint" 1.94065d0)
+    ("right_arm_6_joint" 1.28735d0)))
 
 (defparameter *left-nicer-configuration*
   '(-1.2274070978164673
@@ -130,14 +130,20 @@
 
   (<- (robot-joint-states boxy :arm :left :carry ?joint-states)
     (symbol-value *left-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states boxy :arm :left :park ?joint-states)
+    (symbol-value *left-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states boxy :arm :left :carry-top ?joint-states)
+    (symbol-value *left-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states boxy :arm :left :carry-side-gripper-vertical ?joint-states)
+    (symbol-value *left-parking-joint-states* ?joint-states))
 
   (<- (robot-joint-states boxy :arm :right :carry ?joint-states)
     (symbol-value *right-parking-joint-states* ?joint-states))
-
-  (<- (robot-joint-states boxy :arm :left :park ?joint-states)
-    (symbol-value *left-parking-joint-states* ?joint-states))
-
   (<- (robot-joint-states boxy :arm :right :park ?joint-states)
+    (symbol-value *right-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states boxy :arm :right :carry-top ?joint-states)
+    (symbol-value *right-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states boxy :arm :right :carry-side-gripper-vertical ?joint-states)
     (symbol-value *right-parking-joint-states* ?joint-states))
 
   (<- (robot-joint-states boxy :arm :left :flip ?joint-states)

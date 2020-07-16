@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;               2020, Thomas Lipps    <tlipps@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -38,6 +39,19 @@
     (cram-tf:pose-stamped->transform-stamped target-pose-in-base child-frame-rosy)))
 
 
+(defun split-attachments-desig (location-designator)
+  (let ((attachments (desig:desig-prop-value location-designator :attachments)))
+    (loop for attachment in attachments
+          collecting (desig:make-designator
+                      :location
+                      ;; cannot equate these guys because they will all end up
+                      ;; being the same location designator
+                      `((:attachment ,attachment)
+                        ,@ (remove :attachments (desig:properties location-designator)
+                                   :key #'car))))))
+
+
+
 (def-fact-group pick-and-place-plans (desig:action-grounding)
 
   (<- (desig:action-grounding ?action-designator (perceive ?resolved-action-designator))
@@ -70,27 +84,41 @@
     (desig:current-designator ?object-designator ?current-object-desig)
     (spec:property ?current-object-desig (:type ?object-type))
     (spec:property ?current-object-desig (:name ?object-name))
-    (-> (spec:property ?action-designator (:arm ?arm))
-        (true)
-        (man-int:robot-free-hand ?_ ?arm))
-    (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
 
+    ;; get the arm for grasping by checking if it is specified for ?object-type
+    (man-int:arms-for-object-type ?object-type ?arms-for-object)
+    (-> (equal ?arms-for-object nil)
+        (-> (spec:property ?action-designator (:arm ?arm))
+            (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
+                 (subset ?arm ?free-arms))
+            (and (man-int:robot-free-hand ?_ ?free-arm)
+                 (equal (?free-arm) ?arm)))
+        (-> (spec:property ?action-designator (:arm ?arm))
+            (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
+                 (subset ?arm ?free-arms)
+                 (man-int:check-arms-for-object-type ?arm ?object-type))
+            (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
+                 (man-int:check-arms-for-object-type ?free-arms ?object-type)
+                 (equal ?arm ?free-arms))))
+                 
+    (lisp-fun man-int:get-object-transform ?current-object-desig ?object-transform)
     ;; infer missing information like ?grasp type, gripping ?maximum-effort, manipulation poses
     (lisp-fun man-int:calculate-object-faces ?object-transform (?facing-robot-face ?bottom-face))
     (-> (man-int:object-rotationally-symmetric ?object-type)
         (equal ?rotationally-symmetric t)
         (equal ?rotationally-symmetric nil))
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        (and (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)
-             (member ?grasp ?grasps)))
+
     (lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
     (lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
 
-    ;; calculate trajectory
+    ;; calculate trajectory with given grasps
+    (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)    
     (equal ?objects (?current-object-desig))
-    (-> (equal ?arm :left)
-        (and (lisp-fun man-int:get-action-trajectory :picking-up ?arm ?grasp ?objects
+    (-> (member :left ?arm)
+        (and (-> (spec:property ?action-designator (:left-grasp ?left-grasp))
+                 (true)
+                 (member ?left-grasp ?grasps))
+             (lisp-fun man-int:get-action-trajectory :picking-up :left ?left-grasp ?objects
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
                        ?left-reach-poses)
@@ -98,11 +126,16 @@
                        ?left-grasp-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :lifting
                        ?left-lift-poses))
-        (and (equal ?left-reach-poses NIL)
+        (and (equal ?left-grasp NIL)
+             (equal ?left-reach-poses NIL)
              (equal ?left-grasp-poses NIL)
              (equal ?left-lift-poses NIL)))
-    (-> (equal ?arm :right)
-        (and (lisp-fun man-int:get-action-trajectory :picking-up ?arm ?grasp ?objects
+
+    (-> (member :right ?arm)
+        (and  (-> (spec:property ?action-designator (:right-grasp ?right-grasp))
+                  (true)
+                  (member ?right-grasp ?grasps))
+              (lisp-fun man-int:get-action-trajectory :picking-up :right ?right-grasp ?objects
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
                        ?right-reach-poses)
@@ -110,9 +143,11 @@
                        ?right-grasp-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :lifting
                        ?right-lift-poses))
-        (and (equal ?right-reach-poses NIL)
+        (and (equal ?right-grasp NIL)
+             (equal ?right-reach-poses NIL)
              (equal ?right-grasp-poses NIL)
              (equal ?right-lift-poses NIL)))
+
     (or (lisp-pred identity ?left-trajectory)
         (lisp-pred identity ?right-trajectory))
 
@@ -122,7 +157,8 @@
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
                                (:effort ?effort)
-                               (:grasp ?grasp)
+                               (:left-grasp ?left-grasp)
+                               (:right-grasp ?right-grasp)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)
@@ -138,15 +174,35 @@
     ;; find in which hand the object is
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
-            (or (cpoe:object-in-hand ?object-designator ?arm)
-                (format "WARNING: Wanted to place an object ~a with arm ~a, ~
-                         but it's not in the arm.~%" ?object-designator ?arm))
-            (cpoe:object-in-hand ?object-designator ?arm))
+            ;; Check if every given arm holds the given object
+            ;; by proofing if given arms fit to specified and ...
+            (or (once (and (man-int:check-arms-for-object ?arm ?object-designator)
+                           ;; ... if given arms hold the object.
+                           (man-int:object-in-arms ?arm ?object-designator)))
+                (and (format "WARNING: Wanted to place an object ~a with arm ~a, ~
+                              but it's not in (both) given arm(s).~%" ?object-designator ?arm)
+                     (fail)))
+            ;; Find object which is hold by every given arm
+            ;; by first getting the ?object-designator and ...
+            (once (and (man-int:object-in-arms ?arm ?object-designator)
+                       ;; then by proofing if given arms fit to specified.
+                       (man-int:check-arms-for-object ?arm ?object-designator))))
         (-> (spec:property ?action-designator (:object ?object-designator))
-            (or (cpoe:object-in-hand ?object-designator ?arm)
+            ;; Find arms which holds the given object
+            ;; and check if the arms are holding the given object as specified
+            (or (setof ?used-arm (cpoe:object-in-hand ?object ?used-arm) ?arm)
+                (man-int:check-arms-for-object ?arm ?object-designator)
                 (format "WARNING: Wanted to place an object ~a ~
                          but it's not in any of the hands.~%" ?object-designator))
-            (cpoe:object-in-hand ?object-designator ?arm)))
+            ;; Find the object the robot is holding and with which
+            ;; arms the object is hold by getting all arms in use and
+            ;; checking if these hold one object as specified
+            (or (once (and (setof ?used-arm (cpoe:object-in-hand ?object ?used-arm) ?arm)
+                           (man-int:object-in-arms ?arm ?object-designator)
+                           (man-int:check-arms-for-object ?arm ?object-designator)))
+                (and (format "WARNING: Please specify with an arm which ~
+                              of the arms should be used.~%")
+                     (fail)))))
 
     ;;; infer missing information
     (desig:current-designator ?object-designator ?current-object-designator)
@@ -156,7 +212,14 @@
 
     ;; take object-pose from action-designator :target otherwise from object-designator pose
     (-> (spec:property ?action-designator (:target ?location-designator))
-        (and (desig:current-designator ?location-designator ?current-location-designator)
+        (and (desig:current-designator ?location-designator ?current-loc-desig)
+             ;; if the location designator has ATTACHMENTS property,
+             ;; split it into a list of locations with ATTACHMENT property
+             (-> (desig:desig-prop ?current-loc-desig (:attachments ?_))
+                 (and (lisp-fun split-attachments-desig ?current-loc-desig
+                                ?list-of-current-loc-desig-split)
+                      (member ?current-location-designator ?list-of-current-loc-desig-split))
+                 (equal ?current-location-designator ?current-loc-desig))
              (desig:designator-groundings ?current-location-designator ?poses)
              (member ?target-object-pose ?poses)
              (lisp-fun pose->transform-stamped-in-base ?target-object-pose ?object-name
@@ -172,21 +235,27 @@
     (or (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
         (desig:desig-prop ?current-location-designator (:in ?other-object-designator))
         (equal ?other-object-designator NIL))
+    ;; and that other object can be a robot or not
+    (-> (man-int:other-object-is-a-robot ?other-object-designator)
+        (equal ?other-object-is-a-robot T)
+        (equal ?other-object-is-a-robot NIL))
+    ;; and the placement can have a specific attachment or not
     (-> (desig:desig-prop ?current-location-designator (:attachment ?placement-location-name))
         (true)
         (equal ?placement-location-name NIL))
-
-    (-> (spec:property ?action-designator (:grasp ?grasp))
-        (true)
-        (cpoe:object-in-hand ?object-designator ?arm ?grasp))
 
     ;; calculate trajectory
     (equal ?objects (?current-object-designator
                      ?other-object-designator
                      ?placement-location-name))
-    (-> (equal ?arm :left)
-        (and (lisp-fun man-int:get-action-trajectory
-                       :placing ?arm ?grasp ?objects
+
+    (-> (member :left ?arm)
+        (and (or (spec:property ?action-designator (:left-grasp ?left-grasp))
+                 (and (format "WARNING: Please specify a grasp with :left-grasp.~%")
+                      (fail)))
+             (lisp-fun man-int:get-action-grasps ?object-type :left ?object-transform ?left-grasps)
+             (lisp-fun man-int:get-action-trajectory
+                       :placing :left ?left-grasp ?objects
                        :target-object-transform-in-base ?target-object-transform
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
@@ -195,12 +264,19 @@
                        ?left-put-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :retracting
                        ?left-retract-poses))
-        (and (equal ?left-reach-poses NIL)
+        (and (equal ?left-grasp NIL)
+             (equal ?left-reach-poses NIL)
              (equal ?left-put-poses NIL)
              (equal ?left-retract-poses NIL)))
-    (-> (equal ?arm :right)
-        (and (lisp-fun man-int:get-action-trajectory
-                       :placing ?arm ?grasp ?objects
+
+    (-> (member :right ?arm)
+        (and (or (spec:property ?action-designator (:right-grasp ?right-grasp))
+                 (and (format "WARNING: Please specify a grasp with :right-grasp.~%")
+                      (fail)))
+             (lisp-fun man-int:get-action-grasps ?object-type :right ?object-transform ?right-grasps)
+             (member ?right-grasp ?right-grasps)
+             (lisp-fun man-int:get-action-trajectory
+                       :placing :right ?right-grasp ?objects
                        :target-object-transform-in-base ?target-object-transform
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
@@ -209,19 +285,22 @@
                        ?right-put-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :retracting
                        ?right-retract-poses))
-        (and (equal ?right-reach-poses NIL)
+        (and (equal ?right-grasp NIL)
+             (equal ?right-reach-poses NIL)
              (equal ?right-put-poses NIL)
              (equal ?right-retract-poses NIL)))
+
     (or (lisp-pred identity ?left-trajectory)
         (lisp-pred identity ?right-trajectory))
 
     ;; put together resulting designator
     (desig:designator :action ((:type :placing)
                                (:object ?current-object-designator)
+                               (:target ?current-location-designator)
                                (:other-object ?other-object-designator)
+                               (:other-object-is-a-robot ?other-object-is-a-robot)
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
-                               (:target ?current-location-designator)
                                (:attachment-type ?placement-location-name)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)

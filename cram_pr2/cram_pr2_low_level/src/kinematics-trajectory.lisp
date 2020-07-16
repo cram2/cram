@@ -134,8 +134,9 @@
          (roslisp:make-request
           "moveit_msgs/GetPositionIK"
           (:ik_link_name :ik_request) ik-link
-          (:pose_stamped :ik_request) (cl-tf:to-msg
-                                       (cl-tf:pose->pose-stamped ik-base-frame 0.0 cartesian-pose))
+          (:pose_stamped :ik_request) (cl-transforms-stamped:to-msg
+                                       (cl-transforms-stamped:pose->pose-stamped
+                                        ik-base-frame 0.0 cartesian-pose))
           (:joint_state :robot_state :ik_request) (make-zero-seed-state left-or-right)
           (:timeout :ik_request) 1.0))
       (cond ((eql error-code
@@ -170,8 +171,9 @@
                (roslisp:make-request
                 "moveit_msgs/GetPositionIK"
                 (:ik_link_name :ik_request) ik-link
-                (:pose_stamped :ik_request) (cl-tf:to-msg
-                                             (cl-tf:pose->pose-stamped ik-base-frame 0.0 cartesian-pose))
+                (:pose_stamped :ik_request) (cl-transforms-stamped:to-msg
+                                             (cl-transforms-stamped:pose->pose-stamped
+                                              ik-base-frame 0.0 cartesian-pose))
                 (:joint_state :robot_state :ik_request) (make-current-seed-state left-or-right)
                 (:timeout :ik_request) 1.0)))
           (cond ((eql response-error-code

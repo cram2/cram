@@ -31,98 +31,25 @@
 (in-package :demo)
 
 (defparameter *demo-object-spawning-poses*
-  '((:bowl . ((1.45 1.05 0.48) (0 0 0 1))) ; left-middle-drawer
-    (:cup . ((1.42 0.7 0.48) (0 0 0 1))) ; left-middle-drawer
-    (:spoon . ((1.43 0.9 0.74132) (0 0 0 1))) ;; left-upper-drawer
+  '((:bowl
+     "sink_area_left_middle_drawer_main"
+     ((0.10573 -0.1505 -0.062256) (0 0 -1 0)))
+    (:cup
+     "sink_area_left_middle_drawer_main"
+     ((0.1375 0.12 -0.0547167o) (0 0 -1 0)))
+    (:spoon
+     ;; "oven_area_area_middle_upper_drawer_main"
+     "sink_area_left_upper_drawer_main"
+     ((0.125 0 -0.0136) (0 -0.053938 -0.998538 -0.003418)))
     ;; So far only this orientation works
-    (:breakfast-cereal . ((1.412 1.490 1.2558) (0 0 -0.55557d0 0.83147d0)))
+    (:breakfast-cereal
+     "oven_area_area_right_drawer_board_3_link"
+     ((0.123 -0.03 0.11) (0.0087786 0.005395 -0.838767 -0.544393)))
     ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
     ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
-    (:milk . ((1.45 -1.04 0.955) (0 0 0 1)))))
-
-(defparameter *object-attachment-links*
-  '((:breakfast-cereal . "oven_area_area_right_drawer_board_3_link")
-    ;; (:milk . "sink_area_left_middle_drawer_main")
-    (:cup . "sink_area_left_middle_drawer_main")
-    (:bowl . "sink_area_left_middle_drawer_main")
-    ;; (:cup . "sink_area_left_middle_drawer_main")
-    (:spoon . "sink_area_left_upper_drawer_main")
-    ;; (:spoon . "oven_area_area_middle_upper_drawer_main")
-    ))
-
-(defparameter *fetch-locations*
-  `((:bowl . ,(a location
-                 (in (an object
-                         (type drawer)
-                         (urdf-name sink-area-left-middle-drawer-main)
-                         (owl-name "drawer_sinkblock_middle_open")
-                         (part-of kitchen)))))
-    (:cup . ,(a location
-                (in (an object
-                        (type drawer)
-                        (urdf-name sink-area-left-middle-drawer-main)
-                        (owl-name "drawer_sinkblock_middle_open")
-                        (part-of kitchen)))))
-    (:spoon . ,(desig:a location
-                        (in (desig:an object
-                                      (type drawer)
-                                      (urdf-name sink-area-left-upper-drawer-main)
-                                      (owl-name "drawer_sinkblock_upper_open")
-                                      (part-of kitchen)))
-                        (side front)))
-    (:breakfast-cereal . ,(a location
-                             (in (an object
-                                     (type drawer)
-                                     (urdf-name oven-area-area-right-drawer-main)
-                                     (owl-name "drawer_oven_right_open")
-                                     (part-of kitchen)
-                                     (level topmost)))
-                             ;; (side front)
-                             ))
-    (:milk . ,(a location (in (an object
-                                  (type fridge)
-                                  (urdf-name iai-fridge-main)
-                                  (owl-name "drawer_fridge_upper_interior")
-                                  (part-of kitchen)
-                                  (level topmost)))))))
-
-
-(defparameter *delivery-locations*
-  `((:bowl . ,(a location
-                 (on (an object
-                         (type counter-top)
-                         (urdf-name kitchen-island-surface)
-                         (part-of kitchen)))
-                 (for (an object
-                          (type bowl)))
-                 (side back)
-                 (context table-setting)
-                 (object-count 3)
-                 (range-invert 0.5)
-                 (side right)))
-    (:cup . ,(a location
-                (left-of (an object (type bowl)))
-                (near (an object (type bowl)))
-                (for (an object (type cup)))))
-    (:spoon . ,(a location
-                  (right-of (an object (type bowl)))
-                  (near (an object (type bowl)))
-                  (for (an object (type spoon)))
-                  (orientation support-aligned)))
-    (:milk . ,(desig:a location
-                       (left-of (an object (type bowl)))
-                       (far-from (an object (type bowl)))
-                       (for (an object (type milk)))))
-    (:breakfast-cereal . ,(a location
-                             (on
-                              (an object
-                                  (type counter-top)
-                                  (urdf-name kitchen-island-surface)
-                                  (part-of kitchen)))
-                             (for (an object (type breakfast-cereal)))
-                             (side back)
-                             (orientation axis-aligned)
-                             (side right)))))
+    (:milk
+     "iai_fridge_main_middle_level"
+     ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437)))))
 
 
 (defparameter *delivery-poses*
@@ -147,37 +74,69 @@
 
 
 
-(defun attach-objects-to-the-world (object-type)
-  (when (assoc object-type *object-attachment-links*)
-    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+(defun attach-object-to-the-world (object-type)
+  (when *demo-object-spawning-poses*
+    (btr:attach-object (btr:get-environment-object)
                        (btr:object btr:*current-bullet-world*
                                    (intern (format nil "~a-1" object-type) :keyword))
-                       :link (cdr (assoc object-type *object-attachment-links*)))))
+                       :link (second (find object-type
+                                           *demo-object-spawning-poses*
+                                           :key #'car)))))
 
-(defun spawn-objects-on-fixed-spots (&key (spawning-poses *demo-object-spawning-poses*)
-                                       (object-types '(:breakfast-cereal :cup :bowl :spoon :milk)))
+(defun make-poses-list-relative (spawning-poses-list)
+  "Gets a list of ((:type \"frame\" cords-list) ...)
+Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list in form
+ ((TYPE . POSE) ...)."
+  (when spawning-poses-list
+    (mapcar (lambda (type-and-frame-and-pose-list)
+              (destructuring-bind (type frame pose-list)
+                  type-and-frame-and-pose-list
+                (let* ((map-T-surface
+                         (cl-transforms:pose->transform
+                          (btr:link-pose (btr:get-environment-object) frame)))
+                       (surface-T-object
+                         (cl-transforms:pose->transform
+                          (cram-tf:list->pose pose-list)))
+                       (map-T-object
+                         (cl-transforms:transform* map-T-surface surface-T-object))
+                       (map-P-object
+                         (cl-transforms:transform->pose map-T-object)))
+                  `(,type . ,map-P-object))))
+            spawning-poses-list)))
+
+(defun spawn-objects-on-fixed-spots (&key
+                                       (spawning-poses-relative
+                                        *demo-object-spawning-poses*)
+                                       (object-types
+                                        '(:breakfast-cereal :cup :bowl :spoon :milk)))
   (btr-utils:kill-all-objects)
   (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo")
   (btr:detach-all-objects (btr:get-robot-object))
   ;; spawn objects at default poses
-  (let ((objects (mapcar (lambda (object-type)
-                           (btr-utils:spawn-object
-                            (intern (format nil "~a-1" object-type) :keyword)
-                            object-type
-                            :pose (cdr (assoc object-type spawning-poses))))
-                         object-types)))
+  (let* ((spawning-poses-absolute
+           (make-poses-list-relative spawning-poses-relative))
+         (objects (mapcar (lambda (object-type)
+                            (btr-utils:spawn-object
+                             (intern (format nil "~a-1" object-type) :keyword)
+                             object-type
+                             :pose (cdr (assoc object-type
+                                               ;; *demo-object-spawning-poses*
+                                               spawning-poses-absolute
+                                               ))))
+                          object-types)))
     ;; stabilize world
     ;; (btr:simulate btr:*current-bullet-world* 100)
     objects)
 
-  (mapcar #'attach-objects-to-the-world object-types))
+  (mapcar #'attach-object-to-the-world object-types))
 
 
 
 (defun setup-for-demo (object-list)
   (initialize)
   (when cram-projection:*projection-environment*
-    (spawn-objects-on-fixed-spots :object-types object-list :spawning-poses *delivery-poses*))
+    (spawn-objects-on-fixed-spots :object-types object-list
+                                  :spawning-poses-relative *delivery-poses*))
   ;; (park-robot)
   )
 
@@ -199,7 +158,7 @@
   ;;               (type container-revolute)
   ;;               ;; (urdf-name :iai_fridge_door)
   ;;               (urdf-name :iai_fridge_door_handle)
-  ;;               (part-of kitchen))))))))
+  ;;               (part-of environment))))))))
 
 (defun projection-init ()
   (setf btr:*visibility-threshold* 0.7)
@@ -208,7 +167,7 @@
   (setf cram-urdf-projection-reasoning::*projection-checks-enabled* t)
   (spawn-objects-on-fixed-spots))
 
-(defun perform-demo (&optional (object-list '(:milk)))
+(defun setting-demo (&optional (object-list '(:milk)))
   "Generic implementation, ideally this should work for all objects together.
 Right now, only works with '(:milk) and '(:bowl :cup :spoon). There is a separate method
 for :breakfast-cereal in the bottom.
@@ -217,31 +176,27 @@ commented out "
   ;; (setup-for-demo object-list)
 
   (dolist (?object-type object-list)
-    (let* (;; (?deliver-location (cdr (assoc ?object-type *delivery-locations*)))
-           (?deliver-pose (cram-tf:ensure-pose-in-frame
+    (let* ((?deliver-pose (cram-tf:ensure-pose-in-frame
                            (btr:ensure-pose
                             (cdr (assoc ?object-type *delivery-poses*)))
                            cram-tf:*fixed-frame*))
            (?deliver-location (a location (pose ?deliver-pose)))
-           (?fetch-location (cdr (assoc ?object-type *fetch-locations*)))
            (?color (cdr (assoc ?object-type *object-colors*)))
            (?grasp (cdr (assoc ?object-type *object-grasps*)))
            (?object (an object
                         (type ?object-type)
-                        (location ?fetch-location)
+                        ;; (location ?fetch-location)
                         (desig:when ?color
                           (color ?color)))))
       (exe:perform
        (an action
            (type transporting)
            (object ?object)
-           (desig:when ?color
-             (color ?color))
+           (context :table-setting)
            (grasps (:back :top :front))
            (arms (left right))
            ;; (desig:when ?grasp
            ;;   (grasp ?grasp))
-           (location ?fetch-location)
            (target ?deliver-location))))))
 
 (defun cleaning-demo (&optional (object-list '(:milk)))
@@ -263,7 +218,7 @@ commented out "
                                        (type counter-top)
                                        (urdf-name kitchen-island-surface)
                                        (owl-name "kitchen_island_counter_top")
-                                       (part-of kitchen)))
+                                       (part-of environment)))
                                (side back)
                                (side right)))
            (?color (cdr (assoc ?object-type *object-colors*)))
@@ -284,7 +239,7 @@ commented out "
                                            (type drawer)
                                            (urdf-name sink-area-trash-drawer-main)
                                            (owl-name "drawer_sinkblock_middle_open")
-                                           (part-of kitchen))))))))
+                                           (part-of environment))))))))
       (let ((?obj (exe:perform
                    (an action
                        (type searching)
@@ -322,10 +277,10 @@ commented out "
                                            (type drawer)
                                            (urdf-name sink-area-trash-drawer-main)
                                            (owl-name "drawer_sinkblock_middle_open")
-                                           (part-of kitchen)))))))))))
+                                           (part-of environment)))))))))))
 
 
-(cpl:def-cram-function get-from-vertical-drawer (&optional ?open (?object :breakfast-cereal))
+(defun get-from-vertical-drawer (&optional ?open (?object :breakfast-cereal))
   "Grabbing the object (breakfast-cereal) from vertical drawer.
 It doesn't seal the vertical drawer now
 because there is some error when trying to close the drawer"
@@ -338,16 +293,17 @@ because there is some error when trying to close the drawer"
                               (type drawer)
                               (urdf-name oven-area-area-right-drawer-handle)
                               ;;This should be referencing the container itself
-                              (part-of kitchen)))))
+                              (part-of environment)))))
          (distance 0.35))))
 
   ;; This plan is rudimentary and just aims to increase the fetch retries
-  (let* ((?f-loc (cdr (assoc ?object *fetch-locations*)))
+  (let* (;; (?f-loc (cdr (assoc ?object *fetch-locations*)))
          (?perceived-object-designator
            (perform (an action
                         (type searching)
                         (object (an object (type ?object)))
-                        (location ?f-loc)))))
+                        ;; (location ?f-loc)
+                        ))))
 
     (let ((?fetched-object
             (cpl:with-retry-counters ((fetching-retry 3))
@@ -364,16 +320,18 @@ because there is some error when trying to close the drawer"
                  (an action
                      (type fetching)
                      (object ?perceived-object-designator))))))
-          (?destination (cdr (assoc ?object *delivery-locations*))))
+          ;; (?destination (cdr (assoc ?object *delivery-locations*)))
+          )
 
       (perform (an action
                    (type delivering)
                    (object ?fetched-object)
-                   (target ?destination))))))
+                   ;; (target ?destination)
+                   )))))
 
 
 
-(cpl:def-cram-function put-into-trash (&optional (?object :bowl))
+(defun put-into-trash (&optional (?object :bowl))
   "Interim put into trash method as long as the dropping plan is not complete.
    This will work only as long as the stability check inside deliver plan is commented out"
   (let ((?perceived-object-designator
@@ -385,7 +343,7 @@ because there is some error when trying to close the drawer"
                                     (on (an object
                                             (type counter-top)
                                             (urdf-name kitchen-island-surface)
-                                            (part-of kitchen)))
+                                            (part-of environment)))
                                     (side back)
                                     (side right)))))))
     (let ((?fetched-object
@@ -398,7 +356,7 @@ because there is some error when trying to close the drawer"
                                 (in (an object
                                         (type drawer)
                                         (urdf-name sink-area-trash-drawer-main)
-                                        (part-of kitchen)))))
+                                        (part-of environment)))))
                    (distance 0.4)))
 
       (perform (an action
@@ -408,7 +366,7 @@ because there is some error when trying to close the drawer"
                               (on (an object
                                       (type drawer)
                                       (urdf-name sink-area-trash-drawer-main)
-                                      (part-of kitchen)))
+                                      (part-of environment)))
                               (side front)
                               (side right)
                               (for (an object (type ?object)))
@@ -422,7 +380,7 @@ because there is some error when trying to close the drawer"
       ;;                           (in (an object
       ;;                                   (type drawer)
       ;;                                   (urdf-name sink-area-trash-drawer-main)
-      ;;                                   (part-of-kitchen)))))
+;;                                         (part-of environment)))))
       ;;              (distance 0.4))))))
 
 ;; Ideal working for clean up (tried for fridge, doesn't work now)
@@ -432,7 +390,7 @@ because there is some error when trying to close the drawer"
 ;;     (let* ((f-loc `((:milk . ,(a location (in (an object
 ;;                                                   (type container)
 ;;                                                   (urdf-name iai-fridge-main)
-;;                                                   (part-of kitchen)
+;;                                                   (part-of environment)
 ;;                                                   (level topmost)))
 ;;                                  (for (an object
 ;;                                           (type milk)))
@@ -447,6 +405,7 @@ because there is some error when trying to close the drawer"
 ;;        (an action
 ;;            ;; (arm left)
 ;;            (type transporting)
+;;            (context table-cleaning)
 ;;            (object ?obj)
 ;;            (location ?f)
 ;;            (target ?d))))))

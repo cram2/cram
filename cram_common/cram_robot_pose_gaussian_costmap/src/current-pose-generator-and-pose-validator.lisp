@@ -30,12 +30,23 @@
 (in-package :gaussian-costmap)
 
 (defun robot-current-pose-tf-generator (desig)
+  (return-from robot-current-pose-tf-generator nil)
   (when (or (cram-robot-interfaces:reachability-designator-p desig)
             (cram-robot-interfaces:visibility-designator-p desig))
     (when cram-tf:*transformer*
       (handler-case
           (list (cram-tf:robot-current-pose))
         (cl-transforms-stamped:transform-stamped-error () nil)))))
+
+;; (defun robot-current-pose-bullet-generator (desig)
+;;   (when (or (cram-robot-interfaces:reachability-designator-p desig)
+;;             (cram-robot-interfaces:visibility-designator-p desig))
+;;     (handler-case
+;;         (cut:var-value '?pose
+;;                        (car (prolog `(and (btr:bullet-world ?w)
+;;                                           (cram-robot-interfaces:robot ?robot-name)
+;;                                           (btr:object-pose ?w ?robot-name ?pose)))))
+;;       (error () nil))))
 
 (desig:register-location-generator
  3 robot-current-pose-tf-generator
@@ -67,8 +78,10 @@
 
 (defun reachable-location-validator (designator pose)
   (if (cram-robot-interfaces:reachability-designator-p designator)
-      (cut:with-vars-bound (?to-reach-pose ?min-distance ?max-distance
-                                           ?orientation-samples ?orientation-sample-step)
+      (cut:with-vars-bound (?to-reach-pose
+                            ?min-distance ?max-distance
+                            ?orientation-samples ?orientation-sample-step
+                            ?orientation-offset)
           (cut:lazy-car
            (prolog:prolog
             `(and
@@ -79,15 +92,20 @@
               (once (or (and (desig:desig-prop ,designator (:object ?some-object))
                              (desig:current-designator ?some-object ?object)
                              (lisp-fun man-int:get-object-pose-in-map ?object ?to-reach-pose)
-                             (lisp-pred identity ?to-reach-pose))
+                             (lisp-pred identity ?to-reach-pose)
+                             (-> (desig:desig-prop ?object (:location ?loc))
+                                 (not (man-int:always-reachable ?loc))
+                                 (true)))
                         (and (desig:desig-prop ,designator (:location ?some-location))
                              (desig:current-designator ?some-location ?location)
+                             (not (man-int:always-reachable ?location))
                              (desig:designator-groundings ?location ?to-reach-poses)
                              (member ?to-reach-pose ?to-reach-poses))))
               (costmap:costmap-reach-minimal-distance ?min-distance)
               (costmap:costmap-in-reach-distance ?max-distance)
               (costmap:orientation-samples ?orientation-samples)
-              (costmap:orientation-sample-step ?orientation-sample-step))))
+              (costmap:orientation-sample-step ?orientation-sample-step)
+              (costmap:reachability-orientation-offset ?orientation-offset))))
         (if (or (cut:is-var ?to-reach-pose)
                 (cut:is-var ?min-distance)
                 (cut:is-var ?max-distance))
@@ -115,7 +133,9 @@
                   (generated-angle (calculate-z-angle pose)))
               (if (and (< dist ?max-distance)
                        (> dist ?min-distance)
-                       (<= (abs (- perfect-angle generated-angle)) allowed-range))
+                       (<= (abs (- (abs (- perfect-angle generated-angle))
+                                   (cl-transforms:normalize-angle ?orientation-offset)))
+                           allowed-range))
                   :accept
                   :reject))))
       :unknown))
@@ -133,13 +153,14 @@
            (prolog:prolog
             `(and (once (or (and (desig:desig-prop ,designator (:object ?some-object))
                                  (desig:current-designator ?some-object ?object)
-                                 ;; (btr-belief:object-designator-name ?object ?object-name)
-                                 ;; (btr:bullet-world ?world)
-                                 ;; (btr:object-pose ?world ?object-name ?to-see-pose)
                                  (lisp-fun man-int:get-object-pose-in-map ?object ?to-see-pose)
-                                 (lisp-pred identity ?to-see-pose))
+                                 (lisp-pred identity ?to-see-pose)
+                                 (-> (desig:desig-prop ?object (:location ?loc))
+                                     (not (man-int:always-reachable ?loc))
+                                     (true)))
                             (and (desig:desig-prop ,designator (:location ?some-location))
                                  (desig:current-designator ?some-location ?location)
+                                 (not (man-int:always-reachable ?location))
                                  (desig:designator-groundings ?location ?to-see-poses)
                                  (member ?to-see-pose ?to-see-poses))))
                   (costmap:visibility-costmap-size ?max-distance)
@@ -177,13 +198,3 @@
 (desig:register-location-validation-function
  5 visible-location-validator
  "Verifies that visible location is indeed in close distance to pose")
-
-;; (defun robot-current-pose-bullet-generator (desig)
-;;   (when (or (cram-robot-interfaces:reachability-designator-p desig)
-;;             (cram-robot-interfaces:visibility-designator-p desig))
-;;     (handler-case
-;;         (cut:var-value '?pose
-;;                        (car (prolog `(and (btr:bullet-world ?w)
-;;                                           (cram-robot-interfaces:robot ?robot-name)
-;;                                           (btr:object-pose ?w ?robot-name ?pose)))))
-;;       (error () nil))))

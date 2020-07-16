@@ -144,7 +144,7 @@
   (exe:perform
    (desig:a motion (type moving-gripper-joint) (gripper right) (joint-angle 0.05)))
   (exe:perform
-   (let ((?pose (cl-tf:make-pose-stamped
+   (let ((?pose (cl-transforms-stamped:make-pose-stamped
                  cram-tf:*robot-base-frame* 0.0
                  (cl-transforms:make-3d-vector 0.8 0.4 1.0)
                  (cl-transforms:make-identity-rotation))))

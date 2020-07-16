@@ -105,7 +105,18 @@
     (lisp-type ?object-instance item)
     (get-slot-value ?object-instance types ?types)
     (member ?type ?types))
-  
+
+  (<- (item ?world ?name)
+    (bullet-world ?world)
+    (-> (bound ?name)
+        (and (or (lisp-type ?name symbol)
+                 (lisp-type ?name string))
+             (lisp-fun object ?world ?name ?item)
+             (lisp-type ?item item))
+        (and (lisp-fun find-items ?world ?items)
+             (member ?item ?items)
+             (lisp-fun name ?item ?name))))
+
   (<- (%object ?world ?name ?obj)
     (bound ?name)
     (or (lisp-type ?name symbol)
@@ -128,7 +139,7 @@
     (lisp-fun find-objects ?world ?objs)
     (member ?obj ?objs)
     (lisp-fun name ?obj ?name))
-  
+
   ;; Performs one simulation step in the world
   (<- (step ?world)
     (step ?world 0.01))

@@ -55,3 +55,8 @@
                   :z 0.0)))
       (error 'transform-stamped-error
              :description "*transformer* is NIL. Have you called STARTUP-ROS?")))
+
+(defun robot-current-transform (&key use-current-time-p)
+  (cram-tf:pose-stamped->transform-stamped
+   (robot-current-pose :use-current-time-p use-current-time-p)
+   cram-tf:*robot-base-frame*))

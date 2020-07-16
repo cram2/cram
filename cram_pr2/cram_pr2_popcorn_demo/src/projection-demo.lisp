@@ -199,19 +199,19 @@
     (btr:simulate btr:*current-bullet-world* 100)
 
     ;; attach the objects to the links in the kitchen
-    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+    (btr:attach-object (btr:get-environment-object)
                        (btr:object btr:*current-bullet-world* :popcorn-pot-1)
                        :link "iai_popcorn_table_right_grid")
-    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+    (btr:attach-object (btr:get-environment-object)
                        (btr:object btr:*current-bullet-world* :popcorn-pot-lid-1)
                        :link "iai_popcorn_table_drawer_right_main")
-    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+    (btr:attach-object (btr:get-environment-object)
                        (btr:object btr:*current-bullet-world* :ikea-bowl-ww-1)
                        :link "iai_popcorn_table_drawer_right_main")
-    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+    (btr:attach-object (btr:get-environment-object)
                        (btr:object btr:*current-bullet-world* :salt-1)
                        :link "iai_popcorn_table_surface")
-    (btr:attach-object (btr:object btr:*current-bullet-world* :kitchen)
+    (btr:attach-object (btr:get-environment-object)
                        (btr:object btr:*current-bullet-world* :ikea-plate-1)
                        :link "iai_popcorn_table_drawer_left_main")
 
@@ -235,7 +235,7 @@
                           (pose ?ptu-goal)))))
 
 
-(defun pick-object (?object-type ?arm ?pose-as-list &key ?grasp)
+(defun pick-object (?object-type ?arm ?pose-as-list &key ?left-grasp ?right-grasp)
   (let ((?object (get-object-designator ?object-type ?pose-as-list)))
     (cpl:seq
       (exe:perform (desig:an action     
@@ -244,11 +244,14 @@
       (exe:perform (desig:an action
                              (type picking-up)
                              (arm ?arm)
-                             (desig:when ?grasp
-                               (grasp ?grasp))
+                             (desig:when ?right-grasp
+                               (right-grasp ?right-grasp))
+                             (desig:when ?left-grasp
+                               (left-grasp ?left-grasp))
                              (object ?object))))))
 
-(defun place-object (?arm ?target-pose-as-list &key ?object-placed-on ?object-to-place ?attachment)
+(defun place-object (?arm ?target-pose-as-list
+                     &key ?left-grasp ?right-grasp ?object-placed-on ?object-to-place ?attachment)
   (let ((?target-pose (ensure-pose-stamped ?target-pose-as-list)))
     (cpl:seq
       (exe:perform (desig:a motion
@@ -260,6 +263,10 @@
                  (arm ?arm)
                  (desig:when ?object-to-place
                    (object ?object-to-place))
+                 (desig:when ?right-grasp
+                   (right-grasp ?right-grasp))
+                 (desig:when ?left-grasp
+                   (left-grasp ?left-grasp))
                  (target (desig:a location
                                   (desig:when ?object-placed-on
                                     (on ?object-placed-on))
@@ -295,7 +302,7 @@
          (?drawer-obj (desig:an object
                                 (type drawer)
                                 (urdf-name ?urdf-name)
-                                (part-of kitchen)))
+                                (part-of environment)))
          (?distance (if (eq ?action :opening)
                         0.4
                         0.0)))

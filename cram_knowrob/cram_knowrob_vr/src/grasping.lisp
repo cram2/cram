@@ -71,39 +71,33 @@ RETURNS: a cl-transform."
             transform)))
     transform-stamped))
 
-(defmethod get-object-type-to-gripper-pregrasp-transform (object-type
+(defmethod get-object-type-to-gripper-pregrasp-transforms (object-type
                                                           object-name
                                                           arm
                                                           (grasp (eql :human-grasp))
                                                           grasp-transform)
-  (cram-tf:translate-transform-stamped
-   grasp-transform
-   :x-offset (- objects::*cereal-pregrasp-xy-offset*)
-   :z-offset objects::*lift-z-offset*))
+  (list
+   (cram-tf:translate-transform-stamped
+    grasp-transform
+    :x-offset (- objects::*cereal-pregrasp-xy-offset*)
+    :z-offset objects::*lift-z-offset*)
+   (cram-tf:translate-transform-stamped
+    grasp-transform
+    :x-offset (- objects::*cereal-pregrasp-xy-offset*))))
 
-(defmethod get-object-type-to-gripper-2nd-pregrasp-transform (object-type
-                                                              object-name
-                                                              arm
-                                                              (grasp (eql :human-grasp))
-                                                              grasp-transform)
-  (cram-tf:translate-transform-stamped
-   grasp-transform
-   :x-offset (- objects::*cereal-pregrasp-xy-offset*)))
-
-(defmethod get-object-type-to-gripper-lift-transform (object-type
-                                                      object-name
-                                                      arm
-                                                      (grasp (eql :human-grasp))
-                                                      grasp-transform)
-  (cram-tf:translate-transform-stamped
-   grasp-transform
-   :z-offset objects::*lift-z-offset*))
-
-(defmethod get-object-type-to-gripper-2nd-lift-transform (object-type
-                                                          object-name
-                                                          arm
-                                                          (grasp (eql :human-grasp))
-                                                          grasp-transform)
-  (cram-tf:translate-transform-stamped
-   grasp-transform
-   :x-offset 0.0))
+(defmethod get-object-type-wrt-base-frame-lift-transforms (object-type
+                                                           arm
+                                                           (grasp (eql :human-grasp)))
+  (list
+   (cl-transforms-stamped:make-transform-stamped
+    cram-tf:*robot-base-frame*
+    cram-tf:*robot-base-frame*
+    0.0
+    (cl-transforms:make-3d-vector 0.0 0.0 objects::*lift-z-offset*)
+    (cl-transforms:make-identity-rotation))
+   (cl-transforms-stamped:make-transform-stamped
+    cram-tf:*robot-base-frame*
+    cram-tf:*robot-base-frame*
+    0.0
+    (cl-transforms:make-3d-vector 0.0 0.0 objects::*lift-z-offset*)
+    (cl-transforms:make-identity-rotation))))
