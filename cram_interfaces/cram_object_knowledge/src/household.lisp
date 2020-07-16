@@ -681,5 +681,5 @@
             (make-location-on-sink environment object-type)))
         '(:bowl :plate :cutlery :mug :cup :cereal :breakfast-cereal :milk :bottle))
 
-(defmethod man-int:get-specific-object-arms :heuristics 20 ((object-type (eql :tray)))
+(defmethod man-int:get-arms-for-object-type :heuristics 20 ((object-type (eql :tray)))
   '(:left :right))
