@@ -77,7 +77,9 @@
             (and (man-int:robot-free-hand ?_ ?free-arm)
                  (equal (?free-arm) ?arm)))
         (-> (spec:property ?action-designator (:arm ?arm))
-            (man-int:check-arms-for-object-type ?arm ?object-type)
+            (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
+                 (subset ?arm ?free-arms)
+                 (man-int:check-arms-for-object-type ?arm ?object-type))
             (and (setof ?free-arm (man-int:robot-free-hand ?_ ?free-arm) ?free-arms)
                  (man-int:check-arms-for-object-type ?free-arms ?object-type)
                  (equal ?arm ?free-arms))))
@@ -160,7 +162,7 @@
             (or (once (and (man-int:check-arms-for-object ?arm ?object-designator)
                            ;; ... if given arms hold the object.
                            (man-int:object-in-arms ?arm ?object-designator)))
-                (and (format "ERROR: Wanted to place an object ~a with arm ~a, ~
+                (and (format "WARNING: Wanted to place an object ~a with arm ~a, ~
                               but it's not in (both) given arm(s).~%" ?object-designator ?arm)
                      (fail)))
             ;; Find object which is hold by every given arm
@@ -181,7 +183,7 @@
             (or (once (and (setof ?used-arm (cpoe:object-in-hand ?object ?used-arm) ?arm)
                            (man-int:object-in-arms ?arm ?object-designator)
                            (man-int:check-arms-for-object ?arm ?object-designator)))
-                (and (format "ERROR: Please specify with an arm which ~
+                (and (format "WARNING: Please specify with an arm which ~
                               of the arms should be used.~%")
                      (fail)))))
 
@@ -232,7 +234,7 @@
 
     (-> (member :left ?arm)
         (and (or (spec:property ?action-designator (:left-grasp ?left-grasp))
-                 (and (format "ERROR: Please specify a grasp with :left-grasp.~%")
+                 (and (format "WARNING: Please specify a grasp with :left-grasp.~%")
                       (fail)))
              (lisp-fun man-int:get-action-grasps ?object-type :left ?object-transform ?left-grasps)
              (lisp-fun man-int:get-action-trajectory
@@ -252,7 +254,7 @@
 
     (-> (member :right ?arm)
         (and (or (spec:property ?action-designator (:right-grasp ?right-grasp))
-                 (and (format "ERROR: Please specify a grasp with :right-grasp.~%")
+                 (and (format "WARNING: Please specify a grasp with :right-grasp.~%")
                       (fail)))
              (lisp-fun man-int:get-action-grasps ?object-type :right ?object-transform ?right-grasps)
              (member ?right-grasp ?right-grasps)
