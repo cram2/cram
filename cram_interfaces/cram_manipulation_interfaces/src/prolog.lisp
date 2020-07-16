@@ -91,7 +91,7 @@
     (not (cpoe:object-in-hand ?_ ?arm)))
 
   (<- (arms-for-object-type ?object-type ?arms)
-    (lisp-fun man-int:get-specific-object-arms ?object-type ?specific-arms)
+    (lisp-fun man-int:get-arms-for-object-type ?object-type ?specific-arms)
     (equal ?arms ?specific-arms))
 
   (<- (check-arms-for-object ?arms ?object)
