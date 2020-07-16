@@ -82,5 +82,6 @@
   ((:module "src"
     :components
     ((:file "package")
+     (:file "costmaps" :depends-on ("package"))
      (:file "setup" :depends-on ("package"))
      (:file "demo" :depends-on ("package"))))))
