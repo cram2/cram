@@ -34,7 +34,8 @@
                            torso-at gripper-joint-at gripper-opened gripper-closed
                            arms-positioned-at tool-frames-at
                            looking-at
-                           container-state)
+                           container-state
+                           location-reset)
 
   (<- (object-in-hand ?object ?hand ?grasp ?link)
     (fail))
@@ -88,4 +89,7 @@
   (<- (container-state ?container-object-designator ?joint-state-or-keyword)
     (fail))
   (<- (container-state ?container-object-designator ?joint-state-or-keyword ?delta)
+    (fail))
+
+  (<- (location-reset ?location-designator)
     (fail)))
