@@ -53,7 +53,10 @@
                cram-bullet-reasoning-belief-state ; for special projection variable definition
                                                   ; and world-state-detecting PM
 
-               cram-ik-interface)
+               cram-ik-interface
+               cram-giskard ; as an alternative to the ik solver
+               sensor_msgs-msg ; cram-ik-interface returns a joint state message
+               )
   :components
   ((:module "src"
     :components

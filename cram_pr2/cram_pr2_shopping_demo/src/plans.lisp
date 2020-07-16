@@ -29,167 +29,94 @@
 
 (in-package :cram-pr2-shopping-demo)
 
-(defparameter *table* (cl-transforms-stamped:make-pose-stamped
-                       "map" 0.0
-                       (cl-transforms:make-3d-vector -3.1 0.5 0.75)
-                       (cl-transforms:make-identity-rotation)))
+(defparameter *placing-pose-2* (cl-transforms-stamped:make-pose-stamped
+                                "map" 0
+                                (cl-transforms:make-3d-vector 1 -0.5 0)
+                                (cl-transforms:make-quaternion 0 0 1 1)))
 
-(defparameter *pose-grasping* (cl-transforms-stamped:make-pose-stamped
-                               "map" 0.0
-                               (cl-transforms:make-3d-vector -1.5 -0.3 0)
-                               (cl-transforms:axis-angle->quaternion
-                                (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
+(defparameter *placing-pose-1* (cl-transforms-stamped:make-pose-stamped
+                                "map" 0
+                                (cl-transforms:make-3d-vector -1 -0.5 0)
+                                (cl-transforms:make-quaternion 0 0 1 1)))
 
-(defparameter *pose-grasping-left* (cl-transforms-stamped:make-pose-stamped
-                                    "map" 0.0
-                                    (cl-transforms:make-3d-vector -1 -0.35 0)
-                                    (cl-transforms:axis-angle->quaternion
-                                     (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
-
-(defparameter *pose-grasping-right* (cl-transforms-stamped:make-pose-stamped
-                                     "map" 0.0
-                                     (cl-transforms:make-3d-vector -2 -0.35 0)
-                                     (cl-transforms:axis-angle->quaternion
-                                      (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
-
-
-(defparameter *pose-near-table* (cl-transforms-stamped:make-pose-stamped
-                                 "map" 0.0
-                                 (cl-transforms:make-3d-vector -2.45 0.5 0)
-                                 (cl-transforms:axis-angle->quaternion
-                                  (cl-transforms:make-3d-vector 0 0 1) (/ pi 1))))
-
-(defparameter *looking-pose-mid* (cl-transforms-stamped:make-pose-stamped
-                                  "map" 0.0
-                                  (cl-transforms:make-3d-vector -1.5 -1.05 1.15)
-                                  (cl-transforms:make-identity-rotation)))
-
-(defparameter *pose-detecting* (cl-transforms-stamped:make-pose-stamped
-                                "map" 0.0
-                                (cl-transforms:make-3d-vector -1.5 1 0)
-                                (cl-transforms:axis-angle->quaternion
-                                 (cl-transforms:make-3d-vector 0 0 1) (/ pi -2))))
-
-(defun move-object (?object ?destination)
-  (let ((?grasping-arm :right)
-        (?grasp-pose *pose-grasping*)
-        (?grasp-pose-left *pose-grasping-left*)
-        (?grasp-pose-right *pose-grasping-right*)
-        (?pose-near-table *pose-near-table*)
-        ?newobject
-        ?newtransform)
-
+(defun grasp-object-from-shelf (?object shelf)
+  (let* ((?search-location
+           (if (eql shelf 1)
+               (desig:a location
+                        (on (desig:an object
+                                      (type shelf)
+                                      (urdf-name shelf-2-footprint)
+                                      (part-of environment)
+                                      (level 3)))
+                        (side right))
+               (desig:a location
+                        (on (desig:an object
+                                      (type shelf)
+                                      (urdf-name shelf-1-footprint)
+                                      (part-of environment)
+                                      (level 3)))
+                        (side right))))
+         (?object-desig
+           (desig:an object
+                     (type ?object)
+                     (location ?search-location)))
+         (?pose-placing
+           (if (eql shelf 1) *placing-pose-1* *placing-pose-2*)))
     (exe:perform
-     (desig:a motion
-              (type moving-torso)
-              (joint-angle 0)))
-
+     (desig:an action
+               (type transporting)
+               (object ?object-desig)
+               (target (desig:a location
+                                (on (desig:an object
+                                              (type basket)
+                                              (name b)))
+                                (for ?object-desig)
+                                (attachment in-basket)))))
     (exe:perform
      (desig:an action
                (type going)
                (target (desig:a location
-                                (pose ?grasp-pose)))))
+                                (pose ?pose-placing)))))))
 
-    (exe:perform
-     (desig:an action
-               (type positioning-arm)
-               (left-configuration park)
-               (right-configuration park)))
+(defun place-object-in-shelf (?object-type &rest ?target-poses)
+  (declare (type symbol ?object-type)
+           (type list ?target-poses))
+  (exe:perform
+   (desig:an action
+             (type transporting)
+             (object (desig:an object
+                               (type ?object-type)
+                               (location (desig:a location
+                                                  (on (desig:an object
+                                                                (type counter-top)
+                                                                (urdf-name top)
+                                                                (part-of
+                                                                 environment)))
+                                                  (side right)))))
+             (target (desig:a location
+                              (poses  ?target-poses))))))
 
-    (setf ?newobject (exe:perform
-                      (desig:a motion
-                               (type world-state-detecting)
-                               (object ?object))))
 
-    
-    (setf ?newtransform (man-int:get-object-transform ?newobject))
-    
-    ;; selecting the grasping arm
-    (if (< (cl-transforms:y (cl-transforms:translation ?newtransform)) 0)
-        (setf ?grasping-arm :right)
-        (setf ?grasping-arm :left))
-
-    ;; if the object is to far left move to the left
-    (when (> (cl-transforms:y (cl-transforms:translation ?newtransform)) 0.8)
-      (setf ?grasping-arm :left)
-      (exe:perform (desig:a action
-                            (type going)
-                            (target (desig:a location
-                                             (pose ?grasp-pose-left))))))
-    ;; if it is to far on the right move to the right
-    (when (< (cl-transforms:y (cl-transforms:translation ?newtransform)) -0.8)
-      (setf ?grasping-arm :right)
-      (exe:perform (desig:a action
-                            (type going)
-                            (target (desig:a location
-                                             (pose ?grasp-pose-right))))))
-
-    (print ?grasping-arm)
-
-    (exe:perform (desig:an action
-                           (type picking-up)
-                           (arm ?grasping-arm)
-                           (grasp left-side)
-                           (object ?newobject)))
-
-    (exe:perform (desig:an action
-                           (type going)
-                           (target (desig:a location
-                                            (pose ?pose-near-table)))))
-
-    ;; If the object was on the top shelf and the torso was lifted
-    (exe:perform (desig:a motion
-                          (type moving-torso)
-                          (joint-angle 0)))
-
-    (exe:perform (desig:an action
-                           (type placing)
-                           (arm ?grasping-arm)
-                           (object ?object)
-                           (target (desig:a location
-                                            (pose ?destination)))))))
-(defun collect-article ()
+(defun demo ()
   (urdf-proj:with-simulated-robot
-    (let ((objects '(:heitmann :dove :denkmit))
-          (y 0.2)
-          object-desigs
-          destination)
-      (setf object-desigs (try-detecting objects))
-      (loop for ?object in object-desigs
-            do (setf destination (cl-transforms-stamped:make-pose-stamped
-                                  "map" 0
-                                  (cl-transforms:make-3d-vector -3.1 y 0.75)
-                                  (cl-transforms:make-identity-rotation)))
-               (move-object ?object destination)
-               (btr:simulate btr:*current-bullet-world* 100)
-               (setf y (+ y 0.15))))))
+    (place-object-in-shelf
+     :denkmit
+     (cl-transforms-stamped:make-pose-stamped
+      "map" 0
+      (cl-transforms:make-3d-vector 0.7 0.7 0.68)
+      (cl-transforms:make-quaternion 0 0 1 0))
+     (cl-transforms-stamped:make-pose-stamped
+      "map" 0
+      (cl-transforms:make-3d-vector 0.7 0.7 0.68)
+      (cl-transforms:make-quaternion 0 0 1 1))
+     (cl-transforms-stamped:make-pose-stamped
+      "map" 0
+      (cl-transforms:make-3d-vector 0.7 0.7 0.68)
+      (cl-transforms:make-quaternion 0 0 -1 0))
+     (cl-transforms-stamped:make-pose-stamped
+      "map" 0
+      (cl-transforms:make-3d-vector 0.7 0.7 0.68)
+      (cl-transforms:make-quaternion 0 0 -1 1)))
 
-(defun try-detecting (articles)
-  (let ((?pose-detecting *pose-detecting*)
-        (?percived-objects '())
-        (?pose-grasping *pose-grasping*))
-
-    (exe:perform (desig:an action
-                           (type going)
-                           (target (desig:a location
-                                            (pose ?pose-detecting)))))
-
-    (exe:perform (desig:a motion
-                          (type moving-torso)
-                          (joint-angle 0)))
-
-    ;; Tries to detect every object in articles
-    (loop for ?article in articles
-          do (push
-              (exe:perform (desig:a motion
-                                    (type detecting)
-                                    (object (desig:an object
-                                                      (type ?article)))))
-              ?percived-objects))
-
-    (exe:perform (desig:an action
-                           (type going)
-                           (target (desig:a location
-                                            (pose ?pose-grasping)))))
-
-    ?percived-objects))
+    (grasp-object-from-shelf :heitmann 2)
+    (grasp-object-from-shelf :dove 1)))

@@ -32,7 +32,10 @@
   :license "BSD"
 
   :depends-on (cram-prolog
-               cram-manipulation-interfaces)
+               cram-manipulation-interfaces
+               cram-designators ; mostly used for likely locations
+               cram-location-costmap ; for specifying the metadata
+               )
   :components
   ((:module "src"
     :components
@@ -40,4 +43,6 @@
      (:file "environment" :depends-on ("package"))
      (:file "household" :depends-on ("package"))
      (:file "pouring-and-slicing" :depends-on ("package"))
-     (:file "assembly" :depends-on ("package"))))))
+     (:file "assembly" :depends-on ("package"))
+     (:file "retail" :depends-on ("package"))
+     (:file "multiple-trajectory-poses" :depends-on ("package"))))))

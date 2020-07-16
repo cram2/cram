@@ -33,7 +33,7 @@
   (actionlib-client:make-simple-action-client
    'robosherlock-action
    "RoboSherlock/query_action" "robosherlock_msgs/RSQueryAction"
-   5))
+   60))
 
 (roslisp-utilities:register-ros-init-function make-robosherlock-action-client)
 
@@ -220,7 +220,15 @@
               (:WeideMilchSmall
                :milk)
               (:BLUEPLASTICSPOON
-               :spoon))))
+               :spoon)
+              (:BALEAREINIGUNGSMILCHVITAL
+               :balea-bottle)
+              (:DENKMITGESCHIRRREINIGERNATURE
+               :dish-washer-tabs)
+              (:GarnierMineralUltraDry
+               :deodorant)
+              (:DMRoteBeteSaftBio
+               :juice-box))))
       (setf rs-answer
             (subst-if `(:type ,cram-type)
                       (lambda (x)

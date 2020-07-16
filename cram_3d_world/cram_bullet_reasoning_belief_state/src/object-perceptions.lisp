@@ -74,8 +74,50 @@ just updated. Otherwise a new instance is created."))
     (when object-name
       (btr:object btr:*current-bullet-world* object-name))))
 
+(defmethod register-object-designator-data (data &key type)
+  (let ((instance-name
+          (or (gethash (desig:object-identifier data)
+                       *object-identifier-to-instance-mappings*)
+              (setf (gethash (desig:object-identifier data)
+                             *object-identifier-to-instance-mappings*)
+                    ;; (gensym (string (desig:object-identifier data)))
+                    (desig:object-identifier data))))
+        (object-pose
+          (desig:object-pose data)))
+    ;; Hack 1: put the object a bit down
+    ;; as RS always says it's too high after cutting off the plane
+    (setf object-pose
+          (cram-tf:translate-pose object-pose
+                                  ;; :z-offset -0.04 :y-offset -0.02 :x-offset 0.0
+                                  :z-offset -0.01))
+    ;; Hack 2: deal with shitty identity resolution on RS / KnowRob side :P
+    (prolog `(and (btr:bullet-world ?world)
+                  (btr:item-type ?world ?name ,type)
+                  (btr:retract ?world (btr:object ?name))))
+    ;; and spawn
+    (prolog `(and (btr:bullet-world ?world)
+                  (-> (btr:object ?world ,instance-name)
+                      (btr:assert ?world
+                                  (btr:object-pose ,instance-name ,object-pose))
+                      (btr:assert ?world
+                                  (btr:object :mesh ,instance-name ,object-pose
+                                              :mesh ,type ;; ,(object-mesh data)
+                                              :mass 0.2 ;; ,(object-mass data)
+                                              ;; :types ,(list type)
+                                              ;; :disable-face-culling t
+                                              :color ,(if (slot-boundp data 'desig::color)
+                                                          (desig:object-color data)
+                                                          '(0.5 0.5 0.5)))))))
+    ;; simulate world
+    (btr:simulate btr:*current-bullet-world* 10)))
+
 (defmethod register-object-designator-data
     ((data cram-physics-utils:object-shape-data-mixin) &key type)
+  (declare (ignore type))
+  nil)
+
+(defmethod register-object-designator-data
+    ((data cram-physics-utils:object-point-data-mixin) &key type)
   (declare (ignore type))
   nil)
 
@@ -97,39 +139,6 @@ just updated. Otherwise a new instance is created."))
                                               :mass ,(object-mass data)
                                               :types ,(list type)
                                               :disable-face-culling t)))))))
-
-(defmethod register-object-designator-data
-    (data &key type)
-  (let ((instance-name (or
-                        (gethash (desig:object-identifier data)
-                                 *object-identifier-to-instance-mappings*)
-                        (setf (gethash (desig:object-identifier data)
-                                       *object-identifier-to-instance-mappings*)
-                              ;; (gensym (string (desig:object-identifier data)))
-                              (desig:object-identifier data)))))
-    ;; below is a hack to deal with shitty identity resolution on RS / KnowRob side :P
-    (prolog `(and (btr:bullet-world ?world)
-                  (btr:item-type ?world ?name ,type)
-                  (btr:retract ?world (btr:object ?name))))
-    (prolog `(and (btr:bullet-world ?world)
-                  (-> (btr:object ?world ,instance-name)
-                      (btr:assert ?world
-                                  (btr:object-pose ,instance-name ,(desig:object-pose data)))
-                      (btr:assert ?world
-                                  (btr:object :mesh ,instance-name ,(desig:object-pose data)
-                                              :mesh ,type ;; ,(object-mesh data)
-                                              :mass 0.2 ;; ,(object-mass data)
-                                              ;; :types ,(list type)
-                                              ;; :disable-face-culling t
-                                              :color ,(if (slot-boundp data 'desig::color)
-                                                          (desig:object-color data)
-                                                          '(0.5 0.5 0.5)))))
-                  (btr:simulate ?world 10)))))
-
-(defmethod register-object-designator-data
-    ((data cram-physics-utils:object-point-data-mixin) &key type)
-  (declare (ignore type))
-  nil)
 
 (defmethod object-mass ((data cram-physics-utils:object-mesh-data-mixin))
   (cram-physics-utils:calculate-mass

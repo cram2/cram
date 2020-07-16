@@ -131,7 +131,7 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
 
 (defun find-levels-under-link (parent-link)
   "Finds all the child links under the parent link with the name
-board or level in them"
+board or level or shelf in them"
   (let ((levels-found))
     (labels ((find-levels (link)
                (let* ((child-joints (cl-urdf:to-joints link))
@@ -139,7 +139,8 @@ board or level in them"
                  (mapcar (lambda (child-link)
                            (let ((child-name (cl-urdf:name child-link)))
                              (if (or (search "board" child-name)
-                                     (search "level" child-name))
+                                     (search "level" child-name)
+                                     (search "shelf" child-name))
                                  (push child-link levels-found)
                                  (find-levels child-link))))
                            child-links))))
@@ -179,18 +180,53 @@ reverse sort it"
 ;;;;;;;;;;;;;;;;;;;;;;;; COSTMAPS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun make-object-bounding-box-costmap-generator (object)
-  (let* ((bounding-box-dims (btr:calculate-bb-dims object))
-         (dimensions-x/2 (/ (cl-transforms:x bounding-box-dims) 2))
-         (dimensions-y/2 (/ (cl-transforms:y bounding-box-dims) 2))
-         (center-x (cl-transforms:x (cl-transforms:origin (btr:pose object))))
-         (center-y (cl-transforms:y (cl-transforms:origin (btr:pose object)))))
+  "This cost function assumes that one of the planes of the object
+is aligned with the horizontal plane,
+i.e. the object is lying flatly on the horizontal surface."
+  (let* ((bounding-box-dims
+           (btr:calculate-bb-dims object))
+         (dimensions-x/2
+           (/ (cl-transforms:x bounding-box-dims) 2))
+         (dimensions-y/2
+           (/ (cl-transforms:y bounding-box-dims) 2))
+         (angle-around-map-z
+           (cram-tf:angle-around-map-z (cl-transforms:orientation (btr:pose object))))
+         (object-position
+           (cl-transforms:origin (btr:pose object)))
+         (center-x
+           (cl-transforms:x object-position))
+         (center-y
+           (cl-transforms:y object-position)))
+
     (lambda (x y)
-      (if (and
-           (< x (+ center-x dimensions-x/2))
-           (> x (- center-x dimensions-x/2))
-           (< y (+ center-y dimensions-y/2))
-           (> y (- center-y dimensions-y/2)))
-          1.0 0.0))))
+      (let* ((rotated-vec
+               ;; Rotating vector from middle-point of the
+               ;; object to the Point(x,y):
+               ;; - the rotation is the difference between the
+               ;;   current object pose and the identity
+               ;;   rotation in btr:stabilized-identity-object-orientation
+               ;; - Since the object is stable on a
+               ;;   horizontal platform, the rotation is
+               ;;   only around the z-axis
+               (cl-transforms:v+
+                (cl-transforms:rotate
+                 (cl-transforms:axis-angle->quaternion
+                  (cl-transforms:make-3d-vector 0 0 1)
+                  (- angle-around-map-z))
+                 (btr::make-3d-vector
+                  (- x center-x)
+                  (- y center-y)
+                  0))
+                (cl-transforms:make-3d-vector center-x center-y 0)))
+             (r-x (cl-transforms:x rotated-vec))
+             (r-y (cl-transforms:y rotated-vec)))
+        (if (and
+             (<= r-x (+ center-x dimensions-x/2))
+             (>= r-x (- center-x dimensions-x/2))
+             (< r-y (+ center-y dimensions-y/2))
+             (> r-y (- center-y dimensions-y/2)))
+            1.0
+            0.0)))))
 
 (defun make-object-in-object-bounding-box-costmap-generator (container-object inner-object)
   "Returns a costmap generator, which for any point within

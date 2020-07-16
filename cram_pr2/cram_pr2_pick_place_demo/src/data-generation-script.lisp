@@ -41,9 +41,7 @@
 
     (exe:perform
      (desig:an action
-               (type positioning-arm)
-               (left-configuration park)
-               (right-configuration park)))
+               (type parking-arms)))
 
     (let ((?pose (cl-transforms-stamped:make-pose-stamped
                   "map" 0.0
@@ -173,9 +171,7 @@
                                              -0.75 1.0 (+ 0.8573 z/2)))))))
                                    (exe:perform
                                     (desig:an action
-                                              (type positioning-arm)
-                                              (left-configuration park)
-                                              (right-configuration park)))
+                                              (type parking-arms)))
                                    (exe:perform
                                     (desig:a motion
                                              (type moving-torso)

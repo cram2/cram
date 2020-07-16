@@ -35,7 +35,8 @@
            (roslisp:get-param "shelf_description"))))
     (prolog:prolog
      `(and (btr:bullet-world ?world)
-           (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
+           (man-int:environment-name ?environment-name)
+           (assert (btr:object ?world :urdf ?environment-name ((0 0 0) (0 0 0 1))
                                             :urdf ,shelve-urdf))))))
 
 
@@ -45,7 +46,8 @@
            (roslisp:get-param "kitchen_description"))))
     (prolog:prolog
      `(and (btr:bullet-world ?world)
-           (assert (btr:object ?world :urdf :kitchen ((0 0 0) (0 0 0 1))
+           (man-int:environment-name ?environment-name)
+           (assert (btr:object ?world :urdf ?environment-name ((0 0 0) (0 0 0 1))
                                             :urdf ,kitchen-urdf))))))
 
 (defun spawn-robot ()
@@ -124,15 +126,4 @@
                    (assert (btr:object ?world :static-plane :floor ((0 0 0) (0 0 0 1))
                                                             :normal (0 0 1) :constant 0))))
   (btr:add-objects-to-mesh-list "cram_pr2_shopping_demo"))
-
-(def-fact-group costmap-metadata (costmap:costmap-size
-                                    costmap:costmap-origin
-                                    costmap:costmap-resolution
-                                    costmap:orientation-samples
-                                    costmap:orientation-sample-step)
-  (<- (location-costmap:costmap-size 12 12))
-  (<- (location-costmap:costmap-origin -6 -6))
-  (<- (location-costmap:costmap-resolution 0.04))
-  (<- (location-costmap:orientation-samples 2))
-  (<- (location-costmap:orientation-sample-step 0.1)))
 

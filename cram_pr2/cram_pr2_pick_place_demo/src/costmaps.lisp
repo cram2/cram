@@ -45,8 +45,22 @@
 
 (def-fact-group demo-costmap (location-costmap:desig-costmap)
   (<- (location-costmap:desig-costmap ?designator ?costmap)
-    (or (cram-robot-interfaces:visibility-designator ?designator)
-        (cram-robot-interfaces:reachability-designator ?designator))
+    (or (rob-int:visibility-designator ?designator)
+        (rob-int:reachability-designator ?designator))
+    ;; make sure that the location is not on the robot itself
+    ;; if it is, don't generate a costmap
+    (once (or (and (desig:desig-prop ?designator (:object ?some-object))
+                   (desig:current-designator ?some-object ?object)
+                   (lisp-fun man-int:get-object-pose-in-map ?object ?to-reach-pose)
+                   (lisp-pred identity ?to-reach-pose)
+                   (-> (desig:desig-prop ?object (:location ?loc))
+                       (not (man-int:location-always-reachable ?loc))
+                       (true)))
+              (and (desig:desig-prop ?designator (:location ?some-location))
+                   (desig:current-designator ?some-location ?location)
+                   ;; if the location is on the robot itself,
+                   ;; don't use the costmap
+                   (not (man-int:location-always-reachable ?location)))))
     (location-costmap:costmap ?costmap)
     (location-costmap:costmap-add-function
      restricted-area

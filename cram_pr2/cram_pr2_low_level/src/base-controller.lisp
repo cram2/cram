@@ -304,7 +304,7 @@ with goal accuracy of 0.1 [m] navigation will have 12 [cm] error max.")
   (declare (type cl-transforms:point goal-point))
   "Uses the current robot pose and calculates the angular velocity command
 to turn towards the `goal-point'. Clips the signal with certain maximal value."
-  (let* ((angle (cl-tf:normalize-angle
+  (let* ((angle (cl-transforms:normalize-angle
                  (relative-angle-to goal-point (cpl:value *robot-base-frame-pose*))))
          (direction (if (> angle 0) 1 -1)))
     (if (> (abs angle) *navigation-angular-velocity-max*)
