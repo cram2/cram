@@ -204,16 +204,9 @@
         (lisp-pred identity ?right-trajectory))
 
     ;; Use giskard constraints if available
-    ;; (once (or (spec:property ?action-designator (:constraints ?constraints))
-    ;;           (equal ?constraints nil)))
     (-> (spec:property ?action-designator (:constraints ?constraints))
         (true)
-        (equal ?constraints nil)
-        ;; (and (rob-int:robot ?robot)
-        ;;      (rob-int:gripper-joint ?robot ?arm ?joint)
-        ;;      (equal ?constraints ((?joint) (?gripper-opening))))
-        )
-    
+        (equal ?constraints nil))
     
     ;; put together resulting designator
     (desig:designator :action ((:type :placing)

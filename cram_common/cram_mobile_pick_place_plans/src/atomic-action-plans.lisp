@@ -89,7 +89,6 @@
            (type (or null list) ?constraints))
   "Move arms through all but last poses of `left-poses' and `right-poses',
 while ignoring failures; and execute the last pose with propagating the failures."
-  ;; (break)
   ;; Make `left-poses' and `right-poses' to lists if they are not already
   (unless (listp left-poses)
     (setf left-poses (list left-poses)))

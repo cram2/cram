@@ -74,8 +74,7 @@
            (roslisp:ros-warn (pp-plans pick-up)
                              "Manipulation messed up: ~a~%Ignoring."
                              e)
-           ;; (return)
-           ))
+           (return)))
       (exe:perform
        (desig:an action
                  (type reaching)
@@ -88,9 +87,7 @@
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         (return)
-         ))
-    
+         (return)))
     (exe:perform
      (desig:an action
                (type grasping)
@@ -107,14 +104,7 @@
              (object ?object-designator)
              (grasp ?grasp)))
   (roslisp:ros-info (pick-place pick-up) "Lifting")
-  ;; Split lifting between first and rest and ignore collision avoidanve for first
-  (let ((?first-left-lift-poses (when ?left-lift-poses
-                                     (list (car ?left-lift-poses))))
-        (?first-right-lift-poses (when ?right-lift-poses
-                                      (list (car ?right-lift-poses))))
-        (?last-left-lift-poses (cdr ?left-lift-poses))
-        (?last-right-lift-poses (cdr ?right-lift-poses)))
-    (cpl:with-failure-handling
+  (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (pp-plans pick-up)
                              "Manipulation messed up: ~a~%Ignoring."
@@ -122,23 +112,10 @@
            (return)))
       (exe:perform
        (desig:an action
-                 (type grasping)
-                 (object ?object-designator)
-                 (left-poses ?first-left-lift-poses)
-                 (right-poses ?first-right-lift-poses)))
-      (exe:perform
-       (desig:an action
                  (type lifting)
-                 (left-poses ?last-left-lift-poses)
-                 (right-poses ?last-right-lift-poses)))
-      ;; (exe:perform
-      ;;  (desig:an action
-      ;;            (type lifting)
-      ;;            (left-poses ?left-lift-poses)
-      ;;            (right-poses ?right-lift-poses)
-      ;;            ;; (constraints ?constraints)
-      ;;            ))
-      ))
+                 (left-poses ?left-lift-poses)
+                 (right-poses ?right-lift-poses)
+                 (constraints ?constraints))))
   (roslisp:ros-info (pick-place place) "Parking")
   (exe:perform
    (desig:an action

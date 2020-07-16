@@ -69,6 +69,23 @@
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
+    (spec:property ?action-designator (:type :lifting))
+    (spec:property ?action-designator (:type ?action-type))
+    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
+              (equal ?left-poses nil)))
+    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
+              (equal ?right-poses nil)))
+    (once (or (spec:property ?action-designator (:constraints ?constraints))
+              (equal ?constraints nil)))
+    (desig:designator :action ((:type ?action-type)
+                               (:left-poses ?left-poses)
+                               (:right-poses ?right-poses)
+                               (:collision-mode :allow-all)
+                               (:constraints ?constraints))
+                      ?resolved-action-designator))
+
+  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+                                                  ?resolved-action-designator))
     (or (spec:property ?action-designator (:type :grasping))
         (spec:property ?action-designator (:type :pulling)))
     (spec:property ?action-designator (:type ?action-type))
