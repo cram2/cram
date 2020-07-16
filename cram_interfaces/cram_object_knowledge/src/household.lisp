@@ -542,7 +542,7 @@
            (in (desig:an object
                          (type fridge)
                          (urdf-name iai-fridge-door)
-                         (part-of environment)
+                         (part-of ?environment-name)
                          (level bottommost)))))
 
 (defun make-location-in-oven-right-drawer (?environment-name)
