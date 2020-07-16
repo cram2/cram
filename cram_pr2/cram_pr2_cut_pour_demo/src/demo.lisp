@@ -427,7 +427,8 @@
             (?possible-arms '(:right :left)))
         (cpl:with-retry-counters ((arm-change-retry 1))
           (cpl:with-failure-handling
-              ((common-fail:manipulation-pose-unreachable (e)
+              (((or common-fail:manipulation-pose-unreachable
+                    cram-common-failures:manipulation-low-level-failure) (e)
                  (roslisp:ros-warn (arm-failure) "Manipulation failed: ~a~%" e)
                  (cpl:do-retry arm-change-retry
                    (setf ?arm (car (remove ?arm ?possible-arms)))
@@ -480,7 +481,8 @@
             (?possible-arms '(:right :left)))
         (cpl:with-retry-counters ((arm-change-retry 1))
           (cpl:with-failure-handling
-              ((common-fail:manipulation-pose-unreachable (e)
+              (((or common-fail:manipulation-pose-unreachable
+                    cram-common-failures:manipulation-low-level-failure)(e)
                  (roslisp:ros-warn (arm-failure) "Manipulation failed: ~a~%" e)
                  (cpl:do-retry arm-change-retry
                    (setf ?arm (car (remove ?arm ?possible-arms)))
