@@ -41,6 +41,8 @@
                cram-process-modules
                cram-prolog
                cram-common-designators
+               cram-robot-interfaces ; for robot's name and info
+               cram-manipulation-interfaces ; for environment's name
                cram-occasions-events ; for updating giskard collision scene on events
                cram-plan-occasions-events
                cram-bullet-reasoning ; also for updating giskard collision scene
@@ -55,9 +57,14 @@
     ((:file "package")
      (:file "collision-scene" :depends-on ("package"))
      (:file "action-client" :depends-on ("package"))
+     (:file "hash-table-conversions" :depends-on ("package"))
      (:file "cartesian-interface" :depends-on ("package" "action-client"))
      (:file "joint-interface" :depends-on ("package" "action-client"))
      (:file "base-goals" :depends-on ("package" "action-client" "joint-interface"))
      (:file "torso-goals" :depends-on ("package" "action-client"))
-     (:file "process-module" :depends-on ("package" "cartesian-interface" "joint-interface"
-                                                    "base-goals" "torso-goals"))))))
+     (:file "environment-manipulation-goals" :depends-on ("package"
+                                                          "hash-table-conversions"
+                                                          "action-client"))
+     (:file "process-module" :depends-on ("package"
+                                          "cartesian-interface" "joint-interface"
+                                          "base-goals" "torso-goals"))))))

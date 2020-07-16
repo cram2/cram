@@ -63,21 +63,30 @@
                    (rob-int:joint-lower-limit ?robot ?joint ?lower)
                    (rob-int:joint-upper-limit ?robot ?joint ?upper)))))
          (lower-limit
-           (+ (cut:var-value '?lower bindings) 0.01)) ; don't push the robot so hard
+           (cut:var-value '?lower bindings))
          (upper-limit
-           (- (cut:var-value '?upper bindings) 0.01)) ; no don't do it
-         (cropped-joint-angle
-           (etypecase position
-             (number (if (< position lower-limit)
-                         lower-limit
-                         (if (> position upper-limit)
-                             upper-limit
-                             position)))
-             (keyword (ecase position
-                        (:upper-limit upper-limit)
-                        (:lower-limit lower-limit)
-                        (:middle (/ (- upper-limit lower-limit) 2)))))))
-    cropped-joint-angle))
+           (cut:var-value '?upper bindings))
+         (torso-joint
+           (cut:var-value '?joint bindings)))
+    (if (and (not (cut:is-var lower-limit))
+             (not (cut:is-var upper-limit))
+             lower-limit
+             upper-limit)
+        (progn
+          ;; don't push the robot so hard
+          (setf lower-limit (+ lower-limit 0.01)
+                upper-limit (- upper-limit 0.01))
+          (etypecase position
+            (number (if (< position lower-limit)
+                        lower-limit
+                        (if (> position upper-limit)
+                            upper-limit
+                            position)))
+            (keyword (ecase position
+                       (:upper-limit upper-limit)
+                       (:lower-limit lower-limit)
+                       (:middle (/ (- upper-limit lower-limit) 2))))))
+        (or (car (joints:joint-positions (list torso-joint))) 0.0))))
 
 
 
@@ -93,11 +102,12 @@
     ;;           :description "Giskard did not converge to goal because of collision")
     )
   (let ((current-position (car (joints:joint-positions (list cram-tf:*robot-torso-joint*)))))
-    (unless (cram-tf:values-converged current-position goal convergence-delta)
-      (cpl:fail 'common-fail:torso-goal-not-reached
-                :description (format nil "Giskard did not converge to torso goal:~
+    (when current-position
+      (unless (cram-tf:values-converged current-position goal convergence-delta)
+        (cpl:fail 'common-fail:torso-goal-not-reached
+                  :description (format nil "Giskard did not converge to torso goal:~
                                                 goal: ~a, current: ~a, delta: ~a."
-                                     goal current-position convergence-delta)))))
+                                       goal current-position convergence-delta))))))
 
 (defun call-giskard-torso-action (&key
                                     goal-joint-state action-timeout
@@ -115,79 +125,3 @@
       (values result status)
       ;; return the joint state, which is our observation
       (joints:full-joint-states-as-hash-table))))
-
-
-
-
-
-
-
-
-
-;; header: 
-;;   seq: 17
-;;   stamp: 
-;;     secs: 1560439219
-;;     nsecs: 637718915
-;;   frame_id: ''
-;; goal_id: 
-;;   stamp: 
-;;     secs: 1560439219
-;;     nsecs: 637681961
-;;   id: "/giskard_interactive_marker-17-1560439219.638"
-;; goal: 
-;;   type: 1
-;;   cmd_seq: 
-;;     - 
-;;       constraints: []
-;;       joint_constraints: []
-;;       cartesian_constraints: 
-;;         - 
-;;           type: "CartesianPosition"
-;;           root_link: "odom"
-;;           tip_link: "base_footprint"
-;;           goal: 
-;;             header: 
-;;               seq: 0
-;;               stamp: 
-;;                 secs: 0
-;;                 nsecs:         0
-;;               frame_id: "base_footprint"
-;;             pose: 
-;;               position: 
-;;                 x: 2.50292941928e-08
-;;                 y: 0.0
-;;                 z: 0.209769845009
-;;               orientation: 
-;;                 x: 0.0
-;;                 y: 0.0
-;;                 z: 0.0
-;;                 w: 1.0
-;;         - 
-;;           type: "CartesianOrientationSlerp"
-;;           root_link: "odom"
-;;           tip_link: "base_footprint"
-;;           goal: 
-;;             header: 
-;;               seq: 0
-;;               stamp: 
-;;                 secs: 0
-;;                 nsecs:         0
-;;               frame_id: "base_footprint"
-;;             pose: 
-;;               position: 
-;;                 x: 2.50292941928e-08
-;;                 y: 0.0
-;;                 z: 0.209769845009
-;;               orientation: 
-;;                 x: 0.0
-;;                 y: 0.0
-;;                 z: 0.0
-;;                 w: 1.0
-;;       collisions: 
-;;         - 
-;;           type: 1
-;;           min_dist: 0.0
-;;           robot_links: ['']
-;;           body_b: "pr2"
-;;           link_bs: ['']

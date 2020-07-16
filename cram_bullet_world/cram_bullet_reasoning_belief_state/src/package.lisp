@@ -47,5 +47,5 @@
    #:*spawn-debug-window*
    #:setup-world-database
    #:vary-kitchen-urdf
-   ;; process-modules
+   ;; world-state-detecting
    #:world-state-detecting-pm))

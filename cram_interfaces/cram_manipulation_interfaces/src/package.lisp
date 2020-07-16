@@ -43,18 +43,31 @@
    #:get-object-old-transform-in-map
    #:get-object-old-pose-in-map
    ;; prolog
-   #:object-type-subtype
-   #:object-type-direct-subtype
-   #:robot-free-hand
+   #:object-type-subtype #:object-type-direct-subtype
+   #:robot-free-hand #:joint-state-for-arm-config
+   #:object-rotationally-symmetric
+   #:orientation-matters
    #:unidirectional-attachment
+   #:location-always-reachable
+   #:object-is-a-robot
+   #:location-accessible
+   #:location-reference-object
+   #:location-certain
+   #:location-always-stable
+   ;; environment
+   #:environment-name
+   #:current-environment-symbol
    ;; utils
    #:reasoning-engine-for-method
    ;; manipulation-interfaces
    #:get-action-gripping-effort
    #:get-action-gripper-opening
-   #:get-action-trajectory
+   #:get-object-type-carry-config
    #:get-action-grasps
+   #:get-action-trajectory
    #:get-location-poses
+   #:get-object-likely-location
+   #:get-object-destination
    #:get-container-opening-distance
    #:get-container-closing-distance
    ;; grasps
@@ -62,8 +75,6 @@
    #:calculate-face-vector
    #:object-type-grasp->robot-grasp
    #:robot-grasp->object-type-grasp
-   #:object-rotationally-symmetric
-   #:orientation-matters
    ;; trajectories
    #:make-traj-segment
    #:traj-segment-label
@@ -77,20 +88,21 @@
    #:get-object-type-robot-frame-tilt-approach-transform
    ;;
    #:get-object-type-to-gripper-transform
-   #:get-object-type-to-gripper-pregrasp-transform
-   #:get-object-type-to-gripper-2nd-pregrasp-transform
-   #:get-object-type-to-gripper-lift-transform
-   #:get-object-type-to-gripper-2nd-lift-transform
+   #:get-object-type-to-gripper-pregrasp-transforms
+   #:get-object-type-wrt-base-frame-lift-transforms
    #:def-object-type-to-gripper-transforms
    #:get-object-grasping-poses
    ;;
    #:get-object-type-in-other-object-transform
+   #:get-z-offset-for-placing-with-dropping
    #:get-object-placement-transform
    #:def-object-type-in-other-object-transform
    #:get-object-look-from-pose
    ;; standard-grasps
    #:*x-across-z-grasp-rotation*
+   #:*x-across-z-grasp-rotation-2*
    #:*-x-across-z-grasp-rotation*
+   #:*-x-across-z-grasp-rotation-2*
    #:*x-across-y-grasp-rotation*
    #:*-x-across-y-grasp-rotation*
    #:*y-across-z-grasp-rotation*

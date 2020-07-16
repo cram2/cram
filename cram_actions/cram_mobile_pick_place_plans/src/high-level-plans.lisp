@@ -84,9 +84,7 @@
 (defun perceive-and-drive-and-pick-up-plan (?type &key (?arm '(:left :right))
                                                     ?color ?cad-model)
   (exe:perform (desig:an action
-                         (type positioning-arm)
-                         (left-configuration park)
-                         (right-configuration park)))
+                         (type parking-arms)))
   (let ((object-description `((:type ,?type))))
     (when ?color
       (push `(:color ,?color) object-description))
@@ -133,7 +131,7 @@
 ;;                               cram-tf:*fixed-frame*
 ;;                               :use-zero-time t)))
 ;;
-;;           (let ((?pose-for-base (cl-tf:pose->pose-stamped
+;;           (let ((?pose-for-base (cl-transforms:pose->pose-stamped
 ;;                                  "map"
 ;;                                  0.0
 ;;                                  (cl-transforms-stamped:make-identity-pose))))

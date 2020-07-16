@@ -51,7 +51,7 @@
 ;;
 ;; (cl-tf::with-tf-broadcasting
 ;;     ((cl-tf:make-transform-broadcaster)
-;;      (cl-tf:make-transform-stamped
+;;      (cl-transforms-stamped:make-transform-stamped
 ;;       "map"
 ;;       "odom_combined"
 ;;       0.0
