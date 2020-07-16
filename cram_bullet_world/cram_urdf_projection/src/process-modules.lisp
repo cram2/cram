@@ -32,47 +32,59 @@
 ;;;;;;;;;;;;;;;;; NAVIGATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module urdf-proj-navigation (motion-designator)
-  (destructuring-bind (command argument) (desig:reference motion-designator)
+  (destructuring-bind (command argument)
+      (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-base (drive argument)))))
+      (cram-common-designators:move-base
+       (drive argument)))))
 
 ;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module urdf-proj-torso (motion-designator)
-  (destructuring-bind (command argument) (desig:reference motion-designator)
+  (destructuring-bind (command argument)
+      (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-torso (move-torso argument)))))
+      (cram-common-designators:move-torso
+       (move-torso argument)))))
 
 ;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module urdf-proj-neck (motion-designator)
-  (destructuring-bind (command goal-pose goal-configuration) (desig:reference motion-designator)
+  (destructuring-bind (command goal-pose goal-configuration)
+      (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-head (look-at goal-pose goal-configuration)))))
+      (cram-common-designators:move-head
+       (look-at goal-pose goal-configuration)))))
 
 ;;;;;;;;;;;;;;;;; PERCEPTION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module urdf-proj-perception (motion-designator)
-  (destructuring-bind (command argument-1) (desig:reference motion-designator)
+  (destructuring-bind (command argument-1)
+      (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:detect (detect argument-1)))))
+      (cram-common-designators:detect
+       (detect argument-1)))))
 
 ;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module urdf-proj-grippers (motion-designator)
-  (destructuring-bind (command arg-1 arg-2 &rest arg-3) (desig:reference motion-designator)
+  (destructuring-bind (command arg-1 arg-2 &rest arg-3)
+      (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-gripper-joint (gripper-action arg-1 arg-2 (car arg-3))))))
+      (cram-common-designators:move-gripper-joint
+       (gripper-action arg-1 arg-2 (car arg-3))))))
 
 ;;;;;;;;;;;;;;;;; ARMS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module urdf-proj-arms (motion-designator)
-  (destructuring-bind (command arg-1 &rest arg-2) (desig:reference motion-designator)
+  (destructuring-bind (command arg-1 &rest arg-2)
+      (desig:reference motion-designator)
     (ecase command
-      (cram-common-designators:move-tcp (move-tcp arg-1 (first arg-2) (second arg-2)
-                                                  (third arg-2) (fourth arg-2) (fifth arg-2)))
-      (cram-common-designators::move-joints (move-joints-avoiding-collision
-                                             arg-1 (car arg-2) (second arg-2))))))
+      (cram-common-designators:move-tcp
+       (move-tcp arg-1 (first arg-2) (second arg-2) (third arg-2) (fourth arg-2)
+                 (fifth arg-2)))
+      (cram-common-designators::move-joints
+       (move-joints-avoiding-collision arg-1 (first arg-2) (second arg-2))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
