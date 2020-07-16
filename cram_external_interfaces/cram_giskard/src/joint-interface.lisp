@@ -101,23 +101,26 @@
            (ensure-giskard-joint-goal right-goal :right))))
 
 (defun ensure-giskard-joint-arm-goal-reached (arm goal-configuration convergence-delta-joint)
-  (when goal-configuration
-    (let ((configuration (second (get-arm-joint-names-and-positions-list arm))))
-      (values (cram-tf:values-converged (joints:normalize-joint-angles
-                                         configuration)
-                                        (joints:normalize-joint-angles
-                                         (mapcar #'second goal-configuration))
-                                        convergence-delta-joint)
-              configuration))))
+  (if (and (listp goal-configuration) (car goal-configuration))
+      (let ((configuration (second (get-arm-joint-names-and-positions-list arm))))
+        (values (cram-tf:values-converged (joints:normalize-joint-angles
+                                           configuration)
+                                          (joints:normalize-joint-angles
+                                           (mapcar #'second goal-configuration))
+                                          convergence-delta-joint)
+                configuration))
+      (progn (roslisp:ros-warn (giskard arm-joints)
+                               "Empty joint goal for ~a arm. Assuming there's no position to ensure." arm)
+             T)))
 
 (defun ensure-giskard-joint-goal-reached (status
                                           goal-configuration-left goal-configuration-right
                                           convergence-delta-joint)
   (when (eql status :preempted)
-    (roslisp:ros-warn (low-level giskard) "Giskard action preempted.")
+    (roslisp:ros-warn (giskard arm-joints) "Giskard action preempted.")
     (return-from ensure-giskard-joint-goal-reached))
   (when (eql status :timeout)
-    (roslisp:ros-warn (pr2-ll giskard-joint) "Giskard action timed out."))
+    (roslisp:ros-warn (giskard arm-joints) "Giskard action timed out."))
   (flet ((throw-failure (arm goal-configuration current-configuration)
            (cpl:fail 'common-fail:manipulation-goal-not-reached
                      :description (format nil "Giskard did not converge to goal:~%~
