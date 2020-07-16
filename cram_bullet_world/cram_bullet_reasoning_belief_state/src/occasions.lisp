@@ -47,7 +47,8 @@
                            cpoe:gripper-closed
                            cpoe:arms-positioned-at
                            cpoe:tool-frames-at
-                           cpoe:looking-at)
+                           cpoe:looking-at
+                           cpoe:location-reset)
 
   ;; This occasion is defined in cram_urdf_environment_manipulation
   ;; (<- (cpoe:container-state ?container-designator ?distance) ...)
@@ -373,7 +374,16 @@
     ;;           (lisp-pred looking-in-direction ?camera-frame ?camera-angle-h
     ;;                      ?camera-angle-v ?direction))
     ;;          (fail)))
-    ))
+    )
+
+  (<- (cpoe:location-reset ?some-location-designator)
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (-> (spec:property ?location-designator (:in ?some-object-designator))
+        (and (desig:current-designator ?some-object-designator ?object-designator)
+             (-> (man-int:object-is-a-container ?object-designator)
+                 (cpoe:container-state ?object-designator :close)
+                 (true)))
+        (true))))
 
 
 
