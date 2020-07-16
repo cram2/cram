@@ -62,6 +62,40 @@
          :tip_link tool-frame
          :goal (cl-transforms-stamped:to-msg pose))))
 
+(defun constraint-cartesian-2 (pose tool-frame pose-base-frame max-velocity)
+  (list
+   (roslisp:make-message
+    'giskard_msgs-msg:constraint
+    :type
+    "CartesianPosition"
+    :parameter_value_pair
+    (let ((stream (make-string-output-stream)))
+      (yason:encode
+       (alexandria:alist-hash-table
+        `(("root_link" . ,pose-base-frame)
+          ("tip_link" . ,tool-frame)
+          ("goal" . ,(yason:encode-object pose))
+          ("max_velocity" . ,max-velocity))
+        :test #'equalp)
+       stream)
+      (get-output-stream-string stream)))
+   (roslisp:make-message
+    'giskard_msgs-msg:constraint
+    :type
+    "CartesianOrientationSlerp"
+    :parameter_value_pair
+    (let ((stream (make-string-output-stream)))
+      (yason:encode
+       (alexandria:alist-hash-table
+        `(("root_link" . ,pose-base-frame)
+          ("tip_link" . ,tool-frame)
+          ("goal" . ,(yason:encode-object pose))
+          ;; ("max_velocity" . ,max-velocity) ;; can be used, but is still very experimental
+          )
+        :test #'equalp)
+       stream)
+      (get-output-stream-string stream)))))
+
 (defmethod yason:encode-object ((pose cl-transforms-stamped:pose-stamped))
   (yason:encode
    (alexandria:alist-hash-table
@@ -118,40 +152,6 @@
            ("z" . ,(cl-tf:z point)))
          :test #'equal))))))
 
-(defun constraint-cartesian-2 (pose tool-frame pose-base-frame max-velocity)
-  (list
-   (roslisp:make-message
-    'giskard_msgs-msg:constraint
-    :type
-    "CartesianPosition"
-    :parameter_value_pair
-    (let ((stream (make-string-output-stream)))
-      (yason:encode
-       (alexandria:alist-hash-table
-        `(("root_link" . ,pose-base-frame)
-          ("tip_link" . ,tool-frame)
-          ("goal" . ,(yason:encode-object pose))
-          ("max_velocity" . ,max-velocity))
-        :test #'equalp)
-       stream)
-      (get-output-stream-string stream)))
-   (roslisp:make-message
-    'giskard_msgs-msg:constraint
-    :type
-    "CartesianOrientationSlerp"
-    :parameter_value_pair
-    (let ((stream (make-string-output-stream)))
-      (yason:encode
-       (alexandria:alist-hash-table
-        `(("root_link" . ,pose-base-frame)
-          ("tip_link" . ,tool-frame)
-          ("goal" . ,(yason:encode-object pose))
-          ;; ("max_velocity" . ,max-velocity)
-          )
-        :test #'equalp)
-       stream)
-      (get-output-stream-string stream)))))
-
 (defun constraint-jointposition (joint-states &optional weights)
   (declare (type (or null list) joint-states)
            (type (or null list) weights))
@@ -190,26 +190,23 @@ Throws error when joints and states are of different length or a joint can't be 
                                                  :initial-element *joint-constraint-default-weight*))
                       (subseq weights 0 (length joints)))))
             (if (eq 1 (length (remove-duplicates (mapcar #'length (list joints states weights)))))
-              ;; (coerce
-                 (loop for joint in joints
-                       for state in states
-                       for weight in weights
-                       collect (roslisp:make-message
-                                'giskard_msgs-msg:constraint
-                                :type
-                                "JointPosition"
-                                :parameter_value_pair
-                                (let ((stream (make-string-output-stream)))
-                                  (yason:encode
-                                   (alexandria:alist-hash-table
-                                    `(("joint_name" . ,joint)
-                                      ("goal" . ,state)
-                                      ("weight" . ,weight))
-                                    :test #'equalp)
-                                   stream)
-                                  (get-output-stream-string stream))))
-            ;;     'vector)
-                 ))))
+                (loop for joint in joints
+                      for state in states
+                      for weight in weights
+                      collect (roslisp:make-message
+                               'giskard_msgs-msg:constraint
+                               :type
+                               "JointPosition"
+                               :parameter_value_pair
+                               (let ((stream (make-string-output-stream)))
+                                 (yason:encode
+                                  (alexandria:alist-hash-table
+                                   `(("joint_name" . ,joint)
+                                     ("goal" . ,state)
+                                     ("weight" . ,weight))
+                                   :test #'equalp)
+                                  stream)
+                                 (get-output-stream-string stream))))))))
       (progn (roslisp:ros-info (giskard constraint-joints) "No joints constrained.")
              (vector))))
 
@@ -239,12 +236,7 @@ Allow collision between left and/or right gripper and the given body.
   (declare (type (or null cl-tf:pose-stamped) left right)
            (type (or null list) link-bs)
            (type symbol body-b))
-  (let (;; (link-bs-formatted
-        ;;   (if link-bs
-        ;;       (apply (alexandria:compose #'vector #'roslisp-utilities:rosify-underscores-lisp-name)
-        ;;              link-bs)
-        ;;       (vector (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))))
-        (robot-links (apply
+  (let ((robot-links (apply
                       #'vector
                       (append
                        (when left
@@ -280,12 +272,7 @@ Allow collision between left and/or right gripper and the given body.
   (declare (type (or null cl-tf:pose-stamped) left right)
            (type (or null list) link-bs)
            (type symbol body-b))
-  (let (;; (link-bs-formatted
-        ;;   (if link-bs
-        ;;       (apply (alexandria:compose #'vector #'roslisp-utilities:rosify-underscores-lisp-name)
-        ;;              link-bs)
-        ;;       (vector (roslisp:symbol-code 'giskard_msgs-msg:collisionentry :all))))
-        (robot-links (apply
+  (let ((robot-links (apply
                       #'vector
                       (append
                        (when left
@@ -333,11 +320,9 @@ Allow collision between object attached to gripper and the given body, with spec
                "kitchen")
    :link_bs (symbols->collision-objects links-of-body-to-allow)))
 
-
-                     
-
-(defun constraint-alignplanes ()
+(defun constraint-alignplanes (plane-vector)
   :TODO
+  ;; Parse normal vector to json message.
 ;; header:
 ;;   seq: 1
 ;;   stamp:

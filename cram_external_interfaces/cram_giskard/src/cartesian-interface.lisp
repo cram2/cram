@@ -66,7 +66,6 @@
                                                              left-tool-frame
                                                              pose-base-frame
                                                              *max-velocity*))))
-
               ;; :cartesian_constraints
               ;; (apply
               ;;  #'vector
@@ -186,84 +185,7 @@
                                                  convergence-delta-xy convergence-delta-theta)
           (values result status)
           ;; return the joint state, which is our observation
-          (joints:full-joint-states-as-hash-table)
-          ))
+          (joints:full-joint-states-as-hash-table)))
       ;; return NIL as observation if the goal is empty
-      (and (roslisp:ros-info (pr2-ll giskard-cart) "Got an empty goal...")
+      (and (roslisp:ros-info (giskard giskard-cart) "Got an empty goal...")
            NIL)))
-
-
-
-
-
-
-
-
-
-;; header: 
-;;   seq: 17
-;;   stamp: 
-;;     secs: 1560439219
-;;     nsecs: 637718915
-;;   frame_id: ''
-;; goal_id: 
-;;   stamp: 
-;;     secs: 1560439219
-;;     nsecs: 637681961
-;;   id: "/giskard_interactive_marker-17-1560439219.638"
-;; goal: 
-;;   type: 1
-;;   cmd_seq: 
-;;     - 
-;;       constraints: []
-;;       joint_constraints: []
-;;       cartesian_constraints: 
-;;         - 
-;;           type: "CartesianPosition"
-;;           root_link: "odom"
-;;           tip_link: "base_footprint"
-;;           goal: 
-;;             header: 
-;;               seq: 0
-;;               stamp: 
-;;                 secs: 0
-;;                 nsecs:         0
-;;               frame_id: "base_footprint"
-;;             pose: 
-;;               position: 
-;;                 x: 2.50292941928e-08
-;;                 y: 0.0
-;;                 z: 0.209769845009
-;;               orientation: 
-;;                 x: 0.0
-;;                 y: 0.0
-;;                 z: 0.0
-;;                 w: 1.0
-;;         - 
-;;           type: "CartesianOrientationSlerp"
-;;           root_link: "odom"
-;;           tip_link: "base_footprint"
-;;           goal: 
-;;             header: 
-;;               seq: 0
-;;               stamp: 
-;;                 secs: 0
-;;                 nsecs:         0
-;;               frame_id: "base_footprint"
-;;             pose: 
-;;               position: 
-;;                 x: 2.50292941928e-08
-;;                 y: 0.0
-;;                 z: 0.209769845009
-;;               orientation: 
-;;                 x: 0.0
-;;                 y: 0.0
-;;                 z: 0.0
-;;                 w: 1.0
-;;       collisions: 
-;;         - 
-;;           type: 1
-;;           min_dist: 0.0
-;;           robot_links: ['']
-;;           body_b: "pr2"
-;;           link_bs: ['']

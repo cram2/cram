@@ -231,10 +231,6 @@
                                       link object-name-string
                                       ee-to-map-transform map-to-obj-transform))
              (ee-to-object-pose (cram-tf:strip-transform-stamped ee-to-object-transform)))
-
-        ;; (call-giskard-environment-service
-        ;;  :remove
-        ;;  :name object-name-string)
         (call-giskard-environment-service
          :attach
          :name object-name-string
@@ -257,8 +253,7 @@
            (object-name-string (roslisp-utilities:rosify-underscores-lisp-name object-name))
            (btr-object (btr:object btr:*current-bullet-world* object-name))
            (original-pose (cl-transforms-stamped:pose->pose-stamped
-                           cram-tf:*fixed-frame* 0.0 (btr:pose btr-object)))
-           )
+                           cram-tf:*fixed-frame* 0.0 (btr:pose btr-object))))
       (call-giskard-environment-service
        :remove
        :name object-name-string)
@@ -271,7 +266,6 @@
                      (list cl-transforms:x cl-transforms:y cl-transforms:z))))))
 
 (defmethod coe:clear-belief giskard-clear ()
-  (break)
   (unless cram-projection:*projection-environment*
     (call-giskard-environment-service
      :remove-all)
