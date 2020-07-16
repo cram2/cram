@@ -68,7 +68,7 @@
    #:get-object-destination
    #:get-container-opening-distance
    #:get-container-closing-distance
-   #:get-specific-object-arms
+   #:get-arms-for-object-type
    ;; grasps
    #:calculate-object-faces
    #:calculate-face-vector
