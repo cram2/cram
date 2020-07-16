@@ -139,8 +139,6 @@
                                        goal-state
                                        convergence-delta-joint))))))
 
-(defparameter *mocked* t)
-
 (defun call-giskard-gripper-action (&key action-type-or-position left-or-right effort
                                       action-timeout
                                       (convergence-delta-joint *giskard-gripper-convergence-delta-joint*))
@@ -149,17 +147,7 @@
            (type (or null number) effort)
            (type (or number keyword) action-type-or-position))
   "`goal-position' is in meters."
-  (if *mocked*
-      (progn (break "Trying to open gripper with boxy-ll")
-             (handler-case
-                 (boxy-ll:move-gripper-joint :action-type-or-position action-type-or-position
-                                             :left-or-right left-or-right
-                                             :effort effort)
-               (CRAM-COMMON-FAILURES:GRIPPER-GOAL-NOT-REACHED (e)
-                 (declare (ignore e))
-                 (break "set ~a gripper manually to ~a" left-or-right action-type-or-position)))
-             (coe:on-event (make-instance 'cram-plan-occasions-events:robot-state-changed)))
-      (multiple-value-bind (joint-goal effort)
+  (multiple-value-bind (joint-goal effort)
           (ensure-gripper-input-parameters action-type-or-position left-or-right effort)
         
         (multiple-value-bind (result status)
@@ -173,4 +161,4 @@
                                                      convergence-delta-joint)
           (values result status)
           ;; return the joint state, which is our observation
-          (joints:full-joint-states-as-hash-table)))))
+          (joints:full-joint-states-as-hash-table))))
