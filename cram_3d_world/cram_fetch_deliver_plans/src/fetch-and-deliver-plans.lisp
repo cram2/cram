@@ -619,36 +619,36 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     ((:grasps ?grasps))
                     ((:deliver-location ?delivering-location))
                     ((:deliver-robot-location ?deliver-robot-location))
-                    search-location-accessible
-                    deliver-location-accessible
-                    search-location-certain
-                    deliver-location-certain
                   &allow-other-keys)
   (unwind-protect
        (progn
 
          ;; if we are not sure about the exact location of deliver-location, find it
-         (unless deliver-location-certain
+         (let ((?goal `(man-int:location-certain ,?delivering-location)))
            (exe:perform (desig:an action
                                   (type searching)
-                                  (location ?delivering-location))))
+                                  (location ?delivering-location)
+                                  (goal ?goal))))
          ;; if deliver-location is inside a container, open the container
-         (unless deliver-location-accessible
+         (let ((?goal `(man-int:location-accessible ,?delivering-location)))
            (exe:perform (desig:an action
                                   (type accessing)
-                                  (location ?delivering-location))))
+                                  (location ?delivering-location)
+                                  (goal ?goal))))
 
          ;; if we are not sure about the exact location of search-location, find it
-         (unless search-location-certain
+         (let ((?goal `(man-int:location-certain ,?search-location)))
            (exe:perform (desig:an action
                                   (type searching)
-                                  (location ?search-location))))
+                                  (location ?search-location)
+                                  (goal ?goal))))
 
          ;; if search-location is inside a container, open the container
-         (unless search-location-accessible
+         (let ((?goal `(man-int:location-accessible ,?search-location)))
            (exe:perform (desig:an action
                                   (type accessing)
-                                  (location ?search-location))))
+                                  (location ?search-location)
+                                  (goal ?goal))))
 
          ;; search for the object to find it's exact pose
          (exe:perform (desig:an action
@@ -720,13 +720,15 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
          (desig:current-desig ?object-designator))
 
     ;; reset the fetch location
-    (unless search-location-accessible
+    (let ((?goal `(cpoe:location-reset ,?search-location)))
       (exe:perform (desig:an action
                              (type sealing)
-                             (location ?search-location))))
+                             (location ?search-location)
+                             (goal ?goal))))
 
     ;; reset the target location
-    (unless deliver-location-accessible
+    (let ((?goal `(cpoe:location-reset ,?delivering-location)))
       (exe:perform (desig:an action
                              (type sealing)
-                             (location ?delivering-location))))))
+                             (location ?delivering-location)
+                             (goal ?goal))))))
