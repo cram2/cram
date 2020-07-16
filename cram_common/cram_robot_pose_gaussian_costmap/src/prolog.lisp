@@ -38,11 +38,11 @@
 
 (defmethod costmap-generator-name->score
     ((name pose-distribution-range-include-generator))
-  7)
+  3)
 
 (defmethod costmap-generator-name->score
     ((name pose-distribution-range-exclude-generator))
-  6)
+  4)
 
 (def-fact-group robot-pose-gaussian-costmap (desig-costmap)
 

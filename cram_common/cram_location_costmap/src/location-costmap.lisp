@@ -108,7 +108,7 @@
 
 (defgeneric costmap-generator-name->score (name)
   (:documentation "Returns the score for the costmap generator with
-  name `name'. Greater scores result in earlier evaluation.")
+  name `name'. Greater scores result in later evaluation.")
   (:method ((name number))
     name))
 
@@ -125,7 +125,7 @@ calls the generator functions and runs normalization."
       (setf (slot-value map 'cost-functions)
             (sort (remove-duplicates (slot-value map 'cost-functions)
                                      :key #'generator-name)
-                  #'> :key (compose
+                  #'< :key (compose
                             #'costmap-generator-name->score
                             #'generator-name)))
       (let ((new-cost-map (cma:make-double-matrix

@@ -31,22 +31,22 @@
 (in-package :btr-spatial-cm)
 
 (defmethod costmap:costmap-generator-name->score ((name (eql 'environment-free-space))) 4)
-(defmethod costmap:costmap-generator-name->score ((name (eql 'supporting-object))) 9)
+(defmethod costmap:costmap-generator-name->score ((name (eql 'supporting-object))) 5)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'slot-generator))) 6)
-(defmethod costmap:costmap-generator-name->score ((name (eql 'collision))) 10)
+(defmethod costmap:costmap-generator-name->score ((name (eql 'collision))) 20)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'on-bounding-box))) 5)
 
 (defclass side-generator () ())
-(defmethod costmap:costmap-generator-name->score ((name side-generator)) 5)
+(defmethod costmap:costmap-generator-name->score ((name side-generator)) 3)
 
 (defclass range-generator () ())
 (defmethod costmap:costmap-generator-name->score ((name range-generator)) 2)
 
 (defclass gaussian-generator () ())
-(defmethod costmap:costmap-generator-name->score ((name gaussian-generator)) 4)
+(defmethod costmap:costmap-generator-name->score ((name gaussian-generator)) 7)
 
 (defclass field-generator () ())
-(defmethod costmap:costmap-generator-name->score ((name field-generator)) 7)
+(defmethod costmap:costmap-generator-name->score ((name field-generator)) 15)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
