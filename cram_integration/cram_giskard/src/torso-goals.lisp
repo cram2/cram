@@ -63,21 +63,30 @@
                    (rob-int:joint-lower-limit ?robot ?joint ?lower)
                    (rob-int:joint-upper-limit ?robot ?joint ?upper)))))
          (lower-limit
-           (+ (cut:var-value '?lower bindings) 0.01)) ; don't push the robot so hard
+           (cut:var-value '?lower bindings))
          (upper-limit
-           (- (cut:var-value '?upper bindings) 0.01)) ; no don't do it
-         (cropped-joint-angle
-           (etypecase position
-             (number (if (< position lower-limit)
-                         lower-limit
-                         (if (> position upper-limit)
-                             upper-limit
-                             position)))
-             (keyword (ecase position
-                        (:upper-limit upper-limit)
-                        (:lower-limit lower-limit)
-                        (:middle (/ (- upper-limit lower-limit) 2)))))))
-    cropped-joint-angle))
+           (cut:var-value '?upper bindings))
+         (torso-joint
+           (cut:var-value '?joint bindings)))
+    (if (and (not (cut:is-var lower-limit))
+             (not (cut:is-var upper-limit))
+             lower-limit
+             upper-limit)
+        (progn
+          ;; don't push the robot so hard
+          (setf lower-limit (+ lower-limit 0.01)
+                upper-limit (- upper-limit 0.01))
+          (etypecase position
+            (number (if (< position lower-limit)
+                        lower-limit
+                        (if (> position upper-limit)
+                            upper-limit
+                            position)))
+            (keyword (ecase position
+                       (:upper-limit upper-limit)
+                       (:lower-limit lower-limit)
+                       (:middle (/ (- upper-limit lower-limit) 2))))))
+        (or (car (joints:joint-positions (list torso-joint))) 0.0))))
 
 
 
@@ -93,11 +102,12 @@
     ;;           :description "Giskard did not converge to goal because of collision")
     )
   (let ((current-position (car (joints:joint-positions (list cram-tf:*robot-torso-joint*)))))
-    (unless (cram-tf:values-converged current-position goal convergence-delta)
-      (cpl:fail 'common-fail:torso-goal-not-reached
-                :description (format nil "Giskard did not converge to torso goal:~
+    (when current-position
+      (unless (cram-tf:values-converged current-position goal convergence-delta)
+        (cpl:fail 'common-fail:torso-goal-not-reached
+                  :description (format nil "Giskard did not converge to torso goal:~
                                                 goal: ~a, current: ~a, delta: ~a."
-                                     goal current-position convergence-delta)))))
+                                       goal current-position convergence-delta))))))
 
 (defun call-giskard-torso-action (&key
                                     goal-joint-state action-timeout

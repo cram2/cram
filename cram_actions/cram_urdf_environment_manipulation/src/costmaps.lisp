@@ -118,13 +118,13 @@ environment, in which it can be found, respectively."
           (line-equation-in-xy neutral-point manipulated-point)
         (let* ((P (cl-transforms:make-3d-vector x y 0))
                (dist (line-p-dist a b c P))
-               ;;(dist-p (line-p-dist-point a b c P))
+               (dist-p (line-p-dist-point a b c P))
                )
           (if (and
                (< dist (+ (/ width 2) padding))
                ;; Commenting this out for now, so there won't be poses in front of the drawer.
-               ;;(< (cl-transforms:v-norm (cl-transforms:v- dist-p neutral-point))
-               ;;   (+ (cl-transforms:v-norm V) padding))
+               (< (cl-transforms:v-norm (cl-transforms:v- dist-p neutral-point))
+                  (+ (cl-transforms:v-norm V) padding))
                )
               0
               1))))))
@@ -381,24 +381,40 @@ Disregarding the orientation (using the pose2's)."
     (spec:property ?container-designator (:part-of ?btr-environment))
     (spec:property ?designator (:arm ?arm))
     (costmap:costmap ?costmap)
-    ;; reachability gaussian costmap
+    (costmap:costmap-in-reach-distance ?distance)
+    (costmap:costmap-reach-minimal-distance ?minimal-distance)
+
+    ;; reachability range costmap
     (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
-    (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
-    (costmap:costmap-add-function
-     container-handle-reachable-cost-function
-     (costmap:make-gauss-cost-function ?mean ?covariance)
-     ?costmap)
+    (forall
+     (member ?pose ?poses)
+     (and
+      (instance-of gaussian-costmap::pose-distribution-range-include-generator
+                   ?include-generator-id)
+      (costmap:costmap-add-function
+       ?include-generator-id
+       (costmap:make-range-cost-function ?pose ?distance)
+       ?costmap)
+      (instance-of gaussian-costmap::pose-distribution-range-exclude-generator
+                   ?exclude-generator-id)
+      (costmap:costmap-add-function
+       ?exclude-generator-id
+       (costmap:make-range-cost-function ?pose ?minimal-distance :invert t)
+       ?costmap)))
+
     ;; cutting out drawer costmap
     (costmap:costmap-manipulation-padding ?padding)
     (costmap:costmap-add-function
      opened-drawer-cost-function
      (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
      ?costmap)
+
     ;; cutting out for specific arm costmap
     (costmap:costmap-add-function
      opened-drawer-side-cost-function
      (make-opened-drawer-side-cost-function ?container-name ?arm ?btr-environment)
      ?costmap)
+
     ;; orientation generator
     ;; generate an orientation opposite to the axis of the drawer
     (equal ?poses (?neutral-pose ?manipulated-pose))
@@ -422,17 +438,26 @@ Disregarding the orientation (using the pose2's)."
     (spec:property ?container-designator (:part-of ?btr-environment))
     (spec:property ?designator (:arm ?arm))
     (costmap:costmap ?costmap)
+    (costmap:costmap-in-reach-distance ?distance)
+    (costmap:costmap-reach-minimal-distance ?minimal-distance)
 
-    ;; reachability gaussian costmap
-    (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment (?min-pose ?max-pose))
-    (lisp-fun middle-pose ?min-pose ?max-pose ?middle-pose)
-    ;; TODO(cpo): If you can, please beautifiy this.
-    (equal (?middle-pose) ?poses)
-    (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
-    (costmap:costmap-add-function
-     container-handle-reachable-cost-function
-     (costmap:make-gauss-cost-function ?mean ?covariance)
-     ?costmap)
+    ;; reachability range costmap
+    (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
+    (forall
+     (member ?pose ?poses)
+     (and
+      (instance-of gaussian-costmap::pose-distribution-range-include-generator
+                   ?include-generator-id)
+      (costmap:costmap-add-function
+       ?include-generator-id
+       (costmap:make-range-cost-function ?pose ?distance)
+       ?costmap)
+      (instance-of gaussian-costmap::pose-distribution-range-exclude-generator
+                   ?exclude-generator-id)
+      (costmap:costmap-add-function
+       ?exclude-generator-id
+       (costmap:make-range-cost-function ?pose ?minimal-distance :invert t)
+       ?costmap)))
 
     ;; cutting out door costmap
     (costmap:costmap-manipulation-padding ?padding)

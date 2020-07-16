@@ -57,9 +57,7 @@
 (defun find-object-on-surface (?object-type)
   ;; move arms from field of view
   (exe:perform (desig:an action
-                         (type positioning-arm)
-                         (left-configuration park)
-                         (right-configuration park)))
+                         (type parking-arms)))
   ;; detect object with kinect
   (let* ((?object
            (exe:perform (desig:an action

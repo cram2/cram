@@ -22,4 +22,5 @@
   <depend>cl_transforms_stamped</depend>
   <depend>cram_robot_interfaces</depend>
   <depend>cram_plan_occasions_events</depend>
+  <depend>cram_designator_specification</depend>
 </package>

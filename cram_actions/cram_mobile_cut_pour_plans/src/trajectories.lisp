@@ -147,15 +147,11 @@
                 :lifting
                 :slice-up
                 :slice-down)
-              `((,(man-int:get-object-type-to-gripper-pregrasp-transform
-                   object-type object-name arm grasp oTg-std)
-                 ,(man-int:get-object-type-to-gripper-2nd-pregrasp-transform
+              `((,(man-int:get-object-type-to-gripper-pregrasp-transforms
                    object-type object-name arm grasp oTg-std))
                 (,oTg-std)
-                (,(man-int:get-object-type-to-gripper-lift-transform
-                   object-type object-name arm grasp oTg-std)
-                 ,(man-int:get-object-type-to-gripper-2nd-lift-transform
-                   object-type object-name arm grasp oTg-std))
+                (,(man-int:get-object-type-wrt-base-frame-lift-transforms
+                   object-type arm grasp))
                 (,(man-int:get-object-type-robot-frame-slice-up-transform
                    object-type arm grasp))
                 (,(man-int:get-object-type-robot-frame-slice-down-transform
