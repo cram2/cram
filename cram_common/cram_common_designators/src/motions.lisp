@@ -122,12 +122,15 @@
               (equal ?align-planes-right nil))))
 
   (<- (motion-grounding ?designator (move-joints ?left-config ?right-config
+                                                 ?collision-mode
                                                  ?align-planes-left ?align-planes-right))
     (property ?designator (:type :moving-arm-joints))
     (once (or (property ?designator (:left-joint-states ?left-config))
               (equal ?left-config nil)))
     (once (or (property ?designator (:right-joint-states ?right-config))
               (equal ?right-config nil)))
+    (once (or (property ?designator (:collision-mode ?collision-mode))
+              (equal ?collision-mode nil)))
     (once (or (property ?designator (:align-planes-left ?align-planes-left))
               (equal ?align-planes-left nil)))
     (once (or (property ?designator (:align-planes-right ?align-planes-right))

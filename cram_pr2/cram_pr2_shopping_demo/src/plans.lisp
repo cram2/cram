@@ -29,16 +29,6 @@
 
 (in-package :cram-pr2-shopping-demo)
 
-(defparameter *placing-pose-2* (cl-transforms-stamped:make-pose-stamped
-                                "map" 0
-                                (cl-transforms:make-3d-vector 1 -0.5 0)
-                                (cl-transforms:make-quaternion 0 0 1 1)))
-
-(defparameter *placing-pose-1* (cl-transforms-stamped:make-pose-stamped
-                                "map" 0
-                                (cl-transforms:make-3d-vector -1 -0.5 0)
-                                (cl-transforms:make-quaternion 0 0 1 1)))
-
 (defun grasp-object-from-shelf (?object shelf)
   (let* ((?search-location
            (if (eql shelf 1)
@@ -47,21 +37,19 @@
                                       (type shelf)
                                       (urdf-name shelf-2-footprint)
                                       (part-of environment)
-                                      (level 3)))
+                                      (level 4)))
                         (side right))
                (desig:a location
                         (on (desig:an object
                                       (type shelf)
                                       (urdf-name shelf-1-footprint)
                                       (part-of environment)
-                                      (level 3)))
+                                      (level 4)))
                         (side right))))
          (?object-desig
            (desig:an object
                      (type ?object)
-                     (location ?search-location)))
-         (?pose-placing
-           (if (eql shelf 1) *placing-pose-1* *placing-pose-2*)))
+                     (location ?search-location))))
     (exe:perform
      (desig:an action
                (type transporting)
@@ -71,12 +59,7 @@
                                               (type basket)
                                               (name b)))
                                 (for ?object-desig)
-                                (attachment in-basket)))))
-    (exe:perform
-     (desig:an action
-               (type going)
-               (target (desig:a location
-                                (pose ?pose-placing)))))))
+                                (attachment in-basket)))))))
 
 (defun place-object-in-shelf (?object-type &rest ?target-poses)
   (declare (type symbol ?object-type)
@@ -117,6 +100,5 @@
       "map" 0
       (cl-transforms:make-3d-vector 0.7 0.7 0.68)
       (cl-transforms:make-quaternion 0 0 -1 1)))
-
     (grasp-object-from-shelf :heitmann 2)
     (grasp-object-from-shelf :dove 1)))
