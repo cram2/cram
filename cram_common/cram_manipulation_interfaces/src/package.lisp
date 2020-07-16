@@ -47,7 +47,7 @@
    #:orientation-matters
    #:unidirectional-attachment
    #:location-always-reachable
-   #:object-is-a-robot
+   #:object-is-a-robot #:object-is-a-container
    #:location-accessible
    #:location-reference-object
    #:location-certain
