@@ -520,23 +520,25 @@ if it is on the sign side of the axis. "
 
 (defparameter *board-thickness* 0.040)
 
-(defun make-object-bounding-box-height-generator (object &optional (tag :on))
+(defun make-object-bounding-box-height-generator (object &optional (tag :on) (z-offset 0.0))
   (constantly (list
                (ecase tag
                  (:on (+ (cl-transforms:z
                           (cl-transforms:origin (btr:pose object)))
                          (/ (cl-transforms:z
                              (btr:calculate-bb-dims object))
-                            2.0)))
+                            2.0)
+                         z-offset))
                  (:in (+ (cl-transforms:z
                           (cl-transforms:origin (btr:pose object)))
                          (- (/ (cl-transforms:z
                                 (btr:calculate-bb-dims object))
                                2.0))
+                         z-offset
                          *board-thickness*))))))
 
 (defun make-object-on/in-object-bb-height-generator (environment-objects for-object
-                                                     &optional (tag :on))
+                                                     &optional (tag :on) (z-offset 0.0))
   (let* ((environment-object-top
            (apply #'max
                   (mapcar (lambda (environment-object)
@@ -546,13 +548,15 @@ if it is on the sign side of the axis. "
                                         (btr:pose environment-object)))
                                       (/ (cl-transforms:z
                                           (btr:calculate-bb-dims environment-object))
-                                         2.0)))
+                                         2.0)
+                                      z-offset))
                               (:in (+ (cl-transforms:z
                                        (cl-transforms:origin
                                         (btr:pose environment-object)))
                                       (- (/ (cl-transforms:z
                                              (btr:calculate-bb-dims environment-object))
                                             2.0))
+                                      z-offset
                                       *board-thickness*))))
                           (if (listp environment-objects)
                               environment-objects
