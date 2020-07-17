@@ -28,12 +28,22 @@
 
 (in-package :cram-robot-interfaces)
 
+(defvar *robot-name* nil
+  "Variable that stores the name of the current robot,
+so the robot whose brain this is.")
+
+(defun set-robot-name (new-name)
+  (setf *robot-name* new-name))
+
 (def-fact-group robot (robot
                        robot-base-frame robot-odom-frame
                        robot-torso-link-joint
                        robot-joint-states robot-pose)
   (<- (robot ?robot-name)
-    (fail))
+    (symbol-value *robot-name* ?robot-name)
+    (once (or (lisp-pred identity ?robot-name)
+              (lisp-pred error "[rob-int] Variable *ROBOT-NAME* is NIL.~%~
+                                Have you loaded a robot description package?"))))
 
   (<- (robot-base-frame ?robot-name ?base-frame)
     (fail))

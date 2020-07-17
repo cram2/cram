@@ -28,17 +28,17 @@
 
 (in-package :cram-pr2-description)
 
+(rob-int:set-robot-name 'pr2)
+
 (defparameter *forward-looking-position-in-base-frame*
   (cl-transforms:make-3d-vector 10.0 0.0 1.5))
 
-(def-fact-group pr2-metadata (robot
-                              robot-base-frame robot-torso-link-joint
+(def-fact-group pr2-metadata (robot-base-frame robot-torso-link-joint
                               robot-odom-frame
                               camera-frame camera-minimal-height camera-maximal-height
                               camera-horizontal-angle camera-vertical-angle
                               robot-neck-links robot-neck-joints
                               robot-joint-states robot-pose)
-  (<- (robot pr2))
 
   (<- (robot-odom-frame pr2 "odom_combined"))
 
