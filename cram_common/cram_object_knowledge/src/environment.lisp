@@ -36,9 +36,9 @@
 (def-fact-group costmap-metadata (costmap:costmap-size
                                   costmap:costmap-origin
                                   costmap:costmap-resolution)
-  (<- (costmap:costmap-size 12 12))
-  (<- (costmap:costmap-origin -6 -6))
-  (<- (costmap:costmap-resolution 0.04)))
+  (<- (costmap:costmap-size :environment 12 12))
+  (<- (costmap:costmap-origin :environment -6 -6))
+  (<- (costmap:costmap-resolution :environment 0.04)))
 
 
 (def-fact-group environment-object-type-hierarchy (man-int:object-type-direct-subtype)
