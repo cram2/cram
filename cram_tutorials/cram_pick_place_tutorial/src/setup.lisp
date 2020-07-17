@@ -35,14 +35,14 @@
 
 (defun init-projection ()
   (def-fact-group costmap-metadata ()
-    (<- (location-costmap:costmap-size 12 12))
-    (<- (location-costmap:costmap-origin -6 -6))
-    (<- (location-costmap:costmap-resolution 0.05))
+    (<- (costmap:costmap-size :environment 12 12))
+    (<- (costmap:costmap-origin :environment -6 -6))
+    (<- (costmap:costmap-resolution :environment 0.05))
 
-    (<- (location-costmap:costmap-padding 0.2))
-    (<- (location-costmap:costmap-manipulation-padding 0.2))
-    (<- (location-costmap:costmap-in-reach-distance 0.6))
-    (<- (location-costmap:costmap-reach-minimal-distance 0.2)))
+    (<- (costmap:costmap-padding cram-pr2-description:pr2 0.2))
+    (<- (costmap:costmap-manipulation-padding cram-pr2-description:pr2 0.2))
+    (<- (costmap:costmap-in-reach-distance cram-pr2-description:pr2 0.6))
+    (<- (costmap:costmap-reach-minimal-distance cram-pr2-description:pr2 0.2)))
 
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")

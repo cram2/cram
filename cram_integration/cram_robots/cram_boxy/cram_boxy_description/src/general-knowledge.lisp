@@ -47,10 +47,10 @@
                                            costmap:orientation-samples
                                            costmap:orientation-sample-step
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding 0.5))
-  (<- (costmap:costmap-manipulation-padding 0.2)) ; 0.5 (might be a little low now)
-  (<- (costmap:costmap-in-reach-distance 1.45))
-  (<- (costmap:costmap-reach-minimal-distance 0.65))
-  (<- (costmap:orientation-samples 1))
-  (<- (costmap:orientation-sample-step 0.3))
-  (<- (costmap:visibility-costmap-size 2)))
+  (<- (costmap:costmap-padding boxy 0.5))
+  (<- (costmap:costmap-manipulation-padding boxy 0.2))
+  (<- (costmap:costmap-in-reach-distance boxy 1.45))
+  (<- (costmap:costmap-reach-minimal-distance boxy 0.65))
+  (<- (costmap:orientation-samples boxy 1))
+  (<- (costmap:orientation-sample-step boxy 0.3))
+  (<- (costmap:visibility-costmap-size boxy 2)))

@@ -31,9 +31,10 @@
 
 (defun costmap-metadata ()
   (with-vars-bound (?width ?height ?resolution ?origin-x ?origin-y)
-      (lazy-car (prolog `(and (costmap-size ?width ?height)
-                              (costmap-origin ?origin-x ?origin-y)
-                              (costmap-resolution ?resolution))))
+      (lazy-car (prolog `(and (man-int:environment-name ?environment)
+                              (costmap-size ?environment ?width ?height)
+                              (costmap-origin ?environment ?origin-x ?origin-y)
+                              (costmap-resolution ?environment ?resolution))))
     (check-type ?width number)
     (check-type ?height number)
     (check-type ?resolution number)
