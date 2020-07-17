@@ -29,6 +29,8 @@
 
 (in-package :donbot-descr)
 
+(rob-int:set-robot-name 'iai-donbot)
+
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector 0 0 0.2581d0)
@@ -103,16 +105,13 @@
                                   0.7001653424975933d0)))
 
 
-
-(def-fact-group donbot-metadata (robot
-                                 robot-odom-frame
+(def-fact-group donbot-metadata (robot-odom-frame
                                  robot-base-frame robot-torso-link-joint
                                  arm
                                  neck
                                  camera-frame
                                  camera-minimal-height camera-maximal-height
                                  camera-horizontal-angle camera-vertical-angle)
-  (<- (robot iai-donbot))
 
   (<- (robot-odom-frame iai-donbot "odom"))
 

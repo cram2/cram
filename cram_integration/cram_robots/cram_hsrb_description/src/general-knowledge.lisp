@@ -30,15 +30,15 @@
 
 (in-package :hsrb-descr)
 
-(def-fact-group hsrb-metadata (robot
-                               robot-odom-frame
+(rob-int:set-robot-name 'hsrb)
+
+(def-fact-group hsrb-metadata (robot-odom-frame
                                robot-base-frame robot-torso-link-joint
                                arm
                                camera-frame
                                camera-horizontal-angle camera-vertical-angle
                                robot-neck-links robot-neck-joints
                                robot-head-tilt-rotation-sign)
-  (<- (robot hsrb))
 
   (<- (robot-odom-frame hsrb "odom"))
   (<- (robot-base-frame hsrb "base_footprint"))
