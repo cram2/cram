@@ -264,7 +264,12 @@
              (or (desig:desig-prop ?object-designator (:type :robot))
                  (and (rob-int:robot ?robot)
                       (desig:desig-prop ?object-designator (:part-of ?robot)))))
-        (true)))
+        ;; Above keyword is inaccessible for prismatic containers like drawers
+        ;; but not for revolute containers like fridge/oven
+        (-> (spec:property ?current-location-designator (:above ?location-object))
+            (and (spec:property ?location-object (:type ?object-type))
+                 (not (man-int:object-type-subtype :container-prismatic ?object-type)))
+            (true))))
 
   ;; most symbolic locations have a reference object
   ;; this predicate finds the reference object of the given location desig
@@ -295,4 +300,5 @@
     (desig:loc-desig? ?some-location-designator)
     (desig:current-designator ?some-location-designator ?location-designator)
     (or (spec:property ?location-designator (:attachment ?_))
-        (spec:property ?location-designator (:attachments ?_)))))
+        (spec:property ?location-designator (:attachments ?_))
+        (spec:property ?location-designator (:above ?_)))))
