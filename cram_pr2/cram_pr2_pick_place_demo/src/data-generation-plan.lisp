@@ -121,7 +121,7 @@
                                         (type counter-top)
                                         (urdf-name sink-area-surface)
                                         (owl-name "kitchen_sink_block_counter_top")
-                                        (part-of kitchen)))
+                                        (part-of iai-kitchen)))
                           (for ?object)))
                (?second-location
                  (desig:a location
@@ -130,7 +130,7 @@
                                         (type counter-top)
                                         (urdf-name kitchen-island)
                                         (owl-name "kitchen_island_counter_top")
-                                        (part-of kitchen)))
+                                        (part-of iai-kitchen)))
                           (for ?object))))
           (exe:perform
            (desig:an action

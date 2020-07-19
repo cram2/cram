@@ -268,7 +268,7 @@
                                                         (rob-int:hand-links ?robot :right
                                                                             ?hand-links))))))))
                           :body_b (roslisp-utilities:rosify-underscores-lisp-name
-                                   (man-int:current-environment-symbol))
+                                   (rob-int:get-environment-name))
                           :link_bs (vector (roslisp:symbol-code
                                             'giskard_msgs-msg:collisionentry
                                             :all)))))
@@ -293,7 +293,7 @@
                                              :all))) ; collision-object-a = attached-obj
                    :body_b (roslisp-utilities:rosify-underscores-lisp-name
                             ;; collision-object-b-link
-                            (man-int:current-environment-symbol))
+                            (rob-int:get-environment-name))
                    :link_bs (if collision-object-b-link
                                 (vector (roslisp-utilities:rosify-underscores-lisp-name
                                          collision-object-b-link))

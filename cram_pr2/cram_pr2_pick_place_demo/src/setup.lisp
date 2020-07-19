@@ -32,15 +32,13 @@
 ;; roslaunch cram_pr2_pick_place_demo sandbox.launch
 
 (defun init-projection ()
-  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
-
-  (cram-occasions-events:clear-belief)
+  (coe:clear-belief)
 
   (setf cram-tf:*tf-default-timeout* 2.0)
 
   (setf prolog:*break-on-lisp-errors* t)
 
-  (cram-bullet-reasoning:clear-costmap-vis-object)
+  (btr:clear-costmap-vis-object)
 
   ;; (setf cram-tf:*tf-broadcasting-enabled* t)
 

@@ -1,3 +1,4 @@
+;;;
 ;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
@@ -9,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
-;;;       without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,16 +27,30 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-manipulation-interfaces)
+(in-package :cram-robot-interfaces)
+
+(defparameter *environment-description-parameter* "kitchen_description"
+  "ROS parameter that contains the environment description URDF.")
+
+(defvar *environment-urdf* nil
+  "A cl-urdf object corresponding to parsed environment URDF.")
+
+(defvar *environment-name* nil
+  "Variable that stores the name of the current environment,
+we assume that all the environment furniture is put together into one URDF.")
+
+(defun set-environment-name (new-name)
+  (setf *environment-name* new-name))
+
+(defun get-environment-name ()
+  (or *environment-name*
+      (error "[rob-int] Variable *ENVIRONMENT-NAME* is NIL.~%~
+              Was it initialized from the URDF on the ROS parameter server?")))
 
 (def-fact-group environment (environment-name)
   (<- (environment-name ?environment-name)
-    (fail)))
-
-
-(defun current-environment-symbol ()
-  (let ((name-symbol
-          (cut:var-value '?e (car (prolog:prolog '(man-int:environment-name ?e))))))
-    (if (cut:is-var name-symbol)
-        NIL
-        name-symbol)))
+    (symbol-value *environment-name* ?environment-name)
+    (once (or (lisp-pred identity ?environment-name)
+              (lisp-pred error "[rob-int] Variable *ENVIRONMENT-NAME* is NIL.~%~
+                                Was it initialized from the URDF on the ~
+                                ROS parameter server?")))))

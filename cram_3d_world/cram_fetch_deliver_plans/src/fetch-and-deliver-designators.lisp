@@ -145,7 +145,7 @@ the `look-pose-stamped'."
              (not (equal ?some-location-designator NIL)))
         (desig:current-designator ?some-location-designator ?location-designator)
         (and (spec:property ?object-designator (:type ?object-type))
-             (man-int:environment-name ?environment)
+             (rob-int:environment-name ?environment)
              (lisp-fun man-int:get-object-likely-location
                        ?object-type ?environment nil ?context ?location-designator)))
     ;; robot-location
@@ -232,7 +232,7 @@ the `look-pose-stamped'."
              (not (equal ?some-location-designator NIL)))
         (desig:current-designator ?some-location-designator ?location-designator)
         (and (spec:property ?object-designator (:type ?object-type))
-             (man-int:environment-name ?environment)
+             (rob-int:environment-name ?environment)
              (lisp-fun man-int:get-object-destination
                        ?object-type ?environment nil ?context ?location-designator)))
     ;; target stable? or have to check stability first?
@@ -288,7 +288,7 @@ the `look-pose-stamped'."
                                        ?search-location-designator)
              (equal ?object-designator-with-location ?object-designator))
         (and (spec:property ?object-designator (:type ?object-type))
-             (man-int:environment-name ?environment)
+             (rob-int:environment-name ?environment)
              (lisp-fun man-int:get-object-likely-location
                        ?object-type ?environment nil ?context
                        ?search-location-designator)
@@ -325,7 +325,7 @@ the `look-pose-stamped'."
         (desig:current-designator ?some-delivering-location-designator
                                   ?delivering-location-designator)
         (and (spec:property ?object-designator (:type ?object-type))
-             (man-int:environment-name ?environment)
+             (rob-int:environment-name ?environment)
              (lisp-fun man-int:get-object-destination
                        ?object-type ?environment nil ?context
                        ?delivering-location-designator)))

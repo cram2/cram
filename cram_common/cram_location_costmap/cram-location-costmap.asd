@@ -40,7 +40,6 @@
                visualization_msgs-msg
                trivial-garbage
                cram-tf ; for visualizing markers in the fixed frame
-               cram-manipulation-interfaces ; for environment-name
                )
   :components
   ((:module "src"

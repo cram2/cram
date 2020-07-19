@@ -52,9 +52,6 @@
    #:location-reference-object
    #:location-certain
    #:location-always-stable
-   ;; environment
-   #:environment-name
-   #:current-environment-symbol
    ;; utils
    #:reasoning-engine-for-method
    ;; manipulation-interfaces

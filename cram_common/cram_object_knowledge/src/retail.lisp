@@ -40,6 +40,13 @@
   (<- (man-int:object-type-direct-subtype :retail-item :deodorant))
   (<- (man-int:object-type-direct-subtype :retail-item :juice-box)))
 
+(def-fact-group retail-environment-metadata (costmap:costmap-size
+                                             costmap:costmap-origin
+                                             costmap:costmap-resolution)
+  (<- (costmap:costmap-size :dm-shelves 10 10))
+  (<- (costmap:costmap-origin :dm-shelves -5 -5))
+  (<- (costmap:costmap-resolution :dm-shelves 0.04)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod man-int:get-action-gripper-opening

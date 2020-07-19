@@ -237,7 +237,7 @@
                                                        (type counter-top)
                                                        (urdf-name
                                                         kitchen-island-surface)
-                                                       (part-of environment)))
+                                                       (part-of iai-kitchen)))
                                          (side back)
                                          (range 0.5))))))
       ;; 1
@@ -316,7 +316,7 @@
                                       (type counter-top)
                                       (urdf-name
                                        kitchen-island-surface)
-                                      (part-of environment)))
+                                      (part-of iai-kitchen)))
                         (side right)
                         (range-invert 0.9)
                         (side front))

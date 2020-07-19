@@ -28,12 +28,23 @@
 
 (in-package :cram-robot-interfaces)
 
+(defparameter *robot-description-parameter* "robot_description"
+  "ROS parameter that contains the robot description.")
+
+(defvar *robot-urdf* nil
+  "A cl-urdf object corresponding to parsed robot urdf.")
+
 (defvar *robot-name* nil
   "Variable that stores the name of the current robot,
 so the robot whose brain this is.")
 
 (defun set-robot-name (new-name)
   (setf *robot-name* new-name))
+
+(defun get-robot-name ()
+  (or *robot-name* (error "[rob-int] Variable *ROBOT-NAME* is NIL.~%~
+                           Have you initialized it from a URDF on the ~
+                           ROS parameter server?")))
 
 (def-fact-group robot (robot
                        robot-base-frame robot-odom-frame
@@ -43,7 +54,8 @@ so the robot whose brain this is.")
     (symbol-value *robot-name* ?robot-name)
     (once (or (lisp-pred identity ?robot-name)
               (lisp-pred error "[rob-int] Variable *ROBOT-NAME* is NIL.~%~
-                                Have you loaded a robot description package?"))))
+                                Have you initialized it from a URDF on the ~
+                                ROS parameter server?"))))
 
   (<- (robot-base-frame ?robot-name ?base-frame)
     (fail))
@@ -73,17 +85,3 @@ so the robot whose brain this is.")
                                (not (rob-int:neck ?robot-name ?arm)))
                      ?arms)
               (equal ?arms NIL)))))
-
-
-(defun current-robot-symbol ()
-  (let ((robot-symbol
-          (cut:var-value '?r (car (prolog:prolog '(robot ?r))))))
-    (if (cut:is-var robot-symbol)
-        NIL
-        robot-symbol)))
-
-(defun current-robot-package ()
-  (symbol-package (current-robot-symbol)))
-
-(defun current-robot-name ()
-  (symbol-name (current-robot-symbol)))

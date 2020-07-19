@@ -28,8 +28,6 @@
 
 (in-package :cram-bullet-reasoning-belief-state)
 
-(defvar *kitchen-urdf* nil)
-(defparameter *kitchen-parameter* "kitchen_description")
 (defparameter *spawn-debug-window* t
   "If the debug window should be spawned when belief state is set up.")
 
@@ -55,9 +53,10 @@ is replaced with replacement.
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
 
   ;; get the environment URDF from the ROS parameter server
-  (let ((kitchen-urdf-string (roslisp:get-param *kitchen-parameter* nil)))
+  (let ((kitchen-urdf-string
+          (roslisp:get-param rob-int:*environment-description-parameter* nil)))
     (when kitchen-urdf-string
-      (setf *kitchen-urdf* (cl-urdf:parse-urdf kitchen-urdf-string))))
+      (setf rob-int:*environment-urdf* (cl-urdf:parse-urdf kitchen-urdf-string))))
 
   ;; get the robot URDF from the ROS parameter server
   ;; TODO get rid of replace-all and instead fix the URDF of our real PR2
@@ -106,16 +105,16 @@ is replaced with replacement.
               (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
                                                        :normal (0 0 1) :constant 0
                                                        :collision-mask (:default-filter)))
-              (-> (man-int:environment-name ?environment-name)
+              (-> (rob-int:environment-name ?environment-name)
                   (btr:assert ?w (btr:object :urdf ?environment-name
                                              ((0 0 0) (0 0 0 1))
                                              :collision-group :static-filter
                                              :collision-mask (:default-filter
                                                               :character-filter)
-                                             ,@(when *kitchen-urdf*
-                                                 `(:urdf ,*kitchen-urdf*))
+                                             ,@(when rob-int:*environment-urdf*
+                                                 `(:urdf ,rob-int:*environment-urdf*))
                                              :compound T))
-                  (warn "MAN-INT:ENVIRONMENT-NAME was not defined. ~
+                  (warn "ROB-INT:ENVIRONMENT-NAME was not defined. ~
                          Have you loaded an environment knowledge package?"))
               (-> (rob-int:robot ?robot)
                   (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1))
@@ -169,7 +168,7 @@ is replaced with replacement.
                                         ((-2.30d0 0.5d0 0.0d0) (0 0 0.5 0.5)))
                                        ("table_area_main_joint"
                                         ((1.6d0 -1.0d0 0.0d0) (0 0 0.5 0.5))))))
-  (let ((kitchen-urdf-joints (cl-urdf:joints *kitchen-urdf*)))
+  (let ((kitchen-urdf-joints (cl-urdf:joints rob-int:*environment-urdf*)))
    (mapc (lambda (joint-name-poses-list-pair)
            (destructuring-bind (joint-name poses-list)
                joint-name-poses-list-pair

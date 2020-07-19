@@ -65,19 +65,20 @@
 
 (defun spawn-environment ()
   (assert
-   (setf btr-belief:*kitchen-urdf*
-         (cl-urdf:parse-urdf (roslisp:get-param "kitchen_description"))))
+   (setf rob-int:*environment-urdf*
+         (cl-urdf:parse-urdf
+          (roslisp:get-param rob-int:*environment-description-parameter*))))
   (prolog:prolog
    `(and (btr:bullet-world ?w)
-         (prolog:-> (man-int:environment-name ?environment-name)
+         (prolog:-> (rob-int:environment-name ?environment-name)
                     (btr:assert ?w (btr:object :urdf ?environment-name
                                                ((0 0 0) (0 0 0 1))
                                                :collision-group :static-filter
                                                :collision-mask (:default-filter
                                                                 :character-filter)
-                                               :urdf ,btr-belief:*kitchen-urdf*
+                                               :urdf ,rob-int:*environment-urdf*
                                                :compound T))
-                    (warn "MAN-INT:ENVIRONMENT-NAME was not defined. ~
+                    (warn "ROB-INT:ENVIRONMENT-NAME was not defined. ~
                     Have you loaded an environment knowledge package?"))))
   (clrhash (btr::get-updated-attachments))
   (btr:detach-all-objects (btr:get-robot-object)))
