@@ -29,7 +29,7 @@
 
 (in-package :donbot-descr)
 
-(rob-int:set-robot-name 'iai-donbot)
+(rob-int:set-robot-name :iai-donbot)
 
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
@@ -113,21 +113,21 @@
                                  camera-minimal-height camera-maximal-height
                                  camera-horizontal-angle camera-vertical-angle)
 
-  (<- (robot-odom-frame iai-donbot "odom"))
+  (<- (robot-odom-frame :iai-donbot "odom"))
 
-  (<- (robot-base-frame iai-donbot "base_footprint"))
-  (<- (robot-torso-link-joint iai-donbot "ur5_base_link" "arm_base_mounting_joint"))
+  (<- (robot-base-frame :iai-donbot "base_footprint"))
+  (<- (robot-torso-link-joint :iai-donbot "ur5_base_link" "arm_base_mounting_joint"))
 
-  (<- (arm iai-donbot :left))
+  (<- (arm :iai-donbot :left))
 
-  (<- (neck iai-donbot :left))
+  (<- (neck :iai-donbot :left))
 
-  (<- (camera-frame iai-donbot "camera_link")) ; rgb camera for barcodes etc.
-  (<- (camera-frame iai-donbot "rs_camera_depth_optical_frame")) ; realsense, virtual
-  (<- (camera-frame iai-donbot "rs_camera_color_optical_frame")) ; virtual
+  (<- (camera-frame :iai-donbot "camera_link")) ; rgb camera for barcodes etc.
+  (<- (camera-frame :iai-donbot "rs_camera_depth_optical_frame")) ; realsense, virtual
+  (<- (camera-frame :iai-donbot "rs_camera_color_optical_frame")) ; virtual
 
-  (<- (camera-minimal-height iai-donbot 0.5))
-  (<- (camera-maximal-height iai-donbot 1.0))
+  (<- (camera-minimal-height :iai-donbot 0.5))
+  (<- (camera-maximal-height :iai-donbot 1.0))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
   (<- (camera-horizontal-angle donbot 0.99483))
@@ -144,51 +144,51 @@
                                   tcp-in-ee-pose
                                   hand-links)
 
-  (<- (end-effector-link iai-donbot :left "ur5_wrist_3_link"))
+  (<- (end-effector-link :iai-donbot :left "ur5_wrist_3_link"))
 
-  (<- (robot-tool-frame iai-donbot :left "refills_tool_frame"))
+  (<- (robot-tool-frame :iai-donbot :left "refills_tool_frame"))
 
-  (<- (arm-joints iai-donbot :left ("ur5_shoulder_pan_joint"
+  (<- (arm-joints :iai-donbot :left ("ur5_shoulder_pan_joint"
                                     "ur5_shoulder_lift_joint"
                                     "ur5_elbow_joint"
                                     "ur5_wrist_1_joint"
                                     "ur5_wrist_2_joint"
                                     "ur5_wrist_3_joint")))
 
-  (<- (arm-links iai-donbot :left ("ur5_shoulder_link"
+  (<- (arm-links :iai-donbot :left ("ur5_shoulder_link"
                                    "ur5_upper_arm_link"
                                    "ur5_forearm_link"
                                    "ur5_wrist_1_link"
                                    "ur5_wrist_2_link"
                                    "ur5_wrist_3_link")))
 
-  (<- (gripper-joint iai-donbot :left "gripper_joint"))
+  (<- (gripper-joint :iai-donbot :left "gripper_joint"))
 
-  (<- (gripper-link iai-donbot :left ?link)
+  (<- (gripper-link :iai-donbot :left ?link)
     (bound ?link)
     (lisp-fun search "gripper_" ?link ?pos)
     (lisp-pred identity ?pos))
 
-  (<- (gripper-meter-to-joint-multiplier iai-donbot 1.0))
+  (<- (gripper-meter-to-joint-multiplier :iai-donbot 1.0))
 
-  (<- (standard-to-particular-gripper-transform iai-donbot ?transform)
+  (<- (standard-to-particular-gripper-transform :iai-donbot ?transform)
     (symbol-value *standard-to-donbot-gripper-transform* ?transform))
 
-  (<- (robot-joint-states iai-donbot :arm :left :carry ?joint-states)
+  (<- (robot-joint-states :iai-donbot :arm :left :carry ?joint-states)
     (symbol-value ;; *looking-forward-state*
      *parking-joint-state* ?joint-states))
-  (<- (robot-joint-states iai-donbot :arm :left :park ?joint-states)
+  (<- (robot-joint-states :iai-donbot :arm :left :park ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
-  (<- (robot-joint-states iai-donbot :arm :left :carry-top ?joint-states)
+  (<- (robot-joint-states :iai-donbot :arm :left :carry-top ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
-  (<- (robot-joint-states iai-donbot :arm :left :carry-side-gripper-vertical
+  (<- (robot-joint-states :iai-donbot :arm :left :carry-side-gripper-vertical
                           ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
 
-  (<- (tcp-in-ee-pose iai-donbot ?pose)
+  (<- (tcp-in-ee-pose :iai-donbot ?pose)
     (symbol-value *tcp-in-ee-pose* ?pose))
 
-  (<- (hand-links iai-donbot :left ("wrist_collision"
+  (<- (hand-links :iai-donbot :left ("wrist_collision"
                                     "gripper_base_link"
                                     "gripper_finger_left_link"
                                     "gripper_finger_right_link"
@@ -204,38 +204,42 @@
                                    camera-in-neck-ee-pose
                                    neck-camera-z-offset)
 
-  (<- (robot-neck-links iai-donbot . ?links)
-    (arm-links iai-donbot :left ?links))
+  (<- (robot-neck-links :iai-donbot . ?links)
+    (arm-links :iai-donbot :left ?links))
 
-  (<- (robot-neck-joints iai-donbot . ?joints)
-    (arm-joints iai-donbot :left ?joints))
+  (<- (robot-neck-joints :iai-donbot . ?joints)
+    (arm-joints :iai-donbot :left ?joints))
 
-  (<- (robot-neck-base-link iai-donbot "ur5_base_link"))
+  (<- (robot-neck-base-link :iai-donbot "ur5_base_link"))
 
-  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :away ?joint-states)
+  (<- (robot-joint-states :iai-donbot :neck ?there-is-only-one-neck
+                                      :away ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
 
-  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :forward ?joint-states)
+  (<- (robot-joint-states :iai-donbot :neck ?there-is-only-one-neck
+                                      :forward ?joint-states)
     (symbol-value *parking-joint-state* ?joint-states))
 
-  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :down ?joint-states)
+  (<- (robot-joint-states :iai-donbot :neck ?there-is-only-one-neck
+                                      :down ?joint-states)
     (symbol-value *looking-down-state* ?joint-states))
 
-  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :right ?joint-states)
+  (<- (robot-joint-states :iai-donbot :neck ?there-is-only-one-neck
+                                      :right ?joint-states)
     (symbol-value *looking-right-state* ?joint-states))
 
-  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :right-separators
-                          ?joint-states)
+  (<- (robot-joint-states :iai-donbot :neck ?there-is-only-one-neck
+                                      :right-separators ?joint-states)
     (symbol-value *looking-right-separators-state* ?joint-states))
 
-  (<- (robot-joint-states iai-donbot :neck ?there-is-only-one-neck :right-separators-preplace-state
-                          ?joint-states)
+  (<- (robot-joint-states :iai-donbot :neck ?there-is-only-one-neck
+                                      :right-separators-preplace-state ?joint-states)
     (symbol-value *looking-right-separators-preplace-state* ?joint-states))
 
-  (<- (camera-in-neck-ee-pose iai-donbot ?pose)
+  (<- (camera-in-neck-ee-pose :iai-donbot ?pose)
     (symbol-value *ee-p-camera* ?pose))
 
-  (<- (neck-camera-z-offset iai-donbot 0.6)))
+  (<- (neck-camera-z-offset :iai-donbot 0.6)))
 
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding
@@ -246,11 +250,11 @@
                                            costmap:orientation-sample-step
                                            costmap:reachability-orientation-offset
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding iai-donbot 0.5))
-  (<- (costmap:costmap-manipulation-padding iai-donbot 0.5))
-  (<- (costmap:costmap-in-reach-distance iai-donbot 1.05))
-  (<- (costmap:costmap-reach-minimal-distance iai-donbot 0.1))
-  (<- (costmap:orientation-samples iai-donbot 1))
-  (<- (costmap:orientation-sample-step iai-donbot 0.3))
-  (<- (costmap:reachability-orientation-offset iai-donbot 3.14))
-  (<- (costmap:visibility-costmap-size iai-donbot 2)))
+  (<- (costmap:costmap-padding :iai-donbot 0.5))
+  (<- (costmap:costmap-manipulation-padding :iai-donbot 0.5))
+  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.05))
+  (<- (costmap:costmap-reach-minimal-distance :iai-donbot 0.1))
+  (<- (costmap:orientation-samples :iai-donbot 1))
+  (<- (costmap:orientation-sample-step :iai-donbot 0.3))
+  (<- (costmap:reachability-orientation-offset :iai-donbot 3.14))
+  (<- (costmap:visibility-costmap-size :iai-donbot 2.0)))

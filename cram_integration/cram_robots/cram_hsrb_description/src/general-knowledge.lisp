@@ -30,7 +30,7 @@
 
 (in-package :hsrb-descr)
 
-(rob-int:set-robot-name 'hsrb)
+(rob-int:set-robot-name :hsrb)
 
 (def-fact-group hsrb-metadata (robot-odom-frame
                                robot-base-frame robot-torso-link-joint
@@ -40,19 +40,19 @@
                                robot-neck-links robot-neck-joints
                                robot-head-tilt-rotation-sign)
 
-  (<- (robot-odom-frame hsrb "odom"))
-  (<- (robot-base-frame hsrb "base_footprint"))
-  (<- (robot-torso-link-joint hsrb "arm_lift_link" "arm_lift_joint"))
+  (<- (robot-odom-frame :hsrb "odom"))
+  (<- (robot-base-frame :hsrb "base_footprint"))
+  (<- (robot-torso-link-joint :hsrb "arm_lift_link" "arm_lift_joint"))
 
-  (<- (camera-frame hsrb "head_center_camera_frame"))
-  (<- (camera-frame hsrb "head_rgbd_sensor_link"))
+  (<- (camera-frame :hsrb "head_center_camera_frame"))
+  (<- (camera-frame :hsrb "head_rgbd_sensor_link"))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
-  (<- (camera-horizontal-angle hsrb 0.99483))
-  (<- (camera-vertical-angle hsrb 0.75049))
+  (<- (camera-horizontal-angle :hsrb 0.99483))
+  (<- (camera-vertical-angle :hsrb 0.75049))
 
-  (<- (robot-neck-links hsrb "head_pan_link" "head_tilt_link"))
-  (<- (robot-neck-joints hsrb "head_pan_joint" "head_tilt_joint")))
+  (<- (robot-neck-links :hsrb "head_pan_link" "head_tilt_link"))
+  (<- (robot-neck-joints :hsrb "head_pan_joint" "head_tilt_joint")))
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding
                                            costmap:costmap-manipulation-padding
@@ -61,10 +61,10 @@
                                            costmap:orientation-samples
                                            costmap:orientation-sample-step
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding hsrb 0.2))
-  (<- (costmap:costmap-manipulation-padding hsrb 0.3))
-  (<- (costmap:costmap-in-reach-distance hsrb 0.7))
-  (<- (costmap:costmap-reach-minimal-distance hsrb 0.2))
-  (<- (costmap:orientation-samples hsrb 1))
-  (<- (costmap:orientation-sample-step hsrb 0.3))
-  (<- (costmap:visibility-costmap-size hsrb 2)))
+  (<- (costmap:costmap-padding :hsrb 0.2))
+  (<- (costmap:costmap-manipulation-padding :hsrb 0.3))
+  (<- (costmap:costmap-in-reach-distance :hsrb 0.7))
+  (<- (costmap:costmap-reach-minimal-distance :hsrb 0.2))
+  (<- (costmap:orientation-samples :hsrb 1))
+  (<- (costmap:orientation-sample-step :hsrb 0.3))
+  (<- (costmap:visibility-costmap-size :hsrb 2)))

@@ -66,39 +66,39 @@
                                 robot-joint-states
                                 tcp-in-ee-pose)
 
-  (<- (arm hsrb :left))
+  (<- (arm :hsrb :left))
 
-  (<- (end-effector-link hsrb :left "wrist_roll_link"))
+  (<- (end-effector-link :hsrb :left "wrist_roll_link"))
 
-  (<- (robot-tool-frame hsrb :left "gripper_tool_joint"))
+  (<- (robot-tool-frame :hsrb :left "gripper_tool_joint"))
 
-  (<- (arm-joints hsrb :left ("arm_flex_joint"
+  (<- (arm-joints :hsrb :left ("arm_flex_joint"
                               "arm_roll_joint"
                               "wrist_flex_joint"
                               "wrist_roll_joint")))
 
-  (<- (arm-links hsrb :left ("arm_flex_link"
+  (<- (arm-links :hsrb :left ("arm_flex_link"
                              "arm_roll_link"
                              "wrist_flex_link"
                              "wrist_roll_link")))
 
-  (<- (gripper-joint hsrb :left "hand_motor_joint"))
+  (<- (gripper-joint :hsrb :left "hand_motor_joint"))
 
-  (<- (gripper-link hsrb :left ?link)
+  (<- (gripper-link :hsrb :left ?link)
     (bound ?link)
     (lisp-fun search "hand" ?link ?pos)
     (lisp-pred identity ?pos))
 
-  (<- (gripper-meter-to-joint-multiplier hsrb 1.0))
+  (<- (gripper-meter-to-joint-multiplier :hsrb 1.0))
 
-  (<- (standard-to-particular-gripper-transform hsrb ?transform)
+  (<- (standard-to-particular-gripper-transform :hsrb ?transform)
     (symbol-value *standard-to-hsrb-gripper-transform* ?transform))
 
-  (<- (robot-joint-states hsrb :arm :left :park ?joint-states)
+  (<- (robot-joint-states :hsrb :arm :left :park ?joint-states)
     (symbol-value *left-parking-joint-states* ?joint-states))
 
-  (<- (robot-joint-states hsrb :arm :left :carry ?joint-states)
+  (<- (robot-joint-states :hsrb :arm :left :carry ?joint-states)
     (symbol-value *left-parking-joint-states* ?joint-states))
 
-  (<- (tcp-in-ee-pose hsrb ?pose)
+  (<- (tcp-in-ee-pose :hsrb ?pose)
     (symbol-value *tcp-in-ee-pose* ?pose)))

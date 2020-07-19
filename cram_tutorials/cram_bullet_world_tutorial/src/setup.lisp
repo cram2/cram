@@ -38,10 +38,10 @@
     (<- (costmap:costmap-origin :environment -6 -6))
     (<- (costmap:costmap-resolution :environment 0.05))
 
-    (<- (costmap:costmap-padding cram-pr2-description:pr2 0.2))
-    (<- (costmap:costmap-manipulation-padding cram-pr2-description:pr2 0.2))
-    (<- (costmap:costmap-in-reach-distance cram-pr2-description:pr2 0.6))
-    (<- (costmap:costmap-reach-minimal-distance cram-pr2-description:pr2 0.2)))
+    (<- (costmap:costmap-padding :pr2 0.2))
+    (<- (costmap:costmap-manipulation-padding :pr2 0.2))
+    (<- (costmap:costmap-in-reach-distance :pr2 0.6))
+    (<- (costmap:costmap-reach-minimal-distance :pr2 0.2)))
 
   (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")

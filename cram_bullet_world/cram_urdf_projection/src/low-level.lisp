@@ -1064,7 +1064,7 @@ collision by moving its torso and base"
           ;; TODO: the LET is a temporary hack until we get a relay running
           ;; for PR2 such that both arms IKs go over the same ROS service
           (let ((ik::*ik-service-name*
-                  (if (string-equal (symbol-name ?robot) "PR2")
+                  (if (eql ?robot :pr2)
                       "pr2_left_arm_kinematics/get_ik"
                       "kdl_ik_service/get_ik")))
             (get-ik-joint-positions
@@ -1075,7 +1075,7 @@ collision by moving its torso and base"
              validation-function))
         (multiple-value-bind (right-ik right-torso-angle right-base-pose)
             (let ((ik::*ik-service-name*
-                    (if (string-equal (symbol-name ?robot) "PR2")
+                    (if (eql ?robot :pr2)
                         "pr2_right_arm_kinematics/get_ik"
                         "kdl_ik_service/get_ik")))
               (get-ik-joint-positions

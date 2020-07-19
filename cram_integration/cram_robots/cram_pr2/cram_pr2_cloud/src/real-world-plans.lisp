@@ -68,16 +68,17 @@
        (desig:a motion (type moving-tcp) (left-pose ?pose))))))
 
 (defun move-projected-pr2-away ()
-  (btr-utils:move-object 'cram-pr2-description:pr2
-                         (cl-transforms:make-pose
-                          (cl-transforms:make-3d-vector 0 0 0)
-                          (cl-transforms:make-identity-rotation))))
+  (btr-utils:move-object
+   :pr2
+   (cl-transforms:make-pose
+    (cl-transforms:make-3d-vector 0 0 0)
+    (cl-transforms:make-identity-rotation))))
 
 (defun environment-articulation-plan (&key (projected-or-original :original)
                                         (location-designator))
   (let* ((?handle-pose (strip-transform-stamped (local-handle-transform)))
          (?arm (kr-cloud::arm-used-in-action "OpenFridge"))
-         (?robot 'cram-pr2-description:pr2)
+         (?robot :pr2)
          (?location-for-robot (or location-designator
                                   (desig:a location
                                            (my-reachable-for ?robot)

@@ -91,10 +91,10 @@
      ?cm)))
 
 (defun pose-to-reach-fridge ()
-  (let ((?transform-to-reach (cram-tf:strip-transform-stamped (local-handle-transform)))
-        (?robot 'cram-pr2-description:pr2))
+  (let ((?transform-to-reach
+          (cram-tf:strip-transform-stamped (local-handle-transform))))
     (desig:reference (desig:a location
-                              (my-reachable-for ?robot)
+                              (my-reachable-for pr2)
                               (location (desig:a location (pose ?transform-to-reach)))
                               (context "OpenFridge")))))
 
