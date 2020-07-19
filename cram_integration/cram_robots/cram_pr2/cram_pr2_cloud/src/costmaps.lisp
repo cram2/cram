@@ -77,8 +77,9 @@
     ;; (desig:current-designator ?location ?current-location-designator)
     ;; (once (desig:designator-groundings ?current-location-designator ?poses)
     ;;       (member ?to-reach-pose ?poses))
-    (location-costmap:costmap ?cm)
-    (location-costmap:costmap-resolution ?x)
+    (man-int:environment-name ?environment-name)
+    (costmap:costmap ?cm)
+    (costmap:costmap-resolution ?environment-name ?x)
     (lisp-fun local-handle-to-robot-transform-distribution (?mean-transform ?covariance))
     (lisp-fun cl-transforms:translation ?mean-transform ?mean)
     (location-costmap:costmap-add-function
@@ -90,10 +91,10 @@
      ?cm)))
 
 (defun pose-to-reach-fridge ()
-  (let ((?transform-to-reach (cram-tf:strip-transform-stamped (local-handle-transform)))
-        (?robot 'cram-pr2-description:pr2))
+  (let ((?transform-to-reach
+          (cram-tf:strip-transform-stamped (local-handle-transform))))
     (desig:reference (desig:a location
-                              (my-reachable-for ?robot)
+                              (my-reachable-for pr2)
                               (location (desig:a location (pose ?transform-to-reach)))
                               (context "OpenFridge")))))
 

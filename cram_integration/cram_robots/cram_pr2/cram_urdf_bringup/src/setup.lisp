@@ -30,28 +30,27 @@
 (in-package :demo)
 
 (defvar *kitchen-urdf* nil)
-(defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
 
 (defun setup-bullet-world ()
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
 
-  (let* ((robot-urdf (substitute #\SPACE #\` (roslisp:get-param *robot-parameter*)))
-         (robot (or rob-int:*robot-urdf*
-                    (setf rob-int:*robot-urdf*
-                          (cl-urdf:parse-urdf robot-urdf))))
-        (kitchen (or *kitchen-urdf*
-                     (let ((kitchen-urdf-string
-                             (roslisp:get-param *kitchen-parameter* nil)))
-                       (when kitchen-urdf-string
-                         (setf *kitchen-urdf* (cl-urdf:parse-urdf
-                                               kitchen-urdf-string)))))))
+  (let* ((robot-urdf (substitute #\SPACE #\`
+                                 (roslisp:get-param
+                                  rob-int:*robot-description-parameter*)))
+         (robot (setf rob-int:*robot-urdf*
+                      (cl-urdf:parse-urdf robot-urdf)))
+         (kitchen (let ((kitchen-urdf-string
+                          (roslisp:get-param *kitchen-parameter* nil)))
+                    (when kitchen-urdf-string
+                      (setf *kitchen-urdf* (cl-urdf:parse-urdf
+                                            kitchen-urdf-string))))))
 
     (if (search "hsrb" robot-urdf)
         (setf robot (get-urdf-hsrb))
-        (when (search "boxy" robot-urdf )
+        (when (search "boxy" robot-urdf)
           (get-setup-boxy)))
-        
+
     (assert
      (cut:force-ll
       (prolog `(and
@@ -77,17 +76,18 @@
 
 (defun init-projection ()
   (def-fact-group costmap-metadata ()
+    ;; TODO: these require an environment name as the first parameter
     (<- (location-costmap:costmap-size 12 12))
     (<- (location-costmap:costmap-origin -6 -6))
     (<- (location-costmap:costmap-resolution 0.05))
-
+    ;; TODO: these require a robot name as the first parameter
     (<- (location-costmap:costmap-padding 0.5))
     (<- (location-costmap:costmap-manipulation-padding 0.2))
     (<- (location-costmap:costmap-in-reach-distance 0.7))
     (<- (location-costmap:costmap-reach-minimal-distance 0.2))
     (<- (location-costmap:visibility-costmap-size 2.5)))
-  
-  (setf cram-tf:*tf-broadcasting-enabled* t)	
+
+  (setf cram-tf:*tf-broadcasting-enabled* t)
 
   (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 

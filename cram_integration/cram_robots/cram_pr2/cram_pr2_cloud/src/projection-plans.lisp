@@ -92,7 +92,7 @@
                               cram-tf:*fixed-frame*
                               cram-tf:*robot-base-frame*
                               0.0
-                              (btr:object-pose 'cram-pr2-description:pr2))))
+                              (btr:object-pose :pr2))))
     (mapcar (lambda (local-map-to-gripper)
               (apply-transform (cram-tf:transform-stamped-inv local-map-to-robot)
                                local-map-to-gripper))

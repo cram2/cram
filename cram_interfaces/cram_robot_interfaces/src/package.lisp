@@ -32,6 +32,13 @@
   (:use #:common-lisp #:cram-prolog #:cram-designators)
   (:nicknames #:rob-int)
   (:export
+   ;; robot
+   #:set-robot-name
+   #:robot #:robot-base-frame #:robot-odom-frame #:robot-torso-link-joint
+   #:current-robot-symbol #:current-robot-package #:current-robot-name
+   #:robot-joint-states
+   #:robot-pose
+   #:arms #:arms-that-are-not-neck
    ;; arms
    #:arm #:required-arms #:available-arms
    #:arm-joints #:arm-links #:arm-base-joints #:arm-base-links #:arm-tool-joints
@@ -51,16 +58,10 @@
    #:neck #:robot-neck-links #:robot-neck-joints #:robot-neck-base-link
    #:camera-in-neck-ee-pose
    #:neck-camera-z-offset
-   ;; robot
-   #:robot #:robot-base-frame #:robot-odom-frame #:robot-torso-link-joint
-   #:current-robot-symbol #:current-robot-package #:current-robot-name
-   #:robot-joint-states
-   #:robot-pose
-   #:arms #:arms-that-are-not-neck
    ;; trajectories
    #:trajectory-point
    ;; urdf
-   #:*robot-urdf*
+   #:*robot-description-parameter* #:*robot-urdf*
    #:get-joint-type #:get-joint-lower-limit #:get-joint-upper-limit
    #:get-joint-axis #:get-joint-origin #:get-joint-parent #:get-joint-child
    #:joint-lower-limit #:joint-upper-limit #:joint-type #:joint-axis #:joint-origin

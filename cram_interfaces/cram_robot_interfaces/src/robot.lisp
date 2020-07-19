@@ -1,19 +1,19 @@
 ;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -28,12 +28,22 @@
 
 (in-package :cram-robot-interfaces)
 
+(defvar *robot-name* nil
+  "Variable that stores the name of the current robot,
+so the robot whose brain this is.")
+
+(defun set-robot-name (new-name)
+  (setf *robot-name* new-name))
+
 (def-fact-group robot (robot
                        robot-base-frame robot-odom-frame
                        robot-torso-link-joint
                        robot-joint-states robot-pose)
   (<- (robot ?robot-name)
-    (fail))
+    (symbol-value *robot-name* ?robot-name)
+    (once (or (lisp-pred identity ?robot-name)
+              (lisp-pred error "[rob-int] Variable *ROBOT-NAME* is NIL.~%~
+                                Have you loaded a robot description package?"))))
 
   (<- (robot-base-frame ?robot-name ?base-frame)
     (fail))
@@ -55,12 +65,12 @@
 
 (def-fact-group utils (arms arms-that-are-not-neck)
   (<- (arms ?robot-name ?arms)
-    (once (or (setof ?arm (rob-int:arm ?robot ?arm) ?arms)
+    (once (or (setof ?arm (rob-int:arm ?robot-name ?arm) ?arms)
               (equal ?arms NIL))))
 
   (<- (arms-that-are-not-neck ?robot-name ?arms)
-    (once (or (setof ?arm (and (rob-int:arm ?robot ?arm)
-                               (not (rob-int:neck ?robot ?arm)))
+    (once (or (setof ?arm (and (rob-int:arm ?robot-name ?arm)
+                               (not (rob-int:neck ?robot-name ?arm)))
                      ?arms)
               (equal ?arms NIL)))))
 

@@ -31,76 +31,10 @@
 
 ;; roslaunch cram_boxy_assembly_demo sandbox.launch
 
-(defvar *kitchen-urdf* nil)
-(defparameter *robot-parameter* "robot_description")
-(defparameter *kitchen-parameter* "kitchen_description")
-
-(defun setup-bullet-world ()
-  (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-
-  (let ((robot (or rob-int:*robot-urdf*
-                   (setf rob-int:*robot-urdf*
-                         (cl-urdf:parse-urdf
-                          (roslisp:get-param *robot-parameter*)))))
-        (kitchen (or *kitchen-urdf*
-                     (let ((kitchen-urdf-string
-                             (roslisp:get-param *kitchen-parameter* nil)))
-                       (when kitchen-urdf-string
-                         (setf *kitchen-urdf* (cl-urdf:parse-urdf
-                                               kitchen-urdf-string)))))))
-    ;; set Boxy URDF root link to be base_footprint not odom,
-    ;; as with odom lots of problems concerning object-pose in bullet happen
-    (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
-          (or (gethash cram-tf:*robot-base-frame*
-                       (cl-urdf:links rob-int:*robot-urdf*))
-              (error "[setup-bullet-world] cram-tf:*robot-base-frame* was undefined or smt.")))
-    ;; get rid of Boxy's camera obstacle thing, it's bad for visibility reasoning
-    ;; it's an annoying hack anyway...
-    ;; (setf (slot-value
-    ;;        (gethash "neck_obstacle"
-    ;;                 (cl-urdf:links rob-int:*robot-urdf*))
-    ;;        'cl-urdf:collision)
-    ;;       NIL)
-    ;; (setf (slot-value
-    ;;        (gethash "neck_look_target"
-    ;;                 (cl-urdf:links rob-int:*robot-urdf*))
-    ;;        'cl-urdf:collision)
-    ;;       NIL)
-
-    (assert
-     (cut:force-ll
-      (prolog `(and
-                (btr:bullet-world ?w)
-                (btr:debug-window ?w)
-                (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
-                                                         :normal (0 0 1) :constant 0))
-                (-> (man-int:environment-name ?environment-name)
-                    (btr:assert ?w (btr:object :urdf ?environment-name
-                                               ((0 0 0) (0 0 0 1))
-                                               :collision-group :static-filter
-                                               :collision-mask (:default-filter
-                                                                :character-filter)
-                                               ,@(when kitchen
-                                                   `(:urdf ,kitchen))
-                                               :compound T))
-                    (warn "MAN-INT:ENVIRONMENT-NAME was not defined. ~
-                           Have you loaded an environment knowledge package?"))
-                (-> (rob-int:robot ?robot)
-                    (btr:assert ?w (btr:object :urdf ?robot
-                                               ((0 0 0) (0 0 0 1))
-                                               :urdf ,robot))
-                    (warn "ROB-INT:ROBOT was not defined. ~
-                           Have you loaded a robot package?")))))))
-
-  (let ((robot-object (btr:get-robot-object)))
-    (if robot-object
-        (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
-        (warn "ROBOT was not defined. Have you loaded a robot package?"))))
-
 (defun init-projection ()
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
 
-  (setup-bullet-world)
+  (btr-belief:setup-world-database)
 
   (setf cram-tf:*tf-default-timeout* 2.0)
 

@@ -178,10 +178,7 @@
   (unless cram-projection:*projection-environment*
     (json-prolog:prolog-simple "rdf_retractall(A,B,C,belief_state).")
     ;; (cram-occasions-events:clear-belief) ; to clear giskard environment
-    )
-
-  ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
-  )
+    ))
 
 (defun finalize ()
   ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
