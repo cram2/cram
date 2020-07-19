@@ -29,8 +29,6 @@
 
 (in-package :donbot-descr)
 
-(rob-int:set-robot-name :iai-donbot)
-
 (defparameter *tcp-in-ee-pose*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector 0 0 0.2581d0)

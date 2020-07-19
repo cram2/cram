@@ -28,8 +28,6 @@
 
 (in-package :cram-pr2-description)
 
-(rob-int:set-robot-name :pr2)
-
 (defparameter *forward-looking-position-in-base-frame*
   (cl-transforms:make-3d-vector 10.0 0.0 1.5))
 
