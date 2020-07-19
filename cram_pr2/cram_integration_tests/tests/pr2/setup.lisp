@@ -32,7 +32,6 @@
 ;; roslaunch cram_integration_tests pr2.launch
 
 (defun init-projection ()
-  (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
 
   (cram-occasions-events:clear-belief)

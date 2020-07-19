@@ -43,7 +43,6 @@
     (<- (costmap:costmap-in-reach-distance :pr2 0.6))
     (<- (costmap:costmap-reach-minimal-distance :pr2 0.2)))
 
-  (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
 
   ;; (sem-map:get-semantic-map)

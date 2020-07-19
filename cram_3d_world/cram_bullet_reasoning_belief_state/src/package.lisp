@@ -42,8 +42,7 @@
    ;; occasions
    #:object-designator-name
    ;; belief-state
-   #:*kitchen-urdf*
-   #:*robot-parameter* #:*kitchen-parameter*
+   #:*kitchen-urdf* #:*kitchen-parameter*
    #:*spawn-debug-window*
    #:setup-world-database
    #:vary-kitchen-urdf
