@@ -31,6 +31,7 @@
 
 (defun make-restricted-area-cost-function ()
   (lambda (x y)
+    (declare (ignore y))
     (if (> x -1.2)
         0.0
         1.0)))
