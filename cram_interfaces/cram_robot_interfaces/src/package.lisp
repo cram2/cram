@@ -61,7 +61,7 @@
    ;; trajectories
    #:trajectory-point
    ;; urdf
-   #:*robot-urdf*
+   #:*robot-description-parameter* #:*robot-urdf*
    #:get-joint-type #:get-joint-lower-limit #:get-joint-upper-limit
    #:get-joint-axis #:get-joint-origin #:get-joint-parent #:get-joint-child
    #:joint-lower-limit #:joint-upper-limit #:joint-type #:joint-axis #:joint-origin

@@ -1,19 +1,19 @@
 ;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -52,6 +52,8 @@ is replaced with replacement.
 
 (defun average (min max) (+ min (/ (- max min) 2)))
 (defun setup-world-database ()
+  (setf rob-int:*robot-urdf* nil)
+  (setf *kitchen-urdf* nil)
   (let ((robot (or rob-int:*robot-urdf*
                    (setf rob-int:*robot-urdf*
                          (cl-urdf:parse-urdf
@@ -64,11 +66,13 @@ is replaced with replacement.
                          (setf *kitchen-urdf* (cl-urdf:parse-urdf
                                                kitchen-urdf-string)))))))
 
-    ;; set robot's URDF root link to *robot-base-frame* as that's how going actions works
+    ;; set robot's URDF root link to *robot-base-frame*
+    ;; because that's required for going actions
     (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
           (or (gethash cram-tf:*robot-base-frame*
                        (cl-urdf:links rob-int:*robot-urdf*))
-              (error "[setup-bullet-world] cram-tf:*robot-base-frame* was undefined or smt.")))
+              (error "[setup-bullet-world] cram-tf:*robot-base-frame* ~
+                      was undefined or smt.")))
 
     (assert
      (cut:force-ll

@@ -29,8 +29,6 @@
 
 (in-package :boxy-descr)
 
-(rob-int:set-robot-name :boxy)
-
 (def-fact-group boxy-metadata (robot-odom-frame
                                robot-base-frame
                                robot-torso-link-joint)

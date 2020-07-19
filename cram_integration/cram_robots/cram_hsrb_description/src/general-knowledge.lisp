@@ -30,8 +30,6 @@
 
 (in-package :hsrb-descr)
 
-(rob-int:set-robot-name :hsrb)
-
 (def-fact-group hsrb-metadata (robot-odom-frame
                                robot-base-frame robot-torso-link-joint
                                arm
