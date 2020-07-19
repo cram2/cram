@@ -74,6 +74,26 @@ is replaced with replacement.
               (error "[setup-bullet-world] cram-tf:*robot-base-frame* ~
                       was undefined or smt.")))
 
+    ;; if root link doesn't have a collision geometry, create a 1 mm box
+    (unless (cl-urdf:collision (cl-urdf:root-link robot))
+      (with-slots (cl-urdf:collision)
+          (cl-urdf:root-link robot)
+        (setf cl-urdf:collision
+              (let* ((origin-transform
+                       (cl-transforms:make-transform
+                        (cl-transforms:make-3d-vector 0 0 0.001)
+                        (cl-transforms:make-identity-rotation)))
+                     (box-geometry
+                       (make-instance
+                           'cl-urdf:box
+                         :size (cl-transforms:make-3d-vector 0.001 0.001 0.001)))
+                     (collision
+                       (make-instance
+                           'cl-urdf:collision
+                         :geometry box-geometry
+                         :origin origin-transform)))
+                collision))))
+
     (assert
      (cut:force-ll
       (prolog `(and
