@@ -237,7 +237,8 @@
         (desig:desig-prop ?object-designator (:type :environment))
         (and (rob-int:robot ?robot)
              (desig:desig-prop ?object-designator (:part-of ?robot)))
-        (desig:desig-prop ?object-designator (:part-of :environment))))
+        (and (rob-int:environment-name ?environment)
+             (desig:desig-prop ?object-designator (:part-of ?environment)))))
 
   (<- (object-is-a-container ?some-object-designator)
     (desig:current-designator ?some-object-designator ?object-designator)

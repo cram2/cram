@@ -275,7 +275,7 @@
                                                (on (desig:an object
                                                              (type counter-top)
                                                              (urdf-name sink-area-surface)
-                                                             (part-of kitchen)))
+                                                             (part-of iai-kitchen)))
                                                (side front)))))))
 
            (experiment-log-finish-object-transport-successful type))

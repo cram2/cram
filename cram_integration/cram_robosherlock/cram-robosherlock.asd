@@ -42,7 +42,6 @@
                cram-designators
                cram-process-modules
                cram-prolog
-               cram-manipulation-interfaces
                cram-common-designators
                cram-simple-actionlib-client
                ;; robosherlock_msgs-srv

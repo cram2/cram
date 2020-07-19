@@ -66,27 +66,24 @@
             name-to-pose)))
 
 (defun spawn-kitchen ()
-  (let ((kitchen (or btr-belief:*kitchen-urdf*
-                     (let ((kitchen-urdf-string
-                             (roslisp:get-param btr-belief:*kitchen-parameter* nil)))
-                       (when kitchen-urdf-string
-                         (setf btr-belief:*kitchen-urdf*
-                               (cl-urdf:parse-urdf kitchen-urdf-string)))))))
-    (assert
-     (cut:force-ll
-      (prolog `(and
-                (btr:bullet-world ?w)
-                (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                                 :collision-group :static-filter
-                                                 :collision-mask (:default-filter
-                                                                  :character-filter)
-                                           ,@(when kitchen
-                                               `(:urdf ,kitchen))
-                                           :compound T))))))))
+  (let ((kitchen-urdf-string
+          (roslisp:get-param rob-int:*environment-description-parameter* nil)))
+    (when kitchen-urdf-string
+      (setf rob-int:*environment-urdf*
+            (cl-urdf:parse-urdf kitchen-urdf-string))))
+  (assert
+   (cut:force-ll
+    (prolog `(and
+              (btr:bullet-world ?w)
+              (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
+                                               :collision-group :static-filter
+                                               :collision-mask (:default-filter
+                                                                :character-filter)
+                                         ,@(when rob-int:*environment-urdf*
+                                             `(:urdf ,rob-int:*environment-urdf*))
+                                         :compound T)))))))
 
 (defun init-projection ()
-  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
-
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
   (let ((robot (setf rob-int:*robot-urdf*
                      (cl-urdf:parse-urdf

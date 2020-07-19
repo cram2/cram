@@ -29,9 +29,6 @@
 
 (in-package :demo)
 
-(defvar *kitchen-urdf* nil)
-(defparameter *kitchen-parameter* "kitchen_description")
-
 (defun setup-bullet-world ()
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
 
@@ -41,10 +38,12 @@
          (robot (setf rob-int:*robot-urdf*
                       (cl-urdf:parse-urdf robot-urdf)))
          (kitchen (let ((kitchen-urdf-string
-                          (roslisp:get-param *kitchen-parameter* nil)))
+                          (roslisp:get-param
+                           rob-int:*environment-description-parameter*
+                           nil)))
                     (when kitchen-urdf-string
-                      (setf *kitchen-urdf* (cl-urdf:parse-urdf
-                                            kitchen-urdf-string))))))
+                      (setf rob-int:*environment-urdf*
+                            (cl-urdf:parse-urdf kitchen-urdf-string))))))
 
     (if (search "hsrb" robot-urdf)
         (setf robot (get-urdf-hsrb))

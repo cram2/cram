@@ -227,7 +227,7 @@
            (an object
                (type drawer)
                (urdf-name sink-area-left-upper-drawer-main)
-               (part-of environment)))
+               (part-of iai-kitchen)))
          (?goal
            `(cpoe:container-state ,?container :open))
          (the-action
@@ -253,7 +253,7 @@
            (an object
                (type drawer)
                (urdf-name sink-area-left-upper-drawer-main)
-               (part-of environment)))
+               (part-of iai-kitchen)))
          (?goal
            `(cpoe:container-state ,?container :closed))
          (the-action
@@ -267,7 +267,7 @@
     (urdf-proj:with-simulated-robot
       (btr:set-robot-state-from-joints
        `((,"sink_area_left_upper_drawer_main_joint" ,0.4))
-       (btr:object btr:*current-bullet-world* :environment))
+       (btr:get-environment-object))
       (btr-utils:move-robot '((.5 .4 0) (0 0 0 1)))
       (perform the-action)
       (setf executed-motions-initially? (executed-motions?))

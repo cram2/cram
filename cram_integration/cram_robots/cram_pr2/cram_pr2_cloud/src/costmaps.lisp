@@ -77,7 +77,7 @@
     ;; (desig:current-designator ?location ?current-location-designator)
     ;; (once (desig:designator-groundings ?current-location-designator ?poses)
     ;;       (member ?to-reach-pose ?poses))
-    (man-int:environment-name ?environment-name)
+    (rob-int:environment-name ?environment-name)
     (costmap:costmap ?cm)
     (costmap:costmap-resolution ?environment-name ?x)
     (lisp-fun local-handle-to-robot-transform-distribution (?mean-transform ?covariance))

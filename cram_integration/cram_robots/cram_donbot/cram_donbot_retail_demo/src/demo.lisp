@@ -44,7 +44,7 @@
       (giskard::call-giskard-environment-service
        :add-environment
        :name (roslisp-utilities:rosify-underscores-lisp-name
-              (man-int:current-environment-symbol))
+              (rob-int:get-environment-name))
        :pose (cl-transforms-stamped:pose->pose-stamped
               cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
        :joint-state-topic "kitchen/joint_states")))
@@ -71,13 +71,15 @@
 (defun demo ()
   (spawn-objects-on-small-shelf)
 
-  (let* ((?search-location
+  (let* ((?environment-name
+           (rob-int:get-environment-name))
+         (?search-location
            (desig:a location
                     (on (desig:an object
                                   (type shelf)
                                   (urdf-name shelf-2-base)
                                   (owl-name "shelf_system_verhuetung")
-                                  (part-of environment)
+                                  (part-of ?environment-name)
                                   (level middle)))
                     (side left)))
          (?object
@@ -88,18 +90,18 @@
            (desig:a location
                     (on (desig:an object
                                   (type environment)
-                                  (name environment)
-                                  (part-of environment)
+                                  (name ?environment-name)
+                                  (part-of ?environment-name)
                                   (urdf-name shelf-1-level-2-link)))
                     (for ?object)
                     (attachments (donbot-shelf-1-front donbot-shelf-1-back))))
-         (?robot-name (btr:get-robot-name))
+         (?robot-name (rob-int:get-robot-name))
          (?intermediate-locaiton-robot
            (desig:a location
                     (on (desig:an object
                                   (type robot)
                                   (name ?robot-name)
-                                  (part-of ?robot-name)
+                                  (part-of ?environment-name)
                                   ;; (owl-name "donbot_tray")
                                   (urdf-name plate)))
                     (for ?object)
@@ -277,7 +279,7 @@
         (exe:perform picking-up-action))
 
       ;; placing on the back
-      (let* ((?robot-name (btr:get-robot-name))
+      (let* ((?robot-name (rob-int:get-robot-name))
              (?robot-link-name "plate")
              (?pose-in-map (cram-tf:frame-to-pose-in-fixed-frame ?robot-link-name))
              (?transform-in-map (cram-tf:pose-stamped->transform-stamped
@@ -361,7 +363,7 @@
 
       ;; ;; reperceive object
       ;; (let* ((?robot-name
-      ;;          (btr:get-robot-name)))
+      ;;          (rob-int:get-robot-name)))
       ;;   (setf ?object
       ;;         (perform
       ;;          (an action
@@ -496,7 +498,7 @@
         (exe:perform picking-up-action)))
 
     ;; placing on the back
-    (let* ((?robot-name (btr:get-robot-name))
+    (let* ((?robot-name (rob-int:get-robot-name))
            (?robot-link-name "plate")
            (?pose-in-map (cram-tf:frame-to-pose-in-fixed-frame ?robot-link-name))
            (?transform-in-map (cram-tf:pose-stamped->transform-stamped
@@ -575,7 +577,7 @@
 
   ;; pick up from the tray
   (let* ((?robot-name
-           (btr:get-robot-name)) 
+           (rob-int:get-robot-name))
          (?obj
            (perform
             (an action

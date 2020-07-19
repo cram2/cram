@@ -93,7 +93,7 @@
                     (world-T-shelf (cl-transforms:pose->transform
                                     (btr:pose
                                      (btr:rigid-body
-                                      (btr:object btr:*current-bullet-world* :environment)
+                                      (btr:get-environment-object)
                                       (nth i levels))))))
                ;; Loop for the objects
                (loop for j from 0 to (- (length level-poses) 1)
@@ -169,7 +169,7 @@
            (roslisp:get-param "shelf_description"))))
     (prolog:prolog
      `(and (btr:bullet-world ?world)
-           (man-int:environment-name ?environment-name)
+           (rob-int:environment-name ?environment-name)
            (assert (btr:object ?world :urdf ?environment-name ((0 0 0) (0 0 0 1))
                                :urdf ,shelve-urdf
                                :collision-group :static-filter
