@@ -38,21 +38,19 @@
   (let* ((robot-urdf (substitute #\SPACE #\`
                                  (roslisp:get-param
                                   rob-int:*robot-description-parameter*)))
-         (robot (or rob-int:*robot-urdf*
-                    (setf rob-int:*robot-urdf*
-                          (cl-urdf:parse-urdf robot-urdf))))
-        (kitchen (or *kitchen-urdf*
-                     (let ((kitchen-urdf-string
-                             (roslisp:get-param *kitchen-parameter* nil)))
-                       (when kitchen-urdf-string
-                         (setf *kitchen-urdf* (cl-urdf:parse-urdf
-                                               kitchen-urdf-string)))))))
+         (robot (setf rob-int:*robot-urdf*
+                      (cl-urdf:parse-urdf robot-urdf)))
+         (kitchen (let ((kitchen-urdf-string
+                          (roslisp:get-param *kitchen-parameter* nil)))
+                    (when kitchen-urdf-string
+                      (setf *kitchen-urdf* (cl-urdf:parse-urdf
+                                            kitchen-urdf-string))))))
 
     (if (search "hsrb" robot-urdf)
         (setf robot (get-urdf-hsrb))
-        (when (search "boxy" robot-urdf )
+        (when (search "boxy" robot-urdf)
           (get-setup-boxy)))
-        
+
     (assert
      (cut:force-ll
       (prolog `(and

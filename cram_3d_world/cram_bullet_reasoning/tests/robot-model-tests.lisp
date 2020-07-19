@@ -31,7 +31,8 @@
 
 (defun setup-world ()
   (setf rob-int:*robot-urdf*
-        (cl-urdf:parse-urdf (roslisp:get-param "robot_description")))
+        (cl-urdf:parse-urdf
+         (roslisp:get-param rob-int:*robot-description-parameter*)))
   (prolog:prolog
    `(and (btr:bullet-world ?world)
          (rob-int:robot ?robot)

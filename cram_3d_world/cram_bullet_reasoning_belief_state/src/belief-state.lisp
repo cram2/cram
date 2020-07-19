@@ -51,97 +51,100 @@ is replaced with replacement.
 
 (defun average (min max) (+ min (/ (- max min) 2)))
 (defun setup-world-database ()
-  (setf rob-int:*robot-urdf* nil)
-  (setf *kitchen-urdf* nil)
-  (let ((robot (or rob-int:*robot-urdf*
-                   (setf rob-int:*robot-urdf*
-                         (cl-urdf:parse-urdf
-                          (replace-all
-                           (roslisp:get-param rob-int:*robot-description-parameter*)
-                           "\\" "  ")))))
-        ;; TODO get rid of replace-all and instead fix the URDF of our real PR2
-        (kitchen (or *kitchen-urdf*
-                     (let ((kitchen-urdf-string
-                             (roslisp:get-param *kitchen-parameter* nil)))
-                       (when kitchen-urdf-string
-                         (setf *kitchen-urdf* (cl-urdf:parse-urdf
-                                               kitchen-urdf-string)))))))
+  ;; make a clean world instance
+  (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
 
-    ;; set robot's URDF root link to *robot-base-frame*
-    ;; because that's required for going actions
-    (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
-          (or (gethash cram-tf:*robot-base-frame*
-                       (cl-urdf:links rob-int:*robot-urdf*))
-              (error "[setup-bullet-world] cram-tf:*robot-base-frame* ~
+  ;; get the environment URDF from the ROS parameter server
+  (let ((kitchen-urdf-string (roslisp:get-param *kitchen-parameter* nil)))
+    (when kitchen-urdf-string
+      (setf *kitchen-urdf* (cl-urdf:parse-urdf kitchen-urdf-string))))
+
+  ;; get the robot URDF from the ROS parameter server
+  ;; TODO get rid of replace-all and instead fix the URDF of our real PR2
+  (setf rob-int:*robot-urdf*
+        (cl-urdf:parse-urdf
+         (replace-all
+          (roslisp:get-param rob-int:*robot-description-parameter*)
+          "\\" "  ")))
+
+  ;; set robot's URDF root link to *robot-base-frame*, not odom
+  ;; because that's required for going actions
+  ;; otherwise lots of problems concerning object-pose in bullet happen
+  (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
+        (or (gethash cram-tf:*robot-base-frame*
+                     (cl-urdf:links rob-int:*robot-urdf*))
+            (error "[setup-bullet-world] cram-tf:*robot-base-frame* ~
                       was undefined or smt.")))
 
-    ;; if root link doesn't have a collision geometry, create a 1 mm box
-    (unless (cl-urdf:collision (cl-urdf:root-link robot))
-      (with-slots (cl-urdf:collision)
-          (cl-urdf:root-link robot)
-        (setf cl-urdf:collision
-              (let* ((origin-transform
-                       (cl-transforms:make-transform
-                        (cl-transforms:make-3d-vector 0 0 0.001)
-                        (cl-transforms:make-identity-rotation)))
-                     (box-geometry
-                       (make-instance
-                           'cl-urdf:box
-                         :size (cl-transforms:make-3d-vector 0.001 0.001 0.001)))
-                     (collision
-                       (make-instance
-                           'cl-urdf:collision
-                         :geometry box-geometry
-                         :origin origin-transform)))
-                collision))))
+  ;; if root link doesn't have a collision geometry, create a 1 mm box
+  (unless (cl-urdf:collision (cl-urdf:root-link rob-int:*robot-urdf*))
+    (with-slots (cl-urdf:collision)
+        (cl-urdf:root-link rob-int:*robot-urdf*)
+      (setf cl-urdf:collision
+            (let* ((origin-transform
+                     (cl-transforms:make-transform
+                      (cl-transforms:make-3d-vector 0 0 0.001)
+                      (cl-transforms:make-identity-rotation)))
+                   (box-geometry
+                     (make-instance
+                         'cl-urdf:box
+                       :size (cl-transforms:make-3d-vector 0.001 0.001 0.001)))
+                   (collision
+                     (make-instance
+                         'cl-urdf:collision
+                       :geometry box-geometry
+                       :origin origin-transform)))
+              collision))))
 
-    (assert
-     (cut:force-ll
-      (prolog `(and
-                (btr:bullet-world ?w)
-                ,@(when *spawn-debug-window*
-                    '((btr:debug-window ?w)))
-                (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
-                                                         :normal (0 0 1) :constant 0
-                                                         :collision-mask (:default-filter)))
-                (-> (man-int:environment-name ?environment-name)
-                    (btr:assert ?w (btr:object :urdf ?environment-name
-                                               ((0 0 0) (0 0 0 1))
-                                               :collision-group :static-filter
-                                               :collision-mask (:default-filter
-                                                                :character-filter)
-                                               ,@(when kitchen
-                                                   `(:urdf ,kitchen))
-                                               :compound T))
-                    (warn "MAN-INT:ENVIRONMENT-NAME was not defined. ~
-                           Have you loaded an environment knowledge package?"))
-                (-> (rob-int:robot ?robot)
-                    (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1))
-                                                    ;; :color (0.9 0.9 0.9 1.0)
-                                                    :urdf ,robot))
-                         (-> (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
-                             (assert (btr:joint-state ?world ?robot ?left-joint-states))
-                             (true))
-                         (-> (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
-                             (assert (btr:joint-state ?world ?robot ?right-joint-states))
-                             (true))
-                         (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
-                         (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
-                         (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit)
-                         (lisp-fun average ?lower-limit ?upper-limit ?average-joint-value)
-                         (assert (btr:joint-state ?world ?robot
-                                                  ((?torso-joint ?average-joint-value)))))
-                    (warn "ROB-INT:ROBOT was not defined. ~
-                           Have you loaded a robot package?"))))))))
+  ;; spawn the floor, the robot and the environment
+  (assert
+   (cut:force-ll
+    (prolog `(and
+              (btr:bullet-world ?w)
+              ,@(when *spawn-debug-window*
+                  '((btr:debug-window ?w)))
+              (btr:assert ?w (btr:object :static-plane :floor ((0 0 0) (0 0 0 1))
+                                                       :normal (0 0 1) :constant 0
+                                                       :collision-mask (:default-filter)))
+              (-> (man-int:environment-name ?environment-name)
+                  (btr:assert ?w (btr:object :urdf ?environment-name
+                                             ((0 0 0) (0 0 0 1))
+                                             :collision-group :static-filter
+                                             :collision-mask (:default-filter
+                                                              :character-filter)
+                                             ,@(when *kitchen-urdf*
+                                                 `(:urdf ,*kitchen-urdf*))
+                                             :compound T))
+                  (warn "MAN-INT:ENVIRONMENT-NAME was not defined. ~
+                         Have you loaded an environment knowledge package?"))
+              (-> (rob-int:robot ?robot)
+                  (and (btr:assert ?w (btr:object :urdf ?robot ((0 0 0) (0 0 0 1))
+                                                  ;; :color (0.9 0.9 0.9 1.0)
+                                                  :urdf ,rob-int:*robot-urdf*))
+                       (-> (rob-int:robot-joint-states ?robot :arm :left :park ?left-joint-states)
+                           (assert (btr:joint-state ?world ?robot ?left-joint-states))
+                           (true))
+                       (-> (rob-int:robot-joint-states ?robot :arm :right :park ?right-joint-states)
+                           (assert (btr:joint-state ?world ?robot ?right-joint-states))
+                           (true))
+                       (rob-int:robot-torso-link-joint ?robot ?_ ?torso-joint)
+                       (rob-int:joint-lower-limit ?robot ?torso-joint ?lower-limit)
+                       (rob-int:joint-upper-limit ?robot ?torso-joint ?upper-limit)
+                       (lisp-fun average ?lower-limit ?upper-limit ?average-joint-value)
+                       (assert (btr:joint-state ?world ?robot
+                                                ((?torso-joint ?average-joint-value)))))
+                  (warn "ROB-INT:ROBOT was not defined. ~
+                         Have you loaded a robot package?"))))))
 
-
-(defmethod cram-occasions-events:clear-belief cram-bullet-reasoning-belief-state ()
-  (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-  (setup-world-database)
+  ;; update robot from TF in case we have a real robot
   (let ((robot-object (btr:get-robot-object)))
     (if robot-object
         (btr:set-robot-state-from-tf cram-tf:*transformer* robot-object)
         (warn "ROBOT was not defined. Have you loaded a robot package?"))))
+
+
+(defmethod cram-occasions-events:clear-belief cram-bullet-reasoning-belief-state ()
+  (setup-world-database))
 
 
 

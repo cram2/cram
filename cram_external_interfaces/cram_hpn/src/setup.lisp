@@ -88,12 +88,11 @@
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
 
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-  (let ((robot (or rob-int:*robot-urdf*
-                   (setf rob-int:*robot-urdf*
-                         (cl-urdf:parse-urdf
-                          (btr-belief::replace-all
-                           (roslisp:get-param rob-int:*robot-description-parameter*)
-                           "\\" "  "))))))
+  (let ((robot (setf rob-int:*robot-urdf*
+                     (cl-urdf:parse-urdf
+                      (btr-belief::replace-all
+                       (roslisp:get-param rob-int:*robot-description-parameter*)
+                       "\\" "  ")))))
 
     ;; set robot's URDF root link to *robot-base-frame* as that's how going actions works
     (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
