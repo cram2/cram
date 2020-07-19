@@ -28,7 +28,7 @@
 
 (in-package :cram-pr2-description)
 
-(rob-int:set-robot-name 'pr2)
+(rob-int:set-robot-name :pr2)
 
 (defparameter *forward-looking-position-in-base-frame*
   (cl-transforms:make-3d-vector 10.0 0.0 1.5))
@@ -40,30 +40,30 @@
                               robot-neck-links robot-neck-joints
                               robot-joint-states robot-pose)
 
-  (<- (robot-odom-frame pr2 "odom_combined"))
+  (<- (robot-odom-frame :pr2 "odom_combined"))
 
-  (<- (robot-base-frame pr2 "base_footprint"))
-  (<- (robot-torso-link-joint pr2 "torso_lift_link" "torso_lift_joint"))
+  (<- (robot-base-frame :pr2 "base_footprint"))
+  (<- (robot-torso-link-joint :pr2 "torso_lift_link" "torso_lift_joint"))
 
-  (<- (camera-frame pr2 "head_mount_kinect_rgb_optical_frame"))
-  (<- (camera-frame pr2 "openni_rgb_optical_frame"))
-  (<- (camera-frame pr2 "narrow_stereo_optical_frame"))
+  (<- (camera-frame :pr2 "head_mount_kinect_rgb_optical_frame"))
+  (<- (camera-frame :pr2 "openni_rgb_optical_frame"))
+  (<- (camera-frame :pr2 "narrow_stereo_optical_frame"))
 
-  (<- (camera-minimal-height pr2 1.27))
-  (<- (camera-maximal-height pr2 1.60))
+  (<- (camera-minimal-height :pr2 1.27))
+  (<- (camera-maximal-height :pr2 1.60))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
-  (<- (camera-horizontal-angle pr2 0.99483)) ;  ca 57 degrees
-  (<- (camera-vertical-angle pr2 0.75049))   ; ca 43 degrees
+  (<- (camera-horizontal-angle :pr2 0.99483)) ;  ca 57 degrees
+  (<- (camera-vertical-angle :pr2 0.75049))   ; ca 43 degrees
 
-  (<- (robot-neck-links pr2 "head_pan_link" "head_tilt_link"))
-  (<- (robot-neck-joints pr2 "head_pan_joint" "head_tilt_joint"))
+  (<- (robot-neck-links :pr2 "head_pan_link" "head_tilt_link"))
+  (<- (robot-neck-joints :pr2 "head_pan_joint" "head_tilt_joint"))
 
-  (<- (robot-joint-states pr2 :neck ?_ :forward ((?pan_joint 0.0) (?tilt_joint 0.0)))
-    (robot-neck-joints pr2 ?pan_joint ?tilt_joint))
+  (<- (robot-joint-states :pr2 :neck ?_ :forward ((?pan_joint 0.0) (?tilt_joint 0.0)))
+    (robot-neck-joints :pr2 ?pan_joint ?tilt_joint))
 
-  (<- (robot-pose pr2 :neck ?_ :forward ?pose-stamped)
-    (robot-base-frame pr2 ?base-frame)
+  (<- (robot-pose :pr2 :neck ?_ :forward ?pose-stamped)
+    (robot-base-frame :pr2 ?base-frame)
     (lisp-fun cl-transforms:make-identity-rotation ?identity-quaternion)
     (symbol-value *forward-looking-position-in-base-frame* ?forward-point)
     (lisp-fun cl-transforms-stamped:make-pose-stamped
@@ -77,10 +77,10 @@
                                            costmap:orientation-samples
                                            costmap:orientation-sample-step
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding pr2 0.3))
-  (<- (costmap:costmap-manipulation-padding pr2 0.4))
-  (<- (costmap:costmap-in-reach-distance pr2 1.0))
-  (<- (costmap:costmap-reach-minimal-distance pr2 0.2))
-  (<- (costmap:orientation-samples pr2 1))
-  (<- (costmap:orientation-sample-step pr2 0.3))
-  (<- (costmap:visibility-costmap-size pr2 2)))
+  (<- (costmap:costmap-padding :pr2 0.3))
+  (<- (costmap:costmap-manipulation-padding :pr2 0.4))
+  (<- (costmap:costmap-in-reach-distance :pr2 1.0))
+  (<- (costmap:costmap-reach-minimal-distance :pr2 0.2))
+  (<- (costmap:orientation-samples :pr2 1))
+  (<- (costmap:orientation-sample-step :pr2 0.3))
+  (<- (costmap:visibility-costmap-size :pr2 2)))
