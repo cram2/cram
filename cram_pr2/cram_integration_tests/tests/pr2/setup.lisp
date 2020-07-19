@@ -32,14 +32,9 @@
 ;; roslaunch cram_integration_tests pr2.launch
 
 (defun init-projection ()
-  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
-
   (cram-occasions-events:clear-belief)
-
   (setf cram-tf:*tf-default-timeout* 0.1)
-
   (setf prolog:*break-on-lisp-errors* t)
-
-  (cram-bullet-reasoning:clear-costmap-vis-object))
+  (btr:clear-costmap-vis-object))
 
 (roslisp-utilities:register-ros-init-function init-projection)

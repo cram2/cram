@@ -53,7 +53,6 @@
 
                cram-common-failures
                cram-robot-interfaces
-               cram-manipulation-interfaces ; for ENVIRONMENT-NAME
                cram-pr2-low-level
                cram-pr2-process-modules
                cram-mobile-pick-place-plans

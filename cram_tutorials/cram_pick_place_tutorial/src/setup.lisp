@@ -35,18 +35,14 @@
 
 (defun init-projection ()
   (def-fact-group costmap-metadata ()
-    (<- (costmap:costmap-size :environment 12 12))
-    (<- (costmap:costmap-origin :environment -6 -6))
-    (<- (costmap:costmap-resolution :environment 0.05))
+    (<- (costmap:costmap-size :iai-kitchen 12 12))
+    (<- (costmap:costmap-origin :iai-kitchen -6 -6))
+    (<- (costmap:costmap-resolution :iai-kitchen 0.05))
 
     (<- (costmap:costmap-padding :pr2 0.2))
     (<- (costmap:costmap-manipulation-padding :pr2 0.2))
     (<- (costmap:costmap-in-reach-distance :pr2 0.6))
     (<- (costmap:costmap-reach-minimal-distance :pr2 0.2)))
-
-  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
-
-  ;; (sem-map:get-semantic-map)
 
   (cram-occasions-events:clear-belief)
 

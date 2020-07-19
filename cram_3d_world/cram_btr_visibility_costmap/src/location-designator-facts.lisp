@@ -40,7 +40,7 @@
     (rob-int:robot ?robot)
     (rob-int:camera-minimal-height ?robot ?minimal-height)
     (rob-int:camera-maximal-height ?robot ?maximal-height)
-    (man-int:environment-name ?environment-name)
+    (rob-int:environment-name ?environment-name)
     (costmap:costmap-resolution ?environment-name ?resolution)
     (costmap:visibility-costmap-size ?robot ?size))
 

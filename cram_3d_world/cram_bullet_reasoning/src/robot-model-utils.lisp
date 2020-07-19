@@ -227,17 +227,11 @@ Should it be taken out and made PR2-specific?"
 
 
 
-(defun get-robot-name ()
-  (rob-int:current-robot-symbol))
-
 (defun get-robot-object ()
-  (object *current-bullet-world* (get-robot-name)))
-
-(defun get-environment-name ()
-  (man-int:current-environment-symbol))
+  (object *current-bullet-world* (rob-int:get-robot-name)))
 
 (defun get-environment-object ()
-  (object *current-bullet-world* (get-environment-name)))
+  (object *current-bullet-world* (rob-int:get-environment-name)))
 
 
 (defun robot-colliding-objects-without-attached (&optional other-objects-to-discard)

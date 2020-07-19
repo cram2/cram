@@ -138,7 +138,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                                                                  (type drawer)
                                                                  (urdf-name
                                                                   sink-area-left-upper-drawer-main)
-                                                                 (part-of kitchen)))
+                                                                 (part-of iai-kitchen)))
                                                    (side front)
                                                    (range 0.2)
                                                    (range-invert 0.12))
@@ -146,7 +146,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                                                    (on (desig:an object
                                                                  (type counter-top)
                                                                  (urdf-name sink-area-surface)
-                                                                 (part-of kitchen)))
+                                                                 (part-of iai-kitchen)))
                                                    ;; below only works for knowrob sem-map
                                                    ;; (centered-with-padding 0.1)
                                                    (side left)

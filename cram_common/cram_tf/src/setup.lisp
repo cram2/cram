@@ -84,6 +84,16 @@ or in general at compile-time.")
     (setf *fixed-frame* "map")
     (roslisp:ros-info (cram-tf init-tf) "Set *fixed-frame* to ~s." *fixed-frame*)
 
+    ;; set the environment name based on the name in the urdf
+    (let ((environment-name
+            (roslisp-utilities:lispify-ros-underscore-name
+             (cl-urdf:name
+              (cl-urdf:parse-urdf
+               (roslisp:get-param rob-int:*environment-description-parameter*)))
+             :keyword)))
+      (rob-int:set-environment-name environment-name)
+      (roslisp:ros-info (cram-tf init-tf) "Environment name is ~a." environment-name))
+
     ;; initialize *TRANSFORMER*
     (setf *transformer* (make-instance 'cl-tf:transform-listener))
     (roslisp:ros-info (cram-tf init-tf)

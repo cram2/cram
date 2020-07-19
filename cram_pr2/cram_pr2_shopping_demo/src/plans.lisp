@@ -30,20 +30,22 @@
 (in-package :cram-pr2-shopping-demo)
 
 (defun grasp-object-from-shelf (?object shelf)
-  (let* ((?search-location
+  (let* ((?environment-name
+           (rob-int:get-environment-name))
+         (?search-location
            (if (eql shelf 1)
                (desig:a location
                         (on (desig:an object
                                       (type shelf)
                                       (urdf-name shelf-2-footprint)
-                                      (part-of environment)
+                                      (part-of ?environment-name)
                                       (level 4)))
                         (side right))
                (desig:a location
                         (on (desig:an object
                                       (type shelf)
                                       (urdf-name shelf-1-footprint)
-                                      (part-of environment)
+                                      (part-of ?environment-name)
                                       (level 4)))
                         (side right))))
          (?object-desig
@@ -64,20 +66,20 @@
 (defun place-object-in-shelf (?object-type &rest ?target-poses)
   (declare (type symbol ?object-type)
            (type list ?target-poses))
-  (exe:perform
-   (desig:an action
-             (type transporting)
-             (object (desig:an object
-                               (type ?object-type)
-                               (location (desig:a location
-                                                  (on (desig:an object
-                                                                (type counter-top)
-                                                                (urdf-name top)
-                                                                (part-of
-                                                                 environment)))
-                                                  (side right)))))
-             (target (desig:a location
-                              (poses  ?target-poses))))))
+  (let ((?env (rob-int:get-environment-name)))
+    (exe:perform
+     (desig:an action
+               (type transporting)
+               (object (desig:an object
+                                 (type ?object-type)
+                                 (location (desig:a location
+                                                    (on (desig:an object
+                                                                  (type counter-top)
+                                                                  (urdf-name top)
+                                                                  (part-of ?env)))
+                                                    (side right)))))
+               (target (desig:a location
+                                (poses  ?target-poses)))))))
 
 
 (defun demo ()
