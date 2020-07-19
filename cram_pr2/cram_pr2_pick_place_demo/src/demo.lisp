@@ -105,10 +105,7 @@
 
   ;; (coe:clear-belief)
 
-  (btr:clear-costmap-vis-object)
-
-  ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
-  )
+  (btr:clear-costmap-vis-object))
 
 (defun finalize ()
   ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)

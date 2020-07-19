@@ -34,6 +34,9 @@
 ;; Will need an SRDF parser to extract that information. Until then, a lot
 ;; of the predicates will be manually filled with data.
 
+(defparameter *robot-description-parameter* "robot_description"
+  "ROS parameter that contains the robot description.")
+
 (defvar *robot-urdf* nil
   "A cl-urdf object corresponding to parsed robot urdf.")
 

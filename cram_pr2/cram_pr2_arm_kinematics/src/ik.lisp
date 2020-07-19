@@ -73,17 +73,17 @@ When `*use-arm-kinematics-interface*' is set, use separate services for each arm
 (defun get-pr2-arm-joints-list (arm)
   (cut:var-value '?joints
                  (car (prolog:prolog `(cram-robot-interfaces:arm-joints
-                                       cram-pr2-description:pr2 ,arm ?joints)))))
+                                       :pr2 ,arm ?joints)))))
 
 (defun get-pr2-ee-link (arm)
   (cut:var-value '?link
                  (car (prolog:prolog `(cram-robot-interfaces:end-effector-link
-                                       cram-pr2-description:pr2 ,arm ?link)))))
+                                       :pr2 ,arm ?link)))))
 
 (defun get-pr2-planning-group (arm)
   (cut:var-value '?group
                  (car (prolog:prolog `(cram-robot-interfaces:planning-group
-                                       cram-pr2-description:pr2 ,arm ?group)))))
+                                       :pr2 ,arm ?group)))))
 
 
 (defun make-zero-seed-state (left-or-right)

@@ -32,7 +32,6 @@
 ;; roslaunch cram_pr2_pick_place_demo sandbox.launch
 
 (defun init-projection ()
-  (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
 
   (cram-occasions-events:clear-belief)

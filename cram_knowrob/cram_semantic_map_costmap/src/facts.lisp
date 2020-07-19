@@ -92,18 +92,19 @@
                           ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (or (cram-robot-interfaces:visibility-designator ?desig)
-        (cram-robot-interfaces:reachability-designator ?desig))
-    (costmap ?cm)
+    (or (rob-int:visibility-designator ?desig)
+        (rob-int:reachability-designator ?desig))
+    (costmap:costmap ?cm)
     (semantic-map-objects ?objects)
-    (costmap-padding ?padding)
-    (costmap-add-function semantic-map-free-space
-                          (make-semantic-map-costmap
-                           ?objects :invert t :padding ?padding)
-                          ?cm)
+    (rob-int:robot ?robot-name)
+    (costmap:costmap-padding ?robot-name ?padding)
+    (costmap:costmap-add-function semantic-map-free-space
+                                  (make-semantic-map-costmap
+                                   ?objects :invert t :padding ?padding)
+                                  ?cm)
     ;; Locations to see and to reach are on the floor, so we can use a
     ;; constant height of 0
-    (costmap-add-cached-height-generator
+    (costmap:costmap-add-cached-height-generator
      (make-constant-height-function 0.0)
      ?cm))
 

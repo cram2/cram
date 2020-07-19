@@ -218,7 +218,7 @@
                                     (cpl:with-failure-handling
                                         ((cpl:plan-failure (e)
                                            (roslisp:ros-warn
-                                            (pr2-proj-reason proj-prediction)
+                                            (proj-reason proj-prediction)
                                             "PROJECTION RUN HAD A FAILURE...~%~a~%" e)
                                            (return)))
                                       ,@body))

@@ -583,7 +583,7 @@
                environment human
                (context (eql :table-setting-counter)))
             (make-location-on-sink-left-front environment)))
-        '(:plate :bowl :mug))
+        '(:plate))
 
 (mapcar (lambda (type)
           (defmethod man-int:get-object-likely-location :heuristics 20
@@ -591,7 +591,7 @@
                environment human
                (context (eql :table-setting-counter)))
             (make-location-on-sink-middle-front environment)))
-        '(:bottle :milk :cereal :breakfast-cereal :cup))
+        '(:bottle :milk :cereal :breakfast-cereal :cup :bowl :mug))
 
 (mapcar (lambda (type)
           (defmethod man-int:get-object-likely-location :heuristics 20
