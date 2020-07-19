@@ -42,7 +42,6 @@
                cram-prolog
                cram-common-designators
                cram-robot-interfaces ; for robot's name and info
-               cram-manipulation-interfaces ; for environment's name
                cram-occasions-events ; for updating giskard collision scene on events
                cram-plan-occasions-events
                cram-bullet-reasoning ; also for updating giskard collision scene

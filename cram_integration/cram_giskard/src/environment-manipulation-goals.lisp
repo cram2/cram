@@ -87,7 +87,7 @@
                                 (cut:recursive-alist-hash-table
                                  `(("object_name"
                                     . ,(roslisp-utilities:rosify-underscores-lisp-name
-                                        (man-int:current-environment-symbol)))
+                                        (rob-int:get-environment-name)))
                                    ("tip"
                                     . ,tool-frame)
                                    ("handle_link"
@@ -128,7 +128,7 @@
                             arm-left-or-right-or-both))
                           :body_b
                           (roslisp-utilities:rosify-underscores-lisp-name
-                           (man-int:current-environment-symbol))
+                           (rob-int:get-environment-name))
                           :link_bs
                           (vector handle-link)))
                         (:close
@@ -153,7 +153,7 @@
                             arm-left-or-right-or-both))
                           :body_b
                           (roslisp-utilities:rosify-underscores-lisp-name
-                           (man-int:current-environment-symbol))
+                           (rob-int:get-environment-name))
                           :link_bs
                           (vector (roslisp:symbol-code
                                    'giskard_msgs-msg:collisionentry
