@@ -32,7 +32,6 @@
 ;; roslaunch cram_boxy_assembly_demo sandbox.launch
 
 (defvar *kitchen-urdf* nil)
-(defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
 
 (defun setup-bullet-world ()
@@ -41,7 +40,8 @@
   (let ((robot (or rob-int:*robot-urdf*
                    (setf rob-int:*robot-urdf*
                          (cl-urdf:parse-urdf
-                          (roslisp:get-param *robot-parameter*)))))
+                          (roslisp:get-param
+                           rob-int:*robot-description-parameter*)))))
         (kitchen (or *kitchen-urdf*
                      (let ((kitchen-urdf-string
                              (roslisp:get-param *kitchen-parameter* nil)))

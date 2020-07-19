@@ -30,13 +30,14 @@
 (in-package :demo)
 
 (defvar *kitchen-urdf* nil)
-(defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
 
 (defun setup-bullet-world ()
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
 
-  (let* ((robot-urdf (substitute #\SPACE #\` (roslisp:get-param *robot-parameter*)))
+  (let* ((robot-urdf (substitute #\SPACE #\`
+                                 (roslisp:get-param
+                                  rob-int:*robot-description-parameter*)))
          (robot (or rob-int:*robot-urdf*
                     (setf rob-int:*robot-urdf*
                           (cl-urdf:parse-urdf robot-urdf))))

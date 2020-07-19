@@ -36,7 +36,7 @@
   (let* ((robot
            (or rob-int:*robot-urdf*
                (setf rob-int:*robot-urdf*
-                     (get-urdf-hsrb btr-belief:*robot-parameter*))))
+                     (get-urdf-hsrb rob-int:*robot-description-parameter*))))
          (kitchen
            (or btr-belief:*kitchen-urdf*
                (let ((kitchen-urdf-string
@@ -89,7 +89,6 @@
 
 
 (defun init-projection ()
-  (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
   (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
 
   (setup-bullet-world)

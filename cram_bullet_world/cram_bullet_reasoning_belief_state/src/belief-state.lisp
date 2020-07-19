@@ -29,7 +29,6 @@
 (in-package :cram-bullet-reasoning-belief-state)
 
 (defvar *kitchen-urdf* nil)
-(defparameter *robot-parameter* "robot_description")
 (defparameter *kitchen-parameter* "kitchen_description")
 (defparameter *spawn-debug-window* t
   "If the debug window should be spawned when belief state is set up.")
@@ -57,7 +56,9 @@ is replaced with replacement.
   (let ((robot (or rob-int:*robot-urdf*
                    (setf rob-int:*robot-urdf*
                          (cl-urdf:parse-urdf
-                          (replace-all (roslisp:get-param *robot-parameter*) "\\" "  ")))))
+                          (replace-all
+                           (roslisp:get-param rob-int:*robot-description-parameter*)
+                           "\\" "  ")))))
         ;; TODO get rid of replace-all and instead fix the URDF of our real PR2
         (kitchen (or *kitchen-urdf*
                      (let ((kitchen-urdf-string
