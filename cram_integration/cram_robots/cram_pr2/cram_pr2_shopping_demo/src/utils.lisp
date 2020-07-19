@@ -53,7 +53,7 @@
 (defun spawn-robot ()
   (setf cram-robot-interfaces:*robot-urdf*
         (cl-urdf:parse-urdf
-         (roslisp:get-param "robot_description")))
+         (roslisp:get-param rob-int:*robot-description-parameter*)))
   (prolog:prolog
    `(and (btr:bullet-world ?world)
          (cram-robot-interfaces:robot ?robot)
