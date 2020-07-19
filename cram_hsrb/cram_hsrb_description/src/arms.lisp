@@ -70,7 +70,7 @@
 
   (<- (end-effector-link :hsrb :left "wrist_roll_link"))
 
-  (<- (robot-tool-frame :hsrb :left "gripper_tool_joint"))
+  (<- (robot-tool-frame :hsrb :left "gripper_tool_frame"))
 
   (<- (arm-joints :hsrb :left ("arm_flex_joint"
                               "arm_roll_joint"
