@@ -66,6 +66,5 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "object-knowledge" :depends-on ("package"))
      (:file "setup" :depends-on ("package"))
-     (:file "plans" :depends-on ("package" "setup" "object-knowledge"))))))
+     (:file "plans" :depends-on ("package" "setup"))))))

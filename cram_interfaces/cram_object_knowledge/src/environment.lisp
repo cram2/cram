@@ -36,6 +36,13 @@
   (<- (costmap:costmap-origin :iai-kitchen -6 -6))
   (<- (costmap:costmap-resolution :iai-kitchen 0.04)))
 
+(def-fact-group retail-environment-metadata (costmap:costmap-size
+                                             costmap:costmap-origin
+                                             costmap:costmap-resolution)
+  (<- (costmap:costmap-size :dm-shelves 10 10))
+  (<- (costmap:costmap-origin :dm-shelves -5 -5))
+  (<- (costmap:costmap-resolution :dm-shelves 0.04)))
+
 (def-fact-group environment-object-type-hierarchy (man-int:object-type-direct-subtype)
   (<- (man-int:object-type-direct-subtype :container :container-prismatic))
   (<- (man-int:object-type-direct-subtype :container-prismatic :drawer))
