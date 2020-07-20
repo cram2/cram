@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;               2019, Jonas Dech <jdech[at]uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,23 +30,16 @@
 
 (in-package :objects)
 
-(defparameter *default-retail-z-offset* 0.01 "in meters")
+(defparameter *default-retail-z-offset* 0.05 "in meters")
 (defparameter *default-retail-lift-offsets* `(0.0 0.0 ,*default-retail-z-offset*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fact-group retail-object-type-hierarchy (man-int:object-type-direct-subtype)
-  (<- (man-int:object-type-direct-subtype :retail-item :dish-washer-tabs))
-  (<- (man-int:object-type-direct-subtype :retail-item :balea-bottle))
-  (<- (man-int:object-type-direct-subtype :retail-item :deodorant))
-  (<- (man-int:object-type-direct-subtype :retail-item :juice-box)))
-
-(def-fact-group retail-environment-metadata (costmap:costmap-size
-                                             costmap:costmap-origin
-                                             costmap:costmap-resolution)
-  (<- (costmap:costmap-size :dm-shelves 10 10))
-  (<- (costmap:costmap-origin :dm-shelves -5 -5))
-  (<- (costmap:costmap-resolution :dm-shelves 0.04)))
+  (<- (man-int:object-type-direct-subtype :retail-item ?item-type)
+    (member ?item-type (:dish-washer-tabs
+                        :balea-bottle :deodorant :juice-box
+                        :denkmit :dove :heitmann :somat :basket))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -74,7 +68,7 @@
     :heuristics 20 ((object-type (eql :juice-box)))
   0.82)
 
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;; DISH-WASHER-TABS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DISH-WASHER-TABS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *dish-washer-tabs-grasp-x-offset* 0.0 "in meters")
 (defparameter *dish-washer-tabs-grasp-z-offset* 0.0 "in meters")
@@ -197,7 +191,7 @@
 
 
 
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BALEA-BOTTLE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; BALEA-BOTTLE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *balea-bottle-grasp-z-offset* 0.0 "in meters")
 (defparameter *balea-bottle-pregrasp-x-offset* 0.2 "in meters")
@@ -244,8 +238,57 @@
   :2nd-lift-translation *default-retail-lift-offsets*)
 
 
+;;;;;;;;;;;;;;; DENKMIT, DOVE, HEITMANN and SOMAT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *denkmit-pregrasp-xy-offste* 0.3 "in meters")
+(defparameter *denkmit-grasp-xy-offset* 0.03 "in meters")
+(defparameter *denkmit-grasp-z-offset* 0.03 "in meters")
+
+(man-int:def-object-type-to-gripper-transforms :denkmit '(:left :right) :left-side
+  :grasp-translation `(0.0d0 ,*denkmit-grasp-xy-offset* ,*denkmit-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*denkmit-pregrasp-xy-offste* ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*denkmit-pregrasp-xy-offste* 0.0)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :dove '(:left :right) :left-side
+  :grasp-translation `(0.0d0 ,*denkmit-grasp-xy-offset* ,*denkmit-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*denkmit-pregrasp-xy-offste* ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*denkmit-pregrasp-xy-offste* 0.0)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :heitmann '(:left :right) :left-side
+  :grasp-translation `(0.0d0 ,*denkmit-grasp-xy-offset* ,*denkmit-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*denkmit-pregrasp-xy-offste* ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*denkmit-pregrasp-xy-offste* 0.0)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+(man-int:def-object-type-to-gripper-transforms :somat '(:left :right) :left-side
+  :grasp-translation `(0.0d0 ,*denkmit-grasp-xy-offset* ,*denkmit-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets `(0.0 ,*denkmit-pregrasp-xy-offste* ,*default-retail-z-offset*)
+  :2nd-pregrasp-offsets `(0.0 ,*denkmit-pregrasp-xy-offste* 0.0)
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; BASKET ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(man-int:def-object-type-to-gripper-transforms :basket '(:left :right) :top
+  :grasp-translation `(0.15 0.0 0.18)
+  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :pregrasp-offsets *default-retail-lift-offsets*
+  :2nd-pregrasp-offsets *default-retail-lift-offsets*
+  :lift-translation *default-retail-lift-offsets*
+  :2nd-lift-translation *default-retail-lift-offsets*)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;; placing poses on robot, environment and basket
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
   :donbot-tray-front
@@ -277,3 +320,20 @@
   :attachment-rot-matrix '((0.43809 0.89892 0.005072)
                            (-0.89879 0.43811461 -0.01522)
                            (-0.0159 0.0021 0.999871)))
+
+(man-int:def-object-type-in-other-object-transform :heitmann :basket :in-basket
+  :attachment-translation `(0.2 0.15 -0.005)
+  :attachment-rot-matrix '((1 0 0)
+                           (0 1 0)
+                           (0 0 1)))
+
+(man-int:def-object-type-in-other-object-transform :dove :basket :in-basket
+  :attachment-translation `(0.1 0.15 -0.005)
+  :attachment-rot-matrix '((1 0 0)
+                           (0 1 0)
+                           (0 0 1)))
+
+(defmethod man-int:get-z-offset-for-placing-with-dropping (object
+                                                           (other-object (eql :basket))
+                                                           attachment)
+  0.15)
