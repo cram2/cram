@@ -80,8 +80,9 @@
                                   (urdf-name shelf-2-base)
                                   (owl-name "shelf_system_verhuetung")
                                   (part-of ?environment-name)
-                                  (level middle)))
-                    (side left)))
+                                  (level 4)))
+                    (side left)
+                    (range 0.2)))
          (?object
            (an object
                (type dish-washer-tabs)

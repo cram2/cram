@@ -87,7 +87,7 @@
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
   (let ((robot (setf rob-int:*robot-urdf*
                      (cl-urdf:parse-urdf
-                      (btr-belief::replace-all
+                      (cut:replace-all
                        (roslisp:get-param rob-int:*robot-description-parameter*)
                        "\\" "  ")))))
 

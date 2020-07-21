@@ -51,7 +51,11 @@
                                   :align-planes-right (third rest-arguments)))
       (cram-common-designators:move-head
        ;; for donbot, as his left arm is also his head
-       (call-giskard-joint-action :goal-configuration-left (first rest-arguments)))
+       (when argument-1
+         (call-neck-action :goal-pose argument-1))
+       (when (car rest-arguments)
+         (call-giskard-joint-action :goal-configuration-left
+                                    (car rest-arguments))))
       (cram-common-designators:move-base
        (call-giskard-base-action :goal-pose argument-1))
       (cram-common-designators:move-torso
@@ -66,7 +70,9 @@
         (desig:desig-prop ?motion-designator (:type :going))
         (desig:desig-prop ?motion-designator (:type :moving-torso))
         (and (desig:desig-prop ?motion-designator (:type :looking))
-             (desig:desig-prop ?motion-designator (:joint-states ?_)))))
+             (or (desig:desig-prop ?motion-designator (:joint-states ?_))
+                 ;; (desig:desig-prop ?motion-designator (:pose ?_))
+                 ))))
 
   (prolog:<- (cpm:available-process-module giskard-pm)
     (prolog:not (cpm:projection-running ?_))))

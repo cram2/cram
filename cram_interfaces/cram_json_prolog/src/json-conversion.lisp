@@ -63,7 +63,7 @@
 (defun lispify (s)
   (string-upcase (string s)))
 
-(defun replace-all (new old str)
+(defun replace-all-2 (new old str)
   (with-output-to-string (out)
     (let ((pos (search old str)))
       (cond (pos
@@ -74,7 +74,7 @@
       out)))
 
 (defun escape-quotes (str)
-  (replace-all "\\'" "'" str))
+  (replace-all-2 "\\'" "'" str))
 
 (defun unescape-string (str)
   (remove "\\" (copy-seq str)))

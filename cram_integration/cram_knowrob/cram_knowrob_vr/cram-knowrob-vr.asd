@@ -46,6 +46,7 @@
                cram-executive
                cram-designators
                cram-prolog
+               cram-utilities
                cram-common-failures
                cram-urdf-projection
                ;; cram-pr2-description
