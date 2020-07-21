@@ -31,5 +31,4 @@
 
 (defpackage cram-donbot-description
   (:nicknames #:donbot-descr)
-  (:use #:common-lisp #:cram-prolog #:cram-robot-interfaces)
-  (:export #:iai-donbot))
+  (:use #:common-lisp #:cram-prolog #:cram-robot-interfaces))

@@ -68,4 +68,5 @@
    #:gripper-opened #:gripper-closed
    #:arms-positioned-at #:tool-frames-at
    #:looking-at
-   #:container-state))
+   #:container-state
+   #:location-reset))

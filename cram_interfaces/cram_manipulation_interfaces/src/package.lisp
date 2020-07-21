@@ -47,14 +47,11 @@
    #:orientation-matters
    #:unidirectional-attachment
    #:location-always-reachable
-   #:object-is-a-robot
+   #:object-is-a-robot #:object-is-a-container
    #:location-accessible
    #:location-reference-object
    #:location-certain
    #:location-always-stable
-   ;; environment
-   #:environment-name
-   #:current-environment-symbol
    ;; utils
    #:reasoning-engine-for-method
    ;; manipulation-interfaces

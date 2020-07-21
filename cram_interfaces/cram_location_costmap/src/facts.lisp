@@ -177,64 +177,66 @@ The order is random, so the main direction is NOT prioritized."
 (def-fact-group location-costmap-metadata (costmap-size
                                            costmap-origin
                                            costmap-resolution
-                                           orientation-samples orientation-sample-step
+                                           orientation-samples
+                                           orientation-sample-step
                                            reachability-orientation-offset
-                                           costmap-padding costmap-manipulation-padding
+                                           costmap-padding
+                                           costmap-manipulation-padding
                                            costmap-in-reach-distance
                                            costmap-reach-minimal-distance
                                            visibility-costmap-size)
 
   ;; costmap dimensions in meters, diameter not radius
   ;; depends on the size of the environment the robot operates in
-  (<- (costmap-size ?width ?height)
+  (<- (costmap-size ?environment-name ?width ?height)
     (fail))
 
   ;; the coordinate of the left bottom corner of the costmap in meters in map frame
   ;; depends on the environment
-  (<- (costmap-origin ?x ?y)
+  (<- (costmap-origin ?environment-name ?x ?y)
     (fail))
 
   ;; size of one costmap cell in meters
   ;; the smaller the number the higher the accuracy and the slower the algorithms
-  (<- (costmap-resolution ?resolution)
+  (<- (costmap-resolution ?environment-name ?resolution)
     (fail))
 
   ;; number of orientations to generate for orientation generators
   ;; mostly used in gaussian-cm
-  (<- (orientation-samples ?samples)
+  (<- (orientation-samples ?robot-name ?samples)
     (fail))
 
   ;; when generating ORIENTATION-SAMPLES number of samples,
   ;; what should be the distance between different samples in radians
-  (<- (orientation-sample-step ?step-in-radian)
+  (<- (orientation-sample-step ?robot-name ?step-in-radian)
     (fail))
 
   ;; when generating ORIENTATION-SAMPLES number of samples,
   ;; what should be the angle offset from looking directly at target
-  (<- (reachability-orientation-offset ?offset-in-radian)
+  (<- (reachability-orientation-offset ?robot-name ?offset-in-radian)
     (fail))
 
   ;; padding offset from obstacles, depends on the robot base dimension
   ;; mostly used for visibility
-  (<- (costmap-padding ?padding-in-meters)
+  (<- (costmap-padding ?robot-name ?padding-in-meters)
     (fail))
 
   ;; padding offset from obstacles when manipulating objects
   ;; can be different from COSTMAP-PADDING if the arm needs extra padding when grasping
-  (<- (costmap-manipulation-padding ?padding-in-meters)
+  (<- (costmap-manipulation-padding ?robot-name ?padding-in-meters)
     (fail))
 
   ;; maximum length at which a robot can reach an object from its base location
-  (<- (costmap-in-reach-distance ?distance-in-meters)
+  (<- (costmap-in-reach-distance ?robot-name ?distance-in-meters)
     (fail))
 
   ;; minimum distance from which the robot can reach an object from its base location
   ;; actually should probably be merged with COSTMAP-MANIPULATION-PADDING
   ;; at least the numbers should be very close to each other
-  (<- (costmap-reach-minimal-distance ?distance-in-meters)
+  (<- (costmap-reach-minimal-distance ?robot-name ?distance-in-meters)
     (fail))
 
   ;; maximum distance from which the robot can perceive an object
   ;; i.e. the radius of the visibility gaussian costmap
-  (<- (visibility-costmap-size ?radius-in-meters)
+  (<- (visibility-costmap-size ?robot-name ?radius-in-meters)
     (fail)))

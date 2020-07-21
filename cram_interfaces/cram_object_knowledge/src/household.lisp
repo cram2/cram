@@ -537,6 +537,14 @@
                          (part-of ?environment-name)
                          (level topmost)))))
 
+(defun make-location-in-fridge-door (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type fridge)
+                         (urdf-name iai-fridge-door)
+                         (part-of ?environment-name)
+                         (level bottommost)))))
+
 (defun make-location-in-oven-right-drawer (?environment-name)
   (desig:a location
            ;; (side front)
@@ -575,7 +583,7 @@
                environment human
                (context (eql :table-setting-counter)))
             (make-location-on-sink-left-front environment)))
-        '(:plate :bowl :mug))
+        '(:plate))
 
 (mapcar (lambda (type)
           (defmethod man-int:get-object-likely-location :heuristics 20
@@ -583,7 +591,7 @@
                environment human
                (context (eql :table-setting-counter)))
             (make-location-on-sink-middle-front environment)))
-        '(:bottle :milk :cereal :breakfast-cereal :cup))
+        '(:bottle :milk :cereal :breakfast-cereal :cup :bowl :mug))
 
 (mapcar (lambda (type)
           (defmethod man-int:get-object-likely-location :heuristics 20
@@ -671,7 +679,7 @@
               ((object-type (eql type))
                environment human
                (context (eql :table-setting)))
-            (make-location-in-fridge environment)))
+            (make-location-in-fridge-door environment)))
         '(:milk))
 
 (mapcar (lambda (type)

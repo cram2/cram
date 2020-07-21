@@ -29,15 +29,13 @@
 
 (in-package :boxy-descr)
 
-(def-fact-group boxy-metadata (robot
-                               robot-odom-frame
-                               robot-base-frame robot-torso-link-joint)
-  (<- (robot boxy))
-
-  (<- (robot-odom-frame boxy "odom"))
-
-  (<- (robot-base-frame boxy "base_footprint"))
-  (<- (robot-torso-link-joint boxy "triangle_base_link" "triangle_base_joint")))
+(def-fact-group boxy-metadata (robot-odom-frame
+                               robot-base-frame
+                               robot-torso-link-joint)
+  (<- (robot-odom-frame :boxy-description "odom"))
+  (<- (robot-base-frame :boxy-description "base_footprint"))
+  (<- (robot-torso-link-joint :boxy-description
+                              "triangle_base_link" "triangle_base_joint")))
 
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding
@@ -47,10 +45,10 @@
                                            costmap:orientation-samples
                                            costmap:orientation-sample-step
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding 0.5))
-  (<- (costmap:costmap-manipulation-padding 0.2)) ; 0.5 (might be a little low now)
-  (<- (costmap:costmap-in-reach-distance 1.45))
-  (<- (costmap:costmap-reach-minimal-distance 0.65))
-  (<- (costmap:orientation-samples 1))
-  (<- (costmap:orientation-sample-step 0.3))
-  (<- (costmap:visibility-costmap-size 2)))
+  (<- (costmap:costmap-padding :boxy-description 0.5))
+  (<- (costmap:costmap-manipulation-padding :boxy-description 0.2))
+  (<- (costmap:costmap-in-reach-distance :boxy-description 1.45))
+  (<- (costmap:costmap-reach-minimal-distance :boxy-description 0.65))
+  (<- (costmap:orientation-samples :boxy-description 1))
+  (<- (costmap:orientation-sample-step :boxy-description 0.3))
+  (<- (costmap:visibility-costmap-size :boxy-description 2)))

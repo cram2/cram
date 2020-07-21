@@ -105,8 +105,7 @@
            #:make-joint-state-message
            #:calculate-pan-tilt #:looking-in-direction-p
            #:robot-converged-to-goal-joint-states
-           #:get-robot-object #:get-robot-name
-           #:get-environment-object #:get-environment-name
+           #:get-robot-object #:get-environment-object
            #:robot-colliding-objects-without-attached
            #:robot-attached-objects-in-collision
            ;; temporal-reasoning

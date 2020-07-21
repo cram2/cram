@@ -106,7 +106,8 @@ and renames POSE into OLD-POSE."
         (btr:set-robot-state-from-tf
          cram-tf:*transformer*
          robot
-         :timestamp (cram-occasions-events:event-timestamp event))))))
+         ;; :timestamp (cram-occasions-events:event-timestamp event)
+         )))))
 
 
 
@@ -116,7 +117,7 @@ It could have been 1 but 1 is reserved in case somebody has to be even more urge
 executed before everyone else.
 If there is no other method with 1 as qualifier, this method will be executed always first."
   (let* ((robot-object-name (or (cpoe:event-other-object-name event)
-                                (btr:get-robot-name)))
+                                (rob-int:get-robot-name)))
          (robot-object (btr:object btr:*current-bullet-world* robot-object-name))
          (environment-object (btr:get-environment-object))
          (btr-object-name (cpoe:event-object-name event))

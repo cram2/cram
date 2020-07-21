@@ -114,7 +114,7 @@
                     'giskard_msgs-msg:worldbody
                     :urdf_body)
              :name name
-             :urdf (roslisp:get-param btr-belief:*kitchen-parameter* nil)
+             :urdf (roslisp:get-param rob-int:*environment-description-parameter* nil)
              :joint_state_topic joint-state-topic)
       :pose (cl-transforms-stamped:to-msg pose)))
     (:remove
@@ -343,7 +343,7 @@
       (call-giskard-environment-service
        :add-environment
        :name (roslisp-utilities:rosify-underscores-lisp-name
-              (man-int:current-environment-symbol))
+              (rob-int:get-environment-name))
        :pose (cl-transforms-stamped:pose->pose-stamped
               cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
        :joint-state-topic "kitchen/joint_states"))))
