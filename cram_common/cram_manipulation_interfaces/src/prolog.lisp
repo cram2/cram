@@ -278,6 +278,7 @@
     (desig:current-designator ?location-designator ?current-location-designator)
     (or (spec:property ?current-location-designator (:in ?object-designator))
         (spec:property ?current-location-designator (:on ?object-designator))
+        (spec:property ?current-location-designator (:above ?object-designator))
         (spec:property ?current-location-designator (:left-of ?object-designator))
         (spec:property ?current-location-designator (:right-of ?object-designator))
         (spec:property ?current-location-designator (:in-front-of ?object-designator))
