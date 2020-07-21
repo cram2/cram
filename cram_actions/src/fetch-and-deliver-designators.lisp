@@ -97,7 +97,8 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; object
-    (spec:property ?location-designator (:in ?some-object-designator))
+    (or (spec:property ?location-designator (:in ?some-object-designator))
+        (spec:property ?location-designator (:above ?some-object-designator)))
     (desig:current-designator ?some-object-designator ?object-designator)
     ;; arm
     (-> (spec:property ?action-designator (:arm ?arm))
@@ -332,6 +333,7 @@ the `look-pose-stamped'."
              (not (equal ?some-delivering-location-designator NIL)))
         (desig:current-designator ?some-delivering-location-designator
                                   ?delivering-location-designator)
+
         (and (spec:property ?object-designator (:type ?object-type))
              (man-int:environment-name ?environment)
              (lisp-fun man-int:get-object-destination
@@ -341,17 +343,20 @@ the `look-pose-stamped'."
     (-> (man-int:location-accessible ?delivering-location-designator)
         (equal ?delivering-location-accessible T)
         (equal ?delivering-location-accessible NIL))
+
     ;; deliver location certain or not
     ;; because if not, we have to first search for the deliver location
     (-> (man-int:location-certain ?delivering-location-designator)
         (equal ?delivering-location-certain T)
         (equal ?delivering-location-certain NIL))
+
     ;; deliver location robot base
     (-> (desig:desig-prop ?action-designator (:deliver-robot-location
                                               ?some-d-robot-loc-desig))
         (desig:current-designator ?some-d-robot-loc-desig
                                   ?deliver-robot-location-designator)
         (equal ?deliver-robot-location-designator NIL))
+
     ;; resulting action desig
     (desig:designator :action ((:type :transporting)
                                (:object ?object-designator-with-location)
