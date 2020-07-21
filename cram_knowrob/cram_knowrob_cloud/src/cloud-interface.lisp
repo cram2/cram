@@ -29,29 +29,13 @@
 
 (in-package :kr-cloud)
 
-(defun replace-all (string part replacement &key (test #'char=))
-  "Returns a new string in which all the occurences of the part
-is replaced with replacement.
-  Taken from Common Lisp Cookbook."
-  (with-output-to-string (out)
-    (loop with part-length = (length part)
-          for old-pos = 0 then (+ pos part-length)
-          for pos = (search part string
-                            :start2 old-pos
-                            :test test)
-          do (write-string string out
-                           :start old-pos
-                           :end (or pos (length string)))
-          when pos do (write-string replacement out)
-            while pos)))
-
 (defun json-result->string (result-symbol)
   (when result-symbol
     (string-trim "'" (symbol-name result-symbol))))
 
 (defun cloud-prolog-simple (query)
   (declare (type string query))
-  (let* ((escaped-query (replace-all query "'" "\\'"))
+  (let* ((escaped-query (cut:replace-all query "'" "\\'"))
          (query-answer (json-prolog:prolog-simple-1
                         (format nil "send_prolog_query('~a', @(false), ID)." escaped-query)
                         :mode 1
@@ -122,7 +106,7 @@ is replaced with replacement.
                                    episode-ids)
                            stream)
              (get-output-stream-string stream)))
-         (episode-ids-string (replace-all episode-ids-yason-string "\"" "'")))
+         (episode-ids-string (cut:replace-all episode-ids-yason-string "\"" "'")))
     (cloud-prolog-simple
      "register_ros_package('knowrob_learning').")
     (cloud-prolog-simple
