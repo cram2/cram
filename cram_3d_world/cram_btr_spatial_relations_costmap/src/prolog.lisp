@@ -36,7 +36,6 @@
 (defmethod costmap:costmap-generator-name->score ((name (eql 'collision))) 20)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'on-bounding-box))) 5)
 
-
 (defclass side-generator () ())
 (defmethod costmap:costmap-generator-name->score ((name side-generator)) 3)
 
