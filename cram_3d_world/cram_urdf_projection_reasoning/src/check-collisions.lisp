@@ -276,7 +276,7 @@ Store found pose into designator or throw error if good pose not found."
                                  ;;   (find-if (lambda (x)
                                  ;;              (typep x 'btr:semantic-map-object))
                                  ;;            (btr:objects btr:*current-bullet-world*)))
-                                 ;;  (remove (btr:get-robot-name)
+                                 ;;  (remove (rob-int:get-robot-name)
                                  ;;          (btr:find-objects-in-contact
                                  ;;           btr:*current-bullet-world*
                                  ;;           (btr:object

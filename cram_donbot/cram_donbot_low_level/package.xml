@@ -12,7 +12,7 @@
 
   <depend>roslisp</depend>
   <depend>roslisp_utilities</depend>
-  <depend>actionlib</depend>
+  <depend>actionlib_lisp</depend>
   <depend>cl_transforms_stamped</depend>
   <depend>cl_transforms</depend>
   <depend>cram_simple_actionlib_client</depend>

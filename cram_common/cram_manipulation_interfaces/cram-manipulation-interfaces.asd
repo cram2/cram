@@ -46,7 +46,6 @@
     :components
     ((:file "package")
 
-     (:file "environment" :depends-on ("package"))
      (:file "object-designator-interfaces" :depends-on ("package"))
      (:file "manipulation-interfaces" :depends-on ("package"))
      (:file "prolog" :depends-on ("package"

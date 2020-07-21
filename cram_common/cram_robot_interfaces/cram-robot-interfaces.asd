@@ -43,4 +43,5 @@
      (:file "ptu" :depends-on ("package"))
      (:file "robot" :depends-on ("package"))
      (:file "designator-utils" :depends-on ("package" "trajectories" "arms"))
-     (:file "urdf" :depends-on ("package"))))))
+     (:file "urdf" :depends-on ("package" "robot"))
+     (:file "environment" :depends-on ("package"))))))

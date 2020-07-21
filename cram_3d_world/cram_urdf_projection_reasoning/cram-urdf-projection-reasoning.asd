@@ -45,6 +45,7 @@
 
                cram-common-failures
                cram-mobile-pick-place-plans
+               cram-robot-interfaces ; for get-robot-name
                cram-tf
                cl-transforms-stamped
                cl-transforms

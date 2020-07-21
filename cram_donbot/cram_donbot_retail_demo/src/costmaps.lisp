@@ -29,31 +29,40 @@
 
 (in-package :demo)
 
-;; roslaunch cram_pr2_pick_place_demo sandbox.launch
+(defun make-restricted-area-cost-function ()
+  (lambda (x y)
+    (if (> x 4.0)
+        0.0
+        (if (< x 0.0)
+            0.0
+            (if (> y 1.0)
+                0.0
+                (if (< y -1.0)
+                    0.0
+                    1.0))))))
 
-(defun init-projection ()
-  (coe:clear-belief)
+(defmethod location-costmap:costmap-generator-name->score ((name (eql 'restricted-area))) 5)
 
-  (setf cram-tf:*tf-default-timeout* 2.0)
-
-  (setf prolog:*break-on-lisp-errors* t)
-
-  (btr:clear-costmap-vis-object)
-
-  ;; (setf cram-tf:*tf-broadcasting-enabled* t)
-
-  (setf proj-reasoning::*projection-reasoning-enabled* nil)
-
-  (setf ccl::*is-client-connected* nil)
-  (setf ccl::*is-logging-enabled* nil)
-  (setf ccl::*host* "'https://192.168.100.172'")
-  (setf ccl::*cert-path* "'/home/ease/openease-certificates/sebastian.pem'")
-  (setf ccl::*api-key* "'hftn9KwE77FEhDv9k6jV7rJT7AK6nPizZJUhjw5Olbxb2a3INUL8AM3DNp9Ci6L1'")
-  (ccl::connect-to-cloud-logger)
-  (ccl::reset-logged-owl)
-
-  ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
-
-  (btr:add-objects-to-mesh-list "cram_pr2_pick_place_demo"))
-
-(roslisp-utilities:register-ros-init-function init-projection)
+(def-fact-group demo-costmap (location-costmap:desig-costmap)
+  (<- (location-costmap:desig-costmap ?designator ?costmap)
+    (or (rob-int:visibility-designator ?designator)
+        (rob-int:reachability-designator ?designator))
+    ;; make sure that the location is not on the robot itself
+    ;; if it is, don't generate a costmap
+    (once (or (and (desig:desig-prop ?designator (:object ?some-object))
+                   (desig:current-designator ?some-object ?object)
+                   (lisp-fun man-int:get-object-pose-in-map ?object ?to-reach-pose)
+                   (lisp-pred identity ?to-reach-pose)
+                   (-> (desig:desig-prop ?object (:location ?loc))
+                       (not (man-int:location-always-reachable ?loc))
+                       (true)))
+              (and (desig:desig-prop ?designator (:location ?some-location))
+                   (desig:current-designator ?some-location ?location)
+                   ;; if the location is on the robot itself,
+                   ;; don't use the costmap
+                   (not (man-int:location-always-reachable ?location)))))
+    (location-costmap:costmap ?costmap)
+    (location-costmap:costmap-add-function
+     restricted-area
+     (make-restricted-area-cost-function)
+     ?costmap)))

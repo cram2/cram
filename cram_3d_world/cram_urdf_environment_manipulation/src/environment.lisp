@@ -106,15 +106,14 @@ The frame-id will be cram-tf:*robot-base-frame* and the child-frame-id will be t
 
 (defun get-handle-link (container-name btr-environment)
   "Return the link object of the handle of the container with `container-name' in
-the `btr-environment'."
+the `btr-environment' (of type cl-urdf:link)."
   (declare (type (or string symbol) container-name)
            (type keyword btr-environment))
   (when (symbolp container-name)
     (setf container-name
           (roslisp-utilities:rosify-underscores-lisp-name container-name)))
-  (the cl-urdf:link
-       (find-handle-under-link
-        (get-container-link container-name btr-environment))))
+  (find-handle-under-link
+   (get-container-link container-name btr-environment)))
 
 (defun find-handle-under-link (link)
   "Return the link object of the handle under the given `link' object."
@@ -135,52 +134,46 @@ the `btr-environment'."
                 (btr:joint-states (btr:object btr:*current-bullet-world* btr-environment)))))
 
 (defun get-connecting-joint (part)
-  "Returns the connecting (moveable) joint of `part'."
+  "Returns the connecting (moveable) joint of `part' of type cl-urdf:joint."
   (declare (type (or cl-urdf:joint cl-urdf:link) part))
-  (the cl-urdf:joint
-       (or
-        (get-connecting-joint-below part)
-        (get-connecting-joint-above part))))
+  (or (get-connecting-joint-below part)
+      (get-connecting-joint-above part)))
 
 (defun get-connecting-joint-below (part)
-  "Traverse the URDF downwards to find a connecting joint. See `get-connecting-joint' for more info."
+  "Traverse the URDF downwards to find a connecting joint and returns it.
+The type of return value is cl-urdf:joint.
+See `get-connecting-joint' for more info."
   (declare (type (or cl-urdf:joint cl-urdf:link) part))
   (when part
-    (the cl-urdf:joint
-         (if (typep part 'cl-urdf:joint)
-             (or
-              (when (not (eql (cl-urdf:joint-type part) :FIXED))
-                part)
-              (get-connecting-joint-below (cl-urdf:child part)))
-
-             (when (typep part 'cl-urdf:link)
-               (find-if
-                (lambda (joint)
-                  (get-connecting-joint-below joint))
-                (cl-urdf:to-joints part)))))))
+    (if (typep part 'cl-urdf:joint)
+        (or (when (not (eql (cl-urdf:joint-type part) :FIXED))
+              part)
+            (get-connecting-joint-below (cl-urdf:child part)))
+        (when (typep part 'cl-urdf:link)
+          (find-if
+           (lambda (joint)
+             (get-connecting-joint-below joint))
+           (cl-urdf:to-joints part))))))
 
 (defun get-connecting-joint-above (part)
-  "Traverse the URDF upwards to find a connecting joint. See `get-connecting-joint' for more info."
+  "Traverse the URDF upwards to find a connecting joint and returns it.
+The type of return value is cl-urdf:joint.
+See `get-connecting-joint' for more info."
   (declare (type (or cl-urdf:joint cl-urdf:link) part))
   (when part
-    (the cl-urdf:joint
-         (if (typep part 'cl-urdf:joint)
-             (or
-              (when (not (eql (cl-urdf:joint-type part) :FIXED))
-                part)
-              (get-connecting-joint-above (cl-urdf:parent part)))
-
-             (when (typep part 'cl-urdf:link)
-               (get-connecting-joint-above (cl-urdf:from-joint part)))))))
+    (if (typep part 'cl-urdf:joint)
+        (or (when (not (eql (cl-urdf:joint-type part) :FIXED))
+              part)
+            (get-connecting-joint-above (cl-urdf:parent part)))
+        (when (typep part 'cl-urdf:link)
+          (get-connecting-joint-above (cl-urdf:from-joint part))))))
 
 (defun get-manipulated-link (part)
-  "Returns the link under the connecting joint of `part'. Which is the one actually
-being manipulated.
-`part' can be either a `cl-urdf:joint' or a `cl-urdf:link'."
+  "Returns the link under the connecting joint of `part' of type cl-urdf:link.
+Which is the one actually being manipulated."
   (declare (type (or cl-urdf:joint cl-urdf:link) part))
-  (the cl-urdf:link
-       (cl-urdf:child
-        (get-connecting-joint part))))
+  (cl-urdf:child
+   (get-connecting-joint part)))
 
 (defun get-manipulated-pose (link-name joint-position btr-environment &key relative)
   "Returns the pose of the link with `link-name' based on its connection joint position

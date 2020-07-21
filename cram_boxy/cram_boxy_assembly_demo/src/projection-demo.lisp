@@ -237,7 +237,7 @@
                                                        (type counter-top)
                                                        (urdf-name
                                                         kitchen-island-surface)
-                                                       (part-of environment)))
+                                                       (part-of iai-kitchen)))
                                          (side back)
                                          (range 0.5))))))
       ;; 1
@@ -316,7 +316,7 @@
                                       (type counter-top)
                                       (urdf-name
                                        kitchen-island-surface)
-                                      (part-of environment)))
+                                      (part-of iai-kitchen)))
                         (side right)
                         (range-invert 0.9)
                         (side front))
@@ -373,20 +373,20 @@
   ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
   (spawn-objects-on-plate)
 
-  (let ((base-x
-          -2.4)
-        (base-very-left-side-left-hand-pose
-          `((,base-x 1.8 0) (0 0 0 1)))
-        (base-left-side-left-hand-pose
-          `((,base-x 1.5 0) (0 0 0 1)))
-        (base-somewhat-left-side-left-hand-pose
-          `((,base-x 1.3 0) (0 0 0 1)))
-        (base-middle-side-left-hand-pose
-          `((,base-x 1.1 0) (0 0 0 1)))
-        (base-right-side-left-hand-pose
-          `((,base-x 0.7 0) (0 0 0 1)))
-        (base-very-right-side-left-hand-pose
-          `((,(- base-x 0.2) 0.65 0) (0 0 0 1))))
+  (let* ((base-x
+           -2.4)
+         (base-very-left-side-left-hand-pose
+           `((,base-x 1.8 0) (0 0 0 1)))
+         (base-left-side-left-hand-pose
+           `((,base-x 1.5 0) (0 0 0 1)))
+         (base-somewhat-left-side-left-hand-pose
+           `((,base-x 1.3 0) (0 0 0 1)))
+         (base-middle-side-left-hand-pose
+           `((,base-x 1.1 0) (0 0 0 1)))
+         (base-right-side-left-hand-pose
+           `((,base-x 0.7 0) (0 0 0 1)))
+         (base-very-right-side-left-hand-pose
+           `((,(- base-x 0.2) 0.65 0) (0 0 0 1))))
 
     (urdf-proj:with-projected-robot
       ;; 1

@@ -185,18 +185,17 @@ objects for debugging."
   (roslisp-utilities:startup-ros)
 
   (when urdf-new-kitchen?
-    (unless btr-belief:*kitchen-urdf*
-      (let ((kitchen-urdf-string
-              (roslisp:get-param btr-belief:*kitchen-parameter* nil)))
-        (when kitchen-urdf-string
-          (setf btr-belief:*kitchen-urdf*
-                (cl-urdf:parse-urdf kitchen-urdf-string)))))
+    (let ((kitchen-urdf-string
+            (roslisp:get-param rob-int:*environment-description-parameter* nil)))
+      (when kitchen-urdf-string
+        (setf rob-int:*environment-urdf*
+              (cl-urdf:parse-urdf kitchen-urdf-string))))
     (btr-belief:vary-kitchen-urdf *furniture-offsets-realistic-kitchen-variation*))
 
   (coe:clear-belief)
 
   (when urdf-new-kitchen?
-    (setf (btr:pose (btr:object btr:*current-bullet-world* (btr:get-robot-name)))
+    (setf (btr:pose (btr:object btr:*current-bullet-world* (rob-int:get-robot-name)))
           (cram-tf:list->pose *robot-starting-pose-in-realistic-kitchen-variation*)))
 
   (cram-bullet-reasoning:clear-costmap-vis-object)

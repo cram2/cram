@@ -178,10 +178,7 @@
   (unless cram-projection:*projection-environment*
     (json-prolog:prolog-simple "rdf_retractall(A,B,C,belief_state).")
     ;; (cram-occasions-events:clear-belief) ; to clear giskard environment
-    )
-
-  ;; (setf cram-robot-pose-guassian-costmap::*orientation-samples* 3)
-  )
+    ))
 
 (defun finalize ()
   ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
@@ -278,7 +275,7 @@
                                                (on (desig:an object
                                                              (type counter-top)
                                                              (urdf-name sink-area-surface)
-                                                             (part-of kitchen)))
+                                                             (part-of iai-kitchen)))
                                                (side front)))))))
 
            (experiment-log-finish-object-transport-successful type))

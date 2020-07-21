@@ -32,5 +32,4 @@
 
 (defpackage cram-hsrb-description
   (:nicknames #:hsrb-descr)
-  (:use #:common-lisp #:cram-prolog #:cram-robot-interfaces)
-  (:export #:hsrb))
+  (:use #:common-lisp #:cram-prolog #:cram-robot-interfaces))

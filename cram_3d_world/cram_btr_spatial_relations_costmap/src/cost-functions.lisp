@@ -131,7 +131,7 @@ ref-sz/2 + ref-padding + max-padding + max-sz + max-padding + for-padding + for-
 
 (defun find-levels-under-link (parent-link)
   "Finds all the child links under the parent link with the name
-board or level in them"
+board or level or shelf in them"
   (let ((levels-found))
     (labels ((find-levels (link)
                (let* ((child-joints (cl-urdf:to-joints link))
@@ -139,7 +139,8 @@ board or level in them"
                  (mapcar (lambda (child-link)
                            (let ((child-name (cl-urdf:name child-link)))
                              (if (or (search "board" child-name)
-                                     (search "level" child-name))
+                                     (search "level" child-name)
+                                     (search "shelf" child-name))
                                  (push child-link levels-found)
                                  (find-levels child-link))))
                            child-links))))

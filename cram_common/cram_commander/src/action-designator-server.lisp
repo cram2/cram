@@ -31,7 +31,7 @@
 
 ;; (defgeneric main ()
 ;;   (:method :before ()
-;;     (let ((agent-ros-name (rosify (current-robot-symbol))))
+;;     (let ((agent-ros-name (rosify (rob-int:get-robot-name))))
 ;;       (roslisp-utilities:startup-ros :name agent-ros-name))))
 
 (defun try-reference-designator-json (designator-json-string)

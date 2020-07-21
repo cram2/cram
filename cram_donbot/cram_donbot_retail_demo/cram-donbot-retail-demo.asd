@@ -73,13 +73,15 @@
                cram-donbot-description
 
                ;; real robot
-               cram-robosherlock
-               cram-giskard
-               cram-donbot-process-modules)
+               ;; cram-robosherlock
+               ;; cram-giskard
+               ;; cram-donbot-process-modules
+               )
 
   :components
   ((:module "src"
     :components
     ((:file "package")
+     (:file "costmaps" :depends-on ("package"))
      (:file "setup" :depends-on ("package"))
      (:file "demo" :depends-on ("package"))))))

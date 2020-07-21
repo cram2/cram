@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,30 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defpackage cram-pr2-projection
-  (:nicknames #:pr2-proj)
-  (:use #:common-lisp
-        #:cram-prolog
-        ;; #:cram-bullet-reasoning
-        ;; #:cram-process-modules
-        ;; #:cram-projection
-        ;; #:cl-transforms-stamped
-        ;; #:cram-robot-interfaces
-        ;; #:cram-tf
-        )
-  (:export
-   ;; projection-clock
-   #:action-duration #:projection-timestamp-function #:execute-as-action
-   ;; ik
-   #:*torso-step*
-   ;; projection-environment
-   #:with-simulated-robot #:with-projected-robot
-   #:pr2-bullet-projection-environment
-   ;; low-level
-   #:*debug-short-sleep-duration* #:*debug-long-sleep-duration*))
+(in-package :cram-robot-interfaces)
+
+(defparameter *environment-description-parameter* "kitchen_description"
+  "ROS parameter that contains the environment description URDF.")
+
+(defvar *environment-urdf* nil
+  "A cl-urdf object corresponding to parsed environment URDF.")
+
+(defvar *environment-name* nil
+  "Variable that stores the name of the current environment,
+we assume that all the environment furniture is put together into one URDF.")
+
+(defun set-environment-name (new-name)
+  (setf *environment-name* new-name))
+
+(defun get-environment-name ()
+  (or *environment-name*
+      (error "[rob-int] Variable *ENVIRONMENT-NAME* is NIL.~%~
+              Was it initialized from the URDF on the ROS parameter server?")))
+
+(def-fact-group environment (environment-name)
+  (<- (environment-name ?environment-name)
+    (symbol-value *environment-name* ?environment-name)
+    (once (or (lisp-pred identity ?environment-name)
+              (lisp-pred error "[rob-int] Variable *ENVIRONMENT-NAME* is NIL.~%~
+                                Was it initialized from the URDF on the ~
+                                ROS parameter server?")))))

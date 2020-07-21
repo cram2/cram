@@ -48,8 +48,10 @@
     ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
     ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
     (:milk
-     "iai_fridge_main_middle_level"
-     ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437)))))
+     ;; "iai_fridge_main_middle_level"
+     ;; ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437))
+     "iai_fridge_door_shelf1_bottom"
+     ((0.0 -0.05 0.094) (0 0 0 1)))))
 
 
 (defparameter *delivery-poses*
@@ -148,11 +150,6 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 
 (defun setting-demo (&optional (object-list '(:milk :breakfast-cereal
                                               :bowl :spoon :cup)))
-  "Generic implementation, ideally this should work for all objects together.
-Right now, only works with '(:milk) and '(:bowl :cup :spoon). There is a separate method
-for :breakfast-cereal in the bottom.
-To get this working with milk, all the code of accessing and sealing inside the transport plan has to be
-commented out "
   ;; (setup-for-demo object-list)
 
   (dolist (?object-type object-list)
@@ -198,7 +195,7 @@ commented out "
                                        (type counter-top)
                                        (urdf-name kitchen-island-surface)
                                        (owl-name "kitchen_island_counter_top")
-                                       (part-of environment)))
+                                       (part-of iai-kitchen)))
                                (side back)
                                (side right)))
            (?color (cdr (assoc ?object-type *object-colors*)))
@@ -219,7 +216,7 @@ commented out "
                                            (type drawer)
                                            (urdf-name sink-area-trash-drawer-main)
                                            (owl-name "drawer_sinkblock_middle_open")
-                                           (part-of environment))))))))
+                                           (part-of iai-kitchen))))))))
       (let ((?obj (exe:perform
                    (an action
                        (type searching)
@@ -257,7 +254,7 @@ commented out "
                                            (type drawer)
                                            (urdf-name sink-area-trash-drawer-main)
                                            (owl-name "drawer_sinkblock_middle_open")
-                                           (part-of environment)))))))))))
+                                           (part-of iai-kitchen)))))))))))
 
 
 (defun get-from-vertical-drawer (&optional ?open (?object :breakfast-cereal))
@@ -273,7 +270,7 @@ because there is some error when trying to close the drawer"
                               (type drawer)
                               (urdf-name oven-area-area-right-drawer-handle)
                               ;;This should be referencing the container itself
-                              (part-of environment)))))
+                              (part-of iai-kitchen)))))
          (distance 0.35))))
 
   ;; This plan is rudimentary and just aims to increase the fetch retries
@@ -323,7 +320,7 @@ because there is some error when trying to close the drawer"
                                     (on (an object
                                             (type counter-top)
                                             (urdf-name kitchen-island-surface)
-                                            (part-of environment)))
+                                            (part-of iai-kitchen)))
                                     (side back)
                                     (side right)))))))
     (let ((?fetched-object
@@ -336,7 +333,7 @@ because there is some error when trying to close the drawer"
                                 (in (an object
                                         (type drawer)
                                         (urdf-name sink-area-trash-drawer-main)
-                                        (part-of environment)))))
+                                        (part-of iai-kitchen)))))
                    (distance 0.4)))
 
       (perform (an action
@@ -346,7 +343,7 @@ because there is some error when trying to close the drawer"
                               (on (an object
                                       (type drawer)
                                       (urdf-name sink-area-trash-drawer-main)
-                                      (part-of environment)))
+                                      (part-of iai-kitchen)))
                               (side front)
                               (side right)
                               (for (an object (type ?object)))
@@ -360,7 +357,7 @@ because there is some error when trying to close the drawer"
       ;;                           (in (an object
       ;;                                   (type drawer)
       ;;                                   (urdf-name sink-area-trash-drawer-main)
-;;                                         (part-of environment)))))
+;;                                         (part-of iai-kitchen)))))
       ;;              (distance 0.4))))))
 
 ;; Ideal working for clean up (tried for fridge, doesn't work now)
@@ -370,7 +367,7 @@ because there is some error when trying to close the drawer"
 ;;     (let* ((f-loc `((:milk . ,(a location (in (an object
 ;;                                                   (type container)
 ;;                                                   (urdf-name iai-fridge-main)
-;;                                                   (part-of environment)
+;;                                                   (part-of iai-kitchen)
 ;;                                                   (level topmost)))
 ;;                                  (for (an object
 ;;                                           (type milk)))

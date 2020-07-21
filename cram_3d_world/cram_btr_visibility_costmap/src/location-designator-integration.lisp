@@ -116,7 +116,7 @@ that `designator' tries to reach."
                                    (world (bullet:restore-world-state
                                            state (make-instance 'btr:bt-reasoning-world
                                                    :gravity-vector (bullet:gravity-vector state))))
-                                   (robot (btr:object world (btr:get-robot-name))))
+                                   (robot (btr:object world (rob-int:get-robot-name))))
                               (make-ik-check-function
                                robot (pose-side-properties designator)))))))
             (funcall cached-function pose))

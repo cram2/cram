@@ -34,9 +34,6 @@
 ;; Will need an SRDF parser to extract that information. Until then, a lot
 ;; of the predicates will be manually filled with data.
 
-(defvar *robot-urdf* nil
-  "A cl-urdf object corresponding to parsed robot urdf.")
-
 (defun get-joint-description (joint-name)
   (unless *robot-urdf*
     (error "[rob-int] ROBOT-URDF variable is not set!"))

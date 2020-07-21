@@ -92,11 +92,13 @@ turn the robot base such that it looks in the direction of target and look again
                (cpl:retry))
              (roslisp:ros-warn (pp-plans turn-towards) "Turning around didn't work :'(~%")
              (cpl:fail 'common-fail:looking-high-level-failure)))
-        (let ((?goal `(cpoe:looking-at ,?look-target)))
+        (let (;; (?goal `(cpoe:looking-at ,?look-target))
+              )
           (exe:perform (desig:an action
                                  (type looking)
                                  (target ?look-target)
-                                 (goal ?goal))))))))
+                                 ;; (goal ?goal)
+                                 )))))))
 
 
 (defun manipulate-environment (&key
@@ -262,11 +264,13 @@ retries with different search location or robot base location."
                               :warning-namespace (fd-plans search-for-object)
                               :reset-designators (list ?robot-location)))))
 
-                    (let ((?goal `(cpoe:looking-at ,?search-location)))
+                    (let (;; (?goal `(cpoe:looking-at ,?search-location))
+                          )
                       (exe:perform (desig:an action
                                              (type turning-towards)
                                              (target ?search-location)
-                                             (goal ?goal))))
+                                             ;; (goal ?goal)
+                                             )))
                     (exe:perform (desig:an action
                                            (type perceiving)
                                            (object ?object-designator)))))))))))))
@@ -320,11 +324,13 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
         (exe:perform (desig:an action
                                (type navigating)
                                (location ?pick-up-robot-location)))
-        (let ((?goal `(cpoe:looking-at ,?look-location)))
+        (let (;; (?goal `(cpoe:looking-at ,?look-location))
+              )
           (exe:perform (desig:an action
                                  (type turning-towards)
                                  (target ?look-location)
-                                 (goal ?goal))))
+                                 ;; (goal ?goal)
+                                 )))
 
         (cpl:with-retry-counters ((regrasping-retries 1))
           (cpl:with-failure-handling
@@ -505,11 +511,13 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                          "Retrying with new placing location ...~%"))))
 
                 ;; look
-                (let ((?goal `(cpoe:looking-at ,?target-location)))
+                (let (;; (?goal `(cpoe:looking-at ,?target-location))
+                      )
                   (exe:perform (desig:an action
                                          (type turning-towards)
                                          (target ?target-location)
-                                         (goal ?goal))))
+                                         ;; (goal ?goal)
+                                         )))
 
                 ;; if target is in hand, we have a handover,
                 ;; so move target hand closer
@@ -619,36 +627,36 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     ((:grasps ?grasps))
                     ((:deliver-location ?delivering-location))
                     ((:deliver-robot-location ?deliver-robot-location))
-                    search-location-accessible
-                    deliver-location-accessible
-                    search-location-certain
-                    deliver-location-certain
                   &allow-other-keys)
   (unwind-protect
        (progn
 
          ;; if we are not sure about the exact location of deliver-location, find it
-         (unless deliver-location-certain
+         (let ((?goal `(man-int:location-certain ,?delivering-location)))
            (exe:perform (desig:an action
                                   (type searching)
-                                  (location ?delivering-location))))
+                                  (location ?delivering-location)
+                                  (goal ?goal))))
          ;; if deliver-location is inside a container, open the container
-         (unless deliver-location-accessible
+         (let ((?goal `(man-int:location-accessible ,?delivering-location)))
            (exe:perform (desig:an action
                                   (type accessing)
-                                  (location ?delivering-location))))
+                                  (location ?delivering-location)
+                                  (goal ?goal))))
 
          ;; if we are not sure about the exact location of search-location, find it
-         (unless search-location-certain
+         (let ((?goal `(man-int:location-certain ,?search-location)))
            (exe:perform (desig:an action
                                   (type searching)
-                                  (location ?search-location))))
+                                  (location ?search-location)
+                                  (goal ?goal))))
 
          ;; if search-location is inside a container, open the container
-         (unless search-location-accessible
+         (let ((?goal `(man-int:location-accessible ,?search-location)))
            (exe:perform (desig:an action
                                   (type accessing)
-                                  (location ?search-location))))
+                                  (location ?search-location)
+                                  (goal ?goal))))
 
          ;; search for the object to find it's exact pose
          (exe:perform (desig:an action
@@ -720,13 +728,15 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
          (desig:current-desig ?object-designator))
 
     ;; reset the fetch location
-    (unless search-location-accessible
+    (let ((?goal `(cpoe:location-reset ,?search-location)))
       (exe:perform (desig:an action
                              (type sealing)
-                             (location ?search-location))))
+                             (location ?search-location)
+                             (goal ?goal))))
 
     ;; reset the target location
-    (unless deliver-location-accessible
+    (let ((?goal `(cpoe:location-reset ,?delivering-location)))
       (exe:perform (desig:an action
                              (type sealing)
-                             (location ?delivering-location))))))
+                             (location ?delivering-location)
+                             (goal ?goal))))))

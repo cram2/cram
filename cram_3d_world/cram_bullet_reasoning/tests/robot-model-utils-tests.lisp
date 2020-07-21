@@ -108,7 +108,7 @@
                      (btr:object btr:*current-bullet-world* :basket-1)
                      :link "r_wrist_roll_link" :loose nil :grasp :front)
   ;; check for collision
-  (assert-equal (list (btr:get-environment-name))
+  (assert-equal (list (rob-int:get-environment-name))
                 (mapcar #'btr:name (btr::robot-attached-objects-in-collision)))
   ;; spawn plate on sink area surface ...
   (btr-utils:spawn-object :plate-1 :plate :pose '((1.5 0.5 0.9) (0.0 0 0 1.0)))
@@ -118,7 +118,7 @@
                                  :plate-1)
                      :link "sink_area_surface")
   ;; and check for collisions again
-  (assert-equal (list (btr:get-environment-name))
+  (assert-equal (list (rob-int:get-environment-name))
                 (mapcar #'btr:name (btr::robot-attached-objects-in-collision)))
   (clean-environment '(:basket-1 :plate-1)))
 
