@@ -31,22 +31,6 @@
 (defparameter *spawn-debug-window* t
   "If the debug window should be spawned when belief state is set up.")
 
-(defun replace-all (string part replacement &key (test #'char=))
-  "Returns a new string in which all the occurences of the part
-is replaced with replacement.
-  Taken from Common Lisp Cookbook."
-  (with-output-to-string (out)
-    (loop with part-length = (length part)
-          for old-pos = 0 then (+ pos part-length)
-          for pos = (search part string
-                            :start2 old-pos
-                            :test test)
-          do (write-string string out
-                           :start old-pos
-                           :end (or pos (length string)))
-          when pos do (write-string replacement out)
-            while pos)))
-
 (defun average (min max) (+ min (/ (- max min) 2)))
 (defun setup-world-database ()
   ;; make a clean world instance
@@ -62,7 +46,7 @@ is replaced with replacement.
   ;; TODO get rid of replace-all and instead fix the URDF of our real PR2
   (setf rob-int:*robot-urdf*
         (cl-urdf:parse-urdf
-         (replace-all
+         (cut:replace-all
           (roslisp:get-param rob-int:*robot-description-parameter*)
           "\\" "  ")))
 

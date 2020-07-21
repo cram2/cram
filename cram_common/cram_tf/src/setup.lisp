@@ -65,7 +65,6 @@ or in general at compile-time.")
 (defvar *robot-right-tool-frame* nil
   "Tool frame of the right arm. Initialized from CRAM robot desciption.")
 
-
 (defun init-tf ()
   (macrolet ((initialize-var (dynamic-var prolog-var)
                (let ((var-name (symbol-name dynamic-var)))
@@ -110,7 +109,9 @@ or in general at compile-time.")
             (roslisp-utilities:lispify-ros-underscore-name
              (cl-urdf:name
               (cl-urdf:parse-urdf
-               (roslisp:get-param rob-int:*robot-description-parameter*)))
+               (cut:replace-all ; our pr2 urdf has some garbage inside :(
+                (roslisp:get-param rob-int:*robot-description-parameter*)
+                "\\" "  ")))
              :keyword)))
       (rob-int:set-robot-name robot-name)
       (roslisp:ros-info (cram-tf init-tf) "Robot name is ~a." robot-name))

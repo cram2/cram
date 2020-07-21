@@ -48,25 +48,25 @@
               :constraints
               (map
                'vector #'identity
-               (cons
-                (roslisp:make-message
-                 'giskard_msgs-msg:constraint
-                 :type
-                 "UpdateGodMap"
-                 :parameter_value_pair
-                 (let ((stream (make-string-output-stream)))
-                   (yason:encode
-                    (cut:recursive-alist-hash-table
-                     `(("updates"
-                        . (("rosparam"
-                            . (("general_options"
-                                . (("joint_weights"
-                                    . (("odom_x_joint" . 0.1)
-                                       ("odom_y_joint" . 0.1)
-                                       ("odom_z_joint" . 0.1))))))))))
-                     :test #'equal)
-                    stream)
-                   (get-output-stream-string stream)))
+               ;; (cons
+                ;; (roslisp:make-message
+                ;;  'giskard_msgs-msg:constraint
+                ;;  :type
+                ;;  "UpdateGodMap"
+                ;;  :parameter_value_pair
+                ;;  (let ((stream (make-string-output-stream)))
+                ;;    (yason:encode
+                ;;     (cut:recursive-alist-hash-table
+                ;;      `(("updates"
+                ;;         . (("rosparam"
+                ;;             . (("general_options"
+                ;;                 . (("joint_weights"
+                ;;                     . (("odom_x_joint" . 0.001)
+                ;;                        ("odom_y_joint" . 0.001)
+                ;;                        ("odom_z_joint" . 0.001))))))))))
+                ;;      :test #'equal)
+                ;;     stream)
+                ;;    (get-output-stream-string stream)))
                 (mapcar (lambda (arm)
                           (let ((tool-frame
                                   (cut:var-value
@@ -97,7 +97,9 @@
                                  :test #'equal)
                                 stream)
                                (get-output-stream-string stream)))))
-                        arm-left-or-right-or-both)))
+                        arm-left-or-right-or-both)
+                ;;)
+              )
               :collisions
               (vector (roslisp:make-message
                        'giskard_msgs-msg:collisionentry
@@ -256,13 +258,6 @@
                         arm-left-or-right-or-both)))))))
 
 
-(defun ensure-goal-reached (status)
-  (when (eql status :preempted)
-    (roslisp:ros-warn (giskard env-manip) "Giskard action preempted.")
-    (return-from ensure-goal-reached))
-  (when (eql status :timeout)
-    (roslisp:ros-warn (giskard env-manip) "Giskard action timed out.")))
-
 (defun call-environment-manipulation-action (&key
                                                (open-or-close :open)
                                                (arm :right)
@@ -406,7 +401,7 @@
     (desig:an action
               (type releasing)
               (gripper right))))
- (call-grasp-bar-action
+ (giskard::call-grasp-bar-action
   :arm :right
   :bar-axis (cl-transforms-stamped:make-vector-stamped
              "iai_kitchen/sink_area_dish_washer_door_handle" 0.0
@@ -417,8 +412,8 @@
    (cl-transforms:make-3d-vector 0 0 1))
   :bar-center (cl-transforms-stamped:make-point-stamped
                "iai_kitchen/sink_area_dish_washer_door_handle" 0.0
-               (cl-transforms:make-3d-vector 0.01 0 0))
-  :bar-length 0.4)
+               (cl-transforms:make-3d-vector 0.0 0 0))
+  :bar-length 0.2)
  (pr2-pms:with-real-robot
    (exe:perform
     (desig:an action
@@ -453,4 +448,22 @@
        0.0)
  (btr-belief::publish-environment-joint-state
   (btr:joint-states (btr:get-environment-object)))
+ )
+
+
+#+grasping-inside-tray-plan
+(
+ (giskard::call-grasp-bar-action
+  :arm :right
+  :bar-axis (cl-transforms-stamped:make-vector-stamped
+             "iai_kitchen/sink_area_dish_washer_tray_handle_front_side" 0.0
+             (cl-transforms:make-3d-vector 0 -1 0))
+  :bar-perpendicular-axis
+  (cl-transforms-stamped:make-vector-stamped
+   "iai_kitchen/sink_area_dish_washer_tray_handle_front_side" 0.0
+   (cl-transforms:make-3d-vector 0 0 -1))
+  :bar-center (cl-transforms-stamped:make-point-stamped
+               "iai_kitchen/sink_area_dish_washer_tray_handle_front_side" 0.0
+               (cl-transforms:make-3d-vector 0.06 0 -0))
+  :bar-length 0.20)
  )

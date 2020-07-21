@@ -57,7 +57,7 @@
    #:strip-transform-stamped
    #:copy-transform-stamped
    #:translate-transform-stamped
-   #:pose-stamped->transform-stamped
+   #:pose-stamped->transform-stamped #:pose-stamped->point-stamped
    #:apply-transform
    #:values-converged #:tf-frame-converged #:pose-stampeds-converged
    #:normalize-joint-angles
