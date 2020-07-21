@@ -254,5 +254,5 @@
   (<- (costmap:costmap-reach-minimal-distance :iai-donbot 0.1))
   (<- (costmap:orientation-samples :iai-donbot 1))
   (<- (costmap:orientation-sample-step :iai-donbot 0.3))
-  (<- (costmap:reachability-orientation-offset :iai-donbot 3.14))
+  (<- (costmap:reachability-orientation-offset :iai-donbot 1.57))
   (<- (costmap:visibility-costmap-size :iai-donbot 2.0)))
