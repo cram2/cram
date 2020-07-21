@@ -325,7 +325,6 @@ the `look-pose-stamped'."
              (not (equal ?some-delivering-location-designator NIL)))
         (desig:current-designator ?some-delivering-location-designator
                                   ?delivering-location-designator)
-
         (and (spec:property ?object-designator (:type ?object-type))
              (rob-int:environment-name ?environment)
              (lisp-fun man-int:get-object-destination
@@ -337,7 +336,6 @@ the `look-pose-stamped'."
         (desig:current-designator ?some-d-robot-loc-desig
                                   ?deliver-robot-location-designator)
         (equal ?deliver-robot-location-designator NIL))
-
     ;; resulting action desig
     (desig:designator :action
                       ((:type :transporting)
