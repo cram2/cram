@@ -36,6 +36,7 @@
 (defmethod costmap:costmap-generator-name->score ((name (eql 'collision))) 10)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'on-bounding-box))) 5)
 
+
 (defclass side-generator () ())
 (defmethod costmap:costmap-generator-name->score ((name side-generator)) 5)
 
@@ -435,6 +436,9 @@
 
 
   ;;;;;;;;;;;;;;; spatial relation ABOVE for environment objects ;;;;;;;;;;;;
+  ;; ABOVE works similar to ON. Major differences are
+  ;; 1. prismatic containers are opened before manipulation
+  ;; 2. it requires a z-offset to be provided to calculate height
   (<- (costmap:desig-costmap ?designator ?costmap)
     (and (desig:desig-prop ?designator (:above ?object))
          (not (desig:desig-prop ?designator (:attachment ?_)))
@@ -442,9 +446,8 @@
     (desig:desig-prop ?designator (?original-tag ?object))
     (spec:property ?object (:urdf-name ?urdf-name))
     (spec:property ?object (:part-of ?environment-name))
-    (or (and (desig:desig-prop ?designator (:z-offset ?z-offset))
-             (lisp-pred typep ?z-offset float))
-        (equal 0.0 ?z-offset))
+    (and (desig:desig-prop ?designator (:z-offset ?z-offset))
+         (lisp-pred typep ?z-offset float))
     (btr:bullet-world ?world)
     (btr:%object ?world ?environment-name ?environment-object)
     (height-calculation-body-or-tag ?environment-object ?object
