@@ -292,3 +292,35 @@ Resampling axis can only be :X, :Y or :Z"
               (roslisp:set-debug-level nil 9)
               ,@body)
          (roslisp:set-debug-level nil old-debug-level)))))
+
+
+
+#+below-is-stuff-for-caching
+((defun arm-pose-hash-code (arm-pose-list)
+   (let* ((pose (second arm-pose-list))
+          (pose-list (cram-tf:pose->flat-list pose))
+          (sum (abs (apply #'+ pose-list)))
+          (sum-big-precise-num (* sum 100000000))
+          (pose-hash-code (floor sum-big-precise-num))
+          (arm (first arm-pose-list))
+          (overall-hash-code (ecase arm
+                               (:left (+ pose-hash-code 10000))
+                               (:right (+ pose-hash-code 20000)))))
+     overall-hash-code))
+ (defun arm-poses-equal-accurate (arm-pose-list-1 arm-pose-list-2)
+   (let* ((pose-1 (second arm-pose-list-1))
+          (pose-2 (second arm-pose-list-2))
+          (arm-1 (first arm-pose-list-1))
+          (arm-2 (first arm-pose-list-2)))
+     (if (eql arm-1 arm-2)
+         (cram-tf:poses-equal-p pose-1 pose-2 0.000001d0 0.000010d0)
+         nil)))
+ (sb-ext:define-hash-table-test arm-poses-equal-accurate arm-pose-hash-code)
+ (defvar *ik-solution-cache* (make-hash-table :test 'arm-poses-equal-accurate))
+ (setf (gethash (list left-or-right cartesian-pose) *ik-solution-cache*)
+       (list ik-solution-position resulting-torso-angle))
+ (let ((hashed-result
+         (gethash (list left-or-right cartesian-pose) *ik-solution-cache*)))
+   (if hashed-result
+       (values (first hashed-result) (second hashed-result))
+       (call-ik-stuff))))
