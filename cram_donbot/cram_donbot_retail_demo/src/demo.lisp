@@ -49,9 +49,7 @@
               cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
        :joint-state-topic "kitchen/joint_states")))
 
-  (when (and spawn?
-             ;; cram-projection:*projection-environment*
-             )
+  (when (and spawn? cram-projection:*projection-environment*)
     (btr-utils:spawn-object :balea-bottle-1 :balea-bottle :pose
                             '((1.9 -1.42 1.05) (0 0 0.7 0.7))
                             :color '(1 1 1))
@@ -62,11 +60,8 @@
                     :color '(0 1 0 1.0)
                     :size '(0.057 0.018 0.074)
                     :item-type :dish-washer-tabs)
-    ;; (btr-utils:spawn-object :denkmitgeschirrreinigernature-2 :dish-washer-tabs
-    ;;                         :pose '((1.75 -1.45 1.06) (0 0 0.7 0.7))
-    ;;                         :color '(0 1 0))
     ;; (btr:simulate btr:*current-bullet-world* 50)
-    ))
+    (btr-utils:move-robot '((1.0 0 0) (0 0 0 1)))))
 
 (defun demo ()
   (spawn-objects-on-small-shelf)
