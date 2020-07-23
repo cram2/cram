@@ -211,7 +211,7 @@
            (cl-tf:make-pose-stamped
             salt-frame
             0.0
-            (cl-tf:make-3d-vector 0 0 0.0)
+            (cl-tf:make-3d-vector 0 0 0.035)
             (cl-tf:euler->quaternion :ax 0.0 :ay 0.0 :az
                                      (+ (/ pi 2)
                                         (* 2
