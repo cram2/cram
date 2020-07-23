@@ -100,14 +100,17 @@ similar to what we have for locations.")
           (let ((desig-goal (desig-prop-value designator :goal)))
             (if desig-goal
                 (let ((occasion (convert-desig-goal-to-occasion desig-goal)))
-                  (if (cram-occasions-events:holds occasion)
-                      (warn 'simple-warning
-                            :format-control "Action goal `~a' already achieved."
-                            :format-arguments (list occasion))
-                      (call-plan-with-designator-properties plan referenced-action-designator))
-                  (unless (cram-occasions-events:holds occasion)
-                    (cpl:fail "Goal `~a' of action `~a' was not achieved."
-                              occasion designator)))
-                (call-plan-with-designator-properties plan referenced-action-designator)))
+                  (prog1
+                      (if (cram-occasions-events:holds occasion)
+                          (warn "Action goal `~a' already achieved."
+                                (list occasion))
+                          (call-plan-with-designator-properties
+                           plan referenced-action-designator))
+                    (unless (cram-occasions-events:holds occasion)
+                      (warn "Goal `~a' of action `~a' was not achieved."
+                            occasion designator))))
+                (call-plan-with-designator-properties
+                 plan referenced-action-designator)))
           (cpl:fail "Action designator `~a' resolved to cram function `~a', ~
-                     but it isn't defined. Cannot perform action." designator plan)))))
+                     but it isn't defined. Cannot perform action."
+                    designator plan)))))

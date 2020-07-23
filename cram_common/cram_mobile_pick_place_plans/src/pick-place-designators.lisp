@@ -47,8 +47,8 @@
                       ;; cannot equate these guys because they will all end up
                       ;; being the same location designator
                       `((:attachment ,attachment)
-                        ,@ (remove :attachments (desig:properties location-designator)
-                                   :key #'car))))))
+                        ,@(remove :attachments (desig:properties location-designator)
+                                  :key #'car))))))
 
 
 
@@ -110,6 +110,14 @@
 
     (lisp-fun man-int:get-action-gripping-effort ?object-type ?effort)
     (lisp-fun man-int:get-action-gripper-opening ?object-type ?gripper-opening)
+    ;; get the type of the picking location, because the trajectory
+    ;; might be different depending on the location type
+    (once (or (and (spec:property ?current-object-desig (:location ?obj-loc))
+                   (desig:current-designator ?obj-loc ?curr-obj-loc)
+                   (man-int:location-reference-object ?curr-obj-loc ?obj-loc-obj)
+                   (desig:current-designator ?obj-loc-obj ?curr-obj-loc-obj)
+                   (spec:property ?curr-obj-loc-obj (:type ?location-type)))
+              (equal ?location-type NIL)))
 
     ;; calculate trajectory with given grasps
     (lisp-fun man-int:get-action-grasps ?object-type ?arm ?object-transform ?grasps)    
@@ -118,7 +126,8 @@
         (and (-> (spec:property ?action-designator (:left-grasp ?left-grasp))
                  (true)
                  (member ?left-grasp ?grasps))
-             (lisp-fun man-int:get-action-trajectory :picking-up :left ?left-grasp ?objects
+             (lisp-fun man-int:get-action-trajectory :picking-up :left
+                       ?left-grasp ?location-type ?objects
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
                        ?left-reach-poses)
@@ -135,8 +144,9 @@
         (and  (-> (spec:property ?action-designator (:right-grasp ?right-grasp))
                   (true)
                   (member ?right-grasp ?grasps))
-              (lisp-fun man-int:get-action-trajectory :picking-up :right ?right-grasp ?objects
-                       ?right-trajectory)
+              (lisp-fun man-int:get-action-trajectory :picking-up
+                        :right ?right-grasp ?location-type ?objects
+                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
                        ?right-reach-poses)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :grasping
@@ -148,8 +158,8 @@
              (equal ?right-grasp-poses NIL)
              (equal ?right-lift-poses NIL)))
 
-    (or (lisp-pred identity ?left-trajectory)
-        (lisp-pred identity ?right-trajectory))
+    (once (or (lisp-pred identity ?left-trajectory)
+              (lisp-pred identity ?right-trajectory)))
 
     ;; put together resulting action designator
     (desig:designator :action ((:type :picking-up)
@@ -159,6 +169,7 @@
                                (:effort ?effort)
                                (:left-grasp ?left-grasp)
                                (:right-grasp ?right-grasp)
+                               (:location-type ?location-type)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)
@@ -170,7 +181,7 @@
 
   (<- (desig:action-grounding ?action-designator (place ?resolved-action-designator))
     (spec:property ?action-designator (:type :placing))
-
+    
     ;; find in which hand the object is
     (-> (spec:property ?action-designator (:arm ?arm))
         (-> (spec:property ?action-designator (:object ?object-designator))
@@ -232,17 +243,24 @@
                                ?current-location-designator)))
 
     ;; placing happens on/in an object
-    (or (desig:desig-prop ?current-location-designator (:on ?other-object-designator))
-        (desig:desig-prop ?current-location-designator (:in ?other-object-designator))
-        (equal ?other-object-designator NIL))
+    (once (or (desig:desig-prop ?current-location-designator
+                                (:on ?other-object-desig))
+              (desig:desig-prop ?current-location-designator
+                                (:in ?other-object-desig))
+              (equal ?other-object-desig NIL)))
+    (desig:current-designator ?other-object-desig ?other-object-designator)
     ;; and that other object can be a robot or not
-    (-> (man-int:other-object-is-a-robot ?other-object-designator)
+    (-> (man-int:object-is-a-robot ?other-object-designator)
         (equal ?other-object-is-a-robot T)
         (equal ?other-object-is-a-robot NIL))
     ;; and the placement can have a specific attachment or not
-    (-> (desig:desig-prop ?current-location-designator (:attachment ?placement-location-name))
-        (true)
-        (equal ?placement-location-name NIL))
+    (once (or (desig:desig-prop ?current-location-designator
+                                (:attachment ?placement-location-name))
+              (equal ?placement-location-name NIL)))
+    ;; get the type of the placement location, because the trajectory
+    ;; might be different depending on the location type
+    (once (or (spec:property ?other-object-designator (:type ?location-type))
+              (equal ?location-type NIL)))
 
     ;; calculate trajectory
     (equal ?objects (?current-object-designator
@@ -255,7 +273,7 @@
                       (fail)))
              (lisp-fun man-int:get-action-grasps ?object-type :left ?object-transform ?left-grasps)
              (lisp-fun man-int:get-action-trajectory
-                       :placing :left ?left-grasp ?objects
+                       :placing :left ?left-grasp ?location-type ?objects
                        :target-object-transform-in-base ?target-object-transform
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
@@ -276,7 +294,7 @@
              (lisp-fun man-int:get-action-grasps ?object-type :right ?object-transform ?right-grasps)
              (member ?right-grasp ?right-grasps)
              (lisp-fun man-int:get-action-trajectory
-                       :placing :right ?right-grasp ?objects
+                       :placing :right ?right-grasp ?location-type ?objects
                        :target-object-transform-in-base ?target-object-transform
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
@@ -290,8 +308,8 @@
              (equal ?right-put-poses NIL)
              (equal ?right-retract-poses NIL)))
 
-    (or (lisp-pred identity ?left-trajectory)
-        (lisp-pred identity ?right-trajectory))
+    (once (or (lisp-pred identity ?left-trajectory)
+              (lisp-pred identity ?right-trajectory)))
 
     ;; put together resulting designator
     (desig:designator :action ((:type :placing)
@@ -300,6 +318,9 @@
                                (:other-object ?other-object-designator)
                                (:other-object-is-a-robot ?other-object-is-a-robot)
                                (:arm ?arm)
+                               (:left-grasp ?left-grasp)
+                               (:right-grasp ?right-grasp)
+                               (:location-type ?location-type)
                                (:gripper-opening ?gripper-opening)
                                (:attachment-type ?placement-location-name)
                                (:left-reach-poses ?left-reach-poses)

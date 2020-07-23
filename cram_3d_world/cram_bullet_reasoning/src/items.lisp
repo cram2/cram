@@ -46,11 +46,11 @@
     (:pot "package://cram_bullet_reasoning/resource/pot-ww.stl" nil)
     (:weisswurst "package://cram_bullet_reasoning/resource/ww.stl" nil)
     (:bowl-original "package://cram_bullet_reasoning/resource/bowl_original.stl" t)
-    (:bowl-non-compound "package://cram_bullet_reasoning/resource/bowl_non_compound.stl" nil)
     (:bowl "package://cram_bullet_reasoning/resource/bowl.dae" nil)
     (:bottle "package://cram_pr2_pick_place_demo/resource/bottle.dae" nil)
     (:bread "package://cram_bullet_reasoning/resource/bread.stl" nil)
     (:bowl-compound "package://cram_bullet_reasoning/resource/bowl_compound.dae" nil)
+    (:bowl-non-compound "package://cram_bullet_reasoning/resource/bowl_non_compound.stl" nil)
     (:ikea-bowl "package://cram_bullet_reasoning/resource/ikea_bowl.stl" nil)
     (:ikea-bowl-ww "package://cram_bullet_reasoning/resource/ikea_bowl_ww.stl" nil)
     (:popcorn-pot "package://cram_bullet_reasoning/resource/popcorn-pot.stl" nil)
@@ -549,7 +549,6 @@ The length, width and height have to be given for the function to work."
                   :collision-shape (make-instance 'bt-vis:colored-box-shape
                                      :half-extents (ensure-vector size)
                                      :color color))))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;; ATTACHMENTS ;;;;;;;;;;;;;;;;;;;;;;;;;;
 

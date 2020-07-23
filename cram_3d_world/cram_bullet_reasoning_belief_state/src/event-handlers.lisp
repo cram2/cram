@@ -106,7 +106,8 @@ and renames POSE into OLD-POSE."
         (btr:set-robot-state-from-tf
          cram-tf:*transformer*
          robot
-         :timestamp (cram-occasions-events:event-timestamp event))))))
+         ;; :timestamp (cram-occasions-events:event-timestamp event)
+         )))))
 
 
 

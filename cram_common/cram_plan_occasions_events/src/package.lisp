@@ -63,10 +63,9 @@
    ;; occasion-declarations
    ;; Symbols used in plans and thus the execution trace.
    #:object-in-hand
-   #:object-placed-at
-   #:object-picked
-   #:object-put
-   #:loc
+   #:object-at-location #:robot-at-location
+   #:torso-at #:gripper-joint-at
+   #:gripper-opened #:gripper-closed
+   #:arms-positioned-at #:tool-frames-at
    #:looking-at
-   #:arms-parked
    #:container-state))

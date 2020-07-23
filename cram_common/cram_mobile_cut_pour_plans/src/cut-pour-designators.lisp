@@ -65,7 +65,7 @@
     ;; calculate trajectory
     (equal ?objects (?current-object-desig))
     (-> (member :left ?arms)
-        (and (lisp-fun man-int:get-action-trajectory :pouring :left ?grasp ?objects 
+        (and (lisp-fun man-int:get-action-trajectory :pouring :left ?grasp T ?objects 
                        ?left-pouring-pose)
              (lisp-fun man-int:get-traj-poses-by-label ?left-pouring-pose :approach
                        ?left-approach-poses)
@@ -76,7 +76,7 @@
              (equal ?left-tilt-poses NIL)))
 
      (-> (member :right ?arms)
-        (and (lisp-fun man-int:get-action-trajectory :pouring :right ?grasp ?objects 
+        (and (lisp-fun man-int:get-action-trajectory :pouring :right ?grasp T ?objects 
                        ?right-pouring-pose)
              (lisp-fun man-int:get-traj-poses-by-label ?right-pouring-pose :approach
                        ?right-approach-poses)
@@ -141,7 +141,7 @@
     
     
     (-> (equal ?arm :left)
-        (and (lisp-fun man-int:get-action-trajectory :slicing ?arm ?grasp ?objects
+        (and (lisp-fun man-int:get-action-trajectory :slicing ?arm ?grasp T ?objects
                        ?left-slicing-pose)
              (lisp-fun man-int:get-traj-poses-by-label ?left-slicing-pose :slice-up
                        ?left-slice-up-poses)
@@ -151,7 +151,7 @@
              (equal ?left-slice-down-poses NIL)))
     
     (-> (equal ?arm :right)
-        (and (lisp-fun man-int:get-action-trajectory :slicing ?arm ?grasp ?objects
+        (and (lisp-fun man-int:get-action-trajectory :slicing ?arm ?grasp T ?objects
                        ?right-slicing-pose)
              (lisp-fun man-int:get-traj-poses-by-label ?right-slicing-pose :slice-up
                        ?right-slice-up-poses)
@@ -221,7 +221,7 @@
       
       
       (-> (equal ?arm :left)
-          (and (lisp-fun man-int:get-action-trajectory :picking-up ?arm ?grasp ?objects
+          (and (lisp-fun man-int:get-action-trajectory :picking-up ?arm ?grasp T ?objects
                          ?left-trajectory)
                (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
                          ?left-reach-poses)
@@ -233,7 +233,7 @@
 
 
       (-> (equal ?arm :right)
-          (and (lisp-fun man-int:get-action-trajectory :picking-up ?arm ?grasp ?objects
+          (and (lisp-fun man-int:get-action-trajectory :picking-up ?arm ?grasp T ?objects
                          ?right-trajectory)
                (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
                          ?right-reach-poses)
