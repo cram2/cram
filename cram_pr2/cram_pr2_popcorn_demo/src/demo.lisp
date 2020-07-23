@@ -58,13 +58,13 @@
 (defparameter *ikea-bowl-placing-pose* '("iai_popcorn_table_surface" . ((-0.78 0.23 0.055)(0 0 0 1))))
 (defparameter *ikea-plate-placing-pose* '("iai_popcorn_table_surface" . ((0.6 0.20 0.05)(0 0 0 1))))
 (defparameter *ikea-plate-pose* '("iai_popcorn_table_surface" . ((0.6 0.15 0.05)(0 0 0 1))))
-(defparameter *popcorn-pot-away-from-hot-stove-right-diagonal* '("iai_popcorn_table_surface" . ((-0.215 0.14 0.082)(0.68 0.183 -0.183 0.68))))
-(defparameter *popcorn-pot-away-from-hot-stove-left-diagonal* '("iai_popcorn_table_surface" . ((0.055 0.14 0.082)(-0.183 0.683 0.683 0.183))))
-(defparameter *popcorn-pot-away-from-hot-stove-right-horizontal* '("iai_popcorn_table_surface" . ((-0.215 0.14 0.082)(-0.707 0.0d0 0.0d0 0.707))))
-(defparameter *popcorn-pot-away-from-hot-stove-left-horizontal* '("iai_popcorn_table_surface" . ((0.055 0.14 0.082)(0.0d0 0.707 -0.707 0.0d0))))
+;;(defparameter *popcorn-pot-away-from-hot-stove-right-diagonal* '("iai_popcorn_table_surface" . ((-0.215 0.14 0.082)(0.68 0.183 -0.183 0.68))))
+;;(defparameter *popcorn-pot-away-from-hot-stove-left-diagonal* '("iai_popcorn_table_surface" . ((0.055 0.14 0.082)(-0.183 0.683 0.683 0.183))))
+;;(defparameter *popcorn-pot-away-from-hot-stove-right-horizontal* '("iai_popcorn_table_surface" . ((-0.215 0.14 0.082)(-0.707 0.0d0 0.0d0 0.707))))
+;;(defparameter *popcorn-pot-away-from-hot-stove-left-horizontal* '("iai_popcorn_table_surface" . ((0.055 0.14 0.082)(0.0d0 0.707 -0.707 0.0d0))))
 (defparameter *popcorn-pot-away-from-hot-stove-horizontal* '("iai_popcorn_table_surface" . ((-0.08 0.14 0.082)(0.0d0 0.0d0 0.0d0 1.0d0))))
-(defparameter *popcorn-pot-lifting-from-table-right* '("iai_popcorn_table_surface" . ((-0.215 0.14 0.332)(-0.707 0.0d0 0.0d0 0.707))))
-(defparameter *popcorn-pot-lifting-from-table-left* '("iai_popcorn_table_surface" . ((0.055 0.14 0.332)(0.0d0 0.707 -0.707 0.0d0))))
+;;(defparameter *popcorn-pot-lifting-from-table-right* '("iai_popcorn_table_surface" . ((-0.215 0.14 0.332)(-0.707 0.0d0 0.0d0 0.707))))
+;;(defparameter *popcorn-pot-lifting-from-table-left* '("iai_popcorn_table_surface" . ((0.055 0.14 0.332)(0.0d0 0.707 -0.707 0.0d0))))
 
 ;; ****************************** PICKING POSES ******************************
 (defparameter *ikea-bowl-picking-pose* '("iai_popcorn_table_surface" . ((-0.65 0.42 -0.13)(0 0 0 1))))
@@ -112,17 +112,6 @@
 (defun robot-state-changed ()
   (cram-occasions-events:on-event
    (make-instance 'cram-plan-occasions-events:robot-state-changed)))
-
-(defun get-rotate-pose-in-knob-frame (z-rotation 
-                                      &optional (knob-frame "iai_popcorn_stove_knob_1"))
-             
-  (cl-tf:make-pose-stamped
-   knob-frame
-   0.0
-   (cl-tf:make-3d-vector 0.0 0.0 0.034)
-   (cl-tf:euler->quaternion :ax (/ 3.14 2) 
-                            :ay (/ 3.14 2)
-                            :az z-rotation)))
   
 
 (cpl:def-cram-function demo ()
@@ -148,11 +137,13 @@
     (robot-state-changed)
     
     ;; Picking the popcorn pot with the right arm up
-    (pick-object :popcorn-pot '(:right) *popcorn-pot-init-pose*
+    (pick-object :popcorn-pot '(:right)
+                 *popcorn-pot-init-pose*
                  :?right-grasp :top)
 
     ;; Placing it on the stove
-    (place-object '(:right) *pot-cooking-pose*
+    (place-object '(:right)
+                  *pot-cooking-pose*
                   :?right-grasp :top)
 
     ;; 2. Getting the ikea bowl with the corn inside and pour corn in the popcorn pot
@@ -162,7 +153,8 @@
     (open-drawer :right)
 
     ;; Picking the ikea bowl with the right arm up
-    (pick-object :ikea-bowl-ww '(:right) *ikea-bowl-picking-pose*)
+    (pick-object :ikea-bowl-ww '(:right)
+                 *ikea-bowl-picking-pose*)
 
     ;; Going to pose to pour the popcorn corn in the bowl
     (go-to-pose *pouring-popcorn-corn-pose*)
@@ -177,43 +169,19 @@
     (go-to-pose *start-pose*)
     
     ;; Putting the ikea bowl away
-    (place-object '(:right) *ikea-bowl-placing-pose* :?right-grasp :top)
+    (place-object '(:right) *ikea-bowl-placing-pose*
+                  :?right-grasp :top)
 
     ;; 3. Turning the stove on by rotation the knob 1 with the right arm
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    
-    ;; Opening the gripper
-    (open-gripper :right)
-    
-    ;; Moving right arm to knob-1
-    (move-arms :?right-arm-pose *knob-1-reaching-pose*)
-    
-    ;; Closing the right gripper
-    (close-gripper :right)
 
-    ;; Looking at the knob 1
-    (look-at-knob)
-
-    ;; Rotating the right gripper
-    (loop for degree from 0 to 90 by 10 do        
-      (let* ((?knob-1-rotate-pose-in-knob-frame
-               (get-rotate-pose-in-knob-frame
-                (* -1 
-                   (cram-math:degrees->radians 10))))
-             (?knob-1-rotate-pose
-               (make-pose-absolute (cons "iai_popcorn_stove_knob_1"
-                                         ?knob-1-rotate-pose-in-knob-frame))))       
-        ;; Moving the robots right arm
-        (exe:perform
-         (desig:a motion
-                  (type moving-tcp)
-                  (right-pose ?knob-1-rotate-pose)
-                  (collision-mode :allow-hand))))
-      ;; Setting the joint state of the knob 1 accordingly
-      (setf (btr:joint-state (btr:get-environment-object)
-                             "iai_popcorn_stove_knob_1_joint")
-            (* -1 
-               (cram-math:degrees->radians degree))))
+    ;; Rotating the right knob to turn the stove on
+    (exe:perform
+     (desig:an action 
+               (type :turning-knob)
+               (arm :right)
+               (frame "iai_popcorn_stove_knob_1")
+               (configuration :on)))
 
     ;; 4. Attaching the lid of the pot to the popcorn pot
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -245,55 +213,31 @@
 
     ;; Grasping the plate
     (pick-object :ikea-plate '(:left)
-                 *ikea-plate-picking-pose* :?left-grasp :top)
+                 *ikea-plate-picking-pose*
+                 :?left-grasp :top)
 
     ;; Putting the plate on the table
-    (place-object '(:left) *ikea-plate-placing-pose* :?left-grasp :top)
+    (place-object '(:left) *ikea-plate-placing-pose*
+                  :?left-grasp :top)
     
     ;; Closing the left drawer
     (close-drawer :left)
     
     ;; 6. Turning the stove off
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-    ;; Opening the right gripper
-    (open-gripper :right)
-
-    ;; Moving right arm to knob-1
-    (move-arms :?right-arm-pose *knob-1-reaching-pose*)
-
-    ;; Closing the right gripper
-    (close-gripper :right)
-
-    ;; Looking at the knob 1
-    (look-at-knob)
     
-    ;; Turning the knob 1 off
-    (loop for degree from 0 to 90 by 10 do        
-      (let* ((?knob-1-rotate-pose-in-knob-frame
-               (get-rotate-pose-in-knob-frame 
-                (* -1 
-                   (cram-math:degrees->radians -10))))
-             (?knob-1-rotate-pose
-               (make-pose-absolute (cons "iai_popcorn_stove_knob_1"
-                                         ?knob-1-rotate-pose-in-knob-frame))))
-        (exe:perform
-         (desig:a motion
-                  (type moving-tcp)
-                  (right-pose ?knob-1-rotate-pose)
-                  (collision-mode :allow-hand))))
-      (setf (btr:joint-state (btr:get-environment-object)
-                             "iai_popcorn_stove_knob_1_joint")
-            (* -1 
-               (cram-math:degrees->radians (- 90 degree)))))
-
-    ;; Parking arms
-    (park-arms)
+    ;; Turning the stove off by turning knob 1
+    (exe:perform
+     (desig:an action 
+               (type :turning-knob)
+               (arm :right)
+               (frame "iai_popcorn_stove_knob_1")
+               (configuration :off)))
 
     ;; 7. Removing the popcorn pot from the hot stove area with both arms
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    ;; Picking the popcorn pot 
+    ;; Picking the popcorn pot with both arms
     (pick-object :popcorn-pot '(:left :right)
                  nil
                  :?left-grasp :left-side
@@ -312,12 +256,14 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     ;; Taking popcorn pot lid off the popcorn pot
-    (pick-object :popcorn-pot-lid '(:right) *popcorn-pot-lid-on-popcorn-pot*)
+    (pick-object :popcorn-pot-lid '(:right)
+                 *popcorn-pot-lid-on-popcorn-pot*)
     
     ;; Placing popcorn pot lid on the table
-    (place-object '(:right) *pot-lid-after-cooking-pose* :?right-grasp :top)
+    (place-object '(:right) *pot-lid-after-cooking-pose*
+                  :?right-grasp :top)
 
-    ;; Picking the popcorn pot 
+    ;; Picking the popcorn pot with both arms
     (pick-object :popcorn-pot '(:left :right)
                  nil
                  :?left-grasp :left-side
@@ -335,16 +281,11 @@
     ;; Going back to the stove to place the popcorn pot
     (go-to-pose *start-pose* :dont-move-arms T)
 
-    ;; Moving popcorn pot above the stove
-    (move-arms 
-     :?right-arm-pose
-     *popcorn-pot-away-from-hot-stove-right-horizontal*
-     :?left-arm-pose
-     *popcorn-pot-away-from-hot-stove-left-horizontal*
-     :?collision-mode :allow-all)
-
-    ;; Detaching popcorn pot from the robot
-    (btr:detach-all-objects (btr:get-robot-object))
+    ;; Placing the popcorn pot on the stove
+    (place-object '(:left :right)
+                  *popcorn-pot-away-from-hot-stove-horizontal*
+                  :?left-grasp :left-side
+                  :?right-grasp :right-side)    
 
     ;; Parking arms
     (park-arms)
@@ -359,89 +300,23 @@
     (robot-state-changed)
     
     ;; Picking the salt up
-    (pick-object :salt '(:left) *salt-picking-pose*)
+    (pick-object :salt '(:left)
+                 *salt-picking-pose*)
     
     ;; Salting the popcorn
-    (let ((right-hand-position '(-0.02 0.02 0.14))
-          (left-hand-position '(-0.02 0.02 0.18))
-          (offset 0.01))
-      
-      (dotimes (c 5)
-        (let ((dynamic-right-hand-position 
-                (destructuring-bind (x y z)
-                    right-hand-position
-                  (cl-tf:make-3d-vector (+ x (* c offset))
-                                        y
-                                        z)))
-              (dynamic-left-hand-position 
-                (destructuring-bind (x y z)
-                    left-hand-position
-                  (cl-tf:make-3d-vector (+ x (* c offset))
-                                        y
-                                        z))))
-
-          (when (eq c 0)
-            (let ((?arm :right)
-                  (?gripper-opening 0.048))
-              (exe:perform
-               (desig:an action
-                         (type setting-gripper)
-                         (gripper ?arm)
-                         (position ?gripper-opening)))))
-
-          ;; Moving the salt in the right pose over the plate
-          (move-arms 
-           :?right-arm-pose
-           (cl-tf:make-pose-stamped
-            :ikea-plate-1
-            0.0
-            dynamic-right-hand-position 
-            (cl-tf:euler->quaternion :ax pi :ay 0.0 :az 0))
-           :?left-arm-pose
-           (cl-tf:make-pose-stamped
-            :ikea-plate-1
-            0.0
-            dynamic-left-hand-position
-            (cl-tf:euler->quaternion :ax pi :ay 0.0 :az pi)))
-
-          (sleep 0.5)
-          
-          ;; Salting the pocorn by ....
-          ;; ... rotating both endeffectors towards the robot
-          (dotimes (angle-c 5)
-            (sleep 0.1)
-            (move-arms 
-             :?right-arm-pose
-             (cl-tf:make-pose-stamped
-              :salt-1
-              0.0
-              (cl-tf:make-3d-vector 0 0 0.035)
-              (cl-tf:euler->quaternion :ax 0.0 :ay 0.0 :az
-                                       (+ (/ pi 2)
-                                          (* 2
-                                             (*
-                                              angle-c
-                                              (/ pi 36))))))
-             :?left-arm-pose
-             (cl-tf:make-pose-stamped
-              :salt-1
-              0.0
-              (cl-tf:make-identity-vector)
-              (cl-tf:euler->quaternion :ax 0.0 :ay 0.0 :az 
-                                       (- 
-                                        (+ pi (/ pi 2))
-                                        (*
-                                         angle-c
-                                         (/ pi 36)))))))
-
-          (sleep 0.5)
-          ;; ... and rotating back.
-          (sleep 0.5)
-          ;; repeat for another pose above the plate
-          )))
+    (exe:perform
+     (desig:an action 
+               (type salting)
+               (object (desig:an object
+                                 (type salt)
+                                 (name salt-1)))
+               (on-object (desig:an object
+                                    (type ikea-plate)
+                                    (name ikea-plate-1)))))
     
     ;; Placing salt back
-    (place-object '(:left) *salt-picking-pose* :?left-grasp :left-side)
+    (place-object '(:left) *salt-picking-pose*
+                  :?left-grasp :left-side)
 
     ;; Parking robot
     (park-robot))
