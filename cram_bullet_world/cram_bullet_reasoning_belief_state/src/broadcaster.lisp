@@ -31,11 +31,10 @@
 
 (defun get-bullet-object-transforms ()
   (let ((item-name-pose-list
-          (cut:force-ll
-           (cut:lazy-mapcar
-            (lambda (bindings)
-              (list (cut:var-value '?item-name bindings)
-                    (cut:var-value '?item-pose bindings)))
+          (mapcar (lambda (bindings)
+                    (list (cut:var-value '?item-name bindings)
+                          (cut:var-value '?item-pose bindings)))
+           (cut:force-ll
             (prolog:prolog `(and (btr:bullet-world ?world)
                                  (btr:item-type ?world ?item-name ?item-type)
                                  (btr:%object ?world ?item-name ?item-instance)
@@ -44,7 +43,8 @@
     (loop for item-name-pose in item-name-pose-list
           collect (cram-tf:pose->transform-stamped
                    cram-tf:*fixed-frame*
-                   (roslisp-utilities:rosify-underscores-lisp-name (first item-name-pose))
+                   (roslisp-utilities:rosify-underscores-lisp-name
+                    (first item-name-pose))
                    time
                    (second item-name-pose)))))
 

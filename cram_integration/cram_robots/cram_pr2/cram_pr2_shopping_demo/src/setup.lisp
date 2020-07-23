@@ -87,7 +87,7 @@
                       :|ENVIRONMENT.shelf_1_level_2_link|
                       :|ENVIRONMENT.shelf_1_level_1_link|
                       :|ENVIRONMENT.shelf_1_level_0_link|))))
-     ;; Loop for every level of the shelf
+    ;; Loop for every level of the shelf
     (loop for i from 0 to (- (length levels) 1)
           do (let* ((level-poses (nth i poses))
                     (world-T-shelf (cl-transforms:pose->transform
@@ -95,7 +95,7 @@
                                      (btr:rigid-body
                                       (btr:object btr:*current-bullet-world* :environment)
                                       (nth i levels))))))
-                ;; Loop for the objects
+               ;; Loop for the objects
                (loop for j from 0 to (- (length level-poses) 1)
                      do (let* ((shelf-T-object
                                  (cram-tf:list->transform `(,(nth j level-poses) (0 0 1 0))))
@@ -145,14 +145,14 @@
                          :der-general-allzweckreiniger))))
     ;; Loop for shelf level
     (loop for i from 0 to (- (length poses) 1)
-       ;; loop for objects in the level
-      do (loop for j from 0 to (- (length (nth i poses)) 1)
-               do (spawn-object-n-times (nth j (nth i object-types))
-                                        (cram-tf:pose->list (nth j(nth i poses)))
-                                        (+ (random 3) 1)
-                                        `(,(float (/ (random 10) 10))
-                                          ,(float (/ (random 10) 10))
-                                          ,(float (/ (random 10) 10))))))))
+          ;; loop for objects in the level
+          do (loop for j from 0 to (- (length (nth i poses)) 1)
+                   do (spawn-object-n-times (nth j (nth i object-types))
+                                            (cram-tf:pose->list (nth j(nth i poses)))
+                                            (+ (random 3) 1)
+                                            `(,(float (/ (random 10) 10))
+                                              ,(float (/ (random 10) 10))
+                                              ,(float (/ (random 10) 10))))))))
 
 (defun spawn-object-n-times (type pose times color)
   (loop for i from 0 to times
@@ -188,22 +188,29 @@
          (assert (btr:joint-state ?world ?robot (("torso_lift_joint" 0.15d0)))))))
 
 (defun spawn-basket ()
-  (btr:add-object btr:*current-bullet-world* :basket
-                  :b
-                  (cl-transforms:make-pose
-                   (cl-transforms:make-3d-vector 0.8 0.2 0.75)
-                   (cl-transforms:make-quaternion 0 0 0 1))
-                  :mass 1
-                  :length 0.5 :width 0.3 :height 0.18 :handle-height 0.09)
-  (let ((basket-desig (desig:an object (type basket) (name b))))
-    (coe:on-event
-     (make-instance 'cpoe:object-attached-robot
-       :link "l_wrist_roll_link"
-       :not-loose t
-       :grasp :front
-       :arm :left
-       :object-name :b
-       :object-designator basket-desig))))
+  (let* ((map-T-wrist (btr:link-pose (btr:get-robot-object) "l_wrist_roll_link"))
+         (wrist-T-basket (cl-transforms:make-transform
+                          (cl-transforms:make-3d-vector 0.36 0 -0.15)
+                          (cl-transforms:make-quaternion 0.0d0 -0.7071067811865475d0
+                                                         0.0d0 0.7071067811865475d0)))
+         (map-T-basket (cl-transforms:transform*
+                        (cl-transforms:pose->transform map-T-wrist)
+                        wrist-T-basket))
+         (basket-pose (cl-transforms:transform->pose map-T-basket)))
+    (btr:add-object btr:*current-bullet-world* :basket
+                    :b
+                    basket-pose
+                    :mass 1
+                    :length 0.5 :width 0.3 :height 0.18 :handle-height 0.09)
+    (let ((basket-desig (desig:an object (type basket) (name b))))
+      (coe:on-event
+       (make-instance 'cpoe:object-attached-robot
+         :link "l_wrist_roll_link"
+         :not-loose t
+         :grasp :top
+         :arm :left
+         :object-name :b
+         :object-designator basket-desig)))))
 
 (defun spawn-objects ()
   (let ((i 1))

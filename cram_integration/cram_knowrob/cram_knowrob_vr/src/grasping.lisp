@@ -74,7 +74,8 @@ RETURNS: a cl-transform."
 (defmethod get-object-type-to-gripper-pregrasp-transforms (object-type
                                                           object-name
                                                           arm
-                                                          (grasp (eql :human-grasp))
+                                                           (grasp (eql :human-grasp))
+                                                           location
                                                           grasp-transform)
   (list
    (cram-tf:translate-transform-stamped
@@ -87,7 +88,8 @@ RETURNS: a cl-transform."
 
 (defmethod get-object-type-wrt-base-frame-lift-transforms (object-type
                                                            arm
-                                                           (grasp (eql :human-grasp)))
+                                                           (grasp (eql :human-grasp))
+                                                           location)
   (list
    (cl-transforms-stamped:make-transform-stamped
     cram-tf:*robot-base-frame*

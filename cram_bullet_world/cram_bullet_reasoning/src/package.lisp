@@ -57,14 +57,18 @@
            cutlery fork knife mug plate mondamin pot bowl sugar-box apple orange
            cereal spatula pancake pancake-maker
            bt-reasoning-world invalidate-object objects object %object
-           bt-reasoning-world-state robot-object links joint-states
+           bt-reasoning-world-state
+           get-world-objects-pose-info restore-world-poses
+           robot-object links joint-states
            assert joint-state urdf joint-names joint-state link-names
            link-pose
            semantic-map-object ensure-pose ensure-vector object-visibility
            semantic-map container semantic-map-part semantic-map-part-type
            semantic-map-part-pose object-visibility-percentage
            object-visibility-occluding-objects flat-color-object-proxy
-           calculate-object-visibility object-visible-p
+           calculate-object-visibility
+           object-visible-p looking-at-object-p object-in-view-p
+           looking-at-pose-p
            occluding-objects simulate find-objects contact-p
            find-all-contacts find-objects-in-contact
            object-pose-different
@@ -99,7 +103,8 @@
            #:set-robot-state-from-joints
            #:make-robot-joint-state-msg
            #:make-joint-state-message
-           #:calculate-pan-tilt
+           #:calculate-pan-tilt #:looking-in-direction-p
+           #:robot-converged-to-goal-joint-states
            #:get-robot-object #:get-robot-name
            #:get-environment-object #:get-environment-name
            #:robot-colliding-objects-without-attached

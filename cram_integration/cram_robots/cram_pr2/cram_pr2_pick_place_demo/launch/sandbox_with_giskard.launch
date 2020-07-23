@@ -1,0 +1,12 @@
+<launch>
+  <!-- PR2 description and simulator -->
+  <include file="$(find iai_pr2_sim)/launch/ros_control_sim_with_base.launch" />
+
+  <!-- giskard with PR2 parameters -->
+  <include file="$(find giskardpy)/launch/giskardpy_pr2.launch" />
+
+  <!-- occupancy map, kitchen, ik solver, no PR2 description -->
+  <include file="$(find cram_pr2_pick_place_demo)/launch/sandbox.launch">
+    <arg name="upload" value="false"/>
+  </include>
+</launch>

@@ -5,6 +5,7 @@ import kdl_parser_py.urdf  # from kdl_parser_py
 import tf2_kdl
 import math
 
+# ======================== Hacks (TBF) ===============================================================
 def hacky_urdf_parser_fix(urdf_str):
     """
     Simon's function to get rid of transmission tags in the URDF.
@@ -30,7 +31,7 @@ def hacky_urdf_parser_fix(urdf_str):
 
 
 # ================================= API ===================================================
-def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_msg):
+def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_msg, log_fun):
     """
     Calculates the Inverse Kinematics from base_link to tip_link according to the given
     goal_transform_geometry_msg. The initial joint states would be considered from seed_joint_state.
@@ -45,7 +46,7 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     kdl_chain = kdl_tree.getChain(base_link, tip_link)
 
     num_joints = kdl_chain.getNrOfJoints()
-    print "number of joints: " + str(num_joints)
+    log_fun("number of joints: " + str(num_joints))
 
     # Get Joint limits
     kdl_joint_limits_min, kdl_joint_limits_max = get_kdl_joint_limit_arrays(kdl_chain, urdf_obj)
@@ -64,22 +65,22 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     result_joint_state_kdl = solve_ik(ik_solver, num_joints, seed_joint_state_kdl, goal_frame_kdl)
 
     # check if calculated joint state results in the correct end-effector position using FK
-    goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl)
-
+    goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl,log_fun)
 
     if not goal_pose_reached:
         # try with joint seed states as 0
-        print "Cannot reach goal using the IK solution with the provided seed state. Trying with zeros"
+        log_fun("Cannot reach goal using the IK solution with the provided seed state. Trying with zeros")
         result_joint_state_kdl_with_zero_seed = solve_ik(ik_solver, num_joints, PyKDL.JntArray(num_joints), goal_frame_kdl)
-        goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl_with_zero_seed, goal_frame_kdl)
+        goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl_with_zero_seed, goal_frame_kdl,
+                                                     log_fun)
         result_joint_state_kdl = result_joint_state_kdl_with_zero_seed if goal_pose_reached else result_joint_state_kdl 
 
     # check if calculated joint state is within joint limits
     joints_within_limits = check_result_joints_are_within_limits(num_joints, result_joint_state_kdl,
                                                                  kdl_joint_limits_min, kdl_joint_limits_max)
 
-    print "Result Joint State Within Limits: " + str(joints_within_limits)
-    print "Can Reach Goal Pose With Solution: " + str(goal_pose_reached)
+    log_fun("Result Joint State Within Limits: " + str(joints_within_limits))
+    log_fun("Can Reach Goal Pose With Solution: " + str(goal_pose_reached))
     result_joint_state_vector = get_list_from_kdl_jnt_array(num_joints, result_joint_state_kdl)
     goal_pose_reached_successfully = goal_pose_reached and joints_within_limits
 
@@ -151,17 +152,17 @@ def solve_ik(ik_solver, num_joints, seed_joint_state_kdl, goal_frame_kdl):
     return result_joint_state_kdl
 
 
-def check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl):
+def check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl, log_fun):
     fk_frame_kdl = PyKDL.Frame()
     fk_solver.JntToCart(result_joint_state_kdl, fk_frame_kdl)
 
     distance_vec = PyKDL.diff(fk_frame_kdl.p, goal_frame_kdl.p)
     norm = math.sqrt(PyKDL.dot(distance_vec, distance_vec))
-    print "distance norm: " + str(norm)
+    log_fun("distance norm: " + str(norm))
 
     relative_rotation = fk_frame_kdl.M.Inverse() * goal_frame_kdl.M
     distance_angle, _ = relative_rotation.GetRotAngle()
-    print "distance angle: " + str(distance_angle)
+    log_fun("distance angle: " + str(distance_angle))
 
     goal_pose_reached = (norm < 0.005) and (abs(distance_angle) < 0.1)
     return goal_pose_reached

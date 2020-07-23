@@ -110,7 +110,8 @@
                                  arm
                                  neck
                                  camera-frame
-                                 camera-minimal-height camera-maximal-height)
+                                 camera-minimal-height camera-maximal-height
+                                 camera-horizontal-angle camera-vertical-angle)
   (<- (robot iai-donbot))
 
   (<- (robot-odom-frame iai-donbot "odom"))
@@ -127,8 +128,11 @@
   (<- (camera-frame iai-donbot "rs_camera_color_optical_frame")) ; virtual
 
   (<- (camera-minimal-height iai-donbot 0.5))
-  (<- (camera-maximal-height iai-donbot 1.0)))
+  (<- (camera-maximal-height iai-donbot 1.0))
 
+  ;; These are values taken from the Kinect's wikipedia page for the 360 variant
+  (<- (camera-horizontal-angle donbot 0.99483))
+  (<- (camera-vertical-angle donbot 0.75049)))
 
 
 (def-fact-group donbot-arm-facts (end-effector-link

@@ -46,8 +46,9 @@
    #:reachability-designator-p #:visibility-designator-p
    #:trajectory-desig? #:constraints-desig?
    ;; ptu
-   #:neck #:camera-frame #:camera-minimal-height #:camera-maximal-height
-   #:robot-neck-links #:robot-neck-joints #:robot-neck-base-link
+   #:camera-frame #:camera-minimal-height #:camera-maximal-height
+   #:camera-horizontal-angle #:camera-vertical-angle
+   #:neck #:robot-neck-links #:robot-neck-joints #:robot-neck-base-link
    #:camera-in-neck-ee-pose
    #:neck-camera-z-offset
    ;; robot

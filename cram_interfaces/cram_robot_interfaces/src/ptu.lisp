@@ -28,14 +28,12 @@
 
 (in-package :cram-robot-interfaces)
 
-(def-fact-group ptu (neck
-                     camera-frame camera-minimal-height camera-maximal-height
-                     robot-neck-links robot-neck-joints robot-neck-base-link
+(def-fact-group ptu (camera-frame
+                     camera-minimal-height camera-maximal-height
+                     camera-horizontal-angle camera-vertical-angle
+                     neck robot-neck-links robot-neck-joints robot-neck-base-link
                      camera-in-neck-ee-pose
                      neck-camera-z-offset)
-  ;; Unifies ?neck with the name of a body part that is present on the ?robot.
-  (<- (neck ?robot ?neck)
-    (fail))
 
   ;; Unifies ?frame with the name of the camera frame present on the ?robot
   (<- (camera-frame ?robot ?frame)
@@ -51,6 +49,17 @@
   ;; distance from the ground. For quadrotors it will be the maximal
   ;; distance it can fly off the ground...
   (<- (camera-maximal-height ?robot ?max-height)
+    (fail))
+
+  ;; view angle of the camera (assuming a fixed focal length) in horizontal axis
+  (<- (camera-horizontal-angle ?robot ?angle)
+    (fail))
+  ;; view angle of the camera (assuming a fixed focal length) in vertical axis
+  (<- (camera-vertical-angle ?robot ?angle)
+    (fail))
+
+  ;; Unifies ?neck with the name of a body part that is present on the ?robot.
+  (<- (neck ?robot ?neck)
     (fail))
 
   (<- (robot-neck-links ?robot ?pan-link ?tilt-link)
