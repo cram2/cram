@@ -62,6 +62,7 @@
 (defparameter *popcorn-pot-away-from-hot-stove-left-diagonal* '("iai_popcorn_table_surface" . ((0.055 0.14 0.082)(-0.183 0.683 0.683 0.183))))
 (defparameter *popcorn-pot-away-from-hot-stove-right-horizontal* '("iai_popcorn_table_surface" . ((-0.215 0.14 0.082)(-0.707 0.0d0 0.0d0 0.707))))
 (defparameter *popcorn-pot-away-from-hot-stove-left-horizontal* '("iai_popcorn_table_surface" . ((0.055 0.14 0.082)(0.0d0 0.707 -0.707 0.0d0))))
+(defparameter *popcorn-pot-away-from-hot-stove-horizontal* '("iai_popcorn_table_surface" . ((-0.08 0.14 0.082)(0.0d0 0.0d0 0.0d0 1.0d0))))
 (defparameter *popcorn-pot-lifting-from-table-right* '("iai_popcorn_table_surface" . ((-0.215 0.14 0.332)(-0.707 0.0d0 0.0d0 0.707))))
 (defparameter *popcorn-pot-lifting-from-table-left* '("iai_popcorn_table_surface" . ((0.055 0.14 0.332)(0.0d0 0.707 -0.707 0.0d0))))
 
@@ -147,10 +148,12 @@
     (robot-state-changed)
     
     ;; Picking the popcorn pot with the right arm up
-    (pick-object :popcorn-pot '(:right) *popcorn-pot-init-pose*)
+    (pick-object :popcorn-pot '(:right) *popcorn-pot-init-pose*
+                 :?right-grasp :top)
 
     ;; Placing it on the stove
-    (place-object '(:right) *pot-cooking-pose* :?right-grasp :top)
+    (place-object '(:right) *pot-cooking-pose*
+                  :?right-grasp :top)
 
     ;; 2. Getting the ikea bowl with the corn inside and pour corn in the popcorn pot
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -290,35 +293,17 @@
     ;; 7. Removing the popcorn pot from the hot stove area with both arms
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    ;; Opening the grippers of the robot arms
-    (open-gripper :right)
-    (open-gripper :left)
-    
-    ;; Moving arms to the handles of the popcorn pot
-    (move-arms 
-     :?right-arm-pose
-     *popcorn-pot-handle-right-diagonal-grasp*
-     :?left-arm-pose
-     *popcorn-pot-handle-left-diagonal-grasp*)
+    ;; Picking the popcorn pot 
+    (pick-object :popcorn-pot '(:left :right)
+                 nil
+                 :?left-grasp :left-side
+                 :?right-grasp :right-side)
 
-    ;; Closing the grippers of the robot arms
-    (close-gripper :right)
-    (close-gripper :left)
-    
-    ;; Attaching popcorn pot to one of the robot arm links
-    (btr:attach-object (btr:get-robot-object) 
-                       (btr:object btr:*current-bullet-world* :popcorn-pot-1)
-                       :link "l_gripper_palm_link")
-
-    ;; Moving popcorn pot away 
-    (move-arms 
-     :?right-arm-pose
-     *popcorn-pot-away-from-hot-stove-right-diagonal*
-     :?left-arm-pose
-     *popcorn-pot-away-from-hot-stove-left-diagonal*)
-
-    ;; Detaching popcorn pot from the robot
-    (btr:detach-all-objects (btr:get-robot-object))
+    ;; Placing the popcorn pot off the hot stove
+    (place-object '(:left :right)
+                  *popcorn-pot-away-from-hot-stove-horizontal*
+                  :?left-grasp :left-side
+                  :?right-grasp :right-side)
 
     ;; Parking arms
     (park-arms)
@@ -332,34 +317,12 @@
     ;; Placing popcorn pot lid on the table
     (place-object '(:right) *pot-lid-after-cooking-pose* :?right-grasp :top)
 
-    ;; Opening the grippers of the robot arms
-    (open-gripper :right)
-    (open-gripper :left)
-
-    ;; Grasping the popcorn pot
-    (move-arms 
-     :?right-arm-pose
-     *popcorn-pot-handle-right-horizontal-grasp*
-     :?left-arm-pose
-     *popcorn-pot-handle-left-horizontal-grasp*
-     :?collision-mode :allow-all)
+    ;; Picking the popcorn pot 
+    (pick-object :popcorn-pot '(:left :right)
+                 nil
+                 :?left-grasp :left-side
+                 :?right-grasp :right-side)
     
-    ;; Closing the grippers of the robot arms
-    (close-gripper :right)
-    (close-gripper :left)
-
-    ;; Attaching popcorn pot to the robot
-    (btr:attach-object (btr:get-robot-object) 
-                       (btr:object btr:*current-bullet-world* :popcorn-pot-1)
-                       :link "l_gripper_palm_link")
-
-    ;;Lifting the popcorn pot from the stove
-    (move-arms 
-     :?right-arm-pose
-     *popcorn-pot-lifting-from-table-right*
-     :?left-arm-pose
-     *popcorn-pot-lifting-from-table-left*)
-
     ;; Moving the robot to the plate
     (go-to-pose *robot-salt-pose* :dont-move-arms T)
 
