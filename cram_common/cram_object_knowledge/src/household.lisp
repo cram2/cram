@@ -606,7 +606,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;; SALT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; TOP GRASP
-(man-int:def-object-type-to-gripper-transforms :salt '(:left :right) :left-side
+(man-int:def-object-type-to-gripper-transforms :salt '(:left) :left-side
+  :grasp-translation `(0.0 0.0 0.0)
+  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :pregrasp-offsets *lift-offset*
+  :2nd-pregrasp-offsets *lift-offset*
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :salt '(:right) :right-side
   :grasp-translation `(0.0 0.0 0.0)
   :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
   :pregrasp-offsets *lift-offset*
@@ -640,6 +648,18 @@
   :2nd-pregrasp-offsets *lift-offset*
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
+    ((object-type (eql :ikea-plate))
+     (arm (eql :left))
+     (grasp (eql :left-side)))
+  '((-0.02 0.02 0.18)(0 0 0 1)))
+
+(defmethod man-int:get-object-type-robot-frame-tilt-approach-transform
+    ((object-type (eql :ikea-plate))
+     (arm (eql :right))
+     (grasp (eql :right-side)))
+  '((-0.02 0.02 0.14)(0 0 0 1)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
