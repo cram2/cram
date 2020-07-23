@@ -226,7 +226,7 @@
            (?object-to-place
              (get-object-designator :popcorn-pot-lid)))
       (place-object '(:right) pose
-                    :right-grasp :top
+                    :?right-grasp :top
                     :?object-placed-on ?object-placed-on
                     :?object-to-place ?object-to-place
                     :?attachment :popcorn-pot-lid-attachment))
