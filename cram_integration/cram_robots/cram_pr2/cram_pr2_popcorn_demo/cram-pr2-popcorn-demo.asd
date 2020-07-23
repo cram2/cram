@@ -78,4 +78,5 @@
      (:file "setup" :depends-on ("package"))
      (:file "costmaps" :depends-on ("package"))
      (:file "projection-demo" :depends-on ("package" "costmaps"))
+     (:file "prolog" :depends-on ("package"))
      (:file "demo" :depends-on ("package" "projection-demo" "costmaps"))))))
