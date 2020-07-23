@@ -564,39 +564,22 @@
   :2nd-lift-translation `(0.0 0.0 0.02))
 
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :left-side
-  :grasp-translation `(0.0 0.105 0.025)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
+  :grasp-translation `(0.1315 0.0114 0.031)
+  :grasp-rot-matrix man-int:*x-across-y-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 0.08)
   :2nd-pregrasp-offsets `(0.0 0.0 0.08)
-  :lift-translation `(0.0 0.0 0.02)
-  :2nd-lift-translation `(0.0 0.0 0.02))
+  :lift-translation `(0.0 0.0 0.12)
+  :2nd-lift-translation `(0.0 0.0 0.12))
 
 
 (man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :right-side
-  :grasp-translation `(0.0 0.105 0.025)
-  :grasp-rot-matrix man-int::*z-across--y-grasp-rotation*
+  :grasp-translation `(-0.128 -0.004 0.0309)
+  :grasp-rot-matrix man-int::*-x-across-y-grasp-rotation*
   :pregrasp-offsets `(0.0 0.0 0.08)
   :2nd-pregrasp-offsets `(0.0 0.0 0.08)
-  :lift-translation `(0.0 0.0 0.02)
-  :2nd-lift-translation `(0.0 0.0 0.02))
+  :lift-translation `(0.0 0.0 0.12)
+  :2nd-lift-translation `(0.0 0.0 0.12))
 
-
-(man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :front
-  :grasp-translation `(0.0 0.105 0.025)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.08)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.08)
-  :lift-translation `(0.0 0.0 0.02)
-  :2nd-lift-translation `(0.0 0.0 0.02))
-
-
-(man-int:def-object-type-to-gripper-transforms :popcorn-pot '(:left :right) :back
-  :grasp-translation `(0.0 0.105 0.025)
-  :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
-  :pregrasp-offsets `(0.0 0.0 0.08)
-  :2nd-pregrasp-offsets `(0.0 0.0 0.08)
-  :lift-translation `(0.0 0.0 0.02)
-  :2nd-lift-translation `(0.0 0.0 0.02))
 
 ;;;;;;;;;;;;;;;;;;;;;; POPCORN-POT-LID ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
