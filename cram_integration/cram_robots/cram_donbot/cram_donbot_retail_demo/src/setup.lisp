@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :demo)
+(in-package :cram-donbot-retail-demo)
 
 ;; roslaunch cram_donbot_retail_demo sandbox.launch
 
