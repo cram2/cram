@@ -30,6 +30,18 @@ def hacky_urdf_parser_fix(urdf_str):
     return fixed_urdf
 
 
+def set_joint_limits_for_continuous_joints(kdl_joint_limits_min, kdl_joint_limits_max):
+    """"
+    Joint limits for continuous joints are sometimes provided as [0.0, 0.0]. This isn't recognized by PyKDL
+    Workaround for that and setting the limits to [-2pi, 2pi]
+    """
+    for idx, (min_lim, max_lim) in enumerate(zip(kdl_joint_limits_min, kdl_joint_limits_max)):
+        if max_lim == min_lim == 0.0:
+            kdl_joint_limits_min[idx] = -2 * math.pi
+            kdl_joint_limits_max[idx] = 2 * math.pi
+    return kdl_joint_limits_min, kdl_joint_limits_max
+
+
 # ================================= API ===================================================
 def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_msg, log_fun):
     """
@@ -51,10 +63,14 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     # Get Joint limits
     kdl_joint_limits_min, kdl_joint_limits_max = get_kdl_joint_limit_arrays(kdl_chain, urdf_obj)
 
+    # Workaround for continuous joints
+    corrected_kdl_joint_limits_min, corrected_kdl_joint_limits_max = \
+        set_joint_limits_for_continuous_joints(kdl_joint_limits_min, kdl_joint_limits_max)
+
     fk_solver = PyKDL.ChainFkSolverPos_recursive(kdl_chain)
     velocity_ik = PyKDL.ChainIkSolverVel_pinv(kdl_chain)
     # ik_solver = PyKDL.ChainIkSolverPos_LMA(kdl_chain, 1e-5, 1000, 1e-15)
-    ik_solver = PyKDL.ChainIkSolverPos_NR_JL(kdl_chain, kdl_joint_limits_min, kdl_joint_limits_max,
+    ik_solver = PyKDL.ChainIkSolverPos_NR_JL(kdl_chain, corrected_kdl_joint_limits_min, corrected_kdl_joint_limits_max,
                                              fk_solver, velocity_ik)
 
     # Getting the goal frame and seed state
@@ -65,19 +81,21 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     result_joint_state_kdl = solve_ik(ik_solver, num_joints, seed_joint_state_kdl, goal_frame_kdl)
 
     # check if calculated joint state results in the correct end-effector position using FK
-    goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl,log_fun)
+    goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl, log_fun)
 
     if not goal_pose_reached:
         # try with joint seed states as 0
         log_fun("Cannot reach goal using the IK solution with the provided seed state. Trying with zeros")
-        result_joint_state_kdl_with_zero_seed = solve_ik(ik_solver, num_joints, PyKDL.JntArray(num_joints), goal_frame_kdl)
+        result_joint_state_kdl_with_zero_seed = solve_ik(ik_solver, num_joints, PyKDL.JntArray(num_joints),
+                                                         goal_frame_kdl)
         goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl_with_zero_seed, goal_frame_kdl,
                                                      log_fun)
         result_joint_state_kdl = result_joint_state_kdl_with_zero_seed if goal_pose_reached else result_joint_state_kdl 
 
     # check if calculated joint state is within joint limits
     joints_within_limits = check_result_joints_are_within_limits(num_joints, result_joint_state_kdl,
-                                                                 kdl_joint_limits_min, kdl_joint_limits_max)
+                                                                 corrected_kdl_joint_limits_min,
+                                                                 corrected_kdl_joint_limits_max)
 
     log_fun("Result Joint State Within Limits: " + str(joints_within_limits))
     log_fun("Can Reach Goal Pose With Solution: " + str(goal_pose_reached))
