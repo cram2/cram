@@ -1,0 +1,15 @@
+<launch>
+  <arg name="upload_robot" default="true" />
+  <arg name="publish_robot" default="false" />
+  <arg name="occupancy_map" default="true" />
+  <arg name="tf2_buffer" default="false" />
+
+  <include file="$(find cram_projection_demos)/launch/everything.launch">
+    <arg name="boxy" value="true"/>
+    <arg name="retail" value="true"/>
+    <arg name="upload_robot" value="$(arg upload_robot)"/>
+    <arg name="publish_robot" value="$(arg publish_robot)"/>
+    <arg name="occupancy_map" value="$(arg occupancy_map)"/>
+    <arg name="tf2_buffer" value="$(arg tf2_buffer)"/>
+  </include>
+</launch>
