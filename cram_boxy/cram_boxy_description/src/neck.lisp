@@ -67,6 +67,7 @@
                                  camera-in-neck-ee-pose
                                  neck-camera-z-offset
                                  camera-horizontal-angle camera-vertical-angle
+                                 camera-minimal-height camera-maximal-height
                                  robot-neck-links
                                  robot-neck-joints
                                  robot-neck-base-link
@@ -82,6 +83,9 @@
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
   (<- (camera-horizontal-angle :boxy-description 0.99483)) ;  ca 57 degrees
   (<- (camera-vertical-angle :boxy-description 0.75049))   ; ca 43 degrees
+
+  ;; (<- (camera-minimal-height :boxy-description 1.0))
+  ;; (<- (camera-maximal-height :boxy-description 2.5))
 
   (<- (robot-neck-links :boxy-description
                         "neck_shoulder_link"
