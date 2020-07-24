@@ -124,8 +124,8 @@
   (<- (camera-frame :iai-donbot "rs_camera_depth_optical_frame")) ; realsense, virtual
   (<- (camera-frame :iai-donbot "rs_camera_color_optical_frame")) ; virtual
 
-  (<- (camera-minimal-height :iai-donbot 0.5))
-  (<- (camera-maximal-height :iai-donbot 1.0))
+  ;; (<- (camera-minimal-height :iai-donbot 0.5))
+  ;; (<- (camera-maximal-height :iai-donbot 1.2))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
   (<- (camera-horizontal-angle donbot 0.99483))
