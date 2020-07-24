@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
-;;;       without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,21 +27,9 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-donbot-retail-demo)
+(in-package :cl-user)
 
-;; roslaunch cram_donbot_retail_demo sandbox.launch
-
-(defun init-projection ()
-  ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
-
-  (btr-belief:setup-world-database)
-
-  (setf cram-tf:*tf-default-timeout* 2.0)
-
-  (setf prolog:*break-on-lisp-errors* t)
-
-  (cram-bullet-reasoning:clear-costmap-vis-object)
-
-  (btr:add-objects-to-mesh-list "cram_donbot_retail_demo"))
-
-(roslisp-utilities:register-ros-init-function init-projection)
+(defpackage cram-projection-demos
+  (:nicknames #:demos)
+  (:use #:common-lisp #:cram-prolog)
+  (:export))

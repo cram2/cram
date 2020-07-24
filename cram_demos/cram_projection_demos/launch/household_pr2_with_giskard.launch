@@ -1,0 +1,21 @@
+<launch>
+  <!-- PR2 description and simulator -->
+  <include file="$(find iai_pr2_sim)/launch/ros_control_sim_with_base.launch" />
+
+  <!-- giskard with PR2 parameters -->
+  <include file="$(find giskardpy)/launch/giskardpy_pr2.launch" />
+
+  <!-- occupancy map, kitchen, ik solver, no PR2 description -->
+  <arg name="upload_robot" default="false" />
+  <arg name="publish_robot" default="false" />
+  <arg name="occupancy_map" default="true" />
+  <arg name="tf2_buffer" default="false" />
+  <include file="$(find cram_projection_demos)/launch/everything.launch">
+    <arg name="pr2" value="true"/>
+    <arg name="household" value="true"/>
+    <arg name="upload_robot" value="$(arg upload_robot)"/>
+    <arg name="publish_robot" value="$(arg publish_robot)"/>
+    <arg name="occupancy_map" value="$(arg occupancy_map)"/>
+    <arg name="tf2_buffer" value="$(arg tf2_buffer)"/>
+  </include>
+</launch>

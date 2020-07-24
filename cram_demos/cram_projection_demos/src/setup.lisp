@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,31 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-donbot-retail-demo)
+(in-package :demos)
 
-;; roslaunch cram_donbot_retail_demo sandbox.launch
+;; roslaunch cram_projection_demos ....launch
 
 (defun init-projection ()
   ;; (setf cram-tf:*transformer* (make-instance 'cl-tf2:buffer-client))
+  (setf cram-tf:*tf-default-timeout* 0.5) ; projection tf is very fast
+  ;; (setf cram-tf:*tf-broadcasting-enabled* t)
 
-  (btr-belief:setup-world-database)
-
-  (setf cram-tf:*tf-default-timeout* 2.0)
+  ;; (btr-belief:setup-world-database)
+  (coe:clear-belief)
 
   (setf prolog:*break-on-lisp-errors* t)
 
-  (cram-bullet-reasoning:clear-costmap-vis-object)
+  (btr:clear-costmap-vis-object)
 
-  (btr:add-objects-to-mesh-list "cram_donbot_retail_demo"))
+  (btr:add-objects-to-mesh-list "assembly_models"
+                                :directory "fixtures"
+                                :extension "stl")
+  (btr:add-objects-to-mesh-list "assembly_models"
+                                :directory "battat/convention"
+                                :extension "stl")
+  (btr:add-objects-to-mesh-list "cram_projection_demos"
+                                :directory "resource/household")
+  (btr:add-objects-to-mesh-list "cram_projection_demos"
+                                :directory "resource/retail"))
 
 (roslisp-utilities:register-ros-init-function init-projection)
