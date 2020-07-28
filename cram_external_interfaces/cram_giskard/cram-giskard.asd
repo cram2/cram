@@ -61,6 +61,9 @@
      (:file "joint-interface" :depends-on ("package" "action-client"))
      (:file "base-goals" :depends-on ("package" "action-client" "joint-interface"))
      (:file "torso-goals" :depends-on ("package" "action-client"))
+     (:file "neck-goals" :depends-on ("package"
+                                      "hash-table-conversions"
+                                      "action-client"))
      (:file "environment-manipulation-goals" :depends-on ("package"
                                                           "hash-table-conversions"
                                                           "action-client"))
