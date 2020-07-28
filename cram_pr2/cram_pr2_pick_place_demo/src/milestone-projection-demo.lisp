@@ -180,7 +180,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 `object-list' "
   ;; (setup-for-demo object-list)
 
-  (let* ((object-delivery-locations '((:milk :trash)
+  (let* ((object-cleanup-locations '((:milk :trash)
                                       (:bowl :sink)
                                       (:spoon :sink)
                                       (:cup :sink)
@@ -226,16 +226,19 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                     (for (an object (type ?object-type))))))))
          (get-delivery-location-designator
            (lambda (object-type)
-             (let ((del-location
-                     (second (assoc object-type object-delivery-locations))))
-               (funcall (second (assoc del-location deliver-location-lambdas))
+             (let ((del-location-key
+                     (second (assoc object-type object-cleanup-locations))))
+               (funcall (second
+                         (assoc del-location-key deliver-location-lambdas))
                         object-type)))))
+
     (loop for ?obj in object-list
-          do (let ((?del (funcall get-delivery-location-designator ?obj)))
+          do (let ((?delivery-location
+                     (funcall get-delivery-location-designator ?obj)))
                (perform (an action
                           (type transporting)
                           (object (an object
                                       (type ?obj)
                                       (location ?fetch-table-location)))
                           (location ?fetch-table-location)
-                          (target ?del)))))))
+                          (target ?delivery-location)))))))
