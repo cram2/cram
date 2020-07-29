@@ -1,19 +1,19 @@
 ;;; Copyright (c) 2012, CRAM team
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -78,7 +78,7 @@
     ("l_wrist_flex_joint" -0.07350789589924167d0)
     ("l_wrist_roll_joint" 0.0)))
 
-(defparameter *left-carrying-top-joint-states*
+(defparameter *left-carrying-top-low-joint-states*
   '(("l_shoulder_pan_joint" 1.3810115229719555d0)
     ("l_shoulder_lift_joint" 1.1282870348994702d0)
     ("l_upper_arm_roll_joint" 1.71d0)
@@ -86,6 +86,15 @@
     ("l_forearm_roll_joint" 2.6581354736032257d0)
     ("l_wrist_flex_joint" -1.9927790883777252d0)
     ("l_wrist_roll_joint" 2.586184460547585d0)))
+
+(defparameter *left-carrying-top-joint-states*
+  '(("l_shoulder_pan_joint" 1.0252138037286773d0)
+    ("l_shoulder_lift_joint" -0.06966848987919201d0)
+    ("l_upper_arm_roll_joint" 1.1765832782526544d0)
+    ("l_elbow_flex_joint" -1.9323726623855864d0)
+    ("l_forearm_roll_joint" 1.3824994377973336d0)
+    ("l_wrist_flex_joint" -1.8416233909065576d0)
+    ("l_wrist_roll_joint" 2.907373693068033d0)))
 
 (defparameter *left-carrying-basket-joint-states*
   '(("l_shoulder_pan_joint" 1.0)
@@ -130,7 +139,7 @@
     ("r_wrist_flex_joint" -0.07942669250968948d0)
     ("r_wrist_roll_joint" 0.05106258161229582d0)))
 
-(defparameter *right-carrying-top-joint-states*
+(defparameter *right-carrying-top-low-joint-states*
   '(("r_shoulder_pan_joint" -1.3810115229719555d0)
     ("r_shoulder_lift_joint" 1.1282870348994702d0)
     ("r_upper_arm_roll_joint" -1.7100000000000002d0)
@@ -138,6 +147,15 @@
     ("r_forearm_roll_joint" -2.658135473603226d0)
     ("r_wrist_flex_joint" -1.9927790883777252d0)
     ("r_wrist_roll_joint" -2.5861844605475843d0)))
+
+(defparameter *right-carrying-top-joint-states*
+  '(("r_shoulder_pan_joint" -1.183809044088452d0)
+    ("r_shoulder_lift_joint" -0.30680923151650064d0)
+    ("r_upper_arm_roll_joint" -1.6439096470662296d0)
+    ("r_elbow_flex_joint" -2.0632453854762955d0)
+    ("r_forearm_roll_joint" -1.3016362275774522d0)
+    ("r_wrist_flex_joint" -1.284945123721191d0)
+    ("r_wrist_roll_joint" -1.974782974061931d0)))
 
 (defparameter *right-carrying-side-aligned-joint-states*
   '(("r_shoulder_pan_joint" -0.7524126363048715d0)
