@@ -143,11 +143,18 @@ the `look-pose-stamped'."
     ;; where to look for the given object or the given location's reference object
     (-> (and (spec:property ?object-designator (:location ?some-location-designator))
              (not (equal ?some-location-designator NIL)))
-        (desig:current-designator ?some-location-designator ?location-designator)
+        (and (desig:current-designator ?some-location-designator ?location-designator)
+             (equal ?object-designator ?object-designator-with-location))
         (and (spec:property ?object-designator (:type ?object-type))
              (rob-int:environment-name ?environment)
              (lisp-fun man-int:get-object-likely-location
-                       ?object-type ?environment nil ?context ?location-designator)))
+                       ?object-type ?environment nil ?context ?location-designator)
+             (equal ?new-props ((:location ?location-designator)))
+             (lisp-fun desig:extend-designator-properties
+                       ?object-designator ?new-props
+                       ?object-designator-with-location)
+             (lisp-pred desig:equate
+                        ?object-designator ?object-designator-with-location)))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location
                                                       ?some-location-to-stand))
@@ -158,7 +165,7 @@ the `look-pose-stamped'."
                                            (:object ?object-designator))
                                 ?location-to-stand)))
     (desig:designator :action ((:type :searching)
-                               (:object ?object-designator)
+                               (:object ?object-designator-with-location)
                                (:location ?location-designator)
                                (:robot-location ?location-to-stand))
                       ?resolved-action-designator))

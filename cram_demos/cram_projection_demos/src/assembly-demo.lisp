@@ -252,11 +252,6 @@
 
     objects))
 
-
-(defmethod exe:generic-perform :before (designator)
-  (format t "~%PERFORMING~%~A~%~%" designator))
-
-
 ;;; ASSEMBLY STEPS:
 ;;; (1)  put chassis on holder (bump inwards)
 ;;; (2)  put bottom wing on chassis
