@@ -84,16 +84,18 @@
     (etypecase object-or-pose
       (symbol
        (if (btr:object btr:*current-bullet-world* object-or-pose)
-           (btr:add-vis-axis-object object-or-pose size)
+           (btr:add-vis-axis-object object-or-pose :length size)
            (if (find-object-of-type object-or-pose)
-               (btr:add-vis-axis-object (btr:name (find-object-of-type object-or-pose)) size)
+               (btr:add-vis-axis-object
+                (btr:name (find-object-of-type object-or-pose))
+                :length size)
                (warn "Unknown object, please either give an object name or object type."))))
       (cl-transforms-stamped:pose-stamped
        (when (equalp (cl-transforms-stamped:frame-id object-or-pose) "base_footprint")
          (warn "Pose is not in MAP frame. It is visualized with respect to the MAP though."))
-       (btr:add-vis-axis-object object-or-pose size))
+       (btr:add-vis-axis-object object-or-pose :length size))
       (cl-transforms:pose
-       (btr:add-vis-axis-object object-or-pose size)))))
+       (btr:add-vis-axis-object object-or-pose :length size)))))
 
 
 (defmethod print-object ((pose cl-transforms-stamped:pose-stamped) stream)
