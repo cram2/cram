@@ -150,7 +150,9 @@ if yes, relocate and retry, if no collisions, open or close container."
                 (ecase action-type
                   (:accessing
                    (let ((?goal
-                           `(cpoe:container-state ,?object-to-manipulate :open)))
+                           (if ?distance
+                               `(cpoe:container-state ,?object-to-manipulate ,?distance)
+                               `(cpoe:container-state ,?object-to-manipulate :open))))
                      (desig:an action
                                (type opening)
                                (arm ?arm)
@@ -160,7 +162,9 @@ if yes, relocate and retry, if no collisions, open or close container."
                                (goal ?goal))))
                   (:sealing
                    (let ((?goal
-                           `(cpoe:container-state ,?object-to-manipulate :closed)))
+                           (if ?distance
+                               `(cpoe:container-state ,?object-to-manipulate ,?distance)
+                               `(cpoe:container-state ,?object-to-manipulate :closed))))
                      (desig:an action
                                (type closing)
                                (arm ?arm)
