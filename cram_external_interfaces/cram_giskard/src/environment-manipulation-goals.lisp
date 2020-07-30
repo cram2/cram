@@ -309,7 +309,7 @@
                                 (bar-center
                                  (cl-transforms-stamped:make-point-stamped
                                   "iai_kitchen/iai_fridge_door_handle" 0.0
-                                  (cl-transforms:make-3d-vector -0.03 0 0)))
+                                  (cl-transforms:make-3d-vector 0 0 0)))
                                 (bar-length
                                  0.4)
                                 (root-link
@@ -355,7 +355,7 @@
     (desig:an action
               (type releasing)
               (gripper right))))
- (call-grasp-bar-action :arm :right :bar-length 0.8)
+ (giskard::call-grasp-bar-action :arm :right :bar-length 0.8)
  (pr2-pms:with-real-robot
    (exe:perform
     (desig:an action
@@ -363,6 +363,9 @@
               (gripper right))))
  (giskard::call-environment-manipulation-action :open-or-close :open
                                                 :arm :right)
+ (giskard:call-giskard-cartesian-action
+  :goal-pose-right (cl-transforms-stamped:make-pose-stamped "r_gripper_tool_frame" 0.0 (cl-transforms:make-3d-vector -0.1 0 0) (cl-transforms:make-identity-rotation))
+  :collision-mode :allow-all)
  (coe:on-event (make-instance 'cpoe:robot-state-changed))
  (setf (btr:joint-state (btr:get-environment-object)
                         "iai_fridge_door_joint") 1.45)
@@ -445,7 +448,7 @@
               (type parking-arms))))
  (setf (btr:joint-state (btr:get-environment-object)
                         "sink_area_dish_washer_door_joint")
-       0.0)
+       (cram-math:degrees->radians 0))
  (btr-belief::publish-environment-joint-state
   (btr:joint-states (btr:get-environment-object)))
  )

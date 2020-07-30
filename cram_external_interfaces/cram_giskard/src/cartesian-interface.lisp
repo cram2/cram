@@ -58,6 +58,18 @@
                    (remove
                     NIL
                     (list
+                     (roslisp:make-message
+                      'giskard_msgs-msg:constraint
+                      :type
+                      "AvoidJointLimits"
+                      :parameter_value_pair
+                      (let ((stream (make-string-output-stream)))
+                        (yason:encode
+                         (cut:recursive-alist-hash-table
+                          `(("percentage" . 40))
+                          :test #'equal)
+                         stream)
+                        (get-output-stream-string stream)))
                      (when prefer-base
                        (roslisp:make-message
                         'giskard_msgs-msg:constraint
@@ -71,9 +83,9 @@
                                . (("rosparam"
                                    . (("general_options"
                                        . (("joint_weights"
-                                           . (("odom_x_joint" . 0.0001)
-                                              ("odom_y_joint" . 0.0001)
-                                              ("odom_z_joint" . 0.0001))))))))))
+                                           . (("odom_x_joint" . 0.001)
+                                              ("odom_y_joint" . 0.001)
+                                              ("odom_z_joint" . 0.001))))))))))
                             :test #'equal)
                            stream)
                           (get-output-stream-string stream))))
