@@ -181,10 +181,10 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
   ;; (setup-for-demo object-list)
 
   (let* ((object-cleanup-locations '((:milk :trash)
-                                      (:bowl :sink)
-                                      (:spoon :sink)
-                                      (:cup :sink)
-                                      (:breakfast-cereal :vertical-drawer)))
+                                     (:bowl :sink)
+                                     (:spoon :sink)
+                                     (:cup :sink)
+                                     (:breakfast-cereal :vertical-drawer)))
          (?fetch-table-location (a location
                                    (on (an object
                                            (type counter-top)
