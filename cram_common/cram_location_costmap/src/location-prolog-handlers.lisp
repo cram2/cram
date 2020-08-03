@@ -1,10 +1,10 @@
 ;;;
 ;;; Copyright (c) 2010, Lorenz Moesenlechner <moesenle@in.tum.de>
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
 ;;;     * Neither the name of Willow Garage, Inc. nor the names of its
 ;;;       contributors may be used to endorse or promote products derived from
 ;;;       this software without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,14 +31,20 @@
 
 (defun costmap-metadata ()
   (with-vars-bound (?width ?height ?resolution ?origin-x ?origin-y)
-      (lazy-car (prolog `(and (costmap-size ?width ?height)
-                              (costmap-origin ?origin-x ?origin-y)
-                              (costmap-resolution ?resolution))))
-    (check-type ?width number)
-    (check-type ?height number)
-    (check-type ?resolution number)
-    (check-type ?origin-x number)
-    (check-type ?origin-y number)
+      (lazy-car (prolog `(and (rob-int:environment-name ?environment)
+                              (costmap-size ?environment ?width ?height)
+                              (costmap-origin ?environment ?origin-x ?origin-y)
+                              (costmap-resolution ?environment ?resolution))))
+    (unless (and (typep ?width 'number)
+                 (typep ?height 'number)
+                 (typep ?resolution 'number)
+                 (typep ?origin-x 'number)
+                 (typep ?origin-y 'number))
+      (error "[CM:COSTMAP-METADATA] environment metadata is not defined.~%~
+              Has the name of the environment in the URDF change~%~
+              and you don't have the newest version? To check call~%~
+              (rob-int:get-environment-name) and see if there is a
+              COSTMAP:COSTMAP-SIZE predicate defined anywhere for this name."))
     (list :width ?width :height ?height :resolution ?resolution
           :origin-x ?origin-x :origin-y ?origin-y)))
 

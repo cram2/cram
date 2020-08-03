@@ -30,29 +30,41 @@
 
 (in-package :hsrb-descr)
 
-(def-fact-group hsrb-metadata (robot
-                               robot-odom-frame
+(defparameter *forward-looking-position-in-base-frame*
+  (cl-transforms:make-3d-vector 10.0 0.0 1.5))
+
+(def-fact-group hsrb-metadata (robot-odom-frame
                                robot-base-frame robot-torso-link-joint
                                arm
                                camera-frame
                                camera-horizontal-angle camera-vertical-angle
                                robot-neck-links robot-neck-joints
-                               robot-head-tilt-rotation-sign)
-  (<- (robot hsrb))
+                               robot-joint-states robot-pose)
 
-  (<- (robot-odom-frame hsrb "odom"))
-  (<- (robot-base-frame hsrb "base_footprint"))
-  (<- (robot-torso-link-joint hsrb "arm_lift_link" "arm_lift_joint"))
+  (<- (robot-odom-frame :hsrb "odom"))
+  (<- (robot-base-frame :hsrb "base_footprint"))
+  (<- (robot-torso-link-joint :hsrb "arm_lift_link" "arm_lift_joint"))
 
-  (<- (camera-frame hsrb "head_center_camera_frame"))
-  (<- (camera-frame hsrb "head_rgbd_sensor_link"))
+  (<- (camera-frame :hsrb "head_center_camera_frame"))
+  (<- (camera-frame :hsrb "head_rgbd_sensor_link"))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
-  (<- (camera-horizontal-angle hsrb 0.99483))
-  (<- (camera-vertical-angle hsrb 0.75049))
+  (<- (camera-horizontal-angle :hsrb 0.99483))
+  (<- (camera-vertical-angle :hsrb 0.75049))
 
-  (<- (robot-neck-links hsrb "head_pan_link" "head_tilt_link"))
-  (<- (robot-neck-joints hsrb "head_pan_joint" "head_tilt_joint")))
+  (<- (robot-neck-links :hsrb "head_pan_link" "head_tilt_link"))
+  (<- (robot-neck-joints :hsrb "head_pan_joint" "head_tilt_joint"))
+
+  (<- (robot-joint-states :hsrb :neck ?_ :forward ((?pan_joint 0.0) (?tilt_joint 0.0)))
+    (robot-neck-joints :hsrb ?pan_joint ?tilt_joint))
+
+  (<- (robot-pose :hsrb :neck ?_ :forward ?pose-stamped)
+    (robot-base-frame :hsrb ?base-frame)
+    (lisp-fun cl-transforms:make-identity-rotation ?identity-quaternion)
+    (symbol-value *forward-looking-position-in-base-frame* ?forward-point)
+    (lisp-fun cl-transforms-stamped:make-pose-stamped
+              ?base-frame 0.0 ?forward-point ?identity-quaternion
+              ?pose-stamped)))
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding
                                            costmap:costmap-manipulation-padding
@@ -61,10 +73,10 @@
                                            costmap:orientation-samples
                                            costmap:orientation-sample-step
                                            costmap:visibility-costmap-size)
-  (<- (costmap:costmap-padding 0.2))
-  (<- (costmap:costmap-manipulation-padding 0.3))
-  (<- (costmap:costmap-in-reach-distance 0.7))
-  (<- (costmap:costmap-reach-minimal-distance 0.2))
-  (<- (costmap:orientation-samples 1))
-  (<- (costmap:orientation-sample-step 0.3))
-  (<- (costmap:visibility-costmap-size 2)))
+  (<- (costmap:costmap-padding :hsrb 0.2))
+  (<- (costmap:costmap-manipulation-padding :hsrb 0.3))
+  (<- (costmap:costmap-in-reach-distance :hsrb 0.5))
+  (<- (costmap:costmap-reach-minimal-distance :hsrb 0.2))
+  (<- (costmap:orientation-samples :hsrb 3))
+  (<- (costmap:orientation-sample-step :hsrb 0.3))
+  (<- (costmap:visibility-costmap-size :hsrb 2)))

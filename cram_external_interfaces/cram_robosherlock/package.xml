@@ -22,7 +22,6 @@
   <depend>cram_process_modules</depend>
   <depend>cram_prolog</depend>
   <depend>cram_common_designators</depend>
-  <depend>cram_manipulation_interfaces</depend>
   <depend>cram_simple_actionlib_client</depend>
   <depend>robosherlock_msgs</depend>
 </package>

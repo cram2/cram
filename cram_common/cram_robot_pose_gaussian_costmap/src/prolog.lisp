@@ -38,16 +38,16 @@
 
 (defmethod costmap-generator-name->score
     ((name pose-distribution-range-include-generator))
-  7)
+  3)
 
 (defmethod costmap-generator-name->score
     ((name pose-distribution-range-exclude-generator))
-  6)
+  4)
 
 (def-fact-group robot-pose-gaussian-costmap (desig-costmap)
 
   (<- (desig-costmap ?desig ?cm)
-    (cram-robot-interfaces:visibility-designator ?desig)
+    (rob-int:visibility-designator ?desig)
     ;; (bagof ?pose (desig-location-prop ?desig ?pose) ?poses)
     (once (or (and (desig:desig-prop ?desig (:object ?some-object))
                    (desig:current-designator ?some-object ?object)
@@ -66,28 +66,30 @@
                    (member ?to-see-pose ?location-poses))))
     (lisp-fun list ?to-see-pose ?to-see-poses)
     (lisp-fun 2d-pose-covariance ?to-see-poses 0.5 (?mean ?covariance))
-    (costmap ?cm)
-    (costmap-add-function
+    (rob-int:robot ?robot-name)
+    (costmap:costmap ?cm)
+    (costmap:costmap-add-function
      pose-distribution
-     (make-gauss-cost-function ?mean ?covariance)
+     (costmap:make-gauss-cost-function ?mean ?covariance)
      ?cm)
-    (costmap:visibility-costmap-size ?distance)
+    (costmap:visibility-costmap-size ?robot-name ?distance)
     (instance-of pose-distribution-range-include-generator ?include-generator-id)
-    (costmap-add-function
+    (costmap:costmap-add-function
      ?include-generator-id
-     (make-range-cost-function ?mean ?distance)
+     (costmap:make-range-cost-function ?mean ?distance)
      ?cm)
-    (costmap:orientation-samples ?samples)
-    (costmap:orientation-sample-step ?sample-step)
-    (costmap-add-orientation-generator
-     (make-angle-to-point-generator ?mean :samples ?samples :sample-step ?sample-step)
+    (costmap:orientation-samples ?robot-name ?samples)
+    (costmap:orientation-sample-step ?robot-name ?sample-step)
+    (costmap:costmap-add-orientation-generator
+     (costmap:make-angle-to-point-generator
+      ?mean :samples ?samples :sample-step ?sample-step)
      ?cm)
-    (costmap-add-height-generator
-     (make-constant-height-function 0.0)
+    (costmap:costmap-add-height-generator
+     (costmap:make-constant-height-function 0.0)
      ?cm))
 
   (<- (desig-costmap ?desig ?cm)
-    (cram-robot-interfaces:reachability-designator ?desig)
+    (rob-int:reachability-designator ?desig)
     ;; (bagof ?pose (cram-robot-interfaces:designator-reach-pose ?desig ?pose ?_) ?poses)
     (once (or (and (desig:desig-prop ?desig (:object ?some-object))
                    (desig:current-designator ?some-object ?object)
@@ -108,41 +110,40 @@
                    (member ?to-reach-pose ?location-poses))))
     (lisp-fun list ?to-reach-pose ?to-reach-poses)
     (lisp-fun cut:force-ll ?to-reach-poses ?poses-list)
-    (lisp-fun 2d-pose-covariance ?to-reach-poses 0.5 (?mean ?covariance))
-    (costmap-in-reach-distance ?distance)
-    (costmap-reach-minimal-distance ?minimal-distance)
-    (costmap ?cm)
-    (forall
-     (member ?pose ?to-reach-poses)
-     (and
-      (instance-of pose-distribution-range-include-generator
-                   ?include-generator-id)
-      (costmap-add-function
-       ?include-generator-id
-       (make-range-cost-function ?pose ?distance) ?cm)
-      (instance-of pose-distribution-range-exclude-generator
-                   ?exclude-generator-id)
-      (costmap-add-function
-       ?exclude-generator-id
-       (make-range-cost-function ?pose ?minimal-distance :invert t)
-       ?cm)))
-    (costmap:orientation-samples ?samples)
-    (costmap:orientation-sample-step ?sample-step)
-    (once (or (costmap:reachability-orientation-offset ?offset)
+    (lisp-fun costmap:2d-pose-covariance ?to-reach-poses 0.5 (?mean ?covariance))
+    (costmap:costmap-in-reach-distance ?robot-name ?distance)
+    (costmap:costmap-reach-minimal-distance ?robot-name ?minimal-distance)
+    (costmap:costmap ?cm)
+    (forall (member ?pose ?to-reach-poses)
+            (and (instance-of pose-distribution-range-include-generator
+                              ?include-generator-id)
+                 (costmap:costmap-add-function
+                  ?include-generator-id
+                  (costmap:make-range-cost-function ?pose ?distance) ?cm)
+                 (instance-of pose-distribution-range-exclude-generator
+                              ?exclude-generator-id)
+                 (costmap:costmap-add-function
+                  ?exclude-generator-id
+                  (costmap:make-range-cost-function
+                   ?pose ?minimal-distance :invert t)
+                  ?cm)))
+    (rob-int:robot ?robot-name)
+    (costmap:orientation-samples ?robot-name ?samples)
+    (costmap:orientation-sample-step ?robot-name ?sample-step)
+    (once (or (costmap:reachability-orientation-offset ?robot-name ?offset)
               (equal ?offset 0.0)))
-    (costmap-add-orientation-generator
-     (make-angle-to-point-generator ?mean :samples ?samples
-                                          :sample-step ?sample-step
-                                          :sample-offset ?offset)
+    (costmap:costmap-add-orientation-generator
+     (costmap:make-angle-to-point-generator
+      ?mean :samples ?samples :sample-step ?sample-step :sample-offset ?offset)
      ?cm)
-    (costmap-add-height-generator
+    (costmap:costmap-add-height-generator
      (make-constant-height-function 0.0)
      ?cm))
 
   ;; poses reachable-from ?pose for the robot
   ;; ?pose should usually be robot's current pose I suppose
-  (<- (desig-costmap ?desig ?cm)
-    (costmap ?cm)
+  (<- (costmap:desig-costmap ?desig ?cm)
+    (costmap:costmap ?cm)
     (desig-prop ?desig (:reachable-from ?from-what))
     (or (and (lisp-type ?from-what symbol)
              ;; (cram-robot-interfaces:robot ?from-what)
@@ -150,10 +151,13 @@
         (and (lisp-type ?from-what cl-transforms:pose)
              (equal ?pose ?from-what)))
     (lisp-fun cl-transforms:origin ?pose ?point)
-    (costmap-in-reach-distance ?distance)
-    (costmap-add-function reachable-from-space
-                          (make-range-cost-function ?point ?distance)
-                          ?cm)
-    (costmap-add-function reachable-from-weighted
-                          (make-location-cost-function ?pose ?distance)
-                          ?cm)))
+    (rob-int:robot ?robot-name)
+    (costmap:costmap-in-reach-distance ?robot-name ?distance)
+    (costmap:costmap-add-function
+     reachable-from-space
+     (costmap:make-range-cost-function ?point ?distance)
+     ?cm)
+    (costmap:costmap-add-function
+     reachable-from-weighted
+     (costmap:make-location-cost-function ?pose ?distance)
+     ?cm)))

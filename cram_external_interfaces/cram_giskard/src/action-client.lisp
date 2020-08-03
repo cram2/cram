@@ -36,3 +36,12 @@
    60))
 
 (roslisp-utilities:register-ros-init-function make-giskard-action-client)
+
+
+
+(defun ensure-goal-reached (status)
+  (when (eql status :preempted)
+    (roslisp:ros-warn (giskard env-manip) "Giskard action preempted.")
+    (return-from ensure-goal-reached))
+  (when (eql status :timeout)
+    (roslisp:ros-warn (giskard env-manip) "Giskard action timed out.")))

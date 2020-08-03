@@ -31,22 +31,22 @@
 (in-package :btr-spatial-cm)
 
 (defmethod costmap:costmap-generator-name->score ((name (eql 'environment-free-space))) 4)
-(defmethod costmap:costmap-generator-name->score ((name (eql 'supporting-object))) 9)
+(defmethod costmap:costmap-generator-name->score ((name (eql 'supporting-object))) 5)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'slot-generator))) 6)
-(defmethod costmap:costmap-generator-name->score ((name (eql 'collision))) 10)
+(defmethod costmap:costmap-generator-name->score ((name (eql 'collision))) 20)
 (defmethod costmap:costmap-generator-name->score ((name (eql 'on-bounding-box))) 5)
 
 (defclass side-generator () ())
-(defmethod costmap:costmap-generator-name->score ((name side-generator)) 5)
+(defmethod costmap:costmap-generator-name->score ((name side-generator)) 3)
 
 (defclass range-generator () ())
 (defmethod costmap:costmap-generator-name->score ((name range-generator)) 2)
 
 (defclass gaussian-generator () ())
-(defmethod costmap:costmap-generator-name->score ((name gaussian-generator)) 4)
+(defmethod costmap:costmap-generator-name->score ((name gaussian-generator)) 7)
 
 (defclass field-generator () ())
-(defmethod costmap:costmap-generator-name->score ((name field-generator)) 7)
+(defmethod costmap:costmap-generator-name->score ((name field-generator)) 15)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -146,8 +146,8 @@
 (def-fact-group spatial-relations-costmap (costmap:desig-costmap)
   ;;;;;;;;;; REACHABILITY AND VISIBILITY LOCATION padded from environment ;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
-    (or (cram-robot-interfaces:visibility-designator ?designator)
-        (cram-robot-interfaces:reachability-designator ?designator))
+    (or (rob-int:visibility-designator ?designator)
+        (rob-int:reachability-designator ?designator))
     ;; make sure that the location is not on the robot itself
     ;; if it is, don't generate a costmap
     (-> (desig:desig-prop ?designator (:location ?some-location))
@@ -160,10 +160,11 @@
                      (true)))
             (true)))
     (costmap:costmap ?costmap)
+    (rob-int:robot ?robot-name)
     (btr:bullet-world ?world)
     (lisp-fun btr:get-environment-object ?kitchen-object)
     (lisp-fun btr:rigid-bodies ?kitchen-object ?rigid-bodies)
-    (costmap:costmap-padding ?padding)
+    (costmap:costmap-padding ?robot-name ?padding)
     (costmap:costmap-add-function
      environment-free-space
      (make-aabbs-costmap-generator
@@ -330,22 +331,20 @@
   ;; should be using make-aabb-costmap-generator I guess
   (<- (costmap:desig-costmap ?desig ?cm)
     (fail)
-    (or
-     (desig:desig-prop ?desig (:left-of ?_))
-     (desig:desig-prop ?desig (:right-of ?_))
-     (desig:desig-prop ?desig (:in-front-of ?_))
-     (desig:desig-prop ?desig (:behind ?_))
-     (desig:desig-prop ?desig (:far-from ?_))
-     (desig:desig-prop ?desig (:near ?_)))
+    (or (desig:desig-prop ?desig (:left-of ?_))
+        (desig:desig-prop ?desig (:right-of ?_))
+        (desig:desig-prop ?desig (:in-front-of ?_))
+        (desig:desig-prop ?desig (:behind ?_))
+        (desig:desig-prop ?desig (:far-from ?_))
+        (desig:desig-prop ?desig (:near ?_)))
     (collision-costmap-padding-in-meters ?padding)
     (-> (desig:desig-prop ?desig (:for ?object))
-        (and
-         (object-designator-from-name-or-type ?object ?object-name)
-         (btr:object ?world ?object-name)
-         (object-size-without-handles ?world ?object-name ?obj-size)
-         (lisp-fun / ?obj-size 2 ?obj-size/2)
-         (lisp-fun + ?obj-size/2 ?padding ?overall-padding)
-         (collision-invert-costmap ?desig ?overall-padding ?cm))
+        (and (object-designator-from-name-or-type ?object ?object-name)
+             (btr:object ?world ?object-name)
+             (object-size-without-handles ?world ?object-name ?obj-size)
+             (lisp-fun / ?obj-size 2 ?obj-size/2)
+             (lisp-fun + ?obj-size/2 ?padding ?overall-padding)
+             (collision-invert-costmap ?desig ?overall-padding ?cm))
         (collision-invert-costmap ?desig ?padding ?cm)))
   ;;
   ;;;;;;;;;;;;;;;;;;;;;; height generator for spatial relations ;;;;;;;;;;;;;;;

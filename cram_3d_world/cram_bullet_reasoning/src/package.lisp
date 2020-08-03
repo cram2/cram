@@ -43,7 +43,7 @@
            merge-bounding-boxes aabb calculate-bb-dims
            with-stored-world *debug-window*
            add-debug-window add-costmap-function-object add-vis-axis-object
-           add-costmap-sample-object clear-costmap-vis-object add-vis-axis-object
+           add-costmap-sample-object clear-costmap-vis-object
            camera width
            height fov-y z-near z-far pose gl-execute-with-camera
            camera-transform look-at-object-rotation
@@ -105,8 +105,7 @@
            #:make-joint-state-message
            #:calculate-pan-tilt #:looking-in-direction-p
            #:robot-converged-to-goal-joint-states
-           #:get-robot-object #:get-robot-name
-           #:get-environment-object #:get-environment-name
+           #:get-robot-object #:get-environment-object
            #:robot-colliding-objects-without-attached
            #:robot-attached-objects-in-collision
            ;; temporal-reasoning

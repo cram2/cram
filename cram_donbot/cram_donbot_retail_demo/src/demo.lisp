@@ -27,7 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :demo)
+(in-package :cram-donbot-retail-demo)
 
 (defun spawn-objects-on-small-shelf (&optional (spawn? t))
   (sb-ext:gc :full t)
@@ -36,6 +36,7 @@
   (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
+  #+only-for-the-real-robot-so-commenting-out-for-now
   (unless cram-projection:*projection-environment*
     (giskard::call-giskard-environment-service
      :remove-all)
@@ -43,14 +44,12 @@
       (giskard::call-giskard-environment-service
        :add-environment
        :name (roslisp-utilities:rosify-underscores-lisp-name
-              (man-int:current-environment-symbol))
+              (rob-int:get-environment-name))
        :pose (cl-transforms-stamped:pose->pose-stamped
               cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
        :joint-state-topic "kitchen/joint_states")))
 
-  (when (and spawn?
-             ;; cram-projection:*projection-environment*
-             )
+  (when (and spawn? cram-projection:*projection-environment*)
     (btr-utils:spawn-object :balea-bottle-1 :balea-bottle :pose
                             '((1.9 -1.42 1.05) (0 0 0.7 0.7))
                             :color '(1 1 1))
@@ -61,24 +60,24 @@
                     :color '(0 1 0 1.0)
                     :size '(0.057 0.018 0.074)
                     :item-type :dish-washer-tabs)
-    ;; (btr-utils:spawn-object :denkmitgeschirrreinigernature-2 :dish-washer-tabs
-    ;;                         :pose '((1.75 -1.45 1.06) (0 0 0.7 0.7))
-    ;;                         :color '(0 1 0))
     ;; (btr:simulate btr:*current-bullet-world* 50)
-    ))
+    (btr-utils:move-robot '((1.0 0 0) (0 0 0 1)))))
 
 (defun demo ()
   (spawn-objects-on-small-shelf)
 
-  (let* ((?search-location
+  (let* ((?environment-name
+           (rob-int:get-environment-name))
+         (?search-location
            (desig:a location
                     (on (desig:an object
                                   (type shelf)
                                   (urdf-name shelf-2-base)
                                   (owl-name "shelf_system_verhuetung")
-                                  (part-of environment)
-                                  (level middle)))
-                    (side left)))
+                                  (part-of ?environment-name)
+                                  (level 4)))
+                    (side left)
+                    (range 0.2)))
          (?object
            (an object
                (type dish-washer-tabs)
@@ -87,18 +86,18 @@
            (desig:a location
                     (on (desig:an object
                                   (type environment)
-                                  (name environment)
-                                  (part-of environment)
+                                  (name ?environment-name)
+                                  (part-of ?environment-name)
                                   (urdf-name shelf-1-level-2-link)))
                     (for ?object)
                     (attachments (donbot-shelf-1-front donbot-shelf-1-back))))
-         (?robot-name (btr:get-robot-name))
+         (?robot-name (rob-int:get-robot-name))
          (?intermediate-locaiton-robot
            (desig:a location
                     (on (desig:an object
                                   (type robot)
                                   (name ?robot-name)
-                                  (part-of ?robot-name)
+                                  (part-of ?environment-name)
                                   ;; (owl-name "donbot_tray")
                                   (urdf-name plate)))
                     (for ?object)
@@ -276,7 +275,7 @@
         (exe:perform picking-up-action))
 
       ;; placing on the back
-      (let* ((?robot-name (btr:get-robot-name))
+      (let* ((?robot-name (rob-int:get-robot-name))
              (?robot-link-name "plate")
              (?pose-in-map (cram-tf:frame-to-pose-in-fixed-frame ?robot-link-name))
              (?transform-in-map (cram-tf:pose-stamped->transform-stamped
@@ -360,7 +359,7 @@
 
       ;; ;; reperceive object
       ;; (let* ((?robot-name
-      ;;          (btr:get-robot-name)))
+      ;;          (rob-int:get-robot-name)))
       ;;   (setf ?object
       ;;         (perform
       ;;          (an action
@@ -495,7 +494,7 @@
         (exe:perform picking-up-action)))
 
     ;; placing on the back
-    (let* ((?robot-name (btr:get-robot-name))
+    (let* ((?robot-name (rob-int:get-robot-name))
            (?robot-link-name "plate")
            (?pose-in-map (cram-tf:frame-to-pose-in-fixed-frame ?robot-link-name))
            (?transform-in-map (cram-tf:pose-stamped->transform-stamped
@@ -574,7 +573,7 @@
 
   ;; pick up from the tray
   (let* ((?robot-name
-           (btr:get-robot-name)) 
+           (rob-int:get-robot-name))
          (?obj
            (perform
             (an action
@@ -603,6 +602,7 @@
                     (pose ?target-pose)))))))
 
 
+#+stuff-to-test-real-robot-interfaces
 (defun stuff-that-works ()
   (cram-process-modules:with-process-modules-running
       (giskard:giskard-pm)
@@ -623,94 +623,3 @@
                   (type moving-tcp)
                   (left-pose ?pose)
                   (collision-mode :allow-all)))))))
-
-
-
-
-
-#+everything-below-is-pr2-s-stuff-so-need-new-things-for-donbot
-(
-(defparameter *object-cad-models*
-  '(;; (:cup . "cup_eco_orange")
-    ;; (:bowl . "edeka_red_bowl")
-    ))
-
-(cpl:def-cram-function initialize-or-finalize ()
-  (cpl:with-failure-handling
-      ((cpl:plan-failure (e)
-         (declare (ignore e))
-         (return)))
-    (cpl:par
-      (exe:perform
-       (desig:an action
-                 (type parking-arms)))
-      (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                    cram-tf:*fixed-frame*
-                    0.0
-                    (cl-transforms:make-identity-vector)
-                    (cl-transforms:make-identity-rotation))))
-        (exe:perform
-         (desig:an action
-                   (type going)
-                   (target (desig:a location
-                                    (pose ?pose))))))
-      (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
-      (exe:perform (desig:an action (type looking) (direction forward))))))
-
-
-(cpl:def-cram-function demo-random (&optional
-                                    (random t)
-                                    (list-of-objects '(:milk :cup :breakfast-cereal :bowl :spoon)))
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr-utils:kill-all-objects)
-
-  ;; (setf proj-reasoning::*projection-reasoning-enabled* nil)
-  (when (eql cram-projection:*projection-environment*
-             'urdf-proj:urdf-bullet-projection-environment)
-    (spawn-objects-on-sink-counter :random random))
-
-  (setf cram-robot-pose-guassian-costmap::*orientation-samples* 1)
-
-  (initialize-or-finalize)
-
-  (dolist (?object-type list-of-objects)
-    (let* ((?cad-model
-             (cdr (assoc ?object-type *object-cad-models*)))
-           (?object-to-fetch
-             (desig:an object
-                       (type ?object-type)
-                       (desig:when ?cad-model
-                         (cad-model ?cad-model))))
-           (?fetching-location
-             (desig:a location
-                      (on "CounterTop")
-                      (name "iai_kitchen_sink_area_counter_top")
-                      (side left)))
-           (?placing-target-pose
-             (cl-transforms-stamped:pose->pose-stamped
-              "map" 0.0
-              (cram-bullet-reasoning:ensure-pose
-               (cdr (assoc ?object-type *object-placing-poses*)))))
-           (?arm-to-use
-             (cdr (assoc ?object-type *object-grasping-arms*)))
-           (?delivering-location
-             (desig:a location
-                      (pose ?placing-target-pose))))
-
-      (cpl:with-failure-handling
-          ((common-fail:high-level-failure (e)
-             (roslisp:ros-warn (pp-plans demo) "Failure happened: ~a~%Skipping..." e)
-             (return)))
-        (exe:perform
-         (desig:an action
-                   (type transporting)
-                   (object ?object-to-fetch)
-                   ;; (arm ?arm-to-use)
-                   (location ?fetching-location)
-                   (target ?delivering-location))))))
-
-  (initialize-or-finalize)
-
-  cpl:*current-path*)
-
-)

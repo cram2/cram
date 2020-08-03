@@ -67,23 +67,27 @@
                                  camera-in-neck-ee-pose
                                  neck-camera-z-offset
                                  camera-horizontal-angle camera-vertical-angle
+                                 camera-minimal-height camera-maximal-height
                                  robot-neck-links
                                  robot-neck-joints
                                  robot-neck-base-link
                                  robot-joint-states)
 
-  (<- (camera-frame boxy "head_mount_kinect2_rgb_optical_frame"))
+  (<- (camera-frame :boxy-description "head_mount_kinect2_rgb_optical_frame"))
 
-  (<- (camera-in-neck-ee-pose boxy ?pose)
+  (<- (camera-in-neck-ee-pose :boxy-description ?pose)
     (symbol-value *neck-ee-p-camera* ?pose))
 
-  (<- (neck-camera-z-offset boxy 0.2))
+  (<- (neck-camera-z-offset :boxy-description 0.2))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
-  (<- (camera-horizontal-angle boxy 0.99483)) ;  ca 57 degrees
-  (<- (camera-vertical-angle boxy 0.75049))   ; ca 43 degrees
+  (<- (camera-horizontal-angle :boxy-description 0.99483)) ;  ca 57 degrees
+  (<- (camera-vertical-angle :boxy-description 0.75049))   ; ca 43 degrees
 
-  (<- (robot-neck-links boxy
+  ;; (<- (camera-minimal-height :boxy-description 1.0))
+  ;; (<- (camera-maximal-height :boxy-description 2.5))
+
+  (<- (robot-neck-links :boxy-description
                         "neck_shoulder_link"
                         "neck_upper_arm_link"
                         "neck_forearm_link"
@@ -91,7 +95,7 @@
                         "neck_wrist_2_link"
                         "neck_wrist_3_link"))
 
-  (<- (robot-neck-joints boxy
+  (<- (robot-neck-joints :boxy-description
                          "neck_shoulder_pan_joint"
                          "neck_shoulder_lift_joint"
                          "neck_elbow_joint"
@@ -99,16 +103,20 @@
                          "neck_wrist_2_joint"
                          "neck_wrist_3_joint"))
 
-  (<- (robot-neck-base-link boxy "neck_base_link"))
+  (<- (robot-neck-base-link :boxy-description "neck_base_link"))
 
-  (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :away ?joint-states)
+  (<- (robot-joint-states :boxy-description :neck ?there-is-only-one-neck :away
+                          ?joint-states)
     (symbol-value *neck-parking-joint-states* ?joint-states))
 
-  (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :forward ?joint-states)
+  (<- (robot-joint-states :boxy-description :neck ?there-is-only-one-neck :forward
+                          ?joint-states)
     (symbol-value *neck-parking-joint-states* ?joint-states))
 
-  (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :down ?joint-states)
+  (<- (robot-joint-states :boxy-description :neck ?there-is-only-one-neck :down
+                          ?joint-states)
     (symbol-value *neck-good-looking-down-state* ?joint-states))
 
-  (<- (robot-joint-states boxy :neck ?there-is-only-one-neck :down-left ?joint-states)
+  (<- (robot-joint-states :boxy-description :neck ?only-one-neck :down-left
+                          ?joint-states)
     (symbol-value *neck-good-looking-left-state* ?joint-states)))

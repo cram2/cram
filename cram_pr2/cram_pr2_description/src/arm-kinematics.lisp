@@ -1,19 +1,19 @@
 ;;; Copyright (c) 2012, CRAM team
 ;;; All rights reserved.
-;;; 
+;;;
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions are met:
-;;; 
+;;;
 ;;;     * Redistributions of source code must retain the above copyright
 ;;;       notice, this list of conditions and the following disclaimer.
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
-;;; 
+;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -78,7 +78,7 @@
     ("l_wrist_flex_joint" -0.07350789589924167d0)
     ("l_wrist_roll_joint" 0.0)))
 
-(defparameter *left-carrying-top-joint-states*
+(defparameter *left-carrying-top-low-joint-states*
   '(("l_shoulder_pan_joint" 1.3810115229719555d0)
     ("l_shoulder_lift_joint" 1.1282870348994702d0)
     ("l_upper_arm_roll_joint" 1.71d0)
@@ -86,6 +86,15 @@
     ("l_forearm_roll_joint" 2.6581354736032257d0)
     ("l_wrist_flex_joint" -1.9927790883777252d0)
     ("l_wrist_roll_joint" 2.586184460547585d0)))
+
+(defparameter *left-carrying-top-joint-states*
+  '(("l_shoulder_pan_joint" 1.0252138037286773d0)
+    ("l_shoulder_lift_joint" -0.06966848987919201d0)
+    ("l_upper_arm_roll_joint" 1.1765832782526544d0)
+    ("l_elbow_flex_joint" -1.9323726623855864d0)
+    ("l_forearm_roll_joint" 1.3824994377973336d0)
+    ("l_wrist_flex_joint" -1.8416233909065576d0)
+    ("l_wrist_roll_joint" 2.907373693068033d0)))
 
 (defparameter *left-carrying-basket-joint-states*
   '(("l_shoulder_pan_joint" 1.0)
@@ -130,7 +139,7 @@
     ("r_wrist_flex_joint" -0.07942669250968948d0)
     ("r_wrist_roll_joint" 0.05106258161229582d0)))
 
-(defparameter *right-carrying-top-joint-states*
+(defparameter *right-carrying-top-low-joint-states*
   '(("r_shoulder_pan_joint" -1.3810115229719555d0)
     ("r_shoulder_lift_joint" 1.1282870348994702d0)
     ("r_upper_arm_roll_joint" -1.7100000000000002d0)
@@ -138,6 +147,15 @@
     ("r_forearm_roll_joint" -2.658135473603226d0)
     ("r_wrist_flex_joint" -1.9927790883777252d0)
     ("r_wrist_roll_joint" -2.5861844605475843d0)))
+
+(defparameter *right-carrying-top-joint-states*
+  '(("r_shoulder_pan_joint" -1.183809044088452d0)
+    ("r_shoulder_lift_joint" -0.30680923151650064d0)
+    ("r_upper_arm_roll_joint" -1.6439096470662296d0)
+    ("r_elbow_flex_joint" -2.0632453854762955d0)
+    ("r_forearm_roll_joint" -1.3016362275774522d0)
+    ("r_wrist_flex_joint" -1.284945123721191d0)
+    ("r_wrist_roll_joint" -1.974782974061931d0)))
 
 (defparameter *right-carrying-side-aligned-joint-states*
   '(("r_shoulder_pan_joint" -0.7524126363048715d0)
@@ -266,123 +284,101 @@
                                           standard-to-particular-gripper-transform
                                           tcp-in-ee-pose)
 
-  (<- (arm pr2 :right))
-  (<- (arm pr2 :left))
+  (<- (arm :pr2 :right))
+  (<- (arm :pr2 :left))
 
-  (<- (end-effector-link pr2 :left "l_wrist_roll_link"))
-  (<- (end-effector-link pr2 :right "r_wrist_roll_link"))
+  (<- (end-effector-link :pr2 :left "l_wrist_roll_link"))
+  (<- (end-effector-link :pr2 :right "r_wrist_roll_link"))
 
-  (<- (robot-tool-frame pr2 :left "l_gripper_tool_frame"))
-  (<- (robot-tool-frame pr2 :right "r_gripper_tool_frame"))
+  (<- (robot-tool-frame :pr2 :left "l_gripper_tool_frame"))
+  (<- (robot-tool-frame :pr2 :right "r_gripper_tool_frame"))
 
-  (<- (gripper-link pr2 :left ?link)
+  (<- (gripper-link :pr2 :left ?link)
     (bound ?link)
     (lisp-fun search "l_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
-  (<- (gripper-link pr2 :right ?link)
+  (<- (gripper-link :pr2 :right ?link)
     (bound ?link)
     (lisp-fun search "r_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
 
-  (<- (gripper-joint pr2 :left "l_gripper_l_finger_joint"))
-  (<- (gripper-joint pr2 :left "l_gripper_r_finger_joint"))
-  (<- (gripper-joint pr2 :right "r_gripper_l_finger_joint"))
-  (<- (gripper-joint pr2 :right "r_gripper_r_finger_joint"))
+  (<- (gripper-joint :pr2 :left "l_gripper_l_finger_joint"))
+  (<- (gripper-joint :pr2 :left "l_gripper_r_finger_joint"))
+  (<- (gripper-joint :pr2 :right "r_gripper_l_finger_joint"))
+  (<- (gripper-joint :pr2 :right "r_gripper_r_finger_joint"))
 
-  (<- (gripper-meter-to-joint-multiplier pr2 5.0))
+  (<- (gripper-meter-to-joint-multiplier :pr2 5.0))
 
-  (<- (planning-group pr2 :left "left_arm"))
-  (<- (planning-group pr2 :right "right_arm"))
-  (<- (planning-group pr2 (:left :right) "both_arms"))
-  (<- (planning-group pr2 (:right :left) "both_arms"))
+  (<- (planning-group :pr2 :left "left_arm"))
+  (<- (planning-group :pr2 :right "right_arm"))
+  (<- (planning-group :pr2 (:left :right) "both_arms"))
+  (<- (planning-group :pr2 (:right :left) "both_arms"))
 
-  (<- (robot-joint-states pr2 :arm :left :carry ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :left :carry ?joint-states)
     (symbol-value *left-carrying-side-joint-states* ?joint-states))
-  (<- (robot-joint-states pr2 :arm :left :park ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :left :park ?joint-states)
     (symbol-value *left-carrying-side-joint-states* ?joint-states))
-  (<- (robot-joint-states pr2 :arm :left :carry-top ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :left :carry-top ?joint-states)
     (symbol-value *left-carrying-top-joint-states* ?joint-states))
-  (<- (robot-joint-states pr2 :arm :left :carry-top-basket ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :left :carry-top-basket ?joint-states)
     (symbol-value *left-carrying-basket-joint-states* ?joint-states))
-  (<- (robot-joint-states pr2 :arm :left :hand-over ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :left :hand-over ?joint-states)
     (symbol-value *left-carrying-basket-handover-joint-states* ?joint-states))
-  (<- (robot-joint-states pr2 :arm :left :carry-side-gripper-vertical ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :left :carry-side-gripper-vertical ?joint-states)
     (symbol-value *left-carrying-side-aligned-joint-states* ?joint-states))
-  (<- (robot-joint-states pr2 :arm :left :tucked ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :left :tucked ?joint-states)
     (symbol-value *left-tucked-joint-states* ?joint-states))
 
-  (<- (robot-joint-states pr2 :arm :right :carry ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :right :carry ?joint-states)
     (symbol-value *right-carrying-side-joint-states* ?joint-states))
-  (<- (robot-joint-states pr2 :arm :right :park ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :right :park ?joint-states)
     (symbol-value *right-carrying-side-joint-states* ?joint-states))
-  (<- (robot-joint-states pr2 :arm :right :carry-top ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :right :carry-top ?joint-states)
     (symbol-value *right-carrying-top-joint-states* ?joint-states))
-  (<- (robot-joint-states pr2 :arm :right :carry-side-gripper-vertical ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :right :carry-side-gripper-vertical ?joint-states)
     (symbol-value *right-carrying-side-aligned-joint-states* ?joint-states))
-  (<- (robot-joint-states pr2 :arm :right :tucked ?joint-states)
+  (<- (robot-joint-states :pr2 :arm :right :tucked ?joint-states)
     (symbol-value *right-tucked-joint-states* ?joint-states))
 
-  ;; (<- (robot-arms-carrying-joint-states pr2 ?joint-states)
-  ;;   (symbol-value *right-carrying-joint-states* ?right-joint-states)
-  ;;   (symbol-value *left-carrying-joint-states* ?left-joint-states)
-  ;;   (append ?right-joint-states ?left-joint-states ?joint-states))
-
-  ;; (<- (robot-arms-carrying-joint-states pr2 ?joint-states :left)
-  ;;   (symbol-value *left-carrying-joint-states* ?joint-states))
-
-  ;; (<- (robot-arms-carrying-joint-states pr2 ?joint-states :right)
-  ;;   (symbol-value *right-carrying-joint-states* ?joint-states))
-
-  ;; (<- (robot-arms-parking-joint-states pr2 ?joint-states)
-  ;;   (symbol-value *right-parking-joint-states* ?right-joint-states)
-  ;;   (symbol-value *left-parking-joint-states* ?left-joint-states)
-  ;;   (append ?right-joint-states ?left-joint-states ?joint-states))
-
-  ;; (<- (robot-arms-parking-joint-states pr2 ?joint-states :left)
-  ;;   (symbol-value *left-parking-joint-states* ?joint-states))
-
-  ;; (<- (robot-arms-parking-joint-states pr2 ?joint-states :right)
-  ;;   (symbol-value *right-parking-joint-states* ?joint-states))
-
-  ;; (<- (end-effector-parking-pose pr2 ?pose :left)
+  ;; (<- (end-effector-parking-pose :pr2 ?pose :left)
   ;;   (symbol-value *left-parking-end-effector-pose* ?pose))
 
-  ;; (<- (end-effector-parking-pose pr2 ?pose :right)
+  ;; (<- (end-effector-parking-pose :pr2 ?pose :right)
   ;;   (symbol-value *right-parking-end-effector-pose* ?pose))
 
   ;; (<- (robot-pre-grasp-joint-states
-  ;;      pr2 (("torso_lift_joint" 0.33) . ?parking-joint-states))
-  ;;   (robot-arms-parking-joint-states pr2 ?parking-joint-states))
+  ;;      :pr2 (("torso_lift_joint" 0.33) . ?parking-joint-states))
+  ;;   (robot-arms-parking-joint-states :pr2 ?parking-joint-states))
 
   ;; (<- (robot-pre-grasp-joint-states
-  ;;      pr2 (("torso_lift_joint" 0.165) . ?parking-joint-states))
-  ;;   (robot-arms-parking-joint-states pr2 ?parking-joint-states))
+  ;;      :pr2 (("torso_lift_joint" 0.165) . ?parking-joint-states))
+  ;;   (robot-arms-parking-joint-states :pr2 ?parking-joint-states))
 
   ;; (<- (robot-pre-grasp-joint-states
-  ;;      pr2 (("torso_lift_joint" 0.00) . ?parking-joint-states))
-  ;;   (robot-arms-parking-joint-states pr2 ?parking-joint-states))
+  ;;      :pr2 (("torso_lift_joint" 0.00) . ?parking-joint-states))
+  ;;   (robot-arms-parking-joint-states :pr2 ?parking-joint-states))
 
-  (<- (arm-joints pr2 ?arm ?joints)
+  (<- (arm-joints :pr2 ?arm ?joints)
     (lisp-fun get-arm-joint-names ?arm ?joints))
 
-  (<- (arm-base-joints pr2 ?arm ?joints)
+  (<- (arm-base-joints :pr2 ?arm ?joints)
     (lisp-fun get-arm-base-joint-names ?arm ?joints))
 
-  (<- (arm-tool-joints pr2 ?arm ?joints)
+  (<- (arm-tool-joints :pr2 ?arm ?joints)
     (lisp-fun get-arm-tool-joint-names ?arm ?joints))
 
-  (<- (arm-links pr2 ?arm ?links)
+  (<- (arm-links :pr2 ?arm ?links)
     (lisp-fun get-arm-link-names ?arm ?links))
 
-  (<- (arm-base-links pr2 ?arm ?links)
+  (<- (arm-base-links :pr2 ?arm ?links)
     (lisp-fun get-arm-base-link-names ?arm ?links))
 
-  (<- (hand-links pr2 ?arm ?links)
+  (<- (hand-links :pr2 ?arm ?links)
     (lisp-fun get-hand-link-names ?arm ?links))
 
-  (<- (standard-to-particular-gripper-transform pr2 ?transform)
+  (<- (standard-to-particular-gripper-transform :pr2 ?transform)
     (symbol-value *standard-to-pr2-gripper-transform* ?transform))
 
-  (<- (tcp-in-ee-pose pr2 ?transform)
+  (<- (tcp-in-ee-pose :pr2 ?transform)
     (symbol-value *tcp-in-ee-pose* ?transform)))
 

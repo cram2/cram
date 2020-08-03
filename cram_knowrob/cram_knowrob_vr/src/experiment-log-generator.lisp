@@ -128,7 +128,7 @@
             (t 'unknown-failure---------------------))))
     (when *experiment-log-detailed?*
       (experiment-log
-       (btr-belief::replace-all
+       (cut:replace-all
         (format nil "~a" failure-symbol)
         '(#\Newline) " ")))
     (when (and *experiment-log-current-demo-run-object-failures*

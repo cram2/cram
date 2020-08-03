@@ -54,6 +54,8 @@
                                                   ; and world-state-detecting PM
 
                cram-ik-interface
+               ;; can't depend on giskard because it wants the env. service...
+               ;; cram-giskard ; as an alternative to the ik solver
                sensor_msgs-msg ; cram-ik-interface returns a joint state message
                )
   :components

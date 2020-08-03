@@ -37,11 +37,12 @@
 (def-fact-group bullet-reasoning-location-desig (costmap:desig-costmap)
 
   (<- (visibility-costmap-metadata ?minimal-height ?maximal-height ?resolution ?size)
-    (cram-robot-interfaces:robot ?robot)
-    (cram-robot-interfaces:camera-minimal-height ?robot ?minimal-height)
-    (cram-robot-interfaces:camera-maximal-height ?robot ?maximal-height)
-    (costmap:costmap-resolution ?resolution)
-    (costmap:visibility-costmap-size ?size))
+    (rob-int:robot ?robot)
+    (rob-int:camera-minimal-height ?robot ?minimal-height)
+    (rob-int:camera-maximal-height ?robot ?maximal-height)
+    (rob-int:environment-name ?environment-name)
+    (costmap:costmap-resolution ?environment-name ?resolution)
+    (costmap:visibility-costmap-size ?robot ?size))
 
   (<- (object-visibility-costmap ?designator ?costmap)
     (desig:desig-prop ?designator (:object ?object))

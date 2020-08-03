@@ -35,19 +35,14 @@
 
 (defun init-projection ()
   (def-fact-group costmap-metadata ()
-    (<- (location-costmap:costmap-size 12 12))
-    (<- (location-costmap:costmap-origin -6 -6))
-    (<- (location-costmap:costmap-resolution 0.05))
+    (<- (costmap:costmap-size :iai-kitchen 12 12))
+    (<- (costmap:costmap-origin :iai-kitchen -6 -6))
+    (<- (costmap:costmap-resolution :iai-kitchen 0.05))
 
-    (<- (location-costmap:costmap-padding 0.2))
-    (<- (location-costmap:costmap-manipulation-padding 0.2))
-    (<- (location-costmap:costmap-in-reach-distance 0.6))
-    (<- (location-costmap:costmap-reach-minimal-distance 0.2)))
-
-  (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
-  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
-
-  ;; (sem-map:get-semantic-map)
+    (<- (costmap:costmap-padding :pr2 0.2))
+    (<- (costmap:costmap-manipulation-padding :pr2 0.2))
+    (<- (costmap:costmap-in-reach-distance :pr2 0.6))
+    (<- (costmap:costmap-reach-minimal-distance :pr2 0.2)))
 
   (cram-occasions-events:clear-belief)
 

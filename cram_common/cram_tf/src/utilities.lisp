@@ -365,6 +365,12 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
    (cl-transforms-stamped:origin pose-stamped)
    (cl-transforms-stamped:orientation pose-stamped)))
 
+(defun pose-stamped->point-stamped (pose-stamped)
+  (cl-transforms-stamped:make-point-stamped
+   (cl-transforms-stamped:frame-id pose-stamped)
+   (cl-transforms-stamped:stamp pose-stamped)
+   (cl-transforms-stamped:origin pose-stamped)))
+
 (defun apply-transform (left-hand-side-transform right-hand-side-transform)
   (cram-tf:multiply-transform-stampeds
    (cl-transforms-stamped:frame-id left-hand-side-transform)

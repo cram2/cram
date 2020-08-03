@@ -30,9 +30,6 @@
 
 (in-package :demo)
 
-
-(defparameter *robot-parameter* "robot_description")
-
 ;;the collision-box for base_footprint, since the urdf does not provide it
 (defparameter *collision-box*
   ">
@@ -59,10 +56,10 @@
 ;; (defun setup-bullet-world ()
 ;;   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
 ;;   (let* ((robot (hsrb-proj::get-urdf))
-;;          (kitchen (or *kitchen-urdf* .....
+;;          (kitchen (or rob-int:*environment-urdf* .....
 (defun get-urdf-hsrb ()
-  (let* ((robi (substitute #\SPACE #\` 
-                           (roslisp:get-param *robot-parameter*)))
+  (let* ((robi (substitute #\SPACE #\`
+                           (roslisp:get-param rob-int:*robot-description-parameter*)))
          (robot (setf rob-int:*robot-urdf*
                       (cl-urdf:parse-urdf
                        (concatenate 'string

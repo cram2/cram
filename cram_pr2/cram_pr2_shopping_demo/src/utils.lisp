@@ -35,25 +35,25 @@
            (roslisp:get-param "shelf_description"))))
     (prolog:prolog
      `(and (btr:bullet-world ?world)
-           (man-int:environment-name ?environment-name)
+           (rob-int:environment-name ?environment-name)
            (assert (btr:object ?world :urdf ?environment-name ((0 0 0) (0 0 0 1))
                                             :urdf ,shelve-urdf))))))
 
 
 (defun spawn-kitchen ()
-  (let ((kitchen-urdf
-          (cl-urdf:parse-urdf
-           (roslisp:get-param "kitchen_description"))))
-    (prolog:prolog
-     `(and (btr:bullet-world ?world)
-           (man-int:environment-name ?environment-name)
-           (assert (btr:object ?world :urdf ?environment-name ((0 0 0) (0 0 0 1))
-                                            :urdf ,kitchen-urdf))))))
+  (setf rob-int:*environment-urdf*
+        (cl-urdf:parse-urdf
+         (roslisp:get-param rob-int:*environment-description-parameter*)))
+  (prolog:prolog
+   `(and (btr:bullet-world ?world)
+         (rob-int:environment-name ?environment-name)
+         (assert (btr:object ?world :urdf ?environment-name ((0 0 0) (0 0 0 1))
+                             :urdf ,rob-int:*environment-urdf*)))))
 
 (defun spawn-robot ()
   (setf cram-robot-interfaces:*robot-urdf*
         (cl-urdf:parse-urdf
-         (roslisp:get-param "robot_description")))
+         (roslisp:get-param rob-int:*robot-description-parameter*)))
   (prolog:prolog
    `(and (btr:bullet-world ?world)
          (cram-robot-interfaces:robot ?robot)
