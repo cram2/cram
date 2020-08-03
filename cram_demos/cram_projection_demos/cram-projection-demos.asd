@@ -81,4 +81,6 @@
     ((:file "package")
      (:file "costmaps" :depends-on ("package"))
      (:file "setup" :depends-on ("package"))
-     (:file "assembly-demo" :depends-on ("package"))))))
+     (:file "assembly-demo" :depends-on ("package"))
+     (:file "household-demo" :depends-on ("package"))
+     (:file "retail-demo" :depends-on ("package"))))))
