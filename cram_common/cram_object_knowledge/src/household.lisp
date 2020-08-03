@@ -236,7 +236,7 @@
 ;; SIDE grasp
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :left-side
   :grasp-translation `(0.0d0 ,(- *cup-grasp-xy-offset*) ,*cup-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
+  :grasp-rot-matrix man-int:*y-across-z-flipped-grasp-rotation*
   :pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,*cup-pregrasp-xy-offset* 0.0)
   :lift-translation *lift-offset*
@@ -244,7 +244,7 @@
 
 (man-int:def-object-type-to-gripper-transforms :cup '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*cup-grasp-xy-offset* ,*cup-grasp-z-offset*)
-  :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
+  :grasp-rot-matrix man-int:*-y-across-z-flipped-grasp-rotation*
   :pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,(- *cup-pregrasp-xy-offset*) 0.0)
   :lift-translation *lift-offset*

@@ -99,6 +99,8 @@
    #:*-x-across-y-grasp-rotation*
    #:*y-across-z-grasp-rotation*
    #:*-y-across-z-grasp-rotation*
+   #:*y-across-z-flipped-grasp-rotation*
+   #:*-y-across-z-flipped-grasp-rotation*
    #:*y-across-x-grasp-rotation*
    #:*-y-across-x-grasp-rotation*
    #:*z-across-x-grasp-rotation*

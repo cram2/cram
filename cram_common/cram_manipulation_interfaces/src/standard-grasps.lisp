@@ -71,6 +71,14 @@
   '((-1 0 0)
     ( 0 0 1)
     ( 0 1 0)))
+(defparameter *y-across-z-flipped-grasp-rotation*
+  '((-1  0  0)
+    ( 0  0 -1)
+    ( 0 -1  0)))
+(defparameter *-y-across-z-flipped-grasp-rotation*
+  '((1  0 0)
+    (0  0 1)
+    (0 -1 0)))
 (defparameter *y-across-x-grasp-rotation*
   '((0   1  0)
     (0   0  -1)
