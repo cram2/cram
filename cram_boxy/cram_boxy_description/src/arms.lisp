@@ -141,6 +141,11 @@
   (<- (robot-joint-states :boxy-description :arm :left :carry-side-gripper-vertical
                           ?joint-states)
     (symbol-value *left-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states :boxy-description :arm :left :carry-top-basket
+                          ?joint-states)
+    (symbol-value *left-parking-joint-states* ?joint-states))
+  (<- (robot-joint-states :boxy-description :arm :left :hand-over ?joint-states)
+    (symbol-value *left-parking-joint-states* ?joint-states))
 
   (<- (robot-joint-states :boxy-description :arm :right :carry ?joint-states)
     (symbol-value *right-parking-joint-states* ?joint-states))
