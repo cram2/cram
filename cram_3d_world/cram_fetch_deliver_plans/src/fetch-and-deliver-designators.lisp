@@ -97,7 +97,8 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; object
-    (spec:property ?location-designator (:in ?some-object-designator))
+    (or (spec:property ?location-designator (:in ?some-object-designator))
+        (spec:property ?location-designator (:above ?some-object-designator)))
     (desig:current-designator ?some-object-designator ?object-designator)
     ;; arm
     (-> (spec:property ?action-designator (:arm ?arm))
@@ -348,7 +349,6 @@ the `look-pose-stamped'."
                        (:object ?object-designator-with-location)
                        (:context ?context)
                        (:search-location ?search-location-designator)
-                       (:search-robot-location ?search-robot-location-designator)
                        (:fetch-robot-location ?fetch-robot-location-designator)
                        (:arms ?arms)
                        (:grasps ?grasps)
