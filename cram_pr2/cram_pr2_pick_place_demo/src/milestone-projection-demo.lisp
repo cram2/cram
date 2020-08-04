@@ -206,6 +206,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                                    (on (an object
                                            (type counter-top)
                                            (urdf-name kitchen-island-surface)
+                                           (owl-name
+                                            "kitchen_island_counter_top")
                                            (part-of iai-kitchen)))
                                    (side back)
                                    (side right)))
@@ -222,7 +224,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                           ;; that is too high for pr2 to reach
                           ;; (desig:when (not (eq ?object-type :spoon))
                           ;;   (for (an object (type ?object-type))))
-                          (z-offset -0.1))))
+                          (z-offset -0.2))))
              (:trash ,(lambda (?object-type)
                         (a location
                            (above (an object
