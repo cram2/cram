@@ -162,7 +162,7 @@
   (<- (%property ?designator (?object-desig-key ?value))
     (lisp-pred typep ?designator desig:location-designator)
     (member ?object-desig-key (:object
-                               :in :on
+                               :in :on :above
                                :left-of :right-of :in-front-of :behind
                                :far-from :near))
     (property-member (?object-desig-key ?value) ?designator)
