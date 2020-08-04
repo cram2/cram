@@ -51,7 +51,7 @@
      ;; "iai_fridge_main_middle_level"
      ;; ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437))
      "iai_fridge_door_shelf1_bottom"
-     ((0.0 -0.05 0.094) (0 0 0 1)))))
+     ((-0.01 -0.05 0.094) (0 0 0 1)))))
 
 
 (defparameter *delivery-poses*
@@ -150,6 +150,10 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 
 (defun setting-demo (&optional (object-list '(:milk :breakfast-cereal
                                               :bowl :spoon :cup)))
+  (initialize)
+  (when cram-projection:*projection-environment*
+    (spawn-objects-on-fixed-spots))
+  ;; (park-robot)
   ;; (setup-for-demo object-list)
 
   (dolist (?object-type object-list)
