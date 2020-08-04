@@ -432,6 +432,62 @@
   ;;             (equal ?orientation-type :random)))
   ;;   (generate-orientations ?orientation-type ?environment-link nil ?costmap))
 
+
+  ;;;;;;;;;;;;;;; spatial relation ABOVE for environment objects ;;;;;;;;;;;;
+  ;; ABOVE works similar to ON. Major differences are
+  ;; 1. prismatic containers are opened before manipulation
+  ;; 2. it requires a z-offset to be provided to calculate height
+  (<- (costmap:desig-costmap ?designator ?costmap)
+    (and (desig:desig-prop ?designator (:above ?object))
+         (not (desig:desig-prop ?designator (:attachment ?_)))
+         (not (desig:desig-prop ?designator (:attachments ?_))))
+    (desig:desig-prop ?designator (?original-tag ?object))
+    (spec:property ?object (:urdf-name ?urdf-name))
+    (spec:property ?object (:part-of ?environment-name))
+    (once (or (spec:property ?designator (:z-offset ?z-offset))
+              (equal 0.0 ?z-offset)))
+    (btr:bullet-world ?world)
+    (btr:%object ?world ?environment-name ?environment-object)
+    (height-calculation-body-or-tag ?environment-object ?object
+                                    ?environment-link ?original-tag
+                                    ?height-calculation-tag)
+    ;; Checking whether the object is a container to determine where
+    ;; z-offset is calculated from. At present, always calculates
+    ;; from the top of the object (so a location inside the container
+    ;; needs a negative z-offset). Uncomment the following if-else
+    ;; if the calculation needs to be contextual.
+    ;; (-> (man-int:object-type-subtype :container ?object-type)
+    ;; (equal :in ?height-tag)
+    (equal :on ?height-tag)
+
+    (lisp-pred identity ?environment-link)
+    (costmap:costmap ?costmap)
+    (once (or (and (desig:desig-prop ?designator (:for ?for-object))
+                   (object-designator-from-name-or-type ?for-object ?for-object-name)
+                   (btr:%object ?world ?for-object-name ?for-object-instance)
+                   (costmap:costmap-add-function
+                    on-bounding-box
+                    (make-object-in-object-bounding-box-costmap-generator
+                     ?environment-link ?for-object-instance)
+                    ?costmap)
+                   (costmap:costmap-add-height-generator
+                    (make-object-on/in-object-bb-height-generator
+                     ?environment-link ?for-object-instance ?height-tag
+                     ?z-offset)
+                    ?costmap))
+              (and (costmap:costmap-add-function
+                    on-bounding-box
+                    (make-object-bounding-box-costmap-generator
+                     ?environment-link)
+                    ?costmap)
+                   (costmap:costmap-add-cached-height-generator
+                    (make-object-bounding-box-height-generator
+                     ?environment-link ?height-tag ?z-offset)
+                    ?costmap))))
+    (once (or (desig:desig-prop ?designator (:orientation ?orientation-type))
+              (equal ?orientation-type :random)))
+    (generate-orientations ?orientation-type ?environment-link nil ?costmap))
+
   ;;
   ;;;;;;;;;;;;;;; spatial relation ON/IN for environment objects ;;;;;;;;;;;;;;;;;;;
   ;; LEVEL relationship for container type locations
@@ -546,14 +602,15 @@
                   ?object-count
                   ?costmap))
   ;;
-  ;;;;;;;;;;;;;;;;;;;;; SIDE and RANGE relations for ON and IN ;;;;;;;;;
+  ;;;;;;;;;;;;;;;;;;;;; SIDE and RANGE relations for ON, IN or ABOVE ;;;;;;;;;
   (<- (costmap:desig-costmap ?designator ?costmap)
     (or (and (desig:desig-prop ?designator (:side ?relation))
              (member ?relation (:left :right :front :back)))
         (desig:desig-prop ?designator (:range ?range))
         (desig:desig-prop ?designator (:range-invert ?range-invert)))
     (or (desig:desig-prop ?designator (:on ?on-object))
-        (desig:desig-prop ?designator (:in ?on-object)))
+        (desig:desig-prop ?designator (:in ?on-object))
+        (desig:desig-prop ?designator (:above ?on-object)))
     (not (desig:desig-prop ?designator (:attachment ?_)))
     (not (desig:desig-prop ?designator (:attachments ?_)))
     (costmap:costmap ?costmap)
