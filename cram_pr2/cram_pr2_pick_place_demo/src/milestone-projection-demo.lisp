@@ -33,10 +33,10 @@
 (defparameter *demo-object-spawning-poses*
   '((:bowl
      "sink_area_left_middle_drawer_main"
-     ((0.10573 -0.1505 -0.062256) (0 0 -1 0)))
+     ((0.10 -0.1505 -0.062256) (0 0 -1 0)))
     (:cup
      "sink_area_left_middle_drawer_main"
-     ((0.1275 0.12 -0.0547167) (0 0 -1 0)))
+     ((0.11 0.12 -0.0547167) (0 0 -1 0)))
     (:spoon
      ;; "oven_area_area_middle_upper_drawer_main"
      "sink_area_left_upper_drawer_main"
@@ -52,6 +52,28 @@
      ;; ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437))
      "iai_fridge_door_shelf1_bottom"
      ((-0.01 -0.05 0.094) (0 0 0 1)))))
+
+
+(defparameter *delivery-poses-relative*
+  `((:bowl
+     "kitchen_island_surface"
+     ((0.24 -0.5 0.0432199478149414d0)
+      (0.0 0.0 0.33465 0.94234)))
+    (:cup
+     "kitchen_island_surface"
+     ((0.21 -0.20 0.06)
+      (0.0 0.0 0.33465 0.94234)))
+    (:spoon
+     "kitchen_island_surface"
+     ((0.26 -0.32 0.025)
+      (0.0 0.0 1 0)))
+    (:milk
+     "kitchen_island_surface"
+     ((0.25 0 0.0983174006144206d0)
+      (0.0 0.0 -0.9 0.7)))
+    (:breakfast-cereal
+     "kitchen_island_surface"
+     ((0.32 -0.9 0.1) (0 0 0.6 0.4)))))
 
 
 (defparameter *delivery-poses*
@@ -131,28 +153,15 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 
 
 
-(defun setup-for-demo (object-list)
-  (initialize)
-  (when cram-projection:*projection-environment*
-    (spawn-objects-on-fixed-spots :object-types object-list
-                                  :spawning-poses-relative *delivery-poses*))
-  ;; (park-robot)
-  )
-
-(defun projection-init ()
-  (setf btr:*visibility-threshold* 0.7)
-  (setf cram-urdf-projection:*debug-short-sleep-duration* 0.0)
-  (setf cram-urdf-projection:*debug-long-sleep-duration* 0.0)
-  (setf cram-urdf-projection-reasoning::*projection-checks-enabled* t)
-  (spawn-objects-on-fixed-spots))
-
 (defun setting-demo (&optional (object-list '(:milk :breakfast-cereal
                                               :bowl :spoon :cup)))
   (initialize)
+  (setf btr:*visibility-threshold* 0.7)
   (when cram-projection:*projection-environment*
-    (spawn-objects-on-fixed-spots))
+    (spawn-objects-on-fixed-spots
+     :object-types object-list
+     :spawning-poses-relative *demo-object-spawning-poses*))
   ;; (park-robot)
-  ;; (setup-for-demo object-list)
 
   (dolist (?object-type object-list)
     (let* ((?deliver-pose (cram-tf:ensure-pose-in-frame
@@ -183,6 +192,10 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
   "Cleans up object to the designated locations by iterating over
 `object-list' "
   ;; (setup-for-demo object-list)
+  (when cram-projection:*projection-environment*
+    (spawn-objects-on-fixed-spots
+     :object-types object-list
+     :spawning-poses-relative *delivery-poses-relative*))
 
   (let* ((object-cleanup-locations '((:milk :trash)
                                      (:bowl :sink)
@@ -204,10 +217,12 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                                      (urdf-name sink-area-sink)
                                      (part-of iai-kitchen)))
                           (side right)
+                          (for (an object (type ?object-type)))
                           ;; the "for" condition for spoon adds a height
                           ;; that is too high for pr2 to reach
-                          (desig:when (not (eq ?object-type :spoon))
-                            (for (an object (type ?object-type)))))))
+                          ;; (desig:when (not (eq ?object-type :spoon))
+                          ;;   (for (an object (type ?object-type))))
+                          (z-offset -0.1))))
              (:trash ,(lambda (?object-type)
                         (a location
                            (above (an object
@@ -222,11 +237,12 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
              (:vertical-drawer
               ,(lambda (?object-type)
                  (a location
-                    (above (an object
-                               (type drawer)
-                               (urdf-name oven-area-area-right-drawer-main)
-                               (part-of iai-kitchen)
-                               (level topmost)))
+                    (in (an object
+                            (type drawer)
+                            (urdf-name oven-area-area-right-drawer-main)
+                            (part-of iai-kitchen)
+                            (level topmost)))
+                    (side front)
                     (for (an object (type ?object-type))))))))
          (get-delivery-location-designator
            (lambda (object-type)
