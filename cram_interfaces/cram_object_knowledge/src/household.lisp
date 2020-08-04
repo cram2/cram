@@ -468,7 +468,9 @@
                          (urdf-name kitchen-island-surface)
                          (owl-name "kitchen_island_counter_top")
                          (part-of ?environment-name)))
-           (for (desig:an object (type ?object-type)))))
+           (for (desig:an object (type ?object-type)))
+           (side back)
+           (side right)))
 
 (defun make-location-right-of-other-object (?object-type ?other-object-type
                                             ?other-object-location)
