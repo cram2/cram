@@ -658,10 +658,12 @@ with the object, calculates similar angle around Y axis and applies the rotation
 (defun perform-collision-check (collision-mode left-hand-moves right-hand-moves
                                 &optional
                                   joint-state-msg
-                                  torso-offsets)
+                                  torso-offsets
+                                  object-name-to-allow-collisions-with)
   (declare (type (or keyword null) collision-mode)
            (type (or sensor_msgs-msg:jointstate null) joint-state-msg)
-           (type list torso-offsets))
+           (type list torso-offsets)
+           (type (or keyword string null) object-name-to-allow-collisions-with))
   "Returns NIL if current joint state does not result in collisions
 and returns (not throws or fails but simply returns) an error instance,
 if a collision occurs.
@@ -735,8 +737,10 @@ with the given offsets (the offsets are specified in the torso frame).
               ;; avoid-all means the robot is not colliding with anything except the
               ;; objects it is holding, and the object it is holding
               ;; only collides with robot
-              (when (or (btr:robot-colliding-objects-without-attached)
-                        (btr:robot-attached-objects-in-collision))
+              (when (or (remove object-name-to-allow-collisions-with
+                                (btr:robot-colliding-objects-without-attached))
+                        (remove object-name-to-allow-collisions-with
+                                (btr:robot-attached-objects-in-collision)))
                 (make-instance 'common-fail:manipulation-goal-not-reached
                   :description "Robot is in collision with environment."))))))
 
