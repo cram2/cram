@@ -282,8 +282,7 @@
         ;; Above keyword is inaccessible for prismatic containers like drawers
         ;; but not for revolute containers like fridge/oven
         (-> (spec:property ?current-location-designator (:above ?location-object))
-            (and (spec:property ?location-object (:type ?object-type))
-                 (not (man-int:object-type-subtype :container-prismatic ?object-type)))
+            (not (object-is-a-prismatic-container ?location-object))
             (true))))
 
   ;; most symbolic locations have a reference object
