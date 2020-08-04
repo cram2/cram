@@ -73,8 +73,6 @@
     (:breakfast-cereal . ((1.15 -0.5 0.8) (0 0 1 0)))))
 
 
-
-
 (defun attach-object-to-the-world (object-type)
   (when *demo-object-spawning-poses*
     (btr:attach-object (btr:get-environment-object)
@@ -180,213 +178,71 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            ;;   (grasp ?grasp))
            (target ?deliver-location))))))
 
-(defun cleaning-demo (&optional (object-list '(:milk)))
-  "Generic implementation, ideally this should work for all objects together.
-Right now, only works with '(:milk) and '(:bowl :cup :spoon). There is a separate method
-for :breakfast-cereal in the bottom.
-To get this working with milk, all the code of accessing and sealing inside the transport plan has to be
-commented out "
+(defun cleaning-demo (&optional (object-list '(:milk :breakfast-cereal
+                                                :bowl :spoon :cup)))
+  "Cleans up object to the designated locations by iterating over
+`object-list' "
   ;; (setup-for-demo object-list)
 
-  (dolist (?object-type object-list)
-    (let* ((?deliver-pose (cram-tf:ensure-pose-in-frame
-                           (btr:ensure-pose
-                            (cdr (assoc ?object-type *cleaning-deliver-poses*)))
-                           cram-tf:*fixed-frame*))
-           (?deliver-location (a location (pose ?deliver-pose)))
-           (?fetch-location (a location
-                               (on (an object
-                                       (type counter-top)
-                                       (urdf-name kitchen-island-surface)
-                                       (owl-name "kitchen_island_counter_top")
-                                       (part-of iai-kitchen)))
-                               (side back)
-                               (side right)))
-           (?color (cdr (assoc ?object-type *object-colors*)))
-           (?grasp (cdr (assoc ?object-type *object-grasps*)))
-           (?object (an object
-                        (type ?object-type)
-                        (location ?fetch-location)
-                        (desig:when ?color
-                          (color ?color)))))
-      (when (or (eql ?object-type :milk)
-                (eql ?object-type :breakfast-cereal))
-        (exe:perform (an action
-                         (type accessing)
-                         (arm left)
-                         (location
-                          (desig:a location
-                                   (in (an object
-                                           (type drawer)
-                                           (urdf-name sink-area-trash-drawer-main)
-                                           (owl-name "drawer_sinkblock_middle_open")
-                                           (part-of iai-kitchen))))))))
-      (let ((?obj (exe:perform
-                   (an action
-                       (type searching)
-                       (object ?object)
-                       (location ?fetch-location)))))
-        (exe:perform (desig:an action
-                               (type fetching)
-                               (object ?obj)
-                               (grasps (?grasp))
-                               (arms (right))))
-        (exe:perform (desig:an action
-                               (type delivering)
-                               (object ?obj)
-                               (target ?deliver-location)))
-        (setf (btr:pose (btr:object btr:*current-bullet-world*
-                                    (desig:desig-prop-value ?obj :name)))
-              (cram-tf:translate-pose
-               (btr:pose (btr:object btr:*current-bullet-world*
-                                     (desig:desig-prop-value ?obj :name)))
-               :z-offset -0.3))
-        (when (or (eql ?object-type :milk)
-                  (eql ?object-type :breakfast-cereal))
-          (btr:attach-object (btr:get-environment-object)
-                             (btr:object btr:*current-bullet-world*
-                                         (desig:desig-prop-value ?obj :name))
-                             :link "sink_area_trash_drawer_main")))
-      (when (or (eql ?object-type :milk)
-                (eql ?object-type :breakfast-cereal))
-        (exe:perform (an action
-                         (type sealing)
-                         (arm left)
-                         (location
-                          (desig:a location
-                                   (in (an object
-                                           (type drawer)
-                                           (urdf-name sink-area-trash-drawer-main)
-                                           (owl-name "drawer_sinkblock_middle_open")
-                                           (part-of iai-kitchen)))))))))))
-
-
-(defun get-from-vertical-drawer (&optional ?open (?object :breakfast-cereal))
-  "Grabbing the object (breakfast-cereal) from vertical drawer.
-It doesn't seal the vertical drawer now
-because there is some error when trying to close the drawer"
-  (when ?open
-    (perform
-     (an action
-         (type accessing)
-         (location (a location
-                      (in (an object
-                              (type drawer)
-                              (urdf-name oven-area-area-right-drawer-handle)
-                              ;;This should be referencing the container itself
-                              (part-of iai-kitchen)))))
-         (distance 0.35))))
-
-  ;; This plan is rudimentary and just aims to increase the fetch retries
-  (let* (;; (?f-loc (cdr (assoc ?object *fetch-locations*)))
-         (?perceived-object-designator
-           (perform (an action
-                        (type searching)
-                        (object (an object (type ?object)))
-                        ;; (location ?f-loc)
-                        ))))
-
-    (let ((?fetched-object
-            (cpl:with-retry-counters ((fetching-retry 3))
-              (cpl:with-failure-handling
-                  ((common-fail:object-unfetchable (e)
-                     (declare (ignore e))
-                     (cpl:do-retry fetching-retry
-                       (roslisp:ros-warn (milestone fetch-fail)
-                                         "~%Failed fetch from vertical drawer~%")
-                       (cpl:retry))
-                     (roslisp:ros-warn (milestone fetch-fail)
-                                       "~%No more retries~%")))
-                (perform
-                 (an action
-                     (type fetching)
-                     (object ?perceived-object-designator))))))
-          ;; (?destination (cdr (assoc ?object *delivery-locations*)))
-          )
-
-      (perform (an action
-                   (type delivering)
-                   (object ?fetched-object)
-                   ;; (target ?destination)
-                   )))))
-
-
-
-(defun put-into-trash (&optional (?object :bowl))
-  "Interim put into trash method as long as the dropping plan is not complete.
-   This will work only as long as the stability check inside deliver plan is commented out"
-  (let ((?perceived-object-designator
-          (perform (an action
-                       (type searching)
-                       (object (an object
-                                   (type ?object)))
-                       (location (a location
-                                    (on (an object
-                                            (type counter-top)
-                                            (urdf-name kitchen-island-surface)
-                                            (part-of iai-kitchen)))
-                                    (side back)
-                                    (side right)))))))
-    (let ((?fetched-object
-            (perform (an action
-                         (type fetching)
-                         (object ?perceived-object-designator)))))
-      (perform (an action
-                   (type accessing)
-                   (location (a location
-                                (in (an object
-                                        (type drawer)
-                                        (urdf-name sink-area-trash-drawer-main)
-                                        (part-of iai-kitchen)))))
-                   (distance 0.4)))
-
-      (perform (an action
-                   (type delivering)
-                   (object ?fetched-object)
-                   (target (a location
-                              (on (an object
+  (let* ((object-cleanup-locations '((:milk :trash)
+                                     (:bowl :sink)
+                                     (:spoon :sink)
+                                     (:cup :sink)
+                                     (:breakfast-cereal :vertical-drawer)))
+         (?fetch-table-location (a location
+                                   (on (an object
+                                           (type counter-top)
+                                           (urdf-name kitchen-island-surface)
+                                           (part-of iai-kitchen)))
+                                   (side back)
+                                   (side right)))
+         (deliver-location-lambdas
+           `((:sink ,(lambda (?object-type)
+                       (a location
+                          (above (an object
+                                     (type sink)
+                                     (urdf-name sink-area-sink)
+                                     (part-of iai-kitchen)))
+                          (side right)
+                          ;; the "for" condition for spoon adds a height
+                          ;; that is too high for pr2 to reach
+                          (desig:when (not (eq ?object-type :spoon))
+                            (for (an object (type ?object-type)))))))
+             (:trash ,(lambda (?object-type)
+                        (a location
+                           (above (an object
                                       (type drawer)
                                       (urdf-name sink-area-trash-drawer-main)
                                       (part-of iai-kitchen)))
-                              (side front)
-                              (side right)
-                              (for (an object (type ?object)))
-                              (range 0.2))))))))
-      ;; Sealing the trash drawer after putting in the trash. Doesn't work now as the dropped trash
-      ;; doesn't fall into the drawer, preventing the drawer from closing. Uncomment and include
-      ;; into `put-into-trash' as soon as this bug is fixed.
-      ;; (perform (an action
-      ;;              (type sealing)
-      ;;              (location (a location
-      ;;                           (in (an object
-      ;;                                   (type drawer)
-      ;;                                   (urdf-name sink-area-trash-drawer-main)
-;;                                         (part-of iai-kitchen)))))
-      ;;              (distance 0.4))))))
+                           (z-offset 0.1)
+                           (side front)
+                           (side right)
+                           (range 0.2)
+                           (for (an object (type ?object-type))))))
+             (:vertical-drawer
+              ,(lambda (?object-type)
+                 (a location
+                    (above (an object
+                               (type drawer)
+                               (urdf-name oven-area-area-right-drawer-main)
+                               (part-of iai-kitchen)
+                               (level topmost)))
+                    (for (an object (type ?object-type))))))))
+         (get-delivery-location-designator
+           (lambda (object-type)
+             (let ((del-location-key
+                     (second (assoc object-type object-cleanup-locations))))
+               (funcall (second
+                         (assoc del-location-key deliver-location-lambdas))
+                        object-type)))))
 
-;; Ideal working for clean up (tried for fridge, doesn't work now)
-;; (cpl:def-cram-function clean-up-demo (&optional (object-list '(:milk)))
-;;
-;;   (dolist (?object object-list)
-;;     (let* ((f-loc `((:milk . ,(a location (in (an object
-;;                                                   (type container)
-;;                                                   (urdf-name iai-fridge-main)
-;;                                                   (part-of iai-kitchen)
-;;                                                   (level topmost)))
-;;                                  (for (an object
-;;                                           (type milk)))
-;;                                  (side left)
-;;                                  (side front)))))
-;;            (?f (cdr (assoc ?object *delivery-locations*)))
-;;            (?d (cdr (assoc ?object f-loc)))
-;;            (?obj (an object
-;;                      (type ?object)
-;;                      (location ?f))))
-;;       (exe:perform
-;;        (an action
-;;            ;; (arm left)
-;;            (type transporting)
-;;            (context table-cleaning)
-;;            (object ?obj)
-;;            (location ?f)
-;;            (target ?d))))))
+    (loop for ?obj in object-list
+          do (let ((?delivery-location
+                     (funcall get-delivery-location-designator ?obj)))
+               (perform (an action
+                          (type transporting)
+                          (object (an object
+                                      (type ?obj)
+                                      (location ?fetch-table-location)))
+                          (location ?fetch-table-location)
+                          (target ?delivery-location)))))))

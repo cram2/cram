@@ -35,7 +35,7 @@
     ))
 
 (defparameter *object-colors*
-  '((:spoon . "blue")
+  '((:spoon . "black")
     (:breakfast-cereal . "yellow")
     (:milk . "blue")))
 
@@ -46,7 +46,7 @@
     (:cup . :top)
     (:bowl . :top)))
 
-(cpl:def-cram-function park-robot ()
+-(cpl:def-cram-function park-robot ()
   (cpl:with-failure-handling
       ((cpl:plan-failure (e)
          (declare (ignore e))
@@ -57,7 +57,9 @@
                  (type positioning-arm)
                  (left-configuration park)
                  (right-configuration park)))
-      (let ((?pose (cl-transforms-stamped:make-pose-stamped
+      (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
+      (exe:perform (desig:an action (type looking) (direction forward))))
+    (let ((?pose (cl-transforms-stamped:make-pose-stamped
                     cram-tf:*fixed-frame*
                     0.0
                     (cl-transforms:make-identity-vector)
@@ -66,9 +68,7 @@
          (desig:an action
                    (type going)
                    (target (desig:a location
-                                    (pose ?pose))))))
-      (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
-      (exe:perform (desig:an action (type looking) (direction forward))))))
+                                    (pose ?pose))))))))
 
 (defun initialize ()
   (sb-ext:gc :full t)
@@ -103,7 +103,7 @@
 
   (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
 
-  ;; (coe:clear-belief)
+  (coe:clear-belief)
 
   (btr:clear-costmap-vis-object))
 
