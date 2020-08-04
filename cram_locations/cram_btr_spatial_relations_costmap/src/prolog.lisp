@@ -444,8 +444,7 @@
     (desig:desig-prop ?designator (?original-tag ?object))
     (spec:property ?object (:urdf-name ?urdf-name))
     (spec:property ?object (:part-of ?environment-name))
-    (once (or (and (desig:desig-prop ?designator (:z-offset ?z-offset))
-                   (lisp-pred typep ?z-offset float))
+    (once (or (spec:property ?designator (:z-offset ?z-offset))
               (equal 0.0 ?z-offset)))
     (btr:bullet-world ?world)
     (btr:%object ?world ?environment-name ?environment-object)
@@ -460,7 +459,7 @@
     ;; (-> (man-int:object-type-subtype :container ?object-type)
     ;; (equal :in ?height-tag)
     (equal :on ?height-tag)
-  
+
     (lisp-pred identity ?environment-link)
     (costmap:costmap ?costmap)
     (once (or (and (desig:desig-prop ?designator (:for ?for-object))
