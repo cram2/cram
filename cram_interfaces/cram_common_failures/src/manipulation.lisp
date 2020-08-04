@@ -37,7 +37,7 @@
 (define-condition manipulation-pose-unreachable (manipulation-low-level-failure) ()
   (:documentation "Thrown when no IK solution can be found."))
 
-(define-condition gripper-low-level-failure (manipulation-low-level-failure)
+(define-condition gripper-low-level-failure (low-level-failure)
   ((action :initarg :object :initform nil :reader gripper-failure-action)))
 
 (define-condition gripper-closed-completely (gripper-low-level-failure) ())

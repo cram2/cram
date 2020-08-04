@@ -175,7 +175,8 @@ Store found pose into designator or throw error if good pose not found."
                             (cpl:sleep urdf-proj::*debug-short-sleep-duration*))
                           (when (urdf-proj::perform-collision-check
                                  collision-flag
-                                 (nth i left-poses) (nth i right-poses))
+                                 (nth i left-poses) (nth i right-poses)
+                                 nil nil object-name)
                             (roslisp:ros-warn (coll-check pick)
                                               "Robot is in collision with environment.")
                             (cpl:sleep urdf-proj::*debug-long-sleep-duration*)
