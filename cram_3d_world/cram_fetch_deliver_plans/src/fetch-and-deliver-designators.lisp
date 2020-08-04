@@ -97,7 +97,8 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; object
-    (spec:property ?location-designator (:in ?some-object-designator))
+    (once (or (spec:property ?location-designator (:in ?some-object-designator))
+              (spec:property ?location-designator (:above ?some-object-designator))))
     (desig:current-designator ?some-object-designator ?object-designator)
     ;; arm
     (-> (spec:property ?action-designator (:arm ?arm))
@@ -343,15 +344,16 @@ the `look-pose-stamped'."
                                   ?deliver-robot-location-designator)
         (equal ?deliver-robot-location-designator NIL))
     ;; resulting action desig
-    (desig:designator :action
-                      ((:type :transporting)
-                       (:object ?object-designator-with-location)
-                       (:context ?context)
-                       (:search-location ?search-location-designator)
-                       (:search-robot-location ?search-robot-location-designator)
-                       (:fetch-robot-location ?fetch-robot-location-designator)
-                       (:arms ?arms)
-                       (:grasps ?grasps)
-                       (:deliver-location ?delivering-location-designator)
-                       (:deliver-robot-location ?deliver-robot-location-designator))
-                      ?resolved-action-designator)))
+    (desig:designator
+     :action
+     ((:type :transporting)
+      (:object ?object-designator-with-location)
+      (:context ?context)
+      (:search-location ?search-location-designator)
+      (:search-robot-location ?search-robot-location-designator)
+      (:fetch-robot-location ?fetch-robot-location-designator)
+      (:arms ?arms)
+      (:grasps ?grasps)
+      (:deliver-location ?delivering-location-designator)
+      (:deliver-robot-location ?deliver-robot-location-designator))
+     ?resolved-action-designator)))

@@ -89,7 +89,8 @@ just updated. Otherwise a new instance is created."))
     (setf object-pose
           (cram-tf:translate-pose object-pose
                                   ;; :z-offset -0.04 :y-offset -0.02 :x-offset 0.0
-                                  :z-offset -0.01))
+                                  ;; :z-offset -0.01
+                                  ))
     ;; Hack 2: deal with shitty identity resolution on RS / KnowRob side :P
     (prolog `(and (btr:bullet-world ?world)
                   (btr:item-type ?world ?name ,type)

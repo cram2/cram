@@ -234,44 +234,50 @@
         (cpl:fail 'common-fail:ptu-goal-not-reached
                   :description "Look action wanted to twist the neck")))))
 
-(defparameter *camera-pose-unit-vector-multiplyer* 0.4)
-(defparameter *camera-resampling-step* 0.1)
-(defparameter *camera-x-axis-limit* 0.5)
-(defparameter *camera-y-axis-limit* 0.5)
-
 (defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
-  (let* ((validation-function
-           (lambda (ik-solution-msg torso-offsets)
-             (declare (ignore torso-offsets))
-             (not (perform-collision-check :avoid-all nil nil ik-solution-msg))))
-         (cartesian-pose-stamped
-           (cl-transforms-stamped:pose->pose-stamped
-            base-link 0.0
-            cartesian-pose))
-         (neck-seed-state-msg
-           (btr::make-robot-joint-state-msg
-            (btr:get-robot-object)
-            :joint-names joint-names))
-         (joint-state-msg
-           (ik:find-ik-for
-            (cartesian-pose-stamped
-             base-link
-             ee-link
-             neck-seed-state-msg
-             validation-function)
-            (ik:with-resampling
-                (:x
-                 *camera-x-axis-limit*
-                 (- *camera-x-axis-limit*)
-                 *camera-resampling-step*)
-              (ik:with-resampling
-                  (:y
-                   *camera-y-axis-limit*
-                   (- *camera-y-axis-limit*)
-                   *camera-resampling-step*))))))
-    (when joint-state-msg
-      (map 'list #'identity
-           (roslisp:msg-slot-value joint-state-msg :position)))))
+  (cut:with-vars-strictly-bound (?camera-resampling-step
+                                 ?camera-x-axis-limit
+                                 ?camera-y-axis-limit)
+      (car
+       (prolog:prolog
+        '(and
+          (rob-int:robot ?robot)
+          (rob-int:neck-camera-resampling-step ?robot ?camera-resampling-step)
+          (rob-int:neck-camera-x-axis-limit ?robot ?camera-x-axis-limit)
+          (rob-int:neck-camera-y-axis-limit ?robot ?camera-y-axis-limit))))
+
+    (let* ((validation-function
+             (lambda (ik-solution-msg torso-offsets)
+               (declare (ignore torso-offsets))
+               (not (perform-collision-check :avoid-all nil nil ik-solution-msg))))
+           (cartesian-pose-stamped
+             (cl-transforms-stamped:pose->pose-stamped
+              base-link 0.0
+              cartesian-pose))
+           (neck-seed-state-msg
+             (btr::make-robot-joint-state-msg
+              (btr:get-robot-object)
+              :joint-names joint-names))
+           (joint-state-msg
+             (ik:find-ik-for
+                 (cartesian-pose-stamped
+                  base-link
+                  ee-link
+                  neck-seed-state-msg
+                  validation-function)
+               (ik:with-resampling
+                   (:x
+                    ?camera-x-axis-limit
+                    (- ?camera-x-axis-limit)
+                    ?camera-resampling-step)
+                 (ik:with-resampling
+                     (:y
+                      ?camera-y-axis-limit
+                      (- ?camera-y-axis-limit)
+                      ?camera-resampling-step))))))
+      (when joint-state-msg
+        (map 'list #'identity
+             (roslisp:msg-slot-value joint-state-msg :position))))))
 
 (defun calculate-camera-pose-from-object-pose (neck-base-t-object)
   "Takes the vector from neck-base to object, sets its Z to 0,
@@ -289,9 +295,17 @@ with the object, calculates similar angle around Y axis and applies the rotation
            (cl-transforms:copy-3d-vector neck-base-t-object-vector :z 0.0))
          (neck-base-t-object-unit-vector
            (cl-transforms:normalize-vector neck-base-t-object-vector-without-z))
+         (neck-camera-pose-unit-vector-multiplier
+           (cut:var-value
+            '?mult
+            (car
+             (prolog:prolog
+              `(and (rob-int:robot ?rob)
+                    (rob-int:neck-camera-pose-unit-vector-multiplier ?rob ?mult))))))
          (neck-base-t-object-short-vector
-           (cl-transforms:v* neck-base-t-object-unit-vector
-                             *camera-pose-unit-vector-multiplyer*))
+           (cl-transforms:v*
+            neck-base-t-object-unit-vector
+            neck-camera-pose-unit-vector-multiplier))
          (neck-base-t-object-short-vector-lifted
            (cl-transforms:v+
             neck-base-t-object-short-vector
@@ -367,9 +381,10 @@ with the object, calculates similar angle around Y axis and applies the rotation
 
          (map-p-neck-base
            (btr:link-pose (btr:get-robot-object) neck-base-frame))
+         (map-t-neck-base
+           (cl-transforms:pose->transform map-p-neck-base))
          (neck-base-t-map
-           (cl-transforms:transform-inv
-            (cl-transforms:pose->transform map-p-neck-base)))
+           (cl-transforms:transform-inv map-t-neck-base))
          (neck-base-t-object
            (cl-transforms:transform*
             neck-base-t-map
@@ -388,7 +403,12 @@ with the object, calculates similar angle around Y axis and applies the rotation
 
          (joint-state
            (get-neck-ik neck-ee-frame neck-base-p-neck-ee
-                        neck-base-frame neck-joints)))
+                        neck-base-frame neck-joints))
+
+         (map-t-camera
+            (cl-transforms:transform-pose map-t-neck-base neck-base-t-camera)))
+
+    (btr:add-vis-axis-object map-t-camera)
 
     (if joint-state
         (look-at-joint-angles joint-state)
@@ -638,10 +658,12 @@ with the object, calculates similar angle around Y axis and applies the rotation
 (defun perform-collision-check (collision-mode left-hand-moves right-hand-moves
                                 &optional
                                   joint-state-msg
-                                  torso-offsets)
+                                  torso-offsets
+                                  object-name-to-allow-collisions-with)
   (declare (type (or keyword null) collision-mode)
            (type (or sensor_msgs-msg:jointstate null) joint-state-msg)
-           (type list torso-offsets))
+           (type list torso-offsets)
+           (type (or keyword string null) object-name-to-allow-collisions-with))
   "Returns NIL if current joint state does not result in collisions
 and returns (not throws or fails but simply returns) an error instance,
 if a collision occurs.
@@ -715,8 +737,10 @@ with the given offsets (the offsets are specified in the torso frame).
               ;; avoid-all means the robot is not colliding with anything except the
               ;; objects it is holding, and the object it is holding
               ;; only collides with robot
-              (when (or (btr:robot-colliding-objects-without-attached)
-                        (btr:robot-attached-objects-in-collision))
+              (when (or (remove object-name-to-allow-collisions-with
+                                (btr:robot-colliding-objects-without-attached))
+                        (remove object-name-to-allow-collisions-with
+                                (btr:robot-attached-objects-in-collision)))
                 (make-instance 'common-fail:manipulation-goal-not-reached
                   :description "Robot is in collision with environment."))))))
 
