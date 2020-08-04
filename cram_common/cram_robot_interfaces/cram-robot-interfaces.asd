@@ -40,7 +40,7 @@
      (:file "grasps" :depends-on ("package"))
      (:file "trajectories" :depends-on ("package"))
      (:file "arms" :depends-on ("package"))
-     (:file "ptu" :depends-on ("package"))
+     (:file "neck" :depends-on ("package"))
      (:file "robot" :depends-on ("package"))
      (:file "designator-utils" :depends-on ("package" "trajectories" "arms"))
      (:file "urdf" :depends-on ("package" "robot"))

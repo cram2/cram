@@ -200,7 +200,11 @@
                                    robot-neck-base-link
                                    robot-joint-states
                                    camera-in-neck-ee-pose
-                                   neck-camera-z-offset)
+                                   neck-camera-z-offset
+                                   neck-camera-pose-unit-vector-multiplier
+                                   neck-camera-resampling-step
+                                   neck-camera-x-axis-limit
+                                   neck-camera-y-axis-limit)
 
   (<- (robot-neck-links :iai-donbot . ?links)
     (arm-links :iai-donbot :left ?links))
@@ -237,7 +241,11 @@
   (<- (camera-in-neck-ee-pose :iai-donbot ?pose)
     (symbol-value *ee-p-camera* ?pose))
 
-  (<- (neck-camera-z-offset :iai-donbot 0.6)))
+  (<- (neck-camera-z-offset :iai-donbot 0.6))
+  (<- (neck-camera-pose-unit-vector-multiplier :iai-donbot 0.4))
+  (<- (neck-camera-resampling-step :iai-donbot 0.1))
+  (<- (neck-camera-x-axis-limit :iai-donbot 0.5))
+  (<- (neck-camera-y-axis-limit :iai-donbot 0.5)))
 
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding

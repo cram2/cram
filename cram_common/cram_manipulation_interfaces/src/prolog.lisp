@@ -240,10 +240,19 @@
         (and (rob-int:environment-name ?environment)
              (desig:desig-prop ?object-designator (:part-of ?environment)))))
 
-  (<- (object-is-a-container ?some-object-designator)
+  (<- (object-is-of-type ?some-object-designator ?type-to-assert)
     (desig:current-designator ?some-object-designator ?object-designator)
     (desig:desig-prop ?object-designator (:type ?object-type))
-    (object-type-subtype :container ?object-type))
+    (object-type-subtype ?type-to-assert ?object-type))
+
+  (<- (object-is-a-container ?some-object-designator)
+    (object-is-of-type ?some-object-designator :container))
+
+  (<- (object-is-a-prismatic-container ?some-object-designator)
+    (object-is-of-type ?some-object-designator :container-prismatic))
+
+  (<- (object-is-a-revolute-container ?some-object-designator)
+    (object-is-of-type ?some-object-designator :container-revolute))
 
   ;; Now the actual location grounding for reachability and visibility
   (<- (desig:location-grounding ?location-designator ?pose-stamped)
@@ -270,7 +279,11 @@
              (or (desig:desig-prop ?object-designator (:type :robot))
                  (and (rob-int:robot ?robot)
                       (desig:desig-prop ?object-designator (:part-of ?robot)))))
-        (true)))
+        ;; Above keyword is inaccessible for prismatic containers like drawers
+        ;; but not for revolute containers like fridge/oven
+        (-> (spec:property ?current-location-designator (:above ?location-object))
+            (not (object-is-a-prismatic-container ?location-object))
+            (true))))
 
   ;; most symbolic locations have a reference object
   ;; this predicate finds the reference object of the given location desig
@@ -279,6 +292,7 @@
     (desig:current-designator ?location-designator ?current-location-designator)
     (or (spec:property ?current-location-designator (:in ?object-designator))
         (spec:property ?current-location-designator (:on ?object-designator))
+        (spec:property ?current-location-designator (:above ?object-designator))
         (spec:property ?current-location-designator (:left-of ?object-designator))
         (spec:property ?current-location-designator (:right-of ?object-designator))
         (spec:property ?current-location-designator (:in-front-of ?object-designator))
@@ -301,4 +315,5 @@
     (desig:loc-desig? ?some-location-designator)
     (desig:current-designator ?some-location-designator ?location-designator)
     (or (spec:property ?location-designator (:attachment ?_))
-        (spec:property ?location-designator (:attachments ?_)))))
+        (spec:property ?location-designator (:attachments ?_))
+        (spec:property ?location-designator (:above ?_)))))
