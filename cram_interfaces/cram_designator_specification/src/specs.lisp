@@ -153,6 +153,11 @@
     (property-member (:pose ?pose-stamped) ?designator)
     (assert-type ?pose-stamped cl-transforms-stamped:pose-stamped "LOCATION SPEC:PROPERTY"))
 
+  (<- (%property ?designator (:z-offset ?z-offset))
+    (lisp-pred typep ?designator desig:location-designator)
+    (property-member (:z-offset ?z-offset) ?designator)
+    (assert-type ?z-offset float "LOCATION SPEC:PROPERTY"))
+
   (<- (%property ?designator (?list-key ?list-value))
     (lisp-pred typep ?designator desig:location-designator)
     (member ?list-key (:poses :attachments))
