@@ -226,18 +226,18 @@ retries with different search location or robot base location."
                      (:error-object-or-string e
                       :warning-namespace (fd-plans search-for-object)
                       :reset-designators (list ?search-location ?robot-location)
-                      :rethrow-failure 'common-fail:object-nowhere-to-be-found))))
+                      :rethrow-failure 'common-fail:object-nowhere-to-be-found)
+                   ;; go up with torso to look from higher up
+                   (let ((?goal `(cpoe:torso-at :upper-limit)))
+                     (exe:perform (desig:an action
+                                            (type moving-torso)
+                                            (joint-angle upper-limit)
+                                            (goal ?goal)))))))
 
             ;; navigate
             (exe:perform (desig:an action
                                    (type navigating)
                                    (location ?robot-location)))
-            ;; go up with torso to look from higher up
-            (let ((?goal `(cpoe:torso-at :upper-limit)))
-              (exe:perform (desig:an action
-                                     (type moving-torso)
-                                     (joint-angle upper-limit)
-                                     (goal ?goal))))
 
             (cpl:with-retry-counters ((move-torso-retries 1))
               (cpl:with-failure-handling
@@ -336,6 +336,12 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
           (cpl:with-failure-handling
               ((common-fail:gripper-low-level-failure (e)
                  (roslisp:ros-warn (fd-plans fetch) "Misgrasp happened: ~a~%" e)
+                 (exe:perform (desig:an action
+                                        (type releasing)
+                                        (gripper left)))
+                 (exe:perform (desig:an action
+                                        (type releasing)
+                                        (gripper right)))
                  (cpl:do-retry regrasping-retries
                    (roslisp:ros-info (fd-plans fetch) "Reperceiving and repicking...")
                    (cpl:retry))
