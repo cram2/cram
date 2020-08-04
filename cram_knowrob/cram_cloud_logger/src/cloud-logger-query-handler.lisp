@@ -8,11 +8,12 @@
     (ccl::send-query-1-without-result "ensure_loaded" path-to-interface-file)))
 
 (defun init-logging ()
-  (send-load-neem-generation-interface)
-  (ccl::send-query-1-without-result "ros_logger_start" ""))
+  (send-load-neem-generation-interface))
+  ;;(ccl::send-query-1-without-result "ros_logger_start" ""))
 
 (defun finish-logging ()
-  (ccl::send-query-1-without-result "ros_logger_stop" ""))
+  (print "Finished"))
+  ;;(ccl::send-query-1-without-result "ros_logger_stop" ""))
 
 (defun get-grasp-type-lookup-table()
   (let ((lookup-table (make-hash-table :test 'equal)))
@@ -86,8 +87,8 @@
     (ccl::get-url-variable-result-as-str-from-json-prolog-result url-parameter query-result)))
 
 (defun send-comment (action-inst comment)
-  ;;(send-query-1-without-result "add_comment" action-inst (concatenate 'string "'"comment"'")))
-  (print "COMMENT"))
+  (send-query-1-without-result "add_comment" action-inst (concatenate 'string "'"comment"'")))
+  ;;(print "COMMENT"))
 
 (defun send-object-action-parameter (action-inst object-designator)
   (let* ((object-name (get-designator-property-value-str object-designator :NAME))
