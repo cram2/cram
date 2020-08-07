@@ -88,8 +88,8 @@ just updated. Otherwise a new instance is created."))
     ;; as RS always says it's too high after cutting off the plane
     (setf object-pose
           (cram-tf:translate-pose object-pose
-                                  ;; :z-offset -0.04 :y-offset -0.02 :x-offset 0.0
-                                  ;; :z-offset -0.01
+                                  ;; :z -0.04 :y -0.02 :x 0.0
+                                  ;; :z -0.01
                                   ))
     ;; Hack 2: deal with shitty identity resolution on RS / KnowRob side :P
     (prolog `(and (btr:bullet-world ?world)

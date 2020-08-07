@@ -61,6 +61,9 @@
   <!-- https://github.com/code-iai/iai_robots.git -->
   <exec_depend>iai_boxy_description</exec_depend>
   <exec_depend>iai_donbot_description</exec_depend>
+  <!-- https://github.com/fmauch/universal_robot.git
+       branch: calibration_devel -->
+  <exec_depend>universal_robot</exec_depend>
   <!-- https://github.com/code-iai/iai_maps.git -->
   <exec_depend>iai_kitchen</exec_depend>
   <exec_depend>iai_refills_lab</exec_depend>

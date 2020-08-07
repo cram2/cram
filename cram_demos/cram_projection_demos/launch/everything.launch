@@ -56,16 +56,9 @@
                     '$(find iai_kitchen)/urdf_obj/iai_kitchen_python.urdf.xacro'"/>
   </group>
   <group if="$(arg retail)">
-    <group if="$(arg donbot)">
-      <param name="kitchen_description"
-             command="$(find xacro)/xacro.py
-                      '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
-    </group>
-    <group unless="$(arg donbot)">
-      <param name="kitchen_description"
-             command="$(find xacro)/xacro.py
-                      '$(find cram_pr2_shopping_demo)/resource/dm_shelves.urdf'"/>
-    </group>
+    <param name="kitchen_description"
+           command="$(find xacro)/xacro.py
+                    '$(find iai_refills_lab)/urdf/dm_room.urdf.xacro'"/>
   </group>
 
   <!-- environment state publisher -->
