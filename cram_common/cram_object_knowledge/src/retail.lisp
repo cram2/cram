@@ -68,6 +68,12 @@
     :heuristics 20 ((object-type (eql :juice-box)))
   0.82)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :retail-item)) grasp)
+  :carry)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DISH-WASHER-TABS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *dish-washer-tabs-grasp-x-offset* 0.0 "in meters")
@@ -415,13 +421,39 @@
                            (-1  0  0)))
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :environment
-  :donbot-shelf-1-front
+  :dish-washer-tabs-shelf-1-front
   :attachment-translation `(0.39968 -0.26038335 0.1202)
   :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :environment
-  :donbot-shelf-1-back
+  :dish-washer-tabs-shelf-1-back
   :attachment-translation `(0.39968 -0.26038335 0.1202)
+  :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :basket
+  :in-basket-front
+  :attachment-translation `(0.15 0.15 0.05;; -0.02
+                                 )
+  :attachment-rot-matrix '(( 0  0  1)
+                           ( 0  1  0)
+                           (-1  0  0)))
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :basket
+  :in-basket-back
+  :attachment-translation `(0.15 0.15 0.05;; -0.02
+                                 )
+  :attachment-rot-matrix '(( 0  0 -1)
+                           ( 0 -1  0)
+                           (-1  0  0)))
+
+(man-int:def-object-type-in-other-object-transform :balea-bottle :environment
+  :balea-bottle-shelf-1-front
+  :attachment-translation `(0.3 -0.27 0.105)
+  :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
+
+(man-int:def-object-type-in-other-object-transform :balea-bottle :environment
+  :balea-bottle-shelf-1-back
+  :attachment-translation `(0.3 -0.27 0.105)
   :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :balea-bottle :robot
@@ -431,13 +463,15 @@
                            (-0.89879 0.43811461 -0.01522)
                            (-0.0159 0.0021 0.999871)))
 
-(man-int:def-object-type-in-other-object-transform :heitmann :basket :in-basket
+(man-int:def-object-type-in-other-object-transform :heitmann :basket
+  :in-basket
   :attachment-translation `(0.2 0.15 -0.005)
   :attachment-rot-matrix '((1 0 0)
                            (0 1 0)
                            (0 0 1)))
 
-(man-int:def-object-type-in-other-object-transform :dove :basket :in-basket
+(man-int:def-object-type-in-other-object-transform :dove :basket
+  :in-basket
   :attachment-translation `(0.1 0.15 -0.005)
   :attachment-rot-matrix '((1 0 0)
                            (0 1 0)

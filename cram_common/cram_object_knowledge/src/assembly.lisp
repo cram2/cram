@@ -69,6 +69,12 @@
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :underbody)))
   0.05)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod man-int:get-object-type-carry-config :heuristics 20
+    ((object-type (eql :assembly-item)) grasp)
+  :carry)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; CHASSIS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *chassis-grasp-z-offset* -0.02)
