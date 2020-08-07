@@ -348,9 +348,9 @@ Disregarding the orientation (using the pose2's)."
                                 0.5)))
     (cram-tf:translate-pose
      pose2
-     :x-offset (cl-transforms:x translation-to-middle)
-     :y-offset (cl-transforms:y translation-to-middle)
-     :z-offset (cl-transforms:z translation-to-middle))))
+     :x (cl-transforms:x translation-to-middle)
+     :y (cl-transforms:y translation-to-middle)
+     :z (cl-transforms:z translation-to-middle))))
 
 (defmethod costmap:costmap-generator-name->score
     ((name (eql 'poses-reachable-cost-function))) 10)

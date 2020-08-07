@@ -24,9 +24,7 @@
 (defun move-surface (&key (x 0) (y 0) (z 0) (alpha 0.0))
   (let* ((old-pose (btr:link-pose (btr:get-environment-object) "sink_area_surface"))
          (rotated-pose (cram-tf:rotate-pose old-pose :z alpha))
-         (new-pose (cram-tf:translate-pose
-                    rotated-pose
-                    :x-offset x :y-offset y :z-offset z)))
+         (new-pose (cram-tf:translate-pose rotated-pose :x x :y y :z z)))
     (setf (btr:link-pose (btr:get-environment-object) "sink_area_surface")
           new-pose)))
 

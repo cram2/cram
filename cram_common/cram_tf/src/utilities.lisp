@@ -180,18 +180,18 @@
                                    :use-zero-time use-zero-time)))
       (pose-stamped->transform-stamped new-pose-stamped child-frame))))
 
-(defun translate-pose (pose &key (x-offset 0.0) (y-offset 0.0) (z-offset 0.0))
+(defun translate-pose (pose &key (x 0.0) (y 0.0) (z 0.0))
   (let* ((pose-origin
            (cl-transforms:origin pose))
          (new-origin
            (cl-transforms:copy-3d-vector
             pose-origin
             :x (let ((x-pose-origin (cl-transforms:x pose-origin)))
-                 (+ x-pose-origin x-offset))
+                 (+ x-pose-origin x))
             :y (let ((y-pose-origin (cl-transforms:y pose-origin)))
-                 (+ y-pose-origin y-offset))
+                 (+ y-pose-origin y))
             :z (let ((z-pose-origin (cl-transforms:z pose-origin)))
-                 (+ z-pose-origin z-offset)))))
+                 (+ z-pose-origin z)))))
     (etypecase pose
       (cl-transforms-stamped:pose-stamped
        (cl-transforms-stamped:copy-pose-stamped pose :origin new-origin))
