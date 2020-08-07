@@ -237,14 +237,16 @@
 (defun get-neck-ik (ee-link cartesian-pose base-link joint-names)
   (cut:with-vars-strictly-bound (?camera-resampling-step
                                  ?camera-x-axis-limit
-                                 ?camera-y-axis-limit)
+                                 ?camera-y-axis-limit
+                                 ?camera-z-axis-limit)
       (car
        (prolog:prolog
         '(and
           (rob-int:robot ?robot)
           (rob-int:neck-camera-resampling-step ?robot ?camera-resampling-step)
           (rob-int:neck-camera-x-axis-limit ?robot ?camera-x-axis-limit)
-          (rob-int:neck-camera-y-axis-limit ?robot ?camera-y-axis-limit))))
+          (rob-int:neck-camera-y-axis-limit ?robot ?camera-y-axis-limit)
+          (rob-int:neck-camera-z-axis-limit ?robot ?camera-z-axis-limit))))
 
     (let* ((validation-function
              (lambda (ik-solution-msg torso-offsets)
@@ -274,7 +276,12 @@
                      (:y
                       ?camera-y-axis-limit
                       (- ?camera-y-axis-limit)
-                      ?camera-resampling-step))))))
+                      ?camera-resampling-step)
+                   (ik:with-resampling
+                       (:z
+                        ?camera-z-axis-limit
+                        (- ?camera-z-axis-limit)
+                        ?camera-resampling-step)))))))
       (when joint-state-msg
         (map 'list #'identity
              (roslisp:msg-slot-value joint-state-msg :position))))))

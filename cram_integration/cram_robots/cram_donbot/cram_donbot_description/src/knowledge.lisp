@@ -204,7 +204,8 @@
                                    neck-camera-pose-unit-vector-multiplier
                                    neck-camera-resampling-step
                                    neck-camera-x-axis-limit
-                                   neck-camera-y-axis-limit)
+                                   neck-camera-y-axis-limit
+                                   neck-camera-z-axis-limit)
 
   (<- (robot-neck-links :iai-donbot . ?links)
     (arm-links :iai-donbot :left ?links))
@@ -245,7 +246,8 @@
   (<- (neck-camera-pose-unit-vector-multiplier :iai-donbot 0.4))
   (<- (neck-camera-resampling-step :iai-donbot 0.1))
   (<- (neck-camera-x-axis-limit :iai-donbot 0.5))
-  (<- (neck-camera-y-axis-limit :iai-donbot 0.5)))
+  (<- (neck-camera-y-axis-limit :iai-donbot 0.5))
+  (<- (neck-camera-z-axis-limit :iai-donbot 0.2)))
 
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding

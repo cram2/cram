@@ -68,6 +68,7 @@
                                  neck-camera-pose-unit-vector-multiplier
                                  neck-camera-resampling-step
                                  neck-camera-x-axis-limit neck-camera-y-axis-limit
+                                 neck-camera-z-axis-limit
                                  camera-horizontal-angle camera-vertical-angle
                                  camera-minimal-height camera-maximal-height
                                  robot-neck-links
@@ -80,11 +81,12 @@
   (<- (camera-in-neck-ee-pose :boxy-description ?pose)
     (symbol-value *neck-ee-p-camera* ?pose))
 
-  (<- (neck-camera-z-offset :boxy-description 0.3))
+  (<- (neck-camera-z-offset :boxy-description 0.1))
   (<- (neck-camera-pose-unit-vector-multiplier :boxy-description 0.4))
   (<- (neck-camera-resampling-step :boxy-description 0.1))
   (<- (neck-camera-x-axis-limit :boxy-description 0.2))
   (<- (neck-camera-y-axis-limit :boxy-description 0.2))
+  (<- (neck-camera-z-axis-limit :boxy-description 0.2))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
   (<- (camera-horizontal-angle :boxy-description 0.99483)) ;  ca 57 degrees
