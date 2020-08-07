@@ -151,7 +151,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                                                    ;; (centered-with-padding 0.1)
                                                    (side left)
                                                    (side front))))
-                                     :z-offset (/ aabb-z 2.0)))
+                                     :z (/ aabb-z 2.0)))
                                   ;; take the pose from the function input list
                                   (cdr (assoc object-type spawning-poses-absolute))))
                             ;; rotate new pose randomly around Z
@@ -308,7 +308,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 ;;                                    (desig:a location
 ;;                                             (on "CounterTop")
 ;;                                             (name "iai_kitchen_meal_table_counter_top")))
-;;                                   :z-offset (/ aabb-z 2.0))))
+;;                                   :z (/ aabb-z 2.0))))
 ;;                   (btr-utils:move-object (btr:name btr-object) new-pose)))
 ;;               objects)
 ;;       ;; bottle gets special treatment

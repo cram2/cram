@@ -197,55 +197,57 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
      :object-types object-list
      :spawning-poses-relative *delivery-poses-relative*))
 
-  (let* ((object-cleanup-locations '((:milk :trash)
-                                     (:bowl :sink)
-                                     (:spoon :sink)
-                                     (:cup :sink)
-                                     (:breakfast-cereal :vertical-drawer)))
-         (?fetch-table-location (a location
-                                   (on (an object
-                                           (type counter-top)
-                                           (urdf-name kitchen-island-surface)
-                                           (owl-name
-                                            "kitchen_island_counter_top")
-                                           (part-of iai-kitchen)))
-                                   (side back)
-                                   (side right)))
+  (let* ((object-cleanup-locations
+           '((:milk :trash)
+             (:bowl :sink)
+             (:spoon :sink)
+             (:cup :sink)
+             (:breakfast-cereal :vertical-drawer)))
+         (?fetch-table-location
+           (desig:a location
+                    (on (desig:an object
+                                  (type counter-top)
+                                  (urdf-name kitchen-island-surface)
+                                  (owl-name
+                                   "kitchen_island_counter_top")
+                                  (part-of iai-kitchen)))
+                    (side back)
+                    (side right)))
          (deliver-location-lambdas
            `((:sink ,(lambda (?object-type)
-                       (a location
-                          (above (an object
-                                     (type sink)
-                                     (urdf-name sink-area-sink)
-                                     (part-of iai-kitchen)))
-                          (side right)
-                          (for (an object (type ?object-type)))
-                          ;; the "for" condition for spoon adds a height
-                          ;; that is too high for pr2 to reach
-                          ;; (desig:when (not (eq ?object-type :spoon))
-                          ;;   (for (an object (type ?object-type))))
-                          (z-offset -0.2))))
+                       (desig:a location
+                                (above (desig:an object
+                                                 (type sink)
+                                                 (urdf-name sink-area-sink)
+                                                 (part-of iai-kitchen)))
+                                (side right)
+                                (for (desig:an object (type ?object-type)))
+                                ;; the "for" condition for spoon adds a height
+                                ;; that is too high for pr2 to reach
+                                ;; (desig:when (not (eq ?object-type :spoon))
+                                ;;   (for (an object (type ?object-type))))
+                                (z-offset -0.2))))
              (:trash ,(lambda (?object-type)
-                        (a location
-                           (above (an object
-                                      (type drawer)
-                                      (urdf-name sink-area-trash-drawer-main)
-                                      (part-of iai-kitchen)))
-                           (z-offset 0.1)
-                           (side front)
-                           (side right)
-                           (range 0.2)
-                           (for (an object (type ?object-type))))))
+                        (desig:a location
+                                 (above (desig:an object
+                                                  (type drawer)
+                                                  (urdf-name sink-area-trash-drawer-main)
+                                                  (part-of iai-kitchen)))
+                                 (z-offset 0.1)
+                                 (side front)
+                                 (side right)
+                                 (range 0.2)
+                                 (for (desig:an object (type ?object-type))))))
              (:vertical-drawer
               ,(lambda (?object-type)
-                 (a location
-                    (in (an object
-                            (type drawer)
-                            (urdf-name oven-area-area-right-drawer-main)
-                            (part-of iai-kitchen)
-                            (level topmost)))
-                    (side front)
-                    (for (an object (type ?object-type))))))))
+                 (desig:a location
+                          (in (desig:an object
+                                        (type drawer)
+                                        (urdf-name oven-area-area-right-drawer-main)
+                                        (part-of iai-kitchen)
+                                        (level topmost)))
+                          (side front)
+                          (for (desig:an object (type ?object-type))))))))
          (get-delivery-location-designator
            (lambda (object-type)
              (let ((del-location-key
@@ -257,10 +259,11 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     (loop for ?obj in object-list
           do (let ((?delivery-location
                      (funcall get-delivery-location-designator ?obj)))
-               (perform (an action
+               (exe:perform
+                (desig:an action
                           (type transporting)
-                          (object (an object
-                                      (type ?obj)
-                                      (location ?fetch-table-location)))
+                          (object (desig:an object
+                                            (type ?obj)
+                                            (location ?fetch-table-location)))
                           (location ?fetch-table-location)
                           (target ?delivery-location)))))))
