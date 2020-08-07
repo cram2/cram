@@ -111,11 +111,7 @@ If not valid solution was found, returns NIL."
                             (pseudo-pose
                               (cram-tf:translate-pose
                                cartesian-pose
-                               (ecase resampling-axis
-                                 (:x :x-offset)
-                                 (:y :y-offset)
-                                 (:z :z-offset))
-                               (- offset next-offset))))
+                               resampling-axis (- offset next-offset))))
                        (call-ik-service-with-resampling-inner
                         pseudo-pose
                         :test-value next-test-value
@@ -176,10 +172,7 @@ Resampling axis can only be :X, :Y or :Z"
                               do (setf offseted-goal-pose
                                        (cram-tf:translate-pose
                                         original-goal-pose
-                                        (ecase ,resampling-axis
-                                          (:x :x-offset)
-                                          (:y :y-offset)
-                                          (:z :z-offset))
+                                        ,resampling-axis
                                         (- value)))
                                  (if (assoc ,resampling-axis new-joint-values)
                                      (setf (cdr (assoc ,resampling-axis

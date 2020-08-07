@@ -36,8 +36,8 @@
                       neck-camera-z-offset
                       neck-camera-pose-unit-vector-multiplier
                       neck-camera-resampling-step
-                      neck-camera-x-axis-limit
-                      neck-camera-y-axis-limit)
+                      neck-camera-x-axis-limit neck-camera-y-axis-limit
+                      neck-camera-z-axis-limit)
 
   ;; Unifies ?frame with the name of the camera frame present on the ?robot
   (<- (camera-frame ?robot ?frame)
@@ -86,4 +86,6 @@
   (<- (neck-camera-x-axis-limit ?robot ?number)
     (fail))
   (<- (neck-camera-y-axis-limit ?robot ?number)
+    (fail))
+  (<- (neck-camera-z-axis-limit ?robot ?number)
     (fail)))

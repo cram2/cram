@@ -31,11 +31,11 @@
 
 (defparameter *object-spawning-poses*
   '("sink_area_surface"
-    ((:breakfast-cereal . ((0.2 -0.15 0.1) (0 0 0 1)))
-     (:cup . ((0.2 -0.35 0.1) (0 0 0 1)))
-     (:bowl . ((0.18 -0.55 0.1) (0 0 0 1)))
-     (:spoon . ((0.15 -0.4 -0.05) (0 0 0 1)))
-     (:milk . ((0.07 -0.35 0.1) (0 0 0 1)))))
+    (:breakfast-cereal . ((0.2 -0.15 0.1) (0 0 0 1)))
+    (:cup . ((0.2 -0.35 0.1) (0 0 0 1)))
+    (:bowl . ((0.18 -0.55 0.1) (0 0 0 1)))
+    (:spoon . ((0.15 -0.4 -0.05) (0 0 0 1)))
+    (:milk . ((0.07 -0.35 0.1) (0 0 0 1))))
   "Relative poses on sink area")
 
 (defparameter *object-placing-poses*
@@ -136,48 +136,6 @@
     (:bowl . :top)))
 
 
-(defun make-poses-relative (spawning-poses)
-  "Gets an associative list in a form of (FRAME ((TYPE . COORDINATES-LIST) ...)),
-where coordinates-list is defined in the FRAME coordinate frame.
-Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list in form
- ((TYPE . POSE) ...)."
-  (when spawning-poses
-    (let* ((map-T-surface (cl-transforms:pose->transform
-                           (btr:link-pose (btr:get-environment-object)
-                                          (first spawning-poses)))))
-      (mapcar (lambda (type-and-pose-list)
-                (destructuring-bind (type . pose-list)
-                    type-and-pose-list
-                  (let* ((surface-T-object
-                           (cl-transforms:pose->transform
-                            (cram-tf:list->pose pose-list)))
-                         (map-T-object
-                           (cl-transforms:transform* map-T-surface surface-T-object))
-                         (map-P-object
-                           (cl-transforms:transform->pose map-T-object)))
-                    `(,type . ,map-P-object))))
-              (second spawning-poses)))))
-
-(defun make-poses-list-relative (spawning-poses-list)
-  "Gets a list of ((:type \"frame\" cords-list) ...)
-Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list in form
- ((TYPE . POSE) ...)."
-  (when spawning-poses-list
-    (mapcar (lambda (type-and-frame-and-pose-list)
-              (destructuring-bind (type frame pose-list)
-                  type-and-frame-and-pose-list
-                (let* ((map-T-surface
-                         (cl-transforms:pose->transform
-                          (btr:link-pose (btr:get-environment-object) frame)))
-                       (surface-T-object
-                         (cl-transforms:pose->transform
-                          (cram-tf:list->pose pose-list)))
-                       (map-T-object
-                         (cl-transforms:transform* map-T-surface surface-T-object))
-                       (map-P-object
-                         (cl-transforms:transform->pose map-T-object)))
-                  `(,type . ,map-P-object))))
-            spawning-poses-list)))
 
 
 (defun spawn-objects-on-sink-counter (&key
@@ -238,7 +196,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                                             ;; (centered-with-padding 0.1)
                                             (side left)
                                             (side front))))
-                              :z-offset (/ aabb-z 2.0)))
+                              :z (/ aabb-z 2.0)))
                            ;; take the pose from the function input list
                            (cdr (assoc object-type spawning-poses-absolute))))
                      ;; rotate new pose randomly around Z
@@ -466,7 +424,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
          (desig:an action
                    (type transporting)
                    (object ?object)
-                   (context :table-setting)
+                   (context table-setting)
                    ;; (grasps (:back :top :front))
                    ;; (arms (left right))
                    ;; (desig:when ?grasp
@@ -479,55 +437,57 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
     ;;    :object-types object-list
     ;;    :spawning-poses-relative *delivery-poses-relative*))
 
-    (let* ((object-cleanup-locations '((:milk :trash)
-                                       (:bowl :sink)
-                                       (:spoon :sink)
-                                       (:cup :sink)
-                                       (:breakfast-cereal :vertical-drawer)))
-           (?fetch-table-location (a location
-                                     (on (an object
-                                             (type counter-top)
-                                             (urdf-name kitchen-island-surface)
-                                             (owl-name
-                                              "kitchen_island_counter_top")
-                                             (part-of iai-kitchen)))
-                                     (side back)
-                                     (side right)))
+    (let* ((object-cleanup-locations
+             '((:milk :trash)
+               (:bowl :sink)
+               (:spoon :sink)
+               (:cup :sink)
+               (:breakfast-cereal :vertical-drawer)))
+           (?fetch-table-location
+             (desig:a location
+                      (on (desig:an object
+                                    (type counter-top)
+                                    (urdf-name kitchen-island-surface)
+                                    (owl-name
+                                     "kitchen_island_counter_top")
+                                    (part-of iai-kitchen)))
+                      (side back)
+                      (side right)))
            (deliver-location-lambdas
              `((:sink ,(lambda (?object-type)
-                         (a location
-                            (above (an object
-                                       (type sink)
-                                       (urdf-name sink-area-sink)
-                                       (part-of iai-kitchen)))
-                            (side right)
-                            (for (an object (type ?object-type)))
-                            ;; the "for" condition for spoon adds a height
-                            ;; that is too high for pr2 to reach
-                            ;; (desig:when (not (eq ?object-type :spoon))
-                            ;;   (for (an object (type ?object-type))))
-                            (z-offset -0.2))))
+                         (desig:a location
+                                  (above (desig:an object
+                                                   (type sink)
+                                                   (urdf-name sink-area-sink)
+                                                   (part-of iai-kitchen)))
+                                  (side right)
+                                  (for (desig:an object (type ?object-type)))
+                                  ;; the "for" condition for spoon adds a height
+                                  ;; that is too high for pr2 to reach
+                                  ;; (desig:when (not (eq ?object-type :spoon))
+                                  ;;   (for (an object (type ?object-type))))
+                                  (z-offset -0.2))))
                (:trash ,(lambda (?object-type)
-                          (a location
-                             (above (an object
-                                        (type drawer)
-                                        (urdf-name sink-area-trash-drawer-main)
-                                        (part-of iai-kitchen)))
-                             (z-offset 0.1)
-                             (side front)
-                             (side right)
-                             (range 0.2)
-                             (for (an object (type ?object-type))))))
+                          (desig:a location
+                                   (above (desig:an object
+                                                    (type drawer)
+                                                    (urdf-name sink-area-trash-drawer-main)
+                                                    (part-of iai-kitchen)))
+                                   (z-offset 0.1)
+                                   (side front)
+                                   (side right)
+                                   (range 0.2)
+                                   (for (desig:an object (type ?object-type))))))
                (:vertical-drawer
                 ,(lambda (?object-type)
-                   (a location
-                      (in (an object
-                              (type drawer)
-                              (urdf-name oven-area-area-right-drawer-main)
-                              (part-of iai-kitchen)
-                              (level topmost)))
-                      (side front)
-                      (for (an object (type ?object-type))))))))
+                   (desig:a location
+                            (in (desig:an object
+                                          (type drawer)
+                                          (urdf-name oven-area-area-right-drawer-main)
+                                          (part-of iai-kitchen)
+                                          (level topmost)))
+                            (side front)
+                            (for (desig:an object (type ?object-type))))))))
            (get-delivery-location-designator
              (lambda (object-type)
                (let ((del-location-key
@@ -539,13 +499,14 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
       (loop for ?obj in object-list
             do (let ((?delivery-location
                        (funcall get-delivery-location-designator ?obj)))
-                 (perform (an action
-                              (type transporting)
-                              (object (an object
-                                          (type ?obj)
-                                          (location ?fetch-table-location)))
-                              (location ?fetch-table-location)
-                              (target ?delivery-location))))))))
+                 (exe:perform
+                  (desig:an action
+                            (type transporting)
+                            (object (desig:an object
+                                              (type ?obj)
+                                              (location ?fetch-table-location)))
+                            (location ?fetch-table-location)
+                            (target ?delivery-location))))))))
 
 
 
@@ -710,7 +671,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                             (desig:a location
                                      (on "CounterTop")
                                      (name "iai_kitchen_meal_table_counter_top")))
-                           :z-offset (/ aabb-z 2.0))))
+                           :z (/ aabb-z 2.0))))
                    (btr-utils:move-object (btr:name btr-object) new-pose)))
                objects)
        ;; bottle gets special treatment

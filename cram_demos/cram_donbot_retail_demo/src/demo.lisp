@@ -90,7 +90,8 @@
                                   (part-of ?environment-name)
                                   (urdf-name shelf-1-level-2-link)))
                     (for ?object)
-                    (attachments (donbot-shelf-1-front donbot-shelf-1-back))))
+                    (attachments (dish-washer-tabs-shelf-1-front
+                                  dish-washer-tabs-shelf-1-back))))
          (?robot-name (rob-int:get-robot-name))
          (?intermediate-locaiton-robot
            (desig:a location

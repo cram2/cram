@@ -53,9 +53,16 @@
 
 (def-fact-group pick-and-place-plans (desig:action-grounding)
 
-  (<- (desig:action-grounding ?action-designator (perceive ?action-designator))
+  (<- (desig:action-grounding ?action-designator (perceive ?resolved-action-desig))
     (spec:property ?action-designator (:type :perceiving))
-    (spec:property ?action-designator (:object ?_)))
+    (spec:property ?action-designator (:object ?object-designator))
+    (-> (man-int:object-or-its-reference-in-hand ?object-designator ?object-hand)
+        (equal ?park-arms NIL)
+        (equal ?park-arms T))
+    (desig:designator :action ((:type :perceiving)
+                               (:object ?object-designator)
+                               (:park-arms ?park-arms))
+                      ?resolved-action-desig))
 
 
   (<- (desig:action-grounding ?action-designator (pick-up ?resolved-action-designator))
