@@ -29,7 +29,7 @@
 
 (in-package :objects)
 
-(defparameter *lift-z-offset* 0.05 "in meters")
+(defparameter *lift-z-offset* 0.07 "in meters")
 (defparameter *lift-offset* `(0.0 0.0 ,*lift-z-offset*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -79,8 +79,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod man-int:get-object-type-carry-config :heuristics 20 (object-type grasp)
-  :carry)
 (defmethod man-int:get-object-type-carry-config :heuristics 20
     ((object-type (eql :household-item)) grasp)
   :carry)
@@ -272,7 +270,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *milk-grasp-xy-offset* 0.01 "in meters")
-(defparameter *milk-grasp-z-offset* 0.0 "in meters")
+(defparameter *milk-grasp-z-offset* 0.04 "in meters")
 (defparameter *milk-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *milk-lift-z-offset* 0.05 "in meters")
 
@@ -300,16 +298,16 @@
   :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* 0.0)
-  :lift-translation `(0.0 ,(- *milk-grasp-xy-offset*) ,*milk-lift-z-offset*)
-  :2nd-lift-translation `(0.0 ,(- *milk-grasp-xy-offset*) ,*milk-lift-z-offset*))
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
 
 (man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*milk-grasp-xy-offset* ,*milk-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
   :pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) ,*lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) 0.0)
-  :lift-translation `(0.0 ,*milk-grasp-xy-offset* ,*milk-lift-z-offset*)
-  :2nd-lift-translation `(0.0 ,*milk-grasp-xy-offset* ,*milk-lift-z-offset*))
+  :lift-translation *lift-offset*
+  :2nd-lift-translation *lift-offset*)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -319,6 +317,7 @@
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *cereal-postgrasp-xy-offset* 0.40 "in meters")
 (defparameter *cereal-lift-z-offset* 0.1 "in meters")
+(defparameter *cereal-small-lift-z-offset* 0.05 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms
@@ -348,8 +347,8 @@
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
   :pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,*cereal-pregrasp-xy-offset* 0.0 0.0)
-  :lift-translation `(,*cereal-grasp-xy-offset* 0.0 ,*cereal-lift-z-offset*)
-  :2nd-lift-translation `(,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-lift-z-offset*))
+  :lift-translation `(,*cereal-grasp-xy-offset* 0.0 ,*cereal-small-lift-z-offset*)
+  :2nd-lift-translation `(,*cereal-postgrasp-xy-offset* 0.0 ,*cereal-small-lift-z-offset*))
 
 ;; BACK grasp table
 (man-int:def-object-type-to-gripper-transforms
@@ -369,8 +368,8 @@
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
   :pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 ,*cereal-pregrasp-z-offset*)
   :2nd-pregrasp-offsets `(,(- *cereal-pregrasp-xy-offset*) 0.0 0.0)
-  :lift-translation `(,(- *cereal-grasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*)
-  :2nd-lift-translation `(,(- *cereal-postgrasp-xy-offset*) 0.0 ,*cereal-lift-z-offset*))
+  :lift-translation `(,(- *cereal-grasp-xy-offset*) 0.0 ,*cereal-small-lift-z-offset*)
+  :2nd-lift-translation `(,(- *cereal-postgrasp-xy-offset*) 0.0 ,*cereal-small-lift-z-offset*))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; bowl ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -469,7 +468,9 @@
                          (urdf-name kitchen-island-surface)
                          (owl-name "kitchen_island_counter_top")
                          (part-of ?environment-name)))
-           (for (desig:an object (type ?object-type)))))
+           (for (desig:an object (type ?object-type)))
+           (side back)
+           (side right)))
 
 (defun make-location-right-of-other-object (?object-type ?other-object-type
                                             ?other-object-location)
@@ -526,7 +527,8 @@
                          (type drawer)
                          (urdf-name sink-area-left-middle-drawer-main)
                          (owl-name "drawer_sinkblock_middle_open")
-                         (part-of ?environment-name)))))
+                         (part-of ?environment-name)))
+           (side front)))
 
 (defun make-location-in-fridge (?environment-name)
   (desig:a location
@@ -542,6 +544,7 @@
            (in (desig:an object
                          (type fridge)
                          (urdf-name iai-fridge-door)
+                         (owl-name "drawer_fridge_door_open")
                          (part-of ?environment-name)
                          (level bottommost)))))
 
