@@ -78,7 +78,7 @@
                                                       "kitchen_sink_block_counter_top")
                                                      (part-of
                                                       kitchen)))))
-                             :z-offset z/2)
+                             :z z/2)
                             :orientation orientation)))
                     (setf (btr:pose btr-object) pose-for-grasping))))
               objects)
