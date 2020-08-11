@@ -30,67 +30,116 @@
 
 (in-package :ccl)
 
+(defun get-ease-object-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Bowl'")
+    (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Cup'")
+    (setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Drawer'")
+    lookup-table))
+
 (cpl:define-task-variable *action-parents* '())
 (defparameter *action-siblings* (make-hash-table))
+(defparameter *detected-objects* (make-hash-table :test 'equal))
+(defparameter *episode-name* nil)
+(defparameter *is-logging-enabled* nil)
+(defparameter *ease-object-lookup-table* (get-ease-object-lookup-table))
+
+
+(defun clear-detected-objects ()
+  (setf *detected-objects* (make-hash-table :test 'equal)))
+
+(defun get-ease-object-id-of-detected-object-by-name (object-name)
+  (gethash object-name *detected-objects*))
+(defun get-parent-uri()
+  (if (is-action-parent)
+      *episode-name*
+      (car *action-parents*)))
+
+(defun get-transform-of-detected-object (detected-object)
+  (let*
+      ((detected-object-transform (man-int:get-object-transform-in-map detected-object))
+       (translate (cl-transforms-stamped:translation detected-object-transform))
+       (quaternion (cl-transforms-stamped:rotation detected-object-transform)))
+    (concatenate
+     'string "['map',"
+     (send-create-3d-vector translate) ","
+     (send-create-quaternion quaternion)"]")))
+
+(defun is-action-parent ()
+  (if (not *action-parents*) t nil))
+
+(defun convert-to-ease-object-type-url (object-type)
+  (if (gethash object-type *ease-object-lookup-table*)
+      (gethash object-type *ease-object-lookup-table*)
+      "'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#DesignedArtifact'"))
+
+(defun handle-detected-object (detected-object)
+  (let* ((object-name (get-designator-property-value-str detected-object :NAME))
+        (detected-object-type (get-designator-property-value-str detected-object :TYPE))
+        (object-type
+          (convert-to-ease-object-type-url detected-object-type)))
+    (if (gethash object-name *detected-objects*)
+        (print "Object exists")
+        (let ((object-id (send-belief-perceived-at object-type (get-transform-of-detected-object detected-object))))
+          (setf (gethash object-name *detected-objects*) object-id)
+          (when (string-equal object-type "'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#DesignedArtifact'")
+            (send-comment object-id (concatenate 'string "Unknown Object: "(write-to-string detected-object-type))))))))
+
 
 (defmethod exe:generic-perform :around ((designator desig:action-designator))
   (if *is-logging-enabled*
-      ;;This hack was needed for the milestone 2018
-      ;;(if (and *is-logging-enabled* (not (string-equal (get-designator-property-value-str designator :TYPE) "grasping")))
       (let ((action-id (log-perform-call designator))
-            (is-parent-action nil)
             (cram-action-name (get-designator-property-value-str designator :TYPE)))
         (cpl:with-failure-handling
             ((cpl:plan-failure (e)
-               (log-cram-finish-action action-id)
-               (send-task-success action-id "false")
-               (log-failure action-id e)
-               ;;(format t "failure string: ~a" (write-to-string e))
-               (if is-parent-action
-                   (send-batch-query))))
-          ;;(print designator)
-          (if cram-projection:*projection-environment*
-            (send-performed-in-projection action-id "true")
-            (send-performed-in-projection action-id "false"))
-          (log-cram-sub-action
-           (car *action-parents*)
-           action-id
-           (get-knowrob-action-name cram-action-name designator))
-          (log-cram-sibling-action
-           (car *action-parents*) action-id (get-knowrob-action-name cram-action-name designator))
-          (if (not *action-parents*)
-              (setq is-parent-action t))
+               ;;(log-cram-finish-action action-id)
+               (set-event-status-to-failed action-id)
+               (set-event-diagnosis action-id (ccl::get-failure-uri (subseq (write-to-string e) 2 (search " " (write-to-string e)))))
+               ;;(log-failure action-id e)
+               ;;(equate action-id (log-perform-call  (second (desig:reference designator)))))
+               (print "plan failure")))
+
+          ;;;;;;;;;;;;;;;; CHECK IF ENVIRONMENT IS A SIMULATION
+          ;;(if cram-projection:*projection-environment*
+          ;;  (send-performed-in-projection action-id "true")
+          ;;  (send-performed-in-projection action-id "false"))
+
+          ;;;;;;;;;;;;;;;; LOG SUBACTIONS
+          ;;(log-cram-sub-action
+          ;; (car *action-parents*)
+          ;; action-id
+          ;; (get-knowrob-action-name cram-action-name designator))
+
+          ;;(log-cram-sibling-action
+          ;; (car *action-parents*) action-id (get-knowrob-action-name cram-action-name designator))
           (push action-id *action-parents*)
-          (let ((perform-result (call-next-method)))
-            (log-cram-finish-action action-id)
-            (when (and perform-result (typep perform-result 'desig:object-designator))
-              (let ((name (desig:desig-prop-value perform-result :name)))
-                (when name
-                  (send-object-action-parameter action-id perform-result))))
-            (send-task-success action-id "true")
-            (if is-parent-action
-                   (send-batch-query))
-            perform-result)))
+
+          (ccl::start-situation action-id)
+          (multiple-value-bind (perform-result action-desig)
+              (call-next-method)
+            ;;(let ((referenced-action-id (log-perform-call action-desig)))
+            (let ((referenced-action-id "")
+                  (action-designator-parameters (desig:properties action-desig)))
+              (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id)
+              (when (string-equal cram-action-name "detecting")
+                (handle-detected-object perform-result))
+              (set-event-status-to-succeeded action-id)
+              (ccl::stop-situation action-id)
+              perform-result))))
       (call-next-method)))
 
+(defun equate (designator-id referenced-designator-id)
+  (send-rdf-query (convert-to-prolog-str designator-id)
+                    "knowrob:equate"
+                    (convert-to-prolog-str referenced-designator-id)))
+
 (defun log-perform-call (designator)
-  (connect-to-cloud-logger)
-  (if *is-client-connected*
-      (let ((result "")
-            (cram-action-name (get-designator-property-value-str designator :TYPE))
-            (action-designator-parameters (desig:properties designator)))
-        (setf result (get-value-of-json-prolog-dict
-                      (cdaar
-                       (send-cram-start-action
-                        (get-knowrob-action-name-uri cram-action-name designator)
-                        " \\'TableSetting\\'"
-                        (convert-to-prolog-str (get-timestamp-for-logging))
-                        "PV"
-                        "ActionInst"))
-                      "ActionInst"))
-        (log-action-designator-parameters-for-logged-action-designator
-         action-designator-parameters result)
-        result)
+  (if *is-logging-enabled*
+      (let* ((cram-action-name (get-knowrob-action-name-uri (get-designator-property-value-str designator :TYPE) designator))
+             (event-name-url (attach-event-to-situation cram-action-name (get-parent-uri))))
+        (when (string-equal cram-action-name "'http://www.ease-crc.org/ont/EASE-ACT.owl#PhysicalTask'")
+          (send-comment event-name-url (concatenate 'string "Unknown Action: "  (get-designator-property-value-str designator :TYPE))))
+        event-name-url)
       "NOLOGGING"))
 
 (defun log-failure (action-id failure-type)
