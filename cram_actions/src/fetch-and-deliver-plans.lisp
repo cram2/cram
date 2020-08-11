@@ -104,12 +104,14 @@ turn the robot base such that it looks in the direction of target and look again
 (defun manipulate-environment (&key
                                  ((:type action-type))
                                  ((:object ?object-to-manipulate))
+                                 ((:location ?object-containing-location))
                                  ((:arm ?arm))
                                  ((:distance ?distance))
                                  ((:robot-location ?manipulate-robot-location))
                                &allow-other-keys)
   (declare (type keyword action-type ?arm)
            (type desig:object-designator ?object-to-manipulate)
+           (type (or desig:location-designator null) ?object-containing-location)
            (type (or number null) ?distance)
            ;; here, ?manipulate-robot-location can only be null within the function
            ;; but one should not pass a NULL location as argument,
@@ -117,6 +119,14 @@ turn the robot base such that it looks in the direction of target and look again
            (type (or null desig:location-designator) ?manipulate-robot-location))
   "Navigate to reachable location, check if opening/closing trajectory causes collisions,
 if yes, relocate and retry, if no collisions, open or close container."
+
+  (when (and (eq action-type :accessing)
+             (not (null ?object-containing-location)))
+    (let ((?goal `(man-int:location-accessible ,?object-containing-location)))
+      (exe:perform (desig:an action
+                             (type accessing)
+                             (location ?object-containing-location)
+                             (goal ?goal)))))
 
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -174,7 +184,18 @@ if yes, relocate and retry, if no collisions, open or close container."
           (proj-reasoning:check-environment-manipulation-collisions manipulation-action)
           (setf manipulation-action (desig:current-desig manipulation-action))
 
-          (exe:perform manipulation-action))))))
+          (exe:perform manipulation-action)))))
+  
+  (when (and (eq action-type :sealing)
+             (not (null ?object-containing-location)))
+    (setf (btr:joint-state (btr:get-environment-object)
+                       "sink_area_dish_washer_door_joint")
+      0.5)
+    (let ((?goal `(cpoe:location-reset ,?object-containing-location)))
+      (exe:perform (desig:an action
+                             (type sealing)
+                             (location ?object-containing-location)
+                             (goal ?goal))))))
 
 
 (defun search-for-object (&key
