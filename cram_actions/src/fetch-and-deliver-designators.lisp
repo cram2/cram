@@ -96,13 +96,13 @@ the `look-pose-stamped'."
     ;; location
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
-    ;; location that contains the target location
-    (once (or (spec:property ?location-designator (:location ?outer-location-designator))
-             (equal ?outer-location-designator nil)))
     ;; object
     (once (or (spec:property ?location-designator (:in ?some-object-designator))
               (spec:property ?location-designator (:above ?some-object-designator))))
     (desig:current-designator ?some-object-designator ?object-designator)
+    ;; location that contains the target object
+    (once (or (spec:property ?object-designator (:location ?outer-location-designator))
+             (equal ?outer-location-designator nil)))
     ;; arm
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
