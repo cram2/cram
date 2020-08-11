@@ -96,6 +96,9 @@ the `look-pose-stamped'."
     ;; location
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
+    ;; location that contains the target location
+    (once (or (spec:property ?location-designator (:location ?outer-location-designator))
+             (equal ?outer-location-designator nil)))
     ;; object
     (once (or (spec:property ?location-designator (:in ?some-object-designator))
               (spec:property ?location-designator (:above ?some-object-designator))))
@@ -122,6 +125,7 @@ the `look-pose-stamped'."
                                 ?robot-location)))
     (desig:designator :action ((:type ?action-type)
                                (:object ?object-designator)
+                               (:location ?outer-location-designator)
                                (:arm ?arm)
                                (:distance ?distance)
                                (:robot-location ?robot-location))
