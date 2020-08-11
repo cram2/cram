@@ -178,13 +178,8 @@
     (lisp-pred typep ?designator desig:location-designator)
     (member ?number-key (:z-offset))
     (property-member (?number-key ?value) ?designator)
-    (assert-type ?value number "LOCATION SPEC:PROPERTY"))
+    (assert-type ?value number "LOCATION SPEC:PROPERTY")))
 
-  (<- (%property ?designator (?location-key ?location))
-    (lisp-pred typep ?designator desig:location-designator)
-    (member ?location-key (:location))
-    (property-member (?location-key ?location) ?designator)
-    (assert-type ?location desig:location-designator "LOCATION SPEC:PROPERTY")))
 
 (def-fact-group object-designator-specs (%property)
 
