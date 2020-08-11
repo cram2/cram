@@ -120,6 +120,7 @@ turn the robot base such that it looks in the direction of target and look again
   "Navigate to reachable location, check if opening/closing trajectory causes collisions,
 if yes, relocate and retry, if no collisions, open or close container."
 
+  ;; Making the containing location accessible before accessing the object
   (when (and (eq action-type :accessing)
              (not (null ?object-containing-location)))
     (let ((?goal `(man-int:location-accessible ,?object-containing-location)))
@@ -186,11 +187,9 @@ if yes, relocate and retry, if no collisions, open or close container."
 
           (exe:perform manipulation-action)))))
   
+  ;; Seal the containing location after sealing the location
   (when (and (eq action-type :sealing)
              (not (null ?object-containing-location)))
-    (setf (btr:joint-state (btr:get-environment-object)
-                       "sink_area_dish_washer_door_joint")
-      0.5)
     (let ((?goal `(cpoe:location-reset ,?object-containing-location)))
       (exe:perform (desig:an action
                              (type sealing)
