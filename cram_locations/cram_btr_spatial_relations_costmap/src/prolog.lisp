@@ -573,6 +573,7 @@
                     ?costmap)
     (paddings-list ?supp-object-name ?context ?paddings-list)
     (preferred-supporting-object-side ?supp-object-name ?context ?preferred-side)
+    (preferred-supporting-object-axis ?supp-object-name ?context ?preferred-axis)
     (max-slot-size ?object-type ?context ?max-slot-size)
     (min-slot-size ?object-type ?context ?min-slot-size)
     (position-deviation-threshold ?object-type ?context ?pos-dev-threshold)
@@ -580,7 +581,8 @@
     (costmap:costmap ?costmap)
     (costmap:costmap-add-function
      slot-generator
-     (make-slot-cost-function ?supp-object ?paddings-list ?preferred-side
+     (make-slot-cost-function ?supp-object ?paddings-list
+                              ?preferred-side ?preferred-axis
                               ?object-count ?max-slot-size ?min-slot-size
                               ?pos-dev-threshold)
      ?costmap))
