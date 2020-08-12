@@ -305,7 +305,9 @@
                   ;; (btr:assert (btr:object-pose ?world ?supporting-object-name
                   ;;                              ((0 0 0) (0 0 0 1))))
                   (lisp-fun cl-bullet:pose ?supporting-rigid-body ?supp-obj-pose)
-                  (lisp-fun btr:calculate-bb-dims ?supporting-rigid-body ?supp-obj-dims)
+                  (lisp-fun btr:aabb ?supporting-rigid-body ?supp-obj-bb)
+                  (lisp-fun cl-bullet:bounding-box-dimensions ?supp-obj-bb
+                            ?supp-obj-dims)
                   (lisp-fun get-closest-edge ?reference-pose ?supp-obj-pose ?supp-obj-dims ?edge))
                  (and (equal ?edge :front)
                       (lisp-fun cl-transforms:make-identity-pose ?supp-obj-pose)))))
