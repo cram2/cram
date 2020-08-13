@@ -201,13 +201,26 @@ the `look-pose-stamped'."
                                            ;; (:arm ?arm)
                                            (:object ?object-designator))
                                 ?robot-location-designator)))
+    ;; if the object is in the hand or its reference object is in the hand
+    ;; we need to bring the hand closer to the other hand, e.g., bring to front
+    (-> (man-int:object-or-its-reference-in-hand ?object-designator ?object-hand)
+        (equal ?object-in-hand T)
+        (and (equal ?object-in-hand NIL)
+             (equal ?object-hand NIL)))
     ;; look-location
     (once (or (and (spec:property ?action-designator (:look-location
                                                       ?some-look-loc-desig))
                    (desig:current-designator ?some-look-loc-desig
                                              ?look-location-designator))
-              (desig:designator :location ((:of ?object-designator))
-                                ?look-location-designator)))
+              (-> (or (equal ?object-in-hand NIL) (equal ?object-hand NIL))
+                  (desig:designator :location ((:of ?object-designator))
+                                    ?look-location-designator)
+                  (and (desig:designator :object ((:part-of ?robot)
+                                                  (:link :robot-tool-frame)
+                                                  (:which-link ?object-hand))
+                                         ?object-hand-designator)
+                       (desig:designator :location ((:of ?object-hand-designator))
+                                         ?look-location-designator)))))
     ;; pick-up-action
     (once (or (desig:desig-prop ;; spec:property
                ?action-designator (:pick-up-action ?some-pick-up-action-designator))
@@ -219,7 +232,9 @@ the `look-pose-stamped'."
                                (:grasps ?grasps)
                                (:robot-location ?robot-location-designator)
                                (:look-location ?look-location-designator)
-                               (:pick-up-action ?pick-up-action-designator))
+                               (:pick-up-action ?pick-up-action-designator)
+                               (:object-in-hand ?object-in-hand)
+                               (:object-hand ?object-hand))
                       ?resolved-action-designator))
 
 
