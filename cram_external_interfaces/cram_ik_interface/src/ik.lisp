@@ -149,24 +149,29 @@ Resampling axis can only be :X, :Y or :Z"
      (macrolet
          ((with-resampling (&whole whole-form
                               (resampling-axis upper-limit lower-limit
-                               resampling-step)
+                               resampling-step
+                               &key (disable-resampling nil))
                             &body body)
             (let ((form-length (length whole-form)))
               ;; Formulating a list of joint values to sample
               `(let* ((original-goal-pose
                         offseted-goal-pose)
                       (sampling-values
-                        (remove-duplicates
-                         (cons 0.0
-                               (loop for x = ,lower-limit then (+ x ,resampling-step)
-                                     until (> x ,upper-limit)
-                                     collect x))
-                         ;; remove duplicates in case current value is
-                         ;; exactly one of the sampling values
-                         :test (lambda (x y)
-                                 (< (abs (- x y))
-                                    *float-comparison-precision*))
-                         :from-end t))
+                        (if  (null ,disable-resampling)
+                             (remove-duplicates
+                              (cons 0.0
+                                    (loop for x = ,lower-limit
+                                            then (+ x ,resampling-step)
+                                          until (> x ,upper-limit)
+                                          collect x))
+                              ;; remove duplicates in case current value is
+                              ;; exactly one of the sampling values
+                              :test (lambda (x y)
+                                      (< (abs (- x y))
+                                         *float-comparison-precision*))
+                              :from-end t)
+                             ;; stay at default value if resampling disalbled
+                             (list 0.0d0)))
                       (result
                         (loop for value in sampling-values
                               do (setf offseted-goal-pose
