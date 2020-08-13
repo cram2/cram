@@ -208,8 +208,7 @@
 
 
 (defun spawn-assembly-objects (&optional (spawning-data *object-spawning-data*))
-  ;; (btr-utils:kill-all-objects)
-  ;; detach all objects from robot and environment
+  (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
   ;; detach all items from each other
@@ -371,8 +370,8 @@
                                       (type counter-top)
                                       (urdf-name kitchen-island-surface)
                                       (part-of ?env-name)))
-                        (side right)
                         (range-invert 0.9)
+                        (side right)
                         (side front))
                (desig:a location
                         (on ?wooden-plate)

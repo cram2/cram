@@ -31,46 +31,59 @@
 
 (defparameter *y* -0.38)
 (defparameter *off* -0.07)
-(defparameter *shelf-1-poses*
-  `(((-0.36 ,*y* 0.1)
-     (-0.28 ,*y* 0.1)
-     (-0.19 ,*y* 0.1)
-     (-0.03 ,*y* 0.1)
-     (0.14 ,*y* 0.1)
-     (0.23 ,*y* 0.1)
-     (0.32 ,*y* 0.11))
+(defparameter *big-shelf-poses*
+  `(("level_5_link"
+     (:denkmit-edelstahl-reiniger-spray . ((-0.36 ,*y* 0.1) (0 0 0 1)))
+     (:denkmit-edelstahl-reiniger . ((-0.28 ,*y* 0.1) (0 0 0 1)))
+     (:denkmit-glaskeramik-reiniger . ((-0.19 ,*y* 0.1) (0 0 0 1)))
+     (:denkmit-maschienen-entkalker . ((-0.03 ,*y* 0.1) (0 0 0 1)))
+     (:denkmit-entkalker . ((0.14 ,*y* 0.1) (0 0 0 1)))
+     (:kuehne-essig-essenz . ((0.23 ,*y* 0.1) (0 0 0 1)))
+     (:heitmann-citronensaeure . ((0.32 ,*y* 0.11) (0 0 0 1))))
 
-    ((-0.43 ,*y* 0.11)
-     (-0.26 ,*y* 0.11)
-     (0.17 ,*y* 0.13)
-     (0.37 ,*y* 0.16))
+    ("level_4_link"
+     (:finish-deo . ((-0.43 ,*y* 0.11) (0 0 0 1)))
+     (:finish-spuelmaschienen-tabs-quantum . ((-0.26 ,*y* 0.11) (0 0 0 1)))
+     (:finish-spuelmaschienen-tabs-classic . ((0.17 ,*y* 0.13) (0 0 0 1)))
+     (:finish-spuelmaschienen-tabs-classic-vorratspack . ((0.38 ,*y* 0.16)
+                                                          (0 0 0 1))))
 
-    ((-0.4 ,*y* 0.1)
-     (-0.26 ,*y* 0.1)
-     (-0.02 ,*y* 0.1)
-     (0.21 ,*y* 0.1)
-     (0.4 ,*y* 0.1))
+    ("level_3_link"
+     (:finish-spuelmaschienen-pulver . ((-0.4 ,*y* 0.1) (0 0 0 1)))
+     (:finish-spuelmaschienen-protector . ((-0.26 ,*y* 0.1) (0 0 0 1)))
+     (:somat-spuelmaschienen-tabs-extra . ((-0.02 ,*y* 0.1) (0 0 0 1)))
+     (:somat-spuelmaschienen-tabs-classic . ((0.21 ,*y* 0.1) (0 0 0 1)))
+     (:somat-spuelmaschienen-pulver . ((0.4 ,*y* 0.1) (0 0 0 1))))
 
-    ((-0.4 ,*y* 0.13)
-     (-0.217 ,*y* 0.1)
-     (-0.033 ,*y* 0.12)
-     (0.137 ,*y* 0.1)
-     (0.43 ,*y* 0.1))
+    ("level_2_link"
+     (:denkmit-spezialsalz . ((-0.4 ,*y* 0.13) (0 0 0 1)))
+     (:denkmit-spuelmaschienen-tabs-power . ((-0.212 ,*y* 0.1) (0 0 0 1)))
+     (:denkmit-spuelmaschienen-tabs-revolution . ((-0.039 ,*y* 0.12) (0 0 0 1)))
+     (:denkmit-spuelmaschienen-tabs-classic . ((0.137 ,*y* 0.1) (0 0 0 1)))
+     ;; (:denkmit-spuelmaschienen-tabs-nature . ((0.43 ,*y* 0.1) (0 0 0 1)))
+     )
 
-    ((-0.31 ,*y* 0.08)
-     (-0.25 ,*y* 0.08)
-     (-0.175 ,*y* 0.09)
-     (-0.05 ,*y* 0.13)
-     (0.082 ,*y* 0.15)
-     (0.203 ,*y* 0.14))
+    ("level_1_link"
+     (:denkmit-maschienenpfleger . ((-0.31 ,*y* 0.08) (0 0 0 1)))
+     (:denkmit-maschienenpfleger . ((-0.25 ,*y* 0.08) (0 0 0 1)))
+     (:finish-maschienenpfleger . ((-0.175 ,*y* 0.09) (0 0 0 1)))
+     (:finish-spezialsalz . ((-0.05 ,*y* 0.13) (0 0 0 1)))
+     (:finish-klarspueler . ((0.082 ,*y* 0.15) (0 0 0 1)))
+     (:denkmit-spuelmaschienen-tabs-allinone . ((0.203 ,*y* 0.14) (0 0 0 1))))
 
-    ((-0.43 ,(+ *y* *off*) 0.15)
-     (-0.30 ,(+ *y* *off*) 0.15)
-     (-0.14 ,(+ *y* *off*) 0.14)
-     (0.01 ,(+ *y* *off*) 0.15)
-     (0.15 ,(+ *y* *off*) 0.15)
-     (0.29 ,(+ *y* *off*) 0.145)
-     (0.42 ,(+ *y* *off*) 0.13))))
+    ("level_0_link"
+     (:domestos-allzweckreiniger . ((-0.43 ,(+ *y* *off*) 0.15) (0 0 0 1)))
+     (:sagrotan-allzweckreiniger . ((-0.30 ,(+ *y* *off*) 0.15) (0 0 0 1)))
+     (:denkmit-allzweckreiniger . ((-0.14 ,(+ *y* *off*) 0.14) (0 0 0 1)))
+     (:denkmit-allzweckreiniger-frueling . ((0.01 ,(+ *y* *off*) 0.15) (0 0 0 1)))
+     (:meister-proper-allzweckreiniger . ((0.15 ,(+ *y* *off*) 0.15) (0 0 0 1)))
+     (:denkmit-allzweckreiniger-limette . ((0.29 ,(+ *y* *off*) 0.145) (0 0 0 1)))
+     (:der-general-allzweckreiniger . ((0.42 ,(+ *y* *off*) 0.13) (0 0 0 1))))))
+
+(defparameter *small-shelf-poses*
+  '("shelf_2_shelf_2_level_3_link"
+    (:balea-bottle . ((-0.15 -0.1 0.1) (0 0 0.5 0.5)))
+    (:dish-washer-tabs . ((0 -0.13 0.11) (0 0 0.5 0.5)))))
 
 (defparameter *basket-in-pr2-wrist*
   (cl-transforms:make-transform
@@ -83,98 +96,53 @@
    (cl-transforms:make-3d-vector 0 -0.15 0.48)
    (cl-transforms:make-quaternion 0.5 0.5 0 0)))
 
-(defun convert-shelf-poses (shelf poses)
-  (let (res
-        tmp
-        (levels (if (equalp shelf "shelf-2")
-                    '(:|ENVIRONMENT.shelf_2_level_3_link|
-                      :|ENVIRONMENT.shelf_2_level_2_link|
-                      :|ENVIRONMENT.shelf_2_level_1_link|
-                      :|ENVIRONMENT.shelf_2_level_0_link|)
-                    '(:|ENVIRONMENT.shelf_1_level_5_link|
-                      :|ENVIRONMENT.shelf_1_level_4_link|
-                      :|ENVIRONMENT.shelf_1_level_3_link|
-                      :|ENVIRONMENT.shelf_1_level_2_link|
-                      :|ENVIRONMENT.shelf_1_level_1_link|
-                      :|ENVIRONMENT.shelf_1_level_0_link|))))
-    ;; Loop for every level of the shelf
-    (loop for i from 0 to (- (length levels) 1)
-          do (let* ((level-poses (nth i poses))
-                    (world-T-shelf (cl-transforms:pose->transform
-                                    (btr:pose
-                                     (btr:rigid-body
-                                      (btr:get-environment-object)
-                                      (nth i levels))))))
-               ;; Loop for the objects
-               (loop for j from 0 to (- (length level-poses) 1)
-                     do (let* ((shelf-T-object
-                                 (cram-tf:list->transform
-                                  `(,(nth j level-poses) (0 0 1 0))))
-                               (world-T-object
-                                 (cl-transforms:transform*
-                                  world-T-shelf shelf-T-object)))
-                          (push (cl-transforms:transform->pose world-T-object) tmp)))
-               (push (reverse tmp) res)
-               (setf tmp '())))
-    (reverse res)))
+(defun spawn-object-n-times (type pose times color &optional offset-axis offset)
+  "`offset-axis' can be one of :x, :y or :z."
+  (loop for i from 0 to (1- times)
+        for name = (intern (string-upcase (format nil "~a-~a" type i)) :keyword)
+        do (when offset-axis
+             (setf pose (cram-tf:translate-pose pose offset-axis offset)))
+           ;; if object with name NAME already exists, create a new unique name
+           (when (btr:object btr:*current-bullet-world* name)
+             (setf i (+ i times)
+                   name (intern (string-upcase (format nil "~a-~a" type i))
+                                :keyword)))
+           (btr:add-object btr:*current-bullet-world* :mesh name pose :mesh type
+                           :mass 0.0
+                           :color color)))
 
-(defun spawn-object-n-times (type pose times color)
-  (loop for i from 0 to times
-        do (let ((name (intern (string-upcase (format nil "~a-~a" type i))
-                               :keyword)))
-             (setf (second (first pose)) (+ (second (first pose)) 0.13))
-             (when (btr:object btr:*current-bullet-world* name)
-               (setf i (+ i times)
-                     name (intern (string-upcase (format nil "~a-~a" type i))
-                                  :keyword)))
-             (btr-utils:spawn-object name type :pose pose :color color))))
+(defun spawn-objects-on-big-shelf ()
+  (let ((type-and-pose-list
+          (make-poses-relative-multiple *big-shelf-poses* "shelf_1_")))
+    (mapcar (lambda (type-and-pose)
+              (destructuring-bind (type . pose) type-and-pose
+                (spawn-object-n-times
+                 type
+                 pose
+                 (+ (random 3) 1) ; times
+                `(,(float (/ (random 10) 10)) ; color
+                  ,(float (/ (random 10) 10))
+                  ,(float (/ (random 10) 10)))
+                :x
+                0.13)))
+            type-and-pose-list)))
 
-(defun spawn-retail-objects-new ()
-  (let ((poses (convert-shelf-poses "shelf-1" *shelf-1-poses*))
-        (object-types '((:denkmit-edelstahl-reiniger-spray
-                         :denkmit-edelstahl-reiniger
-                         :denkmit-glaskeramik-reiniger
-                         :denkmit-maschienen-entkalker
-                         :denkmit-entkalker
-                         :kuehne-essig-essenz
-                         :heitmann-citronensaeure)
-                        (:finish-deo
-                         :finish-spuelmaschienen-tabs-quantum
-                         :finish-spuelmaschienen-tabs-classic
-                         :finish-spuelmaschienen-tabs-classic-vorratspack)
-                        (:finish-spuelmaschienen-pulver
-                         :finish-spuelmaschienen-protector
-                         :somat-spuelmaschienen-tabs-extra
-                         :somat-spuelmaschienen-tabs-classic
-                         :somat-spuelmaschienen-pulver)
-                        (:denkmit-spezialsalz
-                         :denkmit-spuelmaschienen-tabs-power
-                         :denkmit-spuelmaschienen-tabs-revolution
-                         :denkmit-spuelmaschienen-tabs-classic
-                         :denkmit-spuelmaschienen-tabs-nature)
-                        (:denkmit-maschienenpfleger
-                         :denkmit-maschienenpfleger
-                         :finish-maschienenpfleger
-                         :finish-spezialsalz
-                         :finish-klarspueler
-                         :denkmit-spuelmaschienen-tabs-allinone)
-                        (:domestos-allzweckreiniger
-                         :sagrotan-allzweckreiniger
-                         :denkmit-allzweckreiniger
-                         :denkmit-allzweckreiniger-frueling
-                         :meister-proper-allzweckreiniger
-                         :denkmit-allzweckreiniger-limette
-                         :der-general-allzweckreiniger))))
-    ;; Loop for shelf level
-    (loop for i from 0 to (- (length poses) 1)
-          ;; loop for objects in the level
-          do (loop for j from 0 to (- (length (nth i poses)) 1)
-                   do (spawn-object-n-times (nth j (nth i object-types))
-                                            (cram-tf:pose->list (nth j(nth i poses)))
-                                            (+ (random 3) 1)
-                                            `(,(float (/ (random 10) 10))
-                                              ,(float (/ (random 10) 10))
-                                              ,(float (/ (random 10) 10))))))))
+(defun spawn-objects-on-small-shelf ()
+  (sb-ext:gc :full t)
+  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
+  (btr:clear-costmap-vis-object)
+  ;; (btr-utils:kill-all-objects)
+  (btr:detach-all-objects (btr:get-robot-object))
+  (btr:detach-all-objects (btr:get-environment-object))
+  (mapcar (lambda (type-and-pose)
+            (destructuring-bind (type . pose) type-and-pose
+              (spawn-object-n-times type pose 1
+                                    (case type
+                                      (:dish-washer-tabs '(0 1 0))
+                                      (t '(1.0 1.0 0.9))))))
+          (make-poses-relative *small-shelf-poses*))
+  ;; (btr:simulate btr:*current-bullet-world* 50)
+  (btr-utils:move-robot '((1.0 0 0) (0 0 0 1))))
 
 (defun spawn-basket ()
   (let* ((left-ee-frame
@@ -212,295 +180,107 @@
        :object-name :b
        :object-designator basket-desig))))
 
-(defun spawn-retail-objects ()
-  (sb-ext:gc :full t)
-  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
-  (btr:clear-costmap-vis-object)
-  (btr-utils:kill-all-objects)
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:get-environment-object))
-
-  (let ((i 1))
-    ;;Spawn objects in shelf 1
-    (loop for j from -1.3 to -0.6 by 0.16
-          do (let ((denkmit
-                     (concatenate 'string
-                                  "denkmit"
-                                  "-" (write-to-string j)
-                                  "-" (write-to-string i)))
-                   (heitmamn
-                     (concatenate 'string
-                                  "heitmann"
-                                  "-" (write-to-string j)
-                                  "-" (write-to-string i)))
-                   (dove
-                     (concatenate 'string
-                                  "dove"
-                                  "-" (write-to-string j)
-                                  "-" (write-to-string i))))
-               (btr-utils:spawn-object
-                (intern denkmit) :denkmit :pose `((,j 0.9 0.5) (0 0 1 0)))
-               (btr-utils:spawn-object
-                (intern heitmamn) :heitmann :pose `((,j 0.9 0.96) (0 0 1 0)))
-               (btr-utils:spawn-object
-                (intern dove) :dove :pose `((,j 0.9 0.73) (0 0 1 0)))))
-    (incf i)
-    ;; Spawn objects in shelf 2
-    (loop for k from 0.6 to 1.4 by 0.12
-          do (let (;; (denkmit
-                   ;;   (concatenate 'string
-                   ;;                "denkmit"
-                   ;;                "-" (write-to-string k)
-                   ;;                "-" (write-to-string i)))
-                   (heitmamn
-                     (concatenate 'string
-                                  "heitmann"
-                                  "-" (write-to-string k)
-                                  "-" (write-to-string i)))
-                   (dove
-                     (concatenate 'string
-                                  "dove"
-                                  "-" (write-to-string k)
-                                  "-" (write-to-string i))))
-               ;; (btr-utils:spawn-object
-               ;;  (intern denkmit) :denkmit :pose `((,k 0.7 0.68) (0 0 1 0))
-               ;;                            :color '(1 0 0 1))
-               (btr-utils:spawn-object
-                (intern heitmamn) :heitmann :pose `((,k 0.75 1.05) (0 0 1 0)))
-               (btr-utils:spawn-object
-                (intern dove) :dove :pose `((,k 0.75 1.39) (0 0 1 0)))))
-    (incf i)
-    ;; Spawn objects on the table
-    (loop for k from -3.7 to -3.3 by 0.12
-          do (let ((denkmit
-                     (concatenate 'string
-                                  "denkmit"
-                                  "-" (write-to-string k)
-                                  "-" (write-to-string i)))
-                   ;; (heitmamn
-                   ;;   (concatenate 'string
-                   ;;                "heitmann"
-                   ;;                "-" (write-to-string k)
-                   ;;                "-" (write-to-string i)))
-                   ;; (dove
-                   ;;   (concatenate 'string
-                   ;;                "dove"
-                   ;;                "-" (write-to-string k)
-                   ;;                "-" (write-to-string i)))
-                   )
-               (btr-utils:spawn-object
-                (intern denkmit) :denkmit :pose `((,k 0.1 0.7) (0 0 1 0))
-                                          :color '(1 0 0 1))))))
-
-
-
-
-
-(defun spawn-objects-on-small-shelf (&optional (spawn? t))
-  (sb-ext:gc :full t)
-  (setf desig::*designators* (tg:make-weak-hash-table :weakness :key))
-  (btr:clear-costmap-vis-object)
-  (btr-utils:kill-all-objects)
-  (btr:detach-all-objects (btr:get-robot-object))
-  (btr:detach-all-objects (btr:get-environment-object))
-  #+only-for-the-real-robot-so-commenting-out-for-now
-  (unless cram-projection:*projection-environment*
-    (giskard::call-giskard-environment-service
-     :remove-all)
-    (when (btr:get-environment-object)
-      (giskard::call-giskard-environment-service
-       :add-environment
-       :name (roslisp-utilities:rosify-underscores-lisp-name
-              (rob-int:get-environment-name))
-       :pose (cl-transforms-stamped:pose->pose-stamped
-              cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
-       :joint-state-topic "kitchen/joint_states")))
-
-  (when (and spawn? cram-projection:*projection-environment*)
-    (btr-utils:spawn-object :balea-bottle-1 :balea-bottle :pose
-                            '((1.9 -1.42 1.05) (0 0 0.7 0.7))
-                            :color '(1 1 1))
-    (btr:add-object btr:*current-bullet-world* :box-item
-                    :denkmitgeschirrreinigernature-1
-                    '((1.75 -1.45 1.06) (0 0 0.7 0.7))
-                    :mass 0.2
-                    :color '(0 1 0 1.0)
-                    :size '(0.057 0.018 0.074)
-                    :item-type :dish-washer-tabs)
-    ;; (btr:simulate btr:*current-bullet-world* 50)
-    (btr-utils:move-robot '((1.0 0 0) (0 0 0 1)))))
-
-
-
-
-
-
-
-
-(defun retail-demo-donbot ()
-  (spawn-objects-on-small-shelf)
-
-  (let* ((?environment-name
-           (rob-int:get-environment-name))
-         (?search-location
-           (desig:a location
-                    (on (desig:an object
-                                  (type shelf)
-                                  (urdf-name shelf-2-base)
-                                  (owl-name "shelf_system_verhuetung")
-                                  (part-of ?environment-name)
-                                  (level 4)))
-                    (side left)
-                    (range 0.2)))
-         (?object
-           (desig:an object
-                     (type dish-washer-tabs)
-                     (location ?search-location)))
-         (?target-location-shelf
-           (desig:a location
-                    (on (desig:an object
-                                  (type environment)
-                                  (name ?environment-name)
-                                  (part-of ?environment-name)
-                                  (urdf-name shelf-1-level-2-link)))
-                    (for ?object)
-                    (attachments (donbot-shelf-1-front donbot-shelf-1-back))))
-         (?robot-name (rob-int:get-robot-name))
-         (?intermediate-locaiton-robot
-           (desig:a location
-                    (on (desig:an object
-                                  (type robot)
-                                  (name ?robot-name)
-                                  (part-of ?environment-name)
-                                  ;; (owl-name "donbot_tray")
-                                  (urdf-name plate)))
-                    (for ?object)
-                    (attachments (donbot-tray-front donbot-tray-back)))))
-
-    (exe:perform
-     (desig:an action
-               (type transporting)
-               (object ?object)
-               (target ?intermediate-locaiton-robot)
-               ;; (target ?target-location-shelf)
-               ))
-
-    (exe:perform
-     (desig:an action
-               (type transporting)
-               (object ?object)
-               (target ?target-location-shelf)))
-
-    ;; (setf ?object
-    ;;       (desig:copy-designator
-    ;;        (perform (a motion
-    ;;                    (type :world-state-detecting)
-    ;;                    (object (an object
-    ;;                                (name denkmitgeschirrreinigernature-1)))))
-    ;;        :new-description
-    ;;        `((:location ,(a location
-    ;;                         (on (an object
-    ;;                                 (type robot)
-    ;;                                 (name ?robot-name)
-    ;;                                 (urdf-name plate)
-    ;;                                 (owl-name "donbot_tray"))))))))
-
-    ;; look at separators
-    ;; (exe:perform
-    ;;  (desig:an action
-    ;;            (type looking)
-    ;;            (direction right-separators)))
-    ;; (cpl:sleep 5.0)
-    ))
-
-
-
-
-(defun retail-demo-not-donbot ()
-  (flet ((grasp-object-from-shelf (?object shelf)
-           (let* ((?environment-name
-                    (rob-int:get-environment-name))
-                  (?search-location
-                    (if (eql shelf 1)
-                        (desig:a location
-                                 (on (desig:an object
-                                               (type shelf)
-                                               (urdf-name shelf-2-footprint)
-                                               (part-of ?environment-name)
-                                               (level 4)))
-                                 (side right))
-                        (desig:a location
-                                 (on (desig:an object
-                                               (type shelf)
-                                               (urdf-name shelf-1-footprint)
-                                               (part-of ?environment-name)
-                                               (level 4)))
-                                 (side right))))
-                  (?object-desig
-                    (desig:an object
-                              (type ?object)
-                              (location ?search-location))))
-             (exe:perform
-              (desig:an action
-                        (type transporting)
-                        (object ?object-desig)
-                        (target (desig:a location
-                                         (on (desig:an object
-                                                       (type basket)
-                                                       (name b)))
-                                         (for ?object-desig)
-                                         (attachment in-basket)))))))
-
-         (place-object-in-shelf (?object-type &rest ?target-poses)
-           (declare (type symbol ?object-type)
-                    (type list ?target-poses))
-           (let ((?env (rob-int:get-environment-name)))
-             (exe:perform
-              (desig:an action
-                        (type transporting)
-                        (object (desig:an object
-                                          (type ?object-type)
-                                          (location
-                                           (desig:a location
-                                                    (on (desig:an object
-                                                                  (type counter-top)
-                                                                  (urdf-name top)
-                                                                  (part-of ?env)))
-                                                    (side right)))))
-                        (target (desig:a location
-                                         (poses  ?target-poses))))))))
-
-    (spawn-retail-objects)
-    (spawn-basket)
-
-    (place-object-in-shelf
-     :denkmit
-     (cl-transforms-stamped:make-pose-stamped
-      "map" 0
-      (cl-transforms:make-3d-vector 0.7 0.7 0.68)
-      (cl-transforms:make-quaternion 0 0 1 0))
-     (cl-transforms-stamped:make-pose-stamped
-      "map" 0
-      (cl-transforms:make-3d-vector 0.7 0.7 0.68)
-      (cl-transforms:make-quaternion 0 0 1 1))
-     (cl-transforms-stamped:make-pose-stamped
-      "map" 0
-      (cl-transforms:make-3d-vector 0.7 0.7 0.68)
-      (cl-transforms:make-quaternion 0 0 -1 0))
-     (cl-transforms-stamped:make-pose-stamped
-      "map" 0
-      (cl-transforms:make-3d-vector 0.7 0.7 0.68)
-      (cl-transforms:make-quaternion 0 0 -1 1)))
-    (grasp-object-from-shelf :heitmann 2)
-    (grasp-object-from-shelf :dove 1)))
 
 
 (defun retail-demo ()
   (urdf-proj:with-simulated-robot
 
-    (case (rob-int:get-robot-name)
-      (:iai-donbot (retail-demo-donbot))
-      (t (retail-demo-not-donbot)))))
+    (setf btr:*visibility-threshold* 0.5)
+    (btr-utils:kill-all-objects)
+    (spawn-objects-on-small-shelf)
+    (spawn-objects-on-big-shelf)
+    (unless (eql (rob-int:get-robot-name) :iai-donbot)
+      (spawn-basket))
+
+    (let* ((?environment-name
+             (rob-int:get-environment-name))
+           (?robot-name
+             (rob-int:get-robot-name))
+           (?search-location
+             (desig:a location
+                      (on (desig:an object
+                                    (type shelf)
+                                    (urdf-name shelf-2-base)
+                                    (owl-name "shelf_system_verhuetung")
+                                    (part-of ?environment-name)
+                                    (level 4)))
+                      (side left)
+                      (range 0.2)))
+
+           (?dish-washer-tabs-desig
+             (desig:an object
+                       (type dish-washer-tabs)
+                       (location ?search-location)))
+           (?balea-bottle-desig
+             (desig:an object
+                       (type balea-bottle)
+                       (location ?search-location)))
+           (?target-location-shelf-dish-washer-tabs
+             (desig:a location
+                      (on (desig:an object
+                                    (type environment)
+                                    (name ?environment-name)
+                                    (part-of ?environment-name)
+                                    (urdf-name shelf-1-level-2-link)))
+                      (for ?dish-washer-tabs-desig)
+                      (attachments (dish-washer-tabs-shelf-1-front
+                                    dish-washer-tabs-shelf-1-back))))
+           (?target-location-shelf-balea-bottle
+             (desig:a location
+                      (on (desig:an object
+                                    (type environment)
+                                    (name ?environment-name)
+                                    (part-of ?environment-name)
+                                    (urdf-name shelf-1-level-2-link)))
+                      (for ?balea-bottle-desig)
+                      (attachments (balea-bottle-shelf-1-front
+                                    balea-bottle-shelf-1-back))))
+           (?target-location-tray-dish-washer-tabs
+             (desig:a location
+                      (on (desig:an object
+                                    (type robot)
+                                    (name ?robot-name)
+                                    (part-of ?environment-name)
+                                    (owl-name "donbot_tray")
+                                    (urdf-name plate)))
+                      (for ?dish-washer-tabs-desig)
+                      (attachments (donbot-tray-front donbot-tray-back))))
+           (?target-location-basket-dish-washer-tabs
+             (desig:a location
+                      (on (desig:an object
+                                    (type basket)
+                                    (name b)))
+                      (for ?dish-washer-tabs-desig)
+                      (attachments (; in-basket-front
+                                    in-basket-back))))
+           (?target-location-robot-dish-washer-tabs
+             (case ?robot-name
+               (:iai-donbot ?target-location-tray-dish-washer-tabs)
+               (t ?target-location-basket-dish-washer-tabs))))
+
+      (exe:perform
+       (desig:an action
+                 (type transporting)
+                 (object ?dish-washer-tabs-desig)
+                 (target ?target-location-robot-dish-washer-tabs)))
+      (exe:perform
+       (desig:an action
+                 (type transporting)
+                 (object ?balea-bottle-desig)
+                 (target ?target-location-shelf-balea-bottle)))
+      (exe:perform
+       (desig:an action
+                 (type transporting)
+                 (object ?dish-washer-tabs-desig)
+                 (target ?target-location-shelf-dish-washer-tabs)))
+
+      ;; look at separators
+      ;; (exe:perform
+      ;;  (desig:an action
+      ;;            (type looking)
+      ;;            (direction right-separators)))
+      ;; (cpl:sleep 5.0)
+      )))
 
 
 

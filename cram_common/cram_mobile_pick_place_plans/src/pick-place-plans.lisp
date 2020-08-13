@@ -257,14 +257,18 @@
 
 (defun perceive (&key
                    ((:object ?object-designator))
+                   park-arms
                    (object-chosing-function #'identity)
                  &allow-other-keys)
-  (declare (type desig:object-designator ?object-designator))
+  (declare (type desig:object-designator ?object-designator)
+           (type boolean park-arms)
+           (ignore object-chosing-function))
   "Park arms and call DETECTING action."
-  (exe:perform
-   (desig:an action
-             (type parking-arms)
-             (not-neck T)))
+  (when park-arms
+    (exe:perform
+     (desig:an action
+               (type parking-arms)
+               (not-neck T))))
   (exe:perform
    (desig:an action
              (type detecting)

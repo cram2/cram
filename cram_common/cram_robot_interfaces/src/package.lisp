@@ -58,7 +58,8 @@
    #:neck #:robot-neck-links #:robot-neck-joints #:robot-neck-base-link
    #:camera-in-neck-ee-pose
    #:neck-camera-z-offset #:neck-camera-pose-unit-vector-multiplier
-   #:neck-camera-resampling-step #:neck-camera-x-axis-limit #:neck-camera-y-axis-limit
+   #:neck-camera-resampling-step
+   #:neck-camera-x-axis-limit #:neck-camera-y-axis-limit #:neck-camera-z-axis-limit
    ;; trajectories
    #:trajectory-point
    ;; urdf
