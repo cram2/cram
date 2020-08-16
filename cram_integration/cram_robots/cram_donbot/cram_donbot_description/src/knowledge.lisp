@@ -164,8 +164,10 @@
 
   (<- (gripper-link :iai-donbot :left ?link)
     (bound ?link)
-    (lisp-fun search "gripper_" ?link ?pos)
-    (lisp-pred identity ?pos))
+    (or (and (lisp-fun search "gripper_" ?link ?pos)
+             (lisp-pred identity ?pos))
+        (and (lisp-fun search "finger" ?link ?pos)
+             (lisp-pred identity ?pos))))
 
   (<- (gripper-meter-to-joint-multiplier :iai-donbot 1.0))
 
@@ -260,7 +262,7 @@
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding :iai-donbot 0.5))
   (<- (costmap:costmap-manipulation-padding :iai-donbot 0.5))
-  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.05))
+  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.1))
   (<- (costmap:costmap-reach-minimal-distance :iai-donbot 0.1))
   (<- (costmap:orientation-samples :iai-donbot 1))
   (<- (costmap:orientation-sample-step :iai-donbot 0.3))
