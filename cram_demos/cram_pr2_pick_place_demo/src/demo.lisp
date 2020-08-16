@@ -95,6 +95,9 @@
                          "sink_area_left_middle_drawer_main_joint")
         0.0
         (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_bottom_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
                          "iai_fridge_door_joint")
         0.0
         (btr:joint-state (btr:get-environment-object)
