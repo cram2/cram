@@ -208,11 +208,9 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            (desig:a location
                     (on (desig:an object
                                   (type counter-top)
-                                  (urdf-name kitchen-island-surface)
-                                  (owl-name
-                                   "kitchen_island_counter_top")
+                                  (urdf-name dining-area-jokkmokk-table-main)
+                                  ;; (owl-name "kitchen_island_counter_top")
                                   (part-of iai-kitchen)))
-                    (side back)
                     (side right)))
          (deliver-location-lambdas
            `((:sink ,(lambda (?object-type)
