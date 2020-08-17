@@ -28,7 +28,7 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :quadtree)
+(in-package :location-costmap)
 
 ;; --------------------- BASE ------------------------
 
@@ -143,7 +143,7 @@
 
 (defun object-equal (p1 p2)
   (declare (type 3d-vector p1 p2))
-  (and (quadtree:same-coords-as p1 p2)
+  (and (same-coords-as p1 p2)
        (same-value-as p1 p2)))
 
 (defun same-coords-as (p1 p2)
@@ -360,7 +360,7 @@ will be done too. `origin-x' and `origin-y' have to be the bottom left corner an
   (declare (type 3d-vector object))
   (when quadtree
     (if (leaf-p quadtree)
-        (destructuring-bind (x0 y0 x1 y1) (quadtree:boundary quadtree)  ;;  d---c
+        (destructuring-bind (x0 y0 x1 y1) (boundary quadtree)  ;;  d---c
           (let* ((A (make-3d-vector x0 y0 0.0d0))                       ;;  | / |
                  (C (make-3d-vector x1 y1 0.0d0))                       ;;  a---b
                  (M (v+ A
