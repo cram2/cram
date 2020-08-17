@@ -403,7 +403,7 @@
         ;; Above keyword is inaccessible for prismatic containers like drawers
         ;; but not for revolute containers like fridge/oven
         (-> (spec:property ?location-designator (:above ?location-object))
-            (or (not (object-is-a-prismatic-container ?location-object))
+            (or (not (man-int:object-is-a-prismatic-container ?location-object))
                 (cpoe:container-state ?location-object :open))
             (true)))))
 
