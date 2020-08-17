@@ -128,6 +128,23 @@ If not valid solution was found, returns NIL."
         (roslisp:set-debug-level nil old-debug-lvl)))))
 
 
+(defun get-joint-values-to-sample (lower-lim upper-lim sampling-step)
+  (remove-duplicates
+   (cons 0.0
+         (sort
+          (loop for x = lower-lim then (+ x sampling-step)
+                until (> x upper-lim)
+                collect x)
+          (lambda (x y)
+            (< (abs x) (abs y)))))
+   ;; remove duplicates in case current value is
+   ;; exactly one of the sampling values
+   :test (lambda (x y)
+           (< (abs (- x y))
+              *float-comparison-precision*))
+   :from-end t))
+
+
 (defmacro find-ik-for ((goal-pose base-link tip-link seed-state-message
                         &optional solution-valid-p)
                        &body body)
@@ -155,18 +172,9 @@ Resampling axis can only be :X, :Y or :Z"
               ;; Formulating a list of joint values to sample
               `(let* ((original-goal-pose
                         offseted-goal-pose)
-                      (sampling-values
-                        (remove-duplicates
-                         (cons 0.0
-                               (loop for x = ,lower-limit then (+ x ,resampling-step)
-                                     until (> x ,upper-limit)
-                                     collect x))
-                         ;; remove duplicates in case current value is
-                         ;; exactly one of the sampling values
-                         :test (lambda (x y)
-                                 (< (abs (- x y))
-                                    *float-comparison-precision*))
-                         :from-end t))
+                      (sampling-values (get-joint-values-to-sample
+                                        ,lower-limit ,upper-limit
+                                        ,resampling-step))
                       (result
                         (loop for value in sampling-values
                               do (setf offseted-goal-pose
@@ -252,18 +260,10 @@ Resampling axis can only be :X, :Y or :Z"
          ((with-resampling ((resampling-axis upper-limit lower-limit resampling-step)
                             &body body)
             ;; Formulating a list of joint values to sample
-            `(let* ((sampling-values
-                      (remove-duplicates
-                       (cons 0.0
-                             (loop for x = ,lower-limit then (+ x ,resampling-step)
-                                   until (> x ,upper-limit)
-                                   collect x))
-                       ;; remove duplicates in case current value is
-                       ;; exactly one of the sampling values
-                       :test (lambda (x y)
-                               (< (abs (- x y))
-                                  *float-comparison-precision*))
-                       :from-end t)))
+            `(let* ((sampling-values (get-joint-values-to-sample
+                                      ,lower-limit ,upper-limit
+                                      ,resampling-step)))
+
                (loop for value in sampling-values
                      do (if (assoc ,resampling-axis new-joint-values)
                             (setf (cdr (assoc ,resampling-axis new-joint-values))
