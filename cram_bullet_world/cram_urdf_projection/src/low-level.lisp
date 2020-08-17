@@ -992,14 +992,17 @@ collision by moving its torso and base"
 (defun get-ik-joint-positions (ee-pose base-link end-effector-link joint-names
                                torso-joint-name
                                torso-joint-lower-limit torso-joint-upper-limit
-                               validation-function)
+                               validation-function
+                               move-base)
   (when ee-pose
     (let ((current-torso-angle
             (btr:joint-state (btr:get-robot-object) torso-joint-name))
           (seed-state-msg
             (btr::make-robot-joint-state-msg
              (btr:get-robot-object)
-             :joint-names joint-names)))
+             :joint-names joint-names))
+          (disable-base-resampling
+            (not move-base)))
       (multiple-value-bind (ik-solution-msg joint-values)
           (ik:find-ik-for
            (ee-pose
@@ -1011,12 +1014,14 @@ collision by moving its torso and base"
                (:x
                 *base-resampling-x-limit*
                 (- *base-resampling-x-limit*)
-                *base-resampling-step*)
+                *base-resampling-step*
+                :disable-resampling disable-base-resampling)
              (ik:with-resampling
                  (:y
                   *base-resampling-y-limit*
                   (- *base-resampling-y-limit*)
-                  *base-resampling-step*)
+                  *base-resampling-step*
+                  :disable-resampling disable-base-resampling)
                (ik:with-resampling
                    (:z
                     (- torso-joint-upper-limit current-torso-angle)
@@ -1050,9 +1055,11 @@ collision by moving its torso and base"
                    collision-mode
                    collision-object-b
                    collision-object-b-link
-                   collision-object-a)
+                   collision-object-a
+                   (move-base t))
   (declare (type (or cl-transforms-stamped:pose-stamped null)
-                 left-tcp-pose right-tcp-pose))
+                 left-tcp-pose right-tcp-pose)
+           (type boolean move-base))
   (declare (ignore collision-object-b collision-object-b-link collision-object-a))
 
   (cram-tf:visualize-marker (list left-tcp-pose right-tcp-pose) :r-g-b-list '(1 0 1))
@@ -1060,7 +1067,6 @@ collision by moving its torso and base"
     (btr:add-vis-axis-object right-tcp-pose))
   (when left-tcp-pose
     (btr:add-vis-axis-object left-tcp-pose))
-
   (cut:with-vars-strictly-bound (?robot
                                  ?left-tool-frame ?right-tool-frame
                                  ?left-ee-frame ?right-ee-frame
@@ -1103,7 +1109,8 @@ collision by moving its torso and base"
               (tcp-pose->ee-pose left-tcp-pose ?left-tool-frame ?left-ee-frame))
              ?torso-link ?left-ee-frame ?left-arm-joints
              ?torso-joint ?lower-limit ?upper-limit
-             validation-function))
+             validation-function
+             move-base))
         (multiple-value-bind (right-ik right-torso-angle right-base-pose)
             (let ((ik::*ik-service-name*
                     (if (eql ?robot :pr2)
@@ -1114,7 +1121,8 @@ collision by moving its torso and base"
                 (tcp-pose->ee-pose right-tcp-pose ?right-tool-frame ?right-ee-frame))
                ?torso-link ?right-ee-frame ?right-arm-joints
                ?torso-joint ?lower-limit ?upper-limit
-               validation-function))
+               validation-function
+               move-base))
           ;; set the torso to inferred position
           (cond
             ((and left-torso-angle right-torso-angle)
