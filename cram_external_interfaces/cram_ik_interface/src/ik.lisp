@@ -173,15 +173,19 @@ Resampling axis can only be :X, :Y or :Z"
      (macrolet
          ((with-resampling (&whole whole-form
                               (resampling-axis upper-limit lower-limit
-                               resampling-step)
+                               resampling-step
+                               &key (disable-resampling nil))
                             &body body)
             (let ((form-length (length whole-form)))
               ;; Formulating a list of joint values to sample
               `(let* ((original-goal-pose
                         offseted-goal-pose)
                       (sampling-values
-                        (get-joint-values-to-sample
-                         ,lower-limit ,upper-limit ,resampling-step))
+                        (if ,disable-resampling
+                            ;; stay at the default value if resampling is disalbled
+                            (list 0.0d0)
+                            (get-joint-values-to-sample
+                             ,lower-limit ,upper-limit ,resampling-step)))
                       (result
                         (loop for value in sampling-values
                               do (setf offseted-goal-pose
