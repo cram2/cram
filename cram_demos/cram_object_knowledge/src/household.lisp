@@ -873,15 +873,17 @@
 
 
 ;;;;;;;;;;;;;;;;;; Predefined poses for placing on dish-washer-drawer ;;;;;;;;;;;;;
-(man-int:def-object-type-in-other-object-transform :bowl :dish-washer-drawer :drawer-front-1
+
+(man-int:def-object-type-in-other-object-transform :bowl :drawer
+  :bowl-dish-washer-drawer-front-1
   :attachment-translation `(-0.115 -0.15 0.22)
   :attachment-rot-matrix '((1 0 0)
                            (0 1 0)
                            (0 0 1)))
 
-(man-int:def-object-type-in-other-object-transform :bowl :dish-washer-drawer :drawer-front-2
-  :attachment-translation `(-0.115 -0.15 0.22)
+(man-int:def-object-type-in-other-object-transform :bowl :drawer
+  :bowl-dish-washer-drawer-front-2
+  :attachment-translation `(-0.115 0.15 0.22)
   :attachment-rot-matrix '((1 0 0)
                            (0 1 0)
                            (0 0 1)))
->>>>>>> aaeade2d1bebd335ac08062fed59882e880f4c46:cram_common/cram_object_knowledge/src/household.lisp
