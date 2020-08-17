@@ -52,7 +52,6 @@
    #:object-is-a-prismatic-container
    #:object-is-a-revolute-container
    #:object-or-its-reference-in-hand
-   #:location-accessible
    #:location-reference-object
    #:location-certain
    #:location-always-stable
