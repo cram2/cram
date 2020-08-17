@@ -129,6 +129,13 @@ If not valid solution was found, returns NIL."
 
 
 (defun get-joint-values-to-sample (lower-lim upper-lim sampling-step)
+  (declare (type number lower-lim upper-lim sampling-step))
+  "Returns a list of values such that they lie within [`lower-lim'; `upper-lim']
+and the distance between the steps is `sampling-step'.
+0.0 is always added to the list.
+The values are sorted in ascending order based on their absolute magnitude.
+E.g., if `lower-lim' = -4 and `upper-lim' = 4 and `sampling-step' = 1,
+then return = (0.0 -1 1 -2 2 -3 3 -4 4)"
   (remove-duplicates
    (cons 0.0
          (sort
@@ -172,9 +179,9 @@ Resampling axis can only be :X, :Y or :Z"
               ;; Formulating a list of joint values to sample
               `(let* ((original-goal-pose
                         offseted-goal-pose)
-                      (sampling-values (get-joint-values-to-sample
-                                        ,lower-limit ,upper-limit
-                                        ,resampling-step))
+                      (sampling-values
+                        (get-joint-values-to-sample
+                         ,lower-limit ,upper-limit ,resampling-step))
                       (result
                         (loop for value in sampling-values
                               do (setf offseted-goal-pose
@@ -260,9 +267,9 @@ Resampling axis can only be :X, :Y or :Z"
          ((with-resampling ((resampling-axis upper-limit lower-limit resampling-step)
                             &body body)
             ;; Formulating a list of joint values to sample
-            `(let* ((sampling-values (get-joint-values-to-sample
-                                      ,lower-limit ,upper-limit
-                                      ,resampling-step)))
+            `(let ((sampling-values
+                     (get-joint-values-to-sample
+                      ,lower-limit ,upper-limit ,resampling-step)))
 
                (loop for value in sampling-values
                      do (if (assoc ,resampling-axis new-joint-values)
