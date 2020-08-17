@@ -35,7 +35,7 @@
      "sink_area_left_middle_drawer_main"
      ((0.10 -0.1505 -0.062256) (0 0 -1 0)))
     (:cup
-     "sink_area_left_middle_drawer_main"
+     "sink_area_left_bottom_drawer_main"
      ((0.11 0.12 -0.0547167) (0 0 -1 0)))
     (:spoon
      ;; "oven_area_area_middle_upper_drawer_main"
@@ -153,8 +153,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
 
 
 
-(defun setting-demo (&optional (object-list '(:milk :breakfast-cereal
-                                              :bowl :spoon :cup)))
+(defun setting-demo (&optional (object-list '(:bowl :spoon :cup
+                                              :milk :breakfast-cereal)))
   (initialize)
   (setf btr:*visibility-threshold* 0.7)
   (when cram-projection:*projection-environment*
@@ -185,7 +185,8 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            ;; (arms (left right))
            ;; (desig:when ?grasp
            ;;   (grasp ?grasp))
-           (target ?deliver-location))))))
+           ;; (target ?deliver-location)
+           )))))
 
 (defun cleaning-demo (&optional (object-list '(:milk :breakfast-cereal
                                                 :bowl :spoon :cup)))
@@ -197,73 +198,9 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
      :object-types object-list
      :spawning-poses-relative *delivery-poses-relative*))
 
-  (let* ((object-cleanup-locations
-           '((:milk :trash)
-             (:bowl :sink)
-             (:spoon :sink)
-             (:cup :sink)
-             (:breakfast-cereal :vertical-drawer)))
-         (?fetch-table-location
-           (desig:a location
-                    (on (desig:an object
-                                  (type counter-top)
-                                  (urdf-name kitchen-island-surface)
-                                  (owl-name
-                                   "kitchen_island_counter_top")
-                                  (part-of iai-kitchen)))
-                    (side back)
-                    (side right)))
-         (deliver-location-lambdas
-           `((:sink ,(lambda (?object-type)
-                       (desig:a location
-                                (above (desig:an object
-                                                 (type sink)
-                                                 (urdf-name sink-area-sink)
-                                                 (part-of iai-kitchen)))
-                                (side right)
-                                (for (desig:an object (type ?object-type)))
-                                ;; the "for" condition for spoon adds a height
-                                ;; that is too high for pr2 to reach
-                                ;; (desig:when (not (eq ?object-type :spoon))
-                                ;;   (for (an object (type ?object-type))))
-                                (z-offset -0.2))))
-             (:trash ,(lambda (?object-type)
-                        (desig:a location
-                                 (above (desig:an object
-                                                  (type drawer)
-                                                  (urdf-name sink-area-trash-drawer-main)
-                                                  (part-of iai-kitchen)))
-                                 (z-offset 0.1)
-                                 (side front)
-                                 (side right)
-                                 (range 0.2)
-                                 (for (desig:an object (type ?object-type))))))
-             (:vertical-drawer
-              ,(lambda (?object-type)
-                 (desig:a location
-                          (in (desig:an object
-                                        (type drawer)
-                                        (urdf-name oven-area-area-right-drawer-main)
-                                        (part-of iai-kitchen)
-                                        (level topmost)))
-                          (side front)
-                          (for (desig:an object (type ?object-type))))))))
-         (get-delivery-location-designator
-           (lambda (object-type)
-             (let ((del-location-key
-                     (second (assoc object-type object-cleanup-locations))))
-               (funcall (second
-                         (assoc del-location-key deliver-location-lambdas))
-                        object-type)))))
-
-    (loop for ?obj in object-list
-          do (let ((?delivery-location
-                     (funcall get-delivery-location-designator ?obj)))
-               (exe:perform
-                (desig:an action
-                          (type transporting)
-                          (object (desig:an object
-                                            (type ?obj)
-                                            (location ?fetch-table-location)))
-                          (location ?fetch-table-location)
-                          (target ?delivery-location)))))))
+  (dolist (?object-type object-list)
+    (exe:perform
+     (desig:an action
+               (type transporting)
+               (object (desig:an object (type ?object-type)))
+               (context table-cleaning)))))
