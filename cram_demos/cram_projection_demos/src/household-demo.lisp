@@ -317,6 +317,12 @@
                          "iai_fridge_door_joint")
         0.0
         (btr:joint-state (btr:get-environment-object)
+                         "sink_area_dish_washer_door_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_dish_washer_tray_main")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
                          "oven_area_area_right_drawer_main_joint")
         0.0
         (btr:joint-state (btr:get-environment-object)
