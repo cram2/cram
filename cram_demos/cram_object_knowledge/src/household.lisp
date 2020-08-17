@@ -870,3 +870,20 @@
                (context (eql :table-cleaning)))
             (make-location-in-sink-trash-drawer object-type environment)))
         '(:milk :bottle))
+
+
+;;;;;;;;;;;;;;;;;; Predefined poses for placing on dish-washer-drawer ;;;;;;;;;;;;;
+
+(man-int:def-object-type-in-other-object-transform :bowl :drawer
+  :bowl-dish-washer-drawer-front-1
+  :attachment-translation `(-0.115 -0.15 0.22)
+  :attachment-rot-matrix '((1 0 0)
+                           (0 1 0)
+                           (0 0 1)))
+
+(man-int:def-object-type-in-other-object-transform :bowl :drawer
+  :bowl-dish-washer-drawer-front-2
+  :attachment-translation `(-0.115 0.15 0.22)
+  :attachment-rot-matrix '((1 0 0)
+                           (0 1 0)
+                           (0 0 1)))
