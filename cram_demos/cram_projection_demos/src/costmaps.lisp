@@ -68,9 +68,11 @@
             1.0
             (if (and (> x 0.0) (> y -1.5) (< y 1.0))
                 1.0
-                (if (and (< x 0.0) (> x -1.5) (> y -1.5) (< y 2.5))
+                (if (and (> x -1.5) (> y -1.5) (< y 2.5))
                     1.0
-                    0.0))))))
+                    (if (and (> x -4.0) (> y -1.0) (< y 1.0))
+                        1.0
+                        0.0)))))))
 
 (defun make-restricted-area-cost-function ()
   (ecase (rob-int:get-environment-name)
