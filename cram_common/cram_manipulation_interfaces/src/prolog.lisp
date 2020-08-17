@@ -228,8 +228,10 @@
   (<- (desig:location-grounding ?location-designator ?pose-stamped)
     (desig:current-designator ?location-designator ?current-loc-desig)
     (desig:desig-prop ?current-loc-desig (:for ?object-designator))
-    (once (or (desig:desig-prop ?current-loc-desig (:on ?other-object-designator))
-              (desig:desig-prop ?current-loc-desig (:above ?other-object-designator))))
+    (once
+     (or (desig:desig-prop ?current-loc-desig (:on ?other-object-designator))
+         (desig:desig-prop ?current-loc-desig (:in ?other-object-designator))
+         (desig:desig-prop ?current-loc-desig (:above ?other-object-designator))))
     (-> (desig:desig-prop ?current-loc-desig (:attachments ?attachments))
         (member ?attachment-type ?attachments)
         (desig:desig-prop  ?current-loc-desig (:attachment ?attachment-type)))
