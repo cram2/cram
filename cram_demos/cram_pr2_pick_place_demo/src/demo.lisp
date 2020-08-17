@@ -48,11 +48,15 @@
     (:cup . :top)
     (:bowl . :top)))
 
--(cpl:def-cram-function park-robot ()
+(defun park-robot ()
   (cpl:with-failure-handling
       ((cpl:plan-failure (e)
          (declare (ignore e))
          (return)))
+    (exe:perform
+     (desig:an action
+               (type moving-torso)
+               (joint-angle upper-limit)))
     (cpl:par
       (exe:perform
        (desig:an action
@@ -62,15 +66,14 @@
       (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))
     (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                    cram-tf:*fixed-frame*
-                    0.0
-                    (cl-transforms:make-identity-vector)
-                    (cl-transforms:make-identity-rotation))))
-        (exe:perform
-         (desig:an action
-                   (type going)
-                   (target (desig:a location
-                                    (pose ?pose))))))))
+                  cram-tf:*fixed-frame*
+                  0.0
+                  (cl-transforms:make-identity-vector)
+                  (cl-transforms:make-identity-rotation))))
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location (pose ?pose))))))))
 
 (defun initialize ()
   (sb-ext:gc :full t)
@@ -90,6 +93,9 @@
         0.0
         (btr:joint-state (btr:get-environment-object)
                          "sink_area_left_middle_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_bottom_drawer_main_joint")
         0.0
         (btr:joint-state (btr:get-environment-object)
                          "iai_fridge_door_joint")

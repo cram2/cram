@@ -35,6 +35,9 @@
 ;; As we would really like to have declare statements, our plans are simple defuns.
 ;; If in the future one would want to use def-cram-function for plan transformations,
 ;; one can always def-cram-function that calls a normal function.
+;; Actually, the main thing we use in the task tree is the PERFORM calls,
+;; which are already stored in the task tree. So there is no need for
+;; def-cram-function as of now anymore.
 (defun pick-up (&key
                   ((:object ?object-designator))
                   ((:arm ?arm))
@@ -52,7 +55,7 @@
   (declare (type desig:object-designator ?object-designator)
            (type keyword ?arm ?grasp)
            (type number ?gripper-opening ?grip-effort)
-           (type (or null list) ; yes, null is also list, but this is more readable
+           (type (or null list) ; yes, null is also a list, but this is more readable
                  ?left-reach-poses ?right-reach-poses
                  ?left-grasp-poses ?right-grasp-poses
                  ?left-lift-poses ?right-lift-poses)
