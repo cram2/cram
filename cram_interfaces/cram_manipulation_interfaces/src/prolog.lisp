@@ -172,21 +172,6 @@
     (spec:property ?current-object-designator (:location ?object-location))
     (man-int:location-always-reachable ?object-location))
 
-    ;; Helper to reason if a location is accessible
-  (<- (location-accessible ?location-designator)
-    (desig:loc-desig? ?location-designator)
-    (desig:current-designator ?location-designator ?current-location-designator)
-    (-> (spec:property ?current-location-designator (:in ?container-object))
-        (and (desig:current-designator ?container-object ?object-designator)
-             (or (desig:desig-prop ?object-designator (:type :robot))
-                 (and (rob-int:robot ?robot)
-                      (desig:desig-prop ?object-designator (:part-of ?robot)))))
-        ;; Above keyword is inaccessible for prismatic containers like drawers
-        ;; but not for revolute containers like fridge/oven
-        (-> (spec:property ?current-location-designator (:above ?location-object))
-            (not (object-is-a-prismatic-container ?location-object))
-            (true))))
-
   (<- (location-certain ?some-location-designator)
     (desig:loc-desig? ?some-location-designator)
     (desig:current-designator ?some-location-designator ?location-designator)
@@ -243,7 +228,10 @@
   (<- (desig:location-grounding ?location-designator ?pose-stamped)
     (desig:current-designator ?location-designator ?current-loc-desig)
     (desig:desig-prop ?current-loc-desig (:for ?object-designator))
-    (desig:desig-prop ?current-loc-desig (:on ?other-object-designator))
+    (once
+     (or (desig:desig-prop ?current-loc-desig (:on ?other-object-designator))
+         (desig:desig-prop ?current-loc-desig (:in ?other-object-designator))
+         (desig:desig-prop ?current-loc-desig (:above ?other-object-designator))))
     (-> (desig:desig-prop ?current-loc-desig (:attachments ?attachments))
         (member ?attachment-type ?attachments)
         (desig:desig-prop  ?current-loc-desig (:attachment ?attachment-type)))
