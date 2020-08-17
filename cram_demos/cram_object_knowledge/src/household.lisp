@@ -416,6 +416,17 @@
 
 ;;;;;;;;;;;;;;;;;;;; utilities
 
+;;;;;;;; sink
+
+(defun make-location-on-sink-left (?environment-name)
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name sink-area-surface)
+                         (owl-name "kitchen_sink_block_counter_top")
+                         (part-of ?environment-name)))
+           (side left)))
+
 (defun make-location-on-sink-left-front (?environment-name)
   (desig:a location
            (on (desig:an object
@@ -427,15 +438,6 @@
            (side front)
            (range-invert 0.5)))
 
-(defun make-location-on-sink-left (?environment-name)
-  (desig:a location
-           (on (desig:an object
-                         (type counter-top)
-                         (urdf-name sink-area-surface)
-                         (owl-name "kitchen_sink_block_counter_top")
-                         (part-of ?environment-name)))
-           (side left)))
-
 (defun make-location-on-sink-middle-front (?environment-name)
   (desig:a location
            (on (desig:an object
@@ -446,6 +448,94 @@
            (side left)
            (side front)
            (range 0.5)))
+
+(defun make-location-in-sink (?object-type ?environment-name)
+  (desig:a location
+           (above (desig:an object
+                            (type sink)
+                            (urdf-name sink-area-sink)
+                            (part-of ?environment-name)))
+           (side right)
+           (for (desig:an object (type ?object-type)))
+           ;; the "for" condition for spoon adds a height that is too high to reach
+           ;; so adding a little negative z-offset
+           (z-offset -0.1)))
+
+;;;;;;;;; sink drawers
+
+(defun make-location-in-sink-left-upper-drawer (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name sink-area-left-upper-drawer-main)
+                         (owl-name "drawer_sinkblock_upper_open")
+                         (part-of ?environment-name)))
+           (side front)))
+
+(defun make-location-in-sink-left-bottom-drawer (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name sink-area-left-bottom-drawer-main)
+                         (part-of ?environment-name)))
+           (side front)))
+
+(defun make-location-in-sink-left-middle-drawer (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name sink-area-left-middle-drawer-main)
+                         (owl-name "drawer_sinkblock_middle_open")
+                         (part-of ?environment-name)))
+           (side front)))
+
+(defun make-location-in-sink-trash-drawer (?object-type ?environment-name)
+  (desig:a location
+           (above (desig:an object
+                            (type drawer)
+                            (urdf-name sink-area-trash-drawer-main)
+                            (part-of ?environment-name)))
+           (z-offset 0.1)
+           (side front)
+           (side right)
+           (range 0.2)
+           (for (desig:an object (type ?object-type)))))
+
+;;;;;;;; vertical drawer
+
+(defun make-location-in-oven-right-drawer (?object-type ?environment-name)
+  (desig:a location
+           ;; (side front)
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name oven-area-area-right-drawer-main)
+                         (owl-name "drawer_oven_right_open")
+                         (part-of ?environment-name)
+                         (level topmost)))
+           (side front)
+           (for (desig:an object (type ?object-type)))))
+
+;;;;;;;; fridge
+
+(defun make-location-in-fridge (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type fridge)
+                         (urdf-name iai-fridge-main)
+                         (owl-name "drawer_fridge_upper_interior")
+                         (part-of ?environment-name)
+                         (level topmost)))))
+
+(defun make-location-in-fridge-door (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type fridge)
+                         (urdf-name iai-fridge-door)
+                         (owl-name "drawer_fridge_door_open")
+                         (part-of ?environment-name)
+                         (level bottommost)))))
+
+;;;;;;;; kitchen island
 
 (defun make-location-on-kitchen-island-slots (?object-type ?environment-name)
   (desig:a location
@@ -461,6 +551,33 @@
            (context table-setting)
            (object-count 3)))
 
+(defun make-location-on-kitchen-island (?object-type ?environment-name)
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of ?environment-name)))
+           (for (desig:an object (type ?object-type)))
+           (side back)
+           (side right)))
+
+(defun make-cereal-location (?object-type ?environment-name)
+  (desig:a location
+           ;; (left-of (desig:an object (type ?other-object)))
+           ;; (far-from (desig:an object (type ?other-object)))
+           ;; (orientation axis-aligned)
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name kitchen-island-surface)
+                         (owl-name "kitchen_island_counter_top")
+                         (part-of ?environment-name)))
+           (for (desig:an object (type ?object-type)))
+           (side back)
+           (side right)))
+
+;;;;;;;; dining table
+
 (defun make-location-on-dining-table-slots (?object-type ?environment-name)
   (desig:a location
            (on (desig:an object
@@ -472,16 +589,25 @@
            (context table-setting)
            (object-count 2)))
 
-(defun make-location-on-kitchen-island (?object-type ?environment-name)
+(defun make-location-on-dining-table (?environment-name)
   (desig:a location
            (on (desig:an object
                          (type counter-top)
-                         (urdf-name kitchen-island-surface)
-                         (owl-name "kitchen_island_counter_top")
+                         (urdf-name dining-area-jokkmokk-table-main)
+                         (part-of ?environment-name)))
+           (side right)))
+
+(defun make-location-in-center-of-dining-table (?object-type ?environment-name)
+  (desig:a location
+           (on (desig:an object
+                         (type counter-top)
+                         (urdf-name dining-area-jokkmokk-table-main)
                          (part-of ?environment-name)))
            (for (desig:an object (type ?object-type)))
-           (side back)
+           (range 0.2)
            (side right)))
+
+;;;;;;;;;; w.r.t. other object
 
 (defun make-location-right-of-other-object (?object-type ?other-object-type
                                             ?other-object-location)
@@ -507,29 +633,6 @@
              (near ?other-object-designator)
              (for (desig:an object (type ?object-type))))))
 
-(defun make-cereal-location (?object-type ?environment-name)
-  (desig:a location
-           ;; (left-of (desig:an object (type ?other-object)))
-           ;; (far-from (desig:an object (type ?other-object)))
-           ;; (orientation axis-aligned)
-           (on (desig:an object
-                         (type counter-top)
-                         (urdf-name kitchen-island-surface)
-                         (owl-name "kitchen_island_counter_top")
-                         (part-of ?environment-name)))
-           (for (desig:an object (type ?object-type)))
-           (side back)
-           (side right)))
-
-(defun make-location-in-center-of-dining-table (?object-type ?environment-name)
-  (desig:a location
-           (on (desig:an object
-                         (type counter-top)
-                         (urdf-name dining-area-jokkmokk-table-main)
-                         (part-of ?environment-name)))
-           (for (desig:an object (type ?object-type)))
-           (range 0.2)))
-
 (defun make-location-left-of-far-other-object (?object-type ?other-object-type
                                                ?other-object-location)
   (let ((?other-object-designator
@@ -541,68 +644,6 @@
              (far-from ?other-object-designator)
              (for (desig:an object (type ?object-type))))))
 
-(defun make-location-in-sink-left-middle-drawer (?environment-name)
-  (desig:a location
-           (in (desig:an object
-                         (type drawer)
-                         (urdf-name sink-area-left-middle-drawer-main)
-                         (owl-name "drawer_sinkblock_middle_open")
-                         (part-of ?environment-name)))
-           (side front)))
-
-(defun make-location-in-sink-left-bottom-drawer (?environment-name)
-  (desig:a location
-           (in (desig:an object
-                         (type drawer)
-                         (urdf-name sink-area-left-bottom-drawer-main)
-                         (part-of ?environment-name)))
-           (side front)))
-
-(defun make-location-in-fridge (?environment-name)
-  (desig:a location
-           (in (desig:an object
-                         (type fridge)
-                         (urdf-name iai-fridge-main)
-                         (owl-name "drawer_fridge_upper_interior")
-                         (part-of ?environment-name)
-                         (level topmost)))))
-
-(defun make-location-in-fridge-door (?environment-name)
-  (desig:a location
-           (in (desig:an object
-                         (type fridge)
-                         (urdf-name iai-fridge-door)
-                         (owl-name "drawer_fridge_door_open")
-                         (part-of ?environment-name)
-                         (level bottommost)))))
-
-(defun make-location-in-oven-right-drawer (?environment-name)
-  (desig:a location
-           ;; (side front)
-           (in (desig:an object
-                         (type drawer)
-                         (urdf-name oven-area-area-right-drawer-main)
-                         (owl-name "drawer_oven_right_open")
-                         (part-of ?environment-name)
-                         (level topmost)))))
-
-(defun make-location-on-sink (?environment-name ?object-type)
-  (desig:a location
-           (on (desig:an object
-                         (type sink)
-                         (urdf-name sink-area-sink)
-                         (owl-name "kitchen_sink_area_sink")
-                         (part-of ?environment-name)))
-           (for (desig:an object (type ?object-type)))))
-
-(defun make-location-in-sink-left-upper-drawer (?environment-name)
-  (desig:a location
-           (in (desig:an object
-                         (type drawer)
-                         (urdf-name sink-area-left-upper-drawer-main)
-                         (owl-name "drawer_sinkblock_upper_open")
-                         (part-of ?environment-name)))
-           (side front)))
 
 ;;;;;;;;;;;;;;;;;;;; context TABLE-SETTING-COUNTER
 
@@ -734,7 +775,7 @@
               ((object-type (eql type))
                environment human
                (context (eql :table-setting)))
-            (make-location-in-oven-right-drawer environment)))
+            (make-location-in-oven-right-drawer object-type environment)))
         '(:cereal :breakfast-cereal))
 
 ;;;;;;;; destination locations
@@ -802,15 +843,30 @@
               ((object-type (eql type))
                environment human
                (context (eql :table-cleaning)))
-            (make-location-on-kitchen-island environment object-type)))
-        '(:household-item))
-
-
+            (make-location-on-dining-table environment)))
+        '(:bowl :spoon :cup :breakfast-cereal :milk
+          :cereal :mug :cutlery :plate :bottle))
 
 (mapcar (lambda (type)
           (defmethod man-int:get-object-destination :heuristics 20
               ((object-type (eql type))
                environment human
                (context (eql :table-cleaning)))
-            (make-location-on-sink environment object-type)))
-        '(:bowl :plate :cutlery :mug :cup :cereal :breakfast-cereal :milk :bottle))
+            (make-location-in-oven-right-drawer object-type environment)))
+        '(:cereal :breakfast-cereal))
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-destination :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-cleaning)))
+            (make-location-in-sink object-type environment)))
+        '(:bowl :cup :spoon :plate :mug :cutlery))
+
+(mapcar (lambda (type)
+          (defmethod man-int:get-object-destination :heuristics 20
+              ((object-type (eql type))
+               environment human
+               (context (eql :table-cleaning)))
+            (make-location-in-sink-trash-drawer object-type environment)))
+        '(:milk :bottle))
