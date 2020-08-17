@@ -666,7 +666,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                            (location ?delivering-location)
                            (goal ?goal))))
   ;; if deliver-location is inside a container, open the container
-  (let ((?goal `(man-int:location-accessible ,?delivering-location)))
+  (let ((?goal `(cpoe:location-accessible ,?delivering-location)))
     (exe:perform (desig:an action
                            (type accessing)
                            (location ?delivering-location)
@@ -680,7 +680,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                            (goal ?goal))))
 
   ;; if search-location is inside a container, open the container
-  (let ((?goal `(man-int:location-accessible ,?search-location)))
+  (let ((?goal `(cpoe:location-accessible ,?search-location)))
     (exe:perform (desig:an action
                            (type accessing)
                            (location ?search-location)
