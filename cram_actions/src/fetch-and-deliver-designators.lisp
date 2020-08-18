@@ -97,8 +97,12 @@ the `look-pose-stamped'."
     (spec:property ?action-designator (:location ?some-location-designator))
     (desig:current-designator ?some-location-designator ?location-designator)
     ;; object
-    (spec:property ?location-designator (:in ?some-object-designator))
+    (once (or (spec:property ?location-designator (:in ?some-object-designator))
+              (spec:property ?location-designator (:above ?some-object-designator))))
     (desig:current-designator ?some-object-designator ?object-designator)
+    ;; location of the object that we are trying to access
+    (once (or (spec:property ?object-designator (:location ?object-location-desig))
+              (equal ?object-location-desig nil)))
     ;; arm
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
@@ -121,6 +125,7 @@ the `look-pose-stamped'."
                                 ?robot-location)))
     (desig:designator :action ((:type ?action-type)
                                (:object ?object-designator)
+                               (:object-location ?object-location-desig)
                                (:arm ?arm)
                                (:distance ?distance)
                                (:robot-location ?robot-location))
@@ -143,11 +148,18 @@ the `look-pose-stamped'."
     ;; where to look for the given object or the given location's reference object
     (-> (and (spec:property ?object-designator (:location ?some-location-designator))
              (not (equal ?some-location-designator NIL)))
-        (desig:current-designator ?some-location-designator ?location-designator)
+        (and (desig:current-designator ?some-location-designator ?location-designator)
+             (equal ?object-designator ?object-designator-with-location))
         (and (spec:property ?object-designator (:type ?object-type))
              (rob-int:environment-name ?environment)
              (lisp-fun man-int:get-object-likely-location
-                       ?object-type ?environment nil ?context ?location-designator)))
+                       ?object-type ?environment nil ?context ?location-designator)
+             (equal ?new-props ((:location ?location-designator)))
+             (lisp-fun desig:extend-designator-properties
+                       ?object-designator ?new-props
+                       ?object-designator-with-location)
+             (lisp-pred desig:equate
+                        ?object-designator ?object-designator-with-location)))
     ;; robot-location
     (once (or (and (spec:property ?action-designator (:robot-location
                                                       ?some-location-to-stand))
@@ -158,7 +170,7 @@ the `look-pose-stamped'."
                                            (:object ?object-designator))
                                 ?location-to-stand)))
     (desig:designator :action ((:type :searching)
-                               (:object ?object-designator)
+                               (:object ?object-designator-with-location)
                                (:location ?location-designator)
                                (:robot-location ?location-to-stand))
                       ?resolved-action-designator))
@@ -193,13 +205,26 @@ the `look-pose-stamped'."
                                            ;; (:arm ?arm)
                                            (:object ?object-designator))
                                 ?robot-location-designator)))
+    ;; if the object is in the hand or its reference object is in the hand
+    ;; we need to bring the hand closer to the other hand, e.g., bring to front
+    (-> (man-int:object-or-its-reference-in-hand ?object-designator ?object-hand)
+        (equal ?object-in-hand T)
+        (and (equal ?object-in-hand NIL)
+             (equal ?object-hand NIL)))
     ;; look-location
     (once (or (and (spec:property ?action-designator (:look-location
                                                       ?some-look-loc-desig))
                    (desig:current-designator ?some-look-loc-desig
                                              ?look-location-designator))
-              (desig:designator :location ((:of ?object-designator))
-                                ?look-location-designator)))
+              (-> (or (equal ?object-in-hand NIL) (equal ?object-hand NIL))
+                  (desig:designator :location ((:of ?object-designator))
+                                    ?look-location-designator)
+                  (and (desig:designator :object ((:part-of ?robot)
+                                                  (:link :robot-tool-frame)
+                                                  (:which-link ?object-hand))
+                                         ?object-hand-designator)
+                       (desig:designator :location ((:of ?object-hand-designator))
+                                         ?look-location-designator)))))
     ;; pick-up-action
     (once (or (desig:desig-prop ;; spec:property
                ?action-designator (:pick-up-action ?some-pick-up-action-designator))
@@ -211,7 +236,9 @@ the `look-pose-stamped'."
                                (:grasps ?grasps)
                                (:robot-location ?robot-location-designator)
                                (:look-location ?look-location-designator)
-                               (:pick-up-action ?pick-up-action-designator))
+                               (:pick-up-action ?pick-up-action-designator)
+                               (:object-in-hand ?object-in-hand)
+                               (:object-hand ?object-hand))
                       ?resolved-action-designator))
 
 
@@ -336,15 +363,16 @@ the `look-pose-stamped'."
                                   ?deliver-robot-location-designator)
         (equal ?deliver-robot-location-designator NIL))
     ;; resulting action desig
-    (desig:designator :action
-                      ((:type :transporting)
-                       (:object ?object-designator-with-location)
-                       (:context ?context)
-                       (:search-location ?search-location-designator)
-                       (:search-robot-location ?search-robot-location-designator)
-                       (:fetch-robot-location ?fetch-robot-location-designator)
-                       (:arms ?arms)
-                       (:grasps ?grasps)
-                       (:deliver-location ?delivering-location-designator)
-                       (:deliver-robot-location ?deliver-robot-location-designator))
-                      ?resolved-action-designator)))
+    (desig:designator
+     :action
+     ((:type :transporting)
+      (:object ?object-designator-with-location)
+      (:context ?context)
+      (:search-location ?search-location-designator)
+      (:search-robot-location ?search-robot-location-designator)
+      (:fetch-robot-location ?fetch-robot-location-designator)
+      (:arms ?arms)
+      (:grasps ?grasps)
+      (:deliver-location ?delivering-location-designator)
+      (:deliver-robot-location ?deliver-robot-location-designator))
+     ?resolved-action-designator)))

@@ -308,7 +308,7 @@ to face from `pos1' towards `pos2'."
          (p-rel (cl-transforms:v- point2 point1)))
     (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))
 
-(defun make-point-to-point-generator (pos1 pos2 &key (samples 1) sample-step)
+(defun make-point-to-point-generator (pos1 pos2 &key (samples 1) sample-step sample-offset)
   "Returns a function that takes an X and Y coordinate and returns a lazy-list of
 quaternions to face from `pos1' to `pos2'."
   (location-costmap:make-orientation-generator
@@ -317,7 +317,8 @@ quaternions to face from `pos1' to `pos2'."
     pos1
     pos2)
    :samples samples
-   :sample-step sample-step))
+   :sample-step sample-step
+   :sample-offset sample-offset))
 
 (defun angle-halfway-to-point-direction (x y pos1 pos2 target-pos)
   "Takes an X and Y coordinate and returns a quaternion between the one facing
@@ -326,7 +327,7 @@ from pos1 to pos2 and the one facing from (X,Y) to target-pos."
         (target-direction (costmap::angle-to-point-direction x y target-pos)))
     (/ (+ pos-direction target-direction) 2)))
 
-(defun make-angle-halfway-to-point-generator (pos1 pos2 target-pos &key (samples 1) sample-step)
+(defun make-angle-halfway-to-point-generator (pos1 pos2 target-pos &key (samples 1) sample-step sample-offset)
   "Returns a function that takes an X and Y coordinate and returns a lazy-list of
 quaternions facing from (X,Y) halfway to target-pos. Meaning pos1 and pos2
 describe a direction and the quaternion is the angle between one facing directly
@@ -335,7 +336,8 @@ from (X,Y) to target-pos and the direction between pos1 and pos2."
    (alexandria:rcurry #'angle-halfway-to-point-direction
                       pos1 pos2 target-pos)
    :samples samples
-   :sample-step sample-step))
+   :sample-step sample-step
+   :sample-offset sample-offset))
 
 (defun middle-pose (pose1 pose2)
   "Take two poses and return a pose in the middle of them.
@@ -348,9 +350,9 @@ Disregarding the orientation (using the pose2's)."
                                 0.5)))
     (cram-tf:translate-pose
      pose2
-     :x-offset (cl-transforms:x translation-to-middle)
-     :y-offset (cl-transforms:y translation-to-middle)
-     :z-offset (cl-transforms:z translation-to-middle))))
+     :x (cl-transforms:x translation-to-middle)
+     :y (cl-transforms:y translation-to-middle)
+     :z (cl-transforms:z translation-to-middle))))
 
 (defmethod costmap:costmap-generator-name->score
     ((name (eql 'poses-reachable-cost-function))) 10)
@@ -422,13 +424,16 @@ Disregarding the orientation (using the pose2's)."
     (equal ?poses (?neutral-pose ?manipulated-pose))
     (costmap:orientation-samples ?robot-name ?samples)
     (costmap:orientation-sample-step ?robot-name ?sample-step)
+    (once (or (costmap:reachability-orientation-offset ?robot-name ?sample-offset)
+              (equal ?sample-offset 0.0)))
     (costmap:costmap-add-orientation-generator
      (make-angle-halfway-to-point-generator
       ?manipulated-pose
       ?neutral-pose
       ?neutral-pose
       :samples ?samples
-      :sample-step ?sample-step)
+      :sample-step ?sample-step
+      :sample-offset ?sample-offset)
      ?costmap))
 
   (<- (costmap:desig-costmap ?designator ?costmap)
@@ -484,7 +489,9 @@ Disregarding the orientation (using the pose2's)."
     (lisp-fun get-urdf-link-pose ?joint-name ?btr-environment ?joint-pose)
     (costmap:orientation-samples ?robot-name ?samples)
     (costmap:orientation-sample-step ?robot-name ?sample-step)
+    (once (or (costmap:reachability-orientation-offset ?robot-name ?sample-offset)
+              (equal ?sample-offset 0.0)))
     (costmap:costmap-add-orientation-generator
      (costmap:make-angle-to-point-generator
-      ?joint-pose :samples ?samples :sample-step ?sample-step)
+      ?joint-pose :samples ?samples :sample-step ?sample-step :sample-offset ?sample-offset)
      ?costmap)))

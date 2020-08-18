@@ -208,8 +208,7 @@
 
 
 (defun spawn-assembly-objects (&optional (spawning-data *object-spawning-data*))
-  ;; (btr-utils:kill-all-objects)
-  ;; detach all objects from robot and environment
+  (btr-utils:kill-all-objects)
   (btr:detach-all-objects (btr:get-robot-object))
   (btr:detach-all-objects (btr:get-environment-object))
   ;; detach all items from each other
@@ -248,14 +247,9 @@
                                 object-relative-pose))))))
                   spawning-data)))
 
-    (btr:attach-object 'motor-grill 'underbody)
+    (btr:attach-object :motor-grill :underbody)
 
     objects))
-
-
-(defmethod exe:generic-perform :before (designator)
-  (format t "~%PERFORMING~%~A~%~%" designator))
-
 
 ;;; ASSEMBLY STEPS:
 ;;; (1)  put chassis on holder (bump inwards)
@@ -376,8 +370,8 @@
                                       (type counter-top)
                                       (urdf-name kitchen-island-surface)
                                       (part-of ?env-name)))
-                        (side right)
                         (range-invert 0.9)
+                        (side right)
                         (side front))
                (desig:a location
                         (on ?wooden-plate)
