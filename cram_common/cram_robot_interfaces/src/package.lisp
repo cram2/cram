@@ -10,8 +10,8 @@
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
 ;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
+;;;       Technische Universitaet Muenchen nor the names of its contributors
+;;;       may be used to endorse or promote products derived from this software
 ;;;       without specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -52,12 +52,14 @@
    #:reachability-designator #:designator-reach-pose #:visibility-designator
    #:reachability-designator-p #:visibility-designator-p
    #:trajectory-desig? #:constraints-desig?
-   ;; ptu
+   ;; neck
    #:camera-frame #:camera-minimal-height #:camera-maximal-height
    #:camera-horizontal-angle #:camera-vertical-angle
    #:neck #:robot-neck-links #:robot-neck-joints #:robot-neck-base-link
    #:camera-in-neck-ee-pose
-   #:neck-camera-z-offset
+   #:neck-camera-z-offset #:neck-camera-pose-unit-vector-multiplier
+   #:neck-camera-resampling-step
+   #:neck-camera-x-axis-limit #:neck-camera-y-axis-limit #:neck-camera-z-axis-limit
    ;; trajectories
    #:trajectory-point
    ;; urdf

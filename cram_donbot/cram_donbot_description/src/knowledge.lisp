@@ -164,8 +164,10 @@
 
   (<- (gripper-link :iai-donbot :left ?link)
     (bound ?link)
-    (lisp-fun search "gripper_" ?link ?pos)
-    (lisp-pred identity ?pos))
+    (or (and (lisp-fun search "gripper_" ?link ?pos)
+             (lisp-pred identity ?pos))
+        (and (lisp-fun search "finger" ?link ?pos)
+             (lisp-pred identity ?pos))))
 
   (<- (gripper-meter-to-joint-multiplier :iai-donbot 1.0))
 
@@ -200,7 +202,12 @@
                                    robot-neck-base-link
                                    robot-joint-states
                                    camera-in-neck-ee-pose
-                                   neck-camera-z-offset)
+                                   neck-camera-z-offset
+                                   neck-camera-pose-unit-vector-multiplier
+                                   neck-camera-resampling-step
+                                   neck-camera-x-axis-limit
+                                   neck-camera-y-axis-limit
+                                   neck-camera-z-axis-limit)
 
   (<- (robot-neck-links :iai-donbot . ?links)
     (arm-links :iai-donbot :left ?links))
@@ -237,7 +244,12 @@
   (<- (camera-in-neck-ee-pose :iai-donbot ?pose)
     (symbol-value *ee-p-camera* ?pose))
 
-  (<- (neck-camera-z-offset :iai-donbot 0.6)))
+  (<- (neck-camera-z-offset :iai-donbot 0.6))
+  (<- (neck-camera-pose-unit-vector-multiplier :iai-donbot 0.4))
+  (<- (neck-camera-resampling-step :iai-donbot 0.1))
+  (<- (neck-camera-x-axis-limit :iai-donbot 0.5))
+  (<- (neck-camera-y-axis-limit :iai-donbot 0.5))
+  (<- (neck-camera-z-axis-limit :iai-donbot 0.2)))
 
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding
@@ -250,7 +262,7 @@
                                            costmap:visibility-costmap-size)
   (<- (costmap:costmap-padding :iai-donbot 0.5))
   (<- (costmap:costmap-manipulation-padding :iai-donbot 0.5))
-  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.05))
+  (<- (costmap:costmap-in-reach-distance :iai-donbot 1.1))
   (<- (costmap:costmap-reach-minimal-distance :iai-donbot 0.1))
   (<- (costmap:orientation-samples :iai-donbot 1))
   (<- (costmap:orientation-sample-step :iai-donbot 0.3))

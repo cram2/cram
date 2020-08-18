@@ -61,4 +61,6 @@
              (:file "ros-grid-cells" :depends-on ("package" "2d-value-map"))
              (:file "ros-occupancy-grid" :depends-on ("package"))
              (:file "visualization"
-              :depends-on ("package" "occupancy-grid" "location-costmap"))))))
+              :depends-on ("package" "occupancy-grid" "location-costmap"))
+             ;; implemented for optimizing costmaps but not integrated yet
+             (:file "quadtree" :depends-on ("package"))))))
