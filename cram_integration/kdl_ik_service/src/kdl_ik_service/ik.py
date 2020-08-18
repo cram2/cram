@@ -37,8 +37,8 @@ def set_joint_limits_for_continuous_joints(kdl_joint_limits_min, kdl_joint_limit
     """
     for idx, (min_lim, max_lim) in enumerate(zip(kdl_joint_limits_min, kdl_joint_limits_max)):
         if max_lim == min_lim == 0.0:
-            kdl_joint_limits_min[idx] = -2 * math.pi
-            kdl_joint_limits_max[idx] = 2 * math.pi
+            kdl_joint_limits_min[idx] = -4 * math.pi
+            kdl_joint_limits_max[idx] = 4 * math.pi
     return kdl_joint_limits_min, kdl_joint_limits_max
 
 
