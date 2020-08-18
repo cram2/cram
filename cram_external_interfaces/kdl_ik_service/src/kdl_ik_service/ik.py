@@ -30,18 +30,6 @@ def hacky_urdf_parser_fix(urdf_str):
     return fixed_urdf
 
 
-def set_joint_limits_for_continuous_joints(kdl_joint_limits_min, kdl_joint_limits_max):
-    """"
-    Joint limits for continuous joints are sometimes provided as [0.0, 0.0]. This isn't recognized by PyKDL
-    Workaround for that and setting the limits to [-2pi, 2pi]
-    """
-    for idx, (min_lim, max_lim) in enumerate(zip(kdl_joint_limits_min, kdl_joint_limits_max)):
-        if max_lim == min_lim == 0.0:
-            kdl_joint_limits_min[idx] = -4 * math.pi
-            kdl_joint_limits_max[idx] = 4 * math.pi
-    return kdl_joint_limits_min, kdl_joint_limits_max
-
-
 # ================================= API ===================================================
 def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_msg, log_fun):
     """
@@ -63,14 +51,10 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     # Get Joint limits
     kdl_joint_limits_min, kdl_joint_limits_max = get_kdl_joint_limit_arrays(kdl_chain, urdf_obj)
 
-    # Workaround for continuous joints
-    corrected_kdl_joint_limits_min, corrected_kdl_joint_limits_max = \
-        set_joint_limits_for_continuous_joints(kdl_joint_limits_min, kdl_joint_limits_max)
-
     fk_solver = PyKDL.ChainFkSolverPos_recursive(kdl_chain)
     velocity_ik = PyKDL.ChainIkSolverVel_pinv(kdl_chain)
     # ik_solver = PyKDL.ChainIkSolverPos_LMA(kdl_chain, 1e-5, 1000, 1e-15)
-    ik_solver = PyKDL.ChainIkSolverPos_NR_JL(kdl_chain, corrected_kdl_joint_limits_min, corrected_kdl_joint_limits_max,
+    ik_solver = PyKDL.ChainIkSolverPos_NR_JL(kdl_chain, kdl_joint_limits_min, kdl_joint_limits_max,
                                              fk_solver, velocity_ik)
 
     # Getting the goal frame and seed state
@@ -94,8 +78,8 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
 
     # check if calculated joint state is within joint limits
     joints_within_limits = check_result_joints_are_within_limits(num_joints, result_joint_state_kdl,
-                                                                 corrected_kdl_joint_limits_min,
-                                                                 corrected_kdl_joint_limits_max)
+                                                                 kdl_joint_limits_min,
+                                                                 kdl_joint_limits_max)
 
     log_fun("Result Joint State Within Limits: " + str(joints_within_limits))
     log_fun("Can Reach Goal Pose With Solution: " + str(goal_pose_reached))
@@ -121,10 +105,15 @@ def get_joint_limits_from_urdf(joint_name, urdf_obj):
         [joint_found] = [joint for joint in urdf_joints if joint.name == joint_name]
     except ValueError as e:
         raise ValueError("Error while trying to find joint named: %s in the urdf. Reason: %s" % (joint_name, e))
-    if joint_found.joint_type != 'fixed':
-        return joint_found.limit.upper, joint_found.limit.lower
-    else:
+    # Continuous joints (0 as joint limits will mess up the IK solution)
+    if joint_found.joint_type == 'continuous' and joint_found.limit.upper == joint_found.limit.lower == 0:
+        return 4 * math.pi, -4 * math.pi
+    # Fixed joints
+    elif joint_found.joint_type == 'fixed':
         return None, None
+    # Prismatic/Revolute/any other joints
+    else:
+        return joint_found.limit.upper, joint_found.limit.lower
 
 
 def get_kdl_joint_limit_arrays(kdl_chain, urdf_obj):
