@@ -43,9 +43,9 @@
    #:arm #:required-arms #:available-arms
    #:arm-joints #:arm-links #:arm-base-joints #:arm-base-links #:arm-tool-joints
    #:hand-links #:end-effector-link #:robot-tool-frame
-   #:gripper-link #:gripper-joint #:gripper-meter-to-joint-multiplier
-   #:planning-group
-   #:standard-to-particular-gripper-transform
+   #:gripper-link #:gripper-joint #:gripper-finger-link
+   #:gripper-meter-to-joint-multiplier
+   #:standard<-particular-gripper-transform
    #:tcp-in-ee-pose
    ;; designator utils
    #:compute-iks

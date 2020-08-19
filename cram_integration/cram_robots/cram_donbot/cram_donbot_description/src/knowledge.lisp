@@ -135,9 +135,9 @@
 (def-fact-group donbot-arm-facts (end-effector-link
                                   robot-tool-frame
                                   arm-joints arm-links
-                                  gripper-joint gripper-link
+                                  gripper-joint gripper-link gripper-finger-link
                                   gripper-meter-to-joint-multiplier
-                                  standard-to-particular-gripper-transform
+                                  standard<-particular-gripper-transform
                                   robot-joint-states
                                   tcp-in-ee-pose
                                   hand-links)
@@ -169,9 +169,15 @@
         (and (lisp-fun search "finger" ?link ?pos)
              (lisp-pred identity ?pos))))
 
+  (<- (gripper-finger-link :iai-donbot ?arm ?link)
+    (bound ?link)
+    (gripper-link :iai-donbot ?arm ?link)
+    (lisp-fun search "finger" ?link ?pos)
+    (lisp-pred identity ?pos))
+
   (<- (gripper-meter-to-joint-multiplier :iai-donbot 1.0))
 
-  (<- (standard-to-particular-gripper-transform :iai-donbot ?transform)
+  (<- (standard<-particular-gripper-transform :iai-donbot ?transform)
     (symbol-value *standard-to-donbot-gripper-transform* ?transform))
 
   (<- (robot-joint-states :iai-donbot :arm :left :carry ?joint-states)
