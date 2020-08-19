@@ -55,9 +55,13 @@
     :components
     ((:file "package")
      (:file "collision-scene" :depends-on ("package"))
-     (:file "action-client" :depends-on ("package"))
      (:file "hash-table-conversions" :depends-on ("package"))
-     (:file "cartesian-interface" :depends-on ("package" "action-client"))
+     (:file "making-goal-messages" :depends-on ("package" "hash-table-conversions"))
+     (:file "action-client" :depends-on ("package"))
+     (:file "cartesian-interface" :depends-on ("package"
+                                               "action-client"
+                                               "hash-table-conversions"
+                                               "making-goal-messages"))
      (:file "joint-interface" :depends-on ("package" "action-client"))
      (:file "base-goals" :depends-on ("package" "action-client" "joint-interface"))
      (:file "torso-goals" :depends-on ("package" "action-client"))
