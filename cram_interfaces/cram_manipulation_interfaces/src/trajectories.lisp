@@ -56,7 +56,7 @@
            (ecase arm
              (:left cram-tf:*robot-left-tool-frame*)
              (:right cram-tf:*robot-right-tool-frame*)))
-         (standard-to-particular-gripper-transform ; g'Tg
+         (standard<-particular-gripper-transform ; g'Tg
            (cl-transforms-stamped:transform->transform-stamped
             gripper-tool-frame
             gripper-tool-frame
@@ -65,7 +65,7 @@
              '?transform
              (car (prolog:prolog
                    `(and (cram-robot-interfaces:robot ?robot)
-                         (cram-robot-interfaces:standard-to-particular-gripper-transform
+                         (cram-robot-interfaces:standard<-particular-gripper-transform
                           ?robot ?transform)))))))
          (base-to-standard-gripper-transform      ; bTg'
            (cram-tf:multiply-transform-stampeds
@@ -76,7 +76,7 @@
     (cram-tf:multiply-transform-stampeds ; bTg' * g'Tg = bTg
      cram-tf:*robot-base-frame* gripper-tool-frame
      base-to-standard-gripper-transform      ; bTg'
-     standard-to-particular-gripper-transform ; g'Tg
+     standard<-particular-gripper-transform ; g'Tg
      :result-as-pose-or-transform :pose)))
 
 (defun calculate-gripper-pose-in-map (base-to-object-transform arm

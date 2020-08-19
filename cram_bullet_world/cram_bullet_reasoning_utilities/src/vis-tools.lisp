@@ -83,5 +83,5 @@
                  '?transform
                  (car (prolog:prolog
                        `(and (cram-robot-interfaces:robot ?robot)
-                             (cram-robot-interfaces:standard-to-particular-gripper-transform
+                             (cram-robot-interfaces:standard<-particular-gripper-transform
                               ?robot ?transform)))))))))))))

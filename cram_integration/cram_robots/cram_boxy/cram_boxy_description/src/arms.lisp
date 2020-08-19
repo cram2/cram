@@ -68,9 +68,10 @@
                                 end-effector-link
                                 robot-tool-frame
                                 arm-joints arm-links
-                                gripper-joint gripper-link
+                                hand-links
+                                gripper-joint gripper-link gripper-finger-link
                                 gripper-meter-to-joint-multiplier
-                                standard-to-particular-gripper-transform
+                                standard<-particular-gripper-transform
                                 ;; robot-arms-parking-joint-states
                                 ;; robot-arms-carrying-joint-states
                                 robot-joint-states
@@ -115,6 +116,19 @@
                                            "right_arm_6_link"
                                            "right_arm_7_link")))
 
+  (<- (hand-links :boxy-description :left (;; "left_gripper_base_link"
+                                           "left_gripper_finger_left_link"
+                                           "left_gripper_finger_right_link"
+                                           "left_gripper_gripper_left_link"
+                                           "left_gripper_gripper_right_link"
+                                           "left_gripper_tool_frame")))
+  (<- (hand-links :boxy-description :right (;; "right_gripper_base_link"
+                                            "right_gripper_finger_left_link"
+                                            "right_gripper_finger_right_link"
+                                            "right_gripper_gripper_left_link"
+                                            "right_gripper_gripper_right_link"
+                                            "right_gripper_tool_frame")))
+
   (<- (gripper-joint :boxy-description :left "left_gripper_joint"))
   (<- (gripper-joint :boxy-description :right "right_gripper_joint"))
 
@@ -127,9 +141,15 @@
     (lisp-fun search "right_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
 
+  (<- (gripper-finger-link :boxy-description ?arm ?link)
+    (bound ?link)
+    (gripper-link :boxy-description ?arm ?link)
+    (lisp-fun search "finger" ?link ?pos)
+    (lisp-pred identity ?pos))
+
   (<- (gripper-meter-to-joint-multiplier :boxy-description 1.0))
 
-  (<- (standard-to-particular-gripper-transform :boxy-description ?transform)
+  (<- (standard<-particular-gripper-transform :boxy-description ?transform)
     (symbol-value *standard-to-boxy-gripper-transform* ?transform))
 
   (<- (robot-joint-states :boxy-description :arm :left :carry ?joint-states)
