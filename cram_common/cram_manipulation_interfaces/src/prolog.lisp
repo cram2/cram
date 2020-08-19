@@ -264,7 +264,7 @@
                                (lisp-fun cram-tf:transform-stamped-inv
                                          ?object-t-std-gripper
                                          ?std-gripper-t-object)
-                               (rob-int:standard-to-particular-gripper-transform
+                               (rob-int:standard<-particular-gripper-transform
                                 ?robot
                                 ?std-gripper-t-gripper-not-stamped)
                                (lisp-fun
