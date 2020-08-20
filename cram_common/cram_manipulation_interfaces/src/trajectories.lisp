@@ -118,16 +118,17 @@ Gripper is defined by a convention where Z is pointing towards the object.")
                              object-type object-name arm grasp location
                              grasp-transform)))
 
-(defgeneric get-object-type-wrt-base-frame-lift-transforms (object-type
+(defgeneric get-object-type-wrt-reference-frame-lift-transforms (object-type
                                                             arm grasp location)
-  (:documentation "Returns a list of transform stampeds bTb representing the
+  (:documentation "Returns a list of transform stampeds eTe representing the
 lift and 2nd-lift offset of given `object-type' with `arm' and `grasp'
 in `cram-tf:*robot-base-frame*'. Therefore, instantiated methods will
-specify how much an object with given `object-type' will be lifted
-up in meters after grasping it, where the offset is defined w.r.t. base frame.
-Depending on the `location', different lifting trajectories can be defined.")
+specify how much an object with given `object-type' will be lifted up
+in meters after grasping it, where the offset is defined w.r.t. robot
+frame.Depending on the `location', different lifting trajectories can
+be defined.")
   (:method (object-type arm grasp location)
-    (call-with-specific-type #'get-object-type-wrt-base-frame-lift-transforms
+    (call-with-specific-type #'get-object-type-wrt-reference-frame-lift-transforms
                              object-type arm grasp location)))
 
 
@@ -261,7 +262,7 @@ Depending on the `location', different lifting trajectories can be defined.")
           (error "Pregrasp transforms not defined for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
-  (defmethod get-object-type-wrt-base-frame-lift-transforms ((object-type (eql object))
+  (defmethod get-object-type-wrt-reference-frame-lift-transforms ((object-type (eql object))
                                                              (arm (eql arm))
                                                              (grasp (eql evaled-grasp-type))
                                                              ,(if location-type
@@ -271,14 +272,10 @@ Depending on the `location', different lifting trajectories can be defined.")
     (let ((this-lift-transform lift-transform)
           (this-2nd-lift-transform 2nd-lift-transform))
       (if (and this-lift-transform this-2nd-lift-transform)
-          (list
-           (cl-transforms-stamped:transform->transform-stamped
-            cram-tf:*robot-base-frame* cram-tf:*robot-base-frame* 0.0
-            this-lift-transform)
-           (cl-transforms-stamped:transform->transform-stamped
-            cram-tf:*robot-base-frame* cram-tf:*robot-base-frame* 0.0
-            this-2nd-lift-transform))
-          (error "Lift transforms w.r.t. base frame not defined ~
+          (list 
+           this-lift-transform
+           this-2nd-lift-transform)
+          (error "Lift transforms w.r.t to reference frame not defined ~
                   for object type ~a with arm ~a and grasp ~a~%"
                  object-type arm grasp))))
 
@@ -286,14 +283,64 @@ Depending on the `location', different lifting trajectories can be defined.")
                          arm-list))
                object-list))))
 
+(defun get-lift-transforms-in-base (object-type object-name arm grasp
+                                    location urdf-name)
+"Calculates the lift transform stamped of `object-type' given the
+`arm' and `location' and returns it in the frame of `cram-tf:*robot-base-frame*'.
 
+If the frame `urdf-name' is not nil, we create a transform stamped
+with `get-object-type-wrt-reference-frame-lift-transforms' in the given
+frame `urdf-name'. These transform stamped in the frame-id of
+`urdf-name' will then be used to calculate the lift transforms
+stampeds in the frame `cram-tf:*robot-base-frame*'.
+
+If `urdf-name' is nil, the returned transform of
+`get-object-type-wrt-reference-frame-lift-transforms' will be
+used in a transform stamped with frame-id and child-frame-id of
+`cram-tf:*robot-base-frame*'."
+  (let* ((urdf-name-as-string
+           (roslisp-utilities:rosify-underscores-lisp-name
+            urdf-name))
+         (lift-frame
+           (if urdf-name
+               urdf-name-as-string
+               cram-tf:*robot-base-frame*))
+         (rTr-lifts
+           (mapcar
+            (alexandria:curry #'cl-tf:transform->transform-stamped 
+                              lift-frame lift-frame 0)
+            (get-object-type-wrt-reference-frame-lift-transforms
+             object-type arm grasp location))))
+    (if urdf-name
+        (let* ((mTe
+                 (cl-tf:transform->transform-stamped
+                  cram-tf:*fixed-frame* lift-frame
+                  0
+                  (cl-tf:lookup-transform
+                   cram-tf:*transformer* cram-tf:*fixed-frame* lift-frame
+                   :timeout cram-tf:*tf-default-timeout*)))
+               (bTm
+                 (cram-tf:transform-stamped-inv
+                  (cram-tf:robot-current-transform)))
+               (eTb
+                 (cram-tf:apply-transform
+                  (cram-tf:transform-stamped-inv mTe)
+                  (cram-tf:transform-stamped-inv bTm))))
+          (mapcar (lambda (rtr-lift)
+                    (reduce #'cram-tf:apply-transform
+                            `(,bTm ,mTe ,rTr-lift ,eTb)
+                            :from-end T))
+                  rTr-lifts))
+        
+        rtr-lifts)))
 
 (defmethod get-action-trajectory :heuristics 20 ((action-type (eql :picking-up))
                                                  arm
                                                  grasp
                                                  location
                                                  objects-acted-on
-                                                 &key)
+                                                 &key
+                                                   urdf-name)
   (let* ((object
            (car objects-acted-on))
          (object-name
@@ -308,8 +355,8 @@ Depending on the `location', different lifting trajectories can be defined.")
          (oTb
            (cram-tf:transform-stamped-inv bTo))
          (bTb-lifts
-           (get-object-type-wrt-base-frame-lift-transforms
-            object-type arm grasp location))
+           (get-lift-transforms-in-base 
+            object-type object-name arm grasp location urdf-name))
          (oTg-lifts
            (mapcar (lambda (btb-lift)
                      (reduce #'cram-tf:apply-transform
@@ -337,7 +384,9 @@ Depending on the `location', different lifting trajectories can be defined.")
                                                  grasp
                                                  location
                                                  objects-acted-on
-                                                 &key target-object-transform-in-base)
+                                                 &key
+                                                   target-object-transform-in-base
+                                                   urdf-name)
   (let* ((object
            (first objects-acted-on))
          (object-name
@@ -372,8 +421,8 @@ Depending on the `location', different lifting trajectories can be defined.")
                    `(,oTb ,bTb-drop-z-offset ,bTo ,oTg-std-no-z-offset)
                    :from-end T))
          (bTb-lifts
-           (get-object-type-wrt-base-frame-lift-transforms
-            object-type arm grasp location))
+           (get-lift-transforms-in-base
+            object-type object-name arm grasp location urdf-name))
          (oTg-lifts
            (reverse
             (mapcar
@@ -386,7 +435,7 @@ Depending on the `location', different lifting trajectories can be defined.")
            (reverse
             (get-object-type-to-gripper-pregrasp-transforms
              object-type object-name arm grasp location oTg-std))))
-
+    
     (mapcar (lambda (label transforms)
               (make-traj-segment
                :label label

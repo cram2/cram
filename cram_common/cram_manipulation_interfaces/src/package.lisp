@@ -81,7 +81,7 @@
    ;;
    #:get-object-type-to-gripper-transform
    #:get-object-type-to-gripper-pregrasp-transforms
-   #:get-object-type-wrt-base-frame-lift-transforms
+   #:get-object-type-wrt-reference-frame-lift-transforms
    #:def-object-type-to-gripper-transforms
    #:get-object-grasping-poses
    ;;
