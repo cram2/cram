@@ -585,7 +585,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
              `(and (btr:bullet-world ?world)
                    (rob-int:robot ?robot)
                    (btr:contact ?world ?robot ?object-name ?link)
-                   (rob-int:gripper-link ?robot ,arm ?link)
+                   (rob-int:hand-link ?robot ,arm ?link)
                    (btr:%object ?world ?object-name ?object-instance)
                    ;; (or (prolog:lisp-type ?object-instance btr:item)
                    ;;     (prolog:lisp-type ?object-instance btr:robot-object))

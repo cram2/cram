@@ -37,54 +37,17 @@
 (defparameter *standard-to-boxy-gripper-transform*
   (cl-transforms-stamped:make-identity-transform))
 
-(defparameter *left-parking-joint-states*
-  '(("left_arm_0_joint" -1.858d0)
-    ("left_arm_1_joint" 0.70571d0)
-    ("left_arm_2_joint" 0.9614d0)
-    ("left_arm_3_joint" -0.602d0)
-    ("left_arm_4_joint" -2.5922d0)
-    ("left_arm_5_joint" -1.94065d0)
-    ("left_arm_6_joint" -1.28735d0)))
-
-(defparameter *right-parking-joint-states*
-  '(("right_arm_0_joint" 1.858d0)
-    ("right_arm_1_joint" -0.70571d0)
-    ("right_arm_2_joint" -0.9614d0)
-    ("right_arm_3_joint" 0.602d0)
-    ("right_arm_4_joint" 2.5922d0)
-    ("right_arm_5_joint" 1.94065d0)
-    ("right_arm_6_joint" 1.28735d0)))
-
-(defparameter *left-nicer-configuration*
-  '(-1.2274070978164673
-    0.8496202230453491
-    -0.10349386930465698
-    -1.0852965116500854
-    -0.4587952196598053
-    1.259474515914917
-    -0.06962397694587708))
-
 (def-fact-group boxy-arm-facts (arm
-                                end-effector-link
-                                robot-tool-frame
                                 arm-joints arm-links
-                                hand-links
-                                gripper-joint gripper-link gripper-finger-link
-                                gripper-meter-to-joint-multiplier
+                                hand-links hand-link hand-finger-link
+                                gripper-joint gripper-meter-to-joint-multiplier
                                 standard<-particular-gripper-transform
-                                ;; robot-arms-parking-joint-states
-                                ;; robot-arms-carrying-joint-states
-                                robot-joint-states
-                                tcp-in-ee-pose)
+                                end-effector-link robot-tool-frame
+                                tcp-in-ee-pose
+                                robot-joint-states)
 
   (<- (arm :boxy-description :left))
   (<- (arm :boxy-description :right))
-
-  (<- (end-effector-link :boxy-description :left "left_arm_7_link"))
-  (<- (end-effector-link :boxy-description :right "right_arm_7_link"))
-
-  (<- (robot-tool-frame :boxy-description :left "left_gripper_tool_frame"))
-  (<- (robot-tool-frame :boxy-description :right "right_gripper_tool_frame"))
 
   (<- (arm-joints :boxy-description :left ("left_arm_0_joint"
                                            "left_arm_1_joint"
@@ -129,56 +92,80 @@
                                             "right_gripper_gripper_right_link"
                                             "right_gripper_tool_frame")))
 
-  (<- (gripper-joint :boxy-description :left "left_gripper_joint"))
-  (<- (gripper-joint :boxy-description :right "right_gripper_joint"))
-
-  (<- (gripper-link :boxy-description :left ?link)
+  (<- (hand-link :boxy-description :left ?link)
     (bound ?link)
     (lisp-fun search "left_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
-  (<- (gripper-link :boxy-description :right ?link)
+  (<- (hand-link :boxy-description :right ?link)
     (bound ?link)
     (lisp-fun search "right_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
 
-  (<- (gripper-finger-link :boxy-description ?arm ?link)
+  (<- (hand-finger-link :boxy-description ?arm ?link)
     (bound ?link)
-    (gripper-link :boxy-description ?arm ?link)
+    (hand-link :boxy-description ?arm ?link)
     (lisp-fun search "finger" ?link ?pos)
     (lisp-pred identity ?pos))
+
+  (<- (gripper-joint :boxy-description :left "left_gripper_joint"))
+  (<- (gripper-joint :boxy-description :right "right_gripper_joint"))
 
   (<- (gripper-meter-to-joint-multiplier :boxy-description 1.0))
 
   (<- (standard<-particular-gripper-transform :boxy-description ?transform)
     (symbol-value *standard-to-boxy-gripper-transform* ?transform))
 
-  (<- (robot-joint-states :boxy-description :arm :left :carry ?joint-states)
-    (symbol-value *left-parking-joint-states* ?joint-states))
-  (<- (robot-joint-states :boxy-description :arm :left :park ?joint-states)
-    (symbol-value *left-parking-joint-states* ?joint-states))
-  (<- (robot-joint-states :boxy-description :arm :left :carry-top ?joint-states)
-    (symbol-value *left-parking-joint-states* ?joint-states))
-  (<- (robot-joint-states :boxy-description :arm :left :carry-side-gripper-vertical
-                          ?joint-states)
-    (symbol-value *left-parking-joint-states* ?joint-states))
-  (<- (robot-joint-states :boxy-description :arm :left :carry-top-basket
-                          ?joint-states)
-    (symbol-value *left-parking-joint-states* ?joint-states))
-  (<- (robot-joint-states :boxy-description :arm :left :hand-over ?joint-states)
-    (symbol-value *left-parking-joint-states* ?joint-states))
+  (<- (end-effector-link :boxy-description :left "left_arm_7_link"))
+  (<- (end-effector-link :boxy-description :right "right_arm_7_link"))
 
-  (<- (robot-joint-states :boxy-description :arm :right :carry ?joint-states)
-    (symbol-value *right-parking-joint-states* ?joint-states))
-  (<- (robot-joint-states :boxy-description :arm :right :park ?joint-states)
-    (symbol-value *right-parking-joint-states* ?joint-states))
-  (<- (robot-joint-states :boxy-description :arm :right :carry-top ?joint-states)
-    (symbol-value *right-parking-joint-states* ?joint-states))
-  (<- (robot-joint-states :boxy-description :arm :right :carry-side-gripper-vertical
-                          ?j-states)
-    (symbol-value *right-parking-joint-states* ?j-states))
-
-  (<- (robot-joint-states :boxy-description :arm :left :flip ?joint-states)
-    (symbol-value *left-nicer-configuration* ?joint-states))
+  (<- (robot-tool-frame :boxy-description :left "left_gripper_tool_frame"))
+  (<- (robot-tool-frame :boxy-description :right "right_gripper_tool_frame"))
 
   (<- (tcp-in-ee-pose :boxy-description ?pose)
-    (symbol-value *tcp-in-ee-pose* ?pose)))
+    (symbol-value *tcp-in-ee-pose* ?pose))
+
+  (<- (robot-joint-states :boxy-description :arm :left :carry
+                          (("left_arm_0_joint" -1.858d0)
+                           ("left_arm_1_joint" 0.70571d0)
+                           ("left_arm_2_joint" 0.9614d0)
+                           ("left_arm_3_joint" -0.602d0)
+                           ("left_arm_4_joint" -2.5922d0)
+                           ("left_arm_5_joint" -1.94065d0)
+                           ("left_arm_6_joint" -1.28735d0))))
+  (<- (robot-joint-states :boxy-description :arm :left :park ?joint-states)
+    (robot-joint-states :boxy-description :arm :left :carry ?joint-states))
+  (<- (robot-joint-states :boxy-description :arm :left :carry-top ?joint-states)
+    (robot-joint-states :boxy-description :arm :left :carry ?joint-states))
+  (<- (robot-joint-states :boxy-description :arm :left :carry-side-gripper-vertical
+                          ?joint-states)
+    (robot-joint-states :boxy-description :arm :left :carry ?joint-states))
+  (<- (robot-joint-states :boxy-description :arm :left :carry-top-basket
+                          ?joint-states)
+    (robot-joint-states :boxy-description :arm :left :carry ?joint-states))
+  (<- (robot-joint-states :boxy-description :arm :left :hand-over ?joint-states)
+    (robot-joint-states :boxy-description :arm :left :carry ?joint-states))
+
+  (<- (robot-joint-states :boxy-description :arm :right :carry
+                          (("right_arm_0_joint" 1.858d0)
+                           ("right_arm_1_joint" -0.70571d0)
+                           ("right_arm_2_joint" -0.9614d0)
+                           ("right_arm_3_joint" 0.602d0)
+                           ("right_arm_4_joint" 2.5922d0)
+                           ("right_arm_5_joint" 1.94065d0)
+                           ("right_arm_6_joint" 1.28735d0))))
+  (<- (robot-joint-states :boxy-description :arm :right :park ?joint-states)
+    (robot-joint-states :boxy-description :arm :right :carry ?joint-states))
+  (<- (robot-joint-states :boxy-description :arm :right :carry-top ?joint-states)
+    (robot-joint-states :boxy-description :arm :right :carry ?joint-states))
+  (<- (robot-joint-states :boxy-description :arm :right :carry-side-gripper-vertical
+                          ?joint-states)
+    (robot-joint-states :boxy-description :arm :right :carry ?joint-states))
+
+  (<- (robot-joint-states :boxy-description :arm :left :flip
+                          (("left_arm_0_joint" -1.2274070978164673)
+                           ("left_arm_1_joint" 0.8496202230453491)
+                           ("left_arm_2_joint" -0.10349386930465698)
+                           ("left_arm_3_joint" -1.0852965116500854)
+                           ("left_arm_4_joint" -0.4587952196598053)
+                           ("left_arm_5_joint" 1.259474515914917)
+                           ("left_arm_6_joint" -0.06962397694587708)))))
