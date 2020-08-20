@@ -32,12 +32,16 @@
   :license "BSD"
 
   :depends-on (cram-manipulation-interfaces
+               cram-urdf-projection ;;because of urdf-proj:with-simulated-robot
+               cram-pr2-pick-place-demo
+               ;;cram-donbot-retail-demo
                lisp-unit
                cram-prolog
                )
   :components ((:module "tests"
                 :components
                 ((:file "package")
-                 (:file "object-hierarchy-tests" :depends-on ("package")))))
+                 (:file "object-hierarchy-tests" :depends-on ("package"))
+                 (:file "trajectories-tests" :depends-on ("package")))))
   :perform (test-op (operation component)
                     (symbol-call :lisp-unit '#:run-tests :all :cram-manipulation-interfaces-tests)))
