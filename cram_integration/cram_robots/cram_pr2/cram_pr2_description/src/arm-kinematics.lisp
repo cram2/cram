@@ -34,7 +34,7 @@
    (cl-transforms-stamped:make-identity-rotation)))
 
 (defparameter *standard-to-pr2-gripper-transform*
-  (cl-transforms-stamped:make-transform
+  (cl-transforms:make-transform
    (cl-transforms:make-identity-vector)
    (cl-transforms:matrix->quaternion
     #2A((0 1 0)
@@ -275,13 +275,13 @@
 (def-fact-group pr2-arm-kinematics-facts (arm
                                           end-effector-link robot-tool-frame
                                           gripper-link gripper-joint
+                                          gripper-finger-link
                                           gripper-meter-to-joint-multiplier
-                                          planning-group
                                           robot-joint-states
                                           arm-joints arm-base-joints arm-tool-joints
                                           arm-links arm-base-links
                                           hand-links
-                                          standard-to-particular-gripper-transform
+                                          standard<-particular-gripper-transform
                                           tcp-in-ee-pose)
 
   (<- (arm :pr2 :right))
@@ -302,17 +302,18 @@
     (lisp-fun search "r_gripper" ?link ?pos)
     (lisp-pred identity ?pos))
 
+  (<- (gripper-finger-link :pr2 ?arm ?link)
+    (bound ?link)
+    (gripper-link :pr2 ?arm ?link)
+    (lisp-fun search "finger" ?link ?pos)
+    (lisp-pred identity ?pos))
+
   (<- (gripper-joint :pr2 :left "l_gripper_l_finger_joint"))
   (<- (gripper-joint :pr2 :left "l_gripper_r_finger_joint"))
   (<- (gripper-joint :pr2 :right "r_gripper_l_finger_joint"))
   (<- (gripper-joint :pr2 :right "r_gripper_r_finger_joint"))
 
   (<- (gripper-meter-to-joint-multiplier :pr2 5.0))
-
-  (<- (planning-group :pr2 :left "left_arm"))
-  (<- (planning-group :pr2 :right "right_arm"))
-  (<- (planning-group :pr2 (:left :right) "both_arms"))
-  (<- (planning-group :pr2 (:right :left) "both_arms"))
 
   (<- (robot-joint-states :pr2 :arm :left :carry ?joint-states)
     (symbol-value *left-carrying-side-joint-states* ?joint-states))
@@ -376,7 +377,7 @@
   (<- (hand-links :pr2 ?arm ?links)
     (lisp-fun get-hand-link-names ?arm ?links))
 
-  (<- (standard-to-particular-gripper-transform :pr2 ?transform)
+  (<- (standard<-particular-gripper-transform :pr2 ?transform)
     (symbol-value *standard-to-pr2-gripper-transform* ?transform))
 
   (<- (tcp-in-ee-pose :pr2 ?transform)

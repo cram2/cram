@@ -104,12 +104,14 @@ turn the robot base such that it looks in the direction of target and look again
 (defun manipulate-environment (&key
                                  ((:type action-type))
                                  ((:object ?object-to-manipulate))
+                                 ((:object-location ?object-location))
                                  ((:arm ?arm))
                                  ((:distance ?distance))
                                  ((:robot-location ?manipulate-robot-location))
                                &allow-other-keys)
   (declare (type keyword action-type ?arm)
            (type desig:object-designator ?object-to-manipulate)
+           (type (or desig:location-designator null) ?object-location)
            (type (or number null) ?distance)
            ;; here, ?manipulate-robot-location can only be null within the function
            ;; but one should not pass a NULL location as argument,
@@ -117,6 +119,15 @@ turn the robot base such that it looks in the direction of target and look again
            (type (or null desig:location-designator) ?manipulate-robot-location))
   "Navigate to reachable location, check if opening/closing trajectory causes collisions,
 if yes, relocate and retry, if no collisions, open or close container."
+
+  ;; Making the containing location accessible before accessing the object
+  (when (and ?object-location
+             (eq action-type :accessing))
+    (let ((?goal `(cpoe:location-accessible ,?object-location)))
+      (exe:perform (desig:an action
+                             (type accessing)
+                             (location ?object-location)
+                             (goal ?goal)))))
 
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -152,7 +163,9 @@ if yes, relocate and retry, if no collisions, open or close container."
                 (ecase action-type
                   (:accessing
                    (let ((?goal
-                           `(cpoe:container-state ,?object-to-manipulate :open)))
+                           (if ?distance
+                               `(cpoe:container-state ,?object-to-manipulate ,?distance)
+                               `(cpoe:container-state ,?object-to-manipulate :open))))
                      (desig:an action
                                (type opening)
                                (arm ?arm)
@@ -162,7 +175,9 @@ if yes, relocate and retry, if no collisions, open or close container."
                                (goal ?goal))))
                   (:sealing
                    (let ((?goal
-                           `(cpoe:container-state ,?object-to-manipulate :closed)))
+                           (if ?distance
+                               `(cpoe:container-state ,?object-to-manipulate ,?distance)
+                               `(cpoe:container-state ,?object-to-manipulate :closed))))
                      (desig:an action
                                (type closing)
                                (arm ?arm)
@@ -174,7 +189,16 @@ if yes, relocate and retry, if no collisions, open or close container."
           (proj-reasoning:check-environment-manipulation-collisions manipulation-action)
           (setf manipulation-action (desig:current-desig manipulation-action))
 
-          (exe:perform manipulation-action))))))
+          (exe:perform manipulation-action)))))
+
+  ;; Seal the object containing location after sealing the object
+  (when (and ?object-location
+             (eq action-type :sealing))
+    (let ((?goal `(cpoe:location-reset ,?object-location)))
+      (exe:perform (desig:an action
+                             (type sealing)
+                             (location ?object-location)
+                             (goal ?goal))))))
 
 
 (defun search-for-object (&key
@@ -226,18 +250,18 @@ retries with different search location or robot base location."
                      (:error-object-or-string e
                       :warning-namespace (fd-plans search-for-object)
                       :reset-designators (list ?search-location ?robot-location)
-                      :rethrow-failure 'common-fail:object-nowhere-to-be-found))))
+                      :rethrow-failure 'common-fail:object-nowhere-to-be-found)
+                   ;; go up with torso to look from higher up
+                   (let ((?goal `(cpoe:torso-at :upper-limit)))
+                     (exe:perform (desig:an action
+                                            (type moving-torso)
+                                            (joint-angle upper-limit)
+                                            (goal ?goal)))))))
 
             ;; navigate
             (exe:perform (desig:an action
                                    (type navigating)
                                    (location ?robot-location)))
-            ;; go up with torso to look from higher up
-            (let ((?goal `(cpoe:torso-at :upper-limit)))
-              (exe:perform (desig:an action
-                                     (type moving-torso)
-                                     (joint-angle upper-limit)
-                                     (goal ?goal))))
 
             (cpl:with-retry-counters ((move-torso-retries 1))
               (cpl:with-failure-handling
@@ -284,6 +308,8 @@ retries with different search location or robot base location."
                 ((:robot-location ?pick-up-robot-location))
                 ((:look-location ?look-location))
                 pick-up-action
+                object-in-hand
+                object-hand
               &allow-other-keys)
   (declare (type desig:object-designator ?object-designator)
            (type list ?arms ?grasps)
@@ -324,6 +350,25 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
         (exe:perform (desig:an action
                                (type navigating)
                                (location ?pick-up-robot-location)))
+
+        ;; if fetch location is in hand, we have a handover,
+        ;; so move the source hand closer
+        (when object-in-hand
+          (let ((?goal
+                  (case object-hand
+                    (:left `(cpoe:arms-positioned-at :hand-over nil))
+                    (:right `(cpoe:arms-positioned-at nil :hand-over))
+                    (t `(cpoe:arms-positioned-at nil nil)))))
+            (exe:perform
+             (desig:an action
+                       (type positioning-arm)
+                       (desig:when (eql object-hand :left)
+                         (left-configuration hand-over))
+                       (desig:when (eql object-hand :right)
+                         (right-configuration hand-over))
+                       (goal ?goal)))
+            (desig:reset ?look-location)))
+
         (let (;; (?goal `(cpoe:looking-at ,?look-location))
               )
           (exe:perform (desig:an action
@@ -336,6 +381,12 @@ and using the grasp and arm specified in `pick-up-action' (if not NIL)."
           (cpl:with-failure-handling
               ((common-fail:gripper-low-level-failure (e)
                  (roslisp:ros-warn (fd-plans fetch) "Misgrasp happened: ~a~%" e)
+                 (exe:perform (desig:an action
+                                        (type releasing)
+                                        (gripper left)))
+                 (exe:perform (desig:an action
+                                        (type releasing)
+                                        (gripper right)))
                  (cpl:do-retry regrasping-retries
                    (roslisp:ros-info (fd-plans fetch) "Reperceiving and repicking...")
                    (cpl:retry))
@@ -510,15 +561,6 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                        (roslisp:ros-warn (fd-plans deliver)
                                          "Retrying with new placing location ...~%"))))
 
-                ;; look
-                (let (;; (?goal `(cpoe:looking-at ,?target-location))
-                      )
-                  (exe:perform (desig:an action
-                                         (type turning-towards)
-                                         (target ?target-location)
-                                         ;; (goal ?goal)
-                                         )))
-
                 ;; if target is in hand, we have a handover,
                 ;; so move target hand closer
                 (when target-in-hand
@@ -536,6 +578,15 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                                  (right-configuration hand-over))
                                (goal ?goal)))
                     (desig:reset ?target-location)))
+
+                ;; look
+                (let (;; (?goal `(cpoe:looking-at ,?target-location))
+                      )
+                  (exe:perform (desig:an action
+                                         (type turning-towards)
+                                         (target ?target-location)
+                                         ;; (goal ?goal)
+                                         )))
 
                 ;; place
                 (let ((place-action
@@ -628,115 +679,112 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                     ((:deliver-location ?delivering-location))
                     ((:deliver-robot-location ?deliver-robot-location))
                   &allow-other-keys)
-  (unwind-protect
-       (progn
+  ;; if we are not sure about the exact location of deliver-location, find it
+  (let ((?goal `(man-int:location-certain ,?delivering-location)))
+    (exe:perform (desig:an action
+                           (type searching)
+                           (location ?delivering-location)
+                           (goal ?goal))))
+  ;; if deliver-location is inside a container, open the container
+  (let ((?goal `(cpoe:location-accessible ,?delivering-location)))
+    (exe:perform (desig:an action
+                           (type accessing)
+                           (location ?delivering-location)
+                           (goal ?goal))))
 
-         ;; if we are not sure about the exact location of deliver-location, find it
-         (let ((?goal `(man-int:location-certain ,?delivering-location)))
-           (exe:perform (desig:an action
-                                  (type searching)
-                                  (location ?delivering-location)
-                                  (goal ?goal))))
-         ;; if deliver-location is inside a container, open the container
-         (let ((?goal `(man-int:location-accessible ,?delivering-location)))
-           (exe:perform (desig:an action
-                                  (type accessing)
-                                  (location ?delivering-location)
-                                  (goal ?goal))))
+  ;; if we are not sure about the exact location of search-location, find it
+  (let ((?goal `(man-int:location-certain ,?search-location)))
+    (exe:perform (desig:an action
+                           (type searching)
+                           (location ?search-location)
+                           (goal ?goal))))
 
-         ;; if we are not sure about the exact location of search-location, find it
-         (let ((?goal `(man-int:location-certain ,?search-location)))
-           (exe:perform (desig:an action
-                                  (type searching)
-                                  (location ?search-location)
-                                  (goal ?goal))))
+  ;; if search-location is inside a container, open the container
+  (let ((?goal `(cpoe:location-accessible ,?search-location)))
+    (exe:perform (desig:an action
+                           (type accessing)
+                           (location ?search-location)
+                           (goal ?goal))))
 
-         ;; if search-location is inside a container, open the container
-         (let ((?goal `(man-int:location-accessible ,?search-location)))
-           (exe:perform (desig:an action
-                                  (type accessing)
-                                  (location ?search-location)
-                                  (goal ?goal))))
+  ;; search for the object to find it's exact pose
+  (exe:perform (desig:an action
+                         (type searching)
+                         (object ?object-designator)
+                         (desig:when ?context
+                           (context ?context))
+                         (desig:when ?search-base-location
+                           (robot-location ?search-base-location))))
+  (setf ?object-designator (desig:current-desig ?object-designator))
+  (roslisp:ros-info (pp-plans transport)
+                    "Found object of type ~a."
+                    (desig:desig-prop-value ?object-designator :type))
 
-         ;; search for the object to find it's exact pose
-         (exe:perform (desig:an action
-                                (type searching)
-                                (object ?object-designator)
-                                (desig:when ?context
-                                  (context ?context))
-                                (desig:when ?search-base-location
-                                  (robot-location ?search-base-location))))
-         (setf ?object-designator (desig:current-desig ?object-designator))
-         (roslisp:ros-info (pp-plans transport)
-                           "Found object of type ~a."
-                           (desig:desig-prop-value ?object-designator :type))
+  ;; If running on the real robot, execute below task tree
+  ;; in projection N times first, then pick the best parameterization
+  ;; and use that parameterization in the real world.
+  ;; If running in projection,
+  ;; just execute the task tree below as normal.
+  (let (?fetch-pick-up-action ?deliver-place-action)
+    (proj-reasoning:with-projected-task-tree
+        (?fetch-robot-location
+         ?fetch-pick-up-action
+         ?deliver-robot-location
+         ?deliver-place-action)
+        3
+        #'proj-reasoning:pick-best-parameters-by-distance
 
-         ;; If running on the real robot, execute below task tree
-         ;; in projection N times first, then pick the best parameterization
-         ;; and use that parameterization in the real world.
-         ;; If running in projection,
-         ;; just execute the task tree below as normal.
-         (let (?fetch-pick-up-action ?deliver-place-action)
-           (proj-reasoning:with-projected-task-tree
-               (?fetch-robot-location
-                ?fetch-pick-up-action
-                ?deliver-robot-location
-                ?deliver-place-action)
-               3
-               #'proj-reasoning:pick-best-parameters-by-distance
+      ;; fetch the object
+      (let ((?fetch-goal
+              `(cpoe:object-in-hand
+                ,?object-designator :left-or-right)))
+        (exe:perform (desig:an action
+                               (type fetching)
+                               (desig:when ?arms
+                                 (arms ?arms))
+                               (desig:when ?grasps
+                                 (grasps ?grasps))
+                               (object ?object-designator)
+                               (desig:when ?fetch-robot-location
+                                 (robot-location ?fetch-robot-location))
+                               (pick-up-action ?fetch-pick-up-action)
+                               (goal ?fetch-goal))))
+      (setf ?object-designator (desig:current-desig ?object-designator))
+      (roslisp:ros-info (pp-plans transport) "Fetched the object.")
 
-             ;; fetch the object
-             (let ((?fetch-goal
-                     `(cpoe:object-in-hand
-                       ,?object-designator :left-or-right)))
-               (exe:perform (desig:an action
-                                      (type fetching)
-                                      (desig:when ?arms
-                                        (arms ?arms))
-                                      (desig:when ?grasps
-                                        (grasps ?grasps))
-                                      (object ?object-designator)
-                                      (desig:when ?fetch-robot-location
-                                        (robot-location ?fetch-robot-location))
-                                      (pick-up-action ?fetch-pick-up-action)
-                                      (goal ?fetch-goal))))
-             (setf ?object-designator (desig:current-desig ?object-designator))
-             (roslisp:ros-info (pp-plans transport) "Fetched the object.")
+      (cpl:with-failure-handling
+          ((common-fail:delivering-failed (e)
+             (declare (ignore e))
+             ;; (return)
+             (drop-at-sink)))
 
-             (cpl:with-failure-handling
-                 ((common-fail:delivering-failed (e)
-                    (declare (ignore e))
-                    ;; (return)
-                    (drop-at-sink)))
+        ;; deliver at destination
+        (let ((?goal
+                `(cpoe:object-at-location
+                  ,?object-designator ,?delivering-location)))
+          (exe:perform (desig:an action
+                                 (type delivering)
+                                 ;; (desig:when ?arm
+                                 ;;   (arm ?arm))
+                                 (object ?object-designator)
+                                 (context ?context)
+                                 (target ?delivering-location)
+                                 (desig:when ?deliver-robot-location
+                                   (robot-location ?deliver-robot-location))
+                                 (place-action ?deliver-place-action)
+                                 (goal ?goal)))))))
 
-               ;; deliver at destination
-               (let ((?goal
-                       `(cpoe:object-at-location
-                         ,?object-designator ,?delivering-location)))
-                 (exe:perform (desig:an action
-                                        (type delivering)
-                                        ;; (desig:when ?arm
-                                        ;;   (arm ?arm))
-                                        (object ?object-designator)
-                                        (context ?context)
-                                        (target ?delivering-location)
-                                        (desig:when ?deliver-robot-location
-                                          (robot-location ?deliver-robot-location))
-                                        (place-action ?deliver-place-action)
-                                        (goal ?goal)))))))
+  ;; reset the fetch location
+  (let ((?goal `(cpoe:location-reset ,?search-location)))
+    (exe:perform (desig:an action
+                           (type sealing)
+                           (location ?search-location)
+                           (goal ?goal))))
 
-         (desig:current-desig ?object-designator))
+  ;; reset the target location
+  (let ((?goal `(cpoe:location-reset ,?delivering-location)))
+    (exe:perform (desig:an action
+                           (type sealing)
+                           (location ?delivering-location)
+                           (goal ?goal))))
 
-    ;; reset the fetch location
-    (let ((?goal `(cpoe:location-reset ,?search-location)))
-      (exe:perform (desig:an action
-                             (type sealing)
-                             (location ?search-location)
-                             (goal ?goal))))
-
-    ;; reset the target location
-    (let ((?goal `(cpoe:location-reset ,?delivering-location)))
-      (exe:perform (desig:an action
-                             (type sealing)
-                             (location ?delivering-location)
-                             (goal ?goal))))))
+  (desig:current-desig ?object-designator))
