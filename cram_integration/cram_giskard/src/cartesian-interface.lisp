@@ -42,103 +42,60 @@
                                              collision-object-b
                                              collision-object-b-link
                                              collision-object-a
-                                             prefer-base align-planes-left align-planes-right)
+                                             prefer-base
+                                             align-planes-left align-planes-right)
   (declare (type (or null cl-transforms-stamped:pose-stamped) left-pose right-pose)
            (type (or null string) pose-base-frame left-tool-frame right-tool-frame)
            (type boolean prefer-base align-planes-left align-planes-right))
-  (roslisp:make-message
-   'giskard_msgs-msg:MoveGoal
-   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal ;; :plan_only
-                              :plan_and_execute)
-   :cmd_seq (vector
-             (roslisp:make-message
-              'giskard_msgs-msg:movecmd
-              :constraints
-              (make-constraints-vector
-               (make-avoid-joint-limits-constraint)
-               (when prefer-base (make-prefer-base-constraint))
-               ;; (when align-planes-left
-               ;;   (make-align-planes-constraint
-               ;;    cram-tf:*robot-base-frame*
-               ;;    "refills_finger"
-               ;;    (cl-transforms-stamped:make-vector-stamped
-               ;;     cram-tf:*robot-base-frame* 0.0
-               ;;     (cl-transforms:make-3d-vector 0 0 1))
-               ;;    (cl-transforms-stamped:make-vector-stamped
-               ;;     cram-tf:*robot-base-frame* 0.0
-               ;;     (cl-transforms:make-3d-vector 0 0 1))))
-               ;; (when align-planes-right
-               ;;   (make-align-planes-constraint
-               ;;    cram-tf:*robot-base-frame*
-               ;;    "refills_finger"
-               ;;    (cl-transforms-stamped:make-vector-stamped
-               ;;     cram-tf:*robot-base-frame* 0.0
-               ;;     (cl-transforms:make-3d-vector 0 0 1))
-               ;;    (cl-transforms-stamped:make-vector-stamped
-               ;;     cram-tf:*robot-base-frame* 0.0
-               ;;     (cl-transforms:make-3d-vector 0 0 1))))
-               )
-              :cartesian_constraints
-              (make-constraints-vector
-               (when left-pose
-                 (make-simple-cartesian-constraint
-                  pose-base-frame
-                  left-tool-frame
-                  left-pose))
-               (when right-pose
-                 (make-simple-cartesian-constraint
-                  pose-base-frame
-                  right-tool-frame
-                  right-pose)))
-              :collisions
-              (case collision-mode
-                (:allow-all (vector (make-allow-all-collision)))
-                (:avoid-all (vector (make-avoid-all-collision 0.1)))
-                (:allow-hand (vector (make-avoid-all-collision 0.05)
-                                     (make-allow-hand-collision
-                                      (append (when left-pose '(:left))
-                                              (when right-pose '(:right)))
-                                      collision-object-b
-                                      collision-object-b-link)
-                                     (make-allow-hand-collision
-                                      (append (when left-pose '(:left))
-                                              (when right-pose '(:right)))
-                                      (rob-int:get-environment-name))))
-                (:allow-attached
-                 (vector
-                  (roslisp:make-message
-                   'giskard_msgs-msg:collisionentry
-                   :type (roslisp:symbol-code
-                          'giskard_msgs-msg:collisionentry
-                          :avoid_all_collisions)
-                   :min_dist 0.02)
-                  (roslisp:make-message
-                   'giskard_msgs-msg:collisionentry
-                   :type (roslisp:symbol-code
-                          'giskard_msgs-msg:collisionentry
-                          :allow_collision)
-                   :robot_links (if collision-object-a
-                                    (vector (roslisp-utilities:rosify-underscores-lisp-name
-                                             collision-object-a))
-                                    (vector (roslisp:symbol-code
-                                             'giskard_msgs-msg:collisionentry
-                                             :all))) ; collision-object-a = attached-obj
-                   :body_b (roslisp-utilities:rosify-underscores-lisp-name
-                            ;; collision-object-b-link
-                            (rob-int:get-environment-name))
-                   :link_bs (if collision-object-b-link
-                                (vector (roslisp-utilities:rosify-underscores-lisp-name
-                                         collision-object-b-link))
-                                (vector (roslisp:symbol-code
-                                         'giskard_msgs-msg:collisionentry
-                                         :all))))))
-                (t
-                 (vector (roslisp:make-message
-                          'giskard_msgs-msg:collisionentry
-                          :type (roslisp:symbol-code
-                                 'giskard_msgs-msg:collisionentry
-                                 :avoid_all_collisions)
-                          :min_dist 0.1))))))))
+  (make-giskard-goal
+   :constraints (list
+                 (make-avoid-joint-limits-constraint)
+                 (when prefer-base (make-prefer-base-constraint))
+                 ;; (when align-planes-left
+                 ;;   (make-align-planes-constraint
+                 ;;    cram-tf:*robot-base-frame*
+                 ;;    "refills_finger"
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
+                 ;; (when align-planes-right
+                 ;;   (make-align-planes-constraint
+                 ;;    cram-tf:*robot-base-frame*
+                 ;;    "refills_finger"
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
+                 )
+   :cartesian-constraints (list (when left-pose
+                                  (make-simple-cartesian-constraint
+                                   pose-base-frame left-tool-frame left-pose))
+                                (when right-pose
+                                  (make-simple-cartesian-constraint
+                                   pose-base-frame right-tool-frame right-pose)))
+   :collisions (case collision-mode
+                 (:avoid-all (make-avoid-all-collision 0.1))
+                 (:allow-all (make-allow-all-collision))
+                 (:allow-hand (list (make-avoid-all-collision 0.05)
+                                    (make-allow-hand-collision
+                                     (append (when left-pose '(:left))
+                                             (when right-pose '(:right)))
+                                     collision-object-b
+                                     collision-object-b-link)
+                                    (make-allow-hand-collision
+                                     (append (when left-pose '(:left))
+                                             (when right-pose '(:right)))
+                                     (rob-int:get-environment-name))))
+                 (:allow-attached (list (make-avoid-all-collision 0.02)
+                                          (make-allow-attached-collision
+                                           collision-object-a
+                                           collision-object-b-link)))
+                 (t (make-avoid-all-collision 0.1)))))
 
 (defun ensure-giskard-cartesian-input-parameters (frame left-pose right-pose)
   (values (when left-pose
@@ -146,16 +103,21 @@
           (when right-pose
             (cram-tf:ensure-pose-in-frame right-pose frame))))
 
-(defun ensure-giskard-cartesian-goal-reached (result status goal-position-left goal-position-right
+(defun ensure-giskard-cartesian-goal-reached (result status
+                                              goal-position-left goal-position-right
                                               goal-frame-left goal-frame-right
-                                              convergence-delta-xy convergence-delta-theta)
+                                              convergence-delta-xy
+                                              convergence-delta-theta)
   (when (eql status :preempted)
-    (roslisp:ros-warn (low-level giskard) "Giskard action preempted with result ~a" result)
+    (roslisp:ros-warn (low-level giskard)
+                      "Giskard action preempted with result ~a" result)
     (return-from ensure-giskard-cartesian-goal-reached))
   (when (eql status :timeout)
-    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
+    (roslisp:ros-warn (pr2-ll giskard-cart)
+                      "Giskard action timed out."))
   (when (eql status :aborted)
-    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action aborted! With result ~a" result)
+    (roslisp:ros-warn (pr2-ll giskard-cart)
+                      "Giskard action aborted! With result ~a" result)
     ;; (cpl:fail 'common-fail:manipulation-goal-not-reached
     ;;           :description "Giskard did not converge to goal because of collision")
     )
@@ -163,33 +125,45 @@
     (unless (cram-tf:tf-frame-converged goal-frame-left goal-position-left
                                         convergence-delta-xy convergence-delta-theta)
       (cpl:fail 'common-fail:manipulation-goal-not-reached
-                :description (format nil "Giskard did not converge to goal:
-~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
+                :description (format nil "Giskard did not converge to goal:~%~
+                                          ~a should have been at ~a ~
+                                          with delta-xy of ~a and delta-angle of ~a."
                                      goal-frame-left goal-position-left
                                      convergence-delta-xy convergence-delta-theta))))
   (when goal-position-right
     (unless (cram-tf:tf-frame-converged goal-frame-right goal-position-right
                                         convergence-delta-xy convergence-delta-theta)
       (cpl:fail 'common-fail:manipulation-goal-not-reached
-                :description (format nil "Giskard did not converge to goal:
-~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
+                :description (format nil "Giskard did not converge to goal:~%~
+                                          ~a should have been at ~a ~
+                                          with delta-xy of ~a and delta-angle of ~a."
                                      goal-frame-right goal-position-right
                                      convergence-delta-xy convergence-delta-theta)))))
 
 (defun call-giskard-cartesian-action (&key
                                         goal-pose-left goal-pose-right action-timeout
-                                        collision-mode collision-object-b collision-object-b-link
+                                        collision-mode
+                                        collision-object-b collision-object-b-link
                                         collision-object-a
-                                        move-base prefer-base align-planes-left align-planes-right
+                                        move-base prefer-base
+                                        align-planes-left align-planes-right
                                         pose-base-frame
-                                        (left-tool-frame cram-tf:*robot-left-tool-frame*)
-                                        (right-tool-frame cram-tf:*robot-right-tool-frame*)
-                                        (convergence-delta-xy *giskard-convergence-delta-xy*)
-                                        (convergence-delta-theta *giskard-convergence-delta-theta*))
-  (declare (type (or null cl-transforms-stamped:pose-stamped) goal-pose-left goal-pose-right)
-           (type (or null number) action-timeout convergence-delta-xy convergence-delta-theta)
-           (type (or null string) pose-base-frame left-tool-frame right-tool-frame)
-           (type boolean move-base prefer-base align-planes-left align-planes-right))
+                                        (left-tool-frame
+                                         cram-tf:*robot-left-tool-frame*)
+                                        (right-tool-frame
+                                         cram-tf:*robot-right-tool-frame*)
+                                        (convergence-delta-xy
+                                         *giskard-convergence-delta-xy*)
+                                        (convergence-delta-theta
+                                         *giskard-convergence-delta-theta*))
+  (declare (type (or null cl-transforms-stamped:pose-stamped)
+                 goal-pose-left goal-pose-right)
+           (type (or null number)
+                 action-timeout convergence-delta-xy convergence-delta-theta)
+           (type (or null string)
+                 pose-base-frame left-tool-frame right-tool-frame)
+           (type boolean
+                 move-base prefer-base align-planes-left align-planes-right))
 
   (when prefer-base
     (setf move-base T))
@@ -199,9 +173,12 @@
 
   (if (or goal-pose-left goal-pose-right)
       (multiple-value-bind (goal-pose-left goal-pose-right)
-          (ensure-giskard-cartesian-input-parameters pose-base-frame goal-pose-left goal-pose-right)
+          (ensure-giskard-cartesian-input-parameters
+           pose-base-frame goal-pose-left goal-pose-right)
 
-        (cram-tf:visualize-marker (list goal-pose-left goal-pose-right) :r-g-b-list '(1 0 1))
+        (cram-tf:visualize-marker
+         (list goal-pose-left goal-pose-right)
+         :r-g-b-list '(1 0 1))
         (multiple-value-bind (result status)
             (let ((goal (make-giskard-cartesian-action-goal
                          goal-pose-left goal-pose-right

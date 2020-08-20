@@ -34,56 +34,11 @@
 
 (defun make-giskard-base-action-goal (pose)
   (declare (type cl-transforms-stamped:pose-stamped pose))
-  (roslisp:make-message
-   'giskard_msgs-msg:MoveGoal
-   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal ;; :plan_only
-                              :plan_and_execute
-                              )
-   :cmd_seq (vector
-             (roslisp:make-message
-              'giskard_msgs-msg:movecmd
-              :cartesian_constraints
-              (vector (roslisp:make-message
-                       'giskard_msgs-msg:cartesianconstraint
-                       :type (roslisp:symbol-code
-                              'giskard_msgs-msg:cartesianconstraint
-                              :translation_3d)
-                       :root_link cram-tf:*odom-frame*
-                       :tip_link cram-tf:*robot-base-frame*
-                       :goal (cl-transforms-stamped:to-msg pose))
-                      (roslisp:make-message
-                       'giskard_msgs-msg:cartesianconstraint
-                       :type (roslisp:symbol-code
-                              'giskard_msgs-msg:cartesianconstraint
-                              :rotation_3d)
-                       :root_link cram-tf:*odom-frame*
-                       :tip_link cram-tf:*robot-base-frame*
-                       :goal (cl-transforms-stamped:to-msg pose)))
-              :joint_constraints
-              (let ((left-names-and-positions
-                      (get-arm-joint-names-and-positions-list :left))
-                    (right-names-and-positions
-                      (get-arm-joint-names-and-positions-list :right)))
-                (vector (roslisp:make-message
-                         'giskard_msgs-msg:jointconstraint
-                         :type (roslisp:symbol-code
-                                'giskard_msgs-msg:jointconstraint
-                                :joint)
-                         :goal_state (roslisp:make-message
-                                      'sensor_msgs-msg:jointstate
-                                      :name (apply #'vector
-                                                   (append (first left-names-and-positions)
-                                                           (first right-names-and-positions)))
-                                      :position (apply #'vector
-                                                       (append (second left-names-and-positions)
-                                                               (second right-names-and-positions)))))))
-              :collisions
-              (vector (roslisp:make-message
-                         'giskard_msgs-msg:collisionentry
-                         :type (roslisp:symbol-code
-                                'giskard_msgs-msg:collisionentry
-                                :avoid_all_collisions)
-                         :min_dist 0.1))))))
+  (make-giskard-goal
+   :cartesian-constraints (make-simple-cartesian-constraint
+                           cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose)
+   :joint-constraints (make-current-joint-state-constraint '(:left :right))
+   :collisions (make-avoid-all-collision)))
 
 (defun ensure-giskard-base-input-parameters (pose)
   (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))
@@ -91,20 +46,23 @@
 (defun ensure-giskard-base-goal-reached (result status goal
                                          convergence-delta-xy convergence-delta-theta)
   (when (eql status :preempted)
-    (roslisp:ros-warn (low-level giskard) "Giskard action preempted with result ~a" result)
+    (roslisp:ros-warn (low-level giskard)
+                      "Giskard action preempted with result ~a" result)
     (return-from ensure-giskard-base-goal-reached))
   (when (eql status :timeout)
     (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
   (when (eql status :aborted)
-    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action aborted! With result ~a" result)
+    (roslisp:ros-warn (pr2-ll giskard-cart)
+                      "Giskard action aborted! With result ~a" result)
     ;; (cpl:fail 'common-fail:manipulation-goal-not-reached
     ;;           :description "Giskard did not converge to goal because of collision")
     )
   (unless (cram-tf:tf-frame-converged cram-tf:*robot-base-frame* goal
                                       convergence-delta-xy convergence-delta-theta)
     (cpl:fail 'common-fail:navigation-goal-not-reached
-              :description (format nil "Giskard did not converge to goal:
-~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
+              :description (format nil "Giskard did not converge to goal:~%~
+                                        ~a should have been at ~a ~
+                                        with delta-xy of ~a and delta-angle of ~a."
                                    cram-tf:*robot-base-frame* goal
                                    convergence-delta-xy convergence-delta-theta))))
 

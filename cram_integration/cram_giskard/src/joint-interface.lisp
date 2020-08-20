@@ -35,143 +35,33 @@
                                        align-planes-left align-planes-right)
   (declare (type list joint-state-left joint-state-right)
            (type boolean align-planes-left align-planes-right))
-  (roslisp:make-message
-   'giskard_msgs-msg:MoveGoal
-   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal :plan_and_execute)
-   :cmd_seq (vector
-             (roslisp:make-message
-              'giskard_msgs-msg:movecmd
-              :constraints
-              (map 'vector #'identity
-                   (remove
-                    NIL
-                    (list
-                     (roslisp:make-message
-                      'giskard_msgs-msg:constraint
-                      :type
-                      "AvoidJointLimits"
-                      :parameter_value_pair
-                      (let ((stream (make-string-output-stream)))
-                        (yason:encode
-                         (cut:recursive-alist-hash-table
-                          `(("percentage" . 40))
-                          :test #'equal)
-                         stream)
-                        (get-output-stream-string stream)))
-                     ;; (when align-planes-left
-                     ;;   (roslisp:make-message
-                     ;;    'giskard_msgs-msg:constraint
-                     ;;    :type
-                     ;;    "AlignPlanes"
-                     ;;    :parameter_value_pair
-                     ;;    (let ((stream (make-string-output-stream)))
-                     ;;      (yason:encode
-                     ;;       (cut:recursive-alist-hash-table
-                     ;;        `(("root" . "base_footprint")
-                     ;;          ("tip" . "refills_finger")
-                     ;;          ("root_normal"
-                     ;;           . (("header"
-                     ;;               . (("stamp" . (("secs" . 0.0)
-                     ;;                              ("nsecs" . 0.0)))
-                     ;;                  ("frame_id" . "base_footprint")
-                     ;;                  ("seq" . 0)))
-                     ;;              ("vector" . (("x" . 0.0)
-                     ;;                           ("y" . 0.0)
-                     ;;                           ("z" . 1.0)))))
-                     ;;          ("tip_normal"
-                     ;;           . (("header"
-                     ;;               . (("stamp" . (("secs" . 0.0)
-                     ;;                              ("nsecs" . 0.0)))
-                     ;;                  ("frame_id" . "base_footprint")
-                     ;;                  ("seq" . 0)))
-                     ;;              ("vector"
-                     ;;               . (("x" . 0.0)
-                     ;;                  ("y" . 0.0)
-                     ;;                  ("z" . 1.0))))))
-                     ;;        :test #'equal)
-                     ;;       stream)
-                     ;;      (get-output-stream-string stream))))
-                     ;; (when align-planes-right
-                     ;;   (roslisp:make-message
-                     ;;    'giskard_msgs-msg:constraint
-                     ;;    :type
-                     ;;    "AlignPlanes"
-                     ;;    :parameter_value_pair
-                     ;;    (let ((stream (make-string-output-stream)))
-                     ;;      (yason:encode
-                     ;;       (cut:recursive-alist-hash-table
-                     ;;        `(("root" . "base_footprint")
-                     ;;          ("tip" . "refills_finger")
-                     ;;          ("tip_normal"
-                     ;;           . (("header"
-                     ;;               . (("stamp" . (("secs" . 0.0)
-                     ;;                              ("nsecs" . 0.0)))
-                     ;;                  ("frame_id" . "refills_finger")
-                     ;;                  ("seq" . 0)))
-                     ;;              ("vector"
-                     ;;               . (("x" . 0.0)
-                     ;;                  ("y" . 1.0)
-                     ;;                  ("z" . 0.0)))))
-                     ;;          ("root_normal"
-                     ;;           . (("header"
-                     ;;               . (("stamp" . (("secs" . 0.0)
-                     ;;                              ("nsecs" . 0.0)))
-                     ;;                  ("frame_id" . "base_footprint")
-                     ;;                  ("seq" . 0)))
-                     ;;              ("vector" . (("x" . 0.0)
-                     ;;                           ("y" . 0.0)
-                     ;;                           ("z" . 1.0))))))
-                     ;;        :test #'equal)
-                     ;;       stream)
-                     ;;      (get-output-stream-string stream))))
-                     )))
-              :joint_constraints
-              (vector (roslisp:make-message
-                       'giskard_msgs-msg:jointconstraint
-                       :type (roslisp:symbol-code
-                              'giskard_msgs-msg:jointconstraint
-                              :joint)
-                       :goal_state (roslisp:make-message
-                                    'sensor_msgs-msg:jointstate
-                                    :name (apply #'vector
-                                                 (first
-                                                  joint-state-left))
-                                    :position (apply #'vector
-                                                     (second
-                                                      joint-state-left))))
-                      (roslisp:make-message
-                       'giskard_msgs-msg:jointconstraint
-                       :type (roslisp:symbol-code
-                              'giskard_msgs-msg:jointconstraint
-                              :joint)
-                       :goal_state (roslisp:make-message
-                                    'sensor_msgs-msg:jointstate
-                                    :name (apply #'vector
-                                                 (first
-                                                  joint-state-right))
-                                    :position (apply #'vector
-                                                     (second
-                                                      joint-state-right)))))
-              ;; :collisions (vector (roslisp:make-message
-              ;;                      'giskard_msgs-msg:collisionentry
-              ;;                      :type (roslisp:symbol-code
-              ;;                             'giskard_msgs-msg:collisionentry
-              ;;                             :avoid_all_collisions)))
-              ))))
-
-(defun get-arm-joint-names-and-positions-list (arm &optional joint-states)
-  (if joint-states
-      (list (mapcar #'first joint-states)
-            (mapcar #'second joint-states))
-      (let ((joint-names
-              (cut:var-value '?joints
-                             (cut:lazy-car
-                              (prolog:prolog
-                               `(and (rob-int:robot ?robot)
-                                     (rob-int:arm-joints ?robot ,arm ?joints)))))))
-        (unless (cut:is-var joint-names)
-          (list joint-names
-                (joints:joint-positions joint-names))))))
+  (make-giskard-goal
+   :constraints (list
+                 (make-avoid-joint-limits-constraint)
+                 ;; (when align-planes-left
+                 ;;   (make-align-planes-constraint
+                 ;;    cram-tf:*robot-base-frame*
+                 ;;    "refills_finger"
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
+                 ;; (when align-planes-right
+                 ;;   (make-align-planes-constraint
+                 ;;    cram-tf:*robot-base-frame*
+                 ;;    "refills_finger"
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))
+                 ;;    (cl-transforms-stamped:make-vector-stamped
+                 ;;     cram-tf:*robot-base-frame* 0.0
+                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
+                 )
+   :joint-constraints (list (make-simple-joint-constraint joint-state-left)
+                            (make-simple-joint-constraint joint-state-right))
+   :collisions (make-avoid-all-collision)))
 
 (defun ensure-giskard-joint-input-parameters (left-goal right-goal)
   (flet ((ensure-giskard-joint-goal (goal arm)

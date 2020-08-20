@@ -31,110 +31,39 @@
 
 (defparameter *torso-convergence-delta-joint* 0.01 "in meters")
 (defparameter *cam* "ur5_wrist_3_link")
+
 (defun make-neck-action-goal (goal-pose)
   (declare (type cl-transforms-stamped:pose-stamped goal-pose))
-  (roslisp:make-message
-   'giskard_msgs-msg:MoveGoal
-   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal :plan_and_execute)
-   :cmd_seq (vector
-             (roslisp:make-message
-              'giskard_msgs-msg:movecmd
-              :constraints
-              (map 'vector #'identity
-                   (remove
-                    NIL
-                    (list
-                     (roslisp:make-message
-                      'giskard_msgs-msg:constraint
-                      :type
-                      "AlignPlanes"
-                      :parameter_value_pair
-                      (let ((stream (make-string-output-stream)))
-                        (yason:encode
-                         (cut:recursive-alist-hash-table
-                          `(("root" . ,cram-tf:*robot-base-frame*)
-                            ("tip" . ,*cam*)
-                            ("root_normal"
-                             . (("header"
-                                 . (("stamp" . (("secs" . 0.0)
-                                                ("nsecs" . 0.0)))
-                                    ("frame_id" . ,cram-tf:*fixed-frame*)
-                                    ("seq" . 0)))
-                                ("vector" . (("x" . 1.0)
-                                             ("y" . 0.0)
-                                             ("z" . 0.0)))))
-                            ("tip_normal"
-                             . (("header"
-                                 . (("stamp" . (("secs" . 0.0)
-                                                ("nsecs" . 0.0)))
-                                    ("frame_id" . ,*cam*)
-                                    ("seq" . 0)))
-                                ("vector"
-                                 . (("x" . 0.0)
-                                    ("y" . -1.0)
-                                    ("z" . 0.0))))))
-                          :test #'equal)
-                         stream)
-                        (get-output-stream-string stream)))
-                     (roslisp:make-message
-                      'giskard_msgs-msg:constraint
-                      :type
-                      "Pointing"
-                      :parameter_value_pair
-                      (let ((stream (make-string-output-stream)))
-                        (yason:encode
-                         (cut:recursive-alist-hash-table
-                          `(("root" . ,cram-tf:*robot-base-frame*)
-                            ("tip" . ,*cam*)
-                            ("goal_point"
-                             . ,(to-hash-table
-                                 (cram-tf:pose-stamped->point-stamped
-                                  goal-pose)))
-                            ;; ("pointing_axis"
-                            ;;  . (("header"
-                            ;;      . (("stamp" . (("secs" . 0.0)
-                            ;;                     ("nsecs" . 0.0)))
-                            ;;         ("frame_id" . "rs_camera_depth_optical_frame")
-                            ;;         ("seq" . 0)))
-                            ;;     ("vector"
-                            ;;      . (("x" . 0.0)
-                            ;;         ("y" . 0.0)
-                            ;;         ("z" . 1.0)))))
-                            )
-                          :test #'equal)
-                         stream)
-                        (get-output-stream-string stream))))))
-              :cartesian_constraints
-              (map 'vector #'identity
-                   (list
-                    (roslisp:make-message
-                     'giskard_msgs-msg:cartesianconstraint
-                     :type (roslisp:symbol-code
-                            'giskard_msgs-msg:cartesianconstraint
-                            :translation_3d)
-                     :root_link cram-tf:*robot-base-frame*
-                     :tip_link *cam*
-                     :goal
-                     (cl-transforms-stamped:to-msg
-                      (print (cram-tf:strip-transform-stamped
-                        (print (cram-tf:apply-transform
-                                (cl-transforms-stamped:make-transform-stamped
-                                 cram-tf:*fixed-frame* cram-tf:*fixed-frame* 0.0
-                                 (cl-transforms:make-3d-vector -0.3 0.8 0.4)
-                                 (cl-transforms:make-identity-rotation))
-                                (print (cram-tf:pose-stamped->transform-stamped
-                                        goal-pose
-                                        "goal_pose"))))
-                        ;; *cam* 0.0
-                        ;; (cl-transforms:make-identity-vector)
-                        ;; (cl-transforms:make-identity-rotation)
-                        ))))))
-              ;; :collisions (vector (roslisp:make-message
-              ;;                      'giskard_msgs-msg:collisionentry
-              ;;                      :type (roslisp:symbol-code
-              ;;                             'giskard_msgs-msg:collisionentry
-              ;;                             :avoid_all_collisions)))
-              ))))
+  (make-giskard-goal
+   :constraints (list (make-align-planes-constraint
+                       cram-tf:*robot-base-frame*
+                       *cam*
+                       (cl-transforms-stamped:make-vector-stamped
+                        cram-tf:*fixed-frame* 0.0
+                        (cl-transforms:make-3d-vector 1 0 0))
+                       (cl-transforms-stamped:make-vector-stamped
+                        *cam* 0.0
+                        (cl-transforms:make-3d-vector 0 -1 0)))
+                      (make-pointing-constraint
+                       cram-tf:*robot-base-frame*
+                       *cam*
+                       goal-pose
+                       ;; (cl-transforms-stamped:make-vector-stamped
+                       ;;  "rs_camera_depth_optical_frame" 0.0
+                       ;;  (cl-transforms:make-3d-vector 0 0 1))
+                       ))
+   :cartesian-constraints (make-simple-cartesian-constraint
+                           cram-tf:*robot-base-frame* *cam*
+                           (cram-tf:strip-transform-stamped
+                            (cram-tf:apply-transform
+                             (cl-transforms-stamped:make-transform-stamped
+                              cram-tf:*fixed-frame* cram-tf:*fixed-frame* 0.0
+                              (cl-transforms:make-3d-vector -0.3 0.8 0.4)
+                              (cl-transforms:make-identity-rotation))
+                             (cram-tf:pose-stamped->transform-stamped
+                              goal-pose "goal_pose"))))
+   :collisions (make-avoid-all-collision)))
+
 
 (defun call-neck-action (&key goal-pose action-timeout)
   (declare (type cl-transforms-stamped:pose-stamped goal-pose)
