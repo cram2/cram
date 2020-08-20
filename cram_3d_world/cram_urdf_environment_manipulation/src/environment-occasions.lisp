@@ -46,7 +46,7 @@
     (lisp-fun cl-urdf:name ?joint ?joint-name)
     (btr:joint-state ?world ?btr-environment ?joint-name ?joint-state)
     (or (and (lisp-type ?distance number)
-             (cram-tf:values-converged ?joint-state ?distance ?delta))
+             (lisp-pred cram-tf:values-converged ?joint-state ?distance ?delta))
         (and (member ?distance (:open :closed))
              (lisp-fun cl-urdf:limits ?joint ?joint-limits)
              (lisp-fun cl-urdf:lower ?joint-limits ?lower-limit)

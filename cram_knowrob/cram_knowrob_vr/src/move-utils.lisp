@@ -80,7 +80,7 @@ the episode. . "
   (move-object (cl-transforms:pose->transform
                 (cram-tf:translate-pose
                  (car (umap-P-uobj-through-surface-ll object "Start"))
-                 :x-offset -0.1))
+                 :x -0.1))
                (object-type-filter-bullet object)))
 
 (defun move-urdf-objects-to-start-pose ()

@@ -41,6 +41,18 @@
                     0.0
                     1.0))))))
 
+(defun make-small-retail-restricted-area-cost-function ()
+  (lambda (x y)
+    (if (> x 2.0)
+        0.0
+        (if (< x -5.0)
+            0.0
+            (if (> y 1.0)
+                0.0
+                (if (< y -1.0)
+                    0.0
+                    1.0))))))
+
 (defun make-iai-kitchen-assembly-restricted-area-cost-function ()
   (lambda (x y)
     (declare (ignore y))
@@ -56,9 +68,11 @@
             1.0
             (if (and (> x 0.0) (> y -1.5) (< y 1.0))
                 1.0
-                (if (and (< x 0.0) (> x -1.5) (> y -1.5) (< y 2.5))
+                (if (and (> x -1.5) (> y -1.5) (< y 2.5))
                     1.0
-                    0.0))))))
+                    (if (and (> x -4.0) (> y -1.0) (< y 1.0))
+                        1.0
+                        0.0)))))))
 
 (defun make-restricted-area-cost-function ()
   (ecase (rob-int:get-environment-name)
@@ -67,7 +81,9 @@
          (make-iai-kitchen-assembly-restricted-area-cost-function)
          (make-iai-kitchen-household-restricted-area-cost-function)))
     (:dm-room
-     (make-dm-room-restricted-area-cost-function))))
+     (make-dm-room-restricted-area-cost-function))
+    (:dm-shelves
+     (make-small-retail-restricted-area-cost-function))))
 
 (defmethod costmap:costmap-generator-name->score ((name (eql 'restricted-area)))
   5)

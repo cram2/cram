@@ -55,17 +55,20 @@
 
 (defparameter *neck-ee-p-camera*
   (cl-transforms:make-pose
-   (cl-transforms:make-3d-vector 0.0986269622673131
-                                 0.12544403167962803
-                                 -0.03128420761449102)
-   (cl-transforms:make-quaternion 0.9999584853467481 -0.0018697606579721564
-                                  0.003765215266400738 0.008087476255186993)))
-
+   (cl-transforms:make-3d-vector
+    0.09862691563322334d0 0.03128412196559971d0 0.04354402436024185d0)
+   (cl-transforms:make-quaternion
+    -0.7013586107397135d0 -0.003984622804686699d0 0.0013402975558304106d0
+    0.7127960729748405d0)))
 
 
 (def-fact-group boxy-neck-facts (camera-frame
                                  camera-in-neck-ee-pose
                                  neck-camera-z-offset
+                                 neck-camera-pose-unit-vector-multiplier
+                                 neck-camera-resampling-step
+                                 neck-camera-x-axis-limit neck-camera-y-axis-limit
+                                 neck-camera-z-axis-limit
                                  camera-horizontal-angle camera-vertical-angle
                                  camera-minimal-height camera-maximal-height
                                  robot-neck-links
@@ -78,7 +81,12 @@
   (<- (camera-in-neck-ee-pose :boxy-description ?pose)
     (symbol-value *neck-ee-p-camera* ?pose))
 
-  (<- (neck-camera-z-offset :boxy-description 0.2))
+  (<- (neck-camera-z-offset :boxy-description 0.1))
+  (<- (neck-camera-pose-unit-vector-multiplier :boxy-description 0.4))
+  (<- (neck-camera-resampling-step :boxy-description 0.1))
+  (<- (neck-camera-x-axis-limit :boxy-description 0.2))
+  (<- (neck-camera-y-axis-limit :boxy-description 0.2))
+  (<- (neck-camera-z-axis-limit :boxy-description 0.2))
 
   ;; These are values taken from the Kinect's wikipedia page for the 360 variant
   (<- (camera-horizontal-angle :boxy-description 0.99483)) ;  ca 57 degrees

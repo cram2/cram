@@ -47,22 +47,15 @@
     ("wrist_flex_joint" -1.85)
     ("wrist_roll_joint" 0)))
 
-(defun get-hand-link-names (arm)
-  (ecase arm
-    (:left (list "hand_l_distal_link"
-                 "hand_l_spring_proximal_link"
-                 "hand_palm_link"
-                 "hand_r_distal_link"
-                 "hand_r_spring_proximal_link"))))
-
 
 (def-fact-group hsrb-arm-facts (arm
                                 end-effector-link
                                 robot-tool-frame
                                 arm-joints arm-links
-                                gripper-joint gripper-link
+                                hand-links
+                                gripper-joint gripper-link gripper-finger-link
                                 gripper-meter-to-joint-multiplier
-                                standard-to-particular-gripper-transform
+                                standard<-particular-gripper-transform
                                 robot-joint-states
                                 tcp-in-ee-pose)
 
@@ -82,6 +75,12 @@
                              "wrist_flex_link"
                              "wrist_roll_link")))
 
+  (<- (hand-links :hsrb :left ("hand_l_distal_link"
+                               "hand_l_spring_proximal_link"
+                               "hand_palm_link"
+                               "hand_r_distal_link"
+                               "hand_r_spring_proximal_link")))
+
   (<- (gripper-joint :hsrb :left "hand_motor_joint"))
 
   (<- (gripper-link :hsrb :left ?link)
@@ -89,9 +88,15 @@
     (lisp-fun search "hand" ?link ?pos)
     (lisp-pred identity ?pos))
 
+  (<- (gripper-finger-link :hsrb ?arm ?link)
+    (bound ?link)
+    (gripper-link :hsrb ?arm ?link)
+    (lisp-fun search "palm" ?link ?pos)
+    (not (lisp-pred identity ?pos)))
+
   (<- (gripper-meter-to-joint-multiplier :hsrb 1.0))
 
-  (<- (standard-to-particular-gripper-transform :hsrb ?transform)
+  (<- (standard<-particular-gripper-transform :hsrb ?transform)
     (symbol-value *standard-to-hsrb-gripper-transform* ?transform))
 
   (<- (robot-joint-states :hsrb :arm :left :park ?joint-states)

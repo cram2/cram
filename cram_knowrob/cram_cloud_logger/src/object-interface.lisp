@@ -1,87 +1,157 @@
 (in-package :ccl)
 
+(defmethod cram-manipulation-interfaces:get-action-gripping-effort :around (object-type)
+    (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetActionGrippingEffort")))
+        (ccl::start-situation reasoning-id)
+        (let ((query-result (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string object-type)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
+          query-result))        
+      (call-next-method)))
 
-(defmethod man-int:calculate-object-faces :around (robot-to-object-transform)
+(defmethod cram-manipulation-interfaces:get-action-gripper-opening :around (object-type)
   (if *is-logging-enabled*
-      (let ((pose-id (send-create-transform-pose-stamped robot-to-object-transform)))
-        (let ((query-id
-                (ccl::create-prolog-log-query-str
-                 "calculate-object-faces"
-                 (list pose-id)))
-              (query-result (call-next-method)))
-          (log-end-of-query query-id)
-          (log-result-of-query
-           query-id
-           (concatenate 'string (write-to-string (car query-result)) " " (write-to-string (cadr query-result))))
+      (let ((reasoning-id (log-reasoning-task  "GetActionGripperOpening")))
+        (ccl::start-situation reasoning-id)
+        (let ((query-result (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string object-type)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
+          query-result))        
+      (call-next-method)))
+
+
+(defmethod cram-manipulation-interfaces:get-action-grasps :around  (object-type arm object-transform-in-base)
+  (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetActionGrasps")))
+        (ccl::start-situation reasoning-id)
+        (let ((query-result (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          query-result))        
+      (call-next-method)))
+
+(defmethod cram-manipulation-interfaces:get-container-closing-distance :around (container-name)
+    (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetContainerClosingDistance")))
+        (ccl::start-situation reasoning-id)
+        (let ((query-result (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string container-name)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
+          query-result))        
+      (call-next-method)))
+
+(defmethod cram-manipulation-interfaces:get-container-opening-distance :around (container-name)
+  (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetContainerOpeningDistance")))
+        (ccl::start-situation reasoning-id)
+        (let ((query-result (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string container-name)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
+          query-result))        
+      (call-next-method)))
+
+;;(defmethod cram-manipulation-interfaces:get-action-grasps :around  (object-type arm object-transform-in-base)
+;;    (if *is-logging-enabled*
+;;        (let* ((query-result (call-next-method))
+;;               (query-id (log-reasoning-task "cram-manipulation-interfaces:get-action-grasps" (write-to-string object-type) (write-to-string query-result)))
+;;               (pose-id (send-create-transform-pose-stamped object-transform-in-base)))
+;;          (send-rdf-query query-id
+;;                          "knowrob:parameter2"
+;;                          (convert-to-prolog-str pose-id))
+;;          query-result)
+;;        (call-next-method)))
+
+(defmethod cram-manipulation-interfaces:get-action-trajectory :around  (action-type arm grasp location objects-acted-on &key &allow-other-keys)
+    (if *is-logging-enabled*
+      (let ((reasoning-id (log-reasoning-task  "GetActionTrajectory")))
+        (ccl::start-situation reasoning-id)
+        (let ((query-result (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string action-type)
+                                                       " -####- " (write-to-string arm)
+                                                       " -####- " (write-to-string grasp)
+                                                        " -####- " (write-to-string objects-acted-on)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
           query-result))
       (call-next-method)))
 
-(defmethod man-int:get-action-gripping-effort :around (object-type)
+(defmethod cram-manipulation-interfaces:get-location-poses :around (location-designator)
   (if *is-logging-enabled*
-      (let ((query-id
-              (ccl::create-prolog-log-query-str
-               "get-object-type-gripping-effort"
-               (list (write-to-string object-type))))
-            (query-result (call-next-method)))
-        (log-end-of-query query-id)
-        query-result)
+      (let ((reasoning-id (log-reasoning-task "GetLocationPoses")))
+        (ccl::start-situation reasoning-id)
+        (let ((query-result (call-next-method)))
+          (ccl::stop-situation reasoning-id)
+          (ccl::send-comment reasoning-id (concatenate 'string "INPUT -####- " (write-to-string location-designator)))
+          (ccl::send-comment reasoning-id (concatenate 'string "OUTPUT -####- " (write-to-string query-result)))
+          query-result))        
       (call-next-method)))
 
+(defun log-reasoning-task (predicate-name)
+  (let ((reasoning-url (create-reasoning-url predicate-name)))
+      (attach-event-to-situation reasoning-url (get-parent-uri))))
 
-(defmethod man-int:get-action-grasps :around (object-type
-                                              arm
-                                              object-transform-in-base)
-  (if *is-logging-enabled*
-      (let ((query-id
-              (ccl::create-prolog-log-query-str
-               "get-object-type-grasps"
-               (list (write-to-string object-type)
-                     (write-to-string nil)
-                     (write-to-string nil)
-                     (write-to-string nil)
-                     (write-to-string arm))))
-            (query-result (call-next-method)))
-        (log-end-of-query query-id)
-        query-result)
-      (call-next-method)))
 
-(defmethod man-int:get-action-gripper-opening :around (object-type)
-  ;;(format t "Asking for GRIPPER OPENING for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "GRIPPER OPENING Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
+(defun create-reasoning-url (predicate-name)
+  (concatenate 'string "'http://www.ease-crc.org/ont/EASE-ACT.owl#" predicate-name "'"))
 
-(defmethod man-int:get-object-type-wrt-base-frame-lift-transforms :around (object-type
-                                                                           arm
-                                                                           grasp
-                                                                           location)
-  ;;(format t "Asking for GRIPPER LIFT TRANSFORMATION for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "GRIPPER LIFT TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
+;;(defun log-reasoning-task (predicate-name parameter reasoning-result)
+;;  (let
+;;      ((query-id (convert-to-prolog-str (get-value-of-json-prolog-dict
+;;                      (cdaar
+;;                       (send-cram-start-action
+;;                        (concatenate 'string "knowrob:" (convert-to-prolog-str "ReasoningTask"))
+;;                        " \\'TableSetting\\'"
+;;                        (convert-to-prolog-str (get-timestamp-for-logging))
+;;                        "PV"
+;;                        "ActionInst"))
+;;                      "ActionInst"))))
+;;    (print "REASONING LOGGING")
+;;    ;;(send-init-reasoning-query query-id)
+;;    (send-predicate-query query-id predicate-name)
+;;        (print "REASONING LOGGING 1")
+;;    (send-parameter-query query-id parameter)
+;;        (print "REASONING LOGGING 2")
+;;    (send-link-reasoing-to-action query-id)
+;;        (print "REASONING LOGGING 3")
+;;    (send-result-query query-id reasoning-result)
+;;       (print "REASONING LOGGING 4")
+;;    query-id))
 
-(defmethod man-int:get-object-type-to-gripper-transform :around (object-type
-                                                                 object-name
-                                                                 arm
-                                                                 grasp)
-  ;;(format t "Asking for GRIPPER TRANSFORM for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "GRIPPER TRANSFORM Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
 
-(defmethod man-int:get-object-type-to-gripper-pregrasp-transforms :around (object-type
-                                                                           object-name
-                                                                           arm
-                                                                           grasp
-                                                                           location
-                                                                           grasp-transform)
-  ;;(format t "Asking for GRIPPER PREGRASP TRANSFORMATION for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "GRIPPER PREGRASP TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
+(defun send-init-reasoning-query (query-id)
+  (send-prolog-query-1
+   (create-query
+    "cram_start_action"
+    (list (concatenate 'string "knowrob:" (convert-to-prolog-str "PrologQuery"))
+          "\\'TableSetting\\'"
+          (get-timestamp-for-logging)
+          "PV"
+          query-id))))
 
-(defmethod man-int:get-object-grasping-poses :around (object-name object-type arm grasp object-transform)
-  ;;(format t "Asking for GRASPING POSES for the object: ~a~%" object-type)
-  (let ((query-result (call-next-method)))
-    ;;(format t "Asking for GRASPING POSES Result is ~a~% for the object: ~a~%" query-result object-type)
-    query-result))
+(defun send-predicate-query (query-id predicate-name)
+  (send-rdf-query query-id
+                  "knowrob:predicate"
+                  (convert-to-prolog-str predicate-name)))
+
+(defun send-result-query (query-id result-query)
+  (send-rdf-query query-id
+                    "knowrob:result"
+                    (convert-to-prolog-str result-query)))
+
+(defun send-parameter-query (query-id parameter)
+  (send-rdf-query query-id
+                  "knowrob:parameter"
+                  (convert-to-prolog-str parameter)))
+
+(defun send-link-reasoing-to-action (query-id)
+  (send-rdf-query (convert-to-prolog-str (car *action-parents*))
+                  "knowrob:reasoningTask"
+                  query-id))
+
+(defun create-reasoning-task-query-id ()
+  (convert-to-prolog-str (concatenate 'string "http://knowrob.org/kb/knowrob.owl#" "PrologQuery_" (format nil "~x" (random (expt 16 8))))))
+  ;;(concatenate (concatenate 'string "knowrob:" (convert-to-prolog-str (concatenate 'string "PrologQuery_" (format nil "~x" (random (expt 16 8))))))))

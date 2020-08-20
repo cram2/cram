@@ -135,9 +135,9 @@
 (def-fact-group donbot-arm-facts (end-effector-link
                                   robot-tool-frame
                                   arm-joints arm-links
-                                  gripper-joint gripper-link
+                                  gripper-joint gripper-link gripper-finger-link
                                   gripper-meter-to-joint-multiplier
-                                  standard-to-particular-gripper-transform
+                                  standard<-particular-gripper-transform
                                   robot-joint-states
                                   tcp-in-ee-pose
                                   hand-links)
@@ -164,18 +164,20 @@
 
   (<- (gripper-link :iai-donbot :left ?link)
     (bound ?link)
-    (or
-     (and
-      (lisp-fun search "gripper_" ?link ?pos)
-      (lisp-pred identity ?pos))
-     (and
-      (lisp-fun search "marco_" ?link ?pos)
-      (lisp-pred identity ?pos))))
+    (or (and (lisp-fun search "gripper_" ?link ?pos)
+             (lisp-pred identity ?pos))
+        (and (lisp-fun search "finger" ?link ?pos)
+             (lisp-pred identity ?pos))))
 
+  (<- (gripper-finger-link :iai-donbot ?arm ?link)
+    (bound ?link)
+    (gripper-link :iai-donbot ?arm ?link)
+    (lisp-fun search "finger" ?link ?pos)
+    (lisp-pred identity ?pos))
 
   (<- (gripper-meter-to-joint-multiplier :iai-donbot 1.0))
 
-  (<- (standard-to-particular-gripper-transform :iai-donbot ?transform)
+  (<- (standard<-particular-gripper-transform :iai-donbot ?transform)
     (symbol-value *standard-to-donbot-gripper-transform* ?transform))
 
   (<- (robot-joint-states :iai-donbot :arm :left :carry ?joint-states)
@@ -208,7 +210,12 @@
                                    robot-neck-base-link
                                    robot-joint-states
                                    camera-in-neck-ee-pose
-                                   neck-camera-z-offset)
+                                   neck-camera-z-offset
+                                   neck-camera-pose-unit-vector-multiplier
+                                   neck-camera-resampling-step
+                                   neck-camera-x-axis-limit
+                                   neck-camera-y-axis-limit
+                                   neck-camera-z-axis-limit)
 
   (<- (robot-neck-links :iai-donbot . ?links)
     (arm-links :iai-donbot :left ?links))
@@ -245,7 +252,12 @@
   (<- (camera-in-neck-ee-pose :iai-donbot ?pose)
     (symbol-value *ee-p-camera* ?pose))
 
-  (<- (neck-camera-z-offset :iai-donbot 0.6)))
+  (<- (neck-camera-z-offset :iai-donbot 0.6))
+  (<- (neck-camera-pose-unit-vector-multiplier :iai-donbot 0.4))
+  (<- (neck-camera-resampling-step :iai-donbot 0.1))
+  (<- (neck-camera-x-axis-limit :iai-donbot 0.5))
+  (<- (neck-camera-y-axis-limit :iai-donbot 0.5))
+  (<- (neck-camera-z-axis-limit :iai-donbot 0.2)))
 
 
 (def-fact-group location-costmap-metadata (costmap:costmap-padding
