@@ -285,6 +285,15 @@
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
 
+(man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :back
+  :location-type :fridge
+  :grasp-translation `(,*milk-grasp-xy-offset* 0.0d0 ,*milk-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,(- *milk-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *milk-pregrasp-xy-offset*) 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation `(0.3 0 0.05))
+
 ;; FRONT grasp
 (man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :front
   :grasp-translation `(,(- *milk-grasp-xy-offset*) 0.0d0 ,*milk-grasp-z-offset*)
@@ -293,6 +302,15 @@
   :2nd-pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 0.0)
   :lift-translation *lift-offset*
   :2nd-lift-translation *lift-offset*)
+
+(man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :front
+  :location-type :fridge
+  :grasp-translation `(,(- *milk-grasp-xy-offset*) 0.0d0 ,*milk-grasp-z-offset*)
+  :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
+  :pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
+  :2nd-pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 0.0)
+  :lift-translation *lift-offset*
+  :2nd-lift-translation `(0.3 0 0.05))
 
 ;; SIDE grasp
 (man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :left-side
@@ -679,7 +697,7 @@
               ((object-type (eql type))
                environment human
                (context (eql :table-setting)))
-            (make-location-in-fridge-door environment)))
+            (make-location-in-fridge environment)))
         '(:milk))
 
 (mapcar (lambda (type)

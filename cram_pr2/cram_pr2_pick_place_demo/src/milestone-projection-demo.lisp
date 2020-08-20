@@ -48,10 +48,11 @@
     ;; ((:breakfast-cereal . ((1.398 1.490 1.2558) (0 0 0.7071 0.7071)))
     ;; (:breakfast-cereal . ((1.1 1.49 1.25) (0 0 0.7071 0.7071)))
     (:milk
-     ;; "iai_fridge_main_middle_level"
-     ;; ((0.10355 0.022 0.094) (0.00939 -0.00636 -0.96978 -0.2437))
-     "iai_fridge_door_shelf1_bottom"
-     ((0.0 -0.05 0.094) (0 0 0 1)))))
+     "iai_fridge_main_middle_level"
+     ((0.10355 -0.055 0.094) (0.00939 -0.00636 -0.96978 -0.2437))
+     ;;"iai_fridge_door_shelf1_bottom"
+     ;; ((0.0 -0.05 0.094) (0 0 0 1))
+     )))
 
 
 (defparameter *delivery-poses*
