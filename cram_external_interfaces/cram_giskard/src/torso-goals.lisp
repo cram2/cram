@@ -33,24 +33,9 @@
 
 (defun make-giskard-torso-action-goal (joint-angle)
   (declare (type number joint-angle))
-  (roslisp:make-message
-   'giskard_msgs-msg:MoveGoal
-   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal ;; :plan_only
-                              :plan_and_execute
-                              )
-   :cmd_seq (vector
-             (roslisp:make-message
-              'giskard_msgs-msg:movecmd
-              :joint_constraints
-              (vector (roslisp:make-message
-                       'giskard_msgs-msg:jointconstraint
-                       :type (roslisp:symbol-code
-                              'giskard_msgs-msg:jointconstraint
-                              :joint)
-                       :goal_state (roslisp:make-message
-                                    'sensor_msgs-msg:jointstate
-                                    :name (vector cram-tf:*robot-torso-joint*)
-                                    :position (vector joint-angle))))))))
+  (make-giskard-goal
+   :joint-constraints (make-simple-joint-constraint
+                       `((,cram-tf:*robot-torso-joint*) (,joint-angle)))))
 
 (defun ensure-torso-input-parameters (position)
   (declare (type (or keyword number) position))
@@ -92,16 +77,19 @@
 
 (defun ensure-giskard-torso-goal-reached (result status goal convergence-delta)
   (when (eql status :preempted)
-    (roslisp:ros-warn (low-level giskard) "Giskard action preempted with result ~a" result)
+    (roslisp:ros-warn (low-level giskard)
+                      "Giskard action preempted with result ~a" result)
     (return-from ensure-giskard-torso-goal-reached))
   (when (eql status :timeout)
     (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
   (when (eql status :aborted)
-    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action aborted! With result ~a" result)
+    (roslisp:ros-warn (pr2-ll giskard-cart)
+                      "Giskard action aborted! With result ~a" result)
     ;; (cpl:fail 'common-fail:manipulation-goal-not-reached
     ;;           :description "Giskard did not converge to goal because of collision")
     )
-  (let ((current-position (car (joints:joint-positions (list cram-tf:*robot-torso-joint*)))))
+  (let ((current-position
+          (car (joints:joint-positions (list cram-tf:*robot-torso-joint*)))))
     (when current-position
       (unless (cram-tf:values-converged current-position goal convergence-delta)
         (cpl:fail 'common-fail:torso-goal-not-reached
@@ -111,7 +99,8 @@
 
 (defun call-giskard-torso-action (&key
                                     goal-joint-state action-timeout
-                                    (convergence-delta *torso-convergence-delta-joint*))
+                                    (convergence-delta
+                                     *torso-convergence-delta-joint*))
   (declare (type (or number keyword) goal-joint-state)
            (type (or null number) action-timeout convergence-delta))
   (let ((goal-joint-state (ensure-torso-input-parameters goal-joint-state)))
@@ -121,7 +110,8 @@
            'giskard-action
            :action-goal goal
            :action-timeout action-timeout))
-      (ensure-giskard-torso-goal-reached result status goal-joint-state convergence-delta)
+      (ensure-giskard-torso-goal-reached
+       result status goal-joint-state convergence-delta)
       (values result status)
       ;; return the joint state, which is our observation
       (joints:full-joint-states-as-hash-table))))
