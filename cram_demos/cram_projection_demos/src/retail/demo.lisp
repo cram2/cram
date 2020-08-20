@@ -101,7 +101,7 @@
                                   ;; (owl-name "donbot_tray")
                                   (urdf-name plate)))
                     (for ?object)
-                    (attachments (donbot-tray-front donbot-tray-back)))))
+                    (attachments (donbot-tray-front donbot-tray-back donbot-tray-front)))))
 
     (exe:perform
      (desig:an action
@@ -287,7 +287,8 @@
                                   ?pose-in-base ?robot-link-name))
              (?attachment (ecase ?grasp
                             (:front :donbot-tray-front)
-                            (:back :donbot-tray-back))))
+                            (:back :donbot-tray-back)
+                            (:top :donbot-tray-top))))
         (exe:perform
          (an action
              (type placing)

@@ -79,6 +79,7 @@
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :top
+  :location-type :robot
   :grasp-translation `(0.0
                        0.0
                        ,*dish-washer-tabs-grasp-z-offset*)
@@ -99,6 +100,7 @@
                           0.0
                           ,(+ *dish-washer-tabs-grasp-z-offset*
                               *dish-washer-tabs-lift-z-top-grasp-offset*)))
+
 
 ;; BACK grasp robot
 (man-int:def-object-type-to-gripper-transforms :dish-washer-tabs '(:left :right) :back
@@ -162,12 +164,9 @@
         (make-array '(3 3) :initial-contents rot-matrix))
        (cl-transforms:make-identity-rotation))))
 (defun make-base-transform (x y z)
-  (cl-transforms-stamped:make-transform-stamped
-    cram-tf:*robot-base-frame*
-    cram-tf:*robot-base-frame*
-    0.0
-    (cl-transforms:make-3d-vector x y z)
-    (cl-transforms:make-identity-rotation)))
+  (cl-transforms-stamped:make-transform
+   (cl-transforms:make-3d-vector x y z)
+   (cl-transforms:make-identity-rotation)))
 ;; grasp
 (defmethod man-int:get-object-type-to-gripper-transform
     ((object-type (eql :dish-washer-tabs))
@@ -211,7 +210,7 @@
        *dish-washer-tabs-small-lift-z-offset*)
     man-int:*-x-across-z-grasp-rotation-2*)))
 ;; postgrasp
-(defmethod man-int:get-object-type-wrt-base-frame-lift-transforms
+(defmethod man-int:get-object-type-wrt-reference-frame-lift-transforms
     ((type (eql :dish-washer-tabs))
      arm
      (grasp (eql :back))
@@ -228,8 +227,8 @@
     (+ *dish-washer-tabs-grasp-z-offset*
        *dish-washer-tabs-lift-z-other-grasp-offset*))
    (make-base-transform
-    (- *dish-washer-tabs-pregrasp-x-offset*)
     0.0
+    (- *dish-washer-tabs-pregrasp-x-offset*)
     (+ *dish-washer-tabs-grasp-z-offset*
        *dish-washer-tabs-lift-z-other-grasp-offset*))))
 
@@ -278,7 +277,7 @@
        *dish-washer-tabs-small-lift-z-offset*)
     man-int:*x-across-z-grasp-rotation-2*)))
 ;; postgrasp
-(defmethod man-int:get-object-type-wrt-base-frame-lift-transforms
+(defmethod man-int:get-object-type-wrt-reference-frame-lift-transforms
     ((type (eql :dish-washer-tabs))
      arm
      (grasp (eql :front))
@@ -295,11 +294,75 @@
     (+ *dish-washer-tabs-grasp-z-offset*
        *dish-washer-tabs-lift-z-other-grasp-offset*))
    (make-base-transform
-    *dish-washer-tabs-pregrasp-x-offset*
     0.0
+    (- *dish-washer-tabs-pregrasp-x-offset*)
     (+ *dish-washer-tabs-grasp-z-offset*
        *dish-washer-tabs-lift-z-other-grasp-offset*))))
-
+;; TOP grasp shelf
+;; grasp
+(defmethod man-int:get-object-type-to-gripper-transform
+    ((object-type (eql :dish-washer-tabs))
+     object-name
+     arm
+     (grasp (eql :top)))
+  (make-arm-transform
+   object-name arm
+   *dish-washer-tabs-grasp-x-offset*
+   0.0
+   *dish-washer-tabs-grasp-z-offset*
+   man-int:*z-across-x-grasp-rotation*))
+;; pregrasp
+(defmethod man-int:get-object-type-to-gripper-pregrasp-transforms
+    ((type (eql :dish-washer-tabs))
+     object-name
+     arm
+     (grasp (eql :top))
+     location
+     grasp-transform)
+  (list
+   (make-arm-transform
+    object-name arm
+    (- (+ *dish-washer-tabs-grasp-z-offset*
+       *dish-washer-tabs-lift-z-other-grasp-offset*))
+    0.0
+    *dish-washer-tabs-pregrasp-x-offset*
+    man-int:*z-across-x-grasp-rotation*)
+   (make-arm-transform
+    object-name arm
+    (- (+ *dish-washer-tabs-grasp-z-offset*
+        *dish-washer-tabs-lift-z-other-grasp-offset*))
+    0.0
+    *dish-washer-tabs-pregrasp-x-offset*
+    man-int:*z-across-x-grasp-rotation*)
+   (make-arm-transform
+    object-name arm
+    (- (+ *dish-washer-tabs-grasp-z-offset*
+       *dish-washer-tabs-small-lift-z-offset*))
+    0.0
+    *dish-washer-tabs-pregrasp-x-offset*
+    man-int:*z-across-x-grasp-rotation*)))
+;; postgrasp
+(defmethod man-int:get-object-type-wrt-reference-frame-lift-transforms
+    ((type (eql :dish-washer-tabs))
+     arm
+     (grasp (eql :top))
+     location)
+  (list
+   (make-base-transform
+    0.0
+    0.0
+    (+ *dish-washer-tabs-grasp-z-offset*
+       *dish-washer-tabs-small-lift-z-offset*))
+   (make-base-transform
+    0.0
+    0.0
+    (+ *dish-washer-tabs-grasp-z-offset*
+       *dish-washer-tabs-lift-z-other-grasp-offset*))
+   (make-base-transform
+    0.0
+    (- *dish-washer-tabs-pregrasp-x-offset*)
+    (+ *dish-washer-tabs-grasp-z-offset*
+       *dish-washer-tabs-lift-z-other-grasp-offset*))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; BALEA-BOTTLE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -413,6 +476,13 @@
   :attachment-rot-matrix '(( 0  0  1)
                            ( 0  1  0)
                            (-1  0  0)))
+
+(man-int:def-object-type-in-other-object-transform :dish-washer-tabs :robot
+  :donbot-tray-top
+  :attachment-translation `(0.2 0.05 0.11)
+  :attachment-rot-matrix '((0  1  0)
+                           (1  0  0)
+                           (0  0 -1)))
 
 (man-int:def-object-type-in-other-object-transform :dish-washer-tabs :environment
   :donbot-shelf-1-front

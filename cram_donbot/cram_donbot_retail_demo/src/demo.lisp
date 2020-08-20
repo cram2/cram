@@ -55,7 +55,9 @@
                             :color '(1 1 1))
     (btr:add-object btr:*current-bullet-world* :box-item
                     :denkmitgeschirrreinigernature-1
-                    '((1.75 -1.45 1.06) (0 0 0.7 0.7))
+                    ;;'((1.75 -1.45 1.06) (0 0 -0.7 0.7)) ;; BACK
+                    ;;'((1.75 -1.45 1.06) (-0.5 0.5 0.5 0.5)) ;; TOP
+                    '((1.75 -1.45 1.06) (0 0 0.7 0.7)) ;; FRONT
                     :mass 0.2
                     :color '(0 1 0 1.0)
                     :size '(0.057 0.018 0.074)
@@ -65,7 +67,7 @@
 
 (defun demo ()
   (spawn-objects-on-small-shelf)
-
+  (btr:simulate btr:*current-bullet-world* 10)
   (let* ((?environment-name
            (rob-int:get-environment-name))
          (?search-location
@@ -101,7 +103,7 @@
                                   ;; (owl-name "donbot_tray")
                                   (urdf-name plate)))
                     (for ?object)
-                    (attachments (donbot-tray-front donbot-tray-back)))))
+                    (attachments (donbot-tray-front donbot-tray-back donbot-tray-top)))))
 
     (exe:perform
      (desig:an action
@@ -287,7 +289,8 @@
                                   ?pose-in-base ?robot-link-name))
              (?attachment (ecase ?grasp
                             (:front :donbot-tray-front)
-                            (:back :donbot-tray-back))))
+                            (:back :donbot-tray-back)
+                            (:top :donbot-tray-top))))
         (exe:perform
          (an action
              (type placing)

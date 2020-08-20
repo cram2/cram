@@ -84,26 +84,17 @@
     (cl-transforms:make-3d-vector 0.0 0.0 0.1)
     (cl-transforms:make-quaternion 1 0 0 0))))
 
-(defmethod man-int:get-object-type-wrt-base-frame-lift-transforms ((type (eql :shoe))
-                                                                   arm
-                                                                   (grasp (eql :top))
-                                                                   location)
+(defmethod man-int:get-object-type-wrt-reference-frame-lift-transforms ((type (eql :shoe))
+                                                                        arm
+                                                                        (grasp (eql :top))
+                                                                        location)
   (list
-   (cl-transforms-stamped:make-transform-stamped
-    cram-tf:*robot-base-frame*
-    cram-tf:*robot-base-frame*
-    0.0
+   (cl-tf:make-transform
     (cl-transforms:make-3d-vector 0.0 0.0 0.1)
     (cl-transforms:make-identity-rotation))
-   (cl-transforms-stamped:make-transform-stamped
-    cram-tf:*robot-base-frame*
-    cram-tf:*robot-base-frame*
-    0.0
+   (cl-tf:make-transform
     (cl-transforms:make-3d-vector 0.0 0.0 0.2)
     (cl-transforms:make-identity-rotation))
-   (cl-transforms-stamped:make-transform-stamped
-    cram-tf:*robot-base-frame*
-    cram-tf:*robot-base-frame*
-    0.0
+   (cl-tf:make-transform
     (cl-transforms:make-3d-vector 0.0 0.0 0.3)
     (cl-transforms:make-identity-rotation))))

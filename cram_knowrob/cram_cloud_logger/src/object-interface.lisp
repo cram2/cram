@@ -51,10 +51,10 @@
     ;;(format t "GRIPPER OPENING Result is ~a~% for the object: ~a~%" query-result object-type)
     query-result))
 
-(defmethod man-int:get-object-type-wrt-base-frame-lift-transforms :around (object-type
-                                                                           arm
-                                                                           grasp
-                                                                           location)
+(defmethod man-int:get-object-type-wrt-reference-frame-lift-transforms :around (object-type
+                                                                                arm
+                                                                                grasp
+                                                                                location)
   ;;(format t "Asking for GRIPPER LIFT TRANSFORMATION for the object: ~a~%" object-type)
   (let ((query-result (call-next-method)))
     ;;(format t "GRIPPER LIFT TRANSFORMATION Result is ~a~% for the object: ~a~%" query-result object-type)

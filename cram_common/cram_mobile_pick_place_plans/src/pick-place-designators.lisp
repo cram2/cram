@@ -88,14 +88,17 @@
                    (desig:current-designator ?obj-loc ?curr-obj-loc)
                    (man-int:location-reference-object ?curr-obj-loc ?obj-loc-obj)
                    (desig:current-designator ?obj-loc-obj ?curr-obj-loc-obj)
-                   (spec:property ?curr-obj-loc-obj (:type ?location-type)))
-              (equal ?location-type NIL)))
+                   (spec:property ?curr-obj-loc-obj (:type ?location-type))
+                   (spec:property ?curr-obj-loc-obj (:urdf-name ?urdf-name)))
+              (and (equal ?location-type NIL)
+                   (equal ?urdf-name NIL))))
 
     ;; calculate trajectory
     (equal ?objects (?current-object-desig))
+
     (-> (equal ?arm :left)
         (and (lisp-fun man-int:get-action-trajectory :picking-up
-                       ?arm ?grasp ?location-type ?objects
+                       ?arm ?grasp ?location-type ?objects :urdf-name ?urdf-name
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
                        ?left-reach-poses)
@@ -108,7 +111,7 @@
              (equal ?left-lift-poses NIL)))
     (-> (equal ?arm :right)
         (and (lisp-fun man-int:get-action-trajectory :picking-up
-                       ?arm ?grasp ?location-type ?objects
+                       ?arm ?grasp ?location-type ?objects :urdf-name ?urdf-name
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
                        ?right-reach-poses)
@@ -201,8 +204,10 @@
               (equal ?placement-location-name NIL)))
     ;; get the type of the placement location, because the trajectory
     ;; might be different depending on the location type
-    (once (or (spec:property ?other-object-designator (:type ?location-type))
-              (equal ?location-type NIL)))
+    (once (or (and (spec:property ?other-object-designator (:type ?location-type))
+                   (spec:property ?other-object-designator (:urdf-name ?urdf-name)))
+              (and (equal ?location-type NIL)
+                   (equal ?urdf-name NIL))))
     ;; infer the grasp type
     (once (or (spec:property ?action-designator (:grasp ?grasp))
               (cpoe:object-in-hand ?object-designator ?arm ?grasp)))
@@ -215,6 +220,7 @@
         (and (lisp-fun man-int:get-action-trajectory :placing
                        ?arm ?grasp ?location-type ?objects
                        :target-object-transform-in-base ?target-object-transform
+                       :urdf-name ?urdf-name
                        ?left-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?left-trajectory :reaching
                        ?left-reach-poses)
@@ -229,6 +235,7 @@
         (and (lisp-fun man-int:get-action-trajectory :placing
                        ?arm ?grasp ?location-type ?objects
                        :target-object-transform-in-base ?target-object-transform
+                       :urdf-name ?urdf-name
                        ?right-trajectory)
              (lisp-fun man-int:get-traj-poses-by-label ?right-trajectory :reaching
                        ?right-reach-poses)
