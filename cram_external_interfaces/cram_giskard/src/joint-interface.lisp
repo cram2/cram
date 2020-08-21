@@ -40,7 +40,7 @@
                  (make-avoid-joint-limits-constraint)
                  ;; (when align-planes-left
                  ;;   (make-align-planes-constraint
-                 ;;    cram-tf:*robot-base-frame*
+                 ;;    cram-tf:*odom-frame*
                  ;;    "refills_finger"
                  ;;    (cl-transforms-stamped:make-vector-stamped
                  ;;     cram-tf:*robot-base-frame* 0.0
@@ -50,7 +50,7 @@
                  ;;     (cl-transforms:make-3d-vector 0 0 1))))
                  ;; (when align-planes-right
                  ;;   (make-align-planes-constraint
-                 ;;    cram-tf:*robot-base-frame*
+                 ;;    cram-tf:*odom-frame*
                  ;;    "refills_finger"
                  ;;    (cl-transforms-stamped:make-vector-stamped
                  ;;     cram-tf:*robot-base-frame* 0.0
