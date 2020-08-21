@@ -124,6 +124,20 @@
       ("root_normal" . ,(to-hash-table root-vector))
       ("tip_normal" . ,(to-hash-table tip-vector))))))
 
+(defun make-align-planes-tool-frame-constraint (arm root-vector tip-vector)
+  (declare (type keyword arm)
+           (type cl-transforms-stamped:vector-stamped root-vector tip-vector))
+  (let ((tool-frame
+          (cut:var-value
+           '?frame
+           (car (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:robot-tool-frame ?robot ,arm ?frame)))))))
+    (when (cut:is-var tool-frame)
+      (error "[giskard] Tool frame was not defined."))
+    (make-align-planes-constraint
+     cram-tf:*odom-frame* tool-frame root-vector tip-vector)))
+
 (defun make-pointing-constraint (root-frame tip-frame goal-pose
                                  &optional pointing-vector)
   (declare (type string root-frame tip-frame)
@@ -143,55 +157,61 @@
       ,@(when pointing-vector
           `(("pointing_axis" . ,(to-hash-table pointing-vector))))))))
 
-(defun make-open-or-close-constraint (open-or-close arms handle-link goal-joint-state)
-  (declare (type keyword open-or-close)
-           (type list arms)
-           (type string handle-link)
+(defun make-open-or-close-constraint (open-or-close arm handle-link goal-joint-state)
+  (declare (type keyword open-or-close arm)
+           (type keyword handle-link)
            (type (or number null) goal-joint-state))
-  (mapcar (lambda (arm)
-            (let ((tool-frame
-                    (cut:var-value
-                     '?frame
-                     (car (prolog:prolog
-                           `(and (rob-int:robot ?robot)
-                                 (rob-int:robot-tool-frame ?robot ,arm ?frame)))))))
-              (when (cut:is-var tool-frame)
-                (error "[giskard] Tool frame was not defined."))
-              (roslisp:make-message
-               'giskard_msgs-msg:constraint
-               :type
-               (roslisp-utilities:rosify-lisp-name open-or-close)
-               :parameter_value_pair
-               (alist->json-string
-                `(("object_name" . ,(roslisp-utilities:rosify-underscores-lisp-name
-                                     (rob-int:get-environment-name)))
-                  ("tip" . ,tool-frame)
-                  ("handle_link" . ,handle-link)
-                  ,@(when goal-joint-state
-                      `(("goal_joint_state" . ,goal-joint-state))))))))
-          arms))
+  (let ((tool-frame
+          (cut:var-value
+           '?frame
+           (car (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:robot-tool-frame ?robot ,arm ?frame)))))))
+    (when (cut:is-var tool-frame)
+      (error "[giskard] Tool frame was not defined."))
+    (roslisp:make-message
+     'giskard_msgs-msg:constraint
+     :type
+     (roslisp-utilities:rosify-lisp-name open-or-close)
+     :parameter_value_pair
+     (alist->json-string
+      `(("object_name" . ,(roslisp-utilities:rosify-underscores-lisp-name
+                           (rob-int:get-environment-name)))
+        ("tip" . ,tool-frame)
+        ("handle_link" . ,(roslisp-utilities:rosify-underscores-lisp-name
+                           handle-link))
+        ,@(when goal-joint-state
+            `(("goal_joint_state" . ,goal-joint-state))))))))
 
-(defun make-grasp-bar-constraint (tool-frame root-link
+(defun make-grasp-bar-constraint (arm root-link
                                   tip-grasp-axis
                                   bar-axis bar-center bar-length)
-  (roslisp:make-message
-   'giskard_msgs-msg:constraint
-   :type
-   "GraspBar"
-   :parameter_value_pair
-   (alist->json-string
-    `(("tip_grasp_axis"
-       . ,(to-hash-table tip-grasp-axis))
-      ("bar_axis"
-       . ,(to-hash-table bar-axis))
-      ("bar_center"
-       . ,(to-hash-table bar-center))
-      ("tip"
-       . ,tool-frame)
-      ("bar_length"
-       . ,bar-length)
-      ("root"
-       . ,root-link)))))
+  (let ((tool-frame
+          (cut:var-value
+           '?frame
+           (car (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:robot-tool-frame ?robot ,arm ?frame)))))))
+    (when (cut:is-var tool-frame)
+      (error "[giskard] Tool frame was not defined."))
+    (roslisp:make-message
+     'giskard_msgs-msg:constraint
+     :type
+     "GraspBar"
+     :parameter_value_pair
+     (alist->json-string
+      `(("tip_grasp_axis"
+         . ,(to-hash-table tip-grasp-axis))
+        ("bar_axis"
+         . ,(to-hash-table bar-axis))
+        ("bar_center"
+         . ,(to-hash-table bar-center))
+        ("tip"
+         . ,tool-frame)
+        ("bar_length"
+         . ,bar-length)
+        ("root"
+         . ,root-link))))))
 
 (defun make-cartesian-constraint (root-frame tip-frame goal-pose max-velocity)
   (declare (type string root-frame tip-frame)

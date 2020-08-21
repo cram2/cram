@@ -32,11 +32,12 @@
 (defparameter *torso-convergence-delta-joint* 0.01 "in meters")
 (defparameter *cam* "ur5_wrist_3_link")
 
-(defun make-neck-action-goal (goal-pose)
+(defun make-neck-action-goal (goal-pose
+                              &optional (root-link cram-tf:*robot-base-frame*))
   (declare (type cl-transforms-stamped:pose-stamped goal-pose))
   (make-giskard-goal
    :constraints (list (make-align-planes-constraint
-                       cram-tf:*robot-base-frame*
+                       root-link
                        *cam*
                        (cl-transforms-stamped:make-vector-stamped
                         cram-tf:*fixed-frame* 0.0
@@ -45,7 +46,7 @@
                         *cam* 0.0
                         (cl-transforms:make-3d-vector 0 -1 0)))
                       (make-pointing-constraint
-                       cram-tf:*robot-base-frame*
+                       root-link
                        *cam*
                        goal-pose
                        ;; (cl-transforms-stamped:make-vector-stamped
@@ -53,7 +54,7 @@
                        ;;  (cl-transforms:make-3d-vector 0 0 1))
                        ))
    :cartesian-constraints (make-simple-cartesian-constraint
-                           cram-tf:*robot-base-frame* *cam*
+                           root-link *cam*
                            (cram-tf:strip-transform-stamped
                             (cram-tf:apply-transform
                              (cl-transforms-stamped:make-transform-stamped
