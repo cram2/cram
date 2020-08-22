@@ -696,7 +696,8 @@ with the given offsets (the offsets are specified in the torso frame).
                          (btr:robot-colliding-objects-without-attached))
                 (make-instance 'common-fail:manipulation-goal-not-reached
                   :description "Robot is in collision with environment.")))
-             (:allow-hand
+             ((or :allow-hand
+                  :allow-arm)
               ;; allow hand allows collisions between the hand and anything
               ;; but not the rest of the robot
               ;; therefore, we take a list of all links of the robot
@@ -705,39 +706,46 @@ with the given offsets (the offsets are specified in the torso frame).
               ;; and then remove the hand links from the list.
               ;; if the list is still not empty, there is a collision between
               ;; a robot non-hand link and something else
-              (when (and *be-strict-with-collisions*
-                         (set-difference
-                          (mapcar #'cdr
-                                  (reduce (lambda (link-contacts attachment)
-                                            (remove (btr:object
-                                                     btr:*current-bullet-world*
-                                                     (car attachment))
-                                                    link-contacts
-                                                    :key #'car))
-                                          (append
-                                           (list (btr:link-contacts
-                                                  (btr:get-robot-object)))
-                                           (btr:attached-objects
-                                            (btr:get-robot-object)))))
-                          (append (when left-hand-moves
-                                    (cut:var-value
-                                     '?hand-links
-                                     (car (prolog:prolog
-                                           `(and (rob-int:robot ?robot)
-                                                 (rob-int:hand-links
-                                                  ?robot
-                                                  :left
-                                                  ?hand-links))))))
-                                  (when right-hand-moves
-                                    (cut:var-value
-                                     '?hand-links
-                                     (car (prolog:prolog
-                                           `(and (rob-int:robot ?robot)
-                                                 (rob-int:hand-links
-                                                  ?robot
-                                                  :right
-                                                  ?hand-links)))))))
-                          :test #'string-equal))
+              (when (and
+                     *be-strict-with-collisions*
+                     (set-difference
+                      (mapcar
+                       #'cdr
+                       (reduce
+                        (lambda (link-contacts attachment)
+                          (remove
+                           (btr:object btr:*current-bullet-world* (car attachment))
+                           link-contacts
+                           :key #'car))
+                        (append
+                         (list (btr:link-contacts (btr:get-robot-object)))
+                         (btr:attached-objects (btr:get-robot-object)))))
+                      (append
+                       (when left-hand-moves
+                         (cut:var-value
+                          '?links
+                          (car
+                           (prolog:prolog
+                            `(and
+                              (rob-int:robot ?robot)
+                              ,(ecase collision-mode
+                                 (:allow-hand
+                                  '(rob-int:hand-links ?robot :left ?links))
+                                 (:allow-arm
+                                  '(rob-int:arm-links ?robot :left ?links))))))))
+                       (when right-hand-moves
+                         (cut:var-value
+                          '?links
+                          (car
+                           (prolog:prolog
+                            `(and
+                              (rob-int:robot ?robot)
+                              ,(ecase collision-mode
+                                 (:allow-hand
+                                  '(rob-int:hand-links ?robot :right ?links))
+                                 (:allow-arm
+                                  '(rob-int:arm-links ?robot :right ?links)))))))))
+                      :test #'string-equal))
                 (make-instance 'common-fail:manipulation-goal-not-reached
                   :description "Robot is in collision with environment.")))
              (:avoid-all
