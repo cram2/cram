@@ -165,23 +165,30 @@ removes deletes the file and the compiled file after loading it."
 
 
 
-(defun equalize-two-list-lengths (first-list second-list)
+(defun equalize-two-list-lengths (first-list second-list &key return-as-list)
   "Returns two lists of equal length as VALUES.
 To achieve equal length appends NILs at the end of the shorter of `first-list' and `second-list'."
   (unless (listp first-list)
     (setf first-list (list first-list)))
   (unless (listp second-list)
     (setf second-list (list second-list)))
-  (let* ((first-length (length first-list))
-         (second-length (length second-list))
-         (max-length (max first-length second-length)))
-    (values
-     (if (> max-length first-length)
-        (append first-list (make-list (- max-length first-length)))
-        first-list)
-     (if (> max-length second-length)
-        (append second-list (make-list (- max-length second-length)))
-        second-list))))
+  (let* ((first-length
+           (length first-list))
+         (second-length
+           (length second-list))
+         (max-length
+           (max first-length second-length))
+         (first-list-equalized
+           (if (> max-length first-length)
+               (append first-list (make-list (- max-length first-length)))
+               first-list))
+         (second-list-equalized
+           (if (> max-length second-length)
+               (append second-list (make-list (- max-length second-length)))
+               second-list)))
+    (if return-as-list
+        (list first-list-equalized second-list-equalized)
+        (values first-list-equalized second-list-equalized))))
 
 (defun equalize-lists-of-lists-lengths (first-list-of-lists second-list-of-lists)
   "Equalizes the length of lists inside of lists. E.g.:
