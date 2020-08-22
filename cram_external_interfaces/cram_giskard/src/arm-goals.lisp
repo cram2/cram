@@ -49,60 +49,63 @@
            (type (or null string) pose-base-frame)
            (type boolean prefer-base align-planes-left align-planes-right)
            (type (or null list) unmovable-joints))
-  (make-giskard-goal
-   :constraints (list
-                 (make-avoid-joint-limits-constraint)
-                 (when prefer-base (make-prefer-base-constraint))
-                 ;; (when align-planes-left
-                 ;;   (make-align-planes-constraint
-                 ;;    pose-base-frame
-                 ;;    "refills_finger"
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
-                 ;; (when align-planes-right
-                 ;;   (make-align-planes-constraint
-                 ;;    pose-base-frame
-                 ;;    "refills_finger"
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))
-                 ;;    (cl-transforms-stamped:make-vector-stamped
-                 ;;     cram-tf:*robot-base-frame* 0.0
-                 ;;     (cl-transforms:make-3d-vector 0 0 1))))
-                 (when unmovable-joints (make-unmovable-joints-constraint
-                                         unmovable-joints)))
-   :cartesian-constraints (list (when left-pose
-                                  (make-simple-cartesian-constraint
-                                   pose-base-frame
-                                   cram-tf:*robot-left-tool-frame*
-                                   left-pose))
-                                (when right-pose
-                                  (make-simple-cartesian-constraint
-                                   pose-base-frame
-                                   cram-tf:*robot-right-tool-frame*
-                                   right-pose)))
-   :collisions (case collision-mode
-                 (:avoid-all (make-avoid-all-collision 0.1))
-                 (:allow-all (make-allow-all-collision))
-                 (:allow-hand (list (make-avoid-all-collision 0.05)
-                                    (make-allow-hand-collision
-                                     (append (when left-pose '(:left))
-                                             (when right-pose '(:right)))
-                                     collision-object-b
-                                     collision-object-b-link)
-                                    (make-allow-hand-collision
-                                     (append (when left-pose '(:left))
-                                             (when right-pose '(:right)))
-                                     (rob-int:get-environment-name))))
-                 (:allow-attached (list (make-avoid-all-collision 0.02)
-                                        (make-allow-attached-collision
-                                         collision-object-a
-                                         collision-object-b-link)))
-                 (t (make-avoid-all-collision 0.1)))))
+  (let ((arms (append (when left-pose '(:left))
+                      (when right-pose '(:right)))))
+    (make-giskard-goal
+     :constraints (list
+                   (make-avoid-joint-limits-constraint)
+                   (when prefer-base (make-prefer-base-constraint))
+                   ;; (when align-planes-left
+                   ;;   (make-align-planes-constraint
+                   ;;    pose-base-frame
+                   ;;    "refills_finger"
+                   ;;    (cl-transforms-stamped:make-vector-stamped
+                   ;;     cram-tf:*robot-base-frame* 0.0
+                   ;;     (cl-transforms:make-3d-vector 0 0 1))
+                   ;;    (cl-transforms-stamped:make-vector-stamped
+                   ;;     cram-tf:*robot-base-frame* 0.0
+                   ;;     (cl-transforms:make-3d-vector 0 0 1))))
+                   ;; (when align-planes-right
+                   ;;   (make-align-planes-constraint
+                   ;;    pose-base-frame
+                   ;;    "refills_finger"
+                   ;;    (cl-transforms-stamped:make-vector-stamped
+                   ;;     cram-tf:*robot-base-frame* 0.0
+                   ;;     (cl-transforms:make-3d-vector 0 0 1))
+                   ;;    (cl-transforms-stamped:make-vector-stamped
+                   ;;     cram-tf:*robot-base-frame* 0.0
+                   ;;     (cl-transforms:make-3d-vector 0 0 1))))
+                   (when unmovable-joints (make-unmovable-joints-constraint
+                                           unmovable-joints)))
+     :cartesian-constraints (list (when left-pose
+                                    (make-simple-cartesian-constraint
+                                     pose-base-frame
+                                     cram-tf:*robot-left-tool-frame*
+                                     left-pose))
+                                  (when right-pose
+                                    (make-simple-cartesian-constraint
+                                     pose-base-frame
+                                     cram-tf:*robot-right-tool-frame*
+                                     right-pose)))
+     :collisions (ecase collision-mode
+                   (:avoid-all (make-avoid-all-collision 0.1))
+                   (:allow-all (make-allow-all-collision))
+                   (:allow-hand (list (make-avoid-all-collision 0.05)
+                                      (make-allow-hand-collision
+                                       arms collision-object-b
+                                       collision-object-b-link)
+                                      (make-allow-hand-collision
+                                       arms (rob-int:get-environment-name))))
+                   (:allow-arm (list (make-avoid-all-collision 0.05)
+                                     (make-allow-arm-collision
+                                      arms collision-object-b
+                                      collision-object-b-link)
+                                     (make-allow-arm-collision
+                                      arms (rob-int:get-environment-name))))
+                   (:allow-attached (list (make-avoid-all-collision 0.02)
+                                          (make-allow-attached-collision
+                                           collision-object-a
+                                           collision-object-b-link)))))))
 
 (defun make-arm-joint-action-goal (joint-state-left joint-state-right
                                    align-planes-left align-planes-right)
