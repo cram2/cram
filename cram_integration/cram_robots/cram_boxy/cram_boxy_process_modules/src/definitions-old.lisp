@@ -29,6 +29,25 @@
 
 (in-package :boxy-pm)
 
+;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (cpm:def-process-module torso-pm (motion-designator)
+;;   (destructuring-bind (command argument) (desig:reference motion-designator)
+;;     (ecase command
+;;       (cram-common-designators:move-torso
+;;        (handler-case
+;;            (boxy-ll:move-torso :goal-position argument))))))
+
+;;;;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;
+
+(cpm:def-process-module neck-pm (motion-designator)
+  (destructuring-bind (command goal-pose goal-configuration)
+      (desig:reference motion-designator)
+    (declare (ignore goal-pose))
+    (ecase command
+      (cram-common-designators:move-head
+       (boxy-ll:move-neck-joints :goal-configuration goal-configuration)))))
+
 ;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module grippers-pm (motion-designator)
@@ -40,39 +59,27 @@
                                    :left-or-right which-gripper
                                    :effort effort)))))
 
-;;;;;;;;;;;;;;;;;;;; GISKARD ;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; BODY ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(cpm:def-process-module giskard-pm (motion-designator)
-  (destructuring-bind (command argument-1 &rest rest-args)
+(cpm:def-process-module body-pm (motion-designator)
+  (destructuring-bind (command argument-1 &rest rest-arguments)
       (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-tcp
-       (giskard:call-arm-cartesian-action :goal-pose-left argument-1
-                                          :goal-pose-right (first rest-args)
-                                          :collision-mode (second rest-args)
-                                          :collision-object-b (third rest-args)
-                                          :collision-object-b-link (fourth rest-args)
-                                          :collision-object-a (fifth rest-args)
-                                          :move-base (sixth rest-args)
-                                          :prefer-base (seventh rest-args)
-                                          :align-planes-left (eighth rest-args)
-                                          :align-planes-right (ninth rest-args)))
+       (let ((goal-left argument-1)
+             (goal-right (car rest-arguments)))
+         (unless (listp goal-left)
+           (setf goal-left (list goal-left)))
+         (unless (listp goal-right)
+           (setf goal-right (list goal-right)))
+         (multiple-value-bind (goal-left goal-right)
+             (cut:equalize-two-list-lengths goal-left goal-right)
+           (mapc (lambda (single-pose-left single-pose-right)
+                   (cram-tf:visualize-marker (list single-pose-left single-pose-right)
+                                             :r-g-b-list '(1 0 1))
+                   (boxy-ll:move-arm-cartesian :goal-pose-stamped-left single-pose-left
+                                               :goal-pose-stamped-right single-pose-right))
+                 goal-left goal-right))))
       (cram-common-designators:move-joints
-       (giskard:call-arm-joint-action :goal-configuration-left argument-1
-                                      :goal-configuration-right (first rest-args)
-                                      :align-planes-left (second rest-args)
-                                      :align-planes-right (third rest-args)))
-      (cram-common-designators:move-head
-       (when argument-1
-         (giskard:call-neck-action :goal-pose argument-1))
-       (when (car rest-args)
-         (giskard:call-neck-joint-action :goal-configuration (car rest-args))))
-      (cram-common-designators:move-base
-       (giskard:call-base-action :goal-pose argument-1))
-      (cram-common-designators:move-torso
-       (giskard:call-torso-action :goal-joint-state argument-1))
-      ;; (cram-common-designators:move-gripper-joint
-      ;;  (giskard:call-gripper-action :action-type-or-position argument-1
-      ;;                               :arm (first rest-args)
-      ;;                               :effort (second rest-args)))
-      )))
+       (boxy-ll:move-arm-joints :goal-joint-states-left argument-1
+                                :goal-joint-states-right (car rest-arguments))))))
