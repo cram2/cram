@@ -132,5 +132,6 @@
     (call-action
      :action-goal (make-gripper-action-goal arm goal-joint-angle effort)
      :action-timeout action-timeout
-     :check-goal-function (lambda ()
-                            (ensure-gripper-goal-reached arm goal-joint-angle)))))
+     ;; :check-goal-function (lambda ()
+     ;;                        (ensure-gripper-goal-reached arm goal-joint-angle))
+     )))
