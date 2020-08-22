@@ -38,12 +38,13 @@
                cram-common-failures
                cram-common-designators
                cram-language ; for with-real-robot
-               cram-robosherlock
-               cram-giskard)
+               cram-giskard
+               cram-urdf-projection)
 
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "giskard" :depends-on ("package"))
-     (:file "with-real-robot" :depends-on ("package" "giskard"))))))
+     (:file "perception" :depends-on ("package"))
+     (:file "with-real-robot" :depends-on ("package" "giskard" "perception"))))))
