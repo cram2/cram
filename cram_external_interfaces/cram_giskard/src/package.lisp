@@ -33,11 +33,21 @@
   (:nicknames #:giskard)
   (:use #:common-lisp)
   (:export
-   ;; cartesian-interface
-   #:call-giskard-cartesian-action
-   ;; joint-interface
-   #:call-giskard-joint-action
-   ;; process-module
-   #:giskard-pm
+   ;; arm-goals
+   #:call-arm-cartesian-action
+   #:call-arm-joint-action
+   ;; base-goals
+   #:call-base-action
+   ;; torso-goals
+   #:call-torso-action
+   ;; gripper-goals
+   #:call-gripper-action
+   ;; neck-goals
+   #:call-neck-action
+   #:call-neck-joint-action
+   ;; environment-manipulation-goals
+   #:call-environment-manipulation-action
+   ;; misc-goals
+   #:call-grasp-bar-action
    ;; collision-scene
    #:reset-collision-scene))
