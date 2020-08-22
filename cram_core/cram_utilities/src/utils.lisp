@@ -168,6 +168,10 @@ removes deletes the file and the compiled file after loading it."
 (defun equalize-two-list-lengths (first-list second-list)
   "Returns two lists of equal length as VALUES.
 To achieve equal length appends NILs at the end of the shorter of `first-list' and `second-list'."
+  (unless (listp first-list)
+    (setf first-list (list first-list)))
+  (unless (listp second-list)
+    (setf second-list (list second-list)))
   (let* ((first-length (length first-list))
          (second-length (length second-list))
          (max-length (max first-length second-length)))
