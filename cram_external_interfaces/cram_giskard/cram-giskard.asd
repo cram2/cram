@@ -63,18 +63,18 @@
      (:file "action-client" :depends-on ("package"))
      (:file "hash-table-conversions" :depends-on ("package"))
      (:file "making-goal-messages" :depends-on ("package" "hash-table-conversions"))
-     (:file "cartesian-interface" :depends-on ("package"
-                                               "action-client"
-                                               "making-goal-messages"))
-     (:file "joint-interface" :depends-on ("package"
-                                           "action-client"
-                                           "making-goal-messages"))
+     (:file "arm-goals" :depends-on ("package"
+                                     "action-client"
+                                     "making-goal-messages"))
      (:file "base-goals" :depends-on ("package"
                                       "action-client"
                                       "making-goal-messages"))
      (:file "torso-goals" :depends-on ("package"
                                        "making-goal-messages"
                                        "action-client"))
+     (:file "gripper-goals" :depends-on ("package"
+                                         "making-goal-messages"
+                                         "action-client"))
      (:file "neck-goals" :depends-on ("package"
                                       "making-goal-messages"
                                       "action-client"))

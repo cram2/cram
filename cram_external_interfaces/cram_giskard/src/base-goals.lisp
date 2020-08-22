@@ -29,8 +29,8 @@
 
 (in-package :giskard)
 
-(defparameter *xy-goal-tolerance* 0.05 "in meters")
-(defparameter *yaw-goal-tolerance* 0.1 "in radiants, about 6 degrees.")
+(defparameter *base-convergence-delta-xy* 0.05 "in meters")
+(defparameter *base-convergence-delta-theta* 0.1 "in radiants, about 6 degrees.")
 
 (defun make-giskard-base-action-goal (pose)
   (declare (type cl-transforms-stamped:pose-stamped pose))
@@ -40,47 +40,30 @@
    :joint-constraints (make-current-joint-state-constraint '(:left :right))
    :collisions (make-avoid-all-collision)))
 
-(defun ensure-giskard-base-input-parameters (pose)
+(defun ensure-base-goal-input (pose)
   (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))
 
-(defun ensure-giskard-base-goal-reached (result status goal
-                                         convergence-delta-xy convergence-delta-theta)
-  (when (eql status :preempted)
-    (roslisp:ros-warn (low-level giskard)
-                      "Giskard action preempted with result ~a" result)
-    (return-from ensure-giskard-base-goal-reached))
-  (when (eql status :timeout)
-    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
-  (when (eql status :aborted)
-    (roslisp:ros-warn (pr2-ll giskard-cart)
-                      "Giskard action aborted! With result ~a" result)
-    ;; (cpl:fail 'common-fail:manipulation-goal-not-reached
-    ;;           :description "Giskard did not converge to goal because of collision")
-    )
-  (unless (cram-tf:tf-frame-converged cram-tf:*robot-base-frame* goal
-                                      convergence-delta-xy convergence-delta-theta)
-    (cpl:fail 'common-fail:navigation-goal-not-reached
-              :description (format nil "Giskard did not converge to goal:~%~
-                                        ~a should have been at ~a ~
-                                        with delta-xy of ~a and delta-angle of ~a."
-                                   cram-tf:*robot-base-frame* goal
-                                   convergence-delta-xy convergence-delta-theta))))
+(defun ensure-base-goal-reached (goal-pose)
+  (unless (cram-tf:tf-frame-converged
+           cram-tf:*robot-base-frame* goal-pose
+           *base-convergence-delta-xy* *base-convergence-delta-theta*)
+    (make-instance 'common-fail:navigation-goal-not-reached
+      :description (format nil "Giskard did not converge to goal:~%~
+                                ~a should have been at ~a ~
+                                with delta-xy of ~a and delta-angle of ~a."
+                           cram-tf:*robot-base-frame* goal-pose
+                           *base-convergence-delta-xy*
+                           *base-convergence-delta-theta*))))
 
-(defun call-giskard-base-action (&key
-                                   goal-pose action-timeout
-                                   (convergence-delta-xy *xy-goal-tolerance*)
-                                   (convergence-delta-theta *yaw-goal-tolerance*))
+(defun call-giskard-base-action (&key action-timeout goal-pose)
   (declare (type cl-transforms-stamped:pose-stamped goal-pose)
-           (type (or null number) action-timeout convergence-delta-xy convergence-delta-theta))
-  (let ((goal-pose
-          (ensure-giskard-base-input-parameters goal-pose)))
-    (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
-    (multiple-value-bind (result status)
-        (let ((goal (make-giskard-base-action-goal goal-pose)))
-          (actionlib-client:call-simple-action-client
-           'giskard-action
-           :action-goal goal
-           :action-timeout action-timeout))
-      (ensure-giskard-base-goal-reached result status goal-pose
-                                        convergence-delta-xy convergence-delta-theta)
-      (joints:full-joint-states-as-hash-table))))
+           (type (or null number) action-timeout))
+
+  (setf goal-pose (ensure-base-goal-input goal-pose))
+
+  (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
+
+  (call-action
+   :action-goal (make-giskard-base-action-goal goal-pose)
+   :action-timeout action-timeout
+   :check-goal-function (lambda () (ensure-base-goal-reached goal-pose))))

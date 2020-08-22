@@ -49,22 +49,20 @@
                   (:close (make-allow-arm-collision
                            arm (rob-int:get-environment-name)))))))
 
-(defun call-environment-manipulation-action (&key open-or-close arm
+(defun call-environment-manipulation-action (&key
+                                               action-timeout
+                                               open-or-close arm
                                                handle-link joint-state
-                                               prefer-base
-                                               action-timeout)
+                                               prefer-base)
   (declare (type keyword open-or-close arm)
            (type symbol handle-link)
            (type (or number null) joint-state action-timeout)
            (type boolean prefer-base))
-  (multiple-value-bind (result status)
-      (actionlib-client:call-simple-action-client
-       'giskard-action
-       :action-goal (make-environment-manipulation-goal
-                     open-or-close arm handle-link joint-state prefer-base)
-       :action-timeout action-timeout)
-    (ensure-goal-reached status)
-    (values result status)))
+
+  (call-action
+   :action-goal (make-environment-manipulation-goal
+                 open-or-close arm handle-link joint-state prefer-base)
+   :action-timeout action-timeout))
 
 
 #+the-plan
