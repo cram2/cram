@@ -84,7 +84,4 @@
      (:file "misc-goals" :depends-on ("package"
                                       "making-goal-messages"
                                       "action-client"))
-     (:file "process-module" :depends-on ("package"
-                                          "cartesian-interface" "joint-interface"
-                                          "base-goals" "torso-goals"))
      (:file "collision-scene" :depends-on ("package"))))))

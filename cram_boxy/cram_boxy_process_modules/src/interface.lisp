@@ -31,28 +31,27 @@
 (def-fact-group boxy-matching-pms (cpm:matching-process-module
                                    cpm:available-process-module)
 
-  (<- (cpm:matching-process-module ?motion-designator neck-pm)
-    (desig:desig-prop ?motion-designator (:type :looking)))
-
   (<- (cpm:matching-process-module ?motion-designator grippers-pm)
     (or (desig:desig-prop ?motion-designator (:type :gripping))
         (desig:desig-prop ?motion-designator (:type :opening-gripper))
         (desig:desig-prop ?motion-designator (:type :closing-gripper))
         (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))))
 
-  (<- (cpm:matching-process-module ?motion-designator body-pm)
+  (<- (cpm:matching-process-module ?motion-designator giskard-pm)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
-        (desig:desig-prop ?motion-designator (:type :wiggling-tcp))))
+        (desig:desig-prop ?motion-designator (:type :wiggling-tcp))
+        (desig:desig-prop ?motion-designator (:type :going))
+        (desig:desig-prop ?motion-designator (:type :moving-torso))
+        (desig:desig-prop ?motion-designator (:type :looking))))
 
   (<- (cpm:available-process-module ?pm)
-    (member ?pm (neck-pm grippers-pm body-pm))
+    (member ?pm (grippers-pm giskard-pm))
     (not (cpm:projection-running ?_))))
 
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
-       (rs:robosherlock-perception-pm navp:navp-pm
-        boxy-pm:neck-pm boxy-pm:grippers-pm boxy-pm:body-pm)
+       (rs:robosherlock-perception-pm grippers-pm giskard-pm)
      (cpl-impl::named-top-level (:name :top-level)
        ,@body)))
