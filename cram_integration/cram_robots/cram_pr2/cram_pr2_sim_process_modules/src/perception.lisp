@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,21 @@
 
 (in-package :pr2-sim-pms)
 
-(defmacro with-real-robot (&body body)
-  `(cram-process-modules:with-process-modules-running
-       (giskard-pm bullet-perception-pm)
-     (cpl-impl::named-top-level (:name :top-level)
-       ,@body)))
+(defun perceive (input-object-designator)
+  (urdf-proj::detect input-object-designator))
+
+(cpm:def-process-module bullet-perception-pm (motion-designator)
+  (destructuring-bind (command argument-1)
+      (desig:reference motion-designator)
+    (ecase command
+      (cram-common-designators:detect
+       (perceive argument-1)))))
+
+(prolog:def-fact-group bullet-perception-pm (cpm:matching-process-module
+                                             cpm:available-process-module)
+
+  (prolog:<- (cpm:matching-process-module ?motion-designator bullet-perception-pm)
+    (desig:desig-prop ?motion-designator (:type :detecting)))
+
+  (prolog:<- (cpm:available-process-module bullet-perception-pm)
+    (prolog:not (cpm:projection-running ?_))))
