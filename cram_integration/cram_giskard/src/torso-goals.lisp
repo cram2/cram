@@ -84,7 +84,7 @@
                                goal current-position
                                *torso-convergence-delta-joint*))))))
 
-(defun call-giskard-torso-action (&key action-timeout goal-joint-state)
+(defun call-torso-action (&key action-timeout goal-joint-state)
   (declare (type (or number keyword) goal-joint-state)
            (type (or number null) action-timeout))
 

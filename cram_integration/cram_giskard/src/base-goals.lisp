@@ -55,7 +55,7 @@
                            *base-convergence-delta-xy*
                            *base-convergence-delta-theta*))))
 
-(defun call-giskard-base-action (&key action-timeout goal-pose)
+(defun call-base-action (&key action-timeout goal-pose)
   (declare (type cl-transforms-stamped:pose-stamped goal-pose)
            (type (or null number) action-timeout))
 
