@@ -119,8 +119,7 @@
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
-    (or (spec:property ?action-designator (:type :grasping))
-        (spec:property ?action-designator (:type :pulling)))
+    (spec:property ?action-designator (:type :grasping))
     (spec:property ?action-designator (:type ?action-type))
     (spec:property ?action-designator (:object ?object-designator))
     (spec:property ?object-designator (:name ?object-name))
@@ -137,8 +136,7 @@
              (equal ?collision-object-b ?robot)
              (equal ?object-link ?object-name))
         (and (equal ?collision-object-b ?object-name)
-             (or (spec:property ?action-designator (:link ?object-link))
-                 (equal ?object-link nil))))
+             (equal ?object-link nil)))
     (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
@@ -186,17 +184,31 @@
 
   (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
                                                   ?resolved-action-designator))
-    (or (spec:property ?action-designator (:type :pushing)))
+    (or (and (spec:property ?action-designator (:type :pulling))
+             (equal ?collision-mode :allow-hand))
+        (and (spec:property ?action-designator (:type :pushing))
+             (equal ?collision-mode :allow-arm)))
     (once (or (spec:property ?action-designator (:left-poses ?left-poses))
               (equal ?left-poses nil)))
     (once (or (spec:property ?action-designator (:right-poses ?right-poses))
               (equal ?right-poses nil)))
-    (infer-move-base ?action-designator ?move-base)
-    (desig:designator :action ((:type :pushing)
+    (spec:property ?action-designator (:type ?action-type))
+    (spec:property ?action-designator (:object ?environment-object-designator))
+    (spec:property ?environment-object-designator (:name ?environment-name))
+    (spec:property ?action-designator (:link ?handle-link))
+    (infer-motion-flags ?action-designator
+                        ?prefer-base ?move-base
+                        ?align-planes-left ?align-planes-right)
+    (desig:designator :action ((:type ?action-type)
                                (:left-poses ?left-poses)
                                (:right-poses ?right-poses)
-                               (:collision-mode :allow-all)
-                               (:move-base ?move-base))
+                               (:collision-mode ?collision-mode)
+                               (:collision-object-b ?environment-name)
+                               (:collision-object-b-link ?handle-link)
+                               (:prefer-base ?prefer-base)
+                               (:move-base ?move-base)
+                               (:align-planes-left ?align-planes-left)
+                               (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
 
   (<- (desig:action-grounding ?action-designator (move-arms-into-configuration
