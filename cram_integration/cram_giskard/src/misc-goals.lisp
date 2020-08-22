@@ -61,19 +61,16 @@
            (type (or cl-transforms-stamped:point-stamped null) bar-center)
            (type (or string null) root-link)
            (type (or number null) bar-length action-timeout))
-  (multiple-value-bind (result status)
-      (actionlib-client:call-simple-action-client
-       'giskard-action
-       :action-goal (print
-                     (make-grasp-bar-goal
-                      arm
-                      tip-grasp-axis bar-axis
-                      tip-finger-axis bar-perpendicular-axis
-                      bar-center
-                      bar-length root-link))
-       :action-timeout action-timeout)
-    (ensure-goal-reached status)
-    (values result status)))
+
+  (call-action
+   :action-goal (print
+                 (make-grasp-bar-goal
+                  arm
+                  tip-grasp-axis bar-axis
+                  tip-finger-axis bar-perpendicular-axis
+                  bar-center
+                  bar-length root-link))
+   :action-timeout action-timeout))
 
 
 

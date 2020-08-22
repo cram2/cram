@@ -32,6 +32,7 @@
 (defparameter *avoid-joint-limits-percentage* 40)
 (defparameter *prefer-base-low-cost* 0.001)
 (defparameter *avoid-collisions-distance* 0.10 "In cm, not used atm")
+(defparameter *unmovable-joint-weight* 9001)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -44,9 +45,7 @@
                             collisions (goal-type :plan_and_execute))
   (roslisp:make-message
    'giskard_msgs-msg:MoveGoal
-   :type (roslisp:symbol-code
-          'giskard_msgs-msg:MoveGoal
-          goal-type)
+   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal goal-type)
    :cmd_seq (vector
              (roslisp:make-message
               'giskard_msgs-msg:movecmd
@@ -72,11 +71,28 @@
       (list (mapcar #'first joint-states)
             (mapcar #'second joint-states))
       (let ((joint-names
-              (cut:var-value '?joints
-                             (cut:lazy-car
-                              (prolog:prolog
-                               `(and (rob-int:robot ?robot)
-                                     (rob-int:arm-joints ?robot ,arm ?joints)))))))
+              (cut:var-value
+               '?joints
+               (cut:lazy-car
+                (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:arm-joints ?robot ,arm ?joints)))))))
+        (unless (cut:is-var joint-names)
+          (list joint-names
+                (joints:joint-positions joint-names))))))
+
+(defun get-neck-joint-names-and-positions-list (&optional joint-states)
+  "Returns a list of two elements: (joint-names joint-positions)"
+  (if joint-states
+      (list (mapcar #'first joint-states)
+            (mapcar #'second joint-states))
+      (let ((joint-names
+              (cut:var-value
+               '?joints
+               (cut:lazy-car
+                (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:robot-neck-joints ?robot . ?joints)))))))
         (unless (cut:is-var joint-names)
           (list joint-names
                 (joints:joint-positions joint-names))))))
@@ -258,6 +274,13 @@
           (second joint-state)
           weights))
 
+(defun make-unmovable-joints-constraint (joint-names
+                                         &optional (weight *unmovable-joint-weight*))
+  (make-joint-constraint
+   (list joint-names
+         (joints:joint-positions joint-names))
+   (make-list (length joint-names) :initial-element weight )))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; NON-JSON CONSTRAINTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -302,6 +325,17 @@
          (joint-positions
            (mapcan #'second joint-names-and-positions-lists)))
     (make-simple-joint-constraint (list joint-names joint-positions))))
+
+(defun make-gripper-joint-state-constraint (arm joint-angle)
+  (let ((gripper-joint
+          (cut:var-value
+           '?joint
+           (car (prolog:prolog
+                 `(and (rob-int:robot ?robot)
+                       (rob-int:gripper-joint ?robot ,arm ?joint)))))))
+    (when (cut:is-var gripper-joint)
+      (error "[giskard] Robot gripper joint was not defined."))
+    (make-simple-joint-constraint `((,gripper-joint) (,joint-angle)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; COLLISIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

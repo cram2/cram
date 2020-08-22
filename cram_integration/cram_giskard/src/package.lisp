@@ -38,4 +38,6 @@
    ;; joint-interface
    #:call-giskard-joint-action
    ;; process-module
-   #:giskard-pm))
+   #:giskard-pm
+   ;; collision-scene
+   #:reset-collision-scene))
