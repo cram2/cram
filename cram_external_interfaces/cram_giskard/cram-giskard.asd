@@ -33,40 +33,55 @@
 
   :depends-on (roslisp
                roslisp-utilities
+
                cl-transforms
                cl-transforms-stamped
-               cram-tf
-               cram-common-failures
+
                cram-designators
                cram-process-modules
                cram-prolog
-               cram-common-designators
-               cram-robot-interfaces ; for robot's name and info
                cram-occasions-events ; for updating giskard collision scene on events
+
+               cram-simple-actionlib-client
+               cram-tf
+               cram-robot-interfaces
+               cram-common-failures
+               cram-common-designators
                cram-plan-occasions-events
+
                cram-bullet-reasoning ; also for updating giskard collision scene
                cram-bullet-reasoning-belief-state ; for *kitchen-parameter*
+
                cram-joint-states ; for joint-interface to send current joint state
-               cram-simple-actionlib-client
+
                giskard_msgs-msg
                giskard_msgs-srv)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "collision-scene" :depends-on ("package"))
      (:file "action-client" :depends-on ("package"))
      (:file "hash-table-conversions" :depends-on ("package"))
-     (:file "cartesian-interface" :depends-on ("package" "action-client"))
-     (:file "joint-interface" :depends-on ("package" "action-client"))
-     (:file "base-goals" :depends-on ("package" "action-client" "joint-interface"))
-     (:file "torso-goals" :depends-on ("package" "action-client"))
+     (:file "making-goal-messages" :depends-on ("package" "hash-table-conversions"))
+     (:file "arm-goals" :depends-on ("package"
+                                     "action-client"
+                                     "making-goal-messages"))
+     (:file "base-goals" :depends-on ("package"
+                                      "action-client"
+                                      "making-goal-messages"))
+     (:file "torso-goals" :depends-on ("package"
+                                       "making-goal-messages"
+                                       "action-client"))
+     (:file "gripper-goals" :depends-on ("package"
+                                         "making-goal-messages"
+                                         "action-client"))
      (:file "neck-goals" :depends-on ("package"
-                                      "hash-table-conversions"
+                                      "making-goal-messages"
                                       "action-client"))
      (:file "environment-manipulation-goals" :depends-on ("package"
-                                                          "hash-table-conversions"
+                                                          "making-goal-messages"
                                                           "action-client"))
-     (:file "process-module" :depends-on ("package"
-                                          "cartesian-interface" "joint-interface"
-                                          "base-goals" "torso-goals"))))))
+     (:file "misc-goals" :depends-on ("package"
+                                      "making-goal-messages"
+                                      "action-client"))
+     (:file "collision-scene" :depends-on ("package"))))))

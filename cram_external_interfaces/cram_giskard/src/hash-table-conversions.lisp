@@ -29,19 +29,21 @@
 
 (in-package :giskard)
 
+(defun alist->json-string (alist)
+  (let ((stream (make-string-output-stream)))
+    (yason:encode (cut:recursive-alist-hash-table alist :test #'equal)
+                  stream)
+    (get-output-stream-string stream)))
+
+(defun hash-table->json-string (hash-table)
+  (let ((stream (make-string-output-stream)))
+    (yason:encode hash-table
+                  stream)
+    (get-output-stream-string stream)))
+
+
 (defgeneric to-hash-table (object)
   (:documentation "Converts the object into a (nested) hash table."))
-
-(defgeneric to-json (object)
-  (:documentation "Converts the object into a json string.")
-  (:method ((object hash-table))
-    (let ((stream (make-string-output-stream)))
-      (yason:encode  object stream)
-      (get-output-stream-string stream)))
-  (:method (object)
-    (let ((stream (make-string-output-stream)))
-      (yason:encode (to-hash-table object) stream)
-      (get-output-stream-string stream))))
 
 (defun make-point-hash-table (x y z)
   (alexandria:alist-hash-table

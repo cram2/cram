@@ -38,17 +38,21 @@
   "Initializes *robosherlock-service* ROS publisher"
   (let (ready)
     (loop repeat 12                     ; for one minute then give up
-          until (setf ready (roslisp:wait-for-service *giskard-environment-service-name* 5))
-          do (roslisp:ros-info (gisk-env-service) "Waiting for giskard environment service."))
+          until (setf ready
+                      (roslisp:wait-for-service *giskard-environment-service-name* 5))
+          do (roslisp:ros-info (gisk-env-service)
+                               "Waiting for giskard environment service."))
    (if ready
        (prog1
            (setf *giskard-environment-service*
                  (make-instance 'roslisp:persistent-service
                    :service-name *giskard-environment-service-name*
                    :service-type 'giskard_msgs-srv:updateworld))
-         (roslisp:ros-info (gisk-env-service) "Giskard environment service client created."))
+         (roslisp:ros-info (gisk-env-service)
+                           "Giskard environment service client created."))
        (progn
-         (roslisp:ros-error (gisk-env-service) "Giskard environment service doesn't reply. Ignoring.")
+         (roslisp:ros-error (gisk-env-service)
+                            "Giskard environment service doesn't reply. Ignoring.")
          nil))))
 
 (defun get-giskard-environment-service ()
@@ -191,12 +195,27 @@
            'giskard_msgs-srv:error_msg)
           nil))))
 
+;;;;;;;;;;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun reset-collision-scene ()
+  (call-giskard-environment-service
+   :remove-all)
+  (when (btr:get-environment-object)
+    (call-giskard-environment-service
+     :add-environment
+     :name (roslisp-utilities:rosify-underscores-lisp-name
+            (rob-int:get-environment-name))
+     :pose (cl-transforms-stamped:pose->pose-stamped
+            cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
+     :joint-state-topic "kitchen/joint_states")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;; EVENT HANDLERS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod coe:on-event giskard-attach-object ((event cpoe:object-attached-robot))
   (unless cram-projection:*projection-environment*
-    (let* ((object-name
+    (let* ((arm
+             (cpoe:event-arm event))
+           (object-name
              (cpoe:event-object-name event))
            (object-name-string
              (roslisp-utilities:rosify-underscores-lisp-name object-name))
@@ -206,11 +225,10 @@
                      (cut:var-value
                       '?ee-link
                       (car (prolog:prolog
-                            `(and (cram-robot-interfaces:robot ?robot)
-                                  (cram-robot-interfaces:end-effector-link
-                                   ?robot ,(cpoe:event-arm event)
-                                   ?ee-link)))))
+                            `(and (rob-int:robot ?robot)
+                                  (rob-int:end-effector-link ?robot ,arm ?ee-link)))))
                      (cpoe:event-link event))))
+
       (when (cut:is-var link)
         (error "[GISKARD OBJECT-ATTACHED] Couldn't find robot's EE link."))
       (unless btr-object
@@ -224,7 +242,7 @@
                                    cram-tf:*transformer*
                                    cram-tf:*fixed-frame*
                                    link
-                                   :timeout 2
+                                   :timeout cram-tf:*tf-default-timeout*
                                    :time 0))
              (ee-to-map-transform (cram-tf:transform-stamped-inv map-to-ee-transform))
              (map-to-obj-transform (cram-tf:pose->transform-stamped
@@ -248,7 +266,7 @@
                     cram-tf:*transformer*
                     link
                     object-name-string
-                    :timeout 2
+                    :timeout cram-tf:*tf-default-timeout*
                     :time (roslisp:ros-time))))
           (cl-transforms-stamped:transform-stamped-error ()))
 
@@ -311,7 +329,7 @@
                   cram-tf:*transformer*
                   cram-tf:*fixed-frame*
                   link
-                  :timeout 2
+                  :timeout cram-tf:*tf-default-timeout*
                   :time 0))
                (link-to-map-transform
                  (cram-tf:transform-stamped-inv map-to-link-transform))
@@ -337,13 +355,4 @@
 
 (defmethod coe:clear-belief giskard-clear ()
   (unless cram-projection:*projection-environment*
-    (call-giskard-environment-service
-     :remove-all)
-    (when (btr:get-environment-object)
-      (call-giskard-environment-service
-       :add-environment
-       :name (roslisp-utilities:rosify-underscores-lisp-name
-              (rob-int:get-environment-name))
-       :pose (cl-transforms-stamped:pose->pose-stamped
-              cram-tf:*fixed-frame* 0.0 (btr:pose (btr:get-environment-object)))
-       :joint-state-topic "kitchen/joint_states"))))
+    (reset-collision-scene)))
