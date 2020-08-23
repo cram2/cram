@@ -37,9 +37,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; UTILS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun make-constraints-vector (&rest entries)
-  (if (every #'listp entries)
-      (apply #'vector (alexandria:flatten entries))
-      (apply #'vector (remove NIL entries))))
+  (if (vectorp (car entries))
+      (car entries)
+      (if (every #'listp entries)
+          (apply #'vector (alexandria:flatten entries))
+          (apply #'vector (remove NIL entries)))))
 
 (defun make-giskard-goal (&key constraints joint-constraints cartesian-constraints
                             collisions (goal-type :plan_and_execute))
