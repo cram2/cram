@@ -45,23 +45,23 @@
                 (make-avoid-all-collision 0.05)
                 (ecase open-or-close
                   (:open (make-allow-hand-collision
-                          arm (rob-int:get-environment-name) handle-link))
+                          (list arm) (rob-int:get-environment-name) handle-link))
                   (:close (make-allow-arm-collision
-                           arm (rob-int:get-environment-name)))))))
+                           (list arm) (rob-int:get-environment-name)))))))
 
 (defun call-environment-manipulation-action (&key
                                                action-timeout
                                                open-or-close arm
-                                               handle-link joint-state
+                                               handle-link joint-angle
                                                prefer-base)
   (declare (type keyword open-or-close arm)
            (type symbol handle-link)
-           (type (or number null) joint-state action-timeout)
+           (type (or number null) joint-angle action-timeout)
            (type boolean prefer-base))
 
   (call-action
    :action-goal (make-environment-manipulation-goal
-                 open-or-close arm handle-link joint-state prefer-base)
+                 open-or-close arm handle-link joint-angle prefer-base)
    :action-timeout action-timeout))
 
 

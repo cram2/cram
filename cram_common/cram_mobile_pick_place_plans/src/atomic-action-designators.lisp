@@ -182,26 +182,30 @@
                                (:align-planes-right ?align-planes-right))
                       ?resolved-action-designator))
 
-  (<- (desig:action-grounding ?action-designator (move-arms-in-sequence
+  (<- (desig:action-grounding ?action-designator (manipulate-environment
                                                   ?resolved-action-designator))
     (or (and (spec:property ?action-designator (:type :pulling))
              (equal ?collision-mode :allow-hand))
         (and (spec:property ?action-designator (:type :pushing))
              (equal ?collision-mode :allow-arm)))
-    (once (or (spec:property ?action-designator (:left-poses ?left-poses))
-              (equal ?left-poses nil)))
-    (once (or (spec:property ?action-designator (:right-poses ?right-poses))
-              (equal ?right-poses nil)))
+    (or (and (spec:property ?action-designator (:left-poses ?poses))
+             (equal ?arm :left))
+        (and (spec:property ?action-designator (:right-poses ?poses))
+             (equal ?arm :right)))
     (spec:property ?action-designator (:type ?action-type))
     (spec:property ?action-designator (:object ?environment-object-designator))
     (spec:property ?environment-object-designator (:name ?environment-name))
     (spec:property ?action-designator (:link ?handle-link))
+    (once (or (spec:property ?action-designator (:distance ?joint-angle))
+              (equal ?joint-angle NIL)))
+    ;; infer the missing parameters
     (infer-motion-flags ?action-designator
                         ?prefer-base ?move-base
                         ?align-planes-left ?align-planes-right)
     (desig:designator :action ((:type ?action-type)
-                               (:left-poses ?left-poses)
-                               (:right-poses ?right-poses)
+                               (:arm ?arm)
+                               (:poses ?poses)
+                               (:distance ?joint-angle)
                                (:collision-mode ?collision-mode)
                                (:collision-object-b ?environment-name)
                                (:collision-object-b-link ?handle-link)

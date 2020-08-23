@@ -40,6 +40,8 @@
   (<- (cpm:matching-process-module ?motion-designator giskard-pm)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
+        (desig:desig-prop ?motion-designator (:type :pulling))
+        (desig:desig-prop ?motion-designator (:type :pushing))
         (desig:desig-prop ?motion-designator (:type :wiggling-tcp))
         (desig:desig-prop ?motion-designator (:type :going))
         (desig:desig-prop ?motion-designator (:type :moving-torso))

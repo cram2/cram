@@ -33,14 +33,14 @@
 
 (cpm:def-process-module grippers-pm (motion-designator)
   (destructuring-bind (command action-type-or-position which-gripper
-                       &optional effort-but-actually-slippage-parameter)
+                       &optional effort-but-actually-slippage-param)
       (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-gripper-joint
-       (donbot-ll:call-gripper-action :action-type-or-position action-type-or-position
-                                      :left-or-right which-gripper
-                                      :effort-but-actually-slippage-parameter
-                                      effort-but-actually-slippage-parameter)))))
+       (donbot-ll:call-gripper-action
+        :action-type-or-position action-type-or-position
+        :left-or-right which-gripper
+        :effort-but-actually-slippage-parameter effort-but-actually-slippage-param)))))
 
 ;;;;;;;;;;;;;;;;;;;; GISKARD ;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -49,27 +49,47 @@
       (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-tcp
-       (giskard:call-arm-cartesian-action :goal-pose-left argument-1
-                                          :goal-pose-right (first rest-args)
-                                          :collision-mode (second rest-args)
-                                          :collision-object-b (third rest-args)
-                                          :collision-object-b-link (fourth rest-args)
-                                          :collision-object-a (fifth rest-args)
-                                          :move-base (sixth rest-args)
-                                          :prefer-base (seventh rest-args)
-                                          :align-planes-left (eighth rest-args)
-                                          :align-planes-right (ninth rest-args)))
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :move-base (sixth rest-args)
+        :prefer-base (seventh rest-args)
+        :align-planes-left (eighth rest-args)
+        :align-planes-right (ninth rest-args)))
       (cram-common-designators:move-joints
-       (giskard:call-arm-joint-action :goal-configuration-left argument-1
-                                      :goal-configuration-right (first rest-args)
-                                      :align-planes-left (second rest-args)
-                                      :align-planes-right (third rest-args)))
+       (giskard:call-arm-joint-action
+        :goal-configuration-left argument-1
+        :goal-configuration-right (first rest-args)
+        :align-planes-left (second rest-args)
+        :align-planes-right (third rest-args)))
+      (cram-common-designators:move-arm-pull
+       (giskard:call-environment-manipulation-action
+        :open-or-close :open
+        :arm argument-1
+        :handle-link (fifth rest-args)
+        :joint-angle (second rest-args)
+        :prefer-base (eighth rest-args)))
+      (cram-common-designators:move-arm-push
+       (giskard:call-environment-manipulation-action
+        :open-or-close :close
+        :arm argument-1
+        :handle-link (fifth rest-args)
+        :joint-angle (second rest-args)
+        :prefer-base (eighth rest-args)))
       (cram-common-designators:move-head
        (when argument-1
-         (giskard:call-neck-action :goal-pose argument-1))
+         (giskard:call-neck-action
+          :goal-pose argument-1))
        (when (car rest-args)
-         (giskard:call-neck-joint-action :goal-configuration (car rest-args))))
+         (giskard:call-neck-joint-action
+          :goal-configuration (car rest-args))))
       (cram-common-designators:move-base
-       (giskard:call-base-action :goal-pose argument-1))
+       (giskard:call-base-action
+        :goal-pose argument-1))
       (cram-common-designators:move-torso
-       (giskard:call-torso-action :goal-joint-state argument-1)))))
+       (giskard:call-torso-action
+        :goal-joint-state argument-1)))))

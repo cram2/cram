@@ -33,7 +33,7 @@
                                ((:type ?type))
                                ((:arm ?arm))
                                ((:gripper-opening ?gripper-opening))
-                               distance
+                               ((:distance ?distance))
                                ((:left-reach-poses ?left-reach-poses))
                                ((:right-reach-poses ?right-reach-poses))
                                ((:left-grasp-poses ?left-grasp-poses))
@@ -49,7 +49,7 @@
                                ((:container-object ?container-designator))
                              &allow-other-keys)
   (declare (type keyword ?arm)
-           (type number ?gripper-opening distance)
+           (type number ?gripper-opening ?distance)
            (type list
                  ?left-reach-poses ?right-reach-poses
                  ?left-grasp-poses ?right-grasp-poses
@@ -133,12 +133,15 @@
       (exe:perform
        (desig:an action
                  (type ?push-or-pull)
-                 (object (desig:an object
-                                   (name ?environment-name)))
+                 (object (desig:an object (name ?environment-name)))
                  (container-object ?container-designator)
                  (link ?link-name)
-                 (left-poses ?left-manipulate-poses)
-                 (right-poses ?right-manipulate-poses)
+                 (desig:when ?distance
+                   (distance ?distance))
+                 (desig:when (eq ?arm :left)
+                   (left-poses ?left-manipulate-poses))
+                 (desig:when (eq ?arm :right)
+                   (right-poses ?right-manipulate-poses))
                  (goal ?goal)))))
 
   (when (and joint-name)
@@ -149,7 +152,7 @@
        :joint-name joint-name
        :side ?arm
        :environment ?environment-object
-       :distance distance)))
+       :distance ?distance)))
 
   ;;;;;;;;;;;;;;;;;;;; RETRACTING ;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
