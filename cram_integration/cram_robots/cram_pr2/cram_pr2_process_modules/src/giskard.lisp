@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,22 +27,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :donbot-pm)
-
-;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
-
-(cpm:def-process-module grippers-pm (motion-designator)
-  (destructuring-bind (command action-type-or-position which-gripper
-                       &optional effort-but-actually-slippage-param)
-      (desig:reference motion-designator)
-    (ecase command
-      (cram-common-designators:move-gripper-joint
-       (donbot-ll:call-gripper-action
-        :action-type-or-position action-type-or-position
-        :left-or-right which-gripper
-        :effort-but-actually-slippage-parameter effort-but-actually-slippage-param)))))
-
-;;;;;;;;;;;;;;;;;;;; GISKARD ;;;;;;;;;;;;;;;;;;;;;;;;
+(in-package :pr2-pms)
 
 (cpm:def-process-module giskard-pm (motion-designator)
   (destructuring-bind (command argument-1 &rest rest-args)
@@ -81,15 +66,25 @@
         :joint-angle (second rest-args)
         :prefer-base (eighth rest-args)))
       (cram-common-designators:move-head
-       (when argument-1
-         (giskard:call-neck-action
-          :goal-pose argument-1))
-       (when (car rest-args)
-         (giskard:call-neck-joint-action
-          :goal-configuration (car rest-args))))
+       (giskard:call-neck-action
+        :goal-pose argument-1))
       (cram-common-designators:move-base
        (giskard:call-base-action
         :goal-pose argument-1))
       (cram-common-designators:move-torso
        (giskard:call-torso-action
         :goal-joint-state argument-1)))))
+
+(prolog:def-fact-group giskard-pm (cpm:matching-process-module
+                                   cpm:available-process-module)
+
+  (prolog:<- (cpm:matching-process-module ?motion-designator giskard-pm)
+    (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
+        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
+        (desig:desig-prop ?motion-designator (:type :pulling))
+        (desig:desig-prop ?motion-designator (:type :pushing))
+        (desig:desig-prop ?motion-designator (:type :going))
+        (desig:desig-prop ?motion-designator (:type :moving-torso))))
+
+  (prolog:<- (cpm:available-process-module giskard-pm)
+    (prolog:not (cpm:projection-running ?_))))

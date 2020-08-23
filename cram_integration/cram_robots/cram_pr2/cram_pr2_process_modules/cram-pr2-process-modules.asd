@@ -52,4 +52,5 @@
      (:file "designators" :depends-on ("package"))
      (:file "grippers" :depends-on ("package"))
      (:file "ptu" :depends-on ("package"))
-     (:file "with-real-robot" :depends-on ("package"))))))
+     (:file "giskard" :depends-on ("package"))
+     (:file "with-real-robot" :depends-on ("package" "grippers" "ptu" "giskard"))))))
