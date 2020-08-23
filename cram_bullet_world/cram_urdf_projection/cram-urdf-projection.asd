@@ -36,7 +36,7 @@
                cram-projection
                cram-prolog
                cram-designators
-               cram-utilities ; for lazy list stuff with prolog
+               cram-utilities ; for lazy list stuff with prolog and equalize-lists
                cram-process-modules
 
                cl-transforms

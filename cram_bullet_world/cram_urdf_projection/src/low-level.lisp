@@ -1058,13 +1058,13 @@ collision by moving its torso and base"
                   new-torso-angle
                   new-base-pose-stamped))))))
 
-(defun move-tcp (left-tcp-pose right-tcp-pose
-                 &optional
-                   collision-mode
-                   collision-object-b
-                   collision-object-b-link
-                   collision-object-a
-                   (move-base t))
+(defun move-tcp-one-pose (left-tcp-pose right-tcp-pose
+                          &optional
+                            collision-mode
+                            collision-object-b
+                            collision-object-b-link
+                            collision-object-a
+                            (move-base t))
   (declare (type (or cl-transforms-stamped:pose-stamped null)
                  left-tcp-pose right-tcp-pose)
            (type boolean move-base))
@@ -1163,6 +1163,47 @@ collision by moving its torso and base"
           (move-joints left-ik right-ik)
           ;; perform one last collision check
           (perform-collision-check collision-mode left-tcp-pose right-tcp-pose))))))
+
+(defun move-tcp (left-poses right-poses
+                 &optional
+                   collision-mode
+                   collision-object-b
+                   collision-object-b-link
+                   collision-object-a
+                   (move-base t))
+  (declare (type (or cl-transforms-stamped:pose-stamped list null)
+                 left-poses right-poses)
+           (type boolean move-base))
+
+  (multiple-value-bind (left-poses right-poses)
+      (cut:equalize-two-list-lengths left-poses right-poses)
+
+    ;; Move arms through all but last poses of `left-poses' and `right-poses'
+    ;; while ignoring failures: accuracy is not so important in intermediate poses.
+    (mapc (lambda (left-pose right-pose)
+            (cpl:with-failure-handling
+                ;; ignore intermediate pose failures
+                ((common-fail:manipulation-low-level-failure (e)
+                   (roslisp:ros-warn (urdf-proj move-tcp) "~a~%Ignoring." e)
+                   (return)))
+              (move-tcp-one-pose left-pose right-pose
+                                 collision-mode collision-object-b
+                                 collision-object-b-link collision-object-a
+                                 move-base)))
+          (butlast left-poses)
+          (butlast right-poses))
+
+    ;; Move arm to the last pose of `left-poses' and `right-poses'.
+    (let ((left-pose (car (last left-poses)))
+          (right-pose (car (last right-poses))))
+      (cpl:with-failure-handling
+          ((common-fail:manipulation-low-level-failure (e)
+             ;; propagate failures up
+             (roslisp:ros-error (urdf-proj move-tcp) "~a~%Failing." e)))
+        (move-tcp-one-pose left-pose right-pose
+                           collision-mode collision-object-b
+                           collision-object-b-link collision-object-a
+                           move-base)))))
 
 
 #+save-for-next-time
