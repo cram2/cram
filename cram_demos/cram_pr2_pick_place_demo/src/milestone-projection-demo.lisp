@@ -157,7 +157,9 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                                               :milk :breakfast-cereal)))
   (initialize)
   (setf btr:*visibility-threshold* 0.7)
-  (when cram-projection:*projection-environment*
+  (when (or cram-projection:*projection-environment*
+            ;; dont want to add dependency on sim PMs, thus this stupid hack
+            (roslisp:get-param "/base_simulator/sim_frequency" nil))
     (spawn-objects-on-fixed-spots
      :object-types object-list
      :spawning-poses-relative *demo-object-spawning-poses*))

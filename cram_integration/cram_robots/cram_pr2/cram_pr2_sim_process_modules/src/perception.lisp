@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2012, Lorenz Moesenlechner <moesenle@in.tum.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
-;;;       without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,12 +27,23 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :pr2-sim-pms)
 
-(defpackage cram-common-designators
-  (:use #:common-lisp #:prolog #:desig #:spec)
-  (:export
-   ;; motions
-   #:move-base #:move-torso #:move-head #:detect #:inspect #:move-gripper-joint
-   #:move-tcp #:move-arm-push #:move-arm-pull #:move-joints #:move-with-constraints
-   #:world-state-detect))
+(defun perceive (input-object-designator)
+  (urdf-proj::detect input-object-designator))
+
+(cpm:def-process-module bullet-perception-pm (motion-designator)
+  (destructuring-bind (command argument-1)
+      (desig:reference motion-designator)
+    (ecase command
+      (cram-common-designators:detect
+       (perceive argument-1)))))
+
+(prolog:def-fact-group bullet-perception-pm (cpm:matching-process-module
+                                             cpm:available-process-module)
+
+  (prolog:<- (cpm:matching-process-module ?motion-designator bullet-perception-pm)
+    (desig:desig-prop ?motion-designator (:type :detecting)))
+
+  (prolog:<- (cpm:available-process-module bullet-perception-pm)
+    (prolog:not (cpm:projection-running ?_))))
