@@ -1,4 +1,4 @@
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2016, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -26,43 +26,25 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-urdf-projection
+(defsystem cram-pr2-sim-process-modules
   :author "Gayane Kazhoyan"
+  :maintainer "Gayane Kazhoyan"
   :license "BSD"
 
-  :depends-on (alexandria ; for CURRY in low-level perception
-               roslisp-utilities ; for rosify-lisp-name
-
-               cram-projection
+  :depends-on (cram-process-modules
                cram-prolog
                cram-designators
-               cram-utilities ; for lazy list stuff with prolog and equalize-lists
-               cram-process-modules
+               cram-tf
+               cram-common-failures
+               cram-common-designators
+               cram-language ; for with-real-robot
+               cram-giskard
+               cram-urdf-projection)
 
-               cl-transforms
-               cl-transforms-stamped
-               cl-tf ; for TF transformer to be used without ROS inside projection
-               cram-tf                ; for pose conversions
-               cram-robot-interfaces ; for reading robot descriptions
-               cram-occasions-events ; for on-event for updating TF transformer
-               cram-plan-occasions-events ; for robot-state-changed handler
-               cram-common-designators ; for projection process modules
-               cram-common-failures ; for throwing failures in low-level.lisp
-
-               cram-bullet-reasoning ; for moving the robot in the bullet world
-               cram-bullet-reasoning-belief-state ; for special projection variable definition
-                                                  ; and world-state-detecting PM
-
-               cram-ik-interface
-               ;; can't depend on giskard because it wants the env. service...
-               ;; cram-giskard ; as an alternative to the ik solver
-               sensor_msgs-msg ; cram-ik-interface returns a joint state message
-               )
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "low-level" :depends-on ("package"))
-     (:file "process-modules" :depends-on ("package" "low-level"))
-     (:file "projection-environment" :depends-on ("package" "process-modules"))
-     (:file "tf" :depends-on ("package" "projection-environment"))))))
+     (:file "giskard" :depends-on ("package"))
+     (:file "perception" :depends-on ("package"))
+     (:file "with-real-robot" :depends-on ("package" "giskard" "perception"))))))

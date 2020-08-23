@@ -81,10 +81,19 @@
       (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-tcp
-       (move-tcp arg-1 (first arg-2) (second arg-2) (third arg-2) (fourth arg-2)
-                 (fifth arg-2) (sixth arg-2)))
+       (move-tcp arg-1 (first arg-2)
+                 (second arg-2) (third arg-2) (fourth arg-2) (fifth arg-2)
+                 (sixth arg-2)))
       (cram-common-designators::move-joints
-       (move-joints-avoiding-collision arg-1 (first arg-2) (second arg-2))))))
+       (move-joints-avoiding-collision arg-1 (first arg-2) (second arg-2)))
+      ((or cram-common-designators:move-arm-pull
+           cram-common-designators:move-arm-push)
+       (move-tcp (when (eq arg-1 :left)
+                   (first arg-2))
+                 (when (eq arg-1 :right)
+                   (first arg-2))
+                 (third arg-2) (fourth arg-2) (fifth arg-2) (sixth arg-2)
+                 (seventh arg-2))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;; PREDICATES ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -111,4 +120,6 @@
 
   (<- (cpm:matching-process-module ?motion-designator urdf-proj-arms)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
-        (desig:desig-prop ?motion-designator (:type :moving-arm-joints)))))
+        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
+        (desig:desig-prop ?motion-designator (:type :pulling))
+        (desig:desig-prop ?motion-designator (:type :pushing)))))
