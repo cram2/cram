@@ -29,7 +29,7 @@
 
 (in-package :giskard)
 
-(defparameter *arm-convergence-delta-xy* 0.1 ;; 0.005
+(defparameter *arm-convergence-delta-xy* 0.03 ;; 0.005
   "in meters")
 (defparameter *arm-convergence-delta-theta* 0.5 ;; 0.1
   "in radiants, about 30 degrees")
