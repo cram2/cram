@@ -34,6 +34,7 @@
                                ((:arm ?arm))
                                ((:gripper-opening ?gripper-opening))
                                ((:distance ?distance))
+                               ((:absolute-distance ?absolute-distance))
                                ((:left-reach-poses ?left-reach-poses))
                                ((:right-reach-poses ?right-reach-poses))
                                ((:left-grasp-poses ?left-grasp-poses))
@@ -75,10 +76,9 @@
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (env-plans manipulate)
-                             "Manipulation messed up: ~a~%Failing."
+                             "Manipulation messed up: ~a~%Ignoring."
                              e)
-           ;; (return)
-           ))
+           (return)))
       (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
         (exe:perform
          (desig:an action
@@ -95,8 +95,7 @@
          (roslisp:ros-warn (env-plans manipulate)
                            "Manipulation messed up: ~a~%Failing."
                            e)
-         ;; (return)
-         ))
+         (return)))
     (let ((?goal `(cpoe:tool-frames-at ,?left-grasp-poses ,?right-grasp-poses)))
       (exe:perform
        (desig:an action
@@ -136,8 +135,8 @@
                  (object (desig:an object (name ?environment-name)))
                  (container-object ?container-designator)
                  (link ?link-name)
-                 (desig:when ?distance
-                   (distance ?distance))
+                 (desig:when ?absolute-distance
+                   (distance ?absolute-distance))
                  (desig:when (eq ?arm :left)
                    (left-poses ?left-manipulate-poses))
                  (desig:when (eq ?arm :right)
