@@ -149,7 +149,7 @@
          `(("header"
             . ,(make-header-hash-table stamp frame-id))
            ("pose"
-            . (("origin"
+            . (("position"
                 . ,(make-point-hash-table x y z))
                ("orientation"
                 . ,(make-quaternion-hash-table q1 q2 q3 w)))))
