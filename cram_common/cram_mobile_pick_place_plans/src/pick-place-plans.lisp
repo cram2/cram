@@ -80,8 +80,7 @@
            (roslisp:ros-warn (pp-plans pick-up)
                              "Manipulation messed up: ~a~%Ignoring."
                              e)
-           ;; (return)
-           ))
+           (return)))
       (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
         (exe:perform
          (desig:an action
@@ -96,8 +95,7 @@
          (roslisp:ros-warn (pp-plans pick-up)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
-         (return)
-         ))
+         (return)))
     (let ((?goal `(cpoe:tool-frames-at ,?left-grasp-poses ,?right-grasp-poses)))
       (exe:perform
        (desig:an action

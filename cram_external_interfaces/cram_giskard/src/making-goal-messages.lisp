@@ -231,32 +231,27 @@
         ("root"
          . ,root-link))))))
 
-(defun make-cartesian-constraint (root-frame tip-frame goal-pose max-velocity)
+(defun make-cartesian-constraint (root-frame tip-frame goal-pose
+                                  &key max-velocity avoid-collisions-much)
   (declare (type string root-frame tip-frame)
            (type cl-transforms-stamped:pose-stamped goal-pose)
-           (type number max-velocity))
-  (list
-   (roslisp:make-message
-    'giskard_msgs-msg:constraint
-    :type
-    "CartesianPosition"
-    :parameter_value_pair
-    (alist->json-string
-     `(("root_link" . ,root-frame)
-       ("tip_link" . ,tip-frame)
-       ("goal" . ,(to-hash-table goal-pose))
-       ("max_velocity" . ,max-velocity))))
-   (roslisp:make-message
-    'giskard_msgs-msg:constraint
-    :type
-    "CartesianOrientationSlerp"
-    :parameter_value_pair
-    (alist->json-string
-     `(("root_link" . ,root-frame)
-       ("tip_link" . ,tip-frame)
-       ("goal" . ,(to-hash-table goal-pose))
-       ;; ("max_velocity" . ,max-velocity) ; can be used, but very experimental
-       )))))
+           (type (or number null) max-velocity)
+           (type boolean avoid-collisions-much))
+  (roslisp:make-message
+   'giskard_msgs-msg:constraint
+   :type
+   "CartesianPose"
+   :parameter_value_pair
+   (alist->json-string
+    `(("root_link" . ,root-frame)
+      ("tip_link" . ,tip-frame)
+      ("goal" . ,(to-hash-table goal-pose))
+      ,@(when max-velocity
+          `(("translation_max_velocity" . ,max-velocity)))
+      ,@(when avoid-collisions-much
+          `(("weight" . ,(roslisp-msg-protocol:symbol-code
+                          'giskard_msgs-msg:constraint
+                          :weight_below_ca))))))))
 
 (defun make-joint-constraint (joint-state weights)
   (declare (type list joint-state weights))
@@ -387,7 +382,7 @@
                        `(and (rob-int:robot ?robot)
                              (rob-int:arm-links ?robot ,arm ?arm-links))))))
                   arms)))
-   (make-allow-robot-links-collision arm-links body-b body-b-link)))
+    (make-allow-robot-links-collision arm-links body-b body-b-link)))
 
 (defun make-allow-hand-collision (arms body-b &optional body-b-link)
   (declare (type list arms)
@@ -401,7 +396,7 @@
                        `(and (rob-int:robot ?robot)
                              (rob-int:hand-links ?robot ,hand ?hand-links))))))
                   arms)))
-   (make-allow-robot-links-collision hand-links body-b body-b-link)))
+    (make-allow-robot-links-collision hand-links body-b body-b-link)))
 
 (defun make-allow-fingers-collision (arms body-b &optional body-b-link)
   (declare (type list arms)

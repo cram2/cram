@@ -46,7 +46,8 @@
   ;; check if the goal has already been reached
   (when (and check-goal-function
              (not (funcall check-goal-function)))
-    (roslisp:ros-warn (giskard action-client) "Giskard action already reached.")
+    (roslisp:ros-warn (giskard action-client)
+                      "Giskard action goal already reached.")
     (return-from call-action))
 
   ;; call the actionlib action
@@ -72,6 +73,8 @@
     (when check-goal-function
       (let ((failure (funcall check-goal-function)))
         (when failure
+          (roslisp:ros-warn (giskard action-client)
+                            "Giskard action goal was not reached.")
           (cpl:fail failure))))
 
     ;; this is only used by HPN:
