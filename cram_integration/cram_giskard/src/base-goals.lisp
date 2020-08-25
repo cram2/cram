@@ -35,8 +35,9 @@
 (defun make-giskard-base-action-goal (pose)
   (declare (type cl-transforms-stamped:pose-stamped pose))
   (make-giskard-goal
-   :cartesian-constraints (make-simple-cartesian-constraint
-                           cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose)
+   :constraints (make-cartesian-constraint
+                 cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
+                 :avoid-collisions-much t)
    :joint-constraints (make-current-joint-state-constraint '(:left :right))
    :collisions (make-avoid-all-collision)))
 
