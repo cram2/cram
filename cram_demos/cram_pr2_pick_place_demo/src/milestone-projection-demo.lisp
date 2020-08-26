@@ -34,9 +34,12 @@
   '((:bowl
      "sink_area_left_middle_drawer_main"
      ((0.10 -0.1505 -0.062256) (0 0 -1 0)))
+    ;; (:cup
+    ;;  "sink_area_left_bottom_drawer_main"
+    ;;  ((0.11 0.12 -0.0547167) (0 0 -1 0)))
     (:cup
-     "sink_area_left_bottom_drawer_main"
-     ((0.11 0.12 -0.0547167) (0 0 -1 0)))
+     "kitchen_island_left_upper_drawer_main"
+     ((0.11 0.08 -0.0547167) (0 0 -1 0)))
     (:spoon
      ;; "oven_area_area_middle_upper_drawer_main"
      "sink_area_left_upper_drawer_main"
@@ -172,12 +175,15 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
                            cram-tf:*fixed-frame*))
            (?deliver-location (a location (pose ?deliver-pose)))
            (?color (cdr (assoc ?object-type *object-colors*)))
+           (?material (cdr (assoc ?object-type *object-materials*)))
            ;; (?grasp (cdr (assoc ?object-type *object-grasps*)))
            (?object (an object
                         (type ?object-type)
                         ;; (location ?fetch-location)
                         (desig:when ?color
-                          (color ?color)))))
+                          (color ?color))
+                        (desig:when ?material
+                          (material ?material)))))
       (exe:perform
        (an action
            (type transporting)
