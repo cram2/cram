@@ -143,13 +143,20 @@
                                       (t '(1.0 1.0 0.9))))))
           (make-poses-relative *small-shelf-poses*))
   ;; (btr:simulate btr:*current-bullet-world* 50)
-  (btr-utils:move-robot '((1.0 0 0) (0 0 0 1))))
+  (btr-utils:move-robot '((1.0 0 0) (0 0 0 1)))
+
+  (spawn-random-box-objects-on-shelf "shelf_2_base" '("shelf_2_shelf_2_level_5_link"
+                                                      "shelf_2_shelf_2_level_4_link"
+                                                      "shelf_2_shelf_2_level_3_link"
+                                                      "shelf_2_shelf_2_level_2_link"
+                                                      "shelf_2_shelf_2_level_1_link")
+                                     (cl-transforms:make-3d-vector 0.15 0.1 0.2)))
 
 (defun spawn-random-box-objects-on-shelf (base-link-name &optional list-of-level-link-names maximal-box-size)
   (let* ((maximal-size (if (equalp maximal-box-size NIL)
-                               (cl-transforms:make-3d-vector 0.3 0.4 0.3)
+                               (cl-transforms:make-3d-vector 0.15 0.1 0.2)
                                maximal-box-size))
-         (max-boxes (/ 0.9 (cl-transforms:y maximal-size)))
+         (max-boxes (/ 0.9 (cl-transforms:x maximal-size)))
          ;;(offset-between-object (/ (- 0.85 (* max-boxes y)) (+ max-boxes 2)))
          (list-of-level-link-names (if (eql list-of-level-link-names NIL)
                                        (btr-spatial-cm::find-levels-under-link base-link-name)
@@ -159,9 +166,8 @@
                                  (btr:link-pose (btr:get-environment-object) level-name)))
                               list-of-level-link-names)))
 
-    (print level-poses)
     (loop for pose in level-poses
-          do (let ((prev-x 0.05)
+          do (let ((prev-x 0.02)
                    (pos-x (- (cl-transforms:x pose) 0.45)))
                (loop for i from 0 to max-boxes
                      do  (let* ((box-size-rand `(,(random (cl-transforms:x maximal-size))
@@ -177,7 +183,6 @@
                                               ,(float (/ (random 10) 10))
                                               ,(float (/ (random 10) 10)))))
                            (setf prev-x (first box-size-rand))
-                           (print spawn-pose)
                            (btr:add-object btr:*current-bullet-world*
                                            :colored-box (intern (concatenate 'string "box-" (write-to-string i)))
                                            (cram-tf:list->pose spawn-pose) :mass 1 :size box-size-rand
