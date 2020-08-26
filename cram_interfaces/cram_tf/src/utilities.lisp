@@ -408,7 +408,8 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
             goal-frame
             :use-zero-time t))
          (goal-dist (max (abs (cl-transforms:x (cl-transforms:origin pose-in-frame)))
-                         (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))))
+                         (abs (cl-transforms:y (cl-transforms:origin pose-in-frame)))
+                         (abs (cl-transforms:z (cl-transforms:origin pose-in-frame)))))
          (goal-angle (cl-transforms:normalize-angle
                       (cl-transforms:get-yaw
                        (cl-transforms:orientation pose-in-frame)))))

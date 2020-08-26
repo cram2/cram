@@ -129,6 +129,10 @@
     (once (or (lisp-pred identity ?left-trajectory)
               (lisp-pred identity ?right-trajectory)))
 
+    (-> (lisp-pred identity ?left-grasp-poses)
+        (equal ?left-grasp-poses (?look-pose . ?_))
+        (equal ?right-grasp-poses (?look-pose . ?_)))
+
     ;; put together resulting action designator
     (desig:designator :action ((:type :picking-up)
                                (:object ?current-object-desig)
@@ -137,6 +141,7 @@
                                (:effort ?effort)
                                (:grasp ?grasp)
                                (:location-type ?location-type)
+                               (:look-pose ?look-pose)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)
@@ -249,6 +254,10 @@
     (once (or (lisp-pred identity ?left-trajectory)
               (lisp-pred identity ?right-trajectory)))
 
+    (-> (lisp-pred identity ?left-put-poses)
+        (equal ?left-put-poses (?look-pose . ?_))
+        (equal ?right-put-poses (?look-pose . ?_)))
+
     ;; put together resulting designator
     (desig:designator :action ((:type :placing)
                                (:object ?current-object-designator)
@@ -260,6 +269,7 @@
                                (:location-type ?location-type)
                                (:gripper-opening ?gripper-opening)
                                (:attachment-type ?placement-location-name)
+                               (:look-pose ?look-pose)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-put-poses ?left-put-poses)

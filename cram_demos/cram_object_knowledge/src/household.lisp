@@ -270,44 +270,44 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *milk-grasp-xy-offset* 0.01 "in meters")
-(defparameter *milk-grasp-z-offset* 0.04 "in meters")
+(defparameter *milk-grasp-z-offset* 0.03 "in meters")
 (defparameter *milk-pregrasp-xy-offset* 0.15 "in meters")
-(defparameter *milk-lift-z-offset* 0.05 "in meters")
+(defparameter *milk-lift-z-offset* 0.15 "in meters")
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :back
   :grasp-translation `(,*milk-grasp-xy-offset* 0.0d0 ,*milk-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-z-grasp-rotation*
-  :pregrasp-offsets `(,(- *milk-pregrasp-xy-offset*) 0.0 ,*lift-z-offset*)
+  :pregrasp-offsets `(,(- *milk-pregrasp-xy-offset*) 0.0 ,*milk-lift-z-offset*)
   :2nd-pregrasp-offsets `(,(- *milk-pregrasp-xy-offset*) 0.0 0.0)
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
+  :lift-translation `(0.0 0.0 ,*milk-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*milk-lift-z-offset*))
 
 ;; FRONT grasp
 (man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :front
   :grasp-translation `(,(- *milk-grasp-xy-offset*) 0.0d0 ,*milk-grasp-z-offset*)
   :grasp-rot-matrix man-int:*x-across-z-grasp-rotation*
-  :pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 ,*lift-z-offset*)
+  :pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 ,*milk-lift-z-offset*)
   :2nd-pregrasp-offsets `(,*milk-pregrasp-xy-offset* 0.0 0.0)
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
+  :lift-translation `(0.0 0.0 ,*milk-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*milk-lift-z-offset*))
 
 ;; SIDE grasp
 (man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :left-side
   :grasp-translation `(0.0d0 ,(- *milk-grasp-xy-offset*) ,*milk-grasp-z-offset*)
   :grasp-rot-matrix man-int:*y-across-z-grasp-rotation*
-  :pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* ,*lift-z-offset*)
+  :pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* ,*milk-lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,*milk-pregrasp-xy-offset* 0.0)
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
+  :lift-translation `(0.0 0.0 ,*milk-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*milk-lift-z-offset*))
 
 (man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :right-side
   :grasp-translation `(0.0d0 ,*milk-grasp-xy-offset* ,*milk-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-y-across-z-grasp-rotation*
-  :pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) ,*lift-z-offset*)
+  :pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) ,*milk-lift-z-offset*)
   :2nd-pregrasp-offsets `(0.0 ,(- *milk-pregrasp-xy-offset*) 0.0)
-  :lift-translation *lift-offset*
-  :2nd-lift-translation *lift-offset*)
+  :lift-translation `(0.0 0.0 ,*milk-lift-z-offset*)
+  :2nd-lift-translation `(0.0 0.0 ,*milk-lift-z-offset*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; cereal ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -317,7 +317,7 @@
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *cereal-postgrasp-xy-offset* 0.40 "in meters")
 (defparameter *cereal-lift-z-offset* 0.1 "in meters")
-(defparameter *cereal-small-lift-z-offset* 0.05 "in meters")
+(defparameter *cereal-small-lift-z-offset* 0.07 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms
@@ -576,6 +576,14 @@
            (side back)
            (side right)))
 
+(defun make-location-in-kitchen-island-left-upper-drawer (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name kitchen-island-left-upper-drawer-main)
+                         (part-of ?environment-name)))
+           (side front)))
+
 ;;;;;;;; dining table
 
 (defun make-location-on-dining-table-slots (?object-type ?environment-name)
@@ -759,7 +767,8 @@
               ((object-type (eql type))
                environment human
                (context (eql :table-setting)))
-            (make-location-in-sink-left-bottom-drawer environment)))
+            ;; (make-location-in-sink-left-bottom-drawer environment)
+            (make-location-in-kitchen-island-left-upper-drawer environment)))
         '(:cup))
 
 (mapcar (lambda (type)

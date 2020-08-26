@@ -35,6 +35,7 @@
                                ((:gripper-opening ?gripper-opening))
                                ((:distance ?distance))
                                ((:absolute-distance ?absolute-distance))
+                               ((:look-pose ?look-pose))
                                ((:left-reach-poses ?left-reach-poses))
                                ((:right-reach-poses ?right-reach-poses))
                                ((:left-grasp-poses ?left-grasp-poses))
@@ -62,8 +63,18 @@
 
   ;;;;;;;;;;;;;;; OPEN GRIPPER AND REACH ;;;;;;;;;;;;;;;;
   (cpl:par
-    (roslisp:ros-info (environment-manipulation manipulate-container)
-                      "Opening gripper")
+    (roslisp:ros-info (env-manip plan) "Looking, opening gripper and reaching")
+    (cpl:with-failure-handling
+        ((common-fail:ptu-low-level-failure (e)
+           (roslisp:ros-warn (env-manip plan)
+                             "Looking-at had a problem: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type looking)
+                 (target (desig:a location
+                                  (pose ?look-pose))))))
     (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
       (exe:perform
        (desig:an action
@@ -71,8 +82,6 @@
                  (gripper ?arm)
                  (position ?gripper-opening)
                  (goal ?goal))))
-    (roslisp:ros-info (environment-manipulation manipulate-container)
-                      "Reaching")
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (env-plans manipulate)
