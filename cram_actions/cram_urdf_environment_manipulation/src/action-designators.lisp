@@ -157,12 +157,17 @@
     (or (lisp-pred identity ?left-trajectory)
         (lisp-pred identity ?right-trajectory))
 
+    (-> (lisp-pred identity ?left-reach-poses)
+        (equal ?left-reach-poses (?look-pose . ?_))
+        (equal ?right-reach-poses (?look-pose . ?_)))
+
     ;; make new action designator
     (desig:designator :action ((:type ?action-type)
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
                                (:distance ?clipped-distance)
                                (:absolute-distance ?absolute-distance)
+                               (:look-pose ?look-pose)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)
