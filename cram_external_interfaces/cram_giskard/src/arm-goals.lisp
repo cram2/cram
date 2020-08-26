@@ -113,7 +113,7 @@
            (type boolean align-planes-left align-planes-right))
   (make-giskard-goal
    :constraints (list
-                 (make-avoid-joint-limits-constraint)
+                 ;; (make-avoid-joint-limits-constraint)
                  ;; (when align-planes-left
                  ;;   (make-align-planes-constraint
                  ;;    cram-tf:*odom-frame*
