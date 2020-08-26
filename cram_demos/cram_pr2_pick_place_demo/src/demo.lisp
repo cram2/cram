@@ -35,11 +35,15 @@
     ))
 
 (defparameter *object-colors*
-  '((:spoon . "black")
-    (:breakfast-cereal . "yellow")
-    (:milk . "blue")
-    (:bowl . "red")
-    (:cup . "red")))
+  '(;; (:spoon . "Black")
+    ;; (:spoon . "Blue")
+    ;; (:breakfast-cereal . "Yellow")
+    ;; (:milk . "Blue")
+    (:bowl . "Red")
+    (:cup . "Red")))
+
+(defparameter *object-materials*
+  '((:spoon . "Steel")))
 
 (defparameter *object-grasps*
   '((:spoon . :top)
@@ -111,7 +115,10 @@
         0.0
         (btr:joint-state (btr:get-environment-object)
                          "sink_area_trash_drawer_main_joint")
-        0)
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "kitchen_island_left_upper_drawer_main_joint")
+        0.0)
   (btr-belief::publish-environment-joint-state
    (btr:joint-states (btr:get-environment-object)))
 
@@ -142,9 +149,6 @@
 
   (park-robot)
 
-  ;; (an object
-  ;;     (obj-part "drawer_sinkblock_upper_handle"))
-
   (dolist (?object-type list-of-objects)
     (let* ((?arm-to-use
              (cdr (assoc ?object-type *object-grasping-arms*)))
@@ -152,13 +156,17 @@
              (cdr (assoc ?object-type *object-cad-models*)))
            (?color
              (cdr (assoc ?object-type *object-colors*)))
+           (?material
+             (cdr (assoc ?object-type *object-materials*)))
            (?object-to-fetch
              (desig:an object
                        (type ?object-type)
                        (desig:when ?cad-model
                          (cad-model ?cad-model))
                        (desig:when ?color
-                         (color ?color)))))
+                         (color ?color))
+                       (desig:when ?material
+                         (material ?material)))))
 
       (cpl:with-failure-handling
           ((common-fail:high-level-failure (e)
