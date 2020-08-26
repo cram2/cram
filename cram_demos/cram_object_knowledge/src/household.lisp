@@ -270,9 +270,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; milk ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *milk-grasp-xy-offset* 0.01 "in meters")
-(defparameter *milk-grasp-z-offset* 0.04 "in meters")
+(defparameter *milk-grasp-z-offset* 0.03 "in meters")
 (defparameter *milk-pregrasp-xy-offset* 0.15 "in meters")
-(defparameter *milk-lift-z-offset* 0.05 "in meters")
+(defparameter *milk-lift-z-offset* 0.08 "in meters")
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :milk '(:left :right) :back
@@ -317,7 +317,7 @@
 (defparameter *cereal-pregrasp-xy-offset* 0.15 "in meters")
 (defparameter *cereal-postgrasp-xy-offset* 0.40 "in meters")
 (defparameter *cereal-lift-z-offset* 0.1 "in meters")
-(defparameter *cereal-small-lift-z-offset* 0.05 "in meters")
+(defparameter *cereal-small-lift-z-offset* 0.07 "in meters")
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms
@@ -576,6 +576,14 @@
            (side back)
            (side right)))
 
+(defun make-location-in-kitchen-island-left-upper-drawer (?environment-name)
+  (desig:a location
+           (in (desig:an object
+                         (type drawer)
+                         (urdf-name kitchen-island-left-upper-drawer-main)
+                         (part-of ?environment-name)))
+           (side front)))
+
 ;;;;;;;; dining table
 
 (defun make-location-on-dining-table-slots (?object-type ?environment-name)
@@ -759,7 +767,8 @@
               ((object-type (eql type))
                environment human
                (context (eql :table-setting)))
-            (make-location-in-sink-left-bottom-drawer environment)))
+            ;; (make-location-in-sink-left-bottom-drawer environment)
+            (make-location-in-kitchen-island-left-upper-drawer environment)))
         '(:cup))
 
 (mapcar (lambda (type)
