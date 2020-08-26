@@ -1,5 +1,6 @@
 ;;;
 ;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;                     Jonas Dech <jdech@uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -143,6 +144,46 @@
           (make-poses-relative *small-shelf-poses*))
   ;; (btr:simulate btr:*current-bullet-world* 50)
   (btr-utils:move-robot '((1.0 0 0) (0 0 0 1))))
+
+(defun spawn-random-box-objects-on-shelf (base-link-name &optional list-of-level-link-names maximal-box-size)
+  (let* ((maximal-size (if (equalp maximal-box-size NIL)
+                               (cl-transforms:make-3d-vector 0.3 0.4 0.3)
+                               maximal-box-size))
+         (max-boxes (/ 0.9 (cl-transforms:y maximal-size)))
+         ;;(offset-between-object (/ (- 0.85 (* max-boxes y)) (+ max-boxes 2)))
+         (list-of-level-link-names (if (eql list-of-level-link-names NIL)
+                                       (btr-spatial-cm::find-levels-under-link base-link-name)
+                                       list-of-level-link-names))
+         (level-poses (mapcar (lambda (level-name)
+                                (cl-transforms:origin
+                                 (btr:link-pose (btr:get-environment-object) level-name)))
+                              list-of-level-link-names)))
+
+    (print level-poses)
+    (loop for pose in level-poses
+          do (let ((prev-x 0.05)
+                   (pos-x (- (cl-transforms:x pose) 0.45)))
+               (loop for i from 0 to max-boxes
+                     do  (let* ((box-size-rand `(,(random (cl-transforms:x maximal-size))
+                                                 ,(random (cl-transforms:y maximal-size))
+                                                 ,(random (cl-transforms:z maximal-size))))
+                                (x (first box-size-rand))
+                                (offset-between-object (+ (/ (+ x prev-x) 2) 0.05))
+                                (spawn-pose `((,(setf pos-x (+ pos-x offset-between-object))
+                                               ,(cl-transforms:y pose)
+                                               ,(+ (cl-transforms:z pose) (/ (third box-size-rand) 2)))
+                                              (0 0 0 1)))
+                                (color-rand `(,(float (/ (random 10) 10))
+                                              ,(float (/ (random 10) 10))
+                                              ,(float (/ (random 10) 10)))))
+                           (setf prev-x (first box-size-rand))
+                           (print spawn-pose)
+                           (btr:add-object btr:*current-bullet-world*
+                                           :colored-box (intern (concatenate 'string "box-" (write-to-string i)))
+                                           (cram-tf:list->pose spawn-pose) :mass 1 :size box-size-rand
+                                                                           :color color-rand)))))))
+         
+                                      
 
 (defun spawn-basket ()
   (let* ((left-ee-frame
