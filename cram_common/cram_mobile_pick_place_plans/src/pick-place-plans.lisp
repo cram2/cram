@@ -45,6 +45,7 @@
                   ((:effort ?grip-effort))
                   ((:grasp ?grasp))
                   location-type
+                  ((:look-pose ?look-pose))
                   ((:left-reach-poses ?left-reach-poses))
                   ((:right-reach-poses ?right-reach-poses))
                   ((:left-grasp-poses ?left-grasp-poses))
@@ -66,7 +67,19 @@
                             :r-g-b-list '(1 1 0) :id 300)
 
   (cpl:par
-    (roslisp:ros-info (pick-place pick-up) "Opening gripper")
+    (roslisp:ros-info (pick-place pick-up)
+                      "Looking, opening gripper and reaching")
+    (cpl:with-failure-handling
+        ((common-fail:ptu-low-level-failure (e)
+           (roslisp:ros-warn (pp-plans pick-up)
+                             "Looking-at had a problem: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type looking)
+                 (target (desig:a location
+                                  (pose ?look-pose))))))
     (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
       (exe:perform
        (desig:an action
@@ -74,7 +87,6 @@
                  (gripper ?arm)
                  (position ?gripper-opening)
                  (goal ?goal))))
-    (roslisp:ros-info (pick-place pick-up) "Reaching")
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (pp-plans pick-up)
@@ -149,6 +161,7 @@
                 location-type
                 ((:gripper-opening ?gripper-opening))
                 ((:attachment-type ?placing-location-name))
+                ((:look-pose ?look-pose))
                 ((:left-reach-poses ?left-reach-poses))
                 ((:right-reach-poses ?right-reach-poses))
                 ((:left-put-poses ?left-put-poses))
@@ -168,6 +181,18 @@
            (ignore grasp location-type))
   "Reach, put, assert assemblage if given, open gripper, retract grasp event, retract arm."
 
+  (roslisp:ros-info (pick-place place) "Looking")
+  (cpl:with-failure-handling
+      ((common-fail:ptu-low-level-failure (e)
+         (roslisp:ros-warn (pp-plans place)
+                           "Looking-at had a problem: ~a~%Ignoring."
+                           e)
+         (return)))
+    (exe:perform
+     (desig:an action
+               (type looking)
+               (target (desig:a location
+                                (pose ?look-pose))))))
   (roslisp:ros-info (pick-place place) "Reaching")
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)

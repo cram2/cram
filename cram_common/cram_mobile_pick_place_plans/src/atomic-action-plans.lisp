@@ -413,9 +413,11 @@ In any case, issue ROBOT-STATE-CHANGED event."
   (declare (type desig:object-designator ?object-designator))
   "Call detecting motion on `?object-designator', retry on failure, issue perceived event,
 equate resulting designator to the original one."
-  (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
-                     1
-                     4)))
+  (let ((retries 1
+          ;; (if (find :cad-model (desig:properties ?object-designator) :key #'car)
+          ;;     1
+          ;;     4)
+          ))
     (cpl:with-retry-counters ((perceive-retries retries))
       (cpl:with-failure-handling
           ((common-fail:perception-low-level-failure (e)
