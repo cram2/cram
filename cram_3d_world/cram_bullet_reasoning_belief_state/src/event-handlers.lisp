@@ -105,7 +105,7 @@ and renames POSE into OLD-POSE."
                                 (desig:desig-prop-value target-desig :in)))
            (urdf-name (desig:desig-prop-value target-on-desig :urdf-name))
            (object-loose-attached-at-robot-links
-             (car (btr::object-loose-attached (btr:get-robot-object) btr-object))))
+             (car (btr:object-attached (btr:get-robot-object) btr-object :loose T))))
       ;; If the object is loosely attached to some robot links and the
       ;; target location is not one of these robot links, the
       ;; loose attachment between the robot and the object will be removed.
