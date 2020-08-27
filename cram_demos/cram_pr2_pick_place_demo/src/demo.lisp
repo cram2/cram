@@ -67,6 +67,7 @@
                  (type positioning-arm)
                  (left-configuration park)
                  (right-configuration park)))
+      (exe:perform (desig:an action (type moving-torso ) (joint-angle 0.30)))
       (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))
     (let ((?pose (cl-transforms-stamped:make-pose-stamped
