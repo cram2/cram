@@ -4,4 +4,8 @@
             output="screen" respawn="true" >
         <param name="objects" value="$(arg objects)" />
       </node>
+
+  <include file="$(find knowrob)/launch/knowrob.launch" />
+   <include file="$(find cram_pr2_pick_place_demo)/launch/sandbox.launch" />
+
 </launch>
