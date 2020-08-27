@@ -18,8 +18,13 @@
 (defun get-grasp-type-lookup-table()
   (let ((lookup-table (make-hash-table :test 'equal)))
     (setf (gethash ":TOP" lookup-table) "TopGrasp")
+    (setf (gethash ":TOP-FRONT" lookup-table) "TopFrontGrasp")
+    (setf (gethash ":TOP-LEFT" lookup-table) "TopLeftGrasp")
+    (setf (gethash ":TOP-RIGHT" lookup-table) "TopRightGrasp")
     (setf (gethash ":BOTTOM" lookup-table) "BottomGrasp")
     (setf (gethash ":LEFT" lookup-table) "LeftGrasp")
+    (setf (gethash ":LEFT-SIDE" lookup-table) "LeftSideGrasp")
+    (setf (gethash ":RIGHT-SIDE" lookup-table) "RightSideGrasp")
     (setf (gethash ":RIGHT" lookup-table) "RightGrasp")
     (setf (gethash ":FRONT" lookup-table) "FrontGrasp")
     (setf (gethash ":BACK" lookup-table) "BackGrasp")
@@ -39,8 +44,9 @@
 (defun attach-event-to-situation (event-prolog-url situation-prolog-url)
   (get-url-from-send-query-1 "SubAction" "add_subaction_with_task" situation-prolog-url "SubAction" event-prolog-url))
 
-(defun send-belief-perceived-at (object-type transform)
-  (get-url-from-send-query-1 "Object" "belief_perceived_at" object-type transform "Object"))
+(defun send-belief-perceived-at (object-type transform object-id)
+  (send-query-1-without-result "belief_perceived_at" object-type transform object-id)
+  object-id)
 
 (defun send-belief-new-object-query (object-type)
   (get-url-from-send-query-1 "Object" "belief_new_object" object-type "Object"))
@@ -94,17 +100,16 @@
   (let* ((object-name (get-designator-property-value-str object-designator :NAME))
          (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
     (when object-ease-id 
-      (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/EASE-OBJ.owl#AffectedObject'"))))
+      (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
 
 
 (defun send-grasp-action-parameter (action-inst grasp)
   (let ((grasp-type (gethash (write-to-string grasp) *grasp-type-lookup-table*)))
-    (send-parameter action-inst "GraspingOrientation" grasp-type)))
+    (send-parameter action-inst grasp-type)))
 
-(defun send-parameter(action-inst parameter-type region-type)
-  (let ((parameter-type-url (concatenate 'string "'""http://www.ease-crc.org/ont/EASE.owl#" parameter-type "'"))
-        (region-type-url (concatenate 'string "'""http://www.ease-crc.org/ont/EASE.owl#" region-type "'")))
-      (send-query-1-without-result "add_parameter" action-inst parameter-type-url region-type-url)))
+(defun send-parameter(action-inst region-type)
+  (let ((region-type-url (concatenate 'string "'""http://www.ease-crc.org/ont/SOMA.owl#" region-type "'")))
+      (send-query-1-without-result "add_grasping_parameter" action-inst region-type-url)))
 
 
 

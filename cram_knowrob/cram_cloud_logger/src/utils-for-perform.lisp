@@ -32,9 +32,9 @@
 
 (defun get-ease-object-lookup-table()
   (let ((lookup-table (make-hash-table :test 'equal)))
-    (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Bowl'")
-    (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Cup'")
-    (setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/EASE-OBJ.owl#Drawer'")
+    (setf (gethash "BOWL" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Bowl'")
+    (setf (gethash "CUP" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Cup'")
+    (setf (gethash "DRAWER" lookup-table) "'http://www.ease-crc.org/ont/SOMA.owl#Drawer'")
     lookup-table))
 
 (cpl:define-task-variable *action-parents* '())
@@ -80,7 +80,11 @@
           (convert-to-ease-object-type-url detected-object-type)))
     (if (gethash object-name *detected-objects*)
         (print "Object exists")
-        (let ((object-id (send-belief-perceived-at object-type (get-transform-of-detected-object detected-object))))
+        (let ((object-id (send-belief-perceived-at object-type
+                                                   (get-transform-of-detected-object detected-object)
+                                                   (concatenate 'string
+                                                                "'" "http://www.ease-crc.org/ont/SOMA.owl#"
+                                                                (roslisp-utilities:rosify-underscores-lisp-name (make-symbol object-name)) "'"))))
           (setf (gethash object-name *detected-objects*) object-id)
           (when (string-equal object-type "'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#DesignedArtifact'")
             (send-comment object-id (concatenate 'string "Unknown Object: "(write-to-string detected-object-type))))))))
@@ -119,7 +123,7 @@
               (call-next-method)
             ;;(let ((referenced-action-id (log-perform-call action-desig)))
             (let ((referenced-action-id "")
-                  (action-designator-parameters (desig:properties action-desig)))
+                  (action-designator-parameters (desig:properties (or action-desig designator))))
               (log-action-designator-parameters-for-logged-action-designator action-designator-parameters action-id)
               (when (string-equal cram-action-name "detecting")
                 (handle-detected-object perform-result))
@@ -137,7 +141,7 @@
   (if *is-logging-enabled*
       (let* ((cram-action-name (get-knowrob-action-name-uri (get-designator-property-value-str designator :TYPE) designator))
              (event-name-url (attach-event-to-situation cram-action-name (get-parent-uri))))
-        (when (string-equal cram-action-name "'http://www.ease-crc.org/ont/EASE-ACT.owl#PhysicalTask'")
+        (when (string-equal cram-action-name "'http://www.ease-crc.org/ont/SOMA.owl#PhysicalTask'")
           (send-comment event-name-url (concatenate 'string "Unknown Action: "  (get-designator-property-value-str designator :TYPE))))
         event-name-url)
       "NOLOGGING"))
