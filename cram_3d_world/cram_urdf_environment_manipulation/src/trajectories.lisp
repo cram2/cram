@@ -29,7 +29,7 @@
 
 (in-package :env-man)
 
-(defparameter *drawer-handle-grasp-x-offset* 0.0 "in meters")
+(defparameter *drawer-handle-grasp-x-offset* -0.02 "in meters")
 (defparameter *drawer-handle-pregrasp-x-offset* 0.10 "in meters")
 (defparameter *drawer-handle-retract-offset* 0.10 "in meters")
 (defparameter *door-handle-retract-offset* 0.05 "in meters")

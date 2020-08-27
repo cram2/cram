@@ -29,11 +29,13 @@
 
 (in-package :rs)
 
+(defparameter *ros-action* "RoboSherlock/query_action")
+
 (defun make-robosherlock-action-client ()
   (actionlib-client:make-simple-action-client
    'robosherlock-action
-   "RoboSherlock/query_action" "robosherlock_msgs/RSQueryAction"
-   60))
+   *ros-action* "robosherlock_msgs/RSQueryAction"
+   120))
 
 (roslisp-utilities:register-ros-init-function make-robosherlock-action-client)
 
@@ -74,27 +76,39 @@
                      (destructuring-bind (key &rest values)
                          key-value-pair
                        (let ((value (car values)))
-                         ;; below are the only keys supported by RS at the moment
-                         ;; TODO: make sure that an already perceived object doesn't get reperceived with its original SHAPE and SIZE...
+                         ;; below are the only keys supported by RS atm
                          (if (or (eql key :type)
                                  (eql key :shape)
                                  (eql key :color)
                                  (eql key :location)
-                                 (eql key :size))
+                                 (eql key :size)
+                                 (eql key :material))
                              (list key
-                                   (etypecase value ; RS is only case-sensitive on "TYPE"s
-                                     (keyword (remove #\-
-                                                      (if (eql key :type)
-                                                          (string-capitalize (symbol-name value))
-                                                          (string-downcase (symbol-name value)))))
-                                     (string value)
-                                     (list (mapcar (lambda (item)
-                                                     (etypecase item
-                                                       (keyword
-                                                        (string-downcase (symbol-name item)))
-                                                       (string
-                                                        item)))
-                                                   value))
+                                   (etypecase value
+                                     ;; RS is only case-sensitive on "TYPE"s
+                                     (keyword
+                                      (remove #\-
+                                              (if (eql key :type)
+                                                  (string-capitalize
+                                                   (symbol-name
+                                                    (case value
+                                                      ;; (:bowl :ikea-red-bowl)
+                                                      ;; (:cup :ikea-red-cup)
+                                                      ;; (:spoon :soup-spoon)
+                                                      (t value))))
+                                                  (string-downcase
+                                                   (symbol-name value)))))
+                                     (string
+                                      value)
+                                     (list
+                                      (mapcar (lambda (item)
+                                                (etypecase item
+                                                  (keyword
+                                                   (string-downcase
+                                                    (symbol-name item)))
+                                                  (string
+                                                   item)))
+                                              value))
                                      (desig:location-designator
                                       (desig:desig-prop-value
                                        (or (desig:desig-prop-value value :on)
@@ -118,8 +132,9 @@
            (if (string-equal string "")
                nil
                (roslisp-utilities:lispify-ros-underscore-name string :keyword))))
-    `((:name ,(to-keyword ;; (roslisp:msg-slot-value message :uid)
-                          (format nil "~a-1" (roslisp:msg-slot-value message :type))))
+    `((:name ,(to-keyword
+               ;; (roslisp:msg-slot-value message :uid)
+               (format nil "~a-1" (roslisp:msg-slot-value message :type))))
       (:type ,(to-keyword (roslisp:msg-slot-value message :type)))
       (:shape ,(map 'list #'to-keyword (roslisp:msg-slot-value message :shape)))
       (:color ,(map 'list #'to-keyword (roslisp:msg-slot-value message :color)))
@@ -139,20 +154,25 @@
                   :description "couldn't find the object"))
       (etypecase quantifier
         (keyword (ecase quantifier
-                   ((:a :an) (parse-result (aref result 0))
-                    ;; this case should return a lazy list but I don't like them so...
-                    )
+                   ;; this case should return a lazy list
+                   ;; but I don't like them so...
+                   ((:a :an) (parse-result (aref result 0)))
                    (:the (if (= number-of-objects 1)
                              (parse-result (aref result 0))
                              (cpl:fail 'common-fail:perception-low-level-failure
-                                       :description "There was more than one of THE object")))
+                                       :description (format nil
+                                                            "There was more ~
+                                                             than one of THE ~
+                                                             object"))))
                    (:all (map 'list #'parse-result result))))
         (number (if (= number-of-objects quantifier)
                     (map 'list #'parse-result result)
                     (cpl:fail 'common-fail:perception-low-level-failure
-                              :description (format nil "perception returned ~a objects ~
-                                                      although there should've been ~a"
-                                                   number-of-objects quantifier))))))))
+                              :description (format nil "perception returned ~a ~
+                                                        objects although there ~
+                                                        should've been ~a"
+                                                   number-of-objects
+                                                   quantifier))))))))
 
 (defun map-rs-color-to-rgb-list (rs-color)
   (when (stringp rs-color)
@@ -177,7 +197,7 @@
     (if cad-model
         :templatealignment
         (if (eq type :spoon)
-            :2destimate
+            :3destimate ;:2destimate
             (if obj-part
                 :handleannotator
                 :3destimate)))))
@@ -217,6 +237,16 @@
                :cup)
               (:EdekaRedBowl
                :bowl)
+              (:IkeaRedBowl
+               :bowl)
+              (:SoupSpoon
+               :spoon)
+              (:IkeaRedCup
+               :cup)
+              (:bowl
+               :bowl)
+              (:cup
+               :cup)
               (:WeideMilchSmall
                :milk)
               (:BLUEPLASTICSPOON
@@ -249,8 +279,11 @@
   ;;            (find :color keyword-key-value-pairs-list :key #'car))
   ;;   (setf rs-answer (remove :color rs-answer :key #'car)))
   (setf rs-answer (remove :color rs-answer :key #'car)) ; <- if we don't do this
-                                                        ; might end up asking about mutliple colors
+                                        ; might end up asking about mutliple colors
+  (setf rs-answer (remove :material rs-answer :key #'car)) ; <- if we don't do this
+                                        ; might end up asking about different materials
   (setf rs-answer (remove :shape rs-answer :key #'car)); <- SHAPE comes from original query
+  (setf rs-answer (remove :size rs-answer :key #'car)) ; <- don't care about size
   ;; (when (and (find :pose rs-answer :key #'car)
   ;;            (find :pose keyword-key-value-pairs-list :key #'car))
   ;;   (remove :pose keyword-key-value-pairs-list :key #'car))

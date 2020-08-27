@@ -69,4 +69,5 @@
    #:arms-positioned-at #:tool-frames-at
    #:looking-at
    #:container-state
-   #:location-reset))
+   #:location-reset
+   #:location-accessible))

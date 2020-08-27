@@ -104,12 +104,14 @@ turn the robot base such that it looks in the direction of target and look again
 (defun manipulate-environment (&key
                                  ((:type action-type))
                                  ((:object ?object-to-manipulate))
+                                 ((:object-location ?object-location))
                                  ((:arm ?arm))
                                  ((:distance ?distance))
                                  ((:robot-location ?manipulate-robot-location))
                                &allow-other-keys)
   (declare (type keyword action-type ?arm)
            (type desig:object-designator ?object-to-manipulate)
+           (type (or desig:location-designator null) ?object-location)
            (type (or number null) ?distance)
            ;; here, ?manipulate-robot-location can only be null within the function
            ;; but one should not pass a NULL location as argument,
@@ -117,6 +119,15 @@ turn the robot base such that it looks in the direction of target and look again
            (type (or null desig:location-designator) ?manipulate-robot-location))
   "Navigate to reachable location, check if opening/closing trajectory causes collisions,
 if yes, relocate and retry, if no collisions, open or close container."
+
+  ;; Making the containing location accessible before accessing the object
+  (when (and ?object-location
+             (eq action-type :accessing))
+    (let ((?goal `(cpoe:location-accessible ,?object-location)))
+      (exe:perform (desig:an action
+                             (type accessing)
+                             (location ?object-location)
+                             (goal ?goal)))))
 
   (cpl:with-failure-handling
       ((desig:designator-error (e)
@@ -152,7 +163,9 @@ if yes, relocate and retry, if no collisions, open or close container."
                 (ecase action-type
                   (:accessing
                    (let ((?goal
-                           `(cpoe:container-state ,?object-to-manipulate :open)))
+                           (if ?distance
+                               `(cpoe:container-state ,?object-to-manipulate ,?distance)
+                               `(cpoe:container-state ,?object-to-manipulate :open))))
                      (desig:an action
                                (type opening)
                                (arm ?arm)
@@ -162,7 +175,9 @@ if yes, relocate and retry, if no collisions, open or close container."
                                (goal ?goal))))
                   (:sealing
                    (let ((?goal
-                           `(cpoe:container-state ,?object-to-manipulate :closed)))
+                           (if ?distance
+                               `(cpoe:container-state ,?object-to-manipulate ,?distance)
+                               `(cpoe:container-state ,?object-to-manipulate :closed))))
                      (desig:an action
                                (type closing)
                                (arm ?arm)
@@ -174,7 +189,16 @@ if yes, relocate and retry, if no collisions, open or close container."
           (proj-reasoning:check-environment-manipulation-collisions manipulation-action)
           (setf manipulation-action (desig:current-desig manipulation-action))
 
-          (exe:perform manipulation-action))))))
+          (exe:perform manipulation-action)))))
+
+  ;; Seal the object containing location after sealing the object
+  (when (and ?object-location
+             (eq action-type :sealing))
+    (let ((?goal `(cpoe:location-reset ,?object-location)))
+      (exe:perform (desig:an action
+                             (type sealing)
+                             (location ?object-location)
+                             (goal ?goal))))))
 
 
 (defun search-for-object (&key
@@ -662,7 +686,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                            (location ?delivering-location)
                            (goal ?goal))))
   ;; if deliver-location is inside a container, open the container
-  (let ((?goal `(man-int:location-accessible ,?delivering-location)))
+  (let ((?goal `(cpoe:location-accessible ,?delivering-location)))
     (exe:perform (desig:an action
                            (type accessing)
                            (location ?delivering-location)
@@ -676,7 +700,7 @@ If a failure happens, try a different `?target-location' or `?target-robot-locat
                            (goal ?goal))))
 
   ;; if search-location is inside a container, open the container
-  (let ((?goal `(man-int:location-accessible ,?search-location)))
+  (let ((?goal `(cpoe:location-accessible ,?search-location)))
     (exe:perform (desig:an action
                            (type accessing)
                            (location ?search-location)

@@ -100,6 +100,9 @@ the `look-pose-stamped'."
     (once (or (spec:property ?location-designator (:in ?some-object-designator))
               (spec:property ?location-designator (:above ?some-object-designator))))
     (desig:current-designator ?some-object-designator ?object-designator)
+    ;; location of the object that we are trying to access
+    (once (or (spec:property ?object-designator (:location ?object-location-desig))
+              (equal ?object-location-desig nil)))
     ;; arm
     (-> (spec:property ?action-designator (:arm ?arm))
         (true)
@@ -122,6 +125,7 @@ the `look-pose-stamped'."
                                 ?robot-location)))
     (desig:designator :action ((:type ?action-type)
                                (:object ?object-designator)
+                               (:object-location ?object-location-desig)
                                (:arm ?arm)
                                (:distance ?distance)
                                (:robot-location ?robot-location))
@@ -199,7 +203,11 @@ the `look-pose-stamped'."
               (desig:designator :location ((:reachable-for ?robot)
                                            ;; ?arm is not available because we're sampling
                                            ;; (:arm ?arm)
-                                           (:object ?object-designator))
+                                           (:object ?object-designator)
+                                           ;; have to add the visibility
+                                           ;; constraint as he reperceives
+                                           ;; each time before grasping
+                                           (:visible-for ?robot))
                                 ?robot-location-designator)))
     ;; if the object is in the hand or its reference object is in the hand
     ;; we need to bring the hand closer to the other hand, e.g., bring to front

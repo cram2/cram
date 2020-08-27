@@ -69,7 +69,8 @@ The name in the list is a keyword that is created by lispifying the filename."
               (if (if extension
                       (string-equal object-extension extension)
                       (or (string-equal object-extension "stl")
-                          (string-equal object-extension "dae")))
+                          (string-equal object-extension "dae")
+                          (string-equal object-extension "obj")))
                   (let* ((lisp-name (roslisp-utilities:lispify-ros-underscore-name
                                      object-filename :keyword))
                          (new-entry (list lisp-name

@@ -66,16 +66,23 @@
   (<- (neck ?robot ?neck)
     (fail))
 
+  ;; For necks with standard pan-tilt units (2 joints pan and tilt)
   (<- (robot-neck-links ?robot ?pan-link ?tilt-link)
     (fail))
   (<- (robot-neck-joints ?robot ?pan-joint ?tilt-joint)
     (fail))
+
+  ;; For necks with more than 2 joints
+  (<- (robot-neck-links ?robot . ?neck-links)
+    (fail))
+  (<- (robot-neck-joints ?robot . ?neck-joints)
+    (fail))
+  ;; This link will be used for IK stuff (if IK will be used)
   (<- (robot-neck-base-link ?robot ?neck-base-link)
     (fail))
-
+  ;; neck_P_camera cl-transforms:pose
   (<- (camera-in-neck-ee-pose ?robot ?pose)
     (fail))
-
   ;; for doing neck IK if the neck has more than 2 joints
   (<- (neck-camera-z-offset ?robot ?number)
     (fail))
