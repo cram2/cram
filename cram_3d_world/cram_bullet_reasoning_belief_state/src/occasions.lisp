@@ -377,6 +377,7 @@
     )
 
   (<- (cpoe:location-reset ?some-location-designator)
+    (desig:loc-desig? ?some-location-designator)
     (desig:current-designator ?some-location-designator ?location-designator)
     (-> (or (spec:property ?location-designator (:in ?some-object-designator))
             (spec:property ?location-designator (:above ?some-object-designator)))
@@ -388,7 +389,23 @@
                           (man-int:object-is-a-prismatic-container ?object-designator)))
                  (cpoe:container-state ?object-designator :close)
                  (true)))
-        (true))))
+        (true)))
+
+  (<- (cpoe:location-accessible ?some-location-designator)
+    (desig:loc-desig? ?some-location-designator)
+    (desig:current-designator ?some-location-designator ?location-designator)
+    (-> (spec:property ?location-designator (:in ?container-object))
+        (and (desig:current-designator ?container-object ?object-designator)
+             (or (desig:desig-prop ?object-designator (:type :robot))
+                 (and (rob-int:robot ?robot)
+                      (desig:desig-prop ?object-designator (:part-of ?robot)))
+                 (cpoe:container-state ?object-designator :open)))
+        ;; Above keyword is inaccessible for prismatic containers like drawers
+        ;; but not for revolute containers like fridge/oven
+        (-> (spec:property ?location-designator (:above ?location-object))
+            (or (not (man-int:object-is-a-prismatic-container ?location-object))
+                (cpoe:container-state ?location-object :open))
+            (true)))))
 
 
 

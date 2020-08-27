@@ -174,6 +174,60 @@ while ignoring failures; and execute the last pose with propagating the failures
       (cram-occasions-events:on-event
        (make-instance 'cram-plan-occasions-events:robot-state-changed)))))
 
+(defun manipulate-environment (&key
+                                 ((:type ?type))
+                                 ((:arm ?arm))
+                                 ((:poses ?poses))
+                                 ((:distance ?distance))
+                                 ((:collision-mode ?collision-mode))
+                                 ((:collision-object-b ?collision-object-b))
+                                 ((:collision-object-b-link ?collision-object-b-link))
+                                 ((:collision-object-a ?collision-object-a))
+                                 ((:move-base ?move-base))
+                                 ((:prefer-base ?prefer-base))
+                                 ((:align-planes-left ?align-planes-left))
+                                 ((:align-planes-right ?align-planes-right))
+                               &allow-other-keys)
+  (declare (type keyword ?type ?arm)
+           (type list ?poses)
+           (type (or number null) ?distance)
+           (type (or keyword null) ?collision-mode)
+           (type (or symbol null) ?collision-object-b ?collision-object-a)
+           (type (or string symbol null) ?collision-object-b-link)
+           (type boolean ?move-base ?prefer-base
+                 ?align-planes-left ?align-planes-right))
+  "Execute an environment manipulation trajectory.
+In projection it would be executed by following the list of poses in cartesian space.
+With a continuous motion planner one could have fluent arch trajectories etc.
+`?type' is either :PUSHING or :PULLING."
+
+  (unwind-protect
+       (exe:perform
+        (desig:a motion
+                 (type ?type)
+                 (arm ?arm)
+                 (poses ?poses)
+                 (desig:when ?distance
+                   (joint-angle ?distance))
+                 (desig:when ?collision-mode
+                   (collision-mode ?collision-mode))
+                 (desig:when ?collision-object-b
+                   (collision-object-b ?collision-object-b))
+                 (desig:when ?collision-object-b-link
+                   (collision-object-b-link ?collision-object-b-link))
+                 (desig:when ?collision-object-a
+                   (collision-object-a ?collision-object-a))
+                 (desig:when ?move-base
+                   (move-base ?move-base))
+                 (desig:when ?prefer-base
+                   (prefer-base ?prefer-base))
+                 (desig:when ?align-planes-left
+                   (align-planes-left ?align-planes-left))
+                 (desig:when ?align-planes-right
+                   (align-planes-right ?align-planes-right))))
+    (cram-occasions-events:on-event
+     (make-instance 'cram-plan-occasions-events:robot-state-changed))))
+
 
 (defun move-arms-into-configuration (&key
                                        ((:left-joint-states ?left-joint-states))
@@ -359,9 +413,11 @@ In any case, issue ROBOT-STATE-CHANGED event."
   (declare (type desig:object-designator ?object-designator))
   "Call detecting motion on `?object-designator', retry on failure, issue perceived event,
 equate resulting designator to the original one."
-  (let ((retries (if (find :cad-model (desig:properties ?object-designator) :key #'car)
-                     1
-                     4)))
+  (let ((retries 1
+          ;; (if (find :cad-model (desig:properties ?object-designator) :key #'car)
+          ;;     1
+          ;;     4)
+          ))
     (cpl:with-retry-counters ((perceive-retries retries))
       (cpl:with-failure-handling
           ((common-fail:perception-low-level-failure (e)

@@ -41,11 +41,11 @@
    #:arms #:arms-that-are-not-neck
    ;; arms
    #:arm #:required-arms #:available-arms
-   #:arm-joints #:arm-links #:arm-base-joints #:arm-base-links #:arm-tool-joints
-   #:hand-links #:end-effector-link #:robot-tool-frame
-   #:gripper-link #:gripper-joint #:gripper-meter-to-joint-multiplier
-   #:planning-group
-   #:standard-to-particular-gripper-transform
+   #:arm-joints #:arm-links
+   #:hand-links #:hand-link #:hand-finger-link #:gripper-joint
+   #:end-effector-link #:robot-tool-frame
+   #:gripper-meter-to-joint-multiplier
+   #:standard<-particular-gripper-transform
    #:tcp-in-ee-pose
    ;; designator utils
    #:compute-iks

@@ -29,30 +29,6 @@
 
 (in-package :boxy-descr)
 
-(defparameter *neck-good-looking-down-state*
-  '(("neck_shoulder_pan_joint" -1.176d0)
-    ("neck_shoulder_lift_joint" -3.1252d0)
-    ("neck_elbow_joint" -0.8397d0)
-    ("neck_wrist_1_joint" 0.83967d0)
-    ("neck_wrist_2_joint" 1.1347d0)
-    ("neck_wrist_3_joint" -0.0266d0)))
-
-(defparameter *neck-good-looking-left-state*
-  '(("neck_shoulder_pan_joint" -0.776d0)
-    ("neck_shoulder_lift_joint" -3.1252d0)
-    ("neck_elbow_joint" -0.8397d0)
-    ("neck_wrist_1_joint" 0.83967d0)
-    ("neck_wrist_2_joint" 1.1347d0)
-    ("neck_wrist_3_joint" -0.0266d0)))
-
-(defparameter *neck-parking-joint-states*
-  '(("neck_shoulder_pan_joint" -1.3155d0)
-    ("neck_shoulder_lift_joint" -1.181355d0)
-    ("neck_elbow_joint" -1.9562d0)
-    ("neck_wrist_1_joint" 0.142417d0)
-    ("neck_wrist_2_joint" 1.13492d0)
-    ("neck_wrist_3_joint" 0.143467d0)))
-
 (defparameter *neck-ee-p-camera*
   (cl-transforms:make-pose
    (cl-transforms:make-3d-vector
@@ -114,17 +90,27 @@
   (<- (robot-neck-base-link :boxy-description "neck_base_link"))
 
   (<- (robot-joint-states :boxy-description :neck ?there-is-only-one-neck :away
-                          ?joint-states)
-    (symbol-value *neck-parking-joint-states* ?joint-states))
-
+                          (("neck_shoulder_pan_joint" -1.3155d0)
+                           ("neck_shoulder_lift_joint" -1.181355d0)
+                           ("neck_elbow_joint" -1.9562d0)
+                           ("neck_wrist_1_joint" 0.142417d0)
+                           ("neck_wrist_2_joint" 1.13492d0)
+                           ("neck_wrist_3_joint" 0.143467d0))))
   (<- (robot-joint-states :boxy-description :neck ?there-is-only-one-neck :forward
                           ?joint-states)
-    (symbol-value *neck-parking-joint-states* ?joint-states))
-
+    (robot-joint-states :boxy-description :neck ?there-is-only-one-neck :away
+                        ?joint-states))
   (<- (robot-joint-states :boxy-description :neck ?there-is-only-one-neck :down
-                          ?joint-states)
-    (symbol-value *neck-good-looking-down-state* ?joint-states))
-
+                          (("neck_shoulder_pan_joint" -1.176d0)
+                           ("neck_shoulder_lift_joint" -3.1252d0)
+                           ("neck_elbow_joint" -0.8397d0)
+                           ("neck_wrist_1_joint" 0.83967d0)
+                           ("neck_wrist_2_joint" 1.1347d0)
+                           ("neck_wrist_3_joint" -0.0266d0))))
   (<- (robot-joint-states :boxy-description :neck ?only-one-neck :down-left
-                          ?joint-states)
-    (symbol-value *neck-good-looking-left-state* ?joint-states)))
+                          (("neck_shoulder_pan_joint" -0.776d0)
+                           ("neck_shoulder_lift_joint" -3.1252d0)
+                           ("neck_elbow_joint" -0.8397d0)
+                           ("neck_wrist_1_joint" 0.83967d0)
+                           ("neck_wrist_2_joint" 1.1347d0)
+                           ("neck_wrist_3_joint" -0.0266d0)))))
