@@ -89,7 +89,7 @@
 
   (<- (%property ?designator (?list-key ?value))
     (lisp-pred typep ?designator desig:motion-designator)
-    (member ?list-key (:joint-states :left-joint-states :right-joint-states))
+    (member ?list-key (:poses :joint-states :left-joint-states :right-joint-states))
     (property-member (?list-key ?value) ?designator)
     (assert-type ?value list "MOTION SPEC:PROPERTY")))
 
@@ -104,7 +104,7 @@
 
   (<- (%property ?designator (?list-key ?value))
     (lisp-pred typep ?designator desig:action-designator)
-    (member ?list-key (:left-poses :right-poses :arms :grasps))
+    (member ?list-key (:poses :left-poses :right-poses :arms :grasps))
     (property-member (?list-key ?value) ?designator)
     (assert-type ?value list "ACTION SPEC:PROPERTY"))
 

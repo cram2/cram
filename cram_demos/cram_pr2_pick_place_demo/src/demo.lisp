@@ -35,11 +35,15 @@
     ))
 
 (defparameter *object-colors*
-  '((:spoon . "black")
-    (:breakfast-cereal . "yellow")
-    (:milk . "blue")
-    (:bowl . "red")
-    (:cup . "red")))
+  '(;; (:spoon . "Black")
+    ;; (:spoon . "Blue")
+    ;; (:breakfast-cereal . "Yellow")
+    ;; (:milk . "Blue")
+    (:bowl . "Red")
+    (:cup . "Red")))
+
+(defparameter *object-materials*
+  '((:spoon . "Steel")))
 
 (defparameter *object-grasps*
   '((:spoon . :top)
@@ -48,11 +52,15 @@
     (:cup . :top)
     (:bowl . :top)))
 
--(cpl:def-cram-function park-robot ()
+(defun park-robot ()
   (cpl:with-failure-handling
       ((cpl:plan-failure (e)
          (declare (ignore e))
          (return)))
+    (exe:perform
+     (desig:an action
+               (type moving-torso)
+               (joint-angle upper-limit)))
     (cpl:par
       (exe:perform
        (desig:an action
@@ -62,15 +70,14 @@
       (exe:perform (desig:an action (type opening-gripper) (gripper (left right))))
       (exe:perform (desig:an action (type looking) (direction forward))))
     (let ((?pose (cl-transforms-stamped:make-pose-stamped
-                    cram-tf:*fixed-frame*
-                    0.0
-                    (cl-transforms:make-identity-vector)
-                    (cl-transforms:make-identity-rotation))))
-        (exe:perform
-         (desig:an action
-                   (type going)
-                   (target (desig:a location
-                                    (pose ?pose))))))))
+                  cram-tf:*fixed-frame*
+                  0.0
+                  (cl-transforms:make-identity-vector)
+                  (cl-transforms:make-identity-rotation))))
+      (exe:perform
+       (desig:an action
+                 (type going)
+                 (target (desig:a location (pose ?pose))))))))
 
 (defun initialize ()
   (sb-ext:gc :full t)
@@ -92,14 +99,26 @@
                          "sink_area_left_middle_drawer_main_joint")
         0.0
         (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_bottom_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
                          "iai_fridge_door_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_dish_washer_door_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_dish_washer_tray_main")
         0.0
         (btr:joint-state (btr:get-environment-object)
                          "oven_area_area_right_drawer_main_joint")
         0.0
         (btr:joint-state (btr:get-environment-object)
                          "sink_area_trash_drawer_main_joint")
-        0)
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "kitchen_island_left_upper_drawer_main_joint")
+        0.0)
   (btr-belief::publish-environment-joint-state
    (btr:joint-states (btr:get-environment-object)))
 
@@ -130,9 +149,6 @@
 
   (park-robot)
 
-  ;; (an object
-  ;;     (obj-part "drawer_sinkblock_upper_handle"))
-
   (dolist (?object-type list-of-objects)
     (let* ((?arm-to-use
              (cdr (assoc ?object-type *object-grasping-arms*)))
@@ -140,13 +156,17 @@
              (cdr (assoc ?object-type *object-cad-models*)))
            (?color
              (cdr (assoc ?object-type *object-colors*)))
+           (?material
+             (cdr (assoc ?object-type *object-materials*)))
            (?object-to-fetch
              (desig:an object
                        (type ?object-type)
                        (desig:when ?cad-model
                          (cad-model ?cad-model))
                        (desig:when ?color
-                         (color ?color)))))
+                         (color ?color))
+                       (desig:when ?material
+                         (material ?material)))))
 
       (cpl:with-failure-handling
           ((common-fail:high-level-failure (e)

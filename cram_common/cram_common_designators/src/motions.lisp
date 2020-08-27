@@ -94,10 +94,12 @@
 
   (<- (motion-grounding ?designator (move-tcp ?left-pose ?right-pose
                                               ?collision-mode
-                                              ?collision-object-b ?collision-object-b-link
+                                              ?collision-object-b
+                                              ?collision-object-b-link
                                               ?collision-object-a
                                               ?move-base ?prefer-base
-                                              ?align-planes-left ?align-planes-right))
+                                              ?align-planes-left
+                                              ?align-planes-right))
     (property ?designator (:type :moving-tcp))
     (once (or (property ?designator (:left-pose ?left-pose))
               (equal ?left-pose nil)))
@@ -121,9 +123,45 @@
     (once (or (desig:desig-prop ?designator (:align-planes-right ?align-planes-right))
               (equal ?align-planes-right nil))))
 
+  (<- (motion-grounding ?designator (?push-or-pull ?arm ?poses
+                                                   ?joint-angle
+                                                   ?collision-mode
+                                                   ?collision-object-b
+                                                   ?collision-object-b-link
+                                                   ?collision-object-a
+                                                   ?move-base ?prefer-base
+                                                   ?align-planes-left
+                                                   ?align-planes-right))
+    (or (and (property ?designator (:type :pushing))
+             (equal ?push-or-pull move-arm-push))
+        (and (property ?designator (:type :pulling))
+             (equal ?push-or-pull move-arm-pull)))
+    (property ?designator (:arm ?arm))
+    (property ?designator (:poses ?poses))
+    (once (or (desig:desig-prop ?designator (:joint-angle ?joint-angle))
+              (equal ?joint-angle nil)))
+    (once (or (desig:desig-prop ?designator (:collision-mode ?collision-mode))
+              (equal ?collision-mode nil)))
+    (once (or (desig:desig-prop ?designator (:collision-object-b ?collision-object-b))
+              (equal ?collision-object-b nil)))
+    (once (or (desig:desig-prop ?designator (:collision-object-b-link
+                                             ?collision-object-b-link))
+              (equal ?collision-object-b-link nil)))
+    (once (or (desig:desig-prop ?designator (:collision-object-a ?collision-object-a))
+              (equal ?collision-object-a nil)))
+    (once (or (desig:desig-prop ?designator (:move-base ?move-base))
+              (equal ?move-base nil)))
+    (once (or (desig:desig-prop ?designator (:prefer-base ?prefer-base))
+              (equal ?prefer-base nil)))
+    (once (or (desig:desig-prop ?designator (:align-planes-left ?align-planes-left))
+              (equal ?align-planes-left nil)))
+    (once (or (desig:desig-prop ?designator (:align-planes-right ?align-planes-right))
+              (equal ?align-planes-right nil))))
+
   (<- (motion-grounding ?designator (move-joints ?left-config ?right-config
                                                  ?collision-mode
-                                                 ?align-planes-left ?align-planes-right))
+                                                 ?align-planes-left
+                                                 ?align-planes-right))
     (property ?designator (:type :moving-arm-joints))
     (once (or (property ?designator (:left-joint-states ?left-config))
               (equal ?left-config nil)))

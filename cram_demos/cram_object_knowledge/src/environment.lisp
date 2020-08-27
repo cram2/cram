@@ -57,6 +57,7 @@
   (<- (man-int:object-type-direct-subtype :container :container-revolute))
   (<- (man-int:object-type-direct-subtype :container-revolute :fridge))
   (<- (man-int:object-type-direct-subtype :container-revolute :oven))
+  (<- (man-int:object-type-direct-subtype :container-revolute :dishwasher))
 
   (<- (man-int:object-type-direct-subtype :container :shelf)))
 
@@ -84,9 +85,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (defmethod man-int:get-container-opening-distance :heuristics 20
-;;     ((container-name (eql :iai-fridge-door)))
-;;   1.0)
+(defmethod man-int:get-container-opening-distance :heuristics 20
+    ((container-name (eql :sink-area-dish-washer-main)))
+  ;; 0.78d0 ; 45 deg
+  0.95d0) ; 54 deg
 
 ;; (defmethod man-int:get-container-opening-distance :heuristics 20
 ;;     ((container-name (eql :iai-fridge-main)))
