@@ -193,7 +193,7 @@ Converts these coordinates into CRAM-TF:*FIXED-FRAME* frame and returns a list i
            ;; (arms (left right))
            ;; (desig:when ?grasp
            ;;   (grasp ?grasp))
-           (target ?deliver-location)
+           ;; (target ?deliver-location)
            )))))
 
 (defun cleaning-demo (&optional (object-list '(:milk :breakfast-cereal
