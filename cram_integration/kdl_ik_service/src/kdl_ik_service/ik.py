@@ -107,7 +107,7 @@ def get_joint_limits_from_urdf(joint_name, urdf_obj):
         raise ValueError("Error while trying to find joint named: %s in the urdf. Reason: %s" % (joint_name, e))
     # Continuous joints (0 as joint limits will mess up the IK solution)
     if joint_found.joint_type == 'continuous' and joint_found.limit.upper == joint_found.limit.lower == 0:
-        return 4 * math.pi, -4 * math.pi
+        return 2 * math.pi, -2 * math.pi
     # Fixed joints
     elif joint_found.joint_type == 'fixed':
         return None, None
