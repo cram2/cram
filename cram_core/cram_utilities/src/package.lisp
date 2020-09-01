@@ -120,6 +120,7 @@
       #:compare
       #:choose
       #:equalize-two-list-lengths #:equalize-lists-of-lists-lengths
+      #:recursive-alist-hash-table
       ;; time
       #:current-timestamp
       #:set-default-timestamp-function
@@ -161,7 +162,7 @@
       #:with-hash-table-locked
       ;; utils
       #:minimum #:maximum #:compare
-      #:execute-string
+      #:execute-string #:replace-all
       ;; semaphores, reexported from sb-thread
       ,@+semaphore-symbols+
       ;; mailboxes, reexported from sb-concurrency

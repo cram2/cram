@@ -33,13 +33,15 @@
                                ((:type ?type))
                                ((:arm ?arm))
                                ((:gripper-opening ?gripper-opening))
-                               distance
+                               ((:distance ?distance))
+                               ((:absolute-distance ?absolute-distance))
+                               ((:look-pose ?look-pose))
                                ((:left-reach-poses ?left-reach-poses))
                                ((:right-reach-poses ?right-reach-poses))
                                ((:left-grasp-poses ?left-grasp-poses))
                                ((:right-grasp-poses ?right-grasp-poses))
-                               ((:left-open-poses ?left-manipulate-poses))
-                               ((:right-open-poses ?right-manipulate-poses))
+                               ((:left-manipulate-poses ?left-manipulate-poses))
+                               ((:right-manipulate-poses ?right-manipulate-poses))
                                ((:left-retract-poses ?left-retract-poses))
                                ((:right-retract-poses ?right-retract-poses))
                                joint-name
@@ -49,7 +51,7 @@
                                ((:container-object ?container-designator))
                              &allow-other-keys)
   (declare (type keyword ?arm)
-           (type number ?gripper-opening distance)
+           (type number ?gripper-opening ?distance)
            (type list
                  ?left-reach-poses ?right-reach-poses
                  ?left-grasp-poses ?right-grasp-poses
@@ -61,27 +63,38 @@
 
   ;;;;;;;;;;;;;;; OPEN GRIPPER AND REACH ;;;;;;;;;;;;;;;;
   (cpl:par
-    (roslisp:ros-info (environment-manipulation manipulate-container)
-                      "Opening gripper")
-    (exe:perform
-     (desig:an action
-               (type setting-gripper)
-               (gripper ?arm)
-               (position ?gripper-opening)))
-    (roslisp:ros-info (environment-manipulation manipulate-container)
-                      "Reaching")
+    (roslisp:ros-info (env-manip plan) "Looking, opening gripper and reaching")
+    (cpl:with-failure-handling
+        ((common-fail:ptu-low-level-failure (e)
+           (roslisp:ros-warn (env-manip plan)
+                             "Looking-at had a problem: ~a~%Ignoring."
+                             e)
+           (return)))
+      (exe:perform
+       (desig:an action
+                 (type looking)
+                 (target (desig:a location
+                                  (pose ?look-pose))))))
+    (let ((?goal `(cpoe:gripper-joint-at ,?arm ,?gripper-opening)))
+      (exe:perform
+       (desig:an action
+                 (type setting-gripper)
+                 (gripper ?arm)
+                 (position ?gripper-opening)
+                 (goal ?goal))))
     (cpl:with-failure-handling
         ((common-fail:manipulation-low-level-failure (e)
            (roslisp:ros-warn (env-plans manipulate)
-                             "Manipulation messed up: ~a~%Failing."
+                             "Manipulation messed up: ~a~%Ignoring."
                              e)
-           ;; (return)
-           ))
-      (exe:perform
-       (desig:an action
-                 (type reaching)
-                 (left-poses ?left-reach-poses)
-                 (right-poses ?right-reach-poses)))))
+           (return)))
+      (let ((?goal `(cpoe:tool-frames-at ,?left-reach-poses ,?right-reach-poses)))
+        (exe:perform
+         (desig:an action
+                   (type reaching)
+                   (left-poses ?left-reach-poses)
+                   (right-poses ?right-reach-poses)
+                   (goal ?goal))))))
 
   ;;;;;;;;;;;;;;;;;;;; GRIPPING ;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
@@ -91,16 +104,18 @@
          (roslisp:ros-warn (env-plans manipulate)
                            "Manipulation messed up: ~a~%Failing."
                            e)
-         ;; (return)
-         ))
-    (exe:perform
-     (desig:an action
-               (type grasping)
-               (object (desig:an object
-                                 (name ?environment-name)))
-               (link ?link-name)
-               (left-poses ?left-grasp-poses)
-               (right-poses ?right-grasp-poses))))
+         (return)))
+    (let ((?goal `(cpoe:tool-frames-at ,?left-grasp-poses ,?right-grasp-poses)))
+      (exe:perform
+       (desig:an action
+                 (type grasping)
+                 (object (desig:an object
+                                   (name ?environment-name)))
+                 (link ?link-name)
+                 (left-poses ?left-grasp-poses)
+                 (right-poses ?right-grasp-poses)
+                 (goal ?goal)))))
+
   (when (eq ?type :opening)
     (exe:perform
      (desig:an action
@@ -117,18 +132,25 @@
                            e)
          ;; (return)
          ))
-    (let ((?push-or-pull (if (eq ?type :opening)
-                            :pulling
-                            :pushing)))
+    (let ((?push-or-pull
+            (if (eq ?type :opening)
+                :pulling
+                :pushing))
+          (?goal
+            `(cpoe:tool-frames-at ,?left-manipulate-poses ,?right-manipulate-poses)))
       (exe:perform
        (desig:an action
                  (type ?push-or-pull)
-                 (object (desig:an object
-                                   (name ?environment-name)))
+                 (object (desig:an object (name ?environment-name)))
                  (container-object ?container-designator)
                  (link ?link-name)
-                 (left-poses ?left-manipulate-poses)
-                 (right-poses ?right-manipulate-poses)))))
+                 (desig:when ?absolute-distance
+                   (distance ?absolute-distance))
+                 (desig:when (eq ?arm :left)
+                   (left-poses ?left-manipulate-poses))
+                 (desig:when (eq ?arm :right)
+                   (right-poses ?right-manipulate-poses))
+                 (goal ?goal)))))
 
   (when (and joint-name)
     (cram-occasions-events:on-event
@@ -138,23 +160,27 @@
        :joint-name joint-name
        :side ?arm
        :environment ?environment-object
-       :distance distance)))
+       :distance ?distance)))
 
   ;;;;;;;;;;;;;;;;;;;; RETRACTING ;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (roslisp:ros-info (environment-manipulation manipulate-container)
                     "Retracting")
-  (exe:perform
-   (desig:an action
-             (type releasing)
-             (gripper ?arm)))
+  (let ((?goal `(cpoe:gripper-opened ,?arm)))
+    (exe:perform
+     (desig:an action
+               (type releasing)
+               (gripper ?arm)
+               (goal ?goal))))
   (cpl:with-failure-handling
       ((common-fail:manipulation-low-level-failure (e)
          (roslisp:ros-warn (env-plans manipulate)
                            "Manipulation messed up: ~a~%Ignoring."
                            e)
          (return)))
-    (exe:perform
-     (desig:an action
-               (type retracting)
-               (left-poses ?left-retract-poses)
-               (right-poses ?right-retract-poses)))))
+    (let ((?goal `(cpoe:tool-frames-at ,?left-retract-poses ,?right-retract-poses)))
+      (exe:perform
+       (desig:an action
+                 (type retracting)
+                 (left-poses ?left-retract-poses)
+                 (right-poses ?right-retract-poses)
+                 (goal ?goal))))))

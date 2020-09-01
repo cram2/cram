@@ -29,25 +29,6 @@
 
 (in-package :boxy-pm)
 
-;;;;;;;;;;;;;;;;; TORSO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; (cpm:def-process-module torso-pm (motion-designator)
-;;   (destructuring-bind (command argument) (desig:reference motion-designator)
-;;     (ecase command
-;;       (cram-common-designators:move-torso
-;;        (handler-case
-;;            (boxy-ll:move-torso :goal-position argument))))))
-
-;;;;;;;;;;;;;;;;;;;; NECK ;;;;;;;;;;;;;;;;;;;;;;;;
-
-(cpm:def-process-module neck-pm (motion-designator)
-  (destructuring-bind (command goal-pose goal-configuration)
-      (desig:reference motion-designator)
-    (declare (ignore goal-pose))
-    (ecase command
-      (cram-common-designators:move-head
-       (boxy-ll:move-neck-joints :goal-configuration goal-configuration)))))
-
 ;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (cpm:def-process-module grippers-pm (motion-designator)
@@ -55,31 +36,7 @@
       (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-gripper-joint
-       (boxy-ll:move-gripper-joint :action-type-or-position action-type-or-position
-                                   :left-or-right which-gripper
-                                   :effort effort)))))
-
-;;;;;;;;;;;;;;;;;;;; BODY ;;;;;;;;;;;;;;;;;;;;;;;;
-
-(cpm:def-process-module body-pm (motion-designator)
-  (destructuring-bind (command argument-1 &rest rest-arguments)
-      (desig:reference motion-designator)
-    (ecase command
-      (cram-common-designators:move-tcp
-       (let ((goal-left argument-1)
-             (goal-right (car rest-arguments)))
-         (unless (listp goal-left)
-           (setf goal-left (list goal-left)))
-         (unless (listp goal-right)
-           (setf goal-right (list goal-right)))
-         (multiple-value-bind (goal-left goal-right)
-             (cut:equalize-two-list-lengths goal-left goal-right)
-           (mapc (lambda (single-pose-left single-pose-right)
-                   (cram-tf:visualize-marker (list single-pose-left single-pose-right)
-                                             :r-g-b-list '(1 0 1))
-                   (boxy-ll:move-arm-cartesian :goal-pose-stamped-left single-pose-left
-                                               :goal-pose-stamped-right single-pose-right))
-                 goal-left goal-right))))
-      (cram-common-designators:move-joints
-       (boxy-ll:move-arm-joints :goal-joint-states-left argument-1
-                                :goal-joint-states-right (car rest-arguments))))))
+       (boxy-ll:move-gripper-joint
+        :action-type-or-position action-type-or-position
+        :left-or-right which-gripper
+        :effort effort)))))

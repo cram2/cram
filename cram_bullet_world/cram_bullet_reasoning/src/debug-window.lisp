@@ -34,9 +34,8 @@
 (defvar *debug-window-lock* (sb-thread:make-mutex))
 (defvar *current-costmap-function* nil "A math function object for visualizing costmaps.")
 (defvar *current-costmap-sample* nil "A red sphere for visualizing costmap samples.")
-(defvar *vis-axis-x* nil "The X axis of an object for visualizing poses.")
-(defvar *vis-axis-y* nil "The Y axis of an object for visualizing poses.")
-(defvar *vis-axis-z* nil "The Z axis of an object for visualizing poses.")
+(defvar *vis-axes* nil "An associative list of ((ID . (X Y Z)) ...) couples,
+storing axes of a coordinate frame for visualizing poses.")
 (defparameter *costmap-z* 0.0)
 (defparameter *costmap-tilt* (cl-transforms:make-quaternion 0 0 0 1))
 
@@ -83,14 +82,15 @@
       (setf (gl-objects *debug-window*)
             (remove *current-costmap-sample* (gl-objects *debug-window*)))
       (setf *current-costmap-sample* nil))
-    (when (and *vis-axis-x* *debug-window*)
-      (setf (gl-objects *debug-window*)
-            (remove *vis-axis-z*
-                    (remove *vis-axis-y*
-                            (remove *vis-axis-x* (gl-objects *debug-window*)))))
-      (setf *vis-axis-x* nil
-            *vis-axis-y* nil
-            *vis-axis-z* nil))))
+    (when (and *vis-axes* *debug-window*)
+      (mapcar (lambda (id-axes-pair)
+                (setf (gl-objects *debug-window*)
+                      (reduce (lambda (gl-objects-list axis-object)
+                                (remove axis-object gl-objects-list))
+                              (cdr id-axes-pair)
+                              :initial-value (gl-objects *debug-window*))))
+              *vis-axes*)
+      (setf *vis-axes* nil))))
 
 
 
@@ -146,21 +146,25 @@
         (push *current-costmap-sample* (gl-objects *debug-window*))))))
 
 
-(defgeneric add-vis-axis-object (object-or-pose &optional length)
+(defgeneric add-vis-axis-object (object-or-pose &key length id)
   (:documentation "Spawn a coordinate frame at a given pose or at btr:object origin.
-It is built from 3 rigid bodies of primitive box shape.")
+It is built from 3 rigid bodies of primitive box shape.
+`Length' specified the length of a single axis.
+`Id' can be used if one wants to visualize multiple frames at the same time.")
 
-  (:method ((object-name symbol) &optional (length 0.30))
+  (:method ((object-name symbol) &key (length 0.30) (id 0))
     (add-vis-axis-object
-     (btr:pose (btr:object btr:*current-bullet-world* object-name)) length))
+     (pose (btr:object *current-bullet-world* object-name))
+     :length length :id id))
 
-  (:method ((pose cl-transforms:pose) &optional (length 0.30))
+  (:method ((pose cl-transforms:pose) &key (length 0.30) (id 0))
     (sb-thread:with-mutex (*debug-window-lock*)
-      (when (and *vis-axis-x* *debug-window*)
+      (when (and *vis-axes* *debug-window* (assoc id *vis-axes*))
         (setf (gl-objects *debug-window*)
-              (remove *vis-axis-z*
-                      (remove *vis-axis-y*
-                              (remove *vis-axis-x* (gl-objects *debug-window*))))))
+              (reduce (lambda (gl-objects-list axis-object)
+                        (remove axis-object gl-objects-list))
+                      (cdr (assoc id *vis-axes*))
+                      :initial-value (gl-objects *debug-window*))))
 
       (let ((length/2 (/ length 2))
             (object-transform (cl-transforms:pose->transform pose)))
@@ -181,17 +185,26 @@ It is built from 3 rigid bodies of primitive box shape.")
                                                            half-extents-list)
                                       :color color))))
 
-          (setf *vis-axis-x*
-                (make-axis-rigid-body `(,length/2 0 0) `(,length/2 0.01 0.01) '(0.5 0 0 0.5))
-                *vis-axis-y*
-                (make-axis-rigid-body `(0 ,length/2 0) `(0.01 ,length/2 0.01) '(0 0.5 0 0.5))
-                *vis-axis-z*
-                (make-axis-rigid-body `(0 0 ,length/2) `(0.01 0.01 ,length/2) '(0 0 0.5 0.5))))
+          (let ((new-axes-list
+                  (list (make-axis-rigid-body
+                         `(,length/2 0 0)
+                         `(,length/2 0.01 0.01)
+                         '(0.5 0 0 0.5))
+                        (make-axis-rigid-body
+                         `(0 ,length/2 0)
+                         `(0.01 ,length/2 0.01)
+                         '(0 0.5 0 0.5))
+                        (make-axis-rigid-body
+                         `(0 0 ,length/2)
+                         `(0.01 0.01 ,length/2)
+                         '(0 0 0.5 0.5)))))
+            (if (assoc id *vis-axes*)
+                (rplacd (assoc id *vis-axes*) new-axes-list)
+                (push (cons id new-axes-list) *vis-axes*))))
 
         (when *debug-window*
-          (push *vis-axis-x* (gl-objects *debug-window*))
-          (push *vis-axis-y* (gl-objects *debug-window*))
-          (push *vis-axis-z* (gl-objects *debug-window*)))))))
+          (mapc (lambda (obj) (push obj (gl-objects *debug-window*)))
+                (cdr (assoc id *vis-axes*))))))))
 
 
 

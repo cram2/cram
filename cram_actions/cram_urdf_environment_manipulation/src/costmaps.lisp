@@ -118,13 +118,13 @@ environment, in which it can be found, respectively."
           (line-equation-in-xy neutral-point manipulated-point)
         (let* ((P (cl-transforms:make-3d-vector x y 0))
                (dist (line-p-dist a b c P))
-               ;;(dist-p (line-p-dist-point a b c P))
+               (dist-p (line-p-dist-point a b c P))
                )
           (if (and
                (< dist (+ (/ width 2) padding))
                ;; Commenting this out for now, so there won't be poses in front of the drawer.
-               ;;(< (cl-transforms:v-norm (cl-transforms:v- dist-p neutral-point))
-               ;;   (+ (cl-transforms:v-norm V) padding))
+               (< (cl-transforms:v-norm (cl-transforms:v- dist-p neutral-point))
+                  (+ (cl-transforms:v-norm V) padding))
                )
               0
               1))))))
@@ -308,7 +308,7 @@ to face from `pos1' towards `pos2'."
          (p-rel (cl-transforms:v- point2 point1)))
     (atan (cl-transforms:y p-rel) (cl-transforms:x p-rel))))
 
-(defun make-point-to-point-generator (pos1 pos2 &key (samples 1) sample-step)
+(defun make-point-to-point-generator (pos1 pos2 &key (samples 1) sample-step sample-offset)
   "Returns a function that takes an X and Y coordinate and returns a lazy-list of
 quaternions to face from `pos1' to `pos2'."
   (location-costmap:make-orientation-generator
@@ -317,7 +317,8 @@ quaternions to face from `pos1' to `pos2'."
     pos1
     pos2)
    :samples samples
-   :sample-step sample-step))
+   :sample-step sample-step
+   :sample-offset sample-offset))
 
 (defun angle-halfway-to-point-direction (x y pos1 pos2 target-pos)
   "Takes an X and Y coordinate and returns a quaternion between the one facing
@@ -326,7 +327,7 @@ from pos1 to pos2 and the one facing from (X,Y) to target-pos."
         (target-direction (costmap::angle-to-point-direction x y target-pos)))
     (/ (+ pos-direction target-direction) 2)))
 
-(defun make-angle-halfway-to-point-generator (pos1 pos2 target-pos &key (samples 1) sample-step)
+(defun make-angle-halfway-to-point-generator (pos1 pos2 target-pos &key (samples 1) sample-step sample-offset)
   "Returns a function that takes an X and Y coordinate and returns a lazy-list of
 quaternions facing from (X,Y) halfway to target-pos. Meaning pos1 and pos2
 describe a direction and the quaternion is the angle between one facing directly
@@ -335,7 +336,8 @@ from (X,Y) to target-pos and the direction between pos1 and pos2."
    (alexandria:rcurry #'angle-halfway-to-point-direction
                       pos1 pos2 target-pos)
    :samples samples
-   :sample-step sample-step))
+   :sample-step sample-step
+   :sample-offset sample-offset))
 
 (defun middle-pose (pose1 pose2)
   "Take two poses and return a pose in the middle of them.
@@ -348,9 +350,9 @@ Disregarding the orientation (using the pose2's)."
                                 0.5)))
     (cram-tf:translate-pose
      pose2
-     :x-offset (cl-transforms:x translation-to-middle)
-     :y-offset (cl-transforms:y translation-to-middle)
-     :z-offset (cl-transforms:z translation-to-middle))))
+     :x (cl-transforms:x translation-to-middle)
+     :y (cl-transforms:y translation-to-middle)
+     :z (cl-transforms:z translation-to-middle))))
 
 (defmethod costmap:costmap-generator-name->score
     ((name (eql 'poses-reachable-cost-function))) 10)
@@ -373,69 +375,101 @@ Disregarding the orientation (using the pose2's)."
 
 (def-fact-group environment-manipulation-costmap (costmap:desig-costmap)
   (<- (costmap:desig-costmap ?designator ?costmap)
-    (cram-robot-interfaces:reachability-designator ?designator)
+    (rob-int:reachability-designator ?designator)
     (spec:property ?designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
     (man-int:object-type-subtype :container-prismatic ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (spec:property ?designator (:arm ?arm))
+    (rob-int:robot ?robot-name)
     (costmap:costmap ?costmap)
-    ;; reachability gaussian costmap
+    (costmap:costmap-in-reach-distance ?robot-name ?distance)
+    (costmap:costmap-reach-minimal-distance ?robot-name ?minimal-distance)
+
+    ;; reachability range costmap
     (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
-    (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
-    (costmap:costmap-add-function
-     container-handle-reachable-cost-function
-     (costmap:make-gauss-cost-function ?mean ?covariance)
-     ?costmap)
+    (forall (member ?pose ?poses)
+            (and (instance-of
+                  gaussian-costmap::pose-distribution-range-include-generator
+                  ?include-generator-id)
+                 (costmap:costmap-add-function
+                  ?include-generator-id
+                  (costmap:make-range-cost-function ?pose ?distance)
+                  ?costmap)
+                 (instance-of
+                  gaussian-costmap::pose-distribution-range-exclude-generator
+                  ?exclude-generator-id)
+                 (costmap:costmap-add-function
+                  ?exclude-generator-id
+                  (costmap:make-range-cost-function
+                   ?pose ?minimal-distance :invert t)
+                  ?costmap)))
+
     ;; cutting out drawer costmap
-    (costmap:costmap-manipulation-padding ?padding)
+    (costmap:costmap-manipulation-padding ?robot-name ?padding)
     (costmap:costmap-add-function
      opened-drawer-cost-function
      (make-opened-drawer-cost-function ?container-name ?btr-environment ?padding)
      ?costmap)
+
     ;; cutting out for specific arm costmap
     (costmap:costmap-add-function
      opened-drawer-side-cost-function
      (make-opened-drawer-side-cost-function ?container-name ?arm ?btr-environment)
      ?costmap)
+
     ;; orientation generator
     ;; generate an orientation opposite to the axis of the drawer
     (equal ?poses (?neutral-pose ?manipulated-pose))
-    (costmap:orientation-samples ?samples)
-    (costmap:orientation-sample-step ?sample-step)
+    (costmap:orientation-samples ?robot-name ?samples)
+    (costmap:orientation-sample-step ?robot-name ?sample-step)
+    (once (or (costmap:reachability-orientation-offset ?robot-name ?sample-offset)
+              (equal ?sample-offset 0.0)))
     (costmap:costmap-add-orientation-generator
      (make-angle-halfway-to-point-generator
       ?manipulated-pose
       ?neutral-pose
       ?neutral-pose
       :samples ?samples
-      :sample-step ?sample-step)
+      :sample-step ?sample-step
+      :sample-offset ?sample-offset)
      ?costmap))
 
   (<- (costmap:desig-costmap ?designator ?costmap)
-    (cram-robot-interfaces:reachability-designator ?designator)
+    (rob-int:reachability-designator ?designator)
     (spec:property ?designator (:object ?container-designator))
     (spec:property ?container-designator (:type ?container-type))
     (man-int:object-type-subtype :container-revolute ?container-type)
     (spec:property ?container-designator (:urdf-name ?container-name))
     (spec:property ?container-designator (:part-of ?btr-environment))
     (spec:property ?designator (:arm ?arm))
+    (rob-int:robot ?robot-name)
     (costmap:costmap ?costmap)
+    (costmap:costmap-in-reach-distance ?robot-name ?distance)
+    (costmap:costmap-reach-minimal-distance ?robot-name ?minimal-distance)
 
-    ;; reachability gaussian costmap
-    (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment (?min-pose ?max-pose))
-    (lisp-fun middle-pose ?min-pose ?max-pose ?middle-pose)
-    ;; TODO(cpo): If you can, please beautifiy this.
-    (equal (?middle-pose) ?poses)
-    (lisp-fun costmap:2d-pose-covariance ?poses 0.05 (?mean ?covariance))
-    (costmap:costmap-add-function
-     container-handle-reachable-cost-function
-     (costmap:make-gauss-cost-function ?mean ?covariance)
-     ?costmap)
+    ;; reachability range costmap
+    (lisp-fun get-handle-min-max-pose ?container-name ?btr-environment ?poses)
+    (forall (member ?pose ?poses)
+            (and (instance-of
+                  gaussian-costmap::pose-distribution-range-include-generator
+                  ?include-generator-id)
+                 (costmap:costmap-add-function
+                  ?include-generator-id
+                  (costmap:make-range-cost-function ?pose ?distance)
+                  ?costmap)
+                 (instance-of
+                  gaussian-costmap::pose-distribution-range-exclude-generator
+                  ?exclude-generator-id)
+                 (costmap:costmap-add-function
+                  ?exclude-generator-id
+                  (costmap:make-range-cost-function
+                   ?pose ?minimal-distance :invert t)
+                  ?costmap)))
 
     ;; cutting out door costmap
-    (costmap:costmap-manipulation-padding ?padding)
+    (costmap:costmap-manipulation-padding ?robot-name ?padding)
     (costmap:costmap-add-function
      opened-door-cost-function
      (make-opened-door-cost-function ?container-name ?btr-environment ?padding)
@@ -453,13 +487,11 @@ Disregarding the orientation (using the pose2's)."
     (lisp-fun cl-urdf:child ?joint ?joint-link)
     (lisp-fun cl-urdf:name ?joint-link ?joint-name)
     (lisp-fun get-urdf-link-pose ?joint-name ?btr-environment ?joint-pose)
-    (costmap:orientation-samples ?samples)
-    (costmap:orientation-sample-step ?sample-step)
+    (costmap:orientation-samples ?robot-name ?samples)
+    (costmap:orientation-sample-step ?robot-name ?sample-step)
+    (once (or (costmap:reachability-orientation-offset ?robot-name ?sample-offset)
+              (equal ?sample-offset 0.0)))
     (costmap:costmap-add-orientation-generator
      (costmap:make-angle-to-point-generator
-      ?joint-pose
-      :samples ?samples
-      :sample-step ?sample-step)
-     ?costmap)
-    )
-  )
+      ?joint-pose :samples ?samples :sample-step ?sample-step :sample-offset ?sample-offset)
+     ?costmap)))

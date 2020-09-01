@@ -49,3 +49,19 @@
 
 (defun get-object-old-pose (object-designator)
   (car (getassoc :pose (desig:desig-prop-value object-designator :old-pose))))
+
+#+a-hack-in-case-we-dont-want-to-use-perception
+(defun get-object-transform (object-designator)
+  (let* ((object-type
+           (desig:desig-prop-value object-designator :type))
+         (object-frame
+           (concatenate
+            'string
+            (remove #\- (string-capitalize (symbol-name object-type)))
+            "1")))
+    (cl-transforms-stamped:lookup-transform
+     cram-tf:*transformer*
+     cram-tf:*robot-base-frame*
+     object-frame
+     :time 0.0
+     :timeout cram-tf:*tf-default-timeout*)))

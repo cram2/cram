@@ -66,45 +66,30 @@
             name-to-pose)))
 
 (defun spawn-kitchen ()
-  (let ((kitchen (or btr-belief:*kitchen-urdf*
-                     (let ((kitchen-urdf-string
-                             (roslisp:get-param btr-belief:*kitchen-parameter* nil)))
-                       (when kitchen-urdf-string
-                         (setf btr-belief:*kitchen-urdf*
-                               (cl-urdf:parse-urdf kitchen-urdf-string)))))))
-    (assert
-     (cut:force-ll
-      (prolog `(and
-                (btr:bullet-world ?w)
-                (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
-                                                 :collision-group :static-filter
-                                                 :collision-mask (:default-filter
-                                                                  :character-filter)
-                                           ,@(when kitchen
-                                               `(:urdf ,kitchen))
-                                           :compound T))))))))
+  (let ((kitchen-urdf-string
+          (roslisp:get-param rob-int:*environment-description-parameter* nil)))
+    (when kitchen-urdf-string
+      (setf rob-int:*environment-urdf*
+            (cl-urdf:parse-urdf kitchen-urdf-string))))
+  (assert
+   (cut:force-ll
+    (prolog `(and
+              (btr:bullet-world ?w)
+              (btr:assert ?w (btr:object :urdf :kitchen ((0 0 0) (0 0 0 1))
+                                               :collision-group :static-filter
+                                               :collision-mask (:default-filter
+                                                                :character-filter)
+                                         ,@(when rob-int:*environment-urdf*
+                                             `(:urdf ,rob-int:*environment-urdf*))
+                                         :compound T)))))))
 
 (defun init-projection ()
-  (def-fact-group costmap-metadata (costmap:costmap-size
-                                    costmap:costmap-origin
-                                    costmap:costmap-resolution
-                                    costmap:orientation-samples
-                                    costmap:orientation-sample-step)
-    (<- (costmap:costmap-size 12 12))
-    (<- (costmap:costmap-origin -6 -6))
-    (<- (costmap:costmap-resolution 0.04))
-    (<- (costmap:orientation-samples 2))
-    (<- (costmap:orientation-sample-step 0.3)))
-
-  (setf cram-bullet-reasoning-belief-state:*robot-parameter* "robot_description")
-  (setf cram-bullet-reasoning-belief-state:*kitchen-parameter* "kitchen_description")
-
   (setf btr:*current-bullet-world* (make-instance 'btr:bt-reasoning-world))
-  (let ((robot (or rob-int:*robot-urdf*
-                   (setf rob-int:*robot-urdf*
-                         (cl-urdf:parse-urdf
-                          (btr-belief::replace-all
-                           (roslisp:get-param btr-belief:*robot-parameter*) "\\" "  "))))))
+  (let ((robot (setf rob-int:*robot-urdf*
+                     (cl-urdf:parse-urdf
+                      (cut:replace-all
+                       (roslisp:get-param rob-int:*robot-description-parameter*)
+                       "\\" "  ")))))
 
     ;; set robot's URDF root link to *robot-base-frame* as that's how going actions works
     (setf (slot-value rob-int:*robot-urdf* 'cl-urdf:root-link)
@@ -154,7 +139,7 @@
   (let ((aabb (btr:aabb
                (btr:rigid-body
                 (btr:get-environment-object)
-                (intern (format nil "KITCHEN.~(~a~)" name) :keyword)))))
+                (intern (format nil "ENVIRONMENT.~(~a~)" name) :keyword)))))
     (btr:add-object btr:*current-bullet-world*
                     :box-item
                     name

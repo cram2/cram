@@ -29,202 +29,42 @@
 
 (in-package :giskard)
 
-(defparameter *xy-goal-tolerance* 0.05 "in meters")
-(defparameter *yaw-goal-tolerance* 0.1 "in radiants, about 6 degrees.")
+(defparameter *base-convergence-delta-xy* 0.05 "in meters")
+(defparameter *base-convergence-delta-theta* 0.1 "in radiants, about 6 degrees.")
 
 (defun make-giskard-base-action-goal (pose)
   (declare (type cl-transforms-stamped:pose-stamped pose))
-  (roslisp:make-message
-   'giskard_msgs-msg:MoveGoal
-   :type (roslisp:symbol-code 'giskard_msgs-msg:MoveGoal ;; :plan_only
-                              :plan_and_execute
-                              )
-   :cmd_seq (vector
-             (roslisp:make-message
-              'giskard_msgs-msg:movecmd
-              ;; THIS STUFF HAS A STATE
-              ;; RESET THE STATE EXPLICITLY IF YOU WANT A NON CART MOVEMENT AFTER THIS
-              :constraints
-              (vector (roslisp:make-message
-                       'giskard_msgs-msg:constraint
-                       :type
-                       "UpdateGodMap"
-                       :parameter_value_pair
-                       (let ((stream (make-string-output-stream)))
-                         (yason:encode
-                          (alexandria:alist-hash-table
-                           `(("updates"
-                              .
-                              ,(alexandria:alist-hash-table
-                                `(("rosparam"
-                                   .
-                                   ,(alexandria:alist-hash-table
-                                     `(("joint_weights"
-                                        .
-                                        ,(alexandria:alist-hash-table
-                                          `(("odom_x_joint" . 0.0001)
-                                            ("odom_y_joint" . 0.0001)
-                                            ("odom_z_joint" . 0.0001))))))))
-                                :test #'equal))))
-                          stream)
-                         (get-output-stream-string stream))))
-              :cartesian_constraints
-              (vector (roslisp:make-message
-                       'giskard_msgs-msg:cartesianconstraint
-                       :type (roslisp:symbol-code
-                              'giskard_msgs-msg:cartesianconstraint
-                              :translation_3d)
-                       :root_link cram-tf:*odom-frame*
-                       :tip_link cram-tf:*robot-base-frame*
-                       :goal (cl-transforms-stamped:to-msg pose))
-                      (roslisp:make-message
-                       'giskard_msgs-msg:cartesianconstraint
-                       :type (roslisp:symbol-code
-                              'giskard_msgs-msg:cartesianconstraint
-                              :rotation_3d)
-                       :root_link cram-tf:*odom-frame*
-                       :tip_link cram-tf:*robot-base-frame*
-                       :goal (cl-transforms-stamped:to-msg pose)))
-              :joint_constraints
-              (let ((left-names-and-positions
-                      (get-arm-joint-names-and-positions-list :left))
-                    (right-names-and-positions
-                      (get-arm-joint-names-and-positions-list :right)))
-                (vector (roslisp:make-message
-                         'giskard_msgs-msg:jointconstraint
-                         :type (roslisp:symbol-code
-                                'giskard_msgs-msg:jointconstraint
-                                :joint)
-                         :goal_state (roslisp:make-message
-                                      'sensor_msgs-msg:jointstate
-                                      :name (apply #'vector
-                                                   (append (first left-names-and-positions)
-                                                           (first right-names-and-positions)))
-                                      :position (apply #'vector
-                                                       (append (second left-names-and-positions)
-                                                               (second right-names-and-positions)))))))
-              :collisions
-              (vector (roslisp:make-message
-                         'giskard_msgs-msg:collisionentry
-                         :type (roslisp:symbol-code
-                                'giskard_msgs-msg:collisionentry
-                                :avoid_all_collisions)
-                         :min_dist 0.1))))))
+  (make-giskard-goal
+   :constraints (make-cartesian-constraint
+                 cram-tf:*odom-frame* cram-tf:*robot-base-frame* pose
+                 :avoid-collisions-much t)
+   :joint-constraints (make-current-joint-state-constraint '(:left :right))
+   :collisions (make-avoid-all-collision)))
 
-(defun ensure-giskard-base-input-parameters (pose)
+(defun ensure-base-goal-input (pose)
   (cram-tf:ensure-pose-in-frame pose cram-tf:*fixed-frame*))
 
-(defun ensure-giskard-base-goal-reached (result status goal
-                                         convergence-delta-xy convergence-delta-theta)
-  (when (eql status :preempted)
-    (roslisp:ros-warn (low-level giskard) "Giskard action preempted with result ~a" result)
-    (return-from ensure-giskard-base-goal-reached))
-  (when (eql status :timeout)
-    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action timed out."))
-  (when (eql status :aborted)
-    (roslisp:ros-warn (pr2-ll giskard-cart) "Giskard action aborted! With result ~a" result)
-    ;; (cpl:fail 'common-fail:manipulation-goal-not-reached
-    ;;           :description "Giskard did not converge to goal because of collision")
-    )
-  (unless (cram-tf:tf-frame-converged cram-tf:*robot-base-frame* goal
-                                      convergence-delta-xy convergence-delta-theta)
-    (cpl:fail 'common-fail:navigation-goal-not-reached
-              :description (format nil "Giskard did not converge to goal:
-~a should have been at ~a with delta-xy of ~a and delta-angle of ~a."
-                                   cram-tf:*robot-base-frame* goal
-                                   convergence-delta-xy convergence-delta-theta))))
+(defun ensure-base-goal-reached (goal-pose)
+  (unless (cram-tf:tf-frame-converged
+           cram-tf:*robot-base-frame* goal-pose
+           *base-convergence-delta-xy* *base-convergence-delta-theta*)
+    (make-instance 'common-fail:navigation-goal-not-reached
+      :description (format nil "Giskard did not converge to goal:~%~
+                                ~a should have been at ~a ~
+                                with delta-xy of ~a and delta-angle of ~a."
+                           cram-tf:*robot-base-frame* goal-pose
+                           *base-convergence-delta-xy*
+                           *base-convergence-delta-theta*))))
 
-(defun call-giskard-base-action (&key
-                                   goal-pose action-timeout
-                                   (convergence-delta-xy *xy-goal-tolerance*)
-                                   (convergence-delta-theta *yaw-goal-tolerance*))
+(defun call-base-action (&key action-timeout goal-pose)
   (declare (type cl-transforms-stamped:pose-stamped goal-pose)
-           (type (or null number) action-timeout convergence-delta-xy convergence-delta-theta))
-  (let ((goal-pose
-          (ensure-giskard-base-input-parameters goal-pose)))
-    (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
-    (multiple-value-bind (result status)
-        (let ((goal (make-giskard-base-action-goal goal-pose)))
-          (actionlib-client:call-simple-action-client
-           'giskard-action
-           :action-goal goal
-           :action-timeout action-timeout))
-      (ensure-giskard-base-goal-reached result status goal-pose
-                                        convergence-delta-xy convergence-delta-theta)
-      (joints:full-joint-states-as-hash-table))))
+           (type (or null number) action-timeout))
 
+  (setf goal-pose (ensure-base-goal-input goal-pose))
 
+  (cram-tf:visualize-marker goal-pose :r-g-b-list '(0 1 0))
 
-
-
-
-
-
-
-;; header: 
-;;   seq: 17
-;;   stamp: 
-;;     secs: 1560439219
-;;     nsecs: 637718915
-;;   frame_id: ''
-;; goal_id: 
-;;   stamp: 
-;;     secs: 1560439219
-;;     nsecs: 637681961
-;;   id: "/giskard_interactive_marker-17-1560439219.638"
-;; goal: 
-;;   type: 1
-;;   cmd_seq: 
-;;     - 
-;;       constraints: []
-;;       joint_constraints: []
-;;       cartesian_constraints: 
-;;         - 
-;;           type: "CartesianPosition"
-;;           root_link: "odom"
-;;           tip_link: "base_footprint"
-;;           goal: 
-;;             header: 
-;;               seq: 0
-;;               stamp: 
-;;                 secs: 0
-;;                 nsecs:         0
-;;               frame_id: "base_footprint"
-;;             pose: 
-;;               position: 
-;;                 x: 2.50292941928e-08
-;;                 y: 0.0
-;;                 z: 0.209769845009
-;;               orientation: 
-;;                 x: 0.0
-;;                 y: 0.0
-;;                 z: 0.0
-;;                 w: 1.0
-;;         - 
-;;           type: "CartesianOrientationSlerp"
-;;           root_link: "odom"
-;;           tip_link: "base_footprint"
-;;           goal: 
-;;             header: 
-;;               seq: 0
-;;               stamp: 
-;;                 secs: 0
-;;                 nsecs:         0
-;;               frame_id: "base_footprint"
-;;             pose: 
-;;               position: 
-;;                 x: 2.50292941928e-08
-;;                 y: 0.0
-;;                 z: 0.209769845009
-;;               orientation: 
-;;                 x: 0.0
-;;                 y: 0.0
-;;                 z: 0.0
-;;                 w: 1.0
-;;       collisions: 
-;;         - 
-;;           type: 1
-;;           min_dist: 0.0
-;;           robot_links: ['']
-;;           body_b: "pr2"
-;;           link_bs: ['']
+  (call-action
+   :action-goal (make-giskard-base-action-goal goal-pose)
+   :action-timeout action-timeout
+   :check-goal-function (lambda () (ensure-base-goal-reached goal-pose))))

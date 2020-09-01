@@ -35,9 +35,11 @@
                roslisp-utilities
                cl-transforms
                cram-language ; for fluents
+               cram-tf
                sensor_msgs-msg)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "joint-states" :depends-on ("package"))))))
+     (:file "joint-states" :depends-on ("package"))
+     (:file "monitoring" :depends-on ("package" "joint-states"))))))
