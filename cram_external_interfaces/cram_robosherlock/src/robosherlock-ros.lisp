@@ -233,6 +233,8 @@
             (ecase (second (find :type rs-answer :key #'car))
               (:KoellnMuesliKnusperHonigNuss
                :breakfast-cereal)
+              (:muesli
+               :breakfast-cereal)
               (:CupEcoOrange
                :cup)
               (:EdekaRedBowl
@@ -246,6 +248,8 @@
               (:bowl
                :bowl)
               (:cup
+               :cup)
+              (:mug
                :cup)
               (:WeideMilchSmall
                :milk)
