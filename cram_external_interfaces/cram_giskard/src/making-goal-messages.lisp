@@ -30,7 +30,7 @@
 (in-package :giskard)
 
 (defparameter *avoid-joint-limits-percentage* 40)
-(defparameter *prefer-base-low-cost* 0.001)
+(defparameter *prefer-base-low-cost* 0.0001)
 (defparameter *avoid-collisions-distance* 0.10 "In cm, not used atm")
 (defparameter *unmovable-joint-weight* 9001)
 

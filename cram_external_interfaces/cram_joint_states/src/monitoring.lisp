@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2017, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,18 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :boxy-pm)
+(in-package :joints)
 
-;;;;;;;;;;;;;;;;;;;; GRIPPERS ;;;;;;;;;;;;;;;;;;;;;;;;
-
-(cpm:def-process-module grippers-pm (motion-designator)
-  (destructuring-bind (command action-type-or-position which-gripper &optional effort)
-      (desig:reference motion-designator)
-    (ecase command
-      (cram-common-designators:move-gripper-joint
-       (boxy-ll:move-gripper-joint
-        :action-type-or-position action-type-or-position
-        :left-or-right which-gripper
-        :effort effort)))))
+(defun monitor-joint-state (joint-name comparison-function)
+  (unless joint-name
+    (setf joint-name "r_gripper_joint"))
+  (unless comparison-function
+    (setf comparison-function (lambda (joint-angle) (< joint-angle 0.002))))
+  (cpl:wait-for
+   (cpl:fl-funcall (lambda (joint-state-msg-fluent)
+                     (funcall comparison-function
+                              (car (joints:joint-positions
+                                    (list joint-name)
+                                    joint-state-msg-fluent))))
+                   *robot-joint-states-msg*))
+  (print "DONE"))
