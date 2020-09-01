@@ -31,6 +31,6 @@
 
 (defmacro with-real-robot (&body body)
   `(cram-process-modules:with-process-modules-running
-       (giskard-pm bullet-perception-pm)
+       (giskard:giskard-pm bullet-perception-pm)
      (cpl-impl::named-top-level (:name :top-level)
        ,@body)))
