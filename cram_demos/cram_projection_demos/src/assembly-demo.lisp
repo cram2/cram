@@ -223,6 +223,7 @@
                       (let ((object-relative-pose
                               (cram-tf:list->pose object-pose-list)))
                         (unless (btr:object btr:*current-bullet-world* object-name)
+                          (roslisp:ros-info (assembly) "Spawning ~a" object-name)
                           (btr:add-object
                            btr:*current-bullet-world*
                            :mesh
