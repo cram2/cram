@@ -274,8 +274,11 @@
   (urdf-proj:with-projected-robot
     ;;(setf cram-robosherlock::*no-robosherlock-mode* t)
     (spawn-assembly-objects)
-    (let ((old-visibility btr:*visibility-threshold*))
-      (setf btr:*visibility-threshold* 0.4)
+    (let ((old-visibility btr:*visibility-threshold*))      
+      (setf btr:*visibility-threshold*
+            (if (eq :iai-donbot (rob-int:get-robot-name))
+                0.01 ;; perceiving with an object in hand is hard 
+                0.4))
       (unwind-protect
            (let* ((?env-name
                     (rob-int:get-environment-name))
