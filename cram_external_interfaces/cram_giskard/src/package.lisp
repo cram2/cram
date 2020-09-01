@@ -50,4 +50,6 @@
    ;; misc-goals
    #:call-grasp-bar-action
    ;; collision-scene
-   #:reset-collision-scene))
+   #:reset-collision-scene
+   ;; process-module
+   #:giskard-pm))

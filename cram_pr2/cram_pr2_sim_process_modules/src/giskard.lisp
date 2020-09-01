@@ -29,61 +29,10 @@
 
 (in-package :pr2-sim-pms)
 
-(cpm:def-process-module giskard-pm (motion-designator)
-  (destructuring-bind (command argument-1 &rest rest-args)
-      (desig:reference motion-designator)
-    (ecase command
-      (cram-common-designators:move-tcp
-       (giskard:call-arm-cartesian-action
-        :goal-pose-left argument-1
-        :goal-pose-right (first rest-args)
-        :collision-mode (second rest-args)
-        :collision-object-b (third rest-args)
-        :collision-object-b-link (fourth rest-args)
-        :collision-object-a (fifth rest-args)
-        :move-base (sixth rest-args)
-        :prefer-base (seventh rest-args)
-        :align-planes-left (eighth rest-args)
-        :align-planes-right (ninth rest-args)))
-      (cram-common-designators:move-joints
-       (giskard:call-arm-joint-action
-        :goal-configuration-left argument-1
-        :goal-configuration-right (first rest-args)
-        :align-planes-left (second rest-args)
-        :align-planes-right (third rest-args)))
-      (cram-common-designators:move-arm-pull
-       (giskard:call-environment-manipulation-action
-        :open-or-close :open
-        :arm argument-1
-        :handle-link (fifth rest-args)
-        :joint-angle (second rest-args)
-        :prefer-base (eighth rest-args)))
-      (cram-common-designators:move-arm-push
-       (giskard:call-environment-manipulation-action
-        :open-or-close :close
-        :arm argument-1
-        :handle-link (fifth rest-args)
-        :joint-angle (second rest-args)
-        :prefer-base (eighth rest-args)))
-      (cram-common-designators:move-head
-       (giskard:call-neck-action
-        :goal-pose argument-1))
-      (cram-common-designators:move-base
-       (giskard:call-base-action
-        :goal-pose argument-1))
-      (cram-common-designators:move-torso
-       (giskard:call-torso-action
-        :goal-joint-state argument-1))
-      (cram-common-designators:move-gripper-joint
-       (giskard:call-gripper-action
-        :action-type-or-position argument-1
-        :arm (first rest-args)
-        :effort (second rest-args))))))
-
 (prolog:def-fact-group giskard-pm (cpm:matching-process-module
                                    cpm:available-process-module)
 
-  (prolog:<- (cpm:matching-process-module ?motion-designator giskard-pm)
+  (prolog:<- (cpm:matching-process-module ?motion-designator giskard:giskard-pm)
     (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
         (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
         (desig:desig-prop ?motion-designator (:type :pulling))
@@ -96,5 +45,5 @@
         (desig:desig-prop ?motion-designator (:type :closing-gripper))
         (desig:desig-prop ?motion-designator (:type :moving-gripper-joint))))
 
-  (prolog:<- (cpm:available-process-module giskard-pm)
+  (prolog:<- (cpm:available-process-module giskard:giskard-pm)
     (prolog:not (cpm:projection-running ?_))))

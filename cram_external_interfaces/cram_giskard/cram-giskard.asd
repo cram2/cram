@@ -84,4 +84,11 @@
      (:file "misc-goals" :depends-on ("package"
                                       "making-goal-messages"
                                       "action-client"))
-     (:file "collision-scene" :depends-on ("package"))))))
+     (:file "collision-scene" :depends-on ("package"))
+     (:file "process-module" :depends-on ("package"
+                                          "arm-goals"
+                                          "base-goals"
+                                          "torso-goals"
+                                          "gripper-goals"
+                                          "neck-goals"
+                                          "environment-manipulation-goals"))))))
