@@ -65,13 +65,13 @@ or in general at compile-time.")
 (defvar *robot-right-tool-frame* nil
   "Tool frame of the right arm. Initialized from CRAM robot desciption.")
 
-
 (defun init-tf ()
   (macrolet ((initialize-var (dynamic-var prolog-var)
                (let ((var-name (symbol-name dynamic-var)))
                  `(if (is-var ,prolog-var)
                       (roslisp:ros-info (cram-tf init-tf)
-                                        "~a is unknown. Did you load a robot description package?"
+                                        "~a is unknown. Did you load a ~
+                                         robot description package?"
                                         ,var-name)
                       (progn
                         (setf ,dynamic-var ,prolog-var)
@@ -79,18 +79,44 @@ or in general at compile-time.")
                                           "Set ~a to ~s."
                                           ,var-name ,prolog-var))))))
 
+    ;; set *FIXED-FRAME*
     (setf *fixed-frame* "map")
     (roslisp:ros-info (cram-tf init-tf) "Set *fixed-frame* to ~s." *fixed-frame*)
 
+    ;; set the environment name based on the name in the urdf
+    (let ((environment-name
+            (roslisp-utilities:lispify-ros-underscore-name
+             (cl-urdf:name
+              (cl-urdf:parse-urdf
+               (roslisp:get-param rob-int:*environment-description-parameter*)))
+             :keyword)))
+      (rob-int:set-environment-name environment-name)
+      (roslisp:ros-info (cram-tf init-tf) "Environment name is ~a." environment-name))
+
+    ;; initialize *TRANSFORMER*
     (setf *transformer* (make-instance 'cl-tf:transform-listener))
     (roslisp:ros-info (cram-tf init-tf)
                       "Initialized *transformer* to a ~a." (type-of *transformer*))
 
+    ;; set the TF-DEFAULT-TIMEOUT
     (when (roslisp:get-param "use_sim_time" nil)
       (setf *tf-default-timeout* 10.0))
     (roslisp:ros-info (cram-tf init-tf)
                       "*tf-default-timeout* is ~a." *tf-default-timeout*)
 
+    ;; set the robot name based on the name in the urdf
+    (let ((robot-name
+            (roslisp-utilities:lispify-ros-underscore-name
+             (cl-urdf:name
+              (cl-urdf:parse-urdf
+               (cut:replace-all ; our pr2 urdf has some garbage inside :(
+                (roslisp:get-param rob-int:*robot-description-parameter*)
+                "\\" "  ")))
+             :keyword)))
+      (rob-int:set-robot-name robot-name)
+      (roslisp:ros-info (cram-tf init-tf) "Robot name is ~a." robot-name))
+
+    ;; set variables based on robot knowledge (ROB-INT package)
     (with-vars-bound (?odom-frame)
         (lazy-car (prolog `(and (robot ?robot)
                                 (robot-odom-frame ?robot ?odom-frame))))
@@ -103,15 +129,18 @@ or in general at compile-time.")
 
     (with-vars-bound (?torso-frame ?torso-joint)
         (lazy-car (prolog `(and (robot ?robot)
-                                (robot-torso-link-joint ?robot ?torso-frame ?torso-joint))))
+                                (robot-torso-link-joint ?robot
+                                                        ?torso-frame ?torso-joint))))
       (initialize-var *robot-torso-frame* ?torso-frame)
       (initialize-var *robot-torso-joint* ?torso-joint))
 
-    (with-vars-bound (?left-tool-frame ?right-tool-frame)
+    (with-vars-bound (?left-tool-frame)
         (lazy-car (prolog `(and (robot ?robot)
-                                (robot-tool-frame ?robot :left ?left-tool-frame)
+                                (robot-tool-frame ?robot :left ?left-tool-frame))))
+      (initialize-var *robot-left-tool-frame* ?left-tool-frame))
+    (with-vars-bound (?right-tool-frame)
+        (lazy-car (prolog `(and (robot ?robot)
                                 (robot-tool-frame ?robot :right ?right-tool-frame))))
-      (initialize-var *robot-left-tool-frame* ?left-tool-frame)
       (initialize-var *robot-right-tool-frame* ?right-tool-frame))))
 
 (defun destroy-tf ()

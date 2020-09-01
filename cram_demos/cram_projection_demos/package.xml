@@ -1,0 +1,71 @@
+<package format="2">
+  <name>cram_projection_demos</name>
+  <version>0.7.0</version>
+  <description>
+    A bunch of demos that work on a bunch of robots in a bunch of environments
+  </description>
+  <author>Gayane Kazhoyan</author>
+  <maintainer email="kazhoyan@cs.uni-bremen.de">Gayane Kazhoyan</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roslisp_utilities</depend>
+
+  <depend>cl_transforms</depend>
+  <!-- <depend>cl_transforms_stamped</depend> -->
+  <!-- <depend>cl_tf</depend> -->
+
+  <depend>cram_prolog</depend>
+  <depend>cram_occasions_events</depend>
+  <depend>cram_designators</depend>
+  <depend>cram_executive</depend>
+  <!-- <depend>cram_language</depend> -->
+  <!-- <depend>cram_projection</depend> -->
+  <!-- <depend>cram_utilities</depend> -->
+
+  <depend>cram_tf</depend>
+  <depend>cram_location_costmap</depend>
+  <depend>cram_robot_interfaces</depend>
+  <depend>cram_manipulation_interfaces</depend>
+  <depend>cram_object_knowledge</depend>
+  <depend>cram_mobile_pick_place_plans</depend>
+  <!-- <depend>cram_common_failures</depend> -->
+
+  <depend>cram_bullet_reasoning</depend>
+  <depend>cram_bullet_reasoning_belief_state</depend>
+  <depend>cram_urdf_projection</depend>
+  <depend>cram_fetch_deliver_plans</depend>
+  <depend>cram_urdf_environment_manipulation</depend>
+
+  <depend>cram_btr_visibility_costmap</depend>
+  <depend>cram_btr_spatial_relations_costmap</depend>
+  <depend>cram_robot_pose_gaussian_costmap</depend>
+  <!-- <depend>cram_occupancy_grid_costmap</depend> -->
+
+  <depend>cram_pr2_description</depend>
+  <depend>cram_boxy_description</depend>
+  <depend>cram_donbot_description</depend>
+  <!-- <depend>cram_hsrb_description</depend> -->
+
+  <!-- launch file -->
+  <!-- installed with ROS -->
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>map_server</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <!-- installed through Debian (sudo apt install ros-... or rosdep install ...) -->
+  <exec_depend>pr2_description</exec_depend>
+  <exec_depend>pr2_arm_kinematics</exec_depend>
+  <!-- https://github.com/code-iai/iai_robots.git -->
+  <exec_depend>iai_boxy_description</exec_depend>
+  <exec_depend>iai_donbot_description</exec_depend>
+  <!-- https://github.com/fmauch/universal_robot.git
+       branch: calibration_devel -->
+  <exec_depend>ur_description</exec_depend>
+  <!-- https://github.com/code-iai/iai_maps.git -->
+  <exec_depend>iai_kitchen</exec_depend>
+  <exec_depend>iai_refills_lab</exec_depend>
+  <exec_depend>iai_maps</exec_depend>
+</package>

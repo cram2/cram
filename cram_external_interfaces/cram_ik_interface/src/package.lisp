@@ -32,4 +32,8 @@
   (:use #:common-lisp)
   (:export
    ;; ik
-   #:call-ik-service #:call-ik-service-with-resampling))
+   #:call-ik-service
+   #:call-ik-service-with-resampling
+   #:find-ik-for
+   #:find-joint-values-for
+   #:with-resampling))

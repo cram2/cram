@@ -32,15 +32,13 @@
 (in-package :pp-tut)
 
 (defun get-kitchen-urdf ()
-  (slot-value
-   (btr:object btr:*current-bullet-world* :kitchen)
-   'cram-bullet-reasoning:urdf))
+  (slot-value (btr:get-environment-object) 'btr:urdf))
 
 (defun move-kitchen-joint (&key (joint-name "iai_fridge_door_joint")
-                             (joint-angle 0.2d0) (kitchen-name :kitchen))
+                             (joint-angle 0.2d0))
   (btr:set-robot-state-from-joints
    `((,joint-name  ,joint-angle))
-   (btr:object btr:*current-bullet-world* kitchen-name)))
+   (btr:get-environment-object)))
 
 (defun spawn-object (spawn-pose &optional (obj-type :bottle) (obj-name 'bottle-1) (obj-color '(1 0 0)))
   (unless (assoc obj-type btr::*mesh-files*)
@@ -86,16 +84,18 @@
     (etypecase object-or-pose
       (symbol
        (if (btr:object btr:*current-bullet-world* object-or-pose)
-           (btr:add-vis-axis-object object-or-pose size)
+           (btr:add-vis-axis-object object-or-pose :length size)
            (if (find-object-of-type object-or-pose)
-               (btr:add-vis-axis-object (btr:name (find-object-of-type object-or-pose)) size)
+               (btr:add-vis-axis-object
+                (btr:name (find-object-of-type object-or-pose))
+                :length size)
                (warn "Unknown object, please either give an object name or object type."))))
       (cl-transforms-stamped:pose-stamped
        (when (equalp (cl-transforms-stamped:frame-id object-or-pose) "base_footprint")
          (warn "Pose is not in MAP frame. It is visualized with respect to the MAP though."))
-       (btr:add-vis-axis-object object-or-pose size))
+       (btr:add-vis-axis-object object-or-pose :length size))
       (cl-transforms:pose
-       (btr:add-vis-axis-object object-or-pose size)))))
+       (btr:add-vis-axis-object object-or-pose :length size)))))
 
 
 (defmethod print-object ((pose cl-transforms-stamped:pose-stamped) stream)

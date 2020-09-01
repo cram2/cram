@@ -118,7 +118,7 @@
 
 (defun look-at-gripper (left-or-right)
   (call-ptu-action :pose
-                   (cl-tf:make-pose-stamped
+                   (cl-transforms-stamped:make-pose-stamped
                     (ecase left-or-right
                       (:left "l_gripper_tool_frame")
                       (:right "r_gripper_tool_frame"))

@@ -113,8 +113,12 @@
         (equal ?threshold 0.2)))
 
   ;; table setting related
-  (<- (%paddings-list :kitchen-island-surface :table-setting (0.03d0 0.03d0 0.8d0 0.03d0)))
-  (<- (%paddings-list :sink-area-surface :table-setting (0.03d0 0.03d0 0.03d0 0.03d0)))
+  (<- (%paddings-list :kitchen-island-surface :table-setting
+                      (0.1d0 0.1d0 0.8d0 0.1d0)))
+  (<- (%paddings-list :sink-area-surface :table-setting
+                      (0.03d0 0.03d0 0.03d0 0.03d0)))
+  (<- (%paddings-list :dining-area-jokkmokk-table-main :table-setting
+                      (0.1d0 0.1d0 0.1d0 0.1d0)))
   (<- (paddings-list ?environment-object-name :table-setting ?paddings-list)
     (setof ?object-name (%paddings-list ?object-name :table-setting ?_)
            ?defined-paddings-list-objects)
@@ -130,6 +134,22 @@
     (-> (member ?environment-object-name ?defined-preferred-side-objects)
         (%preferred-supporting-object-side ?environment-object-name :table-setting ?side)
         (equal ?side :+)))
+  ;;
+  (<- (%preferred-supporting-object-axis :dining-area-jokkmokk-table-main
+                                         :table-setting
+                                         cl-transforms:y))
+  (<- (%preferred-supporting-object-axis :kitchen-island-surface
+                                         :table-setting
+                                         cl-transforms:y))
+  (<- (preferred-supporting-object-axis ?environment-object-name :table-setting
+                                        ?axis)
+    (setof ?object-name
+           (%preferred-supporting-object-axis ?object-name :table-setting ?_)
+           ?defined-preferred-axis-objects)
+    (-> (member ?environment-object-name ?defined-preferred-axis-objects)
+        (%preferred-supporting-object-axis ?environment-object-name
+                                           :table-setting ?axis)
+        (equal ?axis cl-transforms:x)))
   ;;
   (<- (%max-slot-size :plate :table-setting 0.8))
   (<- (%max-slot-size :bowl :table-setting 0.6))
@@ -147,7 +167,9 @@
     (-> (member ?environment-object-name ?defined-objects)
         (%min-slot-size ?environment-object-name :table-setting ?size)
         (equal ?size 0.5)))
+  ;;
   (<- (%position-deviation-threshold :plate :table-setting 0.08))
+  (<- (%position-deviation-threshold :bowl :table-setting 0.08))
   (<- (position-deviation-threshold ?environment-object-name :table-setting ?size)
     (setof ?object-name (%position-deviation-threshold ?object-name :table-setting ?_)
            ?defined-objects)

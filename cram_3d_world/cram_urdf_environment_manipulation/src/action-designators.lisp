@@ -86,6 +86,11 @@
     (lisp-fun btr:object ?world ?btr-environment ?environment-object)
     (lisp-fun btr:name ?environment-object ?environment-name)
 
+    (btr:joint-state ?world ?environment-name ?joint-name ?current-state)
+    (-> (equal ?action-type :opening)
+        (lisp-fun + ?current-state ?clipped-distance ?absolute-distance)
+        (lisp-fun - ?current-state ?clipped-distance ?absolute-distance))
+
     ;; infer missing information like ?gripper-opening, opening trajectory
     (lisp-fun man-int:get-action-gripper-opening ?container-type
               ?gripper-opening)
@@ -106,8 +111,8 @@
     ;; calculate trajectory
     (equal (?container-designator) ?objects)
     (-> (equal ?arm :left)
-        (and (lisp-fun man-int:get-action-trajectory
-                       ?action-type ?arm NIL ?objects
+        (and (lisp-fun man-int:get-action-trajectory ?action-type
+                       ?arm NIL NIL ?objects
                        :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?left-trajectory)
@@ -128,8 +133,8 @@
              (equal ?left-manipulate-poses NIL)
              (equal ?left-retract-poses NIL)))
     (-> (equal ?arm :right)
-        (and (lisp-fun man-int:get-action-trajectory
-                       ?action-type ?arm NIL ?objects
+        (and (lisp-fun man-int:get-action-trajectory ?action-type
+                       ?arm NIL NIL ?objects
                        :opening-distance ?clipped-distance
                        :handle-axis ?handle-axis
                        ?right-trajectory)
@@ -152,11 +157,17 @@
     (or (lisp-pred identity ?left-trajectory)
         (lisp-pred identity ?right-trajectory))
 
+    (-> (lisp-pred identity ?left-reach-poses)
+        (equal ?left-reach-poses (?look-pose . ?_))
+        (equal ?right-reach-poses (?look-pose . ?_)))
+
     ;; make new action designator
     (desig:designator :action ((:type ?action-type)
                                (:arm ?arm)
                                (:gripper-opening ?gripper-opening)
                                (:distance ?clipped-distance)
+                               (:absolute-distance ?absolute-distance)
+                               (:look-pose ?look-pose)
                                (:left-reach-poses ?left-reach-poses)
                                (:right-reach-poses ?right-reach-poses)
                                (:left-grasp-poses ?left-grasp-poses)

@@ -1,5 +1,126 @@
 (in-package :ccl)
 
+(defun get-parent-folder-path()
+  (namestring (physics-utils:parse-uri "package://cram_cloud_logger/src")))
+
+(defun send-load-neem-generation-interface ()
+  (let ((path-to-interface-file (concatenate 'string "'"(get-parent-folder-path) "/neem-interface.pl'")))
+    (ccl::send-query-1-without-result "ensure_loaded" path-to-interface-file)))
+
+(defun init-logging ()
+  (send-load-neem-generation-interface))
+  ;;(ccl::send-query-1-without-result "ros_logger_start" ""))
+
+(defun finish-logging ()
+  (print "Finished"))
+  ;;(ccl::send-query-1-without-result "ros_logger_stop" ""))
+
+(defun get-grasp-type-lookup-table()
+  (let ((lookup-table (make-hash-table :test 'equal)))
+    (setf (gethash ":TOP" lookup-table) "TopGrasp")
+    (setf (gethash ":TOP-FRONT" lookup-table) "TopFrontGrasp")
+    (setf (gethash ":TOP-LEFT" lookup-table) "TopLeftGrasp")
+    (setf (gethash ":TOP-RIGHT" lookup-table) "TopRightGrasp")
+    (setf (gethash ":BOTTOM" lookup-table) "BottomGrasp")
+    (setf (gethash ":LEFT" lookup-table) "LeftGrasp")
+    (setf (gethash ":LEFT-SIDE" lookup-table) "LeftSideGrasp")
+    (setf (gethash ":RIGHT-SIDE" lookup-table) "RightSideGrasp")
+    (setf (gethash ":RIGHT" lookup-table) "RightGrasp")
+    (setf (gethash ":FRONT" lookup-table) "FrontGrasp")
+    (setf (gethash ":BACK" lookup-table) "BackGrasp")
+    lookup-table))
+
+(defparameter *grasp-type-lookup-table* (get-grasp-type-lookup-table))
+
+(defun start-situation (situation-uri)
+  (attach-time-to-situation "mem_event_begin" situation-uri))
+
+(defun stop-situation (situation-uri)
+  (attach-time-to-situation "mem_event_end" situation-uri))
+
+(defun attach-time-to-situation (predicate-name situation-uri)
+  (send-query-1-without-result predicate-name situation-uri))
+
+(defun attach-event-to-situation (event-prolog-url situation-prolog-url)
+  (get-url-from-send-query-1 "SubAction" "add_subaction_with_task" situation-prolog-url "SubAction" event-prolog-url))
+
+(defun send-belief-perceived-at (object-type transform object-id)
+  (send-query-1-without-result "belief_perceived_at" object-type transform object-id)
+  object-id)
+
+(defun send-belief-new-object-query (object-type)
+  (get-url-from-send-query-1 "Object" "belief_new_object" object-type "Object"))
+
+(defun set-event-status-to-succeeded (event-prolog-url)
+  (send-query-1-without-result "mem_event_set_succeeded" event-prolog-url))
+
+(defun set-event-status-to-failed (event-prolog-url)
+  (send-query-1-without-result "mem_event_set_failed" event-prolog-url))
+
+(defun send-attach-object-as-parameter-to-situation (object-url parameter-type-url event-prolog-url)
+  (break)
+  (send-query-1-without-result "add_participant_with_role" event-prolog-url object-url parameter-type-url))
+
+(defun set-event-diagnosis (event-prolog-url diagnosis-url)
+  (send-query-1-without-result "mem_event_add_diagnosis" event-prolog-url diagnosis-url))
+
+(defun start-episode ()
+  (when *episode-name*
+    (progn
+      (print "Previous episode recording is still running. Stopping the recording ...")
+      (stop-episode)))
+  (ccl::clear-detected-objects)
+  (setf ccl::*episode-name* (get-url-from-send-query-1 "RootAction" "mem_episode_start" "RootAction")))
+
+(defun stop-episode ()
+  (send-query-1-without-result "mem_episode_stop" (concatenate 'string "'" (uiop:getenv "KNOWROB_MEMORY_DIR") "'"))
+  (setf ccl::*episode-name* nil))
+
+(defun send-query-1-without-result (query-name &rest query-parameters)
+  (let ((query (create-query query-name query-parameters)))
+    (send-query-1 query)
+    (print "DONE REASONING")))
+
+(defun send-query-1 (query)
+  (print query)
+  (json-prolog:prolog-simple-1 query))
+
+(defun get-url-from-send-query-1 (url-parameter query-name &rest query-parameters)
+  (let* ((query (create-query query-name query-parameters))
+         (query-result (send-query-1 query)))
+    (when (eq query-result nil) (break))
+    (print "GOT-RESULT")
+    (ccl::get-url-variable-result-as-str-from-json-prolog-result url-parameter query-result)))
+
+(defun send-comment (action-inst comment)
+  (send-query-1-without-result "add_comment" action-inst (concatenate 'string "'"comment"'")))
+  ;;(print "COMMENT"))
+
+(defun send-object-action-parameter (action-inst object-designator)
+  (let* ((object-name (get-designator-property-value-str object-designator :NAME))
+         (object-ease-id (get-ease-object-id-of-detected-object-by-name object-name)))
+    (when object-ease-id 
+      (send-query-1-without-result "add_participant_with_role" action-inst object-ease-id "'http://www.ease-crc.org/ont/SOMA.owl#AffectedObject'"))))
+
+
+(defun send-grasp-action-parameter (action-inst grasp)
+  (let ((grasp-type (gethash (write-to-string grasp) *grasp-type-lookup-table*)))
+    (send-parameter action-inst grasp-type)))
+
+(defun send-parameter(action-inst region-type)
+  (let ((region-type-url (concatenate 'string "'""http://www.ease-crc.org/ont/SOMA.owl#" region-type "'")))
+      (send-query-1-without-result "add_grasping_parameter" action-inst region-type-url)))
+
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; CLOUD LOGGER RELATED STUFF (OLD) ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun send-cram-start-parent-action (owl-action-class task-context start-time
                                prev-action parent-task action-inst)
   (send-prolog-query-1
@@ -67,13 +188,6 @@
 (defun export-belief-state-to-owl (&optional (filename (concatenate 'string "default_belief_state_" (write-to-string (truncate (cram-utilities:current-timestamp))) ".owl")))
   (json-prolog:prolog-simple-1 (concatenate 'string "rdf_save(" (concatenate 'string "'/home/ease/logs/" filename "'" "," "[graph('belief_state')])"))))
 
-
-(defun send-grasp-action-parameter (action-inst grasp)
-  (let ((a (convert-to-prolog-str action-inst))
-        (b "knowrob:grasp")
-        (c (create-owl-literal "xsd:string" (convert-to-prolog-str (write-to-string grasp)))))
-    (send-rdf-query a b c)))
-
 (defun send-task-success (action-inst is-sucessful)
   (let ((a (convert-to-prolog-str action-inst))
         (b "knowrob:taskSuccess")
@@ -102,22 +216,22 @@
 (defun send-rdf-query (a b c)
   (send-prolog-query-1 (create-rdf-assert-query a b c)))
 
-(defun send-object-action-parameter (action-inst object-designator)
-  (let ((object-instance-id (symbol-name (desig:desig-prop-value object-designator :NAME))))
-    (when (not (string-equal object-instance-id "nil"))
-      (progn
-        (send-rdf-query
-         (convert-to-prolog-str action-inst)
-         "knowrob:objectActedOn"
-         (convert-to-prolog-str object-instance-id)))))
+;;(defun send-object-action-parameter (action-inst object-designator)
+;;  (let ((object-instance-id (symbol-name (desig:desig-prop-value object-designator :NAME))))
+;;    (when (not (string-equal object-instance-id "nil"))
+;;      (progn
+;;        (send-rdf-query
+;;         (convert-to-prolog-str action-inst)
+;;         "knowrob:objectActedOn"
+;;         (convert-to-prolog-str object-instance-id)))))
 
-  (let ((object-type (symbol-name (desig:desig-prop-value object-designator :TYPE))))
-    (when (not (string-equal object-type "nil"))
-      (progn
-        (send-rdf-query
-         (convert-to-prolog-str action-inst)
-         "knowrob:objectType"
-         (convert-to-prolog-str object-type))))))
+;;  (let ((object-type (symbol-name (desig:desig-prop-value object-designator :TYPE))))
+;;    (when (not (string-equal object-type "nil"))
+;;      (progn
+;;        (send-rdf-query
+;;         (convert-to-prolog-str action-inst)
+;;         "knowrob:objectType"
+;;         (convert-to-prolog-str object-type))))))
 
 
 
@@ -152,7 +266,7 @@
   (let ((x (cl-transforms:x 3d-vector))
         (y (cl-transforms:y 3d-vector))
         (z (cl-transforms:z 3d-vector)))
-    (concatenate 'string (format nil "~F" x) " " (format nil "~F" y) " " (format nil "~F" z))))
+    (concatenate 'string "["(format nil "~F" x) "," (format nil "~F" y) "," (format nil "~F" z)"]")))
 
 
 (defun send-create-quaternion (quaternion)
@@ -160,7 +274,7 @@
         (y (cl-transforms:y quaternion))
         (z (cl-transforms:z quaternion))
         (w (cl-transforms:w quaternion)))
-        (concatenate 'string (format nil "~F" x) " " (format nil "~F" y) " " (format nil "~F" z) " " (format nil "~F" w))))
+        (concatenate 'string "["(format nil "~F" x) "," (format nil "~F" y) "," (format nil "~F" z) "," (format nil "~F" w) "]")))
 
 (defun send-create-transform-pose-stamped (transform-pose)
   (let ((pose-stamped-instance-id (send-instance-from-class "Pose"))

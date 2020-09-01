@@ -41,8 +41,8 @@
   "Used in spawning semantic map and offsetting its objects")
 
 (defparameter  *semantic-to-urdf*
-  '((|''IslandArea''| . :|KITCHEN.kitchen_island|)
-    (|''SinkArea''| . :|KITCHEN.sink_area|))
+  '((|''IslandArea''| . :|ENVIRONMENT.kitchen_island|)
+    (|''SinkArea''| . :|ENVIRONMENT.sink_area|))
   "semantic map . urdf")
 
 (defun match-kitchens (name)
@@ -50,7 +50,7 @@
 
 (defun get-all-objects-urdf ()
   (btr:rigid-body-names
-   (btr:object btr:*current-bullet-world* :kitchen)))
+   (btr:get-environment-object)))
 
 (defun get-all-objects-semantic ()
   (btr:rigid-body-names
