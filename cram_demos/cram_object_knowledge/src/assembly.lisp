@@ -65,9 +65,12 @@
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :bolt)))
   0.02)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :window)))
-  0.02)
+  0.017)
 (defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :underbody)))
+    0.08)
+(defmethod man-int:get-action-gripper-opening :heuristics 20 ((object-type (eql :top-wing)))
   0.05)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -91,8 +94,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; BOTTOM-WING ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *bottom-wing-grasp-x-offset* 0.07)
-(defparameter *bottom-wing-grasp-y-offset* 0.01)
-(defparameter *bottom-wing-grasp-z-offset* 0.02)
+(defparameter *bottom-wing-grasp-y-offset* 0.0)
+(defparameter *bottom-wing-grasp-z-offset* 0.005)
 
 ;; SIDE grasp
 ;; (man-int:def-object-type-to-gripper-transforms :bottom-wing :left :right-side
@@ -118,8 +121,8 @@
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :bottom-wing '(:left :right) :back
   :grasp-translation `(,(- *bottom-wing-grasp-x-offset*)
-                       0.0
-                       ,*bottom-wing-grasp-z-offset*)
+                        ,*bottom-wing-grasp-y-offset*
+                       ,(- *bottom-wing-grasp-z-offset*))
   :grasp-rot-matrix man-int:*-x-across-y-grasp-rotation*
   :pregrasp-offsets `(,(- *default-z-offset*) 0.0 ,*default-z-offset*)
   :2nd-pregrasp-offsets `(,(- *default-z-offset*) 0.0 0.0)
@@ -128,12 +131,13 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; UNDERBODY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *underbody-grasp-y-offset* 0.03)
+(defparameter *underbody-grasp-x-offset* 0.02)
+(defparameter *underbody-grasp-y-offset* 0.0)
 (defparameter *underbody-grasp-z-offset* 0.0)
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :underbody :left :top
-  :grasp-translation `(0.0 ,*underbody-grasp-y-offset* ,*underbody-grasp-z-offset*)
+  :grasp-translation `(,*underbody-grasp-x-offset* ,*underbody-grasp-y-offset* ,*underbody-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
@@ -141,7 +145,7 @@
   :2nd-lift-translation *default-lift-offsets*)
 
 (man-int:def-object-type-to-gripper-transforms :underbody :right :top
-  :grasp-translation `(0.0 ,(- *underbody-grasp-y-offset*) ,*underbody-grasp-z-offset*)
+  :grasp-translation `(,*underbody-grasp-x-offset* ,(- *underbody-grasp-y-offset*) ,*underbody-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
@@ -150,12 +154,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; UPPER-BODY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *upper-body-grasp-x-offset* 0.09)
-(defparameter *upper-body-grasp-z-offset* 0.0)
+(defparameter *upper-body-grasp-x-offset* -0.09)
+(defparameter *upper-body-grasp-z-offset* 0.02)
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :upper-body '(:left :right) :top
-  :grasp-translation `(,(- *upper-body-grasp-x-offset*) 0.0 ,*upper-body-grasp-z-offset*)
+  :grasp-translation `(,*upper-body-grasp-x-offset* 0.0 ,*upper-body-grasp-z-offset*)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
@@ -166,7 +170,7 @@
 
 (defparameter *top-wing-grasp-x-offset* 0.08)
 (defparameter *top-wing-grasp-y-offset* 0.01)
-(defparameter *top-wing-grasp-z-offset* 0.03)
+(defparameter *top-wing-grasp-z-offset* 0.008)
 
 ;; BACK grasp
 (man-int:def-object-type-to-gripper-transforms :top-wing '(:left :right) :back
@@ -174,8 +178,8 @@
                        0.0
                        ,*top-wing-grasp-z-offset*)
   :grasp-rot-matrix man-int:*-x-across-y-grasp-rotation*
-  :pregrasp-offsets `(,(- *default-z-offset*) 0.0 ,*default-z-offset*)
-  :2nd-pregrasp-offsets `(,(- *default-z-offset*) 0.0 0.0)
+  :pregrasp-offsets `(,(- *default-z-offset*) 0.0 ,*default-small-z-offset*)
+  :2nd-pregrasp-offsets `(,(- *default-small-z-offset*) 0.0 0.0)
   :lift-translation *default-lift-offsets*
   :2nd-lift-translation *default-lift-offsets*)
 
@@ -193,8 +197,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; WINDOW ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *window-grasp-x-offset* 0.017)
-(defparameter *window-grasp-y-offset* 0.005)
+(defparameter *window-grasp-x-offset* 0.019)
+(defparameter *window-grasp-y-offset* 0.008)
 (defparameter *window-grasp-z-offset* 0.015)
 
 ;; TOP grasp
@@ -246,7 +250,7 @@
 
 ;; TOP grasp
 (man-int:def-object-type-to-gripper-transforms :bolt '(:left :right) :top
-  :grasp-translation `(0.0 0.0 0.003)
+  :grasp-translation `(0.0 0.0 0.008)
   :grasp-rot-matrix man-int:*z-across-x-grasp-rotation*
   :pregrasp-offsets *default-lift-offsets*
   :2nd-pregrasp-offsets *default-lift-offsets*
@@ -258,20 +262,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (man-int:def-object-type-in-other-object-transform :chassis :holder-plane-horizontal :horizontal-attachment
-  :attachment-translation `(0.084 0.0 0.022)
+  :attachment-translation `(0.084 0.0 0.024)
   :attachment-rot-matrix man-int:*rotation-around-z-90-matrix*)
 
+(defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :chassis))
+                                                           (other-object (eql :holder-plane-horizontal))
+                                                           (attachment (eql :horizontal-attachment)))
+  0.02)
+
 (man-int:def-object-type-in-other-object-transform :bottom-wing :chassis :wing-attachment
-  :attachment-translation `(0.0 -0.02 0.0)
+  :attachment-translation `(0.0 -0.025 0.006)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
 (defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :bottom-wing))
                                                            (other-object (eql :chassis))
                                                            (attachment (eql :wing-attachment)))
-  0.04)
+  0.025)
 
 (man-int:def-object-type-in-other-object-transform :underbody :bottom-wing :body-attachment
-  :attachment-translation `(0.0 -0.025 0.02)
+  :attachment-translation `(0.0 -0.025 0.013)
   :attachment-rot-matrix man-int:*rotation-around-z+90-matrix*)
 
 (man-int:def-object-type-in-other-object-transform :upper-body :underbody :body-on-body
@@ -294,12 +303,17 @@
   :attachment-translation `(0.025 0 0.183)
   :attachment-rot-matrix man-int:*rotation-around-z-180-and-x+90-matrix*)
 
+(defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :bolt)) other-object attachment)
+  0.015)
+
 (man-int:def-object-type-in-other-object-transform :bolt :upper-body :rear-thread
   :attachment-translation `(-0.0525 0.0 -0.025)
   :attachment-rot-matrix man-int:*identity-matrix*)
 
-(defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :bolt)) other-object attachment)
-  0.015)
+(defmethod man-int:get-z-offset-for-placing-with-dropping ((object (eql :top-wing))
+                                                           (other-object (eql :upper-body))
+                                                           (attachment (eql :wing-attachment)))
+  0.005)
 
 (man-int:def-object-type-in-other-object-transform :top-wing :upper-body :wing-attachment
   :attachment-translation `(0.05 0.0 0.0025)
