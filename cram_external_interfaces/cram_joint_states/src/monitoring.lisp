@@ -1,4 +1,5 @@
-;;; Copyright (c) 2019, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;;
+;;; Copyright (c) 2020, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -9,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors 
-;;;       may be used to endorse or promote products derived from this software 
-;;;       without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -26,20 +27,18 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cram-joint-states
-  :author "Gayane Kazhoyan"
-  :maintainer "Gayane Kazhoyan"
-  :license "BSD"
+(in-package :joints)
 
-  :depends-on (roslisp
-               roslisp-utilities
-               cl-transforms
-               cram-language ; for fluents
-               cram-tf
-               sensor_msgs-msg)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "joint-states" :depends-on ("package"))
-     (:file "monitoring" :depends-on ("package" "joint-states"))))))
+(defun monitor-joint-state (joint-name comparison-function)
+  (unless joint-name
+    (setf joint-name "r_gripper_joint"))
+  (unless comparison-function
+    (setf comparison-function (lambda (joint-angle) (< joint-angle 0.002))))
+  (cpl:wait-for
+   (cpl:fl-funcall (lambda (joint-state-msg-fluent)
+                     (funcall comparison-function
+                              (car (joints:joint-positions
+                                    (list joint-name)
+                                    joint-state-msg-fluent))))
+                   *robot-joint-states-msg*))
+  (print "DONE"))
