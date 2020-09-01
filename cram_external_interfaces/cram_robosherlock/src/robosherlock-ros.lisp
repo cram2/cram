@@ -235,6 +235,8 @@
                :breakfast-cereal)
               (:muesli
                :breakfast-cereal)
+              (:milk
+               :milk)
               (:CupEcoOrange
                :cup)
               (:EdekaRedBowl
@@ -242,6 +244,8 @@
               (:IkeaRedBowl
                :bowl)
               (:SoupSpoon
+               :spoon)
+              (:spoon
                :spoon)
               (:IkeaRedCup
                :cup)
