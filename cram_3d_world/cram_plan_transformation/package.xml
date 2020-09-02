@@ -1,0 +1,19 @@
+<package format="2">
+  <name>cram_plan_transformation</name>
+  <version>0.7.0</version>
+  <description>
+    The plan_transformation package takes cram-task-trees and modifies them by applying specific rules on them.
+    The purpose of this modification is to optimize plans by slightly altering the sequence of executed plans.
+  </description>
+  <author>Arthur Niedzwiecki, Gayane Kazhoyan</author>
+  <maintainer email="aniedz@cs.uni-bremen.de">Arthur Niedzwiecki</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- cram_plan_transformation -->
+  <depend>roslisp_utilities</depend>
+  <depend>cram_executive</depend>
+  
+</package>
