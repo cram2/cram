@@ -186,6 +186,7 @@
            #:goal-task-tree-node-pattern
            #:goal-task-tree-node-parameter-bindings
            #:goal-task-tree-node-goal
+           #:replace-task-code
            ;; base.lisp
            #:top-level #:seq #:par #:tag #:with-tags #:with-task-suspended
            #:par-loop
@@ -226,7 +227,10 @@
            #:name
            #:*save-tasks*
            #:*tasks*
-           #:list-saved-tasks))
+           #:list-saved-tasks
+           ;; language.lisp
+           #:*top-level-task-trees*
+           #:remove-top-level-task-tree))
         (cl-symbols
          (let (r) (do-external-symbols (s :cl r) (push s r)))))
 
