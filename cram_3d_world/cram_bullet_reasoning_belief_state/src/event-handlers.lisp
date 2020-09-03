@@ -192,7 +192,9 @@ If there is no other method with 1 as qualifier, this method will be executed al
       ;; attach
       (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)
       ;; check the attachment
-      (unless (btr:object-attached robot-object btr-object :loose nil)
+      (unless (find link
+                    (car (btr:object-attached robot-object btr-object))
+                    :test #'string=)
         (roslisp:ros-warn (btr-belief btr-attach-object)
                           "Object ~a was not attached to robot link ~a."
                           btr-object-name link))
