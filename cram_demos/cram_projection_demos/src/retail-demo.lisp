@@ -173,9 +173,10 @@
                                                  ,(+ (random (cl-transforms:y maximal-size)) 0.02)
                                                  ,(+ (random (cl-transforms:z maximal-size)) 0.02)))
                                 (x (first box-size-rand))
+                                (max-depth (/ 0.4 (+ (second box-size-rand) 0.05)))
                                 (offset-between-object (+ (/ (+ x prev-x) 2) 0.05))
                                 (spawn-pose `((,(setf pos-x (+ pos-x offset-between-object))
-                                               ,(- (cl-transforms:y pose) 0.3)
+                                               ,(+ (cl-transforms:y pose) 0.26)
                                                ,(+ (cl-transforms:z pose) (/ (third box-size-rand) 2) 0.022))
                                               (0 0 0 1)))
                                 (color-rand `(,(float (/ (random 10) 10))
@@ -183,8 +184,8 @@
                                               ,(float (/ (random 10) 10)))))
                            (setf prev-x (first box-size-rand))
                            (setf accumulated-x (+ accumulated-x (first box-size-rand) 0.05))
-                           (loop for i from 0 to 2
-                                 do (setf (second (first spawn-pose)) (+ (second (first spawn-pose)) 0.15))
+                           (loop for i from 0 to max-depth
+                                 do (setf (second (first spawn-pose)) (- (second (first spawn-pose)) (second box-size-rand) 0.05))
                                     (btr:add-object btr:*current-bullet-world*
                                                     :colored-box (intern (concatenate 'string "box-" (write-to-string accumulated-x) "-" (write-to-string i)))
                                                     (cram-tf:list->pose spawn-pose) :mass 1 :size box-size-rand
