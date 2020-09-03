@@ -167,6 +167,11 @@ If there is no other method with 1 as qualifier, this method will be executed al
                 links grasps)))
       ;; attach
       (btr:attach-object robot-object btr-object :link link :loose nil :grasp grasp)
+      ;; check the attachment
+      (unless (btr:object-attached robot-object btr-object :loose nil)
+        (roslisp:ros-warn (btr-belief btr-attach-object)
+                          "Object ~a was not attached to robot link ~a."
+                          btr-object-name link))
       ;; invalidate the pose in the designator
       (when object-designator
         (update-object-designator-with-attachment
@@ -219,13 +224,18 @@ If there is no other method with 1 as qualifier, this method will be executed al
               ;; will be attached to it
               ;; also, if btr-object is in contact with an item,
               ;; it will be attached loose.
-              (mapcar (lambda (link-name)
-                        (btr:attach-object environment-object btr-object :link link-name))
-                      contacting-links)
-              (mapcar (lambda (item-object)
-                        (when item-object
-                          (btr:attach-object item-object btr-object :loose T)))
-                      contacting-items))))
+              (or (mapcar (lambda (link-name)
+                            (btr:attach-object environment-object btr-object :link link-name))
+                          contacting-links)
+                  (mapcar (lambda (item-object)
+                            (when item-object
+                              (btr:attach-object item-object btr-object :loose T)))
+                          contacting-items)
+                  (roslisp:ros-warn (btr-belief btr-detach-object)
+                                    "Object ~a was detached, but
+                                     is in no contact with the
+                                     environment or another object."
+                                    btr-object-name)))))
         ;; if btr-object-name was not given, detach all objects from the robot link
         (progn
           (btr:detach-all-from-link robot-object link)
