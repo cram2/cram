@@ -156,8 +156,6 @@
   (let* ((maximal-size (if (equalp maximal-box-size NIL)
                                (cl-transforms:make-3d-vector 0.15 0.1 0.2)
                                maximal-box-size))
-         (max-boxes (/ 0.9 (cl-transforms:x maximal-size)))
-         ;;(offset-between-object (/ (- 0.85 (* max-boxes y)) (+ max-boxes 2)))
          (list-of-level-link-names (if (eql list-of-level-link-names NIL)
                                        (btr-spatial-cm::find-levels-under-link base-link-name)
                                        list-of-level-link-names))
@@ -168,25 +166,30 @@
 
     (loop for pose in level-poses
           do (let ((prev-x 0.02)
-                   (pos-x (- (cl-transforms:x pose) 0.45)))
-               (loop for i from 0 to max-boxes
-                     do  (let* ((box-size-rand `(,(random (cl-transforms:x maximal-size))
-                                                 ,(random (cl-transforms:y maximal-size))
-                                                 ,(random (cl-transforms:z maximal-size))))
+                   (pos-x (- (cl-transforms:x pose) 0.45))
+                   (accumulated-x 0.1))
+               (loop while (< accumulated-x 0.9)
+                     do  (let* ((box-size-rand `(,(+ (random (cl-transforms:x maximal-size)) 0.05)
+                                                 ,(+ (random (cl-transforms:y maximal-size)) 0.05)
+                                                 ,(+ (random (cl-transforms:z maximal-size)) 0.05)))
                                 (x (first box-size-rand))
                                 (offset-between-object (+ (/ (+ x prev-x) 2) 0.05))
                                 (spawn-pose `((,(setf pos-x (+ pos-x offset-between-object))
-                                               ,(cl-transforms:y pose)
+                                               ,(- (cl-transforms:y pose) 0.1)
                                                ,(+ (cl-transforms:z pose) (/ (third box-size-rand) 2)))
                                               (0 0 0 1)))
                                 (color-rand `(,(float (/ (random 10) 10))
                                               ,(float (/ (random 10) 10))
                                               ,(float (/ (random 10) 10)))))
                            (setf prev-x (first box-size-rand))
-                           (btr:add-object btr:*current-bullet-world*
-                                           :colored-box (intern (concatenate 'string "box-" (write-to-string i)))
-                                           (cram-tf:list->pose spawn-pose) :mass 1 :size box-size-rand
-                                                                           :color color-rand)))))))
+                           (setf accumulated-x (+ accumulated-x (first box-size-rand) 0.05))
+                           (print accumulated-x)
+                           (loop for i from 0 to 3
+                                 do (setf (second (first spawn-pose)) (+ (second (first spawn-pose)) 0.08))
+                                    (btr:add-object btr:*current-bullet-world*
+                                                    :colored-box (intern (concatenate 'string "box-" (write-to-string accumulated-x) "-" (write-to-string i)))
+                                                    (cram-tf:list->pose spawn-pose) :mass 1 :size box-size-rand
+                                                                                        :color color-rand))))))))
          
                                       
 
