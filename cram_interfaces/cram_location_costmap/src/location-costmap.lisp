@@ -190,6 +190,9 @@ calls the generator functions and runs normalization."
        :orientation-generators (mapcan (compose #'copy-list #'orientation-generators)
                                        (cons cm-1 costmaps))))))
 
+(defmethod get-map-height ((map location-costmap) x y)
+  (generate-height map x y))
+
 (defun generate-height (map x y &optional (default 0.0d0))
   (or
    (when (height-generators map)
