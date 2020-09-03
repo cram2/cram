@@ -254,7 +254,9 @@ this function."
             ("oven_area_area_left_drawer_main"
              (cl-transforms:make-3d-vector 0 0 1))
             ("oven_area_area_right_drawer_main"
-             (cl-transforms:make-3d-vector 0 0 1)))))
+             (cl-transforms:make-3d-vector 0 0 1))
+            ("sink_area_dish_washer_main"
+             (cl-transforms:make-3d-vector 1 0 0)))))
     (if name-exception
         name-exception
         ;; Use prolog to find out which supertype fits.
