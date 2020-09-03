@@ -15,5 +15,7 @@
   <!-- cram_plan_transformation -->
   <depend>roslisp_utilities</depend>
   <depend>cram_executive</depend>
+  <depend>cram_plan_occasions_events</depend>
+  <depend>cl_tf</depend>
   
 </package>

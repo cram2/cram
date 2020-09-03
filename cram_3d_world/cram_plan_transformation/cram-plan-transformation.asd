@@ -33,9 +33,13 @@
   :license "BSD"
   
   :depends-on (roslisp-utilities
-               cram-executive)
+               cram-executive
+               cram-plan-occasions-events
+               cl-tf)
   :components
   ((:module "src"
     :components
     ((:file "package")
-     (:file "framework" :depends-on ("package"))))))
+     (:file "framework" :depends-on ("package"))
+     (:file "predicates" :depends-on ("package"))
+     (:file "demo-transformation-rules" :depends-on ("package" "predicates"))))))

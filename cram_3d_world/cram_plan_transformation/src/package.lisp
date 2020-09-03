@@ -41,4 +41,13 @@
    #:disable-transformation-rule
    #:enable-transformation-rule
    #:prioritize-rule
-   #:apply-rules))
+   #:apply-rules
+
+   ;; predicates.lisp
+   :top-level-name
+   :top-level-path
+   :without-replacement
+   :task-specific-motion
+   :task-transporting
+   :task-transporting-siblings
+   :task-transporting-from-container))
