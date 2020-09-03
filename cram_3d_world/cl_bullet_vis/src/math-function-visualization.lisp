@@ -58,8 +58,7 @@
                      (let ((new-value (funcall fun x y)))
                        (setf (gethash (list x y) value-points)
                              (when (numberp new-value)
-                               (cl-transforms:make-3d-vector x y
-                                                             new-value))))))))
+                               (cl-transforms:make-3d-vector x y new-value))))))))
            (get-height (x y)
              (with-slots (height-fun) obj
                (multiple-value-bind (old-value found?)
