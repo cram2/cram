@@ -44,10 +44,199 @@
 (defun task-children (task)
   (mapcar #'cdr (task-tree-node-children task)))
 
+(def-fact-group tasks (coe:holds)
+
+  ;; top-level
+  (<- (top-level-task ?top-level-name ?top-level-task-node)
+      (bound ?top-level-name)
+      (lisp-fun cpl:get-top-level-task-tree ?top-level-name ?top-level-task-node))
+
+  (<- (top-level-episode-knowledge ?top-level-name ?top-level-episode)
+      (bound ?top-level-name)
+      (lisp-fun cet:get-top-level-episode-knowledge ?top-level-name ?top-level-episode))
+
+  ;; util
+  (<- (task-full-path ?task-node ?path)
+      (bound ?task-node)
+      (lisp-fun cpl:task-tree-node-path ?task-node ?path))
+
+  (<- (task-from-path ?task-path ?task-node)
+      (bound ?task-path)
+      (top-level-name ?top-level-name)
+      (coe:top-level-task ?top-level-name ?top-level-task)
+      (lisp-fun cpl:task-tree-node ?task-path ?top-level-task ?task-node))
+
+  ;; tasks of top-level
+  (<- (task-of-top-level ?top-level-name ?task-node)
+      (bound ?top-level-name)
+      (top-level-task ?top-level-name ?top-level-task-node)
+      ;; (lisp-fun cpl:flatten-task-tree ?top-level-task-node ?all-task-nodes)
+      (lisp-fun cpl:flatten-task-tree-broad ?top-level-task-node ?all-task-nodes)
+      (member ?task-node ?all-task-nodes))
+  
+  ;; task for subtree
+  (<- (task ?top-level-name ?subtree-path ?task-node)
+      (bound ?top-level-name)
+      (bound ?subtree-path)
+      (top-level-task ?top-level-name ?top-level-task)
+      (lisp-fun cpl:task-tree-node ?subtree-path ?top-level-task ?subtree-task)
+      ;; (lisp-fun cpl:flatten-task-tree ?subtree-task ?all-subtree-tasks)
+      (lisp-fun cpl:flatten-task-tree-broad ?subtree-task ?all-subtree-tasks)
+      (member ?task-node ?all-subtree-tasks))
+
+  ;; subtask
+  (<- (subtask ?task ?subtask)
+      (bound ?task)
+      (lisp-fun cpl:task-tree-node-children ?task ?children)
+      (member (?_ . ?subtask) ?children))
+
+  (<- (subtask ?task ?subtask)
+      (not (bound ?task))
+      (bound ?subtask)
+      (lisp-fun cpl:task-tree-node-parent ?subtask ?task)
+      (lisp-pred identity ?task))
+
+  ;; (<- (subtask ?task ?subtask)
+  ;;   (not (bound ?task))
+  ;;   (not (bound ?subtask))
+  ;;   (task ?task)
+  ;;   (subtask ?task ?subtask))
+
+  ;; subtask+
+  (<- (subtask+ ?task ?subtask)
+      (subtask ?task ?subtask))
+
+  (<- (subtask+ ?task ?subtask)
+      (subtask ?task ?tmp)
+      (subtask+ ?tmp ?subtask))
+
+  ;; task-sibling
+  (<- (task-sibling ?task ?sibling)
+      (bound ?task)
+      (subtask ?parent ?task)
+      (subtask ?parent ?sibling)
+      (not (== ?sibling ?task)))
+
+  ;; (<- (task-sibling ?task ?sibling)
+  ;;   (not (bound ?task))
+  ;;   (subtask ?parent ?sibling)
+  ;;   (subtask ?parent ?task)
+  ;;   (not (== ?sibling ?task)))
+
+  ;; task-result
+  (<- (task-result ?task ?result)
+      (bound ?task)
+      (lisp-fun cpl:task-tree-node-result ?task ?result))
+
+  ;; task-parameter
+  (<- (task-parameter ?task ?parameter)
+      (bound ?task)
+      (lisp-fun cpl:task-tree-node-parameters ?task ?parameters)
+      (member ?parameter ?parameters))
+
+  ;; task-status-fluent
+  (<- (task-status-fluent ?task ?fluent)
+      (bound ?task)
+      (lisp-fun cpl:task-tree-node-status-fluent ?task ?fluent))
+
+  (<- (fluent-value ?fluent ?value)
+      (bound ?fluent)
+      (not (equal ?fluent NIL))
+      (lisp-fun cpl:value ?fluent ?value))
+
+  (<- (task-status ?task ?status)
+      (bound ?task)
+      (task-status-fluent ?task ?fluent)
+      (fluent-value ?fluent ?status))
+
+  (<- (task-outcome ?task ?outcome)
+      (bound ?task)
+      (member ?outcome (:succeeded :failed :evaporated))
+      (task-status ?task ?outcome))
+
+  (<- (task-error ?task ?error)
+      (bound ?task)
+      (task-outcome ?task :failed)
+      (task-result ?task ?result)
+      (lisp-fun extract-task-error ?result ?error))
+
+  ;; execution trace related
+  ;; PLEASE NOTE: this only work if the episode already ended execution
+  ;; Live in the middle of the episode FLUENT-DURATIONS does not work.
+  (<- (coe:holds (fluent-value ?fluent ?value) ?top-level-name ?time)
+      (bound ?fluent)
+      (bound ?top-level-name)
+      (top-level-episode-knowledge ?top-level-name ?episode)
+      (lisp-pred identity ?fluent)
+      (lisp-fun cpl-impl:name ?fluent ?fluent-name)
+      (lisp-fun cet:episode-knowledge-fluent-durations ?fluent-name ?episode ?durations)
+      (member (?value . ?duration) ?durations)
+      (cram-occasions-events:duration-includes ?duration ?time))
+
+  (<- (coe:holds (task-status ?task ?status) ?top-level-name ?time)
+      (bound ?top-level-name)
+      (task-status-fluent ?task ?status-fluent)
+      (coe:holds (fluent-value ?status-fluent ?status) ?top-level-name ?time))
+
+  ;; task times
+  (<- (task-created-at ?top-level-name ?task ?time)
+      (bound ?top-level-name)
+      (bound ?task)
+      (coe:holds (task-status ?task :created) ?top-level-name (coe:at ?time)))
+
+  (<- (task-started-at ?top-level-name ?task ?time)
+      (bound ?top-level-name)
+      (bound ?task)
+      ;; (task ?task)
+      (bagof ?time
+             (coe:holds (task-status ?task :running) ?top-level-name (coe:at ?time))
+             ?times)
+      (sort ?times < (?time . ?_)))
+
+  (<- (task-ended-at ?top-level-name ?task ?time)
+      (bound ?top-level-name)
+      (bound ?task)
+      ;; (task ?task)
+      (member ?status (:succeeded :failed :evaporated))
+      (coe:holds (task-status ?task ?status) ?top-level-name (coe:at ?time)))
+
+  ;; task next and previous sibling
+  (<- (task-next-sibling ?top-level-name ?task ?next-task)
+      (bound ?top-level-name)
+      (bound ?task)
+      (bagof ?sibling (task-sibling ?task ?sibling) ?siblings)
+      (member ?next-task ?siblings)
+      (task-created-at ?top-level-name ?task ?created-time-task)
+      (task-created-at ?top-level-name ?next-task ?created-time-next-task)
+      (<= ?created-time-task ?created-time-next-task)
+      (forall (and
+               (member ?other-next-task ?siblings)
+               (not (== ?next-task ?other-next-task))
+               (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
+               (<= ?created-time-task ?created-time-other-next-task))
+              (<= ?created-time-next-task ?created-time-other-next-task)))
+
+  (<- (task-previous-sibling ?top-level-name ?task ?next-task)
+      (bound ?top-level-name)
+      (bound ?task)
+      (bagof ?sibling (task-sibling ?task ?sibling) ?siblings)
+      (member ?next-task ?siblings)
+      (task-created-at ?top-level-name ?task ?created-time-task)
+      (task-created-at ?top-level-name ?next-task ?created-time-next-task)
+      (>= ?created-time-task ?created-time-next-task)
+      (forall (and
+               (member ?other-next-task ?siblings)
+               (not (== ?next-task ?other-next-task))
+               (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
+               (>= ?created-time-task ?created-time-other-next-task))
+              (>= ?created-time-next-task ?created-time-other-next-task))))
+
+
+#+this-old-code-is-based-on-episodes-and-not-used-anymore-because-we-work-only-on-task-trees
+(
 ;; Note: #demmeln: There is much potential for optimization, e.g. chaching the
 ;; task and fluent lists, only checking for correct type if task or fluents
 ;; are already bound etc...
-
 (def-fact-group fluents (holds)
   ;; FLUENT
   (<- (fluent ?fluent)
@@ -214,3 +403,66 @@
   ;;   (task-goal ?loc-task (at-location (?loc)))
   ;;   (task ?loc-task))
   )
+)
+
+#+the-rest-is-all-test-stuff-so-commented-it-out-to-avoid-dependency-problems
+(
+(defun test ()
+  (cet:enable-fluent-tracing)
+  (cpl-impl::remove-top-level-task-tree :top-level)
+
+  (urdf-proj:with-simulated-robot
+    (pr2-pp-demo::demo-random nil))
+
+  (cut:force-ll (prolog:prolog `(task-navigating-action :top-level ((demo-random))
+                                                        ?task ?designator))))
+
+(defun test-next-sibling-time ()
+  (cet:enable-fluent-tracing)
+  (cpl-impl::remove-top-level-task-tree :top-level)
+
+  (urdf-proj:with-simulated-robot
+    (pr2-pp-demo::demo-random nil))
+
+  (cut:force-ll
+   (prolog:prolog `(and (task-navigating-action :top-level ((demo-random)) ?task ?des)
+                        (task-next-sibling :top-level ?task ?next-task)
+                        (task-created-at :top-level ?task ?created)
+                        (task-created-at :top-level ?next-task ?next-created)
+                        (format "time: ~a   time next: ~a~%" ?created ?next-created)))))
+
+(defun test-failed-actions ()
+  (cet:enable-fluent-tracing)
+  (cpl-impl::remove-top-level-task-tree :top-level)
+
+  (urdf-proj:with-simulated-robot
+    (pr2-pp-demo::demo-random))
+
+  (cut:force-ll
+   (prolog:prolog `(and (task-specific-action :top-level ((demo-random)) :fetching ?task ?desig)
+                        (task-outcome ?task :failed)
+                        (format "desig: ~a~%" ?desig)))))
+
+(defun test-find-location-for-pick-up-using-occasions ()
+  (cet:enable-fluent-tracing)
+  (cpl-impl::remove-top-level-task-tree :top-level)
+
+  (proj:with-projection-environment urdf-proj:urdf-bullet-projection-environment
+    (cpl-impl::named-top-level (:name :top-level)
+      (pr2-pp-demo::demo-random nil))
+
+    (let ((top-level-name :top-level))
+      (cut:var-value
+       '?pick-location
+       (car
+        (prolog:prolog
+         `(and (task-fetching-action ,top-level-name ((demo-random)) ?fetching-task ?_)
+               (task-full-path ?fetching-task ?fetching-path)
+               (task-picking-up-action ,top-level-name ?fetching-path ?picking-up-task ?_)
+               (task-outcome ?picking-up-task :succeeded)
+               (task-started-at ,top-level-name ?picking-up-task ?picking-up-start)
+               (cram-robot-interfaces:robot ?robot)
+               (btr:timeline ?timeline)
+               (coe:holds ?timeline (cpoe:loc ?robot ?pick-location)
+                          (coe:at ?picking-up-start)))))))))
+)

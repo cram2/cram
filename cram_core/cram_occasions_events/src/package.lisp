@@ -61,12 +61,19 @@
            #:fluent-value
            #:task-path
            #:top-level
+           #:top-level-task
+           #:top-level-episode-knowledge
            #:task #:goal-task
            #:task-status-fluent
            #:task-goal
            #:task-outcome
            #:task-result
            #:task-error
+           #:task-parameter
+           #:task-full-path
+           #:task-from-path
+           #:task-of-top-level
+           #:task-sibling
            #:error-type
            #:holds
            #:occurs

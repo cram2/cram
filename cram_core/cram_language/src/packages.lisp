@@ -179,6 +179,7 @@
            #:stale-task-tree-node-p
            #:filter-task-tree
            #:flatten-task-tree
+           #:flatten-task-tree-broad
            #:task-tree-node-parameters
            #:task-tree-node-status-fluent
            #:task-tree-node-result
@@ -230,7 +231,8 @@
            #:list-saved-tasks
            ;; language.lisp
            #:*top-level-task-trees*
-           #:remove-top-level-task-tree))
+           #:remove-top-level-task-tree
+           #:get-top-level-task-tree))
         (cl-symbols
          (let (r) (do-external-symbols (s :cl r) (push s r)))))
 
