@@ -70,4 +70,20 @@
    #:looking-at
    #:container-state
    #:location-reset
-   #:location-accessible))
+   #:location-accessible
+
+   ;; prolog
+   ;; Predicates used in searching for tasks.
+   #:task-transporting-action
+   #:task-fetching-action
+   #:task-delivering-action
+   #:task-picking-up-action
+   #:task-navigating-action
+   #:task-specific-action
+   #:task-previous-action-sibling
+   #:location-distance-threshold
+   #:task-location-description-equal
+   ;; #:task-nearby
+   ;; #:task-targets-nearby
+   #:subtasks-of-type
+   ))

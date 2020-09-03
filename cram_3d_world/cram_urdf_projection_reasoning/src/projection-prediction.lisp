@@ -37,48 +37,48 @@
             (prolog:prolog
              `(and
                ;; find successful transporting action
-               ;; (task-specific-action ,top-level-name ,path :transporting
+               ;; (cpoe:task-specific-action ,top-level-name ,path :transporting
                ;;                       ?transporting-task ?_)
                ;; (coe:task-outcome ?transporting-task :succeeded)
                ;; (coe:task-full-path ?transporting-task ?transporting-path)
-               (task-specific-action ,top-level-name ;; ?transporting-path
+               (cpoe:task-specific-action ,top-level-name ;; ?transporting-path
                                      ,path
                                      :fetching
                                      ?fetching-task ?_)
                (coe:task-full-path ?fetching-task ?fetching-path)
-               (task-specific-action ,top-level-name ?fetching-path :picking-up
+               (cpoe:task-specific-action ,top-level-name ?fetching-path :picking-up
                                      ?picking-up-task ?picking-up-designator)
                (coe:task-outcome ?picking-up-task :succeeded)
                ;; make sure that the corresponding delivering action succeeded
-               (task-specific-action ,top-level-name ;; ?transporting-path
+               (cpoe:task-specific-action ,top-level-name ;; ?transporting-path
                                      ,path
                                      :delivering
                                      ?delivering-task ?_)
                (coe:task-outcome ?delivering-task :succeeded)
 
                ;; find closest navigation action before pick-up
-               (task-previous-action-sibling ,top-level-name ?fetching-path
+               (cpoe:task-previous-action-sibling ,top-level-name ?fetching-path
                                              ?picking-up-task
                                              :navigating ?picking-navigating-task)
-               (task-specific-action ,top-level-name ?fetching-path :navigating
+               (cpoe:task-specific-action ,top-level-name ?fetching-path :navigating
                                      ?picking-navigating-task
                                      ?picking-navigating-designator)
                ;; find closest navigation action before place
                (coe:task-full-path ?delivering-task ?delivering-path)
-               (task-specific-action ,top-level-name ?delivering-path :placing
+               (cpoe:task-specific-action ,top-level-name ?delivering-path :placing
                                      ?placing-task ?placing-designator)
                (coe:task-outcome ?placing-task :succeeded)
-               (task-previous-action-sibling ,top-level-name ?delivering-path
+               (cpoe:task-previous-action-sibling ,top-level-name ?delivering-path
                                              ?placing-task
                                              :navigating ?placing-navigating-task)
-               (task-specific-action ,top-level-name ?delivering-path :navigating
+               (cpoe:task-specific-action ,top-level-name ?delivering-path :navigating
                                      ?placing-navigating-task
                                      ?placing-navigating-designator)
                ;; ;; calculate navigation distances
                ;; (btr:timeline ?timeline)
                ;; (bagof ?distance
                ;;        (and
-               ;;         (task-specific-action ,top-level-name ?transporting-task
+               ;;         (cpoe:task-specific-action ,top-level-name ?transporting-task
                ;;                               :navigating ?navigating-task ?_)
                ;;         (task-started-at ,top-level-name ?navigating-task ?start-time)
                ;;         (coe:holds ?timeline (cpoe:loc ?robot ?start-location)

@@ -1,5 +1,5 @@
 ;;;
-;;; Copyright (c) 2018, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
+;;; Copyright (c) 2015, Gayane Kazhoyan <kazhoyan@cs.uni-bremen.de>
 ;;; All rights reserved.
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -10,10 +10,10 @@
 ;;;     * Redistributions in binary form must reproduce the above copyright
 ;;;       notice, this list of conditions and the following disclaimer in the
 ;;;       documentation and/or other materials provided with the distribution.
-;;;     * Neither the name of the Intelligent Autonomous Systems Group/
-;;;       Technische Universitaet Muenchen nor the names of its contributors
-;;;       may be used to endorse or promote products derived from this software
-;;;       without specific prior written permission.
+;;;     * Neither the name of the Institute for Artificial Intelligence/
+;;;       Universitaet Bremen nor the names of its contributors may be used to
+;;;       endorse or promote products derived from this software without
+;;;       specific prior written permission.
 ;;;
 ;;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ;;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,24 +27,23 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :proj-reasoning)
+(in-package :cram-plan-occasions-events)
 
 (def-fact-group tasks (coe:holds)
 
-  ;; perform tasks
   (<- (perform-task-of-top-level ?top-level-name ?task-node)
     (bound ?top-level-name)
-    (coe:task-of-top-level ?top-level-name ?task-node)
+    (coe:top-level-task ?top-level-name ?task-node)
     (lisp-fun cpl:task-tree-node-path ?task-node (?path . ?_))
     (equal ?path (cpl:goal (exe:perform ?_) . ?_)))
-  
+
   (<- (perform-task ?top-level-name ?subtree-path ?task-node)
     (bound ?top-level-name)
     (bound ?subtree-path)
     (coe:task ?top-level-name ?subtree-path ?task-node)
     (lisp-fun cpl:task-tree-node-path ?task-node (?path . ?_))
     (equal ?path (cpl:goal (exe:perform ?_) . ?_)))
-  
+
   (<- (task-specific-action ?top-level-name ?subtree-path ?action-type ?task ?designator)
     (bound ?top-level-name)
     (bound ?subtree-path)
@@ -65,7 +64,9 @@
   (<- (task-delivering-action ?top-level-name ?subtree-path ?task ?designator)
     (task-specific-action ?top-level-name ?subtree-path :delivering ?task ?designator))
 
-    ;; task next and previous perform action sibling
+  (<- (task-transporting-action ?top-level-name ?subtree-path ?task ?designator)
+    (task-specific-action ?top-level-name ?subtree-path :transporting ?task ?designator))
+  
   (<- (task-next-action-sibling ?top-level-name ?subtree-path ?task ?action-type ?next-task)
     (bound ?top-level-name)
     (bound ?subtree-path)
@@ -106,5 +107,44 @@
     ;;          (task-created-at ?top-level-name ?other-next-task ?created-time-other-next-task)
     ;;          (>= ?created-time-task ?created-time-other-next-task))
     ;;         (>= ?created-time-next-task ?created-time-other-next-task))
-      ))
+    )
 
+  (<- (location-distance-threshold ?threshold)
+    (lisp-fun get-location-distance-threshold ?threshold))
+
+  ;; (<- (task-nearby ?task ?sibling ?threshold ?location-key)
+  ;;   (coe:task-parameter ?task ?desig)
+  ;;   (coe:task-parameter ?sibling ?sibling-desig)
+  ;;   (desig:desig-prop ?desig (?location-key ?loc))
+  ;;   (desig:desig-prop ?sibling-desig (?location-key ?sibling-loc))
+  ;;   (lisp-fun location-desig-dist ?loc ?sibling-loc ?dist)
+  ;;   (< ?dist ?threshold))
+  
+  ;; (<- (task-targets-nearby ?task ?sibling ?threshold)
+  ;;   (task-nearby ?task ?sibling ?threshold :target))
+
+  (<- (subtasks-of-type ?root-task ?type ?desig-class ?tasks)
+    (bound ?root-task)
+    (bound ?type)
+    (member ?desig-class (desig:action-designator desig:motion-designator))
+    (lisp-fun subtasks-of-type ?root-task ?type ?desig-class ?tasks))
+
+  (<- (task-location-description-equal ?task ?sibling)
+    (coe:task-parameter ?task ?desig1)
+    (coe:task-parameter ?sibling ?desig2)
+    (lisp-type ?desig1 desig:action-designator)
+    (lisp-type ?desig2 desig:action-designator)
+    (desig:desig-prop ?desig1 (:location ?loc1))
+    (desig:desig-prop ?desig2 (:location ?loc2))
+    (or (and
+         (desig:desig-prop ?loc1 (:on ?on1))
+         (desig:desig-prop ?on1 (:urdf-name ?urdf-name1))
+         (desig:desig-prop ?loc2 (:on ?on2))
+         (desig:desig-prop ?on2 (:urdf-name ?urdf-name2))
+         (equal ?urdf-name1 ?urdf-name2))
+        (and
+         (desig:desig-prop ?loc1 (:in ?in1))
+         (desig:desig-prop ?in1 (:urdf-name ?urdf-name1))
+         (desig:desig-prop ?loc2 (:in ?in2))
+         (desig:desig-prop ?in2 (:urdf-name ?urdf-name2))
+         (equal ?urdf-name1 ?urdf-name2)))))

@@ -42,6 +42,7 @@
                ;; for Prolog facts, might get rid of this soon
                cram-execution-trace
                cram-occasions-events
+               cram-plan-occasions-events
 
                cram-common-failures
                cram-mobile-pick-place-plans
@@ -58,5 +59,4 @@
     :components
     ((:file "package")
      (:file "check-collisions" :depends-on ("package"))
-     (:file "task-tree-prolog" :depends-on ("package"))
-     (:file "projection-prediction" :depends-on ("package" "task-tree-prolog"))))))
+     (:file "projection-prediction" :depends-on ("package"))))))
