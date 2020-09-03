@@ -38,6 +38,7 @@
                                                 (cl-transforms:make-3d-vector 0 0 0)
                                                 (cl-transforms:make-quaternion 0 0 0 1)))
    (fun :initarg :function :reader fun)
+   (height-fun :initarg :height-function :reader height-fun)
    (alpha :initarg :alpha :reader alpha :initform 1.0)
    (color-fun :initarg :color-fun :reader color-fun :initform (constantly (list 0.0 0.0 0.6)))))
 
@@ -45,18 +46,30 @@
   (< (alpha obj) 1.0))
 
 (defmethod draw ((context gl-context) (obj math-function-object))
-  (let ((points (make-hash-table :test 'equal))
+  (let ((value-points (make-hash-table :test 'equal))
+        (heights (make-hash-table :test 'equal))
         (colors (make-hash-table :test 'equal)))
     (flet ((get-point (x y)
              (with-slots (fun) obj
                (multiple-value-bind (old-value found?)
-                   (gethash (list x y) points)
+                   (gethash (list x y) value-points)
                  (if found?
                      old-value
                      (let ((new-value (funcall fun x y)))
-                       (setf (gethash (list x y) points)
+                       (setf (gethash (list x y) value-points)
                              (when (numberp new-value)
-                               (cl-transforms:make-3d-vector x y new-value))))))))
+                               (cl-transforms:make-3d-vector x y
+                                                             new-value))))))))
+           (get-height (x y)
+             (with-slots (height-fun) obj
+               (multiple-value-bind (old-value found?)
+                   (gethash (list x y) heights)
+                 (if found?
+                     old-value
+                     (let ((new-value (funcall height-fun x y)))
+                       (setf (gethash (list x y) heights)
+                             (when (numberp new-value)
+                               new-value)))))))
            (get-color (vec)
              (let ((x (cl-transforms:x vec))
                    (y (cl-transforms:y vec)))
@@ -86,34 +99,53 @@
             (gl:mult-matrix (pose->gl-matrix pose))
             (loop for x from (- (/ width 2)) to (- (/ width 2) step-size) by step-size do
               (loop for y from (- (/ height 2)) to (- (/ height 2) step-size) by step-size do
-                (let ((middle-pt (get-point (+ x (/ step-size 2))
-                                            (+ y (/ step-size 2)))))
-                  (when middle-pt
-                    (let* ((value (cl-transforms:z middle-pt))
-                           (pt-1 (cl-transforms:make-3d-vector
-                                  x y value))
-                           (pt-2 (cl-transforms:make-3d-vector
-                                  (+ x step-size) y value))
-                           (pt-3 (cl-transforms:make-3d-vector
-                                  x (+ y step-size) value))
-                           (pt-4 (cl-transforms:make-3d-vector
-                                  (+ x step-size) (+ y step-size) value))
+                (let ((middle-pt-value (get-point (+ x (/ step-size 2))
+                                                  (+ y (/ step-size 2))))
+                      (height (get-height (+ x (/ step-size 2))
+                                          (+ y (/ step-size 2)))))
+                  (when (and middle-pt-value height)
+                    (let* ((value (cl-transforms:z middle-pt-value))
+                           (pt-1-color 
+                             (cl-transforms:make-3d-vector
+                              x y value))
+                           (pt-1 
+                             (cl-transforms:make-3d-vector
+                              x y height))
+                           (pt-2-color 
+                             (cl-transforms:make-3d-vector
+                              (+ x step-size) y value))
+                           (pt-2 
+                             (cl-transforms:make-3d-vector
+                              (+ x step-size) y height))
+                           (pt-3-color 
+                             (cl-transforms:make-3d-vector
+                              x (+ y step-size) value))
+                           (pt-3 
+                             (cl-transforms:make-3d-vector
+                              x (+ y step-size) height))
+                           (pt-4-color 
+                             (cl-transforms:make-3d-vector
+                              (+ x step-size) (+ y step-size) value))
+                           (pt-4 
+                             (cl-transforms:make-3d-vector
+                              (+ x step-size) (+ y step-size) height))
                            (n-1 (cl-transforms:cross-product
                                  (cl-transforms:v- pt-2 pt-1)
                                  (cl-transforms:v- pt-4 pt-1)))
                            (n-2 (cl-transforms:cross-product
                                  (cl-transforms:v- pt-4 pt-1)
                                  (cl-transforms:v- pt-3 pt-1))))
+
                       (gl:with-primitive :triangles
-                        (apply #'gl:color (get-color pt-1))
+                        (apply #'gl:color (get-color pt-1-color))
                         (vertex pt-1 n-1)
-                        (apply #'gl:color (get-color pt-2))
+                        (apply #'gl:color (get-color pt-2-color))
                         (vertex pt-2 n-1)
-                        (apply #'gl:color (get-color pt-4))
+                        (apply #'gl:color (get-color pt-4-color))
                         (vertex pt-4 n-1)
-                        (apply #'gl:color (get-color pt-1))
+                        (apply #'gl:color (get-color pt-1-color))
                         (vertex pt-1 n-2)
-                        (apply #'gl:color (get-color pt-4))
+                        (apply #'gl:color (get-color pt-4-color))
                         (vertex pt-4 n-2)
-                        (apply #'gl:color (get-color pt-3))
+                        (apply #'gl:color (get-color pt-3-color))
                         (vertex pt-3 n-2)))))))))))))

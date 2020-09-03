@@ -36,7 +36,7 @@
 (defvar *current-costmap-sample* nil "A red sphere for visualizing costmap samples.")
 (defvar *vis-axes* nil "An associative list of ((ID . (X Y Z)) ...) couples,
 storing axes of a coordinate frame for visualizing poses.")
-(defparameter *costmap-z* 0.0)
+(defparameter *costmap-z* 0.02)
 (defparameter *costmap-tilt* (cl-transforms:make-quaternion 0 0 0 1))
 
 (defun add-debug-window (world)
@@ -107,8 +107,11 @@ storing axes of a coordinate frame for visualizing poses.")
         (declare (type cma:double-matrix map-array))
         (flet ((costmap-function (x y)
                  (let ((val (/ (location-costmap:get-map-value costmap x y) max-val)))
-                   (when (> val location-costmap:*costmap-valid-solution-threshold*)
-                     val))))
+                   (when (> val location-costmap:*costmap-valid-solution-threshold*) 
+                     val)))
+               (costmap-height-function (x y)
+                 (let ((val (location-costmap:get-map-height costmap x y)))
+                   (+ val *costmap-z*))))
           (setf *current-costmap-function*
                 (make-instance 'math-function-object
                   :width (location-costmap:grid-width costmap)
@@ -123,6 +126,7 @@ storing axes of a coordinate frame for visualizing poses.")
                           *costmap-z*)
                          *costmap-tilt*)
                   :function #'costmap-function
+                  :height-function #'costmap-height-function
                   :step-size (location-costmap:resolution costmap)))))
       (when *debug-window*
         (push *current-costmap-function* (gl-objects *debug-window*))))))
