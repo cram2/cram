@@ -585,7 +585,7 @@ with the object, calculates similar angle around Y axis and applies the rotation
              `(and (btr:bullet-world ?world)
                    (rob-int:robot ?robot)
                    (btr:contact ?world ?robot ?object-name ?link)
-                   (rob-int:gripper-link ?robot ,arm ?link)
+                   (rob-int:hand-link ?robot ,arm ?link)
                    (btr:%object ?world ?object-name ?object-instance)
                    ;; (or (prolog:lisp-type ?object-instance btr:item)
                    ;;     (prolog:lisp-type ?object-instance btr:robot-object))
@@ -696,7 +696,8 @@ with the given offsets (the offsets are specified in the torso frame).
                          (btr:robot-colliding-objects-without-attached))
                 (make-instance 'common-fail:manipulation-goal-not-reached
                   :description "Robot is in collision with environment.")))
-             (:allow-hand
+             ((or :allow-hand
+                  :allow-arm)
               ;; allow hand allows collisions between the hand and anything
               ;; but not the rest of the robot
               ;; therefore, we take a list of all links of the robot
@@ -705,39 +706,46 @@ with the given offsets (the offsets are specified in the torso frame).
               ;; and then remove the hand links from the list.
               ;; if the list is still not empty, there is a collision between
               ;; a robot non-hand link and something else
-              (when (and *be-strict-with-collisions*
-                         (set-difference
-                          (mapcar #'cdr
-                                  (reduce (lambda (link-contacts attachment)
-                                            (remove (btr:object
-                                                     btr:*current-bullet-world*
-                                                     (car attachment))
-                                                    link-contacts
-                                                    :key #'car))
-                                          (append
-                                           (list (btr:link-contacts
-                                                  (btr:get-robot-object)))
-                                           (btr:attached-objects
-                                            (btr:get-robot-object)))))
-                          (append (when left-hand-moves
-                                    (cut:var-value
-                                     '?hand-links
-                                     (car (prolog:prolog
-                                           `(and (rob-int:robot ?robot)
-                                                 (rob-int:hand-links
-                                                  ?robot
-                                                  :left
-                                                  ?hand-links))))))
-                                  (when right-hand-moves
-                                    (cut:var-value
-                                     '?hand-links
-                                     (car (prolog:prolog
-                                           `(and (rob-int:robot ?robot)
-                                                 (rob-int:hand-links
-                                                  ?robot
-                                                  :right
-                                                  ?hand-links)))))))
-                          :test #'string-equal))
+              (when (and
+                     *be-strict-with-collisions*
+                     (set-difference
+                      (mapcar
+                       #'cdr
+                       (reduce
+                        (lambda (link-contacts attachment)
+                          (remove
+                           (btr:object btr:*current-bullet-world* (car attachment))
+                           link-contacts
+                           :key #'car))
+                        (append
+                         (list (btr:link-contacts (btr:get-robot-object)))
+                         (btr:attached-objects (btr:get-robot-object)))))
+                      (append
+                       (when left-hand-moves
+                         (cut:var-value
+                          '?links
+                          (car
+                           (prolog:prolog
+                            `(and
+                              (rob-int:robot ?robot)
+                              ,(ecase collision-mode
+                                 (:allow-hand
+                                  '(rob-int:hand-links ?robot :left ?links))
+                                 (:allow-arm
+                                  '(rob-int:arm-links ?robot :left ?links))))))))
+                       (when right-hand-moves
+                         (cut:var-value
+                          '?links
+                          (car
+                           (prolog:prolog
+                            `(and
+                              (rob-int:robot ?robot)
+                              ,(ecase collision-mode
+                                 (:allow-hand
+                                  '(rob-int:hand-links ?robot :right ?links))
+                                 (:allow-arm
+                                  '(rob-int:arm-links ?robot :right ?links)))))))))
+                      :test #'string-equal))
                 (make-instance 'common-fail:manipulation-goal-not-reached
                   :description "Robot is in collision with environment.")))
              (:avoid-all
@@ -992,14 +1000,17 @@ collision by moving its torso and base"
 (defun get-ik-joint-positions (ee-pose base-link end-effector-link joint-names
                                torso-joint-name
                                torso-joint-lower-limit torso-joint-upper-limit
-                               validation-function)
+                               validation-function
+                               move-base)
   (when ee-pose
     (let ((current-torso-angle
             (btr:joint-state (btr:get-robot-object) torso-joint-name))
           (seed-state-msg
             (btr::make-robot-joint-state-msg
              (btr:get-robot-object)
-             :joint-names joint-names)))
+             :joint-names joint-names))
+          (disable-base-resampling
+            (not move-base)))
       (multiple-value-bind (ik-solution-msg joint-values)
           (ik:find-ik-for
            (ee-pose
@@ -1011,12 +1022,14 @@ collision by moving its torso and base"
                (:x
                 *base-resampling-x-limit*
                 (- *base-resampling-x-limit*)
-                *base-resampling-step*)
+                *base-resampling-step*
+                :disable-resampling disable-base-resampling)
              (ik:with-resampling
                  (:y
                   *base-resampling-y-limit*
                   (- *base-resampling-y-limit*)
-                  *base-resampling-step*)
+                  *base-resampling-step*
+                  :disable-resampling disable-base-resampling)
                (ik:with-resampling
                    (:z
                     (- torso-joint-upper-limit current-torso-angle)
@@ -1045,14 +1058,16 @@ collision by moving its torso and base"
                   new-torso-angle
                   new-base-pose-stamped))))))
 
-(defun move-tcp (left-tcp-pose right-tcp-pose
-                 &optional
-                   collision-mode
-                   collision-object-b
-                   collision-object-b-link
-                   collision-object-a)
+(defun move-tcp-one-pose (left-tcp-pose right-tcp-pose
+                          &optional
+                            collision-mode
+                            collision-object-b
+                            collision-object-b-link
+                            collision-object-a
+                            (move-base t))
   (declare (type (or cl-transforms-stamped:pose-stamped null)
-                 left-tcp-pose right-tcp-pose))
+                 left-tcp-pose right-tcp-pose)
+           (type boolean move-base))
   (declare (ignore collision-object-b collision-object-b-link collision-object-a))
 
   (cram-tf:visualize-marker (list left-tcp-pose right-tcp-pose) :r-g-b-list '(1 0 1))
@@ -1060,7 +1075,6 @@ collision by moving its torso and base"
     (btr:add-vis-axis-object right-tcp-pose))
   (when left-tcp-pose
     (btr:add-vis-axis-object left-tcp-pose))
-
   (cut:with-vars-strictly-bound (?robot
                                  ?left-tool-frame ?right-tool-frame
                                  ?left-ee-frame ?right-ee-frame
@@ -1103,7 +1117,8 @@ collision by moving its torso and base"
               (tcp-pose->ee-pose left-tcp-pose ?left-tool-frame ?left-ee-frame))
              ?torso-link ?left-ee-frame ?left-arm-joints
              ?torso-joint ?lower-limit ?upper-limit
-             validation-function))
+             validation-function
+             move-base))
         (multiple-value-bind (right-ik right-torso-angle right-base-pose)
             (let ((ik::*ik-service-name*
                     (if (eql ?robot :pr2)
@@ -1114,7 +1129,8 @@ collision by moving its torso and base"
                 (tcp-pose->ee-pose right-tcp-pose ?right-tool-frame ?right-ee-frame))
                ?torso-link ?right-ee-frame ?right-arm-joints
                ?torso-joint ?lower-limit ?upper-limit
-               validation-function))
+               validation-function
+               move-base))
           ;; set the torso to inferred position
           (cond
             ((and left-torso-angle right-torso-angle)
@@ -1147,6 +1163,47 @@ collision by moving its torso and base"
           (move-joints left-ik right-ik)
           ;; perform one last collision check
           (perform-collision-check collision-mode left-tcp-pose right-tcp-pose))))))
+
+(defun move-tcp (left-poses right-poses
+                 &optional
+                   collision-mode
+                   collision-object-b
+                   collision-object-b-link
+                   collision-object-a
+                   (move-base t))
+  (declare (type (or cl-transforms-stamped:pose-stamped list null)
+                 left-poses right-poses)
+           (type boolean move-base))
+
+  (multiple-value-bind (left-poses right-poses)
+      (cut:equalize-two-list-lengths left-poses right-poses)
+
+    ;; Move arms through all but last poses of `left-poses' and `right-poses'
+    ;; while ignoring failures: accuracy is not so important in intermediate poses.
+    (mapc (lambda (left-pose right-pose)
+            (cpl:with-failure-handling
+                ;; ignore intermediate pose failures
+                ((common-fail:manipulation-low-level-failure (e)
+                   (roslisp:ros-warn (urdf-proj move-tcp) "~a~%Ignoring." e)
+                   (return)))
+              (move-tcp-one-pose left-pose right-pose
+                                 collision-mode collision-object-b
+                                 collision-object-b-link collision-object-a
+                                 move-base)))
+          (butlast left-poses)
+          (butlast right-poses))
+
+    ;; Move arm to the last pose of `left-poses' and `right-poses'.
+    (let ((left-pose (car (last left-poses)))
+          (right-pose (car (last right-poses))))
+      (cpl:with-failure-handling
+          ((common-fail:manipulation-low-level-failure (e)
+             ;; propagate failures up
+             (roslisp:ros-error (urdf-proj move-tcp) "~a~%Failing." e)))
+        (move-tcp-one-pose left-pose right-pose
+                           collision-mode collision-object-b
+                           collision-object-b-link collision-object-a
+                           move-base)))))
 
 
 #+save-for-next-time

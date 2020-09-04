@@ -51,7 +51,7 @@
      "sink_area_left_middle_drawer_main"
      ((0.10 -0.1505 -0.062256) (0 0 -1 0)))
     (:cup
-     "sink_area_left_middle_drawer_main"
+     "sink_area_left_bottom_drawer_main"
      ((0.11 0.12 -0.0547167) (0 0 -1 0)))
     (:spoon
      ;; "oven_area_area_middle_upper_drawer_main"
@@ -263,8 +263,6 @@
 
 
 
-
-
 (defun park-robot ()
   (cpl:with-failure-handling
       ((cpl:plan-failure (e)
@@ -276,6 +274,10 @@
                  (type positioning-arm)
                  (left-configuration park)
                  (right-configuration park)))
+      (exe:perform
+       (desig:an action
+                 (type moving-torso)
+                 (joint-angle upper-limit)))
       (let ((?pose (cl-transforms-stamped:make-pose-stamped
                     cram-tf:*fixed-frame*
                     0.0
@@ -309,7 +311,16 @@
                          "sink_area_left_middle_drawer_main_joint")
         0.0
         (btr:joint-state (btr:get-environment-object)
+                         "sink_area_left_bottom_drawer_main_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
                          "iai_fridge_door_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_dish_washer_door_joint")
+        0.0
+        (btr:joint-state (btr:get-environment-object)
+                         "sink_area_dish_washer_tray_main")
         0.0
         (btr:joint-state (btr:get-environment-object)
                          "oven_area_area_right_drawer_main_joint")
@@ -395,8 +406,8 @@
 
 
 
-(defun household-demo (&optional (object-list '(:milk :breakfast-cereal
-                                                :bowl :spoon :cup)))
+(defun household-demo (&optional (object-list '(:bowl :spoon :cup
+                                                :breakfast-cereal :milk)))
   (urdf-proj:with-simulated-robot
 
     (initialize)
@@ -407,106 +418,26 @@
        :spawning-poses-relative *demo-object-spawning-poses*))
     (park-robot)
 
+    ;; set the table
     (dolist (?object-type object-list)
-      (let* ((?deliver-pose (cram-tf:ensure-pose-in-frame
-                             (btr:ensure-pose
-                              (cdr (assoc ?object-type *delivery-poses*)))
-                             cram-tf:*fixed-frame*))
-             (?deliver-location (desig:a location (pose ?deliver-pose)))
-             (?color (cdr (assoc ?object-type *object-colors*)))
-             ;; (?grasp (cdr (assoc ?object-type *object-grasps*)))
-             (?object (desig:an object
-                                (type ?object-type)
-                                ;; (location ?fetch-location)
-                                (desig:when ?color
-                                  (color ?color)))))
-        (exe:perform
-         (desig:an action
-                   (type transporting)
-                   (object ?object)
-                   (context table-setting)
-                   ;; (grasps (:back :top :front))
-                   ;; (arms (left right))
-                   ;; (desig:when ?grasp
-                   ;;   (grasp ?grasp))
-                   (target ?deliver-location)))))
+      (exe:perform
+       (desig:an action
+                 (type transporting)
+                 (object (desig:an object (type ?object-type)))
+                 (context table-setting))))
 
-    ;; clean up now
+    ;; clean up
     ;; (when cram-projection:*projection-environment*
     ;;   (spawn-objects-on-fixed-spots
     ;;    :object-types object-list
     ;;    :spawning-poses-relative *delivery-poses-relative*))
 
-    (let* ((object-cleanup-locations
-             '((:milk :trash)
-               (:bowl :sink)
-               (:spoon :sink)
-               (:cup :sink)
-               (:breakfast-cereal :vertical-drawer)))
-           (?fetch-table-location
-             (desig:a location
-                      (on (desig:an object
-                                    (type counter-top)
-                                    (urdf-name kitchen-island-surface)
-                                    (owl-name
-                                     "kitchen_island_counter_top")
-                                    (part-of iai-kitchen)))
-                      (side back)
-                      (side right)))
-           (deliver-location-lambdas
-             `((:sink ,(lambda (?object-type)
-                         (desig:a location
-                                  (above (desig:an object
-                                                   (type sink)
-                                                   (urdf-name sink-area-sink)
-                                                   (part-of iai-kitchen)))
-                                  (side right)
-                                  (for (desig:an object (type ?object-type)))
-                                  ;; the "for" condition for spoon adds a height
-                                  ;; that is too high for pr2 to reach
-                                  ;; (desig:when (not (eq ?object-type :spoon))
-                                  ;;   (for (an object (type ?object-type))))
-                                  (z-offset -0.2))))
-               (:trash ,(lambda (?object-type)
-                          (desig:a location
-                                   (above (desig:an object
-                                                    (type drawer)
-                                                    (urdf-name sink-area-trash-drawer-main)
-                                                    (part-of iai-kitchen)))
-                                   (z-offset 0.1)
-                                   (side front)
-                                   (side right)
-                                   (range 0.2)
-                                   (for (desig:an object (type ?object-type))))))
-               (:vertical-drawer
-                ,(lambda (?object-type)
-                   (desig:a location
-                            (in (desig:an object
-                                          (type drawer)
-                                          (urdf-name oven-area-area-right-drawer-main)
-                                          (part-of iai-kitchen)
-                                          (level topmost)))
-                            (side front)
-                            (for (desig:an object (type ?object-type))))))))
-           (get-delivery-location-designator
-             (lambda (object-type)
-               (let ((del-location-key
-                       (second (assoc object-type object-cleanup-locations))))
-                 (funcall (second
-                           (assoc del-location-key deliver-location-lambdas))
-                          object-type)))))
-
-      (loop for ?obj in object-list
-            do (let ((?delivery-location
-                       (funcall get-delivery-location-designator ?obj)))
-                 (exe:perform
-                  (desig:an action
-                            (type transporting)
-                            (object (desig:an object
-                                              (type ?obj)
-                                              (location ?fetch-table-location)))
-                            (location ?fetch-table-location)
-                            (target ?delivery-location))))))))
+    (dolist (?object-type object-list)
+      (exe:perform
+       (desig:an action
+                 (type transporting)
+                 (object (desig:an object (type ?object-type)))
+                 (context table-cleaning))))))
 
 
 
