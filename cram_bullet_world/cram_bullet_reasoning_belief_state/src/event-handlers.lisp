@@ -103,18 +103,18 @@ and renames POSE into OLD-POSE."
            (target-desig (cpoe:event-location-designator event))
            (target-on-desig (or (desig:desig-prop-value target-desig :on)
                                 (desig:desig-prop-value target-desig :in)))
-           (urdf-name (desig:desig-prop-value target-on-desig :urdf-name))
-           (object-loose-attached-at-robot-links
-             (car (btr:object-attached (btr:get-robot-object) btr-object :loose T))))
+           (urdf-name (desig:desig-prop-value target-on-desig :urdf-name)))
       ;; If the object is loosely attached to some robot links and the
       ;; target location is not one of these robot links, the
       ;; loose attachment between the robot and the object will be removed.
-      (when (and object-loose-attached-at-robot-links
-                 (not (find (roslisp-utilities:rosify-underscores-lisp-name
-                             urdf-name)
-                            object-loose-attached-at-robot-links
-                            :test #'equalp)))
-        (btr:detach-object (btr:get-robot-object) btr-object))))
+      (multiple-value-bind (object-loose-attached-at-robot-links grasps)
+          (btr:object-attached (btr:get-robot-object) btr-object :loose T)
+        (when (and object-loose-attached-at-robot-links
+                   (not (find (roslisp-utilities:rosify-underscores-lisp-name
+                               urdf-name)
+                              object-loose-attached-at-robot-links
+                              :test #'equalp)))
+          (btr:detach-object (btr:get-robot-object) btr-object)))))
 
   ;; update the designator to get the new location
   (update-object-designator-location
