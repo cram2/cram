@@ -37,9 +37,7 @@
    (prolog:prolog
     `(and (or (spec:property ,action-designator (:target ?location-desig))
               (spec:property ,object-designator (:location ?location-desig)))
-          (spec:property ?location-desig (:on ?on-object-desig))
-          (spec:property ?on-object-desig (:name ?robot-name))
-          (rob-int:robot ?robot-name)))))
+          (man-int:location-always-reachable ?location-desig)))))
 
 (defun check-navigating-collisions (navigation-location-desig
                                     &optional (samples-to-try 30))
