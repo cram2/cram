@@ -276,3 +276,23 @@ or other objects to which current object is attached."
                                       colliding-objects-without-robot)))
                     colliding-objects-without-robot-and-attached-objects))
                 (attached-objects (get-robot-object)))))
+
+
+(defun find-levels-under-link (parent-link)
+  (declare (type string parent-link))
+  "Finds all the child links under the parent link with the name
+board or level or shelf in them"
+  (let ((levels-found))
+    (labels ((find-levels (link)
+               (let* ((child-joints (cl-urdf:to-joints link))
+                      (child-links (mapcar #'cl-urdf:child child-joints)))
+                 (mapcar (lambda (child-link)
+                           (let ((child-name (cl-urdf:name child-link)))
+                             (if (or (search "_board" child-name)
+                                     (search "_level" child-name)
+                                     (search "_shelf" child-name))
+                                 (push child-link levels-found)
+                                 (find-levels child-link))))
+                           child-links))))
+      (find-levels parent-link))
+    levels-found))
