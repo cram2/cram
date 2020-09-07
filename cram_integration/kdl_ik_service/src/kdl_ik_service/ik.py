@@ -65,19 +65,21 @@ def calculate_ik(base_link, tip_link, seed_joint_state, goal_transform_geometry_
     result_joint_state_kdl = solve_ik(ik_solver, num_joints, seed_joint_state_kdl, goal_frame_kdl)
 
     # check if calculated joint state results in the correct end-effector position using FK
-    goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl,log_fun)
+    goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl, goal_frame_kdl, log_fun)
 
     if not goal_pose_reached:
         # try with joint seed states as 0
         log_fun("Cannot reach goal using the IK solution with the provided seed state. Trying with zeros")
-        result_joint_state_kdl_with_zero_seed = solve_ik(ik_solver, num_joints, PyKDL.JntArray(num_joints), goal_frame_kdl)
+        result_joint_state_kdl_with_zero_seed = solve_ik(ik_solver, num_joints, PyKDL.JntArray(num_joints),
+                                                         goal_frame_kdl)
         goal_pose_reached = check_ik_result_using_fk(fk_solver, result_joint_state_kdl_with_zero_seed, goal_frame_kdl,
                                                      log_fun)
         result_joint_state_kdl = result_joint_state_kdl_with_zero_seed if goal_pose_reached else result_joint_state_kdl 
 
     # check if calculated joint state is within joint limits
     joints_within_limits = check_result_joints_are_within_limits(num_joints, result_joint_state_kdl,
-                                                                 kdl_joint_limits_min, kdl_joint_limits_max)
+                                                                 kdl_joint_limits_min,
+                                                                 kdl_joint_limits_max)
 
     log_fun("Result Joint State Within Limits: " + str(joints_within_limits))
     log_fun("Can Reach Goal Pose With Solution: " + str(goal_pose_reached))
@@ -103,10 +105,15 @@ def get_joint_limits_from_urdf(joint_name, urdf_obj):
         [joint_found] = [joint for joint in urdf_joints if joint.name == joint_name]
     except ValueError as e:
         raise ValueError("Error while trying to find joint named: %s in the urdf. Reason: %s" % (joint_name, e))
-    if joint_found.joint_type != 'fixed':
-        return joint_found.limit.upper, joint_found.limit.lower
-    else:
+    # Continuous joints (0 as joint limits will mess up the IK solution)
+    if joint_found.joint_type == 'continuous' and joint_found.limit.upper == joint_found.limit.lower == 0:
+        return 2 * math.pi, -2 * math.pi
+    # Fixed joints
+    elif joint_found.joint_type == 'fixed':
         return None, None
+    # Prismatic/Revolute/any other joints
+    else:
+        return joint_found.limit.upper, joint_found.limit.lower
 
 
 def get_kdl_joint_limit_arrays(kdl_chain, urdf_obj):
