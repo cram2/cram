@@ -35,8 +35,8 @@
 (defun infer-move-base (object-designator action-designator)
   (not
    (prolog:prolog
-    `(and (or (spec:property ,action-designator (:target ?location-desig))
-              (spec:property ,object-designator (:location ?location-desig)))
+    `(and (once (or (spec:property ,action-designator (:target ?location-desig))
+                    (spec:property ,object-designator (:location ?location-desig))))
           (man-int:location-always-reachable ?location-desig)))))
 
 (defun check-navigating-collisions (navigation-location-desig
