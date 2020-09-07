@@ -371,12 +371,14 @@ Multiply from the right with the yTz transform -- xTy * yTz == xTz."
    (cl-transforms-stamped:stamp pose-stamped)
    (cl-transforms-stamped:origin pose-stamped)))
 
-(defun apply-transform (left-hand-side-transform right-hand-side-transform)
+(defun apply-transform (left-hand-side-transform right-hand-side-transform
+                        &key result-as-pose-or-transform)
   (cram-tf:multiply-transform-stampeds
    (cl-transforms-stamped:frame-id left-hand-side-transform)
    (cl-transforms-stamped:child-frame-id right-hand-side-transform)
    left-hand-side-transform
-   right-hand-side-transform))
+   right-hand-side-transform
+   :result-as-pose-or-transform result-as-pose-or-transform))
 
 
 (defun values-converged (values goal-values deltas)
