@@ -279,7 +279,7 @@ or other objects to which current object is attached."
 
 
 (defun find-levels-under-link (parent-link)
-  (declare (type string parent-link))
+  (declare (type cl-urdf:link parent-link))
   "Finds all the child links under the parent link with the name
 board or level or shelf in them"
   (let ((levels-found))
