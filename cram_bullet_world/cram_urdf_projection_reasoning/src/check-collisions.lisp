@@ -153,7 +153,23 @@ Store found pose into designator or throw error if good pose not found."
                         (right-lift-poses
                           (desig:desig-prop-value pick-up-action-referenced :right-lift-poses))
                         (object-name
-                          (desig:desig-prop-value object-designator :name)))
+                          (desig:desig-prop-value object-designator :name))
+                        (move-base
+                          (cut:var-value '?move-base
+                                         (cut:lazy-car
+                                          (prolog:prolog
+                                           `(-> (and (or
+                                                      (spec:property ,object-designator
+                                                                     (:location ?location-desig))
+                                                      (spec:property ,pick-up-action-referenced
+                                                                     (:location ?location-desig)))
+                                                     (spec:property ?location-desig
+                                                                    (:on ?on-object-desig))
+                                                     (spec:property ?on-object-desig
+                                                                    (:name ?robot-name))
+                                                     (rob-int:robot ?robot-name))
+                                                (equal ?move-base nil)
+                                                (equal ?move-base t)))))))
 
                    (urdf-proj::gripper-action gripper-opening arm)
 
@@ -170,7 +186,7 @@ Store found pose into designator or throw error if good pose not found."
                           (cut:equalize-two-list-lengths left-poses right-poses)
                         (dotimes (i (length left-poses))
                           (urdf-proj::move-tcp (nth i left-poses) (nth i right-poses)
-                                               :allow-all)
+                                               :allow-al nil nil nil move-base)
                           (unless (< (abs urdf-proj::*debug-short-sleep-duration*) 0.0001)
                             (cpl:sleep urdf-proj::*debug-short-sleep-duration*))
                           (when (urdf-proj::perform-collision-check
@@ -251,7 +267,23 @@ Store found pose into designator or throw error if good pose not found."
                         (right-retract-poses
                           (desig:desig-prop-value placing-action-referenced :right-retract-poses))
                         (object-name
-                          (desig:desig-prop-value object-designator :name)))
+                          (desig:desig-prop-value object-designator :name))
+                        (move-base
+                          (cut:var-value '?move-base
+                                         (cut:lazy-car
+                                          (prolog:prolog
+                                           `(-> (and (or
+                                                      (spec:property ,object-designator
+                                                                     (:location ?location-desig))
+                                                      (spec:property ,placing-action-desig
+                                                                     (:target ?location-desig)))
+                                                     (spec:property ?location-desig
+                                                                    (:on ?on-object-desig))
+                                                     (spec:property ?on-object-desig
+                                                                    (:name ?robot-name))
+                                                     (rob-int:robot ?robot-name))
+                                                (equal ?move-base nil)
+                                                (equal ?move-base t)))))))
 
                    (urdf-proj::gripper-action :open arm)
 
@@ -265,7 +297,7 @@ Store found pose into designator or throw error if good pose not found."
                           (cut:equalize-two-list-lengths left-poses right-poses)
                         (dotimes (i (length left-poses))
                           (urdf-proj::move-tcp (nth i left-poses) (nth i right-poses)
-                                               :allow-all)
+                                               :allow-all nil nil nil move-base)
                           (unless (< (abs urdf-proj:*debug-short-sleep-duration*) 0.0001)
                             (cpl:sleep urdf-proj:*debug-short-sleep-duration*))
                           (when (or
