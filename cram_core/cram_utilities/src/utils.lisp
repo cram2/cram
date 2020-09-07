@@ -106,6 +106,9 @@
 (defun maximum (seq &key (test #'>) (key #'identity))
   (extremum seq test :key key))
 
+(defun random-with-minimum (value offset)
+  (+ (random (- value offset)) offset))
+
 (defun style-warn (datum &rest arguments)
   (apply #'sb-int:style-warn datum arguments))
 
