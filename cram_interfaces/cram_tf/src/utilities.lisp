@@ -279,15 +279,17 @@
 
 (defun multiply-transform-stampeds (x-frame z-frame
                                     x-y-transform y-z-transform
-                                    &key (result-as-pose-or-transform :transform))
+                                    &key result-as-pose-or-transform)
   (declare (type cl-transforms-stamped:transform-stamped
                  x-y-transform y-z-transform)
-           (type keyword result-as-pose-or-transform)
+           (type (or keyword null) result-as-pose-or-transform)
            (type string x-frame z-frame))
   "Returns a pose stamped representing xTz -- transfrom from x-frame to z-frame.
 
 Take xTy, ensure it's from x-frame.
 Multiply from the right with the yTz transform -- xTy * yTz == xTz."
+  (unless result-as-pose-or-transform
+    (setf result-as-pose-or-transform :transform))
 
   (when (string-not-equal (cl-transforms-stamped:frame-id x-y-transform)
                           x-frame)
