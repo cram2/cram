@@ -140,6 +140,8 @@
                                             (space-between-objects
                                              0.05)
                                             (start-x-offset
+                                             0.0)
+                                            (minimal-color
                                              0.0))
   (setf list-of-level-link-names
         (or list-of-level-link-names
@@ -172,7 +174,9 @@
                                      space-between-objects)
         for start-y-in-link-frame = (- end-y-in-link-frame)
         ;; for each row of items
-        do (loop for color = (list (random 1.0) (random 1.0) (random 1.0))
+        do (loop for color = (list (cut:random-with-minimum 1.0 minimal-color)
+                                   (cut:random-with-minimum 1.0 minimal-color)
+                                   (cut:random-with-minimum 1.0 minimal-color))
                  for box-size = (mapcar (lambda (dimension)
                                           (cut:random-with-minimum
                                            dimension
@@ -246,6 +250,7 @@
                 (spawn-object-n-times type pose 1
                                       (case type
                                         (:dish-washer-tabs '(0 1 0))
+                                        (:balea-bottle '(1 1 0))
                                         (t '(1.0 1.0 0.9))))))
             poses)
     (btr:add-object btr:*current-bullet-world*
@@ -257,7 +262,9 @@
                     :color '(0 0 0)
                     :item-type :collision-thingy))
 
-  (spawn-random-box-objects-on-shelf "shelf_2_base" :start-x-offset 0.05)
+  (spawn-random-box-objects-on-shelf "shelf_2_base"
+                                     :start-x-offset 0.05
+                                     :minimal-color 0.6)
 
   (btr:remove-object btr:*current-bullet-world* :small-shelf-collision-box)
   ;; (btr:simulate btr:*current-bullet-world* 50)
@@ -359,7 +366,7 @@
                       (on (desig:an object
                                     (type robot)
                                     (name ?robot-name)
-                                    (part-of ?environment-name)
+                                    (part-of ?robot-name)
                                     (owl-name "donbot_tray")
                                     (urdf-name plate)))
                       (for ?dish-washer-tabs-desig)
