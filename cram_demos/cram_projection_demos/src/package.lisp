@@ -32,4 +32,10 @@
 (defpackage cram-projection-demos
   (:nicknames #:demos)
   (:use #:common-lisp #:cram-prolog)
-  (:export))
+  (:export
+   ;; household-demo
+   #:household-demo
+   ;; assembly-demo
+   #:assembly-demo
+   ;; retail-demo
+   #:retail-demo))

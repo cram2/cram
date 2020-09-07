@@ -32,7 +32,15 @@
 
 (defparameter *projection-checks-enabled* t)
 
-(defun check-navigating-collisions (navigation-location-desig &optional (samples-to-try 30))
+(defun infer-move-base (object-designator action-designator)
+  (not
+   (prolog:prolog
+    `(and (once (or (spec:property ,action-designator (:target ?location-desig))
+                    (spec:property ,object-designator (:location ?location-desig))))
+          (man-int:location-always-reachable ?location-desig)))))
+
+(defun check-navigating-collisions (navigation-location-desig
+                                    &optional (samples-to-try 30))
   (declare (type desig:location-designator navigation-location-desig))
   "Store current world state and in the current world try to go to different
 poses that satisfy `navigation-location-desig'.
@@ -46,7 +54,8 @@ Store found pose into designator or throw error if good pose not found."
            (cpl:with-failure-handling
                ((desig:designator-error (e)
                   (roslisp:ros-warn (coll-check nav)
-                                    "Desig ~a could not be resolved: ~a~%Cannot navigate."
+                                    "Desig ~a could not be resolved: ~a~%~
+                                     Cannot navigate."
                                     navigation-location-desig e)
                   (cpl:fail 'common-fail:navigation-goal-in-collision
                             :description "Designator could not be resolved")))
@@ -66,15 +75,19 @@ Store found pose into designator or throw error if good pose not found."
                               (cpl:retry))
                             (progn
                               (roslisp:ros-warn (coll-check nav)
-                                                "No other samples in designator. Propagating up.")
+                                                "No other samples in designator. ~
+                                                 Propagating up.")
                               (cpl:fail 'common-fail:navigation-goal-in-collision
-                                        :description "No other samples in designator"))))
+                                        :description
+                                        "No other samples in designator"))))
                       (roslisp:ros-warn (coll-check nav)
-                                        "Couldn't find a nav pose after all retries for~%~a.~%~
-                                  Propagating up."
+                                        "Couldn't find a nav pose ~
+                                         after all retries for~%~a.~%~
+                                         Propagating up."
                                         navigation-location-desig)
                       (cpl:fail 'common-fail:navigation-goal-in-collision
-                                :description "Couldn't find a nav pose after all retries")))
+                                :description "Couldn't find a nav pose ~
+                                              after all retries")))
 
                  ;; Pick one pose, store it in `pose-at-navigation-location'
                  ;; In projected world, drive to picked pose
@@ -82,11 +95,13 @@ Store found pose into designator or throw error if good pose not found."
                  ;; driving throws a failure.
                  ;; Otherwise, the pose was found, so return location designator,
                  ;; which is currently referenced to the found pose.
-                 (let ((pose-at-navigation-location (desig:reference navigation-location-desig)))
+                 (let ((pose-at-navigation-location
+                         (desig:reference navigation-location-desig)))
                    (urdf-proj::drive pose-at-navigation-location)
                    ;; (roslisp:ros-info (coll-check nav)
                    ;;                   "Found non-colliding pose~%~a to satisfy~%~a."
-                   ;;                   pose-at-navigation-location navigation-location-desig)
+                   ;;                   pose-at-navigation-location
+                   ;;                   navigation-location-desig)
                    navigation-location-desig))))
         (btr:restore-world-poses world-pose-info)))))
 
@@ -125,7 +140,8 @@ Store found pose into designator or throw error if good pose not found."
                                                 "No more pick-up samples to try.~
                                                  Object unreachable.")
                               (cpl:fail 'common-fail:object-unreachable
-                                        :description "No more pick-up samples to try."))))
+                                        :description
+                                        "No more pick-up samples to try."))))
                       (roslisp:ros-warn (coll-check pick) "No more retries left :'(")
                       (cpl:fail 'common-fail:object-unreachable
                                 :description "No more grasp retries left.")))
@@ -133,33 +149,49 @@ Store found pose into designator or throw error if good pose not found."
                  (let* ((pick-up-action-referenced
                           (second (desig:reference pick-up-action-desig)))
                         (object-designator
-                          (desig:desig-prop-value pick-up-action-referenced :object))
+                          (desig:current-desig
+                           (desig:desig-prop-value pick-up-action-referenced
+                                                   :object)))
                         (arm
-                          (desig:desig-prop-value pick-up-action-referenced :arm))
+                          (desig:desig-prop-value pick-up-action-referenced
+                                                  :arm))
                         (gripper-opening
-                          (desig:desig-prop-value pick-up-action-referenced :gripper-opening))
+                          (desig:desig-prop-value pick-up-action-referenced
+                                                  :gripper-opening))
                         (grasp
-                          (desig:desig-prop-value pick-up-action-referenced :grasp))
+                          (desig:desig-prop-value pick-up-action-referenced
+                                                  :grasp))
                         (left-reach-poses
-                          (desig:desig-prop-value pick-up-action-referenced :left-reach-poses))
+                          (desig:desig-prop-value pick-up-action-referenced
+                                                  :left-reach-poses))
                         (right-reach-poses
-                          (desig:desig-prop-value pick-up-action-referenced :right-reach-poses))
+                          (desig:desig-prop-value pick-up-action-referenced
+                                                  :right-reach-poses))
                         (left-grasp-poses
-                          (desig:desig-prop-value pick-up-action-referenced :left-grasp-poses))
+                          (desig:desig-prop-value pick-up-action-referenced
+                                                  :left-grasp-poses))
                         (right-grasp-poses
-                          (desig:desig-prop-value pick-up-action-referenced :right-grasp-poses))
+                          (desig:desig-prop-value pick-up-action-referenced
+                                                  :right-grasp-poses))
                         (left-lift-poses
-                          (desig:desig-prop-value pick-up-action-referenced :left-lift-poses))
+                          (desig:desig-prop-value pick-up-action-referenced
+                                                  :left-lift-poses))
                         (right-lift-poses
-                          (desig:desig-prop-value pick-up-action-referenced :right-lift-poses))
+                          (desig:desig-prop-value pick-up-action-referenced
+                                                  :right-lift-poses))
                         (object-name
-                          (desig:desig-prop-value object-designator :name)))
+                          (desig:desig-prop-value object-designator
+                                                  :name))
+                        (move-base
+                          (infer-move-base object-designator
+                                           pick-up-action-referenced)))
 
                    (urdf-proj::gripper-action gripper-opening arm)
 
                    ;; Go over all the trajectory via points and check for collisions
                    ;; with any object except the one to pick up.
-                   ;; If collision happens, throw `manipulation-goal-in-collision' failure.
+                   ;; If collision happens,
+                   ;; throw `manipulation-goal-in-collision' failure.
                    (roslisp:ros-info (coll-check pick)
                                      "Trying grasp ~a on object ~a with arm ~a~%"
                                      grasp object-name arm)
@@ -170,8 +202,9 @@ Store found pose into designator or throw error if good pose not found."
                           (cut:equalize-two-list-lengths left-poses right-poses)
                         (dotimes (i (length left-poses))
                           (urdf-proj::move-tcp (nth i left-poses) (nth i right-poses)
-                                               :allow-all)
-                          (unless (< (abs urdf-proj::*debug-short-sleep-duration*) 0.0001)
+                                               :allow-all nil nil nil move-base)
+                          (unless (< (abs urdf-proj::*debug-short-sleep-duration*)
+                                     0.0001)
                             (cpl:sleep urdf-proj::*debug-short-sleep-duration*))
                           (when (urdf-proj::perform-collision-check
                                  collision-flag
@@ -235,23 +268,34 @@ Store found pose into designator or throw error if good pose not found."
                  (let* ((placing-action-referenced
                           (second (desig:reference placing-action-desig)))
                         (object-designator
-                          (desig:desig-prop-value placing-action-referenced :object))
+                          (desig:desig-prop-value placing-action-referenced
+                                                  :object))
                         (arm
-                          (desig:desig-prop-value placing-action-referenced :arm))
+                          (desig:desig-prop-value placing-action-referenced
+                                                  :arm))
                         (left-reach-poses
-                          (desig:desig-prop-value placing-action-referenced :left-reach-poses))
+                          (desig:desig-prop-value placing-action-referenced
+                                                  :left-reach-poses))
                         (right-reach-poses
-                          (desig:desig-prop-value placing-action-referenced :right-reach-poses))
+                          (desig:desig-prop-value placing-action-referenced
+                                                  :right-reach-poses))
                         (left-put-poses
-                          (desig:desig-prop-value placing-action-referenced :left-put-poses))
+                          (desig:desig-prop-value placing-action-referenced
+                                                  :left-put-poses))
                         (right-put-poses
-                          (desig:desig-prop-value placing-action-referenced :right-put-poses))
+                          (desig:desig-prop-value placing-action-referenced
+                                                  :right-put-poses))
                         (left-retract-poses
-                          (desig:desig-prop-value placing-action-referenced :left-retract-poses))
+                          (desig:desig-prop-value placing-action-referenced
+                                                  :left-retract-poses))
                         (right-retract-poses
-                          (desig:desig-prop-value placing-action-referenced :right-retract-poses))
+                          (desig:desig-prop-value placing-action-referenced
+                                                  :right-retract-poses))
                         (object-name
-                          (desig:desig-prop-value object-designator :name)))
+                          (desig:desig-prop-value object-designator
+                                                  :name))
+                        (move-base
+                          (infer-move-base object-designator placing-action-desig)))
 
                    (urdf-proj::gripper-action :open arm)
 
@@ -265,8 +309,9 @@ Store found pose into designator or throw error if good pose not found."
                           (cut:equalize-two-list-lengths left-poses right-poses)
                         (dotimes (i (length left-poses))
                           (urdf-proj::move-tcp (nth i left-poses) (nth i right-poses)
-                                               :allow-all)
-                          (unless (< (abs urdf-proj:*debug-short-sleep-duration*) 0.0001)
+                                               :allow-all nil nil nil move-base)
+                          (unless (< (abs urdf-proj:*debug-short-sleep-duration*)
+                                     0.0001)
                             (cpl:sleep urdf-proj:*debug-short-sleep-duration*))
                           (when (or
                                  ;; either robot collied with environment

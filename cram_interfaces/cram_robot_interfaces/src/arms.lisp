@@ -32,12 +32,11 @@
 (def-fact-group arms (;; rules describing the robot arms
                       arm
                       required-arms available-arms
-                      arm-joints arm-links arm-base-joints arm-base-links
-                      arm-tool-joints
-                      hand-links end-effector-link robot-tool-frame
-                      gripper-joint gripper-link gripper-meter-to-joint-multiplier
-                      planning-group
-                      standard-to-particular-gripper-transform
+                      arm-joints arm-links
+                      hand-links hand-link hand-finger-link gripper-joint
+                      end-effector-link robot-tool-frame
+                      gripper-meter-to-joint-multiplier
+                      standard<-particular-gripper-transform
                       tcp-in-ee-pose)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;; rules describing the robot arms
@@ -63,49 +62,44 @@
   (<- (arm-links ?robot ?arm ?links)
     (fail))
 
-  ;; Unifies ?arm with the list of base joints for that arm
-  ;; (e.g., for the PR2 it's the torso).
-  (<- (arm-base-joints ?robot ?arm ?joints)
-    (fail))
-
-  ;; Unifies ?arm with a list of base links for that arm
-  ;; (e.g., for the PR2 it's the torso).
-  (<- (arm-base-links ?robot ?arm ?links)
-    (fail))
-
-  ;; Unifies ?arm with the list of tool joints for that arm
-  ;; (e.g., for the PR2 it's the palm and tool joints).
-  (<- (arm-tool-joints ?robot ?arm ?joints)
-    (fail))
-
-    ;; Unifies ?arm with a list of links for the hand of that arm.
+  ;; Unifies ?arm with a list of links for the hand of that arm.
   (<- (hand-links ?robot ?arm ?links)
     (fail))
 
-    ;; Defines end-effector links for arms.
-  (<- (end-effector-link ?robot ?arm ?link-name)
+  ;; Unifies a ?link, which belongs to the hand of the robot on ?arm arm
+  (<- (hand-link ?robot ?arm ?link)
     (fail))
 
-   ;; Defines tool frames for arms.
-  (<- (robot-tool-frame ?robot ?arm ?frame)
+  ;; Similar to hand-link but gives only the finger links (not palm etc.)
+  (<- (hand-finger-link ?robot ?arm ?link)
     (fail))
 
   ;; Defines joints of robot's grippers
   (<- (gripper-joint ?robot ?arm ?joint)
     (fail))
 
-  ;; Defines links of the grippers of the robot
-  (<- (gripper-link ?robot ?arm ?link)
-    (fail))
-
+  ;; Some grippers are commanded in radian, some in CM.
+  ;; To keep the interfaces consistent, we assume CM and each robot defines
+  ;; how to convert CM opening distance for the gripper into its own unit.
   (<- (gripper-meter-to-joint-multiplier ?robot ?multiplier)
     (fail))
 
-  (<- (planning-group ?robot ?arms ?group-name)
+  ;; Standard gripper has the Z pointing towards the object
+  ;; and X is aligned with the hand opening.
+  ;; If the particular robot's gripper is different,
+  ;; this predicate defines the cl-transforms:transform of
+  ;; standard-gripper_T_particular-gripper
+  (<- (standard<-particular-gripper-transform ?robot ?transform)
     (fail))
 
-  (<- (standard-to-particular-gripper-transform ?robot ?transform)
+  ;; Defines end-effector links for arms.
+  (<- (end-effector-link ?robot ?arm ?link-name)
     (fail))
 
+  ;; Defines tool frames for arms.
+  (<- (robot-tool-frame ?robot ?arm ?frame)
+    (fail))
+
+  ;; Defines cl-transforms:pose of ee_P_tcp (should be the same for all arms)
   (<- (tcp-in-ee-pose ?robot ?transform)
     (fail)))

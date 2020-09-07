@@ -72,6 +72,7 @@
            #:motion-designator #:motion-grounding
            #:location-designator
            #:*location-generator-max-retries*
+           #:*print-location-validation-function-results*
            #:register-location-generator
            #:register-location-validation-function
            #:list-location-generators
