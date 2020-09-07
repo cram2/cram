@@ -247,7 +247,7 @@
                                 object-relative-pose))))))
                   spawning-data)))
 
-    (btr:attach-object 'motor-grill 'underbody)
+    (btr:attach-object :motor-grill :underbody)
 
     objects))
 

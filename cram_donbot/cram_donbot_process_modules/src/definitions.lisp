@@ -33,11 +33,11 @@
 
 (cpm:def-process-module grippers-pm (motion-designator)
   (destructuring-bind (command action-type-or-position which-gripper
-                       &optional effort-but-actually-slippage-parameter)
+                       &optional effort-but-actually-slippage-param)
       (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-gripper-joint
-       (donbot-ll:call-gripper-action :action-type-or-position action-type-or-position
-                                      :left-or-right which-gripper
-                                      :effort-but-actually-slippage-parameter
-                                      effort-but-actually-slippage-parameter)))))
+       (donbot-ll:call-gripper-action
+        :action-type-or-position action-type-or-position
+        :left-or-right which-gripper
+        :effort-but-actually-slippage-parameter effort-but-actually-slippage-param)))))

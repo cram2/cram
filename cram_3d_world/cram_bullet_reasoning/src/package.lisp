@@ -108,6 +108,7 @@
            #:get-robot-object #:get-environment-object
            #:robot-colliding-objects-without-attached
            #:robot-attached-objects-in-collision
+           #:find-levels-under-link
            ;; temporal-reasoning
            event make-event timeline timeline-init timeline-advance
            timeline-current-world-state timeline-lookup

@@ -3,11 +3,14 @@
 
 (defparameter *cloud-logger-client* nil)
 (defparameter *is-client-connected* nil)
-(defparameter *is-logging-enabled* nil)
+;;(defparameter *is-logging-enabled* nil)
+(defvar *my-mutex* (sb-thread:make-mutex))
 
 ;; Sebastian's setup on his PC
 (defparameter *host* "'https://localhost'")
+;;(defparameter *host* "'https://192.168.101.42'")
 (defparameter *cert-path* "'/home/koralewski/Desktop/localhost.pem'")
+;;(defparameter *cert-path* "'/home/ease/asil.pem'")
 ;;LOCAL PC
 ;;(defparameter *api-key* "'0nYZRYs5AxDeZAWhWBKYmLF1IJCtRM7gkYTqSV3Noyhl5V3yyxzSaA7Nxi8FFQsC'")
 ;;AI PC
@@ -15,6 +18,7 @@
 ;;(defparameter *api-key* "'DiI6fqr5I2ObbeMyI9cDyzjoEHjfz3E48O45M3bKAZh465PUvNtOPB9v8xodMCQT'")
 
 ;; Gaya's token on Asil's PC
+;;(defparameter *api-key* "'MxtU9V2cdstw3ocKXbicBGp7fAeLNxjIvcmY4CJV96DeZd7obfgvw0mR3X5j8Yrz'")
 ;; Asil's host
 ;;(defparameter *host* "'https://192.168.101.42'")
 ;; Asil's certificate on ease@pr2a
@@ -73,7 +77,8 @@
 (defun send-prolog-query-1 (prolog-query)
   ;;(print prolog-query)
   (when *is-logging-enabled*
-    (handler-case
+    (sb-thread:with-mutex (*my-mutex*)
+     (handler-case
         (let ((query-id (get-id-from-query-result
                          (json-prolog:prolog-simple-1
                           (concatenate 'string "send_prolog_query('"
@@ -83,7 +88,7 @@
             query-result))
       (simple-error (e)
         (roslisp:ros-error (ccl) "error in json prolog: ~a~%" e)
-        (cpl:fail 'ccl-failure :format-control "Error in json prolog.")))))
+        (cpl:fail 'ccl-failure :format-control "Error in json prolog."))))))
 
 (defun send-prolog-query (prolog-query)
   (json-prolog:prolog-simple

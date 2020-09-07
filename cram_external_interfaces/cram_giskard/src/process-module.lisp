@@ -30,74 +30,56 @@
 (in-package :giskard)
 
 (cpm:def-process-module giskard-pm (motion-designator)
-  (destructuring-bind (command argument-1 &rest rest-arguments)
+  (destructuring-bind (command argument-1 &rest rest-args)
       (desig:reference motion-designator)
     (ecase command
       (cram-common-designators:move-tcp
-       (call-giskard-cartesian-action :goal-pose-left argument-1
-                                      :goal-pose-right (first rest-arguments)
-                                      :collision-mode (second rest-arguments)
-                                      :collision-object-b (third rest-arguments)
-                                      :collision-object-b-link (fourth rest-arguments)
-                                      :collision-object-a (fifth rest-arguments)
-                                      :move-base (sixth rest-arguments)
-                                      :prefer-base (seventh rest-arguments)
-                                      :align-planes-left (eighth rest-arguments)
-                                      :align-planes-right (ninth rest-arguments)))
+       (giskard:call-arm-cartesian-action
+        :goal-pose-left argument-1
+        :goal-pose-right (first rest-args)
+        :collision-mode (second rest-args)
+        :collision-object-b (third rest-args)
+        :collision-object-b-link (fourth rest-args)
+        :collision-object-a (fifth rest-args)
+        :move-base (sixth rest-args)
+        :prefer-base (seventh rest-args)
+        :align-planes-left (eighth rest-args)
+        :align-planes-right (ninth rest-args)))
       (cram-common-designators:move-joints
-       (call-giskard-joint-action :goal-configuration-left argument-1
-                                  :goal-configuration-right (first rest-arguments)
-                                  :align-planes-left (second rest-arguments)
-                                  :align-planes-right (third rest-arguments)))
+       (giskard:call-arm-joint-action
+        :goal-configuration-left argument-1
+        :goal-configuration-right (first rest-args)
+        :align-planes-left (second rest-args)
+        :align-planes-right (third rest-args)))
+      (cram-common-designators:move-arm-pull
+       (giskard:call-environment-manipulation-action
+        :open-or-close :open
+        :arm argument-1
+        :handle-link (fifth rest-args)
+        :joint-angle (second rest-args)
+        :prefer-base (eighth rest-args)))
+      (cram-common-designators:move-arm-push
+       (giskard:call-environment-manipulation-action
+        :open-or-close :close
+        :arm argument-1
+        :handle-link (fifth rest-args)
+        :joint-angle (second rest-args)
+        :prefer-base (eighth rest-args)))
       (cram-common-designators:move-head
-       ;; for donbot, as his left arm is also his head
        (when argument-1
-         (call-neck-action :goal-pose argument-1))
-       (when (car rest-arguments)
-         (call-giskard-joint-action :goal-configuration-left
-                                    (car rest-arguments))))
+         (giskard:call-neck-action
+          :goal-pose argument-1))
+       (when (car rest-args)
+         (giskard:call-neck-joint-action
+          :goal-configuration (car rest-args))))
       (cram-common-designators:move-base
-       (call-giskard-base-action :goal-pose argument-1))
+       (giskard:call-base-action
+        :goal-pose argument-1))
       (cram-common-designators:move-torso
-       (call-giskard-torso-action :goal-joint-state argument-1)))))
-
-(prolog:def-fact-group giskard-pm (cpm:matching-process-module
-                                   cpm:available-process-module)
-
-  (prolog:<- (cpm:matching-process-module ?motion-designator giskard-pm)
-    (or (desig:desig-prop ?motion-designator (:type :moving-tcp))
-        (desig:desig-prop ?motion-designator (:type :moving-arm-joints))
-        (desig:desig-prop ?motion-designator (:type :going))
-        (desig:desig-prop ?motion-designator (:type :moving-torso))
-        ;; (and (desig:desig-prop ?motion-designator (:type :looking))
-        ;;      (or (desig:desig-prop ?motion-designator (:joint-states ?_))
-        ;;          (desig:desig-prop ?motion-designator (:pose ?_))
-        ;;          ))
-        ))
-
-  (prolog:<- (cpm:available-process-module giskard-pm)
-    (prolog:not (cpm:projection-running ?_))))
-
-;;; The examples below are deprecated, so the designator changed, but the idea is the same
-;;; Examples:
-;;
-;; (cram-process-modules:with-process-modules-running
-;;     (giskard::giskard-pm)
-;;   (cpl:top-level
-;;     (cpm:pm-execute-matching
-;;      (desig:a motion (type moving-tcp) (right-pose ((0.5 0.5 1.5) (0 0 0 1)))))))
-;;
-;; (cram-process-modules:with-process-modules-running
-;;     (giskard::giskard-pm)
-;;   (cpl:top-level
-;;     (cpm:pm-execute-matching
-;;      (desig:a motion
-;;                (to move-arm)
-;;                (right ((0.5 -0.5 1.5) (0 0 0 1)))
-;;                (left ((0.5 0.5 1.5) (0 0 0 1)))))))
-;;
-;; (cram-process-modules:with-process-modules-running
-;;     (giskard::giskard-pm)
-;;   (cpl:top-level
-;;     (cpm:pm-execute-matching
-;;      (desig:a motion (to move-arm) (right (((1 1 1) (0 0 0 1)) nil ((1 1 1) (0 0 0 1))))))))
+       (giskard:call-torso-action
+        :goal-joint-state argument-1))
+      (cram-common-designators:move-gripper-joint
+       (giskard:call-gripper-action
+        :action-type-or-position argument-1
+        :arm (first rest-args)
+        :effort (second rest-args))))))
