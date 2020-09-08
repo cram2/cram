@@ -306,9 +306,10 @@
       ("body_b" . ,(roslisp-utilities:rosify-underscores-lisp-name
                     (rob-int:get-environment-name)))
       ("link_b" . ,environment-link)
-      ("weight" . ,(roslisp-msg-protocol:symbol-code
-                    'giskard_msgs-msg:constraint
-                    :weight_collision_avoidance))))))
+      ;; ("weight" . ,(roslisp-msg-protocol:symbol-code
+      ;;               'giskard_msgs-msg:constraint
+      ;;               :weight_collision_avoidance))
+      ))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; NON-JSON CONSTRAINTS ;;;;;;;;;;;;;;;;;;;;;;;;;;;
