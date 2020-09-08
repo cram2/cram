@@ -276,3 +276,33 @@ or other objects to which current object is attached."
                                       colliding-objects-without-robot)))
                     colliding-objects-without-robot-and-attached-objects))
                 (attached-objects (get-robot-object)))))
+
+(defun visualize-thinking (robot-object)
+  "Creates an object out of all the meshes in robot-object and spawns it over the robot to visualize the computing process of the robot.
+   The newly spawned meshes are scaled by a factor of 1.3. The object has the name :thinking"
+  (let* ((urdf (btr:urdf robot-object))
+         (links (cl-urdf:links urdf))
+         (mesh-list '())
+         (counter 0))
+
+    (loop for link being the hash-values of links
+          do (if (not (eql (cl-urdf:collision link) NIL))
+             (when (typep (cl-urdf:geometry (cl-urdf:collision link)) 'cl-urdf::mesh)
+               (let* ((rigid-body-name (intern (concatenate 'string "PR2." (cl-urdf:name link)) "KEYWORD"))
+                      (rigid-body (gethash rigid-body-name (slot-value robot-object 'btr:rigid-bodies)))
+                      (pose (btr:pose rigid-body))
+                      (mesh-file-name (cl-urdf:filename (cl-urdf:geometry (cl-urdf:collision link))))
+                      (mesh-size (cl-urdf:size (cl-urdf:geometry (cl-urdf:collision link))))
+                      (mesh-name (concatenate 'string "Thinking-" (write-to-string counter))))
+
+                 (setf mesh-list (append mesh-list (list (btr::make-instance 'btr::rigid-body 
+                                                        :name mesh-name :mass 2 :pose pose
+                                                        :collision-shape
+                                                        (btr::make-collision-shape-from-mesh mesh-file-name
+                                                                                             :color '(0.2 0.2 0.2 0.6) :scale 1.3
+                                                                                             :size mesh-size :compound nil)))))
+                 (incf counter)))))
+
+    (btr:make-object btr:*current-bullet-world* :thinking mesh-list)))
+    
+  
